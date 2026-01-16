@@ -1,0 +1,58 @@
+{
+    "menus": [
+        {
+            "id": "file",
+            "label": "Datei",
+            "items": [
+                {
+                    "id": "save",
+                    "label": "Projekt Speichern",
+                    "action": "save",
+                    "icon": "💾"
+                },
+                {
+                    "id": "load",
+                    "label": "Projekt Laden",
+                    "action": "load",
+                    "icon": "📂"
+                }
+            ]
+        },
+        {
+            "id": "multiplayer",
+            "label": "Multiplayer",
+            "items": [
+                {
+                    "id": "lobby",
+                    "label": "Plattform-Lobby",
+                    "action": "multiplayer",
+                    "icon": "🌐"
+                }
+            ]
+        },
+        {
+            "id": "export",
+            "label": "Export",
+            "items": [
+                {
+                    "id": "export-html",
+                    "label": "Export als HTML (Standalone)",
+                    "action": "export-html",
+                    "icon": "🌐"
+                },
+                {
+                    "id": "export-json",
+                    "label": "Export als JSON (Plattform)",
+                    "action": "export-json",
+                    "icon": "📄"
+                },
+                {
+                    "id": "export-exe",
+                    "label": "Export als Exe (Demnächst...)",
+                    "action": "export-exe",
+                    "icon": "🖥️"
+                }
+            ]
+        }
+    ]
+}

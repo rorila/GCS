@@ -1,0 +1,111 @@
+{
+    "meta": {
+        "name": "Variable Editor",
+        "version": "1.0.0"
+    },
+    "title": "Neue Variable erstellen",
+    "width": 420,
+    "height": 520,
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "NameLabel",
+            "text": "Name:",
+            "style": {
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "varName",
+            "text": "",
+            "placeholder": "VariableName"
+        },
+        {
+            "className": "TLabel",
+            "name": "TypeLabel",
+            "text": "Typ:",
+            "style": {
+                "marginTop": 12,
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "varType",
+            "options": [
+                "Integer",
+                "Real",
+                "String",
+                "Boolean"
+            ],
+            "selectedIndex": 0,
+            "style": {
+                "marginBottom": 12
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "ScopeLabel",
+            "text": "Scope (Gültigkeit):",
+            "style": {
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "varScope",
+            "options": [
+                "global",
+                "task",
+                "action"
+            ],
+            "selectedIndex": 0
+        },
+        {
+            "className": "TLabel",
+            "name": "DefaultLabel",
+            "text": "Default-Wert:",
+            "style": {
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "defaultValue",
+            "text": "0",
+            "placeholder": "0"
+        },
+        {
+            "className": "TLabel",
+            "name": "DescriptionLabel",
+            "text": "Beschreibung (optional):",
+            "style": {
+                "marginTop": 12,
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "description",
+            "text": "",
+            "placeholder": "Beschreibung der Variable..."
+        }
+    ],
+    "buttons": [
+        {
+            "caption": "💾 Speichern",
+            "action": "save",
+            "style": {
+                "backgroundColor": "#2e7d32"
+            }
+        },
+        {
+            "caption": "Abbrechen",
+            "action": "cancel",
+            "style": {
+                "backgroundColor": "#555"
+            }
+        }
+    ]
+}

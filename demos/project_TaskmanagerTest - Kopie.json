@@ -1,0 +1,250 @@
+{
+  "meta": {
+    "name": "New Game",
+    "version": "1.0.0",
+    "author": "Anonymous"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [
+    {
+      "className": "TButton",
+      "id": "obj_1766396017225_m4hmtzkcm",
+      "name": "Button_1",
+      "Tasks": {
+        "onClick": "myFirstTask"
+      },
+      "x": 10,
+      "y": 11,
+      "width": 6,
+      "height": 2,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#007bff",
+        "borderColor": "#000000",
+        "borderWidth": 1,
+        "color": "#ffffff"
+      },
+      "caption": "TestTaskEditor",
+      "color": "#007bff",
+      "service": "",
+      "serviceMethod": "",
+      "serviceParams": "",
+      "onSuccessToast": "",
+      "onSuccessToastType": "success",
+      "onSuccessStatusSection": "",
+      "onSuccessStatusText": "",
+      "onSuccessInfoWindow": "",
+      "onSuccessInfoMessage": "",
+      "onSuccessCloseDialog": false,
+      "onErrorToast": "",
+      "onErrorToastType": "error"
+    },
+    {
+      "className": "TLabel",
+      "id": "obj_1766396021192_zntr1hyzu",
+      "name": "Label_2",
+      "x": 9,
+      "y": 7,
+      "width": 6,
+      "height": 1,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "transparent",
+        "borderColor": "transparent",
+        "borderWidth": 0,
+        "color": "#000000"
+      },
+      "text": "Pong",
+      "fontSize": 14,
+      "alignment": "left",
+      "color": "#000000"
+    },
+    {
+      "className": "TLabel",
+      "id": "obj_1766396026601_pwaen4mow",
+      "name": "Label_3",
+      "x": 18,
+      "y": 7,
+      "width": 11,
+      "height": 1,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "transparent",
+        "borderColor": "transparent",
+        "borderWidth": 0,
+        "color": "#000000"
+      },
+      "text": "if curGameName == 'Pong'",
+      "fontSize": 14,
+      "alignment": "left",
+      "color": "#000000"
+    },
+    {
+      "className": "TLabel",
+      "id": "obj_1766404773917_a7u3x1xys",
+      "name": "Label_4",
+      "x": 18,
+      "y": 9,
+      "width": 15,
+      "height": 1,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "transparent",
+        "borderColor": "transparent",
+        "borderWidth": 0,
+        "color": "#000000"
+      },
+      "text": "else ",
+      "fontSize": 14,
+      "alignment": "left",
+      "color": "#000000"
+    }
+  ],
+  "actions": [
+    {
+      "name": "getGameName",
+      "type": "variable",
+      "variableName": "curGameName",
+      "source": "Label_2",
+      "sourceProperty": "text"
+    },
+    {
+      "name": "SetGameName",
+      "type": "property",
+      "target": "Label_3",
+      "changes": {
+        "text": "${curGameName}"
+      }
+    },
+    {
+      "name": "SetOtherGameName",
+      "type": "property",
+      "target": "Label_4",
+      "changes": {
+        "text": "${curGameName}"
+      }
+    },
+    {
+      "name": "Assign_1766502077190",
+      "type": "property",
+      "target": "Button_1",
+      "changes": {}
+    },
+    {
+      "name": "getCond1",
+      "type": "variable",
+      "variableName": "var1",
+      "source": "Label_2",
+      "sourceProperty": "text"
+    },
+    {
+      "name": "getCond2",
+      "type": "variable",
+      "variableName": "var2",
+      "source": "Label_3",
+      "sourceProperty": "text"
+    },
+    {
+      "name": "calc",
+      "type": "calculate",
+      "resultVariable": "varResult",
+      "calcSteps": [
+        {
+          "operandType": "variable",
+          "variable": "var1"
+        },
+        {
+          "operator": "+",
+          "operandType": "variable",
+          "variable": "var2"
+        }
+      ]
+    },
+    {
+      "name": "show",
+      "type": "property",
+      "target": "Label_4",
+      "changes": {
+        "text": "${varResult}"
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "name": "myFirstTask",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "getCond1"
+        },
+        {
+          "type": "action",
+          "name": "Assign_1766502420688"
+        },
+        {
+          "type": "action",
+          "name": "calc"
+        },
+        {
+          "type": "action",
+          "name": "show"
+        }
+      ],
+      "usedVariables": [
+        "var1",
+        "var1_Copy",
+        "var2_Copy",
+        "var2",
+        "varResult"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "var1",
+      "type": "integer",
+      "scope": "myFirstTask",
+      "defaultValue": 0,
+      "description": ""
+    },
+    {
+      "name": "var2",
+      "type": "integer",
+      "scope": "myFirstTask",
+      "defaultValue": 0,
+      "description": ""
+    },
+    {
+      "name": "varResult",
+      "type": "integer",
+      "scope": "myFirstTask",
+      "defaultValue": 0,
+      "description": ""
+    }
+  ]
+}

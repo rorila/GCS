@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=/player.html?game=lobby.json">
+    <title>Redirecting...</title>
+</head>
+
+<body>
+    <p>Redirecting to <a href="/player.html?game=lobby.json">Game Lobby</a>...</p>
+    <script>window.location.href = "/player.html?game=lobby.json";</script>
+</body>
+
+</html>

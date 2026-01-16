@@ -1,0 +1,95 @@
+{
+    "tasks": [
+        {
+            "name": "MoveAndLog",
+            "category": "Movement",
+            "description": "Moves a sprite and logs the action to the status bar.",
+            "params": [
+                {
+                    "name": "targetObj",
+                    "type": "sprite",
+                    "label": "Sprite",
+                    "default": "Ball"
+                },
+                {
+                    "name": "vx",
+                    "type": "number",
+                    "label": "Velocity X",
+                    "default": 0.2
+                },
+                {
+                    "name": "vy",
+                    "type": "number",
+                    "label": "Velocity Y",
+                    "default": 0
+                },
+                {
+                    "name": "msg",
+                    "type": "string",
+                    "label": "Status Message",
+                    "default": "Moving object..."
+                }
+            ],
+            "actionSequence": [
+                {
+                    "type": "property",
+                    "target": "${targetObj}",
+                    "changes": {
+                        "velocityX": "${vx}",
+                        "velocityY": "${vy}"
+                    }
+                },
+                {
+                    "type": "property",
+                    "target": "StatusBar",
+                    "changes": {
+                        "text": "${msg}"
+                    }
+                }
+            ],
+            "flowChart": {
+                "elements": [
+                    {
+                        "id": "move-1",
+                        "type": "Action",
+                        "x": 50,
+                        "y": 50,
+                        "properties": {
+                            "name": "ApplyVelocity"
+                        },
+                        "data": {
+                            "type": "property",
+                            "target": "${targetObj}",
+                            "changes": {
+                                "velocityX": "${vx}",
+                                "velocityY": "${vy}"
+                            }
+                        }
+                    },
+                    {
+                        "id": "log-1",
+                        "type": "Action",
+                        "x": 250,
+                        "y": 50,
+                        "properties": {
+                            "name": "LogToStatus"
+                        },
+                        "data": {
+                            "type": "property",
+                            "target": "StatusBar",
+                            "changes": {
+                                "text": "${msg}"
+                            }
+                        }
+                    }
+                ],
+                "connections": [
+                    {
+                        "startTargetId": "move-1",
+                        "endTargetId": "log-1"
+                    }
+                ]
+            }
+        }
+    ]
+}

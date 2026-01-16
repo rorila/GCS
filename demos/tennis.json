@@ -1,0 +1,432 @@
+{
+    "meta": {
+        "name": "Tennis",
+        "version": "1.0.0",
+        "author": "Antigravity GCS"
+    },
+    "stage": {
+        "grid": {
+            "cols": 64,
+            "rows": 40,
+            "cellSize": 20,
+            "snapToGrid": true,
+            "visible": false,
+            "backgroundColor": "#1a1c2c"
+        }
+    },
+    "objects": [
+        {
+            "className": "TPanel",
+            "id": "tennis-net",
+            "name": "TennisNet",
+            "x": 31.8,
+            "y": 0,
+            "width": 0.4,
+            "height": 40,
+            "style": {
+                "backgroundColor": "rgba(255, 255, 255, 0.2)",
+                "borderWidth": 0
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "player-1",
+            "name": "Player1",
+            "x": 2,
+            "y": 18,
+            "width": 1,
+            "height": 4,
+            "collisionEnabled": true,
+            "collisionGroup": "paddle",
+            "shape": "rect",
+            "spriteColor": "#5d8aa8",
+            "style": {
+                "backgroundColor": "#5d8aa8",
+                "borderColor": "#ffffff",
+                "borderWidth": 1
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "player-2",
+            "name": "Player2",
+            "x": 61,
+            "y": 18,
+            "width": 1,
+            "height": 4,
+            "collisionEnabled": true,
+            "collisionGroup": "paddle",
+            "shape": "rect",
+            "spriteColor": "#ff7f50",
+            "style": {
+                "backgroundColor": "#ff7f50",
+                "borderColor": "#ffffff",
+                "borderWidth": 1
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "ball",
+            "name": "Ball",
+            "x": 31,
+            "y": 19,
+            "width": 1,
+            "height": 1,
+            "velocityX": 0.2,
+            "velocityY": 0.15,
+            "collisionEnabled": true,
+            "collisionGroup": "ball",
+            "shape": "circle",
+            "spriteColor": "#e9ef1a",
+            "style": {
+                "backgroundColor": "#e9ef1a",
+                "borderColor": "#ffffff",
+                "borderWidth": 1
+            },
+            "Tasks": {
+                "onBoundaryHit": "CheckGoal",
+                "onCollision": "HandleBounce"
+            }
+        },
+        {
+            "className": "TLabel",
+            "id": "score-label-1",
+            "name": "Score1",
+            "x": 20,
+            "y": 2,
+            "width": 6,
+            "height": 3,
+            "text": "0",
+            "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+                "color": "#ffffff"
+            },
+            "fontSize": 48,
+            "alignment": "center"
+        },
+        {
+            "className": "TLabel",
+            "id": "score-label-2",
+            "name": "Score2",
+            "x": 38,
+            "y": 2,
+            "width": 6,
+            "height": 3,
+            "text": "0",
+            "style": {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+                "color": "#ffffff"
+            },
+            "fontSize": 48,
+            "alignment": "center"
+        },
+        {
+            "className": "TGameLoop",
+            "id": "main-loop",
+            "name": "MainLoop",
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 1,
+            "targetFPS": 60,
+            "boundsWidth": 64,
+            "boundsHeight": 40,
+            "bounceTop": true,
+            "bounceBottom": true,
+            "bounceLeft": false,
+            "bounceRight": false,
+            "Tasks": {
+                "onStart": "ResetBall"
+            }
+        },
+        {
+            "className": "TInputController",
+            "id": "input-ctrl",
+            "name": "InputCtrl",
+            "x": 3,
+            "y": 0,
+            "width": 3,
+            "height": 1,
+            "player1Controls": "wasd",
+            "player1Target": "Player1",
+            "player1Speed": 0.4,
+            "player2Controls": "arrows",
+            "player2Target": "Player2",
+            "player2Speed": 0.4,
+            "verticalOnly": true
+        }
+    ],
+    "actions": [
+        {
+            "name": "ResetBallPos",
+            "type": "property",
+            "target": "Ball",
+            "changes": {
+                "x": 31,
+                "y": 19,
+                "velocityX": 0.2,
+                "velocityY": 0.15
+            }
+        },
+        {
+            "name": "IncrementScore1",
+            "type": "increment",
+            "target": "Score1",
+            "changes": {
+                "text": 1
+            }
+        },
+        {
+            "name": "IncrementScore2",
+            "type": "increment",
+            "target": "Score2",
+            "changes": {
+                "text": 1
+            }
+        },
+        {
+            "name": "SetBallVelocityLeft",
+            "type": "property",
+            "target": "Ball",
+            "changes": {
+                "velocityX": -0.22
+            }
+        },
+        {
+            "name": "SetBallVelocityRight",
+            "type": "property",
+            "target": "Ball",
+            "changes": {
+                "velocityX": 0.22
+            }
+        },
+        {
+            "name": "HB_ReadBallY",
+            "type": "variable",
+            "variableName": "ballY",
+            "source": "Ball",
+            "sourceProperty": "y"
+        },
+        {
+            "name": "HB_ReadPaddle1Y",
+            "type": "variable",
+            "variableName": "paddleY",
+            "source": "Player1",
+            "sourceProperty": "y"
+        },
+        {
+            "name": "HB_ReadPaddle2Y",
+            "type": "variable",
+            "variableName": "paddleY",
+            "source": "Player2",
+            "sourceProperty": "y"
+        },
+        {
+            "name": "HB_ApplyVY",
+            "type": "property",
+            "target": "Ball",
+            "changes": {
+                "velocityY": "${newVY}"
+            }
+        }
+    ],
+    "tasks": [
+        {
+            "name": "ResetBall",
+            "actionSequence": [
+                {
+                    "type": "action",
+                    "name": "ResetBallPos"
+                }
+            ]
+        },
+        {
+            "name": "CheckGoal",
+            "actionSequence": [
+                {
+                    "type": "condition",
+                    "name": "GoalRight",
+                    "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "right"
+                    },
+                    "thenTask": "ScorePlayer1"
+                },
+                {
+                    "type": "condition",
+                    "name": "GoalLeft",
+                    "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "left"
+                    },
+                    "thenTask": "ScorePlayer2"
+                }
+            ]
+        },
+        {
+            "name": "ScorePlayer1",
+            "actionSequence": [
+                {
+                    "type": "action",
+                    "name": "IncrementScore1"
+                },
+                {
+                    "type": "task",
+                    "name": "ResetBall"
+                }
+            ]
+        },
+        {
+            "name": "ScorePlayer2",
+            "actionSequence": [
+                {
+                    "type": "action",
+                    "name": "IncrementScore2"
+                },
+                {
+                    "type": "task",
+                    "name": "ResetBall"
+                }
+            ]
+        },
+        {
+            "name": "HandleBounce",
+            "actionSequence": [
+                {
+                    "type": "condition",
+                    "name": "HitPlayer2",
+                    "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "right"
+                    },
+                    "body": [
+                        {
+                            "type": "action",
+                            "name": "HB_ReadBallY"
+                        },
+                        {
+                            "type": "action",
+                            "name": "HB_ReadPaddle2Y"
+                        },
+                        {
+                            "type": "calculate",
+                            "name": "HB_CalcDiff",
+                            "resultVariable": "hitDiff",
+                            "calcSteps": [
+                                {
+                                    "operandType": "variable",
+                                    "variable": "ballY"
+                                },
+                                {
+                                    "operator": "-",
+                                    "operandType": "variable",
+                                    "variable": "paddleY"
+                                },
+                                {
+                                    "operator": "-",
+                                    "operandType": "constant",
+                                    "constant": 1.5
+                                }
+                            ]
+                        },
+                        {
+                            "type": "calculate",
+                            "name": "HB_CalcVY",
+                            "resultVariable": "newVY",
+                            "calcSteps": [
+                                {
+                                    "operandType": "variable",
+                                    "variable": "hitDiff"
+                                },
+                                {
+                                    "operator": "*",
+                                    "operatorSymbol": "*",
+                                    "operandType": "constant",
+                                    "constant": 0.1
+                                }
+                            ]
+                        },
+                        {
+                            "type": "action",
+                            "name": "HB_ApplyVY"
+                        },
+                        {
+                            "type": "action",
+                            "name": "SetBallVelocityLeft"
+                        }
+                    ]
+                },
+                {
+                    "type": "condition",
+                    "name": "HitPlayer1",
+                    "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "left"
+                    },
+                    "body": [
+                        {
+                            "type": "action",
+                            "name": "HB_ReadBallY"
+                        },
+                        {
+                            "type": "action",
+                            "name": "HB_ReadPaddle1Y"
+                        },
+                        {
+                            "type": "calculate",
+                            "name": "HB_CalcDiff",
+                            "resultVariable": "hitDiff",
+                            "calcSteps": [
+                                {
+                                    "operandType": "variable",
+                                    "variable": "ballY"
+                                },
+                                {
+                                    "operator": "-",
+                                    "operandType": "variable",
+                                    "variable": "paddleY"
+                                },
+                                {
+                                    "operator": "-",
+                                    "operandType": "constant",
+                                    "constant": 1.5
+                                }
+                            ]
+                        },
+                        {
+                            "type": "calculate",
+                            "name": "HB_CalcVY",
+                            "resultVariable": "newVY",
+                            "calcSteps": [
+                                {
+                                    "operandType": "variable",
+                                    "variable": "hitDiff"
+                                },
+                                {
+                                    "operator": "*",
+                                    "operandType": "constant",
+                                    "constant": 0.1
+                                }
+                            ]
+                        },
+                        {
+                            "type": "action",
+                            "name": "HB_ApplyVY"
+                        },
+                        {
+                            "type": "action",
+                            "name": "SetBallVelocityRight"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "variables": []
+}

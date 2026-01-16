@@ -1,0 +1,364 @@
+{
+    "meta": {
+        "name": "Stage Inspector",
+        "version": "2.0.0",
+        "description": "Inspector for Stage/Project properties"
+    },
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "TitleLabel",
+            "text": "Stage / Game Settings",
+            "style": {
+                "fontSize": 16,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 16
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "GameNameLabel",
+            "text": "Game Name:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "meta.nameInput",
+            "text": "${selectedObject.meta.name}",
+            "width": 30,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "AuthorLabel",
+            "text": "Author:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "meta.authorInput",
+            "text": "${selectedObject.meta.author}",
+            "width": 30,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "DescriptionLabel",
+            "text": "Description:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "stage.descriptionInput",
+            "text": "${(selectedObject && selectedObject.stage && selectedObject.stage.description) || ''}",
+            "placeholder": "Enter game description...",
+            "width": 30,
+            "height": 4,
+            "multiline": true
+        },
+        {
+            "className": "TLabel",
+            "name": "GridSettingsLabel",
+            "text": "Grid Settings",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginTop": 16,
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "ColumnsLabel",
+            "text": "Columns:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "stage.grid.colsInput",
+            "value": "${selectedObject.stage.grid.cols}",
+            "min": 10,
+            "max": 100,
+            "step": 1,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "RowsLabel",
+            "text": "Rows:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "stage.grid.rowsInput",
+            "value": "${selectedObject.stage.grid.rows}",
+            "min": 10,
+            "max": 100,
+            "step": 1,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "CellSizeLabel",
+            "text": "Cell Size (px):",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "stage.grid.cellSizeInput",
+            "value": "${selectedObject.stage.grid.cellSize}",
+            "min": 5,
+            "max": 50,
+            "step": 1,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "ShowGridLabel",
+            "text": "Show Grid:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TCheckbox",
+            "name": "stage.grid.visibleInput",
+            "checked": "${selectedObject.stage.grid.visible}",
+            "label": "Display grid lines"
+        },
+        {
+            "className": "TLabel",
+            "name": "BackgroundColorLabel",
+            "text": "Background Color:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TColorPicker",
+            "name": "stage.grid.backgroundColorInput",
+            "color": "${selectedObject.stage.grid.backgroundColor}",
+            "width": 30,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "AnimationLabel",
+            "text": "Animation",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginTop": 16,
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "StartAnimationLabel",
+            "text": "Start Animation:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TSelect",
+            "name": "stage.startAnimationInput",
+            "selectedValue": "${selectedObject.stage.startAnimation || 'none'}",
+            "options": [
+                "none",
+                "UpLeft",
+                "UpMiddle",
+                "UpRight",
+                "Left",
+                "Right",
+                "BottomLeft",
+                "BottomMiddle",
+                "BottomRight",
+                "ChaosIn",
+                "ChaosOut",
+                "Matrix",
+                "Random"
+            ]
+        },
+        {
+            "className": "TLabel",
+            "name": "StartAnimationDurationLabel",
+            "text": "Duration (ms):",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "stage.startAnimationDurationInput",
+            "value": "${selectedObject.stage.startAnimationDuration || 1000}",
+            "min": 100,
+            "max": 5000,
+            "step": 100,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "StartAnimationEasingLabel",
+            "text": "Easing:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TSelect",
+            "name": "stage.startAnimationEasingInput",
+            "selectedValue": "${selectedObject.stage.startAnimationEasing || 'easeOut'}",
+            "options": [
+                "linear",
+                "easeIn",
+                "easeOut",
+                "easeInOut",
+                "bounce",
+                "elastic"
+            ]
+        },
+        {
+            "className": "TLabel",
+            "name": "VariablesLabel",
+            "text": "Variables",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginTop": 24,
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TForEach",
+            "name": "VariablesList",
+            "source": "selectedObject.variables",
+            "rowLayout": true,
+            "template": [
+                {
+                    "className": "TLabel",
+                    "name": "VarScope_${index}",
+                    "text": "[${item.scope || 'global'}]",
+                    "style": {
+                        "fontSize": 9,
+                        "color": "${item.scope && item.scope !== 'global' ? '#ffaa00' : '#888'}",
+                        "minWidth": "60px",
+                        "flex": "0 0 60px"
+                    }
+                },
+                {
+                    "className": "TLabel",
+                    "name": "VarName_${index}",
+                    "text": "${item.name}:",
+                    "style": {
+                        "fontSize": 11,
+                        "color": "#9cdcfe",
+                        "minWidth": "70px",
+                        "flex": "0 0 70px"
+                    }
+                },
+                {
+                    "className": "TLabel",
+                    "name": "VarType_${index}",
+                    "text": "${item.type}",
+                    "style": {
+                        "fontSize": 10,
+                        "color": "#ce9178",
+                        "minWidth": "50px",
+                        "flex": "0 0 50px"
+                    }
+                },
+                {
+                    "className": "TLabel",
+                    "name": "VarDefault_${index}",
+                    "text": ":= ${item.defaultValue}",
+                    "style": {
+                        "fontSize": 10,
+                        "color": "#b5cea8",
+                        "flex": "1"
+                    }
+                },
+                {
+                    "className": "TButton",
+                    "name": "VarCopyBtn_${index}",
+                    "caption": "📋",
+                    "action": "copyVariable",
+                    "variableIndex": "${index}",
+                    "style": {
+                        "flex": "0 0 28px",
+                        "minWidth": "28px",
+                        "padding": "4px",
+                        "backgroundColor": "#17a2b8"
+                    }
+                },
+                {
+                    "className": "TButton",
+                    "name": "VarEditBtn_${index}",
+                    "caption": "✏️",
+                    "action": "editVariable",
+                    "variableIndex": "${index}",
+                    "style": {
+                        "flex": "0 0 28px",
+                        "minWidth": "28px",
+                        "padding": "4px"
+                    }
+                },
+                {
+                    "className": "TButton",
+                    "name": "VarDeleteBtn_${index}",
+                    "caption": "🗑️",
+                    "action": "deleteVariable",
+                    "variableIndex": "${index}",
+                    "style": {
+                        "flex": "0 0 28px",
+                        "minWidth": "28px",
+                        "padding": "4px",
+                        "backgroundColor": "#c82333"
+                    }
+                }
+            ]
+        },
+        {
+            "className": "TButton",
+            "name": "AddVariableButton",
+            "caption": "+ Add Variable",
+            "action": "addVariable",
+            "style": {
+                "backgroundColor": "#0e639c",
+                "color": "#fff",
+                "marginTop": 8
+            }
+        }
+    ]
+}

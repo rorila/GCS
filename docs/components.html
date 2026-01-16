@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Komponenten-Referenz | Game Builder</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #0f3460 0%, #16213e 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 2px solid #0e639c;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p { color: #9cdcfe; }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Hierarchy Section */
+        .hierarchy {
+            background: #1e2a3a;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #0e639c;
+        }
+        
+        .hierarchy h2 {
+            color: #0e639c;
+            margin-bottom: 1rem;
+        }
+        
+        .tree {
+            font-family: 'Consolas', monospace;
+            font-size: 1rem;
+            color: #9cdcfe;
+        }
+        
+        .tree .base { color: #c586c0; }
+        .tree .visual { color: #4ec9b0; }
+        .tree .leaf { color: #dcdcaa; }
+        
+        /* Component Cards */
+        .components {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background: #1e2a3a;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        
+        .card-header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-header h3 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .card-header .icon {
+            font-size: 1.5rem;
+        }
+        
+        .card-header .inherits {
+            font-size: 0.75rem;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #9cdcfe;
+        }
+        
+        /* Component Type Colors */
+        .card.base .card-header { background: linear-gradient(90deg, #6a0dad 0%, #4a0a8d 100%); }
+        .card.visual .card-header { background: linear-gradient(90deg, #0e639c 0%, #0a4a7a 100%); }
+        .card.input .card-header { background: linear-gradient(90deg, #2e7d32 0%, #1b5e20 100%); }
+        .card.container .card-header { background: linear-gradient(90deg, #f57c00 0%, #ef6c00 100%); }
+        .card.info .card-header { background: linear-gradient(90deg, #607d8b 0%, #455a64 100%); }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .section-title:first-child { margin-top: 0; }
+        
+        /* Property Table */
+        .props-table {
+            width: 100%;
+            font-size: 0.85rem;
+        }
+        
+        .prop-row {
+            display: flex;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .prop-row:last-child { border-bottom: none; }
+        
+        .prop-name {
+            flex: 1;
+            font-family: 'Consolas', monospace;
+            color: #9cdcfe;
+        }
+        
+        .prop-type {
+            width: 80px;
+            text-align: center;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: #2a3a4a;
+            color: #ce9178;
+        }
+        
+        .prop-type.string { background: #2d4a2d; color: #98c379; }
+        .prop-type.number { background: #4a3a2d; color: #d19a66; }
+        .prop-type.boolean { background: #4a2d4a; color: #c586c0; }
+        .prop-type.color { background: #2d3a4a; color: #61afef; }
+        .prop-type.select { background: #3a3a2d; color: #e5c07b; }
+        
+        /* Events Badge */
+        .events {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .event-badge {
+            background: #2d4a3d;
+            color: #4ec9b0;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: 'Consolas', monospace;
+        }
+        
+        .no-events {
+            color: #666;
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+        
+        /* Action Reference */
+        .action-ref {
+            background: #1e2a3a;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border-left: 4px solid #2e7d32;
+        }
+        
+        .action-ref h2 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+        
+        .action-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .action-table th, .action-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .action-table th {
+            color: #888;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .action-table td:first-child {
+            font-family: 'Consolas', monospace;
+            color: #9cdcfe;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📦 Komponenten-Referenz</h1>
+        <p>Game Builder v1 - Alle verfügbaren Komponenten und ihre Eigenschaften</p>
+    </header>
+    
+    <div class="container">
+        <!-- Hierarchy -->
+        <div class="hierarchy">
+            <h2>🔗 Vererbungshierarchie</h2>
+            <pre class="tree">
+<span class="base">TComponent</span> (Basis)
+├── <span class="leaf">TSystemInfo</span>
+└── <span class="visual">TWindow</span>
+    ├── <span class="leaf">TButton</span>
+    ├── <span class="leaf">TLabel</span>
+    ├── <span class="leaf">TEdit</span>
+    └── <span class="visual">TPanel</span>
+        └── <span class="leaf">TGameHeader</span>
+            </pre>
+        </div>
+        
+        <!-- Components Grid -->
+        <div class="components">
+            <!-- TComponent -->
+            <div class="card base">
+                <div class="card-header">
+                    <h3><span class="icon">🧬</span> TComponent</h3>
+                    <span class="inherits">Basisklasse</span>
+                </div>
+                <div class="card-body">
+                    <div class="section-title">Eigenschaften</div>
+                    <div class="props-table">
+                        <div class="prop-row">
+                            <span class="prop-name">name</span>
+                            <span class="prop-type string">string</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">id</span>
+                            <span class="prop-type string">string (readonly)</span>
+                        </div>
+                    </div>
+                    <div class="section-title">Ereignisse</div>
+                    <div class="no-events">Keine - abstrakte Klasse</div>
+                </div>
+            </div>
+            
+            <!-- TWindow -->
+            <div class="card visual">
+                <div class="card-header">
+                    <h3><span class="icon">🪟</span> TWindow</h3>
+                    <span class="inherits">← TComponent</span>
+                </div>
+                <div class="card-body">
+                    <div class="section-title">Eigenschaften</div>
+                    <div class="props-table">
+                        <div class="prop-row">
+                            <span class="prop-name">x, y</span>
+                            <span class="prop-type number">number</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">width, height</span>
+                            <span class="prop-type number">number</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">align</span>
+                            <span class="prop-type select">select</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">style.visible</span>
+                            <span class="prop-type boolean">boolean</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">style.backgroundColor</span>
+                            <span class="prop-type color">color</span>
+                        </div>
+                    </div>
+                    <div class="section-title">Ereignisse</div>
+                    <div class="events">
+                        <span class="event-badge">onClick</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TButton -->
+            <div class="card input">
+                <div class="card-header">
+                    <h3><span class="icon">🔘</span> TButton</h3>
+                    <span class="inherits">← TWindow</span>
+                </div>
+                <div class="card-body">
+                    <div class="section-title">Spezifische Eigenschaften</div>
+                    <div class="props-table">
+                        <div class="prop-row">
+                            <span class="prop-name">caption</span>
+                            <span class="prop-type string">string</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">color</span>
+                            <span class="prop-type color">color</span>
+                        </div>
+                    </div>
+                    <div class="section-title">Ereignisse</div>
+                    <div class="events">
+                        <span class="event-badge">onClick</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TLabel -->
+            <div class="card visual">
+                <div class="card-header">
+                    <h3><span class="icon">🏷️</span> TLabel</h3>
+                    <span class="inherits">← TWindow</span>
+                </div>
+                <div class="card-body">
+                    <div class="section-title">Spezifische Eigenschaften</div>
+                    <div class="props-table">
+                        <div class="prop-row">
+                            <span class="prop-name">text</span>
+                            <span class="prop-type string">string</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">fontSize</span>
+                            <span class="prop-type number">number</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">style.color</span>
+                            <span class="prop-type color">color</span>
+                        </div>
+                    </div>
+                    <div class="section-title">Ereignisse</div>
+                    <div class="events">
+                        <span class="event-badge">onClick</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TEdit -->
+            <div class="card input">
+                <div class="card-header">
+                    <h3><span class="icon">✏️</span> TEdit</h3>
+                    <span class="inherits">← TWindow</span>
+                </div>
+                <div class="card-body">
+                    <div class="section-title">Spezifische Eigenschaften</div>
+                    <div class="props-table">
+                        <div class="prop-row">
+                            <span class="prop-name">text</span>
+                            <span class="prop-type string">string</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">placeholder</span>
+                            <span class="prop-type string">string</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">maxLength</span>
+                            <span class="prop-type number">number</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">style.borderColor</span>
+                            <span class="prop-type color">color</span>
+                        </div>
+                    </div>
+                    <div class="section-title">Ereignisse</div>
+                    <div class="events">
+                        <span class="event-badge">onClick</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TPanel -->
+            <div class="card container">
+                <div class="card-header">
+                    <h3><span class="icon">📋</span> TPanel</h3>
+                    <span class="inherits">← TWindow</span>
+                </div>
+                <div class="card-body">
+                    <div class="section-title">Spezifische Eigenschaften</div>
+                    <div class="props-table">
+                        <div class="prop-row">
+                            <span class="prop-name">caption</span>
+                            <span class="prop-type string">string</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">style.borderColor</span>
+                            <span class="prop-type color">color</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">style.borderWidth</span>
+                            <span class="prop-type number">number</span>
+                        </div>
+                    </div>
+                    <div class="section-title">Ereignisse</div>
+                    <div class="events">
+                        <span class="event-badge">onClick</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TGameHeader -->
+            <div class="card container">
+                <div class="card-header">
+                    <h3><span class="icon">🎮</span> TGameHeader</h3>
+                    <span class="inherits">← TPanel</span>
+                </div>
+                <div class="card-body">
+                    <div class="section-title">Spezifische Eigenschaften</div>
+                    <div class="props-table">
+                        <div class="prop-row">
+                            <span class="prop-name">title</span>
+                            <span class="prop-type string">string</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">titleAlign</span>
+                            <span class="prop-type select">select</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">textColor</span>
+                            <span class="prop-type color">color</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">fontSize</span>
+                            <span class="prop-type number">number</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">fontWeight</span>
+                            <span class="prop-type select">select</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">fontFamily</span>
+                            <span class="prop-type string">string</span>
+                        </div>
+                    </div>
+                    <div class="section-title">Ereignisse</div>
+                    <div class="events">
+                        <span class="event-badge">onClick</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TSystemInfo -->
+            <div class="card info">
+                <div class="card-header">
+                    <h3><span class="icon">💻</span> TSystemInfo</h3>
+                    <span class="inherits">← TComponent</span>
+                </div>
+                <div class="card-body">
+                    <div class="section-title">Eigenschaften (alle readonly)</div>
+                    <div class="props-table">
+                        <div class="prop-row">
+                            <span class="prop-name">browserName, browserVersion</span>
+                            <span class="prop-type string">string</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">language, platform</span>
+                            <span class="prop-type string">string</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">online</span>
+                            <span class="prop-type boolean">boolean</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">screenWidth, screenHeight</span>
+                            <span class="prop-type number">number</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">windowWidth, windowHeight</span>
+                            <span class="prop-type number">number</span>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-name">hardwareConcurrency</span>
+                            <span class="prop-type number">number</span>
+                        </div>
+                    </div>
+                    <div class="section-title">Ereignisse</div>
+                    <div class="no-events">Keine - ist kein visuelles Objekt</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Reference -->
+        <div class="action-ref">
+            <h2>⚡ In Actions verwendbare Eigenschaften</h2>
+            <table class="action-table">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Komponenten</th>
+                        <th>Beschreibung</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>x, y</td>
+                        <td>Alle TWindow</td>
+                        <td>Position ändern</td>
+                    </tr>
+                    <tr>
+                        <td>width, height</td>
+                        <td>Alle TWindow</td>
+                        <td>Größe ändern</td>
+                    </tr>
+                    <tr>
+                        <td>caption</td>
+                        <td>TButton, TPanel</td>
+                        <td>Text/Beschriftung</td>
+                    </tr>
+                    <tr>
+                        <td>text</td>
+                        <td>TLabel, TEdit</td>
+                        <td>Text-Inhalt</td>
+                    </tr>
+                    <tr>
+                        <td>title</td>
+                        <td>TGameHeader</td>
+                        <td>Titel-Text</td>
+                    </tr>
+                    <tr>
+                        <td>style.visible</td>
+                        <td>Alle TWindow</td>
+                        <td>Sichtbarkeit (true/false)</td>
+                    </tr>
+                    <tr>
+                        <td>style.backgroundColor</td>
+                        <td>Alle TWindow</td>
+                        <td>Hintergrundfarbe</td>
+                    </tr>
+                    <tr>
+                        <td>style.color</td>
+                        <td>Alle TWindow</td>
+                        <td>Textfarbe</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <footer>
+        Game Builder v1 - Komponenten-Referenz
+    </footer>
+</body>
+</html>

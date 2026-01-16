@@ -1,0 +1,1913 @@
+{
+  "meta": {
+    "name": "NewTennis",
+    "version": "1.0.0",
+    "author": "RoRiLa",
+    "exportedAt": "2026-01-15T13:34:48.433Z",
+    "type": "standalone_game",
+    "runtimeVersion": "1.0.0"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#862d2d"
+    },
+    "startAnimation": "UpLeft",
+    "startAnimationDuration": 1001,
+    "startAnimationEasing": "bounce"
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [
+    {
+      "className": "TSprite",
+      "id": "obj_1766753853667_zhfdyqr29",
+      "name": "LeftPaddle",
+      "Tasks": {},
+      "x": 3,
+      "y": 17,
+      "width": 1,
+      "height": 6,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#10148e",
+        "borderColor": "#4b4fbe",
+        "borderWidth": 1
+      },
+      "velocityX": 0,
+      "velocityY": 0,
+      "lerpSpeed": 0.1,
+      "collisionEnabled": true,
+      "collisionGroup": "default",
+      "shape": "rect",
+      "spriteColor": "#ec0909",
+      "backgroundImage": "",
+      "objectFit": "contain"
+    },
+    {
+      "className": "TSprite",
+      "id": "7b42a974-a229-4918-9ba5-1283a337ea03",
+      "name": "RightPaddle",
+      "Tasks": {},
+      "x": 60,
+      "y": 17,
+      "width": 1,
+      "height": 6,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#3ed06a",
+        "borderColor": "#17401a",
+        "borderWidth": 1
+      },
+      "velocityX": 0,
+      "velocityY": 0,
+      "lerpSpeed": 0.1,
+      "collisionEnabled": true,
+      "collisionGroup": "default",
+      "shape": "rect",
+      "spriteColor": "#0feb8c",
+      "backgroundImage": "",
+      "objectFit": "contain"
+    },
+    {
+      "className": "TGameHeader",
+      "id": "obj_1766753944753_ph0i01i8j",
+      "name": "GameHeader",
+      "Tasks": {},
+      "x": 0,
+      "y": 0,
+      "width": 64,
+      "height": 4,
+      "zIndex": 0,
+      "visible": true,
+      "align": "TOP",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#2c3e50",
+        "borderColor": "#34495e",
+        "borderWidth": 0,
+        "fontSize": 18,
+        "color": "#ffffff",
+        "fontWeight": "bold",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "fontFamily": "Segoe UI, sans-serif"
+      },
+      "title": "New Tennis"
+    },
+    {
+      "className": "TStatusBar",
+      "id": "obj_1766753993735_zup1nxzg9",
+      "name": "StatusBar",
+      "Tasks": {},
+      "x": 0,
+      "y": 36,
+      "width": 64,
+      "height": 4,
+      "zIndex": 0,
+      "visible": true,
+      "align": "BOTTOM",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#1a1a2e",
+        "borderColor": "#333333",
+        "borderWidth": 1
+      },
+      "sections": [
+        {
+          "id": "status",
+          "text": "Ready",
+          "icon": "data:text/html;base64,PCFkb2N0eXBlIGh0bWw+DQo8aHRtbCBsYW5nPSJlbiI+DQogIDxoZWFkPgogICAgPHNjcmlwdCB0eXBlPSJtb2R1bGUiIHNyYz0iL0B2aXRlL2NsaWVudCI+PC9zY3JpcHQ+Cg0KICAgIDxtZXRhIGNoYXJzZXQ9IlVURi04IiAvPg0KICAgIDxsaW5rIHJlbD0iaWNvbiIgdHlwZT0iaW1hZ2Uvc3ZnK3htbCIgaHJlZj0iL3ZpdGUuc3ZnIiAvPg0KICAgIDxtZXRhIG5hbWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsIGluaXRpYWwtc2NhbGU9MS4wIiAvPg0KICAgIDx0aXRsZT5HYW1lIEJ1aWxkZXIgdjE8L3RpdGxlPg0KICA8L2hlYWQ+DQogIDxib2R5Pg0KICAgIDxkaXYgaWQ9ImFwcCI+PC9kaXY+DQogICAgPHNjcmlwdCB0eXBlPSJtb2R1bGUiIHNyYz0iL3NyYy9tYWluLnRzP3Q9MTc2ODQ3NzcxODMyNSI+PC9zY3JpcHQ+DQogIDwvYm9keT4NCjwvaHRtbD4NCg==",
+          "width": "auto",
+          "align": "left"
+        }
+      ],
+      "textColor": "#ffffff",
+      "fontSize": 12,
+      "paddingX": 12,
+      "paddingY": 6,
+      "sectionGap": 16,
+      "separatorColor": "#444444",
+      "showSeparators": true
+    },
+    {
+      "className": "TToast",
+      "id": "obj_1766754019555_x3h3ygkpm",
+      "name": "Toast",
+      "Tasks": {},
+      "x": 44,
+      "y": 32,
+      "width": 20,
+      "height": 4,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "transparent",
+        "borderColor": "transparent",
+        "borderWidth": 0
+      },
+      "animation": "slide-left",
+      "position": "bottom-left",
+      "duration": 3000,
+      "maxVisible": 3,
+      "infoColor": "#2196F3",
+      "successColor": "#4CAF50",
+      "warningColor": "#FF9800",
+      "errorColor": "#F44336",
+      "textColor": "#ffffff",
+      "fontSize": 14,
+      "borderRadius": 8,
+      "padding": 12
+    },
+    {
+      "className": "TPanel",
+      "id": "obj_1766754427094_eva7t9y7p",
+      "name": "Panel_6",
+      "Tasks": {},
+      "x": 32,
+      "y": 5,
+      "width": 1,
+      "height": 30,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#1b552a",
+        "borderColor": "#999999",
+        "borderWidth": 1
+      },
+      "caption": "Panel_6",
+      "showGrid": false,
+      "gridColor": "#000000",
+      "gridStyle": "lines"
+    },
+    {
+      "className": "TSprite",
+      "id": "obj_1766754456369_dmh8grz0p",
+      "name": "BallSprite",
+      "Tasks": {
+        "onBoundaryHit": "HandleBallBoundary",
+        "onCollision": "HandlePaddleHit"
+      },
+      "x": 32,
+      "y": 19,
+      "width": 1,
+      "height": 1,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#6bff84",
+        "borderColor": "#333333",
+        "borderWidth": 1
+      },
+      "velocityX": 0,
+      "velocityY": 0,
+      "lerpSpeed": 0.1,
+      "collisionEnabled": true,
+      "collisionGroup": "default",
+      "shape": "circle",
+      "spriteColor": "#ff6b6b",
+      "backgroundImage": "",
+      "objectFit": "contain"
+    },
+    {
+      "className": "TInputController",
+      "id": "obj_1766761331624_j984qpwvt",
+      "name": "InputController",
+      "Tasks": {
+        "onKeyDown_KeyW": "SendLeftPaddleUp",
+        "onKeyDown_KeyS": "SendLeftPaddleDown",
+        "onKeyUp_KeyW": "StopLeftPaddle",
+        "onKeyUp_KeyS": "StopLeftPaddle",
+        "onKeyUp_ArrowUp": "StopRightPaddle",
+        "onKeyDown_ArrowUp": "SendRightPaddleUp",
+        "onKeyDown_ArrowDown": "SendRightPaddleDown",
+        "onKeyUp_ArrowDown": "StopRightPaddle"
+      },
+      "x": 1,
+      "y": 7,
+      "width": 5,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#9c27b0",
+        "borderColor": "#6a1b9a",
+        "borderWidth": 2,
+        "color": "#ffffff"
+      },
+      "enabled": true
+    },
+    {
+      "className": "TGameState",
+      "id": "obj_1766761345082_edswzt2cj",
+      "name": "GameState",
+      "Tasks": {},
+      "x": 1,
+      "y": 9,
+      "width": 5,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#4caf50",
+        "borderColor": "transparent",
+        "borderWidth": 0,
+        "color": "#ffffff"
+      },
+      "state": "playing",
+      "spritesMoving": false,
+      "collisionsEnabled": false
+    },
+    {
+      "className": "TGameLoop",
+      "id": "obj_1766761409695_4e4rv62ig",
+      "name": "GameLoop",
+      "Tasks": {},
+      "x": 1,
+      "y": 5,
+      "width": 5,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#2196f3",
+        "borderColor": "#1565c0",
+        "borderWidth": 2,
+        "color": "#ffffff"
+      },
+      "targetFPS": 60,
+      "boundsOffsetTop": 4,
+      "boundsOffsetBottom": 4
+    },
+    {
+      "className": "TTimer",
+      "id": "obj_1766761437072_vxhsjao1q",
+      "name": "SynchronTimer",
+      "Tasks": {
+        "onTimer": "PeriodicSync"
+      },
+      "x": 1,
+      "y": 11,
+      "width": 5,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#4caf50",
+        "borderColor": "#2e7d32",
+        "borderWidth": 2
+      },
+      "interval": 200,
+      "enabled": "${isMultiplayer}",
+      "maxInterval": 0,
+      "currentInterval": 0
+    },
+    {
+      "className": "TLabel",
+      "id": "obj_1766765262504_4f29ef7uz",
+      "name": "StaticStatusLabel",
+      "Tasks": {},
+      "x": 48,
+      "y": 37,
+      "width": 3,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "transparent",
+        "borderColor": "transparent",
+        "borderWidth": 0,
+        "fontSize": 14,
+        "color": "#588d7c",
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textAlign": "left",
+        "fontFamily": "Arial"
+      },
+      "text": "Status:"
+    },
+    {
+      "className": "TLabel",
+      "id": "1f535da9-766d-4081-a6c4-dd2233f68063",
+      "name": "StatusLabel",
+      "Tasks": {},
+      "x": 51,
+      "y": 37,
+      "width": 7,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "transparent",
+        "borderColor": "transparent",
+        "borderWidth": 0,
+        "fontSize": 14,
+        "color": "#588d7c",
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textAlign": "left",
+        "fontFamily": "Arial"
+      },
+      "text": "gestoppt"
+    },
+    {
+      "className": "TButton",
+      "id": "obj_1766861595312_98ymsbf45",
+      "name": "StartBtn",
+      "Tasks": {
+        "onClick": "StartGame"
+      },
+      "x": 9,
+      "y": 37,
+      "width": 10,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#007bff",
+        "borderColor": "#000000",
+        "borderWidth": 1,
+        "fontSize": 14,
+        "color": "#ffffff",
+        "fontWeight": "bold",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "fontFamily": "Arial"
+      },
+      "caption": "Spiel starten",
+      "color": "#007bff",
+      "icon": ""
+    },
+    {
+      "className": "TButton",
+      "id": "37b384ed-5573-4d08-823a-bc0692fc016a",
+      "name": "PauseGameBtn",
+      "Tasks": {
+        "onClick": "PauseGame"
+      },
+      "x": 20,
+      "y": 37,
+      "width": 10,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#007bff",
+        "borderColor": "#000000",
+        "borderWidth": 1,
+        "fontSize": 14,
+        "color": "#ffffff",
+        "fontWeight": "bold",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "fontFamily": "Arial"
+      },
+      "caption": "Spiel pausieren",
+      "color": "#007bff",
+      "icon": ""
+    },
+    {
+      "className": "TButton",
+      "id": "obj_1767094196869_s5kxtbodl",
+      "name": "ResumeGameBtn",
+      "Tasks": {
+        "onClick": "ResumeGame"
+      },
+      "x": 31,
+      "y": 37,
+      "width": 9,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#007bff",
+        "borderColor": "#000000",
+        "borderWidth": 1,
+        "fontSize": 14,
+        "color": "#ffffff",
+        "fontWeight": "bold",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "fontFamily": "Arial"
+      },
+      "caption": "Spiel fortsetzen",
+      "color": "#007bff",
+      "icon": ""
+    },
+    {
+      "className": "TPanel",
+      "id": "obj_1768123181726_f8lxvpnwv",
+      "name": "Panel_19",
+      "Tasks": {},
+      "x": 0,
+      "y": 5,
+      "width": 1,
+      "height": 30,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#f0f0f0",
+        "borderColor": "#999999",
+        "borderWidth": 1
+      },
+      "caption": "Panel_19",
+      "showGrid": false,
+      "gridColor": "#000000",
+      "gridStyle": "lines"
+    },
+    {
+      "className": "TPanel",
+      "id": "ce79a17f-d6c1-44ef-9dab-deee1883c68d",
+      "name": "Panel_19",
+      "Tasks": {},
+      "x": 63,
+      "y": 5,
+      "width": 1,
+      "height": 30,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#f0f0f0",
+        "borderColor": "#999999",
+        "borderWidth": 1
+      },
+      "caption": "Panel_19",
+      "showGrid": false,
+      "gridColor": "#000000",
+      "gridStyle": "lines"
+    },
+    {
+      "className": "TPanel",
+      "id": "obj_1768123224409_wo5809ewc",
+      "name": "Panel_21",
+      "Tasks": {},
+      "x": 0,
+      "y": 4,
+      "width": 64,
+      "height": 1,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#f0f0f0",
+        "borderColor": "#999999",
+        "borderWidth": 1
+      },
+      "caption": "Panel_21",
+      "showGrid": false,
+      "gridColor": "#000000",
+      "gridStyle": "lines"
+    },
+    {
+      "className": "TPanel",
+      "id": "a815d2e0-0753-480c-8a0e-7eb026e5d4ef",
+      "name": "Panel_21",
+      "Tasks": {},
+      "x": 0,
+      "y": 35,
+      "width": 64,
+      "height": 1,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#f0f0f0",
+        "borderColor": "#999999",
+        "borderWidth": 1
+      },
+      "caption": "Panel_21",
+      "showGrid": false,
+      "gridColor": "#000000",
+      "gridStyle": "lines"
+    },
+    {
+      "className": "TNumberLabel",
+      "id": "obj_1768307659013_6ccbjgywj",
+      "name": "ScoreLblLeft",
+      "Tasks": {
+        "onMaxValueReached": "PauseGame"
+      },
+      "x": 20,
+      "y": 1,
+      "width": 5,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "transparent",
+        "borderColor": "transparent",
+        "borderWidth": 0,
+        "fontSize": 36,
+        "color": "#f0ebeb",
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "fontFamily": "Arial"
+      },
+      "value": 0,
+      "startValue": 0,
+      "maxValue": 5,
+      "step": 1
+    },
+    {
+      "className": "TNumberLabel",
+      "id": "f5eb5ec2-c70b-4309-b441-f0d9543d8806",
+      "name": "ScoreLblRight",
+      "Tasks": {
+        "onMaxValueReached": "PauseGame"
+      },
+      "x": 37,
+      "y": 1,
+      "width": 4,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "transparent",
+        "borderColor": "transparent",
+        "borderWidth": 0,
+        "fontSize": 36,
+        "color": "#f4f1f1",
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "fontFamily": "Arial"
+      },
+      "value": 0,
+      "startValue": 0,
+      "maxValue": 5,
+      "step": 1
+    },
+    {
+      "className": "TTimer",
+      "id": "obj_1768324032417_h7nn1j1yj",
+      "name": "PauseTimer",
+      "Tasks": {
+        "onMaxIntervalReached": "ServeBall"
+      },
+      "x": 1,
+      "y": 13,
+      "width": 5,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#4caf50",
+        "borderColor": "#2e7d32",
+        "borderWidth": 2
+      },
+      "interval": 2000,
+      "enabled": false,
+      "maxInterval": 1,
+      "currentInterval": 0
+    },
+    {
+      "className": "THeartbeat",
+      "id": "obj_1768406871452_45jpkqbr6",
+      "name": "Heartbeat",
+      "Tasks": {},
+      "x": 1,
+      "y": 17,
+      "width": 5,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#e91e63",
+        "borderColor": "#c2185b",
+        "borderWidth": 2
+      },
+      "pingInterval": 5000,
+      "timeoutThreshold": 3,
+      "latencyWarningThreshold": 500,
+      "enabled": "${isMultiplayer}",
+      "latency": 0,
+      "missedPongs": 0,
+      "status": "inactive"
+    },
+    {
+      "className": "THandshake",
+      "id": "obj_1768406910807_73vk7ohq8",
+      "name": "Handshake",
+      "Tasks": {
+        "onPeerJoined": "HandlePeerJoined",
+        "onRoomJoined": "HandleJoinSuccess",
+        "onPeerLeft": "HandlePeerLeft"
+      },
+      "x": 1,
+      "y": 15,
+      "width": 5,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#5c6bc0",
+        "borderColor": "#3949ab",
+        "borderWidth": 2
+      },
+      "protocolVersion": "1.0",
+      "peerVersion": "",
+      "isHost": false,
+      "playerNumber": 0,
+      "roomCode": "",
+      "status": "disconnected",
+      "enabled": "${isMultiplayer}"
+    },
+    {
+      "className": "TNumberLabel",
+      "id": "obj_1768474459125_8wmqmx6ys",
+      "name": "NumberLabel_26",
+      "Tasks": {},
+      "x": 15,
+      "y": 12,
+      "width": 6,
+      "height": 1,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "transparent",
+        "borderColor": "transparent",
+        "borderWidth": 0,
+        "fontSize": 14,
+        "color": "#000000",
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "fontFamily": "Arial"
+      },
+      "value": 0,
+      "startValue": 0,
+      "maxValue": null,
+      "step": 1
+    }
+  ],
+  "actions": [
+    {
+      "name": "ShowPlayerLeftToast",
+      "type": "call_method",
+      "target": "Toast",
+      "method": "warning",
+      "params": [
+        "Ein Spieler hat das Spiel verlassen!"
+      ],
+      "hostOnly": false,
+      "showDetails": false
+    },
+    {
+      "type": "property",
+      "target": "StatusLabel",
+      "changes": {
+        "text": "Spiel wurde gestartet"
+      },
+      "_formValues": {
+        "TargetObjectSelect": "StatusLabel",
+        "PropertySelect": "text",
+        "PropertyValueInput": "Spiel gestarte",
+        "ActionTypeSelect": "📝 Property Change (Set)"
+      },
+      "name": "setStatusLabelToRunning",
+      "details": "StatusLabel.text := Spiel gestarte",
+      "sync": true,
+      "taskName": "setStatusLabelToRunning",
+      "description": "Updates the status label text to 'Spiel wurde gestartet'.",
+      "hostOnly": true
+    },
+    {
+      "name": "IncrementLeftPaddleY_Position",
+      "type": "property",
+      "target": "LeftPaddle",
+      "changes": {
+        "velocityY": -0.5
+      },
+      "_formValues": {
+        "ActionTypeSelect": "📝 Property Change (Set)",
+        "PropertySelect": "velocityY",
+        "PropertyValueInput": "-5",
+        "NameInput": "",
+        "TargetObjectSelect": "LeftPaddle"
+      },
+      "taskName": "IncrementLeftPaddleY_Position",
+      "actionName": "",
+      "details": "LeftPaddle.velocityY := -0.5",
+      "hostOnly": true,
+      "showDetails": false
+    },
+    {
+      "name": "setVelocityY_To_zero",
+      "type": "property",
+      "target": "LeftPaddle",
+      "changes": {
+        "velocityY": 0
+      },
+      "_formValues": {
+        "PropertySelect": "velocityY",
+        "PropertyValueInput": "0",
+        "NameInput": "Action",
+        "ActionTypeSelect": "📝 Property Change (Set)",
+        "TargetObjectSelect": "LeftPaddle"
+      },
+      "taskName": "Action",
+      "hostOnly": true
+    },
+    {
+      "name": "DecrementLeftPaddleY_Position",
+      "type": "property",
+      "target": "LeftPaddle",
+      "changes": {
+        "velocityY": 0.5
+      },
+      "_formValues": {
+        "PropertySelect": "y",
+        "PropertyValueInput": "-1",
+        "NameInput": "",
+        "ActionTypeSelect": "📝 Property Change (Set)",
+        "TargetObjectSelect": "LeftPaddle"
+      },
+      "taskName": "DecrementLeftPaddleY_Position",
+      "actionName": "",
+      "details": "LeftPaddle.velocityY := 0.5",
+      "hostOnly": true
+    },
+    {
+      "name": "SetSpriteMovingToTrue",
+      "details": "GameState.spritesMoving := true",
+      "type": "property",
+      "target": "GameState",
+      "changes": {
+        "spritesMoving": true
+      },
+      "_formValues": {
+        "TargetObjectSelect": "GameState",
+        "PropertySelect": "spritesMoving",
+        "PropertyValueInput": "true",
+        "NameInput": "SetSpriteMovingToTrue",
+        "ActionTypeSelect": "📝 Property Change (Set)"
+      },
+      "sync": true,
+      "taskName": "SetSpriteMovingToTrue",
+      "description": "Sets GameState.spritesMoving to true to enable physics.",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "name": "SetCollisionsToTrue",
+      "details": "GameState.collisionsEnabled := true",
+      "type": "property",
+      "target": "GameState",
+      "changes": {
+        "collisionsEnabled": true
+      },
+      "_formValues": {
+        "TargetObjectSelect": "GameState",
+        "PropertySelect": "collisionsEnabled",
+        "PropertyValueInput": "true",
+        "NameInput": "SetCollisionsToTrue",
+        "ActionTypeSelect": "📝 Property Change (Set)"
+      },
+      "sync": true,
+      "taskName": "SetCollisionsToTrue",
+      "description": "Enables collision detection in the GameState.",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "name": "SendRightPaddleUp",
+      "type": "property",
+      "target": "LeftPaddle",
+      "changes": {
+        "velocityY": -5
+      },
+      "_formValues": {
+        "ActionTypeSelect": "📝 Property Change (Set)",
+        "PropertySelect": "velocityY",
+        "PropertyValueInput": "-5",
+        "NameInput": "",
+        "TargetObjectSelect": "LeftPaddle"
+      },
+      "taskName": "",
+      "actionName": "",
+      "details": "(nicht definiert)",
+      "description": "Moves the right paddle upwards by setting negative Y velocity.",
+      "hostOnly": true
+    },
+    {
+      "name": "IncrementRightPaddleY_Position",
+      "type": "property",
+      "target": "RightPaddle",
+      "changes": {
+        "velocityY": -0.5
+      },
+      "_formValues": {
+        "ActionTypeSelect": "📝 Property Change (Set)",
+        "PropertySelect": "velocityY",
+        "PropertyValueInput": "-5",
+        "NameInput": "",
+        "TargetObjectSelect": "LeftPaddle"
+      },
+      "taskName": "IncrementLeftPaddleY_Position",
+      "details": "(nicht definiert)",
+      "hostOnly": true,
+      "showDetails": false
+    },
+    {
+      "name": "DecrementRightPaddleY_Position",
+      "type": "property",
+      "target": "RightPaddle",
+      "changes": {
+        "velocityY": 0.5
+      },
+      "_formValues": {
+        "PropertySelect": "y",
+        "PropertyValueInput": "-1",
+        "NameInput": "",
+        "ActionTypeSelect": "📝 Property Change (Set)",
+        "TargetObjectSelect": "LeftPaddle"
+      },
+      "taskName": "DecrementRightPaddleY_Position",
+      "actionName": "",
+      "details": "RightPaddle.velocityY := 0.5",
+      "hostOnly": true,
+      "showDetails": true
+    },
+    {
+      "name": "Blala",
+      "type": "property",
+      "target": "RightPaddle",
+      "changes": {
+        "velocityY": 0
+      },
+      "_formValues": {
+        "PropertySelect": "velocityY",
+        "PropertyValueInput": "0",
+        "NameInput": "Action",
+        "ActionTypeSelect": "📝 Property Change (Set)",
+        "TargetObjectSelect": "LeftPaddle"
+      },
+      "taskName": "Action",
+      "details": "RightPaddle.velocityY := 0",
+      "hostOnly": true,
+      "showDetails": true,
+      "taskParams": [],
+      "sync": true
+    },
+    {
+      "name": "resetBall",
+      "details": "BallSprite.x := 32; BallSprite.y := 19 (+2)",
+      "type": "property",
+      "target": "BallSprite",
+      "changes": {
+        "x": 32,
+        "y": 19,
+        "velocityX": 0,
+        "velocityY": 0
+      },
+      "description": "Resets the ball sprite to the center of the court (32, 19).",
+      "hostOnly": true,
+      "showDetails": false,
+      "taskParams": [],
+      "sync": true
+    },
+    {
+      "name": "ScoreLblLeft.reset",
+      "type": "call_method",
+      "target": "ScoreLblLeft",
+      "changes": {
+        "text": 0
+      },
+      "details": "(call_method)",
+      "hostOnly": true,
+      "showDetails": false,
+      "taskParams": [],
+      "method": "reset",
+      "params": [],
+      "sync": true
+    },
+    {
+      "name": "ScoreLblRight.reset",
+      "type": "call_method",
+      "target": "ScoreLblRight",
+      "changes": {
+        "text": 0
+      },
+      "details": "(call_method)",
+      "hostOnly": true,
+      "showDetails": false,
+      "taskParams": [],
+      "method": "reset",
+      "params": [],
+      "sync": true
+    },
+    {
+      "name": "SetSpeed",
+      "details": "BallSprite.velocityX := 0.3; BallSprite.velocityY := 0.3",
+      "type": "property",
+      "target": "BallSprite",
+      "changes": {
+        "velocityX": 0.3,
+        "velocityY": 0.3
+      },
+      "taskName": "SetSpeed",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "name": "GetGameStatus",
+      "details": "curGameStatus := GameState.state",
+      "type": "variable",
+      "target": "GameState",
+      "changes": {
+        "spritesMoving": true
+      },
+      "sync": true,
+      "taskName": "SetSpriteMovingToTrue",
+      "_formValues": {
+        "TargetObjectSelect": "GameState",
+        "PropertySelect": "spritesMoving",
+        "PropertyValueInput": "true",
+        "NameInput": "SetSpriteMovingToTrue",
+        "ActionTypeSelect": "📝 Property Change (Set)"
+      },
+      "isLinked": true,
+      "method": "info",
+      "params": [
+        "Das Spiel wurde pausiert"
+      ],
+      "showDetails": false,
+      "taskParams": [],
+      "variableName": "curGameStatus",
+      "source": "GameState",
+      "sourceProperty": "state",
+      "hostOnly": true
+    },
+    {
+      "name": "ChangeY_DirectionToUp",
+      "details": "BallSprite.velocityY := -0.3",
+      "type": "property",
+      "target": "BallSprite",
+      "changes": {
+        "velocityY": -0.3
+      },
+      "taskName": "ChangeY_DirectionToUp",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "name": "ChangeY_DirectionToDown",
+      "details": "BallSprite.velocityY := 0.3",
+      "type": "property",
+      "target": "BallSprite",
+      "changes": {
+        "velocityY": 0.3
+      },
+      "taskName": "ChangeY_DirectionToDown",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "name": "PauseTimer.timerStart",
+      "details": "(call_method)",
+      "type": "call_method",
+      "target": "PauseTimer",
+      "changes": {
+        "velocityX": 0.3
+      },
+      "taskName": "ChangeBallDirectionToRight",
+      "hostOnly": true,
+      "showDetails": false,
+      "taskParams": [],
+      "method": "timerStart",
+      "params": [],
+      "sync": true
+    },
+    {
+      "type": "property",
+      "message": "Boundary Hit: ${hitSide}",
+      "showToast": true,
+      "name": "getHitSide",
+      "details": "LeftPaddle (keine Änderungen)",
+      "description": "Logs debug info when a boundary is hit.",
+      "showDetails": false,
+      "target": "LeftPaddle",
+      "changes": {},
+      "taskParams": [
+        {
+          "name": "hitSide",
+          "type": "string",
+          "label": "hitSide",
+          "default": ""
+        }
+      ],
+      "sync": true,
+      "hostOnly": true
+    },
+    {
+      "type": "variable",
+      "source": "other",
+      "sourceProperty": "y",
+      "variableName": "paddleY",
+      "name": "Get Paddle Y",
+      "details": "paddleY := other.y",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "variable",
+      "source": "other",
+      "sourceProperty": "height",
+      "variableName": "paddleH",
+      "name": "Get Paddle H",
+      "details": "paddleH := other.height",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "variable",
+      "source": "self",
+      "sourceProperty": "y",
+      "variableName": "ballY",
+      "name": "Get Ball Y",
+      "details": "ballY := self.y",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "variable",
+      "source": "self",
+      "sourceProperty": "height",
+      "variableName": "ballH",
+      "name": "Get Ball H",
+      "details": "ballH := self.height",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "calculate",
+      "resultVariable": "paddleHalfH",
+      "calcSteps": [
+        {
+          "operandType": "variable",
+          "variable": "paddleH"
+        },
+        {
+          "operator": "/",
+          "constant": 2
+        }
+      ],
+      "name": "Calc Paddle Half",
+      "details": "paddleHalfH := (Berechnung)",
+      "formula": "paddleH / 2",
+      "description": "Calculates half the height of the paddle for collision math.",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "calculate",
+      "resultVariable": "ballHalfH",
+      "calcSteps": [
+        {
+          "operandType": "variable",
+          "variable": "ballH"
+        },
+        {
+          "operator": "/",
+          "constant": 2
+        }
+      ],
+      "name": "Calc Ball Half",
+      "details": "ballHalfH := (Berechnung)",
+      "formula": "ballH / 2",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "calculate",
+      "resultVariable": "paddleCenterY",
+      "calcSteps": [
+        {
+          "operandType": "variable",
+          "variable": "paddleY"
+        },
+        {
+          "operator": "+",
+          "operandType": "variable",
+          "variable": "paddleHalfH"
+        }
+      ],
+      "name": "Paddle Center Y",
+      "details": "paddleCenterY := (Berechnung)",
+      "formula": "paddleY + paddleHalfH",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "calculate",
+      "resultVariable": "ballCenterY",
+      "calcSteps": [
+        {
+          "operandType": "variable",
+          "variable": "ballY"
+        },
+        {
+          "operator": "+",
+          "operandType": "variable",
+          "variable": "ballHalfH"
+        }
+      ],
+      "name": "Ball Center Y",
+      "details": "ballCenterY := (Berechnung)",
+      "formula": "ballY + ballHalfH",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "calculate",
+      "resultVariable": "diffY",
+      "calcSteps": [
+        {
+          "operandType": "variable",
+          "variable": "ballCenterY"
+        },
+        {
+          "operator": "-",
+          "operandType": "variable",
+          "variable": "paddleCenterY"
+        }
+      ],
+      "name": "Calc Diff Y",
+      "details": "diffY := (Berechnung)",
+      "formula": "ballCenterY - paddleCenterY",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "calculate",
+      "resultVariable": "factor",
+      "calcSteps": [
+        {
+          "operandType": "variable",
+          "variable": "diffY"
+        },
+        {
+          "operator": "/",
+          "operandType": "variable",
+          "variable": "paddleHalfH"
+        }
+      ],
+      "name": "Calc Factor",
+      "details": "factor := (Berechnung)",
+      "formula": "diffY / paddleHalfH",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "calculate",
+      "resultVariable": "newVY",
+      "calcSteps": [
+        {
+          "operandType": "variable",
+          "variable": "factor"
+        },
+        {
+          "operator": "*",
+          "constant": 0.5
+        }
+      ],
+      "name": "Calc New VY",
+      "details": "newVY := (Berechnung)",
+      "formula": "factor * 0.5",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "property",
+      "target": "self",
+      "changes": {
+        "velocityY": "${newVY}"
+      },
+      "name": "Set Velocity Y",
+      "details": "self.velocityY := ${newVY}",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "type": "negate",
+      "target": "self",
+      "changes": {
+        "velocityX": 1
+      },
+      "name": "Negate Velocity X",
+      "details": "(negate)",
+      "showDetails": false,
+      "hostOnly": true
+    },
+    {
+      "name": "setGameStatusToPaused",
+      "details": "GameState.spritesMoving := false; GameState.sync := true (+1)",
+      "type": "property",
+      "target": "GameState",
+      "changes": {
+        "spritesMoving": false,
+        "sync": true,
+        "state": "paused"
+      },
+      "taskName": "setGameStatusToPaused",
+      "description": "Sets the GameState.spritesMoving to false to pause physics.",
+      "showDetails": false,
+      "taskParams": [],
+      "sync": true,
+      "hostOnly": true
+    },
+    {
+      "type": "send_multiplayer_sync",
+      "target": "LeftPaddle",
+      "name": "SyncLeftPaddle",
+      "description": "Syncs LeftPaddle properties (y, velocityY) to network.",
+      "hostOnly": true
+    },
+    {
+      "type": "send_multiplayer_sync",
+      "target": "RightPaddle",
+      "name": "SyncRightPaddle",
+      "description": "Syncs RightPaddle properties (y, velocityY) to network.",
+      "hostOnly": true
+    },
+    {
+      "type": "send_multiplayer_sync",
+      "target": "BallSprite",
+      "name": "SyncBall",
+      "description": "Broadcasts current ball position and velocity to connected peers.",
+      "hostOnly": true
+    },
+    {
+      "type": "send_multiplayer_sync",
+      "target": "GameState",
+      "name": "SyncGameState",
+      "description": "Syncs global game state flags to network.",
+      "hostOnly": true
+    },
+    {
+      "type": "call_method",
+      "target": "Toast",
+      "changes": {},
+      "_formValues": {
+        "TargetObjectSelect": "Toast",
+        "PropertySelect": "text",
+        "PropertyValueInput": "Spiel gestartet",
+        "ActionTypeSelect": "📝 Property Change (Set)"
+      },
+      "name": "setStartMessageToToast",
+      "details": "Toast.text := Spiel gestartet",
+      "method": "info",
+      "params": [
+        "Das Spiel wurde gestartet"
+      ],
+      "sync": true,
+      "taskName": "setToastInfoToRunning",
+      "hostOnly": true
+    },
+    {
+      "showDetails": false,
+      "name": "SetResumeGameBtn.CaptionToGoOn",
+      "details": "ResumeGameBtn.caption := BlubBlub",
+      "type": "property",
+      "target": "ResumeGameBtn",
+      "changes": {
+        "caption": "BlubBlub"
+      },
+      "taskParams": [],
+      "sync": true,
+      "hostOnly": true
+    },
+    {
+      "name": "SetGameState.spritesMovingToTrue",
+      "details": "GameState.spritesMoving := true; GameState.state := playing",
+      "showDetails": false,
+      "type": "property",
+      "target": "GameState",
+      "changes": {
+        "spritesMoving": true,
+        "state": "playing"
+      },
+      "taskParams": [],
+      "sync": true,
+      "hostOnly": true
+    },
+    {
+      "name": "SetResumeGameBtn.captionToGoOn",
+      "details": "ResumeGameBtn.caption := BlaBla",
+      "showDetails": false,
+      "type": "property",
+      "target": "ResumeGameBtn",
+      "changes": {
+        "caption": "BlaBla"
+      },
+      "taskParams": [],
+      "sync": true,
+      "hostOnly": true
+    },
+    {
+      "name": "ScoreLblRight.incValue",
+      "details": "(call_method)",
+      "showDetails": false,
+      "type": "call_method",
+      "target": "ScoreLblRight",
+      "changes": {},
+      "taskParams": [],
+      "method": "incValue",
+      "params": [],
+      "sync": true
+    },
+    {
+      "name": "ScoreLblLeft.incValue",
+      "details": "(call_method)",
+      "showDetails": false,
+      "type": "call_method",
+      "target": "ScoreLblLeft",
+      "changes": {},
+      "taskParams": [],
+      "method": "incValue",
+      "params": [],
+      "sync": true
+    },
+    {
+      "name": "SetRightPaddle.velocityYToNull",
+      "type": "property",
+      "target": "RightPaddle",
+      "changes": {
+        "velocityY": 0
+      },
+      "details": "RightPaddle.velocityY := 0",
+      "showDetails": false,
+      "taskParams": [],
+      "sync": true
+    },
+    {
+      "name": "ShowPlayerJoinedToast",
+      "type": "call_method",
+      "target": "Toast",
+      "method": "success",
+      "params": [
+        "Ein Spieler ist beigetreten!"
+      ],
+      "hostOnly": false
+    },
+    {
+      "name": "ShowJoinSuccessToast",
+      "type": "call_method",
+      "target": "Toast",
+      "method": "success",
+      "params": [
+        "Erfolgreich beigetreten!"
+      ],
+      "hostOnly": false
+    }
+  ],
+  "tasks": [
+    {
+      "name": "InitialAllGameElements",
+      "actionSequence": [
+        {
+          "type": "task",
+          "name": "ResetScore"
+        },
+        {
+          "type": "action",
+          "name": "resetBall"
+        }
+      ],
+      "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
+      "params": []
+    },
+    {
+      "name": "ResetScore",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "ScoreLblLeft.reset"
+        },
+        {
+          "type": "action",
+          "name": "ScoreLblRight.reset"
+        }
+      ],
+      "description": "Resets the scores of both players to zero.",
+      "params": []
+    },
+    {
+      "name": "StartGame",
+      "triggerMode": "broadcast",
+      "actionSequence": [
+        {
+          "type": "task",
+          "name": "InitialAllGameElements"
+        },
+        {
+          "type": "task",
+          "name": "ServeBall"
+        },
+        {
+          "type": "task",
+          "name": "SendStartMessage"
+        },
+        {
+          "type": "action",
+          "name": "SetSpriteMovingToTrue"
+        },
+        {
+          "type": "action",
+          "name": "SetCollisionsToTrue"
+        }
+      ],
+      "description": "Orchestrates the game start: initializes elements, serves the ball, sends start message, and enables movement/collisions.",
+      "params": []
+    },
+    {
+      "name": "SendLeftPaddleUp",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "IncrementLeftPaddleY_Position"
+        }
+      ],
+      "description": "Moves the left paddle upwards by setting negative Y velocity.",
+      "params": [],
+      "triggerMode": "local-sync"
+    },
+    {
+      "name": "SendLeftPaddleDown",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "DecrementLeftPaddleY_Position"
+        }
+      ],
+      "description": "Moves the left paddle downwards by setting positive Y velocity."
+    },
+    {
+      "name": "StopLeftPaddle",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "setVelocityY_To_zero"
+        }
+      ],
+      "description": "Stops the left paddle by setting Y velocity to zero."
+    },
+    {
+      "name": "SendRightPaddleUp",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "IncrementRightPaddleY_Position"
+        }
+      ],
+      "description": "Moves the right paddle upwards by setting negative Y velocity.",
+      "params": []
+    },
+    {
+      "name": "StopRightPaddle",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "SetRightPaddle.velocityYToNull"
+        }
+      ],
+      "description": "Stops the right paddle by setting Y velocity to zero.",
+      "params": []
+    },
+    {
+      "name": "SendRightPaddleDown",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "DecrementRightPaddleY_Position"
+        }
+      ],
+      "description": "Moves the right paddle downwards by setting positive Y velocity."
+    },
+    {
+      "name": "ServeBall",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "SetSpeed"
+        }
+      ],
+      "description": "Sets the initial velocity for the ball to start the rally.",
+      "params": []
+    },
+    {
+      "name": "HandleBallBoundary",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "getHitSide"
+        },
+        {
+          "type": "condition",
+          "condition": {
+            "variable": "hitSide",
+            "value": "left"
+          },
+          "body": [
+            {
+              "type": "task",
+              "name": "RightPlayerScores"
+            }
+          ],
+          "elseBody": [
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "hitSide",
+                "value": "right"
+              },
+              "body": [
+                {
+                  "type": "task",
+                  "name": "LeftPlayerScores"
+                }
+              ],
+              "elseBody": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "hitSide",
+                    "value": "top"
+                  },
+                  "body": [
+                    {
+                      "type": "action",
+                      "name": "ChangeY_DirectionToDown"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "hitSide",
+                        "value": "bottom"
+                      },
+                      "body": [
+                        {
+                          "type": "action",
+                          "name": "ChangeY_DirectionToUp"
+                        }
+                      ],
+                      "elseBody": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "description": "Handles collision with walls: bounces off top/bottom, or triggers scoring if hits left/right.",
+      "params": [
+        {
+          "name": "hitSide",
+          "type": "string",
+          "label": "hitSide",
+          "default": ""
+        }
+      ]
+    },
+    {
+      "name": "LeftPlayerScores",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "ScoreLblLeft.incValue"
+        },
+        {
+          "type": "action",
+          "name": "resetBall"
+        },
+        {
+          "type": "action",
+          "name": "PauseTimer.timerStart"
+        }
+      ],
+      "description": "Increments Player 1 score and resets the ball direction.",
+      "params": []
+    },
+    {
+      "name": "RightPlayerScores",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "ScoreLblRight.incValue"
+        },
+        {
+          "type": "action",
+          "name": "resetBall"
+        },
+        {
+          "type": "action",
+          "name": "PauseTimer.timerStart"
+        }
+      ],
+      "description": "Increments Player 2 score and resets the ball direction.",
+      "params": []
+    },
+    {
+      "name": "HandlePaddleHit",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "Get Paddle Y"
+        },
+        {
+          "type": "action",
+          "name": "Get Paddle H"
+        },
+        {
+          "type": "action",
+          "name": "Get Ball Y"
+        },
+        {
+          "type": "action",
+          "name": "Get Ball H"
+        },
+        {
+          "type": "action",
+          "name": "Calc Paddle Half"
+        },
+        {
+          "type": "action",
+          "name": "Calc Ball Half"
+        },
+        {
+          "type": "action",
+          "name": "Paddle Center Y"
+        },
+        {
+          "type": "action",
+          "name": "Ball Center Y"
+        },
+        {
+          "type": "action",
+          "name": "Calc Diff Y"
+        },
+        {
+          "type": "action",
+          "name": "Calc Factor"
+        },
+        {
+          "type": "action",
+          "name": "Calc New VY"
+        },
+        {
+          "type": "action",
+          "name": "Set Velocity Y"
+        },
+        {
+          "type": "action",
+          "name": "Negate Velocity X"
+        }
+      ],
+      "description": "Calculates the bounce angle based on relative impact position and reverses horizontal direction.",
+      "params": [
+        {
+          "name": "newVY",
+          "type": "number",
+          "label": "newVY",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "PauseGame",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "setGameStatusToPaused"
+        },
+        {
+          "type": "action",
+          "name": "SetResumeGameBtn.CaptionToGoOn"
+        }
+      ],
+      "description": "Pauses the game loop, stopping usage of physics and inputs.",
+      "params": []
+    },
+    {
+      "name": "ResumeGame",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "GetGameStatus"
+        },
+        {
+          "type": "condition",
+          "condition": {
+            "value": "paused",
+            "variable": "curGameStatus"
+          },
+          "body": [
+            {
+              "type": "task",
+              "name": "GoOnGame"
+            }
+          ],
+          "elseBody": [
+            {
+              "type": "task",
+              "name": "PauseGame"
+            }
+          ]
+        }
+      ],
+      "description": "Resumes the game loop, re-enabling physics and inputs.",
+      "params": []
+    },
+    {
+      "name": "PeriodicSync",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "SyncLeftPaddle",
+          "condition": "isPlayer1 == 1"
+        },
+        {
+          "type": "action",
+          "name": "SyncRightPaddle",
+          "condition": "isPlayer2 == 1"
+        },
+        {
+          "type": "action",
+          "name": "SyncBall",
+          "condition": "isPlayer1 == 1"
+        },
+        {
+          "type": "action",
+          "name": "SyncGameState",
+          "condition": "isPlayer1 == 1"
+        }
+      ],
+      "description": "Periodically synchronizes critical game state (paddles, ball) across the network.",
+      "params": []
+    },
+    {
+      "name": "SendStartMessage",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "setStartMessageToToast"
+        },
+        {
+          "type": "action",
+          "name": "setStatusLabelToRunning"
+        }
+      ],
+      "description": "Updates UI elements to inform players that the game has begun."
+    },
+    {
+      "name": "GoOnGame",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "SetGameState.spritesMovingToTrue"
+        },
+        {
+          "type": "action",
+          "name": "SetResumeGameBtn.captionToGoOn"
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "HandlePeerJoined",
+      "description": "Zeigt Toast-Benachrichtigung wenn ein Spieler dem Spiel beitritt (auf Host/anderen Clients).",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "ShowPlayerJoinedToast"
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "HandleJoinSuccess",
+      "description": "Zeigt Toast-Benachrichtigung nach erfolgreichem Beitritt (auf beitretendem Client).",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "ShowJoinSuccessToast"
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "HandlePeerLeft",
+      "description": "Zeigt Toast-Benachrichtigung wenn ein Spieler das Spiel verlässt.",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "ShowPlayerLeftToast"
+        }
+      ],
+      "params": []
+    }
+  ],
+  "variables": []
+}

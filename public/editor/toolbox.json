@@ -1,0 +1,179 @@
+{
+    "meta": {
+        "name": "Toolbox",
+        "version": "2.0.0",
+        "description": "Vertical toolbox with collapsible categories"
+    },
+    "categories": [
+        {
+            "name": "Standard",
+            "expanded": true,
+            "items": [
+                {
+                    "type": "Panel",
+                    "icon": "⬜",
+                    "label": "Panel"
+                },
+                {
+                    "type": "Image",
+                    "icon": "🖼️",
+                    "label": "Image"
+                },
+                {
+                    "type": "Button",
+                    "icon": "🔘",
+                    "label": "Button"
+                },
+                {
+                    "type": "Label",
+                    "icon": "📝",
+                    "label": "Label"
+                },
+                {
+                    "type": "NumberLabel",
+                    "icon": "🔢",
+                    "label": "Number Label"
+                },
+                {
+                    "type": "Edit",
+                    "icon": "✏️",
+                    "label": "Edit"
+                }
+            ]
+        },
+        {
+            "name": "Erweitert",
+            "expanded": false,
+            "items": [
+                {
+                    "type": "Dropdown",
+                    "icon": "📋",
+                    "label": "Dropdown"
+                },
+                {
+                    "type": "Checkbox",
+                    "icon": "☑️",
+                    "label": "Checkbox"
+                },
+                {
+                    "type": "ColorPicker",
+                    "icon": "🎨",
+                    "label": "Color Picker"
+                },
+                {
+                    "type": "NumberInput",
+                    "icon": "🔢",
+                    "label": "Number Input"
+                },
+                {
+                    "type": "TabControl",
+                    "icon": "📑",
+                    "label": "Tab Control"
+                }
+            ]
+        },
+        {
+            "name": "Game",
+            "expanded": false,
+            "items": [
+                {
+                    "type": "Sprite",
+                    "icon": "🎯",
+                    "label": "Sprite"
+                },
+                {
+                    "type": "GameHeader",
+                    "icon": "🎮",
+                    "label": "Game Header"
+                },
+                {
+                    "type": "GameCard",
+                    "icon": "🃏",
+                    "label": "Game Card"
+                }
+            ]
+        },
+        {
+            "name": "System",
+            "expanded": false,
+            "items": [
+                {
+                    "type": "GameLoop",
+                    "icon": "🔄",
+                    "label": "Game Loop"
+                },
+                {
+                    "type": "InputController",
+                    "icon": "🎹",
+                    "label": "Input Controller"
+                },
+                {
+                    "type": "Timer",
+                    "icon": "⏲️",
+                    "label": "Timer"
+                },
+                {
+                    "type": "Repeater",
+                    "icon": "🔁",
+                    "label": "Repeater"
+                },
+                {
+                    "type": "SystemInfo",
+                    "icon": "💻",
+                    "label": "System Info"
+                },
+                {
+                    "type": "GameServer",
+                    "icon": "🌐",
+                    "label": "Game Server"
+                },
+                {
+                    "type": "GameState",
+                    "icon": "⏯️",
+                    "label": "Game State"
+                },
+                {
+                    "type": "Handshake",
+                    "icon": "🤝",
+                    "label": "Handshake"
+                },
+                {
+                    "type": "Heartbeat",
+                    "icon": "💓",
+                    "label": "Heartbeat"
+                }
+            ]
+        },
+        {
+            "name": "Dialogs",
+            "expanded": false,
+            "items": [
+                {
+                    "type": "DialogRoot",
+                    "icon": "📄",
+                    "label": "Dialog Root"
+                },
+                {
+                    "type": "InfoWindow",
+                    "icon": "ℹ️",
+                    "label": "Info Window"
+                },
+                {
+                    "type": "Toast",
+                    "icon": "🔔",
+                    "label": "Toast"
+                },
+                {
+                    "type": "StatusBar",
+                    "icon": "━",
+                    "label": "Status Bar"
+                },
+                {
+                    "type": "InspectorTemplate",
+                    "icon": "📋",
+                    "label": "Inspector Designer"
+                }
+            ]
+        }
+    ]
+}

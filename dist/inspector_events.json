@@ -1,0 +1,61 @@
+{
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "EventsTitle",
+            "text": "Events",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 12
+            }
+        },
+        {
+            "className": "TForEach",
+            "name": "EventsList",
+            "source": "selectedObject._supportedEvents",
+            "rowLayout": true,
+            "template": [
+                {
+                    "className": "TLabel",
+                    "name": "EventLabel_${key}",
+                    "text": "${key}",
+                    "style": {
+                        "fontSize": 10,
+                        "color": "#9cdcfe",
+                        "minWidth": "130px",
+                        "flex": "0 0 130px"
+                    }
+                },
+                {
+                    "className": "TSelect",
+                    "name": "EventInput_${key}",
+                    "source": "tasks",
+                    "selectedValue": "${selectedObject.Tasks.${key}}",
+                    "allowEmpty": true,
+                    "emptyLabel": "-- Select Task --",
+                    "style": {
+                        "flex": "1",
+                        "minWidth": "60px"
+                    }
+                },
+                {
+                    "className": "TButton",
+                    "name": "EventEditButton_${key}",
+                    "caption": "✏️",
+                    "action": "openTaskEditor",
+                    "eventKey": "${key}",
+                    "style": {
+                        "flex": "0 0 24px",
+                        "minWidth": "24px",
+                        "padding": "0",
+                        "display": "flex",
+                        "alignItems": "center",
+                        "justifyContent": "center"
+                    }
+                }
+            ]
+        }
+    ]
+}

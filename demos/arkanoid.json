@@ -1,0 +1,508 @@
+{
+    "meta": {
+        "name": "Arkanoid",
+        "version": "1.0.0",
+        "author": "Antigravity GCS"
+    },
+    "stage": {
+        "grid": {
+            "cols": 64,
+            "rows": 40,
+            "cellSize": 20,
+            "snapToGrid": true,
+            "visible": false,
+            "backgroundColor": "#0c1015"
+        }
+    },
+    "objects": [
+        {
+            "className": "TSprite",
+            "id": "paddle",
+            "name": "Paddle",
+            "x": 27,
+            "y": 38,
+            "width": 10,
+            "height": 1,
+            "collisionEnabled": true,
+            "collisionGroup": "paddle",
+            "spriteColor": "#00d2ff",
+            "style": {
+                "backgroundColor": "#00d2ff",
+                "borderWidth": 1
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "ball",
+            "name": "Ball",
+            "x": 31,
+            "y": 36,
+            "width": 1,
+            "height": 1,
+            "velocityX": 0.15,
+            "velocityY": -0.2,
+            "collisionEnabled": true,
+            "collisionGroup": "ball",
+            "shape": "circle",
+            "spriteColor": "#ffffff",
+            "style": {
+                "backgroundColor": "#ffffff",
+                "borderWidth": 1
+            },
+            "Tasks": {
+                "onBoundaryHit": "HandleWallHit",
+                "onCollision": "HandlePaddleHit"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b1_1",
+            "name": "B1_1",
+            "x": 4,
+            "y": 4,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#ff4b2b",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#ff4b2b"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b1_2",
+            "name": "B1_2",
+            "x": 16,
+            "y": 4,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#ff4b2b",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#ff4b2b"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b1_3",
+            "name": "B1_3",
+            "x": 28,
+            "y": 4,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#ff4b2b",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#ff4b2b"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b1_4",
+            "name": "B1_4",
+            "x": 40,
+            "y": 4,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#ff4b2b",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#ff4b2b"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b1_5",
+            "name": "B1_5",
+            "x": 52,
+            "y": 4,
+            "width": 8,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#ff4b2b",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#ff4b2b"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b2_1",
+            "name": "B2_1",
+            "x": 4,
+            "y": 7,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#ffb400",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#ffb400"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b2_2",
+            "name": "B2_2",
+            "x": 16,
+            "y": 7,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#ffb400",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#ffb400"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b2_3",
+            "name": "B2_3",
+            "x": 28,
+            "y": 7,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#ffb400",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#ffb400"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b2_4",
+            "name": "B2_4",
+            "x": 40,
+            "y": 7,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#ffb400",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#ffb400"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b2_5",
+            "name": "B2_5",
+            "x": 52,
+            "y": 7,
+            "width": 8,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#ffb400",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#ffb400"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b3_1",
+            "name": "B3_1",
+            "x": 4,
+            "y": 10,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#00ff87",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#00ff87"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b3_2",
+            "name": "B3_2",
+            "x": 16,
+            "y": 10,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#00ff87",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#00ff87"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b3_3",
+            "name": "B3_3",
+            "x": 28,
+            "y": 10,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#00ff87",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#00ff87"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b3_4",
+            "name": "B3_4",
+            "x": 40,
+            "y": 10,
+            "width": 10,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#00ff87",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#00ff87"
+            }
+        },
+        {
+            "className": "TSprite",
+            "id": "b3_5",
+            "name": "B3_5",
+            "x": 52,
+            "y": 10,
+            "width": 8,
+            "height": 2,
+            "collisionEnabled": true,
+            "spriteColor": "#00ff87",
+            "Tasks": {
+                "onCollision": "HandleBrickHit"
+            },
+            "style": {
+                "backgroundColor": "#00ff87"
+            }
+        },
+        {
+            "className": "TLabel",
+            "id": "score-label",
+            "name": "Score1",
+            "x": 2,
+            "y": 1,
+            "width": 10,
+            "height": 2,
+            "text": "0",
+            "style": {
+                "color": "#ffffff",
+                "borderWidth": 0
+            },
+            "fontSize": 24
+        },
+        {
+            "className": "TGameLoop",
+            "id": "main-loop",
+            "name": "MainLoop",
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 1,
+            "bounceTop": true,
+            "bounceLeft": true,
+            "bounceRight": true,
+            "bounceBottom": false,
+            "Tasks": {
+                "onStart": "ResetBall"
+            }
+        },
+        {
+            "className": "TInputController",
+            "id": "input-ctrl",
+            "name": "InputCtrl",
+            "x": 3,
+            "y": 0,
+            "width": 3,
+            "height": 1,
+            "player1Controls": "arrows",
+            "player1Target": "Paddle",
+            "player1Speed": 0.8,
+            "verticalOnly": false
+        }
+    ],
+    "actions": [
+        {
+            "name": "ResetBallPos",
+            "type": "property",
+            "target": "Ball",
+            "changes": {
+                "x": 31,
+                "y": 36,
+                "velocityX": 0.15,
+                "velocityY": -0.2
+            }
+        },
+        {
+            "name": "IncScore",
+            "type": "increment",
+            "target": "Score1",
+            "changes": {
+                "text": 50
+            }
+        },
+        {
+            "name": "HideSelf",
+            "type": "property",
+            "target": "self",
+            "changes": {
+                "style.visible": false,
+                "collisionEnabled": false
+            }
+        },
+        {
+            "name": "BounceOtherY",
+            "type": "negate",
+            "target": "other",
+            "changes": {
+                "velocityY": true
+            }
+        },
+        {
+            "name": "BounceOtherX",
+            "type": "negate",
+            "target": "other",
+            "changes": {
+                "velocityX": true
+            }
+        },
+        {
+            "name": "BounceSelfY",
+            "type": "negate",
+            "target": "self",
+            "changes": {
+                "velocityY": true
+            }
+        },
+        {
+            "name": "BounceSelfX",
+            "type": "negate",
+            "target": "self",
+            "changes": {
+                "velocityX": true
+            }
+        }
+    ],
+    "tasks": [
+        {
+            "name": "ResetBall",
+            "actionSequence": [
+                {
+                    "type": "action",
+                    "name": "ResetBallPos"
+                }
+            ]
+        },
+        {
+            "name": "HandleWallHit",
+            "actionSequence": [
+                {
+                    "type": "condition",
+                    "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "bottom"
+                    },
+                    "thenTask": "ResetBall"
+                }
+            ]
+        },
+        {
+            "name": "HandlePaddleHit",
+            "actionSequence": [
+                {
+                    "type": "condition",
+                    "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "bottom"
+                    },
+                    "thenAction": "BounceSelfY"
+                }
+            ]
+        },
+        {
+            "name": "HandleBrickHit",
+            "actionSequence": [
+                {
+                    "type": "action",
+                    "name": "HideSelf"
+                },
+                {
+                    "type": "action",
+                    "name": "IncScore"
+                },
+                {
+                    "type": "condition",
+                    "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "top"
+                    },
+                    "thenAction": "BounceOtherY"
+                },
+                {
+                    "type": "condition",
+                    "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "bottom"
+                    },
+                    "thenAction": "BounceOtherY"
+                },
+                {
+                    "type": "condition",
+                    "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "left"
+                    },
+                    "thenAction": "BounceOtherX"
+                },
+                {
+                    "type": "condition",
+                    "condition": {
+                        "variable": "hitSide",
+                        "operator": "==",
+                        "value": "right"
+                    },
+                    "thenAction": "BounceOtherX"
+                }
+            ]
+        }
+    ],
+    "variables": []
+}

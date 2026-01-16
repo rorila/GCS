@@ -1,0 +1,1197 @@
+import { ReactiveRuntime } from '../runtime/ReactiveRuntime';
+import { GameProject } from '../model/types';
+import { serviceRegistry } from '../services/ServiceRegistry';
+import { hydrateObjects } from '../utils/Serialization';
+import { imageService } from '../services/ImageService';
+import { MethodRegistry } from './MethodRegistry';
+
+// Interface to avoid circular dependency with DialogManager
+export interface IActionEditorDialogManager {
+    showDialog(name: string, modal: boolean, data: any): Promise<any>;
+}
+
+/**
+ * JSONDialogRenderer - Renders dialogs from JSON definitions
+ * Similar to JSONInspector but for modal dialogs
+ */
+export class JSONDialogRenderer {
+    private runtime: ReactiveRuntime;
+    private overlay: HTMLElement;
+    private dialogWindow: HTMLElement;
+    private dialogData: any;
+    private project: GameProject;
+    private dialogDef: any;
+    private onResult: (result: { action: string; data: any }) => void;
+    private dialogManager?: IActionEditorDialogManager;
+
+    constructor(
+        dialogDef: any,
+        dialogData: any,
+        project: GameProject,
+        onResult: (result: { action: string; data: any }) => void,
+        dialogManager?: IActionEditorDialogManager
+    ) {
+        console.log(`[JSONDialogRenderer] Initializing for:`, dialogDef.title);
+        this.dialogDef = dialogDef;
+        this.project = project;
+        this.onResult = onResult;
+        this.dialogManager = dialogManager;
+        this.runtime = new ReactiveRuntime();
+
+        // Initialize dialogData - user data first, then fill in missing defaults
+        this.dialogData = { ...dialogData };
+
+        // Clear transient form state from previous sessions to avoid pollution
+        delete this.dialogData._formValues;
+        this.dialogData._formValues = {};
+
+        // Only set defaults if properties are truly missing (not just empty)
+        if (this.dialogData.type === undefined) {
+            this.dialogData.type = 'property';
+        }
+        if (this.dialogData.target === undefined) {
+            this.dialogData.target = project.objects[0]?.name || '';
+        }
+        if (this.dialogData.changes === undefined) {
+            this.dialogData.changes = {};
+        }
+
+        console.log('[JSONDialogRenderer] Initial dialogData.changes:', this.dialogData.changes);
+
+        // Register variables
+        this.runtime.registerVariable('dialogData', this.dialogData);
+        this.runtime.registerVariable('serviceRegistry', serviceRegistry);
+        this.runtime.registerVariable('project', this.project);
+        this.runtime.registerVariable('taskName', dialogData.taskName || '');
+        this.runtime.registerVariable('actionName', dialogData.actionName || '');
+        this.runtime.registerVariable('getProperties', (name: string) => this.getPropertiesForObject(name));
+        this.runtime.registerVariable('getMethods', (name: string) => this.getMethodsForObject(name));
+
+        // Create overlay
+        this.overlay = document.createElement('div');
+        this.overlay.className = 'task-editor-overlay';
+        this.overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        `;
+
+        // Create dialog window
+        this.dialogWindow = document.createElement('div');
+        this.dialogWindow.className = 'task-editor-window';
+        this.dialogWindow.style.cssText = `
+            background: #1e1e1e;
+            border-radius: 8px;
+            width: ${this.dialogDef.width || 600}px;
+            max-height: ${this.dialogDef.height || 700}px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        `;
+
+        this.overlay.appendChild(this.dialogWindow);
+        document.body.appendChild(this.overlay);
+
+        this.render();
+    }
+
+    private render() {
+        // Save scroll positions using a more robust key (either data-scroll-key or tag+class+index)
+        const scrollMap = new Map<string, number>();
+        this.dialogWindow.querySelectorAll('*').forEach((el, idx) => {
+            if (el.scrollTop > 0) {
+                const key = el.getAttribute('data-scroll-key') || `${el.tagName}_${el.className}_${idx}`;
+                scrollMap.set(key, el.scrollTop);
+            }
+        });
+
+        this.dialogWindow.innerHTML = '';
+
+        // Header
+        const header = this.createHeader();
+        this.dialogWindow.appendChild(header);
+
+        // Body
+        const body = this.createBody();
+        this.dialogWindow.appendChild(body);
+
+        // Footer
+        const footer = this.createFooter();
+        this.dialogWindow.appendChild(footer);
+
+        // Restore scroll positions
+        if (scrollMap.size > 0) {
+            // Use requestAnimationFrame to ensure DOM is ready
+            requestAnimationFrame(() => {
+                this.dialogWindow.querySelectorAll('*').forEach((el, idx) => {
+                    const key = el.getAttribute('data-scroll-key') || `${el.tagName}_${el.className}_${idx}`;
+                    if (scrollMap.has(key)) {
+                        el.scrollTop = scrollMap.get(key)!;
+                    }
+                });
+            });
+        }
+
+        // Setup bindings
+        this.setupBindings();
+    }
+
+    private createHeader(): HTMLElement {
+        const header = document.createElement('div');
+        header.className = 'task-editor-header';
+        header.style.cssText = `
+            padding: 16px 20px;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        `;
+
+        const title = document.createElement('span');
+        title.style.cssText = 'font-size: 16px; font-weight: bold; color: white;';
+        title.innerText = this.evaluateExpression(this.dialogDef.title);
+        header.appendChild(title);
+
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '×';
+        closeBtn.style.cssText = `
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        `;
+        closeBtn.onclick = () => this.close('cancel');
+        header.appendChild(closeBtn);
+
+        return header;
+    }
+
+    private createBody(): HTMLElement {
+        const body = document.createElement('div');
+        body.className = 'task-editor-body';
+        body.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            flex: 1;
+            padding: 16px 20px;
+        `;
+
+        if (this.dialogDef.objects) {
+            this.dialogDef.objects.forEach((obj: any) => {
+                const el = this.renderObject(obj);
+                if (el) body.appendChild(el);
+            });
+        }
+
+        return body;
+    }
+
+    private createFooter(): HTMLElement {
+        const footer = document.createElement('div');
+        footer.className = 'task-editor-footer';
+        footer.style.cssText = `
+            padding: 16px 20px;
+            border-top: 1px solid #444;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        `;
+
+        // Render footer buttons
+        if (this.dialogDef.footer) {
+            this.dialogDef.footer.forEach((obj: any) => {
+                const el = this.renderObject(obj);
+                if (el) footer.appendChild(el);
+            });
+        }
+
+        return footer;
+    }
+
+    private renderObject(obj: any): HTMLElement | null {
+        try {
+            // Check visibility
+            if (obj.visible !== undefined) {
+                const isVisible = this.evaluateExpression(obj.visible);
+                if (!isVisible) return null;
+            }
+
+            const className = obj.className;
+
+            if (className === 'TForEach') {
+                return this.renderForEach(obj);
+            }
+
+            const el = document.createElement('div');
+            el.className = `dialog-object ${className}`;
+            el.style.marginBottom = '8px';
+
+            if (obj.scrollKey) {
+                el.setAttribute('data-scroll-key', obj.scrollKey);
+            }
+
+            // Apply styles
+            if (obj.style) {
+                Object.entries(obj.style).forEach(([key, value]) => {
+                    const cssKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+                    const evaluatedValue = this.evaluateExpression(value);
+                    el.style.setProperty(cssKey, String(evaluatedValue));
+                });
+            }
+
+            // Render based on type
+            switch (className) {
+                case 'TLabel':
+                    el.innerText = this.evaluateExpression(obj.text || '');
+                    break;
+
+                case 'TEdit': {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+
+                    // Prioritize current form value during session, then static text
+                    const currentVal = this.dialogData._formValues?.[obj.name];
+                    input.value = currentVal !== undefined ? currentVal : this.evaluateExpression(obj.text || '');
+                    input.placeholder = obj.placeholder || '';
+                    if (obj.name) input.setAttribute('data-name', obj.name);
+
+                    input.style.cssText = `
+                    width: 100%;
+                    padding: 6px;
+                    background: #333;
+                    color: white;
+                    border: 1px solid #555;
+                    border-radius: 3px;
+                    box-sizing: border-box;
+                `;
+
+                    // Real-time sync to model (does not re-render)
+                    input.oninput = () => {
+                        if (obj.name) {
+                            this.updateModelValue(obj.name, input.value);
+                        }
+                    };
+
+                    // Trigger heavy actions (parsing/rendering) only on commit (blur/enter)
+                    input.onchange = () => {
+                        if (obj.action) {
+                            this.handleAction(obj.action, obj.actionData);
+                        }
+                    };
+
+                    el.appendChild(input);
+                    break;
+                }
+
+                case 'TDropdown':
+                    const select = document.createElement('select');
+                    if (obj.name) select.setAttribute('data-name', obj.name);
+
+                    const optionsArr = this.evaluateExpression(obj.options || []);
+
+                    // Prioritize current form value during session
+                    const currentSelection = this.dialogData._formValues?.[obj.name];
+                    const selectedValue = currentSelection !== undefined ? currentSelection : this.evaluateExpression(obj.selectedValue);
+                    const selectedIndex = currentSelection !== undefined ? undefined : this.evaluateExpression(obj.selectedIndex);
+
+                    optionsArr.forEach((opt: string, idx: number) => {
+                        const option = document.createElement('option');
+                        option.value = opt;
+                        option.text = opt;
+                        if (selectedValue !== undefined) {
+                            if (selectedValue === opt) option.selected = true;
+                        } else if (selectedIndex !== undefined) {
+                            if (selectedIndex === idx) option.selected = true;
+                        }
+                        select.appendChild(option);
+                    });
+
+                    select.style.cssText = `
+                    width: 100%;
+                    padding: 6px;
+                    background: #333;
+                    color: white;
+                    border: 1px solid #555;
+                    border-radius: 3px;
+                    cursor: pointer;
+                `;
+
+                    select.onchange = () => {
+                        // Sync to model
+                        if (obj.name) {
+                            this.updateModelValue(obj.name, select.value);
+                        }
+
+                        if (obj.action) {
+                            this.handleAction(obj.action, obj.actionData);
+                        }
+                    };
+                    el.appendChild(select);
+                    break;
+
+                case 'TCheckbox': {
+                    const label = document.createElement('label');
+                    label.style.cssText = 'display: flex; align-items: center; cursor: pointer;';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+
+                    // Prioritize current form value during session
+                    const currentVal = obj.name ? this.dialogData._formValues?.[obj.name] : undefined;
+                    checkbox.checked = currentVal !== undefined ? currentVal : this.evaluateExpression(obj.checked || false);
+                    checkbox.style.marginRight = '8px';
+                    if (obj.name) checkbox.setAttribute('data-name', obj.name);
+
+                    checkbox.onchange = () => {
+                        // Sync to model
+                        if (obj.name) {
+                            this.updateModelValue(obj.name, checkbox.checked);
+                        }
+
+                        if (obj.action) {
+                            this.handleAction(obj.action, obj.actionData);
+                        }
+                    };
+                    label.appendChild(checkbox);
+
+                    const text = document.createElement('span');
+                    text.innerText = this.evaluateExpression(obj.label || '');
+                    text.style.color = 'white';
+                    label.appendChild(text);
+
+                    el.appendChild(label);
+                    break;
+                }
+
+                case 'TButton':
+                    console.log('[JSONDialogRenderer] Rendering TButton:', obj.name, 'action:', obj.action, 'visible:', obj.visible);
+                    const button = document.createElement('button');
+                    button.id = `btn-${obj.name || 'unknown'}`;
+                    button.innerText = this.evaluateExpression(obj.caption || obj.name);
+
+                    // Apply button styles - note: background color comes from obj.style, not hardcoded
+                    button.style.cssText = `
+                    padding: 8px 16px;
+                    background: ${obj.style?.backgroundColor || '#0e639c'};
+                    color: ${obj.style?.color || 'white'};
+                    border: none;
+                    border-radius: 3px;
+                    cursor: pointer;
+                    font-size: 12px;
+                `;
+
+                    // Clear wrapper background - button has its own
+                    el.style.backgroundColor = 'transparent';
+
+                    button.onclick = (e) => {
+                        e.stopPropagation();
+                        console.log('[JSONDialogRenderer] Button clicked:', obj.name, 'action:', obj.action);
+                        if (obj.action) {
+                            this.handleAction(obj.action, obj.actionData);
+                        }
+                    };
+                    el.appendChild(button);
+                    break;
+
+                case 'TPanel':
+                    // Render children
+                    if (obj.children && Array.isArray(obj.children)) {
+                        obj.children.forEach((child: any) => {
+                            const childEl = this.renderObject(child);
+                            if (childEl) el.appendChild(childEl);
+                        });
+                    }
+
+                    // Add action support for panels
+                    if (obj.action) {
+                        el.style.cursor = 'pointer';
+                        el.onclick = () => {
+                            this.handleAction(obj.action, obj.actionData);
+                        };
+                    }
+
+                    // Support double-click to directly select
+                    if (obj.doubleClickAction) {
+                        el.ondblclick = () => {
+                            this.handleAction(obj.doubleClickAction, obj.doubleClickActionData || obj.actionData);
+                        };
+                    }
+                    break;
+
+                case 'TImage': {
+                    const img = document.createElement('img');
+                    const src = this.evaluateExpression(obj.src || '');
+                    if (src) {
+                        img.src = src.startsWith('http') || src.startsWith('/') || src.startsWith('data:')
+                            ? src
+                            : `/images/${src}`;
+                    }
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = obj.objectFit || 'contain';
+                    img.style.display = src ? 'block' : 'none';
+                    el.appendChild(img);
+                    break;
+                }
+
+                default:
+                    el.innerText = `[${className}] ${obj.name}`;
+                    el.style.color = '#666';
+            }
+
+
+
+            return el;
+        } catch (e: any) {
+            console.error('[JSONDialogRenderer] Error rendering object:', obj, e);
+            const errEl = document.createElement('div');
+            errEl.style.color = 'red';
+            errEl.innerText = `Error rendering ${obj.className || 'object'}: ${e.message}`;
+            return errEl;
+        }
+    }
+
+    private renderForEach(obj: any): HTMLElement | null {
+        const container = document.createElement('div');
+        container.className = 'foreach-container';
+        container.style.display = 'flex';
+        container.style.flexWrap = 'wrap';
+        container.style.width = '100%';
+
+        const sourceData = this.evaluateExpression(obj.source);
+        if (!sourceData) return null;
+
+        let items: any[] = [];
+        if (Array.isArray(sourceData)) {
+            items = sourceData;
+        } else if (typeof sourceData === 'object' && sourceData !== null) {
+            items = Object.entries(sourceData); // Key-value pairs as [key, value]
+        }
+
+        if (obj.name === 'PropertyChangesList') {
+            console.log(`[JSONDialogRenderer] Rendering PropertyChangesList, sourceData:`, sourceData, `items:`, items);
+        }
+
+        // Apply filter if specified
+        if (obj.filter && items.length > 0) {
+            items = items.filter((item: any) => {
+                try {
+                    // Include item and usual scope variables in filter context
+                    const fn = new Function('item', 'dialogData', 'project', 'taskName', 'actionName', 'name', 'serviceRegistry', 'getProperties', 'getMethods', `return ${obj.filter}`);
+                    return fn(item, this.dialogData, this.project, this.dialogData.taskName, this.dialogData.actionName, this.dialogData.name, serviceRegistry, (name: string) => this.getPropertiesForObject(name), (name: string) => this.getMethodsForObject(name));
+                } catch (e) {
+                    console.error(`[JSONDialogRenderer] Filter evaluation error: ${obj.filter}`, e);
+                    return true;
+                }
+            });
+        }
+
+        items.forEach((item: any, index: number) => {
+            obj.template.forEach((templateObj: any) => {
+                const instance = JSON.parse(JSON.stringify(templateObj));
+                this.replaceTemplateVars(instance, item, index);
+
+                const el = this.renderObject(instance);
+                if (el) container.appendChild(el);
+            });
+        });
+
+        return container;
+    }
+
+    private replaceTemplateVars(obj: any, item: any, index: number) {
+        const replace = (target: any): any => {
+            if (typeof target === 'string') {
+                // Check if string contains template variables
+                if (!target.includes('${')) return target;
+
+                // Check if the ENTIRE string is a single template expression that should return an object/array directly
+                // e.g. "${item.options}" or "${getMethodSignature(...)}"
+                const fullMatch = target.match(/^\$\{([^}]+)\}$/);
+                if (fullMatch) {
+                    try {
+                        const code = fullMatch[1];
+                        const fn = new Function('item', 'index', 'dialogData', 'project', 'serviceRegistry', 'getPropertiesForObject', 'getMethodsForObject', `return ${code}`);
+                        return fn(
+                            item,
+                            index,
+                            this.dialogData,
+                            this.project,
+                            serviceRegistry,
+                            (name: string) => this.getPropertiesForObject(name),
+                            (name: string) => this.getMethodsForObject(name)
+                        );
+                    } catch (e) {
+                        // Fallback to string replacement if evaluation fails
+                        console.warn(`[JSONDialogRenderer] Failed to evaluate full template "${target}":`, e);
+                    }
+                }
+
+                // Standard string interpolation for mixed content (e.g. "Value: ${item.val}")
+                return target.replace(/\${([^}]+)}/g, (match, code) => {
+                    try {
+                        const fn = new Function('item', 'index', 'dialogData', 'project', 'serviceRegistry', 'getPropertiesForObject', 'getMethodsForObject', `return ${code}`);
+                        const result = fn(
+                            item,
+                            index,
+                            this.dialogData,
+                            this.project,
+                            serviceRegistry,
+                            (name: string) => this.getPropertiesForObject(name),
+                            (name: string) => this.getMethodsForObject(name)
+                        );
+                        return result !== undefined ? String(result) : '';
+                    } catch (e) {
+                        console.warn(`[JSONDialogRenderer] Failed to evaluate template part "${match}":`, e);
+                        return match;
+                    }
+                });
+
+            } else if (typeof target === 'object' && target !== null) {
+                // Return new object to avoid modifying original template items
+                const newObj = Array.isArray(target) ? [] : {};
+                Object.keys(target).forEach(key => {
+                    (newObj as any)[key] = replace(target[key]);
+                });
+                return newObj;
+            }
+            return target;
+        };
+
+        // We need to mutate the object in place because JSONDialogRenderer uses it that way
+        // but replace() now returns a new value for nested objects.
+        Object.keys(obj).forEach(key => {
+            obj[key] = replace(obj[key]);
+        });
+    }
+
+    private evaluateExpression(expr: any): any {
+        if (typeof expr !== 'string') return expr;
+
+        try {
+            // 1. Try to evaluate as a pure expression first (e.g. "project.variables")
+            // If it starts with ${ and ends with }, strip them for pure evaluation
+            const trimmed = expr.trim();
+            const isTemplateWithBraces = trimmed.startsWith('${') && trimmed.endsWith('}');
+            const code = isTemplateWithBraces ? trimmed.slice(2, -1) : expr;
+
+            // Don't try pure evaluation on strings that are obviously just text (contain spaces but aren't template-like)
+            if (!isTemplateWithBraces && trimmed.includes(' ') && !trimmed.includes('(')) {
+                // Check if it's a template literal even without outer braces
+                if (trimmed.includes('${')) {
+                    throw new Error('Fallback to template literal');
+                }
+                return expr;
+            }
+
+            const fn = new Function('dialogData', 'project', 'taskName', 'actionName', 'name', 'serviceRegistry', 'getProperties', 'getMethods', 'getMethodSignature', `return ${code}`);
+            return fn(
+                this.dialogData,
+                this.project,
+                this.dialogData.taskName,
+                this.dialogData.actionName || this.dialogData.name,
+                this.dialogData.name,
+                serviceRegistry,
+                (name: string) => this.getPropertiesForObject(name),
+                (name: string) => this.getMethodsForObject(name),
+                (target: string, method: string) => this.getMethodSignature(target, method)
+            );
+        } catch (e) {
+            // 2. Fallback: If pure evaluation fails, try as a template literal if it has ${ }
+            if (expr.includes('${')) {
+                try {
+                    const safeExpr = expr.replace(/`/g, '\\`');
+                    const fn = new Function('dialogData', 'project', 'taskName', 'actionName', 'name', 'serviceRegistry', 'getProperties', 'getMethods', 'getMethodSignature', `return \`${safeExpr}\``);
+                    return fn(
+                        this.dialogData,
+                        this.project,
+                        this.dialogData.taskName,
+                        this.dialogData.actionName || this.dialogData.name,
+                        this.dialogData.name,
+                        serviceRegistry,
+                        (name: string) => this.getPropertiesForObject(name),
+                        (name: string) => this.getMethodsForObject(name),
+                        (target: string, method: string) => this.getMethodSignature(target, method)
+                    );
+                } catch (e2) {
+                    return expr;
+                }
+            }
+            return expr;
+        }
+    }
+
+    private getMethodSignature(_targetName: string, methodName: string): any[] {
+        if (!methodName) return [];
+        // Fallback for no target (generic) or unknown target
+
+        // Lookup in Registry
+        const signature = MethodRegistry[methodName];
+        if (signature) {
+            // Map to enrich if needed, but registry format is compatible
+            return signature;
+        }
+
+        // Default generic param if unknown
+        return [{ name: 'params', type: 'string', label: 'Parameter (Nachricht)', isGeneric: true }];
+    }
+
+    private handleAction(action: string, actionData?: any) {
+        console.log('[JSONDialogRenderer] Action:', action, actionData);
+
+        switch (action) {
+            case 'save':
+                this.collectFormData();
+                this.close('save');
+                break;
+
+            case 'cancel':
+                this.close('cancel');
+                break;
+
+            case 'delete':
+                this.close('delete');
+                break;
+
+            case 'moveSequenceItem':
+                this.moveSequenceItem(actionData.index, actionData.direction);
+                break;
+
+            case 'deleteSequenceItem':
+                this.deleteSequenceItem(actionData.index);
+                break;
+
+            case 'addAction':
+                this.addAction();
+                break;
+
+            case 'addTaskCall':
+                this.addTaskCall();
+                break;
+
+            case 'addVariable':
+                this.addVariable();
+                break;
+
+            case 'toggleVariable':
+                this.toggleVariable(actionData.variableName);
+                break;
+
+            case 'changeActionType':
+                this.reloadTypeDefaults();
+                this.render();
+                break;
+
+            case 'addPropertyChange':
+                this.addPropertyChange();
+                break;
+
+            case 'deletePropertyChange':
+                delete this.dialogData.changes[actionData.property];
+                this.render();
+                break;
+
+            case 'insertVariable':
+                this.insertVariable();
+                break;
+
+            case 'createAction':
+                this.handleCreateAction();
+                break;
+
+            case 'updateValue':
+                if (actionData && actionData.field && actionData.input) {
+                    this.dialogData[actionData.field] = this.getInputValue(actionData.input);
+                    this.render();
+                }
+                break;
+
+            case 'updateArrayItem':
+                if (actionData && actionData.arrayField && actionData.index !== undefined) {
+                    const idx = typeof actionData.index === 'string' ? parseInt(actionData.index, 10) : actionData.index;
+                    if (!isNaN(idx)) {
+                        const arr = this.dialogData[actionData.arrayField] || [];
+                        arr[idx] = this.getInputValue(actionData.input);
+                        this.dialogData[actionData.arrayField] = arr;
+                        this.render();
+                    }
+                }
+                break;
+
+            case 'addArrayItem':
+                if (actionData && actionData.arrayField) {
+                    const arr = this.dialogData[actionData.arrayField] || [];
+                    arr.push(actionData.value !== undefined ? actionData.value : '');
+                    this.dialogData[actionData.arrayField] = arr;
+                    this.render();
+                }
+                break;
+
+            case 'deleteArrayItem':
+                if (actionData && actionData.arrayField && actionData.index !== undefined) {
+                    const idx = typeof actionData.index === 'string' ? parseInt(actionData.index, 10) : actionData.index;
+                    if (!isNaN(idx)) {
+                        const arr = this.dialogData[actionData.arrayField] || [];
+                        arr.splice(idx, 1);
+                        this.dialogData[actionData.arrayField] = arr;
+                        this.render();
+                    }
+                }
+                break;
+
+            case 'selectTarget':
+                this.handleSelectTarget();
+                break;
+
+            case 'refreshImages':
+                imageService.listImages().then(images => {
+                    this.dialogData.images = imageService.flattenImages(images);
+                    this.render();
+                });
+                break;
+
+            case 'markImage':
+                console.log('[JSONDialogRenderer] Marking image:', actionData.path);
+                this.dialogData.selectedPath = actionData.path;
+                this.render();
+                break;
+
+            case 'selectImage':
+                console.log('[JSONDialogRenderer] selectImage called. Current selectedPath:', this.dialogData.selectedPath, 'actionData:', actionData);
+                if (actionData && actionData.path) {
+                    this.dialogData.selectedPath = actionData.path;
+                }
+                if (this.dialogData.selectedPath) {
+                    console.log('[JSONDialogRenderer] Closing with selection:', this.dialogData.selectedPath);
+                    this.close('select');
+                } else {
+                    alert('Bitte wähle zuerst ein Bild aus.');
+                }
+                break;
+
+            default:
+                console.warn('[JSONDialogRenderer] Unknown action:', action);
+        }
+    }
+
+    private moveSequenceItem(index: number, direction: 'up' | 'down') {
+        const list = this.dialogData.actionSequence;
+        if (!list) return;
+
+        if (direction === 'up' && index > 0) {
+            [list[index - 1], list[index]] = [list[index], list[index - 1]];
+            this.render();
+        } else if (direction === 'down' && index < list.length - 1) {
+            [list[index], list[index + 1]] = [list[index + 1], list[index]];
+            this.render();
+        }
+    }
+
+    private deleteSequenceItem(index: number) {
+        const list = this.dialogData.actionSequence;
+        if (list) {
+            list.splice(index, 1);
+            this.render();
+        }
+    }
+
+    private addAction() {
+        const actionName = this.getInputValue('ActionSelect')?.split(' ')[0]; // Extract name from "Name (Target)"
+        if (actionName) {
+            this.dialogData.actionSequence = this.dialogData.actionSequence || [];
+            this.dialogData.actionSequence.push({ type: 'action', name: actionName });
+            this.render();
+        }
+    }
+
+    private addTaskCall() {
+        const taskName = this.getInputValue('TaskSelect')?.replace('🔗 ', '');
+        if (taskName) {
+            this.dialogData.actionSequence = this.dialogData.actionSequence || [];
+            this.dialogData.actionSequence.push({ type: 'task', name: taskName });
+            this.render();
+        }
+    }
+
+    private addVariable() {
+        const name = this.getInputValue('NewVariableNameInput');
+        const value = this.getInputValue('NewVariableValueInput');
+
+        if (!name) {
+            alert('Variable name is required');
+            return;
+        }
+
+        if (this.project.variables.some(v => v.name === name)) {
+            alert(`Variable "${name}" already exists!`);
+            return;
+        }
+
+        this.project.variables.push({ name: name!, type: 'string', scope: 'global', defaultValue: value || '' });
+        this.render();
+    }
+
+    private toggleVariable(name: string) {
+        if (!name) return;
+
+        this.dialogData.usedVariables = this.dialogData.usedVariables || [];
+        const idx = this.dialogData.usedVariables.indexOf(name);
+
+        if (idx === -1) {
+            this.dialogData.usedVariables.push(name);
+        } else {
+            this.dialogData.usedVariables.splice(idx, 1);
+        }
+        // Force re-render to update checkboxes
+        this.render();
+    }
+
+    private reloadTypeDefaults() {
+        // Reset/init fields based on type
+        if (this.dialogData.type === 'variable') {
+            this.dialogData.variableName = this.dialogData.variableName || '';
+            this.dialogData.source = this.dialogData.source || (this.project.objects[0]?.name || '');
+            this.dialogData.sourceProperty = this.dialogData.sourceProperty || 'text';
+        } else if (this.dialogData.type === 'call_method') {
+            this.dialogData.target = this.dialogData.target || (this.project.objects[0]?.name || '');
+            this.dialogData.method = this.dialogData.method || '';
+            this.dialogData.params = this.dialogData.params || [];
+        } else if (this.dialogData.type === 'calculate') {
+            this.dialogData.resultVariable = this.dialogData.resultVariable || '';
+            this.dialogData.calcSteps = this.dialogData.calcSteps || [];
+
+            // Generate formula string if missing
+            if (!this.dialogData.formula && this.dialogData.calcSteps.length > 0) {
+                this.dialogData.formula = this.stringifyCalcSteps(this.dialogData.calcSteps);
+            }
+        } else {
+            this.dialogData.target = this.dialogData.target || (this.project.objects[0]?.name || '');
+            this.dialogData.changes = this.dialogData.changes || {};
+        }
+
+        // Default sync to true if not specified
+        if (this.dialogData.sync === undefined) {
+            this.dialogData.sync = true;
+        }
+    }
+
+    private applyPropertyChange(prop: string, val: any) {
+        console.log(`[JSONDialogRenderer] applyPropertyChange: property="${prop}", value="${val}" (type: ${typeof val})`);
+        if (!prop) return;
+
+        let finalValue = val;
+
+        // Type inference for simple strings
+        if (typeof val === 'string' && !val.includes('${')) {
+            const trimmed = val.trim();
+            if (trimmed === 'true') finalValue = true;
+            else if (trimmed === 'false') finalValue = false;
+            else if (trimmed !== '' && !isNaN(Number(trimmed)) && !trimmed.startsWith('#')) {
+                finalValue = Number(trimmed);
+            }
+        }
+
+        this.dialogData.changes = this.dialogData.changes || {};
+        this.dialogData.changes[prop] = finalValue;
+    }
+
+    private addPropertyChange() {
+        // Explicitly get current values from inputs to ensure we have the latest
+        const prop = this.getInputValue('PropertySelect');
+        const val = this.getInputValue('PropertyValueInput');
+
+        console.log(`[JSONDialogRenderer] addPropertyChange button clicked:`, { prop, val });
+
+        if (!prop) {
+            console.warn('[JSONDialogRenderer] addPropertyChange - no property selected!');
+            return;
+        }
+
+        this.applyPropertyChange(prop, val);
+
+        console.log(`[JSONDialogRenderer] Current changes after add:`, this.dialogData.changes);
+
+        // Clear input value for next addition
+        this.dialogData._formValues = this.dialogData._formValues || {};
+        this.dialogData._formValues['PropertyValueInput'] = '';
+        const input = this.dialogWindow.querySelector('[data-name="PropertyValueInput"]') as HTMLInputElement;
+        if (input) input.value = '';
+
+        this.render();
+    }
+
+    private insertVariable() {
+        const varName = this.getInputValue('VariablePickerSelect');
+        if (varName && varName !== '📦 Var') {
+            // Find inputs to insert into
+
+            // Try to find PropertyValueInput specifically, or just use the focused one if possible
+            // Simpler approach: update PropertyValueInput directly since we know context
+
+            // Just update the internal value map for next render or handle DOM directly
+            // For now, simpler to assume it targets PropertyValueInput
+            const input = this.dialogWindow.querySelector('input[placeholder="Value or ${varName}"]') as HTMLInputElement;
+            if (input) {
+                input.value = `\${${varName}}`;
+                // Trigger input event to update model if bound
+                input.dispatchEvent(new Event('input'));
+            }
+
+            // Reset picker
+            const picker = this.dialogWindow.querySelectorAll('select')[2] as HTMLSelectElement; // Hacky index, better use name
+            if (picker) picker.selectedIndex = 0;
+        }
+    }
+
+    private handleSelectTarget() {
+        const selectedValue = this.getInputValue('TargetObjectSelect');
+        console.log('[JSONDialogRenderer] handleSelectTarget:', selectedValue);
+
+        if (selectedValue === '📦 Neue Funktionsvariable...') {
+            // Prompt for variable name
+            const varName = prompt('Name der Funktionsvariable (z.B. targetObj):');
+            if (varName && varName.trim()) {
+                const cleanName = varName.trim().replace(/\s+/g, '');
+                this.dialogData.target = `\${${cleanName}}`;
+                console.log('[JSONDialogRenderer] Created function variable target:', this.dialogData.target);
+            } else {
+                // User cancelled - reset to first object or empty
+                this.dialogData.target = this.project.objects[0]?.name || '';
+            }
+            this.render();
+        } else if (selectedValue?.startsWith('📦 ${')) {
+            // Extract the ${varName} from "📦 ${varName}"
+            const match = selectedValue.match(/📦 (\$\{[^}]+\})/);
+            if (match) {
+                this.dialogData.target = match[1];
+                console.log('[JSONDialogRenderer] Selected existing function variable:', this.dialogData.target);
+            }
+        }
+        // For regular objects, dialogData.target is already updated by updateModelValue
+    }
+
+    private collectFormData() {
+        const namedElements = this.dialogWindow.querySelectorAll('[data-name]');
+        namedElements.forEach(el => {
+            const name = el.getAttribute('data-name');
+            let value: any = (el as HTMLInputElement | HTMLSelectElement).value;
+
+            if (el instanceof HTMLInputElement && (el as HTMLInputElement).type === 'checkbox') {
+                value = (el as HTMLInputElement).checked;
+            }
+
+            if (name) {
+                this.updateModelValue(name, value);
+            }
+        });
+
+        // Strip internal form values before returning to keep project clean
+        delete this.dialogData._formValues;
+    }
+
+    private getInputValue(name: string): string | undefined {
+        // Find element by name in DOM
+        // Updated to use data-name lookup
+
+        // Strategy: Iterate rendered inputs and find match
+        // But wait, renderObject doesn't set ID/name on inputs typically.
+        // Let's rely on finding by class/structure or modifying renderObject to add data-name
+
+        // Better: Find based on rendered structure which we control
+
+        // FIX: Update renderObject to add data-name attribute
+        const el = this.dialogWindow.querySelector(`[data-name="${name}"]`);
+        const value = (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) ? el.value : undefined;
+        console.log(`[JSONDialogRenderer] getInputValue("${name}"):`, { found: !!el, value });
+        return value;
+    }
+
+    private setupBindings() {
+        // TODO: Implement reactive bindings similar to JSONInspector. 
+        // Currently we rely on manual re-renders via this.render() calls in actions.
+    }
+
+    private async handleCreateAction() {
+        if (!this.dialogManager) {
+            console.warn('[JSONDialogRenderer] Cannot create action: DialogManager not available');
+            return;
+        }
+
+        // Create a temporary action stub
+        const timestamp = Date.now();
+        const actionName = `Action_${timestamp}`;
+        const newAction: any = {
+            name: actionName,
+            type: 'property', // Default
+            target: '',
+            changes: {}
+        };
+
+        // Add to project.actions temporarily
+        this.project.actions = this.project.actions || [];
+        this.project.actions.push(newAction);
+
+        const result = await this.dialogManager.showDialog('action_editor', true, newAction);
+
+        if (result && result.action === 'save') {
+            // Saved. Keep it.
+            this.render(); // Update dropdowns
+        } else {
+            // Cancelled. Remove it.
+            const idx = this.project.actions.indexOf(newAction);
+            if (idx !== -1) this.project.actions.splice(idx, 1);
+            this.render();
+        }
+    }
+
+    private updateModelValue(name: string, value: any) {
+        // Sync to a central formValues bag for easy collection
+        this.dialogData._formValues = this.dialogData._formValues || {};
+        this.dialogData._formValues[name] = value;
+
+        // Map common component names to dialogData properties
+        if (name === 'NameInput') {
+            this.dialogData.name = value;
+            this.dialogData.taskName = value; // Legacy support
+            this.dialogData.actionName = value; // Legacy support
+        }
+        if (name === 'TargetObjectSelect') {
+            this.dialogData.target = value;
+            this.render(); // Update property list
+        }
+        if (name === 'VariableNameInput') this.dialogData.variableName = value;
+        if (name === 'SourceObjectSelect') {
+            this.dialogData.source = value;
+            this.render(); // Update property list
+        }
+        if (name === 'SourcePropertySelect') this.dialogData.sourceProperty = value;
+        if (name === 'ActionNameInput') this.dialogData.actionName = value;
+        if (name === 'TaskNameInput') this.dialogData.taskName = value;
+
+        if (name === 'ActionTypeSelect') {
+            // Dropdown returns the string like "📝 Property Change (Set)"
+            // Map it back to simple type string
+            if (value.includes('Property')) this.dialogData.type = 'property';
+            else if (value.includes('Increment')) this.dialogData.type = 'increment';
+            else if (value.includes('Read Variable')) this.dialogData.type = 'variable';
+            else if (value.includes('Service')) this.dialogData.type = 'service';
+            else if (value.includes('Negate')) this.dialogData.type = 'negate';
+            else if (value.includes('Call Method')) this.dialogData.type = 'call_method';
+            else if (value.includes('Calculate')) this.dialogData.type = 'calculate';
+
+            this.reloadTypeDefaults();
+            this.render(); // Re-render because visibility might change
+        }
+
+        // Call Method specific fields
+        if (name === 'CallMethodTargetSelect') {
+            this.dialogData.target = value;
+        }
+        if (name === 'CallMethodMethodInput') {
+            this.dialogData.method = value;
+        }
+        if (name === 'CallMethodMethodSelect') {
+            this.dialogData.method = value;
+        }
+        if (name === 'CallMethodParamsInput') {
+            // Store as array
+            this.dialogData.params = value ? [value] : [];
+        }
+
+        // Calculate specific fields
+        if (name === 'CalcResultVariable') {
+            this.dialogData.resultVariable = value;
+        }
+        if (name === 'CalcFormulaInput') {
+            this.dialogData.formula = value;
+        }
+    }
+
+    private stringifyCalcSteps(steps: any[]): string {
+        let formula = "";
+        steps.forEach((step, index) => {
+            if (index > 0 && step.operator) {
+                formula += ` ${step.operator} `;
+            }
+            if (step.operandType === 'variable') {
+                formula += step.variable;
+            } else {
+                formula += step.constant;
+            }
+        });
+        return formula;
+    }
+
+    public close(action: string) {
+        if (this.overlay && this.overlay.parentNode) {
+            this.overlay.parentNode.removeChild(this.overlay);
+        }
+
+        this.onResult({
+            action,
+            data: this.dialogData
+        });
+    }
+
+    private getPropertiesForObject(objectName: string): string[] {
+        const objData = this.project.objects.find(o => o.name === objectName);
+        if (!objData) return ["x", "y", "width", "height", "caption", "text", "style.visible"];
+
+        try {
+            const hydrated = hydrateObjects([objData]);
+            if (hydrated.length > 0) {
+                return hydrated[0].getInspectorProperties().map(p => p.name);
+            }
+        } catch (e) {
+            console.warn(`[JSONDialogRenderer] Failed to hydrate ${objectName} for properties`, e);
+        }
+        return ["x", "y", "width", "height", "caption", "text", "style.visible"];
+    }
+
+    /**
+     * Returns a list of callable methods for a given object name.
+     * Uses a predefined mapping per component type.
+     */
+    private getMethodsForObject(objectName: string): string[] {
+        const objData = this.project.objects.find(o => o.name === objectName);
+        if (!objData) return [];
+
+        const className = objData.className || 'TComponent';
+
+        // Mapping of component types to their callable methods
+        const methodMap: Record<string, string[]> = {
+            'TNumberLabel': ['incValue', 'decValue', 'reset'],
+            'TToast': ['info', 'success', 'warning', 'error', 'clear'],
+            'TTimer': ['timerStart', 'timerStop', 'reset'],
+            'TRepeater': ['start', 'stop', 'reset'],
+            'TGameLoop': ['start', 'stop', 'pause', 'resume'],
+            'TGameState': ['setState', 'reset'],
+            'TSprite': ['moveTo', 'setVelocity', 'stop', 'reset'],
+            'TButton': ['click', 'enable', 'disable'],
+            'TLabel': ['setText'],
+            'TEdit': ['setText', 'clear', 'focus'],
+            'TPanel': ['show', 'hide', 'toggle'],
+            'TImage': ['setSrc', 'show', 'hide'],
+            'TGameServer': ['connect', 'disconnect', 'createRoom', 'joinRoom', 'leaveRoom', 'sendMessage'],
+            'TGameCard': ['flip', 'reset'],
+            'TInputController': ['enable', 'disable'],
+            'TStatusBar': ['setSection', 'show', 'hide'],
+            'TWindow': ['open', 'close', 'toggle'],
+            'TTabControl': ['selectTab'],
+        };
+
+        return methodMap[className] || [];
+    }
+}

@@ -1,0 +1,156 @@
+{
+    "title": "🖼️ Image Browser",
+    "width": 800,
+    "height": 650,
+    "modal": true,
+    "objects": [
+        {
+            "className": "TPanel",
+            "name": "Toolbar",
+            "style": {
+                "display": "flex",
+                "gap": "12px",
+                "padding": "12px 20px",
+                "borderBottom": "1px solid #444",
+                "alignItems": "center",
+                "background": "#252526"
+            },
+            "children": [
+                {
+                    "className": "TLabel",
+                    "name": "InfoLabel",
+                    "text": "Wähle ein Bild aus /public/images/",
+                    "style": {
+                        "flex": 1,
+                        "color": "#aaa",
+                        "fontSize": "11px"
+                    }
+                },
+                {
+                    "className": "TButton",
+                    "name": "RefreshBtn",
+                    "caption": "🔄 Aktualisieren",
+                    "action": "refreshImages",
+                    "style": {
+                        "backgroundColor": "#333",
+                        "padding": "4px 12px"
+                    }
+                }
+            ]
+        },
+        {
+            "className": "TPanel",
+            "name": "GridWrapper",
+            "scrollKey": "image-grid",
+            "style": {
+                "padding": "20px",
+                "overflowY": "auto",
+                "flex": 1,
+                "background": "#1e1e1e"
+            },
+            "children": [
+                {
+                    "className": "TForEach",
+                    "name": "ImageGrid",
+                    "source": "dialogData.images",
+                    "style": {
+                        "justifyContent": "center"
+                    },
+                    "template": [
+                        {
+                            "className": "TPanel",
+                            "name": "ImageCard",
+                            "style": {
+                                "width": "160px",
+                                "height": "180px",
+                                "display": "flex",
+                                "flexDirection": "column",
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                                "margin": "10px",
+                                "padding": "12px",
+                                "background": "#2d2d2d",
+                                "border": "${dialogData.selectedPath === item.path ? '2px solid #0e639c' : '1px solid #454545'}",
+                                "borderRadius": "8px",
+                                "cursor": "pointer"
+                            },
+                            "action": "markImage",
+                            "actionData": {
+                                "path": "${item.path}"
+                            },
+                            "doubleClickAction": "selectImage",
+                            "children": [
+                                {
+                                    "className": "TPanel",
+                                    "name": "PreviewContainer",
+                                    "style": {
+                                        "width": "120px",
+                                        "height": "120px",
+                                        "background": "#1a1a1a",
+                                        "borderRadius": "4px",
+                                        "marginBottom": "10px",
+                                        "display": "flex",
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                        "overflow": "hidden"
+                                    },
+                                    "children": [
+                                        {
+                                            "className": "TImage",
+                                            "name": "Preview",
+                                            "src": "${item.path}",
+                                            "objectFit": "contain",
+                                            "style": {
+                                                "width": "110px",
+                                                "height": "110px"
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "className": "TLabel",
+                                    "name": "FileName",
+                                    "text": "${item.name}",
+                                    "style": {
+                                        "fontSize": "11px",
+                                        "color": "${dialogData.selectedPath === item.path ? '#4db3ff' : '#fff'}",
+                                        "textAlign": "center",
+                                        "width": "140px",
+                                        "whiteSpace": "nowrap",
+                                        "overflow": "hidden",
+                                        "textOverflow": "ellipsis",
+                                        "fontWeight": "${dialogData.selectedPath === item.path ? 'bold' : 'normal'}"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "footer": [
+        {
+            "className": "TButton",
+            "name": "SelectBtn",
+            "caption": "Übernehmen",
+            "action": "selectImage",
+            "style": {
+                "backgroundColor": "#0e639c",
+                "color": "#fff",
+                "padding": "8px 24px"
+            }
+        },
+        {
+            "className": "TButton",
+            "name": "CancelBtn",
+            "caption": "Abbrechen",
+            "action": "cancel",
+            "style": {
+                "backgroundColor": "#444",
+                "color": "#fff",
+                "padding": "8px 20px"
+            }
+        }
+    ]
+}

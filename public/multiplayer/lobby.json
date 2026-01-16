@@ -1,0 +1,155 @@
+{
+    "meta": {
+        "name": "GCS Lobby",
+        "version": "1.0.0",
+        "author": "Antigravity"
+    },
+    "stage": {
+        "grid": {
+            "cols": 64,
+            "rows": 40,
+            "cellSize": 20,
+            "backgroundColor": "#0f172a",
+            "visible": false
+        }
+    },
+    "objects": [
+        {
+            "id": "header",
+            "name": "Header",
+            "className": "TGameHeader",
+            "x": 0,
+            "y": 0,
+            "width": 64,
+            "height": 4,
+            "text": "GCS Game Plattform",
+            "style": {
+                "backgroundColor": "#1e293b",
+                "color": "#4fc3f7",
+                "fontSize": 32,
+                "textAlign": "center"
+            }
+        },
+        {
+            "id": "hero_text",
+            "name": "HeroText",
+            "className": "TLabel",
+            "x": 0,
+            "y": 6,
+            "width": 64,
+            "height": 2,
+            "text": "Wähle ein Spiel oder tritt einer Session bei",
+            "style": {
+                "color": "#94a3b8",
+                "fontSize": 20,
+                "textAlign": "center"
+            }
+        },
+        {
+            "id": "btn_tennis",
+            "name": "BtnTennis",
+            "className": "TButton",
+            "x": 22,
+            "y": 12,
+            "width": 20,
+            "height": 4,
+            "caption": "🎾 NewTennis spielen",
+            "Tasks": {
+                "onClick": "PlayTennis"
+            },
+            "style": {
+                "backgroundColor": "#10b981",
+                "color": "white",
+                "fontSize": 20,
+                "borderRadius": 8,
+                "borderWidth": 0
+            }
+        },
+        {
+            "id": "room_section_label",
+            "name": "RoomSectionLabel",
+            "className": "TLabel",
+            "x": 22,
+            "y": 22,
+            "width": 20,
+            "height": 1,
+            "text": "Einem Raum mit Code beitreten:",
+            "style": {
+                "color": "#64748b",
+                "fontSize": 14
+            }
+        },
+        {
+            "id": "room_input",
+            "name": "RoomInput",
+            "className": "TEdit",
+            "x": 22,
+            "y": 24,
+            "width": 14,
+            "height": 3,
+            "text": "",
+            "style": {
+                "backgroundColor": "#1e293b",
+                "color": "white",
+                "borderWidth": 1,
+                "borderColor": "#334155",
+                "fontSize": 24,
+                "textAlign": "center",
+                "borderRadius": 4
+            }
+        },
+        {
+            "id": "btn_join",
+            "name": "BtnJoin",
+            "className": "TButton",
+            "x": 37,
+            "y": 24,
+            "width": 5,
+            "height": 3,
+            "caption": "JOIN",
+            "Tasks": {
+                "onClick": "JoinRoom"
+            },
+            "style": {
+                "backgroundColor": "#3b82f6",
+                "color": "white",
+                "fontSize": 16,
+                "fontWeight": "bold",
+                "borderRadius": 4
+            }
+        }
+    ],
+    "tasks": [
+        {
+            "name": "PlayTennis",
+            "actionSequence": [
+                {
+                    "type": "action",
+                    "name": "DoNavigateTennis"
+                }
+            ]
+        },
+        {
+            "name": "JoinRoom",
+            "actionSequence": [
+                {
+                    "type": "action",
+                    "name": "DoNavigateRoom"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "DoNavigateTennis",
+            "type": "navigate",
+            "target": "host:project_NewTennis30.json"
+        },
+        {
+            "name": "DoNavigateRoom",
+            "type": "navigate",
+            "target": "room:${RoomInput.text}"
+        }
+    ],
+    "variables": []
+}

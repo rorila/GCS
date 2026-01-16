@@ -1,0 +1,826 @@
+{
+  "meta": {
+    "name": "EinfachesTennis",
+    "version": "1.0.0",
+    "author": "RoRiLa"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "snapToGrid": true,
+      "visible": false,
+      "backgroundColor": "#1e1e1e"
+    }
+  },
+  "flow": {
+    "elements": [],
+    "connections": [],
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    }
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [
+    {
+      "className": "TGameHeader",
+      "id": "obj_1766753944753_ph0i01i8j",
+      "name": "GameHeader",
+      "x": 0,
+      "y": 0,
+      "width": 64,
+      "height": 4,
+      "zIndex": 0,
+      "visible": true,
+      "align": "TOP",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#2c3e50",
+        "borderColor": "#34495e",
+        "borderWidth": 0,
+        "fontSize": 18,
+        "color": "#ffffff",
+        "fontWeight": "bold",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "fontFamily": "Segoe UI, sans-serif"
+      },
+      "title": "Einfaches Tennis"
+    },
+    {
+      "className": "TStatusBar",
+      "id": "obj_1766753993735_zup1nxzg9",
+      "name": "StatusBar",
+      "x": 0,
+      "y": 36,
+      "width": 64,
+      "height": 4,
+      "zIndex": 0,
+      "visible": true,
+      "align": "BOTTOM",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#2c3e50",
+        "borderColor": "#333333",
+        "borderWidth": 1
+      },
+      "sections": [
+        {
+          "id": "status",
+          "text": "Ready",
+          "icon": "●",
+          "width": "auto",
+          "align": "left"
+        }
+      ],
+      "textColor": "#ffffff",
+      "fontSize": 12,
+      "paddingX": 12,
+      "paddingY": 6,
+      "sectionGap": 16,
+      "separatorColor": "#444444",
+      "showSeparators": true
+    },
+    {
+      "className": "TInputController",
+      "id": "obj_1766761331624_j984qpwvt",
+      "name": "InputController",
+      "Tasks": {
+        "onKeyDown_ArrowUp": "MoveBallUp",
+        "onKeyDown_ArrowDown": "MoveBallDown",
+        "onKeyDown_ArrowLeft": "MoveBallLeft",
+        "onKeyDown_ArrowRight": "MoveBallRight",
+        "onKeyUp_ArrowUp": "StopBallY",
+        "onKeyUp_ArrowDown": "StopBallY",
+        "onKeyUp_ArrowLeft": "StopBallX",
+        "onKeyUp_ArrowRight": "StopBallX"
+      },
+      "x": 1,
+      "y": 7,
+      "width": 5,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#9c27b0",
+        "borderColor": "#6a1b9a",
+        "borderWidth": 2,
+        "color": "#ffffff"
+      },
+      "enabled": true
+    },
+    {
+      "className": "TGameState",
+      "id": "obj_1766761345082_edswzt2cj",
+      "name": "GameState",
+      "x": 1,
+      "y": 9,
+      "width": 5,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#4caf50",
+        "borderColor": "transparent",
+        "borderWidth": 0,
+        "color": "#ffffff"
+      },
+      "state": "playing",
+      "spritesMoving": false,
+      "collisionsEnabled": false
+    },
+    {
+      "className": "TGameLoop",
+      "id": "obj_1766761409695_4e4rv62ig",
+      "name": "GameLoop",
+      "Tasks": {},
+      "x": 1,
+      "y": 5,
+      "width": 5,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#2196f3",
+        "borderColor": "#1565c0",
+        "borderWidth": 2,
+        "color": "#ffffff"
+      },
+      "targetFPS": 60,
+      "boundsOffsetTop": 4,
+      "boundsOffsetBottom": 4
+    },
+    {
+      "className": "TButton",
+      "id": "obj_1767464332124_q9vu6w6yj",
+      "name": "StartBtn",
+      "Tasks": {
+        "onClick": "StartAllSprites"
+      },
+      "x": 2,
+      "y": 37,
+      "width": 6,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#007bff",
+        "borderColor": "#000000",
+        "borderWidth": 1,
+        "fontSize": 14,
+        "color": "#ffffff",
+        "fontWeight": "bold",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "fontFamily": "Arial"
+      },
+      "caption": "Spiel starten",
+      "color": "#007bff"
+    },
+    {
+      "className": "TButton",
+      "id": "7d53af71-f336-489e-8e38-5e853f20cbc9",
+      "name": "StopBtn",
+      "Tasks": {
+        "onClick": "StopAllSprites"
+      },
+      "x": 10,
+      "y": 37,
+      "width": 6,
+      "height": 2,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#007bff",
+        "borderColor": "#000000",
+        "borderWidth": 1,
+        "fontSize": 14,
+        "color": "#ffffff",
+        "fontWeight": "bold",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "fontFamily": "Arial"
+      },
+      "caption": "Spiel stoppen",
+      "color": "#007bff"
+    },
+    {
+      "className": "TPanel",
+      "id": "obj_1767543179885_t4reycawp",
+      "name": "PlayArea",
+      "x": 4,
+      "y": 4,
+      "width": 10,
+      "height": 5,
+      "zIndex": 0,
+      "visible": true,
+      "align": "CLIENT",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#f0f0f0",
+        "borderColor": "#999999",
+        "borderWidth": 1
+      },
+      "caption": "PlayArea",
+      "showGrid": true,
+      "gridColor": "#000000",
+      "gridStyle": "dots"
+    },
+    {
+      "className": "TSprite",
+      "id": "obj_1767544690133_riqn9kmb3",
+      "name": "Ball",
+      "x": 30,
+      "y": 19,
+      "width": 1,
+      "height": 1,
+      "zIndex": 0,
+      "visible": true,
+      "align": "NONE",
+      "style": {
+        "visible": true,
+        "backgroundColor": "#ff6b6b",
+        "borderColor": "#333333",
+        "borderWidth": 1
+      },
+      "velocityX": 0,
+      "velocityY": -0.3,
+      "lerpSpeed": 0.1,
+      "collisionEnabled": true,
+      "collisionGroup": "default",
+      "shape": "circle",
+      "spriteColor": "#6bffa4"
+    }
+  ],
+  "actions": [
+    {
+      "name": "SetGameState.spritesMovingToTrue",
+      "type": "property",
+      "target": "GameState",
+      "changes": {
+        "spritesMoving": true
+      },
+      "sync": true,
+      "details": "GameState.spritesMoving := true"
+    },
+    {
+      "name": "SetGameState.spritesMovingToFalse",
+      "type": "property",
+      "target": "GameState",
+      "changes": {
+        "spritesMoving": false
+      },
+      "sync": true,
+      "details": "GameState.spritesMoving := false"
+    },
+    {
+      "name": "SetBall.velocityY = -0.2",
+      "type": "property",
+      "target": "Ball",
+      "changes": {
+        "velocityY": -0.2
+      }
+    },
+    {
+      "name": "SetBall.velocityY = 0.2",
+      "type": "property",
+      "target": "Ball",
+      "changes": {
+        "velocityY": 0.2
+      }
+    },
+    {
+      "name": "SetBall.velocityX = -0.2",
+      "type": "property",
+      "target": "Ball",
+      "changes": {
+        "velocityX": -0.2
+      }
+    },
+    {
+      "name": "SetBall.velocityX = 0.2",
+      "type": "property",
+      "target": "Ball",
+      "changes": {
+        "velocityX": 0.2
+      }
+    },
+    {
+      "name": "SetBall.velocityX = 0",
+      "type": "property",
+      "target": "Ball",
+      "changes": {
+        "velocityX": 0
+      }
+    },
+    {
+      "name": "SetBall.velocityY = 0",
+      "type": "property",
+      "target": "Ball",
+      "changes": {
+        "velocityY": 0
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "name": "StartAllSprites",
+      "description": "",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "SetGameState.spritesMovingToTrue"
+        }
+      ]
+    },
+    {
+      "name": "StopAllSprites",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "SetGameState.spritesMovingToFalse"
+        }
+      ]
+    },
+    {
+      "name": "MoveBallUp",
+      "description": "Moves the ball up using a library task",
+      "actionSequence": [
+        {
+          "type": "task",
+          "name": "MoveAndLog",
+          "params": {
+            "targetObj": "Ball",
+            "vx": 0,
+            "vy": -0.2,
+            "msg": "Ball geht hoch!"
+          }
+        }
+      ]
+    },
+    {
+      "name": "MoveBallDown",
+      "description": "Moves the ball down using a library task",
+      "actionSequence": [
+        {
+          "type": "task",
+          "name": "MoveAndLog",
+          "params": {
+            "targetObj": "Ball",
+            "vx": 0,
+            "vy": 0.2,
+            "msg": "Ball geht runter!"
+          }
+        }
+      ]
+    },
+    {
+      "name": "MoveBallLeft",
+      "description": "Moves the ball left using a library task",
+      "actionSequence": [
+        {
+          "type": "task",
+          "name": "MoveAndLog",
+          "params": {
+            "targetObj": "Ball",
+            "vx": -0.2,
+            "vy": 0,
+            "msg": "Ball geht links!"
+          }
+        }
+      ]
+    },
+    {
+      "name": "MoveBallRight",
+      "description": "Moves the ball right using a library task",
+      "actionSequence": [
+        {
+          "type": "task",
+          "name": "MoveAndLog",
+          "params": {
+            "targetObj": "Ball",
+            "vx": 0.2,
+            "vy": 0,
+            "msg": "Ball geht rechts!"
+          }
+        }
+      ]
+    },
+    {
+      "name": "StopBallX",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "SetBall.velocityX = 0"
+        }
+      ]
+    },
+    {
+      "name": "StopBallY",
+      "actionSequence": [
+        {
+          "type": "action",
+          "name": "SetBall.velocityY = 0"
+        }
+      ]
+    }
+  ],
+  "variables": [],
+  "flowCharts": {
+    "StartAllSprites": {
+      "elements": [
+        {
+          "id": "start-1767549812245",
+          "type": "Start",
+          "x": 40,
+          "y": 60,
+          "width": 140,
+          "height": 60,
+          "properties": {
+            "name": "Start",
+            "details": "",
+            "description": ""
+          },
+          "data": {}
+        },
+        {
+          "id": "task-root-1767549812246",
+          "type": "Task",
+          "x": 260,
+          "y": 60,
+          "width": 140,
+          "height": 60,
+          "properties": {
+            "name": "StartAllSprites",
+            "details": "",
+            "description": ""
+          },
+          "data": {
+            "taskName": "StartAllSprites"
+          }
+        },
+        {
+          "id": "node-1767605717117",
+          "type": "Action",
+          "x": 480,
+          "y": 60,
+          "width": 340,
+          "height": 60,
+          "properties": {
+            "name": "SetGameState.spritesMovingToTrue",
+            "details": "GameState.spritesMoving := true",
+            "description": ""
+          },
+          "data": {
+            "name": "SetGameState.spritesMovingToTrue",
+            "type": "property",
+            "target": "GameState",
+            "changes": {
+              "spritesMoving": true
+            },
+            "taskName": "SetGameState.spritesMovingToTrue",
+            "actionName": "SetGameState.spritesMovingToTrue",
+            "sync": true
+          }
+        }
+      ],
+      "connections": [
+        {
+          "startTargetId": "start-1767549812245",
+          "endTargetId": "task-root-1767549812246",
+          "startX": 180,
+          "startY": 90,
+          "endX": 260,
+          "endY": 90,
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "task-root-1767549812246",
+          "endTargetId": "node-1767605717117",
+          "startX": 396.328125,
+          "startY": 89,
+          "endX": 480,
+          "endY": 90,
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        }
+      ]
+    },
+    "StopAllSprites": {
+      "elements": [
+        {
+          "id": "start-1767551321298",
+          "type": "Start",
+          "x": 40,
+          "y": 60,
+          "width": 160,
+          "height": 60,
+          "properties": {
+            "name": "Start",
+            "details": "",
+            "description": ""
+          },
+          "data": {}
+        },
+        {
+          "id": "task-root-1767551321299",
+          "type": "Task",
+          "x": 280,
+          "y": 60,
+          "width": 160,
+          "height": 60,
+          "properties": {
+            "name": "StopAllSprites",
+            "details": "",
+            "description": ""
+          },
+          "data": {
+            "taskName": "StopAllSprites"
+          }
+        },
+        {
+          "id": "node-1767605832782",
+          "type": "Action",
+          "x": 520,
+          "y": 60,
+          "width": 340,
+          "height": 60,
+          "properties": {
+            "name": "SetGameState.spritesMovingToFalse",
+            "details": "GameState.spritesMoving := false",
+            "description": ""
+          },
+          "data": {
+            "name": "SetGameState.spritesMovingToFalse",
+            "type": "property",
+            "target": "GameState",
+            "changes": {
+              "spritesMoving": false
+            },
+            "taskName": "SetGameState.spritesMovingToFalse",
+            "actionName": "SetGameState.spritesMovingToFalse",
+            "sync": true
+          }
+        }
+      ],
+      "connections": [
+        {
+          "startTargetId": "start-1767551321298",
+          "endTargetId": "task-root-1767551321299",
+          "startX": 200,
+          "startY": 90,
+          "endX": 280,
+          "endY": 90,
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "task-root-1767551321299",
+          "endTargetId": "node-1767605832782",
+          "startX": 440.328125,
+          "startY": 90,
+          "endX": 520,
+          "endY": 90,
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        }
+      ]
+    },
+    "MoveBallUp": {
+      "elements": [
+        {
+          "id": "node-moveballup-1",
+          "type": "Task",
+          "x": 100,
+          "y": 100,
+          "properties": {
+            "name": "Task",
+            "text": "MoveAndLog",
+            "details": "Library Task"
+          },
+          "data": {
+            "taskName": "MoveAndLog",
+            "isLinked": true,
+            "params": {
+              "targetObj": "Ball",
+              "vx": 0,
+              "vy": -0.2,
+              "msg": "Ball geht hoch!"
+            }
+          }
+        }
+      ],
+      "connections": []
+    },
+    "MoveBallDown": {
+      "elements": [
+        {
+          "id": "node-moveballdown-1",
+          "type": "Task",
+          "x": 100,
+          "y": 100,
+          "properties": {
+            "name": "Task",
+            "text": "MoveAndLog",
+            "details": "Library Task"
+          },
+          "data": {
+            "taskName": "MoveAndLog",
+            "isLinked": true,
+            "params": {
+              "targetObj": "Ball",
+              "vx": 0,
+              "vy": 0.2,
+              "msg": "Ball geht runter!"
+            }
+          }
+        }
+      ],
+      "connections": []
+    },
+    "MoveBallLeft": {
+      "elements": [
+        {
+          "id": "node-moveballleft-1",
+          "type": "Task",
+          "x": 100,
+          "y": 100,
+          "properties": {
+            "name": "Task",
+            "text": "MoveAndLog",
+            "details": "Library Task"
+          },
+          "data": {
+            "taskName": "MoveAndLog",
+            "isLinked": true,
+            "params": {
+              "targetObj": "Ball",
+              "vx": -0.2,
+              "vy": 0,
+              "msg": "Ball geht links!"
+            }
+          }
+        }
+      ],
+      "connections": []
+    },
+    "MoveBallRight": {
+      "elements": [
+        {
+          "id": "node-moveballright-1",
+          "type": "Task",
+          "x": 100,
+          "y": 100,
+          "properties": {
+            "name": "Task",
+            "text": "MoveAndLog",
+            "details": "Library Task"
+          },
+          "data": {
+            "taskName": "MoveAndLog",
+            "isLinked": true,
+            "params": {
+              "targetObj": "Ball",
+              "vx": 0.2,
+              "vy": 0,
+              "msg": "Ball geht rechts!"
+            }
+          }
+        }
+      ],
+      "connections": []
+    },
+    "StopBallX": {
+      "elements": [
+        {
+          "id": "node_sbx_start",
+          "type": "Task",
+          "x": 100,
+          "y": 100,
+          "width": 150,
+          "height": 60,
+          "properties": {
+            "name": "StopBallX"
+          }
+        },
+        {
+          "id": "node_sbx_action",
+          "type": "Action",
+          "x": 350,
+          "y": 100,
+          "width": 250,
+          "height": 60,
+          "properties": {
+            "name": "SetBall.velocityX = 0"
+          },
+          "data": {
+            "name": "SetBall.velocityX = 0",
+            "type": "property",
+            "target": "Ball",
+            "changes": {
+              "velocityX": 0
+            }
+          }
+        }
+      ],
+      "connections": [
+        {
+          "startTargetId": "node_sbx_start",
+          "endTargetId": "node_sbx_action",
+          "startX": 250,
+          "startY": 130,
+          "endX": 350,
+          "endY": 130
+        }
+      ]
+    },
+    "StopBallY": {
+      "elements": [
+        {
+          "id": "node_sby_start",
+          "type": "Task",
+          "x": 100,
+          "y": 100,
+          "width": 150,
+          "height": 60,
+          "properties": {
+            "name": "StopBallY"
+          }
+        },
+        {
+          "id": "node_sby_action",
+          "type": "Action",
+          "x": 350,
+          "y": 100,
+          "width": 250,
+          "height": 60,
+          "properties": {
+            "name": "SetBall.velocityY = 0"
+          },
+          "data": {
+            "name": "SetBall.velocityY = 0",
+            "type": "property",
+            "target": "Ball",
+            "changes": {
+              "velocityY": 0
+            }
+          }
+        }
+      ],
+      "connections": [
+        {
+          "startTargetId": "node_sby_start",
+          "endTargetId": "node_sby_action",
+          "startX": 250,
+          "startY": 130,
+          "endX": 350,
+          "endY": 130
+        }
+      ]
+    },
+    "global": {
+      "elements": [],
+      "connections": [],
+      "stage": {
+        "cols": 100,
+        "rows": 100,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#1e1e1e"
+      }
+    }
+  }
+}

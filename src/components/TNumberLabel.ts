@@ -1,0 +1,108 @@
+import { TTextControl } from './TTextControl';
+import { TPropertyDef } from './TComponent';
+
+/**
+ * TNumberLabel - A specialized component for displaying and managing numeric values.
+ * It provides methods for incrementing and decrementing values and fires events
+ * when maximum or minimum values are reached.
+ */
+export class TNumberLabel extends TTextControl {
+    public className: string = 'TNumberLabel';
+    public value: number = 0;
+    public startValue: number = 0;
+    public maxValue: number | null = null;
+    public step: number = 1;
+
+    public onEvent: ((eventName: string) => void) | null = null;
+
+    constructor(name: string, x: number, y: number, startValue: number = 0) {
+        super(name, x, y, 100, 20);
+        this.startValue = startValue;
+        this.value = startValue;
+
+        this.style.backgroundColor = 'transparent';
+        this.style.color = '#000000';
+        this.style.textAlign = 'center';
+    }
+
+    /**
+     * Increments the value by the step amount.
+     * Fires onMaxValueReached if maxValue is set and reached.
+     */
+    public incValue(): void {
+        const oldValue = this.value;
+        this.value += this.step;
+        console.log(`[TNumberLabel] incValue on ${this.name}: ${oldValue} + ${this.step} = ${this.value}, maxValue=${this.maxValue}, onEvent=${!!this.onEvent}`);
+
+        if (this.maxValue !== null && this.value >= this.maxValue) {
+            console.log(`[TNumberLabel] ${this.name}: MaxValue reached! value=${this.value} >= maxValue=${this.maxValue}. Firing onMaxValueReached...`);
+            if (this.onEvent) {
+                this.onEvent('onMaxValueReached');
+                console.log(`[TNumberLabel] ${this.name}: onMaxValueReached event fired!`);
+            } else {
+                console.warn(`[TNumberLabel] ${this.name}: onEvent callback is NOT registered! Event cannot be fired.`);
+            }
+        }
+    }
+
+    /**
+     * Decrements the value by the step amount.
+     * Fires onMinValueReached if 0 is reached and startValue was > 0.
+     */
+    public decValue(): void {
+        const oldValue = this.value;
+        this.value -= this.step;
+
+        // Ensure we don't go below 0 if that's desired
+        if (this.value < 0) this.value = 0;
+
+        if (oldValue > 0 && this.value === 0 && this.startValue > 0) {
+            if (this.onEvent) this.onEvent('onMinValueReached');
+        }
+    }
+
+    /**
+     * Resets the value to the startValue.
+     */
+    public reset(): void {
+        this.value = this.startValue;
+    }
+
+    // Mapping caption to value for display if needed generically
+    get caption(): string {
+        return String(this.value);
+    }
+
+    set caption(v: string) {
+        this.value = Number(v) || 0;
+    }
+
+    public getEvents(): string[] {
+        return [
+            ...super.getEvents(),
+            'onMaxValueReached',
+            'onMinValueReached'
+        ];
+    }
+
+    public getInspectorProperties(): TPropertyDef[] {
+        const props = super.getInspectorProperties();
+        return [
+            ...props,
+            { name: 'startValue', label: 'Anfangswert', type: 'number', group: 'Numeric' },
+            { name: 'value', label: 'Aktueller Wert', type: 'number', group: 'Numeric' },
+            { name: 'maxValue', label: 'Maximalwert (Optional)', type: 'number', group: 'Numeric' },
+            { name: 'step', label: 'Schrittweite', type: 'number', group: 'Numeric' }
+        ];
+    }
+
+    public toJSON(): any {
+        return {
+            ...super.toJSON(),
+            value: this.value,
+            startValue: this.startValue,
+            maxValue: this.maxValue,
+            step: this.step
+        };
+    }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "game-builder-v1",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "predev": "npm run bundle:runtime",
+    "bundle:runtime": "esbuild src/player-standalone.ts --bundle --outfile=public/runtime-standalone.js --format=iife --target=es2020",
+    "build": "npm run bundle:runtime && tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "mermaid": "^11.12.2"
+  }
+}

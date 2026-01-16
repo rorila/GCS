@@ -1,0 +1,119 @@
+{
+    "title": "Action Editor",
+    "width": 500,
+    "height": 450,
+    "modal": true,
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "ActionNameLabel",
+            "text": "Action Name:",
+            "style": {
+                "fontSize": 12,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "ActionNameInput",
+            "text": "${dialogData.actionName}",
+            "placeholder": "Enter action name",
+            "style": {
+                "marginBottom": 16
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "TargetLabel",
+            "text": "Target Object:",
+            "style": {
+                "fontSize": 12,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "TargetInput",
+            "text": "${dialogData.target}",
+            "placeholder": "Object name",
+            "style": {
+                "marginBottom": 16
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "TypeLabel",
+            "text": "Action Type:",
+            "style": {
+                "fontSize": 12,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 4
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "TypeDropdown",
+            "selectedValue": "${dialogData.type}",
+            "options": [
+                "property",
+                "method",
+                "navigate"
+            ],
+            "style": {
+                "marginBottom": 16
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "ChangesLabel",
+            "text": "Property Changes:",
+            "style": {
+                "fontSize": 12,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "ChangesHint",
+            "text": "Define what properties to change:",
+            "style": {
+                "fontSize": 11,
+                "color": "#888",
+                "marginBottom": 12
+            }
+        }
+    ],
+    "buttons": [
+        {
+            "caption": "Save",
+            "action": "save",
+            "style": {
+                "backgroundColor": "#28a745",
+                "color": "#fff"
+            }
+        },
+        {
+            "caption": "Delete",
+            "action": "delete",
+            "style": {
+                "backgroundColor": "#dc3545",
+                "color": "#fff"
+            }
+        },
+        {
+            "caption": "Cancel",
+            "action": "cancel",
+            "style": {
+                "backgroundColor": "#6c757d",
+                "color": "#fff"
+            }
+        }
+    ]
+}

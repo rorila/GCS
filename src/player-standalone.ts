@@ -1,0 +1,568 @@
+import { GameRuntime } from './runtime/GameRuntime';
+import { network, ServerMessage } from './multiplayer';
+import { ExpressionParser } from './runtime/ExpressionParser';
+
+// Register for runtime access
+(window as any).ExpressionParser = ExpressionParser;
+
+/**
+ * UniversalPlayer - Drives the game on the platform.
+ * Supports:
+ * - Direct project execution (embedded PROJECT)
+ * - Remote project loading (?game=xxx.json)
+ * - Multiplayer rooms (?room=XXXX)
+ * - Dynamic Lobby (if no game/room selected)
+ */
+class UniversalPlayer {
+    private runtime: GameRuntime | null = null;
+    private stage: HTMLElement;
+    private techClasses = ['TGameLoop', 'TInputController', 'TGameState', 'TTimer', 'TRemoteGameManager', 'TGameServer', 'THandshake', 'THeartbeat'];
+    private currentProject: any = null;
+    private isStarted: boolean = false;
+    private animationTickerId: number | null = null;
+
+    constructor() {
+        this.stage = document.getElementById('stage')!;
+        this.init();
+    }
+
+    private async init() {
+        // 1. Setup Scaling
+        window.addEventListener('resize', () => this.setupScaling());
+
+        // 2. Connect to Network (Platform always uses network if available)
+        try {
+            await network.connect();
+            console.log('[UniversalPlayer] Connected to game server');
+        } catch (e) {
+            console.warn('[UniversalPlayer] Server not reachable, falling back to offline mode');
+        }
+
+        // 3. Listen for network events (Project handshakes, Room codes)
+        network.on((msg: ServerMessage) => this.handleNetworkMessage(msg));
+
+        // 3b. Setup local input capture for multiplayer
+        (window as any).__multiplayerInputCallback = (key: string, action: 'down' | 'up') => {
+            if (network.roomCode) {
+                network.sendInput(key, action);
+            }
+        };
+
+        // 4. Determine initial project
+        const params = new URLSearchParams(window.location.search);
+        const roomCode = params.get('room');
+        const gameFile = params.get('game');
+        const hostMode = params.get('host') === 'true';
+
+        if (roomCode) {
+            // Join existing room - project will arrive via 'project_data'
+            console.log(`[UniversalPlayer] Joining room: ${roomCode}`);
+            network.joinRoom(roomCode);
+            this.showOverlay('Beitritt zum Raum...', roomCode);
+        } else if (gameFile && hostMode) {
+            // Load game and create a multiplayer room
+            console.log(`[UniversalPlayer] Hosting multiplayer game: ${gameFile}`);
+            const baseUrl = network.getHttpUrl();
+            await this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`);
+            // Create room after project is loaded (will trigger room_created message)
+            network.createRoom(gameFile);
+            this.showOverlay('Raum wird erstellt...', '');
+        } else if (gameFile) {
+            // Load specific game file from platform (single player)
+            console.log(`[UniversalPlayer] Loading game: ${gameFile}`);
+            const baseUrl = network.getHttpUrl();
+            await this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`);
+        } else if ((window as any).PROJECT) {
+            // Use embedded project (Standalone HTML Export)
+            console.log('[UniversalPlayer] Loading embedded project');
+            this.startProject((window as any).PROJECT);
+        } else {
+            // Default: Show Lobby
+            console.log('[UniversalPlayer] No game selected, loading lobby...');
+            await this.loadProjectFromUrl('./multiplayer/lobby.json');
+        }
+    }
+
+    private handleNetworkMessage(msg: any) {
+        switch (msg.type) {
+            case 'project_data':
+                console.log('[UniversalPlayer] Received project JSON from server');
+                this.startProject(msg.project);
+                break;
+
+            case 'room_created':
+                this.showOverlay('Raum erstellt', msg.roomCode);
+                // If we are Master and just started a project, sync it to server
+                if (this.currentProject) {
+                    network.syncProject(this.currentProject);
+                }
+                // Signal ready as Master
+                network.ready();
+                break;
+
+            case 'room_joined':
+                this.showOverlay('Raum beigetreten', msg.roomCode);
+                break;
+
+            case 'game_start':
+                this.hideOverlay();
+                if (this.runtime) {
+                    console.log(`[UniversalPlayer] Game Start received, triggering onGameStart`);
+                    this.runtime.handleEvent('global', 'onGameStart');
+                }
+                break;
+
+            case 'remote_state':
+                if (this.runtime) {
+                    console.log(`[NET] Received state for ${msg.objectId}:`, msg.state || msg);
+                    // Pass the full state object from the new protocol
+                    this.runtime.updateRemoteState(msg.objectId, msg.state || msg);
+                }
+                break;
+
+            case 'remote_event':
+                if (this.runtime) {
+                    console.log(`[UniversalPlayer] Received remote_event: ${msg.objectId}.${msg.eventName}`);
+                    this.runtime.triggerRemoteEvent(msg.objectId, msg.eventName, msg.params);
+                }
+                break;
+
+            case 'remote_input':
+                if (this.runtime) {
+                    const controllers = this.runtime.getObjects().filter(o => o.className === 'TInputController');
+                    controllers.forEach(ic => {
+                        if (msg.action === 'down') ic.simulateKeyPress(msg.key);
+                        else ic.simulateKeyRelease(msg.key);
+                    });
+                }
+                break;
+
+            case 'remote_action':
+                if (this.runtime) {
+                    console.log(`[UniversalPlayer] Received remote_action from P${msg.player}:`, msg.action);
+                    this.runtime.executeRemoteAction(msg.action);
+                }
+                break;
+
+            case 'remote_task':
+                if (this.runtime) {
+                    console.log(`[UniversalPlayer] Received remote_task: ${msg.taskName} (mode: ${msg.mode})`);
+                    this.runtime.executeRemoteTask(msg.taskName, msg.params, msg.mode);
+                }
+                break;
+        }
+    }
+
+    private async loadProjectFromUrl(url: string) {
+        try {
+            const resp = await fetch(url);
+            if (resp.ok) {
+                const project = await resp.json();
+                this.startProject(project);
+            } else {
+                console.error(`[UniversalPlayer] Failed to load project from ${url}`);
+                if (url !== './multiplayer/lobby.json') {
+                    await this.loadProjectFromUrl('./multiplayer/lobby.json');
+                }
+            }
+        } catch (e) {
+            console.error('[UniversalPlayer] Error fetching project:', e);
+        }
+    }
+
+    public startProject(project: any) {
+        if (this.isStarted && this.currentProject === project) return;
+        this.isStarted = true;
+
+        // 1. Stop previous runtime if any
+        if (this.runtime) {
+            this.runtime.stop();
+            this.stopAnimationTicker();
+            this.stage.innerHTML = '';
+        }
+
+        this.currentProject = project;
+
+        // 2. Initialize new Runtime
+        this.runtime = new GameRuntime(project, undefined, {
+            onRender: () => this.render(),
+            multiplayerManager: network,
+            onNavigate: (target: string) => this.handleNavigation(target)
+        });
+
+        // 3. Update Visuals
+        this.setupScaling();
+        this.render();
+
+        // 4. Start Game (if runtime was successfully created)
+        if (this.runtime) {
+            this.runtime.start();
+            this.startAnimationTicker();
+        }
+        console.log(`[UniversalPlayer] Project "${project.meta?.name}" started`);
+
+        // If we are in a room, signal that we are ready
+        if (network.roomCode) {
+            console.log(`[UniversalPlayer] Signalling ready to server as Player ${network.playerNumber}`);
+            network.ready();
+
+            // If Master (P1), also ensure project is synced
+            if (network.playerNumber === 1) {
+                network.syncProject(project);
+            }
+        }
+    }
+
+    private handleNavigation(target: string) {
+        console.log(`[UniversalPlayer] Navigating to: ${target}`);
+        if (target.startsWith('game:')) {
+            const gameFile = target.replace('game:', '');
+            const baseUrl = network.getHttpUrl();
+            this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`);
+        } else if (target.startsWith('host:')) {
+            const gameFile = target.replace('host:', '');
+            const baseUrl = network.getHttpUrl();
+            this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`).then(() => {
+                console.log(`[UniversalPlayer] Hosting game: ${gameFile}`);
+                network.createRoom(gameFile);
+            });
+        } else if (target === 'lobby') {
+            this.loadProjectFromUrl('./multiplayer/lobby.json');
+        } else if (target.startsWith('room:')) {
+            const code = target.replace('room:', '');
+            network.joinRoom(code);
+            this.showOverlay('Beitritt zum Raum...', code);
+        }
+    }
+
+    private setupScaling() {
+        if (!this.currentProject) return;
+        const grid = this.currentProject.stage.grid;
+        const stageWidth = grid.cols * grid.cellSize;
+        const stageHeight = grid.rows * grid.cellSize;
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        const margin = 20;
+        const scale = Math.min((windowWidth - margin) / stageWidth, (windowHeight - margin) / stageHeight, 1.0);
+
+        this.stage.style.width = `${stageWidth}px`;
+        this.stage.style.height = `${stageHeight}px`;
+        this.stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        this.stage.style.left = '50%';
+        this.stage.style.top = '50%';
+        this.stage.style.position = 'absolute';
+
+        // Set background color and image from project grid
+        const bg = grid.backgroundColor || '#000';
+        const bgImg = this.currentProject.stage.backgroundImage;
+        if (bgImg) {
+            const url = bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:')
+                ? bgImg
+                : `./images/${bgImg}`;
+            this.stage.style.background = `url("${url}") center center / ${this.currentProject.stage.objectFit || 'cover'} no-repeat, ${bg}`;
+        } else {
+            this.stage.style.background = bg;
+        }
+    }
+
+    private startAnimationTicker() {
+        if (this.animationTickerId) return;
+        const tick = () => {
+            if (!this.isStarted) return;
+
+            // 1. Advance animations via AnimationManager
+            const am = (window as any).AnimationManager || this.getAnimationManager();
+            if (am) am.getInstance().update();
+
+            // 2. Continuous render if animating to ensure fluidity
+            // If we have a TGameLoop it might also trigger onRender, but doing it here 
+            // ensures it works even for start-animations before GameLoop is fully busy.
+            this.render();
+
+            this.animationTickerId = requestAnimationFrame(tick);
+        };
+        this.animationTickerId = requestAnimationFrame(tick);
+    }
+
+    private stopAnimationTicker() {
+        if (this.animationTickerId) {
+            cancelAnimationFrame(this.animationTickerId);
+            this.animationTickerId = null;
+        }
+    }
+
+    // Helper to get AnimationManager from bundle if needed
+    private getAnimationManager(): any {
+        // In the standalone bundle, AnimationManager should be included.
+        // We can try to get it from the runtime context or global window.
+        try {
+            const { AnimationManager } = require('./runtime/AnimationManager');
+            return AnimationManager;
+        } catch (e) {
+            return (window as any).AnimationManager;
+        }
+    }
+
+    private render() {
+        if (!this.runtime) return;
+        const objects = this.runtime.getObjects();
+        // console.log(`[UniversalPlayer] Rendering ${objects.length} objects`);
+        const cellSize = this.currentProject.stage.grid.cellSize;
+        const grid = this.currentProject.stage.grid;
+        const stageWidth = grid.cols * cellSize;
+        const stageHeight = grid.rows * cellSize;
+
+        // Calculate dock positions for aligned objects
+        const dockArea = { left: 0, top: 0, right: stageWidth, bottom: stageHeight };
+        const dockPositions = new Map<string, { left: number, top: number, width: number, height: number }>();
+
+        // First pass: TOP, BOTTOM, LEFT, RIGHT
+        objects.forEach((obj: any) => {
+            const align = obj.align || 'NONE';
+            if (align === 'NONE' || align === 'CLIENT') return;
+
+            const objId = obj.id;
+            if (!objId) return;
+
+            const objHeight = (obj.height || 0) * cellSize;
+            const objWidth = (obj.width || 0) * cellSize;
+            const availableWidth = dockArea.right - dockArea.left;
+            const availableHeight = dockArea.bottom - dockArea.top;
+
+            if (align === 'TOP') {
+                dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: availableWidth, height: objHeight });
+                dockArea.top += objHeight;
+            } else if (align === 'BOTTOM') {
+                dockPositions.set(objId, { left: dockArea.left, top: dockArea.bottom - objHeight, width: availableWidth, height: objHeight });
+                dockArea.bottom -= objHeight;
+            } else if (align === 'LEFT') {
+                dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: objWidth, height: availableHeight });
+                dockArea.left += objWidth;
+            } else if (align === 'RIGHT') {
+                dockPositions.set(objId, { left: dockArea.right - objWidth, top: dockArea.top, width: objWidth, height: availableHeight });
+                dockArea.right -= objWidth;
+            }
+        });
+
+        // Second pass: CLIENT fills remaining area
+        objects.forEach((obj: any) => {
+            const align = obj.align || 'NONE';
+            if (align !== 'CLIENT') return;
+
+            const objId = obj.id;
+            if (!objId) return;
+
+            dockPositions.set(objId, {
+                left: dockArea.left,
+                top: dockArea.top,
+                width: dockArea.right - dockArea.left,
+                height: dockArea.bottom - dockArea.top
+            });
+        });
+
+        // Clean up DOM - remove elements that are no longer in runtime
+        const currentIds = new Set(objects.map((o: any) => o.id));
+        const rendered = Array.from(this.stage.querySelectorAll('.game-object')) as HTMLElement[];
+        rendered.forEach(el => {
+            if (!currentIds.has(el.id)) el.remove();
+        });
+
+        // Update/Create elements
+        objects.forEach((obj: any) => {
+            if (this.techClasses.includes(obj.className)) return;
+
+            const isVisible = obj.style?.visible !== false && obj.visible !== false;
+            let el = document.getElementById(obj.id);
+
+            if (!isVisible) {
+                if (el) el.remove();
+                return;
+            }
+
+            if (!el) {
+                el = document.createElement('div');
+                el.id = obj.id;
+                el.className = 'game-object';
+                this.stage.appendChild(el);
+            }
+
+            // Sync Basic Styles - use dock positions if available
+            const dockPos = dockPositions.get(obj.id);
+            if (dockPos) {
+                // For docked objects, x and y serve as relative grid-offsets to their dock position
+                // This allows animating docked objects (e.g. stage entry)
+                const offsetX = (obj.x || 0) * cellSize;
+                const offsetY = (obj.y || 0) * cellSize;
+                el.style.left = `${dockPos.left + offsetX}px`;
+                el.style.top = `${dockPos.top + offsetY}px`;
+                el.style.width = `${dockPos.width}px`;
+                el.style.height = `${dockPos.height}px`;
+            } else {
+                el.style.left = `${(obj.x || 0) * cellSize}px`;
+                el.style.top = `${(obj.y || 0) * cellSize}px`;
+                el.style.width = `${(obj.width || 0) * cellSize}px`;
+                el.style.height = `${(obj.height || 0) * cellSize}px`;
+            }
+            el.style.zIndex = String(obj.zIndex || 0);
+
+            // Opacity support for animations
+            if (obj.style && obj.style.opacity !== undefined) {
+                el.style.opacity = String(obj.style.opacity);
+            } else {
+                el.style.opacity = '1';
+            }
+
+            if (obj.style) {
+                el.style.backgroundColor = obj.style.backgroundColor || 'transparent';
+                el.style.color = obj.style.color || 'inherit';
+                el.style.fontSize = (obj.style.fontSize || 16) + 'px';
+                el.style.textAlign = obj.style.textAlign || 'left';
+                el.style.border = `${obj.style.borderWidth || 0}px solid ${obj.style.borderColor || 'transparent'}`;
+                el.style.borderRadius = (obj.style.borderRadius || 0) + 'px';
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+                el.style.justifyContent = obj.style.textAlign === 'center' ? 'center' : 'flex-start';
+                el.style.padding = obj.style.textAlign === 'center' ? '0' : '0 10px';
+            }
+
+            this.renderComponentContent(el, obj);
+        });
+    }
+
+    private renderComponentContent(el: HTMLElement, obj: any) {
+        const type = obj.className;
+        switch (type) {
+            case 'TImage': {
+                el.innerHTML = '';
+                const img = document.createElement('img');
+                const src = obj.src || obj.backgroundImage || '';
+                if (src) {
+                    img.src = src.startsWith('http') || src.startsWith('/') || src.startsWith('data:')
+                        ? src
+                        : `./images/${src}`;
+                }
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = obj.objectFit || 'contain';
+                img.style.opacity = String(obj.imageOpacity ?? 1);
+                img.style.display = src ? 'block' : 'none';
+                el.appendChild(img);
+                break;
+            }
+            case 'TSprite': {
+                el.style.backgroundColor = obj.spriteColor || el.style.backgroundColor;
+                if (obj.shape === 'circle') el.style.borderRadius = '50%';
+
+                // Sprite background image
+                const bgImg = obj.backgroundImage;
+                if (bgImg) {
+                    const url = bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:')
+                        ? bgImg
+                        : `./images/${bgImg}`;
+                    el.style.backgroundImage = `url("${url}")`;
+                    el.style.backgroundSize = obj.objectFit || 'cover';
+                    el.style.backgroundPosition = 'center';
+                    el.style.backgroundRepeat = 'no-repeat';
+                } else {
+                    el.style.backgroundImage = 'none';
+                }
+                break;
+            }
+            case 'TButton':
+                el.innerText = obj.caption || obj.name;
+                el.style.cursor = 'pointer';
+
+                // Handle optional icon
+                if (obj.icon) {
+                    const iconUrl = obj.icon.startsWith('http') || obj.icon.startsWith('/') || obj.icon.startsWith('data:')
+                        ? obj.icon
+                        : `./images/${obj.icon}`;
+                    el.style.display = 'flex';
+                    el.style.gap = '8px';
+                    el.style.alignItems = 'center';
+                    el.style.justifyContent = 'center';
+                    el.innerHTML = `<img src="${iconUrl}" style="height: 1.2em; width: auto;"> <span>${obj.caption || obj.name}</span>`;
+                }
+
+                if (!el.onclick) {
+                    el.onclick = () => this.runtime?.handleEvent(obj.id, 'onClick');
+                }
+                break;
+            case 'TLabel':
+            case 'TNumberLabel':
+            case 'TGameHeader':
+                const labelText = (obj.text !== undefined && obj.text !== null) ? String(obj.text) :
+                    (obj.value !== undefined && obj.value !== null) ? String(obj.value) :
+                        (obj.title || obj.caption || '');
+                el.innerText = labelText;
+                break;
+            case 'TEdit':
+                if (!el.querySelector('input')) {
+                    el.innerHTML = '';
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.style.width = '100%';
+                    input.style.height = '100%';
+                    input.style.border = 'none';
+                    input.style.background = 'transparent';
+                    input.style.padding = '0 10px';
+                    input.style.color = 'inherit';
+                    input.style.fontSize = 'inherit';
+                    input.style.textAlign = 'center';
+                    input.style.outline = 'none';
+                    input.oninput = () => { obj.text = input.value; };
+                    el.appendChild(input);
+                }
+                const ti = el.querySelector('input')!;
+                const editValue = (obj.text !== undefined && obj.text !== null) ? String(obj.text) : '';
+                if (ti.value !== editValue) {
+                    ti.value = editValue;
+                }
+                break;
+        }
+    }
+
+    private showOverlay(text: string, subtext?: string) {
+        let overlay = document.getElementById('player-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'player-overlay';
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.85); color: white; z-index: 20000;
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                font-family: sans-serif; backdrop-filter: blur(5px);
+            `;
+            document.body.appendChild(overlay);
+        }
+        overlay.innerHTML = `
+            <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">${text}</div>
+            ${subtext ? `<div style="font-size: 48px; color: #4fc3f7; letter-spacing: 5px;">${subtext}</div>` : ''}
+            <div style="margin-top: 40px; color: #888; font-size: 14px;">Warten auf Gegenspieler...</div>
+        `;
+        overlay.style.display = 'flex';
+    }
+
+    private hideOverlay() {
+        const overlay = document.getElementById('player-overlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+}
+
+// Start
+document.addEventListener('DOMContentLoaded', () => {
+    (window as any).player = new UniversalPlayer();
+});
+
+// For embedded projects (Standalone Export)
+(window as any).startStandalone = (project: any) => {
+    console.log('[UniversalPlayer] Standalone trigger received');
+    const player = (window as any).player;
+    if (player && typeof player.startProject === 'function') {
+        player.startProject(project);
+    } else {
+        // Fallback: If player not yet ready, set global PROJECT for init()
+        (window as any).PROJECT = project;
+    }
+};

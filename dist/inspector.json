@@ -1,0 +1,425 @@
+{
+    "meta": {
+        "name": "Inspector",
+        "version": "2.0.0",
+        "description": "JSON-based Inspector using Reactive Variables"
+    },
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "TitleLabel",
+            "x": 0,
+            "y": 0,
+            "text": "${selectedObject.name || selectedObject.meta?.name || 'No Selection'}",
+            "style": {
+                "fontSize": 16,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginBottom": 16
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "NameLabel",
+            "x": 0,
+            "y": 2,
+            "text": "Name:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "nameInput",
+            "x": 0,
+            "y": 3,
+            "text": "${selectedObject.name}",
+            "width": 30,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "GeometryHeader",
+            "text": "GEOMETRY",
+            "style": {
+                "fontSize": 10,
+                "fontWeight": "bold",
+                "color": "#888",
+                "marginTop": 12,
+                "marginBottom": 6
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "XLabel",
+            "x": 0,
+            "y": 5,
+            "text": "X Position:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "xInput",
+            "x": 0,
+            "y": 6,
+            "value": "${selectedObject.x}",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "YLabel",
+            "x": 16,
+            "y": 5,
+            "text": "Y Position:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "yInput",
+            "x": 16,
+            "y": 6,
+            "value": "${selectedObject.y}",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "WidthLabel",
+            "x": 0,
+            "y": 8,
+            "text": "Width:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "widthInput",
+            "x": 0,
+            "y": 9,
+            "value": "${selectedObject.width}",
+            "min": 1,
+            "max": 100,
+            "step": 1,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "HeightLabel",
+            "x": 16,
+            "y": 8,
+            "text": "Height:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "heightInput",
+            "x": 16,
+            "y": 9,
+            "value": "${selectedObject.height}",
+            "min": 1,
+            "max": 100,
+            "step": 1,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "AlignLabel",
+            "x": 0,
+            "y": 11,
+            "text": "Align:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "alignInput",
+            "x": 0,
+            "y": 12,
+            "options": [
+                "NONE",
+                "TOP",
+                "BOTTOM",
+                "LEFT",
+                "RIGHT",
+                "CLIENT"
+            ],
+            "selectedValue": "${selectedObject.align}",
+            "width": 30,
+            "height": 2
+        },
+        {
+            "className": "TCheckbox",
+            "name": "showGridInput",
+            "x": 16,
+            "y": 12,
+            "checked": "${selectedObject.showGrid}",
+            "label": "Show Grid"
+        },
+        {
+            "className": "TColorPicker",
+            "name": "gridColorInput",
+            "x": 24,
+            "y": 12,
+            "color": "${selectedObject.gridColor}",
+            "width": 6,
+            "height": 2
+        },
+        {
+            "className": "TDropdown",
+            "name": "gridStyleInput",
+            "x": 0,
+            "y": 14,
+            "options": [
+                "lines",
+                "dots"
+            ],
+            "selectedValue": "${selectedObject.gridStyle}",
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "StyleHeader",
+            "text": "STYLE",
+            "style": {
+                "fontSize": 10,
+                "fontWeight": "bold",
+                "color": "#888",
+                "marginTop": 12,
+                "marginBottom": 6
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "BackgroundColorLabel",
+            "x": 0,
+            "y": 14,
+            "text": "Background Color:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TColorPicker",
+            "name": "style.backgroundColorInput",
+            "x": 0,
+            "y": 15,
+            "color": "${selectedObject.style.backgroundColor}",
+            "width": 30,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "TextColorLabel",
+            "x": 0,
+            "y": 17,
+            "text": "Text Color:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TColorPicker",
+            "name": "style.colorInput",
+            "x": 0,
+            "y": 18,
+            "color": "${selectedObject.style.color}",
+            "width": 30,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "VisibleLabel",
+            "x": 0,
+            "y": 20,
+            "text": "Visible:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TCheckbox",
+            "name": "VisibleInput",
+            "x": 0,
+            "y": 21,
+            "checked": "${selectedObject.visible}",
+            "label": "Show object"
+        },
+        {
+            "className": "TLabel",
+            "name": "BorderColorLabel",
+            "x": 0,
+            "y": 23,
+            "text": "Border Color:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TColorPicker",
+            "name": "BorderColorInput",
+            "x": 0,
+            "y": 24,
+            "color": "${selectedObject.style.borderColor}",
+            "width": 30,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "BorderWidthLabel",
+            "x": 0,
+            "y": 26,
+            "text": "Border Width:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "BorderWidthInput",
+            "x": 0,
+            "y": 27,
+            "value": "${selectedObject.style.borderWidth}",
+            "min": 0,
+            "max": 10,
+            "step": 1,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "BorderRadiusLabel",
+            "x": 16,
+            "y": 26,
+            "text": "Border Radius:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "BorderRadiusInput",
+            "x": 16,
+            "y": 27,
+            "value": "${selectedObject.style.borderRadius}",
+            "min": 0,
+            "max": 50,
+            "step": 1,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "OpacityLabel",
+            "x": 0,
+            "y": 29,
+            "text": "Opacity:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "OpacityInput",
+            "x": 0,
+            "y": 30,
+            "value": "${selectedObject.style.opacity}",
+            "min": 0,
+            "max": 1,
+            "step": 0.1,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "FontSizeLabel",
+            "x": 0,
+            "y": 32,
+            "text": "Font Size:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "FontSizeInput",
+            "x": 0,
+            "y": 33,
+            "value": "${selectedObject.style.fontSize}",
+            "min": 8,
+            "max": 72,
+            "step": 1,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "TextAlignLabel",
+            "x": 16,
+            "y": 32,
+            "text": "Text Align:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "TextAlignInput",
+            "x": 16,
+            "y": 30,
+            "options": [
+                "left",
+                "center",
+                "right"
+            ],
+            "selectedValue": "${selectedObject.style.textAlign}",
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TButton",
+            "name": "DeleteButton",
+            "x": 0,
+            "y": 36,
+            "caption": "🗑️ Delete Object",
+            "width": 30,
+            "height": 2,
+            "style": {
+                "backgroundColor": "#c82333",
+                "color": "#fff"
+            }
+        }
+    ]
+}
