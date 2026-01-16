@@ -1064,8 +1064,6 @@ export class JSONDialogRenderer {
         // Map common component names to dialogData properties
         if (name === 'NameInput') {
             this.dialogData.name = value;
-            this.dialogData.taskName = value; // Legacy support
-            this.dialogData.actionName = value; // Legacy support
         }
         if (name === 'TargetObjectSelect') {
             this.dialogData.target = value;

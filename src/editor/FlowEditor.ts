@@ -100,6 +100,34 @@ export class FlowEditor {
     private get selectedNode(): FlowElement | null {
         return this.stateManager.getSelectedNode();
     }
+
+    /**
+     * Synchronisiert alle Tasks im Projekt aus ihren jeweiligen Flow-Diagrammen.
+     * Stellt sicher, dass die actionSequence-Daten im Projekt immer aktuell sind.
+     */
+    public syncAllTasksFromFlow(project: GameProject): void {
+        const charts = project.flowCharts;
+        if (!charts) return;
+
+        console.log(`[FlowEditor] Starting global sync for tasks in project: ${project.meta.name}`);
+
+        project.tasks.forEach(task => {
+            const flowData = charts[task.name];
+            if (flowData && flowData.elements && flowData.elements.length > 0) {
+                // Temporärer Kontext-Wechsel, damit syncTaskFromFlow die Logik nicht überspringt
+                const prevContext = this.currentFlowContext;
+                this.stateManager.setContext(task.name); // Direkt über stateManager setzen um UI-Nebeneffekte zu minimieren
+
+                try {
+                    this.syncTaskFromFlow(task, flowData.elements, flowData.connections || []);
+                } finally {
+                    this.stateManager.setContext(prevContext);
+                }
+            }
+        });
+
+        console.log(`[FlowEditor] Global sync completed.`);
+    }
     private set selectedNode(value: FlowElement | null) {
         // Note: For full selection use selectNode() method which also handles visual feedback
         // This setter is for internal state management only
@@ -685,11 +713,20 @@ export class FlowEditor {
             return;
         }
 
+        // SINGLE SOURCE OF TRUTH: If actionData is just a link (marked as isLinked)
+        // and doesn't contain a full definition, SKIP the update to avoid overwriting
+        // the global definition in project.actions with empty/minimal data.
+        const isMinimalLink = actionData.isLinked && !actionData.type && !actionData.target && !actionData.service;
+        if (isMinimalLink) {
+            // console.log(`[FlowEditor] Skipping update for linked action "${name}" (minimal data)`);
+            return;
+        }
+
         // Ensure actions array exists
         if (!this.project.actions) this.project.actions = [];
 
         // Filter out Task-specific and internal fields that don't belong in an Action
-        const taskFields = ['taskName', 'isMapLink', 'isProxy', 'stageObjectId', 'embeddedGroupId', 'parentProxyId', 'isLinked', 'isEmbeddedInternal', 'isExpanded', 'sourceTaskName'];
+        const taskFields = ['taskName', 'isMapLink', 'isProxy', 'stageObjectId', 'embeddedGroupId', 'parentProxyId', 'isLinked', 'isEmbeddedInternal', 'isExpanded', 'sourceTaskName', '_formValues'];
         const cleanedData = { ...actionData };
         taskFields.forEach(field => delete cleanedData[field]);
 

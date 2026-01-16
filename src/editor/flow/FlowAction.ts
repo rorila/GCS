@@ -65,7 +65,7 @@ export class FlowAction extends FlowElement {
             this.Details = this.getActionDetails(displayAction);
 
             this.content.innerHTML = `
-                <div style="text-align:center;padding:8px 4px">
+                <div style="text-align:center;padding:8px 4px" translate="no">
                     <div style="font-weight:bold;font-size:12px;white-space:nowrap">${title}</div>
                     <div style="font-family:'Courier New', monospace;font-size:10px;color:#00ffff;margin-top:4px;font-weight:normal;line-height:1.2">
                         ${this.Details.split(';').map(d => `<div style="white-space:nowrap">${d.trim()}</div>`).join('')}

@@ -2,8 +2,17 @@
 
 ## [Unreleased] - 2026-01-16
 
-### Added
-- **JSON-Editor Synchronisierung:** Neuer `syncFlowChartsWithActions()` in `Editor.ts` und `syncActionsFromProject()` in `FlowEditor.ts`. Änderungen an Actions im JSON-Editor werden nun korrekt in alle FlowChart-Elemente synchronisiert und im LocalStorage gespeichert. 🔧
+### Refactoring: FlowCharts als Single Source of Truth 🚀
+- **Architektur:** FlowChart-Elemente (Actions) speichern jetzt nur noch Links (`isLinked: true`) auf globale Action-Definitionen. Die vollständigen Logik-Daten liegen ausschließlich in `project.actions`.
+- **Primat der FlowCharts:** Flow-Diagramme sind nun die definitive "Single Source of Truth" für die Aufgaben-Logik.
+- **Automatischer Sync:** Alle Tasks im Projekt werden vor dem Speichern oder Exportieren (`HTML/JSON`) automatisch aus den Diagrammen regeneriert (`syncAllTasksFromFlow`).
+- **UI-Schutz:** Im `TaskEditor` ist die `actionSequence`-Liste schreibgeschützt (🔒), wenn ein Flow für den Task existiert. Ein Tooltip informiert über das Primat des Flow-Editors.
+- **Automatische Migration:** Bestehende Projekte werden beim Öffnen im Flow-Editor automatisch in das neue Link-Format migriert (Single Source of Truth).
+- **Copy-Logik:** "Embed Action (Copy)" im Kontextmenü erstellt nun eine echte 1:1 Kopie als neue globale Action mit eindeutigem Namen (z.B. `Original_Copy1`).
+- **Action-Editor:** Änderungen im Action-Editor aktualisieren direkt die globale Definition und halten den FlowChart-Node synchron.
+- **Daten-Schutz:** `updateGlobalActionDefinition` schützt nun valide Action-Definitionen davor, durch minimale Link-Daten überschrieben zu werden.
+- **Inspector:** Verlinkte Actions werden im Inspector automatisch als schreibgeschützt (🔒) markiert, um die Konsistenz der Library zu wahren.
+- **Export-Optimierung:** Entfernung von Editor-only Feldern (`description`, `details`) und leeren `Tasks`-Containern zur Minimierung der Dateigröße. 🚀 ✨
 
 ### Fixed
 - **LocalStorage Persistenz:** Änderungen im JSON-Editor werden nun korrekt ins LocalStorage übernommen. Vorher wurden FlowChart-Elementdaten nicht mit `project.actions` synchronisiert.

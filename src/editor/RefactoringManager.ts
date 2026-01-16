@@ -391,13 +391,13 @@ export class RefactoringManager {
         report.push('Action-Sequenzen bereinigt');
 
         // 3. Remove task mappings for non-existent tasks
-        const taskNames = new Set(project.tasks.map(t => t.name));
+        const taskNames2 = new Set(project.tasks.map(t => t.name));
         project.objects.forEach(obj => {
             if ((obj as any).Tasks) {
                 const tasks = (obj as any).Tasks;
                 Object.keys(tasks).forEach(key => {
                     const mappedTask = tasks[key];
-                    if (mappedTask && !taskNames.has(mappedTask)) {
+                    if (mappedTask && !taskNames2.has(mappedTask)) {
                         delete tasks[key];
                         report.push(`Entfernte verwaiste Task-Zuweisung in ${obj.name}: ${key} -> ${mappedTask}`);
                     }
@@ -405,9 +405,87 @@ export class RefactoringManager {
             }
         });
 
+        // 4. Migrate FlowChart actions to Single Source of Truth
+        this.migrateFlowChartActions(project, report);
+
         if (report.length > 0) {
             console.log('[RefactoringManager] Project sanitized:', report);
         }
         return report;
+    }
+
+    /**
+     * Migrates all actions in all flowCharts to links (Single Source of Truth).
+     * Removes redundant data copies from the project file.
+     * Also cleans up transient UI data like _formValues, taskName, actionName.
+     */
+    public static migrateFlowChartActions(project: GameProject, report: string[] = []): void {
+        // Fields that should be removed from action definitions (transient/legacy)
+        const transientFields = ['_formValues', 'taskName', 'actionName'];
+        let cleanupCount = 0;
+
+        // 1. Clean up project.actions
+        if (project.actions) {
+            project.actions.forEach(action => {
+                transientFields.forEach(field => {
+                    if ((action as any)[field] !== undefined) {
+                        delete (action as any)[field];
+                        cleanupCount++;
+                    }
+                });
+            });
+        }
+
+        if (!project.flowCharts) {
+            if (cleanupCount > 0) {
+                report.push(`${cleanupCount} transiente Felder aus Actions entfernt.`);
+            }
+            return;
+        }
+
+        const globalActionNames = new Set((project.actions || []).map(a => a.name));
+        let migrationCount = 0;
+
+        Object.keys(project.flowCharts).forEach(contextKey => {
+            const flowChart = project.flowCharts![contextKey];
+            if (!flowChart || !flowChart.elements) return;
+
+            flowChart.elements.forEach((el: any) => {
+                if (el.type === 'Action') {
+                    const actionName = el.properties?.name || el.data?.name;
+
+                    // Clean transient fields from element data
+                    if (el.data) {
+                        transientFields.forEach(field => {
+                            if (el.data[field] !== undefined) {
+                                delete el.data[field];
+                                cleanupCount++;
+                            }
+                        });
+                    }
+
+                    if (actionName && globalActionNames.has(actionName)) {
+                        // Check if it's already a clean link
+                        const isMinimalLink = el.data?.isLinked && Object.keys(el.data).length <= 2; // name + isLinked
+
+                        if (!isMinimalLink) {
+                            // MIGRATE: Replace full data with minimal link
+                            el.data = {
+                                name: actionName,
+                                isLinked: true
+                            };
+                            migrationCount++;
+                        }
+                    }
+                }
+            });
+        });
+
+        if (migrationCount > 0) {
+            report.push(`${migrationCount} FlowChart-Aktionen auf Single-Source-of-Truth (Links) migriert.`);
+        }
+        if (cleanupCount > 0) {
+            report.push(`${cleanupCount} transiente Felder (_formValues, taskName, actionName) entfernt.`);
+        }
     }
 }

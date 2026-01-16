@@ -1,4 +1,5 @@
 import { GameProject } from '../model/types';
+import { gzipSync } from 'fflate';
 
 /**
  * Runtime version for exported games.
@@ -9,6 +10,7 @@ export const RUNTIME_VERSION = '1.0.0';
 
 /**
  * GameExporter - Generates a standalone HTML or JSON game from a GameProject
+ * Supports both plain and gzip-compressed exports.
  */
 export class GameExporter {
 
@@ -74,6 +76,76 @@ export class GameExporter {
     }
 
     /**
+     * Export the project as a gzip-compressed standalone HTML file
+     */
+    async exportHTMLCompressed(project: GameProject): Promise<void> {
+        // 1. Fetch the actual runtime bundle
+        let runtimeCode = '';
+        try {
+            const resp = await fetch('/runtime-standalone.js');
+            if (resp.ok) {
+                const code = await resp.text();
+                if (!code.trim().startsWith('<!DOCTYPE') && !code.trim().startsWith('<html')) {
+                    runtimeCode = code;
+                }
+            }
+        } catch (e) {
+            console.error('GameExporter: Network error fetching runtime bundle:', e);
+        }
+
+        const cleanedProject = this.getCleanProject(project);
+
+        // Embed images as Base64
+        try {
+            await this.embedImages(cleanedProject);
+        } catch (e) {
+            console.warn('GameExporter: Error embedding images:', e);
+        }
+
+        const html = this.generateCompressedHTML(cleanedProject, runtimeCode);
+        await this.downloadFile(html, `${project.meta.name.replace(/\s+/g, '_')}_compressed.html`, 'text/html');
+    }
+
+    /**
+     * Export the project as a gzip-compressed JSON file
+     */
+    async exportJSONCompressed(project: GameProject): Promise<void> {
+        const cleanedProject = this.getCleanProject(project);
+
+        // Embed images as Base64
+        try {
+            await this.embedImages(cleanedProject);
+        } catch (e) {
+            console.warn('GameExporter: Error embedding images in JSON:', e);
+        }
+
+        // Mark as compressed and add the compressed data
+        const compressedData = this.compressProject(cleanedProject);
+        const wrapper = {
+            _compressed: true,
+            _version: RUNTIME_VERSION,
+            data: compressedData
+        };
+
+        const json = JSON.stringify(wrapper, null, 2);
+        await this.downloadFile(json, `${project.meta.name.replace(/\s+/g, '_')}_compressed.json`, 'application/json');
+    }
+
+    /**
+     * Compress project JSON using gzip and encode as Base64
+     */
+    private compressProject(project: any): string {
+        const json = JSON.stringify(project);
+        const compressed = gzipSync(new TextEncoder().encode(json));
+        // Convert Uint8Array to Base64
+        let binary = '';
+        for (let i = 0; i < compressed.length; i++) {
+            binary += String.fromCharCode(compressed[i]);
+        }
+        return btoa(binary);
+    }
+
+    /**
      * Removes all editor-only properties (flow editor, node positions, etc.)
      * to keep the game file small and clean for the platform.
      */
@@ -89,10 +161,39 @@ export class GameExporter {
         if (clean.tasks) {
             clean.tasks.forEach((task: any) => {
                 delete task.flowGraph;
+                delete task.description; // Phase A: Remove editor-only description
             });
         }
 
-        // 3. Add meta info for platform
+        // 3. Clean Actions (Phase A)
+        if (clean.actions) {
+            clean.actions.forEach((action: any) => {
+                delete action.description;
+                delete action.details;
+                delete action.showDetails;
+            });
+        }
+
+        // 4. Clean Variables (Phase A)
+        if (clean.variables) {
+            clean.variables.forEach((variable: any) => {
+                delete variable.description;
+            });
+        }
+
+        // 5. Clean Objects (Phase B: Empty Tasks)
+        if (clean.objects) {
+            clean.objects.forEach((obj: any) => {
+                if (obj.Tasks && Object.keys(obj.Tasks).length === 0) {
+                    delete obj.Tasks;
+                }
+            });
+        }
+
+        // 6. Project Top-Level Cleanup (Phase A)
+        delete clean.description;
+
+        // 7. Add meta info for platform
         if (!clean.meta) clean.meta = {};
         clean.meta.exportedAt = new Date().toISOString();
         clean.meta.type = 'standalone_game';
@@ -183,6 +284,97 @@ export class GameExporter {
             window.startStandalone(window.PROJECT);
         } else {
             console.error('Standalone Runtime not found! Check if runtime-standalone.js was bundled correctly.');
+            document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:20%">Error: Runtime not found.</h2>';
+        }
+    });
+    </script>
+</body>
+</html>`;
+    }
+
+    /**
+     * Generate a compressed standalone HTML file with gzip-encoded project data
+     */
+    private generateCompressedHTML(project: any, runtimeJS: string): string {
+        const compressedData = this.compressProject(project);
+        const gridConfig = project.stage.grid;
+        const stageWidth = gridConfig.cols * gridConfig.cellSize;
+        const stageHeight = gridConfig.rows * gridConfig.cellSize;
+
+        return `<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${this.escapeHtml(project.meta.name)}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0f172a;
+        }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        #stage-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        #stage {
+            position: relative;
+            width: ${stageWidth}px;
+            height: ${stageHeight}px;
+            background: ${gridConfig.backgroundColor || '#ffffff'};
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-radius: 4px;
+            overflow: hidden;
+            transform-origin: center center;
+            flex-shrink: 0;
+        }
+        .game-object {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            overflow: hidden;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="stage-container">
+        <div id="stage"></div>
+    </div>
+    
+    <script>
+    // ═══════════════════════════════════════════════════════════════
+    // Standalone Runtime Bundle (Shared Logic)
+    // ═══════════════════════════════════════════════════════════════
+    ${runtimeJS}
+
+    // ═══════════════════════════════════════════════════════════════
+    // Compressed Project Data (gzip + Base64)
+    // ═══════════════════════════════════════════════════════════════
+    window.PROJECT_DATA = "${compressedData}";
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof window.startStandalone === 'function') {
+            // Runtime will detect PROJECT_DATA and decompress automatically
+            window.startStandalone(null);
+        } else {
+            console.error('Standalone Runtime not found!');
             document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:20%">Error: Runtime not found.</h2>';
         }
     });

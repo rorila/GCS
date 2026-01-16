@@ -599,15 +599,62 @@
             }
         },
         {
-            "className": "TEdit",
-            "name": "CallMethodParamsInput",
-            "text": "${dialogData.params && dialogData.params[0] ? dialogData.params[0] : ''}",
-            "placeholder": "z.B. Spiel gestartet! oder ${variable}",
+            "className": "TForEach",
+            "name": "MethodParamsList",
+            "source": "${getMethodSignature(dialogData.target, dialogData.method)}",
             "visible": "${dialogData.type === 'call_method'}",
-            "style": {
-                "marginTop": 4,
-                "marginBottom": 12
-            }
+            "template": [
+                {
+                    "className": "TPanel",
+                    "style": {
+                        "marginBottom": 8
+                    },
+                    "children": [
+                        {
+                            "className": "TLabel",
+                            "name": "ParamLabel_${index}",
+                            "text": "${item.label || item.name} (${item.type})",
+                            "style": {
+                                "fontSize": 11,
+                                "color": "#aaa",
+                                "marginBottom": 2
+                            }
+                        },
+                        {
+                            "className": "TEdit",
+                            "name": "ParamInput_${index}",
+                            "text": "${dialogData.params && dialogData.params[index] !== undefined ? dialogData.params[index] : (item.default !== undefined ? item.default : '')}",
+                            "placeholder": "${item.name}",
+                            "visible": "${item.type !== 'select'}",
+                            "action": "updateArrayItem",
+                            "actionData": {
+                                "arrayField": "params",
+                                "index": "${index}",
+                                "input": "ParamInput_${index}"
+                            },
+                            "style": {
+                                "width": "100%"
+                            }
+                        },
+                        {
+                            "className": "TDropdown",
+                            "name": "ParamSelect_${index}",
+                            "options": "${item.options || []}",
+                            "selectedValue": "${dialogData.params && dialogData.params[index] !== undefined ? dialogData.params[index] : (item.default || '')}",
+                            "visible": "${item.type === 'select'}",
+                            "action": "updateArrayItem",
+                            "actionData": {
+                                "arrayField": "params",
+                                "index": "${index}",
+                                "input": "ParamSelect_${index}"
+                            },
+                            "style": {
+                                "width": "100%"
+                            }
+                        }
+                    ]
+                }
+            ]
         },
         {
             "className": "TPanel",
@@ -624,7 +671,7 @@
                 {
                     "className": "TLabel",
                     "name": "CallMethodPreviewText",
-                    "text": "${dialogData.target || 'Object'}.${dialogData.method || 'method'}('${dialogData.params && dialogData.params[0] ? dialogData.params[0] : '...'}')",
+                    "text": "${dialogData.target || 'Object'}.${dialogData.method || 'method'}(${(dialogData.params || []).join(', ')})",
                     "style": {
                         "color": "#dcdcaa"
                     }

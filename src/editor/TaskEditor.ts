@@ -145,21 +145,61 @@ export class TaskEditor {
             const hasFlowConnections = this.renderFlowConnectionsUI(seqList);
 
             // --- 2. Action Sequence ---
-            // Only show actionSequence if there are NO flow connections
-            // (Flow diagram is the source of truth when it exists)
-            if (!hasFlowConnections) {
-                if (this.currentActionSequence.length === 0 && seqList.children.length === 0) {
-                    const emptyMsg = document.createElement('em');
-                    emptyMsg.style.color = '#888';
-                    emptyMsg.innerText = 'No items in sequence';
-                    seqList.appendChild(emptyMsg);
-                } else {
-                    this.currentActionSequence.forEach((seqItem, index) => {
-                        const item = this.createSequenceItemElement(seqItem, index);
-                        seqList.appendChild(item);
-                    });
-                }
+            // Flow diagram is the source of truth when it exists
+            const hasFlow = hasFlowConnections;
+
+            const seqTitle = document.createElement('div');
+            seqTitle.style.display = 'flex';
+            seqTitle.style.alignItems = 'center';
+            seqTitle.style.gap = '8px';
+            seqTitle.innerHTML = '<strong>Execution Sequence</strong>';
+
+            if (hasFlow) {
+                const lockIcon = document.createElement('span');
+                lockIcon.innerText = '🔒';
+                lockIcon.title = 'Diese Sequenz wird automatisch aus dem Flow-Diagramm generiert und ist schreibgeschützt.';
+                lockIcon.style.cursor = 'help';
+                seqTitle.appendChild(lockIcon);
+
+                const flowHint = document.createElement('span');
+                flowHint.innerText = '(Vom Flow gesteuert)';
+                flowHint.style.fontSize = '10px';
+                flowHint.style.color = '#888';
+                flowHint.style.fontStyle = 'italic';
+                seqTitle.appendChild(flowHint);
             }
+
+            seqSection.insertBefore(seqTitle, seqList);
+
+            if (this.currentActionSequence.length === 0 && seqList.children.length === 0) {
+                const emptyMsg = document.createElement('em');
+                emptyMsg.style.color = '#888';
+                emptyMsg.innerText = 'No items in sequence';
+                seqList.appendChild(emptyMsg);
+            } else {
+                this.currentActionSequence.forEach((seqItem, index) => {
+                    const item = this.createSequenceItemElement(seqItem, index, hasFlow);
+                    seqList.appendChild(item);
+                });
+            }
+
+            // --- 3. Add Action Section ---
+            // Only show add actions if there are NO flow connections
+            if (!hasFlow) {
+                this.renderAddActionUI(seqSection);
+            } else {
+                const readOnlyInfo = document.createElement('div');
+                readOnlyInfo.style.marginTop = '12px';
+                readOnlyInfo.style.padding = '8px';
+                readOnlyInfo.style.background = '#2a1a00';
+                readOnlyInfo.style.border = '1px solid #664400';
+                readOnlyInfo.style.borderRadius = '4px';
+                readOnlyInfo.style.fontSize = '12px';
+                readOnlyInfo.style.color = '#ffcc00';
+                readOnlyInfo.innerText = 'Aktionen können nur im Flow-Editor hinzugefügt, verschoben oder gelöscht werden.';
+                seqSection.appendChild(readOnlyInfo);
+            }
+
             seqSection.appendChild(seqList);
         } else if (this.viewMode === 'flow') {
             // Flow View
@@ -191,11 +231,6 @@ export class TaskEditor {
         }
 
         body.appendChild(seqSection);
-
-        body.appendChild(seqSection);
-
-        win.appendChild(body);
-
         win.appendChild(body);
 
         // ─────────────────────────────────────────────
@@ -221,7 +256,7 @@ export class TaskEditor {
 
 
 
-    private createSequenceItemElement(seqItem: SequenceItem, index: number): HTMLElement {
+    private createSequenceItemElement(seqItem: SequenceItem, index: number, isReadOnly: boolean = false): HTMLElement {
         const item = document.createElement('div');
         item.className = 'sequence-item';
         item.style.padding = '8px';
@@ -371,6 +406,7 @@ export class TaskEditor {
             editBtn.style.cursor = 'pointer';
             editBtn.style.padding = '2px 6px';
             editBtn.onclick = () => {
+                if (isReadOnly) return;
                 if (seqItem.type === 'action') {
                     // Find the action in project to get its data
                     const action = this.project.actions.find(a => a.name === seqItem.name);
@@ -413,7 +449,7 @@ export class TaskEditor {
         }
 
         // Move Up
-        if (index > 0) {
+        if (index > 0 && !isReadOnly) {
             const upBtn = document.createElement('button');
             upBtn.innerHTML = '▲';
             upBtn.style.background = '#444';
@@ -429,8 +465,7 @@ export class TaskEditor {
             controls.appendChild(upBtn);
         }
 
-        // Move Down
-        if (index < this.currentActionSequence.length - 1) {
+        if (index < this.currentActionSequence.length - 1 && !isReadOnly) {
             const downBtn = document.createElement('button');
             downBtn.innerHTML = '▼';
             downBtn.style.background = '#444';
@@ -446,22 +481,155 @@ export class TaskEditor {
             controls.appendChild(downBtn);
         }
 
-        // Delete
-        const delBtn = document.createElement('button');
-        delBtn.innerHTML = '&times;';
-        delBtn.style.background = 'transparent';
-        delBtn.style.border = 'none';
-        delBtn.style.color = '#d32f2f';
-        delBtn.style.cursor = 'pointer';
-        delBtn.style.fontSize = '1.2rem';
-        delBtn.onclick = () => {
-            this.currentActionSequence.splice(index, 1);
-            this.render();
-        };
-        controls.appendChild(delBtn);
+        if (!isReadOnly) {
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '&times;';
+            delBtn.style.background = 'transparent';
+            delBtn.style.border = 'none';
+            delBtn.style.color = '#d32f2f';
+            delBtn.style.cursor = 'pointer';
+            delBtn.style.fontSize = '1.2rem';
+            delBtn.onclick = () => {
+                this.currentActionSequence.splice(index, 1);
+                this.render();
+            };
+            controls.appendChild(delBtn);
+        }
 
         item.appendChild(controls);
         return item;
+    }
+
+    private renderAddActionUI(container: HTMLElement) {
+        const addSection = document.createElement('div');
+        addSection.style.marginTop = '16px';
+        addSection.style.padding = '12px';
+        addSection.style.background = '#252526';
+        addSection.style.border = '1px solid #454545';
+        addSection.style.borderRadius = '4px';
+
+        // Title
+        const title = document.createElement('div');
+        title.innerHTML = '<strong>Add Action</strong>';
+        title.style.marginBottom = '12px';
+        addSection.appendChild(title);
+
+        // Row for adding existing action
+        const actionRow = document.createElement('div');
+        actionRow.style.display = 'flex';
+        actionRow.style.gap = '8px';
+        actionRow.style.marginBottom = '12px';
+
+        const actionSelect = document.createElement('select');
+        actionSelect.style.flex = '1';
+        actionSelect.style.padding = '4px';
+        actionSelect.style.background = '#333';
+        actionSelect.style.color = 'white';
+        actionSelect.style.border = '1px solid #555';
+
+        const defOpt = document.createElement('option');
+        defOpt.innerText = '-- Choose Action --';
+        actionSelect.appendChild(defOpt);
+
+        this.project.actions.forEach(a => {
+            const opt = document.createElement('option');
+            opt.value = a.name;
+            opt.innerText = `⚡ ${a.name}`;
+            actionSelect.appendChild(opt);
+        });
+
+        const addBtn = document.createElement('button');
+        addBtn.innerText = '+ Add';
+        addBtn.style.padding = '4px 12px';
+        addBtn.style.background = '#0e639c';
+        addBtn.style.color = 'white';
+        addBtn.style.border = 'none';
+        addBtn.style.cursor = 'pointer';
+        addBtn.onclick = () => {
+            if (actionSelect.value && actionSelect.value !== defOpt.innerText) {
+                this.currentActionSequence.push({ type: 'action', name: actionSelect.value });
+                this.render();
+            }
+        };
+
+        actionRow.appendChild(actionSelect);
+        actionRow.appendChild(addBtn);
+        addSection.appendChild(actionRow);
+
+        // Link to ActionEditor for new actions
+        const newActionBtn = document.createElement('button');
+        newActionBtn.innerText = '⚡ Create New Action';
+        newActionBtn.style.padding = '6px 12px';
+        newActionBtn.style.background = '#28a745';
+        newActionBtn.style.color = 'white';
+        newActionBtn.style.border = 'none';
+        newActionBtn.style.borderRadius = '4px';
+        newActionBtn.style.cursor = 'pointer';
+        newActionBtn.onclick = () => {
+            const name = `Action_${Date.now()}`;
+            new ActionEditor(this.project, name, this.taskName, () => {
+                if (this.project.actions.find(a => a.name === name)) {
+                    this.currentActionSequence.push({ type: 'action', name: name });
+                }
+                this.render();
+            });
+        };
+        addSection.appendChild(newActionBtn);
+
+        // Spacer
+        const hr = document.createElement('hr');
+        hr.style.border = 'none';
+        hr.style.borderTop = '1px solid #454545';
+        hr.style.margin = '16px 0';
+        addSection.appendChild(hr);
+
+        // Call Task section
+        const taskTitle = document.createElement('div');
+        taskTitle.innerHTML = '<strong>Call Another Task</strong>';
+        taskTitle.style.marginBottom = '12px';
+        addSection.appendChild(taskTitle);
+
+        const taskRow = document.createElement('div');
+        taskRow.style.display = 'flex';
+        taskRow.style.gap = '8px';
+
+        const taskSelect = document.createElement('select');
+        taskSelect.style.flex = '1';
+        taskSelect.style.padding = '4px';
+        taskSelect.style.background = '#333';
+        taskSelect.style.color = 'white';
+        taskSelect.style.border = '1px solid #555';
+
+        const defTaskOpt = document.createElement('option');
+        defTaskOpt.innerText = '-- Choose Task --';
+        taskSelect.appendChild(defTaskOpt);
+
+        this.project.tasks.filter(t => t.name !== this.taskName).forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.name;
+            opt.innerText = `🔗 ${t.name}`;
+            taskSelect.appendChild(opt);
+        });
+
+        const addTaskBtn = document.createElement('button');
+        addTaskBtn.innerText = '+ Call Task';
+        addTaskBtn.style.padding = '4px 12px';
+        addTaskBtn.style.background = '#6a0dad';
+        addTaskBtn.style.color = 'white';
+        addTaskBtn.style.border = 'none';
+        addTaskBtn.style.cursor = 'pointer';
+        addTaskBtn.onclick = () => {
+            if (taskSelect.value && taskSelect.value !== defTaskOpt.innerText) {
+                this.currentActionSequence.push({ type: 'task', name: taskSelect.value });
+                this.render();
+            }
+        };
+
+        taskRow.appendChild(taskSelect);
+        taskRow.appendChild(addTaskBtn);
+        addSection.appendChild(taskRow);
+
+        container.appendChild(addSection);
     }
 
     /**
@@ -764,7 +932,7 @@ export class TaskEditor {
 
     private renderPascalCodeView(container: HTMLElement) {
         const code = PascalGenerator.generateProcedure(this.project, this.taskName, 0, this.currentActionSequence);
-        container.innerHTML = `<pre style="margin: 0; white-space: pre-wrap;">${code}</pre>`;
+        container.innerHTML = `<pre style="margin: 0; white-space: pre-wrap;" translate="no">${code}</pre>`;
     }
 
 
@@ -908,7 +1076,7 @@ export class TaskEditor {
             container.innerHTML = svg;
         } catch (error) {
             console.error('[TaskEditor] Mermaid error:', error);
-            container.innerHTML = `<pre style="color: red;">Error: ${error}\n\n${mermaidSyntax}</pre>`;
+            container.innerHTML = `<pre style="color: red;" translate="no">Error: ${error}\n\n${mermaidSyntax}</pre>`;
         }
     }
 

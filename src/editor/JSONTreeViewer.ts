@@ -50,10 +50,11 @@ export class JSONTreeViewer {
 
         // Toolbar is managed by the caller (Editor.ts) to allow for external controls like mode-toggle
 
-        // Tree container
+        // Tree container - translate="no" prevents browser translation of JSON/code
         const tree = document.createElement('div');
         tree.className = 'json-tree';
         tree.style.padding = '10px';
+        tree.setAttribute('translate', 'no');
         tree.appendChild(this.renderNode(null, data, 0, true, null));
         container.appendChild(tree);
 

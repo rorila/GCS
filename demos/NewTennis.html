@@ -135,11 +135,21 @@
          * @param onComplete Optionaler Callback nach Abschluss
          */
         addTween(target, property, to, duration, easingName = "easeOut", onComplete) {
+          console.log(`[AnimationManager.addTween] START: target=${target?.name || target?.id}, property=${property}, to=${to}, duration=${duration}, easing=${easingName}`);
+          const previousCount = this.activeTweens.length;
           this.cancelTween(target, property);
+          if (this.activeTweens.length !== previousCount) {
+            console.log(`[AnimationManager.addTween] Cancelled existing tween for ${property}, tweens: ${previousCount} -> ${this.activeTweens.length}`);
+          }
           const from = this.getPropertyValue(target, property);
+          console.log(`[AnimationManager.addTween] Current value of ${property}: ${from}`);
           const easing = Easing[easingName] || Easing.easeOut;
+          if (!Easing[easingName]) {
+            console.warn(`[AnimationManager.addTween] Unknown easing "${easingName}", falling back to easeOut`);
+          }
           if (property === "x" || property === "y") {
             target.isAnimating = true;
+            console.log(`[AnimationManager.addTween] Set isAnimating=true on ${target?.name || target?.id}`);
           }
           const tween = {
             target,
@@ -152,6 +162,7 @@
             onComplete
           };
           this.activeTweens.push(tween);
+          console.log(`[AnimationManager.addTween] END: Added tween, total active tweens: ${this.activeTweens.length}`);
           return tween;
         }
         /**
@@ -161,6 +172,14 @@
           this.activeTweens = this.activeTweens.filter(
             (t) => !(t.target === target && t.property === property)
           );
+          if (property === "x" || property === "y") {
+            const hasMore = this.activeTweens.some(
+              (t) => t.target === target && (t.property === "x" || t.property === "y")
+            );
+            if (!hasMore && target.isAnimating !== void 0) {
+              target.isAnimating = false;
+            }
+          }
         }
         /**
          * Bricht alle Tweens eines Objekts ab.
@@ -178,6 +197,7 @@
           const now = performance.now();
           const completedTweens = [];
           if (this.activeTweens.length > 0) {
+            console.log(`[AnimationManager.update] Updating ${this.activeTweens.length} active tweens at t=${now.toFixed(0)}`);
           }
           for (const tween of this.activeTweens) {
             try {
@@ -1655,6 +1675,7 @@
             this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
           } catch (err) {
             console.error(`[TaskExecutor] Error in item ${index} of task ${taskName}: `, err);
+            DebugLogService.getInstance().log("Event", `ERROR executing task ${taskName} item ${index}: ${err}`, { parentId: taskLogId });
           }
         });
       }
@@ -2118,9 +2139,14 @@
      * @param onComplete Optionaler Callback nach Abschluss
      */
     moveTo(x, y, duration = 500, easing = "easeOut", onComplete) {
+      console.log(`[TWindow.moveTo] Called on "${this.name}": from (${this.x}, ${this.y}) to (${x}, ${y}), duration=${duration}ms, easing=${easing}`);
       const manager = AnimationManager.getInstance();
-      manager.addTween(this, "x", x, duration, easing);
-      manager.addTween(this, "y", y, duration, easing, onComplete);
+      console.log(`[TWindow.moveTo] AnimationManager instance obtained, activeTweens=${manager.getActiveTweenCount()}`);
+      const tweenX = manager.addTween(this, "x", x, duration, easing);
+      console.log(`[TWindow.moveTo] Added X tween: from=${tweenX.from} to=${tweenX.to}`);
+      const tweenY = manager.addTween(this, "y", y, duration, easing, onComplete);
+      console.log(`[TWindow.moveTo] Added Y tween: from=${tweenY.from} to=${tweenY.to}`);
+      console.log(`[TWindow.moveTo] After adding tweens, activeTweens=${manager.getActiveTweenCount()}`);
     }
     /**
      * Get available events for this component
@@ -2820,12 +2846,14 @@
     }
     // Getter for bounds - derived from gridConfig
     get boundsWidth() {
-      return this.gridConfig?.cols ?? 64;
+      const grid = this.gridConfig;
+      return grid?.grid?.cols ?? grid?.cols ?? 64;
     }
     set boundsWidth(_) {
     }
     get boundsHeight() {
-      return this.gridConfig?.rows ?? 40;
+      const grid = this.gridConfig;
+      return grid?.grid?.rows ?? grid?.rows ?? 40;
     }
     set boundsHeight(_) {
     }
@@ -2919,6 +2947,9 @@
         for (let j = i + 1; j < this.sprites.length; j++) {
           const spriteA = this.sprites[i];
           const spriteB = this.sprites[j];
+          if (spriteA.isAnimating || spriteB.isAnimating) {
+            continue;
+          }
           const overlap = spriteA.getCollisionOverlap(spriteB);
           if (overlap) {
             const now = performance.now();
@@ -2991,6 +3022,9 @@
      */
     checkBoundaries() {
       this.sprites.forEach((sprite) => {
+        if (sprite.isAnimating) {
+          return;
+        }
         if (this.collidedThisFrame.has(sprite.id)) {
           return;
         }
@@ -3004,7 +3038,8 @@
         if (sprite.y < this.boundsOffsetTop) {
           this.triggerBoundaryEvent(sprite, "top");
         }
-        if (sprite.y + sprite.height > this.boundsHeight - this.boundsOffsetBottom) {
+        const bottomBoundary = this.boundsHeight - this.boundsOffsetBottom;
+        if (sprite.y + sprite.height > bottomBoundary) {
           this.triggerBoundaryEvent(sprite, "bottom");
         }
       });
@@ -7411,7 +7446,7 @@
     "name": "NewTennis",
     "version": "1.0.0",
     "author": "RoRiLa",
-    "exportedAt": "2026-01-15T13:32:45.311Z",
+    "exportedAt": "2026-01-16T13:50:12.696Z",
     "type": "standalone_game",
     "runtimeVersion": "1.0.0"
   },
@@ -7425,8 +7460,8 @@
       "backgroundColor": "#862d2d"
     },
     "startAnimation": "UpLeft",
-    "startAnimationDuration": 1001,
-    "startAnimationEasing": "bounce"
+    "startAnimationDuration": 1000,
+    "startAnimationEasing": "linear"
   },
   "input": {
     "player1Controls": "arrows",
@@ -7541,7 +7576,7 @@
         {
           "id": "status",
           "text": "Ready",
-          "icon": "data:text/html;base64,PCFkb2N0eXBlIGh0bWw+DQo8aHRtbCBsYW5nPSJlbiI+DQogIDxoZWFkPgogICAgPHNjcmlwdCB0eXBlPSJtb2R1bGUiIHNyYz0iL0B2aXRlL2NsaWVudCI+PC9zY3JpcHQ+Cg0KICAgIDxtZXRhIGNoYXJzZXQ9IlVURi04IiAvPg0KICAgIDxsaW5rIHJlbD0iaWNvbiIgdHlwZT0iaW1hZ2Uvc3ZnK3htbCIgaHJlZj0iL3ZpdGUuc3ZnIiAvPg0KICAgIDxtZXRhIG5hbWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsIGluaXRpYWwtc2NhbGU9MS4wIiAvPg0KICAgIDx0aXRsZT5HYW1lIEJ1aWxkZXIgdjE8L3RpdGxlPg0KICA8L2hlYWQ+DQogIDxib2R5Pg0KICAgIDxkaXYgaWQ9ImFwcCI+PC9kaXY+DQogICAgPHNjcmlwdCB0eXBlPSJtb2R1bGUiIHNyYz0iL3NyYy9tYWluLnRzP3Q9MTc2ODQ3NzcxODMyNSI+PC9zY3JpcHQ+DQogIDwvYm9keT4NCjwvaHRtbD4NCg==",
+          "icon": "data:text/html;base64,PCFkb2N0eXBlIGh0bWw+DQo8aHRtbCBsYW5nPSJlbiI+DQogIDxoZWFkPgogICAgPHNjcmlwdCB0eXBlPSJtb2R1bGUiIHNyYz0iL0B2aXRlL2NsaWVudCI+PC9zY3JpcHQ+Cg0KICAgIDxtZXRhIGNoYXJzZXQ9IlVURi04IiAvPg0KICAgIDxsaW5rIHJlbD0iaWNvbiIgdHlwZT0iaW1hZ2Uvc3ZnK3htbCIgaHJlZj0iL3ZpdGUuc3ZnIiAvPg0KICAgIDxtZXRhIG5hbWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsIGluaXRpYWwtc2NhbGU9MS4wIiAvPg0KICAgIDx0aXRsZT5HYW1lIEJ1aWxkZXIgdjE8L3RpdGxlPg0KICA8L2hlYWQ+DQogIDxib2R5Pg0KICAgIDxkaXYgaWQ9ImFwcCI+PC9kaXY+DQogICAgPHNjcmlwdCB0eXBlPSJtb2R1bGUiIHNyYz0iL3NyYy9tYWluLnRzIj48L3NjcmlwdD4NCiAgPC9ib2R5Pg0KPC9odG1sPg0K",
           "width": "auto",
           "align": "left"
         }
@@ -8165,18 +8200,12 @@
       "changes": {
         "text": "Spiel wurde gestartet"
       },
-      "_formValues": {
-        "TargetObjectSelect": "StatusLabel",
-        "PropertySelect": "text",
-        "PropertyValueInput": "Spiel gestarte",
-        "ActionTypeSelect": "📝 Property Change (Set)"
-      },
       "name": "setStatusLabelToRunning",
       "details": "StatusLabel.text := Spiel gestarte",
       "sync": true,
-      "taskName": "setStatusLabelToRunning",
       "description": "Updates the status label text to 'Spiel wurde gestartet'.",
-      "hostOnly": true
+      "hostOnly": true,
+      "showDetails": false
     },
     {
       "name": "IncrementLeftPaddleY_Position",
@@ -8185,15 +8214,6 @@
       "changes": {
         "velocityY": -0.5
       },
-      "_formValues": {
-        "ActionTypeSelect": "📝 Property Change (Set)",
-        "PropertySelect": "velocityY",
-        "PropertyValueInput": "-5",
-        "NameInput": "",
-        "TargetObjectSelect": "LeftPaddle"
-      },
-      "taskName": "IncrementLeftPaddleY_Position",
-      "actionName": "",
       "details": "LeftPaddle.velocityY := -0.5",
       "hostOnly": true,
       "showDetails": false
@@ -8205,14 +8225,6 @@
       "changes": {
         "velocityY": 0
       },
-      "_formValues": {
-        "PropertySelect": "velocityY",
-        "PropertyValueInput": "0",
-        "NameInput": "Action",
-        "ActionTypeSelect": "📝 Property Change (Set)",
-        "TargetObjectSelect": "LeftPaddle"
-      },
-      "taskName": "Action",
       "hostOnly": true
     },
     {
@@ -8222,15 +8234,6 @@
       "changes": {
         "velocityY": 0.5
       },
-      "_formValues": {
-        "PropertySelect": "y",
-        "PropertyValueInput": "-1",
-        "NameInput": "",
-        "ActionTypeSelect": "📝 Property Change (Set)",
-        "TargetObjectSelect": "LeftPaddle"
-      },
-      "taskName": "DecrementLeftPaddleY_Position",
-      "actionName": "",
       "details": "LeftPaddle.velocityY := 0.5",
       "hostOnly": true
     },
@@ -8242,15 +8245,7 @@
       "changes": {
         "spritesMoving": true
       },
-      "_formValues": {
-        "TargetObjectSelect": "GameState",
-        "PropertySelect": "spritesMoving",
-        "PropertyValueInput": "true",
-        "NameInput": "SetSpriteMovingToTrue",
-        "ActionTypeSelect": "📝 Property Change (Set)"
-      },
       "sync": true,
-      "taskName": "SetSpriteMovingToTrue",
       "description": "Sets GameState.spritesMoving to true to enable physics.",
       "showDetails": false,
       "hostOnly": true
@@ -8263,15 +8258,7 @@
       "changes": {
         "collisionsEnabled": true
       },
-      "_formValues": {
-        "TargetObjectSelect": "GameState",
-        "PropertySelect": "collisionsEnabled",
-        "PropertyValueInput": "true",
-        "NameInput": "SetCollisionsToTrue",
-        "ActionTypeSelect": "📝 Property Change (Set)"
-      },
       "sync": true,
-      "taskName": "SetCollisionsToTrue",
       "description": "Enables collision detection in the GameState.",
       "showDetails": false,
       "hostOnly": true
@@ -8283,15 +8270,6 @@
       "changes": {
         "velocityY": -5
       },
-      "_formValues": {
-        "ActionTypeSelect": "📝 Property Change (Set)",
-        "PropertySelect": "velocityY",
-        "PropertyValueInput": "-5",
-        "NameInput": "",
-        "TargetObjectSelect": "LeftPaddle"
-      },
-      "taskName": "",
-      "actionName": "",
       "details": "(nicht definiert)",
       "description": "Moves the right paddle upwards by setting negative Y velocity.",
       "hostOnly": true
@@ -8303,14 +8281,6 @@
       "changes": {
         "velocityY": -0.5
       },
-      "_formValues": {
-        "ActionTypeSelect": "📝 Property Change (Set)",
-        "PropertySelect": "velocityY",
-        "PropertyValueInput": "-5",
-        "NameInput": "",
-        "TargetObjectSelect": "LeftPaddle"
-      },
-      "taskName": "IncrementLeftPaddleY_Position",
       "details": "(nicht definiert)",
       "hostOnly": true,
       "showDetails": false
@@ -8322,48 +8292,16 @@
       "changes": {
         "velocityY": 0.5
       },
-      "_formValues": {
-        "PropertySelect": "y",
-        "PropertyValueInput": "-1",
-        "NameInput": "",
-        "ActionTypeSelect": "📝 Property Change (Set)",
-        "TargetObjectSelect": "LeftPaddle"
-      },
-      "taskName": "DecrementRightPaddleY_Position",
-      "actionName": "",
-      "details": "RightPaddle.velocityY := 0.5",
+      "details": "RightPaddle.velocityY := -0.5",
       "hostOnly": true,
-      "showDetails": true
+      "showDetails": false
     },
     {
-      "name": "Blala",
-      "type": "property",
-      "target": "RightPaddle",
-      "changes": {
-        "velocityY": 0
-      },
-      "_formValues": {
-        "PropertySelect": "velocityY",
-        "PropertyValueInput": "0",
-        "NameInput": "Action",
-        "ActionTypeSelect": "📝 Property Change (Set)",
-        "TargetObjectSelect": "LeftPaddle"
-      },
-      "taskName": "Action",
-      "details": "RightPaddle.velocityY := 0",
-      "hostOnly": true,
-      "showDetails": true,
-      "taskParams": [],
-      "sync": true
-    },
-    {
-      "name": "resetBall",
-      "details": "BallSprite.x := 32; BallSprite.y := 19 (+2)",
+      "name": "stopBall",
+      "details": "BallSprite.velocityX := 0; BallSprite.velocityY := 0",
       "type": "property",
       "target": "BallSprite",
       "changes": {
-        "x": 32,
-        "y": 19,
         "velocityX": 0,
         "velocityY": 0
       },
@@ -8412,7 +8350,6 @@
         "velocityX": 0.3,
         "velocityY": 0.3
       },
-      "taskName": "SetSpeed",
       "showDetails": false,
       "hostOnly": true
     },
@@ -8425,14 +8362,6 @@
         "spritesMoving": true
       },
       "sync": true,
-      "taskName": "SetSpriteMovingToTrue",
-      "_formValues": {
-        "TargetObjectSelect": "GameState",
-        "PropertySelect": "spritesMoving",
-        "PropertyValueInput": "true",
-        "NameInput": "SetSpriteMovingToTrue",
-        "ActionTypeSelect": "📝 Property Change (Set)"
-      },
       "isLinked": true,
       "method": "info",
       "params": [
@@ -8453,7 +8382,6 @@
       "changes": {
         "velocityY": -0.3
       },
-      "taskName": "ChangeY_DirectionToUp",
       "showDetails": false,
       "hostOnly": true
     },
@@ -8465,19 +8393,17 @@
       "changes": {
         "velocityY": 0.3
       },
-      "taskName": "ChangeY_DirectionToDown",
       "showDetails": false,
       "hostOnly": true
     },
     {
       "name": "PauseTimer.timerStart",
-      "details": "(call_method)",
+      "details": "PauseTimer.timerStart()",
       "type": "call_method",
       "target": "PauseTimer",
       "changes": {
         "velocityX": 0.3
       },
-      "taskName": "ChangeBallDirectionToRight",
       "hostOnly": true,
       "showDetails": false,
       "taskParams": [],
@@ -8716,7 +8642,6 @@
         "sync": true,
         "state": "paused"
       },
-      "taskName": "setGameStatusToPaused",
       "description": "Sets the GameState.spritesMoving to false to pause physics.",
       "showDetails": false,
       "taskParams": [],
@@ -8724,43 +8649,9 @@
       "hostOnly": true
     },
     {
-      "type": "send_multiplayer_sync",
-      "target": "LeftPaddle",
-      "name": "SyncLeftPaddle",
-      "description": "Syncs LeftPaddle properties (y, velocityY) to network.",
-      "hostOnly": true
-    },
-    {
-      "type": "send_multiplayer_sync",
-      "target": "RightPaddle",
-      "name": "SyncRightPaddle",
-      "description": "Syncs RightPaddle properties (y, velocityY) to network.",
-      "hostOnly": true
-    },
-    {
-      "type": "send_multiplayer_sync",
-      "target": "BallSprite",
-      "name": "SyncBall",
-      "description": "Broadcasts current ball position and velocity to connected peers.",
-      "hostOnly": true
-    },
-    {
-      "type": "send_multiplayer_sync",
-      "target": "GameState",
-      "name": "SyncGameState",
-      "description": "Syncs global game state flags to network.",
-      "hostOnly": true
-    },
-    {
       "type": "call_method",
       "target": "Toast",
       "changes": {},
-      "_formValues": {
-        "TargetObjectSelect": "Toast",
-        "PropertySelect": "text",
-        "PropertyValueInput": "Spiel gestartet",
-        "ActionTypeSelect": "📝 Property Change (Set)"
-      },
       "name": "setStartMessageToToast",
       "details": "Toast.text := Spiel gestartet",
       "method": "info",
@@ -8768,8 +8659,8 @@
         "Das Spiel wurde gestartet"
       ],
       "sync": true,
-      "taskName": "setToastInfoToRunning",
-      "hostOnly": true
+      "hostOnly": true,
+      "showDetails": false
     },
     {
       "showDetails": false,
@@ -8813,7 +8704,7 @@
     },
     {
       "name": "ScoreLblRight.incValue",
-      "details": "(call_method)",
+      "details": "ScoreLblRight.incValue()",
       "showDetails": false,
       "type": "call_method",
       "target": "ScoreLblRight",
@@ -8825,7 +8716,7 @@
     },
     {
       "name": "ScoreLblLeft.incValue",
-      "details": "(call_method)",
+      "details": "ScoreLblLeft.incValue()",
       "showDetails": false,
       "type": "call_method",
       "target": "ScoreLblLeft",
@@ -8866,6 +8757,23 @@
         "Erfolgreich beigetreten!"
       ],
       "hostOnly": false
+    },
+    {
+      "name": "BallSprite.moveToStartpoint",
+      "details": "BallSprite.moveTo(32, 19, 500, linear)",
+      "showDetails": false,
+      "type": "call_method",
+      "target": "BallSprite",
+      "changes": {},
+      "taskParams": [],
+      "method": "moveTo",
+      "params": [
+        "32",
+        "19",
+        "500",
+        "linear"
+      ],
+      "sync": true
     }
   ],
   "tasks": [
@@ -8878,7 +8786,7 @@
         },
         {
           "type": "action",
-          "name": "resetBall"
+          "name": "stopBall"
         }
       ],
       "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
@@ -8989,7 +8897,8 @@
           "name": "DecrementRightPaddleY_Position"
         }
       ],
-      "description": "Moves the right paddle downwards by setting positive Y velocity."
+      "description": "Moves the right paddle downwards by setting positive Y velocity.",
+      "params": []
     },
     {
       "name": "ServeBall",
@@ -9088,7 +8997,11 @@
         },
         {
           "type": "action",
-          "name": "resetBall"
+          "name": "stopBall"
+        },
+        {
+          "type": "action",
+          "name": "BallSprite.moveToStartpoint"
         },
         {
           "type": "action",
@@ -9107,7 +9020,11 @@
         },
         {
           "type": "action",
-          "name": "resetBall"
+          "name": "stopBall"
+        },
+        {
+          "type": "action",
+          "name": "BallSprite.moveToStartpoint"
         },
         {
           "type": "action",
@@ -9230,28 +9147,7 @@
     },
     {
       "name": "PeriodicSync",
-      "actionSequence": [
-        {
-          "type": "action",
-          "name": "SyncLeftPaddle",
-          "condition": "isPlayer1 == 1"
-        },
-        {
-          "type": "action",
-          "name": "SyncRightPaddle",
-          "condition": "isPlayer2 == 1"
-        },
-        {
-          "type": "action",
-          "name": "SyncBall",
-          "condition": "isPlayer1 == 1"
-        },
-        {
-          "type": "action",
-          "name": "SyncGameState",
-          "condition": "isPlayer1 == 1"
-        }
-      ],
+      "actionSequence": [],
       "description": "Periodically synchronizes critical game state (paddles, ball) across the network.",
       "params": []
     },
@@ -9267,7 +9163,8 @@
           "name": "setStatusLabelToRunning"
         }
       ],
-      "description": "Updates UI elements to inform players that the game has begun."
+      "description": "Updates UI elements to inform players that the game has begun.",
+      "params": []
     },
     {
       "name": "GoOnGame",

@@ -412,9 +412,18 @@
                 const text = await file.text();
                 const content = JSON.parse(text);
 
-                // Validate it's a game project
-                if (!content.meta || !content.stage) {
-                    throw new Error('Ungültiges Spielformat');
+                // Validate it's a game project (supports both normal and compressed format)
+                const isCompressed = content._compressed === true;
+                if (isCompressed) {
+                    // Compressed format: must have _version and data
+                    if (!content._version || !content.data) {
+                        throw new Error('Ungültiges komprimiertes Spielformat');
+                    }
+                } else {
+                    // Normal format: must have meta and stage
+                    if (!content.meta || !content.stage) {
+                        throw new Error('Ungültiges Spielformat');
+                    }
                 }
 
                 // Upload to server
@@ -423,13 +432,15 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         filename: file.name,
-                        content: content
+                        content: content,
+                        compressed: isCompressed
                     })
                 });
 
                 const result = await resp.json();
                 if (result.success) {
-                    alert(`Spiel "${content.meta.name}" erfolgreich hochgeladen!`);
+                    const gameName = isCompressed ? result.gameName : content.meta.name;
+                    alert(`Spiel "${gameName}" erfolgreich hochgeladen!`);
                     loadGameList();
                 } else {
                     throw new Error(result.error);

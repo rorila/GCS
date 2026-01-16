@@ -997,7 +997,7 @@ export class ActionEditor {
 
         previewDiv.innerHTML = `
             <div style="color: #888; font-size: 11px; margin-bottom: 4px;">Generated Expression:</div>
-            <div style="color: #9cdcfe; font-family: monospace; font-size: 14px; margin-bottom: 8px;">
+            <div style="color: #9cdcfe; font-family: monospace; font-size: 14px; margin-bottom: 8px;" translate="no">
                 ${resultVar} = ${expression}
             </div>
         `;

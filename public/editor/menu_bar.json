@@ -36,15 +36,27 @@
             "items": [
                 {
                     "id": "export-html",
-                    "label": "Export als HTML (Standalone)",
+                    "label": "Export als HTML",
                     "action": "export-html",
                     "icon": "🌐"
                 },
                 {
+                    "id": "export-html-gzip",
+                    "label": "Export als HTML (gZip)",
+                    "action": "export-html-gzip",
+                    "icon": "📦"
+                },
+                {
                     "id": "export-json",
-                    "label": "Export als JSON (Plattform)",
+                    "label": "Export als JSON",
                     "action": "export-json",
                     "icon": "📄"
+                },
+                {
+                    "id": "export-json-gzip",
+                    "label": "Export als JSON (gZip)",
+                    "action": "export-json-gzip",
+                    "icon": "📦"
                 },
                 {
                     "id": "export-exe",

@@ -1,9 +1,32 @@
 import { GameRuntime } from './runtime/GameRuntime';
 import { network, ServerMessage } from './multiplayer';
 import { ExpressionParser } from './runtime/ExpressionParser';
+import { gunzipSync } from 'fflate';
 
 // Register for runtime access
 (window as any).ExpressionParser = ExpressionParser;
+
+/**
+ * Decompress gzip-compressed project data (Base64 encoded)
+ */
+function decompressProject(data: string): any {
+    try {
+        // Decode Base64 to binary
+        const binary = atob(data);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        // Decompress with fflate
+        const decompressed = gunzipSync(bytes);
+        // Decode UTF-8 to string
+        const json = new TextDecoder().decode(decompressed);
+        return JSON.parse(json);
+    } catch (e) {
+        console.error('[UniversalPlayer] Failed to decompress project:', e);
+        return null;
+    }
+}
 
 /**
  * UniversalPlayer - Drives the game on the platform.
@@ -72,8 +95,17 @@ class UniversalPlayer {
             console.log(`[UniversalPlayer] Loading game: ${gameFile}`);
             const baseUrl = network.getHttpUrl();
             await this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`);
+        } else if ((window as any).PROJECT_DATA) {
+            // Use compressed embedded project (gzip + Base64)
+            console.log('[UniversalPlayer] Loading compressed embedded project');
+            const project = decompressProject((window as any).PROJECT_DATA);
+            if (project) {
+                this.startProject(project);
+            } else {
+                console.error('[UniversalPlayer] Failed to decompress project data');
+            }
         } else if ((window as any).PROJECT) {
-            // Use embedded project (Standalone HTML Export)
+            // Use embedded project (Standalone HTML Export - plain JSON)
             console.log('[UniversalPlayer] Loading embedded project');
             this.startProject((window as any).PROJECT);
         } else {
@@ -157,7 +189,19 @@ class UniversalPlayer {
         try {
             const resp = await fetch(url);
             if (resp.ok) {
-                const project = await resp.json();
+                const data = await resp.json();
+
+                // Check if it's a compressed project
+                let project = data;
+                if (data._compressed === true && data.data) {
+                    console.log('[UniversalPlayer] Decompressing project from URL');
+                    project = decompressProject(data.data);
+                    if (!project) {
+                        console.error('[UniversalPlayer] Failed to decompress project');
+                        return;
+                    }
+                }
+
                 this.startProject(project);
             } else {
                 console.error(`[UniversalPlayer] Failed to load project from ${url}`);
@@ -559,10 +603,19 @@ document.addEventListener('DOMContentLoaded', () => {
 (window as any).startStandalone = (project: any) => {
     console.log('[UniversalPlayer] Standalone trigger received');
     const player = (window as any).player;
-    if (player && typeof player.startProject === 'function') {
+
+    // If project is null, check for PROJECT_DATA (compressed)
+    if (project === null && (window as any).PROJECT_DATA) {
+        console.log('[UniversalPlayer] Decompressing PROJECT_DATA');
+        project = decompressProject((window as any).PROJECT_DATA);
+    }
+
+    if (player && typeof player.startProject === 'function' && project) {
         player.startProject(project);
-    } else {
+    } else if (project) {
         // Fallback: If player not yet ready, set global PROJECT for init()
         (window as any).PROJECT = project;
+    } else {
+        console.error('[UniversalPlayer] No project data available');
     }
 };

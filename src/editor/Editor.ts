@@ -577,11 +577,11 @@ export class Editor {
                         // Generate plain code, then use PascalHighlighter (same as Editor)
                         const plainCode = PascalGenerator.generateFullProgram(this.project, false);
                         const highlightedCode = PascalHighlighter.highlight(plainCode);
-                        content.innerHTML = `<pre style="margin: 0; white-space: pre; color: #d4d4d4;">${highlightedCode}</pre>`;
+                        content.innerHTML = `<pre style="margin: 0; white-space: pre; color: #d4d4d4;" translate="no">${highlightedCode}</pre>`;
                     }
                 } catch (err) {
                     console.error('[Editor] Error generating Pascal code:', err);
-                    codePanel.innerHTML += `<pre style="color: red; padding: 1rem; margin: 0;">Error generating Pascal code: ${err}</pre>`;
+                    codePanel.innerHTML += `<pre style="color: red; padding: 1rem; margin: 0;" translate="no">Error generating Pascal code: ${err}</pre>`;
                 }
             }
         }
@@ -716,7 +716,10 @@ export class Editor {
     }
 
     private async saveProject() {
-        if (this.flowEditor) this.flowEditor.syncToProject();
+        if (this.flowEditor) {
+            this.flowEditor.syncToProject();
+            this.flowEditor.syncAllTasksFromFlow(this.project);
+        }
         const json = JSON.stringify(this.project, null, 2);
         const filename = `project_${this.project.meta.name.replace(/\s+/g, '_')}.json`;
 
@@ -756,13 +759,27 @@ export class Editor {
     }
 
     private async exportHTML() {
+        if (this.flowEditor) this.flowEditor.syncAllTasksFromFlow(this.project);
         const exporter = new GameExporter();
         await exporter.exportHTML(this.project);
     }
 
     private async exportJSON() {
+        if (this.flowEditor) this.flowEditor.syncAllTasksFromFlow(this.project);
         const exporter = new GameExporter();
         await exporter.exportJSON(this.project);
+    }
+
+    private async exportHTMLCompressed() {
+        if (this.flowEditor) this.flowEditor.syncAllTasksFromFlow(this.project);
+        const exporter = new GameExporter();
+        await exporter.exportHTMLCompressed(this.project);
+    }
+
+    private async exportJSONCompressed() {
+        if (this.flowEditor) this.flowEditor.syncAllTasksFromFlow(this.project);
+        const exporter = new GameExporter();
+        await exporter.exportJSONCompressed(this.project);
     }
 
     private loadProject(data: any) {
@@ -1319,11 +1336,6 @@ export class Editor {
         }
     }
 
-    private handleGameLoopEvent(id: string, eventName: string, data?: any) {
-        if (!this.runtime) return;
-        this.runtime.handleEvent(id, eventName, data);
-        this.render();
-    }
 
     private handleGameServerEvent(id: string, eventName: string, data?: any) {
         if (!this.runtime) return;
@@ -1860,8 +1872,14 @@ export class Editor {
             case 'export-html':
                 this.exportHTML();
                 break;
+            case 'export-html-gzip':
+                this.exportHTMLCompressed();
+                break;
             case 'export-json':
                 this.exportJSON();
+                break;
+            case 'export-json-gzip':
+                this.exportJSONCompressed();
                 break;
             case 'export-exe':
                 alert('Exe-Export ist für eine zukünftige Version geplant.');

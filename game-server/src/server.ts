@@ -4,6 +4,7 @@ import cors from 'cors';
 import http from 'http';
 import path from 'path';
 import fs from 'fs';
+import zlib from 'zlib';
 import { Room } from './Room';
 import { parse, serialize, ClientMessage } from './Protocol';
 
@@ -83,6 +84,27 @@ app.get('/platform/games', (req, res) => {
             .map(f => {
                 try {
                     const content = JSON.parse(fs.readFileSync(path.join(UPLOADED_GAMES_DIR, f), 'utf-8'));
+
+                    // Handle compressed format
+                    if (content._compressed && content.data) {
+                        // Decompress to get metadata
+                        try {
+                            const compressedBuffer = Buffer.from(content.data, 'base64');
+                            const decompressed = zlib.gunzipSync(compressedBuffer);
+                            const project = JSON.parse(decompressed.toString('utf-8'));
+                            return {
+                                file: f,
+                                name: project.meta?.name || f.replace('.json', ''),
+                                author: project.meta?.author || 'Unknown',
+                                runtimeVersion: project.meta?.runtimeVersion || content._version || '1.0.0',
+                                compressed: true
+                            };
+                        } catch (e) {
+                            console.error(`[API] Error decompressing ${f} for metadata:`, e);
+                            return null;
+                        }
+                    }
+
                     return {
                         file: f,
                         name: content.meta?.name || f.replace('.json', ''),
@@ -109,7 +131,23 @@ app.get('/platform/games/:filename', (req, res) => {
     const filePath = path.join(UPLOADED_GAMES_DIR, filename);
 
     if (fs.existsSync(filePath)) {
-        res.json(JSON.parse(fs.readFileSync(filePath, 'utf-8')));
+        const content = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
+        // Handle compressed format - decompress on-the-fly
+        if (content._compressed && content.data) {
+            try {
+                const compressedBuffer = Buffer.from(content.data, 'base64');
+                const decompressed = zlib.gunzipSync(compressedBuffer);
+                const project = JSON.parse(decompressed.toString('utf-8'));
+                console.log(`[API] Serving decompressed game: ${filename}`);
+                res.json(project);
+            } catch (e) {
+                console.error(`[API] Error decompressing game ${filename}:`, e);
+                res.status(500).json({ error: 'Failed to decompress game' });
+            }
+        } else {
+            res.json(content);
+        }
     } else {
         res.status(404).json({ error: 'Game not found' });
     }
@@ -168,7 +206,7 @@ app.get('/api/images', (req, res) => {
  */
 app.post('/platform/games', (req, res) => {
     try {
-        const { filename, content } = req.body;
+        const { filename, content, compressed } = req.body;
 
         if (!filename || !content) {
             return res.status(400).json({ error: 'Missing filename or content' });
@@ -183,8 +221,21 @@ app.post('/platform/games', (req, res) => {
         const filePath = path.join(UPLOADED_GAMES_DIR, safeName);
         fs.writeFileSync(filePath, JSON.stringify(content, null, 2));
 
-        console.log(`[API] Game uploaded: ${safeName}`);
-        res.json({ success: true, filename: safeName });
+        // For compressed format, extract game name for response
+        let gameName = safeName.replace('.json', '');
+        if (compressed && content._compressed && content.data) {
+            try {
+                const compressedBuffer = Buffer.from(content.data, 'base64');
+                const decompressed = zlib.gunzipSync(compressedBuffer);
+                const project = JSON.parse(decompressed.toString('utf-8'));
+                gameName = project.meta?.name || gameName;
+            } catch (e) {
+                console.warn(`[API] Could not extract game name from compressed content:`, e);
+            }
+        }
+
+        console.log(`[API] Game uploaded: ${safeName} (compressed: ${!!compressed})`);
+        res.json({ success: true, filename: safeName, gameName });
     } catch (err) {
         console.error('[API] Error uploading game:', err);
         res.status(500).json({ error: 'Failed to upload game' });
