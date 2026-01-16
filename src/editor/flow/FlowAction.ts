@@ -180,4 +180,43 @@ export class FlowAction extends FlowElement {
         // Note: Sync/hostOnly property removed - Multiplayer now uses Task.triggerMode
         return props;
     }
+
+    /**
+     * SINGLE SOURCE OF TRUTH: Override toJSON to only save minimal data for linked actions.
+     * Linked actions store only the name and isLinked flag - the actual definition
+     * is loaded from project.actions at runtime.
+     */
+    public toJSON(): any {
+        const base = {
+            id: this.id,
+            type: this.getType(),
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height,
+            properties: {
+                name: this.Name,
+                details: this.Details,
+                description: this.Description
+            }
+        };
+
+        // SINGLE SOURCE OF TRUTH: If this action is linked to project.actions,
+        // only store the reference, not the full data copy
+        if (this.data?.isLinked) {
+            return {
+                ...base,
+                data: {
+                    name: this.data.name || this.Name,
+                    isLinked: true
+                }
+            };
+        }
+
+        // Non-linked actions (copies or local definitions) store full data
+        return {
+            ...base,
+            data: this.data
+        };
+    }
 }

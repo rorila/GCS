@@ -724,9 +724,9 @@ export class FlowEditor {
      * Generates a unique action name with a running number (Aktion1, Aktion2, etc.)
      * Checks both project actions and current flow nodes for uniqueness.
      */
-    private generateUniqueActionName(): string {
-        const baseName = 'Aktion';
+    private generateUniqueActionName(baseName: string = 'Aktion'): string {
         let counter = 1;
+        let finalName = baseName;
 
         // Collect all existing action names from project and current nodes
         const existingNames = new Set<string>();
@@ -743,12 +743,15 @@ export class FlowEditor {
             }
         });
 
-        // Find first available number
-        while (existingNames.has(`${baseName}${counter}`)) {
-            counter++;
+        // If the base name itself is taken, start numbering
+        if (existingNames.has(finalName)) {
+            while (existingNames.has(`${baseName}${counter}`)) {
+                counter++;
+            }
+            finalName = `${baseName}${counter}`;
         }
 
-        return `${baseName}${counter}`;
+        return finalName;
     }
 
     /**
@@ -1428,7 +1431,27 @@ export class FlowEditor {
             }
 
             if (data.data) {
-                node.data = { ...data.data };
+                // SINGLE SOURCE OF TRUTH: For Action nodes, load data from project.actions
+                // instead of using the FlowChart copy. This ensures all references to the same
+                // action use the same data.
+                if (data.type === 'Action' && this.project) {
+                    const actionName = data.properties?.name || data.data?.name;
+                    const projectAction = this.project.actions.find(a => a.name === actionName);
+
+                    if (projectAction) {
+                        // Load from project.actions (Single Source of Truth)
+                        node.data = { ...projectAction, isLinked: true };
+                        node.setLinked(true);
+                    } else {
+                        // Action not found in project.actions - use local data (legacy or copy)
+                        node.data = { ...data.data };
+                        console.warn(`[FlowEditor] Action "${actionName}" not found in project.actions - using local FlowChart data`);
+                    }
+                } else {
+                    // Non-Action nodes: use FlowChart data as before
+                    node.data = { ...data.data };
+                }
+
                 // Logic-aware "Detailed" state restoration
                 const hasLogic = node.data.actionName || node.data.taskName || node.data.condition;
                 if (hasLogic) node.setDetailed(true);
@@ -2453,9 +2476,9 @@ export class FlowEditor {
     }
 
     private linkActionToNode(node: FlowElement, action: any) {
-        // Linked nodes share data but are marked as links (hatched)
-        // We still clone the core data to allow node-specific position/ID properties if needed
-        node.data = { ...JSON.parse(JSON.stringify(action)), name: action.name, isLinked: true };
+        // SINGLE SOURCE OF TRUTH: Linked nodes store only the name and isLinked flag.
+        // The data is loaded from project.actions at runtime.
+        node.data = { name: action.name, isLinked: true };
         node.setText(action.name);
         node.setDetailed(true);
         node.setLinked(true); // Apply hatched styling
@@ -2464,13 +2487,27 @@ export class FlowEditor {
     }
 
     private copyActionToNode(node: FlowElement, action: any) {
-        // Create independent deep copy of action data
+        if (!this.project) return;
+
+        // SINGLE SOURCE OF TRUTH: Create an independent deep copy of the action
+        // and register it as a new global action with a unique name.
+        const originalName = action.name;
+        const newName = this.generateUniqueActionName(`${originalName}_Copy`);
+
         const actionCopy = JSON.parse(JSON.stringify(action));
-        node.data = { ...actionCopy, name: action.name };
-        node.setText(action.name);
+        actionCopy.name = newName;
+
+        // Add to project actions (Library)
+        this.project.actions.push(actionCopy);
+
+        // Update node to link to this NEW action
+        node.data = { name: newName, isLinked: true, originalName: originalName, isCopy: true };
+        node.setText(newName);
         node.setDetailed(true);
-        // No hatching - this is a copy, not a link
+        node.setLinked(true); // Technically it's a link to the NEW global action
+
         if (action.description) node.Description = action.description;
+
         this.syncToProject();
     }
 
@@ -2907,10 +2944,20 @@ export class FlowEditor {
                         this.renameActionInMemory(oldName, newName);
                     }
 
-                    // 2. Update node data (deep copy of result)
-                    node.data = JSON.parse(JSON.stringify(result.data));
+                    // SINGLE SOURCE OF TRUTH: Update the global definition in project.actions
+                    // Note: result.data contains the full action definition from the dialog
+                    this.updateGlobalActionDefinition({ ...result.data, name: newName });
 
-                    // 3. Sync to project to update definition and trigger auto-save
+                    // Update the node's visual name
+                    node.Name = newName;
+                    node.setText(newName);
+
+                    // Update node data to be a LINK (Single Source of Truth)
+                    // We DON'T store the full definition here anymore
+                    node.data = { name: newName, isLinked: true };
+                    node.setLinked(true);
+
+                    // 3. Sync to project to trigger auto-save and ensure consistency
                     this.syncToProject();
 
                     // 4. Update visual status and refresh details
