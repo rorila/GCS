@@ -84,7 +84,14 @@ export class ProjectRegistry {
     // =========================================================================================
 
     public getTasks(): GameTask[] {
-        return this.project?.tasks || [];
+        if (!this.project) return [];
+        let allTasks = [...(this.project.tasks || [])];
+        if (this.project.stages) {
+            this.project.stages.forEach(stage => {
+                if (stage.tasks) allTasks = [...allTasks, ...stage.tasks];
+            });
+        }
+        return allTasks;
     }
 
     public validateTaskName(name: string): { valid: boolean; error?: string } {
@@ -93,9 +100,9 @@ export class ProjectRegistry {
             return { valid: false, error: 'Tasks müssen mit einem Großbuchstaben beginnen (PascalCase).' };
         }
 
-        // Rule: Unique across all tasks
-        if (this.project?.tasks.some(t => t.name === name)) {
-            return { valid: false, error: 'Task-Name bereits vergeben.' };
+        // Rule: Unique across all tasks (Global and ALL Stages)
+        if (this.getTasks().some(t => t.name === name)) {
+            return { valid: false, error: 'Task-Name bereits vergeben (global oder in einer Stage).' };
         }
 
         return { valid: true };
@@ -106,7 +113,14 @@ export class ProjectRegistry {
     // =========================================================================================
 
     public getActions(): any[] {
-        return this.project?.actions || [];
+        if (!this.project) return [];
+        let allActions = [...(this.project.actions || [])];
+        if (this.project.stages) {
+            this.project.stages.forEach(stage => {
+                if (stage.actions) allActions = [...allActions, ...stage.actions];
+            });
+        }
+        return allActions;
     }
 
     // =========================================================================================
@@ -200,13 +214,30 @@ export class ProjectRegistry {
         }
 
         // Rule: Unique across Stage Objects AND Flow Objects
-        // Use getObjects() to get the correct object list
+        // Use getObjects() to get the correct object list (which includes active stage + globals)
         const objects = this.getObjects();
         if (objects.some(o => o.name === name)) {
             return { valid: false, error: 'Objekt-Name existiert bereits auf der Stage.' };
         }
-        if (this.project?.flow?.elements.some(e => e.name === name)) {
-            return { valid: false, error: 'Objekt-Name existiert bereits im Flow.' };
+
+        // Check Flow Objects in ALL charts
+        const checkFlows = (charts: any) => {
+            if (!charts) return false;
+            return Object.values(charts).some((chart: any) =>
+                chart.elements && chart.elements.some((e: any) => e.name === name)
+            );
+        };
+
+        if (checkFlows(this.project!.flowCharts)) {
+            return { valid: false, error: 'Objekt-Name wird bereits im Flow verwendet.' };
+        }
+
+        if (this.project!.stages) {
+            for (const stage of this.project!.stages) {
+                if (checkFlows(stage.flowCharts)) {
+                    return { valid: false, error: `Objekt-Name wird bereits im Flow der Stage '${stage.name}' verwendet.` };
+                }
+            }
         }
 
         return { valid: true };
@@ -367,39 +398,100 @@ export class ProjectRegistry {
         if (!this.project) return false;
         if (!this.validateTaskName(newName).valid) return false;
 
-        const task = this.project.tasks.find(t => t.name === oldName);
+        // Find and rename in whichever collection it resides
+        let task: GameTask | undefined;
+        task = this.project.tasks.find(t => t.name === oldName);
+        if (!task && this.project.stages) {
+            for (const stage of this.project.stages) {
+                if (stage.tasks) {
+                    task = stage.tasks.find(t => t.name === oldName);
+                    if (task) break;
+                }
+            }
+        }
+
         if (task) {
             task.name = newName;
+        } else {
+            console.warn(`[ProjectRegistry] renameTask: Task '${oldName}' not found in any scope.`);
+            return false;
+        }
+
+        // 1. Update calls to this task in ALL Task Sequences (Global + All Stages)
+        const allTasks = this.getTasks();
+        allTasks.forEach(t => {
+            if (t.actionSequence) {
+                t.actionSequence.forEach(item => {
+                    if (item.type === 'task' && item.name === oldName) item.name = newName;
+                    if (item.thenTask === oldName) item.thenTask = newName;
+                    if (item.elseTask === oldName) item.elseTask = newName;
+                });
+            }
+        });
+
+        // 2. Update Object Events (Global + All Stages)
+        // To rename globally we need ALL objects from ALL stages
+        const trulyAllObjects = [...(this.project.objects || [])];
+        if (this.project.stages) {
+            this.project.stages.forEach(s => {
+                if (s.objects) trulyAllObjects.push(...s.objects);
+            });
+        }
+
+        trulyAllObjects.forEach(obj => {
+            if ((obj as any).Tasks) {
+                const tasks = (obj as any).Tasks;
+                Object.keys(tasks).forEach(key => {
+                    if (tasks[key] === oldName) tasks[key] = newName;
+                });
+            }
+        });
+
+        // 3. Rename Flow Charts
+        if (this.project.flowCharts && this.project.flowCharts[oldName]) {
+            this.project.flowCharts[newName] = this.project.flowCharts[oldName];
+            delete this.project.flowCharts[oldName];
+        }
+        if (this.project.stages) {
+            this.project.stages.forEach(stage => {
+                if (stage.flowCharts && stage.flowCharts[oldName]) {
+                    stage.flowCharts[newName] = stage.flowCharts[oldName];
+                    delete stage.flowCharts[oldName];
+                }
+            });
+        }
+
+        return true;
+    }
+
+    public renameAction(oldName: string, newName: string): boolean {
+        if (!this.project) return false;
+
+        let action: any;
+        action = this.project.actions.find(a => a.name === oldName);
+        if (!action && this.project.stages) {
+            for (const stage of this.project.stages) {
+                if (stage.actions) {
+                    action = stage.actions.find(a => a.name === oldName);
+                    if (action) break;
+                }
+            }
+        }
+
+        if (action) {
+            action.name = newName;
         } else {
             return false;
         }
 
-        // Update calls to this task
-        this.project.tasks.forEach(t => {
-            t.actionSequence.forEach(item => {
-                if (item.type === 'task' && item.name === oldName) {
-                    item.name = newName;
-                }
-                if (item.thenTask === oldName) item.thenTask = newName;
-                if (item.elseTask === oldName) item.elseTask = newName;
-            });
-        });
-
-        // Update Object Events (Global + All Stages)
-        const allObjects = [...(this.project.objects || [])];
-        if ((this.project as any).stages) {
-            (this.project as any).stages.forEach((s: any) => {
-                if (s.objects) allObjects.push(...s.objects);
-            });
-        }
-
-        allObjects.forEach(obj => {
-            if ((obj as any).Tasks) {
-                const tasks = (obj as any).Tasks;
-                Object.keys(tasks).forEach(key => {
-                    if (tasks[key] === oldName) {
-                        tasks[key] = newName;
-                    }
+        // Update references in all Task Sequences
+        const allTasks = this.getTasks();
+        allTasks.forEach(t => {
+            if (t.actionSequence) {
+                t.actionSequence.forEach(item => {
+                    if (item.type === 'action' && item.name === oldName) item.name = newName;
+                    if (item.thenAction === oldName) item.thenAction = newName;
+                    if (item.elseAction === oldName) item.elseAction = newName;
                 });
             }
         });
@@ -436,16 +528,23 @@ export class ProjectRegistry {
 
         // Scan ALL Objects in ALL Stages
         const allObjects = [...(this.project!.objects || [])];
-        if ((this.project as any).stages) {
-            (this.project as any).stages.forEach((s: any) => {
+        if (this.project!.stages) {
+            this.project!.stages.forEach(s => {
                 if (s.objects) allObjects.push(...s.objects);
             });
         }
         allObjects.forEach(obj => traverseAndReplace(obj));
 
-        // Scan Actions properties in all Tasks
-        this.project!.actions.forEach(act => traverseAndReplace(act)); // Actions definition list if it exists
-        this.project!.tasks.forEach(t => traverseAndReplace(t)); // Sequence items
+        // Scan Actions properties in all Tasks (Global + Stages)
+        this.project!.actions.forEach(act => traverseAndReplace(act));
+        if (this.project!.stages) {
+            this.project!.stages.forEach(stage => {
+                if (stage.actions) stage.actions.forEach(act => traverseAndReplace(act));
+            });
+        }
+
+        const allTasks = this.getTasks();
+        allTasks.forEach(t => traverseAndReplace(t)); // Sequence items
     }
 
     private updateReferencesInActions(oldName: string, newName: string) {

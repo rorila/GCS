@@ -133,11 +133,32 @@ export class FlowEditor {
             project.stages.forEach(stage => {
                 if (stage.flowCharts) {
                     console.log(`[FlowEditor] Syncing tasks from stage: ${stage.name}`);
-                    syncFromCharts(stage.flowCharts);
+                    // Ensure the stage-local tasks are accessible for matching
+                    const stageTasks = stage.tasks || [];
+
+                    const syncStageCharts = (charts: any) => {
+                        if (!charts) return;
+                        Object.keys(charts).forEach(taskName => {
+                            // Find task in stage-local OR project-global
+                            const task = stageTasks.find(t => t.name === taskName) || project.tasks.find(t => t.name === taskName);
+                            if (task) {
+                                const flowData = charts[taskName];
+                                if (flowData && flowData.elements && flowData.elements.length > 0) {
+                                    const prevContext = this.currentFlowContext;
+                                    this.stateManager.setContext(taskName);
+                                    try {
+                                        this.syncTaskFromFlow(task, flowData.elements, flowData.connections || []);
+                                    } finally {
+                                        this.stateManager.setContext(prevContext);
+                                    }
+                                }
+                            }
+                        });
+                    };
+                    syncStageCharts(stage.flowCharts);
                 }
             });
         }
-
         console.log(`[FlowEditor] Global sync completed.`);
     }
 
@@ -163,7 +184,10 @@ export class FlowEditor {
         return this.project.objects || []; // Legacy/Main
     }
 
-    constructor(containerId: string) {
+    private editor: any; // Reference to main Editor for routing logic
+
+    constructor(containerId: string, editor?: any) {
+        this.editor = editor;
         const el = document.getElementById(containerId);
         if (!el) throw new Error(`Container ${containerId} not found`);
         this.container = el;
@@ -420,20 +444,22 @@ export class FlowEditor {
             return;
         }
 
-        if (this.project.tasks.some(t => t.name === name)) {
-            alert('Task with this name already exists.');
+        const currentTasks = this.editor ? this.editor.currentTasks : (this.project.tasks || []);
+        if (currentTasks.some((t: any) => t.name === name)) {
+            alert('Task with this name already exists (Global or Local).');
             return;
         }
 
-        // Create Task (without flowGraph - it's stored separately)
-        this.project.tasks.push({
+        // Create Task (Standardmäßig in die aktive Stage via Editor)
+        const targetCollection = this.editor ? this.editor.getTargetTaskCollection(name) : (this.project.tasks || (this.project.tasks = []));
+        targetCollection.push({
             name: name,
             actionSequence: []
         });
 
         // Initialize flowChart for this task
-        if (!this.project.flowCharts) this.project.flowCharts = {};
-        this.project.flowCharts[name] = { elements: [], connections: [] };
+        const targetCharts = this.getTargetFlowCharts(name);
+        targetCharts[name] = { elements: [], connections: [] };
 
         // Namen für den nächsten Drop merken
         this.suggestedTaskName = name;
@@ -443,6 +469,29 @@ export class FlowEditor {
 
         // Switch to new Task
         this.switchActionFlow(name);
+    }
+
+    /**
+     * Ermittelt die passende FlowCharts-Collection (Global vs Stage)
+     */
+    private getTargetFlowCharts(taskName?: string): any {
+        if (!this.project) return {};
+        const activeStage = this.getActiveStage();
+        if (!activeStage) return this.project.flowCharts || (this.project.flowCharts = {});
+
+        // Wenn der Chart bereits in der Stage existiert
+        if (activeStage.flowCharts && activeStage.flowCharts[taskName || '']) {
+            return activeStage.flowCharts;
+        }
+
+        // Wenn er global existiert
+        if (this.project.flowCharts && this.project.flowCharts[taskName || '']) {
+            return this.project.flowCharts;
+        }
+
+        // Neue Charts in der aktiven Stage anlegen
+        if (!activeStage.flowCharts) activeStage.flowCharts = {};
+        return activeStage.flowCharts;
     }
 
     private deleteCurrentTaskFlow() {
@@ -652,7 +701,7 @@ export class FlowEditor {
             register(globalFlowElements);
         }
 
-        // 2. Scan Task Flows from flowCharts
+        // 2. Scan Task Flows from global flowCharts
         if (this.project.flowCharts) {
             Object.keys(this.project.flowCharts).forEach(key => {
                 if (key !== 'global') {
@@ -663,7 +712,25 @@ export class FlowEditor {
                 }
             });
         }
-        console.log(`[FlowEditor] Registry rebuilt. Total actions: ${this.project.actions.length}`);
+
+        // 3. Scan Stage-local flows
+        if (this.project.stages) {
+            this.project.stages.forEach(stage => {
+                if (stage.flowCharts) {
+                    Object.keys(stage.flowCharts).forEach(key => {
+                        const flowChart = stage.flowCharts![key];
+                        if (flowChart?.elements) {
+                            register(flowChart.elements);
+                        }
+                    });
+                }
+            });
+        }
+
+        const totalActions = (this.project.actions?.length || 0) +
+            (this.project.stages?.reduce((acc, s) => acc + (s.actions?.length || 0), 0) || 0);
+
+        console.log(`[FlowEditor] Registry rebuilt. Total actions found: ${totalActions}`);
     }
 
     private parseDetailsToCommand(details: string): any {
@@ -816,13 +883,14 @@ export class FlowEditor {
         if (newAction.actionName) delete newAction.actionName;
 
         // Update or Add
-        const idx = this.project.actions.findIndex(a => a.name === name);
+        const targetCollection = this.editor ? this.editor.getTargetActionCollection(name) : (this.project.actions || (this.project.actions = []));
+        const idx = targetCollection.findIndex((a: any) => a.name === name);
         if (idx !== -1) {
             // Only update if changed? For now overwrite.
-            this.project.actions[idx] = { ...this.project.actions[idx], ...newAction };
+            targetCollection[idx] = { ...targetCollection[idx], ...newAction };
         } else {
-            console.log(`[FlowEditor] Registering new global action: ${name}`);
-            this.project.actions.push(newAction);
+            console.log(`[FlowEditor] Registering new action (Scope determined by Editor): ${name}`);
+            targetCollection.push(newAction);
         }
     }
 
@@ -1444,13 +1512,23 @@ export class FlowEditor {
             if (stageFlowChart) {
                 sourceData = stageFlowChart;
                 console.log(`[FlowEditor] Loading from stage.flowCharts["${this.currentFlowContext}"]: ${sourceData?.elements?.length || 0} elements`);
-            } else if (globalFlowChart && (!activeStage || activeStage.type === 'main')) {
-                // Only load global charts if no stage is active or it's the main stage
+            } else if (globalFlowChart) {
                 sourceData = globalFlowChart;
                 console.log(`[FlowEditor] Loading from project.flowCharts["${this.currentFlowContext}"]: ${sourceData?.elements?.length || 0} elements`);
             } else {
-                // Check if task exists and has its own flowChart
-                const task = this.project.tasks.find(t => t.name === this.currentFlowContext) as any;
+                // Check if task exists (in global or active stage)
+                let task = (this.editor?.currentTasks || this.project.tasks).find((t: any) => t.name === this.currentFlowContext) as any;
+
+                // Fallback: search in ANY stage if not found (e.g. if editor is not provided or active stage is wrong)
+                if (!task && this.project.stages) {
+                    for (const stage of this.project.stages) {
+                        if (stage.tasks) {
+                            task = stage.tasks.find(t => t.name === this.currentFlowContext);
+                            if (task) break;
+                        }
+                    }
+                }
+
                 console.log(`[FlowEditor] loadFromProject: Task record found: ${!!task}, hasFlowChart: ${!!task?.flowChart} (${task?.flowChart?.elements?.length || 0} elements)`);
                 if (task?.flowChart) {
                     sourceData = task.flowChart;
@@ -1459,9 +1537,9 @@ export class FlowEditor {
                     // Fallback: check for legacy flowGraph in task
                     sourceData = task.flowGraph;
                     console.log(`[FlowEditor] Loading elements from legacy task.flowGraph for: ${this.currentFlowContext}`);
-                    // Migrate to new structure
-                    if (!this.project.flowCharts) this.project.flowCharts = {};
-                    this.project.flowCharts[this.currentFlowContext] = task.flowGraph;
+                    // Migrate to new structure (using helper for correct collection)
+                    const targetCharts = this.getTargetFlowCharts(this.currentFlowContext);
+                    targetCharts[this.currentFlowContext] = task.flowGraph;
                     delete task.flowGraph;
                 } else {
                     // Initialize new empty flow for this task
@@ -3712,14 +3790,16 @@ export class FlowEditor {
 
         // Find longest action name
         let maxActionWidth = 150; // Minimum width
-        this.project.actions.forEach(a => {
+        const currentActions = this.editor ? this.editor.currentActions : (this.project.actions || []);
+        currentActions.forEach((a: any) => {
             const width = measureTextWidth(a.name || "") + 60; // Padding for anchors/borders
             if (width > maxActionWidth) maxActionWidth = width;
         });
 
         // Find longest task name
         let maxTaskWidth = 150; // Minimum width
-        this.project.tasks.forEach(t => {
+        const currentTasks = this.editor ? this.editor.currentTasks : (this.project.tasks || []);
+        currentTasks.forEach((t: any) => {
             const width = measureTextWidth(t.name || "") + 60;
             if (width > maxTaskWidth) maxTaskWidth = width;
         });
@@ -3753,7 +3833,7 @@ export class FlowEditor {
         console.log(`[FlowEditor] stageRelevantTasks:`, Array.from(stageRelevantTasks));
 
         // C. Actions used by these relevant tasks
-        this.project.tasks.forEach(t => {
+        currentTasks.forEach((t: any) => {
             if (stageRelevantTasks.has(t.name) && t.actionSequence) {
                 const processSeq = (seq: any[]) => {
                     seq.forEach(item => {
@@ -3809,11 +3889,20 @@ export class FlowEditor {
         const globalSingletons = new Set(['StageController', 'GameState', 'InputController', 'GameLoop', 'RemoteGameManager', 'Player1', 'Player2']);
         console.log(`[FlowEditor] globalServices:`, Array.from(globalServices));
 
-        const actionItems = this.project.actions
-            .map((action, originalIndex) => ({ action, originalIndex }))
-            .filter(item => {
+        const localActions = activeStage?.actions || [];
+
+        const actionItems = currentActions
+            .map((action: any) => {
+                const isLocal = localActions.some((la: any) => la.name === action.name);
+                return { action, isLocal };
+            })
+            .filter((item: { action: any, isLocal: boolean }) => {
                 const action = item.action;
                 const actionName = action.name || "";
+                const isLocal = item.isLocal;
+
+                // Stage-lokale Actions immer anzeigen
+                if (isLocal) return true;
 
                 if (isGlobalView) return true;
 
@@ -3861,12 +3950,12 @@ export class FlowEditor {
 
                 // 4. Heuristic name match (e.g. "Get Ball H" matching object "BallSprite")
                 const lowerName = actionName.toLowerCase();
-                const words = lowerName.split(/[\s\._]+/).filter(w => w.length > 2);
+                const words = lowerName.split(/[\s\._]+/).filter((w: string) => w.length > 2);
 
                 for (const [objName, stageId] of objectStageMap.entries()) {
                     const lowerObj = objName.toLowerCase();
                     // Match if action name contains object name OR if a significant word in action name is part of object name
-                    if (lowerName.includes(lowerObj) || words.some(w => lowerObj.includes(w))) {
+                    if (lowerName.includes(lowerObj) || words.some((w: string) => lowerObj.includes(w))) {
                         if (stageId !== activeStageId) {
                             console.log(`[FlowEditor] REJECTED Action '${actionName}' (Heuristic): matches object '${objName}' from stage '${stageId}'`);
                             return false;
@@ -3920,9 +4009,9 @@ export class FlowEditor {
         this.nodes.push(taskHeader);
 
         // 4. Render Actions (sorted) with unified width
-        actionItems.sort((a, b) => (a.action.name || "").localeCompare(b.action.name || ""));
+        actionItems.sort((a: any, b: any) => (a.action.name || "").localeCompare(b.action.name || ""));
 
-        actionItems.forEach((item, displayIdx) => {
+        actionItems.forEach((item: any, displayIdx: number) => {
             const action = item.action;
             const refs = projectRegistry.findReferences(action.name);
             const isUsed = refs.length > 0;
@@ -3951,40 +4040,47 @@ export class FlowEditor {
         });
 
         // 5. Render Tasks (sorted) with unified width
-        const taskItems = this.project.tasks
-            .map((task, originalIndex) => ({ task, originalIndex }))
-            .filter(item => {
-                // In global view, show all.
+        const localTasks = activeStage?.tasks || [];
+        const taskItems = currentTasks
+            .map((task: any) => {
+                const isLocal = localTasks.some((lt: any) => lt.name === task.name);
+                return { task, isLocal };
+            })
+            .filter((item: any) => {
+                const task = item.task;
+                const taskName = task.name || "";
+                const isLocal = item.isLocal;
+
+                if (isLocal) return true;
                 if (isGlobalView) return true;
 
-                // In stage view, only show tasks that ARE in this stage's flowCharts
-                // (Checking project.flowCharts is for global tasks, which we hide here)
-                const inStage = activeStage?.flowCharts && activeStage.flowCharts[item.task.name];
-                return inStage || stageRelevantTasks.has(item.task.name);
+                // Heuristic filtering for global tasks
+                if (stageRelevantTasks.has(taskName)) return true;
+                return false;
             });
 
-        taskItems.sort((a, b) => (a.task.name || "").localeCompare(b.task.name || ""));
+        taskItems.sort((a: any, b: any) => (a.task.name || "").localeCompare(b.task.name || ""));
 
-        taskItems.forEach((item) => {
+        taskItems.forEach((item: any, displayIdx: number) => {
             const task = item.task;
-            const idx = item.originalIndex;
             const refs = projectRegistry.findReferences(task.name);
             const isUsed = refs.length > 0;
 
-            const nodeId = 'over-task-' + idx + '-' + (task.name || 'unnamed').replace(/\s+/g, '_');
+            const nodeId = 'over-task-' + displayIdx + '-' + (task.name || 'unnamed').replace(/\s+/g, '_');
             const node = new FlowTask(nodeId, taskX, currentTaskY, this.canvas, gridSize);
 
             node.Name = task.name || "Unbenannter Task";
             node.setText(node.Name);
-
-            // Apply uniform width and height
             node.Width = maxTaskWidth;
             node.Height = baseNodeHeight;
 
             // Check if this task uses a library task internally
             let usedLibraryTaskName: string | null = null;
-            const flowData = (task as any)?.flowChart || (task as any)?.flowGraph ||
-                this.project!.flowCharts?.[task.name];
+            // Check: Active Stage Chart -> Global Project Chart -> Task Internal Chart
+            const flowData = activeStage?.flowCharts?.[task.name] ||
+                this.project!.flowCharts?.[task.name] ||
+                (task as any)?.flowChart ||
+                (task as any)?.flowGraph;
 
             if (flowData?.elements) {
                 for (const el of flowData.elements) {
@@ -3997,17 +4093,29 @@ export class FlowEditor {
             }
 
             const isLibraryBased = !!usedLibraryTaskName;
-
             if (isLibraryBased) {
                 node.setLinked(true);
                 node.Details = `📚 ${usedLibraryTaskName}`;
             }
 
-            node.data = { isOverviewLink: true, type: 'Task', canDelete: !isUsed, isLibraryBased, usedLibraryTaskName };
+            node.data = {
+                isOverviewLink: true,
+                type: 'Task',
+                canDelete: !isUsed,
+                taskName: task.name,
+                isLocal: item.isLocal,
+                isLibraryBased,
+                usedLibraryTaskName
+            };
             node.setDetailed(true);
 
             (node as any).setUsageInfo(refs);
             if (!isUsed) node.setUnused(true);
+
+            if (item.isLocal) {
+                node.getElement().style.borderLeft = '6px solid #00ff00';
+                node.getElement().title = 'Stage-lokaler Task';
+            }
 
             this.nodes.push(node);
             this.setupNodeListeners(node);

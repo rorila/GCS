@@ -84,23 +84,30 @@ export class GameRuntime {
                 const mainStage = project.stages.find((s: any) => s.type === 'main');
                 if (mainStage && mainStage.objects) {
                     const globalObjects = hydrateObjects(mainStage.objects);
-                    // Append objects that are not already present (by ID)
-                    // If name collision? We assume ID is unique enough or we trust user naming.
-                    // Prioritize local objects (already loaded).
+
+                    // SYSTEM COMPONENTS ONLY: Only inherit non-visual system services
+                    const systemClasses = [
+                        'TGameLoop', 'TStageController', 'TGameState',
+                        'THandshake', 'THeartbeat', 'TGameServer',
+                        'TInputController', 'TDebugLog'
+                    ];
+
                     const localIds = new Set(loadedObjects.map(o => o.id));
 
                     globalObjects.forEach(gObj => {
-                        if (!localIds.has(gObj.id)) {
+                        // Inherit if it's a system component AND doesn't exist locally
+                        const isSystem = systemClasses.includes(gObj.className);
+                        if (isSystem && !localIds.has(gObj.id)) {
                             // potential name check?
                             const nameCollision = loadedObjects.find(l => l.name === gObj.name);
                             if (!nameCollision) {
                                 loadedObjects.push(gObj);
                             } else {
-                                console.warn(`[GameRuntime] Global object '${gObj.name}' skipped due to local name collision in stage '${activeStage.name}'`);
+                                console.warn(`[GameRuntime] Global system object '${gObj.name}' skipped due to local name collision in stage '${activeStage.name}'`);
                             }
                         }
                     });
-                    console.log(`[GameRuntime] Context-Aware Start: Loaded ${activeStage.name} + Global Objects from Main`);
+                    console.log(`[GameRuntime] Context-Aware Start: Loaded ${activeStage.name} + Global System Services from Main`);
                 }
             }
 
@@ -147,12 +154,23 @@ export class GameRuntime {
         );
 
         const mp = options.multiplayerManager || (window as any).multiplayerManager;
+
+        // Initial Logic Merge: Combine Global and Stage-Local logic for TaskExecutor
+        const stageTasks = (activeStage as any)?.tasks || [];
+        const stageActions = (activeStage as any)?.actions || [];
+        const stageFlowCharts = (activeStage as any)?.flowCharts || {};
+
+        const mergedTasks = [...(project.tasks || []), ...stageTasks];
+        const mergedActions = [...(project.actions || []), ...stageActions];
+        const mergedFlowCharts = { ...(project.flowCharts || {}), ...stageFlowCharts };
+
         this.taskExecutor = new TaskExecutor(
             project,
-            project.actions || [],
+            mergedActions,
             this.actionExecutor,
-            project.flowCharts,
-            mp
+            mergedFlowCharts,
+            mp,
+            mergedTasks
         );
 
         // Wiring for remote task execution
@@ -235,20 +253,7 @@ export class GameRuntime {
 
     private initMainGame() {
         // a) Trigger Animation
-        let stageConfig = this.project.stage || this.project.grid;
-
-        // Try to find the active stage configuration (Main or whatever we are running)
-        if (this.project.stages) {
-            const mainStage = this.project.stages.find((s: any) => s.type === 'main');
-            if (mainStage) {
-                stageConfig = {
-                    ...stageConfig,
-                    startAnimation: mainStage.startAnimation,
-                    startAnimationDuration: mainStage.startAnimationDuration,
-                    startAnimationEasing: mainStage.startAnimationEasing
-                };
-            }
-        }
+        let stageConfig = this.stage || this.project.stage || this.project.grid;
 
         if (stageConfig && stageConfig.startAnimation && stageConfig.startAnimation !== 'none') {
             this.triggerStartAnimation(stageConfig);
@@ -361,15 +366,30 @@ export class GameRuntime {
                 this.stage = this.project.stages.find((s: any) => s.id === newStageId);
             }
 
-            // 4. Stage-spezifische FlowCharts im TaskExecutor aktualisieren
+            // 4. Stage-spezifische FlowCharts, Tasks und Actions im TaskExecutor aktualisieren
             const stageFlowCharts = (this.stage as any)?.flowCharts || {};
-            // Merge with global flowCharts, stage-specific flows win
+            const stageTasks = (this.stage as any)?.tasks || [];
+            const stageActions = (this.stage as any)?.actions || [];
+
+            // Merge with global collections, stage-specific flows/tasks/actions win
             const mergedFlowCharts = {
                 ...(this.project.flowCharts || {}),
                 ...stageFlowCharts
             };
+            const mergedTasks = [
+                ...(this.project.tasks || []),
+                ...stageTasks
+            ];
+            const mergedActions = [
+                ...(this.project.actions || []),
+                ...stageActions
+            ];
+
             this.taskExecutor.setFlowCharts(mergedFlowCharts);
-            console.log(`[GameRuntime] TaskExecutor updated with ${Object.keys(mergedFlowCharts).length} flowCharts`);
+            this.taskExecutor.setTasks(mergedTasks);
+            this.taskExecutor.setActions(mergedActions);
+
+            console.log(`[GameRuntime] TaskExecutor updated with ${Object.keys(mergedFlowCharts).length} flowCharts, ${mergedTasks.length} tasks and ${mergedActions.length} actions`);
 
             // 5. Reactive Runtime aktualisieren
             if (this.options.makeReactive) {

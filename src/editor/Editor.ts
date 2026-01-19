@@ -1,5 +1,5 @@
 import { Stage } from './Stage';
-import { GameProject, StageType, StageDefinition } from '../model/types';
+import { GameProject, StageType, StageDefinition, GameAction, GameTask, ProjectVariable, InputConfig } from '../model/types';
 import { TButton } from '../components/TButton';
 import { TPanel } from '../components/TPanel';
 import { TLabel } from '../components/TLabel';
@@ -220,7 +220,7 @@ export class Editor {
         if (this.project.stages && this.project.stages.length > 0) {
             const activeStage = this.getActiveStage();
             if (activeStage) {
-                return activeStage.objects;
+                return activeStage.objects || [];
             }
         }
 
@@ -229,7 +229,7 @@ export class Editor {
             if (!this.project.splashObjects) this.project.splashObjects = [];
             return this.project.splashObjects;
         }
-        return this.project.objects;
+        return this.project.objects || [];
     }
 
     private set currentObjects(objs: TWindow[]) {
@@ -248,6 +248,74 @@ export class Editor {
         } else {
             this.project.objects = objs;
         }
+    }
+
+    get currentActions(): GameAction[] {
+        const globalActions = this.project.actions || [];
+        const activeStage = this.getActiveStage();
+        if (activeStage && activeStage.actions) {
+            return [...globalActions, ...activeStage.actions];
+        }
+        return globalActions;
+    }
+
+    get currentTasks(): GameTask[] {
+        const globalTasks = this.project.tasks || [];
+        const activeStage = this.getActiveStage();
+        if (activeStage && activeStage.tasks) {
+            return [...globalTasks, ...activeStage.tasks];
+        }
+        return globalTasks;
+    }
+
+    get currentVariables(): ProjectVariable[] {
+        const globalVars = this.project.variables || [];
+        const activeStage = this.getActiveStage();
+        if (activeStage && activeStage.variables) {
+            return [...globalVars, ...activeStage.variables];
+        }
+        return globalVars;
+    }
+
+    /**
+     * Gibt die passende Liste (Global vs Stage) für eine neue Action zurück
+     */
+    public getTargetActionCollection(actionName?: string): GameAction[] {
+        const activeStage = this.getActiveStage();
+        if (!activeStage) return this.project.actions || (this.project.actions = []);
+
+        // Wenn die Action bereits in der Stage existiert (oder dorthin gehört)
+        if (activeStage.actions && activeStage.actions.find(a => a.name === actionName)) {
+            return activeStage.actions;
+        }
+
+        // Wenn sie global existiert
+        if (this.project.actions && this.project.actions.find(a => a.name === actionName)) {
+            return this.project.actions;
+        }
+
+        // Neue Actions standardmäßig in der Stage speichern, wenn Modus aktiv
+        if (!activeStage.actions) activeStage.actions = [];
+        return activeStage.actions;
+    }
+
+    /**
+     * Gibt die passende Liste (Global vs Stage) für einen neuen Task zurück
+     */
+    public getTargetTaskCollection(taskName?: string): GameTask[] {
+        const activeStage = this.getActiveStage();
+        if (!activeStage) return this.project.tasks || (this.project.tasks = []);
+
+        if (activeStage.tasks && activeStage.tasks.find(t => t.name === taskName)) {
+            return activeStage.tasks;
+        }
+
+        if (this.project.tasks && this.project.tasks.find(t => t.name === taskName)) {
+            return this.project.tasks;
+        }
+
+        if (!activeStage.tasks) activeStage.tasks = [];
+        return activeStage.tasks;
     }
 
     /**
@@ -2427,7 +2495,7 @@ export class Editor {
     private initFlowEditor() {
         // Initialize Flow Editor
         try {
-            this.flowEditor = new FlowEditor('flow-viewer');
+            this.flowEditor = new FlowEditor('flow-viewer', this);
 
             // Connect Selection to Inspector
             this.flowEditor.onObjectSelect = (obj) => {

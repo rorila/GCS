@@ -2,6 +2,13 @@
 
 ## [Current] - 2026-01-18
 
+- **Modulare Architektur (Phase 1: Lokale Scopes)**:
+    - **Scoping**: Stages unterstützen nun eigene `tasks`, `actions` und `variables`. Dies erlaubt eine strikte Kapselung von Logik per Stage (z.B. Minigame-Logik).
+    - **Intelligentes Routing**: Neue Logik-Elemente werden im Editor automatisch in der aktiven Stage gespeichert. Existierende globale Elemente bleiben global (Single Source of Truth).
+    - **FlowEditor UX**: Der Task-Selector gruppiert Einträge nun nach Scope (Local vs Global). Die Elementeübersicht markiert lokale Komponenten visuell.
+    - **Rekursives Refactoring**: `ProjectRegistry` unterstützt nun das Finden von Referenzen und Umbenennungen über alle hierarchischen Layer (Global + Local Scopes) hinweg.
+    - **Runtime Sync**: `GameRuntime` synchronisiert beim Stage-Wechsel automatisch die relevanten Logik-Pakete in den `TaskExecutor`, um die korrekte Ausführung lokaler Tasks zu garantieren.
+- **Improved Flow Registration**: `rebuildActionRegistry` scannt nun alle Stages nach Action-Definitionen, was die Konsistenz der Action-Palette verbessert.
 - **Multi-Stage Refactoring**: `RefactoringManager.ts` unterstützt nun die projektweite Umbenennung von Tasks, Objekten und Variablen über alle Stages hinweg.
     - **Renaming Fix**: Das Umbenennen von Flow-Elementen ("Name" Property) im Inspector triggert nun korrekt das Refactoring.
 - **Library Export Fix**: Task-FlowCharts werden nun auch korrekt exportiert, wenn sie in einer Stage (z.B. Splash) gespeichert sind.

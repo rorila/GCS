@@ -198,6 +198,12 @@ export interface StageDefinition {
 
     // Stage-spezifische Flow-Diagramme
     flowCharts?: FlowCharts;
+
+    // Lokale Scopes (Phase 1: Modulare Architektur)
+    tasks?: GameTask[];
+    actions?: GameAction[];
+    variables?: ProjectVariable[];
+    input?: InputConfig;       // Stage-lokale Input-Konfiguration
 }
 
 // ─────────────────────────────────────────────

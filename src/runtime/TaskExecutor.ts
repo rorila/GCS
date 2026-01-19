@@ -1,6 +1,6 @@
 import { ActionExecutor } from './ActionExecutor';
 import { DebugLogService } from '../services/DebugLogService';
-import { FlowCharts, GameProject } from '../model/types';
+import { FlowCharts, GameProject, GameTask } from '../model/types';
 import { libraryService } from '../services/LibraryService';
 import { MultiplayerManager } from './MultiplayerManager';
 
@@ -13,14 +13,25 @@ export class TaskExecutor {
         private actions: any[],
         private actionExecutor: ActionExecutor,
         private flowCharts?: FlowCharts,
-        private multiplayerManager?: MultiplayerManager  // For triggerMode handling
-    ) { }
+        private multiplayerManager?: MultiplayerManager,
+        private tasks?: GameTask[]
+    ) {
+        this.tasks = tasks || project.tasks || [];
+    }
 
     /**
      * Aktualisiert die FlowCharts (z.B. bei Stage-Wechsel)
      */
     public setFlowCharts(flowCharts: FlowCharts): void {
         this.flowCharts = flowCharts;
+    }
+
+    public setTasks(tasks: GameTask[]): void {
+        this.tasks = tasks;
+    }
+
+    public setActions(actions: any[]): void {
+        this.actions = actions;
     }
 
     execute(taskName: string, vars: Record<string, any>, globalVars: Record<string, any>, contextObj?: any, depth: number = 0, parentId?: string, params?: Record<string, any>, isRemoteExecution: boolean = false): void {
@@ -35,7 +46,7 @@ export class TaskExecutor {
         }
 
         // 1. Resolve Task
-        let task = this.project.tasks.find(t => t.name === taskName);
+        let task = this.tasks?.find(t => t.name === taskName) || this.project.tasks.find(t => t.name === taskName);
         if (!task) {
             // Check Library
             task = libraryService.getTask(taskName);

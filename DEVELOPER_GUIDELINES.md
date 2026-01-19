@@ -72,16 +72,22 @@
   ```
 - **GameRuntime**: Initialisiert beim Start die Objekte und Konfiguration (Grid, Animation) der aktiven Stage. `switchToStage(stageId)` wechselt zur Laufzeit zwischen Stages. `nextStage()` wechselt zur nächsten Stage in der Reihenfolge.
 
-### Stage-spezifische Flow-Diagramme
-- **Konzept**: Jede Stage kann eigene Landkarten, Elementeübersichten und Task-Diagramme besitzen.
-- **Isolation**:
-  - `generateEventMap` und `generateElementOverview` filtern Objekte basierend auf der aktiven Stage via `getCurrentObjects()`.
-  - `loadFromProject` verhindert Fallbacks auf den globalen Flow, wenn eine spezifische Stage aktiv ist.
-- **Speicherung**:
-  - Global: `project.flowCharts` (für projektweite Logik).
-  - Stage-spezifisch: `stage.flowCharts` (für lokale Stage-Logik).
-- **Entscheidungslogik**: Der `FlowEditor` lädt bevorzugt aus dem `flowCharts`-Objekt der aktuellen `activeStageId`.
-- **Globaler Sync**: `FlowEditor.syncAllTasksFromFlow` stellt sicher, dass alle Task-Abläufe (global und stage-spezifisch) synchron mit den JSON-Definitionen bleiben.
+### Lokale Logik-Scopes (Phase 1)
+- **Kapselung**: Jede Stage besitzt nun eigene Listen für `tasks`, `actions` und `variables`. Dies verhindert Namenskollisionen und ermöglicht "selbstversorgende" Minigame-Stages.
+- **Routing-Regeln (Editor)**:
+  - Neue Tasks/Actions werden standardmäßig in der aktiven Stage gespeichert (`getTargetTaskCollection()`).
+  - Wenn ein Element mit dem Namen bereits global existiert, wird die globale Definition aktualisiert (Single Source of Truth).
+- **Auflösungs-Reihenfolge**:
+  - Runtime & Editor priorisieren IMMER lokale Elemente vor globalen Elementen.
+  - Namenskollisionen: Lokale Tasks "überschreiben" globale Tasks mit gleichem Namen für die Dauer der Stage-Aktivität.
+- **Speicherstruktur**:
+  - Global: `project.tasks`, `project.actions`, `project.flowCharts.global`.
+  - Stage: `stage.tasks`, `stage.actions`, `stage.flowCharts` (enthält alle Diagramme der Stage).
+- **Refactoring & Registry**:
+  - `ProjectRegistry.getTasks()` / `getActions()` liefern automatisch die aggregierte Liste (Global + alle Stages), sofern nicht explizit eingeschränkt.
+  - `renameTask` und `findReferences` führen einen Full-Scan über alle hierarchischen Layer durch.
+- **Runtime Sync**:
+  - Die `GameRuntime` muss bei jedem Stage-Wechsel die lokalen Logik-Pakete in den `TaskExecutor` injizieren: `taskExecutor.setTasks(mergedTasks)`, `taskExecutor.setActions(mergedActions)`.
 
 - **Dropdown Verhalten**: Alle Dropdowns im Action Editor sollten einen Platzhalter ("--- bitte wählen ---") verwenden, wenn noch kein Wert ausgewählt ist. Dies stellt sicher, dass jede Auswahl (auch die erste) ein `onchange` Event auslöst.
 - **Dependency Resets**: Beim Ändern eines Primär-Feldes (z.B. Target Object oder Action Type) müssen abhängige Felder (z.B. Method Name) explizit gelöscht werden, um inkonsistente Zustände in der UI zu vermeiden.
