@@ -1,4 +1,5 @@
 import { GameProject, GameAction, ActionType, CalcStep } from '../model/types';
+import { projectRegistry } from '../services/ProjectRegistry';
 
 export class ActionEditor {
     private overlay: HTMLElement;
@@ -45,7 +46,7 @@ export class ActionEditor {
             action = {
                 name: name,
                 type: 'property',
-                target: this.project.objects[0]?.name || '',
+                target: projectRegistry.getObjects()[0]?.name || '',
                 changes: {}
             };
             this.project.actions.push(action);
@@ -55,25 +56,25 @@ export class ActionEditor {
         this.currentTarget = action.target || '';
         this.currentChanges = JSON.parse(JSON.stringify(action.changes || {}));
         this.currentVariableName = action.variableName || '';
-        this.currentSource = action.source || this.project.objects[0]?.name || '';
+        this.currentSource = action.source || projectRegistry.getObjects()[0]?.name || '';
         this.currentSourceProperty = action.sourceProperty || 'text';
 
         // Validate that currentTarget still exists in project.objects or is a special keyword
         const specialKeywords = ['self', 'other', '$eventSource'];
         if (this.currentTarget && !specialKeywords.includes(this.currentTarget)) {
-            const targetExists = this.project.objects.some(o => o.name === this.currentTarget);
+            const targetExists = projectRegistry.getObjects().some(o => o.name === this.currentTarget);
             if (!targetExists) {
                 console.warn(`[ActionEditor] Target "${this.currentTarget}" no longer exists, resetting to first object`);
-                this.currentTarget = this.project.objects[0]?.name || '';
+                this.currentTarget = projectRegistry.getObjects()[0]?.name || '';
             }
         }
 
         // Validate that currentSource still exists in project.objects or is a special keyword
         if (this.currentSource && !specialKeywords.includes(this.currentSource)) {
-            const sourceExists = this.project.objects.some(o => o.name === this.currentSource);
+            const sourceExists = projectRegistry.getObjects().some(o => o.name === this.currentSource);
             if (!sourceExists) {
                 console.warn(`[ActionEditor] Source "${this.currentSource}" no longer exists, resetting to first object`);
-                this.currentSource = this.project.objects[0]?.name || '';
+                this.currentSource = projectRegistry.getObjects()[0]?.name || '';
             }
         }
 
@@ -283,7 +284,7 @@ export class ActionEditor {
             sourceSelect.appendChild(opt);
         });
 
-        this.project.objects.forEach(o => {
+        projectRegistry.getObjects().forEach(o => {
             const opt = document.createElement('option');
             opt.value = o.name;
             opt.innerText = `${o.name} (${(o as any).className || o.constructor.name})`;
@@ -582,7 +583,7 @@ export class ActionEditor {
             targetSelect.appendChild(opt);
         });
 
-        this.project.objects.forEach(o => {
+        projectRegistry.getObjects().forEach(o => {
             const opt = document.createElement('option');
             opt.value = o.name;
             opt.innerText = o.name;

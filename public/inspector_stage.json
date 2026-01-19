@@ -8,7 +8,7 @@
         {
             "className": "TLabel",
             "name": "TitleLabel",
-            "text": "Stage / Game Settings",
+            "text": "${(activeStage && activeStage.name) || 'Projekt'} Einstellungen",
             "style": {
                 "fontSize": 16,
                 "fontWeight": "bold",
@@ -18,8 +18,38 @@
         },
         {
             "className": "TLabel",
+            "name": "StageTypeLabel",
+            "text": "Typ: ${ (activeStage && activeStage.type) || 'N/A' }",
+            "style": {
+                "fontSize": 11,
+                "color": "#888",
+                "marginBottom": 12
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "StageNameLabel",
+            "text": "Stage Name:",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "activeStage.nameInput",
+            "text": "${(activeStage && activeStage.name) || ''}",
+            "width": 30,
+            "height": 2,
+            "style": {
+                "marginBottom": 12
+            }
+        },
+        {
+            "className": "TLabel",
             "name": "GameNameLabel",
-            "text": "Game Name:",
+            "text": "Spiel Name (Global):",
+            "visible": "${activeStage && activeStage.type === 'main' ? true : false}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -29,13 +59,15 @@
             "className": "TEdit",
             "name": "meta.nameInput",
             "text": "${selectedObject.meta.name}",
+            "visible": "${activeStage && activeStage.type === 'main' ? true : false}",
             "width": 30,
             "height": 2
         },
         {
             "className": "TLabel",
             "name": "AuthorLabel",
-            "text": "Author:",
+            "text": "Autor:",
+            "visible": "${activeStage && activeStage.type === 'main' ? true : false}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -45,13 +77,17 @@
             "className": "TEdit",
             "name": "meta.authorInput",
             "text": "${selectedObject.meta.author}",
+            "visible": "${activeStage && activeStage.type === 'main' ? true : false}",
             "width": 30,
-            "height": 2
+            "height": 2,
+            "style": {
+                "marginBottom": 12
+            }
         },
         {
             "className": "TLabel",
             "name": "DescriptionLabel",
-            "text": "Description:",
+            "text": "Beschreibung:",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -59,9 +95,9 @@
         },
         {
             "className": "TEdit",
-            "name": "stage.descriptionInput",
-            "text": "${(selectedObject && selectedObject.stage && selectedObject.stage.description) || ''}",
-            "placeholder": "Enter game description...",
+            "name": "activeStage.descriptionInput",
+            "text": "${(activeStage && activeStage.description) || (selectedObject && selectedObject.meta && selectedObject.meta.description) || ''}",
+            "placeholder": "Beschreibung eingeben...",
             "width": 30,
             "height": 4,
             "multiline": true
@@ -69,7 +105,7 @@
         {
             "className": "TLabel",
             "name": "GridSettingsLabel",
-            "text": "Grid Settings",
+            "text": "Raster Einstellungen (Stage)",
             "style": {
                 "fontSize": 14,
                 "fontWeight": "bold",
@@ -81,7 +117,7 @@
         {
             "className": "TLabel",
             "name": "ColumnsLabel",
-            "text": "Columns:",
+            "text": "Spalten:",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -89,8 +125,8 @@
         },
         {
             "className": "TNumberInput",
-            "name": "stage.grid.colsInput",
-            "value": "${selectedObject.stage.grid.cols}",
+            "name": "activeStage.grid.colsInput",
+            "value": "${(activeStage && activeStage.grid && activeStage.grid.cols) || selectedObject.stage.grid.cols}",
             "min": 10,
             "max": 100,
             "step": 1,
@@ -100,7 +136,7 @@
         {
             "className": "TLabel",
             "name": "RowsLabel",
-            "text": "Rows:",
+            "text": "Zeilen:",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -108,8 +144,8 @@
         },
         {
             "className": "TNumberInput",
-            "name": "stage.grid.rowsInput",
-            "value": "${selectedObject.stage.grid.rows}",
+            "name": "activeStage.grid.rowsInput",
+            "value": "${(activeStage && activeStage.grid && activeStage.grid.rows) || selectedObject.stage.grid.rows}",
             "min": 10,
             "max": 100,
             "step": 1,
@@ -119,7 +155,7 @@
         {
             "className": "TLabel",
             "name": "CellSizeLabel",
-            "text": "Cell Size (px):",
+            "text": "Zellgröße (px):",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -127,8 +163,8 @@
         },
         {
             "className": "TNumberInput",
-            "name": "stage.grid.cellSizeInput",
-            "value": "${selectedObject.stage.grid.cellSize}",
+            "name": "activeStage.grid.cellSizeInput",
+            "value": "${(activeStage && activeStage.grid && activeStage.grid.cellSize) || selectedObject.stage.grid.cellSize}",
             "min": 5,
             "max": 50,
             "step": 1,
@@ -138,7 +174,7 @@
         {
             "className": "TLabel",
             "name": "ShowGridLabel",
-            "text": "Show Grid:",
+            "text": "Raster anzeigen:",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -146,14 +182,14 @@
         },
         {
             "className": "TCheckbox",
-            "name": "stage.grid.visibleInput",
-            "checked": "${selectedObject.stage.grid.visible}",
-            "label": "Display grid lines"
+            "name": "activeStage.grid.visibleInput",
+            "checked": "${(activeStage && activeStage.grid && activeStage.grid.visible !== undefined) ? activeStage.grid.visible : selectedObject.stage.grid.visible}",
+            "label": "Rasterlinien zeichnen"
         },
         {
             "className": "TLabel",
             "name": "BackgroundColorLabel",
-            "text": "Background Color:",
+            "text": "Hintergrundfarbe:",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -161,10 +197,61 @@
         },
         {
             "className": "TColorPicker",
-            "name": "stage.grid.backgroundColorInput",
-            "color": "${selectedObject.stage.grid.backgroundColor}",
+            "name": "activeStage.grid.backgroundColorInput",
+            "color": "${(activeStage && activeStage.grid && activeStage.grid.backgroundColor) || selectedObject.stage.grid.backgroundColor}",
             "width": 30,
             "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "SplashSettingsLabel",
+            "text": "Splash Screen Einstellungen",
+            "visible": "${activeStage && activeStage.type === 'splash' ? true : false}",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginTop": 16,
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "SplashDurationLabel",
+            "text": "Anzeigedauer (ms):",
+            "visible": "${activeStage && activeStage.type === 'splash' ? true : false}",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TNumberInput",
+            "name": "activeStage.durationInput",
+            "value": "${(activeStage && activeStage.duration) || selectedObject.splashDuration || 3000}",
+            "visible": "${activeStage && activeStage.type === 'splash' ? true : false}",
+            "min": 500,
+            "max": 10000,
+            "step": 100,
+            "width": 14,
+            "height": 2
+        },
+        {
+            "className": "TLabel",
+            "name": "SplashAutoHideLabel",
+            "text": "Auto-Fortsetzen:",
+            "visible": "${activeStage && activeStage.type === 'splash' ? true : false}",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TCheckbox",
+            "name": "activeStage.autoHideInput",
+            "visible": "${activeStage && activeStage.type === 'splash' ? true : false}",
+            "checked": "${(activeStage && activeStage.autoHide !== undefined) ? activeStage.autoHide : (selectedObject.splashAutoHide !== false)}",
+            "label": "Nach Dauer zur nächsten Stage"
         },
         {
             "className": "TLabel",
@@ -189,8 +276,8 @@
         },
         {
             "className": "TSelect",
-            "name": "stage.startAnimationInput",
-            "selectedValue": "${selectedObject.stage.startAnimation || 'none'}",
+            "name": "activeStage.startAnimationInput",
+            "selectedValue": "${(activeStage && activeStage.startAnimation) || selectedObject.stage.startAnimation || 'none'}",
             "options": [
                 "none",
                 "UpLeft",
@@ -218,8 +305,8 @@
         },
         {
             "className": "TNumberInput",
-            "name": "stage.startAnimationDurationInput",
-            "value": "${selectedObject.stage.startAnimationDuration || 1000}",
+            "name": "activeStage.startAnimationDurationInput",
+            "value": "${(activeStage && activeStage.startAnimationDuration) || selectedObject.stage.startAnimationDuration || 1000}",
             "min": 100,
             "max": 5000,
             "step": 100,
@@ -237,8 +324,8 @@
         },
         {
             "className": "TSelect",
-            "name": "stage.startAnimationEasingInput",
-            "selectedValue": "${selectedObject.stage.startAnimationEasing || 'easeOut'}",
+            "name": "activeStage.startAnimationEasingInput",
+            "selectedValue": "${(activeStage && activeStage.startAnimationEasing) || selectedObject.stage.startAnimationEasing || 'easeOut'}",
             "options": [
                 "linear",
                 "easeIn",

@@ -28,7 +28,12 @@ export class ReactiveRuntime {
      * @param makeReactiveFlag Whether to wrap in Proxy (default: true)
      */
     registerObject(name: string, obj: any, makeReactiveFlag: boolean = true): any {
-        const reactiveObj = makeReactiveFlag ? makeReactive(obj, this.watcher) : obj;
+        // CRITICAL: Exclude certain components from Proxy wrapping
+        // These components use arrow functions with internal state that breaks when proxied
+        const excludeFromProxy = ['TGameLoop', 'TGameState', 'TInputController'];
+        const shouldProxy = makeReactiveFlag && !excludeFromProxy.includes(obj.className || obj.constructor?.name);
+
+        const reactiveObj = shouldProxy ? makeReactive(obj, this.watcher) : obj;
         const id = obj.id || name;
         this.objectsById.set(id, reactiveObj);
         this.objectsByName.set(name, reactiveObj);
@@ -151,7 +156,7 @@ export class ReactiveRuntime {
     /**
      * Gets the evaluation context (all objects + variables)
      */
-    private getContext(): Record<string, any> {
+    public getContext(): Record<string, any> {
         const context: Record<string, any> = {};
 
         // Add all registered objects (by name for expression access)

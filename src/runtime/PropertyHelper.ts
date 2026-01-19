@@ -68,4 +68,24 @@ export class PropertyHelper {
             return '';
         });
     }
+
+    /**
+     * Tries to convert a string value back to its likely intended type (number or boolean)
+     */
+    static autoConvert(value: any): any {
+        if (typeof value !== 'string') return value;
+        if (value === '') return value;
+
+        // Try number
+        const num = Number(value);
+        if (!isNaN(num) && value.trim() !== '') {
+            return num;
+        }
+
+        // Try boolean
+        if (value.toLowerCase() === 'true') return true;
+        if (value.toLowerCase() === 'false') return false;
+
+        return value;
+    }
 }

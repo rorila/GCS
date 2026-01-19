@@ -65,6 +65,30 @@
                     "icon": "🖥️"
                 }
             ]
+        },
+        {
+            "id": "stages",
+            "label": "Stages",
+            "items": [
+                {
+                    "id": "new-stage",
+                    "label": "Neue Stage",
+                    "action": "new-stage",
+                    "icon": "📄"
+                },
+                {
+                    "id": "new-splash",
+                    "label": "Neuer Splashscreen",
+                    "action": "new-splash",
+                    "icon": "🚀"
+                },
+                {
+                    "id": "delete-stage",
+                    "label": "Stage löschen",
+                    "action": "delete-stage",
+                    "icon": "🗑️"
+                }
+            ]
         }
     ]
 }

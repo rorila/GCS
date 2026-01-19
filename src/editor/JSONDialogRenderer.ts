@@ -4,6 +4,7 @@ import { serviceRegistry } from '../services/ServiceRegistry';
 import { hydrateObjects } from '../utils/Serialization';
 import { imageService } from '../services/ImageService';
 import { MethodRegistry } from './MethodRegistry';
+import { projectRegistry } from '../services/ProjectRegistry';
 
 // Interface to avoid circular dependency with DialogManager
 export interface IActionEditorDialogManager {
@@ -23,6 +24,7 @@ export class JSONDialogRenderer {
     private dialogDef: any;
     private onResult: (result: { action: string; data: any }) => void;
     private dialogManager?: IActionEditorDialogManager;
+    private enrichedProject: GameProject;  // Project with stage objects for expressions
 
     constructor(
         dialogDef: any,
@@ -50,22 +52,35 @@ export class JSONDialogRenderer {
             this.dialogData.type = 'property';
         }
         if (this.dialogData.target === undefined) {
-            this.dialogData.target = project.objects[0]?.name || '';
+            this.dialogData.target = projectRegistry.getObjects()[0]?.name || '';
         }
         if (this.dialogData.changes === undefined) {
             this.dialogData.changes = {};
         }
 
-        console.log('[JSONDialogRenderer] Initial dialogData.changes:', this.dialogData.changes);
-
         // Register variables
         this.runtime.registerVariable('dialogData', this.dialogData);
         this.runtime.registerVariable('serviceRegistry', serviceRegistry);
-        this.runtime.registerVariable('project', this.project);
+
+        // Create enriched project object for expression evaluation
+        // This ensures project.objects contains the active stage's objects for Multi-Stage projects
+        const stageObjects = projectRegistry.getObjects();
+
+        const enrichedProject = {
+            ...this.project,
+            objects: stageObjects.length > 0 ? stageObjects : (this.project.objects || [])
+        };
+        this.enrichedProject = enrichedProject as GameProject;
+        this.runtime.registerVariable('project', enrichedProject);
+
         this.runtime.registerVariable('taskName', dialogData.taskName || '');
         this.runtime.registerVariable('actionName', dialogData.actionName || '');
         this.runtime.registerVariable('getProperties', (name: string) => this.getPropertiesForObject(name));
         this.runtime.registerVariable('getMethods', (name: string) => this.getMethodsForObject(name));
+        this.runtime.registerVariable('getMethodSignature', (target: string, method: string) => this.getMethodSignature(target, method));
+        this.runtime.registerVariable('getStageOptions', () => {
+            return (this.enrichedProject.stages || []).map(s => ({ value: s.id, label: s.name || s.id }));
+        });
 
         // Create overlay
         this.overlay = document.createElement('div');
@@ -306,14 +321,32 @@ export class JSONDialogRenderer {
                     const selectedValue = currentSelection !== undefined ? currentSelection : this.evaluateExpression(obj.selectedValue);
                     const selectedIndex = currentSelection !== undefined ? undefined : this.evaluateExpression(obj.selectedIndex);
 
-                    optionsArr.forEach((opt: string, idx: number) => {
+                    // Add placeholder if requested or if no valid selection exists
+                    if (!selectedValue && !selectedIndex) {
+                        const placeholder = document.createElement('option');
+                        placeholder.value = '';
+                        placeholder.text = '--- bitte wählen ---';
+                        placeholder.disabled = true;
+                        placeholder.selected = true;
+                        select.appendChild(placeholder);
+                    }
+
+                    optionsArr.forEach((opt: any, idx: number) => {
                         const option = document.createElement('option');
-                        option.value = opt;
-                        option.text = opt;
-                        if (selectedValue !== undefined) {
+                        if (typeof opt === 'object' && opt !== null) {
+                            option.value = opt.value;
+                            option.text = opt.label || opt.name || opt.value;
+                            if (selectedValue === opt.value) option.selected = true;
+                        } else {
+                            option.value = opt;
+                            option.text = opt;
                             if (selectedValue === opt) option.selected = true;
-                        } else if (selectedIndex !== undefined) {
-                            if (selectedIndex === idx) option.selected = true;
+                            else if (selectedIndex === idx) {
+                                // Only auto-select if we don't have a placeholder selected
+                                if (!select.querySelector('option[selected]')) {
+                                    option.selected = true;
+                                }
+                            }
                         }
                         select.appendChild(option);
                     });
@@ -376,7 +409,6 @@ export class JSONDialogRenderer {
                 }
 
                 case 'TButton':
-                    console.log('[JSONDialogRenderer] Rendering TButton:', obj.name, 'action:', obj.action, 'visible:', obj.visible);
                     const button = document.createElement('button');
                     button.id = `btn-${obj.name || 'unknown'}`;
                     button.innerText = this.evaluateExpression(obj.caption || obj.name);
@@ -397,7 +429,6 @@ export class JSONDialogRenderer {
 
                     button.onclick = (e) => {
                         e.stopPropagation();
-                        console.log('[JSONDialogRenderer] Button clicked:', obj.name, 'action:', obj.action);
                         if (obj.action) {
                             this.handleAction(obj.action, obj.actionData);
                         }
@@ -480,10 +511,6 @@ export class JSONDialogRenderer {
             items = Object.entries(sourceData); // Key-value pairs as [key, value]
         }
 
-        if (obj.name === 'PropertyChangesList') {
-            console.log(`[JSONDialogRenderer] Rendering PropertyChangesList, sourceData:`, sourceData, `items:`, items);
-        }
-
         // Apply filter if specified
         if (obj.filter && items.length > 0) {
             items = items.filter((item: any) => {
@@ -523,15 +550,17 @@ export class JSONDialogRenderer {
                 if (fullMatch) {
                     try {
                         const code = fullMatch[1];
-                        const fn = new Function('item', 'index', 'dialogData', 'project', 'serviceRegistry', 'getPropertiesForObject', 'getMethodsForObject', `return ${code}`);
+                        const fn = new Function('item', 'index', 'dialogData', 'project', 'serviceRegistry', 'getProperties', 'getMethods', 'getMethodSignature', 'getStageOptions', `return ${code}`);
                         return fn(
                             item,
                             index,
                             this.dialogData,
-                            this.project,
+                            this.enrichedProject,
                             serviceRegistry,
                             (name: string) => this.getPropertiesForObject(name),
-                            (name: string) => this.getMethodsForObject(name)
+                            (name: string) => this.getMethodsForObject(name),
+                            (target: string, method: string) => this.getMethodSignature(target, method),
+                            () => (this.enrichedProject.stages || []).map(s => ({ value: s.id, label: s.name || s.id }))
                         );
                     } catch (e) {
                         // Fallback to string replacement if evaluation fails
@@ -542,15 +571,17 @@ export class JSONDialogRenderer {
                 // Standard string interpolation for mixed content (e.g. "Value: ${item.val}")
                 return target.replace(/\${([^}]+)}/g, (match, code) => {
                     try {
-                        const fn = new Function('item', 'index', 'dialogData', 'project', 'serviceRegistry', 'getPropertiesForObject', 'getMethodsForObject', `return ${code}`);
+                        const fn = new Function('item', 'index', 'dialogData', 'project', 'serviceRegistry', 'getProperties', 'getMethods', 'getMethodSignature', 'getStageOptions', `return \`${code}\``);
                         const result = fn(
                             item,
                             index,
                             this.dialogData,
-                            this.project,
+                            this.enrichedProject,
                             serviceRegistry,
                             (name: string) => this.getPropertiesForObject(name),
-                            (name: string) => this.getMethodsForObject(name)
+                            (name: string) => this.getMethodsForObject(name),
+                            (target: string, method: string) => this.getMethodSignature(target, method),
+                            () => (this.enrichedProject.stages || []).map(s => ({ value: s.id, label: s.name || s.id }))
                         );
                         return result !== undefined ? String(result) : '';
                     } catch (e) {
@@ -577,59 +608,34 @@ export class JSONDialogRenderer {
         });
     }
 
-    private evaluateExpression(expr: any): any {
-        if (typeof expr !== 'string') return expr;
+    private evaluateExpression(expr: any, fallback: any = undefined): any {
+        if (typeof expr !== 'string' || !expr.includes('${')) {
+            return expr === undefined ? fallback : expr;
+        }
+
+        const code = expr.startsWith('${') && expr.endsWith('}')
+            ? expr.substring(2, expr.length - 1)
+            : `\`${expr.replace(/`/g, '\\`').replace(/\$\{/g, '${')}\``;
 
         try {
-            // 1. Try to evaluate as a pure expression first (e.g. "project.variables")
-            // If it starts with ${ and ends with }, strip them for pure evaluation
-            const trimmed = expr.trim();
-            const isTemplateWithBraces = trimmed.startsWith('${') && trimmed.endsWith('}');
-            const code = isTemplateWithBraces ? trimmed.slice(2, -1) : expr;
-
-            // Don't try pure evaluation on strings that are obviously just text (contain spaces but aren't template-like)
-            if (!isTemplateWithBraces && trimmed.includes(' ') && !trimmed.includes('(')) {
-                // Check if it's a template literal even without outer braces
-                if (trimmed.includes('${')) {
-                    throw new Error('Fallback to template literal');
-                }
-                return expr;
-            }
-
-            const fn = new Function('dialogData', 'project', 'taskName', 'actionName', 'name', 'serviceRegistry', 'getProperties', 'getMethods', 'getMethodSignature', `return ${code}`);
-            return fn(
+            const fn = new Function('dialogData', 'project', 'taskName', 'actionName', 'name', 'serviceRegistry', 'getProperties', 'getMethods', 'getMethodSignature', 'getStageOptions', `return ${code}`);
+            const result = fn(
                 this.dialogData,
-                this.project,
+                this.enrichedProject,
                 this.dialogData.taskName,
                 this.dialogData.actionName || this.dialogData.name,
                 this.dialogData.name,
                 serviceRegistry,
                 (name: string) => this.getPropertiesForObject(name),
                 (name: string) => this.getMethodsForObject(name),
-                (target: string, method: string) => this.getMethodSignature(target, method)
+                (target: string, method: string) => this.getMethodSignature(target, method),
+                () => (this.enrichedProject.stages || []).map(s => ({ value: s.id, label: s.name || s.id }))
             );
+
+            return result;
         } catch (e) {
-            // 2. Fallback: If pure evaluation fails, try as a template literal if it has ${ }
-            if (expr.includes('${')) {
-                try {
-                    const safeExpr = expr.replace(/`/g, '\\`');
-                    const fn = new Function('dialogData', 'project', 'taskName', 'actionName', 'name', 'serviceRegistry', 'getProperties', 'getMethods', 'getMethodSignature', `return \`${safeExpr}\``);
-                    return fn(
-                        this.dialogData,
-                        this.project,
-                        this.dialogData.taskName,
-                        this.dialogData.actionName || this.dialogData.name,
-                        this.dialogData.name,
-                        serviceRegistry,
-                        (name: string) => this.getPropertiesForObject(name),
-                        (name: string) => this.getMethodsForObject(name),
-                        (target: string, method: string) => this.getMethodSignature(target, method)
-                    );
-                } catch (e2) {
-                    return expr;
-                }
-            }
-            return expr;
+            console.warn(`[JSONDialogRenderer] Expression evaluation failed: "${expr}"`, e);
+            return fallback !== undefined ? fallback : expr;
         }
     }
 
@@ -639,8 +645,8 @@ export class JSONDialogRenderer {
 
         // Lookup in Registry
         const signature = MethodRegistry[methodName];
+        console.log(`[JSONDialogRenderer] getMethodSignature('${_targetName}', '${methodName}'):`, signature);
         if (signature) {
-            // Map to enrich if needed, but registry format is compatible
             return signature;
         }
 
@@ -862,10 +868,10 @@ export class JSONDialogRenderer {
         // Reset/init fields based on type
         if (this.dialogData.type === 'variable') {
             this.dialogData.variableName = this.dialogData.variableName || '';
-            this.dialogData.source = this.dialogData.source || (this.project.objects[0]?.name || '');
+            this.dialogData.source = this.dialogData.source || (projectRegistry.getObjects()[0]?.name || '');
             this.dialogData.sourceProperty = this.dialogData.sourceProperty || 'text';
         } else if (this.dialogData.type === 'call_method') {
-            this.dialogData.target = this.dialogData.target || (this.project.objects[0]?.name || '');
+            this.dialogData.target = this.dialogData.target || (projectRegistry.getObjects()[0]?.name || '');
             this.dialogData.method = this.dialogData.method || '';
             this.dialogData.params = this.dialogData.params || [];
         } else if (this.dialogData.type === 'calculate') {
@@ -877,7 +883,7 @@ export class JSONDialogRenderer {
                 this.dialogData.formula = this.stringifyCalcSteps(this.dialogData.calcSteps);
             }
         } else {
-            this.dialogData.target = this.dialogData.target || (this.project.objects[0]?.name || '');
+            this.dialogData.target = this.dialogData.target || (projectRegistry.getObjects()[0]?.name || '');
             this.dialogData.changes = this.dialogData.changes || {};
         }
 
@@ -968,7 +974,7 @@ export class JSONDialogRenderer {
                 console.log('[JSONDialogRenderer] Created function variable target:', this.dialogData.target);
             } else {
                 // User cancelled - reset to first object or empty
-                this.dialogData.target = this.project.objects[0]?.name || '';
+                this.dialogData.target = projectRegistry.getObjects()[0]?.name || '';
             }
             this.render();
         } else if (selectedValue?.startsWith('📦 ${')) {
@@ -1065,55 +1071,53 @@ export class JSONDialogRenderer {
         if (name === 'NameInput') {
             this.dialogData.name = value;
         }
-        if (name === 'TargetObjectSelect') {
-            this.dialogData.target = value;
-            this.render(); // Update property list
+
+        if (name === 'ActionTypeSelect') {
+            const types: Record<string, string> = {
+                '🔧 Eigenschaft setzen': 'property',
+                '📞 Call Method': 'call_method',
+                '🏗️ Task aufrufen': 'task',
+                '➕ Wert erhöhen': 'increment',
+                '➖ Wert verringern': 'decrement',
+                '🔄 Wert invertieren': 'negate',
+                '📱 Variable setzen': 'variable',
+                '🧮 Berechnen': 'calculate'
+            };
+            const newType = types[value] || 'property';
+            if (this.dialogData.type !== newType) {
+                this.dialogData.type = newType;
+                this.reloadTypeDefaults();
+                this.render();
+            }
         }
+
+        if (name === 'TargetObjectSelect' || name === 'CallMethodTargetSelect') {
+            this.dialogData.target = value;
+            this.dialogData.method = ''; // Reset method on target change
+            this.render();
+        }
+
+        if (name === 'CallMethodMethodSelect' || name === 'CallMethodMethodInput') {
+            this.dialogData.method = value;
+            this.render();
+        }
+
         if (name === 'VariableNameInput') this.dialogData.variableName = value;
+
         if (name === 'SourceObjectSelect') {
             this.dialogData.source = value;
-            this.render(); // Update property list
+            this.render();
         }
+
         if (name === 'SourcePropertySelect') this.dialogData.sourceProperty = value;
         if (name === 'ActionNameInput') this.dialogData.actionName = value;
         if (name === 'TaskNameInput') this.dialogData.taskName = value;
+        if (name === 'CalcResultVariable') this.dialogData.resultVariable = value;
+        if (name === 'CalcFormulaInput') this.dialogData.formula = value;
 
-        if (name === 'ActionTypeSelect') {
-            // Dropdown returns the string like "📝 Property Change (Set)"
-            // Map it back to simple type string
-            if (value.includes('Property')) this.dialogData.type = 'property';
-            else if (value.includes('Increment')) this.dialogData.type = 'increment';
-            else if (value.includes('Read Variable')) this.dialogData.type = 'variable';
-            else if (value.includes('Service')) this.dialogData.type = 'service';
-            else if (value.includes('Negate')) this.dialogData.type = 'negate';
-            else if (value.includes('Call Method')) this.dialogData.type = 'call_method';
-            else if (value.includes('Calculate')) this.dialogData.type = 'calculate';
-
-            this.reloadTypeDefaults();
-            this.render(); // Re-render because visibility might change
-        }
-
-        // Call Method specific fields
-        if (name === 'CallMethodTargetSelect') {
-            this.dialogData.target = value;
-        }
-        if (name === 'CallMethodMethodInput') {
-            this.dialogData.method = value;
-        }
-        if (name === 'CallMethodMethodSelect') {
-            this.dialogData.method = value;
-        }
         if (name === 'CallMethodParamsInput') {
-            // Store as array
+            // Store as array (legacy support)
             this.dialogData.params = value ? [value] : [];
-        }
-
-        // Calculate specific fields
-        if (name === 'CalcResultVariable') {
-            this.dialogData.resultVariable = value;
-        }
-        if (name === 'CalcFormulaInput') {
-            this.dialogData.formula = value;
         }
     }
 
@@ -1144,7 +1148,8 @@ export class JSONDialogRenderer {
     }
 
     private getPropertiesForObject(objectName: string): string[] {
-        const objData = this.project.objects.find(o => o.name === objectName);
+        const objects = projectRegistry.getObjects();
+        const objData = objects.find(o => o.name === objectName);
         if (!objData) return ["x", "y", "width", "height", "caption", "text", "style.visible"];
 
         try {
@@ -1163,8 +1168,12 @@ export class JSONDialogRenderer {
      * Uses a predefined mapping per component type.
      */
     private getMethodsForObject(objectName: string): string[] {
-        const objData = this.project.objects.find(o => o.name === objectName);
-        if (!objData) return [];
+        const objects = projectRegistry.getObjects();
+        const objData = objects.find(o => o.name === objectName);
+        if (!objData) {
+            console.warn(`[JSONDialogRenderer] getMethods: Object "${objectName}" not found in current stage (Objects: ${objects.length}).`);
+            return [];
+        }
 
         const className = objData.className || 'TComponent';
 
@@ -1177,17 +1186,20 @@ export class JSONDialogRenderer {
             'TGameLoop': ['start', 'stop', 'pause', 'resume'],
             'TGameState': ['setState', 'reset'],
             'TSprite': ['moveTo', 'setVelocity', 'stop', 'reset'],
-            'TButton': ['click', 'enable', 'disable'],
-            'TLabel': ['setText'],
-            'TEdit': ['setText', 'clear', 'focus'],
-            'TPanel': ['show', 'hide', 'toggle'],
-            'TImage': ['setSrc', 'show', 'hide'],
+            'TButton': ['click', 'enable', 'disable', 'moveTo'],
+            'TLabel': ['setText', 'moveTo'],
+            'TEdit': ['setText', 'clear', 'focus', 'moveTo'],
+            'TPanel': ['show', 'hide', 'toggle', 'moveTo'],
+            'TImage': ['setSrc', 'show', 'hide', 'moveTo'],
+            'TVideo': ['play', 'pause', 'stop', 'setSrc', 'moveTo'],
+            'TAudio': ['play', 'pause', 'stop', 'setSrc'],
             'TGameServer': ['connect', 'disconnect', 'createRoom', 'joinRoom', 'leaveRoom', 'sendMessage'],
-            'TGameCard': ['flip', 'reset'],
+            'TGameCard': ['flip', 'reset', 'moveTo'],
             'TInputController': ['enable', 'disable'],
-            'TStatusBar': ['setSection', 'show', 'hide'],
-            'TWindow': ['open', 'close', 'toggle'],
+            'TStatusBar': ['setSection', 'show', 'hide', 'moveTo'],
+            'TWindow': ['open', 'close', 'toggle', 'moveTo'],
             'TTabControl': ['selectTab'],
+            'TStageController': ['goToStage', 'goToMainStage', 'goToFirstStage', 'nextStage', 'previousStage'],
         };
 
         return methodMap[className] || [];

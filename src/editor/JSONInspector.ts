@@ -95,6 +95,13 @@ export class JSONInspector {
     }
 
     /**
+     * Updates the list of available actions (e.g. for dropdowns)
+     */
+    public updateAvailableActions(actions: string[]) {
+        this.runtime.setVariable('availableActions', actions);
+    }
+
+    /**
      * Sets the Flow Editor context - when set, selector shows flow elements instead of stage objects
      * @param elements Array of FlowElements from the current flow diagram
      */
@@ -194,8 +201,15 @@ export class JSONInspector {
             // Load Stage inspector from JSON
             const inspectorFile = './inspector_stage.json';
 
+            // Registriere die aktive Stage als Variable für den Inspector
+            if (this.project) {
+                const activeStage = this.project.stages?.find(s => s.id === this.project?.activeStageId);
+                this.runtime.setVariable('activeStage', activeStage || null);
+            }
+
             try {
-                const response = await fetch(inspectorFile);
+                // Add version parameter to bypass browser cache
+                const response = await fetch(`${inspectorFile}?v=${Date.now()}`);
                 const inspectorJSON = await response.json();
 
                 // Clear and reload inspector objects with TForEach expansion
@@ -262,7 +276,8 @@ export class JSONInspector {
             } else {
                 // Load static JSON for Events
                 try {
-                    const response = await fetch(inspectorFile);
+                    // Add version parameter to bypass browser cache
+                    const response = await fetch(`${inspectorFile}?v=${Date.now()}`);
                     const inspectorJSON = await response.json();
 
                     // Expand TForEach
@@ -783,6 +798,9 @@ export class JSONInspector {
                             options = projectRegistry.getObjects().map(o => o.name);
                         } else if (prop.source === 'flow') {
                             options = projectRegistry.getFlowObjects().map(f => f.name);
+                        } else if (prop.source === 'availableActions') {
+                            // Use the filtered list from Editor.ts
+                            options = this.runtime.getVariable('availableActions') || [];
                         }
                     }
 
@@ -957,14 +975,15 @@ export class JSONInspector {
             // Add safety check for selectedObject
             if (!selectedObject) return undefined;
 
-            const fn = new Function('selectedObject', 'project', `
+            const fn = new Function('selectedObject', 'project', 'activeStage', `
                 try {
                     return ${expr.startsWith('${') ? expr.slice(2, -1) : expr};
                 } catch(e) {
                     return undefined;
                 }
             `);
-            return fn(selectedObject, this.project);
+            const activeStage = this.runtime.getVariable('activeStage');
+            return fn(selectedObject, this.project, activeStage);
         } catch (e) {
             return undefined;
         }
@@ -1011,6 +1030,7 @@ export class JSONInspector {
     private render() {
         // Clear container
         this.container.innerHTML = '';
+        console.log('%c[JSONInspector] Rendering UI v2.0.1', 'color: #007bff; font-weight: bold');
 
         // ===== Object Selector Dropdown =====
         const selectorWrapper = document.createElement('div');
@@ -1020,7 +1040,7 @@ export class JSONInspector {
         selectorWrapper.style.marginBottom = '8px';
 
         const selectorLabel = document.createElement('label');
-        selectorLabel.innerText = 'Objekt:';
+        selectorLabel.innerText = 'Objekt (v2.0.1):';
         selectorLabel.style.fontSize = '11px';
         selectorLabel.style.color = '#888';
         selectorLabel.style.marginRight = '8px';
@@ -1069,7 +1089,7 @@ export class JSONInspector {
             });
         } else {
             // Show Stage objects
-            const objects = this.project?.objects || [];
+            const objects = projectRegistry.getObjects();
             objects.forEach((obj: any) => {
                 const option = document.createElement('option');
                 option.value = obj.id;
@@ -1180,6 +1200,35 @@ export class JSONInspector {
     }
 
     /**
+     * Checks if an inspector object is visible based on its expression
+     */
+    private isObjectVisible(obj: any): boolean {
+        if (obj.visible === undefined) return true;
+
+        const val = obj.visible;
+
+        // Handle string representation ("true", "false", or expression "${...}")
+        if (typeof val === 'string') {
+            if (val === 'true') return true;
+            if (val === 'false') return false;
+
+            if (val.startsWith('${')) {
+                const resolved = this.runtime.evaluate(val);
+                return resolved === 'true' || (resolved !== 'false' && !!resolved);
+            }
+
+            // Any other non-empty string is considered true, 
+            // but typical evaluatable values that are falsy are handled above.
+            return val !== '' && val !== 'undefined' && val !== 'null';
+        }
+
+        // Handle boolean visible property
+        if (typeof val === 'boolean') return val;
+
+        return true;
+    }
+
+    /**
      * Renders the Properties tab content
      */
     private renderPropertiesTab(wrapper: HTMLElement) {
@@ -1229,6 +1278,9 @@ export class JSONInspector {
      * Renders a label+input pair inline
      */
     private renderInlineRow(label: any, input: any): HTMLElement | null {
+        // Visibility check - if either is hidden, hide the whole row
+        if (!this.isObjectVisible(label) || !this.isObjectVisible(input)) return null;
+
         // Properties that should NEVER have a binding toggle (ID, Name, etc.)
         const propName = input.name.replace('Input', '');
         const blacklist = ['name', 'id', 'className', 'type', 'order', 'groupId'];
@@ -1701,6 +1753,9 @@ export class JSONInspector {
      * Renders a single inspector object
      */
     private renderObject(obj: any): HTMLElement | null {
+        // Visibility check - return null if hidden
+        if (!this.isObjectVisible(obj)) return null;
+
         const className = obj.className || obj.constructor?.name;
 
         const el = document.createElement('div');
@@ -2279,9 +2334,24 @@ export class JSONInspector {
             return;
         }
 
-        // Capture old name for refactoring
-        const isNameChange = propertyName === 'name' && this.project;
-        const oldValue = isNameChange ? (selectedObject as any).name : null;
+        // Capture old name for refactoring BEFORE applying new value
+        const isStageNameChange = propertyName === 'activeStage.name' && this.project;
+        const isFlowNameChange = propertyName === 'Name' && this.project;
+        const isStandardNameChange = propertyName === 'name' && this.project;
+        const isNameChange = isStandardNameChange || isFlowNameChange || isStageNameChange;
+
+        let oldValue = null;
+        if (isNameChange) {
+            if (isStageNameChange && this.project) {
+                const activeStage = this.project.stages?.find((s: any) => s.id === this.project!.activeStageId);
+                oldValue = activeStage?.name;
+            } else {
+                // For FlowElements, Name is a getter/setter that might return the new value if already applied
+                // but handleObjectChange is called AFTER the inspector component (TEdit) changed.
+                // However, the selectedObject is what we are refactoring.
+                oldValue = (selectedObject as any).Name || (selectedObject as any).name;
+            }
+        }
 
         // Trigger Refactoring if name changed
         if (isNameChange && oldValue && value && oldValue !== value && this.project) {
@@ -2316,6 +2386,16 @@ export class JSONInspector {
         if (propertyName.includes('.')) {
             const parts = propertyName.split('.');
             let target: any = selectedObject;
+
+            // WICHTIG: Falls der Pfad mit 'activeStage.' beginnt, ist das Ziel die aktive Stage
+            if (parts[0] === 'activeStage' && this.project) {
+                const activeStage = this.project.stages?.find((s: any) => s.id === this.project?.activeStageId);
+                if (activeStage) {
+                    target = activeStage;
+                    parts.shift(); // 'activeStage' entfernen damit der Restpfad relativ zur Stage ist
+                }
+            }
+
             for (let i = 0; i < parts.length - 1; i++) {
                 if (!target[parts[i]]) {
                     target[parts[i]] = {};
@@ -2577,6 +2657,13 @@ export class JSONInspector {
                     return;
                 }
 
+                // Find flow chart in potential locations
+                const activeStage = this.project?.stages?.find(s => s.id === this.project?.activeStageId);
+                const flowChart = (task as any).flowChart || (task as any).flowGraph ||
+                    this.project?.flowCharts?.[taskName] ||
+                    activeStage?.flowCharts?.[taskName] ||
+                    { elements: [], connections: [] };
+
                 // Prepare library entry - extract essential fields
                 const libraryEntry = {
                     name: task.name,
@@ -2584,14 +2671,37 @@ export class JSONInspector {
                     description: task.description || "",
                     params: JSON.parse(JSON.stringify(task.params || [])),
                     actionSequence: JSON.parse(JSON.stringify(task.actionSequence || [])),
-                    flowChart: JSON.parse(JSON.stringify(task.flowChart || { elements: [], connections: [] }))
+                    flowChart: JSON.parse(JSON.stringify(flowChart))
                 };
 
                 const dialogData = {
-                    json: JSON.stringify(libraryEntry, null, 4)
+                    json: JSON.stringify(libraryEntry, null, 4),
+                    JsonOutput: JSON.stringify(libraryEntry, null, 4), // Matches component name in JSON
+                    taskName: task.name
                 };
 
-                await this.dialogManager.showDialog('export_dialog', true, dialogData);
+                const result = await this.dialogManager.showDialog('export_dialog', true, dialogData);
+
+                if (result.action === 'saveToLibrary') {
+                    console.log('[JSONInspector] Saving task directly to library:', task.name);
+                    try {
+                        const response = await fetch('./api/library/tasks', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(libraryEntry)
+                        });
+
+                        if (response.ok) {
+                            alert(`Task "${task.name}" wurde erfolgreich in der Library gespeichert!`);
+                        } else {
+                            const err = await response.json();
+                            alert(`Fehler beim Speichern in der Library: ${err.error || response.statusText}`);
+                        }
+                    } catch (e) {
+                        console.error('[JSONInspector] Error saving to library:', e);
+                        alert('Netzwerkfehler beim Speichern in der Library.');
+                    }
+                }
                 break;
             }
 

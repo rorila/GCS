@@ -4,17 +4,11 @@ export interface MethodParamDef {
     type: 'string' | 'number' | 'boolean' | 'select' | 'color';
     label?: string;
     default?: any;
-    options?: string[]; // For select type
+    options?: string[] | string; // For select type
     optional?: boolean;
 }
 
 export const MethodRegistry: Record<string, MethodParamDef[]> = {
-    'moveTo': [
-        { name: 'x', type: 'number', label: 'Target X' },
-        { name: 'y', type: 'number', label: 'Target Y' },
-        { name: 'duration', type: 'number', label: 'Duration (ms)', default: 500, optional: true },
-        { name: 'easing', type: 'select', label: 'Easing', default: 'easeOut', options: ['linear', 'easeIn', 'easeOut', 'easeInOut', 'bounce', 'elastic'], optional: true }
-    ],
     'setVelocity': [
         { name: 'vx', type: 'number', label: 'Velocity X' },
         { name: 'vy', type: 'number', label: 'Velocity Y' }
@@ -61,5 +55,20 @@ export const MethodRegistry: Record<string, MethodParamDef[]> = {
     ],
     'error': [
         { name: 'message', type: 'string', label: 'Message' }
-    ]
+    ],
+    'timerReset': [],
+    'moveTo': [
+        { name: 'x', type: 'number', label: 'X', default: 0 },
+        { name: 'y', type: 'number', label: 'Y', default: 0 },
+        { name: 'duration', type: 'number', label: 'Dauer (ms)', default: 500 },
+        { name: 'easing', type: 'select', label: 'Easing', default: 'easeOut', options: ['linear', 'easeIn', 'easeOut', 'easeInOut'] }
+    ],
+    // TStageController
+    'goToStage': [
+        { name: 'stageId', type: 'select', label: 'Seite', options: '${getStageOptions()}' }
+    ],
+    'goToMainStage': [],
+    'goToFirstStage': [],
+    'nextStage': [],
+    'previousStage': []
 };

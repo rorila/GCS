@@ -9,17 +9,19 @@ export class PascalGenerator {
     /**
      * Generates a full Pascal program representation of the project
      */
-    public static generateFullProgram(project: GameProject, asHtml: boolean = true): string {
+    public static generateFullProgram(project: GameProject, asHtml: boolean = true, activeStage?: any): string {
         const lines: string[] = [];
 
         // Program Header
         const progName = (project.meta && project.meta.name) ? project.meta.name.replace(/\s+/g, '_') : 'GameBuilderProject';
-        lines.push(`${this.span('PROGRAM', '#c586c0', asHtml)} ${this.span(progName, '#dcdcaa', asHtml)};`);
+        const suffix = activeStage ? `_${activeStage.name.replace(/\s+/g, '_')}` : '';
+        lines.push(`${this.span('PROGRAM', '#c586c0', asHtml)} ${this.span(progName + suffix, '#dcdcaa', asHtml)};`);
         lines.push('');
         lines.push(`${this.span('USES', '#c586c0', asHtml)} crt; ${this.span('{ Standard libraries }', '#6a9955', asHtml)}`);
         lines.push('');
 
-        // Global Variables
+        // Global Variables (Always global, unless we want stage locals?)
+        // For now, keep project globals available
         const globalVars = (project.variables || []).filter(v => !v.scope || v.scope === 'global');
         if (globalVars.length > 0) {
             lines.push(`${this.span('VAR', '#c586c0', asHtml)} ${this.span('{ GLOBAL VARIABLES }', '#6a9955', asHtml)}`);
@@ -31,14 +33,57 @@ export class PascalGenerator {
         }
 
         // Procedures (Tasks)
-        const tasks = project.tasks || [];
+        // Filter tasks if activeStage is provided
+        let tasks = project.tasks || [];
+        if (activeStage) {
+            const stageTasks = new Set<string>();
+
+            // 1. Explicitly defined in stage flowCharts
+            if (activeStage.flowCharts) {
+                Object.keys(activeStage.flowCharts).forEach(key => stageTasks.add(key));
+            }
+
+            // 2. Used by objects in this stage
+            const stageObjects = activeStage.objects || [];
+            stageObjects.forEach((obj: any) => {
+                if (obj.Tasks) {
+                    Object.values(obj.Tasks).forEach((t: any) => stageTasks.add(t));
+                }
+            });
+
+            // 3. Keep Global Flow tasks only if Main stage or explicitly used?
+            // "Global" in flowCharts means visible everywhere, but strictly speaking,
+            // if we are in Splash, we only care about Splash stuff.
+            // Let's stick to: Show tasks RELEVANT to this stage.
+            if (activeStage.type === 'main') {
+                // Main stage sees everything usually, or just globals + main specific?
+                // For simplicity, let's say Main sees everything for now, OR filter if we had explicit main tasks.
+                // But tasks array is flat in project. 
+                // Fallback: If no filtering logic, show all.
+                // Better: Only show tasks used by objects present in this stage + globals
+            }
+
+            // Refined Logic:
+            // Include task if:
+            // - It is in activeStage.flowCharts
+            // - OR it is used by an object in activeStage.objects
+            // - OR it is a global task (only if activeStage is Main?) -> Let's show all for now on Main, 
+            // but strict for others.
+
+            if (activeStage.type !== 'main') {
+                tasks = tasks.filter(t => stageTasks.has(t.name));
+            }
+        }
+
         if (tasks.length > 0) {
             tasks.forEach(task => {
-                lines.push(this.generateProcedure(project, task.name, 0, undefined, asHtml));
+                // Pass activeStageObjects to generateProcedure for "Used by" comments?
+                // For now just generate code
+                lines.push(this.generateProcedure(project, task.name, 0, undefined, asHtml, activeStage ? activeStage.objects : undefined));
                 lines.push('');
             });
         } else {
-            lines.push(`${this.span('{ NO TASKS DEFINED }', '#6a9955', asHtml)}`);
+            lines.push(`${this.span('{ NO TASKS DEFINED FOR THIS STAGE }', '#6a9955', asHtml)}`);
             lines.push('');
         }
 
@@ -46,9 +91,11 @@ export class PascalGenerator {
         lines.push(`${this.span('BEGIN', '#c586c0', asHtml)} ${this.span('{ Main Program Entry Point }', '#6a9955', asHtml)}`);
         lines.push(`  ${this.span('clrscr', '#dcdcaa', asHtml)};`);
 
-        // Find all tasks triggered by onStart events
+        // Find all tasks triggered by onStart events (Stage Specific!)
         const startTasks: string[] = [];
-        project.objects.forEach(obj => {
+        const sourceObjects = activeStage ? activeStage.objects : project.objects;
+
+        sourceObjects.forEach((obj: any) => {
             const tasksMap = (obj as any).Tasks || {};
             if (tasksMap.onStart) {
                 startTasks.push(tasksMap.onStart);
@@ -71,7 +118,7 @@ export class PascalGenerator {
     /**
      * Generates a single Pascal procedure for a task
      */
-    public static generateProcedure(project: GameProject, taskName: string, indent: number = 0, sequenceOverride?: SequenceItem[], asHtml: boolean = true): string {
+    public static generateProcedure(project: GameProject, taskName: string, indent: number = 0, sequenceOverride?: SequenceItem[], asHtml: boolean = true, sourceObjects?: any[]): string {
         const task = project.tasks.find(t => t.name === taskName);
         const sequence = sequenceOverride || task?.actionSequence || [];
 
@@ -79,7 +126,7 @@ export class PascalGenerator {
         const space = ' '.repeat(indent);
 
         // Header with Usage Comments
-        const users = project.objects.filter(obj => {
+        const users = (sourceObjects || project.objects).filter(obj => {
             const tasksMap = (obj as any).Tasks || {};
             return Object.values(tasksMap).includes(taskName);
         }).map(obj => obj.name);

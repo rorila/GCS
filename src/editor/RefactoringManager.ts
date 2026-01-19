@@ -67,16 +67,33 @@ export class RefactoringManager {
             });
         });
 
-        // 4. Update flow chart condition nodes
-        if (project.flowCharts) {
-            Object.keys(project.flowCharts).forEach(key => {
-                const flowChart = project.flowCharts![key];
-                if (flowChart?.elements) {
-                    flowChart.elements.forEach(el => {
-                        if (el.type === 'Condition' && el.data?.condition) {
-                            if (el.data.condition.variable === oldName) {
-                                el.data.condition.variable = newName;
+        // 5. Update all stages
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                // Update stage objects
+                if (stage.objects) {
+                    stage.objects.forEach(obj => {
+                        // String interpolation in properties
+                        for (const key in obj) {
+                            if (typeof (obj as any)[key] === 'string') {
+                                (obj as any)[key] = this.replaceInterpolation((obj as any)[key], oldName, newName);
                             }
+                        }
+                    });
+                }
+
+                // Update stage flow charts
+                if (stage.flowCharts) {
+                    Object.keys(stage.flowCharts).forEach(key => {
+                        const flowChart = stage.flowCharts![key];
+                        if (flowChart?.elements) {
+                            flowChart.elements.forEach((el: any) => {
+                                if (el.type === 'Condition' && el.data?.condition) {
+                                    if (el.data.condition.variable === oldName) {
+                                        el.data.condition.variable = newName;
+                                    }
+                                }
+                            });
                         }
                     });
                 }
@@ -127,13 +144,37 @@ export class RefactoringManager {
         }
 
         // 6. Update Task nodes within all flowCharts that might refer to this task
-        if (project.flowCharts) {
-            Object.keys(project.flowCharts).forEach(key => {
-                const flowChart = project.flowCharts![key];
-                if (flowChart?.elements) {
-                    flowChart.elements.forEach(el => {
-                        if (el.type === 'Task' && el.data?.taskName === oldName) {
-                            el.data.taskName = newName;
+        const charts: { [key: string]: any } = { ... (project.flowCharts || {}) };
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.flowCharts) {
+                    Object.assign(charts, stage.flowCharts);
+                }
+            });
+        }
+
+        Object.keys(charts).forEach(key => {
+            const flowChart = charts[key];
+            if (flowChart?.elements) {
+                flowChart.elements.forEach((el: any) => {
+                    if (el.type === 'Task' && el.data?.taskName === oldName) {
+                        el.data.taskName = newName;
+                    }
+                });
+            }
+        });
+
+        // 7. Update object event bindings in all stages
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.objects) {
+                    stage.objects.forEach(obj => {
+                        if (obj.Tasks) {
+                            for (const event in obj.Tasks) {
+                                if (obj.Tasks[event] === oldName) {
+                                    obj.Tasks[event] = newName;
+                                }
+                            }
                         }
                     });
                 }
@@ -180,6 +221,17 @@ export class RefactoringManager {
             if (project.input.player1Target === oldName) project.input.player1Target = newName;
             if (project.input.player2Target === oldName) project.input.player2Target = newName;
         }
+
+        // 6. Update objects in all stages
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.objects) {
+                    stage.objects.forEach(obj => {
+                        if (obj.name === oldName) obj.name = newName;
+                    });
+                }
+            });
+        }
     }
 
     /**
@@ -205,6 +257,14 @@ export class RefactoringManager {
         // 3. Update flow chart elements (ghost nodes or nested actions)
         const charts: { [key: string]: any } = { ... (project.flowCharts || {}) };
         if ((project as any).flow) charts['__legacy_flow__'] = (project as any).flow;
+
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.flowCharts) {
+                    Object.assign(charts, stage.flowCharts);
+                }
+            });
+        }
 
         Object.keys(charts).forEach(key => {
             const flowChart = charts[key];
@@ -263,6 +323,14 @@ export class RefactoringManager {
         const charts: { [key: string]: any } = { ... (project.flowCharts || {}) };
         if ((project as any).flow) charts['__legacy_flow__'] = (project as any).flow;
 
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.flowCharts) {
+                    Object.assign(charts, stage.flowCharts);
+                }
+            });
+        }
+
         Object.keys(charts).forEach(key => {
             const flowChart = charts[key];
             if (flowChart?.elements) {
@@ -283,8 +351,15 @@ export class RefactoringManager {
         // 1. Remove from global list
         project.tasks = project.tasks.filter(t => t.name !== taskName);
 
-        // 2. Remove from object mappings
-        project.objects.forEach(obj => {
+        // 2. Remove from object mappings in all stages
+        const allObjects = [...project.objects];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.objects) allObjects.push(...s.objects);
+            });
+        }
+
+        allObjects.forEach(obj => {
             const mappings = (obj as any).Tasks;
             if (mappings) {
                 Object.keys(mappings).forEach(evt => {
@@ -300,8 +375,13 @@ export class RefactoringManager {
             }
         });
 
-        // 4. Remove flow chart
+        // 4. Remove flow chart (from project and all stages)
         if (project.flowCharts) delete project.flowCharts[taskName];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.flowCharts) delete s.flowCharts[taskName];
+            });
+        }
     }
 
     private static filterSequenceItems(sequence: SequenceItem[], name: string, type: 'action' | 'task'): SequenceItem[] {
@@ -372,27 +452,40 @@ export class RefactoringManager {
         const report: string[] = [];
         if (!project) return report;
 
-        // 1. Clean up orphaned flow charts
-        if (project.flowCharts) {
-            const taskNames = new Set(project.tasks.map(t => t.name));
-            Object.keys(project.flowCharts).forEach(key => {
+        // 1. Clean up orphaned flow charts (Project + Stages)
+        const taskNames = new Set(project.tasks.map(t => t.name));
+        const cleanFlowCharts = (charts: Record<string, any> | undefined, label: string) => {
+            if (!charts) return;
+            Object.keys(charts).forEach(key => {
                 // Keep the global flow chart and other essentials
                 if (key === 'global' || key === 'event-map' || key === 'element-overview' || key === '__legacy_flow__') return;
 
                 if (!taskNames.has(key)) {
-                    delete project.flowCharts![key];
-                    report.push(`Entfernter verwaister Flow-Chart: ${key}`);
+                    delete charts[key];
+                    report.push(`Entfernter verwaister Flow-Chart in ${label}: ${key}`);
                 }
             });
+        };
+
+        cleanFlowCharts(project.flowCharts, 'Projekt');
+        if (project.stages) {
+            project.stages.forEach(s => cleanFlowCharts(s.flowCharts, `Stage ${s.name}`));
         }
 
         // 2. Clean action sequences
         this.cleanActionSequences(project);
         report.push('Action-Sequenzen bereinigt');
 
-        // 3. Remove task mappings for non-existent tasks
+        // 3. Remove task mappings for non-existent tasks (all stages)
         const taskNames2 = new Set(project.tasks.map(t => t.name));
-        project.objects.forEach(obj => {
+        const allObjectsScope = [...project.objects];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.objects) allObjectsScope.push(...s.objects);
+            });
+        }
+
+        allObjectsScope.forEach(obj => {
             if ((obj as any).Tasks) {
                 const tasks = (obj as any).Tasks;
                 Object.keys(tasks).forEach(key => {
@@ -446,40 +539,48 @@ export class RefactoringManager {
         const globalActionNames = new Set((project.actions || []).map(a => a.name));
         let migrationCount = 0;
 
-        Object.keys(project.flowCharts).forEach(contextKey => {
-            const flowChart = project.flowCharts![contextKey];
-            if (!flowChart || !flowChart.elements) return;
+        const migrateCharts = (charts: Record<string, any> | undefined) => {
+            if (!charts) return;
+            Object.keys(charts).forEach(contextKey => {
+                const flowChart = charts[contextKey];
+                if (!flowChart || !flowChart.elements) return;
 
-            flowChart.elements.forEach((el: any) => {
-                if (el.type === 'Action') {
-                    const actionName = el.properties?.name || el.data?.name;
+                flowChart.elements.forEach((el: any) => {
+                    if (el.type === 'Action') {
+                        const actionName = el.properties?.name || el.data?.name;
 
-                    // Clean transient fields from element data
-                    if (el.data) {
-                        transientFields.forEach(field => {
-                            if (el.data[field] !== undefined) {
-                                delete el.data[field];
-                                cleanupCount++;
+                        // Clean transient fields from element data
+                        if (el.data) {
+                            transientFields.forEach(field => {
+                                if (el.data[field] !== undefined) {
+                                    delete el.data[field];
+                                    cleanupCount++;
+                                }
+                            });
+                        }
+
+                        if (actionName && globalActionNames.has(actionName)) {
+                            // Check if it's already a clean link
+                            const isMinimalLink = el.data?.isLinked && Object.keys(el.data).length <= 2; // name + isLinked
+
+                            if (!isMinimalLink) {
+                                // MIGRATE: Replace full data with minimal link
+                                el.data = {
+                                    name: actionName,
+                                    isLinked: true
+                                };
+                                migrationCount++;
                             }
-                        });
-                    }
-
-                    if (actionName && globalActionNames.has(actionName)) {
-                        // Check if it's already a clean link
-                        const isMinimalLink = el.data?.isLinked && Object.keys(el.data).length <= 2; // name + isLinked
-
-                        if (!isMinimalLink) {
-                            // MIGRATE: Replace full data with minimal link
-                            el.data = {
-                                name: actionName,
-                                isLinked: true
-                            };
-                            migrationCount++;
                         }
                     }
-                }
+                });
             });
-        });
+        };
+
+        migrateCharts(project.flowCharts);
+        if (project.stages) {
+            project.stages.forEach(s => migrateCharts(s.flowCharts));
+        }
 
         if (migrationCount > 0) {
             report.push(`${migrationCount} FlowChart-Aktionen auf Single-Source-of-Truth (Links) migriert.`);

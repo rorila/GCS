@@ -113,8 +113,80 @@ export class ProjectRegistry {
     //  Objects (Stage)
     // =========================================================================================
 
+    private activeStageId: string | null = null;
+
+    /**
+     * Set the active stage ID to filter getObjects() results.
+     * If null, returns objects from all stages.
+     */
+    public setActiveStageId(id: string | null): void {
+        this.activeStageId = id;
+    }
+
+    public getActiveStageId(): string | null {
+        return this.activeStageId;
+    }
+
+    /**
+     * Returns objects for the current context:
+     * - If activeStageId is set, returns objects from that stage PLUS global services from all stages
+     * - Otherwise, returns all objects from all stages (plus legacy project.objects)
+     */
     public getObjects(): TWindow[] {
-        return this.project?.objects || [];
+        if (!this.project) return [];
+
+        // Global service components (visible across all stages)
+        const globalServiceClasses = [
+            'TStageController',
+            'TGameLoop',
+            'TGameState',
+            'TGameServer',
+            'TInputController',
+            'THandshake',
+            'THeartbeat',
+            'TToast',
+            'TStatusBar'
+        ];
+
+        // If using multi-stage architecture
+        if (this.project.stages && this.project.stages.length > 0) {
+            // Context-aware collection
+            const allObjects: TWindow[] = [];
+            const objectIds = new Set<string>();
+
+            // 1. Add objects from active stage (if set)
+            if (this.activeStageId) {
+                const activeStage = this.project.stages.find((s: any) => s.id === this.activeStageId);
+                if (activeStage && activeStage.objects) {
+                    activeStage.objects.forEach((obj: any) => {
+                        allObjects.push(obj);
+                        objectIds.add(obj.id);
+                    });
+                }
+            }
+
+            // 2. Add global services from ALL stages (even if not on active stage)
+            this.project.stages.forEach((stage: any) => {
+                if (stage.objects && Array.isArray(stage.objects)) {
+                    stage.objects.forEach((obj: any) => {
+                        if (globalServiceClasses.includes(obj.className) && !objectIds.has(obj.id)) {
+                            allObjects.push(obj);
+                            objectIds.add(obj.id);
+                        }
+                    });
+                }
+            });
+
+            // If no stage was active, we return everything (old behavior + global filter not needed since ID set handles it)
+            if (!this.activeStageId) {
+                return allObjects;
+            }
+
+            return allObjects;
+        }
+
+        // Legacy fallback: use project.objects directly
+        return this.project.objects || [];
     }
 
     public getFlowObjects(): any[] {
@@ -128,8 +200,9 @@ export class ProjectRegistry {
         }
 
         // Rule: Unique across Stage Objects AND Flow Objects
-        // (Assuming they share a namespace or at least shouldn't collide for clarity)
-        if (this.project?.objects.some(o => o.name === name)) {
+        // Use getObjects() to get the correct object list
+        const objects = this.getObjects();
+        if (objects.some(o => o.name === name)) {
             return { valid: false, error: 'Objekt-Name existiert bereits auf der Stage.' };
         }
         if (this.project?.flow?.elements.some(e => e.name === name)) {

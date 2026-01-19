@@ -1,6 +1,85 @@
 # Changelog
 
-## [Unreleased] - 2026-01-16
+## [Current] - 2026-01-18
+
+- **Multi-Stage Refactoring**: `RefactoringManager.ts` unterstützt nun die projektweite Umbenennung von Tasks, Objekten und Variablen über alle Stages hinweg.
+    - **Renaming Fix**: Das Umbenennen von Flow-Elementen ("Name" Property) im Inspector triggert nun korrekt das Refactoring.
+- **Library Export Fix**: Task-FlowCharts werden nun auch korrekt exportiert, wenn sie in einer Stage (z.B. Splash) gespeichert sind.
+- **UI Synchronisierung**: Stage-Umbenennungen im Inspector aktualisieren nun sofort das Hauptmenü.
+- **FlowEditor Interaktion**: 
+    - **Doppelklick-Vereinfachung**: Doppelklick öffnet nun *immer* den Editor. Die Expansions-Funktion (Shift+Click) wurde entfernt, um Konflikte zu vermeiden. Expansion ist weiterhin über das Kontextmenü möglich.
+- **Stage JSON View**: 
+    - **Verbesserte Injektion**: Zeigt nun stage-relevante Tasks UND deren referenzierte Actions an, um eine vollständige Ansicht zu gewährleisten.
+- **Flow Storage Fix**: Tasks werden nicht mehr versehentlich in Stages "entführt", wenn sie bereits global existieren. Der Editor prüft nun zuerst auf globale Existenz vor der Speicherung.
+- **Automatischer Library-Export**:
+  - Tasks können nun direkt aus dem Editor in die `public/library.json` gespeichert werden (per Button im Export-Dialog).
+  - Neuer Server-Endpunkt `POST /api/library/tasks` für automatisiertes Speichern ohne manuelles Copy-Paste.
+- **Dialog-System Fixes**:
+  - `TMemo` (Textarea) Komponente als neue Basis-Komponente implementiert.
+  - Support im `DialogManager` und `Serialization` hinzugefügt (behebt den leeren Export-Dialog).
+  - Datenbindung und -erfassung für Textareas korrigiert.
+- **Globale Objekte (Services)**: Zentrale Komponenten (StageController, GameLoop, GameState etc.) sind nun auf JEDER Stage erreichbar, unabhängig davon, wo sie platziert wurden. Behebt Navigationsprobleme auf Neben-Stages (z.B. Impressum).
+- **Runtime & Parameter Robustheit**:
+  - Fix: `autoConvert` wird nun konsistent auf alle interpolierten Parameter angewendet.
+  - Cleanup: Überflüssige Debug-Logs aus der Konsole entfernt.
+
+## [Unreleased] - 2026-01-17
+
+- **GameLoop Singleton Refactoring**:
+  - `GameLoopManager` als Singleton implementiert, um Proxy-relevante Bindungsprobleme mit Arrow-Functions zu beheben.
+  - Der GameLoop ist kein Stage-Objekt mehr und arbeitet zuverlässig über alle Stages hinweg.
+  - Ballbewegung und Paddel-Steuerung in `project_NewTennis50.json` wiederhergestellt.
+- **Stage Separation & Cleanup**:
+  - `GameRuntime` führt nun beim Stage-Wechsel einen vollständigen Cleanup durch (`ReactiveRuntime.clear()`, `AnimationManager.clear()`).
+  - Verhindert das "Überlaufen" von Elementen oder Animationen einer vorherigen Stage (z.B. Splash) in die neue Stage (Main).
+  - **Migration `project_NewTennis50.json`**: Redundante Root-Level Objekte wurden entfernt, um die Datenintegrität des Multi-Stage-Systems sicherzustellen.
+- **GameLoop Persistence & Physics Fixes**:
+  - `GameRuntime.stop()` beendet nun explizit den `GameLoopManager`-Singleton, um unendliche Hintergrundläufe beim Tab-Wechsel zu verhindern.
+  - `GameLoopManager.triggerBoundaryEvent` optimiert: Einführung eines `EPSILON`-Offsets beim Clamping und einer Geschwindigkeitsprüfung (Velocity Protection), um "Sticky Boundaries" und doppelte Trigger-Events zu vermeiden.
+- **Fixed**:
+  - `Editor.ts`: Manueller GameLoop-Handling-Code entfernt (wird nun zentral durch `GameRuntime` via `GameLoopManager` gesteuert).
+  - TypeScript-Error in `Editor.ts` (Property `grid` on `GameProject`) behoben durch korrekten Zugriff via `activeStage`.
+
+- **Multi-Stage System**:
+  - Kontextsensitiver Inspector: Erkennt die aktive Stage und bindet Feld-Eigenschaften (Name, Typ, Beschreibung) dynamisch.
+  - **Sichtbarkeits-Fix**: Korrekte Evaluierung von `visible`-Ausdrücken im Inspector inklusive Support für gruppierte Felder (`renderInlineRow`).
+  - **Cache-Busting**: Konfigurationsdateien werden nun mit Zeitstempel geladen, um Browser-Caching zu verhindern.
+  - **GameRuntime Build-Fix**: Ergänzung fehlender Methoden (`getObjects`, `triggerRemoteEvent`, etc.) für konsistenten Build.
+  - **Stage-spezifische Grid-Einstellungen:** Jede Stage verwaltet nun ihr eigenes Raster (Farbe, Größe, Sichtbarkeit), ohne andere Stages zu beeinflussen.
+  - **Animations-Support pro Stage:** Start-Animationen und deren Dauer/Easing können nun für jede Stage individuell gesetzt werden.
+  - **Playback-Support:** GameRuntime lädt nun automatisch die Objekte und Konfiguration der als `activeStageId` markierten Stage.
+  - **Splash-Transition Fix:** Der Editor aktualisiert nun zuverlässig die Objekt-Referenzen und das Hintergrundraster beim Wechsel von Splash- zu Main-Stage.
+  - **Log-Cleanup:** Entfernung redundanter Console-Logs ("PeriodicSync", "Timer Interval") für eine saubere Developer-Console.
+- **TStageController**: Neue Systemkomponente zur Steuerung von Stage-Wechseln via Actions/Flow.
+- **Stage-spezifische Flow-Diagramme**:
+  - Jede Stage kann nun eigene Landkarten, Elementeübersichten und Tasks besitzen.
+  - **Diagramm-Isolation**: Flow-Diagramme werden nun strikt pro Stage isoliert. Globale Tasks wurden in spezifischen Stages ausgeblendet.
+- **UI View Management**: Automatischer Wechsel zur Stage-Ansicht beim Laden eines Projekts oder Wechseln der Stage.
+- **Daten-Isolation**: JSON- und Pascal-Ansichten bieten nun Dropdowns, um zwischen aktiver Stage und Gesamtprojekt umzuschalten.
+  - Der Flow-Selector im Editor gruppiert Einträge nun nach Stage und Global.
+  - Automatischer Sync stellt sicher, dass alle stage-spezifischen Tasks konsistent bleiben.
+  - Abwärtskompatibilität: Bestehende Diagramme werden als "Global" behandelt.
+
+### TStageController Komponente 🎬
+- **Neue Komponente:** `TStageController` - platzierbare Komponente für zentrale Stage-Verwaltung.
+- **Stage-Typen:** `main` (HauptStage mit Meta), `splash` (Intro), `standard` (alle weiteren).
+- **HauptStage:** Nur eine pro Projekt mit `gameName`, `author`, `description`.
+- **Methoden:** `nextStage()`, `previousStage()`, `goToStage(stageId)`, `goToMainStage()`
+- **Events:** `onStageChange`, `onAllStagesCompleted`, `onSplashFinished`
+
+### Export & Standalone Support 📦
+- **Standalone Player:** Unterstützt nun komplett das Multi-Stage System (Splash -> Main) und nutzt die korrekten Grid-Einstellungen pro Stage.
+- **GameExporter:** Exportiert Stages als Teil der Projektstruktur. Global FlowCharts werden bereinigt (da Tasks synchronisiert sind), Stage-Flows bleiben erhalten.
+- **Multiplayer:** Funktioniert transparent mit Stage-Wechseln (via Task-Broadcast). `navigate_stage` wird auf allen Clients ausgeführt.
+- **Fix:** `TStageController` ist im Standalone-Player nun unsichtbar (war zuvor fälschlicherweise sichtbar).
+- **Fix:** Hintergrund-Update im Standalone-Player korrigiert (nutzt nun dynamisch die `activeStage`-Eigenschaften statt der Projekt-Defaults).
+- **Fix:** `Stage` Interaktionen im Editor (Run-Mode) funktionieren wieder. Event-Handler (`onClick` etc.) werden nun korrekt an die `GameRuntime` weitergeleitet.
+- **Improved:** `GameRuntime` Event-System modernisiert. `handleEvent` verarbeitet nun generisch alle Property-basierten Events und unterstützt optionales Daten-Payload (für Multiplayer Sync).
+- **Refactoring:** `TStageController` ist jetzt die zentrale Stage-Verwaltung. `GameRuntime` nutzt den `TStageController.setOnStageChangeCallback()` für Stage-Wechsel statt manueller Logik. Dies vereinfacht den Code und macht Stage-Wechsel zuverlässiger.
+
+## [Previous] - 2026-01-16
+
+### Zwei-Stage Architektur (Splash -> Game) 🎭
 
 ### Refactoring: FlowCharts als Single Source of Truth 🚀
 - **Architektur:** FlowChart-Elemente (Actions) speichern jetzt nur noch Links (`isLinked: true`) auf globale Action-Definitionen. Die vollständigen Logik-Daten liegen ausschließlich in `project.actions`.
@@ -10,9 +89,11 @@
 - **Automatische Migration:** Bestehende Projekte werden beim Öffnen im Flow-Editor automatisch in das neue Link-Format migriert (Single Source of Truth).
 - **Copy-Logik:** "Embed Action (Copy)" im Kontextmenü erstellt nun eine echte 1:1 Kopie als neue globale Action mit eindeutigem Namen (z.B. `Original_Copy1`).
 - **Action-Editor:** Änderungen im Action-Editor aktualisieren direkt die globale Definition und halten den FlowChart-Node synchron.
-- **Daten-Schutz:** `updateGlobalActionDefinition` schützt nun valide Action-Definitionen davor, durch minimale Link-Daten überschrieben zu werden.
-- **Inspector:** Verlinkte Actions werden im Inspector automatisch als schreibgeschützt (🔒) markiert, um die Konsistenz der Library zu wahren.
-- **Export-Optimierung:** Entfernung von Editor-only Feldern (`description`, `details`) und leeren `Tasks`-Containern zur Minimierung der Dateigröße. 🚀 ✨
+- **Z-Index Schutz:** `updateGlobalActionDefinition` schützt nun valide Action-Definitionen davor, durch minimale Link-Daten überschrieben zu werden.
+- **TVideo Komponente:** Neue Komponente für HTML5 Video-Wiedergabe mit Support für `autoplay`, `loop`, `muted` und `playbackRate`. 🎬
+- **TSplashScreen Komponente:** Spezialisierte Intro-Komponente mit konfigurierbarer `duration` und `onFinish` Event. 🚀
+- **Media Kategorie:** Neue Kategorie in der Editor-Toolbox für Bilder und Videos.
+- **Gzip Export & Upload:** Unterstützung für komprimierte Projektdaten (.json und .html). 📦
 
 ### Fixed
 - **LocalStorage Persistenz:** Änderungen im JSON-Editor werden nun korrekt ins LocalStorage übernommen. Vorher wurden FlowChart-Elementdaten nicht mit `project.actions` synchronisiert.

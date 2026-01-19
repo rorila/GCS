@@ -1045,7 +1045,7 @@ export class Stage {
                 el.style.backgroundColor = obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b';
                 el.style.borderRadius = obj.shape === 'circle' ? '50%' : '0';
                 if (!this.runMode) el.innerText = obj.name;
-            } else if (className === 'TGameLoop' || className === 'TInputController' || className === 'TTimer' || className === 'TRepeater' || className === 'TGameServer' || className === 'TGameState' || className === 'THandshake' || className === 'THeartbeat') {
+            } else if (className === 'TGameLoop' || className === 'TInputController' || className === 'TTimer' || className === 'TRepeater' || className === 'TGameServer' || className === 'TGameState' || className === 'THandshake' || className === 'THeartbeat' || className === 'TStageController') {
                 if (this.runMode) el.style.display = 'none';
                 else {
                     el.style.backgroundColor = className === 'TGameLoop' ? '#2196f3' :
@@ -1054,7 +1054,8 @@ export class Stage {
                                 (className === 'TGameState' ? '#607d8b' :
                                     (className === 'TGameServer' ? '#4caf50' :
                                         (className === 'THandshake' ? '#5c6bc0' :
-                                            (className === 'THeartbeat' ? '#e91e63' : '#4caf50'))))));
+                                            (className === 'THeartbeat' ? '#e91e63' :
+                                                (className === 'TStageController' ? '#9c27b0' : '#4caf50')))))));
                     el.innerText = obj.name;
                 }
             } else if (className === 'TInspectorTemplate') {

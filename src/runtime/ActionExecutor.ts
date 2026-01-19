@@ -17,6 +17,10 @@ export class ActionExecutor {
         // Listener moved to player-standalone for better lifecycle management
     }
 
+    public setObjects(objects: any[]) {
+        this.objects = objects;
+    }
+
     /**
      * Executes a single action
      * @param action The action definition (from project JSON)
@@ -97,6 +101,9 @@ export class ActionExecutor {
                 break;
             case 'move_to':
                 this.handleMoveToAction(action, vars, contextObj);
+                break;
+            case 'navigate_stage':
+                this.handleNavigateStageAction(action, vars);
                 break;
             default:
                 console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
@@ -229,6 +236,30 @@ export class ActionExecutor {
         }
     }
 
+    /**
+     * Handle navigate_stage action - switches to another stage at runtime.
+     * Action format:
+     * {
+     *   type: 'navigate_stage',
+     *   params: { stageId: 'level-2' }  // or stageId: 'next' for next stage
+     * }
+     */
+    private handleNavigateStageAction(action: any, vars: Record<string, any>) {
+        const stageId = action.params?.stageId || action.stageId;
+        if (!stageId) {
+            console.warn('[ActionExecutor] navigate_stage: Missing stageId');
+            return;
+        }
+
+        const resolvedStageId = PropertyHelper.interpolate(String(stageId), vars, this.objects);
+        console.log(`[ActionExecutor] Navigating to stage: ${resolvedStageId}`);
+
+        // Nutze onNavigate mit speziellem 'stage:' Prefix
+        if (this.onNavigate) {
+            this.onNavigate(`stage:${resolvedStageId}`, action.params);
+        }
+    }
+
     private handleLogAction(action: any, vars: Record<string, any>) {
         const message = PropertyHelper.interpolate(action.message || '', vars, this.objects);
         // const data = action.data ? PropertyHelper.interpolate(JSON.stringify(action.data), vars) : '';
@@ -305,7 +336,6 @@ export class ActionExecutor {
         const params = action.params;
 
         if (objectId && this.multiplayerManager) {
-            console.log(`[ActionExecutor] Sending remote event: ${objectId}.${eventName}`);
             this.multiplayerManager.triggerRemoteEvent(objectId, eventName, params);
         } else if (!this.multiplayerManager) {
             // Quietly skip in singleplayer
@@ -508,22 +538,22 @@ export class ActionExecutor {
             return;
         }
 
-        // Interpolate parameters
+        // Interpolate parameters and convert types
         let params: any[] = [];
         if (action.params) {
             if (Array.isArray(action.params)) {
                 params = action.params.map((p: any) => {
                     if (typeof p === 'string') {
-                        return PropertyHelper.interpolate(p, vars, this.objects);
+                        return PropertyHelper.autoConvert(PropertyHelper.interpolate(p, vars, this.objects));
                     }
                     return p;
                 });
             } else if (typeof action.params === 'string') {
-                params = [PropertyHelper.interpolate(action.params, vars, this.objects)];
+                const interpolated = PropertyHelper.interpolate(action.params, vars, this.objects);
+                params = [PropertyHelper.autoConvert(interpolated)];
             }
         }
 
-        console.log(`[ActionExecutor] Calling ${target.name || action.target}.${methodName}(${params.join(', ')})`);
         if (typeof target[methodName] === 'function') {
             target[methodName](...params);
         } else {

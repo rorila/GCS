@@ -1,5 +1,5 @@
 import { Stage } from './Stage';
-import { GameProject } from '../model/types';
+import { GameProject, StageType, StageDefinition } from '../model/types';
 import { TButton } from '../components/TButton';
 import { TPanel } from '../components/TPanel';
 import { TLabel } from '../components/TLabel';
@@ -29,6 +29,9 @@ import { TGameState } from '../components/TGameState';
 import { THandshake } from '../components/THandshake';
 import { THeartbeat } from '../components/THeartbeat';
 import { TImage } from '../components/TImage';
+import { TVideo } from '../components/TVideo';
+import { TSplashScreen } from '../components/TSplashScreen';
+import { TStageController } from '../components/TStageController';
 import { TWindow } from '../components/TWindow';
 import { AnimationManager } from '../runtime/AnimationManager';
 import { TDebugLog } from '../components/TDebugLog';
@@ -65,6 +68,7 @@ export class Editor {
     private flowToolbox: FlowToolbox | null = null;
     private menuBar: MenuBar | null = null;
     private componentPalette: JSONComponentPalette | null = null;
+    private useStageIsolatedView = true; // Default to isolated view
     private dialogManager: DialogManager;
     private project: GameProject;
     private runtimeObjects: TWindow[] | null = null;
@@ -76,6 +80,7 @@ export class Editor {
     private useHorizontalToolbox: boolean = false;
     private pascalEditorMode: boolean = false;
     private currentView: string = 'stage';
+    private currentContext: 'game' | 'splash' = 'game';
     private debugLog: TDebugLog | null = null;
 
     // JSON View State
@@ -122,6 +127,9 @@ export class Editor {
                 player2Speed: 0.2
             },
             objects: [],
+            splashObjects: [],
+            splashDuration: 3000,
+            splashAutoHide: true,
             actions: [],
             tasks: [],
             variables: []
@@ -129,6 +137,9 @@ export class Editor {
 
         // Initialize ProjectRegistry
         projectRegistry.setProject(this.project);
+
+        // Initialisiere Stages (Migration für Default-Projekt)
+        this.migrateToStages();
 
         // Initialize Stage
         this.stage = new Stage('stage', this.project.stage.grid);
@@ -193,6 +204,8 @@ export class Editor {
         if (toolboxToggleBtn) {
             toolboxToggleBtn.onclick = () => this.toggleToolboxLayout();
         }
+
+        // Context switcher buttons removed in favor of Stages menu
     }
 
     // Multiplayer state
@@ -201,6 +214,41 @@ export class Editor {
 
     get isMultiplayer(): boolean { return this._isMultiplayer; }
     get localPlayerNumber(): 1 | 2 { return this._localPlayerNumber; }
+
+    private get currentObjects(): TWindow[] {
+        // Nutze das neue stages-Array wenn vorhanden
+        if (this.project.stages && this.project.stages.length > 0) {
+            const activeStage = this.getActiveStage();
+            if (activeStage) {
+                return activeStage.objects;
+            }
+        }
+
+        // Legacy-Fallback für alte Projekte
+        if (this.currentContext === 'splash') {
+            if (!this.project.splashObjects) this.project.splashObjects = [];
+            return this.project.splashObjects;
+        }
+        return this.project.objects;
+    }
+
+    private set currentObjects(objs: TWindow[]) {
+        // Nutze das neue stages-Array wenn vorhanden
+        if (this.project.stages && this.project.stages.length > 0) {
+            const activeStage = this.getActiveStage();
+            if (activeStage) {
+                activeStage.objects = objs;
+                return;
+            }
+        }
+
+        // Legacy-Fallback
+        if (this.currentContext === 'splash') {
+            this.project.splashObjects = objs;
+        } else {
+            this.project.objects = objs;
+        }
+    }
 
     /**
      * Start multiplayer mode - show lobby
@@ -317,14 +365,14 @@ export class Editor {
      */
     private bindSystemInfoEvents() {
         const updateSystemInfoObjects = () => {
-            this.project.objects.forEach(obj => {
+            this.currentObjects.forEach(obj => {
                 if (obj.constructor.name === 'TSystemInfo') {
                     (obj as any).refresh();
                 }
             });
             // Re-render inspector if a TSystemInfo is currently selected
             if (this.jsonInspector && this.currentSelectedId) {
-                const selectedObj = this.project.objects.find(o => o.id === this.currentSelectedId);
+                const selectedObj = this.currentObjects.find(o => o.id === this.currentSelectedId);
                 if (selectedObj) {
                     this.stage.selectedObject = selectedObj;
                     this.jsonInspector.update(selectedObj);
@@ -461,16 +509,68 @@ export class Editor {
                     label.appendChild(document.createTextNode('Editor-Modus'));
                     toolbar.appendChild(label);
 
+                    // Scope Selector (Stage vs Project)
+                    const sourceSelect = document.createElement('select');
+                    sourceSelect.id = 'pascal-scope-select';
+                    sourceSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-left: auto;`;
+
+                    const updateScopeOptions = () => {
+                        sourceSelect.innerHTML = '';
+                        const aStage = this.getActiveStage();
+                        const sName = aStage ? aStage.name : 'Unknown';
+                        const opts = [
+                            { id: 'stage', label: `Stage: ${sName}` },
+                            { id: 'project', label: 'Gesamtes Projekt' }
+                        ];
+                        opts.forEach(s => {
+                            const opt = document.createElement('option');
+                            opt.value = s.id;
+                            opt.textContent = s.label;
+                            opt.selected = (s.id === 'stage' && this.useStageIsolatedView) || (s.id === 'project' && !this.useStageIsolatedView);
+                            sourceSelect.appendChild(opt);
+                        });
+                        // Hide if no active stage or main?
+                        if (!aStage || aStage.type === 'main') {
+                            // allow switch even in main?
+                        }
+                    };
+                    updateScopeOptions();
+
+                    sourceSelect.onchange = () => {
+                        console.log('[Editor] Pascal Scope Toggle Changed:', sourceSelect.value);
+                        this.useStageIsolatedView = sourceSelect.value === 'stage';
+                        this.switchView('code');
+                    };
+
+                    toolbar.appendChild(sourceSelect);
+
                     codePanel.appendChild(toolbar);
                 } else {
                     const checkbox = toolbar.querySelector('input');
                     if (checkbox) checkbox.checked = this.pascalEditorMode;
+
+                    // Update dropdown options in case stage changed
+                    const sourceSelect = toolbar.querySelector('#pascal-scope-select') as HTMLSelectElement;
+                    if (sourceSelect) {
+                        const aStage = this.getActiveStage();
+                        const sName = aStage ? aStage.name : 'Unknown';
+                        // Simple update of stage label, assuming order [Stage, Project]
+                        if (sourceSelect.options.length > 0) {
+                            sourceSelect.options[0].text = `Stage: ${sName}`;
+                            sourceSelect.value = this.useStageIsolatedView ? 'stage' : 'project';
+                        }
+                    }
                 }
 
                 // 2. Render Code Content
                 try {
                     if (this.pascalEditorMode) {
-                        const plainCode = PascalGenerator.generateFullProgram(this.project, false);
+                        const activeStage = this.getActiveStage();
+                        console.log('[Editor] Generating Pascal. Isolated:', this.useStageIsolatedView, 'ActiveStage:', activeStage ? activeStage.name : 'None');
+                        const stageToUse = (this.useStageIsolatedView && activeStage && activeStage.type !== 'main') ? activeStage : undefined;
+                        console.log('[Editor] stageToUse:', stageToUse ? stageToUse.name : 'undefined (Full Project)');
+
+                        const plainCode = PascalGenerator.generateFullProgram(this.project, false, stageToUse);
 
                         // Clear previous content but keep toolbar
                         const oldContainer = document.getElementById('pascal-editor-container');
@@ -574,8 +674,13 @@ export class Editor {
                             codePanel.appendChild(content);
                         }
 
+
                         // Generate plain code, then use PascalHighlighter (same as Editor)
-                        const plainCode = PascalGenerator.generateFullProgram(this.project, false);
+                        const activeStage = this.getActiveStage();
+                        console.log('[Editor] Generating Read-Only Pascal. Isolated:', this.useStageIsolatedView, 'ActiveStage:', activeStage ? activeStage.name : 'None');
+                        const stageToUse = (this.useStageIsolatedView && activeStage && activeStage.type !== 'main') ? activeStage : undefined;
+
+                        const plainCode = PascalGenerator.generateFullProgram(this.project, false, stageToUse);
                         const highlightedCode = PascalHighlighter.highlight(plainCode);
                         content.innerHTML = `<pre style="margin: 0; white-space: pre; color: #d4d4d4;" translate="no">${highlightedCode}</pre>`;
                     }
@@ -585,6 +690,256 @@ export class Editor {
                 }
             }
         }
+    }
+
+
+
+    // ─────────────────────────────────────────────
+    // Multi-Stage Verwaltung
+    // ─────────────────────────────────────────────
+
+    /**
+     * Prüft ob bereits ein Splashscreen existiert
+     */
+    private hasSplashStage(): boolean {
+        if (!this.project.stages) return false;
+        return this.project.stages.some(s => s.type === 'splash');
+    }
+
+    /**
+     * Migriert Legacy-Projekte (objects/splashObjects) zum neuen stages-Array
+     */
+    private migrateToStages(): void {
+        if (this.project.stages && this.project.stages.length > 0) {
+            return; // Bereits migriert
+        }
+
+        console.log('[Editor] Migriere Legacy-Projekt zu stages-Array...');
+        this.project.stages = [];
+
+        // Falls SplashObjects existieren → SplashStage erstellen
+        if (this.project.splashObjects && this.project.splashObjects.length > 0) {
+            this.project.stages.push({
+                id: 'splash',
+                name: 'Splash',
+                type: 'splash',
+                objects: this.project.splashObjects,
+                duration: this.project.splashDuration || 3000,
+                autoHide: this.project.splashAutoHide ?? true,
+                grid: JSON.parse(JSON.stringify(this.project.stage.grid)) // Grid kopieren
+            });
+        }
+
+        // HauptStage erstellen
+        this.project.stages.push({
+            id: 'main',
+            name: 'Hauptspiel',
+            type: 'main',
+            objects: this.project.objects || [],
+            gameName: this.project.meta?.name || '',
+            author: this.project.meta?.author || '',
+            description: this.project.meta?.description || '',
+            grid: JSON.parse(JSON.stringify(this.project.stage.grid)) // Grid kopieren
+        });
+
+        // Aktive Stage setzen (Splash wenn vorhanden, sonst Main)
+        this.project.activeStageId = this.project.stages[0].id;
+        projectRegistry.setActiveStageId(this.project.stages[0].id);
+
+        console.log(`[Editor] Migration abgeschlossen. ${this.project.stages.length} Stages erstellt.`);
+    }
+
+    /**
+     * Gibt die aktuelle Stage zurück
+     */
+    private getActiveStage(): StageDefinition | null {
+        if (!this.project.stages || this.project.stages.length === 0) {
+            return null;
+        }
+        const activeId = this.project.activeStageId || this.project.stages[0].id;
+        return this.project.stages.find(s => s.id === activeId) || this.project.stages[0];
+    }
+
+    /**
+     * Erstellt eine neue Stage
+     */
+    private createStage(type: StageType): void {
+        // Stelle sicher dass stages-Array existiert
+        if (!this.project.stages) {
+            this.migrateToStages();
+        }
+
+        // Nur ein Splash erlaubt
+        if (type === 'splash' && this.hasSplashStage()) {
+            alert('Es existiert bereits ein Splashscreen. Pro Projekt ist nur ein Splashscreen erlaubt.');
+            return;
+        }
+
+        // Generiere eindeutige ID
+        const stageCount = this.project.stages!.filter(s => s.type === type).length;
+        const id = type === 'splash' ? 'splash' : `stage-${Date.now()}`;
+        const name = type === 'splash' ? 'Splash' : `Stage ${stageCount + 1}`;
+
+        const newStage: StageDefinition = {
+            id,
+            name,
+            type,
+            objects: [],
+            grid: JSON.parse(JSON.stringify(this.project.stage.grid)) // Aktuelles Grid kopieren
+        };
+
+        // Splash-spezifische Properties
+        if (type === 'splash') {
+            newStage.duration = 3000;
+            newStage.autoHide = true;
+        }
+
+        // Splash immer an erster Stelle, sonst am Ende
+        if (type === 'splash') {
+            this.project.stages!.unshift(newStage);
+        } else {
+            this.project.stages!.push(newStage);
+        }
+
+        // Zur neuen Stage wechseln
+        this.switchStage(id);
+
+        // Menü aktualisieren
+        this.updateStagesMenu();
+
+        console.log(`[Editor] Neue ${type}-Stage erstellt: ${name}`);
+        this.autoSaveToLocalStorage();
+    }
+
+    /**
+     * Wechselt zur angegebenen Stage
+     */
+    private switchStage(stageId: string): void {
+        if (!this.project.stages) {
+            this.migrateToStages();
+        }
+
+        const stage = this.project.stages!.find(s => s.id === stageId);
+        if (!stage) {
+            console.warn(`[Editor] Stage nicht gefunden: ${stageId}`);
+            return;
+        }
+
+        // Aktive Stage setzen
+        this.project.activeStageId = stageId;
+        projectRegistry.setActiveStageId(stageId);
+
+        // Update flow editor dropdown to reflect new stage context
+        if (this.flowEditor) {
+            this.flowEditor.updateFlowSelector();
+        }
+
+        // Stage-spezifisches Grid anwenden
+        if (stage.grid) {
+            this.stage.grid = stage.grid;
+        }
+
+        // currentContext für Legacy-Kompatibilität aktualisieren
+        this.currentContext = stage.type === 'splash' ? 'splash' : 'game';
+
+        // Deselect current
+        this.selectObject(null);
+        this.render();
+
+        // Menü aktualisieren
+        this.updateStagesMenu();
+
+        // Zur visuellen Stage-Bearbeitung wechseln
+        this.switchView('stage');
+
+        console.log(`[Editor] Gewechselt zu Stage: ${stage.name} (${stage.type})`);
+    }
+
+    /**
+     * Löscht die aktuell aktive Stage
+     */
+    private deleteCurrentStage(): void {
+        if (!this.project.stages || this.project.stages.length <= 1) {
+            alert('Die letzte Stage kann nicht gelöscht werden.');
+            return;
+        }
+
+        const activeStage = this.getActiveStage();
+        if (!activeStage) return;
+
+        const confirmMsg = activeStage.type === 'splash'
+            ? 'Splashscreen wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.'
+            : `Stage "${activeStage.name}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`;
+
+        if (!confirm(confirmMsg)) return;
+
+        // Stage entfernen
+        const index = this.project.stages.findIndex(s => s.id === activeStage.id);
+        this.project.stages.splice(index, 1);
+
+        // Zur ersten verbleibenden Stage wechseln
+        this.switchStage(this.project.stages[0].id);
+
+        // Menü aktualisieren
+        this.updateStagesMenu();
+
+        console.log(`[Editor] Stage gelöscht: ${activeStage.name}`);
+        this.autoSaveToLocalStorage();
+    }
+
+    /**
+     * Aktualisiert das Stages-Menü dynamisch
+     */
+    private updateStagesMenu(): void {
+        if (!this.menuBar || !this.project.stages) return;
+
+        const stageItems = [
+            {
+                id: 'new-stage',
+                label: 'Neue Stage',
+                action: 'new-stage',
+                icon: '📄'
+            },
+            {
+                id: 'new-splash',
+                label: 'Neuer Splashscreen',
+                action: 'new-splash',
+                icon: '🚀'
+            },
+            {
+                id: 'delete-stage',
+                label: 'Stage löschen',
+                action: 'delete-stage',
+                icon: '🗑️'
+            },
+            {
+                id: 'separator',
+                label: '----------------',
+                action: 'separator'
+            }
+        ];
+
+        // Alle vorhandenen Stages hinzufügen
+        this.project.stages.forEach(stage => {
+            const isActive = stage.id === this.project.activeStageId;
+            stageItems.push({
+                id: `stage-${stage.id}`,
+                label: `${isActive ? '▶ ' : ''}${stage.name} (${stage.type === 'splash' ? 'Splash' : (stage.type === 'main' ? 'Haupt' : 'Standard')})`,
+                action: `switch-stage-${stage.id}`,
+                icon: stage.type === 'splash' ? '🚀' : (stage.type === 'main' ? '👑' : '📄')
+            });
+        });
+
+        // "Neuer Splashscreen" deaktivieren/verbergen wenn bereits vorhanden
+        const hasSplash = this.hasSplashStage();
+        if (hasSplash) {
+            const splashIdx = stageItems.findIndex(i => i.id === 'new-splash');
+            if (splashIdx !== -1) {
+                stageItems.splice(splashIdx, 1);
+            }
+        }
+
+        this.menuBar.updateMenu('stages', stageItems);
     }
 
     private async renderFlowDiagram(container: HTMLElement) {
@@ -783,46 +1138,32 @@ export class Editor {
     }
 
     private loadProject(data: any) {
-        if (!data || !data.objects) return;
+        if (!data) return;
 
         // Clean up data artifacts before loading
         RefactoringManager.cleanActionSequences(data);
 
-        // Clear current
-        this.project.objects = [];
-
-        // Restore Metadata
+        // Metadata wiederherstellen
         if (data.meta) this.project.meta = data.meta;
         if (data.stage && data.stage.grid) this.project.stage.grid = data.stage.grid;
-        if (data.actions) {
-            this.project.actions = data.actions;
-        } else {
-            this.project.actions = [];
-        }
-        if (data.tasks) {
-            this.project.tasks = data.tasks;
-        } else {
-            this.project.tasks = [];
-        }
-        if (data.variables) {
-            this.project.variables = data.variables;
-        } else {
-            this.project.variables = [];
-        }
+
+        // Actions, Tasks, Variables
+        this.project.actions = data.actions || [];
+        this.project.tasks = data.tasks || [];
+        this.project.variables = data.variables || [];
 
         // Restore Flow Data
         if (data.flowCharts) {
             this.project.flowCharts = data.flowCharts;
-            // Also update legacy .flow for consistency if global is present
-            if (data.flowCharts.global) {
-                this.project.flow = data.flowCharts.global;
+            const flowCharts = data.flowCharts as any;
+            if (flowCharts.global) {
+                this.project.flow = flowCharts.global;
             }
         } else if (data.flow) {
             this.project.flow = data.flow;
-            // Migrate to new structure immediately
             this.project.flowCharts = { global: data.flow };
         } else {
-            // Reset to default if missing
+            // Standard-Flow falls nichts vorhanden
             const defaultGrid = {
                 cols: 100,
                 rows: 100,
@@ -839,36 +1180,60 @@ export class Editor {
             this.project.flowCharts = { global: this.project.flow };
         }
 
-        // Restore Objects
-        this.project.objects = hydrateObjects(data.objects);
+        // Restore Stages (New System)
+        if (data.stages && data.stages.length > 0) {
+            const hydratedStages = data.stages.map((s: any) => ({
+                ...s,
+                objects: hydrateObjects(s.objects || [])
+            }));
+            this.project.stages = hydratedStages;
+            this.project.activeStageId = data.activeStageId || hydratedStages[0].id;
+            projectRegistry.setActiveStageId(this.project.activeStageId || null);
+        }
 
-        // Update Inspector Ref after objects are hydrated
+        // Restore Objects (Legacy System)
+        this.project.objects = hydrateObjects(data.objects || []);
+        this.project.splashObjects = hydrateObjects(data.splashObjects || []);
+        this.project.splashDuration = data.splashDuration ?? 3000;
+        this.project.splashAutoHide = data.splashAutoHide ?? true;
+
+        // Migration falls nötig (wenn keine Stages im geladenen Projekt waren)
+        if (!this.project.stages || this.project.stages.length === 0) {
+            this.migrateToStages();
+        }
+
+        // Sicherstellen, dass jede Stage ein eigenes Grid-Objekt hat (Deep Copy)
+        if (this.project.stages) {
+            this.project.stages.forEach(s => {
+                if (!s.grid) {
+                    s.grid = JSON.parse(JSON.stringify(this.project.stage.grid));
+                }
+            });
+        }
+
+        // Sync UI
         if (this.jsonInspector) this.jsonInspector.setProject(this.project);
 
-        // Sync Stage config with loaded project
-        this.stage.grid = this.project.stage.grid;
-
-        // Restore Stage Animation Properties
-        if ((data.stage as any).startAnimation) {
-            (this.project.stage as any).startAnimation = (data.stage as any).startAnimation;
-            (this.project.stage as any).startAnimationDuration = (data.stage as any).startAnimationDuration;
-            (this.project.stage as any).startAnimationEasing = (data.stage as any).startAnimationEasing;
-
-            // Sync to runtime instance
-            this.stage.startAnimation = (data.stage as any).startAnimation;
-            this.stage.startAnimationDuration = (data.stage as any).startAnimationDuration;
-            this.stage.startAnimationEasing = (data.stage as any).startAnimationEasing;
+        // Stage-spezifisches Grid anwenden
+        const activeStage = this.project.stages?.find(s => s.id === this.project.activeStageId);
+        if (activeStage && activeStage.grid) {
+            this.stage.grid = activeStage.grid;
+        } else {
+            this.stage.grid = this.project.stage.grid;
         }
 
         if (this.flowEditor) this.flowEditor.setProject(this.project);
         projectRegistry.setProject(this.project);
 
-        // Sanitize project to remove orphaned flow charts and invalid sequences
+        // Sanitize project
         RefactoringManager.sanitizeProject(this.project);
 
         this.render();
         this.selectObject(null);
-        console.log("Project loaded", this.project);
+        this.updateStagesMenu(); // WICHTIG: Menü aktualisieren
+        this.switchView('stage'); // Zur visuellen Bearbeitung wechseln
+
+        console.log("[Editor] Projekt geladen und Stages initialisiert", this.project);
         this.autoSaveToLocalStorage();
 
         // Show success notification
@@ -990,7 +1355,9 @@ export class Editor {
             newObj.y = y;
             newObj.id = jsonObj.id;
 
-            this.project.objects.push(newObj);
+            const list = this.currentObjects;
+            list.push(newObj);
+            this.currentObjects = list;
 
             // Select the new object
             this.selectObject(newObj.id);
@@ -1009,13 +1376,10 @@ export class Editor {
     }
 
     private removeObject(id: string) {
-        const idx = this.project.objects.findIndex(o => o.id === id);
-        if (idx !== -1) {
-            this.project.objects.splice(idx, 1);
-            this.selectObject(null); // Deselect
-            this.render();
-            this.autoSaveToLocalStorage();
-        }
+        this.currentObjects = this.currentObjects.filter(o => o.id !== id);
+        this.selectObject(null); // Deselect
+        this.render();
+        this.autoSaveToLocalStorage();
     }
 
     /**
@@ -1040,6 +1404,12 @@ export class Editor {
                 break;
             case 'Image':
                 newObj = new TImage(name, x, y, 5, 5);
+                break;
+            case 'Video':
+                newObj = new TVideo(name, x, y, 10, 6);
+                break;
+            case 'SplashScreen':
+                newObj = new TSplashScreen(name, x, y, 32, 24);
                 break;
             case 'Label':
                 newObj = new TLabel(name, x, y);
@@ -1120,6 +1490,9 @@ export class Editor {
             case 'Heartbeat':
                 newObj = new THeartbeat(name, x, y);
                 break;
+            case 'StageController':
+                newObj = new TStageController(name, x, y);
+                break;
             default:
                 console.warn("Unknown type:", type);
                 return null;
@@ -1128,7 +1501,7 @@ export class Editor {
     }
 
     private addObject(type: string, x: number, y: number) {
-        const name = `${type}_${this.project.objects.length + 1}`;
+        const name = `${type}_${this.currentObjects.length + 1}`;
         const newObj = this.createObjectInstance(type, name, x, y);
         if (!newObj) return;
 
@@ -1138,7 +1511,7 @@ export class Editor {
 
         // Check if this object lands inside a TDialogRoot container
         // If so, make it a child of that dialog with relative positioning
-        const dialogContainers = this.project.objects.filter(o => {
+        const dialogContainers = this.currentObjects.filter(o => {
             const cn = (o as any).className || o.constructor?.name;
             return cn === 'TDialogRoot';
         }) as TDialogRoot[];
@@ -1163,7 +1536,9 @@ export class Editor {
             console.log(`[Editor] ✓ Added ${newObj.name} as CHILD of ${parentDialog.name} at relative (${newObj.x}, ${newObj.y})`);
         } else {
             // Add to root level objects
-            this.project.objects.push(newObj);
+            const list = this.currentObjects;
+            list.push(newObj);
+            this.currentObjects = list;
             console.log(`[Editor] Added ${newObj.name} to ROOT level`);
         }
 
@@ -1193,7 +1568,7 @@ export class Editor {
      */
     private findObjectById(id: string): any | null {
         // First search in root level
-        for (const obj of this.project.objects) {
+        for (const obj of this.currentObjects) {
             if (obj.id === id) return obj;
 
             // Search in children (for containers like TDialogRoot)
@@ -1210,7 +1585,7 @@ export class Editor {
      * Find the parent container for a child object
      */
     private findParentContainer(childId: string): any | null {
-        for (const obj of this.project.objects) {
+        for (const obj of this.currentObjects) {
             if (obj.children && Array.isArray(obj.children)) {
                 for (const child of obj.children) {
                     if (child.id === childId) {
@@ -1235,11 +1610,59 @@ export class Editor {
             // 3. Initialize Unified GameRuntime
             // In multiplayer mode, pass the network manager for player number and state sync
             const mpManager = this._isMultiplayer ? network : undefined;
-            this.runtime = new GameRuntime(this.project, this.runtimeObjects || undefined, {
+
+            // Context-Aware Run: If we are in a sub-stage (not Main/Splash), start directly there
+            const activeStage = this.getActiveStage();
+            let startStageId: string | undefined;
+            if (activeStage && activeStage.type !== 'main' && activeStage.type !== 'splash') {
+                startStageId = activeStage.id;
+                console.log(`[Editor] Context-Aware Run: Starting in stage '${activeStage.name}' (${startStageId})`);
+            }
+
+            this.runtime = new GameRuntime(this.project, undefined, { // Force undefined objects to let Runtime load them from Stage
                 onNavigate: (_target) => this.switchView('run'), // Standalone would use real nav
                 makeReactive: true,
                 multiplayerManager: mpManager,
-                onRender: () => this.render()
+                onRender: () => this.render(),
+                startStageId: startStageId,
+                onStageSwitch: (stageId: string) => {
+                    // Runtime (e.g. Splash finished) wants to switch background/grid context
+                    const targetStage = this.project.stages?.find((s: any) => s.id === stageId);
+                    if (targetStage) {
+                        console.log(`[Editor] Runtime requested stage switch to: ${targetStage.name}`);
+
+                        // Copy visual settings to the active Stage component
+                        // We must ensure 'this.stage' reflects the target stage's visuals
+                        if (this.stage) {
+                            // Update Stage internal state (without full reload of editor)
+                            // this.stage.setData(targetStage); // TStage doesn't have setData easily
+
+                            // 1. Update Grid/Background
+                            this.stage.grid = {
+                                cols: targetStage.grid?.cols || 40,
+                                rows: targetStage.grid?.rows || 25,
+                                cellSize: targetStage.grid?.cellSize || 32,
+                                snapToGrid: this.stage.grid.snapToGrid,
+                                visible: targetStage.grid?.visible !== false,
+                                backgroundColor: targetStage.grid?.backgroundColor || '#1e1e1e'
+                            };
+
+                            // 3. Force Repaint (handled by grid setter)
+                            // this.stage.drawGrid(); // Not needed, setter calls updategrid
+                        }
+
+                        // CRITICAL: Update runtimeObjects reference as GameRuntime has replaced the objects array!
+                        if (this.runtime) {
+                            console.log("[Editor] Refreshing runtimeObjects reference after stage switch.");
+                            this.runtimeObjects = this.runtime.getObjects();
+
+                            // GameLoop is now managed by GameLoopManager singleton
+                            // No need to manually start it - GameRuntime.start() handles this
+
+                            this.render();
+                        }
+                    }
+                }
             });
 
             // CRITICAL: The GameRuntime creates reactive proxies for our objects.
@@ -1256,6 +1679,16 @@ export class Editor {
             // MOVED to end of block to ensure all systems are ready
             // this.runtime.start();
             this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as TGameLoop) || null;
+
+            // Connect Stage Events to Runtime
+            if (this.stage) {
+                this.stage.onEvent = (objectId: string, eventName: string) => {
+                    console.log(`[Editor] Stage Event: ${objectId}.${eventName}`);
+                    if (this.runtime) {
+                        this.runtime.handleEvent(objectId, eventName);
+                    }
+                };
+            }
 
             if (!this.activeGameLoop) {
                 console.warn("[Editor] No GameLoop component found. Starting animation ticker fallback.");
@@ -1312,7 +1745,18 @@ export class Editor {
         } else {
             // console.log("Game Stopped.");
 
-            // Stop active components
+            // 1. Stop GameRuntime (which stops Loop, Timers, Server, Animation internally)
+            if (this.runtime) {
+                this.runtime.stop();
+                this.runtime = null;
+            }
+
+            // 2. Clear Stage Events
+            if (this.stage) {
+                this.stage.onEvent = null;
+            }
+
+            // Fallback: Clear manual references if they still exist
             this.activeGameLoop?.stop();
             this.activeInputControllers.forEach(ic => ic.stop());
             this.activeTimers.forEach(timer => timer.stop());
@@ -1323,7 +1767,6 @@ export class Editor {
             this.activeTimers = [];
             this.activeGameServers = [];
             this.runtimeObjects = null; // discard snapshot
-            this.runtime = null;
             this.stopAnimationTicker();
 
             // Remove Debug Logger when stopping
@@ -1394,10 +1837,10 @@ export class Editor {
     private render() {
         if (!this.project) return;
         try {
-            // Render either runtime sandbox or project objects
+            // Render either runtime sandbox or current context objects
             // CRITICAL: Always prefer runtimeObjects when in run mode or whenever they exist,
             // as they contain the live, updated state (proxies).
-            const objectsToRender = this.runtimeObjects || this.project.objects;
+            const objectsToRender = this.runtimeObjects || this.currentObjects;
 
             // Custom Render Callback (if needed) to inject extra logic
             // ...
@@ -1454,9 +1897,15 @@ export class Editor {
 
             this.jsonInspector.onProjectUpdate = () => {
                 console.log('[Editor] Project updated, re-rendering and updating grid');
-                // Sync grid config from Project to Stage renderer
-                if (this.project.stage && this.project.stage.grid) {
-                    const g = this.project.stage.grid;
+
+                // Update MenuBar (e.g. Stage name changes)
+                this.updateStagesMenu();
+
+                // Nutze vorrangig das Stage-spezifische Grid der aktiven Stage
+                const activeStage = this.project.stages?.find(s => s.id === this.project.activeStageId);
+                const g = (activeStage && activeStage.grid) || this.project.stage.grid;
+
+                if (g) {
                     this.stage.grid = {
                         cols: g.cols,
                         rows: g.rows,
@@ -1466,14 +1915,18 @@ export class Editor {
                         backgroundColor: g.backgroundColor
                     };
 
-                    // Also sync Stage Animation properties to TStage instance
-                    if ((this.project.stage as any).startAnimation) {
-                        this.stage.startAnimation = (this.project.stage as any).startAnimation;
-                        this.stage.startAnimationDuration = (this.project.stage as any).startAnimationDuration;
-                        this.stage.startAnimationEasing = (this.project.stage as any).startAnimationEasing;
+                    // Sync Stage Animation properties from active stage or legacy project.stage
+                    const animSource = activeStage || this.project.stage;
+                    if ((animSource as any).startAnimation) {
+                        this.stage.startAnimation = (animSource as any).startAnimation;
+                        this.stage.startAnimationDuration = (animSource as any).startAnimationDuration;
+                        this.stage.startAnimationEasing = (animSource as any).startAnimationEasing;
                     }
                 }
+
                 this.stage.updategrid();
+                this.updateStagesMenu();
+                this.updateAvailableActions(); // Update actions based on stage context
                 this.render();
                 this.autoSaveToLocalStorage();
             };
@@ -1528,6 +1981,9 @@ export class Editor {
 
             // Initial update to show project/Stage settings
             this.jsonInspector.update(this.project);
+
+            // Initial filtered actions update
+            this.updateAvailableActions();
 
             console.log('[Editor] JSONInspector initialized');
 
@@ -1616,6 +2072,42 @@ export class Editor {
             this.refreshJSONView();
         };
 
+        // Source Selector (Active Stage vs Project)
+        const sourceSelect = document.createElement('select');
+        sourceSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-left: auto;`;
+
+        const activeStage = this.getActiveStage();
+        const stageName = activeStage ? activeStage.name : 'Unknown';
+
+        const scopes = [
+            { id: 'stage', label: `Stage: ${stageName}` },
+            { id: 'project', label: 'Gesamtes Projekt' }
+        ];
+
+        scopes.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.label;
+            // Default to 'stage' if we are not in main/legacy, otherwise 'project' mostly fine
+            // But requirement is: Show active stage data by default.
+            // Let's verify what 'showActiveStageOnly' state we want. 
+            // We can store a minimal view state for this? Or just check if displayed
+            opt.selected = (s.id === 'stage' && this.useStageIsolatedView) || (s.id === 'project' && !this.useStageIsolatedView);
+            sourceSelect.appendChild(opt);
+        });
+
+        if (!activeStage || activeStage.type === 'main') {
+            // If main stage, maybe "stage" view is effectively same as project? 
+            // Or Main Stage object specifically?
+            // Let's allow switching if user wants to see ONLY main stage object structure
+        }
+
+        sourceSelect.onchange = () => {
+            this.useStageIsolatedView = sourceSelect.value === 'stage';
+            this.updateAvailableActions(); // Ensure context is correct when switching view/stage implies focus change
+            this.refreshJSONView();
+        };
+
         // Search Input
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
@@ -1635,17 +2127,102 @@ export class Editor {
 
         toolbar.appendChild(modeLabel);
         toolbar.appendChild(modeSelect);
+
+        // Add Source Selector to toolbar
+        const spacer = document.createElement('div');
+        spacer.style.flex = '1';
+        toolbar.appendChild(spacer);
+        toolbar.appendChild(sourceSelect);
+
+        // toolbar.appendChild(searchInput); // Moved search to right or below?
+        // Layout: [Mode] [Spacer] [Source] [Search] [Apply] ? 
+        // Original layout: Mode, Search, Apply.
+        // Let's re-arrange: Mode, Source, Search, Apply.
+        spacer.remove();
+
+        toolbar.appendChild(sourceSelect);
         toolbar.appendChild(searchInput);
         toolbar.appendChild(applyBtn);
         jsonPanel.appendChild(toolbar);
 
-        // 2. Render Tree (using workingData copy)
+        // 2. Render Tree (using workingData copy OR activeStage)
         const treeContainer = document.createElement('div');
         jsonPanel.appendChild(treeContainer);
 
-        JSONTreeViewer.render(this.workingProjectData, treeContainer, this.jsonMode === 'editor', (newData) => {
+        let dataToShow = this.workingProjectData;
+        if (this.useStageIsolatedView && activeStage) {
+            // We need to pick the "live" object from workingProjectData that corresponds to activeStage
+            // workingProjectData IS a project structure.
+            // We need to find the stage within workingProjectData.stages
+            if (this.workingProjectData.stages) {
+                const workingStage = this.workingProjectData.stages.find((s: any) => s.id === activeStage.id);
+                if (workingStage) {
+                    // Create a deep copy to avoid modifying the original stage in a way that breaks serialization
+                    dataToShow = JSON.parse(JSON.stringify(workingStage));
+
+                    // Inject relevant tasks for better visibility
+
+                    // Force start cleanliness
+                    delete dataToShow.actions;
+
+                    // 1. Tasks that have a flow chart in this stage (exclude 'global' metadata key)
+                    const stageTaskNames = Object.keys(workingStage.flowCharts || {})
+                        .filter(key => key !== 'global');
+
+                    const globalTaskNames = new Set(this.project.tasks.map(t => t.name));
+
+                    // 2. Tasks referenced by objects in this stage
+                    const referencedTaskNames = new Set<string>();
+                    (workingStage.objects || []).forEach((obj: any) => {
+                        if (obj.Tasks) {
+                            Object.values(obj.Tasks).forEach((tName: any) => {
+                                if (tName && typeof tName === 'string' && tName.trim() !== '') {
+                                    // Only add if task actually exists globally
+                                    if (globalTaskNames.has(tName)) {
+                                        referencedTaskNames.add(tName);
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    const allRelevantNames = new Set([...stageTaskNames, ...referencedTaskNames]);
+
+                    if (allRelevantNames.size > 0) {
+                        dataToShow.tasks = this.project.tasks.filter(t => allRelevantNames.has(t.name));
+
+                        const usedActionNames = new Set<string>();
+                        dataToShow.tasks.forEach((t: any) => {
+                            if (t.actionSequence && Array.isArray(t.actionSequence)) {
+                                t.actionSequence.forEach((step: any) => {
+                                    if (step.type === 'action' && step.name) {
+                                        usedActionNames.add(step.name);
+                                    }
+                                });
+                            }
+                        });
+
+
+
+                        if (usedActionNames.size > 0 && this.project.actions) {
+                            dataToShow.actions = this.project.actions.filter(a => usedActionNames.has(a.name));
+                        }
+                    }
+                }
+            }
+        }
+
+        JSONTreeViewer.render(dataToShow, treeContainer, this.jsonMode === 'editor', (newData) => {
             this.isProjectDirty = true;
-            this.workingProjectData = newData;
+            // If we are editing a sub-object (stage), we need to merge it back into workingProjectData
+            if (this.useStageIsolatedView && activeStage && this.workingProjectData.stages) {
+                const idx = this.workingProjectData.stages.findIndex((s: any) => s.id === activeStage.id);
+                if (idx !== -1) {
+                    this.workingProjectData.stages[idx] = newData;
+                }
+            } else {
+                this.workingProjectData = newData;
+            }
             applyBtn.style.display = 'block';
         });
     }
@@ -1684,6 +2261,77 @@ export class Editor {
                 (toast as any).success('Projekt-Daten wurden erfolgreich aktualisiert.');
             }
         }
+    }
+
+    /**
+     * Updates the 'availableActions' variable in JSONInspector based on the active stage.
+     * Filters out actions that belong to objects in other stages, keeping only:
+     * 1. Actions for objects in the current stage.
+     * 2. Global service actions (not belonging to any stage object).
+     */
+    private updateAvailableActions(): void {
+        if (!this.jsonInspector || !this.project || !this.project.actions) return;
+
+        const activeStage = this.getActiveStage();
+        const activeStageId = activeStage ? activeStage.id : null;
+
+        // Map ObjectName -> StageId for all objects in the project
+        const objectStageMap = new Map<string, string>();
+
+        if (this.project.stages) {
+            this.project.stages.forEach(stage => {
+                if (stage.objects) {
+                    stage.objects.forEach((obj: any) => {
+                        objectStageMap.set(obj.name, stage.id);
+                    });
+                }
+            });
+        }
+
+        // Also map objects from legacy 'this.project.objects' if not migrated yet (safety)
+        if (this.project.objects) {
+            this.project.objects.forEach((obj: any) => {
+                // Assume legacy objects are MainStage if not found
+                if (!objectStageMap.has(obj.name)) {
+                    // Use a placeholder ID for legacy/global objects not in stages array
+                    objectStageMap.set(obj.name, 'legacy_main');
+                }
+            });
+        }
+
+        const allActions = this.project.actions;
+        const filteredActions = allActions.filter(action => {
+            const actionName = action.name;
+            if (!actionName) return false;
+
+            // Heuristic: Action name is "Target.Method"
+            const dotIndex = actionName.indexOf('.');
+            if (dotIndex !== -1) {
+                const targetName = actionName.substring(0, dotIndex);
+
+                // If target is a known object
+                if (objectStageMap.has(targetName)) {
+                    const targetStageId = objectStageMap.get(targetName);
+
+                    // If we have an active stage, compare IDs
+                    if (activeStageId) {
+                        // Allow if object is in current stage
+                        if (targetStageId === activeStageId) return true;
+
+                        // HIDE if object is in a DIFFERENT stage
+                        return false;
+                    }
+                }
+            }
+
+            // If target is NOT a known stage object, assume it is a Global Service (e.g. StageController) -> Show it
+            return true;
+        });
+
+        // Update the inspector variable
+        const visibleActionNames = filteredActions.map(a => a.name);
+        this.jsonInspector.updateAvailableActions(visibleActionNames);
+        console.log(`[Editor] Context-Aware Actions: Showing ${visibleActionNames.length} of ${allActions.length} actions for stage '${activeStage?.name}'`);
     }
 
     /**
@@ -1847,6 +2495,9 @@ export class Editor {
             // Load menu configuration
             await this.menuBar.loadFromJSON('./editor/menu_bar.json');
 
+            // Initial Stages Menu Update
+            this.updateStagesMenu();
+
             // Wire up action handlers
             this.menuBar.onAction = (action: string) => {
                 this.handleMenuAction(action);
@@ -1891,8 +2542,24 @@ export class Editor {
                     lobby.style.display = 'flex';
                 }
                 break;
+            // Stage-Verwaltung
+            case 'new-stage':
+                this.createStage('standard');
+                break;
+            case 'new-splash':
+                this.createStage('splash');
+                break;
+            case 'delete-stage':
+                this.deleteCurrentStage();
+                break;
             default:
-                console.warn('[Editor] Unknown menu action:', action);
+                // Prüfe ob es eine Stage-Switch-Aktion ist
+                if (action.startsWith('switch-stage-')) {
+                    const stageId = action.replace('switch-stage-', '');
+                    this.switchStage(stageId);
+                } else {
+                    console.warn('[Editor] Unknown menu action:', action);
+                }
         }
     }
 }

@@ -27,7 +27,12 @@ import { TGameState } from '../components/TGameState';
 import { THandshake } from '../components/THandshake';
 import { THeartbeat } from '../components/THeartbeat';
 import { TImage } from '../components/TImage';
+import { TVideo } from '../components/TVideo';
+import { TSplashScreen } from '../components/TSplashScreen';
+import { TSplashStage } from '../components/TSplashStage';
+import { TStageController } from '../components/TStageController';
 import { TNumberLabel } from '../components/TNumberLabel';
+import { TMemo } from '../components/TMemo';
 
 export function hydrateObjects(objectsData: any[]): TWindow[] {
     const objects: TWindow[] = [];
@@ -111,6 +116,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             case 'TGameState':
                 newObj = new TGameState(objData.name, objData.x, objData.y);
                 break;
+            case 'TStageController':
+                newObj = new TStageController(objData.name, objData.x, objData.y);
+                break;
             case 'THandshake':
                 newObj = new THandshake(objData.name, objData.x, objData.y);
                 break;
@@ -120,8 +128,28 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             case 'TImage':
                 newObj = new TImage(objData.name, objData.x, objData.y, objData.width, objData.height);
                 break;
+            case 'TVideo':
+                newObj = new TVideo(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
+            case 'TSplashScreen':
+                newObj = new TSplashScreen(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
+            case 'TSplashStage':
+                // TSplashStage - spezielle Stage für Splash-Screens
+                // Hinweis: TSplashStage wird normalerweise über das stages-Array gehandhabt,
+                // dieser Case existiert für Legacy-Kompatibilität
+                const splashStage = new TSplashStage(
+                    objData.name, objData.x, objData.y, objData.cols, objData.rows, objData.cellSize
+                );
+                if (objData.duration !== undefined) splashStage.duration = objData.duration;
+                if (objData.autoHide !== undefined) splashStage.autoHide = objData.autoHide;
+                newObj = splashStage as unknown as TWindow;
+                break;
             case 'TNumberLabel':
                 newObj = new TNumberLabel(objData.name, objData.x, objData.y, objData.startValue);
+                break;
+            case 'TMemo':
+                newObj = new TMemo(objData.name, objData.x, objData.y, objData.width, objData.height);
                 break;
             default:
                 console.warn("Unknown class during load:", objData.className);
@@ -160,6 +188,7 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             if (objData.fontFamily !== undefined) (newObj as any).fontFamily = objData.fontFamily;
             if (objData.placeholder !== undefined) (newObj as any).placeholder = objData.placeholder;
             if (objData.maxLength !== undefined) (newObj as any).maxLength = objData.maxLength;
+            if (objData.readOnly !== undefined) (newObj as any).readOnly = objData.readOnly;
 
             if (objData.color !== undefined && 'color' in newObj) {
                 (newObj as any).color = objData.color;
@@ -183,6 +212,19 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             // TImage specific properties
             if (objData.alt !== undefined) (newObj as any).alt = objData.alt;
             if (objData.fallbackColor !== undefined) (newObj as any).fallbackColor = objData.fallbackColor;
+
+            // TVideo specific properties
+            if (objData.videoSource !== undefined) (newObj as any).videoSource = objData.videoSource;
+            if (objData.autoplay !== undefined) (newObj as any).autoplay = objData.autoplay;
+            if (objData.loop !== undefined) (newObj as any).loop = objData.loop;
+            if (objData.muted !== undefined) (newObj as any).muted = objData.muted;
+            if (objData.playbackRate !== undefined) (newObj as any).playbackRate = objData.playbackRate;
+
+            // TSplashScreen specific properties
+            if (objData.duration !== undefined) (newObj as any).duration = objData.duration;
+            if (objData.autoHide !== undefined) (newObj as any).autoHide = objData.autoHide;
+            if (objData.fadeSpeed !== undefined) (newObj as any).fadeSpeed = objData.fadeSpeed;
+            if (objData.onFinishTask !== undefined) (newObj as any).onFinishTask = objData.onFinishTask;
 
             // TGameLoop specific properties
             if (objData.targetFPS !== undefined) (newObj as any).targetFPS = objData.targetFPS;

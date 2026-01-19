@@ -54,10 +54,20 @@ export class TTimer extends TWindow {
     public start(callback: () => void): void {
         this.stop();
         this.onTimerCallback = callback;
+
+        // Special Rule: 'SynchronTimer' only runs in multiplayer mode
+        if (this.name === 'SynchronTimer') {
+            const mp = (window as any).multiplayerManager;
+            if (!mp || !mp.isConnected) {
+                // console.log(`[TTimer] SynchronTimer suppressed (Singleplayer mode)`);
+                return;
+            }
+        }
+
         if (this.enabled) {
             this.timerId = window.setInterval(() => {
                 this.currentInterval++;
-                console.log(`[TTimer] ${this.name}: Interval ${this.currentInterval}/${this.maxInterval || '∞'}`);
+                // console.log(`[TTimer] ${this.name}: Interval ${this.currentInterval}/${this.maxInterval || '∞'}`);
 
                 // Fire onTimer event via callback (legacy)
                 if (this.onTimerCallback) {

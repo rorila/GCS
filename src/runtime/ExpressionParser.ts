@@ -166,4 +166,14 @@ export class ExpressionParser {
 
         return [...new Set(matches.filter(m => !keywords.has(m)))];
     }
+
+    /**
+     * Evaluates an expression and returns the raw value (preserving type)
+     */
+    static evaluateRaw(expression: string, context: Record<string, any>): any {
+        if (expression.startsWith('${') && expression.endsWith('}')) {
+            expression = expression.slice(2, -1).trim();
+        }
+        return this.evaluate(expression, context);
+    }
 }

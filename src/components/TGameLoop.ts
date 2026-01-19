@@ -40,6 +40,10 @@ export class TGameLoop extends TWindow {
     private readonly COLLISION_COOLDOWN_MS = 200;
     private readonly BOUNDARY_COOLDOWN_MS = 500; // Prevent repeated boundary events
 
+    // CRITICAL: Private flag to bypass ReactiveRuntime proxy issues
+    // Arrow functions bind 'this' to original object, but proxy changes are not reflected there
+    private _isRunning: boolean = false;
+
     constructor(name: string, x: number = 0, y: number = 0) {
         super(name, x, y, 3, 1);
         // Visual indicator style
@@ -118,9 +122,15 @@ export class TGameLoop extends TWindow {
      * Start the game loop
      */
     public start(): void {
-        if (this.state === 'running') return;
+        console.log(`[TGameLoop] start() called. _isRunning: ${this._isRunning}, sprites: ${this.sprites.length}`);
+        if (this._isRunning) {
+            console.log(`[TGameLoop] Already running, returning.`);
+            return;
+        }
 
         this.state = 'running';
+        this._isRunning = true;  // CRITICAL: Set private flag
+        console.log(`[TGameLoop] _isRunning set to: ${this._isRunning}`);
         this.lastTime = performance.now();
 
         // Trigger onStart event when the loop starts
@@ -128,6 +138,7 @@ export class TGameLoop extends TWindow {
             this.eventCallback(this.id, 'onStart');
         }
 
+        console.log(`[TGameLoop] Starting loop with ${this.sprites.length} sprites`);
         this.loop();
     }
 
@@ -136,6 +147,7 @@ export class TGameLoop extends TWindow {
      */
     public stop(): void {
         this.state = 'stopped';
+        this._isRunning = false;  // CRITICAL: Clear private flag
         if (this.animationFrameId !== null) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
@@ -146,8 +158,9 @@ export class TGameLoop extends TWindow {
      * Pause the game loop
      */
     public pause(): void {
-        if (this.state === 'running') {
+        if (this._isRunning) {
             this.state = 'paused';
+            this._isRunning = false;  // CRITICAL: Clear private flag
         }
     }
 
@@ -155,8 +168,9 @@ export class TGameLoop extends TWindow {
      * Resume the game loop
      */
     public resume(): void {
-        if (this.state === 'paused') {
+        if (this.state === 'paused' && !this._isRunning) {
             this.state = 'running';
+            this._isRunning = true;  // CRITICAL: Set private flag
             this.lastTime = performance.now();
             this.loop();
         }
@@ -166,7 +180,11 @@ export class TGameLoop extends TWindow {
      * Main game loop
      */
     private loop = (): void => {
-        if (this.state !== 'running') return;
+        // CRITICAL: Use _isRunning instead of state to bypass proxy issues
+        if (!this._isRunning) {
+            console.log(`[TGameLoop] loop() not running - _isRunning is false`);
+            return;
+        }
 
         const now = performance.now();
         const deltaTime = (now - this.lastTime) / 1000; // Convert to seconds
@@ -180,6 +198,7 @@ export class TGameLoop extends TWindow {
         // Update all sprites - ALWAYS call update so interpolation works,
         // but pass spritesMoving to control velocity application.
         const spritesMoving = this.gameState ? this.gameState.spritesMoving : true;
+        console.log(`[TGameLoop] loop: spritesMoving=${spritesMoving}, sprites=${this.sprites.length}, gameState=${this.gameState?.name}`);
         this.updateSprites(deltaTime, spritesMoving);
 
         // Update tween animations

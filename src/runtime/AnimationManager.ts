@@ -202,6 +202,13 @@ export class AnimationManager {
     }
 
     /**
+     * Bricht alle aktiven Tweens ab und leert die Liste.
+     */
+    public clear(): void {
+        this.activeTweens = [];
+    }
+
+    /**
      * Gibt die Anzahl aktiver Tweens zurück.
      */
     public getActiveTweenCount(): number {

@@ -134,7 +134,8 @@ export class TaskEditor {
 
         if (this.viewMode === 'list') {
             // List View
-            seqSection.innerHTML = '<strong>Execution Sequence</strong>';
+            // seqSection.innerHTML is cleared by initial creation, checking if we need to reset
+            seqSection.innerHTML = '';
             seqSection.style.marginBottom = '8px';
 
             const seqList = document.createElement('div');
@@ -169,7 +170,9 @@ export class TaskEditor {
                 seqTitle.appendChild(flowHint);
             }
 
-            seqSection.insertBefore(seqTitle, seqList);
+            // Correct Order: Append Title THEN List
+            seqSection.appendChild(seqTitle);
+            seqSection.appendChild(seqList);
 
             if (this.currentActionSequence.length === 0 && seqList.children.length === 0) {
                 const emptyMsg = document.createElement('em');

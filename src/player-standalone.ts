@@ -39,7 +39,7 @@ function decompressProject(data: string): any {
 class UniversalPlayer {
     private runtime: GameRuntime | null = null;
     private stage: HTMLElement;
-    private techClasses = ['TGameLoop', 'TInputController', 'TGameState', 'TTimer', 'TRemoteGameManager', 'TGameServer', 'THandshake', 'THeartbeat'];
+    private techClasses = ['TGameLoop', 'TInputController', 'TGameState', 'TTimer', 'TRemoteGameManager', 'TGameServer', 'THandshake', 'THeartbeat', 'TStageController'];
     private currentProject: any = null;
     private isStarted: boolean = false;
     private animationTickerId: number | null = null;
@@ -231,7 +231,12 @@ class UniversalPlayer {
         this.runtime = new GameRuntime(project, undefined, {
             onRender: () => this.render(),
             multiplayerManager: network,
-            onNavigate: (target: string) => this.handleNavigation(target)
+            onNavigate: (target: string) => this.handleNavigation(target),
+            onStageSwitch: (stageId: string) => {
+                console.log(`[UniversalPlayer] Stage switched to: ${stageId}`);
+                this.setupScaling(); // Re-scaling for new stage dimensions
+                this.render();
+            }
         });
 
         // 3. Update Visuals
@@ -281,7 +286,11 @@ class UniversalPlayer {
 
     private setupScaling() {
         if (!this.currentProject) return;
-        const grid = this.currentProject.stage.grid;
+
+        // Use active stage grid from runtime if available, else fallback to project default
+        const activeStage = this.runtime ? (this.runtime as any).stage : this.currentProject.stage;
+        const grid = activeStage ? activeStage.grid : this.currentProject.stage.grid;
+
         const stageWidth = grid.cols * grid.cellSize;
         const stageHeight = grid.rows * grid.cellSize;
         const windowWidth = window.innerWidth;
@@ -299,12 +308,13 @@ class UniversalPlayer {
 
         // Set background color and image from project grid
         const bg = grid.backgroundColor || '#000';
-        const bgImg = this.currentProject.stage.backgroundImage;
+        const bgImg = activeStage.backgroundImage || this.currentProject.stage.backgroundImage;
+
         if (bgImg) {
             const url = bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:')
                 ? bgImg
                 : `./images/${bgImg}`;
-            this.stage.style.background = `url("${url}") center center / ${this.currentProject.stage.objectFit || 'cover'} no-repeat, ${bg}`;
+            this.stage.style.background = `url("${url}") center center / ${activeStage.objectFit || 'cover'} no-repeat, ${bg}`;
         } else {
             this.stage.style.background = bg;
         }
@@ -564,6 +574,50 @@ class UniversalPlayer {
                     ti.value = editValue;
                 }
                 break;
+            case 'TVideo':
+            case 'TSplashScreen': {
+                const videoSrc = obj.videoSource || '';
+                if (!videoSrc) {
+                    el.innerHTML = '<div style="color: #444; font-size: 10px; text-align: center;">No Video Source</div>';
+                    break;
+                }
+
+                let video = el.querySelector('video') as HTMLVideoElement;
+                if (!video) {
+                    el.innerHTML = '';
+                    video = document.createElement('video');
+                    video.style.width = '100%';
+                    video.style.height = '100%';
+                    video.playsInline = true;
+                    el.appendChild(video);
+                }
+
+                // Sync source
+                const fullSrc = videoSrc.startsWith('http') || videoSrc.startsWith('/') || videoSrc.startsWith('data:')
+                    ? videoSrc
+                    : `./images/${videoSrc}`;
+
+                if (video.src !== new URL(fullSrc, window.location.href).href) {
+                    video.src = fullSrc;
+                    if (obj.autoplay) video.play().catch(() => { });
+                }
+
+                // Sync properties
+                video.style.objectFit = obj.objectFit || 'contain';
+                video.style.opacity = String(obj.imageOpacity ?? 1);
+                video.loop = !!obj.loop;
+                video.muted = !!obj.muted;
+                if (obj.playbackRate) video.playbackRate = obj.playbackRate;
+
+                // Sync Playback State from model
+                if (obj.isPlaying && video.paused) {
+                    video.play().catch(e => console.warn('[Player] Video play failed:', e));
+                } else if (!obj.isPlaying && !video.paused) {
+                    video.pause();
+                }
+
+                break;
+            }
         }
     }
 

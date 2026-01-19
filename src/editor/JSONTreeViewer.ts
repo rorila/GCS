@@ -38,6 +38,8 @@ export class JSONTreeViewer {
         this.rootData = data;
         this.isEditable = isEditable;
 
+        console.log('[JSONTreeViewer] Render called with data:', data);
+
         container.innerHTML = '';
         container.style.fontFamily = "'Fira Code', monospace";
         container.style.fontSize = '14px';

@@ -13,6 +13,7 @@ export interface ProjectMetadata {
     name: string;
     version: string;
     author: string;
+    description?: string;  // Optionale Spielbeschreibung
 }
 
 // Deprecated: Old interface, moving to class-based TWindow
@@ -30,7 +31,7 @@ export interface GameObject {
 // ─────────────────────────────────────────────
 // Action: Atomic operation on a component
 // ─────────────────────────────────────────────
-export type ActionType = 'property' | 'variable' | 'increment' | 'negate' | 'animate' | 'audio' | 'navigate' | 'smooth_sync' | 'send_multiplayer_sync' | 'engine_control' | 'server_connect' | 'server_create_room' | 'server_join_room' | 'server_ready' | 'service' | 'calculate' | 'call_method';
+export type ActionType = 'property' | 'variable' | 'increment' | 'negate' | 'animate' | 'audio' | 'navigate' | 'navigate_stage' | 'smooth_sync' | 'send_multiplayer_sync' | 'engine_control' | 'server_connect' | 'server_create_room' | 'server_join_room' | 'server_ready' | 'service' | 'calculate' | 'call_method';
 
 // For type: 'calculate' - expression building
 export type CalcOperator = '+' | '-' | '*' | '/' | '%';
@@ -169,6 +170,37 @@ export interface InputConfig {
 }
 
 // ─────────────────────────────────────────────
+// Stage System (Multi-Stage Support)
+// ─────────────────────────────────────────────
+export type StageType = 'standard' | 'splash' | 'main';
+
+export interface StageDefinition {
+    id: string;               // Eindeutige ID der Stage
+    name: string;             // Anzeigename
+    type: StageType;          // Art der Stage: 'main' (HauptStage), 'standard', 'splash'
+    objects: TWindow[];       // Objekte auf dieser Stage
+
+    // Nur bei type: 'main' (HauptStage - es gibt nur eine pro Projekt)
+    gameName?: string;        // Spielname
+    author?: string;          // Autor
+    description?: string;     // Beschreibung
+
+    // Nur bei type: 'splash'
+    duration?: number;        // Anzeigedauer in ms
+    autoHide?: boolean;       // Automatisch zur nächsten Stage wechseln
+    // Raster-Einstellungen (Optional, falls nicht gesetzt wird globales Projekt-Grid verwendet)
+    grid?: GridConfig;
+
+    // Animationen pro Stage
+    startAnimation?: string;
+    startAnimationDuration?: number;
+    startAnimationEasing?: string;
+
+    // Stage-spezifische Flow-Diagramme
+    flowCharts?: FlowCharts;
+}
+
+// ─────────────────────────────────────────────
 // Project
 // ─────────────────────────────────────────────
 export interface GameProject {
@@ -184,7 +216,17 @@ export interface GameProject {
     };
     description?: string;  // Game description
     input?: InputConfig;
-    objects: TWindow[];
+
+    // Multi-Stage System (neu)
+    stages?: StageDefinition[];   // Alle Stages des Projekts
+    activeStageId?: string;       // Aktuell im Editor angezeigte Stage
+
+    // Legacy (wird bei Migration nach stages übertragen)
+    objects: TWindow[];           // Hauptspiel-Objekte (Legacy, wird zu main-Stage)
+    splashObjects?: TWindow[];    // Splash-Objekte (Legacy, wird zu splash-Stage)
+    splashDuration?: number;      // Legacy
+    splashAutoHide?: boolean;     // Legacy
+
     actions: GameAction[];        // All defined actions
     tasks: GameTask[];            // Tasks referencing actions
     variables: ProjectVariable[]; // Project-level variables

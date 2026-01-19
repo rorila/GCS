@@ -1,0 +1,95 @@
+{
+    "tasks": [
+        {
+            "name": "ImpressumGoesBackMain",
+            "category": "User",
+            "description": "",
+            "params": [],
+            "actionSequence": [
+                {
+                    "type": "action",
+                    "name": "StageController.goToMainStage"
+                }
+            ],
+            "flowChart": {
+                "elements": [
+                    {
+                        "id": "start-1768729209923",
+                        "type": "Start",
+                        "x": 60,
+                        "y": 60,
+                        "width": 160,
+                        "height": 60,
+                        "properties": {
+                            "name": "Start",
+                            "details": "",
+                            "description": ""
+                        },
+                        "data": {
+                            "showDetails": false
+                        }
+                    },
+                    {
+                        "id": "task-root-1768729209923",
+                        "type": "Task",
+                        "x": 320,
+                        "y": 60,
+                        "width": 240,
+                        "height": 60,
+                        "properties": {
+                            "name": "ImpressumGoesBackMain",
+                            "details": "",
+                            "description": ""
+                        },
+                        "data": {
+                            "taskName": "ImpressumGoesBackMain",
+                            "showDetails": false,
+                            "paramValues": {}
+                        }
+                    },
+                    {
+                        "id": "node-1768729233419",
+                        "type": "Action",
+                        "x": 700,
+                        "y": 60,
+                        "width": 280,
+                        "height": 60,
+                        "properties": {
+                            "name": "StageController.goToMainStage",
+                            "details": "",
+                            "description": ""
+                        },
+                        "data": {
+                            "name": "StageController.goToMainStage",
+                            "isLinked": true
+                        }
+                    }
+                ],
+                "connections": [
+                    {
+                        "startTargetId": "start-1768729209923",
+                        "endTargetId": "task-root-1768729209923",
+                        "startX": 0,
+                        "startY": 0,
+                        "endX": 0,
+                        "endY": 0,
+                        "data": {}
+                    },
+                    {
+                        "startTargetId": "task-root-1768729209923",
+                        "endTargetId": "node-1768729233419",
+                        "startX": 560,
+                        "startY": 90,
+                        "endX": 700,
+                        "endY": 90,
+                        "data": {
+                            "startAnchorType": "output",
+                            "isEmbeddedInternal": false,
+                            "endAnchorType": "input"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

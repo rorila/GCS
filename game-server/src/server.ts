@@ -259,6 +259,41 @@ app.delete('/platform/games/:filename', (req, res) => {
 });
 
 /**
+ * POST /api/library/tasks - Add/update a task in library.json
+ */
+app.post('/api/library/tasks', (req, res) => {
+    try {
+        const task = req.body;
+        if (!task || !task.name) {
+            return res.status(400).json({ error: 'Missing task data or task name' });
+        }
+
+        const libraryPath = path.join(PUBLIC_DIR, 'library.json');
+        let library: { tasks: any[] } = { tasks: [] };
+
+        if (fs.existsSync(libraryPath)) {
+            library = JSON.parse(fs.readFileSync(libraryPath, 'utf-8'));
+        }
+
+        // Find existing task or add new
+        const existingIdx = library.tasks.findIndex(t => t.name === task.name);
+        if (existingIdx !== -1) {
+            library.tasks[existingIdx] = task;
+            console.log(`[API] Library: Updated task "${task.name}"`);
+        } else {
+            library.tasks.push(task);
+            console.log(`[API] Library: Added new task "${task.name}"`);
+        }
+
+        fs.writeFileSync(libraryPath, JSON.stringify(library, null, 4));
+        res.json({ success: true, taskName: task.name });
+    } catch (err) {
+        console.error('[API] Error updating library:', err);
+        res.status(500).json({ error: 'Failed to update library' });
+    }
+});
+
+/**
  * GET /runtimes/:version - Get runtime JS for a specific version
  * Auto-fetches from Builder if not cached
  */

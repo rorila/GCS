@@ -306,6 +306,32 @@ export class DialogManager {
             });
 
             return select;
+        } else if (className === 'TMemo') {
+            const textarea = document.createElement('textarea');
+            textarea.value = obj.text || '';
+            if (obj.name) textarea.setAttribute('data-name', obj.name);
+            if (obj.readOnly) textarea.readOnly = true;
+
+            textarea.style.padding = '8px';
+            textarea.style.backgroundColor = obj.style?.backgroundColor || '#1e1e1e';
+            textarea.style.color = obj.style?.color || '#9cdcfe';
+            textarea.style.border = '1px solid #555';
+            textarea.style.borderRadius = '3px';
+            textarea.style.fontSize = obj.style?.fontSize ? `${obj.style.fontSize}px` : '12px';
+            textarea.style.fontFamily = obj.style?.fontFamily || 'monospace';
+            textarea.style.width = '100%';
+            textarea.style.height = obj.style?.height ? `${obj.style.height}px` : '200px';
+            textarea.style.boxSizing = 'border-box';
+            textarea.style.resize = 'none';
+
+            // Handle variable placeholders if present (evaluates "${dialogData.json}")
+            if (textarea.value && textarea.value.includes('${')) {
+                const resolved = this.runtime.evaluate(textarea.value);
+                console.log(`[DialogManager] TMemo evaluation for ${obj.name}: "${textarea.value}" ->`, resolved ? "(data present)" : "(empty/undefined)");
+                textarea.value = resolved !== undefined ? String(resolved) : textarea.value;
+            }
+
+            return textarea;
         }
 
         return null;
@@ -369,6 +395,15 @@ export class DialogManager {
             }
         });
 
+        // Collect textarea values
+        const textareas = container.querySelectorAll('textarea');
+        textareas.forEach((textarea) => {
+            const name = textarea.getAttribute('data-name');
+            if (name) {
+                data[name] = textarea.value;
+            }
+        });
+
         return data;
     }
 
@@ -413,6 +448,15 @@ export class DialogManager {
                 if (data[name] !== undefined) {
                     (select as HTMLSelectElement).value = data[name];
                 }
+            }
+        });
+
+        // Populate textareas
+        const textareas = container.querySelectorAll('textarea[data-name]');
+        textareas.forEach((textarea) => {
+            const name = textarea.getAttribute('data-name');
+            if (name && data[name] !== undefined) {
+                (textarea as HTMLTextAreaElement).value = data[name];
             }
         });
 

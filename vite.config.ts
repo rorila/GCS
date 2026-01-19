@@ -7,7 +7,8 @@ export default defineConfig({
         open: true, // Auto-open browser
         proxy: {
             '/games': 'http://localhost:3000',
-            '/rooms': 'http://localhost:3000'
+            '/rooms': 'http://localhost:3000',
+            '/api': 'http://localhost:3000'
         }
     },
     build: {

@@ -177,6 +177,20 @@ export class FlowAction extends FlowElement {
 
     public getInspectorProperties(): any[] {
         const props = super.getInspectorProperties();
+
+        // Transform 'Name' property to a dropdown using the filtered availableActions
+        const nameProp = props.find(p => p.name === 'Name');
+        if (nameProp) {
+            nameProp.type = 'select';
+            nameProp.source = 'availableActions';
+            nameProp.label = 'Choose Action';
+            // Also keep it writable so user can type new custom names if needed? 
+            // 'select' usually implies strict selection. 
+            // If we want editable+dropdown (Combobox), we don't have that type yet in JSONInspector.
+            // But TDropdown usually allows selection. Validating "custom" names might be tricky.
+            // For now, strict selection ensures they pick a valid, filtered action.
+        }
+
         // Note: Sync/hostOnly property removed - Multiplayer now uses Task.triggerMode
         return props;
     }

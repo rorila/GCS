@@ -176,6 +176,12 @@
           return this.activeTweens.length > 0;
         }
         /**
+         * Bricht alle aktiven Tweens ab und leert die Liste.
+         */
+        clear() {
+          this.activeTweens = [];
+        }
+        /**
          * Gibt die Anzahl aktiver Tweens zurück.
          */
         getActiveTweenCount() {
@@ -203,6 +209,332 @@
       };
       __publicField(_AnimationManager, "instance", null);
       AnimationManager = _AnimationManager;
+    }
+  });
+
+  // src/services/ProjectRegistry.ts
+  var ProjectRegistry_exports = {};
+  __export(ProjectRegistry_exports, {
+    ProjectRegistry: () => ProjectRegistry,
+    projectRegistry: () => projectRegistry
+  });
+  var _ProjectRegistry, ProjectRegistry, projectRegistry;
+  var init_ProjectRegistry = __esm({
+    "src/services/ProjectRegistry.ts"() {
+      "use strict";
+      _ProjectRegistry = class _ProjectRegistry {
+        constructor() {
+          __publicField(this, "project", null);
+          // =========================================================================================
+          //  Objects (Stage)
+          // =========================================================================================
+          __publicField(this, "activeStageId", null);
+        }
+        static getInstance() {
+          if (!_ProjectRegistry.instance) {
+            _ProjectRegistry.instance = new _ProjectRegistry();
+          }
+          return _ProjectRegistry.instance;
+        }
+        setProject(project) {
+          this.project = project;
+        }
+        // =========================================================================================
+        //  Variables
+        // =========================================================================================
+        /**
+         * Retrieves variables visible in a specific context.
+         * Hierarchy: Global > Task (if in task) > Action (if in action)
+         */
+        getVariables(context) {
+          if (!this.project) return [];
+          let visibleVars = this.project.variables.filter(
+            (v) => !v.scope || v.scope.toLowerCase() === "global"
+          );
+          if (context?.taskName) {
+            const taskVars = this.project.variables.filter(
+              (v) => v.scope === `task:${context.taskName}`
+            );
+            visibleVars = [...visibleVars, ...taskVars];
+          }
+          if (context?.actionId) {
+            const actionVars = this.project.variables.filter(
+              (v) => v.scope === `action:${context.actionId}`
+            );
+            visibleVars = [...visibleVars, ...actionVars];
+          }
+          return visibleVars;
+        }
+        validateVariableName(name, context) {
+          if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) {
+            return { valid: false, error: "Variablen m\xFCssen mit einem Kleinbuchstaben beginnen (camelCase)." };
+          }
+          const visibleVars = this.getVariables(context);
+          if (visibleVars.some((v) => v.name === name)) {
+            return { valid: false, error: "Name bereits vergeben." };
+          }
+          return { valid: true };
+        }
+        // =========================================================================================
+        //  Tasks
+        // =========================================================================================
+        getTasks() {
+          return this.project?.tasks || [];
+        }
+        validateTaskName(name) {
+          if (!/^[A-Z][a-zA-Z0-9]*$/.test(name)) {
+            return { valid: false, error: "Tasks m\xFCssen mit einem Gro\xDFbuchstaben beginnen (PascalCase)." };
+          }
+          if (this.project?.tasks.some((t) => t.name === name)) {
+            return { valid: false, error: "Task-Name bereits vergeben." };
+          }
+          return { valid: true };
+        }
+        // =========================================================================================
+        //  Actions
+        // =========================================================================================
+        getActions() {
+          return this.project?.actions || [];
+        }
+        /**
+         * Set the active stage ID to filter getObjects() results.
+         * If null, returns objects from all stages.
+         */
+        setActiveStageId(id) {
+          this.activeStageId = id;
+        }
+        getActiveStageId() {
+          return this.activeStageId;
+        }
+        /**
+         * Returns objects for the current context:
+         * - If activeStageId is set, returns objects from that stage PLUS global services from all stages
+         * - Otherwise, returns all objects from all stages (plus legacy project.objects)
+         */
+        getObjects() {
+          if (!this.project) return [];
+          const globalServiceClasses = [
+            "TStageController",
+            "TGameLoop",
+            "TGameState",
+            "TGameServer",
+            "TInputController",
+            "THandshake",
+            "THeartbeat",
+            "TToast",
+            "TStatusBar"
+          ];
+          if (this.project.stages && this.project.stages.length > 0) {
+            const allObjects = [];
+            const objectIds = /* @__PURE__ */ new Set();
+            if (this.activeStageId) {
+              const activeStage = this.project.stages.find((s) => s.id === this.activeStageId);
+              if (activeStage && activeStage.objects) {
+                activeStage.objects.forEach((obj) => {
+                  allObjects.push(obj);
+                  objectIds.add(obj.id);
+                });
+              }
+            }
+            this.project.stages.forEach((stage) => {
+              if (stage.objects && Array.isArray(stage.objects)) {
+                stage.objects.forEach((obj) => {
+                  if (globalServiceClasses.includes(obj.className) && !objectIds.has(obj.id)) {
+                    allObjects.push(obj);
+                    objectIds.add(obj.id);
+                  }
+                });
+              }
+            });
+            if (!this.activeStageId) {
+              return allObjects;
+            }
+            return allObjects;
+          }
+          return this.project.objects || [];
+        }
+        getFlowObjects() {
+          return this.project?.flow?.elements || [];
+        }
+        validateObjectName(name) {
+          if (!/^[A-Z][a-zA-Z0-9_]*$/.test(name)) {
+            return { valid: false, error: "Objekt-Namen m\xFCssen mit einem Gro\xDFbuchstaben beginnen." };
+          }
+          const objects = this.getObjects();
+          if (objects.some((o) => o.name === name)) {
+            return { valid: false, error: "Objekt-Name existiert bereits auf der Stage." };
+          }
+          if (this.project?.flow?.elements.some((e) => e.name === name)) {
+            return { valid: false, error: "Objekt-Name existiert bereits im Flow." };
+          }
+          return { valid: true };
+        }
+        // =========================================================================================
+        //  Reference Tracking
+        // =========================================================================================
+        findReferences(name) {
+          const refs = [];
+          if (!this.project) return refs;
+          const validTaskNames = new Set((this.project.tasks || []).map((t) => t.name));
+          (this.project.tasks || []).forEach((task) => {
+            const scanSeq = (seq) => {
+              if (!seq) return;
+              seq.forEach((item) => {
+                if ((item.type === "action" || item.type === "task") && item.name === name) {
+                  if (!(item.type === "task" && item.name === task.name && name === task.name)) {
+                    refs.push(`Task: ${task.name} -> ${item.type === "action" ? "Aktion" : "Task"}: ${item.name}`);
+                  }
+                }
+                if (item.type === "condition" || item.type === "while") {
+                  if (item.thenAction === name) refs.push(`Task: ${task.name} -> Condition (Then): ${name}`);
+                  if (item.elseAction === name) refs.push(`Task: ${task.name} -> Condition (Else): ${name}`);
+                  if (item.thenTask === name) refs.push(`Task: ${task.name} -> Condition (Then Task): ${name}`);
+                  if (item.elseTask === name) refs.push(`Task: ${task.name} -> Condition (Else Task): ${name}`);
+                }
+                const str = JSON.stringify(item);
+                if (str.includes(`\${${name}}`) || str.includes(`\${${name}.`)) {
+                  refs.push(`Task: ${task.name} -> Variable/Binding: ${name}`);
+                }
+                if (item.body) scanSeq(item.body);
+              });
+            };
+            scanSeq(task.actionSequence);
+          });
+          const allFlowCharts = this.project.flowCharts || {};
+          const charts = {};
+          Object.keys(allFlowCharts).forEach((key) => {
+            if (validTaskNames.has(key)) {
+              charts[key] = allFlowCharts[key];
+            }
+          });
+          if (this.project.flow) charts["__legacy_flow__"] = this.project.flow;
+          Object.keys(charts).forEach((chartKey) => {
+            const chart = charts[chartKey];
+            (chart.elements || []).forEach((el) => {
+              const elName = el.data?.name || el.data?.actionName || el.properties?.name;
+              const isSelfReference = chartKey === name || chartKey === elName;
+              if (elName === name && !isSelfReference) {
+                refs.push(`Flow: ${chartKey} -> Element: ${name}`);
+              }
+              if (el.type === "Condition" && el.data) {
+                if (el.data.thenAction === name && chartKey !== name) refs.push(`Flow: ${chartKey} -> Condition (Then): ${name}`);
+                if (el.data.elseAction === name && chartKey !== name) refs.push(`Flow: ${chartKey} -> Condition (Else): ${name}`);
+              }
+            });
+          });
+          this.project.objects.forEach((obj) => {
+            if (obj.Tasks) {
+              Object.entries(obj.Tasks).forEach(([evt, taskName]) => {
+                if (taskName === name) {
+                  refs.push(`Objekt: ${obj.name} -> Event: ${evt}`);
+                }
+              });
+            }
+            const str = JSON.stringify(obj);
+            if (str.includes(`\${${name}}`) || str.includes(`\${${name}.`)) {
+              refs.push(`Objekt: ${obj.name} -> Binding: ${name}`);
+            }
+          });
+          return Array.from(new Set(refs));
+        }
+        // =========================================================================================
+        //  Renaming
+        // =========================================================================================
+        renameVariable(oldName, newName) {
+          if (!this.project) return false;
+          if (!this.validateVariableName(newName).valid) return false;
+          const variable = this.project.variables.find((v) => v.name === oldName);
+          if (variable) {
+            variable.name = newName;
+          } else {
+            return false;
+          }
+          this.updateReferencesInProperties(oldName, newName);
+          this.updateReferencesInActions(oldName, newName);
+          return true;
+        }
+        renameTask(oldName, newName) {
+          if (!this.project) return false;
+          if (!this.validateTaskName(newName).valid) return false;
+          const task = this.project.tasks.find((t) => t.name === oldName);
+          if (task) {
+            task.name = newName;
+          } else {
+            return false;
+          }
+          this.project.tasks.forEach((t) => {
+            t.actionSequence.forEach((item) => {
+              if (item.type === "task" && item.name === oldName) {
+                item.name = newName;
+              }
+              if (item.thenTask === oldName) item.thenTask = newName;
+              if (item.elseTask === oldName) item.elseTask = newName;
+            });
+          });
+          this.project.objects.forEach((obj) => {
+            if (obj.Tasks) {
+              const tasks = obj.Tasks;
+              Object.keys(tasks).forEach((key) => {
+                if (tasks[key] === oldName) {
+                  tasks[key] = newName;
+                }
+              });
+            }
+          });
+          return true;
+        }
+        updateReferencesInProperties(oldName, newName) {
+          const regex = new RegExp(`\\$\\{${oldName}\\}`, "g");
+          const regexNested = new RegExp(`\\$\\{${oldName}\\.`, "g");
+          const replaceInString = (str) => {
+            return str.replace(regex, `\${${newName}}`).replace(regexNested, `\${${newName}.`);
+          };
+          const traverseAndReplace = (obj) => {
+            if (!obj) return;
+            if (typeof obj === "string") {
+              return replaceInString(obj);
+            }
+            if (typeof obj === "object") {
+              Object.keys(obj).forEach((key) => {
+                const val = obj[key];
+                if (typeof val === "string") {
+                  obj[key] = replaceInString(val);
+                } else if (typeof val === "object") {
+                  traverseAndReplace(val);
+                }
+              });
+            }
+          };
+          this.project.objects.forEach((obj) => traverseAndReplace(obj));
+          this.project.actions.forEach((act) => traverseAndReplace(act));
+          this.project.tasks.forEach((t) => traverseAndReplace(t));
+        }
+        updateReferencesInActions(oldName, newName) {
+          this.project.tasks.forEach((task) => {
+            task.actionSequence.forEach((item) => {
+              if (item.type === "action") {
+                const action = item;
+                if (action.variableName === oldName) action.variableName = newName;
+                if (action.resultVariable === oldName) action.resultVariable = newName;
+                if (action.calcSteps) {
+                  action.calcSteps.forEach((step) => {
+                    if (step.operandType === "variable" && step.variable === oldName) {
+                      step.variable = newName;
+                    }
+                  });
+                }
+              } else if (item.type === "condition" || item.type === "while") {
+                if (item.condition && item.condition.variable === oldName) {
+                  item.condition.variable = newName;
+                }
+              }
+            });
+          });
+        }
+      };
+      __publicField(_ProjectRegistry, "instance");
+      ProjectRegistry = _ProjectRegistry;
+      projectRegistry = ProjectRegistry.getInstance();
     }
   });
 
@@ -327,6 +659,15 @@
       const matches = expression.match(/\b[a-zA-Z_]\w*\b/g) || [];
       const keywords = /* @__PURE__ */ new Set(["true", "false", "null", "undefined", "typeof", "instanceof"]);
       return [...new Set(matches.filter((m) => !keywords.has(m)))];
+    }
+    /**
+     * Evaluates an expression and returns the raw value (preserving type)
+     */
+    static evaluateRaw(expression, context) {
+      if (expression.startsWith("${") && expression.endsWith("}")) {
+        expression = expression.slice(2, -1).trim();
+      }
+      return this.evaluate(expression, context);
     }
   };
 
@@ -522,7 +863,9 @@
      * @param makeReactiveFlag Whether to wrap in Proxy (default: true)
      */
     registerObject(name, obj, makeReactiveFlag = true) {
-      const reactiveObj = makeReactiveFlag ? makeReactive(obj, this.watcher) : obj;
+      const excludeFromProxy = ["TGameLoop", "TGameState", "TInputController"];
+      const shouldProxy = makeReactiveFlag && !excludeFromProxy.includes(obj.className || obj.constructor?.name);
+      const reactiveObj = shouldProxy ? makeReactive(obj, this.watcher) : obj;
       const id = obj.id || name;
       this.objectsById.set(id, reactiveObj);
       this.objectsByName.set(name, reactiveObj);
@@ -757,6 +1100,20 @@
         return "";
       });
     }
+    /**
+     * Tries to convert a string value back to its likely intended type (number or boolean)
+     */
+    static autoConvert(value) {
+      if (typeof value !== "string") return value;
+      if (value === "") return value;
+      const num = Number(value);
+      if (!isNaN(num) && value.trim() !== "") {
+        return num;
+      }
+      if (value.toLowerCase() === "true") return true;
+      if (value.toLowerCase() === "false") return false;
+      return value;
+    }
   };
 
   // src/services/ServiceRegistry.ts
@@ -987,6 +1344,9 @@
       this.multiplayerManager = multiplayerManager;
       this.onNavigate = onNavigate;
     }
+    setObjects(objects) {
+      this.objects = objects;
+    }
     /**
      * Executes a single action
      * @param action The action definition (from project JSON)
@@ -1061,6 +1421,9 @@
           break;
         case "move_to":
           this.handleMoveToAction(action, vars, contextObj);
+          break;
+        case "navigate_stage":
+          this.handleNavigateStageAction(action, vars);
           break;
         default:
           console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
@@ -1169,6 +1532,26 @@
         this.onNavigate(targetGame, action.params);
       }
     }
+    /**
+     * Handle navigate_stage action - switches to another stage at runtime.
+     * Action format:
+     * {
+     *   type: 'navigate_stage',
+     *   params: { stageId: 'level-2' }  // or stageId: 'next' for next stage
+     * }
+     */
+    handleNavigateStageAction(action, vars) {
+      const stageId = action.params?.stageId || action.stageId;
+      if (!stageId) {
+        console.warn("[ActionExecutor] navigate_stage: Missing stageId");
+        return;
+      }
+      const resolvedStageId = PropertyHelper.interpolate(String(stageId), vars, this.objects);
+      console.log(`[ActionExecutor] Navigating to stage: ${resolvedStageId}`);
+      if (this.onNavigate) {
+        this.onNavigate(`stage:${resolvedStageId}`, action.params);
+      }
+    }
     handleLogAction(action, vars) {
       const message = PropertyHelper.interpolate(action.message || "", vars, this.objects);
       if (action.showToast) {
@@ -1230,7 +1613,6 @@
       const eventName = action.event || "onClick";
       const params = action.params;
       if (objectId && this.multiplayerManager) {
-        console.log(`[ActionExecutor] Sending remote event: ${objectId}.${eventName}`);
         this.multiplayerManager.triggerRemoteEvent(objectId, eventName, params);
       } else if (!this.multiplayerManager) {
       }
@@ -1412,15 +1794,15 @@
         if (Array.isArray(action.params)) {
           params = action.params.map((p) => {
             if (typeof p === "string") {
-              return PropertyHelper.interpolate(p, vars, this.objects);
+              return PropertyHelper.autoConvert(PropertyHelper.interpolate(p, vars, this.objects));
             }
             return p;
           });
         } else if (typeof action.params === "string") {
-          params = [PropertyHelper.interpolate(action.params, vars, this.objects)];
+          const interpolated = PropertyHelper.interpolate(action.params, vars, this.objects);
+          params = [PropertyHelper.autoConvert(interpolated)];
         }
       }
-      console.log(`[ActionExecutor] Calling ${target.name || action.target}.${methodName}(${params.join(", ")})`);
       if (typeof target[methodName] === "function") {
         target[methodName](...params);
       } else {
@@ -1549,6 +1931,12 @@
       this.flowCharts = flowCharts;
       this.multiplayerManager = multiplayerManager;
     }
+    /**
+     * Aktualisiert die FlowCharts (z.B. bei Stage-Wechsel)
+     */
+    setFlowCharts(flowCharts) {
+      this.flowCharts = flowCharts;
+    }
     execute(taskName, vars, globalVars, contextObj, depth = 0, parentId, params, isRemoteExecution = false) {
       if (depth >= _TaskExecutor.MAX_DEPTH) {
         console.error(`[TaskExecutor] Max recursion depth exceeded: ${taskName} `);
@@ -1600,15 +1988,13 @@
       const flowChart = this.flowCharts?.[taskName];
       const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
       const actionSequence = task.actionSequence || [];
-      const hasConditionsInSequence = actionSequence.some((item) => item.type === "condition");
-      const hasConditionsInFlowChart = hasFlowChart && flowChart.elements.some(
-        (el) => el.type === "Condition" || el.type === "condition"
-      );
-      if (hasFlowChart && hasConditionsInFlowChart && !hasConditionsInSequence) {
-        console.log(`[Task] START: ${taskName} (using flowChart with ${flowChart.elements.length} nodes)`);
+      if (hasFlowChart) {
+        console.log(`[TaskExecutor] Nutze Flussdiagramm f\xFCr "${taskName}" (Elemente: ${flowChart.elements.length})`);
         this.executeFlowChart(taskName, flowChart, vars, globalVars, contextObj, depth, taskLogId);
       } else {
-        console.log(`[Task] START: ${taskName} (seq: ${actionSequence.length})`);
+        if (actionSequence.length === 0) {
+          console.log(`[TaskExecutor] Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
+        }
         actionSequence.forEach((seqItem, index) => {
           try {
             this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
@@ -1634,9 +2020,10 @@
         (e) => e.type === "Task" && e.properties?.name === taskName || e.type === "Start"
       );
       if (!startNode) {
-        console.warn(`[TaskExecutor] No start node found in flowChart for task: ${taskName} `);
+        console.warn(`[TaskExecutor] No start node found in flowChart for task: ${taskName}. elements:`, elements.map((e) => `${e.type}:${e.properties?.name || e.id}`));
         return;
       }
+      console.log(`[TaskExecutor] FlowChart Elements for "${taskName}":`, elements.map((e) => `${e.type}:${e.properties?.name || e.id}`));
       const executeNode = (node) => {
         if (!node || visited.has(node.id)) return;
         visited.add(node.id);
@@ -1656,7 +2043,7 @@
             this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
           }
           const outgoing = connections.find(
-            (c) => c.startTargetId === node.id && !c.data?.startAnchorType && !c.data?.anchorType
+            (c) => c.startTargetId === node.id && !["true", "false"].includes(c.data?.startAnchorType || c.data?.anchorType || "")
           );
           if (outgoing) {
             const nextNode = elements.find((e) => e.id === outgoing.endTargetId);
@@ -1667,7 +2054,7 @@
         if (nodeType === "Task" || nodeType === "task") {
           this.execute(name, vars, globalVars, contextObj, depth + 1, parentId, node.data?.params);
           const outgoing = connections.find(
-            (c) => c.startTargetId === node.id && !c.data?.startAnchorType && !c.data?.anchorType
+            (c) => c.startTargetId === node.id && !["true", "false"].includes(c.data?.startAnchorType || c.data?.anchorType || "")
           );
           if (outgoing) {
             const nextNode = elements.find((e) => e.id === outgoing.endTargetId);
@@ -1936,6 +2323,297 @@
 
   // src/runtime/GameRuntime.ts
   init_AnimationManager();
+
+  // src/runtime/GameLoopManager.ts
+  init_AnimationManager();
+  var _GameLoopManager = class _GameLoopManager {
+    constructor() {
+      // State
+      __publicField(this, "state", "stopped");
+      __publicField(this, "animationFrameId", null);
+      __publicField(this, "lastTime", 0);
+      // Configuration
+      __publicField(this, "boundsOffsetTop", 0);
+      __publicField(this, "boundsOffsetBottom", 0);
+      // Grid reference - bounds are derived from this
+      __publicField(this, "gridConfig", null);
+      __publicField(this, "gameState", null);
+      // Objects
+      __publicField(this, "sprites", []);
+      __publicField(this, "inputControllers", []);
+      // Callbacks
+      __publicField(this, "renderCallback", null);
+      __publicField(this, "eventCallback", null);
+      // Cooldowns and tracking
+      __publicField(this, "collisionCooldowns", /* @__PURE__ */ new Map());
+      __publicField(this, "boundaryCooldowns", /* @__PURE__ */ new Map());
+      __publicField(this, "collidedThisFrame", /* @__PURE__ */ new Set());
+      __publicField(this, "COLLISION_COOLDOWN_MS", 200);
+      __publicField(this, "BOUNDARY_COOLDOWN_MS", 500);
+      this.loop = this.loop.bind(this);
+    }
+    static getInstance() {
+      if (!_GameLoopManager.instance) {
+        _GameLoopManager.instance = new _GameLoopManager();
+      }
+      return _GameLoopManager.instance;
+    }
+    // Getters for bounds - derived from gridConfig
+    get boundsWidth() {
+      const grid = this.gridConfig;
+      return grid?.grid?.cols ?? grid?.cols ?? 64;
+    }
+    get boundsHeight() {
+      const grid = this.gridConfig;
+      return grid?.grid?.rows ?? grid?.rows ?? 40;
+    }
+    /**
+     * Initialize the game loop with objects, grid config, and callbacks
+     */
+    init(objects, gridConfig, renderCallback, eventCallback) {
+      console.log(`[GameLoopManager] init() called with ${objects.length} objects`);
+      this.stop();
+      this.gridConfig = gridConfig;
+      this.renderCallback = renderCallback;
+      this.eventCallback = eventCallback || null;
+      this.sprites = objects.filter(
+        (obj) => obj.className === "TSprite" || obj.constructor.name === "TSprite"
+      );
+      this.inputControllers = objects.filter(
+        (obj) => obj.className === "TInputController" || obj.constructor?.name === "TInputController"
+      );
+      const gameStateObj = objects.find(
+        (obj) => obj.className === "TGameState" || obj.constructor?.name === "TGameState"
+      );
+      this.gameState = gameStateObj || null;
+      const gameLoopObj = objects.find(
+        (obj) => obj.className === "TGameLoop" || obj.constructor?.name === "TGameLoop"
+      );
+      if (gameLoopObj) {
+        this.boundsOffsetTop = gameLoopObj.boundsOffsetTop || 0;
+        this.boundsOffsetBottom = gameLoopObj.boundsOffsetBottom || 0;
+        if (gameLoopObj.targetFPS) {
+          console.log(`[GameLoopManager] Target FPS: ${gameLoopObj.targetFPS} (not currently used for capping)`);
+        }
+      }
+      this.collisionCooldowns.clear();
+      this.boundaryCooldowns.clear();
+      console.log(`[GameLoopManager] Initialized with ${this.sprites.length} sprites, ${this.inputControllers.length} input controllers, gameState: ${this.gameState?.name || "null"}`);
+    }
+    /**
+     * Start the game loop
+     */
+    start() {
+      console.log(`[GameLoopManager] start() called. Current state: ${this.state}`);
+      if (this.state === "running") {
+        console.log(`[GameLoopManager] Already running, returning.`);
+        return;
+      }
+      this.state = "running";
+      this.lastTime = performance.now();
+      console.log(`[GameLoopManager] Starting loop with ${this.sprites.length} sprites`);
+      this.loop();
+    }
+    /**
+     * Stop the game loop
+     */
+    stop() {
+      console.log(`[GameLoopManager] stop() called. Current state: ${this.state}`);
+      this.state = "stopped";
+      if (this.animationFrameId !== null) {
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
+      }
+      this.collisionCooldowns.clear();
+      this.boundaryCooldowns.clear();
+      this.collidedThisFrame.clear();
+      this.sprites = [];
+      this.inputControllers = [];
+      this.renderCallback = null;
+      this.eventCallback = null;
+      this.gameState = null;
+      this.gridConfig = null;
+    }
+    /**
+     * Pause the game loop
+     */
+    pause() {
+      if (this.state === "running") {
+        this.state = "paused";
+        console.log(`[GameLoopManager] Paused`);
+      }
+    }
+    /**
+     * Resume the game loop
+     */
+    resume() {
+      if (this.state === "paused") {
+        this.state = "running";
+        this.lastTime = performance.now();
+        console.log(`[GameLoopManager] Resumed`);
+        this.loop();
+      }
+    }
+    /**
+     * Get current state
+     */
+    getState() {
+      return this.state;
+    }
+    /**
+     * Check if running
+     */
+    isRunning() {
+      return this.state === "running";
+    }
+    /**
+     * Main game loop - NORMAL METHOD, not arrow function
+     */
+    loop() {
+      if (this.state !== "running") {
+        return;
+      }
+      const now = performance.now();
+      const deltaTime = (now - this.lastTime) / 1e3;
+      this.lastTime = now;
+      this.inputControllers.forEach((ic) => {
+        if (ic.update) ic.update();
+      });
+      const spritesMoving = this.gameState ? this.gameState.spritesMoving : true;
+      this.updateSprites(deltaTime, spritesMoving);
+      AnimationManager.getInstance().update();
+      this.collidedThisFrame.clear();
+      if (spritesMoving) {
+        this.checkCollisions();
+        this.checkBoundaries();
+      }
+      if (this.renderCallback) {
+        this.renderCallback();
+      }
+      this.animationFrameId = requestAnimationFrame(this.loop);
+    }
+    /**
+     * Update all sprites based on velocity
+     */
+    updateSprites(deltaTime, applyVelocity = true) {
+      this.sprites.forEach((sprite) => {
+        sprite.update(deltaTime, applyVelocity);
+      });
+    }
+    /**
+     * Check collisions between sprites
+     */
+    checkCollisions() {
+      for (let i = 0; i < this.sprites.length; i++) {
+        for (let j = i + 1; j < this.sprites.length; j++) {
+          const spriteA = this.sprites[i];
+          const spriteB = this.sprites[j];
+          if (spriteA.isAnimating || spriteB.isAnimating) {
+            continue;
+          }
+          const overlap = spriteA.getCollisionOverlap(spriteB);
+          if (overlap) {
+            const now = performance.now();
+            const pairKey = `${spriteA.id}_${spriteB.id}`;
+            const lastCollision = this.collisionCooldowns.get(pairKey) || 0;
+            if (now - lastCollision < this.COLLISION_COOLDOWN_MS) {
+              continue;
+            }
+            this.collisionCooldowns.set(pairKey, now);
+            if (overlap.side === "left" || overlap.side === "right") {
+              if (Math.abs(spriteA.velocityX) >= Math.abs(spriteB.velocityX)) {
+                spriteA.x -= (overlap.side === "left" ? -1 : 1) * overlap.depth;
+              } else {
+                spriteB.x += (overlap.side === "left" ? -1 : 1) * overlap.depth;
+              }
+            } else {
+              if (Math.abs(spriteA.velocityY) >= Math.abs(spriteB.velocityY)) {
+                spriteA.y -= (overlap.side === "top" ? -1 : 1) * overlap.depth;
+              } else {
+                spriteB.y += (overlap.side === "top" ? -1 : 1) * overlap.depth;
+              }
+            }
+            if (this.eventCallback) {
+              this.eventCallback(spriteA.id, "onCollision", {
+                other: spriteB.name,
+                otherSprite: spriteB,
+                hitSide: overlap.side
+              });
+              const oppositeSide = {
+                "left": "right",
+                "right": "left",
+                "top": "bottom",
+                "bottom": "top"
+              }[overlap.side];
+              this.eventCallback(spriteB.id, "onCollision", {
+                other: spriteA.name,
+                otherSprite: spriteA,
+                hitSide: oppositeSide
+              });
+              this.eventCallback(spriteA.id, `onCollision${this.capitalize(overlap.side)}`, { other: spriteB });
+              this.eventCallback(spriteB.id, `onCollision${this.capitalize(oppositeSide)}`, { other: spriteA });
+              this.collidedThisFrame.add(spriteA.id);
+              this.collidedThisFrame.add(spriteB.id);
+            }
+          }
+        }
+      }
+    }
+    capitalize(s) {
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+    /**
+     * Check if sprites hit stage boundaries
+     */
+    checkBoundaries() {
+      this.sprites.forEach((sprite) => {
+        if (sprite.isAnimating) {
+          return;
+        }
+        if (this.collidedThisFrame.has(sprite.id)) {
+          return;
+        }
+        const bounds = sprite.isWithinBounds(this.boundsWidth, this.boundsHeight);
+        if (!bounds.left) {
+          this.triggerBoundaryEvent(sprite, "left");
+        }
+        if (!bounds.right) {
+          this.triggerBoundaryEvent(sprite, "right");
+        }
+        if (sprite.y < this.boundsOffsetTop) {
+          this.triggerBoundaryEvent(sprite, "top");
+        }
+        const bottomBoundary = this.boundsHeight - this.boundsOffsetBottom;
+        if (sprite.y + sprite.height > bottomBoundary) {
+          this.triggerBoundaryEvent(sprite, "bottom");
+        }
+      });
+    }
+    triggerBoundaryEvent(sprite, side) {
+      const cooldownKey = `${sprite.id}_${side}`;
+      const now = performance.now();
+      const lastHit = this.boundaryCooldowns.get(cooldownKey) || 0;
+      if (now - lastHit < this.BOUNDARY_COOLDOWN_MS) return;
+      if (side === "left" && sprite.velocityX >= 0) return;
+      if (side === "right" && sprite.velocityX <= 0) return;
+      if (side === "top" && sprite.velocityY >= 0) return;
+      if (side === "bottom" && sprite.velocityY <= 0) return;
+      this.boundaryCooldowns.set(cooldownKey, now);
+      if (side === "left" || side === "right") sprite.velocityX = 0;
+      if (side === "top" || side === "bottom") sprite.velocityY = 0;
+      const EPSILON = 0.01;
+      if (side === "left") sprite.x = EPSILON;
+      if (side === "right") sprite.x = this.boundsWidth - sprite.width - EPSILON;
+      if (side === "top") sprite.y = this.boundsOffsetTop + EPSILON;
+      if (side === "bottom") sprite.y = this.boundsHeight - this.boundsOffsetBottom - sprite.height - EPSILON;
+      if (this.eventCallback) {
+        console.log(`[GameLoopManager] Boundary Hit: ${sprite.name} on ${side}. Task should handle bounce.`);
+        this.eventCallback(sprite.id, "onBoundaryHit", { hitSide: side });
+      }
+    }
+  };
+  __publicField(_GameLoopManager, "instance", null);
+  var GameLoopManager = _GameLoopManager;
 
   // src/components/TComponent.ts
   var TComponent = class {
@@ -2729,7 +3407,6 @@
   // src/components/TGameLoop.ts
   init_AnimationManager();
   var TGameLoop = class extends TWindow {
-    // Prevent repeated boundary events
     constructor(name, x = 0, y = 0) {
       super(name, x, y, 3, 1);
       // Loop settings
@@ -2754,11 +3431,18 @@
       // Track sprites that collided this frame
       __publicField(this, "COLLISION_COOLDOWN_MS", 200);
       __publicField(this, "BOUNDARY_COOLDOWN_MS", 500);
+      // Prevent repeated boundary events
+      // CRITICAL: Private flag to bypass ReactiveRuntime proxy issues
+      // Arrow functions bind 'this' to original object, but proxy changes are not reflected there
+      __publicField(this, "_isRunning", false);
       /**
        * Main game loop
        */
       __publicField(this, "loop", () => {
-        if (this.state !== "running") return;
+        if (!this._isRunning) {
+          console.log(`[TGameLoop] loop() not running - _isRunning is false`);
+          return;
+        }
         const now = performance.now();
         const deltaTime = (now - this.lastTime) / 1e3;
         this.lastTime = now;
@@ -2766,6 +3450,7 @@
           if (ic.update) ic.update();
         });
         const spritesMoving = this.gameState ? this.gameState.spritesMoving : true;
+        console.log(`[TGameLoop] loop: spritesMoving=${spritesMoving}, sprites=${this.sprites.length}, gameState=${this.gameState?.name}`);
         this.updateSprites(deltaTime, spritesMoving);
         AnimationManager.getInstance().update();
         this.collidedThisFrame.clear();
@@ -2834,12 +3519,19 @@
      * Start the game loop
      */
     start() {
-      if (this.state === "running") return;
+      console.log(`[TGameLoop] start() called. _isRunning: ${this._isRunning}, sprites: ${this.sprites.length}`);
+      if (this._isRunning) {
+        console.log(`[TGameLoop] Already running, returning.`);
+        return;
+      }
       this.state = "running";
+      this._isRunning = true;
+      console.log(`[TGameLoop] _isRunning set to: ${this._isRunning}`);
       this.lastTime = performance.now();
       if (this.eventCallback) {
         this.eventCallback(this.id, "onStart");
       }
+      console.log(`[TGameLoop] Starting loop with ${this.sprites.length} sprites`);
       this.loop();
     }
     /**
@@ -2847,6 +3539,7 @@
      */
     stop() {
       this.state = "stopped";
+      this._isRunning = false;
       if (this.animationFrameId !== null) {
         cancelAnimationFrame(this.animationFrameId);
         this.animationFrameId = null;
@@ -2856,16 +3549,18 @@
      * Pause the game loop
      */
     pause() {
-      if (this.state === "running") {
+      if (this._isRunning) {
         this.state = "paused";
+        this._isRunning = false;
       }
     }
     /**
      * Resume the game loop
      */
     resume() {
-      if (this.state === "paused") {
+      if (this.state === "paused" && !this._isRunning) {
         this.state = "running";
+        this._isRunning = true;
         this.lastTime = performance.now();
         this.loop();
       }
@@ -3196,10 +3891,15 @@
     start(callback) {
       this.stop();
       this.onTimerCallback = callback;
+      if (this.name === "SynchronTimer") {
+        const mp = window.multiplayerManager;
+        if (!mp || !mp.isConnected) {
+          return;
+        }
+      }
       if (this.enabled) {
         this.timerId = window.setInterval(() => {
           this.currentInterval++;
-          console.log(`[TTimer] ${this.name}: Interval ${this.currentInterval}/${this.maxInterval || "\u221E"}`);
           if (this.onTimerCallback) {
             this.onTimerCallback();
           }
@@ -6146,6 +6846,707 @@
     }
   };
 
+  // src/components/TVideo.ts
+  var TVideo = class extends TPanel {
+    constructor(name, x, y, width = 10, height = 6) {
+      super(name, x, y, width, height);
+      __publicField(this, "_videoSource", "");
+      __publicField(this, "_objectFit", "contain");
+      __publicField(this, "_imageOpacity", 1);
+      __publicField(this, "_autoplay", false);
+      __publicField(this, "_loop", false);
+      __publicField(this, "_muted", false);
+      __publicField(this, "_playbackRate", 1);
+      // Runtime state (renderer should sync with this)
+      __publicField(this, "_isPlaying", false);
+      this.style.backgroundColor = "#000000";
+      this.style.borderWidth = 0;
+    }
+    get videoSource() {
+      return this._videoSource;
+    }
+    set videoSource(value) {
+      this._videoSource = value || "";
+    }
+    get objectFit() {
+      return this._objectFit;
+    }
+    set objectFit(value) {
+      this._objectFit = value;
+    }
+    get imageOpacity() {
+      return this._imageOpacity;
+    }
+    set imageOpacity(value) {
+      this._imageOpacity = Math.max(0, Math.min(1, value));
+    }
+    get autoplay() {
+      return this._autoplay;
+    }
+    set autoplay(value) {
+      this._autoplay = value;
+      if (value) this._isPlaying = true;
+    }
+    get loop() {
+      return this._loop;
+    }
+    set loop(value) {
+      this._loop = value;
+    }
+    get muted() {
+      return this._muted;
+    }
+    set muted(value) {
+      this._muted = value;
+    }
+    get playbackRate() {
+      return this._playbackRate;
+    }
+    set playbackRate(value) {
+      this._playbackRate = value;
+    }
+    get isPlaying() {
+      return this._isPlaying;
+    }
+    // ─────────────────────────────────────────────
+    // Methods (callable via Action System)
+    // ─────────────────────────────────────────────
+    play() {
+      this._isPlaying = true;
+      console.log(`[TVideo] ${this.name}.play()`);
+    }
+    pause() {
+      this._isPlaying = false;
+      console.log(`[TVideo] ${this.name}.pause()`);
+    }
+    stop() {
+      this._isPlaying = false;
+      console.log(`[TVideo] ${this.name}.stop()`);
+    }
+    // ─────────────────────────────────────────────
+    // Inspector Properties
+    // ─────────────────────────────────────────────
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      const filtered = props.filter(
+        (p) => !["showGrid", "gridColor", "gridStyle", "caption"].includes(p.name)
+      );
+      return [
+        ...filtered,
+        { name: "videoSource", label: "Video Source", type: "string", group: "Video" },
+        {
+          name: "objectFit",
+          label: "Object Fit",
+          type: "select",
+          group: "Video",
+          options: ["cover", "contain", "fill", "none"]
+        },
+        { name: "imageOpacity", label: "Opacity", type: "number", group: "Video" },
+        { name: "autoplay", label: "Autoplay", type: "boolean", group: "Video" },
+        { name: "loop", label: "Loop", type: "boolean", group: "Video" },
+        { name: "muted", label: "Muted", type: "boolean", group: "Video" },
+        { name: "playbackRate", label: "Playback Rate", type: "number", group: "Video" }
+      ];
+    }
+    // ─────────────────────────────────────────────
+    // Serialization
+    // ─────────────────────────────────────────────
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        videoSource: this._videoSource,
+        objectFit: this._objectFit,
+        imageOpacity: this._imageOpacity,
+        autoplay: this._autoplay,
+        loop: this._loop,
+        muted: this._muted,
+        playbackRate: this._playbackRate
+      };
+    }
+  };
+
+  // src/components/TSplashScreen.ts
+  var TSplashScreen = class extends TPanel {
+    constructor(name, x, y, width = 32, height = 24) {
+      super(name, x, y, width, height);
+      __publicField(this, "_duration", 3e3);
+      __publicField(this, "_autoHide", true);
+      __publicField(this, "_videoSource", "");
+      __publicField(this, "_fadeSpeed", 0.5);
+      this.x = x;
+      this.y = y;
+      this.width = width;
+      this.height = height;
+      this.align = "NONE";
+      this.style.backgroundColor = "#000000";
+      this.zIndex = 1e3;
+    }
+    get duration() {
+      return this._duration;
+    }
+    set duration(value) {
+      this._duration = value;
+    }
+    get autoHide() {
+      return this._autoHide;
+    }
+    set autoHide(value) {
+      this._autoHide = value;
+    }
+    get videoSource() {
+      return this._videoSource;
+    }
+    set videoSource(value) {
+      this._videoSource = value || "";
+    }
+    get fadeSpeed() {
+      return this._fadeSpeed;
+    }
+    set fadeSpeed(value) {
+      this._fadeSpeed = value;
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      const filtered = props.filter(
+        (p) => !["showGrid", "gridColor", "gridStyle", "caption"].includes(p.name)
+      );
+      return [
+        ...filtered,
+        { name: "duration", label: "Duration (ms)", type: "number", group: "Splash" },
+        { name: "autoHide", label: "Auto Hide", type: "boolean", group: "Splash" },
+        { name: "videoSource", label: "Background Video", type: "string", group: "Splash" },
+        { name: "fadeSpeed", label: "Fade Speed", type: "number", group: "Splash" }
+      ];
+    }
+    getEvents() {
+      return [
+        ...super.getEvents(),
+        "onFinish"
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        duration: this._duration,
+        autoHide: this._autoHide,
+        videoSource: this._videoSource,
+        fadeSpeed: this._fadeSpeed
+      };
+    }
+  };
+
+  // src/components/TStage.ts
+  var TStage = class extends TWindow {
+    constructor(name, x = 0, y = 0, cols = 32, rows = 24, cellSize = 20) {
+      super(name, x, y, cols * cellSize, rows * cellSize);
+      __publicField(this, "_config");
+      __publicField(this, "description", "");
+      // Background Image Support
+      __publicField(this, "_backgroundImage", "");
+      __publicField(this, "_objectFit", IMAGE_DEFAULTS.objectFit);
+      // Start Animation Settings
+      __publicField(this, "startAnimation", "none");
+      // Fly-In Pattern bei Spielstart
+      __publicField(this, "startAnimationDuration", 1e3);
+      // Dauer in ms
+      __publicField(this, "startAnimationEasing", "easeOut");
+      this._config = {
+        cols,
+        rows,
+        cellSize,
+        snapToGrid: true,
+        showGrid: false
+      };
+      this.style.backgroundColor = "#ffffff";
+      this.style.borderColor = "#999999";
+      this.style.borderWidth = 1;
+    }
+    // ─────────────────────────────────────────────
+    // Config Accessors
+    // ─────────────────────────────────────────────
+    get cols() {
+      return this._config.cols;
+    }
+    set cols(value) {
+      this._config.cols = value;
+      this.width = value * this._config.cellSize;
+    }
+    get rows() {
+      return this._config.rows;
+    }
+    set rows(value) {
+      this._config.rows = value;
+      this.height = value * this._config.cellSize;
+    }
+    get cellSize() {
+      return this._config.cellSize;
+    }
+    set cellSize(value) {
+      this._config.cellSize = value;
+      this.width = this._config.cols * value;
+      this.height = this._config.rows * value;
+    }
+    get snapToGrid() {
+      return this._config.snapToGrid;
+    }
+    set snapToGrid(value) {
+      this._config.snapToGrid = value;
+    }
+    get showGrid() {
+      return this._config.showGrid;
+    }
+    set showGrid(value) {
+      this._config.showGrid = value;
+    }
+    get config() {
+      return { ...this._config };
+    }
+    // ─────────────────────────────────────────────
+    // Background Image
+    // ─────────────────────────────────────────────
+    get backgroundImage() {
+      return this._backgroundImage;
+    }
+    set backgroundImage(value) {
+      this._backgroundImage = value || "";
+    }
+    get objectFit() {
+      return this._objectFit;
+    }
+    set objectFit(value) {
+      this._objectFit = value;
+    }
+    // ─────────────────────────────────────────────
+    // Grid Helpers
+    // ─────────────────────────────────────────────
+    /** Convert pixel position to grid position */
+    pixelToGrid(pixelX, pixelY) {
+      return {
+        x: Math.floor(pixelX / this._config.cellSize),
+        y: Math.floor(pixelY / this._config.cellSize)
+      };
+    }
+    /** Convert grid position to pixel position */
+    gridToPixel(gridX, gridY) {
+      return {
+        x: gridX * this._config.cellSize,
+        y: gridY * this._config.cellSize
+      };
+    }
+    /** Snap a pixel position to the nearest grid cell */
+    snapToGridPosition(pixelX, pixelY) {
+      const grid = this.pixelToGrid(pixelX, pixelY);
+      return this.gridToPixel(grid.x, grid.y);
+    }
+    // ─────────────────────────────────────────────
+    // Inspector Properties
+    // ─────────────────────────────────────────────
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props,
+        { name: "description", label: "Description", type: "string", group: "Info" },
+        { name: "cols", label: "Columns", type: "number", group: "Grid" },
+        { name: "rows", label: "Rows", type: "number", group: "Grid" },
+        { name: "cellSize", label: "Cell Size", type: "number", group: "Grid" },
+        { name: "snapToGrid", label: "Snap to Grid", type: "boolean", group: "Grid" },
+        { name: "showGrid", label: "Show Grid", type: "boolean", group: "Grid" },
+        // Background
+        { name: "backgroundImage", label: "Background Image", type: "image_picker", group: "Appearance" },
+        { name: "objectFit", label: "Image Fit", type: "select", group: "Appearance", options: ["cover", "contain", "fill", "none"] },
+        // Start Animation
+        { name: "startAnimation", label: "Start Animation", type: "select", group: "Animation", options: ["none", "UpLeft", "UpMiddle", "UpRight", "Left", "Right", "BottomLeft", "BottomMiddle", "BottomRight", "ChaosIn", "ChaosOut", "Matrix", "Random"] },
+        { name: "startAnimationDuration", label: "Duration (ms)", type: "number", group: "Animation" },
+        { name: "startAnimationEasing", label: "Easing", type: "select", group: "Animation", options: ["linear", "easeIn", "easeOut", "easeInOut", "bounce", "elastic"] }
+      ];
+    }
+    // ─────────────────────────────────────────────
+    // Serialization
+    // ─────────────────────────────────────────────
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        description: this.description,
+        cols: this._config.cols,
+        rows: this._config.rows,
+        cellSize: this._config.cellSize,
+        snapToGrid: this._config.snapToGrid,
+        showGrid: this._config.showGrid,
+        backgroundImage: this._backgroundImage,
+        objectFit: this._objectFit,
+        startAnimation: this.startAnimation,
+        startAnimationDuration: this.startAnimationDuration,
+        startAnimationEasing: this.startAnimationEasing
+      };
+    }
+    /**
+     * Berechnet die Startposition für ein Objekt basierend auf dem Muster.
+     */
+    getPatternStartPosition(pattern, targetX, targetY, index) {
+      const stageWidth = this._config.cols * this._config.cellSize;
+      const stageHeight = this._config.rows * this._config.cellSize;
+      const outsideMargin = 50;
+      switch (pattern) {
+        case "UpLeft":
+          return { x: -outsideMargin, y: -outsideMargin };
+        case "UpMiddle":
+          return { x: stageWidth / 2, y: -outsideMargin };
+        case "UpRight":
+          return { x: stageWidth + outsideMargin, y: -outsideMargin };
+        case "Left":
+          return { x: -outsideMargin, y: targetY };
+        case "Right":
+          return { x: stageWidth + outsideMargin, y: targetY };
+        case "BottomLeft":
+          return { x: -outsideMargin, y: stageHeight + outsideMargin };
+        case "BottomMiddle":
+          return { x: stageWidth / 2, y: stageHeight + outsideMargin };
+        case "BottomRight":
+          return { x: stageWidth + outsideMargin, y: stageHeight + outsideMargin };
+        case "ChaosIn":
+          const angle = Math.random() * Math.PI * 2;
+          const distance = Math.max(stageWidth, stageHeight) + outsideMargin;
+          return {
+            x: stageWidth / 2 + Math.cos(angle) * distance,
+            y: stageHeight / 2 + Math.sin(angle) * distance
+          };
+        case "ChaosOut":
+          return { x: stageWidth / 2, y: stageHeight / 2 };
+        case "Matrix":
+          return { x: targetX, y: -outsideMargin - index * 20 };
+        case "Random":
+          const simplePatterns = ["UpLeft", "UpMiddle", "UpRight", "Left", "Right", "BottomLeft", "BottomMiddle", "BottomRight"];
+          const randomPattern = simplePatterns[Math.floor(Math.random() * simplePatterns.length)];
+          return this.getPatternStartPosition(randomPattern, targetX, targetY, index);
+        default:
+          return { x: 0, y: 0 };
+      }
+    }
+    /**
+     * Lässt alle Kinder-Objekte von einer Startposition zu ihren initialen Koordinaten fliegen.
+     * @param pattern Das Muster für die Startpositionen
+     * @param duration Dauer in Millisekunden (default: 1000)
+     * @param easing Easing-Funktion (default: 'easeOut')
+     */
+    flyToInitialPositions(pattern = "ChaosIn", duration = 1e3, easing = "easeOut") {
+      this.children.forEach((child, index) => {
+        if ("moveTo" in child && typeof child.moveTo === "function") {
+          const targetX = child.x;
+          const targetY = child.y;
+          const start = this.getPatternStartPosition(pattern, targetX, targetY, index);
+          child.x = start.x;
+          child.y = start.y;
+          child.moveTo(targetX, targetY, duration, easing);
+        }
+      });
+    }
+    /**
+     * Lässt alle Kinder-Objekte von ihren aktuellen Positionen zu Zielkoordinaten fliegen (Exit-Animation).
+     * @param pattern Das Muster für die Zielpositionen
+     * @param duration Dauer in Millisekunden (default: 1000)
+     * @param easing Easing-Funktion (default: 'easeIn')
+     * @param hideAfter Objekte nach der Animation unsichtbar machen (default: true)
+     */
+    flyToExitPositions(pattern = "ChaosIn", duration = 1e3, easing = "easeIn", hideAfter = true) {
+      this.children.forEach((child, index) => {
+        if ("moveTo" in child && typeof child.moveTo === "function") {
+          const currentX = child.x;
+          const currentY = child.y;
+          const target = this.getPatternStartPosition(pattern, currentX, currentY, index);
+          child.moveTo(target.x, target.y, duration, easing, () => {
+            if (hideAfter) {
+              child.visible = false;
+            }
+          });
+        }
+      });
+    }
+  };
+  // ─────────────────────────────────────────────
+  // Stage Animations
+  // ─────────────────────────────────────────────
+  /**
+   * Mögliche Fly-In/-Out Muster.
+   */
+  __publicField(TStage, "FlyPatterns", [
+    "UpLeft",
+    "UpMiddle",
+    "UpRight",
+    "Left",
+    "Right",
+    "BottomLeft",
+    "BottomMiddle",
+    "BottomRight",
+    "ChaosIn",
+    "ChaosOut",
+    "Matrix",
+    "Random"
+  ]);
+
+  // src/components/TSplashStage.ts
+  var TSplashStage = class extends TStage {
+    constructor(name = "SplashStage", x = 0, y = 0, cols = 32, rows = 24, cellSize = 20) {
+      super(name, x, y, cols, rows, cellSize);
+      __publicField(this, "_duration", 3e3);
+      __publicField(this, "_autoHide", true);
+      this.style.backgroundColor = "#000000";
+    }
+    // ─────────────────────────────────────────────
+    // Splash-spezifische Properties
+    // ─────────────────────────────────────────────
+    get duration() {
+      return this._duration;
+    }
+    set duration(value) {
+      this._duration = Math.max(0, value);
+    }
+    get autoHide() {
+      return this._autoHide;
+    }
+    set autoHide(value) {
+      this._autoHide = value;
+    }
+    // ─────────────────────────────────────────────
+    // Inspector Properties (überschreibt TStage)
+    // ─────────────────────────────────────────────
+    getInspectorProperties() {
+      const parentProps = super.getInspectorProperties();
+      const filteredProps = parentProps.filter(
+        (p) => !["description"].includes(p.name)
+      );
+      return [
+        ...filteredProps,
+        { name: "duration", label: "Duration (ms)", type: "number", group: "Splash" },
+        { name: "autoHide", label: "Auto Hide", type: "boolean", group: "Splash" }
+      ];
+    }
+    // ─────────────────────────────────────────────
+    // Events
+    // ─────────────────────────────────────────────
+    getEvents() {
+      return [
+        ...super.getEvents(),
+        "onFinish"
+        // Wird ausgelöst wenn Splash-Duration abgelaufen ist
+      ];
+    }
+    // ─────────────────────────────────────────────
+    // Serialization
+    // ─────────────────────────────────────────────
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        duration: this._duration,
+        autoHide: this._autoHide
+      };
+    }
+  };
+
+  // src/components/TStageController.ts
+  var TStageController = class extends TWindow {
+    constructor(name = "StageController", x = 0, y = 0) {
+      super(name, x, y, 5, 2);
+      // Referenz auf das Projekt (wird von GameRuntime gesetzt)
+      __publicField(this, "_stages", []);
+      __publicField(this, "_currentStageId", "");
+      __publicField(this, "_mainStageId", "main");
+      // Callback für Stage-Wechsel (wird von GameRuntime registriert)
+      __publicField(this, "_onStageChangeCallback", null);
+      this.style.backgroundColor = "#9c27b0";
+      this.style.color = "#ffffff";
+      this.visible = true;
+    }
+    // ─────────────────────────────────────────────
+    // Properties (Nur-Lesen im Inspector)
+    // ─────────────────────────────────────────────
+    get currentStageId() {
+      return this._currentStageId;
+    }
+    get currentStageIndex() {
+      return this._stages.findIndex((s) => s.id === this._currentStageId);
+    }
+    get stageCount() {
+      return this._stages.length;
+    }
+    get mainStageId() {
+      return this._mainStageId;
+    }
+    get currentStageName() {
+      const stage = this._stages.find((s) => s.id === this._currentStageId);
+      return stage?.name || "";
+    }
+    get currentStageType() {
+      const stage = this._stages.find((s) => s.id === this._currentStageId);
+      return stage?.type || "standard";
+    }
+    get isOnMainStage() {
+      return this._currentStageId === this._mainStageId;
+    }
+    get isOnSplashStage() {
+      const stage = this._stages.find((s) => s.id === this._currentStageId);
+      return stage?.type === "splash";
+    }
+    /**
+     * Gibt die Objekte der aktuellen Stage zurück
+     */
+    getCurrentStageObjects() {
+      const stage = this._stages.find((s) => s.id === this._currentStageId);
+      return stage?.objects || [];
+    }
+    /**
+     * Registriert einen Callback für Stage-Wechsel
+     */
+    setOnStageChangeCallback(cb) {
+      this._onStageChangeCallback = cb;
+    }
+    // ─────────────────────────────────────────────
+    // Initialisierung (von GameRuntime aufgerufen)
+    // ─────────────────────────────────────────────
+    /**
+     * Setzt die Stages-Liste und initialisiert den Controller
+     */
+    setStages(stages) {
+      this._stages = stages;
+      const mainStage = stages.find((s) => s.type === "main");
+      if (mainStage) {
+        this._mainStageId = mainStage.id;
+      } else {
+        const standardStage = stages.find((s) => s.type === "standard");
+        if (standardStage) {
+          this._mainStageId = standardStage.id;
+        }
+      }
+      const splashStage = stages.find((s) => s.type === "splash");
+      this._currentStageId = splashStage?.id || this._mainStageId;
+      console.log(`[TStageController] Initialized with ${stages.length} stages. Starting at: ${this._currentStageId}`);
+    }
+    // ─────────────────────────────────────────────
+    // Methoden (aufrufbar via call_method Action)
+    // ─────────────────────────────────────────────
+    /**
+     * Wechselt zur nächsten Stage in der Reihenfolge
+     */
+    nextStage() {
+      const currentIndex = this.currentStageIndex;
+      if (currentIndex < this._stages.length - 1) {
+        const nextStage = this._stages[currentIndex + 1];
+        this.goToStage(nextStage.id);
+      } else {
+        console.log("[TStageController] Already at last stage");
+        this.triggerEvent("onAllStagesCompleted");
+      }
+    }
+    /**
+     * Wechselt zur vorherigen Stage
+     */
+    previousStage() {
+      const currentIndex = this.currentStageIndex;
+      if (currentIndex > 0) {
+        const prevStage = this._stages[currentIndex - 1];
+        this.goToStage(prevStage.id);
+      } else {
+        console.log("[TStageController] Already at first stage");
+      }
+    }
+    /**
+     * Wechselt zu einer bestimmten Stage
+     */
+    goToStage(stageId) {
+      const stage = this._stages.find((s) => s.id === stageId);
+      if (!stage) {
+        console.warn(`[TStageController] Stage not found: ${stageId}`);
+        return;
+      }
+      const oldStageId = this._currentStageId;
+      this._currentStageId = stageId;
+      console.log(`[TStageController] Switching from ${oldStageId} to ${stageId}`);
+      if (this._onStageChangeCallback) {
+        this._onStageChangeCallback(oldStageId, stageId, stage.objects || []);
+      }
+      this.triggerEvent("onStageChange", {
+        oldStageId,
+        newStageId: stageId,
+        stageName: stage.name,
+        stageType: stage.type
+      });
+    }
+    /**
+     * Wechselt zur HauptStage
+     */
+    goToMainStage() {
+      this.goToStage(this._mainStageId);
+    }
+    /**
+     * Wechselt zur ersten Stage (Splash wenn vorhanden)
+     */
+    goToFirstStage() {
+      if (this._stages.length > 0) {
+        this.goToStage(this._stages[0].id);
+      }
+    }
+    /**
+     * Prüft ob eine Stage existiert
+     */
+    hasStage(stageId) {
+      return this._stages.some((s) => s.id === stageId);
+    }
+    /**
+     * Prüft ob ein Splashscreen existiert
+     */
+    hasSplashStage() {
+      return this._stages.some((s) => s.type === "splash");
+    }
+    /**
+     * Prüft ob die HauptStage existiert
+     */
+    hasMainStage() {
+      return this._stages.some((s) => s.type === "main");
+    }
+    // ─────────────────────────────────────────────
+    // Events
+    // ─────────────────────────────────────────────
+    getEvents() {
+      return [
+        ...super.getEvents(),
+        "onStageChange",
+        // Wird bei jedem Stage-Wechsel ausgelöst
+        "onAllStagesCompleted",
+        // Letzte Stage erreicht (für Level-Ende)
+        "onSplashFinished"
+        // SplashStage abgeschlossen
+      ];
+    }
+    triggerEvent(eventName, data) {
+      this.emit?.(eventName, data);
+      console.log(`[TStageController] Event: ${eventName}`, data);
+    }
+    // ─────────────────────────────────────────────
+    // Inspector Properties
+    // ─────────────────────────────────────────────
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props,
+        // Nur-Lesen Properties (disabled im Inspector)
+        { name: "currentStageId", label: "Current Stage ID", type: "string", group: "Stage Info" },
+        { name: "currentStageName", label: "Current Stage Name", type: "string", group: "Stage Info" },
+        { name: "currentStageType", label: "Current Stage Type", type: "string", group: "Stage Info" },
+        { name: "stageCount", label: "Total Stages", type: "number", group: "Stage Info" },
+        { name: "isOnMainStage", label: "Is Main Stage", type: "boolean", group: "Stage Info" },
+        { name: "isOnSplashStage", label: "Is Splash Stage", type: "boolean", group: "Stage Info" }
+      ];
+    }
+    // ─────────────────────────────────────────────
+    // Serialization
+    // ─────────────────────────────────────────────
+    toJSON() {
+      return {
+        ...super.toJSON()
+        // Stages werden nicht hier gespeichert, sondern im project.stages Array
+      };
+    }
+  };
+
   // src/components/TNumberLabel.ts
   var TNumberLabel = class extends TTextControl {
     constructor(name, x, y, startValue = 0) {
@@ -6233,6 +7634,41 @@
     }
   };
 
+  // src/components/TMemo.ts
+  var TMemo = class extends TTextControl {
+    constructor(name, x, y, width = 20, height = 10) {
+      super(name, x, y, width, height);
+      __publicField(this, "text");
+      __publicField(this, "placeholder");
+      __publicField(this, "readOnly");
+      this.text = "";
+      this.placeholder = "";
+      this.readOnly = false;
+      this.style.backgroundColor = "#1e1e1e";
+      this.style.borderColor = "#444444";
+      this.style.borderWidth = 1;
+      this.style.color = "#9cdcfe";
+      this.style.fontFamily = "monospace";
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props,
+        { name: "text", label: "Text", type: "string", group: "Specifics" },
+        { name: "placeholder", label: "Placeholder", type: "string", group: "Specifics" },
+        { name: "readOnly", label: "Read Only", type: "boolean", group: "Specifics" }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        text: this.text,
+        placeholder: this.placeholder,
+        readOnly: this.readOnly
+      };
+    }
+  };
+
   // src/utils/Serialization.ts
   function hydrateObjects(objectsData) {
     const objects = [];
@@ -6312,6 +7748,9 @@
         case "TGameState":
           newObj = new TGameState(objData.name, objData.x, objData.y);
           break;
+        case "TStageController":
+          newObj = new TStageController(objData.name, objData.x, objData.y);
+          break;
         case "THandshake":
           newObj = new THandshake(objData.name, objData.x, objData.y);
           break;
@@ -6321,8 +7760,30 @@
         case "TImage":
           newObj = new TImage(objData.name, objData.x, objData.y, objData.width, objData.height);
           break;
+        case "TVideo":
+          newObj = new TVideo(objData.name, objData.x, objData.y, objData.width, objData.height);
+          break;
+        case "TSplashScreen":
+          newObj = new TSplashScreen(objData.name, objData.x, objData.y, objData.width, objData.height);
+          break;
+        case "TSplashStage":
+          const splashStage = new TSplashStage(
+            objData.name,
+            objData.x,
+            objData.y,
+            objData.cols,
+            objData.rows,
+            objData.cellSize
+          );
+          if (objData.duration !== void 0) splashStage.duration = objData.duration;
+          if (objData.autoHide !== void 0) splashStage.autoHide = objData.autoHide;
+          newObj = splashStage;
+          break;
         case "TNumberLabel":
           newObj = new TNumberLabel(objData.name, objData.x, objData.y, objData.startValue);
+          break;
+        case "TMemo":
+          newObj = new TMemo(objData.name, objData.x, objData.y, objData.width, objData.height);
           break;
         default:
           console.warn("Unknown class during load:", objData.className);
@@ -6351,6 +7812,7 @@
         if (objData.fontFamily !== void 0) newObj.fontFamily = objData.fontFamily;
         if (objData.placeholder !== void 0) newObj.placeholder = objData.placeholder;
         if (objData.maxLength !== void 0) newObj.maxLength = objData.maxLength;
+        if (objData.readOnly !== void 0) newObj.readOnly = objData.readOnly;
         if (objData.color !== void 0 && "color" in newObj) {
           newObj.color = objData.color;
         }
@@ -6367,6 +7829,15 @@
         if (objData.icon !== void 0) newObj.icon = objData.icon;
         if (objData.alt !== void 0) newObj.alt = objData.alt;
         if (objData.fallbackColor !== void 0) newObj.fallbackColor = objData.fallbackColor;
+        if (objData.videoSource !== void 0) newObj.videoSource = objData.videoSource;
+        if (objData.autoplay !== void 0) newObj.autoplay = objData.autoplay;
+        if (objData.loop !== void 0) newObj.loop = objData.loop;
+        if (objData.muted !== void 0) newObj.muted = objData.muted;
+        if (objData.playbackRate !== void 0) newObj.playbackRate = objData.playbackRate;
+        if (objData.duration !== void 0) newObj.duration = objData.duration;
+        if (objData.autoHide !== void 0) newObj.autoHide = objData.autoHide;
+        if (objData.fadeSpeed !== void 0) newObj.fadeSpeed = objData.fadeSpeed;
+        if (objData.onFinishTask !== void 0) newObj.onFinishTask = objData.onFinishTask;
         if (objData.targetFPS !== void 0) newObj.targetFPS = objData.targetFPS;
         if (objData.boundsWidth !== void 0) newObj.boundsWidth = objData.boundsWidth;
         if (objData.boundsHeight !== void 0) newObj.boundsHeight = objData.boundsHeight;
@@ -6495,13 +7966,70 @@
       __publicField(this, "taskExecutor");
       __publicField(this, "globalVars");
       __publicField(this, "objects");
+      __publicField(this, "isSplashActive", false);
+      __publicField(this, "splashTimerId", null);
+      __publicField(this, "stage", null);
+      // Public property for external access (e.g. Standalone Player)
+      __publicField(this, "stageController", null);
       this.globalVars = { ...options.initialGlobalVars };
       this.reactiveRuntime = new ReactiveRuntime();
-      this.objects = objects || hydrateObjects(project.objects);
+      const hasStages = project.stages && project.stages.length > 0;
+      let activeStage = null;
+      if (options.startStageId && hasStages) {
+        activeStage = project.stages.find((s) => s.id === options.startStageId);
+      } else {
+        if (hasStages) {
+          const splashStage = project.stages.find((s) => s.type === "splash");
+          if (splashStage) {
+            activeStage = splashStage;
+          } else {
+            activeStage = project.stages.find((s) => s.id === project.activeStageId) || project.stages[0];
+          }
+        }
+      }
+      if (objects) {
+        this.objects = objects;
+      } else if (activeStage) {
+        this.stage = activeStage;
+        if (options.startStageId) {
+          this.isSplashActive = activeStage.type === "splash";
+        } else {
+          this.isSplashActive = activeStage.type === "splash";
+        }
+        let loadedObjects = hydrateObjects(activeStage.objects || []);
+        if (options.startStageId && activeStage.type !== "splash" && activeStage.type !== "main") {
+          const mainStage = project.stages.find((s) => s.type === "main");
+          if (mainStage && mainStage.objects) {
+            const globalObjects = hydrateObjects(mainStage.objects);
+            const localIds = new Set(loadedObjects.map((o) => o.id));
+            globalObjects.forEach((gObj) => {
+              if (!localIds.has(gObj.id)) {
+                const nameCollision = loadedObjects.find((l) => l.name === gObj.name);
+                if (!nameCollision) {
+                  loadedObjects.push(gObj);
+                } else {
+                  console.warn(`[GameRuntime] Global object '${gObj.name}' skipped due to local name collision in stage '${activeStage.name}'`);
+                }
+              }
+            });
+            console.log(`[GameRuntime] Context-Aware Start: Loaded ${activeStage.name} + Global Objects from Main`);
+          }
+        }
+        this.objects = loadedObjects;
+      } else {
+        const hasLegacySplash = project.splashObjects && project.splashObjects.length > 0;
+        if (hasLegacySplash) {
+          this.isSplashActive = true;
+          this.objects = hydrateObjects(project.splashObjects || []);
+        } else {
+          this.objects = hydrateObjects(project.objects || []);
+        }
+      }
       if (options.makeReactive) {
         this.objects.forEach((obj) => {
           this.reactiveRuntime.registerObject(obj.name, obj, true);
         });
+        this.reactiveRuntime.setVariable("isSplashActive", this.isSplashActive);
         const mp2 = options.multiplayerManager || window.multiplayerManager;
         this.reactiveRuntime.setVariable("isMultiplayer", !!mp2);
         if (mp2) {
@@ -6524,180 +8052,29 @@
         project.actions || [],
         this.actionExecutor,
         project.flowCharts,
-        // Pass flowCharts dictionary
         mp
-        // For triggerMode handling
       );
       if (mp) {
         mp.onRemoteTask = (msg) => {
-          this.executeRemoteTask(msg.taskName, msg.params, msg.mode);
+          this.executeRemoteTask(msg.taskName, msg.params);
         };
       }
       this.init();
-    }
-    start() {
-      this.objects.forEach((obj) => {
-        this.handleEvent(obj.id, "onStart");
-      });
-      const stageConfig = this.project.stage || this.project.grid;
-      if (stageConfig && stageConfig.startAnimation && stageConfig.startAnimation !== "none") {
-        console.log(`[GameRuntime] Triggering start animation: ${stageConfig.startAnimation} `);
-        const invisibleClasses = ["TGameLoop", "TInputController", "TTimer", "TGameState", "THandshake", "THeartbeat", "TGameServer", "TStage"];
-        const visualObjects = this.objects.filter((o) => !invisibleClasses.includes(o.className));
-        console.log(`[GameRuntime] Found ${visualObjects.length} visual objects to animate.`);
-        visualObjects.forEach((obj, index) => {
-          if (typeof obj.moveTo === "function") {
-            const targetX = obj.x;
-            const targetY = obj.y;
-            const duration = stageConfig.startAnimationDuration || 1e3;
-            const easing = stageConfig.startAnimationEasing || "easeOut";
-            const start = this.getPatternStartPosition(
-              stageConfig.startAnimation,
-              targetX,
-              targetY,
-              index,
-              stageConfig
-            );
-            console.log(`[GameRuntime] Animating ${obj.name || obj.id}: from(${start.x}, ${start.y}) to(${targetX}, ${targetY}) with opacity 0 -> 1`);
-            obj.x = start.x;
-            obj.y = start.y;
-            if (!obj.style) obj.style = {};
-            obj.style.opacity = 0;
-            obj.moveTo(targetX, targetY, duration, easing);
-            const am = AnimationManager.getInstance();
-            am.addTween(obj, "style.opacity", 1, duration, easing);
-          } else {
-            console.warn(`[GameRuntime] Object ${obj.name || obj.id} has no moveTo method!`);
-          }
-        });
-      }
-      const inputControllers = this.objects.filter((o) => o.className === "TInputController");
-      inputControllers.forEach((ic) => {
-        if (typeof ic.init === "function") {
-          ic.init(
-            this.objects,
-            (id, event, data) => this.handleEvent(id, event, data)
-          );
-        }
-        if (typeof ic.start === "function") ic.start();
-      });
-      const gameLoop = this.objects.find((o) => o.className === "TGameLoop");
-      if (gameLoop && typeof gameLoop.start === "function") {
-        if (typeof gameLoop.init === "function") {
-          gameLoop.init(
-            this.objects,
-            this.project.stage.grid,
-            this.options.onRender || (() => {
-            }),
-            (id, event, data) => this.handleEvent(id, event, data)
-          );
-        }
-        gameLoop.start();
-      }
-      const timers = this.objects.filter((o) => o.className === "TTimer");
-      timers.forEach((timer) => {
-        if ("onEvent" in timer) {
-          timer.onEvent = (eventName) => {
-            this.handleEvent(timer.id, eventName);
-          };
-        }
-        if (typeof timer.start === "function") {
-          timer.start(() => {
-            this.handleEvent(timer.id, "onTimer");
-          });
-        }
-      });
-      const numberLabels = this.objects.filter((o) => o.className === "TNumberLabel");
-      numberLabels.forEach((nl) => {
-        if ("onEvent" in nl) {
-          nl.onEvent = (eventName) => {
-            this.handleEvent(nl.id, eventName);
-          };
-        }
-      });
-      const mp = this.options.multiplayerManager || window.multiplayerManager;
-      if (mp && typeof mp.on === "function") {
-        mp.on((msg) => {
-          const handshakes2 = this.objects.filter((o) => o.className === "THandshake");
-          handshakes2.forEach((hs) => {
-            if (msg.type === "room_joined") {
-              hs._setRoomInfo(msg.roomCode, msg.playerNumber, msg.playerNumber === 1);
-              hs._setStatus("waiting");
-              hs._fireEvent("onRoomJoined", msg);
-            } else if (msg.type === "player_joined") {
-              hs._fireEvent("onPeerJoined", msg);
-            } else if (msg.type === "game_start") {
-              hs._setStatus("playing");
-              hs._fireEvent("onGameStart", msg);
-            } else if (msg.type === "room_created") {
-              hs._setRoomInfo(msg.roomCode, 1, true);
-              hs._setStatus("waiting");
-              hs._fireEvent("onRoomCreated", msg);
-            } else if (msg.type === "player_left") {
-              hs._setStatus("waiting");
-              hs._fireEvent("onPeerLeft", msg);
-            }
-          });
-          const heartbeats2 = this.objects.filter((o) => o.className === "THeartbeat");
-          heartbeats2.forEach((hb) => {
-            if (msg.type === "pong") {
-              hb._handlePong(msg.serverTime);
-            } else if (msg.type === "player_timeout") {
-              hb._setConnectionLost();
-            }
-          });
-        });
-      }
-      const handshakes = this.objects.filter((o) => o.className === "THandshake");
-      handshakes.forEach((hs) => {
-        hs.onEvent = (eventName, data) => {
-          if (!mp) return;
-          if (eventName === "_createRoom") mp.createRoom();
-          else if (eventName === "_joinRoom") mp.joinRoom(data?.code);
-          else if (eventName === "_ready") mp.ready();
-          else this.handleEvent(hs.id, eventName, data);
-        };
-      });
-      const heartbeats = this.objects.filter((o) => o.className === "THeartbeat");
-      heartbeats.forEach((hb) => {
-        hb.onEvent = (eventName, data) => {
-          if (!mp) return;
-          if (eventName === "_start") {
-            hb._startTimer(() => mp.send({ type: "ping", timestamp: Date.now() }));
-          } else if (eventName === "_stop") {
-            hb._stopTimer();
-          } else if (eventName === "_forcePing") {
-            mp.send({ type: "ping", timestamp: Date.now() });
-          } else this.handleEvent(hb.id, eventName, data);
-        };
-      });
-      const servers = this.objects.filter((o) => o.className === "TGameServer");
-      servers.forEach((server) => {
-        if (typeof server.start === "function") {
-          server.start((eventName, data) => {
-            this.handleEvent(server.id, eventName, data);
-          });
-        }
-      });
-      if (mp && mp.roomCode) {
-        const handshakes2 = this.objects.filter((o) => o.className === "THandshake");
-        handshakes2.forEach((hs) => {
-          console.log(`[GameRuntime] Restoring existing room state for ${hs.name}: ${mp.roomCode} `);
-          hs._setRoomInfo(mp.roomCode, mp.playerNumber, mp.playerNumber === 1);
-          hs._setStatus("waiting");
-          if (mp.playerNumber === 1) {
-            hs._fireEvent("onRoomCreated", { roomCode: mp.roomCode });
-          } else {
-            hs._fireEvent("onRoomJoined", { roomCode: mp.roomCode, playerNumber: mp.playerNumber });
-          }
-        });
+      this.initStageController();
+      if (activeStage && options.onStageSwitch) {
+        options.onStageSwitch(activeStage.id);
       }
     }
     stop() {
+      if (this.splashTimerId) {
+        clearTimeout(this.splashTimerId);
+        this.splashTimerId = null;
+      }
       const gameLoop = this.objects.find((o) => o.className === "TGameLoop");
       if (gameLoop && typeof gameLoop.stop === "function") {
         gameLoop.stop();
       }
+      GameLoopManager.getInstance().stop();
       const inputControllers = this.objects.filter((o) => o.className === "TInputController");
       inputControllers.forEach((ic) => {
         if (typeof ic.stop === "function") ic.stop();
@@ -6710,14 +8087,251 @@
       servers.forEach((server) => {
         if (typeof server.stop === "function") server.stop();
       });
+      AnimationManager.getInstance().clear();
+    }
+    start() {
+      if (this.options.onRender) this.options.onRender();
+      this.objects.forEach((obj) => {
+        this.handleEvent(obj.id, "onStart");
+      });
+      if (this.isSplashActive) {
+        if (this.project.splashAutoHide) {
+          const duration = this.project.splashDuration || 3e3;
+          console.log(`[GameRuntime] Splash active. Auto-hiding in ${duration}ms`);
+          this.splashTimerId = setTimeout(() => {
+            this.finishSplash();
+          }, duration);
+        }
+        return;
+      }
+      this.initMainGame();
+    }
+    initMainGame() {
+      let stageConfig = this.project.stage || this.project.grid;
+      if (this.project.stages) {
+        const mainStage = this.project.stages.find((s) => s.type === "main");
+        if (mainStage) {
+          stageConfig = {
+            ...stageConfig,
+            startAnimation: mainStage.startAnimation,
+            startAnimationDuration: mainStage.startAnimationDuration,
+            startAnimationEasing: mainStage.startAnimationEasing
+          };
+        }
+      }
+      if (stageConfig && stageConfig.startAnimation && stageConfig.startAnimation !== "none") {
+        this.triggerStartAnimation(stageConfig);
+      }
+      const inputControllers = this.objects.filter((o) => o.className === "TInputController");
+      inputControllers.forEach((ic) => {
+        if (typeof ic.init === "function") {
+          ic.init(this.objects, (id, ev, data) => this.handleEvent(id, ev, data));
+        }
+        if (typeof ic.start === "function") ic.start();
+      });
+      const gridConfig = this.stage && this.stage.grid || this.project.stage?.grid || this.project.grid;
+      GameLoopManager.getInstance().init(
+        this.objects,
+        gridConfig,
+        this.options.onRender || (() => {
+        }),
+        (id, ev, data) => this.handleEvent(id, ev, data)
+      );
+      GameLoopManager.getInstance().start();
+      const timers = this.objects.filter((o) => o.className === "TTimer");
+      timers.forEach((timer) => {
+        if ("onEvent" in timer) timer.onEvent = (ev) => this.handleEvent(timer.id, ev);
+        if (typeof timer.start === "function") timer.start(() => this.handleEvent(timer.id, "onTimer"));
+      });
+      const numberLabels = this.objects.filter((o) => o.className === "TNumberLabel");
+      numberLabels.forEach((nl) => {
+        if ("onEvent" in nl) nl.onEvent = (ev) => this.handleEvent(nl.id, ev);
+      });
+      const splashScreens = this.objects.filter((o) => o.className === "TSplashScreen");
+      splashScreens.forEach((splash) => {
+        const duration = splash.duration || 3e3;
+        setTimeout(() => {
+          this.handleEvent(splash.id, "onFinish");
+          if (splash.autoHide) {
+            splash.visible = false;
+            if (this.options.onRender) this.options.onRender();
+          }
+        }, duration);
+      });
+      this.initMultiplayer();
+      if (this.options.onRender) this.options.onRender();
+    }
+    finishSplash() {
+      if (!this.isSplashActive) return;
+      if (this.splashTimerId) {
+        clearTimeout(this.splashTimerId);
+        this.splashTimerId = null;
+      }
+      console.log("[GameRuntime] Splash finished. Using TStageController to switch to Main.");
+      this.isSplashActive = false;
+      if (this.stageController) {
+        this.stageController.goToMainStage();
+      } else {
+        console.warn("[GameRuntime] No StageController found, using legacy stage switch");
+        this.legacyStageSwitch();
+      }
+    }
+    /**
+     * Initialisiert den TStageController und registriert den Stage-Wechsel Callback
+     */
+    initStageController() {
+      this.stageController = this.objects.find(
+        (o) => o.className === "TStageController"
+      );
+      if (this.stageController && this.project.stages) {
+        this.stageController.setStages(this.project.stages);
+        this.stageController.setOnStageChangeCallback(
+          (oldId, newId) => this.handleStageChange(oldId, newId)
+        );
+        console.log(`[GameRuntime] StageController initialized with ${this.project.stages.length} stages`);
+      }
+    }
+    /**
+     * Wird vom TStageController aufgerufen wenn die Stage wechselt
+     */
+    handleStageChange(oldStageId, newStageId) {
+      console.log(`[GameRuntime] Stage change: ${oldStageId} \u2192 ${newStageId}`);
+      Promise.resolve().then(() => (init_ProjectRegistry(), ProjectRegistry_exports)).then(({ projectRegistry: projectRegistry2 }) => {
+        projectRegistry2.setActiveStageId(newStageId);
+        const combinedObjects = projectRegistry2.getObjects();
+        this.objects = hydrateObjects(combinedObjects);
+        if (this.project.stages) {
+          this.stage = this.project.stages.find((s) => s.id === newStageId);
+        }
+        const stageFlowCharts = this.stage?.flowCharts || {};
+        const mergedFlowCharts = {
+          ...this.project.flowCharts || {},
+          ...stageFlowCharts
+        };
+        this.taskExecutor.setFlowCharts(mergedFlowCharts);
+        console.log(`[GameRuntime] TaskExecutor updated with ${Object.keys(mergedFlowCharts).length} flowCharts`);
+        if (this.options.makeReactive) {
+          this.reactiveRuntime.clear();
+          AnimationManager.getInstance().clear();
+          this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
+          this.reactiveRuntime.setVariable("isSplashActive", false);
+          this.objects = this.reactiveRuntime.getObjects();
+        }
+        this.actionExecutor.setObjects(this.objects);
+        this.initStageController();
+        this.start();
+        if (this.options.onStageSwitch) {
+          console.log(`[GameRuntime] Notifying host of stage switch to: ${newStageId}`);
+          this.options.onStageSwitch(newStageId);
+        }
+      });
+    }
+    /**
+     * Legacy Stage-Wechsel (Fallback wenn kein TStageController vorhanden)
+     */
+    legacyStageSwitch() {
+      if (this.project.stages) {
+        const mainStage = this.project.stages.find((s) => s.type === "main");
+        if (mainStage) {
+          this.handleStageChange("splash", mainStage.id);
+        }
+      } else {
+        this.objects = hydrateObjects(this.project.objects || []);
+        this.start();
+      }
+    }
+    initMultiplayer() {
+      const mp = this.options.multiplayerManager || window.multiplayerManager;
+      if (!mp) return;
+      if (typeof mp.on === "function") {
+        mp.on((msg) => {
+          const handshakes = this.objects.filter((o) => o.className === "THandshake");
+          handshakes.forEach((hs) => {
+            if (msg.type === "room_joined") {
+              hs._setRoomInfo(msg.roomCode, msg.playerNumber, msg.playerNumber === 1);
+              hs._setStatus("waiting");
+              hs._fireEvent("onRoomJoined", msg);
+            } else if (msg.type === "game_start") {
+              hs._setStatus("playing");
+              hs._fireEvent("onGameStart", msg);
+            } else if (msg.type === "room_created") {
+              hs._setRoomInfo(msg.roomCode, 1, true);
+              hs._setStatus("waiting");
+              hs._fireEvent("onRoomCreated", msg);
+            }
+          });
+          const heartbeats = this.objects.filter((o) => o.className === "THeartbeat");
+          heartbeats.forEach((hb) => {
+            if (msg.type === "pong") hb._handlePong(msg.serverTime);
+            else if (msg.type === "player_timeout") hb._setConnectionLost();
+          });
+        });
+      }
+      this.objects.filter((o) => o.className === "THandshake").forEach((hs) => {
+        hs.onEvent = (ev, data) => {
+          if (ev === "_createRoom") mp.createRoom();
+          else if (ev === "_joinRoom") mp.joinRoom(data?.code);
+          else if (ev === "_ready") mp.ready();
+          else this.handleEvent(hs.id, ev, data);
+        };
+      });
+      this.objects.filter((o) => o.className === "THeartbeat").forEach((hb) => {
+        hb.onEvent = (ev, data) => {
+          if (ev === "_start") hb._startTimer(() => mp.send({ type: "ping", timestamp: Date.now() }));
+          else if (ev === "_stop") hb._stopTimer();
+          else this.handleEvent(hb.id, ev, data);
+        };
+      });
+      this.objects.filter((o) => o.className === "TGameServer").forEach((server) => {
+        if (typeof server.start === "function") {
+          server.start((ev, data) => this.handleEvent(server.id, ev, data));
+        }
+      });
+      if (mp.roomCode) {
+        this.objects.filter((o) => o.className === "THandshake").forEach((hs) => {
+          hs._setRoomInfo(mp.roomCode, mp.playerNumber, mp.playerNumber === 1);
+          hs._setStatus("waiting");
+          if (mp.playerNumber === 1) hs._fireEvent("onRoomCreated", { roomCode: mp.roomCode });
+          else hs._fireEvent("onRoomJoined", { roomCode: mp.roomCode, playerNumber: mp.playerNumber });
+        });
+      }
+    }
+    triggerStartAnimation(stageConfig) {
+      const invisibleClasses = ["TGameLoop", "TInputController", "TTimer", "TGameState", "THandshake", "THeartbeat", "TGameServer", "TStage"];
+      const visualObjects = this.objects.filter((o) => !invisibleClasses.includes(o.className));
+      visualObjects.forEach((obj, index) => {
+        if (typeof obj.moveTo === "function") {
+          const targetX = obj.x, targetY = obj.y;
+          const duration = stageConfig.startAnimationDuration || 1e3;
+          const easing = stageConfig.startAnimationEasing || "easeOut";
+          const start = this.getPatternStartPosition(stageConfig.startAnimation, targetX, targetY, index, stageConfig);
+          obj.x = start.x;
+          obj.y = start.y;
+          if (!obj.style) obj.style = {};
+          obj.style.opacity = 0;
+          obj.moveTo(targetX, targetY, duration, easing);
+          AnimationManager.getInstance().addTween(obj, "style.opacity", 1, duration, easing);
+        }
+      });
+    }
+    handleEvent(objectId, eventName, data = {}) {
+      const obj = this.objects.find((o) => o.id === objectId || o.name === objectId);
+      if (!obj) {
+        return;
+      }
+      const taskName = obj.Tasks?.[eventName] || obj[eventName] || obj.properties?.[eventName];
+      if (taskName && typeof taskName === "string") {
+        console.log(`[GameRuntime] Handling ${eventName} on ${obj.name} -> Task: ${taskName}`, data);
+        const vars = {};
+        this.taskExecutor.execute(taskName, vars, this.globalVars, obj, 0, void 0, data);
+      }
     }
     updateRemoteState(objectIdOrName, state) {
       const target = this.objects.find((o) => o.id === objectIdOrName || o.name === objectIdOrName);
       if (!target) return;
       if (state.x !== void 0 || state.y !== void 0) {
-        if (typeof target.smoothSync === "function") {
-          target.smoothSync(state.x ?? target.x, state.y ?? target.y);
-        } else {
+        if (typeof target.smoothSync === "function") target.smoothSync(state.x ?? target.x, state.y ?? target.y);
+        else {
           if (state.x !== void 0) target.x = state.x;
           if (state.y !== void 0) target.y = state.y;
         }
@@ -6726,70 +8340,49 @@
       if (state.vy !== void 0) target.velocityY = state.vy;
       if (state.text !== void 0) target.text = state.text;
       if (state.value !== void 0) target.value = state.value;
-      if (state.spritesMoving !== void 0) {
-        target.spritesMoving = state.spritesMoving;
-      }
-      this.handleEvent(target.id, "onSyncState", {
-        targetX: state.x,
-        targetY: state.y,
-        targetVX: state.vx,
-        targetVY: state.vy,
-        targetText: state.text,
-        targetValue: state.value,
-        syncedObject: target.name
-      });
+      if (state.spritesMoving !== void 0) target.spritesMoving = state.spritesMoving;
+      this.handleEvent(target.id, "onSyncState", { ...state, syncedObject: target.name });
     }
     /**
-     * Trigger an event on a remote object (called when receiving a remote_event message)
+     * Multiplayer: Triggers an event on a specific object from a remote peer
      */
-    triggerRemoteEvent(objectIdOrName, eventName, params) {
-      const target = this.objects.find((o) => o.id === objectIdOrName || o.name === objectIdOrName);
-      if (!target) {
-        console.warn(`[Runtime] triggerRemoteEvent: Object not found: ${objectIdOrName} `);
-        return;
-      }
-      console.log(`[Runtime] Triggering remote event: ${target.name}.${eventName} `);
-      this.globalVars["isRemoteTriggered"] = 1;
-      this.handleEvent(target.id, eventName, params || {});
-      this.globalVars["isRemoteTriggered"] = 0;
+    triggerRemoteEvent(objectId, eventName, params) {
+      console.log(`[Runtime] Remote Event: ${objectId}.${eventName}`, params);
+      this.handleEvent(objectId, eventName, params);
     }
     /**
-     * Execute an action received from another player
+     * Multiplayer: Executes an action from a remote peer
      */
     executeRemoteAction(action) {
-      const vars = {};
-      if (this.project.variables) {
-        this.project.variables.forEach((v) => {
-          vars[v.name] = this.reactiveRuntime.getVariable(v.name);
-        });
-      }
-      Object.assign(vars, this.globalVars);
-      this.actionExecutor.execute(action, vars, this.globalVars, null, void 0);
+      console.log(`[Runtime] Remote Action:`, action);
+      this.actionExecutor.execute(action, {}, this.globalVars);
     }
     /**
-     * Executes a task received via network (triggerMode logic)
+     * Multiplayer: Executes a task from a remote peer
      */
-    executeRemoteTask(taskName, params, mode) {
-      console.log(`[Runtime] Executing remote task: ${taskName} (mode: ${mode})`);
+    executeRemoteTask(taskName, params = {}, mode) {
+      console.log(`[Runtime] Remote Task: ${taskName}`, params, mode);
       const vars = {};
       if (this.project.variables) {
-        this.project.variables.forEach((v) => {
-          vars[v.name] = this.reactiveRuntime.getVariable(v.name);
-        });
+        this.project.variables.forEach((v) => vars[v.name] = this.reactiveRuntime.getVariable(v.name));
       }
       Object.assign(vars, this.globalVars, params || {});
       this.taskExecutor.execute(taskName, vars, this.globalVars, null, 0, void 0, params, true);
     }
+    /**
+     * Returns all runtime objects
+     */
+    getObjects() {
+      return this.objects;
+    }
     init() {
       if (!this.options.makeReactive) {
-        this.objects.forEach((obj) => {
-          this.reactiveRuntime.registerObject(obj.name, obj, false);
-        });
+        this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, false));
       }
       if (this.project.variables) {
         this.project.variables.forEach((v) => {
-          const initialValue = this.globalVars[v.name] !== void 0 ? this.globalVars[v.name] : v.defaultValue;
-          this.reactiveRuntime.registerVariable(v.name, initialValue);
+          const val = this.globalVars[v.name] !== void 0 ? this.globalVars[v.name] : v.defaultValue;
+          this.reactiveRuntime.registerVariable(v.name, val);
         });
       }
       this.setupBindings();
@@ -6797,134 +8390,42 @@
     setupBindings() {
       this.objects.forEach((obj) => {
         Object.keys(obj).forEach((prop) => {
-          const value = obj[prop];
-          if (typeof value === "string" && value.includes("${")) {
-            this.reactiveRuntime.bind(obj, prop, value);
-          }
-          if (prop === "style" && typeof value === "object" && value !== null) {
-            Object.keys(value).forEach((styleProp) => {
-              const styleValue = value[styleProp];
-              if (typeof styleValue === "string" && styleValue.includes("${")) {
-                this.reactiveRuntime.bind(value, styleProp, styleValue);
-              }
+          if (typeof obj[prop] === "string" && obj[prop].includes("${")) this.reactiveRuntime.bind(obj, prop, obj[prop]);
+          if (prop === "style" && typeof obj[prop] === "object" && obj[prop] !== null) {
+            Object.keys(obj[prop]).forEach((sp) => {
+              if (typeof obj[prop][sp] === "string" && obj[prop][sp].includes("${")) this.reactiveRuntime.bind(obj[prop], sp, obj[prop][sp]);
             });
           }
         });
       });
     }
-    handleEvent(objectId, eventName, data = {}) {
-      let targets = [];
-      if (objectId === "global") {
-        targets = this.objects.filter((o) => o.Tasks && o.Tasks[eventName]);
-      } else {
-        const obj = this.objects.find((o) => o.id === objectId || o.name === objectId);
-        if (obj) {
-          targets.push(obj);
-        } else {
-          console.warn(`[GameRuntime] No object found for objectId="${objectId}". Available objects:`, this.objects.map((o) => ({ id: o.id, name: o.name })));
-        }
-      }
-      const taskTargets = targets.filter((o) => o.Tasks && o.Tasks[eventName]);
-      if (taskTargets.length === 0) {
-        if (eventName === "onBoundaryHit") {
-          console.warn(`[GameRuntime] No targets found for ${eventName} on ${objectId}`);
-        }
-        return;
-      }
-      taskTargets.forEach((obj) => {
-        const taskName = obj.Tasks[eventName];
-        if (!taskName) return;
-        const vars = {};
-        if (this.project.variables) {
-          this.project.variables.forEach((v) => {
-            vars[v.name] = this.reactiveRuntime.getVariable(v.name);
-          });
-        }
-        Object.assign(vars, this.globalVars);
-        if (this.options.multiplayerManager) {
-          const pNum = this.options.multiplayerManager.playerNumber;
-          const inRoom = !!this.options.multiplayerManager.roomCode;
-          if (inRoom) {
-            vars["isPlayer1"] = pNum === 1 ? 1 : 0;
-            vars["isPlayer2"] = pNum === 2 ? 1 : 0;
-          } else {
-            vars["isPlayer1"] = 1;
-            vars["isPlayer2"] = 0;
-          }
-        } else {
-          vars["isPlayer1"] = 1;
-          vars["isPlayer2"] = 0;
-        }
-        if (data) {
-          Object.assign(vars, data);
-        }
-        const eventLogId = DebugLogService.getInstance().log("Event", `${obj.name}.${eventName}`, {
-          objectName: obj.name,
-          eventName,
-          data
-        });
-        this.taskExecutor.execute(taskName, vars, this.globalVars, obj, 0, eventLogId);
-        Object.keys(this.globalVars).forEach((name) => {
-          if (this.reactiveRuntime.getVariable(name) !== this.globalVars[name]) {
-            this.reactiveRuntime.setVariable(name, this.globalVars[name]);
-          }
-        });
-      });
-    }
-    setVariable(name, value) {
-      this.globalVars[name] = value;
-      this.reactiveRuntime.setVariable(name, value);
-    }
-    getVariable(name) {
-      return this.globalVars[name] !== void 0 ? this.globalVars[name] : this.reactiveRuntime.getVariable(name);
-    }
-    getObjects() {
-      return this.objects;
-    }
-    getGlobalState() {
-      return { ...this.globalVars };
-    }
-    /**
-     * Berechnet die Startposition für ein Objekt basierend auf dem Fly-In Muster.
-     */
     getPatternStartPosition(pattern, targetX, targetY, index, stage) {
-      const cols = stage.grid?.cols || stage.cols || 32;
-      const rows = stage.grid?.rows || stage.rows || 24;
-      const outsideMargin = 10;
+      const cols = stage.grid?.cols || stage.cols || 32, rows = stage.grid?.rows || stage.rows || 24, margin = 10;
       switch (pattern) {
         case "UpLeft":
-          return { x: -outsideMargin, y: -outsideMargin };
+          return { x: -margin, y: -margin };
         case "UpMiddle":
-          return { x: cols / 2, y: -outsideMargin };
+          return { x: cols / 2, y: -margin };
         case "UpRight":
-          return { x: cols + outsideMargin, y: -outsideMargin };
+          return { x: cols + margin, y: -margin };
         case "Left":
-          return { x: -outsideMargin, y: targetY };
+          return { x: -margin, y: targetY };
         case "Right":
-          return { x: cols + outsideMargin, y: targetY };
+          return { x: cols + margin, y: targetY };
         case "BottomLeft":
-          return { x: -outsideMargin, y: rows + outsideMargin };
+          return { x: -margin, y: rows + margin };
         case "BottomMiddle":
-          return { x: cols / 2, y: rows + outsideMargin };
+          return { x: cols / 2, y: rows + margin };
         case "BottomRight":
-          return { x: cols + outsideMargin, y: rows + outsideMargin };
+          return { x: cols + margin, y: rows + margin };
         case "ChaosIn": {
-          const angle = Math.random() * Math.PI * 2;
-          const distance = Math.max(cols, rows) + outsideMargin;
-          return {
-            x: cols / 2 + Math.cos(angle) * distance,
-            y: rows / 2 + Math.sin(angle) * distance
-          };
+          const a = Math.random() * Math.PI * 2, d = Math.max(cols, rows) + margin;
+          return { x: cols / 2 + Math.cos(a) * d, y: rows / 2 + Math.sin(a) * d };
         }
         case "ChaosOut":
           return { x: cols / 2, y: rows / 2 };
         case "Matrix":
-          return { x: targetX, y: -outsideMargin - index * 2 };
-        case "Random": {
-          const simplePatterns = ["UpLeft", "UpMiddle", "UpRight", "Left", "Right", "BottomLeft", "BottomMiddle", "BottomRight"];
-          const randomPattern = simplePatterns[Math.floor(Math.random() * simplePatterns.length)];
-          return this.getPatternStartPosition(randomPattern, targetX, targetY, index, stage);
-        }
+          return { x: targetX, y: -margin - index * 2 };
         default:
           return { x: targetX, y: targetY };
       }
@@ -7335,7 +8836,7 @@
     constructor() {
       __publicField(this, "runtime", null);
       __publicField(this, "stage");
-      __publicField(this, "techClasses", ["TGameLoop", "TInputController", "TGameState", "TTimer", "TRemoteGameManager", "TGameServer", "THandshake", "THeartbeat"]);
+      __publicField(this, "techClasses", ["TGameLoop", "TInputController", "TGameState", "TTimer", "TRemoteGameManager", "TGameServer", "THandshake", "THeartbeat", "TStageController"]);
       __publicField(this, "currentProject", null);
       __publicField(this, "isStarted", false);
       __publicField(this, "animationTickerId", null);
@@ -7485,7 +8986,12 @@
       this.runtime = new GameRuntime(project, void 0, {
         onRender: () => this.render(),
         multiplayerManager: network,
-        onNavigate: (target) => this.handleNavigation(target)
+        onNavigate: (target) => this.handleNavigation(target),
+        onStageSwitch: (stageId) => {
+          console.log(`[UniversalPlayer] Stage switched to: ${stageId}`);
+          this.setupScaling();
+          this.render();
+        }
       });
       this.setupScaling();
       this.render();
@@ -7525,7 +9031,8 @@
     }
     setupScaling() {
       if (!this.currentProject) return;
-      const grid = this.currentProject.stage.grid;
+      const activeStage = this.runtime ? this.runtime.stage : this.currentProject.stage;
+      const grid = activeStage ? activeStage.grid : this.currentProject.stage.grid;
       const stageWidth = grid.cols * grid.cellSize;
       const stageHeight = grid.rows * grid.cellSize;
       const windowWidth = window.innerWidth;
@@ -7539,10 +9046,10 @@
       this.stage.style.top = "50%";
       this.stage.style.position = "absolute";
       const bg = grid.backgroundColor || "#000";
-      const bgImg = this.currentProject.stage.backgroundImage;
+      const bgImg = activeStage.backgroundImage || this.currentProject.stage.backgroundImage;
       if (bgImg) {
         const url = bgImg.startsWith("http") || bgImg.startsWith("/") || bgImg.startsWith("data:") ? bgImg : `./images/${bgImg}`;
-        this.stage.style.background = `url("${url}") center center / ${this.currentProject.stage.objectFit || "cover"} no-repeat, ${bg}`;
+        this.stage.style.background = `url("${url}") center center / ${activeStage.objectFit || "cover"} no-repeat, ${bg}`;
       } else {
         this.stage.style.background = bg;
       }
@@ -7750,6 +9257,40 @@
             ti.value = editValue;
           }
           break;
+        case "TVideo":
+        case "TSplashScreen": {
+          const videoSrc = obj.videoSource || "";
+          if (!videoSrc) {
+            el.innerHTML = '<div style="color: #444; font-size: 10px; text-align: center;">No Video Source</div>';
+            break;
+          }
+          let video = el.querySelector("video");
+          if (!video) {
+            el.innerHTML = "";
+            video = document.createElement("video");
+            video.style.width = "100%";
+            video.style.height = "100%";
+            video.playsInline = true;
+            el.appendChild(video);
+          }
+          const fullSrc = videoSrc.startsWith("http") || videoSrc.startsWith("/") || videoSrc.startsWith("data:") ? videoSrc : `./images/${videoSrc}`;
+          if (video.src !== new URL(fullSrc, window.location.href).href) {
+            video.src = fullSrc;
+            if (obj.autoplay) video.play().catch(() => {
+            });
+          }
+          video.style.objectFit = obj.objectFit || "contain";
+          video.style.opacity = String(obj.imageOpacity ?? 1);
+          video.loop = !!obj.loop;
+          video.muted = !!obj.muted;
+          if (obj.playbackRate) video.playbackRate = obj.playbackRate;
+          if (obj.isPlaying && video.paused) {
+            video.play().catch((e) => console.warn("[Player] Video play failed:", e));
+          } else if (!obj.isPlaying && !video.paused) {
+            video.pause();
+          }
+          break;
+        }
       }
     }
     showOverlay(text, subtext) {

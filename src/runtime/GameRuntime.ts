@@ -2,9 +2,10 @@ import { ReactiveRuntime } from './ReactiveRuntime';
 import { ActionExecutor } from './ActionExecutor';
 import { TaskExecutor } from './TaskExecutor';
 import { AnimationManager } from './AnimationManager';
+import { GameLoopManager } from './GameLoopManager';
 
 import { hydrateObjects } from '../utils/Serialization';
-import { DebugLogService } from '../services/DebugLogService';
+import { TStageController } from '../components/TStageController';
 
 
 export interface RuntimeOptions {
@@ -13,6 +14,8 @@ export interface RuntimeOptions {
     initialGlobalVars?: Record<string, any>;
     makeReactive?: boolean;
     onRender?: () => void;
+    startStageId?: string;
+    onStageSwitch?: (stageId: string) => void; // New callback for background sync
 }
 
 export class GameRuntime {
@@ -21,6 +24,10 @@ export class GameRuntime {
     private taskExecutor: TaskExecutor;
     private globalVars: Record<string, any>;
     private objects: any[];
+    private isSplashActive: boolean = false;
+    private splashTimerId: any = null;
+    public stage: any = null; // Public property for external access (e.g. Standalone Player)
+    private stageController: TStageController | null = null;
 
     constructor(
         private project: any,
@@ -30,14 +37,93 @@ export class GameRuntime {
         this.globalVars = { ...options.initialGlobalVars };
         this.reactiveRuntime = new ReactiveRuntime();
 
-        // Hydrate objects if not provided
-        this.objects = objects || hydrateObjects(project.objects);
+        // Determine if we start with a specific stage or legacy objects
+        const hasStages = project.stages && project.stages.length > 0;
+
+        let activeStage = null;
+
+        if (options.startStageId && hasStages) {
+            // Context-Aware Start: Specific Stage requested
+            activeStage = project.stages.find((s: any) => s.id === options.startStageId);
+        } else {
+            // Default Start (Full Game): Always try to start with Splash, then Main
+            if (hasStages) {
+                const splashStage = project.stages.find((s: any) => s.type === 'splash');
+                if (splashStage) {
+                    activeStage = splashStage;
+                } else {
+                    // No splash? Use Main or whatever is active
+                    activeStage = project.stages.find((s: any) => s.id === project.activeStageId) || project.stages[0];
+                }
+            }
+        }
+
+        if (objects) {
+            // Sandbox/Override mode
+            this.objects = objects;
+        } else if (activeStage) {
+            this.stage = activeStage; // Set public property
+
+            // New multi-stage system
+
+            // If explicit start stage provided (and it's a sub-stage), we skip splash logic
+            // UNLESS the start stage IS the splash stage.
+            if (options.startStageId) {
+                this.isSplashActive = activeStage.type === 'splash'; // Only true if we explicitly start IN splash
+            } else {
+                this.isSplashActive = activeStage.type === 'splash';
+            }
+
+            let loadedObjects = hydrateObjects(activeStage.objects || []);
+
+            // INHERITANCE: If starting in a sub-stage, load 'main' stage objects (globals)
+            // But only those that don't collide with local objects?
+            // Requirement: "System-Komponenten... global sichtbar". 
+            // So we treat 'main' as global provider.
+            if (options.startStageId && activeStage.type !== 'splash' && activeStage.type !== 'main') {
+                const mainStage = project.stages.find((s: any) => s.type === 'main');
+                if (mainStage && mainStage.objects) {
+                    const globalObjects = hydrateObjects(mainStage.objects);
+                    // Append objects that are not already present (by ID)
+                    // If name collision? We assume ID is unique enough or we trust user naming.
+                    // Prioritize local objects (already loaded).
+                    const localIds = new Set(loadedObjects.map(o => o.id));
+
+                    globalObjects.forEach(gObj => {
+                        if (!localIds.has(gObj.id)) {
+                            // potential name check?
+                            const nameCollision = loadedObjects.find(l => l.name === gObj.name);
+                            if (!nameCollision) {
+                                loadedObjects.push(gObj);
+                            } else {
+                                console.warn(`[GameRuntime] Global object '${gObj.name}' skipped due to local name collision in stage '${activeStage.name}'`);
+                            }
+                        }
+                    });
+                    console.log(`[GameRuntime] Context-Aware Start: Loaded ${activeStage.name} + Global Objects from Main`);
+                }
+            }
+
+            this.objects = loadedObjects;
+        } else {
+            // Legacy-Fallback (Splash -> Main)
+            const hasLegacySplash = project.splashObjects && project.splashObjects.length > 0;
+            if (hasLegacySplash) {
+                this.isSplashActive = true;
+                this.objects = hydrateObjects(project.splashObjects || []);
+            } else {
+                this.objects = hydrateObjects(project.objects || []);
+            }
+        }
 
         // Initialize reactive objects if requested
         if (options.makeReactive) {
             this.objects.forEach(obj => {
                 this.reactiveRuntime.registerObject(obj.name, obj, true);
             });
+
+            // Expose state
+            this.reactiveRuntime.setVariable('isSplashActive', this.isSplashActive);
 
             // Expose multiplayer state as reactive variables
             const mp = options.multiplayerManager || (window as any).multiplayerManager;
@@ -59,237 +145,47 @@ export class GameRuntime {
             options.multiplayerManager || (window as any).multiplayerManager,
             options.onNavigate
         );
+
         const mp = options.multiplayerManager || (window as any).multiplayerManager;
         this.taskExecutor = new TaskExecutor(
             project,
             project.actions || [],
             this.actionExecutor,
-            project.flowCharts,  // Pass flowCharts dictionary
-            mp  // For triggerMode handling
+            project.flowCharts,
+            mp
         );
 
-        // Wiring for remote task execution (triggerMode)
+        // Wiring for remote task execution
         if (mp) {
             mp.onRemoteTask = (msg: any) => {
-                this.executeRemoteTask(msg.taskName, msg.params, msg.mode);
+                this.executeRemoteTask(msg.taskName, msg.params);
             };
         }
 
         this.init();
-    }
 
+        // Initialisiere TStageController für zentrale Stage-Verwaltung
+        this.initStageController();
 
-    public start() {
-
-        // 1. Initial render (if a renderer is attached or manually)
-        // For now, let the player handle the first render if needed, 
-        // or we can add a render callback to options.
-
-        // 2. Trigger onStart for all objects
-        this.objects.forEach(obj => {
-            this.handleEvent(obj.id, 'onStart');
-        });
-
-        // 2a. Trigger Stage Start Animation if configured
-        const stageConfig = this.project.stage || this.project.grid;
-        if (stageConfig && stageConfig.startAnimation && stageConfig.startAnimation !== 'none') {
-            console.log(`[GameRuntime] Triggering start animation: ${stageConfig.startAnimation} `);
-
-            // Animate all visual objects (not the Stage itself, and not invisible components)
-            const invisibleClasses = ['TGameLoop', 'TInputController', 'TTimer', 'TGameState', 'THandshake', 'THeartbeat', 'TGameServer', 'TStage'];
-            const visualObjects = this.objects.filter(o => !invisibleClasses.includes(o.className));
-            console.log(`[GameRuntime] Found ${visualObjects.length} visual objects to animate.`);
-
-            visualObjects.forEach((obj, index) => {
-                if (typeof obj.moveTo === 'function') {
-                    const targetX = obj.x;
-                    const targetY = obj.y;
-                    const duration = stageConfig.startAnimationDuration || 1000;
-                    const easing = stageConfig.startAnimationEasing || 'easeOut';
-
-                    const start = this.getPatternStartPosition(
-                        stageConfig.startAnimation,
-                        targetX,
-                        targetY,
-                        index,
-                        stageConfig
-                    );
-
-                    console.log(`[GameRuntime] Animating ${obj.name || obj.id}: from(${start.x}, ${start.y}) to(${targetX}, ${targetY}) with opacity 0 -> 1`);
-
-                    // Set to start position and hide
-                    obj.x = start.x;
-                    obj.y = start.y;
-                    if (!obj.style) obj.style = {};
-                    obj.style.opacity = 0;
-
-                    // Animate position
-                    obj.moveTo(targetX, targetY, duration, easing);
-
-                    // Animate opacity (AnimationManager supports nested paths)
-                    const am = AnimationManager.getInstance();
-                    am.addTween(obj, 'style.opacity', 1, duration, easing);
-                } else {
-                    console.warn(`[GameRuntime] Object ${obj.name || obj.id} has no moveTo method!`);
-                }
-            });
-        }
-
-        // 3. Start Input Controllers
-        const inputControllers = this.objects.filter(o => o.className === 'TInputController');
-        inputControllers.forEach(ic => {
-            // console.log(`[GameRuntime] Starting InputController: ${ ic.name } `);
-            if (typeof ic.init === 'function') {
-                ic.init(
-                    this.objects,
-                    (id: string, event: string, data: any) => this.handleEvent(id, event, data)
-                );
-            }
-            if (typeof ic.start === 'function') ic.start();
-        });
-
-        // 4. Start Game Loop if found
-        const gameLoop = this.objects.find(o => o.className === 'TGameLoop');
-        if (gameLoop && typeof gameLoop.start === 'function') {
-            // console.log(`[GameRuntime] Starting GameLoop: ${ gameLoop.name } `);
-            if (typeof gameLoop.init === 'function') {
-                gameLoop.init(
-                    this.objects,
-                    this.project.stage.grid,
-                    this.options.onRender || (() => { }),
-                    (id: string, event: string, data: any) => this.handleEvent(id, event, data)
-                );
-            }
-            gameLoop.start();
-        }
-
-        // 5. Start Timers
-        const timers = this.objects.filter(o => o.className === 'TTimer');
-        timers.forEach(timer => {
-            // Register onEvent callback for maxInterval event
-            if ('onEvent' in timer) {
-                timer.onEvent = (eventName: string) => {
-                    this.handleEvent(timer.id, eventName);
-                };
-            }
-            // console.log(`[GameRuntime] Starting Timer: ${ timer.name } `);
-            if (typeof timer.start === 'function') {
-                timer.start(() => {
-                    this.handleEvent(timer.id, 'onTimer');
-                });
-            }
-        });
-
-        // 6. Start NumberLabels (Set event callback)
-        const numberLabels = this.objects.filter(o => o.className === 'TNumberLabel');
-        numberLabels.forEach(nl => {
-            if ('onEvent' in nl) {
-                nl.onEvent = (eventName: string) => {
-                    this.handleEvent(nl.id, eventName);
-                };
-            }
-        });
-
-        // 7. Start Multiplayer Components (Handshake, Heartbeat, GameServer)
-        const mp = this.options.multiplayerManager || (window as any).multiplayerManager;
-
-        if (mp && typeof mp.on === 'function') {
-            mp.on((msg: any) => {
-                // THandshake dispatch
-                const handshakes = this.objects.filter(o => o.className === 'THandshake');
-                handshakes.forEach(hs => {
-                    if (msg.type === 'room_joined') {
-                        hs._setRoomInfo(msg.roomCode, msg.playerNumber, msg.playerNumber === 1);
-                        hs._setStatus('waiting');
-                        hs._fireEvent('onRoomJoined', msg);
-                    } else if (msg.type === 'player_joined') {
-                        hs._fireEvent('onPeerJoined', msg);
-                    } else if (msg.type === 'game_start') {
-                        hs._setStatus('playing');
-                        hs._fireEvent('onGameStart', msg);
-                    } else if (msg.type === 'room_created') {
-                        hs._setRoomInfo(msg.roomCode, 1, true);
-                        hs._setStatus('waiting');
-                        hs._fireEvent('onRoomCreated', msg);
-                    } else if (msg.type === 'player_left') {
-                        hs._setStatus('waiting');
-                        hs._fireEvent('onPeerLeft', msg);
-                    }
-                });
-
-                // THeartbeat dispatch
-                const heartbeats = this.objects.filter(o => o.className === 'THeartbeat');
-                heartbeats.forEach(hb => {
-                    if (msg.type === 'pong') {
-                        hb._handlePong(msg.serverTime);
-                    } else if (msg.type === 'player_timeout') {
-                        hb._setConnectionLost();
-                    }
-                });
-            });
-        }
-
-        // THandshake callbacks
-        const handshakes = this.objects.filter(o => o.className === 'THandshake');
-        handshakes.forEach(hs => {
-            hs.onEvent = (eventName: string, data?: any) => {
-                if (!mp) return;
-                if (eventName === '_createRoom') mp.createRoom();
-                else if (eventName === '_joinRoom') mp.joinRoom(data?.code);
-                else if (eventName === '_ready') mp.ready();
-                else this.handleEvent(hs.id, eventName, data);
-            };
-        });
-
-        // THeartbeat callbacks
-        const heartbeats = this.objects.filter(o => o.className === 'THeartbeat');
-        heartbeats.forEach(hb => {
-            hb.onEvent = (eventName: string, data?: any) => {
-                if (!mp) return;
-                if (eventName === '_start') {
-                    hb._startTimer(() => mp.send({ type: 'ping', timestamp: Date.now() }));
-                } else if (eventName === '_stop') {
-                    hb._stopTimer();
-                } else if (eventName === '_forcePing') {
-                    mp.send({ type: 'ping', timestamp: Date.now() });
-                } else this.handleEvent(hb.id, eventName, data);
-            };
-        });
-
-        // TGameServer (Ensure event callback is set)
-        const servers = this.objects.filter(o => o.className === 'TGameServer');
-        servers.forEach(server => {
-            if (typeof server.start === 'function') {
-                server.start((eventName: string, data?: any) => {
-                    this.handleEvent(server.id, eventName, data);
-                });
-            }
-        });
-
-        // 8. Handle existing state (for Player 2 who joins and then starts the project)
-        // IMPORTANT: Must be AFTER onEvent handlers are set!
-        if (mp && mp.roomCode) {
-            const handshakes = this.objects.filter(o => o.className === 'THandshake');
-            handshakes.forEach(hs => {
-                console.log(`[GameRuntime] Restoring existing room state for ${hs.name}: ${mp.roomCode} `);
-                hs._setRoomInfo(mp.roomCode, mp.playerNumber, mp.playerNumber === 1);
-                hs._setStatus('waiting');
-                // Trigger the joined event so the toast appears
-                if (mp.playerNumber === 1) {
-                    hs._fireEvent('onRoomCreated', { roomCode: mp.roomCode });
-                } else {
-                    hs._fireEvent('onRoomJoined', { roomCode: mp.roomCode, playerNumber: mp.playerNumber });
-                }
-            });
+        // Notify host of initial stage (for background sync)
+        if (activeStage && options.onStageSwitch) {
+            options.onStageSwitch(activeStage.id);
         }
     }
 
     public stop() {
+        if (this.splashTimerId) {
+            clearTimeout(this.splashTimerId);
+            this.splashTimerId = null;
+        }
+
         // 1. Stop Game Loop
         const gameLoop = this.objects.find(o => o.className === 'TGameLoop');
         if (gameLoop && typeof gameLoop.stop === 'function') {
             gameLoop.stop();
         }
+        // CRITICAL: Also stop the singleton manager
+        GameLoopManager.getInstance().stop();
 
         // 2. Stop Input Controllers
         const inputControllers = this.objects.filter(o => o.className === 'TInputController');
@@ -308,295 +204,424 @@ export class GameRuntime {
         servers.forEach(server => {
             if (typeof server.stop === 'function') server.stop();
         });
+
+        // 5. Clear Animation Manager
+        AnimationManager.getInstance().clear();
+    }
+
+    public start() {
+        if (this.options.onRender) this.options.onRender();
+
+        // 1. Trigger onStart for all current active objects
+        this.objects.forEach(obj => {
+            this.handleEvent(obj.id, 'onStart');
+        });
+
+        // 2. Handle Splash Sequencing
+        if (this.isSplashActive) {
+            if (this.project.splashAutoHide) {
+                const duration = this.project.splashDuration || 3000;
+                console.log(`[GameRuntime] Splash active. Auto-hiding in ${duration}ms`);
+                this.splashTimerId = setTimeout(() => {
+                    this.finishSplash();
+                }, duration);
+            }
+            return;
+        }
+
+        // 3. Normal Game Start
+        this.initMainGame();
+    }
+
+    private initMainGame() {
+        // a) Trigger Animation
+        let stageConfig = this.project.stage || this.project.grid;
+
+        // Try to find the active stage configuration (Main or whatever we are running)
+        if (this.project.stages) {
+            const mainStage = this.project.stages.find((s: any) => s.type === 'main');
+            if (mainStage) {
+                stageConfig = {
+                    ...stageConfig,
+                    startAnimation: mainStage.startAnimation,
+                    startAnimationDuration: mainStage.startAnimationDuration,
+                    startAnimationEasing: mainStage.startAnimationEasing
+                };
+            }
+        }
+
+        if (stageConfig && stageConfig.startAnimation && stageConfig.startAnimation !== 'none') {
+            this.triggerStartAnimation(stageConfig);
+        }
+
+        // b) Input Controllers
+        const inputControllers = this.objects.filter(o => o.className === 'TInputController');
+        inputControllers.forEach(ic => {
+            if (typeof ic.init === 'function') {
+                ic.init(this.objects, (id: string, ev: string, data: any) => this.handleEvent(id, ev, data));
+            }
+            if (typeof ic.start === 'function') ic.start();
+        });
+
+        // c) Game Loop - Use GameLoopManager Singleton
+        const gridConfig = (this.stage && this.stage.grid) || this.project.stage?.grid || this.project.grid;
+        GameLoopManager.getInstance().init(
+            this.objects,
+            gridConfig,
+            this.options.onRender || (() => { }),
+            (id: string, ev: string, data: any) => this.handleEvent(id, ev, data)
+        );
+        GameLoopManager.getInstance().start();
+
+        // d) Timers
+        const timers = this.objects.filter(o => o.className === 'TTimer');
+        timers.forEach(timer => {
+            if ('onEvent' in timer) timer.onEvent = (ev: string) => this.handleEvent(timer.id, ev);
+            if (typeof timer.start === 'function') timer.start(() => this.handleEvent(timer.id, 'onTimer'));
+        });
+
+        // e) Specialized Labels
+        const numberLabels = this.objects.filter(o => o.className === 'TNumberLabel');
+        numberLabels.forEach(nl => {
+            if ('onEvent' in nl) nl.onEvent = (ev: string) => this.handleEvent(nl.id, ev);
+        });
+
+        // f) Splash (Legacy support for standalone splash objects in main game)
+        const splashScreens = this.objects.filter(o => o.className === 'TSplashScreen');
+        splashScreens.forEach(splash => {
+            const duration = splash.duration || 3000;
+            setTimeout(() => {
+                this.handleEvent(splash.id, 'onFinish');
+                if (splash.autoHide) {
+                    splash.visible = false;
+                    if (this.options.onRender) this.options.onRender();
+                }
+            }, duration);
+        });
+
+        // g) Multiplayer
+        this.initMultiplayer();
+
+        if (this.options.onRender) this.options.onRender();
+    }
+
+    private finishSplash() {
+        if (!this.isSplashActive) return;
+        if (this.splashTimerId) {
+            clearTimeout(this.splashTimerId);
+            this.splashTimerId = null;
+        }
+
+        console.log("[GameRuntime] Splash finished. Using TStageController to switch to Main.");
+        this.isSplashActive = false;
+
+        // Nutze TStageController für den Stage-Wechsel
+        if (this.stageController) {
+            this.stageController.goToMainStage();
+        } else {
+            // Fallback: Manueller Wechsel wenn kein StageController vorhanden
+            console.warn("[GameRuntime] No StageController found, using legacy stage switch");
+            this.legacyStageSwitch();
+        }
+    }
+
+    /**
+     * Initialisiert den TStageController und registriert den Stage-Wechsel Callback
+     */
+    private initStageController(): void {
+        this.stageController = this.objects.find(
+            o => o.className === 'TStageController'
+        ) as TStageController | null;
+
+        if (this.stageController && this.project.stages) {
+            this.stageController.setStages(this.project.stages);
+            this.stageController.setOnStageChangeCallback(
+                (oldId, newId) => this.handleStageChange(oldId, newId)
+            );
+            console.log(`[GameRuntime] StageController initialized with ${this.project.stages.length} stages`);
+        }
+    }
+
+    /**
+     * Wird vom TStageController aufgerufen wenn die Stage wechselt
+     */
+    private handleStageChange(oldStageId: string, newStageId: string): void {
+        console.log(`[GameRuntime] Stage change: ${oldStageId} → ${newStageId}`);
+
+        // 1. ProjectRegistry aktualisieren (Context setzen)
+        import('../services/ProjectRegistry').then(({ projectRegistry }) => {
+            projectRegistry.setActiveStageId(newStageId);
+
+            // 2. Hydrierung: Neue Objekte der Stage + Globale Services
+            const combinedObjects = projectRegistry.getObjects();
+            this.objects = hydrateObjects(combinedObjects);
+
+            // 3. Stage-Referenz aktualisieren
+            if (this.project.stages) {
+                this.stage = this.project.stages.find((s: any) => s.id === newStageId);
+            }
+
+            // 4. Stage-spezifische FlowCharts im TaskExecutor aktualisieren
+            const stageFlowCharts = (this.stage as any)?.flowCharts || {};
+            // Merge with global flowCharts, stage-specific flows win
+            const mergedFlowCharts = {
+                ...(this.project.flowCharts || {}),
+                ...stageFlowCharts
+            };
+            this.taskExecutor.setFlowCharts(mergedFlowCharts);
+            console.log(`[GameRuntime] TaskExecutor updated with ${Object.keys(mergedFlowCharts).length} flowCharts`);
+
+            // 5. Reactive Runtime aktualisieren
+            if (this.options.makeReactive) {
+                this.reactiveRuntime.clear(); // CRITICAL: Clear old objects and bindings
+                AnimationManager.getInstance().clear(); // CRITICAL: Clear animations from previous stage
+                this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
+                this.reactiveRuntime.setVariable('isSplashActive', false);
+                this.objects = this.reactiveRuntime.getObjects();
+            }
+
+            // 6. Executors aktualisieren
+            this.actionExecutor.setObjects(this.objects);
+
+            // 7. StageController neu initialisieren (weil er jetzt Teil der neuen Objekte ist)
+            this.initStageController();
+
+            // 8. GameLoop und andere Komponenten starten
+            this.start();
+
+            // 9. Host benachrichtigen (für UI-Update)
+            if (this.options.onStageSwitch) {
+                console.log(`[GameRuntime] Notifying host of stage switch to: ${newStageId}`);
+                this.options.onStageSwitch(newStageId);
+            }
+        });
+    }
+
+    /**
+     * Legacy Stage-Wechsel (Fallback wenn kein TStageController vorhanden)
+     */
+    private legacyStageSwitch(): void {
+        if (this.project.stages) {
+            const mainStage = this.project.stages.find((s: any) => s.type === 'main');
+            if (mainStage) {
+                this.handleStageChange('splash', mainStage.id);
+            }
+        } else {
+            this.objects = hydrateObjects(this.project.objects || []);
+            this.start();
+        }
+    }
+
+
+
+    private initMultiplayer() {
+        const mp = this.options.multiplayerManager || (window as any).multiplayerManager;
+        if (!mp) return;
+
+        if (typeof mp.on === 'function') {
+            mp.on((msg: any) => {
+                const handshakes = this.objects.filter(o => o.className === 'THandshake');
+                handshakes.forEach(hs => {
+                    if (msg.type === 'room_joined') {
+                        hs._setRoomInfo(msg.roomCode, msg.playerNumber, msg.playerNumber === 1);
+                        hs._setStatus('waiting');
+                        hs._fireEvent('onRoomJoined', msg);
+                    } else if (msg.type === 'game_start') {
+                        hs._setStatus('playing');
+                        hs._fireEvent('onGameStart', msg);
+                    } else if (msg.type === 'room_created') {
+                        hs._setRoomInfo(msg.roomCode, 1, true);
+                        hs._setStatus('waiting');
+                        hs._fireEvent('onRoomCreated', msg);
+                    }
+                });
+
+                const heartbeats = this.objects.filter(o => o.className === 'THeartbeat');
+                heartbeats.forEach(hb => {
+                    if (msg.type === 'pong') hb._handlePong(msg.serverTime);
+                    else if (msg.type === 'player_timeout') hb._setConnectionLost();
+                });
+            });
+        }
+
+        // Callbacks
+        this.objects.filter(o => o.className === 'THandshake').forEach(hs => {
+            hs.onEvent = (ev: string, data?: any) => {
+                if (ev === '_createRoom') mp.createRoom();
+                else if (ev === '_joinRoom') mp.joinRoom(data?.code);
+                else if (ev === '_ready') mp.ready();
+                else this.handleEvent(hs.id, ev, data);
+            };
+        });
+
+        this.objects.filter(o => o.className === 'THeartbeat').forEach(hb => {
+            hb.onEvent = (ev: string, data?: any) => {
+                if (ev === '_start') hb._startTimer(() => mp.send({ type: 'ping', timestamp: Date.now() }));
+                else if (ev === '_stop') hb._stopTimer();
+                else this.handleEvent(hb.id, ev, data);
+            };
+        });
+
+        this.objects.filter(o => o.className === 'TGameServer').forEach(server => {
+            if (typeof server.start === 'function') {
+                server.start((ev: string, data?: any) => this.handleEvent(server.id, ev, data));
+            }
+        });
+
+        // Restore state
+        if (mp.roomCode) {
+            this.objects.filter(o => o.className === 'THandshake').forEach(hs => {
+                hs._setRoomInfo(mp.roomCode, mp.playerNumber, mp.playerNumber === 1);
+                hs._setStatus('waiting');
+                if (mp.playerNumber === 1) hs._fireEvent('onRoomCreated', { roomCode: mp.roomCode });
+                else hs._fireEvent('onRoomJoined', { roomCode: mp.roomCode, playerNumber: mp.playerNumber });
+            });
+        }
+    }
+
+    private triggerStartAnimation(stageConfig: any) {
+        const invisibleClasses = ['TGameLoop', 'TInputController', 'TTimer', 'TGameState', 'THandshake', 'THeartbeat', 'TGameServer', 'TStage'];
+        const visualObjects = this.objects.filter(o => !invisibleClasses.includes(o.className));
+
+        visualObjects.forEach((obj, index) => {
+            if (typeof obj.moveTo === 'function') {
+                const targetX = obj.x, targetY = obj.y;
+                const duration = stageConfig.startAnimationDuration || 1000;
+                const easing = stageConfig.startAnimationEasing || 'easeOut';
+                const start = this.getPatternStartPosition(stageConfig.startAnimation, targetX, targetY, index, stageConfig);
+
+                obj.x = start.x; obj.y = start.y;
+                if (!obj.style) obj.style = {};
+                obj.style.opacity = 0;
+                obj.moveTo(targetX, targetY, duration, easing);
+                AnimationManager.getInstance().addTween(obj, 'style.opacity', 1, duration, easing);
+            }
+        });
+    }
+
+    public handleEvent(objectId: string, eventName: string, data: any = {}) {
+        // 1. Find object
+        const obj = this.objects.find(o => o.id === objectId || o.name === objectId);
+        if (!obj) {
+            // console.warn(`[GameRuntime] Object not found: ${objectId}`);
+            return;
+        }
+
+        // 2. Check for event handler in Tasks object (primary location for editor-defined events)
+        const taskName = obj.Tasks?.[eventName] || obj[eventName] || obj.properties?.[eventName];
+
+        if (taskName && typeof taskName === 'string') {
+            console.log(`[GameRuntime] Handling ${eventName} on ${obj.name} -> Task: ${taskName}`, data);
+
+            // Prepare local vars if needed (usually empty for event start)
+            const vars = {};
+
+            // Execute Task
+            this.taskExecutor.execute(taskName, vars, this.globalVars, obj, 0, undefined, data);
+
+            // Reactivity sync (optional, handled by ReactiveRuntime usually)
+        }
     }
 
     public updateRemoteState(objectIdOrName: string, state: any) {
         const target = this.objects.find(o => o.id === objectIdOrName || o.name === objectIdOrName);
         if (!target) return;
 
-        // console.log(`[Runtime] RECV remote_state for ${ target.name }(id: ${ target.id }) from P${ state.player || '?' }: `, state);
-
-        // Apply state changes
         if (state.x !== undefined || state.y !== undefined) {
-            if (typeof target.smoothSync === 'function') {
-                target.smoothSync(state.x ?? target.x, state.y ?? target.y);
-            } else {
-                if (state.x !== undefined) target.x = state.x;
-                if (state.y !== undefined) target.y = state.y;
-            }
+            if (typeof target.smoothSync === 'function') target.smoothSync(state.x ?? target.x, state.y ?? target.y);
+            else { if (state.x !== undefined) target.x = state.x; if (state.y !== undefined) target.y = state.y; }
         }
-
         if (state.vx !== undefined) target.velocityX = state.vx;
         if (state.vy !== undefined) target.velocityY = state.vy;
         if (state.text !== undefined) target.text = state.text;
         if (state.value !== undefined) target.value = state.value;
+        if (state.spritesMoving !== undefined) target.spritesMoving = state.spritesMoving;
 
-        // Apply spritesMoving from remote GameState
-        if (state.spritesMoving !== undefined) {
-            target.spritesMoving = state.spritesMoving;
-        }
-
-        // Trigger onSyncState if defined
-        this.handleEvent(target.id, 'onSyncState', {
-            targetX: state.x,
-            targetY: state.y,
-            targetVX: state.vx,
-            targetVY: state.vy,
-            targetText: state.text,
-            targetValue: state.value,
-            syncedObject: target.name
-        });
+        this.handleEvent(target.id, 'onSyncState', { ...state, syncedObject: target.name });
     }
 
+
+
     /**
-     * Trigger an event on a remote object (called when receiving a remote_event message)
+     * Multiplayer: Triggers an event on a specific object from a remote peer
      */
-    public triggerRemoteEvent(objectIdOrName: string, eventName: string, params?: any) {
-        const target = this.objects.find(o => o.id === objectIdOrName || o.name === objectIdOrName);
-        if (!target) {
-            console.warn(`[Runtime] triggerRemoteEvent: Object not found: ${objectIdOrName} `);
-            return;
-        }
-
-        console.log(`[Runtime] Triggering remote event: ${target.name}.${eventName} `);
-
-        // Set a flag to prevent the task from sending another remote event (loop prevention)
-        this.globalVars['isRemoteTriggered'] = 1;
-        this.handleEvent(target.id, eventName, params || {});
-        this.globalVars['isRemoteTriggered'] = 0;
+    public triggerRemoteEvent(objectId: string, eventName: string, params: any) {
+        console.log(`[Runtime] Remote Event: ${objectId}.${eventName}`, params);
+        this.handleEvent(objectId, eventName, params);
     }
 
     /**
-     * Execute an action received from another player
+     * Multiplayer: Executes an action from a remote peer
      */
     public executeRemoteAction(action: any) {
-        const vars: Record<string, any> = {};
-        if (this.project.variables) {
-            this.project.variables.forEach((v: any) => {
-                vars[v.name] = this.reactiveRuntime.getVariable(v.name);
-            });
-        }
-        Object.assign(vars, this.globalVars);
-
-        // Note: With triggerMode on Task-level, remote actions execute normally
-        this.actionExecutor.execute(action, vars, this.globalVars, null, undefined);
+        console.log(`[Runtime] Remote Action:`, action);
+        this.actionExecutor.execute(action, {}, this.globalVars);
     }
 
     /**
-     * Executes a task received via network (triggerMode logic)
+     * Multiplayer: Executes a task from a remote peer
      */
-    public executeRemoteTask(taskName: string, params?: any, mode?: 'broadcast' | 'sync') {
-        console.log(`[Runtime] Executing remote task: ${taskName} (mode: ${mode})`);
-
+    public executeRemoteTask(taskName: string, params: any = {}, mode?: string) {
+        console.log(`[Runtime] Remote Task: ${taskName}`, params, mode);
         const vars: Record<string, any> = {};
         if (this.project.variables) {
-            this.project.variables.forEach((v: any) => {
-                vars[v.name] = this.reactiveRuntime.getVariable(v.name);
-            });
+            this.project.variables.forEach((v: any) => vars[v.name] = this.reactiveRuntime.getVariable(v.name));
         }
         Object.assign(vars, this.globalVars, params || {});
 
-        // isRemoteExecution = true to prevent recursive triggers in TaskExecutor
-        // Args: taskName, vars, globalVars, contextObj, depth, parentId, params, isRemoteExecution
+        // Execute task with remote flag set to true
         this.taskExecutor.execute(taskName, vars, this.globalVars, null, 0, undefined, params, true);
+    }
+
+    /**
+     * Returns all runtime objects
+     */
+    public getObjects(): any[] {
+        return this.objects;
     }
 
     private init() {
         if (!this.options.makeReactive) {
-            this.objects.forEach(obj => {
-                this.reactiveRuntime.registerObject(obj.name, obj, false);
-            });
+            this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, false));
         }
-
         if (this.project.variables) {
             this.project.variables.forEach((v: any) => {
-                const initialValue = this.globalVars[v.name] !== undefined
-                    ? this.globalVars[v.name]
-                    : v.defaultValue;
-                this.reactiveRuntime.registerVariable(v.name, initialValue);
+                const val = this.globalVars[v.name] !== undefined ? this.globalVars[v.name] : v.defaultValue;
+                this.reactiveRuntime.registerVariable(v.name, val);
             });
         }
-
         this.setupBindings();
     }
 
     private setupBindings() {
         this.objects.forEach(obj => {
             Object.keys(obj).forEach(prop => {
-                const value = obj[prop];
-                if (typeof value === 'string' && value.includes('${')) {
-                    this.reactiveRuntime.bind(obj, prop, value);
-                }
-
-                if (prop === 'style' && typeof value === 'object' && value !== null) {
-                    Object.keys(value).forEach(styleProp => {
-                        const styleValue = value[styleProp];
-                        if (typeof styleValue === 'string' && styleValue.includes('${')) {
-                            this.reactiveRuntime.bind(value, styleProp, styleValue);
-                        }
+                if (typeof obj[prop] === 'string' && obj[prop].includes('${')) this.reactiveRuntime.bind(obj, prop, obj[prop]);
+                if (prop === 'style' && typeof obj[prop] === 'object' && obj[prop] !== null) {
+                    Object.keys(obj[prop]).forEach(sp => {
+                        if (typeof obj[prop][sp] === 'string' && obj[prop][sp].includes('${')) this.reactiveRuntime.bind(obj[prop], sp, obj[prop][sp]);
                     });
                 }
             });
         });
     }
 
-    handleEvent(objectId: string, eventName: string, data: any = {}) {
 
-        let targets: any[] = [];
-        if (objectId === 'global') {
-            // Find all objects that have a task for this event
-            targets = this.objects.filter(o => o.Tasks && o.Tasks[eventName]);
-        } else {
-            // Search by id first, then fallback to name for backwards compatibility
-            const obj = this.objects.find(o => o.id === objectId || o.name === objectId);
-            if (obj) {
-                // console.log(`[GameRuntime] Found target object: ${obj.name} (id: ${obj.id}), Tasks:`, obj.Tasks);
-                targets.push(obj);
-            } else {
-                console.warn(`[GameRuntime] No object found for objectId="${objectId}". Available objects:`, this.objects.map(o => ({ id: o.id, name: o.name })));
-            }
-        }
-
-
-
-        // Original Task handling
-        const taskTargets = targets.filter(o => o.Tasks && o.Tasks[eventName]);
-        if (taskTargets.length === 0) {
-            // Debug: log if we couldn't find targets for important events
-            if (eventName === 'onBoundaryHit') {
-                console.warn(`[GameRuntime] No targets found for ${eventName} on ${objectId}`);
-            }
-            return;
-        }
-
-        taskTargets.forEach(obj => {
-            const taskName = obj.Tasks[eventName];
-            if (!taskName) return;
-
-            const vars: Record<string, any> = {};
-            if (this.project.variables) {
-                this.project.variables.forEach((v: any) => {
-                    vars[v.name] = this.reactiveRuntime.getVariable(v.name);
-                });
-            }
-            Object.assign(vars, this.globalVars);
-
-            if (this.options.multiplayerManager) {
-                const pNum = this.options.multiplayerManager.playerNumber;
-                const inRoom = !!this.options.multiplayerManager.roomCode;
-
-                if (inRoom) {
-                    // Strictly use assigned player number if in a room
-                    vars['isPlayer1'] = (pNum === 1) ? 1 : 0;
-                    vars['isPlayer2'] = (pNum === 2) ? 1 : 0;
-                } else {
-                    // Outside room (standalone/lobby), default to P1
-                    vars['isPlayer1'] = 1;
-                    vars['isPlayer2'] = 0;
-                }
-            } else {
-                vars['isPlayer1'] = 1;
-                vars['isPlayer2'] = 0;
-            }
-
-            if (data) {
-                Object.assign(vars, data);
-            }
-
-            // Debug: console.log(`[GameRuntime] Handling event "${eventName}" on ${obj.name}`);
-            const eventLogId = DebugLogService.getInstance().log('Event', `${obj.name}.${eventName}`, {
-                objectName: obj.name,
-                eventName: eventName,
-                data: data
-            });
-
-            this.taskExecutor.execute(taskName, vars, this.globalVars, obj, 0, eventLogId);
-
-            // Sync back to reactive
-            Object.keys(this.globalVars).forEach(name => {
-                if (this.reactiveRuntime.getVariable(name) !== this.globalVars[name]) {
-                    this.reactiveRuntime.setVariable(name, this.globalVars[name]);
-                }
-            });
-        });
-    }
-
-
-
-    setVariable(name: string, value: any) {
-        this.globalVars[name] = value;
-        this.reactiveRuntime.setVariable(name, value);
-    }
-
-    getVariable(name: string): any {
-        return this.globalVars[name] !== undefined
-            ? this.globalVars[name]
-            : this.reactiveRuntime.getVariable(name);
-    }
-
-    getObjects(): any[] {
-        return this.objects;
-    }
-
-    getGlobalState(): Record<string, any> {
-        return { ...this.globalVars };
-    }
-
-    /**
-     * Berechnet die Startposition für ein Objekt basierend auf dem Fly-In Muster.
-     */
-    private getPatternStartPosition(
-        pattern: string,
-        targetX: number,
-        targetY: number,
-        index: number,
-        stage: any
-    ): { x: number; y: number } {
-        // Use Grid units (not pixels) for everything!
-        const cols = stage.grid?.cols || stage.cols || 32;
-        const rows = stage.grid?.rows || stage.rows || 24;
-        const outsideMargin = 10; // 10 grid cells outside for visible effect
-
+    private getPatternStartPosition(pattern: string, targetX: number, targetY: number, index: number, stage: any): { x: number; y: number } {
+        const cols = stage.grid?.cols || stage.cols || 32, rows = stage.grid?.rows || stage.rows || 24, margin = 10;
         switch (pattern) {
-            case 'UpLeft':
-                return { x: -outsideMargin, y: -outsideMargin };
-            case 'UpMiddle':
-                return { x: cols / 2, y: -outsideMargin };
-            case 'UpRight':
-                return { x: cols + outsideMargin, y: -outsideMargin };
-            case 'Left':
-                return { x: -outsideMargin, y: targetY };
-            case 'Right':
-                return { x: cols + outsideMargin, y: targetY };
-            case 'BottomLeft':
-                return { x: -outsideMargin, y: rows + outsideMargin };
-            case 'BottomMiddle':
-                return { x: cols / 2, y: rows + outsideMargin };
-            case 'BottomRight':
-                return { x: cols + outsideMargin, y: rows + outsideMargin };
-            case 'ChaosIn': {
-                // Random position far outside the grid
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.max(cols, rows) + outsideMargin;
-                return {
-                    x: cols / 2 + Math.cos(angle) * distance,
-                    y: rows / 2 + Math.sin(angle) * distance
-                };
-            }
-            case 'ChaosOut':
-                // All start in the middle of the grid
-                return { x: cols / 2, y: rows / 2 };
-            case 'Matrix':
-                // Objects come from top, staggered by index
-                return { x: targetX, y: -outsideMargin - (index * 2) };
-            case 'Random': {
-                // Pick a simple pattern
-                const simplePatterns = ['UpLeft', 'UpMiddle', 'UpRight', 'Left', 'Right', 'BottomLeft', 'BottomMiddle', 'BottomRight'];
-                const randomPattern = simplePatterns[Math.floor(Math.random() * simplePatterns.length)];
-                return this.getPatternStartPosition(randomPattern, targetX, targetY, index, stage);
-            }
-            default:
-                return { x: targetX, y: targetY }; // Fallback to target instead of (0,0)
+            case 'UpLeft': return { x: -margin, y: -margin };
+            case 'UpMiddle': return { x: cols / 2, y: -margin };
+            case 'UpRight': return { x: cols + margin, y: -margin };
+            case 'Left': return { x: -margin, y: targetY };
+            case 'Right': return { x: cols + margin, y: targetY };
+            case 'BottomLeft': return { x: -margin, y: rows + margin };
+            case 'BottomMiddle': return { x: cols / 2, y: rows + margin };
+            case 'BottomRight': return { x: cols + margin, y: rows + margin };
+            case 'ChaosIn': { const a = Math.random() * Math.PI * 2, d = Math.max(cols, rows) + margin; return { x: cols / 2 + Math.cos(a) * d, y: rows / 2 + Math.sin(a) * d }; }
+            case 'ChaosOut': return { x: cols / 2, y: rows / 2 };
+            case 'Matrix': return { x: targetX, y: -margin - (index * 2) };
+            default: return { x: targetX, y: targetY };
         }
     }
 }

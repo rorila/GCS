@@ -245,4 +245,17 @@ export class MenuBar {
             this.activeMenu = null;
         }
     }
+
+    /**
+     * Updates a specific menu's items
+     */
+    public updateMenu(menuId: string, newItems: MenuItem[]): void {
+        if (!this.config) return;
+
+        const menu = this.config.menus.find(m => m.id === menuId);
+        if (menu) {
+            menu.items = newItems;
+            this.render();
+        }
+    }
 }

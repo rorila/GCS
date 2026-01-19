@@ -16,6 +16,13 @@ export class TaskExecutor {
         private multiplayerManager?: MultiplayerManager  // For triggerMode handling
     ) { }
 
+    /**
+     * Aktualisiert die FlowCharts (z.B. bei Stage-Wechsel)
+     */
+    public setFlowCharts(flowCharts: FlowCharts): void {
+        this.flowCharts = flowCharts;
+    }
+
     execute(taskName: string, vars: Record<string, any>, globalVars: Record<string, any>, contextObj?: any, depth: number = 0, parentId?: string, params?: Record<string, any>, isRemoteExecution: boolean = false): void {
         if (depth >= TaskExecutor.MAX_DEPTH) {
             console.error(`[TaskExecutor] Max recursion depth exceeded: ${taskName} `);
@@ -84,22 +91,18 @@ export class TaskExecutor {
             objectName: contextObj?.name
         });
 
-        // Check if we should use flowChart instead of actionSequence
-        // This is a fallback for when actionSequence wasn't properly synced from flowGraph
+        // Bestimme Ausführungsquelle: Bevorzuge FlowChart (Source of Truth im Editor)
         const flowChart = this.flowCharts?.[taskName];
         const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
         const actionSequence = task.actionSequence || [];
-        const hasConditionsInSequence = actionSequence.some((item: any) => item.type === 'condition');
-        const hasConditionsInFlowChart = hasFlowChart && flowChart!.elements.some((el: any) =>
-            el.type === 'Condition' || el.type === 'condition'
-        );
 
-        // If flowChart has conditions but actionSequence doesn't, execute flowChart directly
-        if (hasFlowChart && hasConditionsInFlowChart && !hasConditionsInSequence) {
-            console.log(`[Task] START: ${taskName} (using flowChart with ${flowChart!.elements.length} nodes)`);
+        if (hasFlowChart) {
+            console.log(`[TaskExecutor] Nutze Flussdiagramm für "${taskName}" (Elemente: ${flowChart!.elements.length})`);
             this.executeFlowChart(taskName, flowChart!, vars, globalVars, contextObj, depth, taskLogId);
         } else {
-            console.log(`[Task] START: ${taskName} (seq: ${actionSequence.length})`);
+            if (actionSequence.length === 0) {
+                console.log(`[TaskExecutor] Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
+            }
 
             actionSequence.forEach((seqItem: any, index: number) => {
                 try {
@@ -133,9 +136,11 @@ export class TaskExecutor {
         );
 
         if (!startNode) {
-            console.warn(`[TaskExecutor] No start node found in flowChart for task: ${taskName} `);
+            console.warn(`[TaskExecutor] No start node found in flowChart for task: ${taskName}. elements:`, elements.map(e => `${e.type}:${e.properties?.name || e.id}`));
             return;
         }
+
+        console.log(`[TaskExecutor] FlowChart Elements for "${taskName}":`, elements.map(e => `${e.type}:${e.properties?.name || e.id}`));
 
         const executeNode = (node: any): void => {
             if (!node || visited.has(node.id)) return;
@@ -163,9 +168,11 @@ export class TaskExecutor {
                 }
 
                 // Find and execute next node (non-conditional connection)
+                // We follow empty, 'output', or spatial anchors (right, left, top, bottom).
+                // Only 'true' and 'false' are reserved for conditions.
                 const outgoing = connections.find((c: any) =>
                     c.startTargetId === node.id &&
-                    !c.data?.startAnchorType && !c.data?.anchorType
+                    !['true', 'false'].includes(c.data?.startAnchorType || c.data?.anchorType || '')
                 );
                 if (outgoing) {
                     const nextNode = elements.find((e: any) => e.id === outgoing.endTargetId);
@@ -181,7 +188,7 @@ export class TaskExecutor {
                 // Find and execute next node
                 const outgoing = connections.find((c: any) =>
                     c.startTargetId === node.id &&
-                    !c.data?.startAnchorType && !c.data?.anchorType
+                    !['true', 'false'].includes(c.data?.startAnchorType || c.data?.anchorType || '')
                 );
                 if (outgoing) {
                     const nextNode = elements.find((e: any) => e.id === outgoing.endTargetId);
