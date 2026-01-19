@@ -252,21 +252,35 @@ export class ProjectRegistry {
             scanSeq(task.actionSequence);
         });
 
-        // 2. Search in Flow Charts
-        const allFlowCharts = this.project.flowCharts || {};
-        const charts: { [key: string]: any } = {};
+        // 2. Search in Flow Charts (Global + All Stages)
+        const charts: { [key: string]: { chart: any, source: string } } = {};
 
-        // Only consider flow charts that actually have a corresponding task (prevents zombie references)
-        Object.keys(allFlowCharts).forEach(key => {
+        // Global FlowCharts
+        const globalFlowCharts = this.project.flowCharts || {};
+        Object.keys(globalFlowCharts).forEach(key => {
             if (validTaskNames.has(key)) {
-                charts[key] = allFlowCharts[key];
+                charts[key] = { chart: globalFlowCharts[key], source: 'Global' };
             }
         });
 
-        if ((this.project as any).flow) charts['__legacy_flow__'] = (this.project as any).flow;
+        // Stage FlowCharts
+        if ((this.project as any).stages) {
+            (this.project as any).stages.forEach((stage: any) => {
+                const stageFlowCharts = stage.flowCharts || {};
+                Object.keys(stageFlowCharts).forEach(key => {
+                    if (validTaskNames.has(key)) {
+                        charts[key] = { chart: stageFlowCharts[key], source: `Stage: ${stage.name || stage.id}` };
+                    }
+                });
+            });
+        }
+
+        if ((this.project as any).flow) charts['__legacy_flow__'] = { chart: (this.project as any).flow, source: 'Legacy' };
 
         Object.keys(charts).forEach(chartKey => {
-            const chart = charts[chartKey];
+            const entry = charts[chartKey];
+            const chart = entry.chart;
+            const source = entry.source;
             (chart.elements || []).forEach((el: any) => {
                 const elName = el.data?.name || el.data?.actionName || el.properties?.name;
 
@@ -274,30 +288,45 @@ export class ProjectRegistry {
                 const isSelfReference = chartKey === name || chartKey === elName;
 
                 if (elName === name && !isSelfReference) {
-                    refs.push(`Flow: ${chartKey} -> Element: ${name}`);
+                    refs.push(`${source} Flow: ${chartKey} -> Element: ${name}`);
                 }
 
                 // Conditions in Flow (also check for self-references)
                 if (el.type === 'Condition' && el.data) {
-                    if (el.data.thenAction === name && chartKey !== name) refs.push(`Flow: ${chartKey} -> Condition (Then): ${name}`);
-                    if (el.data.elseAction === name && chartKey !== name) refs.push(`Flow: ${chartKey} -> Condition (Else): ${name}`);
+                    if (el.data.thenAction === name && chartKey !== name) refs.push(`${source} Flow: ${chartKey} -> Condition (Then): ${name}`);
+                    if (el.data.elseAction === name && chartKey !== name) refs.push(`${source} Flow: ${chartKey} -> Condition (Else): ${name}`);
                 }
             });
         });
 
-        // 3. Search in Object Events (Tasks mapped to events)
-        this.project.objects.forEach(obj => {
+        // 3. Search in Object Events (Tasks mapped to events) (Global + All Stages)
+        const allObjects = [...(this.project.objects || [])];
+        const objectSourceMap = new Map<any, string>();
+        allObjects.forEach(obj => objectSourceMap.set(obj, 'Global'));
+
+        if ((this.project as any).stages) {
+            (this.project as any).stages.forEach((stage: any) => {
+                const stageObjs = stage.objects || [];
+                stageObjs.forEach((obj: any) => {
+                    allObjects.push(obj);
+                    objectSourceMap.set(obj, `Stage: ${stage.name || stage.id}`);
+                });
+            });
+        }
+
+        allObjects.forEach(obj => {
+            const source = objectSourceMap.get(obj) || 'Unknown';
             if ((obj as any).Tasks) {
                 Object.entries((obj as any).Tasks).forEach(([evt, taskName]) => {
                     if (taskName === name) {
-                        refs.push(`Objekt: ${obj.name} -> Event: ${evt}`);
+                        refs.push(`${source} Objekt: ${obj.name} -> Event: ${evt}`);
                     }
                 });
             }
             // Bindings in Object props
             const str = JSON.stringify(obj);
             if (str.includes(`\${${name}}`) || str.includes(`\${${name}.`)) {
-                refs.push(`Objekt: ${obj.name} -> Binding: ${name}`);
+                refs.push(`${source} Objekt: ${obj.name} -> Binding: ${name}`);
             }
         });
 
@@ -356,8 +385,15 @@ export class ProjectRegistry {
             });
         });
 
-        // Update Object Events
-        this.project.objects.forEach(obj => {
+        // Update Object Events (Global + All Stages)
+        const allObjects = [...(this.project.objects || [])];
+        if ((this.project as any).stages) {
+            (this.project as any).stages.forEach((s: any) => {
+                if (s.objects) allObjects.push(...s.objects);
+            });
+        }
+
+        allObjects.forEach(obj => {
             if ((obj as any).Tasks) {
                 const tasks = (obj as any).Tasks;
                 Object.keys(tasks).forEach(key => {
@@ -384,7 +420,7 @@ export class ProjectRegistry {
         const traverseAndReplace = (obj: any) => {
             if (!obj) return;
             if (typeof obj === 'string') {
-                return replaceInString(obj); // Can't mutate string in place, this helper is for mapped values
+                return replaceInString(obj); // Can't mutate string in place
             }
             if (typeof obj === 'object') {
                 Object.keys(obj).forEach(key => {
@@ -398,8 +434,15 @@ export class ProjectRegistry {
             }
         };
 
-        // Scan Objects
-        this.project!.objects.forEach(obj => traverseAndReplace(obj));
+        // Scan ALL Objects in ALL Stages
+        const allObjects = [...(this.project!.objects || [])];
+        if ((this.project as any).stages) {
+            (this.project as any).stages.forEach((s: any) => {
+                if (s.objects) allObjects.push(...s.objects);
+            });
+        }
+        allObjects.forEach(obj => traverseAndReplace(obj));
+
         // Scan Actions properties in all Tasks
         this.project!.actions.forEach(act => traverseAndReplace(act)); // Actions definition list if it exists
         this.project!.tasks.forEach(t => traverseAndReplace(t)); // Sequence items
@@ -410,9 +453,6 @@ export class ProjectRegistry {
         this.project!.tasks.forEach(task => {
             task.actionSequence.forEach(item => {
                 if (item.type === 'action') {
-                    // Check specific fields if we have the Action definition inline or referenced
-                    // The item in sequence is technically a SequenceItem, but can be customized
-                    // If it's a direct definition:
                     const action = item as any;
                     if (action.variableName === oldName) action.variableName = newName;
                     if (action.resultVariable === oldName) action.resultVariable = newName;
