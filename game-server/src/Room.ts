@@ -14,6 +14,7 @@ export class Room {
     public player2: WebSocket | null = null;
     public gameStarted: boolean = false;
     public project: any = null; // Stored project JSON from Master
+    public metadata: { hostName?: string, hostAvatar?: string } = {}; // Platform metadata
 
     private player1Ready: boolean = false;
     private player2Ready: boolean = false;

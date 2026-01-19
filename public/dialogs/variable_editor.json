@@ -57,10 +57,22 @@
             "name": "varScope",
             "options": [
                 "global",
-                "task",
-                "action"
+                "local"
             ],
-            "selectedIndex": 0
+            "selectedValue": "global",
+            "style": {
+                "marginBottom": 12
+            }
+        },
+        {
+            "className": "TCheckbox",
+            "name": "isPublic",
+            "checked": false,
+            "label": "Öffentlich (für andere Stages sichtbar)",
+            "visible": "${data.varScope === 'local'}",
+            "style": {
+                "marginBottom": 12
+            }
         },
         {
             "className": "TLabel",

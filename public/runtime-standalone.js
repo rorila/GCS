@@ -1474,7 +1474,7 @@
      * @param globalVars Persistent global variables context
      * @param contextObj The object that triggered the event (for $eventSource resolution)
      */
-    execute(action, vars, globalVars = {}, contextObj, parentId) {
+    async execute(action, vars, globalVars = {}, contextObj, parentId) {
       console.log(`[ActionExecutor] execute start: type=${action?.type} name=${action?.name}`);
       if (!action || !action.type) return;
       const actionName = action.name || this.getDescriptiveName(action);
@@ -1525,7 +1525,7 @@
           this.handleLogAction(action, vars);
           break;
         case "http":
-          this.handleHttpAction(action, vars, globalVars);
+          await this.handleHttpAction(action, vars, globalVars);
           break;
         case "create_object":
           this.handleCreateObjectAction(action, vars);
@@ -1878,12 +1878,33 @@
       const resultVar = action.resultVariable || "httpResult";
       try {
         console.log(`[ActionExecutor] HTTP: ${method} ${url}`);
-        const resp = await fetch(url, { method });
+        const options = { method };
+        if (action.body && (method === "POST" || method === "PUT" || method === "PATCH")) {
+          options.headers = {
+            "Content-Type": "application/json"
+          };
+          let bodyData = action.body;
+          if (typeof bodyData === "string") {
+            bodyData = PropertyHelper.interpolate(bodyData, { ...vars, ...globalVars }, this.objects);
+          } else if (typeof bodyData === "object" && bodyData !== null) {
+            const stringified = JSON.stringify(bodyData);
+            const interpolated = PropertyHelper.interpolate(stringified, { ...vars, ...globalVars }, this.objects);
+            bodyData = JSON.parse(interpolated);
+          }
+          options.body = typeof bodyData === "string" ? bodyData : JSON.stringify(bodyData);
+          console.log(`[ActionExecutor] HTTP Body:`, options.body);
+        }
+        const resp = await fetch(url, options);
         if (resp.ok) {
           const data = await resp.json();
           vars[resultVar] = data;
           globalVars[resultVar] = data;
           console.log(`[ActionExecutor] HTTP Success, stored in ${resultVar}`, data);
+        } else {
+          const errorText = await resp.text();
+          console.error(`[ActionExecutor] HTTP Error ${resp.status}: ${errorText}`);
+          vars[resultVar] = { success: false, status: resp.status, error: errorText };
+          globalVars[resultVar] = vars[resultVar];
         }
       } catch (e) {
         console.error("[ActionExecutor] HTTP Action failed:", e);
@@ -2018,6 +2039,7 @@
   var LibraryService = class {
     constructor() {
       __publicField(this, "libraryTasks", []);
+      __publicField(this, "libraryTemplates", []);
       __publicField(this, "isLoaded", false);
     }
     async loadLibrary() {
@@ -2026,8 +2048,9 @@
         const response = await fetch("/library.json");
         const data = await response.json();
         this.libraryTasks = data.tasks || [];
+        this.libraryTemplates = data.templates || [];
         this.isLoaded = true;
-        console.log(`[LibraryService] Loaded ${this.libraryTasks.length} global tasks.`);
+        console.log(`[LibraryService] Loaded ${this.libraryTasks.length} tasks and ${this.libraryTemplates.length} templates.`);
       } catch (err2) {
         console.error("[LibraryService] Failed to load library.json:", err2);
       }
@@ -2037,6 +2060,41 @@
     }
     getTask(name) {
       return this.libraryTasks.find((t) => t.name === name);
+    }
+    getTemplates() {
+      return this.libraryTemplates;
+    }
+    getTemplate(id) {
+      return this.libraryTemplates.find((t) => t.id === id);
+    }
+    /**
+     * Saves a template to the library via the API.
+     * Updates local cache if successful.
+     */
+    async saveTemplate(template) {
+      try {
+        const response = await fetch("/api/library/templates", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(template)
+        });
+        if (response.ok) {
+          const existingIdx = this.libraryTemplates.findIndex((t) => t.name === template.name);
+          if (existingIdx !== -1) {
+            this.libraryTemplates[existingIdx] = template;
+          } else {
+            this.libraryTemplates.push(template);
+          }
+          console.log(`[LibraryService] Template "${template.name}" saved successfully.`);
+          return true;
+        } else {
+          console.error("[LibraryService] Failed to save template:", await response.text());
+          return false;
+        }
+      } catch (err2) {
+        console.error("[LibraryService] Error saving template:", err2);
+        return false;
+      }
     }
   };
   var libraryService = new LibraryService();
@@ -2065,7 +2123,7 @@
     setActions(actions) {
       this.actions = actions;
     }
-    execute(taskName, vars, globalVars, contextObj, depth = 0, parentId, params, isRemoteExecution = false) {
+    async execute(taskName, vars, globalVars, contextObj, depth = 0, parentId, params, isRemoteExecution = false) {
       if (depth >= _TaskExecutor.MAX_DEPTH) {
         console.error(`[TaskExecutor] Max recursion depth exceeded: ${taskName} `);
         return;
@@ -2118,19 +2176,19 @@
       const actionSequence = task.actionSequence || [];
       if (hasFlowChart) {
         console.log(`[TaskExecutor] Nutze Flussdiagramm f\xFCr "${taskName}" (Elemente: ${flowChart.elements.length})`);
-        this.executeFlowChart(taskName, flowChart, vars, globalVars, contextObj, depth, taskLogId);
+        await this.executeFlowChart(taskName, flowChart, vars, globalVars, contextObj, depth, taskLogId);
       } else {
         if (actionSequence.length === 0) {
           console.log(`[TaskExecutor] Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
         }
-        actionSequence.forEach((seqItem, index) => {
+        for (const seqItem of actionSequence) {
           try {
-            this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
+            await this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
           } catch (err2) {
-            console.error(`[TaskExecutor] Error in item ${index} of task ${taskName}: `, err2);
-            DebugLogService.getInstance().log("Event", `ERROR executing task ${taskName} item ${index}: ${err2}`, { parentId: taskLogId });
+            console.error(`[TaskExecutor] Error in item of task ${taskName}: `, err2);
+            DebugLogService.getInstance().log("Event", `ERROR executing task ${taskName}: ${err2}`, { parentId: taskLogId });
           }
-        });
+        }
       }
       if (isMultiplayer && triggerMode === "local-sync" && !isRemoteExecution) {
         console.log(`[TaskExecutor] Syncing task "${taskName}" to other player`);
@@ -2141,7 +2199,7 @@
      * Execute a task's flowChart directly at runtime
      * This is a fallback for when actionSequence wasn't properly synced
      */
-    executeFlowChart(taskName, flowChart, vars, globalVars, contextObj, depth, parentId) {
+    async executeFlowChart(taskName, flowChart, vars, globalVars, contextObj, depth, parentId) {
       const { elements, connections } = flowChart;
       const visited = /* @__PURE__ */ new Set();
       const startNode = elements.find(
@@ -2152,41 +2210,41 @@
         return;
       }
       console.log(`[TaskExecutor] FlowChart Elements for "${taskName}":`, elements.map((e) => `${e.type}:${e.properties?.name || e.id}`));
-      const executeNode = (node) => {
+      const executeNode = async (node) => {
         if (!node || visited.has(node.id)) return;
         visited.add(node.id);
         const nodeType = node.type;
         const name = node.properties?.name || node.data?.name || node.data?.actionName;
         if (nodeType === "Task" && name === taskName) {
           const outgoing = connections.filter((c) => c.startTargetId === node.id);
-          outgoing.forEach((conn) => {
+          for (const conn of outgoing) {
             const nextNode = elements.find((e) => e.id === conn.endTargetId);
-            if (nextNode) executeNode(nextNode);
-          });
+            if (nextNode) await executeNode(nextNode);
+          }
           return;
         }
         if (nodeType === "Action" || nodeType === "action") {
           const action = this.resolveAction({ type: "action", name }) || node.data;
           if (action) {
-            this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+            await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
           }
           const outgoing = connections.find(
             (c) => c.startTargetId === node.id && !["true", "false"].includes(c.data?.startAnchorType || c.data?.anchorType || "")
           );
           if (outgoing) {
             const nextNode = elements.find((e) => e.id === outgoing.endTargetId);
-            if (nextNode) executeNode(nextNode);
+            if (nextNode) await executeNode(nextNode);
           }
           return;
         }
         if (nodeType === "Task" || nodeType === "task") {
-          this.execute(name, vars, globalVars, contextObj, depth + 1, parentId, node.data?.params);
+          await this.execute(name, vars, globalVars, contextObj, depth + 1, parentId, node.data?.params);
           const outgoing = connections.find(
             (c) => c.startTargetId === node.id && !["true", "false"].includes(c.data?.startAnchorType || c.data?.anchorType || "")
           );
           if (outgoing) {
             const nextNode = elements.find((e) => e.id === outgoing.endTargetId);
-            if (nextNode) executeNode(nextNode);
+            if (nextNode) await executeNode(nextNode);
           }
           return;
         }
@@ -2206,21 +2264,21 @@
           );
           if (result && trueConn) {
             const trueNode = elements.find((e) => e.id === trueConn.endTargetId);
-            if (trueNode) executeNode(trueNode);
+            if (trueNode) await executeNode(trueNode);
           } else if (!result && falseConn) {
             const falseNode = elements.find((e) => e.id === falseConn.endTargetId);
-            if (falseNode) executeNode(falseNode);
+            if (falseNode) await executeNode(falseNode);
           }
           return;
         }
       };
       const initialOutgoing = connections.filter((c) => c.startTargetId === startNode.id);
-      initialOutgoing.forEach((conn) => {
+      for (const conn of initialOutgoing) {
         const firstNode = elements.find((e) => e.id === conn.endTargetId);
-        if (firstNode) executeNode(firstNode);
-      });
+        if (firstNode) await executeNode(firstNode);
+      }
     }
-    executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, parentId) {
+    async executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, parentId) {
       const item = typeof seqItem === "string" ? { type: "action", name: seqItem } : seqItem;
       console.log(`[TaskExecutor] Processing item: type = "${item.type}" name = "${item.name || "N/A"}" condition = "${item.condition?.variable || "none"}"`);
       const condition = item.itemCondition || (typeof item.condition === "string" ? item.condition : null);
@@ -2230,38 +2288,38 @@
       }
       switch (item.type) {
         case "condition":
-          this.handleCondition(item, vars, globalVars, contextObj, depth, parentId);
+          await this.handleCondition(item, vars, globalVars, contextObj, depth, parentId);
           break;
         case "task":
-          this.execute(item.name, vars, globalVars, contextObj, depth + 1, parentId, item.params);
+          await this.execute(item.name, vars, globalVars, contextObj, depth + 1, parentId, item.params);
           break;
         case "action":
           const action = this.resolveAction(item);
           if (action) {
-            this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+            await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
           } else {
             console.warn(`[TaskExecutor] Action definition not found: ${item.name} `);
           }
           break;
         case "while":
-          this.handleWhile(item, vars, globalVars, contextObj, depth, parentId);
+          await this.handleWhile(item, vars, globalVars, contextObj, depth, parentId);
           break;
         case "for":
-          this.handleFor(item, vars, globalVars, contextObj, depth, parentId);
+          await this.handleFor(item, vars, globalVars, contextObj, depth, parentId);
           break;
         case "foreach":
-          this.handleForeach(item, vars, globalVars, contextObj, depth, parentId);
+          await this.handleForeach(item, vars, globalVars, contextObj, depth, parentId);
           break;
         default:
           if (item.type) {
-            this.actionExecutor.execute(item, vars, globalVars, contextObj, parentId);
+            await this.actionExecutor.execute(item, vars, globalVars, contextObj, parentId);
           }
       }
     }
-    executeBody(body, vars, globalVars, contextObj, depth, parentId) {
+    async executeBody(body, vars, globalVars, contextObj, depth, parentId) {
       if (!body || !Array.isArray(body)) return;
       for (const item of body) {
-        this.executeSequenceItem(item, vars, globalVars, contextObj, depth, parentId);
+        await this.executeSequenceItem(item, vars, globalVars, contextObj, depth, parentId);
       }
     }
     resolveAction(item) {
@@ -2334,7 +2392,7 @@
       }
       return 0;
     }
-    handleCondition(item, vars, globalVars, contextObj, depth, parentId) {
+    async handleCondition(item, vars, globalVars, contextObj, depth, parentId) {
       if (!item.condition) return;
       const varName = item.condition.variable;
       const varValue = vars[varName] !== void 0 ? vars[varName] : globalVars[varName];
@@ -2356,26 +2414,26 @@
         if (item.thenAction) {
           const action = this.resolveAction(item.thenAction);
           console.log(`[TaskExecutor] Condition TRUE, executing thenAction: ${item.thenAction} `);
-          if (action) this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+          if (action) await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
         }
         if (item.thenTask) {
           console.log(`[TaskExecutor] Condition TRUE, executing thenTask: ${item.thenTask} `);
-          this.execute(item.thenTask, vars, globalVars, contextObj, depth + 1, parentId);
+          await this.execute(item.thenTask, vars, globalVars, contextObj, depth + 1, parentId);
         }
-        if (item.body) this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+        if (item.body) await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
       } else {
         if (item.elseAction) {
           const action = this.resolveAction(item.elseAction);
-          if (action) this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+          if (action) await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
         }
-        if (item.elseTask) this.execute(item.elseTask, vars, globalVars, contextObj, depth + 1, parentId);
-        if (item.elseBody) this.executeBody(item.elseBody, vars, globalVars, contextObj, depth, parentId);
+        if (item.elseTask) await this.execute(item.elseTask, vars, globalVars, contextObj, depth + 1, parentId);
+        if (item.elseBody) await this.executeBody(item.elseBody, vars, globalVars, contextObj, depth, parentId);
       }
     }
     /**
      * WHILE loop: Execute body while condition is true
      */
-    handleWhile(item, vars, globalVars, contextObj, depth, parentId) {
+    async handleWhile(item, vars, globalVars, contextObj, depth, parentId) {
       if (!item.condition || !item.body) {
         console.warn("[TaskExecutor] WHILE loop missing condition or body");
         return;
@@ -2386,14 +2444,14 @@
           console.error(`[TaskExecutor] WHILE loop exceeded max iterations(${_TaskExecutor.MAX_ITERATIONS})`);
           break;
         }
-        this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+        await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
       }
       console.log(`[TaskExecutor] WHILE loop completed after ${iterations} iterations`);
     }
     /**
      * FOR loop: Execute body for each value from 'from' to 'to'
      */
-    handleFor(item, vars, globalVars, contextObj, depth, parentId) {
+    async handleFor(item, vars, globalVars, contextObj, depth, parentId) {
       if (!item.iteratorVar || !item.body) {
         console.warn("[TaskExecutor] FOR loop missing iteratorVar or body");
         return;
@@ -2409,14 +2467,14 @@
         }
         vars[item.iteratorVar] = i;
         globalVars[item.iteratorVar] = i;
-        this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+        await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
       }
       console.log(`[TaskExecutor] FOR loop completed after ${iterations} iterations`);
     }
     /**
      * FOREACH loop: Execute body for each item in array
      */
-    handleForeach(item, vars, globalVars, contextObj, depth, parentId) {
+    async handleForeach(item, vars, globalVars, contextObj, depth, parentId) {
       if (!item.sourceArray || !item.itemVar || !item.body) {
         console.warn("[TaskExecutor] FOREACH loop missing sourceArray, itemVar, or body");
         return;
@@ -2439,7 +2497,7 @@
           vars[item.indexVar] = idx;
           globalVars[item.indexVar] = idx;
         }
-        this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+        await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
         idx++;
       }
       console.log(`[TaskExecutor] FOREACH loop completed after ${idx} iterations`);
@@ -4163,7 +4221,6 @@
 
   // src/components/TGameCard.ts
   var TGameCard = class extends TWindow {
-    // Number of waiting rooms
     constructor(name, x = 0, y = 0) {
       super(name, x, y, 6, 5);
       // Game info
@@ -4171,6 +4228,10 @@
       __publicField(this, "gameFile", "");
       // e.g., "pong.json"
       __publicField(this, "waitingCount", 0);
+      // Number of waiting rooms
+      __publicField(this, "hostName", "");
+      __publicField(this, "hostAvatar", "");
+      __publicField(this, "roomCode", "");
       this.style.backgroundColor = "#2a2a2a";
       this.style.borderColor = "#4fc3f7";
       this.style.borderWidth = 2;
@@ -4182,7 +4243,10 @@
         ...props,
         { name: "gameName", label: "Game Name", type: "string", group: "Game" },
         { name: "gameFile", label: "Game File", type: "string", group: "Game" },
-        { name: "waitingCount", label: "Waiting Rooms", type: "number", group: "Game" }
+        { name: "waitingCount", label: "Waiting Rooms", type: "number", group: "Game" },
+        { name: "hostName", label: "Host Name", type: "string", group: "Game" },
+        { name: "hostAvatar", label: "Host Avatar", type: "string", group: "Game" },
+        { name: "roomCode", label: "Room Code", type: "string", group: "Game" }
       ];
     }
     toJSON() {
@@ -4191,6 +4255,9 @@
         gameName: this.gameName,
         gameFile: this.gameFile,
         waitingCount: this.waitingCount,
+        hostName: this.hostName,
+        hostAvatar: this.hostAvatar,
+        roomCode: this.roomCode,
         Tasks: this.Tasks
       };
     }
@@ -8092,14 +8159,35 @@
       __publicField(this, "reactiveRuntime");
       __publicField(this, "actionExecutor");
       __publicField(this, "taskExecutor");
-      __publicField(this, "globalVars");
+      // Phase 3: Variable Scopes
+      __publicField(this, "projectVariables", {});
+      // Global persistence
+      __publicField(this, "stageVariables", {});
+      // Local ephemeral
+      __publicField(this, "contextVars");
+      // Proxy for access
       __publicField(this, "objects");
       __publicField(this, "isSplashActive", false);
       __publicField(this, "splashTimerId", null);
       __publicField(this, "stage", null);
       // Public property for external access (e.g. Standalone Player)
       __publicField(this, "stageController", null);
-      this.globalVars = { ...options.initialGlobalVars };
+      this.projectVariables = { ...options.initialGlobalVars };
+      if (project.variables) {
+        project.variables.forEach((v) => {
+          const isGlobal = !v.scope || v.scope === "global";
+          if (isGlobal) {
+            if (this.projectVariables[v.name] === void 0) {
+              this.projectVariables[v.name] = v.defaultValue;
+            }
+          } else if (v.scope === "local") {
+            if (this.stageVariables[v.name] === void 0) {
+              this.stageVariables[v.name] = v.defaultValue;
+            }
+          }
+        });
+      }
+      this.contextVars = this.createVariableContext();
       this.reactiveRuntime = new ReactiveRuntime();
       const hasStages = project.stages && project.stages.length > 0;
       let activeStage = null;
@@ -8117,33 +8205,104 @@
       }
       if (objects) {
         this.objects = objects;
+        this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
+        this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
       } else if (activeStage) {
         this.stage = activeStage;
-        if (options.startStageId) {
-          this.isSplashActive = activeStage.type === "splash";
-        } else {
-          this.isSplashActive = activeStage.type === "splash";
-        }
-        let loadedObjects = hydrateObjects(activeStage.objects || []);
-        if (options.startStageId && activeStage.type !== "splash" && activeStage.type !== "main") {
+        this.isSplashActive = activeStage.type === "splash";
+        const stageChain = this.resolveInheritanceChain(activeStage.id);
+        console.log(`[GameRuntime] Resolved inheritance chain: ${stageChain.map((s) => s.name).join(" -> ")}`);
+        let mergedObjects = [];
+        let mergedTasks = [];
+        let mergedActions = [];
+        let mergedFlowCharts = { ...project.flowCharts || {} };
+        const objectIdSet = /* @__PURE__ */ new Set();
+        stageChain.forEach((stage) => {
+          const stageObjects = hydrateObjects(stage.objects || []);
+          stageObjects.forEach((obj) => {
+            mergedObjects = mergedObjects.filter((o) => o.id !== obj.id);
+            mergedObjects.push(obj);
+            objectIdSet.add(obj.id);
+          });
+          if (stage.tasks) {
+            stage.tasks.forEach((t) => {
+              mergedTasks = mergedTasks.filter((existing) => existing.name !== t.name);
+              mergedTasks.push(t);
+            });
+          }
+          if (stage.actions) {
+            stage.actions.forEach((a) => {
+              mergedActions = mergedActions.filter((existing) => existing.name !== a.name);
+              mergedActions.push(a);
+            });
+          }
+          if (stage.flowCharts) {
+            Object.assign(mergedFlowCharts, stage.flowCharts);
+          }
+          if (stage.variables) {
+            stage.variables.forEach((v) => {
+              this.stageVariables[v.name] = v.defaultValue;
+            });
+          }
+        });
+        if (activeStage.type !== "splash" && activeStage.type !== "main") {
           const mainStage = project.stages.find((s) => s.type === "main");
           if (mainStage && mainStage.objects) {
             const globalObjects = hydrateObjects(mainStage.objects);
-            const localIds = new Set(loadedObjects.map((o) => o.id));
+            const systemClasses = [
+              "TGameLoop",
+              "TStageController",
+              "TGameState",
+              "THandshake",
+              "THeartbeat",
+              "TGameServer",
+              "TInputController",
+              "TDebugLog"
+            ];
             globalObjects.forEach((gObj) => {
-              if (!localIds.has(gObj.id)) {
-                const nameCollision = loadedObjects.find((l) => l.name === gObj.name);
+              const isSystem = systemClasses.includes(gObj.className);
+              if (isSystem && !objectIdSet.has(gObj.id)) {
+                const nameCollision = mergedObjects.find((l) => l.name === gObj.name);
                 if (!nameCollision) {
-                  loadedObjects.push(gObj);
-                } else {
-                  console.warn(`[GameRuntime] Global object '${gObj.name}' skipped due to local name collision in stage '${activeStage.name}'`);
+                  mergedObjects.push(gObj);
                 }
               }
             });
-            console.log(`[GameRuntime] Context-Aware Start: Loaded ${activeStage.name} + Global Objects from Main`);
           }
         }
-        this.objects = loadedObjects;
+        this.objects = mergedObjects;
+        if (options.makeReactive) {
+          this.objects.forEach((obj) => {
+            this.reactiveRuntime.registerObject(obj.name, obj, true);
+          });
+          this.reactiveRuntime.setVariable("isSplashActive", this.isSplashActive);
+          const mp2 = options.multiplayerManager || window.multiplayerManager;
+          this.reactiveRuntime.setVariable("isMultiplayer", !!mp2);
+          if (mp2) {
+            this.reactiveRuntime.setVariable("playerNumber", mp2.playerNumber || 1);
+            this.reactiveRuntime.setVariable("isHost", mp2.isHost !== void 0 ? mp2.isHost : mp2.playerNumber === 1);
+          } else {
+            this.reactiveRuntime.setVariable("playerNumber", 1);
+            this.reactiveRuntime.setVariable("isHost", true);
+          }
+          this.objects = this.reactiveRuntime.getObjects();
+        }
+        this.actionExecutor = new ActionExecutor(
+          this.objects,
+          options.multiplayerManager || window.multiplayerManager,
+          options.onNavigate
+        );
+        const mp = options.multiplayerManager || window.multiplayerManager;
+        const finalTasks = [...project.tasks || [], ...mergedTasks];
+        const finalActions = [...project.actions || [], ...mergedActions];
+        this.taskExecutor = new TaskExecutor(
+          project,
+          finalActions,
+          this.actionExecutor,
+          mergedFlowCharts,
+          mp,
+          finalTasks
+        );
       } else {
         const hasLegacySplash = project.splashObjects && project.splashObjects.length > 0;
         if (hasLegacySplash) {
@@ -8152,38 +8311,11 @@
         } else {
           this.objects = hydrateObjects(project.objects || []);
         }
+        this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
+        this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
       }
-      if (options.makeReactive) {
-        this.objects.forEach((obj) => {
-          this.reactiveRuntime.registerObject(obj.name, obj, true);
-        });
-        this.reactiveRuntime.setVariable("isSplashActive", this.isSplashActive);
-        const mp2 = options.multiplayerManager || window.multiplayerManager;
-        this.reactiveRuntime.setVariable("isMultiplayer", !!mp2);
-        if (mp2) {
-          this.reactiveRuntime.setVariable("playerNumber", mp2.playerNumber || 1);
-          this.reactiveRuntime.setVariable("isHost", mp2.isHost !== void 0 ? mp2.isHost : mp2.playerNumber === 1);
-        } else {
-          this.reactiveRuntime.setVariable("playerNumber", 1);
-          this.reactiveRuntime.setVariable("isHost", true);
-        }
-        this.objects = this.reactiveRuntime.getObjects();
-      }
-      this.actionExecutor = new ActionExecutor(
-        this.objects,
-        options.multiplayerManager || window.multiplayerManager,
-        options.onNavigate
-      );
-      const mp = options.multiplayerManager || window.multiplayerManager;
-      this.taskExecutor = new TaskExecutor(
-        project,
-        project.actions || [],
-        this.actionExecutor,
-        project.flowCharts,
-        mp
-      );
-      if (mp) {
-        mp.onRemoteTask = (msg) => {
+      if (options.multiplayerManager) {
+        options.multiplayerManager.onRemoteTask = (msg) => {
           this.executeRemoteTask(msg.taskName, msg.params);
         };
       }
@@ -8235,18 +8367,7 @@
       this.initMainGame();
     }
     initMainGame() {
-      let stageConfig = this.project.stage || this.project.grid;
-      if (this.project.stages) {
-        const mainStage = this.project.stages.find((s) => s.type === "main");
-        if (mainStage) {
-          stageConfig = {
-            ...stageConfig,
-            startAnimation: mainStage.startAnimation,
-            startAnimationDuration: mainStage.startAnimationDuration,
-            startAnimationEasing: mainStage.startAnimationEasing
-          };
-        }
-      }
+      let stageConfig = this.stage || this.project.stage || this.project.grid;
       if (stageConfig && stageConfig.startAnimation && stageConfig.startAnimation !== "none") {
         this.triggerStartAnimation(stageConfig);
       }
@@ -8357,6 +8478,13 @@
           this.reactiveRuntime.setVariable("isSplashActive", false);
           this.objects = this.reactiveRuntime.getObjects();
         }
+        this.stageVariables = {};
+        if (this.stage?.variables) {
+          this.stage.variables.forEach((v) => {
+            this.stageVariables[v.name] = v.defaultValue;
+          });
+        }
+        console.log(`[GameRuntime] Local variables reset for stage ${newStageId}`);
         this.actionExecutor.setObjects(this.objects);
         this.initStageController();
         this.start();
@@ -8454,7 +8582,7 @@
         }
       });
     }
-    handleEvent(objectId, eventName, data = {}) {
+    async handleEvent(objectId, eventName, data = {}) {
       const obj = this.objects.find((o) => o.id === objectId || o.name === objectId);
       if (!obj) {
         return;
@@ -8463,7 +8591,7 @@
       if (taskName && typeof taskName === "string") {
         console.log(`[GameRuntime] Handling ${eventName} on ${obj.name} -> Task: ${taskName}`, data);
         const vars = {};
-        this.taskExecutor.execute(taskName, vars, this.globalVars, obj, 0, void 0, data);
+        await this.taskExecutor.execute(taskName, vars, this.contextVars, obj, 0, void 0, data);
       }
     }
     updateRemoteState(objectIdOrName, state) {
@@ -8486,28 +8614,28 @@
     /**
      * Multiplayer: Triggers an event on a specific object from a remote peer
      */
-    triggerRemoteEvent(objectId, eventName, params) {
+    async triggerRemoteEvent(objectId, eventName, params) {
       console.log(`[Runtime] Remote Event: ${objectId}.${eventName}`, params);
-      this.handleEvent(objectId, eventName, params);
+      await this.handleEvent(objectId, eventName, params);
     }
     /**
      * Multiplayer: Executes an action from a remote peer
      */
-    executeRemoteAction(action) {
+    async executeRemoteAction(action) {
       console.log(`[Runtime] Remote Action:`, action);
-      this.actionExecutor.execute(action, {}, this.globalVars);
+      await this.actionExecutor.execute(action, {}, this.contextVars);
     }
     /**
      * Multiplayer: Executes a task from a remote peer
      */
-    executeRemoteTask(taskName, params = {}, mode) {
-      console.log(`[Runtime] Remote Task: ${taskName}`, params, mode);
+    async executeRemoteTask(taskName, params = {}, mode) {
+      console.log(`[GameRuntime] Executing remote task: ${taskName} (mode: ${mode})`);
       const vars = {};
       if (this.project.variables) {
-        this.project.variables.forEach((v) => vars[v.name] = this.reactiveRuntime.getVariable(v.name));
+        this.project.variables.forEach((v) => vars[v.name] = this.contextVars[v.name]);
       }
-      Object.assign(vars, this.globalVars, params || {});
-      this.taskExecutor.execute(taskName, vars, this.globalVars, null, 0, void 0, params, true);
+      Object.assign(vars, this.stageVariables, params || {});
+      this.taskExecutor.execute(taskName, vars, this.contextVars, null, 0, void 0, params, true);
     }
     /**
      * Returns all runtime objects
@@ -8515,17 +8643,115 @@
     getObjects() {
       return this.objects;
     }
+    resolveInheritanceChain(stageId, visited = /* @__PURE__ */ new Set()) {
+      if (visited.has(stageId)) {
+        console.error(`[GameRuntime] Circular inheritance detected for stage: ${stageId}`);
+        return [];
+      }
+      visited.add(stageId);
+      const stage = this.project.stages?.find((s) => s.id === stageId);
+      if (!stage) return [];
+      const chain = [stage];
+      if (stage.inheritsFrom) {
+        chain.unshift(...this.resolveInheritanceChain(stage.inheritsFrom, visited));
+      }
+      return chain;
+    }
     init() {
       if (!this.options.makeReactive) {
         this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, false));
       }
       if (this.project.variables) {
         this.project.variables.forEach((v) => {
-          const val = this.globalVars[v.name] !== void 0 ? this.globalVars[v.name] : v.defaultValue;
+          const val = this.projectVariables[v.name];
           this.reactiveRuntime.registerVariable(v.name, val);
         });
       }
+      if (this.stage && this.stage.variables) {
+        this.stage.variables.forEach((v) => {
+          this.stageVariables[v.name] = v.defaultValue;
+          this.reactiveRuntime.registerVariable(v.name, v.defaultValue);
+        });
+      }
       this.setupBindings();
+      if (this.project.stages) {
+        this.project.stages.forEach((stage) => {
+          if (stage.name) {
+            this.reactiveRuntime.registerObject(stage.name, this.createStageProxy(stage), false);
+          }
+        });
+      }
+    }
+    /**
+     * Phase 3: Creates a Proxy for a Stage to allow read-only access to its public variables.
+     * Usage: ${StageName.VarName}
+     */
+    createStageProxy(stage) {
+      return new Proxy({}, {
+        get: (_target, prop) => {
+          const variableDef = stage.variables?.find((v) => v.name === prop);
+          if (!variableDef) return void 0;
+          if (!variableDef.isPublic) {
+            console.warn(`[Scope] Access denied: Variable '${prop}' in stage '${stage.name}' is private.`);
+            return void 0;
+          }
+          if (this.stage && this.stage.id === stage.id) {
+            return this.stageVariables[prop];
+          }
+          return variableDef.defaultValue;
+        },
+        set: () => {
+          console.warn(`[Scope] Cannot set properties on Stage Proxy '${stage.name}'. Cross-stage writes are forbidden.`);
+          return false;
+        }
+      });
+    }
+    /**
+     * Phase 3: Creates a Proxy handles variable scoping (Local > Global).
+     */
+    createVariableContext() {
+      return new Proxy({}, {
+        get: (_target, prop) => {
+          if (prop in this.stageVariables) {
+            return this.stageVariables[prop];
+          }
+          if (prop in this.projectVariables) {
+            return this.projectVariables[prop];
+          }
+          return void 0;
+        },
+        set: (_target, prop, value) => {
+          if (prop in this.stageVariables) {
+            this.stageVariables[prop] = value;
+            console.log(`[Scope] Set LOCAL ${prop} = ${value}`);
+          } else if (prop in this.projectVariables) {
+            this.projectVariables[prop] = value;
+            console.log(`[Scope] Set GLOBAL ${prop} = ${value}`);
+          } else {
+            this.stageVariables[prop] = value;
+            console.log(`[Scope] Set IMPLICIT LOCAL ${prop} = ${value}`);
+          }
+          this.reactiveRuntime.setVariable(prop, value);
+          return true;
+        },
+        ownKeys: () => {
+          const keys = /* @__PURE__ */ new Set([
+            ...Object.keys(this.projectVariables),
+            ...Object.keys(this.stageVariables)
+          ]);
+          return Array.from(keys);
+        },
+        has: (_target, prop) => {
+          return prop in this.stageVariables || prop in this.projectVariables;
+        },
+        getOwnPropertyDescriptor: (_target, prop) => {
+          const val = this.stageVariables[prop] !== void 0 ? this.stageVariables[prop] : this.projectVariables[prop];
+          if (val !== void 0) {
+            return { configurable: true, enumerable: true, value: val };
+          }
+          return void 0;
+        }
+      });
     }
     setupBindings() {
       this.objects.forEach((obj) => {
@@ -9027,8 +9253,9 @@
         console.log("[UniversalPlayer] Loading embedded project");
         this.startProject(window.PROJECT);
       } else {
-        console.log("[UniversalPlayer] No game selected, loading lobby...");
-        await this.loadProjectFromUrl("./multiplayer/lobby.json");
+        console.log("[UniversalPlayer] No game selected, loading platform UI...");
+        const baseUrl = network.getHttpUrl();
+        await this.loadProjectFromUrl(`${baseUrl}/platform/project.json`);
       }
     }
     handleNetworkMessage(msg) {
@@ -9171,8 +9398,12 @@
     }
     setupScaling() {
       if (!this.currentProject) return;
-      const activeStage = this.runtime ? this.runtime.stage : this.currentProject.stage;
-      const grid = activeStage ? activeStage.grid : this.currentProject.stage.grid;
+      const activeStage = this.runtime ? this.runtime.stage : this.currentProject.stage || this.currentProject.stages?.[0];
+      if (!activeStage || !activeStage.grid) {
+        console.warn("[UniversalPlayer] No active stage or grid found for scaling");
+        return;
+      }
+      const grid = activeStage.grid;
       const stageWidth = grid.cols * grid.cellSize;
       const stageHeight = grid.rows * grid.cellSize;
       const windowWidth = window.innerWidth;
@@ -9186,7 +9417,7 @@
       this.stage.style.top = "50%";
       this.stage.style.position = "absolute";
       const bg = grid.backgroundColor || "#000";
-      const bgImg = activeStage.backgroundImage || this.currentProject.stage.backgroundImage;
+      const bgImg = activeStage.backgroundImage;
       if (bgImg) {
         const url = bgImg.startsWith("http") || bgImg.startsWith("/") || bgImg.startsWith("data:") ? bgImg : `./images/${bgImg}`;
         this.stage.style.background = `url("${url}") center center / ${activeStage.objectFit || "cover"} no-repeat, ${bg}`;
@@ -9223,8 +9454,10 @@
     render() {
       if (!this.runtime) return;
       const objects = this.runtime.getObjects();
-      const cellSize = this.currentProject.stage.grid.cellSize;
-      const grid = this.currentProject.stage.grid;
+      const activeStage = this.runtime.stage || (this.currentProject.stage || this.currentProject.stages?.[0]);
+      const grid = activeStage?.grid;
+      if (!grid) return;
+      const cellSize = grid.cellSize;
       const stageWidth = grid.cols * cellSize;
       const stageHeight = grid.rows * cellSize;
       const dockArea = { left: 0, top: 0, right: stageWidth, bottom: stageHeight };
@@ -9429,6 +9662,63 @@
           } else if (!obj.isPlaying && !video.paused) {
             video.pause();
           }
+          break;
+        }
+        case "TGameCard": {
+          el.innerHTML = "";
+          el.style.flexDirection = "column";
+          el.style.padding = "15px";
+          el.style.gap = "10px";
+          el.style.borderRadius = "12px";
+          el.style.background = "rgba(255, 255, 255, 0.05)";
+          el.style.border = "1px solid rgba(255, 255, 255, 0.1)";
+          el.style.backdropFilter = "blur(10px)";
+          const hostRow = document.createElement("div");
+          hostRow.style.display = "flex";
+          hostRow.style.alignItems = "center";
+          hostRow.style.gap = "10px";
+          hostRow.style.width = "100%";
+          const avatar = document.createElement("div");
+          avatar.style.width = "40px";
+          avatar.style.height = "40px";
+          avatar.style.borderRadius = "50%";
+          avatar.style.background = "#4fc3f7";
+          avatar.style.display = "flex";
+          avatar.style.alignItems = "center";
+          avatar.style.justifyContent = "center";
+          avatar.style.fontSize = "20px";
+          avatar.innerText = obj.hostAvatar || "\u{1F464}";
+          hostRow.appendChild(avatar);
+          const nameAndGame = document.createElement("div");
+          nameAndGame.style.flex = "1";
+          const hostNameEl = document.createElement("div");
+          hostNameEl.style.fontSize = "14px";
+          hostNameEl.style.color = "#94a3b8";
+          hostNameEl.innerText = obj.hostName || "Anonym";
+          nameAndGame.appendChild(hostNameEl);
+          const gameTitleEl = document.createElement("div");
+          gameTitleEl.style.fontSize = "18px";
+          gameTitleEl.style.fontWeight = "bold";
+          gameTitleEl.innerText = obj.gameName || "Unbekanntes Spiel";
+          nameAndGame.appendChild(gameTitleEl);
+          hostRow.appendChild(nameAndGame);
+          el.appendChild(hostRow);
+          const joinBtn = document.createElement("div");
+          joinBtn.style.width = "100%";
+          joinBtn.style.padding = "8px";
+          joinBtn.style.textAlign = "center";
+          joinBtn.style.background = "#10b981";
+          joinBtn.style.color = "white";
+          joinBtn.style.borderRadius = "6px";
+          joinBtn.style.cursor = "pointer";
+          joinBtn.style.fontWeight = "bold";
+          joinBtn.innerText = "Beitreten";
+          joinBtn.onclick = () => {
+            if (obj.roomCode) {
+              this.handleNavigation(`room:${obj.roomCode}`);
+            }
+          };
+          el.appendChild(joinBtn);
           break;
         }
       }

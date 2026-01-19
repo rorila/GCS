@@ -1,6 +1,20 @@
 # Changelog
 
-## [Current] - 2026-01-18
+## [Current] - 2026-01-19
+
+- **GCS Spieleplattform Integration**:
+    - **Plattform-Einstieg**: `player.html` dient nun als schlanker Bootstrapper, der automatisch das Plattform-Projekt (`/platform/project.json`) über die GCS-Runtime lädt.
+    - **Multi-Stage Runtime Support**: `UniversalPlayer` (`player-standalone.ts`) wurde robust gegenüber Multi-Stage-Projekten gemacht. Er erkennt nun automatisch das `stages[]`-Array und wählt die passende Start-Stage inklusive korrekter Grid-Skalierung.
+    - **Barrierefreier Emoji-Login**:
+        - **Lesebefreiter Modus**: Der Login-Prozess wurde so umgestaltet, dass er ohne Namenseingabe (Lesen/Schreiben) funktioniert. Die Authentifizierung erfolgt ausschließlich über die Emoji-PIN.
+        - **Backend-Update**: Der `/api/platform/login` Endpunkt identifiziert Nutzer nun primär über den `authCode`.
+        - **Emoji-Keyboard**: Erweitertes Keyboard in der Login-Stage mit allen Symbolen für Superadmins und Testnutzer sowie einer Reset-Funktion (❌).
+    - **Login UI Layout (Match Screenshot 2)**: Das Login-Layout wurde für ein 40x30 Grid optimiert. Titel und PIN-Anzeige sind zentriert, das Keyboard ist in einem sauberen 2-Zeilen-Grid angeordnet, und Buttons nutzen moderne Styles (abgerundete Ecken, kräftige Farben).
+    - **Runtime-Fixes**: Problem mit doppelten Pfad-Präfixen (`vv1.0.0.js.js`) und Skalierungs-Abstürzen bei fehlenden Grid-Definitionen behoben.
+- **Async Runtime & HTTP Evolution**:
+    - **Asynchrones Refactoring**: Die gesamte Ausführungskette (`TaskExecutor` -> `ActionExecutor` -> `GameRuntime.handleEvent`) wurde auf `async/await` umgestellt. Dies behebt Race Conditions bei Netzwerk- oder Animations-gesteuerten Logikketten.
+    - **HTTP Body Support**: Die `http` Action unterstützt nun Request-Bodies (POST, PUT, PATCH) mit automatischer Interpolation von Variablen im Body und dem Header `Content-Type: application/json`.
+    - **HTTP Fehlerbehandlung**: Verbesserte Protokollierung von HTTP-Fehlern (Status & Error-Text) im Runtime-Log und in Ergebnisvariablen.
 
 - **Modulare Architektur (Phase 1: Lokale Scopes)**:
     - **Scoping**: Stages unterstützen nun eigene `tasks`, `actions` und `variables`. Dies erlaubt eine strikte Kapselung von Logik per Stage (z.B. Minigame-Logik).
@@ -8,6 +22,11 @@
     - **FlowEditor UX**: Der Task-Selector gruppiert Einträge nun nach Scope (Local vs Global). Die Elementeübersicht markiert lokale Komponenten visuell.
     - **Rekursives Refactoring**: `ProjectRegistry` unterstützt nun das Finden von Referenzen und Umbenennungen über alle hierarchischen Layer (Global + Local Scopes) hinweg.
     - **Runtime Sync**: `GameRuntime` synchronisiert beim Stage-Wechsel automatisch die relevanten Logik-Pakete in den `TaskExecutor`, um die korrekte Ausführung lokaler Tasks zu garantieren.
+- **Modulare Architektur (Phase 3: Variable Scopes & Visibility (Runtime & UI))**:
+    - UI für Variable-Scopes (Global/Local) und Sichtbarkeit (isPublic) implementiert.
+    - Variable Context Proxy in `GameRuntime` verfeinert für korrekte Scoping-Präzedenz (Local > Global).
+    - Cross-Stage Variablen-Zugriff via `StageName.VarName` implementiert (Read-only, nur Public).
+    - Stage-Inheritance unterstützt nun das Merging von lokalen Variablen.
 - **Improved Flow Registration**: `rebuildActionRegistry` scannt nun alle Stages nach Action-Definitionen, was die Konsistenz der Action-Palette verbessert.
 - **Multi-Stage Refactoring**: `RefactoringManager.ts` unterstützt nun die projektweite Umbenennung von Tasks, Objekten und Variablen über alle Stages hinweg.
     - **Renaming Fix**: Das Umbenennen von Flow-Elementen ("Name" Property) im Inspector triggert nun korrekt das Refactoring.
@@ -128,6 +147,9 @@
 - **Ball Bewegung:** Problem behoben, bei dem der Ball während der Start-Animation bereits Boundary-Events auslöste. `TGameLoop` überspringt nun Physik- und Boundary-Checks für Sprites, die gerade animiert werden (`isAnimating`). 🎾 ✨
 - **Inspector-Display Fix:** Beim Laden des Projekts werden nun auch die Stage-Animationseigenschaften (`startAnimation` etc.) korrekt wiederhergestellt, sodass sie im Inspector sichtbar bleiben. 🎾 ✨
 - **Start-Animation Persistence:** Die Einstellungen für Start-Animationen (`startAnimation`, `duration`, `easing`) werden nun korrekt vom Inspektor in das Projekt-File und in die Editor-Stage übertragen und somit gespeichert. 🎾 ✨
+- **Fix**: Problem behoben, bei dem die Statusbar bei `align: bottom` ausserhalb des sichtbaren Bereichs platziert wurde. (Ursache: Verwechslung von Pixel- und Grid-Einheiten im Editor).
+- **Feature**: "Save Stage as Template" implementiert. Ermöglicht das Speichern kompletter Stages als Vorlage.
+- **Fix**: Problem behoben, bei dem der Inspector Änderungen nicht live auf der Stage aktualisierte (Klon-Problem behoben).
 - **Fix**: Rendering-Bug behoben, bei dem Objekte im "Run"-Modus nicht aktualisiert wurden (Fix der doppelten GameLoop-Initialisierung).
 - **Refactor**: Editor-Initialisierung bereinigt, `GameRuntime` übernimmt nun die Kontrolle über den Render-Loop.
 - **Cleanup**: Debug-Logs und unnötige Kommentare entfernt.

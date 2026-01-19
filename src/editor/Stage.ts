@@ -593,21 +593,32 @@ export class Stage {
 
             const objHeight = (obj.height || 0) * this.gridConfig.cellSize;
             const objWidth = (obj.width || 0) * this.gridConfig.cellSize;
+
+            // SPECIAL CASE: TStatusBar defines height in pixels (e.g. 28), not grid units
+            // If we multiply by cellSize, it becomes huge (e.g. 28 * 50 = 1400px)
+            let actualHeight = objHeight;
+            let actualWidth = objWidth;
+
+            if (obj.className === 'TStatusBar' || obj.name?.startsWith('Status')) {
+                actualHeight = (obj.height || 0); // Use pixels directly
+                actualWidth = (obj.width || 0);
+            }
+
             const availableWidth = dockArea.right - dockArea.left;
             const availableHeight = dockArea.bottom - dockArea.top;
 
             if (align === 'TOP') {
-                dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: availableWidth, height: objHeight });
-                dockArea.top += objHeight;
+                dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: availableWidth, height: actualHeight });
+                dockArea.top += actualHeight;
             } else if (align === 'BOTTOM') {
-                dockPositions.set(objId, { left: dockArea.left, top: dockArea.bottom - objHeight, width: availableWidth, height: objHeight });
-                dockArea.bottom -= objHeight;
+                dockPositions.set(objId, { left: dockArea.left, top: dockArea.bottom - actualHeight, width: availableWidth, height: actualHeight });
+                dockArea.bottom -= actualHeight;
             } else if (align === 'LEFT') {
-                dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: objWidth, height: availableHeight });
-                dockArea.left += objWidth;
+                dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: actualWidth, height: availableHeight });
+                dockArea.left += actualWidth;
             } else if (align === 'RIGHT') {
-                dockPositions.set(objId, { left: dockArea.right - objWidth, top: dockArea.top, width: objWidth, height: availableHeight });
-                dockArea.right -= objWidth;
+                dockPositions.set(objId, { left: dockArea.right - actualWidth, top: dockArea.top, width: actualWidth, height: availableHeight });
+                dockArea.right -= actualWidth;
             }
         });
 

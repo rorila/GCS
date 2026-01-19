@@ -89,6 +89,20 @@
 - **Runtime Sync**:
   - Die `GameRuntime` muss bei jedem Stage-Wechsel die lokalen Logik-Pakete in den `TaskExecutor` injizieren: `taskExecutor.setTasks(mergedTasks)`, `taskExecutor.setActions(mergedActions)`.
 
+### Variable Scopes & Visibility (Phase 3)
+- **Scoping-Regeln**:
+  - `global`: Variable ist projektweit persistent und für alle Stages sichtbar/beschreibbar.
+  - `local`: Variable ist stufenspezifisch (Stage). Jede Stage besitzt ihre eigene Instanz dieser Variable.
+- **Auflösung (Precedance)**: `GameRuntime.createVariableContext` (Proxy) priorisiert `local` vor `global` (Shadowing erlaubt).
+- **Cross-Stage Zugriff**:
+  - Syntax: `${StageName.VariableName}`.
+  - Zugriff ist **Read-Only** und nur für Variablen mit `isPublic: true` gestattet.
+  - Schreibversuche oder Zugriff auf private Variablen werden mit einer Console-Warnung abgelehnt.
+- **Speicherort**:
+  - Globale Variablen liegen in `project.variables`.
+  - Lokale Variablen liegen in `activeStage.variables`.
+  - Variablen in `project.variables` mit `scope: 'local'` dienen als Blueprint und werden in JEDER Stage beim Start als lokale Instanz initialisiert.
+
 - **Dropdown Verhalten**: Alle Dropdowns im Action Editor sollten einen Platzhalter ("--- bitte wählen ---") verwenden, wenn noch kein Wert ausgewählt ist. Dies stellt sicher, dass jede Auswahl (auch die erste) ein `onchange` Event auslöst.
 - **Dependency Resets**: Beim Ändern eines Primär-Feldes (z.B. Target Object oder Action Type) müssen abhängige Felder (z.B. Method Name) explizit gelöscht werden, um inkonsistente Zustände in der UI zu vermeiden.
 - **Re-rendering**: Jede Änderung an einem zentralen `dialogData` Feld, die die Sichtbarkeit anderer Felder beeinflusst, erfordert einen expliziten Aufruf von `this.render()`.
@@ -116,7 +130,6 @@ Wenn eine Stage isoliert im JSON-Tab angezeigt wird (`activeStage`), werden glob
 ## Library & Tasks
 - **Library Export**: Nutze den Endpunkt `POST /api/library/tasks` für automatisierte Speichervorgänge in die `public/library.json`.
 - **Dialog-Komponenten**: Neue UI-Elemente wie `TMemo` müssen im `DialogManager.ts` (renderObject, collectDialogData, populateDialogData) registriert werden, um in JSON-Dialogen korrekt zu funktionieren.
-- **Dialog-Komponenten**: Neue UI-Elemente wie `TMemo` müssen im `DialogManager.ts` (renderObject, collectDialogData, populateDialogData) registriert werden, um in JSON-Dialogen korrekt zu funktionieren.
 
 ## Stage Inheritance & Templates
 - **Datenmodell**: `inheritsFrom` Property im `StageDefinition` Interface. `type: 'template'` für Blueprint-Stages.
@@ -130,3 +143,25 @@ Wenn eine Stage isoliert im JSON-Tab angezeigt wird (`activeStage`), werden glob
   - **Materialisierung**: Beim Editieren eines Ghost-Objekts im `JSONInspector` wird es automatisch in die `objects`-Liste der aktuellen Stage kopiert (`activeStage.objects.push(copy)`), wodurch es lokal "überschrieben" wird.
   - **Navigation**: `findObjectById` sucht nun in der aufgelösten Kette, nicht nur in der lokalen Liste.
   - **Instanziierung**: Beim Erstellen einer neuen Stage aus einem Template ("New from Template") werden alle Objekt-IDs neu generiert (`regenerateIds`), um Eindeutigkeit über alle Stages hinweg zu garantieren. Dies verhindert Konflikte im Inspector und ermöglicht unabhängiges Editieren.
+
+## Spieleplattform Integration (GCS-Base)
+
+- **Platform-Bootstrapping**:
+    - Der Einstiegspunkt ist `game-server/public/player.html`. Diese Datei lädt die GCS-Runtime (`v1.0.0.js`).
+    - Ohne URL-Parameter (`?game=...`) lädt die Runtime standardmäßig `/platform/project.json`.
+- **Barrierefreie Authentifizierung**:
+    - Kinderfreundlich: Login erfolgt ausschließlich über visuelle **Emoji-PINs**.
+    - Backend: `server.ts` unterstützt einen "Name-losen" Login via `authCode`. Der Name ist rein optional für Admins.
+- **Multi-Stage Robustheit**:
+    - Bei Änderungen am `UniversalPlayer` (`player-standalone.ts`) muss die Runtime via `npm run bundle:runtime` neu gebaut und nach `game-server/runtimes/v1.0.0.js` kopiert werden.
+    - Der Player muss sowohl Einzel-Stage (`project.stage`) als auch Multi-Stage (`project.stages[]`) Projekte unterstützen.
+
+## Asynchrone Runtime & Logik-Ausführung
+
+- **Promise-Chain**: Die Methoden `TaskExecutor.execute` und `ActionExecutor.execute` sind nun asynchron (`Promise<void>`).
+- **Warten auf Ergebnisse**: Alle Aufgaben-Schleifen (`for...of`) und Condition-Zweige verwenden `await`, um sicherzustellen, dass Aktionen (insbesondere HTTP-Anfragen) abgeschlossen sind, bevor die nächste Aktion startet.
+- **HTTP Action Standard**:
+    - Verwende immer `method: 'POST'` für Logins oder Statusänderungen.
+    - JSON-Bodies werden automatisch unterstützt und variablen-interpoliert.
+    - Das Ergebnis wird in der `resultVariable` gespeichert. Bei Fehlern enthält die Variable ein Objekt mit `{ success: false, status, error }`.
+- **GameRuntime Events**: `handleEvent` ist nun `async`. Event-Trigger aus dem UI (z.B. `onClick`) sollten im Player-Code asynchron aufgerufen werden, um die Kette nicht zu brechen.

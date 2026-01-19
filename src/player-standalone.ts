@@ -109,9 +109,10 @@ class UniversalPlayer {
             console.log('[UniversalPlayer] Loading embedded project');
             this.startProject((window as any).PROJECT);
         } else {
-            // Default: Show Lobby
-            console.log('[UniversalPlayer] No game selected, loading lobby...');
-            await this.loadProjectFromUrl('./multiplayer/lobby.json');
+            // Default: Show Platform UI
+            console.log('[UniversalPlayer] No game selected, loading platform UI...');
+            const baseUrl = network.getHttpUrl();
+            await this.loadProjectFromUrl(`${baseUrl}/platform/project.json`);
         }
     }
 
@@ -288,9 +289,13 @@ class UniversalPlayer {
         if (!this.currentProject) return;
 
         // Use active stage grid from runtime if available, else fallback to project default
-        const activeStage = this.runtime ? (this.runtime as any).stage : this.currentProject.stage;
-        const grid = activeStage ? activeStage.grid : this.currentProject.stage.grid;
+        const activeStage = this.runtime ? (this.runtime as any).stage : (this.currentProject.stage || this.currentProject.stages?.[0]);
+        if (!activeStage || !activeStage.grid) {
+            console.warn('[UniversalPlayer] No active stage or grid found for scaling');
+            return;
+        }
 
+        const grid = activeStage.grid;
         const stageWidth = grid.cols * grid.cellSize;
         const stageHeight = grid.rows * grid.cellSize;
         const windowWidth = window.innerWidth;
@@ -306,9 +311,9 @@ class UniversalPlayer {
         this.stage.style.top = '50%';
         this.stage.style.position = 'absolute';
 
-        // Set background color and image from project grid
+        // Set background color from grid
         const bg = grid.backgroundColor || '#000';
-        const bgImg = activeStage.backgroundImage || this.currentProject.stage.backgroundImage;
+        const bgImg = activeStage.backgroundImage;
 
         if (bgImg) {
             const url = bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:')
@@ -361,9 +366,12 @@ class UniversalPlayer {
     private render() {
         if (!this.runtime) return;
         const objects = this.runtime.getObjects();
-        // console.log(`[UniversalPlayer] Rendering ${objects.length} objects`);
-        const cellSize = this.currentProject.stage.grid.cellSize;
-        const grid = this.currentProject.stage.grid;
+
+        const activeStage = (this.runtime as any).stage || (this.currentProject.stage || this.currentProject.stages?.[0]);
+        const grid = activeStage?.grid;
+        if (!grid) return;
+
+        const cellSize = grid.cellSize;
         const stageWidth = grid.cols * cellSize;
         const stageHeight = grid.rows * cellSize;
 
@@ -616,6 +624,72 @@ class UniversalPlayer {
                     video.pause();
                 }
 
+                break;
+            }
+            case 'TGameCard': {
+                el.innerHTML = '';
+                el.style.flexDirection = 'column';
+                el.style.padding = '15px';
+                el.style.gap = '10px';
+                el.style.borderRadius = '12px';
+                el.style.background = 'rgba(255, 255, 255, 0.05)';
+                el.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                el.style.backdropFilter = 'blur(10px)';
+
+                // Host Info Row
+                const hostRow = document.createElement('div');
+                hostRow.style.display = 'flex';
+                hostRow.style.alignItems = 'center';
+                hostRow.style.gap = '10px';
+                hostRow.style.width = '100%';
+
+                const avatar = document.createElement('div');
+                avatar.style.width = '40px';
+                avatar.style.height = '40px';
+                avatar.style.borderRadius = '50%';
+                avatar.style.background = '#4fc3f7';
+                avatar.style.display = 'flex';
+                avatar.style.alignItems = 'center';
+                avatar.style.justifyContent = 'center';
+                avatar.style.fontSize = '20px';
+                avatar.innerText = obj.hostAvatar || '👤';
+                hostRow.appendChild(avatar);
+
+                const nameAndGame = document.createElement('div');
+                nameAndGame.style.flex = '1';
+
+                const hostNameEl = document.createElement('div');
+                hostNameEl.style.fontSize = '14px';
+                hostNameEl.style.color = '#94a3b8';
+                hostNameEl.innerText = obj.hostName || 'Anonym';
+                nameAndGame.appendChild(hostNameEl);
+
+                const gameTitleEl = document.createElement('div');
+                gameTitleEl.style.fontSize = '18px';
+                gameTitleEl.style.fontWeight = 'bold';
+                gameTitleEl.innerText = obj.gameName || 'Unbekanntes Spiel';
+                nameAndGame.appendChild(gameTitleEl);
+
+                hostRow.appendChild(nameAndGame);
+                el.appendChild(hostRow);
+
+                // Join Button
+                const joinBtn = document.createElement('div');
+                joinBtn.style.width = '100%';
+                joinBtn.style.padding = '8px';
+                joinBtn.style.textAlign = 'center';
+                joinBtn.style.background = '#10b981';
+                joinBtn.style.color = 'white';
+                joinBtn.style.borderRadius = '6px';
+                joinBtn.style.cursor = 'pointer';
+                joinBtn.style.fontWeight = 'bold';
+                joinBtn.innerText = 'Beitreten';
+                joinBtn.onclick = () => {
+                    if (obj.roomCode) {
+                        this.handleNavigation(`room:${obj.roomCode}`);
+                    }
+                };
+                el.appendChild(joinBtn);
                 break;
             }
         }

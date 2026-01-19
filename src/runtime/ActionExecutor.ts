@@ -28,7 +28,7 @@ export class ActionExecutor {
      * @param globalVars Persistent global variables context
      * @param contextObj The object that triggered the event (for $eventSource resolution)
      */
-    execute(action: any, vars: Record<string, any>, globalVars: Record<string, any> = {}, contextObj?: any, parentId?: string): void {
+    async execute(action: any, vars: Record<string, any>, globalVars: Record<string, any> = {}, contextObj?: any, parentId?: string): Promise<void> {
         console.log(`[ActionExecutor] execute start: type=${action?.type} name=${action?.name}`);
         if (!action || !action.type) return;
 
@@ -85,7 +85,7 @@ export class ActionExecutor {
                 this.handleLogAction(action, vars);
                 break;
             case 'http':
-                this.handleHttpAction(action, vars, globalVars);
+                await this.handleHttpAction(action, vars, globalVars);
                 break;
             case 'create_object':
                 this.handleCreateObjectAction(action, vars);
@@ -497,12 +497,40 @@ export class ActionExecutor {
 
         try {
             console.log(`[ActionExecutor] HTTP: ${method} ${url}`);
-            const resp = await fetch(url, { method });
+
+            const options: RequestInit = { method };
+
+            if (action.body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+                options.headers = {
+                    'Content-Type': 'application/json'
+                };
+
+                // Interpolate variables in the body if it's an object or string
+                let bodyData = action.body;
+                if (typeof bodyData === 'string') {
+                    bodyData = PropertyHelper.interpolate(bodyData, { ...vars, ...globalVars }, this.objects);
+                } else if (typeof bodyData === 'object' && bodyData !== null) {
+                    // Deep interpolation for object values (simple level for now)
+                    const stringified = JSON.stringify(bodyData);
+                    const interpolated = PropertyHelper.interpolate(stringified, { ...vars, ...globalVars }, this.objects);
+                    bodyData = JSON.parse(interpolated);
+                }
+
+                options.body = typeof bodyData === 'string' ? bodyData : JSON.stringify(bodyData);
+                console.log(`[ActionExecutor] HTTP Body:`, options.body);
+            }
+
+            const resp = await fetch(url, options);
             if (resp.ok) {
                 const data = await resp.json();
                 vars[resultVar] = data;
                 globalVars[resultVar] = data;
                 console.log(`[ActionExecutor] HTTP Success, stored in ${resultVar}`, data);
+            } else {
+                const errorText = await resp.text();
+                console.error(`[ActionExecutor] HTTP Error ${resp.status}: ${errorText}`);
+                vars[resultVar] = { success: false, status: resp.status, error: errorText };
+                globalVars[resultVar] = vars[resultVar];
             }
         } catch (e) {
             console.error('[ActionExecutor] HTTP Action failed:', e);

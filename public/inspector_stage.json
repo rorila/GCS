@@ -390,12 +390,12 @@
                 {
                     "className": "TLabel",
                     "name": "VarScope_${index}",
-                    "text": "[${item.scope || 'global'}]",
+                    "text": "[${item.scope || 'global'}]${item.publicIcon}",
                     "style": {
                         "fontSize": 9,
                         "color": "${item.scope && item.scope !== 'global' ? '#ffaa00' : '#888'}",
-                        "minWidth": "60px",
-                        "flex": "0 0 60px"
+                        "minWidth": "70px",
+                        "flex": "0 0 70px"
                     }
                 },
                 {

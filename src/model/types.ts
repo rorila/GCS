@@ -139,13 +139,14 @@ export type FlowCharts = Record<string, FlowChart>;
 // Project Variable (Pascal-style)
 // ─────────────────────────────────────────────
 export type VariableType = 'integer' | 'real' | 'string' | 'boolean';
-export type VariableScope = string; // 'global' or the name of a specific task
+export type VariableScope = 'global' | 'local' | string; // Phase 3: Strict scoping + Task-Local Support (Pascal)
 
 export interface ProjectVariable {
     name: string;
     type: VariableType;        // Pascal-style type
     defaultValue: any;         // Default value matching the type
-    scope: VariableScope;      // Visibility: global (Stage), task, or action
+    scope: VariableScope;      // Visibility: global (Project) or local (Stage)
+    isPublic?: boolean;        // If local, is it accessible from other stages?
     description?: string;      // Optional documentation
 }
 

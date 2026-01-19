@@ -999,6 +999,8 @@ export class JSONInspector {
             '${item.name}': item.name,
             '${item.type}': item.type,
             '${item.scope}': item.scope || 'global',
+            '${item.isPublic}': item.isPublic || false,
+            '${item.publicIcon}': item.isPublic ? '🌐' : '',
             '${item.defaultValue}': item.defaultValue,
             '${item.description}': item.description || '',
             '${item}': item,
@@ -2761,6 +2763,7 @@ export class JSONInspector {
                             const type = typeValue.toLowerCase();
                             const scopeValue = data.varScope || 'Global';
                             const scope = scopeValue.toLowerCase();
+                            const isPublic = data.isPublic === true;
                             let defaultValue: any = data.defaultValue || '';
                             const description = data.description || '';
 
@@ -2784,6 +2787,7 @@ export class JSONInspector {
                                 name,
                                 type,
                                 scope,
+                                isPublic,
                                 defaultValue,
                                 description
                             };
@@ -2841,6 +2845,7 @@ export class JSONInspector {
                         varName: variable.name,
                         varType: capitalize(variable.type),
                         varScope: variable.scope || 'global',
+                        isPublic: variable.isPublic || false,
                         defaultValue: String(variable.defaultValue),
                         description: variable.description || ''
                     };
@@ -2857,6 +2862,7 @@ export class JSONInspector {
                                 const newType = typeValue.toLowerCase();
                                 const scopeValue = data.varScope || 'Global';
                                 const newScope = scopeValue.toLowerCase();
+                                const newIsPublic = data.isPublic === true;
                                 let newDefaultValue: any = data.defaultValue || '';
                                 const newDescription = data.description || '';
 
@@ -2882,6 +2888,7 @@ export class JSONInspector {
                                 // But renameVariable updates the name property on it.
                                 variable.type = newType;
                                 variable.scope = newScope;
+                                variable.isPublic = newIsPublic;
                                 variable.defaultValue = newDefaultValue;
                                 variable.description = newDescription;
 

@@ -34,7 +34,7 @@ export class TaskExecutor {
         this.actions = actions;
     }
 
-    execute(taskName: string, vars: Record<string, any>, globalVars: Record<string, any>, contextObj?: any, depth: number = 0, parentId?: string, params?: Record<string, any>, isRemoteExecution: boolean = false): void {
+    async execute(taskName: string, vars: Record<string, any>, globalVars: Record<string, any>, contextObj?: any, depth: number = 0, parentId?: string, params?: Record<string, any>, isRemoteExecution: boolean = false): Promise<void> {
         if (depth >= TaskExecutor.MAX_DEPTH) {
             console.error(`[TaskExecutor] Max recursion depth exceeded: ${taskName} `);
             return;
@@ -109,20 +109,20 @@ export class TaskExecutor {
 
         if (hasFlowChart) {
             console.log(`[TaskExecutor] Nutze Flussdiagramm für "${taskName}" (Elemente: ${flowChart!.elements.length})`);
-            this.executeFlowChart(taskName, flowChart!, vars, globalVars, contextObj, depth, taskLogId);
+            await this.executeFlowChart(taskName, flowChart!, vars, globalVars, contextObj, depth, taskLogId);
         } else {
             if (actionSequence.length === 0) {
                 console.log(`[TaskExecutor] Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
             }
 
-            actionSequence.forEach((seqItem: any, index: number) => {
+            for (const seqItem of actionSequence) {
                 try {
-                    this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
+                    await this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
                 } catch (err) {
-                    console.error(`[TaskExecutor] Error in item ${index} of task ${taskName}: `, err);
-                    DebugLogService.getInstance().log('Event', `ERROR executing task ${taskName} item ${index}: ${err}`, { parentId: taskLogId });
+                    console.error(`[TaskExecutor] Error in item of task ${taskName}: `, err);
+                    DebugLogService.getInstance().log('Event', `ERROR executing task ${taskName}: ${err}`, { parentId: taskLogId });
                 }
-            });
+            }
         }
 
         // local-sync: After execution, sync to other player
@@ -136,7 +136,7 @@ export class TaskExecutor {
      * Execute a task's flowChart directly at runtime
      * This is a fallback for when actionSequence wasn't properly synced
      */
-    private executeFlowChart(taskName: string, flowChart: { elements: any[], connections: any[] }, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): void {
+    private async executeFlowChart(taskName: string, flowChart: { elements: any[], connections: any[] }, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
         const { elements, connections } = flowChart;
         const visited = new Set<string>();
 
@@ -153,7 +153,7 @@ export class TaskExecutor {
 
         console.log(`[TaskExecutor] FlowChart Elements for "${taskName}":`, elements.map(e => `${e.type}:${e.properties?.name || e.id}`));
 
-        const executeNode = (node: any): void => {
+        const executeNode = async (node: any): Promise<void> => {
             if (!node || visited.has(node.id)) return;
             visited.add(node.id);
 
@@ -164,10 +164,10 @@ export class TaskExecutor {
             if (nodeType === 'Task' && name === taskName) {
                 // Find outgoing connections and execute them
                 const outgoing = connections.filter((c: any) => c.startTargetId === node.id);
-                outgoing.forEach((conn: any) => {
+                for (const conn of outgoing) {
                     const nextNode = elements.find((e: any) => e.id === conn.endTargetId);
-                    if (nextNode) executeNode(nextNode);
-                });
+                    if (nextNode) await executeNode(nextNode);
+                }
                 return;
             }
 
@@ -175,26 +175,24 @@ export class TaskExecutor {
                 // Execute this action
                 const action = this.resolveAction({ type: 'action', name: name }) || node.data;
                 if (action) {
-                    this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+                    await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
                 }
 
                 // Find and execute next node (non-conditional connection)
-                // We follow empty, 'output', or spatial anchors (right, left, top, bottom).
-                // Only 'true' and 'false' are reserved for conditions.
                 const outgoing = connections.find((c: any) =>
                     c.startTargetId === node.id &&
                     !['true', 'false'].includes(c.data?.startAnchorType || c.data?.anchorType || '')
                 );
                 if (outgoing) {
                     const nextNode = elements.find((e: any) => e.id === outgoing.endTargetId);
-                    if (nextNode) executeNode(nextNode);
+                    if (nextNode) await executeNode(nextNode);
                 }
                 return;
             }
 
             if (nodeType === 'Task' || nodeType === 'task') {
                 // Execute sub-task
-                this.execute(name, vars, globalVars, contextObj, depth + 1, parentId, node.data?.params);
+                await this.execute(name, vars, globalVars, contextObj, depth + 1, parentId, node.data?.params);
 
                 // Find and execute next node
                 const outgoing = connections.find((c: any) =>
@@ -203,7 +201,7 @@ export class TaskExecutor {
                 );
                 if (outgoing) {
                     const nextNode = elements.find((e: any) => e.id === outgoing.endTargetId);
-                    if (nextNode) executeNode(nextNode);
+                    if (nextNode) await executeNode(nextNode);
                 }
                 return;
             }
@@ -231,10 +229,10 @@ export class TaskExecutor {
 
                 if (result && trueConn) {
                     const trueNode = elements.find((e: any) => e.id === trueConn.endTargetId);
-                    if (trueNode) executeNode(trueNode);
+                    if (trueNode) await executeNode(trueNode);
                 } else if (!result && falseConn) {
                     const falseNode = elements.find((e: any) => e.id === falseConn.endTargetId);
-                    if (falseNode) executeNode(falseNode);
+                    if (falseNode) await executeNode(falseNode);
                 }
                 return;
             }
@@ -242,13 +240,13 @@ export class TaskExecutor {
 
         // Start execution from start node's outgoing connections
         const initialOutgoing = connections.filter((c: any) => c.startTargetId === startNode.id);
-        initialOutgoing.forEach((conn: any) => {
+        for (const conn of initialOutgoing) {
             const firstNode = elements.find((e: any) => e.id === conn.endTargetId);
-            if (firstNode) executeNode(firstNode);
-        });
+            if (firstNode) await executeNode(firstNode);
+        }
     }
 
-    private executeSequenceItem(seqItem: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): void {
+    private async executeSequenceItem(seqItem: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
         const item = typeof seqItem === 'string'
             ? { type: 'action', name: seqItem }
             : seqItem;
@@ -265,40 +263,40 @@ export class TaskExecutor {
 
         switch (item.type) {
             case 'condition':
-                this.handleCondition(item, vars, globalVars, contextObj, depth, parentId);
+                await this.handleCondition(item, vars, globalVars, contextObj, depth, parentId);
                 break;
             case 'task':
-                this.execute(item.name, vars, globalVars, contextObj, depth + 1, parentId, item.params);
+                await this.execute(item.name, vars, globalVars, contextObj, depth + 1, parentId, item.params);
                 break;
             case 'action':
                 const action = this.resolveAction(item);
                 if (action) {
-                    this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+                    await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
                 } else {
                     console.warn(`[TaskExecutor] Action definition not found: ${item.name} `);
                 }
                 break;
             case 'while':
-                this.handleWhile(item, vars, globalVars, contextObj, depth, parentId);
+                await this.handleWhile(item, vars, globalVars, contextObj, depth, parentId);
                 break;
             case 'for':
-                this.handleFor(item, vars, globalVars, contextObj, depth, parentId);
+                await this.handleFor(item, vars, globalVars, contextObj, depth, parentId);
                 break;
             case 'foreach':
-                this.handleForeach(item, vars, globalVars, contextObj, depth, parentId);
+                await this.handleForeach(item, vars, globalVars, contextObj, depth, parentId);
                 break;
             default:
                 // Legacy: execute as direct action
                 if (item.type) {
-                    this.actionExecutor.execute(item, vars, globalVars, contextObj, parentId);
+                    await this.actionExecutor.execute(item, vars, globalVars, contextObj, parentId);
                 }
         }
     }
 
-    private executeBody(body: any[], vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): void {
+    private async executeBody(body: any[], vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
         if (!body || !Array.isArray(body)) return;
         for (const item of body) {
-            this.executeSequenceItem(item, vars, globalVars, contextObj, depth, parentId);
+            await this.executeSequenceItem(item, vars, globalVars, contextObj, depth, parentId);
         }
     }
 
@@ -373,7 +371,7 @@ export class TaskExecutor {
         return 0;
     }
 
-    private handleCondition(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): void {
+    private async handleCondition(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
         if (!item.condition) return;
 
         const varName = item.condition.variable;
@@ -401,27 +399,27 @@ export class TaskExecutor {
             if (item.thenAction) {
                 const action = this.resolveAction(item.thenAction);
                 console.log(`[TaskExecutor] Condition TRUE, executing thenAction: ${item.thenAction} `);
-                if (action) this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+                if (action) await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
             }
             if (item.thenTask) {
                 console.log(`[TaskExecutor] Condition TRUE, executing thenTask: ${item.thenTask} `);
-                this.execute(item.thenTask, vars, globalVars, contextObj, depth + 1, parentId);
+                await this.execute(item.thenTask, vars, globalVars, contextObj, depth + 1, parentId);
             }
-            if (item.body) this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+            if (item.body) await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
         } else {
             if (item.elseAction) {
                 const action = this.resolveAction(item.elseAction);
-                if (action) this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+                if (action) await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
             }
-            if (item.elseTask) this.execute(item.elseTask, vars, globalVars, contextObj, depth + 1, parentId);
-            if (item.elseBody) this.executeBody(item.elseBody, vars, globalVars, contextObj, depth, parentId);
+            if (item.elseTask) await this.execute(item.elseTask, vars, globalVars, contextObj, depth + 1, parentId);
+            if (item.elseBody) await this.executeBody(item.elseBody, vars, globalVars, contextObj, depth, parentId);
         }
     }
 
     /**
      * WHILE loop: Execute body while condition is true
      */
-    private handleWhile(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): void {
+    private async handleWhile(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
         if (!item.condition || !item.body) {
             console.warn('[TaskExecutor] WHILE loop missing condition or body');
             return;
@@ -433,7 +431,7 @@ export class TaskExecutor {
                 console.error(`[TaskExecutor] WHILE loop exceeded max iterations(${TaskExecutor.MAX_ITERATIONS})`);
                 break;
             }
-            this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+            await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
         }
         console.log(`[TaskExecutor] WHILE loop completed after ${iterations} iterations`);
     }
@@ -441,7 +439,7 @@ export class TaskExecutor {
     /**
      * FOR loop: Execute body for each value from 'from' to 'to'
      */
-    private handleFor(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): void {
+    private async handleFor(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
         if (!item.iteratorVar || !item.body) {
             console.warn('[TaskExecutor] FOR loop missing iteratorVar or body');
             return;
@@ -460,7 +458,7 @@ export class TaskExecutor {
             // Set iterator variable
             vars[item.iteratorVar] = i;
             globalVars[item.iteratorVar] = i;
-            this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+            await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
         }
         console.log(`[TaskExecutor] FOR loop completed after ${iterations} iterations`);
     }
@@ -468,7 +466,7 @@ export class TaskExecutor {
     /**
      * FOREACH loop: Execute body for each item in array
      */
-    private handleForeach(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): void {
+    private async handleForeach(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
         if (!item.sourceArray || !item.itemVar || !item.body) {
             console.warn('[TaskExecutor] FOREACH loop missing sourceArray, itemVar, or body');
             return;
@@ -496,7 +494,7 @@ export class TaskExecutor {
                 vars[item.indexVar] = idx;
                 globalVars[item.indexVar] = idx;
             }
-            this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+            await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
             idx++;
         }
         console.log(`[TaskExecutor] FOREACH loop completed after ${idx} iterations`);

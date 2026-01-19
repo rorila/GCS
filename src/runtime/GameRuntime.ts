@@ -22,7 +22,12 @@ export class GameRuntime {
     private reactiveRuntime: ReactiveRuntime;
     private actionExecutor: ActionExecutor;
     private taskExecutor: TaskExecutor;
-    private globalVars: Record<string, any>;
+
+    // Phase 3: Variable Scopes
+    private projectVariables: Record<string, any> = {}; // Global persistence
+    private stageVariables: Record<string, any> = {};   // Local ephemeral
+    private contextVars: Record<string, any>;           // Proxy for access
+
     private objects: any[];
     private isSplashActive: boolean = false;
     private splashTimerId: any = null;
@@ -34,7 +39,28 @@ export class GameRuntime {
         objects?: any[],
         private options: RuntimeOptions = {}
     ) {
-        this.globalVars = { ...options.initialGlobalVars };
+        // Initialize Project Variables (Global)
+        this.projectVariables = { ...options.initialGlobalVars };
+        if (project.variables) {
+            project.variables.forEach((v: any) => {
+                const isGlobal = !v.scope || v.scope === 'global';
+                if (isGlobal) {
+                    // Set default if not provided in initial options
+                    if (this.projectVariables[v.name] === undefined) {
+                        this.projectVariables[v.name] = v.defaultValue;
+                    }
+                } else if (v.scope === 'local') {
+                    // This is a "Global-Local" variable: defined in project but value is local to each stage
+                    if (this.stageVariables[v.name] === undefined) {
+                        this.stageVariables[v.name] = v.defaultValue;
+                    }
+                }
+            });
+        }
+
+        // Initialize Proxy for unified access
+        this.contextVars = this.createVariableContext();
+
         this.reactiveRuntime = new ReactiveRuntime();
 
         // Determine if we start with a specific stage or legacy objects
@@ -110,6 +136,18 @@ export class GameRuntime {
                 // FlowCharts
                 if (stage.flowCharts) {
                     Object.assign(mergedFlowCharts, stage.flowCharts);
+                }
+
+                // Variables (Local to Stage)
+                if (stage.variables) {
+                    stage.variables.forEach((v: any) => {
+                        // Only set if not already set (Chain precedence: Tail overrides Head)
+                        // Actually, chain loop is Head -> Tail? Let's check resolveInheritanceChain.
+                        // Usually it's Child -> ... -> Template.
+                        // If so, first stage in loop is active stage.
+                        // Let's check.
+                        this.stageVariables[v.name] = v.defaultValue;
+                    });
                 }
             });
 
@@ -416,6 +454,16 @@ export class GameRuntime {
                 this.objects = this.reactiveRuntime.getObjects();
             }
 
+            // Phase 3: Reset Local Variables for new Stage
+            this.stageVariables = {};
+            // Initialize defaults for local variables
+            if (this.stage?.variables) {
+                this.stage.variables.forEach((v: any) => {
+                    this.stageVariables[v.name] = v.defaultValue;
+                });
+            }
+            console.log(`[GameRuntime] Local variables reset for stage ${newStageId}`);
+
             // 6. Executors aktualisieren
             this.actionExecutor.setObjects(this.objects);
 
@@ -535,7 +583,7 @@ export class GameRuntime {
         });
     }
 
-    public handleEvent(objectId: string, eventName: string, data: any = {}) {
+    public async handleEvent(objectId: string, eventName: string, data: any = {}) {
         // 1. Find object
         const obj = this.objects.find(o => o.id === objectId || o.name === objectId);
         if (!obj) {
@@ -553,7 +601,7 @@ export class GameRuntime {
             const vars = {};
 
             // Execute Task
-            this.taskExecutor.execute(taskName, vars, this.globalVars, obj, 0, undefined, data);
+            await this.taskExecutor.execute(taskName, vars, this.contextVars, obj, 0, undefined, data);
 
             // Reactivity sync (optional, handled by ReactiveRuntime usually)
         }
@@ -581,32 +629,33 @@ export class GameRuntime {
     /**
      * Multiplayer: Triggers an event on a specific object from a remote peer
      */
-    public triggerRemoteEvent(objectId: string, eventName: string, params: any) {
+    public async triggerRemoteEvent(objectId: string, eventName: string, params: any) {
         console.log(`[Runtime] Remote Event: ${objectId}.${eventName}`, params);
-        this.handleEvent(objectId, eventName, params);
+        await this.handleEvent(objectId, eventName, params);
     }
 
     /**
      * Multiplayer: Executes an action from a remote peer
      */
-    public executeRemoteAction(action: any) {
+    public async executeRemoteAction(action: any) {
         console.log(`[Runtime] Remote Action:`, action);
-        this.actionExecutor.execute(action, {}, this.globalVars);
+        await this.actionExecutor.execute(action, {}, this.contextVars);
     }
 
     /**
      * Multiplayer: Executes a task from a remote peer
      */
-    public executeRemoteTask(taskName: string, params: any = {}, mode?: string) {
-        console.log(`[Runtime] Remote Task: ${taskName}`, params, mode);
+    public async executeRemoteTask(taskName: string, params: any = {}, mode?: string) {
+        console.log(`[GameRuntime] Executing remote task: ${taskName} (mode: ${mode})`);
         const vars: Record<string, any> = {};
+        // Use contextVars Proxy to get current state
         if (this.project.variables) {
-            this.project.variables.forEach((v: any) => vars[v.name] = this.reactiveRuntime.getVariable(v.name));
+            this.project.variables.forEach((v: any) => vars[v.name] = this.contextVars[v.name]);
         }
-        Object.assign(vars, this.globalVars, params || {});
+        Object.assign(vars, this.stageVariables, params || {}); // Include local vars too? Or just global?
 
         // Execute task with remote flag set to true
-        this.taskExecutor.execute(taskName, vars, this.globalVars, null, 0, undefined, params, true);
+        this.taskExecutor.execute(taskName, vars, this.contextVars, null, 0, undefined, params, true);
     }
 
     /**
@@ -639,11 +688,127 @@ export class GameRuntime {
         }
         if (this.project.variables) {
             this.project.variables.forEach((v: any) => {
-                const val = this.globalVars[v.name] !== undefined ? this.globalVars[v.name] : v.defaultValue;
+                // Ensure ReactiveRuntime knows about globals
+                const val = this.projectVariables[v.name];
                 this.reactiveRuntime.registerVariable(v.name, val);
             });
         }
+        // Also register local variables if we are in a stage
+        if (this.stage && this.stage.variables) {
+            this.stage.variables.forEach((v: any) => {
+                this.stageVariables[v.name] = v.defaultValue;
+                this.reactiveRuntime.registerVariable(v.name, v.defaultValue);
+            });
+        }
         this.setupBindings();
+
+        // Phase 3: Register Stage Proxies for Cross-Stage Access (e.g. "Level1.score")
+        if (this.project.stages) {
+            this.project.stages.forEach((stage: any) => {
+                if (stage.name) {
+                    // Register the stage name as a global object in ReactiveRuntime
+                    this.reactiveRuntime.registerObject(stage.name, this.createStageProxy(stage), false);
+                }
+            });
+        }
+    }
+
+    /**
+     * Phase 3: Creates a Proxy for a Stage to allow read-only access to its public variables.
+     * Usage: ${StageName.VarName}
+     */
+    private createStageProxy(stage: any): any {
+        return new Proxy({}, {
+            get: (_target, prop: string) => {
+                // 1. Find the variable definition in the target stage
+                const variableDef = stage.variables?.find((v: any) => v.name === prop);
+
+                // 2. Check existence and visibility (Public Access only)
+                if (!variableDef) return undefined;
+                if (!variableDef.isPublic) {
+                    console.warn(`[Scope] Access denied: Variable '${prop}' in stage '${stage.name}' is private.`);
+                    return undefined;
+                }
+
+                // 3. Resolve Value
+                // If this stage is currently active, return the live value
+                if (this.stage && this.stage.id === stage.id) {
+                    return this.stageVariables[prop];
+                }
+
+                // If stage is inactive, return default value (Local variables are ephemeral)
+                // TODO: Future enhancement - "Persistent" local variables?
+                return variableDef.defaultValue;
+            },
+            set: () => {
+                console.warn(`[Scope] Cannot set properties on Stage Proxy '${stage.name}'. Cross-stage writes are forbidden.`);
+                return false; // Read-only
+            }
+        });
+    }
+
+    /**
+     * Phase 3: Creates a Proxy handles variable scoping (Local > Global).
+     */
+    private createVariableContext(): Record<string, any> {
+        return new Proxy({}, {
+            get: (_target, prop: string) => {
+                // 1. Check Local (Stage)
+                if (prop in this.stageVariables) {
+                    return this.stageVariables[prop];
+                }
+                // 2. Check Global (Project)
+                if (prop in this.projectVariables) {
+                    return this.projectVariables[prop];
+                }
+                // 3. Check Cross-Stage (e.g. "Stage1.score")
+                // TODO: Implement cross-stage lookup if needed
+
+                // Fallback: Return undefined
+                return undefined;
+            },
+            set: (_target, prop: string, value: any) => {
+                // Logic: 
+                // - If defined in Local (Stage) -> set Local
+                // - If defined in Global (Project) -> set Global
+                // - If defined in NEITHER -> Default to Local (Implicit creation)
+
+                if (prop in this.stageVariables) {
+                    this.stageVariables[prop] = value;
+                    console.log(`[Scope] Set LOCAL ${prop} = ${value}`);
+                } else if (prop in this.projectVariables) {
+                    this.projectVariables[prop] = value;
+                    console.log(`[Scope] Set GLOBAL ${prop} = ${value}`);
+                } else {
+                    // Implicit -> Local
+                    this.stageVariables[prop] = value;
+                    console.log(`[Scope] Set IMPLICIT LOCAL ${prop} = ${value}`);
+                }
+
+                // Sync with ReactiveRuntime for UI bindings
+                this.reactiveRuntime.setVariable(prop, value);
+                return true;
+            },
+            ownKeys: () => {
+                // Combined keys for iteration
+                const keys = new Set([
+                    ...Object.keys(this.projectVariables),
+                    ...Object.keys(this.stageVariables)
+                ]);
+                return Array.from(keys);
+            },
+            has: (_target, prop: string) => {
+                return (prop in this.stageVariables) || (prop in this.projectVariables);
+            },
+            getOwnPropertyDescriptor: (_target, prop: string) => {
+                // Must return a descriptor for the proxy to work with Object.keys/entries
+                const val = this.stageVariables[prop] !== undefined ? this.stageVariables[prop] : this.projectVariables[prop];
+                if (val !== undefined) {
+                    return { configurable: true, enumerable: true, value: val };
+                }
+                return undefined;
+            }
+        });
     }
 
     private setupBindings() {

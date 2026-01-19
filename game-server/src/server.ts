@@ -29,6 +29,8 @@ const playerRooms = new Map<WebSocket, Room>();
 // Platform directories - ONLY uploaded games, no demos dependency
 const UPLOADED_GAMES_DIR = path.join(__dirname, '../../uploaded_games');
 const RUNTIMES_DIR = path.join(__dirname, '../runtimes');
+const DATA_DIR = path.join(__dirname, '../data');
+const DB_PATH = path.join(DATA_DIR, 'db.json');
 
 if (!fs.existsSync(UPLOADED_GAMES_DIR)) {
     fs.mkdirSync(UPLOADED_GAMES_DIR, { recursive: true });
@@ -36,6 +38,38 @@ if (!fs.existsSync(UPLOADED_GAMES_DIR)) {
 if (!fs.existsSync(RUNTIMES_DIR)) {
     fs.mkdirSync(RUNTIMES_DIR, { recursive: true });
 }
+if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// ─────────────────────────────────────────────
+// Platform Data Service
+// ─────────────────────────────────────────────
+let db: any = { users: [], hierarchy: { cities: [], houses: [], rooms: [] }, games: [], instances: [] };
+
+function loadDB() {
+    if (fs.existsSync(DB_PATH)) {
+        try {
+            db = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
+            console.log(`[DB] Database loaded: ${db.users.length} users found.`);
+        } catch (e) {
+            console.error('[DB] Error loading database:', e);
+        }
+    } else {
+        console.warn(`[DB] Database file not found at ${DB_PATH}. Using empty state.`);
+    }
+}
+
+function saveDB() {
+    try {
+        fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+    } catch (e) {
+        console.error('[DB] Error saving database:', e);
+    }
+}
+
+// Initial load
+loadDB();
 
 // ─────────────────────────────────────────────
 // Express App Setup
@@ -65,10 +99,132 @@ app.get('/rooms/active', (req, res) => {
             gameName: room.gameName,
             playerCount: room.playerCount(),
             gameStarted: room.gameStarted,
-            hasProject: !!room.project
+            hasProject: !!room.project,
+            hostName: room.metadata.hostName,
+            hostAvatar: room.metadata.hostAvatar
         });
     });
     res.json(activeRooms);
+});
+
+// ─────────────────────────────────────────────
+// Platform Role Hierarchy
+// ─────────────────────────────────────────────
+const ROLE_HIERARCHY = ['player', 'roomadmin', 'houseadmin', 'cityadmin', 'superadmin'];
+
+function getAvailableRoles(role: string): string[] {
+    const level = ROLE_HIERARCHY.indexOf(role);
+    if (level === -1) return ['player'];
+    return ROLE_HIERARCHY.slice(0, level + 1).reverse();
+}
+
+// ─────────────────────────────────────────────
+// Platform API Endpoints
+// ─────────────────────────────────────────────
+
+/**
+ * POST /api/platform/login - Emoji-PIN Verification
+ */
+app.post('/api/platform/login', (req, res) => {
+    let { name, authCode } = req.body; // authCode can be array or string
+
+    if (!authCode) {
+        return res.status(400).json({ error: 'Missing authCode' });
+    }
+
+    // Convert string to emoji array if needed
+    let authArray = Array.isArray(authCode) ? authCode : [...authCode];
+
+    const user = db.users.find((u: any) => {
+        const pinMatch = JSON.stringify(u.authCode) === JSON.stringify(authArray);
+        if (!name) return pinMatch;
+        return pinMatch && u.name.toLowerCase() === name.toLowerCase();
+    });
+
+    if (user) {
+        console.log(`[Platform] User logged in: ${user.name} (${user.role})`);
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                role: user.role,
+                avatar: user.avatar,
+                availableRoles: getAvailableRoles(user.role)
+            }
+        });
+    } else {
+        res.status(401).json({ error: 'Invalid name or emoji code' });
+    }
+});
+
+/**
+ * GET /api/platform/context/:userId - Get full hierarchy context for a user
+ */
+app.get('/api/platform/context/:userId', (req, res) => {
+    const { userId } = req.params;
+    const user = db.users.find((u: any) => u.id === userId);
+
+    if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+
+    const context: any = {
+        user: { id: user.id, name: user.name, role: user.role, avatar: user.avatar },
+        city: null,
+        house: null,
+        room: null
+    };
+
+    // Resolve hierarchy based on primary role level
+    const findRoom = (id: string) => db.hierarchy.rooms.find((r: any) => r.id === id);
+    const findHouse = (id: string) => db.hierarchy.houses.find((h: any) => h.id === id);
+    const findCity = (id: string) => db.hierarchy.cities.find((c: any) => c.id === id);
+
+    const roleLevel = ROLE_HIERARCHY.indexOf(user.role);
+
+    // Players and RoomAdmins are attached to a Room
+    if (roleLevel <= 1 && user.parentId) {
+        context.room = findRoom(user.parentId);
+        if (context.room) {
+            context.house = findHouse(context.room.houseId);
+            if (context.house) context.city = findCity(context.house.cityId);
+        }
+    }
+    // HouseAdmins are attached to a House
+    else if (roleLevel === 2 && user.parentId) {
+        context.house = findHouse(user.parentId);
+        if (context.house) context.city = findCity(context.house.cityId);
+    }
+    // CityAdmins are attached to a City
+    else if (roleLevel === 3 && user.parentId) {
+        context.city = findCity(user.parentId);
+    }
+    // Superadmins (level 4) have a global context (no parentId required)
+
+    res.json(context);
+});
+
+/**
+ * GET /api/platform/children?type=cities|houses|rooms&parentId=...
+ * Returns children for a specific context
+ */
+app.get('/api/platform/children', (req, res) => {
+    const { type, parentId } = req.query;
+
+    if (type === 'cities') {
+        return res.json(db.hierarchy.cities);
+    }
+
+    if (type === 'houses' && parentId) {
+        return res.json(db.hierarchy.houses.filter((h: any) => h.cityId === parentId));
+    }
+
+    if (type === 'rooms' && parentId) {
+        return res.json(db.hierarchy.rooms.filter((r: any) => r.houseId === parentId));
+    }
+
+    res.status(400).json({ error: 'Invalid type or missing parentId' });
 });
 
 /**
@@ -335,12 +491,16 @@ app.post('/api/library/templates', (req, res) => {
  * Auto-fetches from Builder if not cached
  */
 app.get('/runtimes/:version', async (req, res) => {
-    const version = req.params.version;
+    let version = req.params.version;
+    // Cleanup version string (e.g. "v1.0.0.js" -> "1.0.0")
+    version = version.replace(/^v/, '').replace(/\.js$/, '');
+
     const runtimePath = path.join(RUNTIMES_DIR, `v${version}.js`);
 
-    // Check if we have this version cached
     const isLocalhost = BUILDER_URL.includes('localhost') || BUILDER_URL.includes('127.0.0.1');
-    if (fs.existsSync(runtimePath) && !isLocalhost) {
+
+    // Check if we have this version cached
+    if (fs.existsSync(runtimePath)) {
         res.setHeader('Content-Type', 'application/javascript');
         return res.sendFile(runtimePath);
     }
@@ -434,6 +594,13 @@ function handleMessage(ws: WebSocket, data: string): void {
             const code = generateRoomCode();
             const gameName = msg.gameName || '';
             const room = new Room(code, gameName);
+
+            // Platform: Store host metadata
+            if ((msg as any).hostName) {
+                room.metadata.hostName = (msg as any).hostName;
+                room.metadata.hostAvatar = (msg as any).hostAvatar;
+            }
+
             rooms.set(code, room);
 
             const playerNum = room.addPlayer(ws);

@@ -1,4 +1,4 @@
-import { GameProject, SequenceItem } from '../model/types';
+import { GameProject, SequenceItem, ProjectVariable, VariableScope } from '../model/types';
 
 export class PascalGenerator {
     private static span(text: string, color: string, asHtml: boolean): string {
@@ -380,8 +380,13 @@ export class PascalGenerator {
 
             let variable = project.variables.find(v => v.name === name && (v.scope || 'global') === scope);
             if (!variable) {
-                variable = { name, type, defaultValue: '', scope };
-                project.variables.push(variable);
+                const newVar: ProjectVariable = {
+                    name,
+                    type,
+                    defaultValue: '',
+                    scope: scope as VariableScope
+                };
+                project.variables.push(newVar);
             } else {
                 variable.type = type;
             }

@@ -10,6 +10,9 @@ export class TGameCard extends TWindow {
     public gameName: string = 'Game';
     public gameFile: string = '';  // e.g., "pong.json"
     public waitingCount: number = 0;  // Number of waiting rooms
+    public hostName: string = '';
+    public hostAvatar: string = '';
+    public roomCode: string = '';
 
     constructor(name: string, x: number = 0, y: number = 0) {
         super(name, x, y, 6, 5);  // Default size: 6x5 grid units
@@ -27,7 +30,10 @@ export class TGameCard extends TWindow {
             ...props,
             { name: 'gameName', label: 'Game Name', type: 'string', group: 'Game' },
             { name: 'gameFile', label: 'Game File', type: 'string', group: 'Game' },
-            { name: 'waitingCount', label: 'Waiting Rooms', type: 'number', group: 'Game' }
+            { name: 'waitingCount', label: 'Waiting Rooms', type: 'number', group: 'Game' },
+            { name: 'hostName', label: 'Host Name', type: 'string', group: 'Game' },
+            { name: 'hostAvatar', label: 'Host Avatar', type: 'string', group: 'Game' },
+            { name: 'roomCode', label: 'Room Code', type: 'string', group: 'Game' }
         ];
     }
 
@@ -37,6 +43,9 @@ export class TGameCard extends TWindow {
             gameName: this.gameName,
             gameFile: this.gameFile,
             waitingCount: this.waitingCount,
+            hostName: this.hostName,
+            hostAvatar: this.hostAvatar,
+            roomCode: this.roomCode,
             Tasks: this.Tasks
         };
     }
