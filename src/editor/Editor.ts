@@ -1,5 +1,5 @@
 import { Stage } from './Stage';
-import { GameProject, StageType, StageDefinition, GameAction, GameTask, ProjectVariable, InputConfig } from '../model/types';
+import { GameProject, StageType, StageDefinition, GameAction, GameTask, ProjectVariable } from '../model/types';
 import { TButton } from '../components/TButton';
 import { TPanel } from '../components/TPanel';
 import { TLabel } from '../components/TLabel';
@@ -829,6 +829,78 @@ export class Editor {
     }
 
     /**
+     * Erstellt eine neue Stage basierend auf einem Template
+     */
+    private async createStageFromTemplate(): Promise<void> {
+        // Fetch templates from library
+        const templates = libraryService.getTemplates();
+        if (!templates || templates.length === 0) {
+            alert('Keine Templates in der Library gefunden.');
+            return;
+        }
+
+        // Prepare selection dialog
+        const templateOptions = templates.map(t => ({ value: t.id, text: t.name }));
+
+        // Show dialog
+        try {
+            const result = await serviceRegistry.call('Dialog', 'showDialog', ['template_selector', true, { templateIdOptions: templateOptions }]);
+
+            if (result.action === 'select' && result.data.templateId) {
+                const tplId = result.data.templateId;
+                const template = libraryService.getTemplate(tplId);
+
+                if (!template) return;
+
+                // Create new stage based on template (Clone structure)
+                const stageCount = this.project.stages!.length;
+                const id = `stage-${Date.now()}`;
+                const name = `${template.name} ${stageCount + 1}`;
+
+                // Helper to recursively regenerate IDs
+                const regenerateIds = (objs: any[]): any[] => {
+                    return objs.map(obj => {
+                        const newObj = { ...obj };
+                        // Generate new ID: preserve logic of name but make unique
+                        if (newObj.id) {
+                            // If it's a template ID (e.g. tpl_header_panel), keep base name but unique-ify
+                            // Or just use name + random?
+                            // Let's use: name + timestamp + random to be safe and readable
+                            const baseName = newObj.name || newObj.id;
+                            newObj.id = `${baseName}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                        }
+
+                        if (newObj.children && Array.isArray(newObj.children)) {
+                            newObj.children = regenerateIds(newObj.children);
+                        }
+                        return newObj;
+                    });
+                };
+
+                const clonedObjects = JSON.parse(JSON.stringify(template.objects || []));
+                const uniqueObjects = regenerateIds(clonedObjects);
+
+                const newStage: StageDefinition = {
+                    id,
+                    name,
+                    type: 'standard',
+                    objects: uniqueObjects,
+                    grid: template.grid ? JSON.parse(JSON.stringify(template.grid)) : JSON.parse(JSON.stringify(this.project.stage.grid))
+                };
+
+                this.project.stages!.push(newStage);
+                this.switchStage(id);
+                this.updateStagesMenu();
+                this.autoSaveToLocalStorage();
+
+                console.log(`[Editor] Created stage from template: ${template.name}`);
+            }
+        } catch (e) {
+            console.error('[Editor] Template selection failed:', e);
+        }
+    }
+
+    /**
      * Erstellt eine neue Stage
      */
     private createStage(type: StageType): void {
@@ -956,8 +1028,48 @@ export class Editor {
     }
 
     /**
-     * Aktualisiert das Stages-Menü dynamisch
+     * Resolves objects from inheritance chain for editor display.
+     * Inherited objects are marked with isInherited: true to allow the stage to render them as ghosts.
      */
+    private getResolvedInheritanceObjects(): any[] {
+        const activeStage = this.getActiveStage();
+        if (!activeStage) return this.project.objects || [];
+
+        // OPTIMIZATION: If no inheritance, return mutable objects directly to allow editing!
+        if (!activeStage.inheritsFrom) {
+            return activeStage.objects || [];
+        }
+
+        // Build chain (child -> parent -> grandparent)
+        const chain: StageDefinition[] = [];
+        let curr: StageDefinition | undefined = activeStage;
+        const seen = new Set<string>();
+        while (curr) {
+            if (seen.has(curr.id)) break;
+            seen.add(curr.id);
+            chain.push(curr);
+            const parentId: string | undefined = curr.inheritsFrom;
+            curr = parentId ? (this.project.stages || []).find(s => s.id === parentId) : undefined;
+        }
+
+        const mergedMap = new Map<string, any>();
+
+        // bottom-up merge: start from most distant ancestor so children can override
+        for (let i = chain.length - 1; i >= 0; i--) {
+            const s = chain[i];
+            const isTopLevel = (i === 0);
+            (s.objects || []).forEach(obj => {
+                // We clone to avoid polluting the original data with 'isInherited' flag
+                const copy = JSON.parse(JSON.stringify(obj));
+                if (!isTopLevel) {
+                    (copy as any).isInherited = true;
+                }
+                mergedMap.set(obj.name, copy);
+            });
+        }
+        return Array.from(mergedMap.values());
+    }
+
     private updateStagesMenu(): void {
         if (!this.menuBar || !this.project.stages) return;
 
@@ -975,6 +1087,14 @@ export class Editor {
                 icon: '🚀'
             },
             {
+                id: 'new-from-template',
+                label: 'Neu aus Template...',
+                action: 'new-from-template',
+                icon: '📋'
+            },
+
+
+            {
                 id: 'delete-stage',
                 label: 'Stage löschen',
                 action: 'delete-stage',
@@ -990,11 +1110,21 @@ export class Editor {
         // Alle vorhandenen Stages hinzufügen
         this.project.stages.forEach(stage => {
             const isActive = stage.id === this.project.activeStageId;
+            let typeLabel = 'Standard';
+            if (stage.type === 'splash') typeLabel = 'Splash';
+            else if (stage.type === 'main') typeLabel = 'Haupt';
+            else if (stage.type === 'template') typeLabel = 'Template';
+
+            let icon = '📄';
+            if (stage.type === 'splash') icon = '🚀';
+            else if (stage.type === 'main') icon = '👑';
+            else if (stage.type === 'template') icon = '🧩';
+
             stageItems.push({
                 id: `stage-${stage.id}`,
-                label: `${isActive ? '▶ ' : ''}${stage.name} (${stage.type === 'splash' ? 'Splash' : (stage.type === 'main' ? 'Haupt' : 'Standard')})`,
+                label: `${isActive ? '▶ ' : ''}${stage.name} (${typeLabel})`,
                 action: `switch-stage-${stage.id}`,
-                icon: stage.type === 'splash' ? '🚀' : (stage.type === 'main' ? '👑' : '📄')
+                icon: icon
             });
         });
 
@@ -1463,6 +1593,7 @@ export class Editor {
 
     private createObjectInstance(type: string, name: string, x: number, y: number): TWindow | null {
         let newObj: TWindow;
+
         switch (type) {
             case 'Button':
                 newObj = new TButton(name, x, y, 6, 2);
@@ -1634,9 +1765,16 @@ export class Editor {
     /**
      * Find an object by ID, searching recursively in containers
      */
+    /**
+     * Find an object by ID, searching recursively in containers.
+     * Searches in RESOLVED objects (including inherited ones).
+     */
     private findObjectById(id: string): any | null {
+        // Use resolved objects to find everything including inherited ones
+        const objects = this.getResolvedInheritanceObjects();
+
         // First search in root level
-        for (const obj of this.currentObjects) {
+        for (const obj of objects) {
             if (obj.id === id) return obj;
 
             // Search in children (for containers like TDialogRoot)
@@ -1905,10 +2043,8 @@ export class Editor {
     private render() {
         if (!this.project) return;
         try {
-            // Render either runtime sandbox or current context objects
-            // CRITICAL: Always prefer runtimeObjects when in run mode or whenever they exist,
-            // as they contain the live, updated state (proxies).
-            const objectsToRender = this.runtimeObjects || this.currentObjects;
+            // NEW: In Edit mode, show resolved objects (including inherited templates as ghosts)
+            const objectsToRender = this.runtimeObjects || this.getResolvedInheritanceObjects();
 
             // Custom Render Callback (if needed) to inject extra logic
             // ...
@@ -1948,6 +2084,36 @@ export class Editor {
 
             // Wire up callbacks
             this.jsonInspector.onObjectUpdate = () => {
+                // Check if the modified object was an inherited one
+                const selObj = this.stage.selectedObject as any;
+                if (selObj && selObj.isInherited) {
+                    // Materialize: create a local copy in the active stage
+                    const activeStage = this.getActiveStage();
+                    if (activeStage) {
+                        console.log(`[Editor] Materializing inherited object: ${selObj.name}`);
+                        const copy = JSON.parse(JSON.stringify(selObj));
+                        delete copy.isInherited; // It's now local
+
+                        // Add to current stage
+                        if (!activeStage.objects) activeStage.objects = [];
+
+                        // Check if it already exists (should not happen if isInherited was true, but safety check)
+                        const existingIdx = activeStage.objects.findIndex(o => o.name === copy.name);
+                        if (existingIdx >= 0) {
+                            activeStage.objects[existingIdx] = copy;
+                        } else {
+                            activeStage.objects.push(copy);
+                        }
+
+                        // Update selection to the new local object
+                        // We need to re-resolve to get the new list state
+                        this.render();
+
+                        // Re-select the object by ID (now it will find the local override)
+                        this.selectObject(copy.id);
+                    }
+                }
+
                 this.render();
                 if (this.flowEditor) {
                     this.flowEditor.refreshSelectedNode();
@@ -1995,6 +2161,11 @@ export class Editor {
                 this.stage.updategrid();
                 this.updateStagesMenu();
                 this.updateAvailableActions(); // Update actions based on stage context
+                this.render();
+                this.autoSaveToLocalStorage();
+            };
+
+            this.jsonInspector.onObjectUpdate = () => {
                 this.render();
                 this.autoSaveToLocalStorage();
             };
@@ -2619,6 +2790,9 @@ export class Editor {
                 break;
             case 'delete-stage':
                 this.deleteCurrentStage();
+                break;
+            case 'new-from-template':
+                this.createStageFromTemplate();
                 break;
             default:
                 // Prüfe ob es eine Stage-Switch-Aktion ist

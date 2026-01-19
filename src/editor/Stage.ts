@@ -709,9 +709,21 @@ export class Stage {
             const isVisible = (obj.visible !== false) && (obj.style?.visible !== false);
             el.style.display = isVisible ? 'flex' : 'none';
 
+            // Inherited/Ghosted State
+            const isInherited = !!obj.isInherited;
+            if (isInherited) {
+                el.classList.add('inherited-object');
+                el.style.pointerEvents = 'none'; // Disable direct interaction in child stage
+            } else {
+                el.classList.remove('inherited-object');
+                el.style.pointerEvents = 'auto';
+            }
+
             // Apply opacity if defined in style (e.g. for animations)
             if (obj.style && obj.style.opacity !== undefined) {
                 el.style.opacity = String(obj.style.opacity);
+            } else if (isInherited) {
+                el.style.opacity = '0.4'; // Ghosting for inherited objects
             } else {
                 el.style.opacity = '1';
             }

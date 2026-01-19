@@ -61,57 +61,124 @@ export class GameRuntime {
         if (objects) {
             // Sandbox/Override mode
             this.objects = objects;
+            // Minimal initialization for sandbox
+            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
+            this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
         } else if (activeStage) {
-            this.stage = activeStage; // Set public property
+            this.stage = activeStage;
+            this.isSplashActive = activeStage.type === 'splash';
 
-            // New multi-stage system
+            // 1. Resolve Inheritance Chain (Recursive)
+            const stageChain = this.resolveInheritanceChain(activeStage.id);
+            console.log(`[GameRuntime] Resolved inheritance chain: ${stageChain.map(s => s.name).join(' -> ')}`);
 
-            // If explicit start stage provided (and it's a sub-stage), we skip splash logic
-            // UNLESS the start stage IS the splash stage.
-            if (options.startStageId) {
-                this.isSplashActive = activeStage.type === 'splash'; // Only true if we explicitly start IN splash
-            } else {
-                this.isSplashActive = activeStage.type === 'splash';
-            }
+            // 2. Aggregate Objects, Tasks, Actions, and FlowCharts across the chain
+            let mergedObjects: any[] = [];
+            let mergedTasks: any[] = [];
+            let mergedActions: any[] = [];
+            let mergedFlowCharts: any = { ...(project.flowCharts || {}) };
 
-            let loadedObjects = hydrateObjects(activeStage.objects || []);
+            const objectIdSet = new Set<string>();
 
-            // INHERITANCE: If starting in a sub-stage, load 'main' stage objects (globals)
-            // But only those that don't collide with local objects?
-            // Requirement: "System-Komponenten... global sichtbar". 
-            // So we treat 'main' as global provider.
-            if (options.startStageId && activeStage.type !== 'splash' && activeStage.type !== 'main') {
+            // Process chain from Ancestor to Child (Overriding)
+            stageChain.forEach(stage => {
+                // Objects
+                const stageObjects = hydrateObjects(stage.objects || []);
+                stageObjects.forEach(obj => {
+                    // ID-based collision: Child replaces Parent
+                    mergedObjects = mergedObjects.filter(o => o.id !== obj.id);
+                    mergedObjects.push(obj);
+                    objectIdSet.add(obj.id);
+                });
+
+                // Tasks
+                if (stage.tasks) {
+                    stage.tasks.forEach((t: any) => {
+                        mergedTasks = mergedTasks.filter((existing: any) => existing.name !== t.name);
+                        mergedTasks.push(t);
+                    });
+                }
+
+                // Actions
+                if (stage.actions) {
+                    stage.actions.forEach((a: any) => {
+                        mergedActions = mergedActions.filter((existing: any) => existing.name !== a.name);
+                        mergedActions.push(a);
+                    });
+                }
+
+                // FlowCharts
+                if (stage.flowCharts) {
+                    Object.assign(mergedFlowCharts, stage.flowCharts);
+                }
+            });
+
+            // 3. Special Inheritance: Global System Services from 'Main' (baseline for all sub-stages)
+            if (activeStage.type !== 'splash' && activeStage.type !== 'main') {
                 const mainStage = project.stages.find((s: any) => s.type === 'main');
                 if (mainStage && mainStage.objects) {
                     const globalObjects = hydrateObjects(mainStage.objects);
-
-                    // SYSTEM COMPONENTS ONLY: Only inherit non-visual system services
                     const systemClasses = [
                         'TGameLoop', 'TStageController', 'TGameState',
                         'THandshake', 'THeartbeat', 'TGameServer',
                         'TInputController', 'TDebugLog'
                     ];
 
-                    const localIds = new Set(loadedObjects.map(o => o.id));
-
                     globalObjects.forEach(gObj => {
-                        // Inherit if it's a system component AND doesn't exist locally
                         const isSystem = systemClasses.includes(gObj.className);
-                        if (isSystem && !localIds.has(gObj.id)) {
-                            // potential name check?
-                            const nameCollision = loadedObjects.find(l => l.name === gObj.name);
+                        if (isSystem && !objectIdSet.has(gObj.id)) {
+                            // Only inherit if no local object with the same name exists
+                            const nameCollision = mergedObjects.find(l => l.name === gObj.name);
                             if (!nameCollision) {
-                                loadedObjects.push(gObj);
-                            } else {
-                                console.warn(`[GameRuntime] Global system object '${gObj.name}' skipped due to local name collision in stage '${activeStage.name}'`);
+                                mergedObjects.push(gObj);
                             }
                         }
                     });
-                    console.log(`[GameRuntime] Context-Aware Start: Loaded ${activeStage.name} + Global System Services from Main`);
                 }
             }
 
-            this.objects = loadedObjects;
+            this.objects = mergedObjects;
+
+            // 4. Initialize Reactive Runtime
+            if (options.makeReactive) {
+                this.objects.forEach(obj => {
+                    this.reactiveRuntime.registerObject(obj.name, obj, true);
+                });
+                this.reactiveRuntime.setVariable('isSplashActive', this.isSplashActive);
+
+                const mp = options.multiplayerManager || (window as any).multiplayerManager;
+                this.reactiveRuntime.setVariable('isMultiplayer', !!mp);
+                if (mp) {
+                    this.reactiveRuntime.setVariable('playerNumber', mp.playerNumber || 1);
+                    this.reactiveRuntime.setVariable('isHost', mp.isHost !== undefined ? mp.isHost : (mp.playerNumber === 1));
+                } else {
+                    this.reactiveRuntime.setVariable('playerNumber', 1);
+                    this.reactiveRuntime.setVariable('isHost', true);
+                }
+                this.objects = this.reactiveRuntime.getObjects();
+            }
+
+            // 5. Setup Executors
+            this.actionExecutor = new ActionExecutor(
+                this.objects,
+                options.multiplayerManager || (window as any).multiplayerManager,
+                options.onNavigate
+            );
+
+            const mp = options.multiplayerManager || (window as any).multiplayerManager;
+
+            // Final Logic: Global project base + aggregated stage logic
+            const finalTasks = [...(project.tasks || []), ...mergedTasks];
+            const finalActions = [...(project.actions || []), ...mergedActions];
+
+            this.taskExecutor = new TaskExecutor(
+                project,
+                finalActions,
+                this.actionExecutor,
+                mergedFlowCharts,
+                mp,
+                finalTasks
+            );
         } else {
             // Legacy-Fallback (Splash -> Main)
             const hasLegacySplash = project.splashObjects && project.splashObjects.length > 0;
@@ -121,71 +188,20 @@ export class GameRuntime {
             } else {
                 this.objects = hydrateObjects(project.objects || []);
             }
+            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
+            this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
         }
-
-        // Initialize reactive objects if requested
-        if (options.makeReactive) {
-            this.objects.forEach(obj => {
-                this.reactiveRuntime.registerObject(obj.name, obj, true);
-            });
-
-            // Expose state
-            this.reactiveRuntime.setVariable('isSplashActive', this.isSplashActive);
-
-            // Expose multiplayer state as reactive variables
-            const mp = options.multiplayerManager || (window as any).multiplayerManager;
-            this.reactiveRuntime.setVariable('isMultiplayer', !!mp);
-            if (mp) {
-                this.reactiveRuntime.setVariable('playerNumber', mp.playerNumber || 1);
-                this.reactiveRuntime.setVariable('isHost', mp.isHost !== undefined ? mp.isHost : (mp.playerNumber === 1));
-            } else {
-                this.reactiveRuntime.setVariable('playerNumber', 1);
-                this.reactiveRuntime.setVariable('isHost', true);
-            }
-
-            // Update this.objects to be the proxies
-            this.objects = this.reactiveRuntime.getObjects();
-        }
-
-        this.actionExecutor = new ActionExecutor(
-            this.objects,
-            options.multiplayerManager || (window as any).multiplayerManager,
-            options.onNavigate
-        );
-
-        const mp = options.multiplayerManager || (window as any).multiplayerManager;
-
-        // Initial Logic Merge: Combine Global and Stage-Local logic for TaskExecutor
-        const stageTasks = (activeStage as any)?.tasks || [];
-        const stageActions = (activeStage as any)?.actions || [];
-        const stageFlowCharts = (activeStage as any)?.flowCharts || {};
-
-        const mergedTasks = [...(project.tasks || []), ...stageTasks];
-        const mergedActions = [...(project.actions || []), ...stageActions];
-        const mergedFlowCharts = { ...(project.flowCharts || {}), ...stageFlowCharts };
-
-        this.taskExecutor = new TaskExecutor(
-            project,
-            mergedActions,
-            this.actionExecutor,
-            mergedFlowCharts,
-            mp,
-            mergedTasks
-        );
 
         // Wiring for remote task execution
-        if (mp) {
-            mp.onRemoteTask = (msg: any) => {
+        if (options.multiplayerManager) {
+            options.multiplayerManager.onRemoteTask = (msg: any) => {
                 this.executeRemoteTask(msg.taskName, msg.params);
             };
         }
 
         this.init();
-
-        // Initialisiere TStageController für zentrale Stage-Verwaltung
         this.initStageController();
 
-        // Notify host of initial stage (for background sync)
         if (activeStage && options.onStageSwitch) {
             options.onStageSwitch(activeStage.id);
         }
@@ -598,6 +614,23 @@ export class GameRuntime {
      */
     public getObjects(): any[] {
         return this.objects;
+    }
+
+    private resolveInheritanceChain(stageId: string, visited: Set<string> = new Set()): any[] {
+        if (visited.has(stageId)) {
+            console.error(`[GameRuntime] Circular inheritance detected for stage: ${stageId}`);
+            return [];
+        }
+        visited.add(stageId);
+
+        const stage = this.project.stages?.find((s: any) => s.id === stageId);
+        if (!stage) return [];
+
+        const chain = [stage];
+        if (stage.inheritsFrom) {
+            chain.unshift(...this.resolveInheritanceChain(stage.inheritsFrom, visited));
+        }
+        return chain;
     }
 
     private init() {

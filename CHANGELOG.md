@@ -11,6 +11,18 @@
 - **Improved Flow Registration**: `rebuildActionRegistry` scannt nun alle Stages nach Action-Definitionen, was die Konsistenz der Action-Palette verbessert.
 - **Multi-Stage Refactoring**: `RefactoringManager.ts` unterstützt nun die projektweite Umbenennung von Tasks, Objekten und Variablen über alle Stages hinweg.
     - **Renaming Fix**: Das Umbenennen von Flow-Elementen ("Name" Property) im Inspector triggert nun korrekt das Refactoring.
+    - **Renaming Fix**: Das Umbenennen von Flow-Elementen ("Name" Property) im Inspector triggert nun korrekt das Refactoring.
+- **Stage Templates & Vererbung (Phase 2)**:
+  - **Stage-Typen**: Stages können nun als `template` definiert werden (Blaupausen für Level-Layouts).
+  - **InheritsFrom**: Stages können von einer anderen Stage erben.
+  - **Rekursive Auflösung**: `GameRuntime` merged Objekte, Tasks und Actions aus der gesamten Vererbungskette (Stage -> Template -> Template -> ...).
+  - **Editor-Ghosting**: Geerbte Objekte werden im Editor halbtransparent ("Ghosted") dargestellt und sind standardmäßig schreibgeschützt.
+  - **Override-Logik**: Änderungen an einem geerbten Ghost-Objekt materialisieren dieses sofort als lokale Kopie in der aktiven Stage ("Copy-on-Write").
+  - **Library-Integration**: `library.json` unterstützt nun `templates`, die direkt beim Erstellen neuer Stages verwendet werden können ("Neu aus Template...").
+  - **Single Source for Templates**: Templates in the Library dienen als Blaupause für neue Levels.
+  - **Unique Object IDs**: Beim Erstellen aus einem Template ("New from Template") werden Objekt-IDs nun automatisch regeneriert, um Kollisionen zu vermeiden und das unabhängige Editieren sicherzustellen.
+  - **Template Units**: Templates in `library.json` nutzen nun korrekt Cell-Units (statt Pixel), um massive Skalierungsfehler zu vermeiden.
+  - **Inspector Live-Update Fix**: Korrektur in `Editor.ts`, damit für Standard-Stages (auch Template-basierte) die echten, mutablen Objekte bearbeitet werden statt unsichtbarer Clones. Behebt das Problem, dass Änderungen im Inspector keine sichtbaren Auswirkungen auf der Stage hatten.
 - **Library Export Fix**: Task-FlowCharts werden nun auch korrekt exportiert, wenn sie in einer Stage (z.B. Splash) gespeichert sind.
 - **UI Synchronisierung**: Stage-Umbenennungen im Inspector aktualisieren nun sofort das Hauptmenü.
 - **FlowEditor Interaktion**: 

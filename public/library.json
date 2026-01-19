@@ -91,5 +91,50 @@
                 ]
             }
         }
+    ],
+    "templates": [
+        {
+            "id": "tpl_main_shell",
+            "name": "MainShell",
+            "type": "template",
+            "description": "Standard UI Shell with Header and Title",
+            "grid": {
+                "cols": 40,
+                "rows": 30,
+                "cellSize": 20,
+                "visible": true,
+                "backgroundColor": "#1e1e1e"
+            },
+            "objects": [
+                {
+                    "id": "tpl_header_panel",
+                    "name": "HeaderPanel",
+                    "className": "TPanel",
+                    "x": 0,
+                    "y": 0,
+                    "width": 40,
+                    "height": 3,
+                    "style": {
+                        "backgroundColor": "#333333",
+                        "borderBottom": "2px solid #555555"
+                    },
+                    "children": [
+                        {
+                            "id": "tpl_title_label",
+                            "name": "TitleLabel",
+                            "className": "TLabel",
+                            "text": "My Game",
+                            "style": {
+                                "color": "#ffffff",
+                                "fontSize": "20px",
+                                "fontWeight": "bold",
+                                "marginTop": "15px",
+                                "marginLeft": "20px"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
     ]
 }

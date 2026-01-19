@@ -233,7 +233,7 @@ export class JSONInspector {
                 console.error('[JSONInspector] Failed to load inspector:', error);
             }
             return;
-        } else if (object && typeof object.getInspectorProperties === 'function') {
+        } else if (object && (typeof object.getInspectorProperties === 'function' || object.className)) {
 
 
             // Determine which JSON to load based on activeTab
@@ -270,8 +270,8 @@ export class JSONInspector {
 
             }
 
-            if (this.activeTab as string === 'properties') {
-                // Properties tab - generate dynamically
+            if (this.activeTab as string === 'properties' && typeof object.getInspectorProperties === 'function') {
+                // Properties tab - generate dynamically via method
                 this.inspectorObjects = this.generateUIFromProperties(object);
             } else {
                 // Load static JSON for Events
@@ -1663,6 +1663,8 @@ export class JSONInspector {
                 options = projectRegistry.getObjects().map(o => o.name);
             } else if (obj.source === 'variables') {
                 options = projectRegistry.getVariables().map(v => v.name);
+            } else if (obj.source === 'stages') {
+                options = (this.project?.stages || []).map((s: any) => s.id);
             } else if (Array.isArray(obj.options)) {
                 options = obj.options;
             }

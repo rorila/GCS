@@ -172,12 +172,13 @@ export interface InputConfig {
 // ─────────────────────────────────────────────
 // Stage System (Multi-Stage Support)
 // ─────────────────────────────────────────────
-export type StageType = 'standard' | 'splash' | 'main';
+export type StageType = 'standard' | 'splash' | 'main' | 'template';
 
 export interface StageDefinition {
     id: string;               // Eindeutige ID der Stage
     name: string;             // Anzeigename
-    type: StageType;          // Art der Stage: 'main' (HauptStage), 'standard', 'splash'
+    type: StageType;          // Art der Stage: 'main' (HauptStage), 'standard', 'splash', 'template'
+    inheritsFrom?: string;    // ID einer anderen Stage (Template), von der geerbt wird
     objects: TWindow[];       // Objekte auf dieser Stage
 
     // Nur bei type: 'main' (HauptStage - es gibt nur eine pro Projekt)

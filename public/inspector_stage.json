@@ -19,10 +19,44 @@
         {
             "className": "TLabel",
             "name": "StageTypeLabel",
-            "text": "Typ: ${ (activeStage && activeStage.type) || 'N/A' }",
+            "text": "Stage Typ:",
             "style": {
-                "fontSize": 11,
-                "color": "#888",
+                "fontSize": 12,
+                "color": "#aaa",
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TSelect",
+            "name": "activeStage.typeInput",
+            "selectedValue": "${(activeStage && activeStage.type) || 'standard'}",
+            "options": [
+                "standard",
+                "splash",
+                "main",
+                "template"
+            ],
+            "style": {
+                "marginBottom": 12
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "InheritanceLabel",
+            "text": "Erbt von (Template):",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TSelect",
+            "name": "activeStage.inheritsFromInput",
+            "selectedValue": "${(activeStage && activeStage.inheritsFrom) || ''}",
+            "source": "stages",
+            "allowEmpty": true,
+            "emptyLabel": "-- Kein Template --",
+            "style": {
                 "marginBottom": 12
             }
         },

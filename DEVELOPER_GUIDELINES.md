@@ -116,3 +116,17 @@ Wenn eine Stage isoliert im JSON-Tab angezeigt wird (`activeStage`), werden glob
 ## Library & Tasks
 - **Library Export**: Nutze den Endpunkt `POST /api/library/tasks` für automatisierte Speichervorgänge in die `public/library.json`.
 - **Dialog-Komponenten**: Neue UI-Elemente wie `TMemo` müssen im `DialogManager.ts` (renderObject, collectDialogData, populateDialogData) registriert werden, um in JSON-Dialogen korrekt zu funktionieren.
+- **Dialog-Komponenten**: Neue UI-Elemente wie `TMemo` müssen im `DialogManager.ts` (renderObject, collectDialogData, populateDialogData) registriert werden, um in JSON-Dialogen korrekt zu funktionieren.
+
+## Stage Inheritance & Templates
+- **Datenmodell**: `inheritsFrom` Property im `StageDefinition` Interface. `type: 'template'` für Blueprint-Stages.
+- **Auflösungslogik**:
+  - `GameRuntime` merged beim Start einer Stage rekursiv Daten von Parent-Stages.
+  - **Order**: Elterndaten zuerst, Kinddaten überschreiben ("Last Write Wins").
+  - **Scope**: Objekte, Tasks, Actions und Variablen werden vererbt.
+- **Editor-Verhalten**:
+  - **Ghosting**: `getResolvedInheritanceObjects` (Editor.ts) liefert die kombinierte Objektliste für den Renderer. Geerbte Objekte erhalten das Flag `isInherited: true`.
+  - **Visualisierung**: `Stage.ts` rendert inherited Objekte mit `opacity: 0.5` und `pointer-events: none` (außer bei expliziter Selektion via Baum).
+  - **Materialisierung**: Beim Editieren eines Ghost-Objekts im `JSONInspector` wird es automatisch in die `objects`-Liste der aktuellen Stage kopiert (`activeStage.objects.push(copy)`), wodurch es lokal "überschrieben" wird.
+  - **Navigation**: `findObjectById` sucht nun in der aufgelösten Kette, nicht nur in der lokalen Liste.
+  - **Instanziierung**: Beim Erstellen einer neuen Stage aus einem Template ("New from Template") werden alle Objekt-IDs neu generiert (`regenerateIds`), um Eindeutigkeit über alle Stages hinweg zu garantieren. Dies verhindert Konflikte im Inspector und ermöglicht unabhängiges Editieren.
