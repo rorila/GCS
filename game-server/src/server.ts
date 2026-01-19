@@ -294,6 +294,43 @@ app.post('/api/library/tasks', (req, res) => {
 });
 
 /**
+ * POST /api/library/templates - Add/update a template in library.json
+ */
+app.post('/api/library/templates', (req, res) => {
+    try {
+        const template = req.body;
+        if (!template || !template.name) {
+            return res.status(400).json({ error: 'Missing template data or template name' });
+        }
+
+        const libraryPath = path.join(PUBLIC_DIR, 'library.json');
+        let library: { tasks: any[], templates: any[] } = { tasks: [], templates: [] };
+
+        if (fs.existsSync(libraryPath)) {
+            const content = fs.readFileSync(libraryPath, 'utf-8');
+            library = JSON.parse(content);
+            if (!library.templates) library.templates = [];
+        }
+
+        // Find existing template or add new
+        const existingIdx = library.templates.findIndex(t => t.name === template.name);
+        if (existingIdx !== -1) {
+            library.templates[existingIdx] = template;
+            console.log(`[API] Library: Updated template "${template.name}"`);
+        } else {
+            library.templates.push(template);
+            console.log(`[API] Library: Added new template "${template.name}"`);
+        }
+
+        fs.writeFileSync(libraryPath, JSON.stringify(library, null, 4));
+        res.json({ success: true, templateName: template.name });
+    } catch (err) {
+        console.error('[API] Error updating library:', err);
+        res.status(500).json({ error: 'Failed to update library' });
+    }
+});
+
+/**
  * GET /runtimes/:version - Get runtime JS for a specific version
  * Auto-fetches from Builder if not cached
  */

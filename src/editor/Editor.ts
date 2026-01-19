@@ -901,6 +901,69 @@ export class Editor {
     }
 
     /**
+     * Saves the current active stage as a template.
+     */
+    private async saveStageAsTemplate() {
+        const stage = this.getActiveStage();
+        if (!stage) return;
+
+        const name = stage.name;
+
+        // Validation: Templates must have a name
+        if (!name || name.trim() === '') {
+            alert('Bitte gib der Stage zuerst einen Namen.');
+            return;
+        }
+
+        // Check availability
+        const existing = libraryService.getTemplates().find(t => t.name === name);
+        if (existing) {
+            if (!confirm(`Ein Template mit dem Namen "${name}" ist schon vorhanden.\nMöchten Sie es ersetzen?`)) {
+                return;
+            }
+        } else {
+            if (!confirm(`Möchten Sie die aktuelle Stage als neues Template "${name}" speichern?`)) {
+                return;
+            }
+        }
+
+        // Resolve all objects (merge inheritance) so the template is a complete snapshot
+        // We temporarily treat it as if we need resolved objects for export
+        const objectsToSave = this.getResolvedInheritanceObjects();
+
+        // Create clean copies of objects (remove runtime properties if any, though JSON.stringify usually handles this)
+        const cleanObjects = JSON.parse(JSON.stringify(objectsToSave));
+
+        // Remove isInherited flag from template objects - they are now the definition!
+        cleanObjects.forEach((o: any) => {
+            delete o.isInherited;
+        });
+
+        const templateData = {
+            id: name, // Use Name as ID for library templates
+            name: name,
+            description: `Template created from Stage '${name}'`,
+            grid: stage.grid, // Preserve grid settings
+            objects: cleanObjects,
+            // metadata
+            version: "1.0.0",
+            created: Date.now()
+        };
+
+        // NOTE: We intentionally DO NOT include 'inheritsFrom'. 
+        // A saved template becomes a new base.
+
+        const success = await libraryService.saveTemplate(templateData);
+        if (success) {
+            alert(`Template "${name}" erfolgreich gespeichert!`);
+            // Refresh library locally handled by service, triggers might needed?
+            // Nothing explicitly needed if we stay on same page, but maybe refresh inspector options?
+        } else {
+            alert(`Fehler beim Speichern des Templates "${name}". Bitte Konsole prüfen.`);
+        }
+    }
+
+    /**
      * Erstellt eine neue Stage
      */
     private createStage(type: StageType): void {
@@ -1099,6 +1162,12 @@ export class Editor {
                 label: 'Stage löschen',
                 action: 'delete-stage',
                 icon: '🗑️'
+            },
+            {
+                id: 'save-as-template',
+                label: 'Als Template speichern',
+                action: 'save-as-template',
+                icon: '💾'
             },
             {
                 id: 'separator',
@@ -2793,6 +2862,9 @@ export class Editor {
                 break;
             case 'new-from-template':
                 this.createStageFromTemplate();
+                break;
+            case 'save-as-template':
+                this.saveStageAsTemplate();
                 break;
             default:
                 // Prüfe ob es eine Stage-Switch-Aktion ist

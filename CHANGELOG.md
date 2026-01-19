@@ -23,6 +23,7 @@
   - **Unique Object IDs**: Beim Erstellen aus einem Template ("New from Template") werden Objekt-IDs nun automatisch regeneriert, um Kollisionen zu vermeiden und das unabhängige Editieren sicherzustellen.
   - **Template Units**: Templates in `library.json` nutzen nun korrekt Cell-Units (statt Pixel), um massive Skalierungsfehler zu vermeiden.
   - **Inspector Live-Update Fix**: Korrektur in `Editor.ts`, damit für Standard-Stages (auch Template-basierte) die echten, mutablen Objekte bearbeitet werden statt unsichtbarer Clones. Behebt das Problem, dass Änderungen im Inspector keine sichtbaren Auswirkungen auf der Stage hatten.
+  - **Save as Template**: Neue Funktion im Stage-Menü ("Als Template speichern"), um die aktuelle Stage (inklusive aller Objekte und Grid-Einstellungen) als globales Template in die Library zu exportieren/upzudaten. Ermöglicht das Anpassen vorhandener Templates.
 - **Library Export Fix**: Task-FlowCharts werden nun auch korrekt exportiert, wenn sie in einer Stage (z.B. Splash) gespeichert sind.
 - **UI Synchronisierung**: Stage-Umbenennungen im Inspector aktualisieren nun sofort das Hauptmenü.
 - **FlowEditor Interaktion**: 
