@@ -301,9 +301,7 @@ export abstract class FlowElement {
         });
     }
 
-    public description: string = '';
-    public get Description(): string { return this.description; }
-    public set Description(v: string) { this.description = v; }
+
 
     // Callbacks
     public onResize: (() => void) | null = null;
@@ -440,7 +438,14 @@ export abstract class FlowElement {
     public get Height(): number { return this.height; }
     public set Height(v: number) { this.height = v; this.updatePosition(); }
 
-    public get Name(): string { return this.content.dataset.name || this.content.innerText; }
+    public get Name(): string {
+        // Prefer data source for reliability
+        if (this.data) {
+            if (this.data.taskName) return this.data.taskName;
+            if (this.data.name) return this.data.name;
+        }
+        return this.content.dataset.name || this.content.innerText;
+    }
     public set Name(v: string) {
         // Safeguard: Clean up common legacy corruption patterns
         if (v) {
@@ -449,16 +454,55 @@ export abstract class FlowElement {
                 .trim();
         }
 
+        const oldName = this.Name;
+        if (oldName === v) return;
+
+        // Apply visual update locally first
         this.content.dataset.name = v;
-        // If not detailed, name is the primary text
         if (!this.content.dataset.details) {
             this.content.innerText = v;
+        }
+
+        // Apply data update
+        if (!this.data) this.data = {};
+        if (this.data.taskName) this.data.taskName = v;
+        else this.data.name = v;
+
+        // Trigger refactoring if we have a project reference (Task or Action)
+        // This ensures the change is propagated to the registry
+        if ((this as any).projectRef && (this as any).getType) {
+            const type = (this as any).getType();
+            // Use imported RefactoringManager (needs import)
+            if (type === 'Task') {
+                const { RefactoringManager } = require('../RefactoringManager');
+                if (RefactoringManager) {
+                    RefactoringManager.renameTask((this as any).projectRef, oldName, v);
+                }
+            } else if (type === 'Action') {
+                const { RefactoringManager } = require('../RefactoringManager');
+                if (RefactoringManager) {
+                    RefactoringManager.renameAction((this as any).projectRef, oldName, v);
+                }
+            }
         }
     }
 
     public get Details(): string { return this.content.dataset.details || ''; }
     public set Details(v: string) {
         this.content.dataset.details = v;
+    }
+
+    public get Description(): string { return this.data?.description || ''; }
+    public set Description(v: string) {
+        if (!this.data) this.data = {};
+        this.data.description = v;
+
+        // Propagate to registry if possible
+        if ((this as any).projectRef && (this as any).getType && (this as any).getType() === 'Task') {
+            const taskName = this.data.taskName || this.Name;
+            const task = (this as any).projectRef.tasks.find((t: any) => t.name === taskName);
+            if (task) task.description = v;
+        }
     }
 
     public get Text(): string { return this.content.innerText; }

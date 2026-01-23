@@ -4265,7 +4265,7 @@
 
   // src/multiplayer/NetworkManager.ts
   var NetworkManager = class {
-    constructor(serverUrl = "ws://localhost:3000") {
+    constructor(serverUrl = "ws://localhost:8080") {
       __publicField(this, "ws", null);
       __publicField(this, "serverUrl");
       __publicField(this, "eventHandlers", /* @__PURE__ */ new Set());
@@ -4915,7 +4915,7 @@
     constructor(name, x = 0, y = 0) {
       super(name, x, y, 3, 1);
       // Connection settings
-      __publicField(this, "serverUrl", "ws://localhost:3000");
+      __publicField(this, "serverUrl", "ws://localhost:8080");
       __publicField(this, "autoConnect", false);
       // Runtime state (not persisted)
       __publicField(this, "_connected", false);

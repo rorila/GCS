@@ -70,7 +70,7 @@ npm run build
 npx serve dist
 ```
 
-3. Öffne http://localhost:3000/play.html
+3. Öffne http://localhost:8080/play.html (oder den Port Ihres Standalone-Servers)
 
 ### Testen:
 - [ ] Spiel lädt ohne Editor

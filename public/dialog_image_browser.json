@@ -52,7 +52,7 @@
                 {
                     "className": "TForEach",
                     "name": "ImageGrid",
-                    "source": "dialogData.images",
+                    "source": "${dialogData.images}",
                     "style": {
                         "justifyContent": "center"
                     },

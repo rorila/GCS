@@ -146,7 +146,8 @@
               const newValue = tween.from + (tween.to - tween.from) * easedProgress;
               this.setPropertyValue(tween.target, tween.property, newValue);
               if (progress >= 1) {
-                console.log(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property}`);
+                this.setPropertyValue(tween.target, tween.property, tween.to);
+                console.log(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property} (Forced to ${tween.to})`);
                 completedTweens.push(tween);
               }
             } catch (error) {
@@ -206,455 +207,36 @@
             obj[parts[parts.length - 1]] = value;
           }
         }
+        /**
+         * Erzeugt einen Schütteleffekt (Shake) auf einem Objekt.
+         * @param target Das Zielobjekt
+         * @param intensity Intensität des Schüttelns in Pixeln (default: 5)
+         * @param duration Gesamtdauer in Millisekunden (default: 500)
+         */
+        shake(target, intensity = 5, duration = 500) {
+          const originalX = target.x;
+          const originalY = target.y;
+          const startTime = performance.now();
+          const shakeInterval = 50;
+          const performShake = () => {
+            const now = performance.now();
+            const elapsed = now - startTime;
+            if (elapsed < duration) {
+              const offsetX = (Math.random() - 0.5) * intensity * 2;
+              const offsetY = (Math.random() - 0.5) * intensity * 2;
+              target.x = originalX + offsetX;
+              target.y = originalY + offsetY;
+              setTimeout(performShake, shakeInterval);
+            } else {
+              target.x = originalX;
+              target.y = originalY;
+            }
+          };
+          performShake();
+        }
       };
       __publicField(_AnimationManager, "instance", null);
       AnimationManager = _AnimationManager;
-    }
-  });
-
-  // src/services/ProjectRegistry.ts
-  var ProjectRegistry_exports = {};
-  __export(ProjectRegistry_exports, {
-    ProjectRegistry: () => ProjectRegistry,
-    projectRegistry: () => projectRegistry
-  });
-  var _ProjectRegistry, ProjectRegistry, projectRegistry;
-  var init_ProjectRegistry = __esm({
-    "src/services/ProjectRegistry.ts"() {
-      "use strict";
-      _ProjectRegistry = class _ProjectRegistry {
-        constructor() {
-          __publicField(this, "project", null);
-          // =========================================================================================
-          //  Objects (Stage)
-          // =========================================================================================
-          __publicField(this, "activeStageId", null);
-        }
-        static getInstance() {
-          if (!_ProjectRegistry.instance) {
-            _ProjectRegistry.instance = new _ProjectRegistry();
-          }
-          return _ProjectRegistry.instance;
-        }
-        setProject(project) {
-          this.project = project;
-        }
-        // =========================================================================================
-        //  Variables
-        // =========================================================================================
-        /**
-         * Retrieves variables visible in a specific context.
-         * Hierarchy: Global > Task (if in task) > Action (if in action)
-         */
-        getVariables(context) {
-          if (!this.project) return [];
-          let visibleVars = this.project.variables.filter(
-            (v) => !v.scope || v.scope.toLowerCase() === "global"
-          );
-          if (context?.taskName) {
-            const taskVars = this.project.variables.filter(
-              (v) => v.scope === `task:${context.taskName}`
-            );
-            visibleVars = [...visibleVars, ...taskVars];
-          }
-          if (context?.actionId) {
-            const actionVars = this.project.variables.filter(
-              (v) => v.scope === `action:${context.actionId}`
-            );
-            visibleVars = [...visibleVars, ...actionVars];
-          }
-          return visibleVars;
-        }
-        validateVariableName(name, context) {
-          if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) {
-            return { valid: false, error: "Variablen m\xFCssen mit einem Kleinbuchstaben beginnen (camelCase)." };
-          }
-          const visibleVars = this.getVariables(context);
-          if (visibleVars.some((v) => v.name === name)) {
-            return { valid: false, error: "Name bereits vergeben." };
-          }
-          return { valid: true };
-        }
-        // =========================================================================================
-        //  Tasks
-        // =========================================================================================
-        getTasks() {
-          if (!this.project) return [];
-          let allTasks = [...this.project.tasks || []];
-          if (this.project.stages) {
-            this.project.stages.forEach((stage) => {
-              if (stage.tasks) allTasks = [...allTasks, ...stage.tasks];
-            });
-          }
-          return allTasks;
-        }
-        validateTaskName(name) {
-          if (!/^[A-Z][a-zA-Z0-9]*$/.test(name)) {
-            return { valid: false, error: "Tasks m\xFCssen mit einem Gro\xDFbuchstaben beginnen (PascalCase)." };
-          }
-          if (this.getTasks().some((t) => t.name === name)) {
-            return { valid: false, error: "Task-Name bereits vergeben (global oder in einer Stage)." };
-          }
-          return { valid: true };
-        }
-        // =========================================================================================
-        //  Actions
-        // =========================================================================================
-        getActions() {
-          if (!this.project) return [];
-          let allActions = [...this.project.actions || []];
-          if (this.project.stages) {
-            this.project.stages.forEach((stage) => {
-              if (stage.actions) allActions = [...allActions, ...stage.actions];
-            });
-          }
-          return allActions;
-        }
-        /**
-         * Set the active stage ID to filter getObjects() results.
-         * If null, returns objects from all stages.
-         */
-        setActiveStageId(id) {
-          this.activeStageId = id;
-        }
-        getActiveStageId() {
-          return this.activeStageId;
-        }
-        /**
-         * Returns objects for the current context:
-         * - If activeStageId is set, returns objects from that stage PLUS global services from all stages
-         * - Otherwise, returns all objects from all stages (plus legacy project.objects)
-         */
-        getObjects() {
-          if (!this.project) return [];
-          const globalServiceClasses = [
-            "TStageController",
-            "TGameLoop",
-            "TGameState",
-            "TGameServer",
-            "TInputController",
-            "THandshake",
-            "THeartbeat",
-            "TToast",
-            "TStatusBar"
-          ];
-          if (this.project.stages && this.project.stages.length > 0) {
-            const allObjects = [];
-            const objectIds = /* @__PURE__ */ new Set();
-            if (this.activeStageId) {
-              const activeStage = this.project.stages.find((s) => s.id === this.activeStageId);
-              if (activeStage && activeStage.objects) {
-                activeStage.objects.forEach((obj) => {
-                  allObjects.push(obj);
-                  objectIds.add(obj.id);
-                });
-              }
-            }
-            this.project.stages.forEach((stage) => {
-              if (stage.objects && Array.isArray(stage.objects)) {
-                stage.objects.forEach((obj) => {
-                  if (globalServiceClasses.includes(obj.className) && !objectIds.has(obj.id)) {
-                    allObjects.push(obj);
-                    objectIds.add(obj.id);
-                  }
-                });
-              }
-            });
-            if (!this.activeStageId) {
-              return allObjects;
-            }
-            return allObjects;
-          }
-          return this.project.objects || [];
-        }
-        getFlowObjects() {
-          return this.project?.flow?.elements || [];
-        }
-        validateObjectName(name) {
-          if (!/^[A-Z][a-zA-Z0-9_]*$/.test(name)) {
-            return { valid: false, error: "Objekt-Namen m\xFCssen mit einem Gro\xDFbuchstaben beginnen." };
-          }
-          const objects = this.getObjects();
-          if (objects.some((o) => o.name === name)) {
-            return { valid: false, error: "Objekt-Name existiert bereits auf der Stage." };
-          }
-          const checkFlows = (charts) => {
-            if (!charts) return false;
-            return Object.values(charts).some(
-              (chart) => chart.elements && chart.elements.some((e) => e.name === name)
-            );
-          };
-          if (checkFlows(this.project.flowCharts)) {
-            return { valid: false, error: "Objekt-Name wird bereits im Flow verwendet." };
-          }
-          if (this.project.stages) {
-            for (const stage of this.project.stages) {
-              if (checkFlows(stage.flowCharts)) {
-                return { valid: false, error: `Objekt-Name wird bereits im Flow der Stage '${stage.name}' verwendet.` };
-              }
-            }
-          }
-          return { valid: true };
-        }
-        // =========================================================================================
-        //  Reference Tracking
-        // =========================================================================================
-        findReferences(name) {
-          const refs = [];
-          if (!this.project) return refs;
-          const validTaskNames = new Set((this.project.tasks || []).map((t) => t.name));
-          (this.project.tasks || []).forEach((task) => {
-            const scanSeq = (seq) => {
-              if (!seq) return;
-              seq.forEach((item) => {
-                if ((item.type === "action" || item.type === "task") && item.name === name) {
-                  if (!(item.type === "task" && item.name === task.name && name === task.name)) {
-                    refs.push(`Task: ${task.name} -> ${item.type === "action" ? "Aktion" : "Task"}: ${item.name}`);
-                  }
-                }
-                if (item.type === "condition" || item.type === "while") {
-                  if (item.thenAction === name) refs.push(`Task: ${task.name} -> Condition (Then): ${name}`);
-                  if (item.elseAction === name) refs.push(`Task: ${task.name} -> Condition (Else): ${name}`);
-                  if (item.thenTask === name) refs.push(`Task: ${task.name} -> Condition (Then Task): ${name}`);
-                  if (item.elseTask === name) refs.push(`Task: ${task.name} -> Condition (Else Task): ${name}`);
-                }
-                const str = JSON.stringify(item);
-                if (str.includes(`\${${name}}`) || str.includes(`\${${name}.`)) {
-                  refs.push(`Task: ${task.name} -> Variable/Binding: ${name}`);
-                }
-                if (item.body) scanSeq(item.body);
-              });
-            };
-            scanSeq(task.actionSequence);
-          });
-          const charts = {};
-          const globalFlowCharts = this.project.flowCharts || {};
-          Object.keys(globalFlowCharts).forEach((key) => {
-            if (validTaskNames.has(key)) {
-              charts[key] = { chart: globalFlowCharts[key], source: "Global" };
-            }
-          });
-          if (this.project.stages) {
-            this.project.stages.forEach((stage) => {
-              const stageFlowCharts = stage.flowCharts || {};
-              Object.keys(stageFlowCharts).forEach((key) => {
-                if (validTaskNames.has(key)) {
-                  charts[key] = { chart: stageFlowCharts[key], source: `Stage: ${stage.name || stage.id}` };
-                }
-              });
-            });
-          }
-          if (this.project.flow) charts["__legacy_flow__"] = { chart: this.project.flow, source: "Legacy" };
-          Object.keys(charts).forEach((chartKey) => {
-            const entry = charts[chartKey];
-            const chart = entry.chart;
-            const source = entry.source;
-            (chart.elements || []).forEach((el) => {
-              const elName = el.data?.name || el.data?.actionName || el.properties?.name;
-              const isSelfReference = chartKey === name || chartKey === elName;
-              if (elName === name && !isSelfReference) {
-                refs.push(`${source} Flow: ${chartKey} -> Element: ${name}`);
-              }
-              if (el.type === "Condition" && el.data) {
-                if (el.data.thenAction === name && chartKey !== name) refs.push(`${source} Flow: ${chartKey} -> Condition (Then): ${name}`);
-                if (el.data.elseAction === name && chartKey !== name) refs.push(`${source} Flow: ${chartKey} -> Condition (Else): ${name}`);
-              }
-            });
-          });
-          const allObjects = [...this.project.objects || []];
-          const objectSourceMap = /* @__PURE__ */ new Map();
-          allObjects.forEach((obj) => objectSourceMap.set(obj, "Global"));
-          if (this.project.stages) {
-            this.project.stages.forEach((stage) => {
-              const stageObjs = stage.objects || [];
-              stageObjs.forEach((obj) => {
-                allObjects.push(obj);
-                objectSourceMap.set(obj, `Stage: ${stage.name || stage.id}`);
-              });
-            });
-          }
-          allObjects.forEach((obj) => {
-            const source = objectSourceMap.get(obj) || "Unknown";
-            if (obj.Tasks) {
-              Object.entries(obj.Tasks).forEach(([evt, taskName]) => {
-                if (taskName === name) {
-                  refs.push(`${source} Objekt: ${obj.name} -> Event: ${evt}`);
-                }
-              });
-            }
-            const str = JSON.stringify(obj);
-            if (str.includes(`\${${name}}`) || str.includes(`\${${name}.`)) {
-              refs.push(`${source} Objekt: ${obj.name} -> Binding: ${name}`);
-            }
-          });
-          return Array.from(new Set(refs));
-        }
-        // =========================================================================================
-        //  Renaming
-        // =========================================================================================
-        renameVariable(oldName, newName) {
-          if (!this.project) return false;
-          if (!this.validateVariableName(newName).valid) return false;
-          const variable = this.project.variables.find((v) => v.name === oldName);
-          if (variable) {
-            variable.name = newName;
-          } else {
-            return false;
-          }
-          this.updateReferencesInProperties(oldName, newName);
-          this.updateReferencesInActions(oldName, newName);
-          return true;
-        }
-        renameTask(oldName, newName) {
-          if (!this.project) return false;
-          if (!this.validateTaskName(newName).valid) return false;
-          let task;
-          task = this.project.tasks.find((t) => t.name === oldName);
-          if (!task && this.project.stages) {
-            for (const stage of this.project.stages) {
-              if (stage.tasks) {
-                task = stage.tasks.find((t) => t.name === oldName);
-                if (task) break;
-              }
-            }
-          }
-          if (task) {
-            task.name = newName;
-          } else {
-            console.warn(`[ProjectRegistry] renameTask: Task '${oldName}' not found in any scope.`);
-            return false;
-          }
-          const allTasks = this.getTasks();
-          allTasks.forEach((t) => {
-            if (t.actionSequence) {
-              t.actionSequence.forEach((item) => {
-                if (item.type === "task" && item.name === oldName) item.name = newName;
-                if (item.thenTask === oldName) item.thenTask = newName;
-                if (item.elseTask === oldName) item.elseTask = newName;
-              });
-            }
-          });
-          const trulyAllObjects = [...this.project.objects || []];
-          if (this.project.stages) {
-            this.project.stages.forEach((s) => {
-              if (s.objects) trulyAllObjects.push(...s.objects);
-            });
-          }
-          trulyAllObjects.forEach((obj) => {
-            if (obj.Tasks) {
-              const tasks = obj.Tasks;
-              Object.keys(tasks).forEach((key) => {
-                if (tasks[key] === oldName) tasks[key] = newName;
-              });
-            }
-          });
-          if (this.project.flowCharts && this.project.flowCharts[oldName]) {
-            this.project.flowCharts[newName] = this.project.flowCharts[oldName];
-            delete this.project.flowCharts[oldName];
-          }
-          if (this.project.stages) {
-            this.project.stages.forEach((stage) => {
-              if (stage.flowCharts && stage.flowCharts[oldName]) {
-                stage.flowCharts[newName] = stage.flowCharts[oldName];
-                delete stage.flowCharts[oldName];
-              }
-            });
-          }
-          return true;
-        }
-        renameAction(oldName, newName) {
-          if (!this.project) return false;
-          let action;
-          action = this.project.actions.find((a) => a.name === oldName);
-          if (!action && this.project.stages) {
-            for (const stage of this.project.stages) {
-              if (stage.actions) {
-                action = stage.actions.find((a) => a.name === oldName);
-                if (action) break;
-              }
-            }
-          }
-          if (action) {
-            action.name = newName;
-          } else {
-            return false;
-          }
-          const allTasks = this.getTasks();
-          allTasks.forEach((t) => {
-            if (t.actionSequence) {
-              t.actionSequence.forEach((item) => {
-                if (item.type === "action" && item.name === oldName) item.name = newName;
-                if (item.thenAction === oldName) item.thenAction = newName;
-                if (item.elseAction === oldName) item.elseAction = newName;
-              });
-            }
-          });
-          return true;
-        }
-        updateReferencesInProperties(oldName, newName) {
-          const regex = new RegExp(`\\$\\{${oldName}\\}`, "g");
-          const regexNested = new RegExp(`\\$\\{${oldName}\\.`, "g");
-          const replaceInString = (str) => {
-            return str.replace(regex, `\${${newName}}`).replace(regexNested, `\${${newName}.`);
-          };
-          const traverseAndReplace = (obj) => {
-            if (!obj) return;
-            if (typeof obj === "string") {
-              return replaceInString(obj);
-            }
-            if (typeof obj === "object") {
-              Object.keys(obj).forEach((key) => {
-                const val = obj[key];
-                if (typeof val === "string") {
-                  obj[key] = replaceInString(val);
-                } else if (typeof val === "object") {
-                  traverseAndReplace(val);
-                }
-              });
-            }
-          };
-          const allObjects = [...this.project.objects || []];
-          if (this.project.stages) {
-            this.project.stages.forEach((s) => {
-              if (s.objects) allObjects.push(...s.objects);
-            });
-          }
-          allObjects.forEach((obj) => traverseAndReplace(obj));
-          this.project.actions.forEach((act) => traverseAndReplace(act));
-          if (this.project.stages) {
-            this.project.stages.forEach((stage) => {
-              if (stage.actions) stage.actions.forEach((act) => traverseAndReplace(act));
-            });
-          }
-          const allTasks = this.getTasks();
-          allTasks.forEach((t) => traverseAndReplace(t));
-        }
-        updateReferencesInActions(oldName, newName) {
-          this.project.tasks.forEach((task) => {
-            task.actionSequence.forEach((item) => {
-              if (item.type === "action") {
-                const action = item;
-                if (action.variableName === oldName) action.variableName = newName;
-                if (action.resultVariable === oldName) action.resultVariable = newName;
-                if (action.calcSteps) {
-                  action.calcSteps.forEach((step) => {
-                    if (step.operandType === "variable" && step.variable === oldName) {
-                      step.variable = newName;
-                    }
-                  });
-                }
-              } else if (item.type === "condition" || item.type === "while") {
-                if (item.condition && item.condition.variable === oldName) {
-                  item.condition.variable = newName;
-                }
-              }
-            });
-          });
-        }
-      };
-      __publicField(_ProjectRegistry, "instance");
-      ProjectRegistry = _ProjectRegistry;
-      projectRegistry = ProjectRegistry.getInstance();
     }
   });
 
@@ -1545,6 +1127,9 @@
         case "navigate_stage":
           this.handleNavigateStageAction(action, vars);
           break;
+        case "shake":
+          this.handleShakeAction(action, vars, contextObj);
+          break;
         default:
           console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
       }
@@ -1600,6 +1185,7 @@
     }
     handlePropertyAction(action, vars, contextObj) {
       const isSyncActive = action.hostOnly === true;
+      const targetObj = this.resolveTarget(action.target, vars, contextObj);
       if (action.changes) {
         Object.keys(action.changes).forEach((prop) => {
           const rawValue = action.changes[prop];
@@ -1620,7 +1206,15 @@
               finalValue = value;
             }
           }
-          this.applyChange(action.target, prop, finalValue, vars, contextObj, isSyncActive);
+          if (targetObj) {
+            this.applyChange(action.target, prop, finalValue, vars, contextObj, isSyncActive);
+          } else {
+            const targetName = action.target;
+            if (targetName && typeof targetName === "string") {
+              console.log(`[ActionExecutor] Setting variable ${targetName} to`, finalValue);
+              vars[targetName] = finalValue;
+            }
+          }
         });
       }
     }
@@ -1642,6 +1236,23 @@
               console.log(`[ActionExecutor] Negating ${action.target}.${prop}: ${currentValue} -> ${newValue}`);
             }
             this.applyChange(action.target, prop, newValue, vars, contextObj, isSyncActive);
+          } else {
+            const targetName = action.target;
+            if (targetName && typeof targetName === "string" && (prop === "value" || prop === "defaultValue")) {
+              const currentValue = Number(vars[targetName]) || 0;
+              let newValue;
+              if (mode === "increment") {
+                const rawIncrementValue = action.changes[prop];
+                const interpolatedValue = PropertyHelper.interpolate(String(rawIncrementValue), vars, this.objects);
+                const incrementValue = Number(interpolatedValue) || 0;
+                newValue = currentValue + incrementValue;
+                console.log(`[ActionExecutor] Incrementing variable ${targetName} by ${incrementValue}: ${currentValue} -> ${newValue}`);
+              } else {
+                newValue = currentValue * -1;
+                console.log(`[ActionExecutor] Negating variable ${targetName}: ${currentValue} -> ${newValue}`);
+              }
+              vars[targetName] = newValue;
+            }
           }
         });
       }
@@ -2006,6 +1617,27 @@
         manager.addTween(target, "y", toY, duration, easing);
       }
     }
+    /**
+     * Handle shake action - shakes a target object.
+     * Action format:
+     * {
+     *   type: 'shake',
+     *   target: 'SpriteA',
+     *   intensity: 5,
+     *   duration: 500
+     * }
+     */
+    handleShakeAction(action, vars, contextObj) {
+      const target = this.resolveTarget(action.target, vars, contextObj);
+      if (!target) {
+        console.warn(`[ActionExecutor] shake: Target not found: ${action.target}`);
+        return;
+      }
+      const intensity = typeof action.intensity === "string" ? Number(PropertyHelper.interpolate(action.intensity, vars, this.objects)) : Number(action.intensity) || 5;
+      const duration = Number(action.duration) || 500;
+      console.log(`[ActionExecutor] Shaking ${target.name} (intensity: ${intensity}, duration: ${duration}ms)`);
+      AnimationManager.getInstance().shake(target, intensity, duration);
+    }
     getDescriptiveName(action) {
       switch (action.type) {
         case "variable":
@@ -2029,6 +1661,8 @@
           return `Animate ${action.target}`;
         case "navigate":
           return `To page ${action.pageId}`;
+        case "shake":
+          return `Shake ${action.target}`;
         default:
           return `Action: ${action.type || "unknown"}`;
       }
@@ -2654,6 +2288,7 @@
     }
     /**
      * Main game loop - NORMAL METHOD, not arrow function
+     * OPTIMIZATION: Only renders when something has changed to avoid endless log spam
      */
     loop() {
       if (this.state !== "running") {
@@ -2666,15 +2301,22 @@
         if (ic.update) ic.update();
       });
       const spritesMoving = this.gameState ? this.gameState.spritesMoving : true;
-      this.updateSprites(deltaTime, spritesMoving);
-      AnimationManager.getInstance().update();
-      this.collidedThisFrame.clear();
-      if (spritesMoving) {
-        this.checkCollisions();
-        this.checkBoundaries();
-      }
-      if (this.renderCallback) {
-        this.renderCallback();
+      const hasActiveAnimations = AnimationManager.getInstance().hasActiveTweens();
+      const hasMovingSprites = spritesMoving && this.sprites.some(
+        (sprite) => sprite.velocityX !== 0 || sprite.velocityY !== 0 || sprite.isAnimating
+      );
+      const needsUpdate = hasActiveAnimations || hasMovingSprites;
+      if (needsUpdate) {
+        this.updateSprites(deltaTime, spritesMoving);
+        AnimationManager.getInstance().update();
+        this.collidedThisFrame.clear();
+        if (spritesMoving) {
+          this.checkCollisions();
+          this.checkBoundaries();
+        }
+        if (this.renderCallback) {
+          this.renderCallback();
+        }
       }
       this.animationFrameId = requestAnimationFrame(this.loop);
     }
@@ -2803,7 +2445,6 @@
 
   // src/components/TComponent.ts
   var TComponent = class {
-    // EventName -> TaskName
     constructor(name) {
       __publicField(this, "id");
       __publicField(this, "name");
@@ -2812,6 +2453,11 @@
       __publicField(this, "parent", null);
       __publicField(this, "children", []);
       __publicField(this, "Tasks");
+      // EventName -> TaskName
+      // Drag & Drop Properties
+      __publicField(this, "draggable", false);
+      __publicField(this, "dragMode", "move");
+      __publicField(this, "droppable", false);
       this.id = `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       this.name = name;
       this.className = this.constructor.name;
@@ -2820,7 +2466,10 @@
     getInspectorProperties() {
       return [
         { name: "name", label: "Name", type: "string", group: "Identity" },
-        { name: "id", label: "ID", type: "string", group: "Identity", readonly: true }
+        { name: "id", label: "ID", type: "string", group: "Identity", readonly: true },
+        { name: "draggable", label: "Draggable", type: "boolean", group: "Interaction" },
+        { name: "dragMode", label: "Drag Mode", type: "select", group: "Interaction", options: ["move", "copy"] },
+        { name: "droppable", label: "Droppable", type: "boolean", group: "Interaction" }
       ];
     }
     toJSON() {
@@ -2828,7 +2477,10 @@
         className: this.constructor.name,
         id: this.id,
         name: this.name,
-        Tasks: this.Tasks
+        Tasks: this.Tasks,
+        draggable: this.draggable,
+        dragMode: this.dragMode,
+        droppable: this.droppable
       };
     }
     addChild(child) {
@@ -2956,7 +2608,7 @@
      * Override in subclasses to add more events
      */
     getEvents() {
-      return ["onClick", "onFocus", "onBlur"];
+      return ["onClick", "onFocus", "onBlur", "onDragStart", "onDragEnd", "onDrop"];
     }
     getInspectorProperties() {
       const props = super.getInspectorProperties();
@@ -3100,7 +2752,9 @@
           borderColor: this.style.borderColor,
           borderWidth: this.style.borderWidth,
           backgroundColor: this.style.backgroundColor
-        }
+        },
+        // Serialize children explicitly
+        children: this.children.map((child) => child.toJSON())
       };
     }
   };
@@ -4265,7 +3919,7 @@
 
   // src/multiplayer/NetworkManager.ts
   var NetworkManager = class {
-    constructor(serverUrl = "ws://localhost:3000") {
+    constructor(serverUrl = "ws://localhost:8080") {
       __publicField(this, "ws", null);
       __publicField(this, "serverUrl");
       __publicField(this, "eventHandlers", /* @__PURE__ */ new Set());
@@ -4915,7 +4569,7 @@
     constructor(name, x = 0, y = 0) {
       super(name, x, y, 3, 1);
       // Connection settings
-      __publicField(this, "serverUrl", "ws://localhost:3000");
+      __publicField(this, "serverUrl", "ws://localhost:8080");
       __publicField(this, "autoConnect", false);
       // Runtime state (not persisted)
       __publicField(this, "_connected", false);
@@ -7033,6 +6687,8 @@
       return {
         ...super.toJSON(),
         backgroundImage: this._backgroundImage,
+        src: this._backgroundImage,
+        // Alias for Inspector compatibility
         objectFit: this._objectFit,
         imageOpacity: this._imageOpacity,
         alt: this.alt,
@@ -7864,6 +7520,57 @@
     }
   };
 
+  // src/components/TShape.ts
+  var TShape = class extends TPanel {
+    constructor(name, x, y, width = 100, height = 100) {
+      super(name, x, y, width, height);
+      __publicField(this, "shapeType", "circle");
+      // Style properties
+      __publicField(this, "fillColor", "transparent");
+      __publicField(this, "strokeColor", "#29b6f6");
+      __publicField(this, "strokeWidth", 2);
+      __publicField(this, "opacity", 1);
+      // New Content properties
+      __publicField(this, "text", "");
+      __publicField(this, "contentImage", "");
+      this.style.backgroundColor = "transparent";
+      this.style.borderWidth = 0;
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      const filtered = props.filter((p) => !["showGrid", "gridColor", "gridStyle", "caption"].includes(p.name));
+      return [
+        ...filtered,
+        {
+          name: "shapeType",
+          label: "Form-Typ",
+          type: "select",
+          group: "Form",
+          options: ["circle", "rect", "square", "ellipse", "triangle", "arrow", "line"]
+        },
+        { name: "fillColor", label: "F\xFCllfarbe", type: "color", group: "Form" },
+        { name: "strokeColor", label: "Linienfarbe (Rand)", type: "color", group: "Form" },
+        { name: "strokeWidth", label: "Linienst\xE4rke", type: "number", group: "Form" },
+        { name: "opacity", label: "Deckkraft", type: "number", group: "Form" },
+        // Content group
+        { name: "text", label: "Text/Emoji", type: "string", group: "Inhalt" },
+        { name: "contentImage", label: "Bild-Inhalt", type: "image_picker", group: "Inhalt" }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        shapeType: this.shapeType,
+        fillColor: this.fillColor,
+        strokeColor: this.strokeColor,
+        strokeWidth: this.strokeWidth,
+        opacity: this.opacity,
+        text: this.text,
+        contentImage: this.contentImage
+      };
+    }
+  };
+
   // src/utils/Serialization.ts
   function hydrateObjects(objectsData) {
     const objects = [];
@@ -7980,6 +7687,9 @@
         case "TMemo":
           newObj = new TMemo(objData.name, objData.x, objData.y, objData.width, objData.height);
           break;
+        case "TShape":
+          newObj = new TShape(objData.name, objData.x, objData.y, objData.width, objData.height);
+          break;
         default:
           console.warn("Unknown class during load:", objData.className);
           break;
@@ -7992,6 +7702,10 @@
         if (objData.x !== void 0) newObj.x = objData.x;
         if (objData.y !== void 0) newObj.y = objData.y;
         if (objData.visible !== void 0) newObj.visible = objData.visible;
+        if (objData.zIndex !== void 0) newObj.zIndex = objData.zIndex;
+        if (objData.draggable !== void 0) newObj.draggable = objData.draggable;
+        if (objData.dragMode !== void 0) newObj.dragMode = objData.dragMode;
+        if (objData.droppable !== void 0) newObj.droppable = objData.droppable;
         if (objData.style) {
           Object.assign(newObj.style, objData.style);
         }
@@ -8019,6 +7733,9 @@
         if (objData.shape !== void 0) newObj.shape = objData.shape;
         if (objData.spriteColor !== void 0) newObj.spriteColor = objData.spriteColor;
         if (objData.backgroundImage !== void 0) newObj.backgroundImage = objData.backgroundImage;
+        if (objData.src !== void 0 && (newObj.className === "TImage" || newObj.className === "TSprite")) {
+          newObj.backgroundImage = objData.src;
+        }
         if (objData.objectFit !== void 0) newObj.objectFit = objData.objectFit;
         if (objData.imageOpacity !== void 0) newObj.imageOpacity = objData.imageOpacity;
         if (objData.icon !== void 0) newObj.icon = objData.icon;
@@ -8136,6 +7853,11 @@
         if (objData.onSuccessCloseDialog !== void 0) newObj.onSuccessCloseDialog = objData.onSuccessCloseDialog;
         if (objData.onErrorToast !== void 0) newObj.onErrorToast = objData.onErrorToast;
         if (objData.onErrorToastType !== void 0) newObj.onErrorToastType = objData.onErrorToastType;
+        if (objData.shapeType !== void 0) newObj.shapeType = objData.shapeType;
+        if (objData.fillColor !== void 0) newObj.fillColor = objData.fillColor;
+        if (objData.strokeColor !== void 0) newObj.strokeColor = objData.strokeColor;
+        if (objData.strokeWidth !== void 0) newObj.strokeWidth = objData.strokeWidth;
+        if (objData.opacity !== void 0) newObj.opacity = objData.opacity;
         if (objData.Tasks) {
           newObj.Tasks = objData.Tasks;
         }
@@ -8193,13 +7915,17 @@
       let activeStage = null;
       if (options.startStageId && hasStages) {
         activeStage = project.stages.find((s) => s.id === options.startStageId);
+        console.log(`[GameRuntime] Context-Aware Start. Requested stage: ${activeStage?.name || options.startStageId}`);
       } else {
+        console.log(`[GameRuntime] Default Start. Searching for Splash.`);
         if (hasStages) {
           const splashStage = project.stages.find((s) => s.type === "splash");
           if (splashStage) {
             activeStage = splashStage;
+            console.log(`[GameRuntime] Found Splash: ${activeStage.name}`);
           } else {
             activeStage = project.stages.find((s) => s.id === project.activeStageId) || project.stages[0];
+            console.log(`[GameRuntime] No Splash. Using: ${activeStage?.name}`);
           }
         }
       }
@@ -8356,7 +8082,7 @@
       });
       if (this.isSplashActive) {
         if (this.project.splashAutoHide) {
-          const duration = this.project.splashDuration || 3e3;
+          const duration = this.stage?.duration || this.project.splashDuration || 3e3;
           console.log(`[GameRuntime] Splash active. Auto-hiding in ${duration}ms`);
           this.splashTimerId = setTimeout(() => {
             this.finishSplash();
@@ -8445,54 +8171,78 @@
      */
     handleStageChange(oldStageId, newStageId) {
       console.log(`[GameRuntime] Stage change: ${oldStageId} \u2192 ${newStageId}`);
-      Promise.resolve().then(() => (init_ProjectRegistry(), ProjectRegistry_exports)).then(({ projectRegistry: projectRegistry2 }) => {
-        projectRegistry2.setActiveStageId(newStageId);
-        const combinedObjects = projectRegistry2.getObjects();
-        this.objects = hydrateObjects(combinedObjects);
-        if (this.project.stages) {
-          this.stage = this.project.stages.find((s) => s.id === newStageId);
-        }
-        const stageFlowCharts = this.stage?.flowCharts || {};
-        const stageTasks = this.stage?.tasks || [];
-        const stageActions = this.stage?.actions || [];
-        const mergedFlowCharts = {
-          ...this.project.flowCharts || {},
-          ...stageFlowCharts
-        };
-        const mergedTasks = [
-          ...this.project.tasks || [],
-          ...stageTasks
-        ];
-        const mergedActions = [
-          ...this.project.actions || [],
-          ...stageActions
-        ];
-        this.taskExecutor.setFlowCharts(mergedFlowCharts);
-        this.taskExecutor.setTasks(mergedTasks);
-        this.taskExecutor.setActions(mergedActions);
-        console.log(`[GameRuntime] TaskExecutor updated with ${Object.keys(mergedFlowCharts).length} flowCharts, ${mergedTasks.length} tasks and ${mergedActions.length} actions`);
-        if (this.options.makeReactive) {
-          this.reactiveRuntime.clear();
-          AnimationManager.getInstance().clear();
-          this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
-          this.reactiveRuntime.setVariable("isSplashActive", false);
-          this.objects = this.reactiveRuntime.getObjects();
-        }
-        this.stageVariables = {};
-        if (this.stage?.variables) {
-          this.stage.variables.forEach((v) => {
-            this.stageVariables[v.name] = v.defaultValue;
+      if (this.project.stages) {
+        this.stage = this.project.stages.find((s) => s.id === newStageId);
+      }
+      const targetStage = this.project.stages?.find((s) => s.id === newStageId);
+      if (!targetStage) {
+        console.error(`[GameRuntime] Stage not found: ${newStageId}`);
+        return;
+      }
+      let combinedObjects = [...targetStage.objects || []];
+      if (targetStage.type !== "main") {
+        const mainStage = this.project.stages?.find((s) => s.type === "main");
+        if (mainStage && mainStage.objects) {
+          const systemClasses = [
+            "TGameLoop",
+            "TStageController",
+            "TGameState",
+            "THandshake",
+            "THeartbeat",
+            "TGameServer",
+            "TInputController",
+            "TDebugLog"
+          ];
+          const existingIds = new Set(combinedObjects.map((o) => o.id));
+          mainStage.objects.forEach((gObj) => {
+            if (systemClasses.includes(gObj.className) && !existingIds.has(gObj.id)) {
+              combinedObjects.push(gObj);
+            }
           });
         }
-        console.log(`[GameRuntime] Local variables reset for stage ${newStageId}`);
-        this.actionExecutor.setObjects(this.objects);
-        this.initStageController();
-        this.start();
-        if (this.options.onStageSwitch) {
-          console.log(`[GameRuntime] Notifying host of stage switch to: ${newStageId}`);
-          this.options.onStageSwitch(newStageId);
-        }
-      });
+      }
+      console.log(`[GameRuntime] Loading ${combinedObjects.length} objects for stage ${newStageId}`);
+      this.objects = hydrateObjects(combinedObjects);
+      const stageFlowCharts = this.stage?.flowCharts || {};
+      const stageTasks = this.stage?.tasks || [];
+      const stageActions = this.stage?.actions || [];
+      const mergedFlowCharts = {
+        ...this.project.flowCharts || {},
+        ...stageFlowCharts
+      };
+      const mergedTasks = [
+        ...this.project.tasks || [],
+        ...stageTasks
+      ];
+      const mergedActions = [
+        ...this.project.actions || [],
+        ...stageActions
+      ];
+      this.taskExecutor.setFlowCharts(mergedFlowCharts);
+      this.taskExecutor.setTasks(mergedTasks);
+      this.taskExecutor.setActions(mergedActions);
+      console.log(`[GameRuntime] TaskExecutor updated with ${Object.keys(mergedFlowCharts).length} flowCharts, ${mergedTasks.length} tasks and ${mergedActions.length} actions`);
+      if (this.options.makeReactive) {
+        this.reactiveRuntime.clear();
+        AnimationManager.getInstance().clear();
+        this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
+        this.reactiveRuntime.setVariable("isSplashActive", false);
+        this.objects = this.reactiveRuntime.getObjects();
+      }
+      this.stageVariables = {};
+      if (this.stage?.variables) {
+        this.stage.variables.forEach((v) => {
+          this.stageVariables[v.name] = v.defaultValue;
+        });
+      }
+      console.log(`[GameRuntime] Local variables reset for stage ${newStageId}`);
+      this.actionExecutor.setObjects(this.objects);
+      this.initStageController();
+      this.start();
+      if (this.options.onStageSwitch) {
+        console.log(`[GameRuntime] Notifying host of stage switch to: ${newStageId}`);
+        this.options.onStageSwitch(newStageId);
+      }
     }
     /**
      * Legacy Stage-Wechsel (Fallback wenn kein TStageController vorhanden)
@@ -8638,10 +8388,57 @@
       this.taskExecutor.execute(taskName, vars, this.contextVars, null, 0, void 0, params, true);
     }
     /**
-     * Returns all runtime objects
+     * Returns all runtime objects as a flattened list with absolute coordinates for rendering.
+     * Also accumulates z-index to ensure children of high-z parents (like Splash) are rendered on top.
      */
     getObjects() {
-      return this.objects;
+      const all = [];
+      const process = (objs, parentX = 0, parentY = 0, parentZ = 0) => {
+        objs.forEach((obj) => {
+          const currentZ = typeof obj.zIndex === "number" ? obj.zIndex : 0;
+          const effectiveZ = parentZ + currentZ;
+          const renderObj = {
+            ...obj,
+            x: (obj.x || 0) + parentX,
+            y: (obj.y || 0) + parentY,
+            zIndex: effectiveZ,
+            // Explicitly copy image properties that may be lost on Proxy spread
+            backgroundImage: obj.backgroundImage,
+            src: obj.src,
+            objectFit: obj.objectFit,
+            imageOpacity: obj.imageOpacity
+          };
+          all.push(renderObj);
+          if (obj.children && obj.children.length > 0) {
+            process(obj.children, renderObj.x, renderObj.y, effectiveZ);
+          }
+        });
+      };
+      process(this.objects);
+      return all;
+    }
+    /**
+     * Creates a temporary shallow clone of an object.
+     * Used for 'copy' drag mode.
+     */
+    createPhantom(original) {
+      const phantom = {
+        ...original,
+        id: `phantom_${Date.now()}`,
+        name: `${original.name}_phantom`,
+        _isPhantom: true,
+        _original: original,
+        draggable: false
+        // Phantoms themselves aren't draggable
+      };
+      this.objects.push(phantom);
+      return phantom;
+    }
+    /**
+     * Removes an object from the runtime.
+     */
+    removeObject(id) {
+      this.objects = this.objects.filter((o) => o.id !== id);
     }
     resolveInheritanceChain(stageId, visited = /* @__PURE__ */ new Set()) {
       if (visited.has(stageId)) {
@@ -8709,6 +8506,10 @@
     /**
      * Phase 3: Creates a Proxy handles variable scoping (Local > Global).
      */
+    /**
+     * Phase 3: Creates a Proxy handles variable scoping (Local > Global).
+     * Includes Reactive Event Logic (Thresholds, Triggers, Changed).
+     */
     createVariableContext() {
       return new Proxy({}, {
         get: (_target, prop) => {
@@ -8721,17 +8522,58 @@
           return void 0;
         },
         set: (_target, prop, value) => {
+          const oldValue = this.stageVariables[prop] !== void 0 ? this.stageVariables[prop] : this.projectVariables[prop];
           if (prop in this.stageVariables) {
             this.stageVariables[prop] = value;
-            console.log(`[Scope] Set LOCAL ${prop} = ${value}`);
           } else if (prop in this.projectVariables) {
             this.projectVariables[prop] = value;
-            console.log(`[Scope] Set GLOBAL ${prop} = ${value}`);
           } else {
             this.stageVariables[prop] = value;
-            console.log(`[Scope] Set IMPLICIT LOCAL ${prop} = ${value}`);
           }
           this.reactiveRuntime.setVariable(prop, value);
+          if (this.taskExecutor) {
+            let varDef = this.stage?.variables?.find((v) => v.name === prop);
+            if (!varDef && this.project.variables) {
+              varDef = this.project.variables.find((v) => v.name === prop);
+            }
+            if (varDef) {
+              if (oldValue !== value && varDef.onValueChanged) {
+                console.log(`[Reactive] ${prop} changed -> executing ${varDef.onValueChanged}`);
+                this.taskExecutor.execute(varDef.onValueChanged, {}, this.contextVars);
+              }
+              if ((value === "" || value === null || value === void 0) && varDef.onValueEmpty) {
+                console.log(`[Reactive] ${prop} is empty -> executing ${varDef.onValueEmpty}`);
+                this.taskExecutor.execute(varDef.onValueEmpty, {}, this.contextVars);
+              }
+              if (typeof value === "number" && typeof oldValue === "number" && typeof varDef.threshold === "number") {
+                const t = varDef.threshold;
+                if (oldValue < t && value >= t && varDef.onThresholdReached) {
+                  console.log(`[Reactive] ${prop} reached threshold ${t} -> executing ${varDef.onThresholdReached}`);
+                  this.taskExecutor.execute(varDef.onThresholdReached, {}, this.contextVars);
+                }
+                if (oldValue >= t && value < t && varDef.onThresholdLeft) {
+                  console.log(`[Reactive] ${prop} left threshold ${t} -> executing ${varDef.onThresholdLeft}`);
+                  this.taskExecutor.execute(varDef.onThresholdLeft, {}, this.contextVars);
+                }
+                if (oldValue <= t && value > t && varDef.onThresholdExceeded) {
+                  console.log(`[Reactive] ${prop} exceeded threshold ${t} -> executing ${varDef.onThresholdExceeded}`);
+                  this.taskExecutor.execute(varDef.onThresholdExceeded, {}, this.contextVars);
+                }
+              }
+              if (varDef.triggerValue !== void 0 && varDef.triggerValue !== "" && varDef.triggerValue !== null) {
+                const isTrigger = value == varDef.triggerValue;
+                const wasTrigger = oldValue == varDef.triggerValue;
+                if (isTrigger && !wasTrigger && varDef.onTriggerEnter) {
+                  console.log(`[Reactive] ${prop} entered trigger ${varDef.triggerValue} -> executing ${varDef.onTriggerEnter}`);
+                  this.taskExecutor.execute(varDef.onTriggerEnter, {}, this.contextVars);
+                }
+                if (!isTrigger && wasTrigger && varDef.onTriggerExit) {
+                  console.log(`[Reactive] ${prop} exited trigger ${varDef.triggerValue} -> executing ${varDef.onTriggerExit}`);
+                  this.taskExecutor.execute(varDef.onTriggerExit, {}, this.contextVars);
+                }
+              }
+            }
+          }
           return true;
         },
         ownKeys: () => {
@@ -9206,6 +9048,11 @@
       __publicField(this, "currentProject", null);
       __publicField(this, "isStarted", false);
       __publicField(this, "animationTickerId", null);
+      // Drag & Drop State
+      __publicField(this, "dragTarget", null);
+      __publicField(this, "dragPhantom", null);
+      __publicField(this, "isDragging", false);
+      __publicField(this, "dragOffset", { x: 0, y: 0 });
       this.stage = document.getElementById("stage");
       this.init();
     }
@@ -9223,6 +9070,9 @@
           network.sendInput(key, action);
         }
       };
+      window.addEventListener("mousedown", (e) => this.handleMouseDown(e));
+      window.addEventListener("mousemove", (e) => this.handleMouseMove(e));
+      window.addEventListener("mouseup", (e) => this.handleMouseUp(e));
       const params = new URLSearchParams(window.location.search);
       const roomCode = params.get("room");
       const gameFile = params.get("game");
@@ -9721,6 +9571,30 @@
           el.appendChild(joinBtn);
           break;
         }
+        case "TShape": {
+          el.innerHTML = "";
+          el.style.backgroundColor = obj.fillColor || "transparent";
+          el.style.border = `${obj.strokeWidth || 0}px solid ${obj.strokeColor || "transparent"}`;
+          el.style.opacity = String(obj.opacity ?? 1);
+          if (obj.shapeType === "circle") {
+            el.style.borderRadius = "50%";
+          } else if (obj.shapeType === "rect" || obj.shapeType === "square") {
+            el.style.borderRadius = "0";
+          } else if (obj.shapeType === "ellipse") {
+            el.style.borderRadius = "50% / 50%";
+          } else if (obj.shapeType === "triangle") {
+            el.style.backgroundColor = "transparent";
+            el.style.border = "none";
+            el.style.clipPath = "polygon(50% 0%, 0% 100%, 100% 100%)";
+            el.style.background = obj.fillColor || "white";
+          } else if (obj.shapeType === "arrow") {
+            el.style.backgroundColor = "transparent";
+            el.style.border = "none";
+            el.style.clipPath = "polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%)";
+            el.style.background = obj.fillColor || "white";
+          }
+          break;
+        }
       }
     }
     showOverlay(text, subtext) {
@@ -9746,6 +9620,82 @@
     hideOverlay() {
       const overlay = document.getElementById("player-overlay");
       if (overlay) overlay.style.display = "none";
+    }
+    // ─────────────────────────────────────────────
+    // Drag & Drop Handling
+    // ─────────────────────────────────────────────
+    handleMouseDown(e) {
+      if (!this.runtime) return;
+      const el = e.target.closest(".game-object");
+      if (!el) return;
+      const obj = this.runtime.getObjects().find((o) => o.id === el.id);
+      if (!obj || !obj.draggable) return;
+      console.log(`[Player] Start dragging: ${obj.name} (mode: ${obj.dragMode})`);
+      this.isDragging = true;
+      const gridCoords = this.screenToGrid(e.clientX, e.clientY);
+      this.dragOffset = {
+        x: gridCoords.x - obj.x,
+        y: gridCoords.y - obj.y
+      };
+      if (obj.dragMode === "copy") {
+        this.dragPhantom = this.runtime.createPhantom(obj);
+        this.dragTarget = this.dragPhantom;
+      } else {
+        this.dragTarget = obj;
+      }
+      this.runtime.handleEvent(obj.id, "onDragStart", { x: gridCoords.x, y: gridCoords.y });
+    }
+    handleMouseMove(e) {
+      if (!this.isDragging || !this.dragTarget || !this.runtime) return;
+      const coords = this.screenToGrid(e.clientX, e.clientY);
+      this.dragTarget.x = coords.x - this.dragOffset.x;
+      this.dragTarget.y = coords.y - this.dragOffset.y;
+      this.render();
+    }
+    handleMouseUp(e) {
+      if (!this.isDragging || !this.runtime) return;
+      const originalTarget = this.dragPhantom ? this.dragTarget._original : this.dragTarget;
+      const elementsAtPoint = document.elementsFromPoint(e.clientX, e.clientY);
+      let dropTargetObj = null;
+      for (const el of elementsAtPoint) {
+        const gameObjEl = el.closest(".game-object");
+        if (gameObjEl && gameObjEl.id !== this.dragTarget.id) {
+          const found = this.runtime.getObjects().find((o) => o.id === gameObjEl.id);
+          if (found && found.droppable) {
+            dropTargetObj = found;
+            break;
+          }
+        }
+      }
+      if (dropTargetObj) {
+        console.log(`[Player] Dropped ${originalTarget.name} on ${dropTargetObj.name}`);
+        this.runtime.handleEvent(dropTargetObj.id, "onDrop", {
+          draggedId: originalTarget.id,
+          draggedName: originalTarget.name,
+          draggedObj: originalTarget
+        });
+      }
+      if (this.dragPhantom) {
+        this.runtime.removeObject(this.dragPhantom.id);
+      }
+      this.isDragging = false;
+      this.dragTarget = null;
+      this.dragPhantom = null;
+      this.render();
+    }
+    screenToGrid(clientX, clientY) {
+      const rect = this.stage.getBoundingClientRect();
+      const relativeX = clientX - rect.left;
+      const relativeY = clientY - rect.top;
+      const style = window.getComputedStyle(this.stage);
+      const matrix = new DOMMatrix(style.transform);
+      const scale = matrix.a;
+      const activeStage = this.runtime?.stage || (this.currentProject?.stage || this.currentProject?.stages?.[0]);
+      const cellSize = activeStage?.grid?.cellSize || 32;
+      return {
+        x: relativeX / scale / cellSize,
+        y: relativeY / scale / cellSize
+      };
     }
   };
   document.addEventListener("DOMContentLoaded", () => {

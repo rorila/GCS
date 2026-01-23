@@ -12,7 +12,7 @@ export interface ImageFile {
  * Service to handle image related operations (listing, uploading)
  */
 export class ImageService {
-    private baseUrl: string = 'http://localhost:3000/api';
+    private baseUrl: string = 'http://localhost:8080/api';
 
     constructor() {
         console.log('[ImageService] Initialized');
@@ -46,6 +46,18 @@ export class ImageService {
         });
         console.log(`[ImageService] Flattened ${tree.length} items to ${results.length} files`);
         return results;
+    }
+
+    /**
+     * Reads a local file and returns it as a Base64 string
+     */
+    readFileAsBase64(file: File): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
+        });
     }
 }
 

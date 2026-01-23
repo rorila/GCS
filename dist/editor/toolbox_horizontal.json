@@ -37,6 +37,21 @@
             ]
         },
         {
+            "name": "Media",
+            "items": [
+                {
+                    "type": "Image",
+                    "icon": "🖼️",
+                    "label": "Image"
+                },
+                {
+                    "type": "Video",
+                    "icon": "🎬",
+                    "label": "Video"
+                }
+            ]
+        },
+        {
             "name": "Erweitert",
             "items": [
                 {
@@ -123,6 +138,11 @@
                     "type": "GameState",
                     "icon": "⏯️",
                     "label": "GameState"
+                },
+                {
+                    "type": "StageController",
+                    "icon": "🎬",
+                    "label": "StageController"
                 }
             ]
         },

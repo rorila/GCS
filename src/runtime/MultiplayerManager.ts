@@ -38,9 +38,9 @@ export class MultiplayerManager {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         let host = window.location.hostname + (window.location.port ? `:${window.location.port}` : '');
 
-        // If we are on Vite dev server (5173), point WS to backend (3000)
+        // If we are on Vite dev server (5173), point WS to backend (8080)
         if (window.location.port === '5173') {
-            host = window.location.hostname + ':3000';
+            host = window.location.hostname + ':8080';
         }
 
         const wsUrl = `${protocol}//${host}`;

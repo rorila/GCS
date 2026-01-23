@@ -1,5 +1,10 @@
-import { GameProject, ProjectVariable, GameTask } from '../model/types';
+import { GameProject, ProjectVariable, GameTask, GameAction } from '../model/types';
+import { libraryService } from './LibraryService';
 import { TWindow } from '../components/TWindow';
+
+export type ScopedVariable = ProjectVariable & { uiScope?: 'global' | 'stage' | 'local' };
+export type ScopedTask = GameTask & { uiScope?: 'global' | 'stage' | 'library' };
+export type ScopedAction = GameAction & { uiScope?: 'global' | 'stage' | 'library' };
 
 export type VariableScopeContext = {
     taskName?: string;
@@ -29,29 +34,40 @@ export class ProjectRegistry {
 
     /**
      * Retrieves variables visible in a specific context.
-     * Hierarchy: Global > Task (if in task) > Action (if in action)
+     * Hierarchy: Global > Stage (if active) > Task (if in task) > Action (if in action)
      */
-    public getVariables(context?: VariableScopeContext): ProjectVariable[] {
+    public getVariables(context?: VariableScopeContext): ScopedVariable[] {
         if (!this.project) return [];
 
-        // 1. Always include Global variables
-        let visibleVars = this.project.variables.filter(v =>
-            !v.scope || v.scope.toLowerCase() === 'global'
-        );
+        let visibleVars: ScopedVariable[] = [];
 
-        // 2. If inside a Task, include Task variables
+        // 1. Global variables
+        visibleVars = this.project.variables
+            .filter(v => !v.scope || v.scope.toLowerCase() === 'global')
+            .map(v => ({ ...v, uiScope: 'global' as const }));
+
+        // 2. Stage variables (from active stage)
+        if (this.activeStageId && this.project.stages) {
+            const activeStage = this.project.stages.find(s => s.id === this.activeStageId);
+            if (activeStage && activeStage.variables) {
+                const stageVars = activeStage.variables.map(v => ({ ...v, uiScope: 'stage' as const }));
+                visibleVars = [...visibleVars, ...stageVars];
+            }
+        }
+
+        // 3. If inside a Task, include Task variables
         if (context?.taskName) {
-            const taskVars = this.project.variables.filter(v =>
-                v.scope === `task:${context.taskName}`
-            );
+            const taskVars = this.project.variables
+                .filter(v => v.scope === `task:${context.taskName}`)
+                .map(v => ({ ...v, uiScope: 'local' as const }));
             visibleVars = [...visibleVars, ...taskVars];
         }
 
-        // 3. If inside an Action, include Action variables
+        // 4. If inside an Action, include Action variables
         if (context?.actionId) {
-            const actionVars = this.project.variables.filter(v =>
-                v.scope === `action:${context.actionId}`
-            );
+            const actionVars = this.project.variables
+                .filter(v => v.scope === `action:${context.actionId}`)
+                .map(v => ({ ...v, uiScope: 'local' as const }));
             visibleVars = [...visibleVars, ...actionVars];
         }
 
@@ -83,15 +99,41 @@ export class ProjectRegistry {
     //  Tasks
     // =========================================================================================
 
-    public getTasks(): GameTask[] {
+    /**
+     * Gets tasks. By default returns Global + Active Stage tasks.
+     * Set stageId to 'all' to get everything.
+     */
+    public getTasks(stageId: string | 'all' | 'active' = 'active'): ScopedTask[] {
         if (!this.project) return [];
-        let allTasks = [...(this.project.tasks || [])];
-        if (this.project.stages) {
-            this.project.stages.forEach(stage => {
-                if (stage.tasks) allTasks = [...allTasks, ...stage.tasks];
-            });
+
+        // 1. Global tasks
+        const globalTasks = (this.project.tasks || []).map(t => ({ ...t, uiScope: 'global' as const }));
+
+        // 2. Library tasks
+        const libTasks = libraryService.getTasks().map(t => ({ ...t, uiScope: 'library' as const }));
+
+        if (stageId === 'all') {
+            let allTasks = [...globalTasks, ...libTasks];
+            if (this.project.stages) {
+                this.project.stages.forEach(stage => {
+                    if (stage.tasks) {
+                        allTasks = [...allTasks, ...stage.tasks.map(t => ({ ...t, uiScope: 'stage' as const }))];
+                    }
+                });
+            }
+            return allTasks;
         }
-        return allTasks;
+
+        const targetStageId = stageId === 'active' ? this.activeStageId : stageId;
+        if (targetStageId && this.project.stages) {
+            const stage = this.project.stages.find(s => s.id === targetStageId);
+            if (stage && stage.tasks) {
+                const stageTasks = stage.tasks.map(t => ({ ...t, uiScope: 'stage' as const }));
+                return [...globalTasks, ...stageTasks, ...libTasks];
+            }
+        }
+
+        return [...globalTasks, ...libTasks];
     }
 
     public validateTaskName(name: string): { valid: boolean; error?: string } {
@@ -112,15 +154,37 @@ export class ProjectRegistry {
     //  Actions
     // =========================================================================================
 
-    public getActions(): any[] {
+    /**
+     * Gets actions. By default returns Global + Active Stage actions.
+     */
+    public getActions(stageId: string | 'all' | 'active' = 'active'): ScopedAction[] {
         if (!this.project) return [];
-        let allActions = [...(this.project.actions || [])];
-        if (this.project.stages) {
-            this.project.stages.forEach(stage => {
-                if (stage.actions) allActions = [...allActions, ...stage.actions];
-            });
+
+        // 1. Global actions
+        const globalActions: ScopedAction[] = (this.project.actions || []).map(a => ({ ...a, uiScope: 'global' as const }));
+
+        if (stageId === 'all') {
+            let allActions = [...globalActions];
+            if (this.project.stages) {
+                this.project.stages.forEach(stage => {
+                    if (stage.actions) {
+                        allActions = [...allActions, ...stage.actions.map(a => ({ ...a, uiScope: 'stage' as const }))];
+                    }
+                });
+            }
+            return allActions;
         }
-        return allActions;
+
+        const targetStageId = stageId === 'active' ? this.activeStageId : stageId;
+        if (targetStageId && this.project.stages) {
+            const stage = this.project.stages.find(s => s.id === targetStageId);
+            if (stage && stage.actions) {
+                const stageActions: ScopedAction[] = stage.actions.map(a => ({ ...a, uiScope: 'stage' as const }));
+                return [...globalActions, ...stageActions];
+            }
+        }
+
+        return globalActions;
     }
 
     // =========================================================================================

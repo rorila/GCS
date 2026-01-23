@@ -118,18 +118,18 @@ export class PascalGenerator {
     /**
      * Generates a single Pascal procedure for a task
      */
-    public static generateProcedure(project: GameProject, taskName: string, indent: number = 0, sequenceOverride?: SequenceItem[], asHtml: boolean = true, sourceObjects?: any[]): string {
-        const task = project.tasks.find(t => t.name === taskName);
+    public static generateProcedure(project: GameProject, taskName: string, indent: number = 0, sequenceOverride?: SequenceItem[], asHtml: boolean = true, activeStage?: any): string {
+        const task = project.tasks.find(t => t.name === taskName) || (activeStage?.tasks?.find((t: any) => t.name === taskName));
         const sequence = sequenceOverride || task?.actionSequence || [];
 
         const lines: string[] = [];
         const space = ' '.repeat(indent);
 
         // Header with Usage Comments
-        const users = (sourceObjects || project.objects).filter(obj => {
+        const users = (activeStage?.objects || project.objects).filter((obj: any) => {
             const tasksMap = (obj as any).Tasks || {};
             return Object.values(tasksMap).includes(taskName);
-        }).map(obj => obj.name);
+        }).map((obj: any) => obj.name);
 
         if (users.length > 0) {
             lines.push(`${space}${this.span('{ Used by: ' + users.join(', ') + ' }', '#6a9955', asHtml)}`);
@@ -152,7 +152,7 @@ export class PascalGenerator {
         lines.push(`${space}${this.span('BEGIN', '#c586c0', asHtml)}`);
 
         // Recursively render sequence
-        this.renderSequenceToPascal(project, sequence, lines, indent + 2, asHtml);
+        this.renderSequenceToPascal(project, sequence, lines, indent + 2, asHtml, activeStage);
 
         // END Section
         lines.push(`${space}${this.span('END', '#c586c0', asHtml)};`);
@@ -160,7 +160,7 @@ export class PascalGenerator {
         return lines.join('\n');
     }
 
-    private static renderSequenceToPascal(project: GameProject, sequence: SequenceItem[], lines: string[], indent: number, asHtml: boolean) {
+    private static renderSequenceToPascal(project: GameProject, sequence: SequenceItem[], lines: string[], indent: number, asHtml: boolean, activeStage?: any) {
         const space = ' '.repeat(indent);
 
         if (sequence.length === 0) {
@@ -170,7 +170,8 @@ export class PascalGenerator {
 
         sequence.forEach(item => {
             if (item.type === 'action' || !item.type) {
-                lines.push(`${space}${this.getActionPascalCode(project, item.name, asHtml)}`);
+                // Support both standalone actions (by name) and embedded action data
+                lines.push(`${space}${this.getActionPascalCode(project, item.name, asHtml, activeStage, (item as any).data)}`);
             } else if (item.type === 'task') {
                 lines.push(`${space}${this.span(item.name, '#dcdcaa', asHtml)}; ${this.span('// Task Call', '#6a9955', asHtml)}`);
             } else if (item.type === 'condition') {
@@ -188,11 +189,11 @@ export class PascalGenerator {
 
                     // Then branch
                     if (item.thenAction) {
-                        lines.push(`${space}  ${this.getActionPascalCode(project, item.thenAction, asHtml)}`);
+                        lines.push(`${space}  ${this.getActionPascalCode(project, item.thenAction, asHtml, activeStage)}`);
                     } else if (item.thenTask) {
                         lines.push(`${space}  ${this.span(item.thenTask, '#dcdcaa', asHtml)};`);
                     } else if (item.body) {
-                        this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml);
+                        this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
                     }
 
                     lines.push(`${space}${this.span('END', '#c586c0', asHtml)}`);
@@ -200,7 +201,7 @@ export class PascalGenerator {
                     if (item.elseAction || item.elseTask) {
                         lines.push(`${space}${this.span('ELSE', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
                         if (item.elseAction) {
-                            lines.push(`${space}  ${this.getActionPascalCode(project, item.elseAction, asHtml)}`);
+                            lines.push(`${space}  ${this.getActionPascalCode(project, item.elseAction, asHtml, activeStage)}`);
                         } else if (item.elseTask) {
                             lines.push(`${space}  ${this.span(item.elseTask, '#dcdcaa', asHtml)};`);
                         }
@@ -218,28 +219,28 @@ export class PascalGenerator {
                     const valColor = isString ? '#ce9178' : '#b5cea8';
                     lines.push(`${space}${this.span('WHILE', '#c586c0', asHtml)} ${this.span(cond.variable, '#9cdcfe', asHtml)} ${op} ${this.span(val.toString(), valColor, asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
                     if (item.body) {
-                        this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml);
+                        this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
                     }
                     lines.push(`${space}${this.span('END', '#c586c0', asHtml)};`);
                 }
             } else if (item.type === 'for') {
                 lines.push(`${space}${this.span('FOR', '#c586c0', asHtml)} ${this.span(item.iteratorVar || 'i', '#9cdcfe', asHtml)} := ${this.span((item.from ?? 0).toString(), '#b5cea8', asHtml)} ${this.span('TO', '#c586c0', asHtml)} ${this.span((item.to ?? 10).toString(), '#b5cea8', asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
                 if (item.body) {
-                    this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml);
+                    this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
                 }
                 lines.push(`${space}${this.span('END', '#c586c0', asHtml)};`);
             } else if (item.type === 'foreach') {
                 lines.push(`${space}${this.span('FOR', '#c586c0', asHtml)} ${this.span(item.itemVar || 'item', '#9cdcfe', asHtml)} ${this.span('IN', '#c586c0', asHtml)} ${this.span(item.sourceArray || 'list', '#9cdcfe', asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
                 if (item.body) {
-                    this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml);
+                    this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
                 }
                 lines.push(`${space}${this.span('END', '#c586c0', asHtml)};`);
             }
         });
     }
 
-    private static getActionPascalCode(project: GameProject, actionName: string, asHtml: boolean): string {
-        const action = project.actions.find(a => a.name === actionName);
+    private static getActionPascalCode(project: GameProject, actionName: string, asHtml: boolean, activeStage?: any, embeddedData?: any): string {
+        const action = embeddedData || project.actions.find(a => a.name === actionName) || (activeStage?.actions?.find((a: any) => a.name === actionName));
         if (!action) return `${this.span(actionName, '#dcdcaa', asHtml)}();`;
 
         let code = '';

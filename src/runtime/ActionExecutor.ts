@@ -105,6 +105,9 @@ export class ActionExecutor {
             case 'navigate_stage':
                 this.handleNavigateStageAction(action, vars);
                 break;
+            case 'shake':
+                this.handleShakeAction(action, vars, contextObj);
+                break;
             default:
                 console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
         }
@@ -173,6 +176,8 @@ export class ActionExecutor {
 
     private handlePropertyAction(action: any, vars: Record<string, any>, contextObj?: any) {
         const isSyncActive = action.hostOnly === true;
+        const targetObj = this.resolveTarget(action.target, vars, contextObj);
+
         if (action.changes) {
             Object.keys(action.changes).forEach(prop => {
                 const rawValue = action.changes![prop];
@@ -199,7 +204,17 @@ export class ActionExecutor {
                     }
                 }
 
-                this.applyChange(action.target, prop, finalValue, vars, contextObj, isSyncActive);
+                if (targetObj) {
+                    this.applyChange(action.target, prop, finalValue, vars, contextObj, isSyncActive);
+                } else {
+                    // Fallback: If not an object, try to set as a variable
+                    const targetName = action.target;
+                    // Check if it looks like a variable name (simple string)
+                    if (targetName && typeof targetName === 'string') {
+                        console.log(`[ActionExecutor] Setting variable ${targetName} to`, finalValue);
+                        vars[targetName] = finalValue;
+                    }
+                }
             });
         }
     }
@@ -224,6 +239,26 @@ export class ActionExecutor {
                     }
 
                     this.applyChange(action.target, prop, newValue, vars, contextObj, isSyncActive);
+                } else {
+                    // Fallback: If not an object, try to increment/negate a variable
+                    const targetName = action.target;
+                    if (targetName && typeof targetName === 'string' && (prop === 'value' || prop === 'defaultValue')) {
+                        const currentValue = Number(vars[targetName]) || 0;
+                        let newValue: number;
+
+                        if (mode === 'increment') {
+                            const rawIncrementValue = action.changes![prop];
+                            const interpolatedValue = PropertyHelper.interpolate(String(rawIncrementValue), vars, this.objects);
+                            const incrementValue = Number(interpolatedValue) || 0;
+                            newValue = currentValue + incrementValue;
+                            console.log(`[ActionExecutor] Incrementing variable ${targetName} by ${incrementValue}: ${currentValue} -> ${newValue}`);
+                        } else { // mode === 'negate'
+                            newValue = currentValue * -1;
+                            console.log(`[ActionExecutor] Negating variable ${targetName}: ${currentValue} -> ${newValue}`);
+                        }
+
+                        vars[targetName] = newValue;
+                    }
                 }
             });
         }
@@ -660,6 +695,33 @@ export class ActionExecutor {
         }
     }
 
+    /**
+     * Handle shake action - shakes a target object.
+     * Action format:
+     * {
+     *   type: 'shake',
+     *   target: 'SpriteA',
+     *   intensity: 5,
+     *   duration: 500
+     * }
+     */
+    private handleShakeAction(action: any, vars: Record<string, any>, contextObj?: any) {
+        const target = this.resolveTarget(action.target, vars, contextObj);
+        if (!target) {
+            console.warn(`[ActionExecutor] shake: Target not found: ${action.target}`);
+            return;
+        }
+
+        const intensity = typeof action.intensity === 'string'
+            ? Number(PropertyHelper.interpolate(action.intensity, vars, this.objects))
+            : Number(action.intensity) || 5;
+        const duration = Number(action.duration) || 500;
+
+        console.log(`[ActionExecutor] Shaking ${target.name} (intensity: ${intensity}, duration: ${duration}ms)`);
+
+        AnimationManager.getInstance().shake(target, intensity, duration);
+    }
+
     private getDescriptiveName(action: any): string {
         switch (action.type) {
             case 'variable': return `Set ${action.variableName || 'var'}`;
@@ -675,6 +737,7 @@ export class ActionExecutor {
             case 'negate': return `Toggle ${action.variableName}`;
             case 'animate': return `Animate ${action.target}`;
             case 'navigate': return `To page ${action.pageId}`;
+            case 'shake': return `Shake ${action.target}`;
             default: return `Action: ${action.type || 'unknown'}`;
         }
     }

@@ -32,23 +32,23 @@
             "scope": "global"
         },
         {
-            "name": "activeRole",
+            "name": "Code1",
             "defaultValue": "",
             "scope": "global"
         },
         {
-            "name": "sessionList",
-            "defaultValue": [],
+            "name": "Code2",
+            "defaultValue": "",
             "scope": "global"
         },
         {
-            "name": "adminContext",
-            "defaultValue": null,
+            "name": "Code3",
+            "defaultValue": "",
             "scope": "global"
         },
         {
-            "name": "adminChildren",
-            "defaultValue": [],
+            "name": "Code4",
+            "defaultValue": "",
             "scope": "global"
         }
     ],
@@ -56,798 +56,411 @@
         {
             "id": "stage_login",
             "name": "Login",
-            "type": "splash",
-            "grid": {
-                "cols": 40,
-                "rows": 30,
-                "cellSize": 20,
-                "backgroundColor": "#0f172a"
-            },
-            "objects": [
-                {
-                    "className": "TLabel",
-                    "id": "label_title",
-                    "name": "Title",
-                    "x": 0,
-                    "y": 4,
-                    "text": "Willkommen bei GCS",
-                    "style": {
-                        "fontSize": 42,
-                        "fontWeight": "bold",
-                        "color": "#4fc3f7",
-                        "textAlign": "center",
-                        "width": "800px"
-                    }
-                },
-                {
-                    "className": "TLabel",
-                    "id": "label_pin_display",
-                    "name": "PINDisplay",
-                    "x": 0,
-                    "y": 11,
-                    "text": "${currentPIN || '???'}",
-                    "style": {
-                        "fontSize": 56,
-                        "letterSpacing": "20px",
-                        "color": "#ffffff",
-                        "textAlign": "center",
-                        "width": "800px"
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_emoji_1",
-                    "name": "Emoji1",
-                    "x": 9,
-                    "y": 18,
-                    "width": 3,
-                    "height": 3,
-                    "caption": "🚀",
-                    "Tasks": {
-                        "onClick": "AddEmoji1"
-                    },
-                    "style": {
-                        "borderRadius": 8,
-                        "backgroundColor": "#1d4ed8",
-                        "fontSize": 24
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_emoji_2",
-                    "name": "Emoji2",
-                    "x": 13,
-                    "y": 18,
-                    "width": 3,
-                    "height": 3,
-                    "caption": "⭐",
-                    "Tasks": {
-                        "onClick": "AddEmoji2"
-                    },
-                    "style": {
-                        "borderRadius": 8,
-                        "backgroundColor": "#1d4ed8",
-                        "fontSize": 24
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_emoji_3",
-                    "name": "Emoji3",
-                    "x": 17,
-                    "y": 18,
-                    "width": 3,
-                    "height": 3,
-                    "caption": "👑",
-                    "Tasks": {
-                        "onClick": "AddEmoji3"
-                    },
-                    "style": {
-                        "borderRadius": 8,
-                        "backgroundColor": "#1d4ed8",
-                        "fontSize": 24
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_emoji_4",
-                    "name": "Emoji4",
-                    "x": 21,
-                    "y": 18,
-                    "width": 3,
-                    "height": 3,
-                    "caption": "🏙️",
-                    "Tasks": {
-                        "onClick": "AddEmoji4"
-                    },
-                    "style": {
-                        "borderRadius": 8,
-                        "backgroundColor": "#1d4ed8",
-                        "fontSize": 24
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_emoji_5",
-                    "name": "Emoji5",
-                    "x": 25,
-                    "y": 18,
-                    "width": 3,
-                    "height": 3,
-                    "caption": "🔑",
-                    "Tasks": {
-                        "onClick": "AddEmoji5"
-                    },
-                    "style": {
-                        "borderRadius": 8,
-                        "backgroundColor": "#1d4ed8",
-                        "fontSize": 24
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_emoji_6",
-                    "name": "Emoji6",
-                    "x": 29,
-                    "y": 18,
-                    "width": 3,
-                    "height": 3,
-                    "caption": "🛡️",
-                    "Tasks": {
-                        "onClick": "AddEmoji6"
-                    },
-                    "style": {
-                        "borderRadius": 8,
-                        "backgroundColor": "#1d4ed8",
-                        "fontSize": 24
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_emoji_7",
-                    "name": "Emoji7",
-                    "x": 9,
-                    "y": 23,
-                    "width": 3,
-                    "height": 3,
-                    "caption": "🏠",
-                    "Tasks": {
-                        "onClick": "AddEmoji7"
-                    },
-                    "style": {
-                        "borderRadius": 8,
-                        "backgroundColor": "#1d4ed8",
-                        "fontSize": 24
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_emoji_8",
-                    "name": "Emoji8",
-                    "x": 13,
-                    "y": 23,
-                    "width": 3,
-                    "height": 3,
-                    "caption": "🦇",
-                    "Tasks": {
-                        "onClick": "AddEmoji8"
-                    },
-                    "style": {
-                        "borderRadius": 8,
-                        "backgroundColor": "#1d4ed8",
-                        "fontSize": 24
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_emoji_9",
-                    "name": "Emoji9",
-                    "x": 17,
-                    "y": 23,
-                    "width": 3,
-                    "height": 3,
-                    "caption": "🦄",
-                    "Tasks": {
-                        "onClick": "AddEmoji9"
-                    },
-                    "style": {
-                        "borderRadius": 8,
-                        "backgroundColor": "#1d4ed8",
-                        "fontSize": 24
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_emoji_reset",
-                    "name": "EmojiReset",
-                    "x": 21,
-                    "y": 23,
-                    "width": 3,
-                    "height": 3,
-                    "caption": "❌",
-                    "Tasks": {
-                        "onClick": "ResetPIN"
-                    },
-                    "style": {
-                        "backgroundColor": "#ef4444",
-                        "color": "white",
-                        "borderRadius": 8,
-                        "fontSize": 24
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_login",
-                    "name": "LoginButton",
-                    "x": 25,
-                    "y": 23,
-                    "width": 7,
-                    "height": 3,
-                    "caption": "Anmelden",
-                    "Tasks": {
-                        "onClick": "AttemptLogin"
-                    },
-                    "style": {
-                        "backgroundColor": "#10b981",
-                        "color": "white",
-                        "borderRadius": 8,
-                        "fontSize": 20,
-                        "fontWeight": "bold"
-                    }
-                }
-            ],
-            "tasks": [
-                {
-                    "name": "AddEmoji1",
-                    "actionSequence": [
-                        {
-                            "type": "calculate",
-                            "formula": "currentPIN + '🚀'",
-                            "resultVariable": "currentPIN"
-                        }
-                    ]
-                },
-                {
-                    "name": "AddEmoji2",
-                    "actionSequence": [
-                        {
-                            "type": "calculate",
-                            "formula": "currentPIN + '⭐'",
-                            "resultVariable": "currentPIN"
-                        }
-                    ]
-                },
-                {
-                    "name": "AddEmoji3",
-                    "actionSequence": [
-                        {
-                            "type": "calculate",
-                            "formula": "currentPIN + '👑'",
-                            "resultVariable": "currentPIN"
-                        }
-                    ]
-                },
-                {
-                    "name": "AddEmoji4",
-                    "actionSequence": [
-                        {
-                            "type": "calculate",
-                            "formula": "currentPIN + '🏙️'",
-                            "resultVariable": "currentPIN"
-                        }
-                    ]
-                },
-                {
-                    "name": "AddEmoji5",
-                    "actionSequence": [
-                        {
-                            "type": "calculate",
-                            "formula": "currentPIN + '🔑'",
-                            "resultVariable": "currentPIN"
-                        }
-                    ]
-                },
-                {
-                    "name": "AddEmoji6",
-                    "actionSequence": [
-                        {
-                            "type": "calculate",
-                            "formula": "currentPIN + '🛡️'",
-                            "resultVariable": "currentPIN"
-                        }
-                    ]
-                },
-                {
-                    "name": "AddEmoji7",
-                    "actionSequence": [
-                        {
-                            "type": "calculate",
-                            "formula": "currentPIN + '🏠'",
-                            "resultVariable": "currentPIN"
-                        }
-                    ]
-                },
-                {
-                    "name": "AddEmoji8",
-                    "actionSequence": [
-                        {
-                            "type": "calculate",
-                            "formula": "currentPIN + '🦇'",
-                            "resultVariable": "currentPIN"
-                        }
-                    ]
-                },
-                {
-                    "name": "AddEmoji9",
-                    "actionSequence": [
-                        {
-                            "type": "calculate",
-                            "formula": "currentPIN + '🦄'",
-                            "resultVariable": "currentPIN"
-                        }
-                    ]
-                },
-                {
-                    "name": "ResetPIN",
-                    "actionSequence": [
-                        {
-                            "type": "calculate",
-                            "formula": "''",
-                            "resultVariable": "currentPIN"
-                        }
-                    ]
-                },
-                {
-                    "name": "AttemptLogin",
-                    "actionSequence": [
-                        {
-                            "type": "http",
-                            "url": "/api/platform/login",
-                            "method": "POST",
-                            "body": {
-                                "authCode": "${currentPIN}"
-                            },
-                            "resultVariable": "loginResult"
-                        },
-                        {
-                            "type": "calculate",
-                            "formula": "loginResult.user.avatar",
-                            "resultVariable": "currentUserAvatar",
-                            "visible": "${loginResult && loginResult.success}"
-                        },
-                        {
-                            "type": "navigate_stage",
-                            "stageId": "stage_role_selection",
-                            "visible": "${loginResult && loginResult.success && loginResult.user.role !== 'player'}"
-                        },
-                        {
-                            "type": "navigate_stage",
-                            "stageId": "stage_lobby",
-                            "visible": "${loginResult && loginResult.success && loginResult.user.role === 'player'}"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "id": "stage_role_selection",
-            "name": "Rollenwahl",
             "type": "standard",
             "grid": {
-                "cols": 40,
-                "rows": 30,
+                "cols": 60,
+                "rows": 40,
                 "cellSize": 20,
-                "backgroundColor": "#0f172a"
+                "backgroundColor": "#1a1a2e"
             },
             "objects": [
                 {
+                    "id": "title",
+                    "name": "Title",
                     "className": "TLabel",
-                    "id": "role_title",
-                    "name": "RoleTitle",
-                    "x": 5,
-                    "y": 5,
-                    "text": "Wie möchtest du beitreten?",
+                    "x": 0,
+                    "y": 4,
+                    "width": 60,
+                    "height": 2,
+                    "text": "Emoji Login",
                     "style": {
-                        "fontSize": 24,
-                        "color": "#4fc3f7",
+                        "color": "#e94560",
+                        "fontSize": 32,
                         "textAlign": "center",
-                        "width": "600px"
+                        "fontWeight": "bold"
                     }
                 },
                 {
-                    "className": "TButton",
-                    "id": "btn_role_superadmin",
-                    "name": "RoleSuperButton",
-                    "x": 10,
-                    "y": 8,
-                    "width": 20,
-                    "height": 3,
-                    "caption": "👑 Superadmin",
-                    "visible": "${loginResult.user.availableRoles.includes('superadmin')}",
-                    "Tasks": {
-                        "onClick": "SelectSuperRole"
-                    },
+                    "id": "instr",
+                    "name": "Instructions",
+                    "className": "TLabel",
+                    "x": 0,
+                    "y": 7,
+                    "width": 60,
+                    "height": 1,
+                    "text": "Ziehe 4 Emojis in die Felder unten",
                     "style": {
-                        "backgroundColor": "#7c3aed",
-                        "color": "white"
+                        "color": "#95a5a6",
+                        "fontSize": 16,
+                        "textAlign": "center"
                     }
                 },
                 {
-                    "className": "TButton",
-                    "id": "btn_role_cityadmin",
-                    "name": "RoleCityButton",
+                    "id": "src_1",
+                    "name": "Emoji_Apple",
+                    "className": "TShape",
                     "x": 10,
                     "y": 12,
-                    "width": 20,
-                    "height": 3,
-                    "caption": "🏙️ Stadt-Admin",
-                    "visible": "${loginResult.user.availableRoles.includes('cityadmin')}",
-                    "Tasks": {
-                        "onClick": "SelectCityRole"
-                    },
-                    "style": {
-                        "backgroundColor": "#3b82f6",
-                        "color": "white"
-                    }
+                    "width": 5,
+                    "height": 5,
+                    "shapeType": "circle",
+                    "fillColor": "#2d3436",
+                    "strokeColor": "#e94560",
+                    "strokeWidth": 2,
+                    "draggable": true,
+                    "dragMode": "copy",
+                    "text": "🍎"
                 },
                 {
-                    "className": "TButton",
-                    "id": "btn_role_houseadmin",
-                    "name": "RoleHouseButton",
-                    "x": 10,
-                    "y": 16,
-                    "width": 20,
-                    "height": 3,
-                    "caption": "🏠 Haus-Admin",
-                    "visible": "${loginResult.user.availableRoles.includes('houseadmin')}",
-                    "Tasks": {
-                        "onClick": "SelectHouseRole"
-                    },
-                    "style": {
-                        "backgroundColor": "#10b981",
-                        "color": "white"
-                    }
+                    "id": "src_2",
+                    "name": "Emoji_Banana",
+                    "className": "TShape",
+                    "x": 20,
+                    "y": 12,
+                    "width": 5,
+                    "height": 5,
+                    "shapeType": "circle",
+                    "fillColor": "#2d3436",
+                    "strokeColor": "#e94560",
+                    "strokeWidth": 2,
+                    "draggable": true,
+                    "dragMode": "copy",
+                    "text": "🍌"
                 },
                 {
-                    "className": "TButton",
-                    "id": "btn_role_player",
-                    "name": "RolePlayerButton",
+                    "id": "src_3",
+                    "name": "Emoji_Cherry",
+                    "className": "TShape",
+                    "x": 30,
+                    "y": 12,
+                    "width": 5,
+                    "height": 5,
+                    "shapeType": "circle",
+                    "fillColor": "#2d3436",
+                    "strokeColor": "#e94560",
+                    "strokeWidth": 2,
+                    "draggable": true,
+                    "dragMode": "copy",
+                    "text": "🍒"
+                },
+                {
+                    "id": "src_4",
+                    "name": "Emoji_Grape",
+                    "className": "TShape",
+                    "x": 40,
+                    "y": 12,
+                    "width": 5,
+                    "height": 5,
+                    "shapeType": "circle",
+                    "fillColor": "#2d3436",
+                    "strokeColor": "#e94560",
+                    "strokeWidth": 2,
+                    "draggable": true,
+                    "dragMode": "copy",
+                    "text": "🍇"
+                },
+                {
+                    "id": "src_5",
+                    "name": "Emoji_Watermelon",
+                    "className": "TShape",
                     "x": 10,
                     "y": 20,
-                    "width": 20,
-                    "height": 3,
-                    "caption": "🎮 Spieler",
-                    "visible": "${loginResult.user.availableRoles.includes('player')}",
+                    "width": 5,
+                    "height": 5,
+                    "shapeType": "circle",
+                    "fillColor": "#2d3436",
+                    "strokeColor": "#e94560",
+                    "strokeWidth": 2,
+                    "draggable": true,
+                    "dragMode": "copy",
+                    "text": "🍉"
+                },
+                {
+                    "id": "src_6",
+                    "name": "Emoji_Strawberry",
+                    "className": "TShape",
+                    "x": 20,
+                    "y": 20,
+                    "width": 5,
+                    "height": 5,
+                    "shapeType": "circle",
+                    "fillColor": "#2d3436",
+                    "strokeColor": "#e94560",
+                    "strokeWidth": 2,
+                    "draggable": true,
+                    "dragMode": "copy",
+                    "text": "🍓"
+                },
+                {
+                    "id": "src_7",
+                    "name": "Emoji_Pineapple",
+                    "className": "TShape",
+                    "x": 30,
+                    "y": 20,
+                    "width": 5,
+                    "height": 5,
+                    "shapeType": "circle",
+                    "fillColor": "#2d3436",
+                    "strokeColor": "#e94560",
+                    "strokeWidth": 2,
+                    "draggable": true,
+                    "dragMode": "copy",
+                    "text": "🍍"
+                },
+                {
+                    "id": "src_8",
+                    "name": "Emoji_Kiwi",
+                    "className": "TShape",
+                    "x": 40,
+                    "y": 20,
+                    "width": 5,
+                    "height": 5,
+                    "shapeType": "circle",
+                    "fillColor": "#2d3436",
+                    "strokeColor": "#e94560",
+                    "strokeWidth": 2,
+                    "draggable": true,
+                    "dragMode": "copy",
+                    "text": "🥝"
+                },
+                {
+                    "id": "slot_1",
+                    "name": "Slot1",
+                    "className": "TShape",
+                    "x": 17,
+                    "y": 30,
+                    "width": 6,
+                    "height": 6,
+                    "shapeType": "circle",
+                    "fillColor": "#16213e",
+                    "strokeColor": "#4fc3f7",
+                    "strokeWidth": 2,
+                    "droppable": true,
                     "Tasks": {
-                        "onClick": "SelectPlayerRole"
-                    },
-                    "style": {
-                        "backgroundColor": "#475569",
-                        "color": "white"
+                        "onDrop": "HandleDrop1"
+                    }
+                },
+                {
+                    "id": "slot_2",
+                    "name": "Slot2",
+                    "className": "TShape",
+                    "x": 25,
+                    "y": 30,
+                    "width": 6,
+                    "height": 6,
+                    "shapeType": "circle",
+                    "fillColor": "#16213e",
+                    "strokeColor": "#4fc3f7",
+                    "strokeWidth": 2,
+                    "droppable": true,
+                    "Tasks": {
+                        "onDrop": "HandleDrop2"
+                    }
+                },
+                {
+                    "id": "slot_3",
+                    "name": "Slot3",
+                    "className": "TShape",
+                    "x": 33,
+                    "y": 30,
+                    "width": 6,
+                    "height": 6,
+                    "shapeType": "circle",
+                    "fillColor": "#16213e",
+                    "strokeColor": "#4fc3f7",
+                    "strokeWidth": 2,
+                    "droppable": true,
+                    "Tasks": {
+                        "onDrop": "HandleDrop3"
+                    }
+                },
+                {
+                    "id": "slot_4",
+                    "name": "Slot4",
+                    "className": "TShape",
+                    "x": 41,
+                    "y": 30,
+                    "width": 6,
+                    "height": 6,
+                    "shapeType": "circle",
+                    "fillColor": "#16213e",
+                    "strokeColor": "#4fc3f7",
+                    "strokeWidth": 2,
+                    "droppable": true,
+                    "Tasks": {
+                        "onDrop": "HandleDrop4"
                     }
                 }
             ],
             "tasks": [
                 {
-                    "name": "SelectSuperRole",
+                    "name": "HandleDrop1",
                     "actionSequence": [
                         {
                             "type": "calculate",
-                            "formula": "'superadmin'",
-                            "resultVariable": "activeRole"
+                            "formula": "$eventSource.text",
+                            "resultVariable": "Code1"
                         },
                         {
-                            "type": "http",
-                            "url": "/api/platform/context/${loginResult.user.id}",
-                            "method": "GET",
-                            "resultVariable": "adminContext"
-                        },
-                        {
-                            "type": "navigate_stage",
-                            "stageId": "stage_admin_dashboard"
+                            "type": "property",
+                            "target": "Slot1",
+                            "changes": {
+                                "fillColor": "#2ecc71"
+                            }
                         }
                     ]
                 },
                 {
-                    "name": "SelectCityRole",
+                    "name": "HandleDrop2",
                     "actionSequence": [
                         {
                             "type": "calculate",
-                            "formula": "'cityadmin'",
-                            "resultVariable": "activeRole"
+                            "formula": "$eventSource.text",
+                            "resultVariable": "Code2"
                         },
                         {
-                            "type": "http",
-                            "url": "/api/platform/context/${loginResult.user.id}",
-                            "method": "GET",
-                            "resultVariable": "adminContext"
-                        },
-                        {
-                            "type": "navigate_stage",
-                            "stageId": "stage_admin_dashboard"
+                            "type": "property",
+                            "target": "Slot2",
+                            "changes": {
+                                "fillColor": "#2ecc71"
+                            }
                         }
                     ]
                 },
                 {
-                    "name": "SelectHouseRole",
+                    "name": "HandleDrop3",
                     "actionSequence": [
                         {
                             "type": "calculate",
-                            "formula": "'houseadmin'",
-                            "resultVariable": "activeRole"
+                            "formula": "$eventSource.text",
+                            "resultVariable": "Code3"
                         },
                         {
-                            "type": "http",
-                            "url": "/api/platform/context/${loginResult.user.id}",
-                            "method": "GET",
-                            "resultVariable": "adminContext"
-                        },
-                        {
-                            "type": "navigate_stage",
-                            "stageId": "stage_admin_dashboard"
+                            "type": "property",
+                            "target": "Slot3",
+                            "changes": {
+                                "fillColor": "#2ecc71"
+                            }
                         }
                     ]
                 },
                 {
-                    "name": "SelectPlayerRole",
+                    "name": "HandleDrop4",
                     "actionSequence": [
                         {
                             "type": "calculate",
-                            "formula": "'player'",
-                            "resultVariable": "activeRole"
+                            "formula": "$eventSource.text",
+                            "resultVariable": "Code4"
+                        },
+                        {
+                            "type": "property",
+                            "target": "Slot4",
+                            "changes": {
+                                "fillColor": "#2ecc71"
+                            }
+                        },
+                        {
+                            "type": "task",
+                            "name": "ValidateCode"
+                        }
+                    ]
+                },
+                {
+                    "name": "ValidateCode",
+                    "actionSequence": [
+                        {
+                            "type": "condition",
+                            "formula": "Code1 == '🍉' && Code2 == '🍓' && Code3 == '🍎' && Code4 == '🍍'",
+                            "thenTask": "LoginSuccess",
+                            "elseTask": "LoginFailure"
+                        }
+                    ]
+                },
+                {
+                    "name": "LoginSuccess",
+                    "actionSequence": [
+                        {
+                            "type": "log",
+                            "message": "Login erfolgreich!",
+                            "showToast": true
                         },
                         {
                             "type": "navigate_stage",
                             "stageId": "stage_lobby"
                         }
                     ]
-                }
-            ]
-        },
-        {
-            "id": "stage_lobby",
-            "name": "Lobby",
-            "type": "main",
-            "grid": {
-                "cols": 40,
-                "rows": 30,
-                "cellSize": 20,
-                "backgroundColor": "#0f172a"
-            },
-            "objects": [
-                {
-                    "className": "TLabel",
-                    "id": "lobby_title",
-                    "name": "LobbyTitle",
-                    "x": 2,
-                    "y": 2,
-                    "text": "Willkommen, ${currentUserName}!",
-                    "style": {
-                        "fontSize": 24,
-                        "color": "#4fc3f7"
-                    }
                 },
                 {
-                    "className": "TLabel",
-                    "id": "lobby_subtitle",
-                    "name": "LobbySub",
-                    "x": 2,
-                    "y": 4,
-                    "text": "Aktive Spiele in deiner Nähe:",
-                    "style": {
-                        "fontSize": 14,
-                        "color": "#94a3b8"
-                    }
-                },
-                {
-                    "className": "TGameCard",
-                    "id": "card_1",
-                    "name": "Card1",
-                    "x": 2,
-                    "y": 7,
-                    "width": 10,
-                    "height": 6,
-                    "visible": "${sessionList[0] != null}",
-                    "gameName": "${sessionList[0].gameName}",
-                    "hostName": "${sessionList[0].hostName}",
-                    "hostAvatar": "${sessionList[0].hostAvatar}",
-                    "roomCode": "${sessionList[0].code}"
-                },
-                {
-                    "className": "TGameCard",
-                    "id": "card_2",
-                    "name": "Card2",
-                    "x": 14,
-                    "y": 7,
-                    "width": 10,
-                    "height": 6,
-                    "visible": "${sessionList[1] != null}",
-                    "gameName": "${sessionList[1].gameName}",
-                    "hostName": "${sessionList[1].hostName}",
-                    "hostAvatar": "${sessionList[1].hostAvatar}",
-                    "roomCode": "${sessionList[1].code}"
-                },
-                {
-                    "className": "TGameCard",
-                    "id": "card_3",
-                    "name": "Card3",
-                    "x": 26,
-                    "y": 7,
-                    "width": 10,
-                    "height": 6,
-                    "visible": "${sessionList[2] != null}",
-                    "gameName": "${sessionList[2].gameName}",
-                    "hostName": "${sessionList[2].hostName}",
-                    "hostAvatar": "${sessionList[2].hostAvatar}",
-                    "roomCode": "${sessionList[2].code}"
-                },
-                {
-                    "className": "TTimer",
-                    "id": "lobby_refresh",
-                    "name": "RefreshTimer",
-                    "x": 0,
-                    "y": 0,
-                    "interval": 5000,
-                    "enabled": true,
-                    "Tasks": {
-                        "onTimeout": "RefreshSessions"
-                    }
-                }
-            ],
-            "tasks": [
-                {
-                    "name": "RefreshSessions",
+                    "name": "LoginFailure",
                     "actionSequence": [
                         {
-                            "type": "http",
-                            "url": "/rooms/active",
-                            "method": "GET",
-                            "resultVariable": "sessionList"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "id": "stage_admin_dashboard",
-            "name": "Admin Zentrale",
-            "type": "standard",
-            "grid": {
-                "cols": 40,
-                "rows": 30,
-                "cellSize": 20,
-                "backgroundColor": "#1e293b"
-            },
-            "objects": [
-                {
-                    "className": "TLabel",
-                    "id": "admin_header",
-                    "name": "AdminHeader",
-                    "x": 2,
-                    "y": 2,
-                    "text": "🛡️ ADMIN-DASHBOARD",
-                    "style": {
-                        "fontSize": 24,
-                        "color": "#38bdf8",
-                        "fontWeight": "bold"
-                    }
-                },
-                {
-                    "className": "TLabel",
-                    "id": "admin_context_label",
-                    "name": "ContextLabel",
-                    "x": 2,
-                    "y": 5,
-                    "text": "Angemeldet als: ${currentUserName}",
-                    "style": {
-                        "fontSize": 18,
-                        "color": "#ffffff"
-                    }
-                },
-                {
-                    "className": "TLabel",
-                    "id": "admin_child_title",
-                    "name": "ChildTitle",
-                    "x": 2,
-                    "y": 8,
-                    "text": "Ihre Verwaltungsobjekte:",
-                    "style": {
-                        "fontSize": 14,
-                        "color": "#94a3b8"
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "id": "admin_child_1",
-                    "name": "AdminChild1",
-                    "x": 2,
-                    "y": 10,
-                    "width": 10,
-                    "height": 3,
-                    "caption": "${adminChildren[0].name}",
-                    "visible": "${adminChildren[0] != null}"
-                },
-                {
-                    "className": "TButton",
-                    "id": "admin_child_2",
-                    "name": "AdminChild2",
-                    "x": 13,
-                    "y": 10,
-                    "width": 10,
-                    "height": 3,
-                    "caption": "${adminChildren[1].name}",
-                    "visible": "${adminChildren[1] != null}"
-                },
-                {
-                    "className": "TButton",
-                    "id": "admin_child_3",
-                    "name": "AdminChild3",
-                    "x": 24,
-                    "y": 10,
-                    "width": 10,
-                    "height": 3,
-                    "caption": "${adminChildren[2].name}",
-                    "visible": "${adminChildren[2] != null}"
-                },
-                {
-                    "className": "TButton",
-                    "id": "btn_admin_back",
-                    "name": "AdminBack",
-                    "x": 30,
-                    "y": 2,
-                    "width": 8,
-                    "height": 2,
-                    "caption": "Abmelden",
-                    "Tasks": {
-                        "onClick": "BackToLogin"
-                    },
-                    "style": {
-                        "backgroundColor": "#ef4444",
-                        "color": "white"
-                    }
-                },
-                {
-                    "className": "TTimer",
-                    "id": "admin_loader",
-                    "name": "AdminLoader",
-                    "x": 0,
-                    "y": 0,
-                    "interval": 100,
-                    "enabled": true,
-                    "repeatCount": 1,
-                    "Tasks": {
-                        "onTimeout": "LoadAdminData"
-                    }
-                }
-            ],
-            "tasks": [
-                {
-                    "name": "LoadAdminData",
-                    "actionSequence": [
+                            "type": "log",
+                            "message": "Falscher Code!",
+                            "showToast": true
+                        },
                         {
-                            "type": "calculate",
-                            "formula": "activeRole === 'superadmin' ? 'cities' : (activeRole === 'cityadmin' ? 'houses' : 'rooms')",
-                            "resultVariable": "childType"
+                            "type": "shake",
+                            "target": "Slot1"
+                        },
+                        {
+                            "type": "shake",
+                            "target": "Slot2"
+                        },
+                        {
+                            "type": "shake",
+                            "target": "Slot3"
+                        },
+                        {
+                            "type": "shake",
+                            "target": "Slot4"
+                        },
+                        {
+                            "type": "property",
+                            "target": "Slot1",
+                            "changes": {
+                                "fillColor": "#16213e"
+                            }
+                        },
+                        {
+                            "type": "property",
+                            "target": "Slot2",
+                            "changes": {
+                                "fillColor": "#16213e"
+                            }
+                        },
+                        {
+                            "type": "property",
+                            "target": "Slot3",
+                            "changes": {
+                                "fillColor": "#16213e"
+                            }
+                        },
+                        {
+                            "type": "property",
+                            "target": "Slot4",
+                            "changes": {
+                                "fillColor": "#16213e"
+                            }
                         },
                         {
                             "type": "calculate",
-                            "formula": "activeRole === 'superadmin' ? 'global' : (activeRole === 'cityadmin' ? adminContext.city.id : adminContext.house.id)",
-                            "resultVariable": "parentId"
+                            "formula": "''",
+                            "resultVariable": "Code1"
                         },
                         {
-                            "type": "http",
-                            "url": "/api/platform/children?type=${childType}&parentId=${parentId}",
-                            "method": "GET",
-                            "resultVariable": "adminChildren"
-                        }
-                    ]
-                },
-                {
-                    "name": "BackToLogin",
-                    "actionSequence": [
+                            "type": "calculate",
+                            "formula": "''",
+                            "resultVariable": "Code2"
+                        },
                         {
-                            "type": "navigate_stage",
-                            "stageId": "stage_login"
+                            "type": "calculate",
+                            "formula": "''",
+                            "resultVariable": "Code3"
+                        },
+                        {
+                            "type": "calculate",
+                            "formula": "''",
+                            "resultVariable": "Code4"
                         }
                     ]
                 }

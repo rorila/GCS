@@ -272,9 +272,11 @@ export class JSONDialogRenderer {
                     el.innerText = this.evaluateExpression(obj.text || '');
                     break;
 
-                case 'TEdit': {
-                    const input = document.createElement('input');
-                    input.type = 'text';
+                case 'TEdit':
+                case 'TMemo': {
+                    const isMemo = className === 'TMemo';
+                    const input = document.createElement(isMemo ? 'textarea' : 'input');
+                    if (!isMemo) (input as HTMLInputElement).type = 'text';
 
                     // Prioritize current form value during session, then static text
                     const currentVal = this.dialogData._formValues?.[obj.name];
@@ -290,6 +292,7 @@ export class JSONDialogRenderer {
                     border: 1px solid #555;
                     border-radius: 3px;
                     box-sizing: border-box;
+                    min-height: ${isMemo ? (obj.rowSpan ? obj.rowSpan * 24 : 60) : 'auto'}px;
                 `;
 
                     // Real-time sync to model (does not re-render)
@@ -729,7 +732,16 @@ export class JSONDialogRenderer {
                     const idx = typeof actionData.index === 'string' ? parseInt(actionData.index, 10) : actionData.index;
                     if (!isNaN(idx)) {
                         const arr = this.dialogData[actionData.arrayField] || [];
-                        arr[idx] = this.getInputValue(actionData.input);
+                        const val = this.getInputValue(actionData.input);
+
+                        if (actionData.property && typeof arr[idx] === 'object' && arr[idx] !== null) {
+                            // Update property of object in array
+                            arr[idx][actionData.property] = val;
+                        } else {
+                            // Update entire item
+                            arr[idx] = val;
+                        }
+
                         this.dialogData[actionData.arrayField] = arr;
                         this.render();
                     }
@@ -961,33 +973,6 @@ export class JSONDialogRenderer {
         }
     }
 
-    private handleSelectTarget() {
-        const selectedValue = this.getInputValue('TargetObjectSelect');
-        console.log('[JSONDialogRenderer] handleSelectTarget:', selectedValue);
-
-        if (selectedValue === '📦 Neue Funktionsvariable...') {
-            // Prompt for variable name
-            const varName = prompt('Name der Funktionsvariable (z.B. targetObj):');
-            if (varName && varName.trim()) {
-                const cleanName = varName.trim().replace(/\s+/g, '');
-                this.dialogData.target = `\${${cleanName}}`;
-                console.log('[JSONDialogRenderer] Created function variable target:', this.dialogData.target);
-            } else {
-                // User cancelled - reset to first object or empty
-                this.dialogData.target = projectRegistry.getObjects()[0]?.name || '';
-            }
-            this.render();
-        } else if (selectedValue?.startsWith('📦 ${')) {
-            // Extract the ${varName} from "📦 ${varName}"
-            const match = selectedValue.match(/📦 (\$\{[^}]+\})/);
-            if (match) {
-                this.dialogData.target = match[1];
-                console.log('[JSONDialogRenderer] Selected existing function variable:', this.dialogData.target);
-            }
-        }
-        // For regular objects, dialogData.target is already updated by updateModelValue
-    }
-
     private collectFormData() {
         const namedElements = this.dialogWindow.querySelectorAll('[data-name]');
         namedElements.forEach(el => {
@@ -1005,6 +990,9 @@ export class JSONDialogRenderer {
 
         // Strip internal form values before returning to keep project clean
         delete this.dialogData._formValues;
+
+        // Cleanup simplified UI helper properties if they exist
+        delete this.dialogData.IncrementVariableInput;
     }
 
     private getInputValue(name: string): string | undefined {
@@ -1074,14 +1062,21 @@ export class JSONDialogRenderer {
 
         if (name === 'ActionTypeSelect') {
             const types: Record<string, string> = {
-                '🔧 Eigenschaft setzen': 'property',
+                '📝 Property Change (Set)': 'property',
+                '🔧 Eigenschaft setzen': 'property', // Legacy fallback
                 '📞 Call Method': 'call_method',
-                '🏗️ Task aufrufen': 'task',
-                '➕ Wert erhöhen': 'increment',
+                'Plus Increment (Add)': 'increment', // Fallback
+                '➕ Increment (Add)': 'increment',
+                '➕ Wert erhöhen': 'increment', // Legacy
                 '➖ Wert verringern': 'decrement',
-                '🔄 Wert invertieren': 'negate',
-                '📱 Variable setzen': 'variable',
-                '🧮 Berechnen': 'calculate'
+                '↔️ Negate (Invert)': 'negate',
+                '🔄 Wert invertieren': 'negate', // Legacy
+                '📦 Read Variable': 'variable',
+                '📱 Variable setzen': 'variable', // Legacy
+                '💾 Set Variable (Assign)': 'set_variable', // New Set Variable
+                '☁️ Service Call (RPC)': 'service',
+                '🧮 Calculate': 'calculate',
+                '🧮 Berechnen': 'calculate' // Legacy
             };
             const newType = types[value] || 'property';
             if (this.dialogData.type !== newType) {
@@ -1097,12 +1092,24 @@ export class JSONDialogRenderer {
             this.render();
         }
 
+        // Special handler for simplified variable increment
+        if (name === 'IncrementVariableInput') {
+            this.dialogData.changes = this.dialogData.changes || {};
+            this.dialogData.changes['value'] = value !== '' ? Number(value) : 0;
+        }
+
         if (name === 'CallMethodMethodSelect' || name === 'CallMethodMethodInput') {
             this.dialogData.method = value;
             this.render();
         }
 
-        if (name === 'VariableNameInput') this.dialogData.variableName = value;
+        if (name === 'VariableNameInput') {
+            if (this.dialogData.type === 'set_variable') {
+                this.dialogData.variable = value;
+            } else {
+                this.dialogData.variableName = value;
+            }
+        }
 
         if (name === 'SourceObjectSelect') {
             this.dialogData.source = value;
@@ -1115,22 +1122,55 @@ export class JSONDialogRenderer {
         if (name === 'CalcResultVariable') this.dialogData.resultVariable = value;
         if (name === 'CalcFormulaInput') this.dialogData.formula = value;
 
+        if (name === 'DescriptionInput') this.dialogData.description = value;
+        if (name === 'SetValueInput') this.dialogData.value = value;
+        if (name === 'ServiceSelect') this.dialogData.serviceName = value;
+        if (name === 'MethodSelect') this.dialogData.serviceMethod = value;
+
         if (name === 'CallMethodParamsInput') {
             // Store as array (legacy support)
             this.dialogData.params = value ? [value] : [];
         }
     }
 
+    private handleSelectTarget() {
+        const selectedValue = this.getInputValue('TargetObjectSelect');
+        console.log('[JSONDialogRenderer] handleSelectTarget:', selectedValue);
+
+        if (selectedValue === '📦 Neue Funktionsvariable...') {
+            // Prompt for variable name
+            const varName = prompt('Name der Funktionsvariable (z.B. targetObj):');
+            if (varName && varName.trim()) {
+                const cleanName = varName.trim().replace(/\s+/g, '');
+                this.dialogData.target = `\${${cleanName}}`;
+                console.log('[JSONDialogRenderer] Created function variable target:', this.dialogData.target);
+            } else {
+                // User cancelled - reset to first object or empty
+                this.dialogData.target = projectRegistry.getObjects()[0]?.name || '';
+            }
+            this.render();
+        } else if (selectedValue?.startsWith('📦 ${')) {
+            // Extract the ${varName} from "📦 ${varName}"
+            const match = selectedValue.match(/📦 (\$\{[^}]+\})/);
+            if (match) {
+                this.dialogData.target = match[1];
+                console.log('[JSONDialogRenderer] Selected existing function variable:', this.dialogData.target);
+            }
+        }
+        // For regular objects, dialogData.target is already updated by updateModelValue
+    }
+
     private stringifyCalcSteps(steps: any[]): string {
+        if (!steps || !Array.isArray(steps)) return "";
         let formula = "";
         steps.forEach((step, index) => {
             if (index > 0 && step.operator) {
                 formula += ` ${step.operator} `;
             }
             if (step.operandType === 'variable') {
-                formula += step.variable;
+                formula += step.variable || "0";
             } else {
-                formula += step.constant;
+                formula += step.constant !== undefined ? step.constant : "0";
             }
         });
         return formula;
@@ -1148,6 +1188,12 @@ export class JSONDialogRenderer {
     }
 
     private getPropertiesForObject(objectName: string): string[] {
+        // Check if it's a variable first
+        const variable = this.project?.variables.find(v => v.name === objectName);
+        if (variable) {
+            return ["value"];
+        }
+
         const objects = projectRegistry.getObjects();
         const objData = objects.find(o => o.name === objectName);
         if (!objData) return ["x", "y", "width", "height", "caption", "text", "style.visible"];

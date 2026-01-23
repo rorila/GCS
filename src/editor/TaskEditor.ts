@@ -3,6 +3,7 @@ import { ActionEditor } from './ActionEditor';
 import { FlowDiagramGenerator } from './FlowDiagramGenerator';
 import mermaid from 'mermaid';
 import { PascalGenerator } from './PascalGenerator';
+import { projectRegistry } from '../services/ProjectRegistry';
 
 type TaskEditorViewMode = 'list' | 'flow' | 'code';
 
@@ -534,10 +535,12 @@ export class TaskEditor {
         defOpt.innerText = '-- Choose Action --';
         actionSelect.appendChild(defOpt);
 
-        this.project.actions.forEach(a => {
+        const actions = projectRegistry.getActions();
+        actions.forEach(a => {
             const opt = document.createElement('option');
             opt.value = a.name;
-            opt.innerText = `⚡ ${a.name}`;
+            const scopeEmoji = a.uiScope === 'global' ? '🌎' : '🎭';
+            opt.innerText = `${scopeEmoji} ${a.name}`;
             actionSelect.appendChild(opt);
         });
 
@@ -607,10 +610,15 @@ export class TaskEditor {
         defTaskOpt.innerText = '-- Choose Task --';
         taskSelect.appendChild(defTaskOpt);
 
-        this.project.tasks.filter(t => t.name !== this.taskName).forEach(t => {
+        const tasks = projectRegistry.getTasks();
+        tasks.filter(t => t.name !== this.taskName).forEach(t => {
             const opt = document.createElement('option');
             opt.value = t.name;
-            opt.innerText = `🔗 ${t.name}`;
+            let scopeEmoji = '🎭';
+            if (t.uiScope === 'global') scopeEmoji = '🌎';
+            else if (t.uiScope === 'library') scopeEmoji = '📚';
+
+            opt.innerText = `${scopeEmoji} ${t.name}`;
             taskSelect.appendChild(opt);
         });
 

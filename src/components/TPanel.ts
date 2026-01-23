@@ -71,7 +71,9 @@ export class TPanel extends TWindow {
                 borderColor: this.style.borderColor,
                 borderWidth: this.style.borderWidth,
                 backgroundColor: this.style.backgroundColor
-            }
+            },
+            // Serialize children explicitly
+            children: this.children.map(child => child.toJSON())
         };
     }
 }

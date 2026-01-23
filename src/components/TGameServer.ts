@@ -18,7 +18,7 @@ import { network } from '../multiplayer';
  */
 export class TGameServer extends TWindow {
     // Connection settings
-    public serverUrl: string = 'ws://localhost:3000';
+    public serverUrl: string = 'ws://localhost:8080';
     public autoConnect: boolean = false;
 
     // Runtime state (not persisted)

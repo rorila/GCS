@@ -16,6 +16,11 @@ export abstract class TComponent {
     public children: TComponent[] = [];
     public Tasks?: Record<string, string>; // EventName -> TaskName
 
+    // Drag & Drop Properties
+    public draggable: boolean = false;
+    public dragMode: 'move' | 'copy' = 'move';
+    public droppable: boolean = false;
+
     constructor(name: string) {
         this.id = `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         this.name = name;
@@ -26,7 +31,10 @@ export abstract class TComponent {
     public getInspectorProperties(): TPropertyDef[] {
         return [
             { name: 'name', label: 'Name', type: 'string', group: 'Identity' },
-            { name: 'id', label: 'ID', type: 'string', group: 'Identity', readonly: true }
+            { name: 'id', label: 'ID', type: 'string', group: 'Identity', readonly: true },
+            { name: 'draggable', label: 'Draggable', type: 'boolean', group: 'Interaction' },
+            { name: 'dragMode', label: 'Drag Mode', type: 'select', group: 'Interaction', options: ['move', 'copy'] },
+            { name: 'droppable', label: 'Droppable', type: 'boolean', group: 'Interaction' }
         ];
     }
 
@@ -35,7 +43,10 @@ export abstract class TComponent {
             className: this.constructor.name,
             id: this.id,
             name: this.name,
-            Tasks: this.Tasks
+            Tasks: this.Tasks,
+            draggable: this.draggable,
+            dragMode: this.dragMode,
+            droppable: this.droppable
         };
     }
 

@@ -6,9 +6,9 @@ export default defineConfig({
         port: 5173,
         open: true, // Auto-open browser
         proxy: {
-            '/games': 'http://localhost:3000',
-            '/rooms': 'http://localhost:3000',
-            '/api': 'http://localhost:3000'
+            '/games': 'http://localhost:8080',
+            '/rooms': 'http://localhost:8080',
+            '/api': 'http://localhost:8080'
         }
     },
     build: {

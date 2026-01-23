@@ -30,6 +30,14 @@
     ],
     "buttons": [
         {
+            "caption": "💾 In Library speichern",
+            "action": "saveToLibrary",
+            "style": {
+                "backgroundColor": "#2e7d32",
+                "color": "#fff"
+            }
+        },
+        {
             "caption": "Fertig",
             "action": "cancel",
             "style": {

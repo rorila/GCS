@@ -207,6 +207,7 @@ export class GameLoopManager {
 
     /**
      * Main game loop - NORMAL METHOD, not arrow function
+     * OPTIMIZATION: Only renders when something has changed to avoid endless log spam
      */
     private loop(): void {
         if (this.state !== 'running') {
@@ -222,28 +223,41 @@ export class GameLoopManager {
             if (ic.update) ic.update();
         });
 
-        // Update all sprites
+        // Check if anything needs updating
         const spritesMoving = this.gameState ? this.gameState.spritesMoving : true;
-        this.updateSprites(deltaTime, spritesMoving);
+        const hasActiveAnimations = AnimationManager.getInstance().hasActiveTweens();
 
-        // Update tween animations
-        AnimationManager.getInstance().update();
+        // Check if any sprite has velocity (is actually moving)
+        const hasMovingSprites = spritesMoving && this.sprites.some(sprite =>
+            sprite.velocityX !== 0 || sprite.velocityY !== 0 || sprite.isAnimating
+        );
 
-        // Clear collision tracking for this frame
-        this.collidedThisFrame.clear();
+        // Only do work if something is active
+        const needsUpdate = hasActiveAnimations || hasMovingSprites;
 
-        // Check collisions (physics still runs if movement enabled)
-        if (spritesMoving) {
-            this.checkCollisions();
-            this.checkBoundaries();
+        if (needsUpdate) {
+            // Update all sprites
+            this.updateSprites(deltaTime, spritesMoving);
+
+            // Update tween animations
+            AnimationManager.getInstance().update();
+
+            // Clear collision tracking for this frame
+            this.collidedThisFrame.clear();
+
+            // Check collisions (physics still runs if movement enabled)
+            if (spritesMoving) {
+                this.checkCollisions();
+                this.checkBoundaries();
+            }
+
+            // Render only when something changed
+            if (this.renderCallback) {
+                this.renderCallback();
+            }
         }
 
-        // Render
-        if (this.renderCallback) {
-            this.renderCallback();
-        }
-
-        // Schedule next frame
+        // Schedule next frame - always continue the loop to catch new activity
         this.animationFrameId = requestAnimationFrame(this.loop);
     }
 

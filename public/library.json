@@ -90,6 +90,85 @@
                     }
                 ]
             }
+        },
+        {
+            "name": "HandleDragEnd",
+            "category": "Interactivity",
+            "description": "Handles the end of a drag operation (Source Object)",
+            "params": [
+                {
+                    "name": "success",
+                    "type": "boolean",
+                    "label": "Success",
+                    "default": false
+                },
+                {
+                    "name": "targetId",
+                    "type": "string",
+                    "label": "Target ID",
+                    "default": ""
+                }
+            ],
+            "actionSequence": [
+                {
+                    "type": "condition",
+                    "condition": {
+                        "variable": "success",
+                        "operator": "==",
+                        "value": true
+                    },
+                    "thenAction": {
+                        "type": "action",
+                        "name": "LogMessage",
+                        "params": {
+                            "message": "Drag successful! Dropped on ${targetId}"
+                        }
+                    },
+                    "elseAction": {
+                        "type": "action",
+                        "name": "LogMessage",
+                        "params": {
+                            "message": "Drag failed! Dropped into void."
+                        }
+                    }
+                }
+            ],
+            "flowChart": {
+                "elements": [],
+                "connections": []
+            }
+        },
+        {
+            "name": "HandleDrop",
+            "category": "Interactivity",
+            "description": "Handles a drop event (Target Object)",
+            "params": [
+                {
+                    "name": "sourceId",
+                    "type": "string",
+                    "label": "Source ID",
+                    "default": ""
+                },
+                {
+                    "name": "cloneId",
+                    "type": "string",
+                    "label": "Clone ID",
+                    "default": ""
+                }
+            ],
+            "actionSequence": [
+                {
+                    "type": "action",
+                    "name": "LogMessage",
+                    "params": {
+                        "message": "Item dropped here! Source: ${sourceId}, New Clone: ${cloneId}"
+                    }
+                }
+            ],
+            "flowChart": {
+                "elements": [],
+                "connections": []
+            }
         }
     ],
     "templates": [

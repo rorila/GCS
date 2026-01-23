@@ -19,6 +19,7 @@ class Room {
         this.player2 = null;
         this.gameStarted = false;
         this.project = null; // Stored project JSON from Master
+        this.metadata = {}; // Platform metadata
         this.player1Ready = false;
         this.player2Ready = false;
         this.code = code;
@@ -77,24 +78,14 @@ class Room {
         if (this.player1 === ws) {
             this.player1 = null;
             this.player1Ready = false;
-            // Only notify opponent if game was in progress and they should know
-            // During navigation, we'll reconnect shortly so don't send player_left
-            if (this.gameStarted && this.player2) {
-                // We're mid-game, might be navigation - delay notification
-                // Actually, let's not send player_left during expected navigation
-                console.log(`[Room ${this.code}] P1 disconnected, waiting for potential rejoin`);
-            }
-            else if (this.player2) {
+            if (this.player2) {
                 this.sendTo(2, { type: 'player_left', playerNumber: 1 });
             }
         }
         else if (this.player2 === ws) {
             this.player2 = null;
             this.player2Ready = false;
-            if (this.gameStarted && this.player1) {
-                console.log(`[Room ${this.code}] P2 disconnected, waiting for potential rejoin`);
-            }
-            else if (this.player1) {
+            if (this.player1) {
                 this.sendTo(1, { type: 'player_left', playerNumber: 2 });
             }
         }

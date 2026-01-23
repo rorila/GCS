@@ -1,0 +1,631 @@
+{
+  "meta": {
+    "name": "GCS Spieleplattform",
+    "author": "GCS Team",
+    "version": "1.0.0",
+    "runtimeVersion": "1.0.0"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 18,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#2d865f"
+    }
+  },
+  "flow": {
+    "elements": [],
+    "connections": [],
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    }
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [
+    {
+      "name": "UpdateTargetFieldCounter",
+      "description": "Ich bin eine Beschreibung",
+      "actionSequence": [],
+      "params": [],
+      "triggerMode": "broadcast"
+    }
+  ],
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_login",
+      "name": "Login",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "backgroundColor": "#1d2a49",
+        "visible": false
+      },
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "label_title",
+          "name": "Title",
+          "Tasks": {},
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 11,
+          "y": 2,
+          "width": 40,
+          "height": 5,
+          "zIndex": 0,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 32,
+            "color": "#4fc3f7",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial",
+            "width": "400px"
+          },
+          "text": "Willkommen bei GCS"
+        },
+        {
+          "className": "TShape",
+          "id": "obj_1768901580673_d6fr9bj5i",
+          "name": "HundShape",
+          "Tasks": {},
+          "draggable": true,
+          "dragMode": "copy",
+          "droppable": false,
+          "x": 33,
+          "y": 8,
+          "width": 5,
+          "height": 5,
+          "zIndex": 1,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "HundShape",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#0f172a",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "🐶",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "109bad03-f112-4526-b437-e0493131b9a9",
+          "name": "Rose",
+          "Tasks": {},
+          "draggable": true,
+          "dragMode": "copy",
+          "droppable": false,
+          "x": 22,
+          "y": 30,
+          "width": 5,
+          "height": 5,
+          "zIndex": 1,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "Rose",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#0f172a",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "🌹",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "c5495de4-b2d5-42ae-a60c-c6fc77c4cd0b",
+          "name": "Katze",
+          "Tasks": {},
+          "draggable": true,
+          "dragMode": "copy",
+          "droppable": false,
+          "x": 40,
+          "y": 14,
+          "width": 5,
+          "height": 5,
+          "zIndex": 1,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "Katze",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#0f172a",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "😺",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "ab3ea21a-8871-4a6a-b049-dc13b5c519e8",
+          "name": "Schwein",
+          "Tasks": {},
+          "draggable": true,
+          "dragMode": "copy",
+          "droppable": false,
+          "x": 40,
+          "y": 24,
+          "width": 5,
+          "height": 5,
+          "zIndex": 1,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "Schwein",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#0f172a",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "🐷",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "e5d61568-fb16-440a-b814-da46bddc23f0",
+          "name": "Frosch",
+          "Tasks": {},
+          "draggable": true,
+          "dragMode": "copy",
+          "droppable": false,
+          "x": 22,
+          "y": 8,
+          "width": 5,
+          "height": 5,
+          "zIndex": 1,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "Frosch",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#0f172a",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "🐸",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "fcaf4ee1-20de-4d8e-a18d-6b05f7c2ad87",
+          "name": "Elefant",
+          "Tasks": {},
+          "draggable": true,
+          "dragMode": "copy",
+          "droppable": false,
+          "x": 33,
+          "y": 30,
+          "width": 5,
+          "height": 5,
+          "zIndex": 1,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "Elefant",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#0f172a",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "🐘",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "ff5f333f-80b8-4ffe-b708-07e03870af75",
+          "name": "Haus",
+          "Tasks": {},
+          "draggable": true,
+          "dragMode": "copy",
+          "droppable": false,
+          "x": 17,
+          "y": 14,
+          "width": 5,
+          "height": 5,
+          "zIndex": 1,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "Haus",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#0f172a",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "🏠",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "093bdd95-1f57-4d65-b023-4019757d761b",
+          "name": "Baum",
+          "Tasks": {},
+          "draggable": true,
+          "dragMode": "copy",
+          "droppable": false,
+          "x": 17,
+          "y": 24,
+          "width": 5,
+          "height": 5,
+          "zIndex": 1,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "Baum",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#0f172a",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "🌳",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "obj_1768902260389_nu766znfg",
+          "name": "Elefant",
+          "Tasks": {},
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 18,
+          "y": 9,
+          "width": 25,
+          "height": 25,
+          "zIndex": 0,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#cc2e2e",
+            "borderWidth": 10
+          },
+          "caption": "Elefant",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "transparent",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "3e35c21d-33a3-43df-b155-e611895d5d2c",
+          "name": "Dropp1",
+          "Tasks": {},
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": true,
+          "x": 21,
+          "y": 19,
+          "width": 5,
+          "height": 5,
+          "zIndex": 1,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "Dropp1",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#30bb4c",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "?",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "55e5c7f0-c518-4e02-8cf4-db8516cd70e0",
+          "name": "Dropp2",
+          "Tasks": {},
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": true,
+          "x": 26,
+          "y": 19,
+          "width": 5,
+          "height": 5,
+          "zIndex": 1,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "Dropp2",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#30bb4c",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "?",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "7cb0d544-bc37-4f5b-a540-8aa48def49b5",
+          "name": "Dropp3",
+          "Tasks": {},
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": true,
+          "x": 31,
+          "y": 19,
+          "width": 5,
+          "height": 5,
+          "zIndex": 0,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "Dropp3",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#30bb4c",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "?",
+          "contentImage": ""
+        },
+        {
+          "className": "TShape",
+          "id": "9b051309-8172-47e0-b6ef-0c2cf5e45161",
+          "name": "Dropp3",
+          "Tasks": {},
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": true,
+          "x": 36,
+          "y": 19,
+          "width": 5,
+          "height": 5,
+          "zIndex": 0,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "transparent",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "caption": "Dropp3",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "shapeType": "circle",
+          "fillColor": "#30bb4c",
+          "strokeColor": "#29b6f6",
+          "strokeWidth": 2,
+          "opacity": 1,
+          "text": "?",
+          "contentImage": ""
+        }
+      ],
+      "tasks": [
+        {
+          "name": "UpdateTargetFieldCounter",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Aktion"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "description": "Ich bin eine Beschreibung",
+          "params": []
+        }
+      ],
+      "actions": [
+        {
+          "showDetails": false,
+          "name": "AktionName",
+          "details": "",
+          "type": "property",
+          "target": "",
+          "changes": {},
+          "taskParams": [],
+          "description": "",
+          "method": ""
+        }
+      ],
+      "flowCharts": {
+        "global": {
+          "elements": [],
+          "connections": []
+        },
+        "UpdateTargetFieldCounter": {
+          "elements": [
+            {
+              "id": "node-1769079795425",
+              "type": "Task",
+              "x": 60,
+              "y": 100,
+              "width": 260,
+              "height": 60,
+              "properties": {
+                "name": "UpdateTargetFieldCounter",
+                "details": "",
+                "description": "Ich bin eine Beschreibung"
+              },
+              "data": {
+                "paramValues": {},
+                "showDetails": false,
+                "name": "UpdateTargetFieldCounter",
+                "triggerMode": "local-sync",
+                "description": "Ich bin eine Beschreibung"
+              }
+            },
+            {
+              "id": "node-1769094233114",
+              "type": "Action",
+              "x": 420,
+              "y": 100,
+              "width": 160,
+              "height": 60,
+              "properties": {
+                "name": "Aktion",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "Aktion"
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1769079795425",
+              "endTargetId": "node-1769094233114",
+              "startX": 320,
+              "startY": 130,
+              "endX": 540,
+              "endY": 130,
+              "data": {
+                "startAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "activeStageId": "stage_login",
+  "flowCharts": {
+    "global": {
+      "elements": [],
+      "connections": [],
+      "stage": {
+        "cols": 100,
+        "rows": 100,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#1e1e1e"
+      }
+    }
+  }
+}

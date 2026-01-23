@@ -17,7 +17,7 @@ import { parse, serialize, ClientMessage } from './Protocol';
  * - Static file serving for games
  */
 
-const PORT = parseInt(process.env.PORT || '3000');
+const PORT = parseInt(process.env.PORT || '8080');
 const PUBLIC_DIR = path.join(__dirname, '../public');
 
 // Builder URL for fetching runtime versions (only used when runtime is missing)

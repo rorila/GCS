@@ -44,6 +44,12 @@ class UniversalPlayer {
     private isStarted: boolean = false;
     private animationTickerId: number | null = null;
 
+    // Drag & Drop State
+    private dragTarget: any = null;
+    private dragPhantom: any = null;
+    private isDragging: boolean = false;
+    private dragOffset: { x: number, y: number } = { x: 0, y: 0 };
+
     constructor() {
         this.stage = document.getElementById('stage')!;
         this.init();
@@ -70,6 +76,11 @@ class UniversalPlayer {
                 network.sendInput(key, action);
             }
         };
+
+        // 3c. Setup Drag & Drop listeners
+        window.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+        window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        window.addEventListener('mouseup', (e) => this.handleMouseUp(e));
 
         // 4. Determine initial project
         const params = new URLSearchParams(window.location.search);
@@ -692,6 +703,31 @@ class UniversalPlayer {
                 el.appendChild(joinBtn);
                 break;
             }
+            case 'TShape': {
+                el.innerHTML = '';
+                el.style.backgroundColor = obj.fillColor || 'transparent';
+                el.style.border = `${obj.strokeWidth || 0}px solid ${obj.strokeColor || 'transparent'}`;
+                el.style.opacity = String(obj.opacity ?? 1);
+
+                if (obj.shapeType === 'circle') {
+                    el.style.borderRadius = '50%';
+                } else if (obj.shapeType === 'rect' || obj.shapeType === 'square') {
+                    el.style.borderRadius = '0';
+                } else if (obj.shapeType === 'ellipse') {
+                    el.style.borderRadius = '50% / 50%';
+                } else if (obj.shapeType === 'triangle') {
+                    el.style.backgroundColor = 'transparent';
+                    el.style.border = 'none';
+                    el.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+                    el.style.background = obj.fillColor || 'white';
+                } else if (obj.shapeType === 'arrow') {
+                    el.style.backgroundColor = 'transparent';
+                    el.style.border = 'none';
+                    el.style.clipPath = 'polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%)';
+                    el.style.background = obj.fillColor || 'white';
+                }
+                break;
+            }
         }
     }
 
@@ -719,6 +755,115 @@ class UniversalPlayer {
     private hideOverlay() {
         const overlay = document.getElementById('player-overlay');
         if (overlay) overlay.style.display = 'none';
+    }
+
+    // ─────────────────────────────────────────────
+    // Drag & Drop Handling
+    // ─────────────────────────────────────────────
+
+    private handleMouseDown(e: MouseEvent) {
+        if (!this.runtime) return;
+
+        // Find game object under mouse
+        const el = (e.target as HTMLElement).closest('.game-object');
+        if (!el) return;
+
+        const obj = this.runtime.getObjects().find(o => o.id === el.id);
+        if (!obj || !obj.draggable) return;
+
+        console.log(`[Player] Start dragging: ${obj.name} (mode: ${obj.dragMode})`);
+
+        this.isDragging = true;
+
+        const gridCoords = this.screenToGrid(e.clientX, e.clientY);
+        this.dragOffset = {
+            x: gridCoords.x - obj.x,
+            y: gridCoords.y - obj.y
+        };
+
+        if (obj.dragMode === 'copy') {
+            // Create a phantom clone in the runtime
+            this.dragPhantom = this.runtime.createPhantom(obj);
+            this.dragTarget = this.dragPhantom;
+        } else {
+            this.dragTarget = obj;
+        }
+
+        this.runtime.handleEvent(obj.id, 'onDragStart', { x: gridCoords.x, y: gridCoords.y });
+    }
+
+    private handleMouseMove(e: MouseEvent) {
+        if (!this.isDragging || !this.dragTarget || !this.runtime) return;
+
+        const coords = this.screenToGrid(e.clientX, e.clientY);
+        this.dragTarget.x = coords.x - this.dragOffset.x;
+        this.dragTarget.y = coords.y - this.dragOffset.y;
+
+        // Force render for smooth movement
+        this.render();
+    }
+
+    private handleMouseUp(e: MouseEvent) {
+        if (!this.isDragging || !this.runtime) return;
+
+        const originalTarget = this.dragPhantom ? this.dragTarget._original : this.dragTarget;
+
+        // Find drop target (must be droppable and not the dragged object itself)
+        const elementsAtPoint = document.elementsFromPoint(e.clientX, e.clientY);
+        let dropTargetObj: any = null;
+
+        for (const el of elementsAtPoint) {
+            const gameObjEl = (el as HTMLElement).closest('.game-object');
+            if (gameObjEl && gameObjEl.id !== this.dragTarget.id) {
+                const found = this.runtime.getObjects().find(o => o.id === gameObjEl.id);
+                if (found && found.droppable) {
+                    dropTargetObj = found;
+                    break;
+                }
+            }
+        }
+
+        if (dropTargetObj) {
+            console.log(`[Player] Dropped ${originalTarget.name} on ${dropTargetObj.name}`);
+            this.runtime.handleEvent(dropTargetObj.id, 'onDrop', {
+                draggedId: originalTarget.id,
+                draggedName: originalTarget.name,
+                draggedObj: originalTarget
+            });
+        }
+
+        // Cleanup
+        if (this.dragPhantom) {
+            this.runtime.removeObject(this.dragPhantom.id);
+        }
+
+        this.isDragging = false;
+        this.dragTarget = null;
+        this.dragPhantom = null;
+
+        this.render();
+    }
+
+    private screenToGrid(clientX: number, clientY: number): { x: number, y: number } {
+        const rect = this.stage.getBoundingClientRect();
+
+        // Calculate relative position within the stage
+        const relativeX = clientX - rect.left;
+        const relativeY = clientY - rect.top;
+
+        // Account for scaling
+        const style = window.getComputedStyle(this.stage);
+        const matrix = new DOMMatrix(style.transform);
+        const scale = matrix.a;
+
+        // Let's try to get the real cellSize from the active stage
+        const activeStage = (this.runtime as any)?.stage || (this.currentProject?.stage || this.currentProject?.stages?.[0]);
+        const cellSize = activeStage?.grid?.cellSize || 32;
+
+        return {
+            x: (relativeX / scale) / cellSize,
+            y: (relativeY / scale) / cellSize
+        };
     }
 }
 

@@ -107,13 +107,31 @@ export class RefactoringManager {
     public static renameTask(project: GameProject, oldName: string, newName: string): void {
         if (!oldName || !newName || oldName === newName) return;
 
-        // 1. Update project tasks list
+        // 1. Update project tasks list (Global)
         project.tasks.forEach(task => {
             if (task.name === oldName) task.name = newName;
         });
 
-        // 2. Update task calls in sequences
-        project.tasks.forEach(task => {
+        // 1b. Update stage-specific tasks
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.tasks) {
+                    stage.tasks.forEach(task => {
+                        if (task.name === oldName) task.name = newName;
+                    });
+                }
+            });
+        }
+
+        // 2. Update task calls in sequences (Global + all Stages)
+        const allTasks = [...project.tasks];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks) allTasks.push(...s.tasks);
+            });
+        }
+
+        allTasks.forEach(task => {
             this.processSequenceItems(task.actionSequence, (item) => {
                 if (item.type === 'task' && item.name === oldName) item.name = newName;
                 if (item.thenTask === oldName) item.thenTask = newName;
@@ -240,12 +258,23 @@ export class RefactoringManager {
     public static renameAction(project: GameProject, oldName: string, newName: string): void {
         if (!oldName || !newName || oldName === newName) return;
 
-        // 1. Update project actions list
+        // 1. Update project actions list (Global)
         project.actions.forEach(action => {
             if (action.name === oldName) action.name = newName;
         });
 
-        // 2. Update task sequences
+        // 2. Update stage-specific actions
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.actions) {
+                    stage.actions.forEach(action => {
+                        if (action.name === oldName) action.name = newName;
+                    });
+                }
+            });
+        }
+
+        // 3. Update task sequences (Global + all Stages)
         project.tasks.forEach(task => {
             this.processSequenceItems(task.actionSequence, (item) => {
                 if (item.type === 'action' && item.name === oldName) {
@@ -253,6 +282,21 @@ export class RefactoringManager {
                 }
             });
         });
+
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.tasks) {
+                    stage.tasks.forEach(task => {
+                        this.processSequenceItems(task.actionSequence, (item) => {
+                            if (item.type === 'action' && item.name === oldName) {
+                                item.name = newName;
+                            }
+                        });
+                    });
+                }
+            });
+        }
+
 
         // 3. Update flow chart elements (ghost nodes or nested actions)
         const charts: { [key: string]: any } = { ... (project.flowCharts || {}) };

@@ -9,6 +9,12 @@ export class Stage {
     public onDropCallback: ((type: string, x: number, y: number) => void) | null = null;
     public onSelectCallback: ((ids: string[]) => void) | null = null;
     public onObjectMove: ((id: string, x: number, y: number) => void) | null = null;
+    public onObjectCopy: ((id: string, x: number, y: number) => void) | null = null;
+    public onDragStart: ((id: string) => void) | null = null;
+
+    // ... existing properties
+    private dragGhost: HTMLElement | null = null;
+    private isCopyDrag: boolean = false;
     public onObjectResize: ((id: string, w: number, h: number) => void) | null = null;
     public onCopyCallback: ((id: string) => any) | null = null; // Returns cloned object
     public onPasteCallback: ((obj: any, x: number, y: number) => string | null) | null = null; // Returns new ID
@@ -39,8 +45,23 @@ export class Stage {
     private isPlacing: boolean = false;
     private placingGhostEl: HTMLElement | null = null;
     private lastMousePos: { x: number, y: number } | null = null;
+    private lastRenderedObjects: any[] = []; // Track objects for runtime lookup (e.g. draggable)
 
-    public runMode: boolean = false;
+    public set runMode(running: boolean) {
+        if (this.runMode !== running) {
+            (this as any).runModeLogDone = false;
+            // Clear trace flags from elements to enable fresh logs
+            this.element.querySelectorAll('.game-object').forEach(el => {
+                (el as any).runModeTraceDone = false;
+                (el as any).lastLoggedSrc = null;
+            });
+        }
+        this._runMode = running;
+        this.updateBorder();
+    }
+
+    private _runMode: boolean = false;
+    public get runMode(): boolean { return this._runMode; }
     public startAnimation: string = 'none';
     public startAnimationDuration: number = 1000;
     public startAnimationEasing: string = 'easeOut';
@@ -144,9 +165,52 @@ export class Stage {
 
         // Object Interaction (Select / Move / Resize) - EDIT MODE ONLY
         this.element.addEventListener('mousedown', (e) => {
-            if (this.runMode) return;
-
             const target = e.target as HTMLElement;
+            const objEl = target.closest('.game-object') as HTMLElement;
+
+            if (this.runMode) {
+                // Runtime Interaction
+                if (objEl) {
+                    const id = objEl.getAttribute('data-id');
+                    if (id) {
+                        const obj = this.lastRenderedObjects.find(o => (o.id || o.name) === id);
+
+                        // Check if draggable - explicit property check
+                        if (obj && (obj.draggable || obj.draggableAtRuntime)) {
+                            this.dragStart = { x: e.clientX, y: e.clientY };
+                            this.isDragging = true;
+                            this.dragObjId = id;
+
+                            if (obj.dragMode === 'copy') {
+                                this.isCopyDrag = true;
+                                // Create ghost
+                                const originalEl = this.element.querySelector(`[data-id="${id}"]`) as HTMLElement;
+                                if (originalEl) {
+                                    this.dragGhost = originalEl.cloneNode(true) as HTMLElement;
+                                    this.dragGhost.style.opacity = '0.7';
+                                    this.dragGhost.style.pointerEvents = 'none';
+                                    this.dragGhost.style.zIndex = '1000';
+                                    this.element.appendChild(this.dragGhost);
+                                }
+                            } else {
+                                this.isCopyDrag = false;
+                            }
+
+                            // Trigger onDragStart
+                            if (this.onDragStart) {
+                                this.onDragStart(id);
+                            }
+
+                            e.preventDefault();
+                        } else if (obj && (obj.Tasks?.onClick || obj.Tasks?.onSingleClick)) {
+                            // Let click pass through usually, but preventing default might stop it?
+                            // Click handlers are on element.onclick, so mousedown prevention might be ok or bad.
+                            // We don't prevent default for clicks unless dragging.
+                        }
+                    }
+                }
+                return;
+            }
 
             // 1. Handle Resize Start
             if (target.classList.contains('resize-handle')) {
@@ -173,13 +237,13 @@ export class Stage {
             }
 
             // 2. Handle Move / Select Start
-            const objEl = target.closest('.game-object') as HTMLElement;
+            const hitObject = target.closest('.game-object') as HTMLElement;
 
             // Check if clicked object is a CLIENT-aligned panel
-            const isClientPanel = objEl && objEl.getAttribute('data-align') === 'CLIENT';
+            const isClientPanel = hitObject && hitObject.getAttribute('data-align') === 'CLIENT';
 
-            if (objEl && !isClientPanel) {
-                const id = objEl.getAttribute('data-id');
+            if (hitObject && !isClientPanel) {
+                const id = hitObject.getAttribute('data-id');
                 if (id) {
                     // Shift+Click: Toggle selection
                     if (e.shiftKey) {
@@ -238,8 +302,31 @@ export class Stage {
             }
         });
 
+
         window.addEventListener('mousemove', (e) => {
-            if (this.runMode) return;
+            if (this.runMode) {
+                if (this.isDragging && this.dragObjId && this.dragStart) {
+                    e.preventDefault();
+                    const dx = e.clientX - this.dragStart.x;
+                    const dy = e.clientY - this.dragStart.y;
+
+                    if (this.isCopyDrag && this.dragGhost) {
+                        // Move ghost
+                        // Actually, cloneNode copies inline styles including transform if set.
+                        // But for simplicity, let's use transform on ghost too.
+                        // The ghost is cloned from current state, so it sits exactly on top.
+                        // We just apply transform.
+                        this.dragGhost.style.transform = `translate(${dx}px, ${dy}px)`;
+                    } else {
+                        // Runtime drag: update transform directly for smooth feedback
+                        const el = this.element.querySelector(`[data-id="${this.dragObjId}"]`) as HTMLElement;
+                        if (el) {
+                            el.style.transform = `translate(${dx}px, ${dy}px)`;
+                        }
+                    }
+                }
+                return;
+            }
 
             this.lastMousePos = { x: e.clientX, y: e.clientY };
 
@@ -322,6 +409,24 @@ export class Stage {
                         }
                     }
 
+                    // Handle proportional resizing for circles
+                    const obj = this.selectedObject;
+                    const isTShape = obj && (obj.className === 'TShape' || (obj.constructor && obj.constructor.name === 'TShape'));
+                    if (isTShape && obj.shapeType === 'circle') {
+                        // Force square aspect ratio
+                        const size = Math.max(newW, newH);
+                        newW = size;
+                        newH = size;
+
+                        // Recalculate top/left if dragging from north/west handles to keep it centered or anchored correctly
+                        if (dir.includes('w')) {
+                            newLeft = this.initialPos.left + (this.initialSize.w - size);
+                        }
+                        if (dir.includes('n')) {
+                            newTop = this.initialPos.top + (this.initialSize.h - size);
+                        }
+                    }
+
                     el.style.width = `${newW}px`;
                     el.style.height = `${newH}px`;
                     el.style.left = `${newLeft}px`;
@@ -343,8 +448,58 @@ export class Stage {
         });
 
         window.addEventListener('mouseup', (e) => {
-            if (this.runMode) return;
+            // Handle Runtime Drop
+            if (this.runMode) {
+                if (this.isDragging && this.dragObjId && this.dragStart) {
+                    const dx = e.clientX - this.dragStart.x;
+                    const dy = e.clientY - this.dragStart.y;
 
+                    // Only process significant moves
+                    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+                        const el = this.element.querySelector(`[data-id="${this.dragObjId}"]`) as HTMLElement;
+                        if (el) {
+                            // Reset transform
+                            el.style.transform = '';
+
+                            // Calculate new position
+                            const currentLeft = parseFloat(el.style.left || '0');
+                            const currentTop = parseFloat(el.style.top || '0');
+                            const newX = currentLeft + dx;
+                            const newY = currentTop + dy;
+
+                            // Snap to grid if needed (runtime typically uses pixels, but we map to internal grid)
+                            const gridX = Math.round(newX / this.gridConfig.cellSize);
+                            const gridY = Math.round(newY / this.gridConfig.cellSize);
+
+                            if (this.isCopyDrag && this.onObjectCopy) {
+                                // GCS-Style: Just request the drop at (newX, newY).
+                                // The Controller (Editor.ts) handles collision checks, cloning/snapping, and events.
+                                // Note: We pass raw coordinates (or grid?) - Controller can handle pixels better for AABB.
+                                // Let's pass pixel coordinates for precise checking, or grid coords.
+                                // onObjectCopy expects Grid Coordinates currently.
+                                // Let's pass Grid Coordinates as before, but Editor translates to pixels if needed or checks logic.
+                                this.onObjectCopy(this.dragObjId, Math.max(0, gridX), Math.max(0, gridY));
+                            } else if (!this.isCopyDrag && this.onObjectMove) {
+                                this.onObjectMove(this.dragObjId, Math.max(0, gridX), Math.max(0, gridY));
+                            }
+                        }
+                    }
+
+                    // Cleanup Ghost
+                    if (this.dragGhost) {
+                        this.dragGhost.remove();
+                        this.dragGhost = null;
+                    }
+                    this.isCopyDrag = false;
+
+                    this.isDragging = false;
+                    this.dragObjId = null;
+                    this.dragStart = null;
+                }
+                return;
+            }
+
+            // Editor Mode Logic
             // Handle rectangle selection finish
             if (this.isRectSelecting && this.rectStart) {
                 // Only process selection if a rectangle was actually drawn
@@ -552,6 +707,13 @@ export class Stage {
         this.element.style.height = `${height}px`;
         this.element.style.backgroundColor = backgroundColor || '#ffffff';
 
+        if (this.runMode) {
+            console.log(`[Stage] Game Stage Size updated: ${width}x${height}px. Visible: ${visible}. Host: ${this.container.id}`);
+            // Force container to be at least as big as the stage if not in flex layout
+            this.container.style.minHeight = `${height}px`;
+            this.container.style.minWidth = `${width}px`;
+        }
+
         if (visible) {
             this.element.style.backgroundImage = `
                 linear-gradient(to right, #ddd 1px, transparent 1px),
@@ -577,6 +739,32 @@ export class Stage {
     }
 
     public renderObjects(objects: any[]) {
+        // Update object hash for internal bookkeeping
+        const objectHash = objects.map(o => `${o.id}@${o.x?.toFixed(1)},${o.y?.toFixed(1)}`).join('|');
+
+        if (this.runMode) {
+            (this as any).lastObjectHash = objectHash;
+
+            // RADICAL PERFORMANCE/DEBUG LOG: Only once per run-session
+            if (!(this as any).runModeLogDone) {
+                console.log(`[Stage] RunMode Render Start. Rendering ${objects.length} objects.`);
+                if (objects.length > 0) {
+                    console.table(objects.slice(0, 10).map(o => ({
+                        name: o.name,
+                        class: o.className || o.constructor?.name,
+                        visible: o.visible,
+                        z: o.zIndex,
+                        w: (o.width || 0).toFixed(1),
+                        h: (o.height || 0).toFixed(1),
+                        bgImg: o.backgroundImage,
+                        src: o.src
+                    })));
+                } else {
+                    console.warn("[Stage] Rendering an EMPTY stage in RunMode!");
+                }
+            }
+        }
+        this.lastRenderedObjects = objects;
         const stageWidth = this.gridConfig.cols * this.gridConfig.cellSize;
         const stageHeight = this.gridConfig.rows * this.gridConfig.cellSize;
 
@@ -694,6 +882,9 @@ export class Stage {
                 isNew = true;
             }
 
+            // Type-specific content class name
+            const className = obj.className || obj.constructor?.name;
+
             // Store align attribute for mouse event handling
             el.setAttribute('data-align', obj.align || 'NONE');
 
@@ -731,8 +922,11 @@ export class Stage {
             }
 
             // Apply opacity if defined in style (e.g. for animations)
-            if (obj.style && obj.style.opacity !== undefined) {
-                el.style.opacity = String(obj.style.opacity);
+            // Apply opacity if defined in style or component specific property (e.g. imageOpacity for TImage)
+            const opacity = (obj.style && obj.style.opacity !== undefined && obj.style.opacity !== null) ? obj.style.opacity : (obj.imageOpacity !== undefined ? obj.imageOpacity : undefined);
+
+            if (opacity !== undefined && opacity !== null) {
+                el.style.opacity = String(opacity);
             } else if (isInherited) {
                 el.style.opacity = '0.4'; // Ghosting for inherited objects
             } else {
@@ -742,7 +936,14 @@ export class Stage {
             // Styles
             if (obj.style) {
                 // Background color is set in the grid overlay section below
-                el.style.border = `${obj.style.borderWidth || 0}px solid ${obj.style.borderColor || 'transparent'}`;
+                // CRITICAL: Suppress CSS border for TShape, as it uses SVG strokes instead
+                const isTShape = className === 'TShape';
+                if (!isTShape) {
+                    el.style.border = `${obj.style.borderWidth || 0}px solid ${obj.style.borderColor || 'transparent'}`;
+                } else {
+                    el.style.border = 'none';
+                }
+
                 if (obj.style.color) el.style.color = obj.style.color;
                 if (obj.style.fontSize) el.style.fontSize = typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize;
                 if (obj.style.fontWeight) el.style.fontWeight = obj.style.fontWeight;
@@ -795,26 +996,79 @@ export class Stage {
             } else {
                 // No grid - just use background color or image
                 const bgColor = obj.style?.backgroundColor || 'transparent';
-                const bgImg = obj.backgroundImage || obj.style?.backgroundImage;
+                let bgImg = obj.backgroundImage || obj.src || obj.style?.backgroundImage;
+
+                // If it's already a CSS url() string, extract the URL
+                if (bgImg && bgImg.startsWith('url(')) {
+                    const match = bgImg.match(/url\(['"]?([^'"]+)['"]?\)/);
+                    if (match) bgImg = match[1];
+                }
+
+                // RESET TRACING ON RUN-MODE START to ensure fresh logs
+                if (this.runMode && !(el as any).runModeTraceDone) {
+                    (el as any).lastLoggedSrc = null;
+                    (el as any).runModeTraceDone = true;
+                }
 
                 if (bgImg) {
-                    const src = bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:')
+                    // Force display if an image is present
+                    el.style.display = 'flex';
+
+                    // Robust path handling for images:
+                    let src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:'))
                         ? bgImg
                         : `/images/${bgImg}`;
+
+                    // URL-Encoding for filenames with spaces/special chars
+                    if (!src.startsWith('data:')) {
+                        const parts = src.split('/');
+                        const lastPart = parts.pop() || '';
+                        src = [...parts, encodeURIComponent(lastPart)].join('/');
+                    }
+
+                    // ONE-TIME LOG PER SOURCE to prove where it's fetched from
+                    if ((el as any).lastLoggedSrc !== src) {
+                        console.log(`[Stage] Component "${objId}" (${className}) setting image: "${src}" (from prop: ${obj.src ? 'src' : 'backgroundImage'})`);
+                        (el as any).lastLoggedSrc = src;
+
+                        // Diagnostic: Check if image really exists by creating an off-screen image
+                        if (!src.startsWith('data:')) {
+                            console.log(`[Stage] Testing image reachability for "${objId}": ${src}`);
+                            const testImg = new Image();
+                            const timeout = setTimeout(() => {
+                                console.warn(`[Stage] TIMEOUT: Image test for "${objId}" is still pending after 3s: ${src}`);
+                            }, 3000);
+
+                            testImg.onload = () => {
+                                clearTimeout(timeout);
+                                console.log(`[Stage] SUCCESS: Image loaded successfully: ${src} (${testImg.width}x${testImg.height})`);
+                            };
+                            testImg.onerror = () => {
+                                clearTimeout(timeout);
+                                console.error(`[Stage] ERROR: Failed to load image: ${src}. Check path or server.`);
+                            };
+                            testImg.src = src;
+                        }
+                    }
+
                     const fit = obj.objectFit || 'contain';
-                    el.style.background = `url("${src}") center/${fit} no-repeat, ${bgColor}`;
+                    el.style.backgroundImage = `url("${src}")`;
+                    el.style.backgroundPosition = 'center';
+                    el.style.backgroundSize = fit;
+                    el.style.backgroundRepeat = 'no-repeat';
+                    el.style.backgroundColor = bgColor;
                 } else {
                     el.style.background = bgColor;
                 }
             }
 
             // Type-specific content
-            const className = obj.className || obj.constructor?.name;
+            // (className already defined above)
 
             // Interaction hints & Click handlers
             // Include TButtons with service binding as clickable
             const hasTaskClick = obj.Tasks && (obj.Tasks.onClick || obj.Tasks.onSingleClick || obj.Tasks.onMultiClick);
-            const isClickable = hasTaskClick;
+            const isClickable = hasTaskClick || (this.runMode && className === 'TButton');
 
             if (this.runMode && isClickable) {
                 el.style.cursor = 'pointer';
@@ -1008,7 +1262,7 @@ export class Stage {
                     el.onmousedown = () => el.style.transform = 'scale(0.98)';
                     el.onmouseup = () => el.style.transform = 'none';
                 }
-            } else if (className === 'TLabel' || className === 'TNumberLabel' || 'text' in obj || 'value' in obj) {
+            } else if (className === 'TLabel' || className === 'TNumberLabel' || (className !== 'TShape' && ('text' in obj || 'value' in obj))) {
                 const textValue = (obj.text !== undefined && obj.text !== null) ? String(obj.text) :
                     (obj.value !== undefined && obj.value !== null) ? String(obj.value) : '';
                 const text = textValue;
@@ -1068,6 +1322,55 @@ export class Stage {
                 el.style.backgroundColor = obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b';
                 el.style.borderRadius = obj.shape === 'circle' ? '50%' : '0';
                 if (!this.runMode) el.innerText = obj.name;
+            } else if (className === 'TShape') {
+                // Render geometry shapes using SVG
+                const shapeType = obj.shapeType || 'circle';
+                // Prioritize explicit TShape properties over style 'transparent' defaults
+                const fillColor = (obj.style?.backgroundColor && obj.style.backgroundColor !== 'transparent') ? obj.style.backgroundColor : (obj.fillColor || '#4fc3f7');
+                const strokeColor = (obj.style?.borderColor && obj.style.borderColor !== 'transparent') ? obj.style.borderColor : (obj.strokeColor || '#29b6f6');
+                const strokeWidth = (obj.style?.borderWidth !== undefined && obj.style.borderWidth !== 0) ? obj.style.borderWidth : (obj.strokeWidth || 0);
+                const opacity = obj.style?.opacity ?? obj.opacity ?? 1;
+
+                let svgContent = '';
+                // We use a fixed viewBox of 100x100 for all shapes.
+                // The SVG element itself will scale to the container (width=100%, height=100%).
+                // This ensures smooth resizing feedback!
+                if (shapeType === 'circle') {
+                    svgContent = `<circle cx="50" cy="50" r="48" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill-opacity="${opacity}" vector-effect="non-scaling-stroke" />`;
+                } else if (shapeType === 'square' || shapeType === 'rectangle' || shapeType === 'rect') {
+                    svgContent = `<rect x="1" y="1" width="98" height="98" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill-opacity="${opacity}" vector-effect="non-scaling-stroke" />`;
+                } else if (shapeType === 'triangle') {
+                    svgContent = `<polygon points="50,2 2,98 98,98" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill-opacity="${opacity}" vector-effect="non-scaling-stroke" />`;
+                } else if (shapeType === 'ellipse') {
+                    svgContent = `<ellipse cx="50" cy="50" rx="48" ry="48" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill-opacity="${opacity}" vector-effect="non-scaling-stroke" />`;
+                }
+
+                // Add contentImage if present (centered)
+                if (obj.contentImage) {
+                    svgContent += `<image href="${obj.contentImage}" x="15" y="15" width="70" height="70" preserveAspectRatio="xMidYMid meet" />`;
+                }
+
+                // Add text if present (centered)
+                if (obj.text) {
+                    const fontSize = obj.style?.fontSize || 50; // ViewBox units
+                    const fontColor = obj.style?.color || '#ffffff';
+                    svgContent += `<text x="50" y="52" dominant-baseline="central" text-anchor="middle" font-size="${fontSize}" fill="${fontColor}" font-family="${obj.style?.fontFamily || 'Arial'}">${obj.text}</text>`;
+                }
+
+                // Start building the SVG
+                // Using 100% for width/height to enable real-time scaling during mousemove
+                let svgTag = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute; top:0; left:0; display:block; overflow:visible; pointer-events:all;">`;
+                svgTag += svgContent;
+                svgTag += `</svg>`;
+
+                el.innerHTML = svgTag;
+                if (!this.runMode) {
+                    // Show name on top in editor mode
+                    const label = document.createElement('span');
+                    label.innerText = obj.name;
+                    label.style.cssText = 'position:absolute; font-size:10px; color:rgba(255,255,255,0.5); pointer-events:none;';
+                    el.appendChild(label);
+                }
             } else if (className === 'TGameLoop' || className === 'TInputController' || className === 'TTimer' || className === 'TRepeater' || className === 'TGameServer' || className === 'TGameState' || className === 'THandshake' || className === 'THeartbeat' || className === 'TStageController') {
                 if (this.runMode) el.style.display = 'none';
                 else {

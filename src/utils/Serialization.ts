@@ -33,12 +33,17 @@ import { TSplashStage } from '../components/TSplashStage';
 import { TStageController } from '../components/TStageController';
 import { TNumberLabel } from '../components/TNumberLabel';
 import { TMemo } from '../components/TMemo';
+import { TShape } from '../components/TShape';
 
 export function hydrateObjects(objectsData: any[]): TWindow[] {
     const objects: TWindow[] = [];
 
     objectsData.forEach((objData: any) => {
         let newObj: TWindow | null = null;
+
+        /** DEBUG LOG START **/
+        // console.log(`[Serialization] Hydrating: ${objData.className} (${objData.name})`);
+        /** DEBUG LOG END **/
 
         // Factory based on className
         switch (objData.className) {
@@ -151,6 +156,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             case 'TMemo':
                 newObj = new TMemo(objData.name, objData.x, objData.y, objData.width, objData.height);
                 break;
+            case 'TShape':
+                newObj = new TShape(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
             default:
                 console.warn("Unknown class during load:", objData.className);
                 break;
@@ -169,6 +177,12 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             if (objData.x !== undefined) newObj.x = objData.x;
             if (objData.y !== undefined) newObj.y = objData.y;
             if (objData.visible !== undefined) newObj.visible = objData.visible;
+            if (objData.zIndex !== undefined) newObj.zIndex = objData.zIndex;
+
+            // Drag & Drop properties
+            if (objData.draggable !== undefined) newObj.draggable = objData.draggable;
+            if (objData.dragMode !== undefined) newObj.dragMode = objData.dragMode;
+            if (objData.droppable !== undefined) newObj.droppable = objData.droppable;
 
             // Generic Style restore (safely merge)
             if (objData.style) {
@@ -205,6 +219,11 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
 
             // ImageCapable properties (TImage, TSprite, TStage)
             if (objData.backgroundImage !== undefined) (newObj as any).backgroundImage = objData.backgroundImage;
+            // Fallback for TImage/TSprite which might use 'src'
+            if (objData.src !== undefined && ((newObj as any).className === 'TImage' || (newObj as any).className === 'TSprite')) {
+                // console.log(`[Serialization] Applying src->backgroundImage fallback for "${objData.name}" (${(newObj as any).className}): ${objData.src}`);
+                (newObj as any).backgroundImage = objData.src;
+            }
             if (objData.objectFit !== undefined) (newObj as any).objectFit = objData.objectFit;
             if (objData.imageOpacity !== undefined) (newObj as any).imageOpacity = objData.imageOpacity;
             if (objData.icon !== undefined) (newObj as any).icon = objData.icon;
@@ -363,6 +382,13 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             if (objData.onSuccessCloseDialog !== undefined) (newObj as any).onSuccessCloseDialog = objData.onSuccessCloseDialog;
             if (objData.onErrorToast !== undefined) (newObj as any).onErrorToast = objData.onErrorToast;
             if (objData.onErrorToastType !== undefined) (newObj as any).onErrorToastType = objData.onErrorToastType;
+
+            // TShape specific properties
+            if (objData.shapeType !== undefined) (newObj as any).shapeType = objData.shapeType;
+            if (objData.fillColor !== undefined) (newObj as any).fillColor = objData.fillColor;
+            if (objData.strokeColor !== undefined) (newObj as any).strokeColor = objData.strokeColor;
+            if (objData.strokeWidth !== undefined) (newObj as any).strokeWidth = objData.strokeWidth;
+            if (objData.opacity !== undefined) (newObj as any).opacity = objData.opacity;
 
             // Restore Tasks
             if (objData.Tasks) {

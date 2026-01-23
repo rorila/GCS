@@ -18,7 +18,7 @@ export class NetworkManager {
     public roomCode: string | null = null;
     public playerNumber: 1 | 2 | null = null;
 
-    constructor(serverUrl: string = 'ws://localhost:3000') {
+    constructor(serverUrl: string = 'ws://localhost:8080') {
         this.serverUrl = serverUrl;
     }
 

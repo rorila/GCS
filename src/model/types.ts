@@ -145,9 +145,27 @@ export interface ProjectVariable {
     name: string;
     type: VariableType;        // Pascal-style type
     defaultValue: any;         // Default value matching the type
+    value?: any;               // Current runtime value (optional)
     scope: VariableScope;      // Visibility: global (Project) or local (Stage)
     isPublic?: boolean;        // If local, is it accessible from other stages?
     description?: string;      // Optional documentation
+
+    // Reactive Properties
+    threshold?: number;
+    triggerValue?: any;
+
+    // Event Handlers (Task Names)
+    onValueChanged?: string;
+    onValueEmpty?: string;
+
+    // Threshold Events
+    onThresholdReached?: string; // value >= threshold
+    onThresholdLeft?: string;    // value < threshold
+    onThresholdExceeded?: string;// value > threshold
+
+    // Trigger Events
+    onTriggerEnter?: string;     // value == triggerValue
+    onTriggerExit?: string;      // value != triggerValue
 }
 
 // ─────────────────────────────────────────────

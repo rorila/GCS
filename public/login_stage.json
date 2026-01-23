@@ -1,0 +1,555 @@
+{
+    "meta": {
+        "name": "Emoji Login",
+        "version": "1.0.0",
+        "author": "Antigravity"
+    },
+    "stage": {
+        "grid": {
+            "cols": 60,
+            "rows": 40,
+            "cellSize": 20,
+            "backgroundColor": "#1a1a2e"
+        }
+    },
+    "objects": [
+        {
+            "id": "title",
+            "name": "Title",
+            "className": "TLabel",
+            "x": 0,
+            "y": 4,
+            "width": 60,
+            "height": 2,
+            "text": "Emoji Login",
+            "style": {
+                "color": "#e94560",
+                "fontSize": 32,
+                "textAlign": "center",
+                "fontWeight": "bold"
+            }
+        },
+        {
+            "id": "instr",
+            "name": "Instructions",
+            "className": "TLabel",
+            "x": 0,
+            "y": 7,
+            "width": 60,
+            "height": 1,
+            "text": "Ziehe 4 Emojis in die Felder unten",
+            "style": {
+                "color": "#95a5a6",
+                "fontSize": 16,
+                "textAlign": "center"
+            }
+        },
+        {
+            "id": "src_1",
+            "name": "Emoji_Apple",
+            "className": "TShape",
+            "x": 10,
+            "y": 12,
+            "width": 5,
+            "height": 5,
+            "shapeType": "circle",
+            "fillColor": "#2d3436",
+            "strokeColor": "#e94560",
+            "strokeWidth": 2,
+            "draggable": true,
+            "dragMode": "copy",
+            "children": [
+                {
+                    "id": "e1",
+                    "name": "L1",
+                    "className": "TLabel",
+                    "x": 0,
+                    "y": 0,
+                    "width": 5,
+                    "height": 5,
+                    "text": "🍎",
+                    "style": {
+                        "fontSize": 40,
+                        "textAlign": "center"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "src_2",
+            "name": "Emoji_Banana",
+            "className": "TShape",
+            "x": 20,
+            "y": 12,
+            "width": 5,
+            "height": 5,
+            "shapeType": "circle",
+            "fillColor": "#2d3436",
+            "strokeColor": "#e94560",
+            "strokeWidth": 2,
+            "draggable": true,
+            "dragMode": "copy",
+            "children": [
+                {
+                    "id": "e2",
+                    "name": "L2",
+                    "className": "TLabel",
+                    "x": 0,
+                    "y": 0,
+                    "width": 5,
+                    "height": 5,
+                    "text": "🍌",
+                    "style": {
+                        "fontSize": 40,
+                        "textAlign": "center"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "src_3",
+            "name": "Emoji_Cherry",
+            "className": "TShape",
+            "x": 30,
+            "y": 12,
+            "width": 5,
+            "height": 5,
+            "shapeType": "circle",
+            "fillColor": "#2d3436",
+            "strokeColor": "#e94560",
+            "strokeWidth": 2,
+            "draggable": true,
+            "dragMode": "copy",
+            "children": [
+                {
+                    "id": "e3",
+                    "name": "L3",
+                    "className": "TLabel",
+                    "x": 0,
+                    "y": 0,
+                    "width": 5,
+                    "height": 5,
+                    "text": "🍒",
+                    "style": {
+                        "fontSize": 40,
+                        "textAlign": "center"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "src_4",
+            "name": "Emoji_Grape",
+            "className": "TShape",
+            "x": 40,
+            "y": 12,
+            "width": 5,
+            "height": 5,
+            "shapeType": "circle",
+            "fillColor": "#2d3436",
+            "strokeColor": "#e94560",
+            "strokeWidth": 2,
+            "draggable": true,
+            "dragMode": "copy",
+            "children": [
+                {
+                    "id": "e4",
+                    "name": "L4",
+                    "className": "TLabel",
+                    "x": 0,
+                    "y": 0,
+                    "width": 5,
+                    "height": 5,
+                    "text": "🍇",
+                    "style": {
+                        "fontSize": 40,
+                        "textAlign": "center"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "src_5",
+            "name": "Emoji_Watermelon",
+            "className": "TShape",
+            "x": 10,
+            "y": 20,
+            "width": 5,
+            "height": 5,
+            "shapeType": "circle",
+            "fillColor": "#2d3436",
+            "strokeColor": "#e94560",
+            "strokeWidth": 2,
+            "draggable": true,
+            "dragMode": "copy",
+            "children": [
+                {
+                    "id": "e5",
+                    "name": "L5",
+                    "className": "TLabel",
+                    "x": 0,
+                    "y": 0,
+                    "width": 5,
+                    "height": 5,
+                    "text": "🍉",
+                    "style": {
+                        "fontSize": 40,
+                        "textAlign": "center"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "src_6",
+            "name": "Emoji_Strawberry",
+            "className": "TShape",
+            "x": 20,
+            "y": 20,
+            "width": 5,
+            "height": 5,
+            "shapeType": "circle",
+            "fillColor": "#2d3436",
+            "strokeColor": "#e94560",
+            "strokeWidth": 2,
+            "draggable": true,
+            "dragMode": "copy",
+            "children": [
+                {
+                    "id": "e6",
+                    "name": "L6",
+                    "className": "TLabel",
+                    "x": 0,
+                    "y": 0,
+                    "width": 5,
+                    "height": 5,
+                    "text": "🍓",
+                    "style": {
+                        "fontSize": 40,
+                        "textAlign": "center"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "src_7",
+            "name": "Emoji_Pineapple",
+            "className": "TShape",
+            "x": 30,
+            "y": 20,
+            "width": 5,
+            "height": 5,
+            "shapeType": "circle",
+            "fillColor": "#2d3436",
+            "strokeColor": "#e94560",
+            "strokeWidth": 2,
+            "draggable": true,
+            "dragMode": "copy",
+            "children": [
+                {
+                    "id": "e7",
+                    "name": "L7",
+                    "className": "TLabel",
+                    "x": 0,
+                    "y": 0,
+                    "width": 5,
+                    "height": 5,
+                    "text": "🍍",
+                    "style": {
+                        "fontSize": 40,
+                        "textAlign": "center"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "src_8",
+            "name": "Emoji_Kiwi",
+            "className": "TShape",
+            "x": 40,
+            "y": 20,
+            "width": 5,
+            "height": 5,
+            "shapeType": "circle",
+            "fillColor": "#2d3436",
+            "strokeColor": "#e94560",
+            "strokeWidth": 2,
+            "draggable": true,
+            "dragMode": "copy",
+            "children": [
+                {
+                    "id": "e8",
+                    "name": "L8",
+                    "className": "TLabel",
+                    "x": 0,
+                    "y": 0,
+                    "width": 5,
+                    "height": 5,
+                    "text": "🥝",
+                    "style": {
+                        "fontSize": 40,
+                        "textAlign": "center"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "slot_1",
+            "name": "Slot1",
+            "className": "TShape",
+            "x": 17,
+            "y": 30,
+            "width": 6,
+            "height": 6,
+            "shapeType": "circle",
+            "fillColor": "#16213e",
+            "strokeColor": "#4fc3f7",
+            "strokeWidth": 2,
+            "droppable": true,
+            "Tasks": {
+                "onDrop": "HandleDrop1"
+            }
+        },
+        {
+            "id": "slot_2",
+            "name": "Slot2",
+            "className": "TShape",
+            "x": 25,
+            "y": 30,
+            "width": 6,
+            "height": 6,
+            "shapeType": "circle",
+            "fillColor": "#16213e",
+            "strokeColor": "#4fc3f7",
+            "strokeWidth": 2,
+            "droppable": true,
+            "Tasks": {
+                "onDrop": "HandleDrop2"
+            }
+        },
+        {
+            "id": "slot_3",
+            "name": "Slot3",
+            "className": "TShape",
+            "x": 33,
+            "y": 30,
+            "width": 6,
+            "height": 6,
+            "shapeType": "circle",
+            "fillColor": "#16213e",
+            "strokeColor": "#4fc3f7",
+            "strokeWidth": 2,
+            "droppable": true,
+            "Tasks": {
+                "onDrop": "HandleDrop3"
+            }
+        },
+        {
+            "id": "slot_4",
+            "name": "Slot4",
+            "className": "TShape",
+            "x": 41,
+            "y": 30,
+            "width": 6,
+            "height": 6,
+            "shapeType": "circle",
+            "fillColor": "#16213e",
+            "strokeColor": "#4fc3f7",
+            "strokeWidth": 2,
+            "droppable": true,
+            "Tasks": {
+                "onDrop": "HandleDrop4"
+            }
+        }
+    ],
+    "tasks": [
+        {
+            "name": "HandleDrop1",
+            "actionSequence": [
+                {
+                    "type": "calculate",
+                    "formula": "$eventSource.children[0].text",
+                    "resultVariable": "Code1"
+                },
+                {
+                    "type": "property",
+                    "target": "Slot1",
+                    "changes": {
+                        "fillColor": "#2ecc71"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "HandleDrop2",
+            "actionSequence": [
+                {
+                    "type": "calculate",
+                    "formula": "$eventSource.children[0].text",
+                    "resultVariable": "Code2"
+                },
+                {
+                    "type": "property",
+                    "target": "Slot2",
+                    "changes": {
+                        "fillColor": "#2ecc71"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "HandleDrop3",
+            "actionSequence": [
+                {
+                    "type": "calculate",
+                    "formula": "$eventSource.children[0].text",
+                    "resultVariable": "Code3"
+                },
+                {
+                    "type": "property",
+                    "target": "Slot3",
+                    "changes": {
+                        "fillColor": "#2ecc71"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "HandleDrop4",
+            "actionSequence": [
+                {
+                    "type": "calculate",
+                    "formula": "$eventSource.children[0].text",
+                    "resultVariable": "Code4"
+                },
+                {
+                    "type": "property",
+                    "target": "Slot4",
+                    "changes": {
+                        "fillColor": "#2ecc71"
+                    }
+                },
+                {
+                    "type": "task",
+                    "name": "ValidateCode"
+                }
+            ]
+        },
+        {
+            "name": "ValidateCode",
+            "actionSequence": [
+                {
+                    "type": "condition",
+                    "formula": "Code1 == '🍉' && Code2 == '🍓' && Code3 == '🍎' && Code4 == '🍍'",
+                    "thenTask": "LoginSuccess",
+                    "elseTask": "LoginFailure"
+                }
+            ]
+        },
+        {
+            "name": "LoginSuccess",
+            "actionSequence": [
+                {
+                    "type": "log",
+                    "message": "Login erfolgreich!",
+                    "showToast": true
+                },
+                {
+                    "type": "navigate",
+                    "target": "lobby"
+                }
+            ]
+        },
+        {
+            "name": "LoginFailure",
+            "actionSequence": [
+                {
+                    "type": "log",
+                    "message": "Falscher Code!",
+                    "showToast": true
+                },
+                {
+                    "type": "shake",
+                    "target": "Slot1"
+                },
+                {
+                    "type": "shake",
+                    "target": "Slot2"
+                },
+                {
+                    "type": "shake",
+                    "target": "Slot3"
+                },
+                {
+                    "type": "shake",
+                    "target": "Slot4"
+                },
+                {
+                    "type": "property",
+                    "target": "Slot1",
+                    "changes": {
+                        "fillColor": "#16213e"
+                    }
+                },
+                {
+                    "type": "property",
+                    "target": "Slot2",
+                    "changes": {
+                        "fillColor": "#16213e"
+                    }
+                },
+                {
+                    "type": "property",
+                    "target": "Slot3",
+                    "changes": {
+                        "fillColor": "#16213e"
+                    }
+                },
+                {
+                    "type": "property",
+                    "target": "Slot4",
+                    "changes": {
+                        "fillColor": "#16213e"
+                    }
+                },
+                {
+                    "type": "calculate",
+                    "formula": "''",
+                    "resultVariable": "Code1"
+                },
+                {
+                    "type": "calculate",
+                    "formula": "''",
+                    "resultVariable": "Code2"
+                },
+                {
+                    "type": "calculate",
+                    "formula": "''",
+                    "resultVariable": "Code3"
+                },
+                {
+                    "type": "calculate",
+                    "formula": "''",
+                    "resultVariable": "Code4"
+                }
+            ]
+        }
+    ],
+    "variables": [
+        {
+            "name": "Code1",
+            "value": ""
+        },
+        {
+            "name": "Code2",
+            "value": ""
+        },
+        {
+            "name": "Code3",
+            "value": ""
+        },
+        {
+            "name": "Code4",
+            "value": ""
+        }
+    ]
+}

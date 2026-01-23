@@ -175,6 +175,33 @@ export class FlowEditor {
         return this.project.stages.find(s => s.id === this.project!.activeStageId) || this.project.stages[0] || null;
     }
 
+    private getTaskDefinitionByName(taskName: string): any | null {
+        if (!this.project) return null;
+
+        // 1. Try current stage tasks - PRIORITY for local context!
+        const activeStage = this.getActiveStage();
+        if (activeStage && activeStage.tasks) {
+            const task = activeStage.tasks.find(t => t.name === taskName);
+            if (task) return task;
+        }
+
+        // 2. Try global tasks
+        let task = this.project.tasks.find(t => t.name === taskName);
+        if (task) return task;
+
+        // 3. Search all other stages as fallback
+        if (this.project.stages) {
+            for (const s of this.project.stages) {
+                if (s.tasks) {
+                    task = s.tasks.find(t => t.name === taskName);
+                    if (task) return task;
+                }
+            }
+        }
+
+        return null;
+    }
+
     private getCurrentObjects(): any[] {
         if (!this.project) return [];
         const activeStage = this.getActiveStage();
@@ -377,7 +404,8 @@ export class FlowEditor {
             const actionName = el.properties?.name || el.data?.name;
             if (!actionName) return;
 
-            const projectAction = this.project!.actions.find(a => a.name === actionName);
+            const stage = this.getActiveStage();
+            const projectAction = (this.project!.actions || []).find(a => a.name === actionName) || (stage?.actions || []).find(a => a.name === actionName);
             if (projectAction) {
                 // Update the element's data with the current action definition
                 // Keep node-specific properties (isEmbeddedInternal, parentProxyId, etc.)
@@ -415,7 +443,8 @@ export class FlowEditor {
             if (node.getType() !== 'Action') return;
 
             const actionName = node.Name;
-            const projectAction = this.project!.actions.find(a => a.name === actionName);
+            const stage = this.getActiveStage();
+            const projectAction = (this.project!.actions || []).find(a => a.name === actionName) || (stage?.actions || []).find(a => a.name === actionName);
             if (projectAction) {
                 const preserveKeys = ['isEmbeddedInternal', 'parentProxyId', 'parentParams', 'showDetails', 'originalId'];
                 const preserved: any = {};
@@ -548,6 +577,9 @@ export class FlowEditor {
             stageGroup.appendChild(globalOpt);
 
             // Tasks in this stage
+            const stageTasksFound = new Set<string>();
+
+            // 1. Tasks that have a flowchart
             if (activeStage.flowCharts) {
                 Object.keys(activeStage.flowCharts).forEach(key => {
                     if (key !== 'global') {
@@ -555,9 +587,24 @@ export class FlowEditor {
                         opt.value = key;
                         opt.text = `Task: ${key}`;
                         stageGroup.appendChild(opt);
+                        stageTasksFound.add(key);
                     }
                 });
             }
+
+            // 2. Tasks defined in the stage but might not have a flowchart yet
+            if (activeStage.tasks) {
+                activeStage.tasks.forEach(task => {
+                    if (!stageTasksFound.has(task.name)) {
+                        const opt = document.createElement('option');
+                        opt.value = task.name;
+                        opt.text = `Task: ${task.name}`;
+                        stageGroup.appendChild(opt);
+                        stageTasksFound.add(task.name);
+                    }
+                });
+            }
+
             this.flowSelect.appendChild(stageGroup);
         }
 
@@ -568,10 +615,11 @@ export class FlowEditor {
             const globalGroup = document.createElement('optgroup');
             globalGroup.label = 'Global / Projekt';
 
-            // Tasks in global project scope
-            if (this.project.flowCharts) {
-                const stageTaskKeys = activeStage?.flowCharts ? Object.keys(activeStage.flowCharts) : [];
+            const globalTasksFound = new Set<string>();
+            const stageTaskKeys = activeStage?.flowCharts ? Object.keys(activeStage.flowCharts) : [];
 
+            // 1. Global tasks with flowchart
+            if (this.project.flowCharts) {
                 Object.keys(this.project.flowCharts).forEach(key => {
                     // Nur anzeigen, wenn nicht im global-Key (Landkarte/Übersicht) 
                     // UND wenn nicht bereits in der Stage definiert
@@ -580,6 +628,20 @@ export class FlowEditor {
                         opt.value = key;
                         opt.text = `Task: ${key}`;
                         globalGroup.appendChild(opt);
+                        globalTasksFound.add(key);
+                    }
+                });
+            }
+
+            // 2. Global tasks without flowchart
+            if (this.project.tasks) {
+                this.project.tasks.forEach(task => {
+                    if (!globalTasksFound.has(task.name) && !stageTaskKeys.includes(task.name)) {
+                        const opt = document.createElement('option');
+                        opt.value = task.name;
+                        opt.text = `Task: ${task.name}`;
+                        globalGroup.appendChild(opt);
+                        globalTasksFound.add(task.name);
                     }
                 });
             }
@@ -675,9 +737,7 @@ export class FlowEditor {
 
     private rebuildActionRegistry() {
         if (!this.project) return;
-        this.project.actions = this.project.actions || [];
-
-        // Initialize registry
+        // 1. Clear project.actions if we want to rebuild from scratch (optional, but keep for now)
         this.project.actions = this.project.actions || [];
 
         const register = (elements: any[]) => {
@@ -937,12 +997,22 @@ export class FlowEditor {
         // Ensure tasks array exists
         if (!this.project.tasks) this.project.tasks = [];
 
-        // Check if task already exists
-        const existingTask = this.project.tasks.find(t => t.name === taskName);
+        // Check if task already exists (globally or in stages)
+        const existingTask = this.getTaskDefinitionByName(taskName);
         if (existingTask) {
             // Update description if provided and not already set
             if (description && !existingTask.description) {
                 existingTask.description = description;
+            }
+            // Backfill defaults if missing
+            if (!existingTask.triggerMode) {
+                existingTask.triggerMode = 'local-sync';
+            }
+            if (!existingTask.params) {
+                existingTask.params = [];
+            }
+            if (existingTask.description === undefined) {
+                existingTask.description = '';
             }
             return;
         }
@@ -952,7 +1022,9 @@ export class FlowEditor {
         this.project.tasks.push({
             name: taskName,
             description: description || '',
-            actionSequence: []
+            actionSequence: [],
+            triggerMode: 'local-sync',
+            params: []
         });
     }
 
@@ -1103,7 +1175,7 @@ export class FlowEditor {
 
         } else {
             // Task Specific Flow
-            const task = this.project.tasks.find(t => t.name === this.currentFlowContext);
+            const task = this.getTaskDefinitionByName(this.currentFlowContext);
             if (task) {
                 // Store in flowCharts
                 console.log(`[FlowEditor] syncToProject: Saving ${elements.length} elements to ${targetCharts === activeStage?.flowCharts ? 'stage' : 'project'}.flowCharts["${this.currentFlowContext}"]`);
@@ -1310,7 +1382,6 @@ export class FlowEditor {
         }
 
         console.log(`[FlowEditor] syncTaskFromFlow: Regenerating sequence for task "${task.name}" from ${elements.length} elements.`);
-
         const sequence: any[] = [];
         const visited = new Set<string>();
 
@@ -1516,18 +1587,8 @@ export class FlowEditor {
                 sourceData = globalFlowChart;
                 console.log(`[FlowEditor] Loading from project.flowCharts["${this.currentFlowContext}"]: ${sourceData?.elements?.length || 0} elements`);
             } else {
-                // Check if task exists (in global or active stage)
-                let task = (this.editor?.currentTasks || this.project.tasks).find((t: any) => t.name === this.currentFlowContext) as any;
-
-                // Fallback: search in ANY stage if not found (e.g. if editor is not provided or active stage is wrong)
-                if (!task && this.project.stages) {
-                    for (const stage of this.project.stages) {
-                        if (stage.tasks) {
-                            task = stage.tasks.find(t => t.name === this.currentFlowContext);
-                            if (task) break;
-                        }
-                    }
-                }
+                // Check if task exists (in global or stage)
+                let task = this.getTaskDefinitionByName(this.currentFlowContext);
 
                 console.log(`[FlowEditor] loadFromProject: Task record found: ${!!task}, hasFlowChart: ${!!task?.flowChart} (${task?.flowChart?.elements?.length || 0} elements)`);
                 if (task?.flowChart) {
@@ -1541,6 +1602,10 @@ export class FlowEditor {
                     const targetCharts = this.getTargetFlowCharts(this.currentFlowContext);
                     targetCharts[this.currentFlowContext] = task.flowGraph;
                     delete task.flowGraph;
+                } else if (task) {
+                    // AUTO-RECONSTRUCT: If task has an actionSequence but no flowChart, generate one
+                    console.log(`[FlowEditor] Task "${this.currentFlowContext}" exists but has no flow. Attempting reconstruction from actionSequence...`);
+                    sourceData = this.generateFlowFromActionSequence(task);
                 } else {
                     // Initialize new empty flow for this task
                     console.warn(`[FlowEditor] No flow data found for task "${this.currentFlowContext}"! Initializing empty flow.`);
@@ -1553,21 +1618,6 @@ export class FlowEditor {
                             const startNode = new FlowStart('start-' + Date.now(), 50, 50, this.canvas, this.flowStage.cellSize);
                             startNode.Text = "Start";
                             this.nodes.push(startNode);
-
-                            const taskNode = new FlowTask('task-root-' + Date.now(), 200, 50, this.canvas, this.flowStage.cellSize);
-                            taskNode.Text = this.currentFlowContext;
-                            taskNode.data = { taskName: this.currentFlowContext };
-                            taskNode.setDetailed(true);
-                            this.nodes.push(taskNode);
-
-                            // Connect them
-                            const conn = new FlowConnection(this.canvas, 0, 0, 0, 0);
-                            conn.setGridConfig(this.flowStage.cellSize);
-                            conn.attachStart(startNode);
-                            conn.attachEnd(taskNode);
-                            conn.updatePosition();
-                            this.connections.push(conn);
-                            this.setupConnectionListeners(conn);
                         }
                     }, 100);
                 }
@@ -1665,16 +1715,17 @@ export class FlowEditor {
                 // action use the same data.
                 if (data.type === 'Action' && this.project) {
                     const actionName = data.properties?.name || data.data?.name;
-                    const projectAction = this.project.actions.find(a => a.name === actionName);
+                    const stage = this.getActiveStage();
+                    const projectAction = (this.project.actions || []).find(a => a.name === actionName) || (stage?.actions || []).find(a => a.name === actionName);
 
                     if (projectAction) {
-                        // Load from project.actions (Single Source of Truth)
+                        // Load from project.actions or stage.actions (Single Source of Truth)
                         node.data = { ...projectAction, isLinked: true };
                         node.setLinked(true);
                     } else {
-                        // Action not found in project.actions - use local data (legacy or copy)
+                        // Action not found - use local data (legacy or copy)
                         node.data = { ...data.data };
-                        console.warn(`[FlowEditor] Action "${actionName}" not found in project.actions - using local FlowChart data`);
+                        console.warn(`[FlowEditor] Action "${actionName}" not found in project.actions or stage.actions - using local FlowChart data`);
                     }
                 } else {
                     // Non-Action nodes: use FlowChart data as before
@@ -1790,6 +1841,102 @@ export class FlowEditor {
                 }
             });
         }
+    }
+
+    /**
+     * Generiert ein initiales FlowChart-Diagramm aus einer bestehenden actionSequence eines Tasks.
+     * Dies wird verwendet, um eine visuelle Darstellung für Tasks zu erzeugen, die noch kein Diagramm haben.
+     */
+    private generateFlowFromActionSequence(task: any): { elements: any[], connections: any[] } {
+        console.log(`[FlowEditor] Generating flow for task: ${task.name}`);
+        const elements: any[] = [];
+        const connections: any[] = [];
+
+        const startId = 'start_' + Date.now();
+        elements.push({
+            id: startId,
+            type: 'Start',
+            x: 100,
+            y: 100,
+            properties: { name: 'Start' }
+        });
+
+        let currentY = 250;
+        let lastNodeId = startId;
+
+        const processSequence = (sequence: any[], depth: number = 0) => {
+            sequence.forEach((item, index) => {
+                const nodeId = `node_${depth}_${index}_${Date.now()}`;
+                const x = 100 + (depth * 250);
+                const y = currentY;
+                currentY += 150;
+
+                if (item.type === 'condition') {
+                    elements.push({
+                        id: nodeId,
+                        type: 'Condition',
+                        x: x,
+                        y: y,
+                        data: { condition: { variable: item.formula || '', operator: '==', value: '' } },
+                        properties: { name: 'Check', details: item.formula || '' }
+                    });
+
+                    connections.push({
+                        startTargetId: lastNodeId,
+                        endTargetId: nodeId,
+                        data: { startAnchorType: 'output' }
+                    });
+
+                    lastNodeId = nodeId;
+
+                    // Simple reconstruction for conditions (only showing the main path)
+                    if (item.thenTask || item.thenAction) {
+                        // We could recursively process branches here in the future
+                    }
+                } else if (item.type === 'task') {
+                    elements.push({
+                        id: nodeId,
+                        type: 'Task',
+                        x: x,
+                        y: y,
+                        data: { taskName: item.name },
+                        properties: { name: item.name }
+                    });
+
+                    connections.push({
+                        startTargetId: lastNodeId,
+                        endTargetId: nodeId,
+                        data: { startAnchorType: 'output' }
+                    });
+
+                    lastNodeId = nodeId;
+                } else {
+                    // Standard Action
+                    elements.push({
+                        id: nodeId,
+                        type: 'Action',
+                        x: x,
+                        y: y,
+                        data: { ...item },
+                        properties: { name: item.type || 'Action', details: item.formula || '' }
+                    });
+
+                    connections.push({
+                        startTargetId: lastNodeId,
+                        endTargetId: nodeId,
+                        data: { startAnchorType: 'output' }
+                    });
+
+                    lastNodeId = nodeId;
+                }
+            });
+        };
+
+        if (task.actionSequence) {
+            processSequence(task.actionSequence);
+        }
+
+        return { elements, connections };
     }
 
     private restoreConnection(data: any) {

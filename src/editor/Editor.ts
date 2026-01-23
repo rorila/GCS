@@ -8,6 +8,7 @@ import { TEdit } from '../components/TEdit';
 import { TSystemInfo } from '../components/TSystemInfo';
 import { TGameHeader } from '../components/TGameHeader';
 import { TSprite } from '../components/TSprite';
+import { TShape } from '../components/TShape';
 import { TGameLoop } from '../components/TGameLoop';
 import { TInputController } from '../components/TInputController';
 import { TTimer } from '../components/TTimer';
@@ -469,6 +470,14 @@ export class Editor {
     }
 
     private switchView(view: 'stage' | 'json' | 'run' | 'flow' | 'code') {
+        // Sync flow editor changes back to project before switching views
+        if (this.currentView === 'flow' && this.flowEditor) {
+            this.flowEditor.syncToProject();
+            // Aggressive sync: ensure all tasks are synchronized from their diagrams
+            // This prevents "split-brain" where some tasks were changed but not the active one
+            this.flowEditor.syncAllTasksFromFlow(this.project);
+        }
+
         this.currentView = view;
         const stageWrapper = document.getElementById('stage-wrapper');
         const jsonPanel = document.getElementById('json-viewer');
@@ -758,6 +767,9 @@ export class Editor {
                 }
             }
         }
+
+        // Final render to ensure everything is visible after tab switch
+        this.render();
     }
 
 
@@ -796,6 +808,9 @@ export class Editor {
                 autoHide: this.project.splashAutoHide ?? true,
                 grid: JSON.parse(JSON.stringify(this.project.stage.grid)) // Grid kopieren
             });
+            console.log(`[Editor] SplashStage erstellt mit ${this.project.splashObjects.length} Objekten.`);
+        } else {
+            console.log('[Editor] Keine splashObjects für Migration gefunden.');
         }
 
         // HauptStage erstellen
@@ -854,8 +869,8 @@ export class Editor {
 
                 // Create new stage based on template (Clone structure)
                 const stageCount = this.project.stages!.length;
-                const id = `stage-${Date.now()}`;
-                const name = `${template.name} ${stageCount + 1}`;
+                const id = `stage - ${Date.now()} `;
+                const name = `${template.name} ${stageCount + 1} `;
 
                 // Helper to recursively regenerate IDs
                 const regenerateIds = (objs: any[]): any[] => {
@@ -867,7 +882,7 @@ export class Editor {
                             // Or just use name + random?
                             // Let's use: name + timestamp + random to be safe and readable
                             const baseName = newObj.name || newObj.id;
-                            newObj.id = `${baseName}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                            newObj.id = `${baseName}_${Date.now()}_${Math.floor(Math.random() * 1000)} `;
                         }
 
                         if (newObj.children && Array.isArray(newObj.children)) {
@@ -893,7 +908,7 @@ export class Editor {
                 this.updateStagesMenu();
                 this.autoSaveToLocalStorage();
 
-                console.log(`[Editor] Created stage from template: ${template.name}`);
+                console.log(`[Editor] Created stage from template: ${template.name} `);
             }
         } catch (e) {
             console.error('[Editor] Template selection failed:', e);
@@ -918,11 +933,11 @@ export class Editor {
         // Check availability
         const existing = libraryService.getTemplates().find(t => t.name === name);
         if (existing) {
-            if (!confirm(`Ein Template mit dem Namen "${name}" ist schon vorhanden.\nMöchten Sie es ersetzen?`)) {
+            if (!confirm(`Ein Template mit dem Namen "${name}" ist schon vorhanden.\nMöchten Sie es ersetzen ? `)) {
                 return;
             }
         } else {
-            if (!confirm(`Möchten Sie die aktuelle Stage als neues Template "${name}" speichern?`)) {
+            if (!confirm(`Möchten Sie die aktuelle Stage als neues Template "${name}" speichern ? `)) {
                 return;
             }
         }
@@ -959,7 +974,7 @@ export class Editor {
             // Refresh library locally handled by service, triggers might needed?
             // Nothing explicitly needed if we stay on same page, but maybe refresh inspector options?
         } else {
-            alert(`Fehler beim Speichern des Templates "${name}". Bitte Konsole prüfen.`);
+            alert(`Fehler beim Speichern des Templates "${name}".Bitte Konsole prüfen.`);
         }
     }
 
@@ -980,8 +995,8 @@ export class Editor {
 
         // Generiere eindeutige ID
         const stageCount = this.project.stages!.filter(s => s.type === type).length;
-        const id = type === 'splash' ? 'splash' : `stage-${Date.now()}`;
-        const name = type === 'splash' ? 'Splash' : `Stage ${stageCount + 1}`;
+        const id = type === 'splash' ? 'splash' : `stage - ${Date.now()} `;
+        const name = type === 'splash' ? 'Splash' : `Stage ${stageCount + 1} `;
 
         const newStage: StageDefinition = {
             id,
@@ -1010,7 +1025,7 @@ export class Editor {
         // Menü aktualisieren
         this.updateStagesMenu();
 
-        console.log(`[Editor] Neue ${type}-Stage erstellt: ${name}`);
+        console.log(`[Editor] Neue ${type} -Stage erstellt: ${name} `);
         this.autoSaveToLocalStorage();
     }
 
@@ -1024,7 +1039,7 @@ export class Editor {
 
         const stage = this.project.stages!.find(s => s.id === stageId);
         if (!stage) {
-            console.warn(`[Editor] Stage nicht gefunden: ${stageId}`);
+            console.warn(`[Editor] Stage nicht gefunden: ${stageId} `);
             return;
         }
 
@@ -1072,7 +1087,7 @@ export class Editor {
 
         const confirmMsg = activeStage.type === 'splash'
             ? 'Splashscreen wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.'
-            : `Stage "${activeStage.name}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`;
+            : `Stage "${activeStage.name}" wirklich löschen ? Diese Aktion kann nicht rückgängig gemacht werden.`;
 
         if (!confirm(confirmMsg)) return;
 
@@ -1086,7 +1101,7 @@ export class Editor {
         // Menü aktualisieren
         this.updateStagesMenu();
 
-        console.log(`[Editor] Stage gelöscht: ${activeStage.name}`);
+        console.log(`[Editor] Stage gelöscht: ${activeStage.name} `);
         this.autoSaveToLocalStorage();
     }
 
@@ -1190,9 +1205,9 @@ export class Editor {
             else if (stage.type === 'template') icon = '🧩';
 
             stageItems.push({
-                id: `stage-${stage.id}`,
+                id: `stage - ${stage.id} `,
                 label: `${isActive ? '▶ ' : ''}${stage.name} (${typeLabel})`,
-                action: `switch-stage-${stage.id}`,
+                action: `switch-stage - ${stage.id}`,
                 icon: icon
             });
         });
@@ -1262,12 +1277,12 @@ export class Editor {
             actorInfo.style.borderRadius = '4px';
             actorInfo.style.borderLeft = '3px solid #4fc3f7';
             actorInfo.innerHTML = `
-                <div style="font-size: 0.85rem; color: #888;">Auslöser</div>
-                <div style="font-size: 1.1rem; color: #fff; font-weight: bold;">
-                    <span style="color: #81c784;">${flow.actorType}</span>: ${flow.actorName}
-                    <span style="color: #4fc3f7; margin-left: 0.5rem;">→ ${flow.eventName}</span>
-                </div>
-            `;
+    < div style = "font-size: 0.85rem; color: #888;" > Auslöser </div>
+        < div style = "font-size: 1.1rem; color: #fff; font-weight: bold;" >
+            <span style="color: #81c784;" > ${flow.actorType} </span>: ${flow.actorName}
+                < span style = "color: #4fc3f7; margin-left: 0.5rem;" >→ ${flow.eventName} </span>
+                    </div>
+                        `;
             section.appendChild(actorInfo);
 
             // Render diagram
@@ -1275,11 +1290,11 @@ export class Editor {
             diagramDiv.style.overflowX = 'auto';
             diagramDiv.style.padding = '1rem 0';
             try {
-                const { svg } = await mermaid.render(`flow-diagram-${i}`, flow.mermaidSyntax);
+                const { svg } = await mermaid.render(`flow - diagram - ${i} `, flow.mermaidSyntax);
                 diagramDiv.innerHTML = svg;
             } catch (error) {
-                console.error(`Error rendering ${flow.eventName}:`, error);
-                diagramDiv.innerHTML = `<pre style="color: red;">Error: ${error}\n\n${flow.mermaidSyntax}</pre>`;
+                console.error(`Error rendering ${flow.eventName}: `, error);
+                diagramDiv.innerHTML = `< pre style = "color: red;" > Error: ${error} \n\n${flow.mermaidSyntax} </pre>`;
             }
             section.appendChild(diagramDiv);
 
@@ -1549,6 +1564,18 @@ export class Editor {
         };
 
         this.stage.onObjectMove = (id, newX, newY) => {
+            if (this.stage.runMode) {
+                // Runtime Mode: Update runtime object only (reactive)
+                if (this.runtimeObjects) {
+                    const runtimeObj = this.runtimeObjects.find(ro => ro.id === id);
+                    if (runtimeObj) {
+                        runtimeObj.x = newX;
+                        runtimeObj.y = newY;
+                    }
+                }
+                return;
+            }
+
             const obj = this.findObjectById(id);
             if (obj) {
                 // Check if this object is a child of a container
@@ -1595,6 +1622,112 @@ export class Editor {
             clone.id = crypto.randomUUID();
             clone.name = `${obj.name}_copy`;
             return clone;
+        };
+
+        // onDragStart: Runtime Event
+        this.stage.onDragStart = (id) => {
+            if (this.stage.runMode) {
+                console.log(`[Editor] onDragStart: ${id}`);
+                this.runtime?.handleEvent(id, 'onDragStart');
+            }
+        };
+
+        this.stage.onObjectCopy = (id, x, y) => {
+            if (this.stage.runMode) {
+                // Runtime Drop & Clone Logic (GCS-Style)
+                const original = this.runtimeObjects?.find(o => o.id === id);
+                if (!original) return;
+
+                // 1. Calculate drop rect (Model-based)
+                // x, y are grid coords from Stage.
+                // Assuming objects interact on Grid or Pixel level?
+                // lastRenderedObjects used pixels for AABB.
+                // Here we have grid coords x,y from Stage.
+
+                // Convert grid to pixels for AABB check
+                const grid = this.project.stage?.grid || (this.project as any).grid;
+                const cellSize = grid?.cellSize || 20;
+
+                const dropRect = {
+                    left: x * cellSize,
+                    top: y * cellSize,
+                    right: (x * cellSize) + (original.width || 100),
+                    bottom: (y * cellSize) + (original.height || 100)
+                };
+
+                let dropTarget: any = null;
+
+                // 2. Collision Check against Droppables
+                // Iterate runtimeObjects
+                if (this.runtimeObjects) {
+                    for (const target of this.runtimeObjects) {
+                        // Skip self and non-droppables
+                        if (target.id === id || !target.droppable) continue;
+
+                        // Target Rect
+                        const tRect = {
+                            left: target.x * cellSize,
+                            top: target.y * cellSize,
+                            right: (target.x * cellSize) + (target.width || 100),
+                            bottom: (target.y * cellSize) + (target.height || 100)
+                        };
+
+                        // AABB Intersection
+                        const intersects = !(
+                            dropRect.right < tRect.left ||
+                            dropRect.left > tRect.right ||
+                            dropRect.bottom < tRect.top ||
+                            dropRect.top > tRect.bottom
+                        );
+
+                        if (intersects) {
+                            dropTarget = target;
+                            break; // First match wins strategy
+                        }
+                    }
+                }
+
+                if (dropTarget) {
+                    // Success!
+                    console.log(`[Editor] Drop success on target: ${dropTarget.name}`);
+
+                    // 3. Create Clone & Snap
+                    const clone = JSON.parse(JSON.stringify(original));
+                    clone.id = crypto.randomUUID();
+                    clone.name = `${original.name}_copy_${Date.now()}`;
+                    // Snap to Target Position
+                    clone.x = dropTarget.x;
+                    clone.y = dropTarget.y;
+
+                    this.runtimeObjects?.push(clone);
+
+                    // 4. Fire Events
+                    // onDrop (Target)
+                    this.runtime?.handleEvent(dropTarget.id, 'onDrop', {
+                        sourceId: original.id,
+                        cloneId: clone.id
+                    });
+
+                    // onDragEnd (Source) - Success
+                    this.runtime?.handleEvent(original.id, 'onDragEnd', {
+                        targetId: dropTarget.id,
+                        success: true,
+                        cloneId: clone.id
+                    });
+
+                    this.render();
+
+                } else {
+                    // Fail
+                    console.log(`[Editor] Drop failed: No target hit.`);
+                    // onDragEnd (Source) - Fail
+                    this.runtime?.handleEvent(original.id, 'onDragEnd', {
+                        targetId: null,
+                        success: false,
+                        cloneId: null
+                    });
+                }
+            }
         };
 
         // Paste callback - add cloned object at position
@@ -1701,6 +1834,9 @@ export class Editor {
             case 'Sprite':
                 newObj = new TSprite(name, x, y, 2, 2);
                 break;
+            case 'Shape':
+                newObj = new TShape(name, x, y, 5, 5);
+                break;
             case 'GameLoop':
                 newObj = new TGameLoop(name, x, y);
                 break;
@@ -1773,16 +1909,19 @@ export class Editor {
         const newObj = this.createObjectInstance(type, name, x, y);
         if (!newObj) return;
 
+        // Explicitly set className for robust identification (minification-proof)
+        (newObj as any).className = `T${type}`;
+
         // Ensure bounds validation if needed, or leave to stage logic
         newObj.x = Math.max(0, x);
         newObj.y = Math.max(0, y);
 
-        // Check if this object lands inside a TDialogRoot container
-        // If so, make it a child of that dialog with relative positioning
+        // Check if this object lands inside a Container (TDialogRoot, TSplashScreen)
+        // If so, make it a child with relative positioning
         const dialogContainers = this.currentObjects.filter(o => {
             const cn = (o as any).className || o.constructor?.name;
-            return cn === 'TDialogRoot';
-        }) as TDialogRoot[];
+            return cn === 'TDialogRoot' || cn === 'TSplashScreen';
+        }) as any[];
 
         console.log(`[Editor] Adding ${newObj.name} at (${newObj.x}, ${newObj.y}). Found ${dialogContainers.length} dialog containers.`);
 
@@ -1894,7 +2033,13 @@ export class Editor {
                 console.log(`[Editor] Context-Aware Run: Starting in stage '${activeStage.name}' (${startStageId})`);
             }
 
-            this.runtime = new GameRuntime(this.project, undefined, { // Force undefined objects to let Runtime load them from Stage
+            let runtimeInstance: any = null;
+
+            // Sync current editor state to project JSON before starting runtime
+            // This ensures that changes made in the editor (e.g. image src) are available to the runtime
+            this.syncStageObjectsToProject();
+
+            runtimeInstance = new GameRuntime(this.project, undefined, { // Force undefined objects to let Runtime load them from Stage
                 onNavigate: (_target) => this.switchView('run'), // Standalone would use real nav
                 makeReactive: true,
                 multiplayerManager: mpManager,
@@ -1906,33 +2051,32 @@ export class Editor {
                     if (targetStage) {
                         console.log(`[Editor] Runtime requested stage switch to: ${targetStage.name}`);
 
-                        // Copy visual settings to the active Stage component
-                        // We must ensure 'this.stage' reflects the target stage's visuals
+                        // Update Stage background/grid
                         if (this.stage) {
-                            // Update Stage internal state (without full reload of editor)
-                            // this.stage.setData(targetStage); // TStage doesn't have setData easily
-
-                            // 1. Update Grid/Background
                             this.stage.grid = {
-                                cols: targetStage.grid?.cols || 40,
-                                rows: targetStage.grid?.rows || 25,
-                                cellSize: targetStage.grid?.cellSize || 32,
-                                snapToGrid: this.stage.grid.snapToGrid,
-                                visible: targetStage.grid?.visible !== false,
+                                cols: targetStage.grid?.cols || 32,
+                                rows: targetStage.grid?.rows || 24,
+                                cellSize: targetStage.grid?.cellSize || 20,
+                                snapToGrid: targetStage.grid?.snapToGrid ?? true,
+                                visible: (this.stage?.runMode) ? (targetStage.grid?.visible ?? false) : (targetStage.grid?.visible ?? true),
                                 backgroundColor: targetStage.grid?.backgroundColor || '#1e1e1e'
                             };
-
-                            // 3. Force Repaint (handled by grid setter)
-                            // this.stage.drawGrid(); // Not needed, setter calls updategrid
                         }
 
-                        // CRITICAL: Update runtimeObjects reference as GameRuntime has replaced the objects array!
-                        if (this.runtime) {
+                        // CRITICAL: Refresh runtimeObjects from the instance (even if not yet assigned to this.runtime)
+                        const rt = runtimeInstance || this.runtime;
+                        if (rt) {
                             console.log("[Editor] Refreshing runtimeObjects reference after stage switch.");
-                            this.runtimeObjects = this.runtime.getObjects();
+                            this.runtimeObjects = rt.getObjects();
 
-                            // GameLoop is now managed by GameLoopManager singleton
-                            // No need to manually start it - GameRuntime.start() handles this
+                            // UPDATE GameLoop reference to allow ticker to pause correctly!
+                            if (this.runtimeObjects) {
+                                this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as any) || null;
+                                if (this.activeGameLoop) {
+                                    console.log("[Editor] GameLoop found after stage switch. Stopping fallback ticker.");
+                                    this.stopAnimationTicker();
+                                }
+                            }
 
                             this.render();
                         }
@@ -1940,9 +2084,14 @@ export class Editor {
                 }
             });
 
+            this.runtime = runtimeInstance;
+
             // CRITICAL: The GameRuntime creates reactive proxies for our objects.
             // We MUST use these proxies for rendering and all other logic.
-            this.runtimeObjects = this.runtime.getObjects();
+            if (this.runtime) {
+                this.runtimeObjects = this.runtime.getObjects();
+                this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as any) || null;
+            }
 
             // Initialize Debug Logger if not already active
             if (!this.debugLog) {
@@ -1953,7 +2102,9 @@ export class Editor {
             // Start the Runtime (this starts GameLoop, Timers, InputControllers internally)
             // MOVED to end of block to ensure all systems are ready
             // this.runtime.start();
-            this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as TGameLoop) || null;
+            if (this.runtimeObjects) {
+                this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as TGameLoop) || null;
+            }
 
             // Connect Stage Events to Runtime
             if (this.stage) {
@@ -1971,48 +2122,60 @@ export class Editor {
             }
 
             // Initialize and start Timers
-            this.activeTimers = this.runtimeObjects.filter(
-                obj => (obj as any).className === 'TTimer'
-            ) as TTimer[];
-            this.activeTimers.forEach(timer => {
-                // Register onEvent callback for maxInterval event
-                if ('onEvent' in timer) {
-                    (timer as any).onEvent = (eventName: string) => {
-                        console.log(`[Editor] TTimer ${timer.name} fired event: ${eventName}`);
-                        this.handleEvent(timer.id, eventName);
-                    };
-                }
-                timer.start(() => {
-                    this.handleEvent(timer.id, 'onTimer');
+            if (this.runtimeObjects) {
+                this.activeTimers = this.runtimeObjects.filter(
+                    obj => (obj as any).className === 'TTimer'
+                ) as any[];
+                this.activeTimers.forEach(timer => {
+                    // Register onEvent callback for maxInterval event
+                    if (timer && 'onEvent' in timer) {
+                        (timer as any).onEvent = (eventName: string) => {
+                            console.log(`[Editor] TTimer ${timer.name} fired event: ${eventName}`);
+                            this.handleEvent(timer.id, eventName);
+                        };
+                    }
+                    if (timer && typeof timer.start === 'function') {
+                        timer.start(() => {
+                            this.handleEvent(timer.id, 'onTimer');
+                        });
+                    }
                 });
-            });
+            }
 
             // Initialize NumberLabel event callbacks (for onMaxValueReached, onMinValueReached)
-            const numberLabels = this.runtimeObjects.filter(
-                obj => (obj as any).className === 'TNumberLabel'
-            );
-            numberLabels.forEach(nl => {
-                if ('onEvent' in nl) {
-                    (nl as any).onEvent = (eventName: string) => {
-                        console.log(`[Editor] TNumberLabel ${nl.name} fired event: ${eventName}`);
-                        this.handleEvent(nl.id, eventName);
-                    };
-                }
-            });
+            if (this.runtimeObjects) {
+                const numberLabels = this.runtimeObjects.filter(
+                    obj => (obj as any).className === 'TNumberLabel'
+                );
+                numberLabels.forEach(nl => {
+                    if (nl && 'onEvent' in nl) {
+                        (nl as any).onEvent = (eventName: string) => {
+                            console.log(`[Editor] TNumberLabel ${nl.name} fired event: ${eventName}`);
+                            this.handleEvent(nl.id, eventName);
+                        };
+                    }
+                });
+            }
 
             // Initialize and start GameServers
-            this.activeGameServers = this.runtimeObjects.filter(
-                obj => (obj as any).className === 'TGameServer'
-            ) as TGameServer[];
-            this.activeGameServers.forEach(server => {
-                server.start((eventName, data) => {
-                    this.handleGameServerEvent(server.id, eventName, data);
+            if (this.runtimeObjects) {
+                this.activeGameServers = this.runtimeObjects.filter(
+                    obj => (obj as any).className === 'TGameServer'
+                ) as any[];
+                this.activeGameServers.forEach(server => {
+                    if (server && typeof server.start === 'function') {
+                        server.start((eventName: string, data: any) => {
+                            this.handleGameServerEvent(server.id, eventName, data);
+                        });
+                    }
                 });
-            });
+            }
 
             // Start Runtime - this triggers onStart events for all objects and startAnimation
             console.log("[Editor] Starting GameRuntime...");
-            this.runtime.start();
+            if (this.runtime) {
+                this.runtime.start();
+            }
 
 
 
@@ -2031,11 +2194,20 @@ export class Editor {
                 this.stage.onEvent = null;
             }
 
-            // Fallback: Clear manual references if they still exist
-            this.activeGameLoop?.stop();
-            this.activeInputControllers.forEach(ic => ic.stop());
-            this.activeTimers.forEach(timer => timer.stop());
-            this.activeGameServers.forEach(server => server.stop());
+            // NEW: Robust stop calls
+            if (this.activeGameLoop && typeof (this.activeGameLoop as any).stop === 'function') {
+                (this.activeGameLoop as any).stop();
+            }
+
+            this.activeInputControllers.forEach(ic => {
+                if (typeof (ic as any).stop === 'function') ic.stop();
+            });
+            this.activeTimers.forEach(timer => {
+                if (typeof (timer as any).stop === 'function') timer.stop();
+            });
+            this.activeGameServers.forEach(server => {
+                if (typeof (server as any).stop === 'function') server.stop();
+            });
 
             this.activeGameLoop = null;
             this.activeInputControllers = [];
@@ -2051,6 +2223,9 @@ export class Editor {
             }
 
             this.render(); // Render editor objects
+
+            // CRITICAL FIX: Force reload - Removed due to recursion loop
+            // this.render() should be sufficient as runtime is nullified.
         }
     }
 
@@ -2065,15 +2240,32 @@ export class Editor {
     private startAnimationTicker() {
         if (this.animationTickerId) return;
         const tick = () => {
-            if (!this.stage.runMode) return;
-            AnimationManager.getInstance().update();
-            if (AnimationManager.getInstance().hasActiveTweens()) {
-                // If we are animating, we MUST render every frame to see progress
-                this.render();
-            } else if (!this.activeGameLoop && this.stage.runMode) {
-                // Background render for run mode even if no game loop (fallback)
-                this.render();
+            // STOP condition 1: Run mode disabled
+            if (!this.stage || !this.stage.runMode) {
+                this.stopAnimationTicker();
+                return;
             }
+
+            // STOP condition 2: GameLoop is active (it handles rendering)
+            if (this.activeGameLoop) {
+                // But wait, if we stop here, we lose animation support if GameLoop doesn't use AnimationManager?
+                // TGameLoop DOES call AnimationManager.update().
+                // So we can safely stop this ticker if a real loop exists.
+                console.log("[Editor] GameLoop detected, stopping fallback ticker.");
+                this.stopAnimationTicker();
+                return;
+            }
+
+            AnimationManager.getInstance().update();
+
+            const hasTweens = AnimationManager.getInstance().hasActiveTweens();
+            // Render on animation or first frame
+            if (hasTweens || !(this as any).firstRunRenderDone) {
+                this.render();
+                if (!hasTweens) (this as any).firstRunRenderDone = true;
+            }
+
+            // Continue loop
             this.animationTickerId = requestAnimationFrame(tick);
         };
         this.animationTickerId = requestAnimationFrame(tick);
@@ -2112,8 +2304,9 @@ export class Editor {
     private render() {
         if (!this.project) return;
         try {
-            // NEW: In Edit mode, show resolved objects (including inherited templates as ghosts)
-            const objectsToRender = this.runtimeObjects || this.getResolvedInheritanceObjects();
+            // CRITICAL: Always get fresh objects from runtime if available, 
+            // as the runtime might replace the objects array on stage switches.
+            const objectsToRender = this.runtime ? this.runtime.getObjects() : (this.runtimeObjects || this.getResolvedInheritanceObjects());
 
             // Custom Render Callback (if needed) to inject extra logic
             // ...
@@ -2166,7 +2359,7 @@ export class Editor {
                         // Add to current stage
                         if (!activeStage.objects) activeStage.objects = [];
 
-                        // Check if it already exists (should not happen if isInherited was true, but safety check)
+                        // Check if it already exists
                         const existingIdx = activeStage.objects.findIndex(o => o.name === copy.name);
                         if (existingIdx >= 0) {
                             activeStage.objects[existingIdx] = copy;
@@ -2174,11 +2367,7 @@ export class Editor {
                             activeStage.objects.push(copy);
                         }
 
-                        // Update selection to the new local object
-                        // We need to re-resolve to get the new list state
                         this.render();
-
-                        // Re-select the object by ID (now it will find the local override)
                         this.selectObject(copy.id);
                     }
                 }
@@ -2186,55 +2375,33 @@ export class Editor {
                 this.render();
                 if (this.flowEditor) {
                     this.flowEditor.refreshSelectedNode();
-                    // Sync parameter changes from flow nodes to task definitions
                     this.flowEditor.syncToProject();
                 }
-                // Sync workingProjectData and refresh JSON view if active
-                const jsonPanel = document.getElementById('json-viewer');
-                if (jsonPanel && jsonPanel.style.display !== 'none') {
+
+                // Refresh JSON view if active
+                if (this.currentView === 'json') {
                     this.workingProjectData = JSON.parse(JSON.stringify(this.project));
                     this.refreshJSONView();
                 }
+
                 this.autoSaveToLocalStorage();
             };
 
             this.jsonInspector.onProjectUpdate = () => {
-                console.log('[Editor] Project updated, re-rendering and updating grid');
-
-                // Update MenuBar (e.g. Stage name changes)
                 this.updateStagesMenu();
-
-                // Nutze vorrangig das Stage-spezifische Grid der aktiven Stage
                 const activeStage = this.project.stages?.find(s => s.id === this.project.activeStageId);
                 const g = (activeStage && activeStage.grid) || this.project.stage.grid;
 
                 if (g) {
                     this.stage.grid = {
-                        cols: g.cols,
-                        rows: g.rows,
-                        cellSize: g.cellSize,
-                        snapToGrid: g.snapToGrid,
-                        visible: g.visible,
+                        cols: g.cols, rows: g.rows, cellSize: g.cellSize,
+                        snapToGrid: g.snapToGrid, visible: g.visible,
                         backgroundColor: g.backgroundColor
                     };
-
-                    // Sync Stage Animation properties from active stage or legacy project.stage
-                    const animSource = activeStage || this.project.stage;
-                    if ((animSource as any).startAnimation) {
-                        this.stage.startAnimation = (animSource as any).startAnimation;
-                        this.stage.startAnimationDuration = (animSource as any).startAnimationDuration;
-                        this.stage.startAnimationEasing = (animSource as any).startAnimationEasing;
-                    }
                 }
 
                 this.stage.updategrid();
-                this.updateStagesMenu();
-                this.updateAvailableActions(); // Update actions based on stage context
-                this.render();
-                this.autoSaveToLocalStorage();
-            };
-
-            this.jsonInspector.onObjectUpdate = () => {
+                this.updateAvailableActions();
                 this.render();
                 this.autoSaveToLocalStorage();
             };
@@ -2453,7 +2620,11 @@ export class Editor {
         toolbar.appendChild(applyBtn);
         jsonPanel.appendChild(toolbar);
 
-        // 2. Render Tree (using workingData copy OR activeStage)
+        // 2. Refresh working data from live project if in viewer mode (Flow edits might have occurred)
+        if (this.jsonMode === 'viewer') {
+            this.workingProjectData = JSON.parse(JSON.stringify(this.project));
+        }
+
         const treeContainer = document.createElement('div');
         jsonPanel.appendChild(treeContainer);
 
@@ -2469,9 +2640,6 @@ export class Editor {
                     dataToShow = JSON.parse(JSON.stringify(workingStage));
 
                     // Inject relevant tasks for better visibility
-
-                    // Force start cleanliness
-                    delete dataToShow.actions;
 
                     // 1. Tasks that have a flow chart in this stage (exclude 'global' metadata key)
                     const stageTaskNames = Object.keys(workingStage.flowCharts || {})
@@ -2497,24 +2665,69 @@ export class Editor {
                     const allRelevantNames = new Set([...stageTaskNames, ...referencedTaskNames]);
 
                     if (allRelevantNames.size > 0) {
-                        dataToShow.tasks = this.project.tasks.filter(t => allRelevantNames.has(t.name));
+                        // MERGE: Keep existing local tasks and add relevant global tasks
+                        const existingLocalTasks = dataToShow.tasks || [];
+                        const localTaskNames = new Set(existingLocalTasks.map((t: any) => t.name));
 
-                        const usedActionNames = new Set<string>();
+                        const relevantGlobalTasks = this.project.tasks.filter(t =>
+                            allRelevantNames.has(t.name) && !localTaskNames.has(t.name)
+                        );
+
+                        dataToShow.tasks = [...existingLocalTasks, ...relevantGlobalTasks];
+                    }
+
+                    // Actions: Always check ALL tasks now in dataToShow (local + injected global)
+                    // for referenced global actions and ensure they are present in definitions
+                    const existingLocalActions = dataToShow.actions || [];
+                    const localActionNames = new Set(existingLocalActions.map((a: any) => a.name));
+                    const usedActionNames = new Set<string>();
+
+                    if (dataToShow.tasks) {
+                        const usedTaskNamesInSeq = new Set<string>();
+                        const scanSequence = (seq: any[]) => {
+                            if (!seq || !Array.isArray(seq)) return;
+                            seq.forEach((item: any) => {
+                                if ((item.type === 'action' || !item.type) && item.name) {
+                                    usedActionNames.add(item.name);
+                                } else if (item.type === 'task' && item.name) {
+                                    usedTaskNamesInSeq.add(item.name);
+                                } else if (item.type === 'condition') {
+                                    if (item.thenAction) usedActionNames.add(item.thenAction);
+                                    if (item.elseAction) usedActionNames.add(item.elseAction);
+                                    if (item.thenTask) usedTaskNamesInSeq.add(item.thenTask);
+                                    if (item.elseTask) usedTaskNamesInSeq.add(item.elseTask);
+                                    if (item.body) scanSequence(item.body);
+                                    if (item.elseBody) scanSequence(item.elseBody);
+                                } else if (item.type === 'while' || item.type === 'for' || item.type === 'foreach') {
+                                    if (item.body) scanSequence(item.body);
+                                }
+                            });
+                        };
+
+                        // Initial scan of already included tasks
                         dataToShow.tasks.forEach((t: any) => {
-                            if (t.actionSequence && Array.isArray(t.actionSequence)) {
-                                t.actionSequence.forEach((step: any) => {
-                                    if (step.type === 'action' && step.name) {
-                                        usedActionNames.add(step.name);
-                                    }
-                                });
-                            }
+                            scanSequence(t.actionSequence);
                         });
 
-
-
-                        if (usedActionNames.size > 0 && this.project.actions) {
-                            dataToShow.actions = this.project.actions.filter(a => usedActionNames.has(a.name));
+                        // If we found new task dependencies, inject them and scan them too (recursive)
+                        if (usedTaskNamesInSeq.size > 0) {
+                            const localTaskNames = new Set((dataToShow.tasks || []).map((t: any) => t.name));
+                            const newGlobalTasks = this.project.tasks.filter(t =>
+                                usedTaskNamesInSeq.has(t.name) && !localTaskNames.has(t.name)
+                            );
+                            if (newGlobalTasks.length > 0) {
+                                dataToShow.tasks = [...dataToShow.tasks, ...newGlobalTasks];
+                                // Rescan to find actions used by these newly injected tasks
+                                newGlobalTasks.forEach(t => scanSequence(t.actionSequence));
+                            }
                         }
+                    }
+
+                    if (usedActionNames.size > 0 && this.project.actions) {
+                        const relevantGlobalActions = this.project.actions.filter(a =>
+                            usedActionNames.has(a.name) && !localActionNames.has(a.name)
+                        );
+                        dataToShow.actions = [...existingLocalActions, ...relevantGlobalActions];
                     }
                 }
             }
@@ -2868,12 +3081,45 @@ export class Editor {
                 break;
             default:
                 // Prüfe ob es eine Stage-Switch-Aktion ist
-                if (action.startsWith('switch-stage-')) {
-                    const stageId = action.replace('switch-stage-', '');
+                // Robustere Prüfung für Leerzeichen (z.B. "switch-stage - main")
+                const normalizedAction = action.replace(/\s+/g, '');
+                if (normalizedAction.startsWith('switch-stage-')) {
+                    const stageId = normalizedAction.replace('switch-stage-', '');
                     this.switchStage(stageId);
                 } else {
                     console.warn('[Editor] Unknown menu action:', action);
                 }
         }
     }
+    /**
+     * Synchronizes the current stage objects from the Editor (this.stage.objects)
+     * back into the project structure (this.project.stages).
+     * This is crucial before starting the runtime, otherwise the runtime will assume
+     * the state of the last load/save, missing recent edits.
+     */
+    private syncStageObjectsToProject() {
+        // Use getActiveStage() to get the current stage context
+        const activeStage = this.getActiveStage();
+        if (!this.stage || !activeStage) return;
+
+        console.log(`[Editor] Syncing objects for stage "${activeStage.id}" to project JSON...`);
+
+        const projectStage = this.project.stages?.find((s: any) => s.id === activeStage.id);
+        if (projectStage) {
+            // Serialize objects using their toJSON method logic. 
+            // We use this.currentObjects which holds the editor's live objects.
+            const serializedObjects = this.currentObjects.map((obj: any) => {
+                if (typeof obj.toJSON === 'function') {
+                    return obj.toJSON();
+                }
+                return obj;
+            });
+
+            projectStage.objects = serializedObjects;
+            console.log(`[Editor] Synced ${serializedObjects.length} objects.`);
+        } else {
+            console.warn(`[Editor] Could not find stage "${activeStage.id}" in project to sync objects.`);
+        }
+    }
 }
+

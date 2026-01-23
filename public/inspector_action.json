@@ -1,0 +1,122 @@
+{
+    "objects": [
+        {
+            "name": "NameInput",
+            "className": "TEdit",
+            "label": "Name",
+            "text": "${selectedObject.Name}"
+        },
+        {
+            "name": "ActionType",
+            "className": "TSelect",
+            "label": "Aktions-Typ",
+            "selected": "${selectedObject.actionType}",
+            "items": [
+                {
+                    "value": "property",
+                    "text": "Eigenschaft ändern (Property)"
+                },
+                {
+                    "value": "variable",
+                    "text": "Variable setzen"
+                },
+                {
+                    "value": "service",
+                    "text": "Service aufrufen"
+                },
+                {
+                    "value": "calculate",
+                    "text": "Berechnung"
+                },
+                {
+                    "value": "condition",
+                    "text": "Bedingung (Condition)"
+                }
+            ],
+            "allowEmpty": false
+        },
+        {
+            "name": "PropTarget",
+            "className": "TSelect",
+            "label": "Ziel-Objekt",
+            "source": "objects",
+            "selectedValue": "${selectedObject.target}",
+            "visibleWhen": "${selectedObject.actionType} == 'property'"
+        },
+        {
+            "name": "PropChanges",
+            "className": "TEdit",
+            "label": "Änderungen (JSON)",
+            "text": "${selectedObject.changesJSON}",
+            "hint": "Beispiel: { \"text\": \"Hallo\" }",
+            "visibleWhen": "${selectedObject.actionType} == 'property'"
+        },
+        {
+            "name": "VarName",
+            "className": "TSelect",
+            "label": "Variable",
+            "source": "variables",
+            "selectedValue": "${selectedObject.variableName}",
+            "visibleWhen": "${selectedObject.actionType} == 'variable'"
+        },
+        {
+            "name": "VarOp",
+            "className": "TSelect",
+            "label": "Operation",
+            "selected": "${selectedObject.operation}",
+            "items": [
+                "set",
+                "add",
+                "sub",
+                "min",
+                "max",
+                "toggle"
+            ],
+            "visibleWhen": "${selectedObject.actionType} == 'variable'"
+        },
+        {
+            "name": "VarValue",
+            "className": "TEdit",
+            "label": "Wert",
+            "text": "${selectedObject.value}",
+            "visibleWhen": "${selectedObject.actionType} == 'variable'"
+        },
+        {
+            "name": "SvcName",
+            "className": "TSelect",
+            "label": "Service",
+            "source": "services",
+            "selectedValue": "${selectedObject.service}",
+            "visibleWhen": "${selectedObject.actionType} == 'service'"
+        },
+        {
+            "name": "SvcMethod",
+            "className": "TEdit",
+            "label": "Methode",
+            "text": "${selectedObject.method}",
+            "visibleWhen": "${selectedObject.actionType} == 'service'"
+        },
+        {
+            "name": "SvcParams",
+            "className": "TEdit",
+            "label": "Parameter (JSON)",
+            "text": "${selectedObject.paramsJSON}",
+            "visibleWhen": "${selectedObject.actionType} == 'service'"
+        },
+        {
+            "name": "CalcResult",
+            "className": "TSelect",
+            "label": "Ergebnis-Variable",
+            "source": "variables",
+            "selectedValue": "${selectedObject.resultVariable}",
+            "visibleWhen": "${selectedObject.actionType} == 'calculate'"
+        },
+        {
+            "name": "CalcSteps",
+            "className": "TEdit",
+            "label": "Schritte (JSON)",
+            "text": "${selectedObject.calcStepsJSON}",
+            "visibleWhen": "${selectedObject.actionType} == 'calculate'"
+        }
+    ]
+}

@@ -164,7 +164,9 @@ export class AnimationManager {
 
                 // Tween abgeschlossen?
                 if (progress >= 1) {
-                    console.log(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property}`);
+                    // FORCE final value to avoid floating point errors or race conditions
+                    this.setPropertyValue(tween.target, tween.property, tween.to);
+                    console.log(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property} (Forced to ${tween.to})`);
                     completedTweens.push(tween);
                 }
             } catch (error) {
@@ -235,4 +237,40 @@ export class AnimationManager {
             obj[parts[parts.length - 1]] = value;
         }
     }
+    /**
+     * Erzeugt einen Schütteleffekt (Shake) auf einem Objekt.
+     * @param target Das Zielobjekt
+     * @param intensity Intensität des Schüttelns in Pixeln (default: 5)
+     * @param duration Gesamtdauer in Millisekunden (default: 500)
+     */
+    public shake(target: any, intensity: number = 5, duration: number = 500): void {
+        const originalX = target.x;
+        const originalY = target.y;
+        const startTime = performance.now();
+
+        const shakeInterval = 50; //ms
+
+        const performShake = () => {
+            const now = performance.now();
+            const elapsed = now - startTime;
+
+            if (elapsed < duration) {
+                // Zufälligen Offset berechnen
+                const offsetX = (Math.random() - 0.5) * intensity * 2;
+                const offsetY = (Math.random() - 0.5) * intensity * 2;
+
+                target.x = originalX + offsetX;
+                target.y = originalY + offsetY;
+
+                setTimeout(performShake, shakeInterval);
+            } else {
+                // Zurück zur Originalposition
+                target.x = originalX;
+                target.y = originalY;
+            }
+        };
+
+        performShake();
+    }
 }
+

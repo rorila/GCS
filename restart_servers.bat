@@ -8,8 +8,8 @@ echo.
 
 echo [1/4] Stopping existing servers...
 
-:: Kill process on port 3000 (Game Server)
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr /r ":3000" ^| findstr /I "LISTENING ABH"') do (
+:: Kill process on port 8080 (Game Server)
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr /r ":8080" ^| findstr /I "LISTENING ABH"') do (
     echo Killing Game Server ^(PID %%a^)...
     taskkill /f /pid %%a >nul 2>&1
 )
@@ -43,7 +43,7 @@ echo.
 echo ==============================================
 echo   Servers are starting in new windows!
 echo   - Frontend: http://localhost:5173
-echo   - Backend:  ws://localhost:3000
+echo   - Backend:  ws://localhost:8080
 echo ==============================================
 echo.
 pause

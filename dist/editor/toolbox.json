@@ -15,11 +15,6 @@
                     "label": "Panel"
                 },
                 {
-                    "type": "Image",
-                    "icon": "🖼️",
-                    "label": "Image"
-                },
-                {
                     "type": "Button",
                     "icon": "🔘",
                     "label": "Button"
@@ -38,6 +33,22 @@
                     "type": "Edit",
                     "icon": "✏️",
                     "label": "Edit"
+                }
+            ]
+        },
+        {
+            "name": "Media",
+            "expanded": true,
+            "items": [
+                {
+                    "type": "Image",
+                    "icon": "🖼️",
+                    "label": "Image"
+                },
+                {
+                    "type": "Video",
+                    "icon": "🎬",
+                    "label": "Video"
                 }
             ]
         },
@@ -131,6 +142,11 @@
                     "type": "GameState",
                     "icon": "⏯️",
                     "label": "Game State"
+                },
+                {
+                    "type": "StageController",
+                    "icon": "🎬",
+                    "label": "Stage Controller"
                 },
                 {
                     "type": "Handshake",

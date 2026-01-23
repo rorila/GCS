@@ -49,9 +49,29 @@ export class FlowTask extends FlowElement {
 
         let result: any = null;
 
-        // 1. Search in project by local name
-        if (this.projectRef?.tasks && taskName) {
-            result = this.projectRef.tasks.find(t => t.name === taskName);
+        // 0. Search in Active Stage (Local Scope) - Priority!
+        const proj = this.projectRef;
+        if (proj && proj.activeStageId && proj.stages) {
+            const stage = proj.stages.find(s => s.id === proj.activeStageId);
+            if (stage?.tasks && taskName) {
+                const localTask = stage.tasks.find(t => t.name === taskName);
+                if (localTask) return localTask;
+            }
+        }
+
+        // 0b. Fallback: Search in ALL stages if not found in active stage
+        if (proj && proj.stages && taskName) {
+            for (const s of proj.stages) {
+                if (s.tasks) {
+                    const task = s.tasks.find(t => t.name === taskName);
+                    if (task) return task;
+                }
+            }
+        }
+
+        // 1. Search in Global Project tasks
+        if (proj?.tasks && taskName) {
+            result = proj.tasks.find(t => t.name === taskName);
         }
 
         // 2. If no project task OR project task has no params, try library
@@ -84,9 +104,9 @@ export class FlowTask extends FlowElement {
     }
 
     public getInspectorProperties(): any[] {
-        const props = [
-            ...super.getInspectorProperties()
-        ];
+        // Filter out properties handled by JSON Inspector (Name, Details)
+        // We keep geometry (Col, Row, Width, Height)
+        const props = super.getInspectorProperties().filter(p => !['Name', 'Details', 'description'].includes(p.name));
 
         // Get task definition for param metadata
         const taskDef = this.getTaskDefinition();
@@ -166,14 +186,7 @@ export class FlowTask extends FlowElement {
             });
         }
 
-        // Add Multiplayer group properties
-        props.push({
-            name: 'triggerMode',
-            type: 'select',
-            label: 'Multiplayer Mode',
-            options: ['local', 'local-sync', 'broadcast'],
-            group: 'multiplayer'
-        });
+        // REMOVED: triggerMode (now in inspector_task.json)
 
         // Add Export to Library button at the end
         props.push({
@@ -201,10 +214,98 @@ export class FlowTask extends FlowElement {
         this.data.triggerMode = v;
 
         if (!this.projectRef) return;
-        const taskName = this.data?.taskName || this.Name;
-        const taskDef = this.projectRef.tasks.find(t => t.name === taskName);
+
+        const taskDef = this.getTaskDefinition();
         if (taskDef) {
             taskDef.triggerMode = v as any;
+        } else {
+            console.warn(`[FlowTask] Could not find task definition for '${this.Name}' to update triggerMode.`);
+        }
+    }
+
+    public get Description(): string {
+        const t = this.getTaskDefinition();
+        return t ? (t.description || '') : (this.data?.description || '');
+    }
+    public set Description(v: string) {
+        if (!this.data) this.data = {};
+        this.data.description = v;
+        const t = this.getTaskDefinition();
+        if (t) t.description = v;
+    }
+
+    public get uiScope(): string {
+        if (!this.projectRef) return 'global';
+        const taskName = this.data?.taskName || this.Name;
+
+        // Check active stage first
+        const stageId = this.projectRef.activeStageId;
+        const stage = this.projectRef.stages?.find(s => s.id === stageId);
+        if (stage?.tasks?.find(t => t.name === taskName)) {
+            return 'local'; // "Stage" scope
+        }
+
+        // Check global
+        if (this.projectRef.tasks.find(t => t.name === taskName)) {
+            return 'global';
+        }
+
+        return 'global'; // Default fallback
+    }
+
+    public set uiScope(newScope: string) {
+        if (!this.projectRef) return;
+        const taskName = this.data?.taskName || this.Name;
+        const currentScope = this.uiScope;
+
+        if (currentScope === newScope) return;
+
+        console.log(`[FlowTask] Changing scope of ${taskName} from ${currentScope} to ${newScope}`);
+
+        const stageId = this.projectRef.activeStageId;
+        const stage = this.projectRef.stages?.find(s => s.id === stageId);
+
+        if (!stage) {
+            console.error('[FlowTask] No active stage found for scope change');
+            return;
+        }
+
+        // Move from Local (Stage) to Global
+        if (currentScope === 'local' && newScope === 'global') {
+            const taskIndex = stage.tasks ? stage.tasks.findIndex(t => t.name === taskName) : -1;
+            if (taskIndex >= 0 && stage.tasks) {
+                const taskDef = stage.tasks[taskIndex];
+
+                // Check if global already exists
+                if (this.projectRef.tasks.some(t => t.name === taskName)) {
+                    console.error(`[FlowTask] Cannot move to global: Task '${taskName}' already exists globally.`);
+                    return;
+                }
+
+                // Move
+                stage.tasks.splice(taskIndex, 1);
+                this.projectRef.tasks.push(taskDef);
+            }
+        }
+        // Move from Global to Local (Stage)
+        else if (currentScope === 'global' && newScope === 'local') {
+            const taskIndex = this.projectRef.tasks.findIndex(t => t.name === taskName);
+            if (taskIndex >= 0) {
+                const taskDef = this.projectRef.tasks[taskIndex];
+
+                // Init active stage tasks if needed
+                if (!stage.tasks) stage.tasks = [];
+
+                // Check if local already exists
+                if (stage.tasks.some(t => t.name === taskName)) {
+                    console.error(`[FlowTask] Cannot move to stage: Task '${taskName}' already exists in stage.`);
+                    return;
+                }
+
+                // Move
+                this.projectRef.tasks.splice(taskIndex, 1);
+                stage.tasks.push(taskDef);
+            }
         }
     }
 

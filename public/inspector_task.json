@@ -1,0 +1,56 @@
+{
+    "objects": [
+        {
+            "name": "NameInput",
+            "className": "TEdit",
+            "label": "Name",
+            "text": "${selectedObject.Name}"
+        },
+        {
+            "name": "DescriptionInput",
+            "className": "TEdit",
+            "label": "Beschreibung",
+            "text": "${selectedObject.Description}"
+        },
+        {
+            "name": "uiScopeInput",
+            "className": "TSelect",
+            "label": "Sichtbarkeit",
+            "selected": "${selectedObject.uiScope}",
+            "hint": "Bestimmt, ob der Task nur in dieser Stage oder im gesamten Projekt verfügbar ist.",
+            "items": [
+                {
+                    "value": "global",
+                    "text": "Global (Überall verfügbar)"
+                },
+                {
+                    "value": "local",
+                    "text": "Lokal (Nur in dieser Stage)"
+                }
+            ],
+            "allowEmpty": false
+        },
+        {
+            "name": "triggerModeInput",
+            "className": "TSelect",
+            "label": "Multiplayer Modus",
+            "selected": "${selectedObject.triggerMode}",
+            "hint": "Bestimmt, wo und wie der Task ausgeführt wird (Lokal oder Synchronisiert).",
+            "items": [
+                {
+                    "value": "local",
+                    "text": "Lokal (Nur dieser Spieler)"
+                },
+                {
+                    "value": "local-sync",
+                    "text": "Synchron (Alle Spieler, verwaltet vom Host)"
+                },
+                {
+                    "value": "broadcast",
+                    "text": "Broadcast (Alle Spieler gleichzeitig)"
+                }
+            ],
+            "allowEmpty": false
+        }
+    ]
+}

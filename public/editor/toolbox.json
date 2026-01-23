@@ -88,6 +88,11 @@
             "expanded": false,
             "items": [
                 {
+                    "type": "Shape",
+                    "icon": "🔷",
+                    "label": "Shape"
+                },
+                {
                     "type": "Sprite",
                     "icon": "🎯",
                     "label": "Sprite"

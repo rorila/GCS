@@ -239,12 +239,17 @@ export class JSONInspector {
             // Determine which JSON to load based on activeTab
             let inspectorFile = './inspector.json';
 
-            // Determines which JSON to load based on activeTab
-            if (this.activeTab === 'events') {
+            // Check for Flow Elements (Task/Action) -> Load specific schemas
+            const type = object.getType ? object.getType() : (object.type || '');
+            if (type === 'Task') {
+                inspectorFile = './inspector_task.json';
+            } else if (type === 'Action') {
+                inspectorFile = './inspector_action.json';
+            } else if (this.activeTab === 'events') {
                 inspectorFile = './inspector_events.json';
 
                 // Get supported events dynamically from the component
-                let events: string[] = ['onClick']; // Default fallback
+                let events: string[] = ['onClick', 'onDragStart', 'onDragEnd', 'onDrop']; // Default fallback
 
                 // Try to call getEvents() on the object if it exists
                 if (typeof (object as any).getEvents === 'function') {
@@ -270,23 +275,32 @@ export class JSONInspector {
 
             }
 
-            if (this.activeTab as string === 'properties' && typeof object.getInspectorProperties === 'function') {
-                // Properties tab - generate dynamically via method
-                this.inspectorObjects = this.generateUIFromProperties(object);
-            } else {
-                // Load static JSON for Events
-                try {
-                    // Add version parameter to bypass browser cache
-                    const response = await fetch(`${inspectorFile}?v=${Date.now()}`);
-                    const inspectorJSON = await response.json();
+            // Load static JSON (Action/Task/Standard)
+            let staticObjects: any[] = [];
+            try {
+                // Add version parameter to bypass browser cache
+                const response = await fetch(`${inspectorFile}?v=${Date.now()}`);
+                const inspectorJSON = await response.json();
 
-                    // Expand TForEach
-                    this.inspectorObjects = this.expandForEach(inspectorJSON.objects, object);
-                } catch (error) {
-                    console.error('[JSONInspector] Failed to load inspector JSON:', error);
-                    this.inspectorObjects = [];
-                }
+                // Expand TForEach
+                staticObjects = this.expandForEach(inspectorJSON.objects, object);
+            } catch (error) {
+                console.error('[JSONInspector] Failed to load inspector JSON:', error);
             }
+
+            // Merge with Dynamic Properties if available
+            // If it's a Flow Task/Action, we allow merging to support dynamic params + static header
+            // If it's pure Properties tab for generic object, we PREFER dynamic properties if they replace the whole UI? 
+            // Current logic was: Properties Tab -> Dynamic OR Static.
+            // New logic: JSON (Static) + Dynamic.
+
+            let dynamicObjects: any[] = [];
+            if (this.activeTab as string === 'properties' && typeof object.getInspectorProperties === 'function') {
+                dynamicObjects = this.generateUIFromProperties(object);
+            }
+
+            // Combine: Static (Header/Main) + Dynamic (Params/Extras)
+            this.inspectorObjects = [...staticObjects, ...dynamicObjects];
 
             // Register all inspector objects
             this.inspectorObjects.forEach(obj => {
@@ -779,10 +793,27 @@ export class JSONInspector {
                         label: prop.label
                     });
                 } else if (prop.type === 'color') {
+                    // Color picker with transparency option
                     uiObjects.push({
-                        className: 'TColorPicker',
-                        name: inputName,
-                        color: binding
+                        className: 'TPanel',
+                        name: `${prop.name}Wrapper`,
+                        style: { display: 'flex', gap: '4px', marginBottom: '8px', padding: '0' },
+                        children: [
+                            {
+                                className: 'TColorPicker',
+                                name: inputName,
+                                color: binding,
+                                style: { flex: 1, marginBottom: '0' }
+                            },
+                            {
+                                className: 'TButton',
+                                name: `${prop.name}ClearBtn`,
+                                caption: '🚫',
+                                style: { width: '32px', padding: '0', fontSize: '14px', backgroundColor: '#444' },
+                                action: 'setTransparent',
+                                actionData: { property: prop.name }
+                            }
+                        ]
                     });
                 } else if (prop.type === 'select') {
                     let options = prop.options || [];
@@ -828,6 +859,14 @@ export class JSONInspector {
                                 name: `${prop.name}BrowseBtn`,
                                 caption: '...',
                                 action: 'browseImage',
+                                actionData: { property: prop.name, inputName: inputName },
+                                style: { width: '32px', padding: '4px', marginTop: '0' }
+                            },
+                            {
+                                className: 'TButton',
+                                name: `${prop.name}UploadBtn`,
+                                caption: '⬆️',
+                                action: 'uploadLocalImage',
                                 actionData: { property: prop.name, inputName: inputName },
                                 style: { width: '32px', padding: '4px', marginTop: '0' }
                             }
@@ -993,12 +1032,24 @@ export class JSONInspector {
      * Replaces template variables in an object
      */
     private replaceTemplateVars(obj: any, item: any, index: number) {
+        // Determine emoji based on available metadata
+        let uiEmoji = '';
+        const scope = (item.scope || 'global').toLowerCase();
+        const uiScope = item.uiScope; // Metadata from ProjectRegistry
+
+        if (uiScope === 'library') uiEmoji = '📚';
+        else if (scope === 'global') uiEmoji = '🌎';
+        else if (scope === 'local' || scope.startsWith('stage:')) uiEmoji = '🎭';
+        else if (scope.startsWith('task:') || scope.startsWith('action:')) uiEmoji = '📍';
+        else uiEmoji = '🎭'; // Default for other local scopes
+
         const replacements: any = {
             '${key}': item.key || index,
             '${value}': item.value || item,
             '${item.name}': item.name,
             '${item.type}': item.type,
             '${item.scope}': item.scope || 'global',
+            '${item.uiEmoji}': uiEmoji,
             '${item.isPublic}': item.isPublic || false,
             '${item.publicIcon}': item.isPublic ? '🌐' : '',
             '${item.defaultValue}': item.defaultValue,
@@ -1522,7 +1573,14 @@ export class JSONInspector {
 
             const input = document.createElement('input');
             input.type = 'color';
-            input.value = obj.color || '#000000';
+
+            // Handle variable placeholders for color
+            let colorValue = obj.color || '#000000';
+            if (typeof colorValue === 'string' && colorValue.startsWith('${')) {
+                const resolved = this.runtime.evaluate(colorValue);
+                colorValue = resolved !== undefined && resolved !== null ? String(resolved) : '#000000';
+            }
+            input.value = colorValue;
             input.style.width = '32px';
             input.style.height = '24px';
             input.style.border = '1px solid #555';
@@ -1531,7 +1589,7 @@ export class JSONInspector {
 
             const textInput = document.createElement('input');
             textInput.type = 'text';
-            textInput.value = obj.color || '#000000';
+            textInput.value = colorValue;
             textInput.style.flex = '1';
             textInput.style.padding = '4px 6px';
             textInput.style.backgroundColor = '#333';
@@ -1619,7 +1677,14 @@ export class JSONInspector {
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.checked = obj.checked || false;
+
+            // Resolve checked binding
+            let isChecked = obj.checked || false;
+            if (typeof isChecked === 'string' && isChecked.startsWith('${')) {
+                const resolved = this.runtime.evaluate(isChecked);
+                isChecked = !!resolved;
+            }
+            checkbox.checked = !!isChecked;
             checkbox.style.marginRight = '6px';
             checkbox.style.cursor = 'pointer';
 
@@ -1656,19 +1721,36 @@ export class JSONInspector {
             }
 
             // Get options from source
-            let options: string[] = [];
+            let options: { value: string, text: string }[] = [];
             if (obj.source === 'tasks') {
-                options = projectRegistry.getTasks().map(t => t.name);
+                options = projectRegistry.getTasks().map(t => {
+                    let emoji = '🎭';
+                    if (t.uiScope === 'global') emoji = '🌎';
+                    else if (t.uiScope === 'library') emoji = '📚';
+                    return { value: t.name, text: `${emoji} ${t.name}` };
+                });
             } else if (obj.source === 'actions') {
-                options = projectRegistry.getActions().map(a => a.name);
+                options = projectRegistry.getActions().map(a => {
+                    const emoji = a.uiScope === 'global' ? '🌎' : '🎭';
+                    return { value: a.name, text: `${emoji} ${a.name}` };
+                });
             } else if (obj.source === 'objects') {
-                options = projectRegistry.getObjects().map(o => o.name);
+                options = projectRegistry.getObjects().map(o => ({ value: o.name, text: o.name }));
             } else if (obj.source === 'variables') {
-                options = projectRegistry.getVariables().map(v => v.name);
+                options = projectRegistry.getVariables().map(v => {
+                    let emoji = '🎭';
+                    if (v.uiScope === 'global') emoji = '🌎';
+                    else if (v.uiScope === 'local' || v.scope?.startsWith('task:') || v.scope?.startsWith('action:')) emoji = '📍';
+                    return { value: v.name, text: `${emoji} ${v.name}` };
+                });
             } else if (obj.source === 'stages') {
-                options = (this.project?.stages || []).map((s: any) => s.id);
+                options = (this.project?.stages || []).map((s: any) => ({ value: s.id, text: s.name || s.id }));
+            } else if (obj.source === 'services') {
+                options = serviceRegistry.listServices().map(s => ({ value: s, text: s }));
             } else if (Array.isArray(obj.options)) {
-                options = obj.options;
+                options = obj.options.map((opt: any) =>
+                    typeof opt === 'string' ? { value: opt, text: opt } : { value: opt.value, text: opt.label || opt.text }
+                );
             }
 
             // Add empty option if allowed
@@ -1687,11 +1769,11 @@ export class JSONInspector {
             }
 
             // Add options
-            options.forEach((opt: string) => {
+            options.forEach(opt => {
                 const option = document.createElement('option');
-                option.value = opt;
-                option.text = opt;
-                option.selected = opt === selectedVal;
+                option.value = opt.value;
+                option.text = opt.text;
+                option.selected = opt.value === selectedVal;
                 select.appendChild(option);
             });
 
@@ -1766,6 +1848,32 @@ export class JSONInspector {
         el.className = `inspector-object ${className}`;
         el.style.marginBottom = '8px';
 
+        // Auto-render Label if provided (and not handled by component itself)
+        if (obj.label && className !== 'TLabel' && className !== 'TCheckbox' && className !== 'TButton') {
+            // Use Flex layout for side-by-side (Inline) labels
+            el.style.display = 'flex';
+            el.style.alignItems = 'center';
+            el.style.justifyContent = 'space-between';
+            el.style.marginBottom = '4px'; // Tighten vertical spacing
+
+            const labelEl = document.createElement('div');
+            labelEl.className = 'inspector-label';
+            labelEl.innerText = obj.label + ':'; // Add colon
+            labelEl.style.fontSize = '11px';
+            labelEl.style.color = '#ccc';
+            labelEl.style.width = '100px'; // Fixed label width for alignment
+            labelEl.style.flexShrink = '0';
+            labelEl.style.marginRight = '8px';
+
+            // Optional: Support help tooltip
+            if (obj.hint) {
+                labelEl.title = obj.hint;
+                labelEl.style.cursor = 'help';
+                labelEl.style.textDecoration = 'underline dotted #666';
+            }
+            el.appendChild(labelEl);
+        }
+
         // Render based on type
         if (className === 'TLabel') {
             // Check if this is a group header (all uppercase text)
@@ -1822,7 +1930,6 @@ export class JSONInspector {
                 input.style.flex = obj.style.flex;
             } else {
                 input.style.width = '100%';
-                input.style.marginBottom = '8px';
             }
 
             // Extract property name to check if validation is needed
@@ -1877,7 +1984,7 @@ export class JSONInspector {
             input.style.borderRadius = '3px';
             input.style.boxSizing = 'border-box';
             input.style.fontSize = '12px';
-            input.style.marginBottom = '8px';
+            input.style.fontSize = '12px';
 
             input.onchange = () => {
                 const val = parseFloat(input.value);
@@ -1900,11 +2007,18 @@ export class JSONInspector {
             wrapper.style.display = 'flex';
             wrapper.style.gap = '8px';
             wrapper.style.alignItems = 'center';
-            wrapper.style.marginBottom = '8px';
+            wrapper.style.alignItems = 'center';
 
             const input = document.createElement('input');
             input.type = 'color';
-            input.value = obj.color || '#000000';
+
+            // Handle variable placeholders for color
+            let colorValue = obj.color || '#000000';
+            if (typeof colorValue === 'string' && colorValue.startsWith('${')) {
+                const resolved = this.runtime.evaluate(colorValue);
+                colorValue = resolved !== undefined && resolved !== null ? String(resolved) : '#000000';
+            }
+            input.value = colorValue;
             input.style.width = '40px';
             input.style.height = '28px';
             input.style.border = '1px solid #555';
@@ -1913,7 +2027,7 @@ export class JSONInspector {
 
             const textInput = document.createElement('input');
             textInput.type = 'text';
-            textInput.value = obj.color || '#000000';
+            textInput.value = colorValue;
             textInput.style.flex = '1';
             textInput.style.padding = '6px';
             textInput.style.backgroundColor = '#333';
@@ -1950,7 +2064,7 @@ export class JSONInspector {
             select.style.borderRadius = '3px';
             select.style.boxSizing = 'border-box';
             select.style.fontSize = '12px';
-            select.style.marginBottom = '8px';
+            select.style.fontSize = '12px';
             select.style.cursor = 'pointer';
 
             // Resolve selectedValue binding for initial render
@@ -1997,7 +2111,14 @@ export class JSONInspector {
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.checked = obj.checked || false;
+
+            // Resolve checked binding
+            let isChecked = obj.checked || false;
+            if (typeof isChecked === 'string' && isChecked.startsWith('${')) {
+                const resolved = this.runtime.evaluate(isChecked);
+                isChecked = !!resolved;
+            }
+            checkbox.checked = !!isChecked;
             checkbox.style.marginRight = '8px';
             checkbox.style.cursor = 'pointer';
 
@@ -2032,22 +2153,42 @@ export class JSONInspector {
                 select.style.flex = obj.style.flex;
             } else {
                 select.style.width = '100%';
-                select.style.marginBottom = '8px';
             }
             if (obj.style?.minWidth) select.style.minWidth = obj.style.minWidth;
 
             // Get options from source
-            let options: string[] = [];
+            // Get options from source
+            let options: { value: string, text: string }[] = [];
             if (obj.source === 'tasks') {
-                options = projectRegistry.getTasks().map(t => t.name);
+                options = projectRegistry.getTasks().map(t => {
+                    let emoji = '🎭';
+                    if (t.uiScope === 'global') emoji = '🌎';
+                    else if (t.uiScope === 'library') emoji = '📚';
+                    return { value: t.name, text: `${emoji} ${t.name}` };
+                });
             } else if (obj.source === 'actions') {
-                options = projectRegistry.getActions().map((a: any) => a.name);
+                options = projectRegistry.getActions().map(a => {
+                    const emoji = a.uiScope === 'global' ? '🌎' : '🎭';
+                    return { value: a.name, text: `${emoji} ${a.name}` };
+                });
             } else if (obj.source === 'objects') {
-                options = projectRegistry.getObjects().map(o => o.name);
+                options = projectRegistry.getObjects().map(o => ({ value: o.name, text: o.name }));
             } else if (obj.source === 'variables') {
-                options = projectRegistry.getVariables().map(v => v.name);
-            } else if (Array.isArray(obj.options)) {
-                options = obj.options;
+                options = projectRegistry.getVariables().map(v => {
+                    let emoji = '🎭';
+                    if (v.uiScope === 'global') emoji = '🌎';
+                    else if (v.uiScope === 'local' || v.scope?.startsWith('task:') || v.scope?.startsWith('action:')) emoji = '📍';
+                    return { value: v.name, text: `${emoji} ${v.name}` };
+                });
+            } else if (obj.source === 'stages') {
+                options = (this.project?.stages || []).map((s: any) => ({ value: s.id, text: s.name || s.id }));
+            } else if (obj.source === 'services') {
+                options = serviceRegistry.listServices().map(s => ({ value: s, text: s }));
+            } else if (Array.isArray(obj.options) || Array.isArray(obj.items)) {
+                const sourceArr = obj.options || obj.items;
+                options = sourceArr.map((opt: any) =>
+                    typeof opt === 'string' ? { value: opt, text: opt } : { value: opt.value, text: opt.label || opt.text }
+                );
             }
 
             // Add empty option if allowed
@@ -2058,8 +2199,8 @@ export class JSONInspector {
                 select.appendChild(emptyOpt);
             }
 
-            // Resolve selectedValue binding
-            let selectedVal: any = obj.selectedValue || '';
+            // Resolve selectedValue binding (support 'selected' as alias)
+            let selectedVal: any = obj.selectedValue || obj.selected || '';
             let bindingExpression: string | null = null;
             if (selectedVal && String(selectedVal).startsWith('${')) {
                 const expr: string = selectedVal;
@@ -2072,7 +2213,7 @@ export class JSONInspector {
             options.forEach((opt: any) => {
                 const option = document.createElement('option');
                 const val = (typeof opt === 'object' && opt !== null) ? opt.value : opt;
-                const label = (typeof opt === 'object' && opt !== null) ? opt.label : opt;
+                const label = (typeof opt === 'object' && opt !== null) ? (opt.label || opt.text) : opt;
 
                 option.value = val;
                 option.text = label;
@@ -2098,6 +2239,7 @@ export class JSONInspector {
 
             select.onchange = () => {
                 obj.selectedValue = select.value;
+                if (obj.selected !== undefined) obj.selected = select.value;
                 this.handleObjectChange(obj);
             };
 
@@ -2499,6 +2641,70 @@ export class JSONInspector {
                 break;
             }
 
+            case 'uploadLocalImage': {
+                const propName = buttonDef.actionData?.property;
+                console.log('[JSONInspector] Opening Local File Picker for:', propName);
+
+                // Create hidden file input
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = 'image/*';
+                fileInput.style.display = 'none';
+                document.body.appendChild(fileInput);
+
+                fileInput.onchange = async (e: any) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                        try {
+                            console.log('[JSONInspector] Reading file:', file.name);
+                            const base64 = await imageService.readFileAsBase64(file);
+
+                            if (selectedObject && propName) {
+                                (selectedObject as any)[propName] = base64;
+
+                                // Also update backgroundImage if applicable
+                                if (propName === 'src' && 'backgroundImage' in selectedObject) {
+                                    (selectedObject as any).backgroundImage = base64;
+                                }
+                                if (propName === 'contentImage' && 'backgroundImage' in selectedObject) {
+                                    (selectedObject as any).backgroundImage = base64;
+                                }
+
+                                console.log('[JSONInspector] Local image applied as Base64');
+                                if (this.onObjectUpdate) this.onObjectUpdate();
+                                this.update(selectedObject);
+                            }
+                        } catch (err) {
+                            console.error('[JSONInspector] Upload error:', err);
+                        }
+                    }
+                    document.body.removeChild(fileInput);
+                };
+
+                fileInput.click();
+                break;
+            }
+
+            case 'setTransparent': {
+                const propName = buttonDef.actionData?.property;
+                if (selectedObject && propName) {
+                    console.log('[JSONInspector] Setting property to transparent:', propName);
+
+                    if (propName.includes('.')) {
+                        const parts = propName.split('.');
+                        let target = selectedObject;
+                        for (let i = 0; i < parts.length - 1; i++) target = target[parts[i]];
+                        target[parts[parts.length - 1]] = 'transparent';
+                    } else {
+                        (selectedObject as any)[propName] = 'transparent';
+                    }
+
+                    if (this.onObjectUpdate) this.onObjectUpdate();
+                    this.update(selectedObject);
+                }
+                break;
+            }
+
             case 'openTaskEditor': {
                 // Get taskName from eventKey (simplified approach)
                 // eventKey is the event name like "onClick", and we read the task from selectedObject.Tasks[eventKey]
@@ -2789,6 +2995,7 @@ export class JSONInspector {
                                 scope,
                                 isPublic,
                                 defaultValue,
+                                value: defaultValue, // Initialize value with defaultValue
                                 description
                             };
 
@@ -2847,6 +3054,7 @@ export class JSONInspector {
                         varScope: variable.scope || 'global',
                         isPublic: variable.isPublic || false,
                         defaultValue: String(variable.defaultValue),
+                        value: String(variable.value !== undefined ? variable.value : variable.defaultValue),
                         description: variable.description || ''
                     };
 
@@ -2864,6 +3072,7 @@ export class JSONInspector {
                                 const newScope = scopeValue.toLowerCase();
                                 const newIsPublic = data.isPublic === true;
                                 let newDefaultValue: any = data.defaultValue || '';
+                                let newValue: any = data.value !== undefined ? data.value : newDefaultValue;
                                 const newDescription = data.description || '';
 
                                 // Validate name if changed
@@ -2890,6 +3099,7 @@ export class JSONInspector {
                                 variable.scope = newScope;
                                 variable.isPublic = newIsPublic;
                                 variable.defaultValue = newDefaultValue;
+                                variable.value = newValue;
                                 variable.description = newDescription;
 
                                 console.log('[JSONInspector] Variable updated:', variable);

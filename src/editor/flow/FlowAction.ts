@@ -43,13 +43,194 @@ export class FlowAction extends FlowElement {
         this.Name = text;
     }
 
+    // Reference to project for action lookups
+    private projectRef: GameProject | null = null;
+
+    public setProjectRef(project: GameProject | null) {
+        this.projectRef = project;
+    }
+
+    /**
+     * Helper to get the underlying action definition
+     */
+    private getActionDefinition(): any | null {
+        // 1. Embedded Internal Actions (in this.data)
+        if (this.data?.isEmbeddedInternal) {
+            return this.data;
+        }
+
+        // 2. Linked Global Actions (in project.actions)
+        if (this.projectRef && this.Name) {
+            return this.projectRef.actions.find(a => a.name === this.Name);
+        }
+
+        return null;
+    }
+
+    // --- Inspector Property Accessors ---
+
+    public get actionType(): string {
+        const action = this.getActionDefinition();
+        return action?.type || 'property';
+    }
+    public set actionType(v: string) {
+        const action = this.getActionDefinition();
+        if (action) {
+            action.type = v;
+            this.setShowDetails(this.showDetails, this.projectRef);
+        }
+    }
+
+    public get target(): string {
+        const action = this.getActionDefinition();
+        return action?.target || '';
+    }
+    public set target(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.target = v;
+    }
+
+    // JSON Helper for 'changes' object
+    public get changesJSON(): string {
+        const action = this.getActionDefinition();
+        // Support both field names for compatibility
+        const changes = action?.changes || action?.propertyChanges || {};
+        return JSON.stringify(changes, null, 2);
+    }
+    public set changesJSON(v: string) {
+        const action = this.getActionDefinition();
+        if (action) {
+            try {
+                // Determine which field to use (prefer 'changes')
+                if (action.propertyChanges && !action.changes) {
+                    action.propertyChanges = JSON.parse(v);
+                } else {
+                    action.changes = JSON.parse(v);
+                }
+            } catch (e) {
+                console.warn('Invalid JSON for changes:', e);
+            }
+        }
+    }
+
+    public get variableName(): string {
+        const action = this.getActionDefinition();
+        return action?.variableName || ''; // Legacy?
+        // Wait, standard types use 'variable' for variable name? 
+        // Let's check type definition logic. Usually it's 'variable' or 'variableName'.
+        // inspector_action.json uses 'variableName' as property name, but binds to what?
+        // We act as proxy. Let's support both or check types.ts.
+    }
+    public set variableName(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.variableName = v;
+        // Note: New standard might use 'variable'? types.ts says 'variableName' for VariableAction?
+        // Let's assume variableName based on existing code.
+    }
+
+    // Support 'variable' alias if types.ts uses that
+    public get variable(): string { return this.variableName; }
+    public set variable(v: string) { this.variableName = v; }
+
+    public get operation(): string {
+        const action = this.getActionDefinition();
+        return action?.operation || 'set';
+    }
+    public set operation(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.operation = v;
+    }
+
+    public get value(): string {
+        const action = this.getActionDefinition();
+        return action?.value ?? '';
+    }
+    public set value(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.value = v;
+    }
+
+    public get service(): string {
+        const action = this.getActionDefinition();
+        return action?.service || '';
+    }
+    public set service(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.service = v;
+    }
+
+    public get method(): string {
+        const action = this.getActionDefinition();
+        // Support method (standard) or methodName (legacy)
+        return action?.method || action?.methodName || '';
+    }
+    public set method(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.method = v;
+    }
+
+    public get paramsJSON(): string {
+        const action = this.getActionDefinition();
+        const params = action?.params || [];
+        return JSON.stringify(params, null, 2);
+    }
+    public set paramsJSON(v: string) {
+        const action = this.getActionDefinition();
+        if (action) {
+            try {
+                action.params = JSON.parse(v);
+            } catch (e) {
+                console.warn('Invalid JSON for params:', e);
+            }
+        }
+    }
+
+    public get resultVariable(): string {
+        const action = this.getActionDefinition();
+        return action?.resultVariable || '';
+    }
+    public set resultVariable(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.resultVariable = v;
+    }
+
+    public get calcStepsJSON(): string {
+        const action = this.getActionDefinition();
+        return JSON.stringify(action?.calcSteps || [], null, 2);
+    }
+    public set calcStepsJSON(v: string) {
+        const action = this.getActionDefinition();
+        if (action) {
+            try {
+                action.calcSteps = JSON.parse(v);
+            } catch (e) {
+                console.warn('Invalid JSON for calcSteps:', e);
+            }
+        }
+    }
+
+    // Remove getInspectorProperties so JSON takes precedence
+    // We only return geometry if we call super, but JSON inspector merges.
+    // Actually, if we remove it, the JSON inspector logic 'typeof object.getInspectorProperties === "function"' might fail 
+    // if I check strictly.
+    // BUT I updated JSONInspector to check getType() === 'Action' first.
+    // So I can keep super.getInspectorProperties() if I want geometry? 
+    // My JSONInspector update merges static + dynamic. 
+    // So if I return [] here, I get JSON only. 
+    // If I return super(), I get geometry + JSON. This is good!
+    public getInspectorProperties(): any[] {
+        return super.getInspectorProperties();
+    }
+
     /**
      * Zeigt Action-Details an oder versteckt sie
      */
     public setShowDetails(show: boolean, project: GameProject | null): void {
         super.setShowDetails(show, project);
+        if (project) this.setProjectRef(project);
+
         const title = this.Name;
-        const action = project?.actions.find(a => a.name === title);
+        const action = this.getActionDefinition(); // Use helper
 
         if (!show) {
             // Konzept-Ansicht: nur Name zeigen
@@ -58,10 +239,11 @@ export class FlowAction extends FlowElement {
             this.autoSize();
         } else {
             // Details-Ansicht: Name + Details zeigen
-
             // For ghost nodes (expanded library tasks), 'action' might be undefined because it's not in the project.
             // In that case, we use the local 'this.data' which contains the action logic for the ghost node.
-            const displayAction = action || (this.data?.isEmbeddedInternal ? this.data : undefined);
+
+            // Wait, getActionDefinition handles this logic now!
+            const displayAction = action;
             this.Details = this.getActionDetails(displayAction);
 
             this.content.innerHTML = `
@@ -80,6 +262,7 @@ export class FlowAction extends FlowElement {
         // Apply visual updates
         this.updatePosition();
     }
+
 
     /**
      * Generiert eine Pascal-ähnliche Darstellung der Action-Details
@@ -175,25 +358,7 @@ export class FlowAction extends FlowElement {
         return String(value);
     }
 
-    public getInspectorProperties(): any[] {
-        const props = super.getInspectorProperties();
 
-        // Transform 'Name' property to a dropdown using the filtered availableActions
-        const nameProp = props.find(p => p.name === 'Name');
-        if (nameProp) {
-            nameProp.type = 'select';
-            nameProp.source = 'availableActions';
-            nameProp.label = 'Choose Action';
-            // Also keep it writable so user can type new custom names if needed? 
-            // 'select' usually implies strict selection. 
-            // If we want editable+dropdown (Combobox), we don't have that type yet in JSONInspector.
-            // But TDropdown usually allows selection. Validating "custom" names might be tricky.
-            // For now, strict selection ensures they pick a valid, filtered action.
-        }
-
-        // Note: Sync/hostOnly property removed - Multiplayer now uses Task.triggerMode
-        return props;
-    }
 
     /**
      * SINGLE SOURCE OF TRUTH: Override toJSON to only save minimal data for linked actions.

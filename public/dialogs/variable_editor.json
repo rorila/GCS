@@ -6,118 +6,375 @@
     "title": "Neue Variable erstellen",
     "width": 420,
     "height": 520,
-    "objects": [
-        {
-            "className": "TLabel",
-            "name": "NameLabel",
-            "text": "Name:",
-            "style": {
-                "marginBottom": 4
+],
+"tabs": [
+    {
+        "id": "general",
+        "label": "Allgemein",
+        "objects": [
+            {
+                "className": "TLabel",
+                "name": "NameLabel",
+                "text": "Name:",
+                "style": {
+                    "marginBottom": 4
+                }
+            },
+            {
+                "className": "TEdit",
+                "name": "varName",
+                "text": "",
+                "placeholder": "VariableName"
+            },
+            {
+                "className": "TLabel",
+                "name": "TypeLabel",
+                "text": "Typ:",
+                "style": {
+                    "marginTop": 12,
+                    "marginBottom": 4
+                }
+            },
+            {
+                "className": "TDropdown",
+                "name": "varType",
+                "options": [
+                    "Integer",
+                    "Real",
+                    "String",
+                    "Boolean"
+                ],
+                "selectedIndex": 0,
+                "style": {
+                    "marginBottom": 12
+                }
+            },
+            {
+                "className": "TLabel",
+                "name": "ScopeLabel",
+                "text": "Scope (Gültigkeit):",
+                "style": {
+                    "marginBottom": 4
+                }
+            },
+            {
+                "className": "TDropdown",
+                "name": "varScope",
+                "options": [
+                    "global",
+                    "local"
+                ],
+                "selectedValue": "global",
+                "style": {
+                    "marginBottom": 12
+                }
+            },
+            {
+                "className": "TCheckbox",
+                "name": "isPublic",
+                "checked": false,
+                "label": "Öffentlich (für andere Stages sichtbar)",
+                "visible": "${data.varScope === 'local'}",
+                "style": {
+                    "marginBottom": 12
+                }
+            },
+            {
+                "className": "TLabel",
+                "name": "DefaultLabel",
+                "text": "Default-Wert:",
+                "style": {
+                    "marginBottom": 4
+                }
+            },
+            {
+                "className": "TEdit",
+                "name": "defaultValue",
+                "text": "0",
+                "placeholder": "0"
+            },
+            {
+                "className": "TLabel",
+                "name": "ValueLabel",
+                "text": "Aktueller Wert (Value):",
+                "style": {
+                    "marginBottom": 4,
+                    "marginTop": 12
+                }
+            },
+            {
+                "className": "TEdit",
+                "name": "value",
+                "text": "",
+                "placeholder": "Leer lassen für Standard"
+            },
+            {
+                "className": "TLabel",
+                "name": "DescriptionLabel",
+                "text": "Beschreibung (optional):",
+                "style": {
+                    "marginTop": 12,
+                    "marginBottom": 4
+                }
+            },
+            {
+                "className": "TEdit",
+                "name": "description",
+                "text": "",
+                "placeholder": "Beschreibung der Variable..."
             }
-        },
-        {
-            "className": "TEdit",
-            "name": "varName",
-            "text": "",
-            "placeholder": "VariableName"
-        },
-        {
-            "className": "TLabel",
-            "name": "TypeLabel",
-            "text": "Typ:",
-            "style": {
-                "marginTop": 12,
-                "marginBottom": 4
+        ]
+    },
+    {
+        "id": "events",
+        "label": "Events & Trigger",
+        "objects": [
+            {
+                "className": "TLabel",
+                "name": "EventsHeader",
+                "text": "Events (Task ausführen wenn...)",
+                "style": {
+                    "fontSize": 14,
+                    "fontWeight": "bold",
+                    "marginBottom": 8,
+                    "color": "#4caf50"
+                }
+            },
+            {
+                "className": "TLabel",
+                "name": "OnChangedLabel",
+                "text": "Wert geändert (onValueChanged):",
+                "style": {
+                    "fontSize": 11,
+                    "color": "#aaa",
+                    "marginBottom": 2
+                }
+            },
+            {
+                "className": "TSelect",
+                "name": "onValueChanged",
+                "source": "tasks",
+                "allowEmpty": true,
+                "emptyLabel": "-- Keine Aktion --",
+                "style": {
+                    "marginBottom": 8
+                }
+            },
+            {
+                "className": "TLabel",
+                "name": "OnEmptyLabel",
+                "text": "Wert ist leer/null (onValueEmpty):",
+                "style": {
+                    "fontSize": 11,
+                    "color": "#aaa",
+                    "marginBottom": 2
+                }
+            },
+            {
+                "className": "TSelect",
+                "name": "onValueEmpty",
+                "source": "tasks",
+                "allowEmpty": true,
+                "emptyLabel": "-- Keine Aktion --",
+                "style": {
+                    "marginBottom": 12
+                }
+            },
+            {
+                "className": "TPanel",
+                "name": "ThresholdPanel",
+                "visible": "${data.varType === 'Integer' || data.varType === 'Real'}",
+                "style": {
+                    "padding": 0,
+                    "margin": 0,
+                    "border": "none",
+                    "background": "transparent"
+                },
+                "children": [
+                    {
+                        "className": "TLabel",
+                        "name": "ThresholdHeader",
+                        "text": "Schwellenwert (Threshold)",
+                        "style": {
+                            "fontSize": 14,
+                            "fontWeight": "bold",
+                            "marginBottom": 8,
+                            "marginTop": 8,
+                            "color": "#2196f3",
+                            "borderTop": "1px solid #444",
+                            "paddingTop": 8
+                        }
+                    },
+                    {
+                        "className": "TLabel",
+                        "name": "ThresholdValLabel",
+                        "text": "Schwellenwert:",
+                        "style": {
+                            "fontSize": 11,
+                            "color": "#aaa",
+                            "marginBottom": 2
+                        }
+                    },
+                    {
+                        "className": "TNumberInput",
+                        "name": "threshold",
+                        "value": 0,
+                        "style": {
+                            "marginBottom": 8
+                        }
+                    },
+                    {
+                        "className": "TLabel",
+                        "name": "OnThresholdReachedLabel",
+                        "text": "Erreicht (>=):",
+                        "style": {
+                            "fontSize": 11,
+                            "color": "#aaa",
+                            "marginBottom": 2
+                        }
+                    },
+                    {
+                        "className": "TSelect",
+                        "name": "onThresholdReached",
+                        "source": "tasks",
+                        "allowEmpty": true,
+                        "emptyLabel": "-- Keine Aktion --",
+                        "style": {
+                            "marginBottom": 8
+                        }
+                    },
+                    {
+                        "className": "TLabel",
+                        "name": "OnThresholdLeftLabel",
+                        "text": "Verlassen (<):",
+                        "style": {
+                            "fontSize": 11,
+                            "color": "#aaa",
+                            "marginBottom": 2
+                        }
+                    },
+                    {
+                        "className": "TSelect",
+                        "name": "onThresholdLeft",
+                        "source": "tasks",
+                        "allowEmpty": true,
+                        "emptyLabel": "-- Keine Aktion --",
+                        "style": {
+                            "marginBottom": 8
+                        }
+                    },
+                    {
+                        "className": "TLabel",
+                        "name": "OnThresholdExceededLabel",
+                        "text": "Überschritten (>):",
+                        "style": {
+                            "fontSize": 11,
+                            "color": "#aaa",
+                            "marginBottom": 2
+                        }
+                    },
+                    {
+                        "className": "TSelect",
+                        "name": "onThresholdExceeded",
+                        "source": "tasks",
+                        "allowEmpty": true,
+                        "emptyLabel": "-- Keine Aktion --",
+                        "style": {
+                            "marginBottom": 12
+                        }
+                    }
+                ]
+            },
+            {
+                "className": "TLabel",
+                "name": "TriggerHeader",
+                "text": "Trigger-Wert",
+                "style": {
+                    "fontSize": 14,
+                    "fontWeight": "bold",
+                    "marginBottom": 8,
+                    "marginTop": 8,
+                    "color": "#ff9800",
+                    "borderTop": "1px solid #444",
+                    "paddingTop": 8
+                }
+            },
+            {
+                "className": "TLabel",
+                "name": "TriggerValLabel",
+                "text": "Trigger-Wert (Exakter Match):",
+                "style": {
+                    "fontSize": 11,
+                    "color": "#aaa",
+                    "marginBottom": 2
+                }
+            },
+            {
+                "className": "TEdit",
+                "name": "triggerValue",
+                "text": "",
+                "placeholder": "z.B. 'game_over' oder 100",
+                "style": {
+                    "marginBottom": 8
+                }
+            },
+            {
+                "className": "TLabel",
+                "name": "OnTriggerEnterLabel",
+                "text": "Wert angenommen (==):",
+                "style": {
+                    "fontSize": 11,
+                    "color": "#aaa",
+                    "marginBottom": 2
+                }
+            },
+            {
+                "className": "TSelect",
+                "name": "onTriggerEnter",
+                "source": "tasks",
+                "allowEmpty": true,
+                "emptyLabel": "-- Keine Aktion --",
+                "style": {
+                    "marginBottom": 8
+                }
+            },
+            {
+                "className": "TLabel",
+                "name": "OnTriggerExitLabel",
+                "text": "Wert verloren (!=):",
+                "style": {
+                    "fontSize": 11,
+                    "color": "#aaa",
+                    "marginBottom": 2
+                }
+            },
+            {
+                "className": "TSelect",
+                "name": "onTriggerExit",
+                "source": "tasks",
+                "allowEmpty": true,
+                "emptyLabel": "-- Keine Aktion --",
+                "style": {
+                    "marginBottom": 8
+                }
             }
-        },
-        {
-            "className": "TDropdown",
-            "name": "varType",
-            "options": [
-                "Integer",
-                "Real",
-                "String",
-                "Boolean"
-            ],
-            "selectedIndex": 0,
-            "style": {
-                "marginBottom": 12
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "ScopeLabel",
-            "text": "Scope (Gültigkeit):",
-            "style": {
-                "marginBottom": 4
-            }
-        },
-        {
-            "className": "TDropdown",
-            "name": "varScope",
-            "options": [
-                "global",
-                "local"
-            ],
-            "selectedValue": "global",
-            "style": {
-                "marginBottom": 12
-            }
-        },
-        {
-            "className": "TCheckbox",
-            "name": "isPublic",
-            "checked": false,
-            "label": "Öffentlich (für andere Stages sichtbar)",
-            "visible": "${data.varScope === 'local'}",
-            "style": {
-                "marginBottom": 12
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "DefaultLabel",
-            "text": "Default-Wert:",
-            "style": {
-                "marginBottom": 4
-            }
-        },
-        {
-            "className": "TEdit",
-            "name": "defaultValue",
-            "text": "0",
-            "placeholder": "0"
-        },
-        {
-            "className": "TLabel",
-            "name": "DescriptionLabel",
-            "text": "Beschreibung (optional):",
-            "style": {
-                "marginTop": 12,
-                "marginBottom": 4
-            }
-        },
-        {
-            "className": "TEdit",
-            "name": "description",
-            "text": "",
-            "placeholder": "Beschreibung der Variable..."
+        ]
+    }
+],
+"buttons": [
+    {
+        "caption": "💾 Speichern",
+        "action": "save",
+        "style": {
+            "backgroundColor": "#2e7d32"
         }
-    ],
-    "buttons": [
-        {
-            "caption": "💾 Speichern",
-            "action": "save",
-            "style": {
-                "backgroundColor": "#2e7d32"
-            }
-        },
-        {
-            "caption": "Abbrechen",
-            "action": "cancel",
-            "style": {
-                "backgroundColor": "#555"
-            }
+    },
+    {
+        "caption": "Abbrechen",
+        "action": "cancel",
+        "style": {
+            "backgroundColor": "#555"
         }
-    ]
+    }
+]
 }

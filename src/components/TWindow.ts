@@ -131,16 +131,16 @@ export class TWindow extends TComponent {
         onComplete?: () => void
     ): void {
         console.log(`[TWindow.moveTo] Called on "${this.name}": from (${this.x}, ${this.y}) to (${x}, ${y}), duration=${duration}ms, easing=${easing}`);
-        
+
         const manager = AnimationManager.getInstance();
         console.log(`[TWindow.moveTo] AnimationManager instance obtained, activeTweens=${manager.getActiveTweenCount()}`);
-        
+
         const tweenX = manager.addTween(this, 'x', x, duration, easing);
         console.log(`[TWindow.moveTo] Added X tween: from=${tweenX.from} to=${tweenX.to}`);
-        
+
         const tweenY = manager.addTween(this, 'y', y, duration, easing, onComplete);
         console.log(`[TWindow.moveTo] Added Y tween: from=${tweenY.from} to=${tweenY.to}`);
-        
+
         console.log(`[TWindow.moveTo] After adding tweens, activeTweens=${manager.getActiveTweenCount()}`);
     }
 
@@ -149,7 +149,7 @@ export class TWindow extends TComponent {
      * Override in subclasses to add more events
      */
     public getEvents(): string[] {
-        return ['onClick', 'onFocus', 'onBlur'];
+        return ['onClick', 'onFocus', 'onBlur', 'onDragStart', 'onDragEnd', 'onDrop'];
     }
 
     public getInspectorProperties(): TPropertyDef[] {

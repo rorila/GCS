@@ -4,10 +4,19 @@
 - **GameLoopManager (Singleton)**: Verwende den `GameLoopManager.getInstance()` für alle Spielobjekt-Updates und Kollisionsprüfungen. Er ist KEIN Stage-Objekt und umgeht somit Proxy-Binding-Probleme.
 - **GameRuntime Authority**: Die `GameRuntime` ist die "Source of Truth" für den Spielzustand im Run-Modus.
 - **Keine manuelle GameLoop-Init**: Der `Editor` darf den `TGameLoop` nicht manuell initialisieren (`init/start`). Die `GameRuntime.start()` Methode übernimmt dies via `GameLoopManager`.
+- **Ticker-Synchronisation**: Falls der `Editor` einen Fallback-Animations-Ticker verwendet (z.B. wenn keine `GameLoop` vorhanden ist), muss dieser gestoppt werden (`stopAnimationTicker`), sobald eine echte `GameLoop` zur Laufzeit erscheint (z.B. nach einem Stage-Switch).
 - **Stage-Cleanup**: Bei jedem Stage-Wechsel MÜSSEN `ReactiveRuntime.clear()` und `AnimationManager.getInstance().clear()` aufgerufen werden, um persistente Objekte oder laufende Animationen der vorherigen Stage zu entfernen.
+- **Stage-Diagnostics**: Bei leeren Bildschirmen im Run-Mode ist die erste Prüfung die Kalkulation der Stage-Größe. `Stage.ts` loggt `Game Stage Size` beim Update. Eine Größe von 0x0px deutet auf CSS-Layout-Probleme im Host-Container hin.
+- **Interaktions-Garantie**: `TButton` Komponenten sollten im Run-Mode immer als klickbar (`cursor: pointer`) markiert werden, auch ohne explizite Task-Zuweisung, um generische Events für die `GameRuntime` abfangbar zu machen.
 - **Render-Callback**: Übergib den Render-Callback (`onRender`) direkt an den `GameRuntime`-Konstruktor (`options.onRender`).
 - **Proxy-Verwendung**: Verwende immer die Objekte aus `runtime.getObjects()` für das Rendering, da diese die reaktiven Proxies enthalten.
 - **Migration**: Das Root-Level `objects` Array in Projektdateien ist veraltet. Objekte sollten ausschließlich innerhalb des `stages`-Arrays gespeichert werden. Nutze Migrationsscripte, um Redundanzen zu entfernen.
+
+## Editor -> Runtime Transition
+- **Data Sync**: Vor dem Start der Runtime (`new GameRuntime`) müssen die aktuellen Editor-Objekte explizit in das Projekt-JSON serialisiert werden (`syncStageObjectsToProject`), damit Änderungen (z.B. neue Bilder) übernommen werden.
+- **View Restore**: Beim Beenden des Run-Modes muss sichergestellt werden, dass die Editor-Ansicht sauber neu geladen wird (z.B. via `switchStage`), um Runtime-Proxies zu entfernen und den Editor-Status wiederherzustellen.
+- **Z-Index Strategy**: Um Sichtbarkeitsprobleme bei Overlays zu vermeiden, aggregiert die `GameRuntime` z-Indices rekursiv (`effectiveZ = parentZ + currentZ`). Container wie `TSplashScreen` (`z=1000`) müssen ihre Inhalte als echte `children` speichern, damit dieses Stacking funktioniert. `TPanel` und `TWindow` Subklassen müssen daher `children` serialisieren.
+- **Loop Termination**: Fallback-Animations-Loops im Editor müssen robust gestoppt werden, wenn der Run-Modus endet oder eine echte `GameLoop` übernimmt.
 
 ## FlowChart-Daten (Single Source of Truth)
 - **Link-basierte Architektur**: Action-Daten werden NICHT mehr redundant in FlowCharts gespeichert. FlowChart-Elemente halten nur noch einen Link (`isLinked: true`) auf die globale Definition in `project.actions`.
@@ -31,6 +40,12 @@
 - **Muster**: `<pre translate="no">` oder `element.setAttribute('translate', 'no')`.
 - **UI-Texte**: Button-Labels, Tooltips, Menüs sollen übersetzbar bleiben (kein `translate="no"`).
 
+## Infrastruktur & Port-Konfiguration
+- **Standard-Port (8080)**: Der Game-Server nutzt standardmäßig Port 8080. Dies ist in `game-server/src/server.ts` definiert.
+- **Vite Proxy**: Der Frontend-Dev-Server (`vite.config.ts`) leitet Anfragen an `/games`, `/rooms` und `/api` automatisch an `http://localhost:8080` weiter.
+- **Client-Verbindung**: `NetworkManager` und `TGameServer` nutzen `ws://localhost:8080` als Default-WebSocket-URL.
+- **Deployment**: In `Dockerfile` und `fly.toml` muss Port 8080 exposed bzw. als `internal_port` konfiguriert sein.
+
 ## Export-System
 - **Formate**: Plain (lesbar) und gZip (komprimiert, ~70% kleiner).
 - **gZip-Frontend**: `JSON → gzipSync (fflate) → Base64 → PROJECT_DATA` (HTML) oder `{_compressed: true, data: "..."}` (JSON). Siehe `GameExporter.ts`.
@@ -38,8 +53,22 @@
 - **Backend-Dekomprimierung**: Die Game Platform (`server.ts`) dekomprimiert hochgeladene, komprimierte JSONs on-the-fly (`zlib.gunzipSync`), um dem Spieler unabhängig vom Speicherformat immer valides JSON zu liefern.
 - **Bibliotheken**: `fflate` im Frontend, `zlib` im Backend.
 
+## Proxy-Objekte & Reactive Runtime
+- **Spread-Operator Limitation**: Der Spread-Operator (`{...obj}`) kopiert KEINE Getter-basierten Properties von Proxy-Objekten. Bei reaktiven Komponenten (TImage, TSprite, TPanel) müssen image-relevante Properties (`backgroundImage`, `src`, `objectFit`, `imageOpacity`) explizit kopiert werden.
+- **Betroffene Stelle**: `GameRuntime.getObjects()` - hier werden alle Properties für das Rendering aufbereitet.
+- **Symptom**: Bilder werden im Run-Modus nicht angezeigt, obwohl die Daten korrekt im Projekt gespeichert sind.
+
+## Standalone Runtime & Export Build-Prozess
+- **Bundle erforderlich**: Nach jeder Änderung an TypeScript-Dateien, die die Runtime betreffen (`GameRuntime.ts`, `GameLoopManager.ts`, `player-standalone.ts`, etc.), MUSS `npm run bundle:runtime` ausgeführt werden.
+- **Warum**: Der HTML-Export nutzt `public/runtime-standalone.js` (esbuild-Bundle), nicht die TypeScript-Quelldateien.
+- **Dynamische Imports verboten**: `import()` Aufrufe (dynamic imports) funktionieren NICHT in gebündelten Exports. Der Bundler löst sie nicht korrekt auf, und Module wie `ProjectRegistry` sind im Standalone-Kontext nicht initialisiert.
+- **Lösung**: Ersetze dynamische Imports durch direkten Zugriff auf bereits vorhandene Daten (z.B. `project.stages.find()` statt `import('../services/ProjectRegistry')`).
+- **Stage-Switch Fix**: Bei Stage-Wechseln werden System-Objekte (TGameLoop, TInputController, etc.) aus der Main-Stage in die Ziel-Stage gemergt, sofern diese keine eigenen besitzt.
+
 ## Medien-Komponenten (TImage, TVideo)
-- Alle Medienpfade werden relativ zum `./images/` Verzeichnis im Export-Bundle aufgelöst, sofern sie nicht mit `http`, `/` oder `data:` beginnen.
+- **Pfad-Auflösung**: Alle Medienpfade werden relativ zum `./images/` Verzeichnis im Export-Bundle aufgelöst, sofern sie nicht mit `http`, `/` oder `data:` beginnen.
+- **Dateinamen & Encoding**: `Stage.ts` wendet automatisch `encodeURIComponent` auf Bildpfade an, um Leerzeichen und Sonderzeichen zu unterstützen. **Best Practice**: Verwende dennoch stets "web-safe" Dateinamen (keine Leerzeichen, keine Umlaute, Bindestriche statt Leerzeichen).
+- **Diagnose**: `Stage.ts` prüft im Hintergrund die Erreichbarkeit von Bildern und loggt `SUCCESS` oder `ERROR` in die Konsole.
 - `TVideo` und `TSplashScreen` nutzen HTML5 Video. Für die Synchronisation zwischen Runtime-Modell und DOM-Element wird die Eigenschaft `isPlaying` verwendet.
 - **Wichtig**: Autoplay-Einschränkungen moderner Browser beachten (Videos sollten standardmäßig `muted` sein, wenn sie automatisch starten sollen).
 
@@ -122,10 +151,18 @@ Bei der Implementierung von Refactoring-Logik muss darauf geachtet werden, dass 
 ### [FlowCharts & Task-Diagramme](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/FlowEditor.ts)
 - **Doppelklick-Logik**: Standard-Doppelklick öffnet IMMER den Editor (Task/Action). Die Expansion von Tasks (Sub-Flow anzeigen) wurde vom Doppelklick entfernt und ist nur über das Kontextmenü möglich ("Ausklappen").
 - **Speicherorte**: Flow-Diagramme können in `task.flowChart`, `project.flowCharts` oder `stage.flowCharts` liegen.
+- **Task-Selektion**: Das Flow-Dropdown zeigt ALLE im aktuellen Scope (Stage oder Global) definierten Tasks an, auch wenn diese noch kein Flow-Diagramm besitzen. Dies erleichtert das Initialisieren neuer Diagramme für bestehende Tasks.
 
 ### [JSON Viewer & Isolated Stages](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/Editor.ts)
 Wenn eine Stage isoliert im JSON-Tab angezeigt wird (`activeStage`), werden globale Daten (Tasks UND Actions), die für diese Stage relevant sind (d.h. dort benutzt werden), manuell injiziert, damit sie bearbeitbar bleiben und vollständig sind.
+- **Scoping & Refactoring**:
+  - Beim Umbenennen (Refactoring) von Tasks, Aktionen oder Variablen müssen IMMER alle Scopes (`project.tasks/actions` UND alle `project.stages[].tasks/actions`) gescannt werden. Siehe `RefactoringManager.ts`.
+  - Die isolierte JSON-Ansicht einer Stage (`Editor.refreshJSONView`) muss lokale Daten (`actions`, `tasks`) erhalten und darf sie nicht durch globale Listen überschreiben (Merge-Logik).
 - **Re-rendering**: Änderungen an `TargetObjectSelect` oder `MethodSelect` im Action Editor MÜSSEN einen `this.render()` Aufruf in `updateModelValue` auslösen, damit die Parameter-Eingabefelder dynamisch regeneriert werden.
+- **Expression Scoping**: Beim Erweitern der Dialog-Evaluation (`evaluateExpression`) darauf achten, dass alle benötigten Variablen (wie `dialogData`, `project`) explizit als Funktionsargumente übergeben werden. Direkter Zugriff auf Model-Eigenschaften ohne `dialogData.` Präfix führt zu ReferenceErrors, wenn sie nicht explizit in der Argumentliste stehen.
+- **Data Collection**: Jede neue Input-Komponente im Dialog-System muss das Attribut `data-name` setzen, damit `collectFormData` sie beim finalen Speichern erfassen kann.
+
+
 
 ## Library & Tasks
 - **Library Export**: Nutze den Endpunkt `POST /api/library/tasks` für automatisierte Speichervorgänge in die `public/library.json`.
@@ -165,3 +202,37 @@ Wenn eine Stage isoliert im JSON-Tab angezeigt wird (`activeStage`), werden glob
     - JSON-Bodies werden automatisch unterstützt und variablen-interpoliert.
     - Das Ergebnis wird in der `resultVariable` gespeichert. Bei Fehlern enthält die Variable ein Objekt mit `{ success: false, status, error }`.
 - **GameRuntime Events**: `handleEvent` ist nun `async`. Event-Trigger aus dem UI (z.B. `onClick`) sollten im Player-Code asynchron aufgerufen werden, um die Kette nicht zu brechen.
+
+## UI-Komponenten & Interaktion (v1.1.0)
+
+### Geometrische Formen (TShape)
+`TShape` ist die bevorzugte Komponente für einfache Grafiken, Avatare und interaktive Buttons.
+- **Inhalt**: Nutze die Eigenschaften `text` (für Emojis/Texte) und `contentImage` (für Bilder) direkt auf dem Shape. Dies vermeidet unnötige Kind-Elemente und ist im Editor einfacher zu handhaben.
+- **Rendering**: Shapes nutzen eine interne SVG `viewBox`. Dies ermöglicht flüssiges Resizing in Echtzeit, während die Rahmenstärke durch `vector-effect="non-scaling-stroke"` optisch konstant bleibt.
+- **Resizing**: Für Kreise wird im Editor ein quadratisches Seitenverhältnis (1:1) erzwungen, um Verzerrungen zu vermeiden. Ellipsen können weiterhin frei skaliert werden.
+- **Sichtbarkeit**: Shapes werden direkt aus den Grid-Koordinaten des Modell-Objekts gerendert, was eine sofortige Sichtbarkeit bei der Erstellung garantiert. Standardmäßig sind neue Shapes transparent mit einem blauen Rahmen.
+
+### Drag & Drop System
+- Setze `draggable: true` auf Komponenten, die bewegt werden sollen.
+- Nutze `dragMode: 'copy'` für Werkzeugleisten oder Paletten (Original bleibt erhalten).
+- Reagiere auf das `onDrop` Ereignis des Ziel-Objekts (`droppable: true`), um Logik auszuführen.
+
+### Variablen-Werte
+- **Werte-Persistenz**:
+  - `defaultValue`: Der initiale Wert beim Starten des Projekts/Stages.
+  - `value`: Der aktuelle Laufzeit-Wert (kann im Inspector editiert werden und wird gespeichert).
+  - Falls `value` nicht gesetzt ist, wird `defaultValue` verwendet.
+
+## Inspector Configuration
+- **Deklarative Templates**: Der Inspector wird primär durch JSON-Dateien (`inspector.json`, `inspector_task.json`, `inspector_action.json`) konfiguriert. Diese definieren das Layout, die Felder und die Bindings (`${variableName}`).
+- **Kontext-Sensitivität**: `JSONInspector.ts` lädt automatisch das passende Template basierend auf dem Typ des selektierten Objekts (`selectedObject.getType()`: 'Task', 'Action' oder className).
+- **Hybrid-Modus**: Für Flow-Elemente (`Task`, `Action`) unterstützt der Inspector einen Hybrid-Modus:
+  - **Statische Eigenschaften**: Werden aus der JSON geladen (z.B. Header, Name, Typ).
+  - **Dynamische Eigenschaften**: Werden (falls implementiert) über `getInspectorProperties()` Code generiert (z.B. variable Parameter-Listen bei Tasks).
+  - Beide Quellen werden gemergt. Eigenschaften, die im JSON definiert sind, sollten im Code aus `getInspectorProperties` gefiltert werden, um Duplikate zu vermeiden.
+- **Action-Properties**: `FlowAction` fungiert als Proxy für die globale `project.actions` Definition. Getters/Setters wie `actionType`, `target`, `changesJSON` wandeln die internen Strukturen für den Inspector in Strings oder primitive Werte um.
+- **Datenquellen**: `TSelect` Komponenten unterstützen dynamische Quellen via `source`:
+  - `tasks`, `actions`, `variables`, `stages`, `objects` und neu `services`.
+- **Dialog-Expressions**:
+  - Im `JSONDialogRenderer` müssen Variablen in Properties wie `source` zwingend mit `${...}` umschlossen werden (z.B. `"source": "${dialogData.images}"`), damit sie als Expression ausgewertet werden. Ohne `${}` wird der Wert als String-Literal behandelt.
+

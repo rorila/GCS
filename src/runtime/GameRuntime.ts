@@ -69,17 +69,18 @@ export class GameRuntime {
         let activeStage = null;
 
         if (options.startStageId && hasStages) {
-            // Context-Aware Start: Specific Stage requested
             activeStage = project.stages.find((s: any) => s.id === options.startStageId);
+            console.log(`[GameRuntime] Context-Aware Start. Requested stage: ${activeStage?.name || options.startStageId}`);
         } else {
-            // Default Start (Full Game): Always try to start with Splash, then Main
+            console.log(`[GameRuntime] Default Start. Searching for Splash.`);
             if (hasStages) {
                 const splashStage = project.stages.find((s: any) => s.type === 'splash');
                 if (splashStage) {
                     activeStage = splashStage;
+                    console.log(`[GameRuntime] Found Splash: ${activeStage.name}`);
                 } else {
-                    // No splash? Use Main or whatever is active
                     activeStage = project.stages.find((s: any) => s.id === project.activeStageId) || project.stages[0];
+                    console.log(`[GameRuntime] No Splash. Using: ${activeStage?.name}`);
                 }
             }
         }
@@ -292,7 +293,7 @@ export class GameRuntime {
         // 2. Handle Splash Sequencing
         if (this.isSplashActive) {
             if (this.project.splashAutoHide) {
-                const duration = this.project.splashDuration || 3000;
+                const duration = (this.stage as any)?.duration || this.project.splashDuration || 3000;
                 console.log(`[GameRuntime] Splash active. Auto-hiding in ${duration}ms`);
                 this.splashTimerId = setTimeout(() => {
                     this.finishSplash();
@@ -407,78 +408,103 @@ export class GameRuntime {
     private handleStageChange(oldStageId: string, newStageId: string): void {
         console.log(`[GameRuntime] Stage change: ${oldStageId} → ${newStageId}`);
 
-        // 1. ProjectRegistry aktualisieren (Context setzen)
-        import('../services/ProjectRegistry').then(({ projectRegistry }) => {
-            projectRegistry.setActiveStageId(newStageId);
+        // CRITICAL: Update stage reference SYNCHRONOUSLY before async operations
+        // This prevents race conditions where initMainGame uses stale stage config
+        if (this.project.stages) {
+            this.stage = this.project.stages.find((s: any) => s.id === newStageId);
+        }
 
-            // 2. Hydrierung: Neue Objekte der Stage + Globale Services
-            const combinedObjects = projectRegistry.getObjects();
-            this.objects = hydrateObjects(combinedObjects);
+        // FIX: Use direct access to project.stages instead of dynamic import
+        // The dynamic import of ProjectRegistry doesn't work in bundled HTML exports
+        const targetStage = this.project.stages?.find((s: any) => s.id === newStageId);
+        if (!targetStage) {
+            console.error(`[GameRuntime] Stage not found: ${newStageId}`);
+            return;
+        }
 
-            // 3. Stage-Referenz aktualisieren
-            if (this.project.stages) {
-                this.stage = this.project.stages.find((s: any) => s.id === newStageId);
-            }
+        // 2. Hydrierung: Neue Objekte der Stage + Globale Services
+        // Get objects directly from the target stage
+        let combinedObjects = [...(targetStage.objects || [])];
 
-            // 4. Stage-spezifische FlowCharts, Tasks und Actions im TaskExecutor aktualisieren
-            const stageFlowCharts = (this.stage as any)?.flowCharts || {};
-            const stageTasks = (this.stage as any)?.tasks || [];
-            const stageActions = (this.stage as any)?.actions || [];
-
-            // Merge with global collections, stage-specific flows/tasks/actions win
-            const mergedFlowCharts = {
-                ...(this.project.flowCharts || {}),
-                ...stageFlowCharts
-            };
-            const mergedTasks = [
-                ...(this.project.tasks || []),
-                ...stageTasks
-            ];
-            const mergedActions = [
-                ...(this.project.actions || []),
-                ...stageActions
-            ];
-
-            this.taskExecutor.setFlowCharts(mergedFlowCharts);
-            this.taskExecutor.setTasks(mergedTasks);
-            this.taskExecutor.setActions(mergedActions);
-
-            console.log(`[GameRuntime] TaskExecutor updated with ${Object.keys(mergedFlowCharts).length} flowCharts, ${mergedTasks.length} tasks and ${mergedActions.length} actions`);
-
-            // 5. Reactive Runtime aktualisieren
-            if (this.options.makeReactive) {
-                this.reactiveRuntime.clear(); // CRITICAL: Clear old objects and bindings
-                AnimationManager.getInstance().clear(); // CRITICAL: Clear animations from previous stage
-                this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
-                this.reactiveRuntime.setVariable('isSplashActive', false);
-                this.objects = this.reactiveRuntime.getObjects();
-            }
-
-            // Phase 3: Reset Local Variables for new Stage
-            this.stageVariables = {};
-            // Initialize defaults for local variables
-            if (this.stage?.variables) {
-                this.stage.variables.forEach((v: any) => {
-                    this.stageVariables[v.name] = v.defaultValue;
+        // Add global system objects from Main stage (if switching to non-main stage)
+        if (targetStage.type !== 'main') {
+            const mainStage = this.project.stages?.find((s: any) => s.type === 'main');
+            if (mainStage && mainStage.objects) {
+                const systemClasses = [
+                    'TGameLoop', 'TStageController', 'TGameState',
+                    'THandshake', 'THeartbeat', 'TGameServer',
+                    'TInputController', 'TDebugLog'
+                ];
+                const existingIds = new Set(combinedObjects.map((o: any) => o.id));
+                mainStage.objects.forEach((gObj: any) => {
+                    if (systemClasses.includes(gObj.className) && !existingIds.has(gObj.id)) {
+                        combinedObjects.push(gObj);
+                    }
                 });
             }
-            console.log(`[GameRuntime] Local variables reset for stage ${newStageId}`);
+        }
 
-            // 6. Executors aktualisieren
-            this.actionExecutor.setObjects(this.objects);
+        console.log(`[GameRuntime] Loading ${combinedObjects.length} objects for stage ${newStageId}`);
+        this.objects = hydrateObjects(combinedObjects);
 
-            // 7. StageController neu initialisieren (weil er jetzt Teil der neuen Objekte ist)
-            this.initStageController();
+        // 4. Stage-spezifische FlowCharts, Tasks und Actions im TaskExecutor aktualisieren
+        const stageFlowCharts = (this.stage as any)?.flowCharts || {};
+        const stageTasks = (this.stage as any)?.tasks || [];
+        const stageActions = (this.stage as any)?.actions || [];
 
-            // 8. GameLoop und andere Komponenten starten
-            this.start();
+        // Merge with global collections, stage-specific flows/tasks/actions win
+        const mergedFlowCharts = {
+            ...(this.project.flowCharts || {}),
+            ...stageFlowCharts
+        };
+        const mergedTasks = [
+            ...(this.project.tasks || []),
+            ...stageTasks
+        ];
+        const mergedActions = [
+            ...(this.project.actions || []),
+            ...stageActions
+        ];
 
-            // 9. Host benachrichtigen (für UI-Update)
-            if (this.options.onStageSwitch) {
-                console.log(`[GameRuntime] Notifying host of stage switch to: ${newStageId}`);
-                this.options.onStageSwitch(newStageId);
-            }
-        });
+        this.taskExecutor.setFlowCharts(mergedFlowCharts);
+        this.taskExecutor.setTasks(mergedTasks);
+        this.taskExecutor.setActions(mergedActions);
+
+        console.log(`[GameRuntime] TaskExecutor updated with ${Object.keys(mergedFlowCharts).length} flowCharts, ${mergedTasks.length} tasks and ${mergedActions.length} actions`);
+
+        // 5. Reactive Runtime aktualisieren
+        if (this.options.makeReactive) {
+            this.reactiveRuntime.clear(); // CRITICAL: Clear old objects and bindings
+            AnimationManager.getInstance().clear(); // CRITICAL: Clear animations from previous stage
+            this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
+            this.reactiveRuntime.setVariable('isSplashActive', false);
+            this.objects = this.reactiveRuntime.getObjects();
+        }
+
+        // Phase 3: Reset Local Variables for new Stage
+        this.stageVariables = {};
+        // Initialize defaults for local variables
+        if (this.stage?.variables) {
+            this.stage.variables.forEach((v: any) => {
+                this.stageVariables[v.name] = v.defaultValue;
+            });
+        }
+        console.log(`[GameRuntime] Local variables reset for stage ${newStageId}`);
+
+        // 6. Executors aktualisieren
+        this.actionExecutor.setObjects(this.objects);
+
+        // 7. StageController neu initialisieren (weil er jetzt Teil der neuen Objekte ist)
+        this.initStageController();
+
+        // 8. GameLoop und andere Komponenten starten
+        this.start();
+
+        // 9. Host benachrichtigen (für UI-Update)
+        if (this.options.onStageSwitch) {
+            console.log(`[GameRuntime] Notifying host of stage switch to: ${newStageId}`);
+            this.options.onStageSwitch(newStageId);
+        }
     }
 
     /**
@@ -659,10 +685,65 @@ export class GameRuntime {
     }
 
     /**
-     * Returns all runtime objects
+     * Returns all runtime objects as a flattened list with absolute coordinates for rendering.
+     * Also accumulates z-index to ensure children of high-z parents (like Splash) are rendered on top.
      */
     public getObjects(): any[] {
-        return this.objects;
+        const all: any[] = [];
+        const process = (objs: any[], parentX = 0, parentY = 0, parentZ = 0) => {
+            objs.forEach(obj => {
+                // Calculate effective Z-Index (relative to parent)
+                // Ensure type safety for zIndex accumulation
+                const currentZ = (typeof obj.zIndex === 'number') ? obj.zIndex : 0;
+                const effectiveZ = parentZ + currentZ;
+
+                // Return a copy with absolute coordinates for the renderer
+                // CRITICAL: Proxy objects don't spread getter properties correctly,
+                // so we must explicitly copy image-related properties
+                const renderObj = {
+                    ...obj,
+                    x: (obj.x || 0) + parentX,
+                    y: (obj.y || 0) + parentY,
+                    zIndex: effectiveZ,
+                    // Explicitly copy image properties that may be lost on Proxy spread
+                    backgroundImage: obj.backgroundImage,
+                    src: obj.src,
+                    objectFit: obj.objectFit,
+                    imageOpacity: obj.imageOpacity
+                };
+                all.push(renderObj);
+                if (obj.children && obj.children.length > 0) {
+                    process(obj.children, renderObj.x, renderObj.y, effectiveZ);
+                }
+            });
+        };
+        process(this.objects);
+        return all;
+    }
+
+    /**
+     * Creates a temporary shallow clone of an object.
+     * Used for 'copy' drag mode.
+     */
+    public createPhantom(original: any): any {
+        const phantom = {
+            ...original,
+            id: `phantom_${Date.now()}`,
+            name: `${original.name}_phantom`,
+            _isPhantom: true,
+            _original: original,
+            draggable: false // Phantoms themselves aren't draggable
+        };
+        // Hydrate children if any? (Minimal for now)
+        this.objects.push(phantom);
+        return phantom;
+    }
+
+    /**
+     * Removes an object from the runtime.
+     */
+    public removeObject(id: string): void {
+        this.objects = this.objects.filter(o => o.id !== id);
     }
 
     private resolveInheritanceChain(stageId: string, visited: Set<string> = new Set()): any[] {
@@ -750,6 +831,10 @@ export class GameRuntime {
     /**
      * Phase 3: Creates a Proxy handles variable scoping (Local > Global).
      */
+    /**
+     * Phase 3: Creates a Proxy handles variable scoping (Local > Global).
+     * Includes Reactive Event Logic (Thresholds, Triggers, Changed).
+     */
     private createVariableContext(): Record<string, any> {
         return new Proxy({}, {
             get: (_target, prop: string) => {
@@ -761,36 +846,88 @@ export class GameRuntime {
                 if (prop in this.projectVariables) {
                     return this.projectVariables[prop];
                 }
-                // 3. Check Cross-Stage (e.g. "Stage1.score")
-                // TODO: Implement cross-stage lookup if needed
-
-                // Fallback: Return undefined
                 return undefined;
             },
             set: (_target, prop: string, value: any) => {
-                // Logic: 
-                // - If defined in Local (Stage) -> set Local
-                // - If defined in Global (Project) -> set Global
-                // - If defined in NEITHER -> Default to Local (Implicit creation)
+                const oldValue = this.stageVariables[prop] !== undefined
+                    ? this.stageVariables[prop]
+                    : this.projectVariables[prop];
 
+                // 1. Update Value (Scoping Rules)
                 if (prop in this.stageVariables) {
                     this.stageVariables[prop] = value;
-                    console.log(`[Scope] Set LOCAL ${prop} = ${value}`);
                 } else if (prop in this.projectVariables) {
                     this.projectVariables[prop] = value;
-                    console.log(`[Scope] Set GLOBAL ${prop} = ${value}`);
                 } else {
                     // Implicit -> Local
                     this.stageVariables[prop] = value;
-                    console.log(`[Scope] Set IMPLICIT LOCAL ${prop} = ${value}`);
                 }
 
-                // Sync with ReactiveRuntime for UI bindings
+                // 2. Sync with ReactiveRuntime for UI bindings
                 this.reactiveRuntime.setVariable(prop, value);
+
+                // 3. Reactive Events (only if TaskExecutor is ready)
+                if (this.taskExecutor) {
+                    // Find Variable Definition to get Event Config
+                    let varDef: any = this.stage?.variables?.find((v: any) => v.name === prop);
+                    if (!varDef && this.project.variables) {
+                        varDef = this.project.variables.find((v: any) => v.name === prop);
+                    }
+
+                    if (varDef) {
+                        // a) onValueChanged
+                        if (oldValue !== value && varDef.onValueChanged) {
+                            console.log(`[Reactive] ${prop} changed -> executing ${varDef.onValueChanged}`);
+                            this.taskExecutor.execute(varDef.onValueChanged, {}, this.contextVars);
+                        }
+
+                        // b) onValueEmpty (String="" or Number=null/undefined. 0 is NOT empty)
+                        if ((value === "" || value === null || value === undefined) && varDef.onValueEmpty) {
+                            console.log(`[Reactive] ${prop} is empty -> executing ${varDef.onValueEmpty}`);
+                            this.taskExecutor.execute(varDef.onValueEmpty, {}, this.contextVars);
+                        }
+
+                        // c) Thresholds (Numbers)
+                        if (typeof value === 'number' && typeof oldValue === 'number' && typeof varDef.threshold === 'number') {
+                            const t = varDef.threshold;
+                            // Reached (Crossing from below)
+                            if (oldValue < t && value >= t && varDef.onThresholdReached) {
+                                console.log(`[Reactive] ${prop} reached threshold ${t} -> executing ${varDef.onThresholdReached}`);
+                                this.taskExecutor.execute(varDef.onThresholdReached, {}, this.contextVars);
+                            }
+                            // Left (Crossing from above or equal)
+                            if (oldValue >= t && value < t && varDef.onThresholdLeft) {
+                                console.log(`[Reactive] ${prop} left threshold ${t} -> executing ${varDef.onThresholdLeft}`);
+                                this.taskExecutor.execute(varDef.onThresholdLeft, {}, this.contextVars);
+                            }
+                            // Exceeded (Strictly greater)
+                            if (oldValue <= t && value > t && varDef.onThresholdExceeded) {
+                                console.log(`[Reactive] ${prop} exceeded threshold ${t} -> executing ${varDef.onThresholdExceeded}`);
+                                this.taskExecutor.execute(varDef.onThresholdExceeded, {}, this.contextVars);
+                            }
+                        }
+
+                        // d) Trigger Values
+                        if (varDef.triggerValue !== undefined && varDef.triggerValue !== "" && varDef.triggerValue !== null) {
+                            // Loose equality to allow string/number match (e.g. "10" == 10 from JSON input)
+                            const isTrigger = value == varDef.triggerValue;
+                            const wasTrigger = oldValue == varDef.triggerValue;
+
+                            if (isTrigger && !wasTrigger && varDef.onTriggerEnter) {
+                                console.log(`[Reactive] ${prop} entered trigger ${varDef.triggerValue} -> executing ${varDef.onTriggerEnter}`);
+                                this.taskExecutor.execute(varDef.onTriggerEnter, {}, this.contextVars);
+                            }
+                            if (!isTrigger && wasTrigger && varDef.onTriggerExit) {
+                                console.log(`[Reactive] ${prop} exited trigger ${varDef.triggerValue} -> executing ${varDef.onTriggerExit}`);
+                                this.taskExecutor.execute(varDef.onTriggerExit, {}, this.contextVars);
+                            }
+                        }
+                    }
+                }
+
                 return true;
             },
             ownKeys: () => {
-                // Combined keys for iteration
                 const keys = new Set([
                     ...Object.keys(this.projectVariables),
                     ...Object.keys(this.stageVariables)
@@ -801,7 +938,6 @@ export class GameRuntime {
                 return (prop in this.stageVariables) || (prop in this.projectVariables);
             },
             getOwnPropertyDescriptor: (_target, prop: string) => {
-                // Must return a descriptor for the proxy to work with Object.keys/entries
                 const val = this.stageVariables[prop] !== undefined ? this.stageVariables[prop] : this.projectVariables[prop];
                 if (val !== undefined) {
                     return { configurable: true, enumerable: true, value: val };
