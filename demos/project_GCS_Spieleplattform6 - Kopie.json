@@ -40,7 +40,15 @@
   "splashDuration": 3000,
   "splashAutoHide": true,
   "actions": [],
-  "tasks": [],
+  "tasks": [
+    {
+      "name": "UpdateTargetFieldCounter",
+      "description": "Ich bin eine Beschreibung",
+      "actionSequence": [],
+      "params": [],
+      "triggerMode": "broadcast"
+    }
+  ],
   "variables": [],
   "stages": [
     {
@@ -515,9 +523,94 @@
           "contentImage": ""
         }
       ],
-      "tasks": [],
-      "actions": [],
-      "flowCharts": {}
+      "tasks": [
+        {
+          "name": "UpdateTargetFieldCounter",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Aktion"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "description": "Ich bin eine Beschreibung",
+          "params": []
+        }
+      ],
+      "actions": [
+        {
+          "showDetails": false,
+          "name": "AktionName",
+          "details": "",
+          "type": "property",
+          "target": "",
+          "changes": {},
+          "taskParams": [],
+          "description": "",
+          "method": ""
+        }
+      ],
+      "flowCharts": {
+        "global": {
+          "elements": [],
+          "connections": []
+        },
+        "UpdateTargetFieldCounter": {
+          "elements": [
+            {
+              "id": "node-1769079795425",
+              "type": "Task",
+              "x": 60,
+              "y": 100,
+              "width": 260,
+              "height": 60,
+              "properties": {
+                "name": "UpdateTargetFieldCounter",
+                "details": "",
+                "description": "Ich bin eine Beschreibung"
+              },
+              "data": {
+                "paramValues": {},
+                "showDetails": false,
+                "name": "UpdateTargetFieldCounter",
+                "triggerMode": "local-sync",
+                "description": "Ich bin eine Beschreibung"
+              }
+            },
+            {
+              "id": "node-1769094233114",
+              "type": "Action",
+              "x": 420,
+              "y": 100,
+              "width": 160,
+              "height": 60,
+              "properties": {
+                "name": "Aktion",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "Aktion"
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1769079795425",
+              "endTargetId": "node-1769094233114",
+              "startX": 320,
+              "startY": 130,
+              "endX": 540,
+              "endY": 130,
+              "data": {
+                "startAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "activeStageId": "stage_login",

@@ -1041,10 +1041,11 @@
   // src/runtime/ActionExecutor.ts
   init_AnimationManager();
   var ActionExecutor = class {
-    constructor(objects, multiplayerManager, onNavigate) {
+    constructor(objects, multiplayerManager, onNavigate, controller) {
       this.objects = objects;
       this.multiplayerManager = multiplayerManager;
       this.onNavigate = onNavigate;
+      this.controller = controller;
     }
     setObjects(objects) {
       this.objects = objects;
@@ -1531,16 +1532,8 @@
       console.log(`[ActionExecutor] Created dynamic object: ${config.name} (${config.className})`);
     }
     handleCallMethodAction(action, vars, contextObj) {
-      const target = this.resolveTarget(action.target, vars, contextObj);
-      if (!target) {
-        console.warn(`[ActionExecutor] call_method: Target not found: ${action.target}`);
-        return;
-      }
       const methodName = action.method;
-      if (!methodName || typeof target[methodName] !== "function") {
-        console.warn(`[ActionExecutor] call_method: Method '${methodName}' not found on ${target.name}`);
-        return;
-      }
+      if (!methodName) return;
       let params = [];
       if (action.params) {
         if (Array.isArray(action.params)) {
@@ -1555,10 +1548,19 @@
           params = [PropertyHelper.autoConvert(interpolated)];
         }
       }
-      if (typeof target[methodName] === "function") {
-        target[methodName](...params);
+      const target = this.resolveTarget(action.target, vars, contextObj);
+      if (target) {
+        if (typeof target[methodName] === "function") {
+          console.log(`[ActionExecutor] Calling ${methodName} on object ${target.name}`);
+          target[methodName](...params);
+        } else {
+          console.warn(`[ActionExecutor] Method '${methodName}' not found on ${target.name}`);
+        }
+      } else if (this.controller && typeof this.controller.callVariableMethod === "function") {
+        console.log(`[ActionExecutor] Calling ${methodName} on variable ${action.target} via controller`);
+        this.controller.callVariableMethod(action.target, methodName, params);
       } else {
-        console.error(`[ActionExecutor] Method ${methodName} is not a function on`, target);
+        console.warn(`[ActionExecutor] Target not found: ${action.target}`);
       }
     }
     /**
@@ -7894,6 +7896,7 @@
       __publicField(this, "stage", null);
       // Public property for external access (e.g. Standalone Player)
       __publicField(this, "stageController", null);
+      __publicField(this, "varTimers", /* @__PURE__ */ new Map());
       this.projectVariables = { ...options.initialGlobalVars };
       if (project.variables) {
         project.variables.forEach((v) => {
@@ -8016,7 +8019,8 @@
         this.actionExecutor = new ActionExecutor(
           this.objects,
           options.multiplayerManager || window.multiplayerManager,
-          options.onNavigate
+          options.onNavigate,
+          this
         );
         const mp = options.multiplayerManager || window.multiplayerManager;
         const finalTasks = [...project.tasks || [], ...mergedTasks];
@@ -8224,6 +8228,7 @@
       console.log(`[GameRuntime] TaskExecutor updated with ${Object.keys(mergedFlowCharts).length} flowCharts, ${mergedTasks.length} tasks and ${mergedActions.length} actions`);
       if (this.options.makeReactive) {
         this.reactiveRuntime.clear();
+        this.clearAllTimers();
         AnimationManager.getInstance().clear();
         this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
         this.reactiveRuntime.setVariable("isSplashActive", false);
@@ -8523,54 +8528,109 @@
         },
         set: (_target, prop, value) => {
           const oldValue = this.stageVariables[prop] !== void 0 ? this.stageVariables[prop] : this.projectVariables[prop];
-          if (prop in this.stageVariables) {
-            this.stageVariables[prop] = value;
-          } else if (prop in this.projectVariables) {
-            this.projectVariables[prop] = value;
-          } else {
-            this.stageVariables[prop] = value;
+          let varDef = this.stage?.variables?.find((v) => v.name === prop);
+          if (!varDef && this.project.variables) {
+            varDef = this.project.variables.find((v) => v.name === prop);
           }
-          this.reactiveRuntime.setVariable(prop, value);
+          let finalValue = value;
+          if (varDef && varDef.isInteger && typeof value === "number") {
+            finalValue = Math.floor(value);
+          }
+          if (prop in this.stageVariables) {
+            this.stageVariables[prop] = finalValue;
+          } else if (prop in this.projectVariables) {
+            this.projectVariables[prop] = finalValue;
+          } else {
+            this.stageVariables[prop] = finalValue;
+          }
+          this.reactiveRuntime.setVariable(prop, finalValue);
           if (this.taskExecutor) {
-            let varDef = this.stage?.variables?.find((v) => v.name === prop);
-            if (!varDef && this.project.variables) {
-              varDef = this.project.variables.find((v) => v.name === prop);
+            let varDef2 = this.stage?.variables?.find((v) => v.name === prop);
+            if (!varDef2 && this.project.variables) {
+              varDef2 = this.project.variables.find((v) => v.name === prop);
             }
-            if (varDef) {
-              if (oldValue !== value && varDef.onValueChanged) {
-                console.log(`[Reactive] ${prop} changed -> executing ${varDef.onValueChanged}`);
-                this.taskExecutor.execute(varDef.onValueChanged, {}, this.contextVars);
+            if (varDef2) {
+              if (oldValue !== value && varDef2.onValueChanged) {
+                console.log(`[Reactive] ${prop} changed -> executing ${varDef2.onValueChanged}`);
+                this.taskExecutor.execute(varDef2.onValueChanged, {}, this.contextVars);
               }
-              if ((value === "" || value === null || value === void 0) && varDef.onValueEmpty) {
-                console.log(`[Reactive] ${prop} is empty -> executing ${varDef.onValueEmpty}`);
-                this.taskExecutor.execute(varDef.onValueEmpty, {}, this.contextVars);
+              if ((value === "" || value === null || value === void 0) && varDef2.onValueEmpty) {
+                console.log(`[Reactive] ${prop} is empty -> executing ${varDef2.onValueEmpty}`);
+                this.taskExecutor.execute(varDef2.onValueEmpty, {}, this.contextVars);
               }
-              if (typeof value === "number" && typeof oldValue === "number" && typeof varDef.threshold === "number") {
-                const t = varDef.threshold;
-                if (oldValue < t && value >= t && varDef.onThresholdReached) {
-                  console.log(`[Reactive] ${prop} reached threshold ${t} -> executing ${varDef.onThresholdReached}`);
-                  this.taskExecutor.execute(varDef.onThresholdReached, {}, this.contextVars);
+              if (typeof value === "number" && typeof oldValue === "number" && typeof varDef2.threshold === "number") {
+                const t = varDef2.threshold;
+                if (oldValue < t && value >= t && varDef2.onThresholdReached) {
+                  console.log(`[Reactive] ${prop} reached threshold ${t} -> executing ${varDef2.onThresholdReached}`);
+                  this.taskExecutor.execute(varDef2.onThresholdReached, {}, this.contextVars);
                 }
-                if (oldValue >= t && value < t && varDef.onThresholdLeft) {
-                  console.log(`[Reactive] ${prop} left threshold ${t} -> executing ${varDef.onThresholdLeft}`);
-                  this.taskExecutor.execute(varDef.onThresholdLeft, {}, this.contextVars);
+                if (oldValue >= t && value < t && varDef2.onThresholdLeft) {
+                  console.log(`[Reactive] ${prop} left threshold ${t} -> executing ${varDef2.onThresholdLeft}`);
+                  this.taskExecutor.execute(varDef2.onThresholdLeft, {}, this.contextVars);
                 }
-                if (oldValue <= t && value > t && varDef.onThresholdExceeded) {
-                  console.log(`[Reactive] ${prop} exceeded threshold ${t} -> executing ${varDef.onThresholdExceeded}`);
-                  this.taskExecutor.execute(varDef.onThresholdExceeded, {}, this.contextVars);
+                if (oldValue <= t && value > t && varDef2.onThresholdExceeded) {
+                  console.log(`[Reactive] ${prop} exceeded threshold ${t} -> executing ${varDef2.onThresholdExceeded}`);
+                  this.taskExecutor.execute(varDef2.onThresholdExceeded, {}, this.contextVars);
                 }
               }
-              if (varDef.triggerValue !== void 0 && varDef.triggerValue !== "" && varDef.triggerValue !== null) {
-                const isTrigger = value == varDef.triggerValue;
-                const wasTrigger = oldValue == varDef.triggerValue;
-                if (isTrigger && !wasTrigger && varDef.onTriggerEnter) {
-                  console.log(`[Reactive] ${prop} entered trigger ${varDef.triggerValue} -> executing ${varDef.onTriggerEnter}`);
-                  this.taskExecutor.execute(varDef.onTriggerEnter, {}, this.contextVars);
+              if (varDef2.triggerValue !== void 0 && varDef2.triggerValue !== "" && varDef2.triggerValue !== null) {
+                const isTrigger = value == varDef2.triggerValue;
+                const wasTrigger = oldValue == varDef2.triggerValue;
+                if (isTrigger && !wasTrigger && varDef2.onTriggerEnter) {
+                  console.log(`[Reactive] ${prop} entered trigger ${varDef2.triggerValue} -> executing ${varDef2.onTriggerEnter}`);
+                  this.taskExecutor.execute(varDef2.onTriggerEnter, {}, this.contextVars);
                 }
-                if (!isTrigger && wasTrigger && varDef.onTriggerExit) {
-                  console.log(`[Reactive] ${prop} exited trigger ${varDef.triggerValue} -> executing ${varDef.onTriggerExit}`);
-                  this.taskExecutor.execute(varDef.onTriggerExit, {}, this.contextVars);
+                if (!isTrigger && wasTrigger && varDef2.onTriggerExit) {
+                  console.log(`[Reactive] ${prop} exited trigger ${varDef2.triggerValue} -> executing ${varDef2.onTriggerExit}`);
+                  this.taskExecutor.execute(varDef2.onTriggerExit, {}, this.contextVars);
                 }
+              }
+              if (typeof value === "number" && varDef2.min !== void 0 && varDef2.max !== void 0) {
+                const min = Number(varDef2.min);
+                const max2 = Number(varDef2.max);
+                if (value <= min && (oldValue > min || oldValue === void 0) && varDef2.onMinReached) {
+                  this.taskExecutor.execute(varDef2.onMinReached, {}, this.contextVars);
+                }
+                if (value >= max2 && (oldValue < max2 || oldValue === void 0) && varDef2.onMaxReached) {
+                  this.taskExecutor.execute(varDef2.onMaxReached, {}, this.contextVars);
+                }
+                const isInside = value > min && value < max2;
+                const wasInside = oldValue > min && oldValue < max2;
+                if (isInside && !wasInside && varDef2.onInside) {
+                  this.taskExecutor.execute(varDef2.onInside, {}, this.contextVars);
+                }
+                if (!isInside && wasInside && varDef2.onOutside) {
+                  this.taskExecutor.execute(varDef2.onOutside, {}, this.contextVars);
+                }
+              }
+              if (varDef2.isRandom && oldValue !== value && varDef2.onGenerated) {
+                this.taskExecutor.execute(varDef2.onGenerated, {}, this.contextVars);
+              }
+              if (varDef2.type === "list" && value !== oldValue) {
+                try {
+                  const list = Array.isArray(value) ? value : JSON.parse(value);
+                  const oldList = Array.isArray(oldValue) ? oldValue : oldValue ? JSON.parse(oldValue) : [];
+                  if (list.length > oldList.length && varDef2.onItemAdded) {
+                    this.taskExecutor.execute(varDef2.onItemAdded, {}, this.contextVars);
+                  }
+                  if (list.length < oldList.length && varDef2.onItemRemoved) {
+                    this.taskExecutor.execute(varDef2.onItemRemoved, {}, this.contextVars);
+                  }
+                  if (varDef2.searchValue) {
+                    const contains = list.includes(varDef2.searchValue);
+                    const wasContains = oldList.includes(varDef2.searchValue);
+                    if (contains && !wasContains && varDef2.onContains) {
+                      this.taskExecutor.execute(varDef2.onContains, {}, this.contextVars);
+                    }
+                    if (!contains && wasContains && varDef2.onNotContains) {
+                      this.taskExecutor.execute(varDef2.onNotContains, {}, this.contextVars);
+                    }
+                  }
+                } catch (e) {
+                }
+              }
+              if (varDef2.type === "timer" && typeof value === "number" && value > 0 && (oldValue === 0 || oldValue === void 0)) {
+                this.startTimer(prop, varDef2, value);
               }
             }
           }
@@ -8607,6 +8667,69 @@
         });
       });
     }
+    startTimer(prop, varDef, duration) {
+      if (this.varTimers.has(prop)) {
+        clearInterval(this.varTimers.get(prop));
+      }
+      let currentTime = duration;
+      varDef.currentTime = currentTime;
+      let lastH = -1, lastM = -1, lastS = -1;
+      const updateHMS = (ms) => {
+        const h = Math.floor(ms / (1e3 * 60 * 60));
+        const m = Math.floor(ms % (1e3 * 60 * 60) / (1e3 * 60));
+        const s = Math.floor(ms % (1e3 * 60) / 1e3);
+        if (h !== lastH) {
+          varDef.hours = h;
+          this.reactiveRuntime.setVariable(`${prop}.hours`, h);
+          if (lastH !== -1 && varDef.onHour) this.taskExecutor.execute(varDef.onHour, {}, this.contextVars);
+          lastH = h;
+        }
+        if (m !== lastM) {
+          varDef.minutes = m;
+          this.reactiveRuntime.setVariable(`${prop}.minutes`, m);
+          if (lastM !== -1 && varDef.onMinute) this.taskExecutor.execute(varDef.onMinute, {}, this.contextVars);
+          lastM = m;
+        }
+        if (s !== lastS) {
+          varDef.seconds = s;
+          this.reactiveRuntime.setVariable(`${prop}.seconds`, s);
+          if (lastS !== -1 && varDef.onSecond) this.taskExecutor.execute(varDef.onSecond, {}, this.contextVars);
+          lastS = s;
+        }
+      };
+      updateHMS(currentTime);
+      this.reactiveRuntime.setVariable(`${prop}.currentTime`, currentTime);
+      const interval = setInterval(() => {
+        currentTime -= 100;
+        if (currentTime < 0) currentTime = 0;
+        varDef.currentTime = currentTime;
+        updateHMS(currentTime);
+        this.reactiveRuntime.setVariable(`${prop}.currentTime`, currentTime);
+        if (this.options.onRender) this.options.onRender();
+        if (varDef.onTick) {
+          this.taskExecutor.execute(varDef.onTick, {}, this.contextVars);
+        }
+        if (currentTime <= 0) {
+          clearInterval(interval);
+          this.varTimers.delete(prop);
+          if (prop in this.stageVariables) this.stageVariables[prop] = 0;
+          else this.projectVariables[prop] = 0;
+          this.reactiveRuntime.setVariable(prop, 0);
+          if (varDef.onFinished) {
+            console.log(`[Timer] ${prop} finished -> executing ${varDef.onFinished}`);
+            this.taskExecutor.execute(varDef.onFinished, {}, this.contextVars);
+          }
+          if (this.options.onRender) this.options.onRender();
+        }
+      }, 100);
+      this.varTimers.set(prop, interval);
+      console.log(`[Timer] Started ${prop} with ${duration}ms`);
+    }
+    clearAllTimers() {
+      this.varTimers.forEach((t) => clearInterval(t));
+      this.varTimers.clear();
+      console.log("[GameRuntime] All variable timers cleared.");
+    }
     getPatternStartPosition(pattern, targetX, targetY, index, stage) {
       const cols = stage.grid?.cols || stage.cols || 32, rows = stage.grid?.rows || stage.rows || 24, margin = 10;
       switch (pattern) {
@@ -8637,6 +8760,73 @@
         default:
           return { x: targetX, y: targetY };
       }
+    }
+    callVariableMethod(name, method, params = []) {
+      const varDef = this.getVarDef(name);
+      if (!varDef) return;
+      switch (method) {
+        case "reset":
+          console.log(`[GameRuntime] Resetting variable ${name} to initial value`);
+          this.contextVars[name] = varDef.initialValue !== void 0 ? varDef.initialValue : varDef.defaultValue;
+          break;
+        case "start":
+          if (varDef.type === "timer") {
+            console.log(`[GameRuntime] Explicit start for timer ${name}`);
+            this.contextVars[name] = varDef.duration || 1e3;
+          }
+          break;
+        case "stop":
+          if (varDef.type === "timer" && this.varTimers.has(name)) {
+            console.log(`[GameRuntime] Explicit stop for timer ${name}`);
+            clearInterval(this.varTimers.get(name));
+            this.varTimers.delete(name);
+          }
+          break;
+        case "add":
+          if (varDef.type === "list" || varDef.type === "object_list") {
+            const list = Array.isArray(this.contextVars[name]) ? [...this.contextVars[name]] : [];
+            list.push(params[0]);
+            this.contextVars[name] = list;
+          }
+          break;
+        case "remove":
+          if (varDef.type === "list" || varDef.type === "object_list") {
+            const list = Array.isArray(this.contextVars[name]) ? [...this.contextVars[name]] : [];
+            const idx = list.indexOf(params[0]);
+            if (idx > -1) {
+              list.splice(idx, 1);
+              this.contextVars[name] = list;
+            }
+          }
+          break;
+        case "removeByProperty":
+          if (varDef.type === "object_list") {
+            const prop = params[0];
+            const val = params[1];
+            const list = Array.isArray(this.contextVars[name]) ? [...this.contextVars[name]] : [];
+            const newList = list.filter((item) => !item || item[prop] != val);
+            this.contextVars[name] = newList;
+          }
+          break;
+        case "clear":
+          if (varDef.type === "list" || varDef.type === "object_list") this.contextVars[name] = [];
+          break;
+        case "roll":
+          if (varDef.type === "random" || varDef.isRandom) {
+            const min = Number(varDef.min) || 0;
+            const max2 = Number(varDef.max) || 100;
+            const val = min + Math.random() * (max2 - min);
+            this.contextVars[name] = val;
+          }
+          break;
+      }
+    }
+    getVarDef(name) {
+      let varDef = this.stage?.variables?.find((v) => v.name === name);
+      if (!varDef && this.project.variables) {
+        varDef = this.project.variables.find((v) => v.name === name);
+      }
+      return varDef;
     }
   };
 

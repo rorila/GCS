@@ -171,36 +171,6 @@
             "height": 2
         },
         {
-            "className": "TCheckbox",
-            "name": "showGridInput",
-            "x": 16,
-            "y": 12,
-            "checked": "${selectedObject.showGrid}",
-            "label": "Show Grid"
-        },
-        {
-            "className": "TColorPicker",
-            "name": "gridColorInput",
-            "x": 24,
-            "y": 12,
-            "color": "${selectedObject.gridColor}",
-            "width": 6,
-            "height": 2
-        },
-        {
-            "className": "TDropdown",
-            "name": "gridStyleInput",
-            "x": 0,
-            "y": 14,
-            "options": [
-                "lines",
-                "dots"
-            ],
-            "selectedValue": "${selectedObject.gridStyle}",
-            "width": 14,
-            "height": 2
-        },
-        {
             "className": "TLabel",
             "name": "StyleHeader",
             "text": "STYLE",

@@ -48,17 +48,24 @@ export class ProjectRegistry {
 
         // 2. Stage variables (from active stage)
         if (this.activeStageId && this.project.stages) {
+            // Find in activeStage.variables (new system)
             const activeStage = this.project.stages.find(s => s.id === this.activeStageId);
             if (activeStage && activeStage.variables) {
                 const stageVars = activeStage.variables.map(v => ({ ...v, uiScope: 'stage' as const }));
                 visibleVars = [...visibleVars, ...stageVars];
             }
+
+            // ALSO find in project.variables with scope === activeStageId (FlowEditor system)
+            const scopedProjectVars = this.project.variables
+                .filter(v => v.scope === this.activeStageId)
+                .map(v => ({ ...v, uiScope: 'stage' as const }));
+            visibleVars = [...visibleVars, ...scopedProjectVars];
         }
 
         // 3. If inside a Task, include Task variables
         if (context?.taskName) {
             const taskVars = this.project.variables
-                .filter(v => v.scope === `task:${context.taskName}`)
+                .filter(v => v.scope === context.taskName || v.scope === `task:${context.taskName}`)
                 .map(v => ({ ...v, uiScope: 'local' as const }));
             visibleVars = [...visibleVars, ...taskVars];
         }

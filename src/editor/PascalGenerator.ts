@@ -27,7 +27,15 @@ export class PascalGenerator {
             lines.push(`${this.span('VAR', '#c586c0', asHtml)} ${this.span('{ GLOBAL VARIABLES }', '#6a9955', asHtml)}`);
             globalVars.forEach(v => {
                 const pascalType = (v.type || 'string').charAt(0).toUpperCase() + (v.type || 'string').slice(1);
-                lines.push(`  ${this.span(v.name, '#9cdcfe', asHtml)}: ${this.span(pascalType, '#4ec9b0', asHtml)}; ${this.span(`// Default: ${v.defaultValue ?? 'nil'}`, '#6a9955', asHtml)}`);
+                let metadata = '';
+                if (v.threshold !== undefined) metadata += ` Threshold=${v.threshold}`;
+                if (v.triggerValue !== undefined) metadata += ` TriggerValue='${v.triggerValue}'`;
+                if (v.duration !== undefined) metadata += ` Duration=${v.duration}`;
+                if (v.min !== undefined) metadata += ` Min=${v.min}`;
+                if (v.max !== undefined) metadata += ` Max=${v.max}`;
+
+                const comment = `// Default: ${v.initialValue ?? v.defaultValue ?? 'nil'}${metadata}`;
+                lines.push(`  ${this.span(v.name, '#9cdcfe', asHtml)}: ${this.span(pascalType, '#4ec9b0', asHtml)}; ${this.span(comment, '#6a9955', asHtml)}`);
             });
             lines.push('');
         }
@@ -144,7 +152,15 @@ export class PascalGenerator {
             taskVars.forEach(v => {
                 const typeStr = v.type || 'string';
                 const pascalType = typeStr.charAt(0).toUpperCase() + typeStr.slice(1);
-                lines.push(`${space}  ${this.span(v.name, '#9cdcfe', asHtml)}: ${this.span(pascalType, '#4ec9b0', asHtml)};`);
+                let metadata = '';
+                if (v.threshold !== undefined) metadata += ` Threshold=${v.threshold}`;
+                if (v.triggerValue !== undefined) metadata += ` TriggerValue='${v.triggerValue}'`;
+                if (v.duration !== undefined) metadata += ` Duration=${v.duration}`;
+                if (v.min !== undefined) metadata += ` Min=${v.min}`;
+                if (v.max !== undefined) metadata += ` Max=${v.max}`;
+
+                const comment = ` { Default: ${v.initialValue ?? v.defaultValue ?? 'nil'}${metadata} }`;
+                lines.push(`${space}  ${this.span(v.name, '#9cdcfe', asHtml)}: ${this.span(pascalType, '#4ec9b0', asHtml)};${this.span(comment, '#6a9955', asHtml)}`);
             });
         }
 

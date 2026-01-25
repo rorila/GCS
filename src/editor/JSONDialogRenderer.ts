@@ -62,16 +62,21 @@ export class JSONDialogRenderer {
         this.runtime.registerVariable('dialogData', this.dialogData);
         this.runtime.registerVariable('serviceRegistry', serviceRegistry);
 
-        // Create enriched project object for expression evaluation
-        // This ensures project.objects contains the active stage's objects for Multi-Stage projects
         const stageObjects = projectRegistry.getObjects();
+        const stageVars = projectRegistry.getVariables({
+            taskName: this.dialogData.taskName,
+            actionId: this.dialogData.actionId || this.dialogData.name
+        });
+
+        console.log(`[JSONDialogRenderer] Enrichment: Found ${stageObjects.length} objects and ${stageVars.length} variables in Registry.`);
 
         const enrichedProject = {
             ...this.project,
-            objects: stageObjects.length > 0 ? stageObjects : (this.project.objects || [])
+            objects: stageObjects.length > 0 ? stageObjects : (this.project.objects || []),
+            variables: stageVars.length > 0 ? stageVars : (this.project.variables || [])
         };
         this.enrichedProject = enrichedProject as GameProject;
-        this.runtime.registerVariable('project', enrichedProject);
+        this.runtime.registerVariable('project', this.enrichedProject);
 
         this.runtime.registerVariable('taskName', dialogData.taskName || '');
         this.runtime.registerVariable('actionName', dialogData.actionName || '');
@@ -240,6 +245,17 @@ export class JSONDialogRenderer {
             // Check visibility
             if (obj.visible !== undefined) {
                 const isVisible = this.evaluateExpression(obj.visible);
+                if (obj.name === 'PropertySelect') {
+                    console.log(`[JSONDialogRenderer] Visibility check for PropertySelect:`, {
+                        expr: obj.visible,
+                        result: isVisible,
+                        data: {
+                            type: this.dialogData.type,
+                            target: this.dialogData.target,
+                            targetProps: this.getPropertiesForObject(this.dialogData.target)
+                        }
+                    });
+                }
                 if (!isVisible) return null;
             }
 
@@ -318,6 +334,7 @@ export class JSONDialogRenderer {
                     if (obj.name) select.setAttribute('data-name', obj.name);
 
                     const optionsArr = this.evaluateExpression(obj.options || []);
+                    console.log(`[JSONDialogRenderer] Rendering TDropdown "${obj.name}" with options:`, optionsArr);
 
                     // Prioritize current form value during session
                     const currentSelection = this.dialogData._formValues?.[obj.name];
@@ -1158,6 +1175,9 @@ export class JSONDialogRenderer {
             }
         }
         // For regular objects, dialogData.target is already updated by updateModelValue
+
+        // CRITICAL: Re-render to update dependent fields (like PropertySelect options)
+        this.render();
     }
 
     private stringifyCalcSteps(steps: any[]): string {
@@ -1187,11 +1207,97 @@ export class JSONDialogRenderer {
         });
     }
 
+    private findVariable(objectName: string) {
+        if (!objectName) return null;
+
+        console.log(`[JSONDialogRenderer] findVariable looking for: "${objectName}"`);
+
+        // Robust lookup:
+        // 1. Exact match in enrichedProject
+        let allVars = this.enrichedProject?.variables || [];
+        let variable = allVars.find(v => v.name === objectName);
+        if (variable) console.log(`[JSONDialogRenderer] -> Found exact match in enrichedProject:`, variable);
+
+        // 2. Normalized match (remove emojis, trim, case-insensitive)
+        if (!variable) {
+            const cleanName = objectName.replace(/[^\w]/g, '').toLowerCase();
+            variable = allVars.find(v => (v.name || '').replace(/[^\w]/g, '').toLowerCase() === cleanName);
+            if (variable) console.log(`[JSONDialogRenderer] -> Found normalized match in enrichedProject:`, variable);
+        }
+
+        // 3. Fallback to Registry (full lookup)
+        if (!variable) {
+            const regVars = projectRegistry.getVariables({
+                taskName: this.dialogData.taskName,
+                actionId: this.dialogData.actionId || this.dialogData.name
+            });
+            console.log(`[JSONDialogRenderer] -> Registry variables for context:`, regVars.length);
+
+            variable = regVars.find(v => v.name === objectName);
+            if (variable) console.log(`[JSONDialogRenderer] -> Found exact match in Registry:`, variable);
+
+            if (!variable) {
+                const cleanName = objectName.replace(/[^\w]/g, '').toLowerCase();
+                variable = regVars.find(v => (v.name || '').replace(/[^\w]/g, '').toLowerCase() === cleanName);
+                if (variable) console.log(`[JSONDialogRenderer] -> Found normalized match in Registry:`, variable);
+            }
+        }
+
+        if (!variable) {
+            console.warn(`[JSONDialogRenderer] -> FAILED to find variable "${objectName}" in any source!`);
+            // List some available names for debugging
+            console.log(`[JSONDialogRenderer] -> Available in enrichedProject:`, allVars.map(v => v.name));
+        }
+
+        return variable;
+    }
+
     private getPropertiesForObject(objectName: string): string[] {
-        // Check if it's a variable first
-        const variable = this.project?.variables.find(v => v.name === objectName);
+        const variable = this.findVariable(objectName);
+        console.log(`[JSONDialogRenderer] getProperties for "${objectName}":`, {
+            found: !!variable,
+            type: variable?.type,
+            fullVariable: variable
+        });
+
         if (variable) {
-            return ["value"];
+            const props = ["value"];
+            const vt = (variable.type || '').toLowerCase();
+
+            // 1. Timer Properties
+            if (vt.includes('timer') || variable.duration !== undefined) {
+                props.push("duration", "currentTime", "onFinish", "onTick", "onFinished");
+            }
+
+            // 2. Threshold Properties
+            if (vt.includes('threshold') || variable.threshold !== undefined) {
+                props.push("threshold", "onThresholdReached", "onThresholdLeft", "onThresholdExceeded");
+            }
+
+            // 3. Trigger Properties
+            if (vt.includes('trigger') || variable.triggerValue !== undefined) {
+                props.push("triggerValue", "onTriggerEnter", "onTriggerExit");
+            }
+
+            // 4. Numeric / Random / Range
+            if (vt.includes('range') || vt.includes('random') || variable.min !== undefined || variable.max !== undefined) {
+                props.push("min", "max");
+            }
+            if (vt.includes('random') || variable.isRandom) {
+                props.push("isRandom", "isInteger", "onGenerated");
+            }
+
+            // 5. List / Object List
+            if (vt.includes('list')) {
+                props.push("onItemAdded", "onItemRemoved", "count", "isEmpty");
+                if (vt.includes('object') || variable.searchProperty !== undefined) {
+                    props.push("searchProperty", "searchValue", "onContains", "onNotContains");
+                }
+            }
+
+            const uniqueProps = Array.from(new Set(props));
+            console.log(`[JSONDialogRenderer] -> Resolved properties for variable "${objectName}":`, uniqueProps);
+            return uniqueProps;
         }
 
         const objects = projectRegistry.getObjects();
@@ -1201,7 +1307,11 @@ export class JSONDialogRenderer {
         try {
             const hydrated = hydrateObjects([objData]);
             if (hydrated.length > 0) {
-                return hydrated[0].getInspectorProperties().map(p => p.name);
+                const hProps = hydrated[0].getInspectorProperties().map((p: any) => {
+                    if (typeof p === 'string') return p;
+                    return p.name;
+                });
+                return Array.from(new Set(["x", "y", "width", "height", "visible", ...hProps]));
             }
         } catch (e) {
             console.warn(`[JSONDialogRenderer] Failed to hydrate ${objectName} for properties`, e);
@@ -1214,6 +1324,29 @@ export class JSONDialogRenderer {
      * Uses a predefined mapping per component type.
      */
     private getMethodsForObject(objectName: string): string[] {
+        const variable = this.findVariable(objectName);
+        if (variable) {
+            const methods = ["reset"];
+            const vt = (variable.type || '').toLowerCase(); // Normalize
+
+            // 1. Timer Methods
+            if (vt.includes('timer') || variable.duration !== undefined) {
+                methods.push("start", "stop");
+            }
+
+            // 2. Random Methods
+            if (vt.includes('random') || variable.isRandom) {
+                methods.push("roll");
+            }
+
+            // 3. List Methods
+            if (vt.includes('list')) {
+                methods.push("add", "remove", "clear", "contains", "sort");
+            }
+
+            return Array.from(new Set(methods));
+        }
+
         const objects = projectRegistry.getObjects();
         const objData = objects.find(o => o.name === objectName);
         if (!objData) {

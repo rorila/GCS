@@ -586,12 +586,22 @@ export class ActionEditor {
         projectRegistry.getObjects().forEach(o => {
             const opt = document.createElement('option');
             opt.value = o.name;
-            opt.innerText = o.name;
+            opt.innerText = `[Obj] ${o.name}`;
             if (o.name === this.currentTarget) opt.selected = true;
             targetSelect.appendChild(opt);
         });
+
+        projectRegistry.getVariables().forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.name;
+            opt.innerText = `[Var] ${v.name}`;
+            if (v.name === this.currentTarget) opt.selected = true;
+            targetSelect.appendChild(opt);
+        });
+
         targetSelect.onchange = () => {
             this.currentTarget = targetSelect.value;
+            this.render(); // Re-render to update property dropdown
         };
         targetSection.appendChild(targetSelect);
         body.appendChild(targetSection);
@@ -626,18 +636,26 @@ export class ActionEditor {
 
         // Property Select
         const propSelect = document.createElement('select');
-        propSelect.style.width = '120px';  // Fixed width instead of flex
+        propSelect.style.width = '150px';
         propSelect.style.padding = '4px';
         propSelect.style.background = '#333';
         propSelect.style.color = 'white';
         propSelect.style.border = '1px solid #555';
 
-        const properties = [
+        // Context-sensitive properties
+        let properties = [
             'x', 'y', 'width', 'height',
             'caption', 'text', 'title',
             'style.backgroundColor', 'style.borderColor',
             'style.visible', 'style.color'
         ];
+
+        // If target is a variable, show variable-specific properties
+        const isVariable = projectRegistry.getVariables().some(v => v.name === this.currentTarget);
+        if (isVariable) {
+            properties = ['value', 'threshold', 'duration', 'min', 'max', 'searchValue', 'triggerValue'];
+        }
+
         properties.forEach(p => {
             const opt = document.createElement('option');
             opt.value = p;

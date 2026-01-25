@@ -1,4 +1,3 @@
-
 import { FlowElement } from './FlowElement';
 
 export class FlowVariable extends FlowElement {
@@ -9,7 +8,7 @@ export class FlowVariable extends FlowElement {
         this.applyVariableStyling();
     }
 
-    private applyVariableStyling() {
+    protected applyVariableStyling() {
         this.element.classList.add('flow-element', 'flow-node-glass', 'glass-node-variable');
 
         // Slightly smaller default size for variables
@@ -28,13 +27,14 @@ export class FlowVariable extends FlowElement {
     }
 
     public getInspectorProperties(): any[] {
-        return [
-            ...super.getInspectorProperties(),
-            { name: 'VarName', type: 'string', label: 'Name' },
-            { name: 'VarType', type: 'select', label: 'Typ', options: ['string', 'number', 'boolean', 'list', 'object'] },
-            { name: 'InitialValue', type: 'string', label: 'Initialwert' },
-            { name: 'Scope', type: 'string', label: 'Gültigkeit (Scope)', readOnly: true }
-        ];
+        return [];
+    }
+
+    /**
+     * Replaces the old getEvents logic to support the visual Properties/Events split.
+     */
+    public getEvents(): string[] {
+        return ['onChanged', 'onEmpty'];
     }
 
     // Property Accessors
@@ -53,6 +53,12 @@ export class FlowVariable extends FlowElement {
         this.updateVisuals();
     }
 
+    public get Value(): any { return this.data.variable?.value ?? this.InitialValue; }
+    public set Value(v: any) {
+        if (!this.data.variable) this.data.variable = {};
+        this.data.variable.value = v;
+    }
+
     public get InitialValue(): string { return this.data.variable?.initialValue || ''; }
     public set InitialValue(v: string) {
         if (!this.data.variable) this.data.variable = {};
@@ -65,9 +71,28 @@ export class FlowVariable extends FlowElement {
         this.data.variable.scope = v;
     }
 
+    public get IsPublic(): boolean { return this.data.variable?.isPublic || false; }
+    public set IsPublic(v: boolean) {
+        if (!this.data.variable) this.data.variable = {};
+        this.data.variable.isPublic = v;
+    }
+
+    // Event Proxy for inspector_events.json
+    public get Tasks(): any {
+        return this.data.variable || {};
+    }
+
+    /**
+     * Updates the visual representation of the node based on current data.
+     */
     public updateVisuals() {
         const name = this.VarName;
         const type = this.VarType;
-        this.setText(`${name}: ${type}`, true);
+        const icon = this.getIcon();
+        this.setText(`${icon} ${name}: ${type}`, true);
+    }
+
+    protected getIcon(): string {
+        return '📦';
     }
 }

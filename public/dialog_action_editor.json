@@ -623,7 +623,7 @@
         {
             "className": "TDropdown",
             "name": "CallMethodTargetSelect",
-            "options": "${project.objects.map(o => o.name)}",
+            "options": "${['📦 Select Target...'].concat(project.variables ? project.variables.map(v => v.name) : []).concat(project.objects.map(o => o.name))}",
             "selectedValue": "${dialogData.target || ''}",
             "visible": "${dialogData.type === 'call_method'}",
             "action": "updateValue",

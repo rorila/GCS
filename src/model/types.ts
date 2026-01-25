@@ -138,13 +138,14 @@ export type FlowCharts = Record<string, FlowChart>;
 // ─────────────────────────────────────────────
 // Project Variable (Pascal-style)
 // ─────────────────────────────────────────────
-export type VariableType = 'integer' | 'real' | 'string' | 'boolean';
+export type VariableType = 'integer' | 'real' | 'string' | 'boolean' | 'timer' | 'random' | 'list' | 'object_list' | 'threshold' | 'trigger' | 'range';
 export type VariableScope = 'global' | 'local' | string; // Phase 3: Strict scoping + Task-Local Support (Pascal)
 
 export interface ProjectVariable {
     name: string;
     type: VariableType;        // Pascal-style type
     defaultValue: any;         // Default value matching the type
+    initialValue?: any;        // Default value for reset/setup
     value?: any;               // Current runtime value (optional)
     scope: VariableScope;      // Visibility: global (Project) or local (Stage)
     isPublic?: boolean;        // If local, is it accessible from other stages?
@@ -153,6 +154,17 @@ export interface ProjectVariable {
     // Reactive Properties
     threshold?: number;
     triggerValue?: any;
+    duration?: number;
+    currentTime?: number;
+    hours?: number;
+    minutes?: number;
+    seconds?: number;
+    min?: number;
+    max?: number;
+    isRandom?: boolean;
+    isInteger?: boolean;
+    searchValue?: string;
+    searchProperty?: string;
 
     // Event Handlers (Task Names)
     onValueChanged?: string;
@@ -166,6 +178,29 @@ export interface ProjectVariable {
     // Trigger Events
     onTriggerEnter?: string;     // value == triggerValue
     onTriggerExit?: string;      // value != triggerValue
+
+    // Timer Events
+    onFinished?: string;
+    onTick?: string;
+    onHour?: string;
+    onMinute?: string;
+    onSecond?: string;
+
+    // Range Events
+    onMinReached?: string;
+    onMaxReached?: string;
+    onInside?: string;
+    onOutside?: string;
+
+    // List Events
+    onItemAdded?: string;
+    onItemRemoved?: string;
+    onContains?: string;
+    onNotContains?: string;
+    onCleared?: string;
+
+    // Random Events
+    onGenerated?: string;
 }
 
 // ─────────────────────────────────────────────

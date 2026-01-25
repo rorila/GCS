@@ -41,7 +41,7 @@
             "label": "Ziel-Objekt",
             "source": "objects",
             "selectedValue": "${selectedObject.target}",
-            "visibleWhen": "${selectedObject.actionType} == 'property'"
+            "visible": "${selectedObject.actionType == 'property'}"
         },
         {
             "name": "PropChanges",
@@ -49,7 +49,7 @@
             "label": "Änderungen (JSON)",
             "text": "${selectedObject.changesJSON}",
             "hint": "Beispiel: { \"text\": \"Hallo\" }",
-            "visibleWhen": "${selectedObject.actionType} == 'property'"
+            "visible": "${selectedObject.actionType == 'property'}"
         },
         {
             "name": "VarName",
@@ -57,7 +57,7 @@
             "label": "Variable",
             "source": "variables",
             "selectedValue": "${selectedObject.variableName}",
-            "visibleWhen": "${selectedObject.actionType} == 'variable'"
+            "visible": "${selectedObject.actionType == 'variable'}"
         },
         {
             "name": "VarOp",
@@ -72,14 +72,14 @@
                 "max",
                 "toggle"
             ],
-            "visibleWhen": "${selectedObject.actionType} == 'variable'"
+            "visible": "${selectedObject.actionType == 'variable'}"
         },
         {
             "name": "VarValue",
             "className": "TEdit",
             "label": "Wert",
             "text": "${selectedObject.value}",
-            "visibleWhen": "${selectedObject.actionType} == 'variable'"
+            "visible": "${selectedObject.actionType == 'variable'}"
         },
         {
             "name": "SvcName",
@@ -87,21 +87,21 @@
             "label": "Service",
             "source": "services",
             "selectedValue": "${selectedObject.service}",
-            "visibleWhen": "${selectedObject.actionType} == 'service'"
+            "visible": "${selectedObject.actionType == 'service'}"
         },
         {
             "name": "SvcMethod",
             "className": "TEdit",
             "label": "Methode",
             "text": "${selectedObject.method}",
-            "visibleWhen": "${selectedObject.actionType} == 'service'"
+            "visible": "${selectedObject.actionType == 'service'}"
         },
         {
             "name": "SvcParams",
             "className": "TEdit",
             "label": "Parameter (JSON)",
             "text": "${selectedObject.paramsJSON}",
-            "visibleWhen": "${selectedObject.actionType} == 'service'"
+            "visible": "${selectedObject.actionType == 'service'}"
         },
         {
             "name": "CalcResult",
@@ -109,14 +109,14 @@
             "label": "Ergebnis-Variable",
             "source": "variables",
             "selectedValue": "${selectedObject.resultVariable}",
-            "visibleWhen": "${selectedObject.actionType} == 'calculate'"
+            "visible": "${selectedObject.actionType == 'calculate'}"
         },
         {
             "name": "CalcSteps",
             "className": "TEdit",
             "label": "Schritte (JSON)",
             "text": "${selectedObject.calcStepsJSON}",
-            "visibleWhen": "${selectedObject.actionType} == 'calculate'"
+            "visible": "${selectedObject.actionType == 'calculate'}"
         }
     ]
 }

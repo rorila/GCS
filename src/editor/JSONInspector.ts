@@ -186,6 +186,7 @@ export class JSONInspector {
      * Updates the inspector with a new selected object
      */
     public async update(object: any) {
+        let inspectorFile = './inspector.json';
 
         // Check if this is a TInspectorTemplate - use special designer
         if (object && object.className === 'TInspectorTemplate') {
@@ -199,7 +200,7 @@ export class JSONInspector {
 
         if (isProject) {
             // Load Stage inspector from JSON
-            const inspectorFile = './inspector_stage.json';
+            inspectorFile = './inspector_stage.json';
 
             // Registriere die aktive Stage als Variable für den Inspector
             if (this.project) {
@@ -237,86 +238,92 @@ export class JSONInspector {
 
 
             // Determine which JSON to load based on activeTab
-            let inspectorFile = './inspector.json';
+            inspectorFile = './inspector.json';
 
             // Check for Flow Elements (Task/Action) -> Load specific schemas
             const type = object.getType ? object.getType() : (object.type || '');
-            if (type === 'Task') {
+            if (this.activeTab === 'events') {
+                inspectorFile = './inspector_events.json';
+            } else if (type === 'Task') {
                 inspectorFile = './inspector_task.json';
             } else if (type === 'Action') {
                 inspectorFile = './inspector_action.json';
-            } else if (this.activeTab === 'events') {
-                inspectorFile = './inspector_events.json';
+            } else if (type === 'VariableDecl') {
+                inspectorFile = './inspector_variable.json';
+            } else if (object.constructor && object.constructor.name === 'FlowEditor') {
+                // FlowEditor only uses dynamic properties via getInspectorProperties
+                // Do not load generic inspector.json to avoid duplicates (Geometry, Style, etc.)
+                inspectorFile = null as any;
+            }
 
-                // Get supported events dynamically from the component
-                let events: string[] = ['onClick', 'onDragStart', 'onDragEnd', 'onDrop']; // Default fallback
+            // Get supported events dynamically from the component
+            let events: string[] = ['onClick', 'onDragStart', 'onDragEnd', 'onDrop']; // Default fallback
 
-                // Try to call getEvents() on the object if it exists
-                if (typeof (object as any).getEvents === 'function') {
-                    events = (object as any).getEvents();
-                } else {
-                    console.log(`[JSONInspector] Events Tab - FALLBACK used, no getEvents() method!`);
-                    // Fallback for objects without getEvents()
-                    const className = (object as any).className || object.constructor?.name;
+            // Try to call getEvents() on the object if it exists
+            if (typeof (object as any).getEvents === 'function') {
+                events = (object as any).getEvents();
+            } else {
+                console.log(`[JSONInspector] Events Tab - FALLBACK used, no getEvents() method!`);
+                // Fallback for objects without getEvents()
+                const className = (object as any).className || object.constructor?.name;
 
-                    if (className === 'TSprite') {
-                        events.push('onCollision', 'onCollisionTop', 'onCollisionBottom', 'onCollisionLeft', 'onCollisionRight', 'onBoundaryHit');
-                    } else if (className === 'TGameCard') {
-                        events.push('onSingleClick', 'onMultiClick');
-                    } else if (className === 'TGameServer') {
-                        events.push('onConnected', 'onDisconnected', 'onRoomCreated', 'onRoomJoined', 'onPlayerJoined', 'onPlayerLeft', 'onGameStart', 'onError');
-                    } else if (className === 'TNumberLabel') {
-                        events.push('onMaxValueReached', 'onMinValueReached');
-                    }
+                if (className === 'TSprite') {
+                    events.push('onCollision', 'onCollisionTop', 'onCollisionBottom', 'onCollisionLeft', 'onCollisionRight', 'onBoundaryHit');
+                } else if (className === 'TGameCard') {
+                    events.push('onSingleClick', 'onMultiClick');
+                } else if (className === 'TGameServer') {
+                    events.push('onConnected', 'onDisconnected', 'onRoomCreated', 'onRoomJoined', 'onPlayerJoined', 'onPlayerLeft', 'onGameStart', 'onError');
+                } else if (className === 'TNumberLabel') {
+                    events.push('onMaxValueReached', 'onMinValueReached');
                 }
-
-                // Add to object as virtual property for TForEach
-                (object as any)._supportedEvents = events.map(evt => ({ key: evt }));
-
             }
 
-            // Load static JSON (Action/Task/Standard)
-            let staticObjects: any[] = [];
-            try {
-                // Add version parameter to bypass browser cache
-                const response = await fetch(`${inspectorFile}?v=${Date.now()}`);
-                const inspectorJSON = await response.json();
+            // Add to object as virtual property for TForEach
+            (object as any)._supportedEvents = events.map(evt => ({ key: evt }));
 
-                // Expand TForEach
-                staticObjects = this.expandForEach(inspectorJSON.objects, object);
-            } catch (error) {
-                console.error('[JSONInspector] Failed to load inspector JSON:', error);
-            }
-
-            // Merge with Dynamic Properties if available
-            // If it's a Flow Task/Action, we allow merging to support dynamic params + static header
-            // If it's pure Properties tab for generic object, we PREFER dynamic properties if they replace the whole UI? 
-            // Current logic was: Properties Tab -> Dynamic OR Static.
-            // New logic: JSON (Static) + Dynamic.
-
-            let dynamicObjects: any[] = [];
-            if (this.activeTab as string === 'properties' && typeof object.getInspectorProperties === 'function') {
-                dynamicObjects = this.generateUIFromProperties(object);
-            }
-
-            // Combine: Static (Header/Main) + Dynamic (Params/Extras)
-            this.inspectorObjects = [...staticObjects, ...dynamicObjects];
-
-            // Register all inspector objects
-            this.inspectorObjects.forEach(obj => {
-                this.runtime.registerObject(obj.name, obj, false);
-            });
-
-            // Setup bindings
-            this.setupBindings();
-
-            // Update selectedObject variable
-            this.runtime.setVariable('selectedObject', object);
-
-            // Re-render
-            this.render();
-            return;
         }
+
+        // Load static JSON (Action/Task/Standard)
+        let staticObjects: any[] = [];
+        try {
+            // Add version parameter to bypass browser cache
+            const response = await fetch(`${inspectorFile}?v=${Date.now()}`);
+            const inspectorJSON = await response.json();
+
+            // Expand TForEach
+            staticObjects = this.expandForEach(inspectorJSON.objects, object);
+        } catch (error) {
+            console.error('[JSONInspector] Failed to load inspector JSON:', error);
+        }
+
+        // Merge with Dynamic Properties if available
+        // If it's a Flow Task/Action, we allow merging to support dynamic params + static header
+        // If it's pure Properties tab for generic object, we PREFER dynamic properties if they replace the whole UI? 
+        // Current logic was: Properties Tab -> Dynamic OR Static.
+        // New logic: JSON (Static) + Dynamic.
+
+        let dynamicObjects: any[] = [];
+        if (this.activeTab as string === 'properties' && typeof object.getInspectorProperties === 'function') {
+            dynamicObjects = this.generateUIFromProperties(object, true);
+        }
+
+        // Combine: Static (Header/Main) + Dynamic (Params/Extras)
+        this.inspectorObjects = [...staticObjects, ...dynamicObjects];
+
+        // Register all inspector objects
+        this.inspectorObjects.forEach(obj => {
+            this.runtime.registerObject(obj.name, obj, false);
+        });
+
+        // Setup bindings
+        this.setupBindings();
+
+        // Update selectedObject variable
+        this.runtime.setVariable('selectedObject', object);
+
+        // Re-render
+        this.render();
+        return;
     }
 
     /**
@@ -698,17 +705,19 @@ export class JSONInspector {
             alert('Fehler beim Laden: ' + (error as Error).message);
         }
     }
-    private generateUIFromProperties(object: any): any[] {
+    private generateUIFromProperties(object: any, isMerging: boolean = false): any[] {
         const properties = object.getInspectorProperties();
         const uiObjects: any[] = [];
 
-        // Title - use direct value to avoid eval() issues
-        uiObjects.push({
-            className: 'TLabel',
-            name: 'TitleLabel',
-            text: object.name || 'Object',  // Direct value, not binding
-            style: { fontSize: 16, fontWeight: 'bold', color: '#fff', marginBottom: 16 }
-        });
+        // Title - only if not merging with static JSON
+        if (!isMerging) {
+            uiObjects.push({
+                className: 'TLabel',
+                name: 'TitleLabel',
+                text: object.name || 'Object',
+                style: { fontSize: 16, fontWeight: 'bold', color: '#fff', marginBottom: 16 }
+            });
+        }
 
         // Group properties by group
         const grouped: Map<string, typeof properties> = new Map();

@@ -17,6 +17,12 @@ export class FlowToolbox {
 
         const items = [
             { label: 'Variable', icon: '📦', type: 'VariableDecl' },
+            { label: 'Threshold Variable', icon: '📊', type: 'VariableDecl:threshold' },
+            { label: 'Trigger Variable', icon: '🎯', type: 'VariableDecl:trigger' },
+            { label: 'Timer Variable', icon: '⏳', type: 'VariableDecl:timer' },
+            { label: 'Range Variable', icon: '📏', type: 'VariableDecl:range' },
+            { label: 'List Variable', icon: '📋', type: 'VariableDecl:list' },
+            { label: 'Random Variable', icon: '🎲', type: 'VariableDecl:random' },
             { label: 'Task', icon: '⚡', type: 'Task' },
             { label: 'Action', icon: '🎬', type: 'Action' },
             { label: 'If Condition', icon: '❓', type: 'Condition' },

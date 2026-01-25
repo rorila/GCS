@@ -41,7 +41,15 @@
   "splashAutoHide": true,
   "actions": [],
   "tasks": [],
-  "variables": [],
+  "variables": [
+    {
+      "name": "neueVariabel",
+      "type": "trigger",
+      "initialValue": 0,
+      "scope": "ANewTask",
+      "triggerValue": ""
+    }
+  ],
   "stages": [
     {
       "id": "stage_login",
@@ -110,6 +118,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#0f172a",
           "strokeColor": "#29b6f6",
@@ -143,6 +152,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#0f172a",
           "strokeColor": "#29b6f6",
@@ -176,6 +186,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#0f172a",
           "strokeColor": "#29b6f6",
@@ -209,6 +220,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#0f172a",
           "strokeColor": "#29b6f6",
@@ -242,6 +254,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#0f172a",
           "strokeColor": "#29b6f6",
@@ -275,6 +288,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#0f172a",
           "strokeColor": "#29b6f6",
@@ -308,6 +322,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#0f172a",
           "strokeColor": "#29b6f6",
@@ -341,6 +356,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#0f172a",
           "strokeColor": "#29b6f6",
@@ -374,6 +390,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "transparent",
           "strokeColor": "transparent",
@@ -407,6 +424,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#30bb4c",
           "strokeColor": "#29b6f6",
@@ -440,6 +458,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#30bb4c",
           "strokeColor": "#29b6f6",
@@ -473,6 +492,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#30bb4c",
           "strokeColor": "#29b6f6",
@@ -506,6 +526,7 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines",
+          "children": [],
           "shapeType": "circle",
           "fillColor": "#30bb4c",
           "strokeColor": "#29b6f6",
@@ -515,9 +536,100 @@
           "contentImage": ""
         }
       ],
-      "tasks": [],
+      "tasks": [
+        {
+          "name": "ANewTask",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": ""
+        }
+      ],
       "actions": [],
-      "flowCharts": {}
+      "flowCharts": {
+        "ANewTask": {
+          "elements": [
+            {
+              "id": "node-1769247252890",
+              "type": "Task",
+              "x": 140,
+              "y": 180,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "ANewTask",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "ANewTask",
+                "paramValues": {},
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1769247318981",
+              "type": "Action",
+              "x": 400,
+              "y": 180,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "Action",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "Action",
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1769247363552",
+              "type": "VariableDecl",
+              "x": 260,
+              "y": 300,
+              "width": 240,
+              "height": 60,
+              "properties": {
+                "name": "🎯 neueVariabel (== )",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "variable": {
+                  "name": "neueVariabel",
+                  "type": "trigger",
+                  "initialValue": 0,
+                  "scope": "ANewTask",
+                  "triggerValue": ""
+                },
+                "showDetails": false
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1769247252890",
+              "endTargetId": "node-1769247318981",
+              "startX": 280,
+              "startY": 210,
+              "endX": 400,
+              "endY": 210,
+              "data": {
+                "startAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "activeStageId": "stage_login",

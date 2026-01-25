@@ -12,7 +12,8 @@ export class ActionExecutor {
     constructor(
         private objects: any[],
         private multiplayerManager?: any,
-        private onNavigate?: (target: string, params?: any) => void
+        private onNavigate?: (target: string, params?: any) => void,
+        private controller?: any
     ) {
         // Listener moved to player-standalone for better lifecycle management
     }
@@ -589,17 +590,8 @@ export class ActionExecutor {
     }
 
     private handleCallMethodAction(action: any, vars: Record<string, any>, contextObj?: any) {
-        const target = this.resolveTarget(action.target, vars, contextObj);
-        if (!target) {
-            console.warn(`[ActionExecutor] call_method: Target not found: ${action.target}`);
-            return;
-        }
-
         const methodName = action.method;
-        if (!methodName || typeof target[methodName] !== 'function') {
-            console.warn(`[ActionExecutor] call_method: Method '${methodName}' not found on ${target.name}`);
-            return;
-        }
+        if (!methodName) return;
 
         // Interpolate parameters and convert types
         let params: any[] = [];
@@ -617,10 +609,20 @@ export class ActionExecutor {
             }
         }
 
-        if (typeof target[methodName] === 'function') {
-            target[methodName](...params);
+        const target = this.resolveTarget(action.target, vars, contextObj);
+
+        if (target) {
+            if (typeof target[methodName] === 'function') {
+                console.log(`[ActionExecutor] Calling ${methodName} on object ${target.name}`);
+                target[methodName](...params);
+            } else {
+                console.warn(`[ActionExecutor] Method '${methodName}' not found on ${target.name}`);
+            }
+        } else if (this.controller && typeof this.controller.callVariableMethod === 'function') {
+            console.log(`[ActionExecutor] Calling ${methodName} on variable ${action.target} via controller`);
+            this.controller.callVariableMethod(action.target, methodName, params);
         } else {
-            console.error(`[ActionExecutor] Method ${methodName} is not a function on`, target);
+            console.warn(`[ActionExecutor] Target not found: ${action.target}`);
         }
     }
 

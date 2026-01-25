@@ -150,6 +150,10 @@ export class Editor {
         this.dialogManager = new DialogManager();
         this.dialogManager.setProject(this.project);
 
+        // Ensure ProjectRegistry knows about the initial project
+        projectRegistry.setProject(this.project);
+        projectRegistry.setActiveStageId(null);
+
         // Register DialogService in ServiceRegistry
         dialogService.setDialogManager(this.dialogManager);
         serviceRegistry.register('Dialog', dialogService, 'Dialog Service for opening dialogs');
@@ -1495,6 +1499,7 @@ export class Editor {
 
         // Sync UI
         if (this.jsonInspector) this.jsonInspector.setProject(this.project);
+        if (this.dialogManager) this.dialogManager.setProject(this.project);
 
         // Stage-spezifisches Grid anwenden
         const activeStage = this.project.stages?.find(s => s.id === this.project.activeStageId);
@@ -2315,12 +2320,58 @@ export class Editor {
 
             // If JSON view is active, refresh it (but only if it's visible to save performance)
             const jsonPanel = document.getElementById('json-viewer');
-            if (jsonPanel && jsonPanel.style.display !== 'none') {
-                const json = JSON.stringify(this.project, null, 2);
-                jsonPanel.innerText = json;
+            if (jsonPanel && jsonPanel.style.display !== 'none' && this.jsonMode === 'viewer') {
+                // We let refreshJSONView handle complex tree rendering
+                // but we might need a signal or just rely on the fact that viewer refreshes itself
+                // in switchView. If we want real-time updates in JSON View:
+                this.refreshJSONView();
             }
         } catch (err) {
             console.error("[Editor] Render error:", err);
+        }
+    }
+
+    /**
+     * Refreshes the Pascal Code Viewer if it is currently active.
+     */
+    public refreshPascalView() {
+        if (this.currentView !== 'pascal') return;
+
+        try {
+            const activeStage = this.getActiveStage();
+            const stageToUse = (this.useStageIsolatedView && activeStage && activeStage.type !== 'main') ? activeStage : undefined;
+            const plainCode = PascalGenerator.generateFullProgram(this.project, false, stageToUse);
+
+            // Update Highlight Layer based on mode
+            if (this.pascalEditorMode) {
+                const highlightLayer = document.getElementById('pascal-editor-highlight');
+                if (highlightLayer) {
+                    highlightLayer.innerHTML = PascalHighlighter.highlight(plainCode);
+                }
+
+                const textarea = document.getElementById('pascal-editor-textarea') as HTMLTextAreaElement;
+                if (textarea && textarea.value !== plainCode) {
+                    const scrollTop = textarea.scrollTop;
+                    const scrollLeft = textarea.scrollLeft;
+                    const selectionStart = textarea.selectionStart;
+                    const selectionEnd = textarea.selectionEnd;
+
+                    textarea.value = plainCode;
+
+                    textarea.scrollTop = scrollTop;
+                    textarea.scrollLeft = scrollLeft;
+                    textarea.selectionStart = selectionStart;
+                    textarea.selectionEnd = selectionEnd;
+                }
+            } else {
+                const content = document.getElementById('code-viewer-content');
+                if (content) {
+                    const highlightedCode = PascalHighlighter.highlight(plainCode);
+                    content.innerHTML = `<pre style="margin: 0; white-space: pre; color: #d4d4d4;" translate="no">${highlightedCode}</pre>`;
+                }
+            }
+        } catch (err) {
+            console.error("[Editor] Failed to refresh Pascal view:", err);
         }
     }
 
@@ -2373,6 +2424,7 @@ export class Editor {
                 }
 
                 this.render();
+                this.refreshPascalView(); // Ensure Pascal code stays in sync
                 if (this.flowEditor) {
                     this.flowEditor.refreshSelectedNode();
                     this.flowEditor.syncToProject();

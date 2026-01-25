@@ -137,7 +137,16 @@
 - **Re-rendering**: Jede Änderung an einem zentralen `dialogData` Feld, die die Sichtbarkeit anderer Felder beeinflusst, erfordert einen expliziten Aufruf von `this.render()`.
 - **Method Mapping**: Beim Hinzufügen neuer Komponenten-Klassen muss deren Methoden-Liste in `JSONDialogRenderer.getMethodsForObject` ergänzt werden, damit sie im Action Editor auftaucht.
 
-## Actions & Expressions (Action Editor)
+## Variablen als Logik-Objekte (OOP)
+- **Spezialisierte Klassen**: Variablen werden im Flow-Editor durch spezialisierte Unterklassen von `FlowVariable` dargestellt (z.B. `FlowThresholdVariable`, `FlowTimerVariable`).
+- **Icons & Visualisierung**: Jede Spezialisierung hat ein eindeutiges Icon (📊, ⏳, 🎯 etc.) und eine spezifische Farbe für den Text, um die Unterscheidung im Diagramm zu erleichtern.
+- **Inspector-Integration**: Diese Klassen überschreiben `getInspectorProperties()` und `getEvents()`, um typspezifische Eigenschaften (z.B. Schwellenwert) und Events (z.B. `onThresholdReached`) im "Properties" bzw. "Events" Tab des Inspectors anzuzeigen.
+- **Implizite Erkennung**: Beim Laden (`restoreNode` in `FlowEditor.ts`) werden spezialisierte Klassen automatisch anhand ihrer Datenfelder (z.B. Vorhandensein von `threshold` oder `duration`) instanziiert.
+- **Action-Target**: Variablen sind im `ActionEditor` als Ziele ("Targets") für Property-Änderungen (`property`-Action) verfügbar. Dabei werden kontextsensitiv variablenspezifische Properties wie `value`, `threshold` oder `min/max` zur Auswahl angeboten.
+
+## Pascal-Generierung & Metadaten
+- **Metadaten in Kommentaren**: Der `PascalGenerator` fügt spezialisierte Eigenschaften (Threshold, Duration, etc.) als Kommentar hinter die Variablendeklaration ein, um die Logik-Konfiguration im Code-Viewer lesbar zu machen.
+- **Live-Synchronisation**: Änderungen im Inspector triggern über `refreshPascalView` (Editor.ts) sofort eine Aktualisierung des generierten Pascal-Codes.
 - **Typkonvertierung (autoConvert)**: Benutzereingaben aus Textfeldern sind im DOM immer Strings. Nutze `PropertyHelper.autoConvert(value)` nach der Interpolation, um Werte intelligent zurück in `number` oder `boolean` zu wandeln. Dies ist essenziell für Methoden wie `moveTo`, die numerische Parameter erwarten.
 - **Bereitstellung von Hilfsfunktionen (Scope)**:
   - Funktionen, die in Dialog-Expressions (`${...}`) genutzt werden sollen, müssen sowohl in `JSONDialogRenderer.evaluateExpression` als auch in `replaceTemplateVars` registriert werden.
@@ -228,11 +237,16 @@ Wenn eine Stage isoliert im JSON-Tab angezeigt wird (`activeStage`), werden glob
 - **Kontext-Sensitivität**: `JSONInspector.ts` lädt automatisch das passende Template basierend auf dem Typ des selektierten Objekts (`selectedObject.getType()`: 'Task', 'Action' oder className).
 - **Hybrid-Modus**: Für Flow-Elemente (`Task`, `Action`) unterstützt der Inspector einen Hybrid-Modus:
   - **Statische Eigenschaften**: Werden aus der JSON geladen (z.B. Header, Name, Typ).
-  - **Dynamische Eigenschaften**: Werden (falls implementiert) über `getInspectorProperties()` Code generiert (z.B. variable Parameter-Listen bei Tasks).
-  - Beide Quellen werden gemergt. Eigenschaften, die im JSON definiert sind, sollten im Code aus `getInspectorProperties` gefiltert werden, um Duplikate zu vermeiden.
+  - **Dynamische Eigenschaften**: Werden (falls implementiert) über `getInspectorProperties()` generiert (z.B. variable Parameter-Listen bei Tasks).
+  - **Duplikate vermeiden**: Eigenschaften, die bereits in der statischen JSON-Datei definiert sind, **DÜRFEN NICHT** zusätzlich in `getInspectorProperties()` zurückgegeben werden. Dies ist essenziell für eine saubere UI (wie z.B. bei `FlowVariable` umgesetzt).
 - **Action-Properties**: `FlowAction` fungiert als Proxy für die globale `project.actions` Definition. Getters/Setters wie `actionType`, `target`, `changesJSON` wandeln die internen Strukturen für den Inspector in Strings oder primitive Werte um.
 - **Datenquellen**: `TSelect` Komponenten unterstützen dynamische Quellen via `source`:
   - `tasks`, `actions`, `variables`, `stages`, `objects` und neu `services`.
 - **Dialog-Expressions**:
   - Im `JSONDialogRenderer` müssen Variablen in Properties wie `source` zwingend mit `${...}` umschlossen werden (z.B. `"source": "${dialogData.images}"`), damit sie als Expression ausgewertet werden. Ohne `${}` wird der Wert als String-Literal behandelt.
+
+## Namensgebung & Eindeutigkeit
+- **Eindeutigkeit**: Namen für Variablen, Actions und Tasks müssen projektweit eindeutig sein.
+- **Automatik**: Bei der Erstellung über den Flow-Editor wird automatisch eine laufende Nummer angehängt, falls der Name bereits vergeben ist (`generateUniqueActionName`, `generateUniqueVariableName`, `generateUniqueTaskName`).
+- **PascalCase**: Tasks sollten stets in PascalCase benannt werden (z.B. `MoveAndJump`).
 

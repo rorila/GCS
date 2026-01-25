@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.3.11] - 2026-01-23
+
+### Fixed
+- **JSON-Viewer Stabilität**: Behebung eines Bugs in `Editor.ts`, bei dem die formatierte JSON-Tree-View bei jedem Render-Vorgang durch Rohdaten überschrieben wurde.
+- **Variablen-Eigenschaften Auflösung**: Korrektur der Kontext-Übergabe (`taskName`) in `FlowEditor.ts`. Dies stellt sicher, dass der Action-Editor/Renderer Variablen-spezifische Eigenschaften (wie `duration`, `threshold`) auch für task-lokale Variablen korrekt auflöst statt nur den Standardwert `value` anzuzeigen.
+- **Robustes Variablen-Logging**: Erweiterte Suchlogik im `JSONDialogRenderer` für eine zuverlässigere Namensauflösung (Normalisierung von Emojis und Case-Insensitivity).
+
+## [1.3.9] - 2026-01-24
+
+### Added
+- **Premium Variablen-Inspector**: Gruppierung der Eigenschaften in Sektionen (Stammdaten, Werte, Gültigkeit) für bessere Übersicht.
+- **Sichtbarkeit (IsPublic)**: Neues Feld `IsPublic` für Variablen zur Steuerung des Cross-Stage Zugriffs.
+- **Inspector-Polishing**: Unterdrückung redundanter Titel und IDs im Inspector bei Verwendung statischer JSON-Schemas.
+- **Objekt-orientierte Variablen**: Variablen werden nun als spezialisierte Klassen (`FlowThresholdVariable`, `FlowTimerVariable`, etc.) im Flow-Editor dargestellt.
+- **Spezialisierte Typen**: Unterstützung für Threshold (📊), Trigger (🎯), Timer (⏳), Bereich (📏), Listen (📋) und Zufall (🎲).
+- **Variablen als Action-Ziele**: Variablen können nun im Action-Editor direkt als Ziel ("Target") für Property-Änderungen ausgewählt werden.
+- **Pascal Live-Sync**: Automatische Aktualisierung des Pascal-Codes bei Änderungen im Inspector/Action-Editor.
+- **Detaillierte Pascal-Metadaten**: Anzeige von Schwellenwerten, Trigger-Werten und Timer-Dauer in den Pascal-Kommentaren.
+
+### Fixed
+- **Pascal-Synchronisation**: Behebung von Verzögerungen bei der Code-Aktualisierung durch Einführung eines expliziten `refreshPascalView` in `Editor.ts`.
+- **TypeScript Robustheit**: Erweiterung der `ProjectVariable` Schnittstelle in `types.ts` um alle reaktiven Felder zur Vermeidung von Build-Fehlern.
+- **Inspector-Duplikate**: Redundante Properties (Initialwert, Scope) in `FlowVariable` entfernt, die zu doppelten Einträgen führten.
+- **JSONInspector Stabilität**: Syntax-Fehler und Scoping-Probleme in `JSONInspector.ts` behoben.
+- **Flow-Editor Drag&Drop**: Drag & Drop für spezialisierte Variablen-Nodes im Flow-Editor korrigiert.
+
 ## [1.3.8] - 2026-01-23
 
 ### Fixed

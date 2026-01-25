@@ -33,6 +33,7 @@ export class GameRuntime {
     private splashTimerId: any = null;
     public stage: any = null; // Public property for external access (e.g. Standalone Player)
     private stageController: TStageController | null = null;
+    private varTimers: Map<string, any> = new Map();
 
     constructor(
         private project: any,
@@ -201,7 +202,8 @@ export class GameRuntime {
             this.actionExecutor = new ActionExecutor(
                 this.objects,
                 options.multiplayerManager || (window as any).multiplayerManager,
-                options.onNavigate
+                options.onNavigate,
+                this
             );
 
             const mp = options.multiplayerManager || (window as any).multiplayerManager;
@@ -475,6 +477,7 @@ export class GameRuntime {
         // 5. Reactive Runtime aktualisieren
         if (this.options.makeReactive) {
             this.reactiveRuntime.clear(); // CRITICAL: Clear old objects and bindings
+            this.clearAllTimers(); // Clear background variable timers
             AnimationManager.getInstance().clear(); // CRITICAL: Clear animations from previous stage
             this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
             this.reactiveRuntime.setVariable('isSplashActive', false);
@@ -853,18 +856,29 @@ export class GameRuntime {
                     ? this.stageVariables[prop]
                     : this.projectVariables[prop];
 
+                // Find Variable Definition to get Event Config
+                let varDef: any = this.stage?.variables?.find((v: any) => v.name === prop);
+                if (!varDef && this.project.variables) {
+                    varDef = this.project.variables.find((v: any) => v.name === prop);
+                }
+
+                let finalValue = value;
+                if (varDef && varDef.isInteger && typeof value === 'number') {
+                    finalValue = Math.floor(value);
+                }
+
                 // 1. Update Value (Scoping Rules)
                 if (prop in this.stageVariables) {
-                    this.stageVariables[prop] = value;
+                    this.stageVariables[prop] = finalValue;
                 } else if (prop in this.projectVariables) {
-                    this.projectVariables[prop] = value;
+                    this.projectVariables[prop] = finalValue;
                 } else {
                     // Implicit -> Local
-                    this.stageVariables[prop] = value;
+                    this.stageVariables[prop] = finalValue;
                 }
 
                 // 2. Sync with ReactiveRuntime for UI bindings
-                this.reactiveRuntime.setVariable(prop, value);
+                this.reactiveRuntime.setVariable(prop, finalValue);
 
                 // 3. Reactive Events (only if TaskExecutor is ready)
                 if (this.taskExecutor) {
@@ -922,6 +936,70 @@ export class GameRuntime {
                                 this.taskExecutor.execute(varDef.onTriggerExit, {}, this.contextVars);
                             }
                         }
+
+                        // e) Range Logic (Numbers)
+                        if (typeof value === 'number' && varDef.min !== undefined && varDef.max !== undefined) {
+                            const min = Number(varDef.min);
+                            const max = Number(varDef.max);
+
+                            // Min reached
+                            if (value <= min && (oldValue > min || oldValue === undefined) && varDef.onMinReached) {
+                                this.taskExecutor.execute(varDef.onMinReached, {}, this.contextVars);
+                            }
+                            // Max reached
+                            if (value >= max && (oldValue < max || oldValue === undefined) && varDef.onMaxReached) {
+                                this.taskExecutor.execute(varDef.onMaxReached, {}, this.contextVars);
+                            }
+                            // Inside / Outside
+                            const isInside = value > min && value < max;
+                            const wasInside = oldValue > min && oldValue < max;
+                            if (isInside && !wasInside && varDef.onInside) {
+                                this.taskExecutor.execute(varDef.onInside, {}, this.contextVars);
+                            }
+                            if (!isInside && wasInside && varDef.onOutside) {
+                                this.taskExecutor.execute(varDef.onOutside, {}, this.contextVars);
+                            }
+                        }
+
+                        // f) Random Logic
+                        if (varDef.isRandom && oldValue !== value && varDef.onGenerated) {
+                            this.taskExecutor.execute(varDef.onGenerated, {}, this.contextVars);
+                        }
+
+                        // g) List Logic
+                        if (varDef.type === 'list' && value !== oldValue) {
+                            try {
+                                const list = Array.isArray(value) ? value : JSON.parse(value);
+                                const oldList = Array.isArray(oldValue) ? oldValue : (oldValue ? JSON.parse(oldValue) : []);
+
+                                // Added / Removed
+                                if (list.length > oldList.length && varDef.onItemAdded) {
+                                    this.taskExecutor.execute(varDef.onItemAdded, {}, this.contextVars);
+                                }
+                                if (list.length < oldList.length && varDef.onItemRemoved) {
+                                    this.taskExecutor.execute(varDef.onItemRemoved, {}, this.contextVars);
+                                }
+
+                                // Search
+                                if (varDef.searchValue) {
+                                    const contains = list.includes(varDef.searchValue);
+                                    const wasContains = oldList.includes(varDef.searchValue);
+                                    if (contains && !wasContains && varDef.onContains) {
+                                        this.taskExecutor.execute(varDef.onContains, {}, this.contextVars);
+                                    }
+                                    if (!contains && wasContains && varDef.onNotContains) {
+                                        this.taskExecutor.execute(varDef.onNotContains, {}, this.contextVars);
+                                    }
+                                }
+                            } catch (e) {
+                                // Not a valid list/JSON, ignore reactive list events
+                            }
+                        }
+
+                        // h) Timer Logic
+                        if (varDef.type === 'timer' && typeof value === 'number' && value > 0 && (oldValue === 0 || oldValue === undefined)) {
+                            this.startTimer(prop, varDef, value);
+                        }
                     }
                 }
 
@@ -961,6 +1039,87 @@ export class GameRuntime {
     }
 
 
+    private startTimer(prop: string, varDef: any, duration: number) {
+        // Clear existing
+        if (this.varTimers.has(prop)) {
+            clearInterval(this.varTimers.get(prop));
+        }
+
+        let currentTime = duration;
+        varDef.currentTime = currentTime;
+
+        let lastH = -1, lastM = -1, lastS = -1;
+
+        const updateHMS = (ms: number) => {
+            const h = Math.floor(ms / (1000 * 60 * 60));
+            const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((ms % (1000 * 60)) / 1000);
+
+            if (h !== lastH) {
+                varDef.hours = h;
+                this.reactiveRuntime.setVariable(`${prop}.hours`, h);
+                if (lastH !== -1 && varDef.onHour) this.taskExecutor.execute(varDef.onHour, {}, this.contextVars);
+                lastH = h;
+            }
+            if (m !== lastM) {
+                varDef.minutes = m;
+                this.reactiveRuntime.setVariable(`${prop}.minutes`, m);
+                if (lastM !== -1 && varDef.onMinute) this.taskExecutor.execute(varDef.onMinute, {}, this.contextVars);
+                lastM = m;
+            }
+            if (s !== lastS) {
+                varDef.seconds = s;
+                this.reactiveRuntime.setVariable(`${prop}.seconds`, s);
+                if (lastS !== -1 && varDef.onSecond) this.taskExecutor.execute(varDef.onSecond, {}, this.contextVars);
+                lastS = s;
+            }
+        };
+
+        updateHMS(currentTime);
+        this.reactiveRuntime.setVariable(`${prop}.currentTime`, currentTime);
+
+        const interval = setInterval(() => {
+            currentTime -= 100;
+            if (currentTime < 0) currentTime = 0;
+
+            varDef.currentTime = currentTime;
+            updateHMS(currentTime);
+
+            this.reactiveRuntime.setVariable(`${prop}.currentTime`, currentTime);
+            if (this.options.onRender) this.options.onRender();
+
+            if (varDef.onTick) {
+                this.taskExecutor.execute(varDef.onTick, {}, this.contextVars);
+            }
+
+            if (currentTime <= 0) {
+                clearInterval(interval);
+                this.varTimers.delete(prop);
+
+                // Final value reset to allow re-trigger? 
+                // In many systems, setting it back to 0 allows restart when set to duration again.
+                if (prop in this.stageVariables) this.stageVariables[prop] = 0;
+                else this.projectVariables[prop] = 0;
+                this.reactiveRuntime.setVariable(prop, 0);
+
+                if (varDef.onFinished) {
+                    console.log(`[Timer] ${prop} finished -> executing ${varDef.onFinished}`);
+                    this.taskExecutor.execute(varDef.onFinished, {}, this.contextVars);
+                }
+                if (this.options.onRender) this.options.onRender();
+            }
+        }, 100);
+
+        this.varTimers.set(prop, interval);
+        console.log(`[Timer] Started ${prop} with ${duration}ms`);
+    }
+
+    private clearAllTimers() {
+        this.varTimers.forEach(t => clearInterval(t));
+        this.varTimers.clear();
+        console.log("[GameRuntime] All variable timers cleared.");
+    }
+
     private getPatternStartPosition(pattern: string, targetX: number, targetY: number, index: number, stage: any): { x: number; y: number } {
         const cols = stage.grid?.cols || stage.cols || 32, rows = stage.grid?.rows || stage.rows || 24, margin = 10;
         switch (pattern) {
@@ -977,5 +1136,74 @@ export class GameRuntime {
             case 'Matrix': return { x: targetX, y: -margin - (index * 2) };
             default: return { x: targetX, y: targetY };
         }
+    }
+    public callVariableMethod(name: string, method: string, params: any[] = []) {
+        const varDef = this.getVarDef(name);
+        if (!varDef) return;
+
+        switch (method) {
+            case 'reset':
+                console.log(`[GameRuntime] Resetting variable ${name} to initial value`);
+                this.contextVars[name] = varDef.initialValue !== undefined ? varDef.initialValue : varDef.defaultValue;
+                break;
+            case 'start':
+                if (varDef.type === 'timer') {
+                    console.log(`[GameRuntime] Explicit start for timer ${name}`);
+                    this.contextVars[name] = varDef.duration || 1000;
+                }
+                break;
+            case 'stop':
+                if (varDef.type === 'timer' && this.varTimers.has(name)) {
+                    console.log(`[GameRuntime] Explicit stop for timer ${name}`);
+                    clearInterval(this.varTimers.get(name));
+                    this.varTimers.delete(name);
+                }
+                break;
+            case 'add':
+                if (varDef.type === 'list' || varDef.type === 'object_list') {
+                    const list = Array.isArray(this.contextVars[name]) ? [...this.contextVars[name]] : [];
+                    list.push(params[0]);
+                    this.contextVars[name] = list;
+                }
+                break;
+            case 'remove':
+                if (varDef.type === 'list' || varDef.type === 'object_list') {
+                    const list = Array.isArray(this.contextVars[name]) ? [...this.contextVars[name]] : [];
+                    const idx = list.indexOf(params[0]);
+                    if (idx > -1) {
+                        list.splice(idx, 1);
+                        this.contextVars[name] = list;
+                    }
+                }
+                break;
+            case 'removeByProperty':
+                if (varDef.type === 'object_list') {
+                    const prop = params[0];
+                    const val = params[1];
+                    const list = Array.isArray(this.contextVars[name]) ? [...this.contextVars[name]] : [];
+                    const newList = list.filter((item: any) => !item || item[prop] != val);
+                    this.contextVars[name] = newList;
+                }
+                break;
+            case 'clear':
+                if (varDef.type === 'list' || varDef.type === 'object_list') this.contextVars[name] = [];
+                break;
+            case 'roll':
+                if (varDef.type === 'random' || varDef.isRandom) {
+                    const min = Number(varDef.min) || 0;
+                    const max = Number(varDef.max) || 100;
+                    const val = min + Math.random() * (max - min);
+                    this.contextVars[name] = val;
+                }
+                break;
+        }
+    }
+
+    private getVarDef(name: string): any {
+        let varDef = this.stage?.variables?.find((v: any) => v.name === name);
+        if (!varDef && this.project.variables) {
+            varDef = this.project.variables.find((v: any) => v.name === name);
+        }
+        return varDef;
     }
 }

@@ -498,6 +498,11 @@ export class RefactoringManager {
 
         // 1. Clean up orphaned flow charts (Project + Stages)
         const taskNames = new Set(project.tasks.map(t => t.name));
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks) s.tasks.forEach(t => taskNames.add(t.name));
+            });
+        }
         const cleanFlowCharts = (charts: Record<string, any> | undefined, label: string) => {
             if (!charts) return;
             Object.keys(charts).forEach(key => {
@@ -521,7 +526,7 @@ export class RefactoringManager {
         report.push('Action-Sequenzen bereinigt');
 
         // 3. Remove task mappings for non-existent tasks (all stages)
-        const taskNames2 = new Set(project.tasks.map(t => t.name));
+        // Note: taskNames already includes all tasks from all stages now.
         const allObjectsScope = [...project.objects];
         if (project.stages) {
             project.stages.forEach(s => {
@@ -534,7 +539,7 @@ export class RefactoringManager {
                 const tasks = (obj as any).Tasks;
                 Object.keys(tasks).forEach(key => {
                     const mappedTask = tasks[key];
-                    if (mappedTask && !taskNames2.has(mappedTask)) {
+                    if (mappedTask && !taskNames.has(mappedTask)) {
                         delete tasks[key];
                         report.push(`Entfernte verwaiste Task-Zuweisung in ${obj.name}: ${key} -> ${mappedTask}`);
                     }
