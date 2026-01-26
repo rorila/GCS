@@ -1,22 +1,12 @@
+import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
-import { TPropertyDef } from './TComponent';
 import { network } from '../multiplayer';
 
 /**
  * TGameServer - A stage-placeable component that manages multiplayer server connection.
  * Place on stage, configure in Inspector, and use events to trigger Tasks.
- * 
- * Events:
- * - onConnected: When connection to server is established
- * - onDisconnected: When connection is lost
- * - onRoomCreated: When a new room is created (host only)
- * - onRoomJoined: When successfully joined a room
- * - onPlayerJoined: When another player joins the room
- * - onPlayerLeft: When another player leaves
- * - onGameStart: When both players are ready and game starts
- * - onError: When an error occurs
  */
-export class TGameServer extends TWindow {
+export class TGameServer extends TWindow implements IRuntimeComponent {
     // Connection settings
     public serverUrl: string = 'ws://localhost:8080';
     public autoConnect: boolean = false;
@@ -49,21 +39,29 @@ export class TGameServer extends TWindow {
     get lastError(): string { return this._lastError; }
 
     public getInspectorProperties(): TPropertyDef[] {
-        const props = super.getInspectorProperties();
         return [
-            ...props,
+            ...super.getInspectorProperties(),
             { name: 'serverUrl', label: 'Server URL', type: 'string', group: 'Server' },
             { name: 'autoConnect', label: 'Auto Connect', type: 'boolean', group: 'Server' }
         ];
     }
 
     public toJSON(): any {
-        return {
-            ...super.toJSON(),
-            serverUrl: this.serverUrl,
-            autoConnect: this.autoConnect,
-            Tasks: this.Tasks
-        };
+        return super.toJSON();
+    }
+
+    public initRuntime(callbacks: { handleEvent: any }): void {
+        this.eventCallback = (ev: string, data?: any) => callbacks.handleEvent(this.id, ev, data);
+    }
+
+    public onRuntimeStart(): void {
+        if (this.autoConnect) {
+            this.connect();
+        }
+    }
+
+    public onRuntimeStop(): void {
+        this.stop();
     }
 
     /**

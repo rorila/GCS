@@ -1,5 +1,20 @@
 # Developer Guidelines
 
+## Modulare Architektur (Monolithen-Aufteilung)
+Um die Wartbarkeit zu verbessern und Token-Limit-Fehler zu vermeiden, wurden die Hauptklassen modularisiert:
+
+### Editor-Architektur
+Die Klasse `Editor.ts` fungiert nur noch als Orchestrator. Die Fachlogik liegt in:
+- **EditorStageManager.ts**: Alles rund um das Verwalten von Stages (Neu, Klonen, Löschen, Templates).
+- **EditorViewManager.ts**: Steuerung der Tabs und Ansichten (Stage, Flow, JSON, Pascal).
+- **RefactoringManager.ts**: Projektweite Umbenennungen und Referenz-Updates.
+
+### Runtime-Architektur
+Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
+- **RuntimeStageManager.ts**: Auflösung der Vererbungskette (`inheritsFrom`), Mergen von Objekten/Tasks aus mehreren Ebenen.
+- **RuntimeVariableManager.ts**: Verwaltung des Variablen-Kontexts, Scoping-Präzedenz (Local > Global) und reaktive Trigger-Logik.
+- **GameRuntime implements IVariableHost**: Ermöglicht dem VariableManager den Zugriff auf Timer und Event-Execution ohne zirkuläre Abhängigkeiten.
+
 ## Rendering & Game Loop
 - **GameLoopManager (Singleton)**: Verwende den `GameLoopManager.getInstance()` für alle Spielobjekt-Updates und Kollisionsprüfungen. Er ist KEIN Stage-Objekt und umgeht somit Proxy-Binding-Probleme.
 - **GameRuntime Authority**: Die `GameRuntime` ist die "Source of Truth" für den Spielzustand im Run-Modus.
@@ -11,6 +26,15 @@
 - **Render-Callback**: Übergib den Render-Callback (`onRender`) direkt an den `GameRuntime`-Konstruktor (`options.onRender`).
 - **Proxy-Verwendung**: Verwende immer die Objekte aus `runtime.getObjects()` für das Rendering, da diese die reaktiven Proxies enthalten.
 - **Migration**: Das Root-Level `objects` Array in Projektdateien ist veraltet. Objekte sollten ausschließlich innerhalb des `stages`-Arrays gespeichert werden. Nutze Migrationsscripte, um Redundanzen zu entfernen.
+- **Hybrides Variablen-System**: 
+    Die Komponente `TVariable` (und abgeleitete Klassen wie `TTimer`, `TGameLoop`) werden im Editor als visuelle Objekte behandelt, aber im JSON getrennt im `variables`-Array gespeichert.
+    Dazu implementiert **Editor.ts** eine Logik, die beim Speichern (`syncStageObjectsToProject`) die `currentObjects` filtert und in die entsprechenden Arrays aufteilt.
+    WICHTIG: Sollten neue Variablen-Typen hinzugefügt werden, müssen diese:
+    1. Das Flag `isVariable = true` setzen.
+    2. Im `Serialization.ts` -> `hydrateObjects` ihre spezifischen Properties wiederherstellen.
+    Das `ProjectVariable`-Interface in `types.ts` wurde erweitert, um auch Geometrie-Daten (x, y) optional zu speichern, damit die Position im Editor erhalten bleibt.
+    Der `Editor` nutzt Getter/Setter (`currentObjects`), um diese Listen zur Laufzeit für den Stage-Renderer zu mergen und beim Speichern wieder sauber zu trennen.
+    - **Wichtig**: Bei der Hydrierung in `loadProject` müssen beide Arrays getrennt verarbeitet werden.
 
 ## Editor -> Runtime Transition
 - **Data Sync**: Vor dem Start der Runtime (`new GameRuntime`) müssen die aktuellen Editor-Objekte explizit in das Projekt-JSON serialisiert werden (`syncStageObjectsToProject`), damit Änderungen (z.B. neue Bilder) übernommen werden.
@@ -94,6 +118,11 @@
     - Bindings in `inspector_stage.json` sollten bevorzugt auf `activeStage.*` verweisen, mit Fallback auf `selectedObject.stage.*` (global).
     - **Sichtbarkeit**: Die `visible`-Eigenschaft in der JSON steuert das Ausblenden. Bei gruppierten Feldern (Label + Input) muss dies in `renderInlineRow` im `JSONInspector.ts` explizit geprüft werden.
     - **Caching**: Um sicherzustellen, dass Änderungen an der JSON-Konfiguration sofort sichtbar sind, werden fetch-Aufrufe mit einem Cache-Buster (`?v=Date.now()`) versehen.
+    - **Metadaten (Main Stage)**: Globale Spiel-Metadaten (Name, Autor) werden bevorzugt in der Haupt-Stage (`type: 'main'`) gespeichert (`gameName`, `author`). Der Inspector bindet diese via `activeStage.*`. Generatoren und Exporter müssen dies berücksichtigen und die Haupt-Stage-Werte gegenüber `project.meta` priorisieren.
+- **Sichtbarkeit von Komponenten**:
+    - **System- & Variablen-Komponenten**: Komponenten wie `TGameLoop`, `TInputController`, `TTimer` und alle spezialisierten Variablen (`isVariable: true`) sind nur im **Editor-Modus** sichtbar.
+    - **Editor-Anzeige**: Diese Komponenten zeigen im Editor ihren `name` als Text an, um die Identifizierung zu erleichtern (statt z.B. den aktuellen Wert einer Variable).
+    - **Run-Modus / Export**: Diese Komponenten müssen via `display: none` ausgeblendet werden. Im `GameExporter` sollten sie zudem aus dem `objects`-Array gefiltert werden, da sie als Daten bereits im `variables`-Array existieren.
 - **Runtime-Navigation**: Die Action `navigate_stage` ermöglicht Stage-Wechsel zur Laufzeit:
   ```json
   { "type": "navigate_stage", "params": { "stageId": "level-2" } }
@@ -119,18 +148,16 @@
   - Die `GameRuntime` muss bei jedem Stage-Wechsel die lokalen Logik-Pakete in den `TaskExecutor` injizieren: `taskExecutor.setTasks(mergedTasks)`, `taskExecutor.setActions(mergedActions)`.
 
 ### Variable Scopes & Visibility (Phase 3)
-- **Scoping-Regeln**:
-  - `global`: Variable ist projektweit persistent und für alle Stages sichtbar/beschreibbar.
-  - `local`: Variable ist stufenspezifisch (Stage). Jede Stage besitzt ihre eigene Instanz dieser Variable.
-- **Auflösung (Precedance)**: `GameRuntime.createVariableContext` (Proxy) priorisiert `local` vor `global` (Shadowing erlaubt).
-- **Cross-Stage Zugriff**:
-  - Syntax: `${StageName.VariableName}`.
-  - Zugriff ist **Read-Only** und nur für Variablen mit `isPublic: true` gestattet.
-  - Schreibversuche oder Zugriff auf private Variablen werden mit einer Console-Warnung abgelehnt.
+- **Scoping-Regeln (Automatisch)**:
+    - **Main-Stage**: Beim Hinzufügen von Variablen in der Main-Stage wird standardmäßig der Scope `global` zugewiesen.
+    - **andere Stages**: Beim Hinzufügen in Standard-Stages wird standardmäßig der Scope `stage` (lokal) zugewiesen.
+    - **Manuelle Änderung**: Der Scope kann jederzeit im Inspector angepasst werden.
+- **Cross-Stage Referenzen**:
+    - **Import**: Globale Variablen (`scope: 'global'`) können via `Editor.importGlobalObject(id)` in andere Stages eingebunden werden. Dies erstellt eine Referenz in der lokalen Objektliste, die auf die globale Instanz zeigt.
+- **Auflösung (Precedence)**: `GameRuntime.createVariableContext` (Proxy) priorisiert `local` vor `global` (Shadowing erlaubt).
 - **Speicherort**:
-  - Globale Variablen liegen in `project.variables`.
-  - Lokale Variablen liegen in `activeStage.variables`.
-  - Variablen in `project.variables` mit `scope: 'local'` dienen als Blueprint und werden in JEDER Stage beim Start als lokale Instanz initialisiert.
+    - Globale Variablen liegen in `project.variables`.
+    - Lokale Variablen liegen in `activeStage.variables`.
 
 - **Dropdown Verhalten**: Alle Dropdowns im Action Editor sollten einen Platzhalter ("--- bitte wählen ---") verwenden, wenn noch kein Wert ausgewählt ist. Dies stellt sicher, dass jede Auswahl (auch die erste) ein `onchange` Event auslöst.
 - **Dependency Resets**: Beim Ändern eines Primär-Feldes (z.B. Target Object oder Action Type) müssen abhängige Felder (z.B. Method Name) explizit gelöscht werden, um inkonsistente Zustände in der UI zu vermeiden.

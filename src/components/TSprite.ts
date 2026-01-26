@@ -55,9 +55,8 @@ export class TSprite extends TWindow {
     }
 
     public getInspectorProperties(): TPropertyDef[] {
-        const props = super.getInspectorProperties();
         return [
-            ...props,
+            ...super.getInspectorProperties(),
             // Motion group
             { name: 'velocityX', label: 'Velocity X', type: 'number', group: 'Motion' },
             { name: 'velocityY', label: 'Velocity Y', type: 'number', group: 'Motion' },
@@ -74,20 +73,6 @@ export class TSprite extends TWindow {
         ];
     }
 
-    public toJSON(): any {
-        return {
-            ...super.toJSON(),
-            velocityX: this.velocityX,
-            velocityY: this.velocityY,
-            lerpSpeed: this.lerpSpeed,
-            collisionEnabled: this.collisionEnabled,
-            collisionGroup: this.collisionGroup,
-            shape: this.shape,
-            spriteColor: this.spriteColor,
-            backgroundImage: this._backgroundImage,
-            objectFit: this._objectFit
-        };
-    }
 
     /**
      * Smoothly sync to a new position using additive error correction

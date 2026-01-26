@@ -33,6 +33,13 @@ import { TImage } from '../components/TImage';
 import { TVideo } from '../components/TVideo';
 import { TSplashScreen } from '../components/TSplashScreen';
 import { TStageController } from '../components/TStageController';
+import { TVariable } from '../components/TVariable';
+import { TObjectList } from '../components/TObjectList';
+import { TThresholdVariable } from '../components/TThresholdVariable';
+import { TTriggerVariable } from '../components/TTriggerVariable';
+import { TRangeVariable } from '../components/TRangeVariable';
+import { TListVariable } from '../components/TListVariable';
+import { TRandomVariable } from '../components/TRandomVariable';
 import { TWindow } from '../components/TWindow';
 import { AnimationManager } from '../runtime/AnimationManager';
 import { TDebugLog } from '../components/TDebugLog';
@@ -58,20 +65,23 @@ import { FlowEditor } from './FlowEditor';
 import { FlowToolbox } from './FlowToolbox';
 import { MenuBar } from './MenuBar';
 import { RefactoringManager } from './RefactoringManager';
+import { EditorStageManager } from './EditorStageManager';
 import { projectRegistry } from '../services/ProjectRegistry';
 import { libraryService } from '../services/LibraryService';
+import { EditorViewManager, IViewHost, ViewType } from './EditorViewManager';
 
-export class Editor {
+export class Editor implements IViewHost {
     private stage: Stage;
-    private jsonInspector: JSONInspector | null = null;
+    public jsonInspector: JSONInspector | null = null;
     private jsonToolbox: JSONToolbox | null = null;
-    private flowEditor: FlowEditor | null = null;
-    private flowToolbox: FlowToolbox | null = null;
+    public flowEditor: FlowEditor | null = null;
+    public flowToolbox: FlowToolbox | null = null;
     private menuBar: MenuBar | null = null;
     private componentPalette: JSONComponentPalette | null = null;
-    private useStageIsolatedView = true; // Default to isolated view
     private dialogManager: DialogManager;
-    private project: GameProject;
+    private stageManager: EditorStageManager;
+    private viewManager: EditorViewManager;
+    public project: GameProject;
     private runtimeObjects: TWindow[] | null = null;
     private activeGameLoop: TGameLoop | null = null;
     private activeInputControllers: TInputController[] = [];
@@ -79,15 +89,9 @@ export class Editor {
     private activeGameServers: TGameServer[] = [];
     private runtime: GameRuntime | null = null;
     private useHorizontalToolbox: boolean = false;
-    private pascalEditorMode: boolean = false;
-    private currentView: string = 'stage';
     private currentContext: 'game' | 'splash' = 'game';
-    private debugLog: TDebugLog | null = null;
-
-    // JSON View State
-    private jsonMode: 'viewer' | 'editor' = 'viewer';
-    private workingProjectData: any = null;
-    private isProjectDirty: boolean = false;
+    public debugLog: TDebugLog | null = null;
+    public currentSelectedId: string | null = null;
 
     constructor() {
         // Initialize Default Project
@@ -139,11 +143,20 @@ export class Editor {
         // Initialize ProjectRegistry
         projectRegistry.setProject(this.project);
 
-        // Initialisiere Stages (Migration für Default-Projekt)
-        this.migrateToStages();
-
         // Initialize Stage
         this.stage = new Stage('stage', this.project.stage.grid);
+
+        // Initialize StageManager
+        this.stageManager = new EditorStageManager(this.project, this.stage, () => {
+            this.render();
+            this.updateProjectJSON();
+        });
+
+        // Initialize ViewManager
+        this.viewManager = new EditorViewManager(this);
+
+        // Initialisiere Stages (Migration für Default-Projekt)
+        this.migrateToStages();
         this.stage.onEvent = (id, evt, data) => this.handleEvent(id, evt, data);
 
         // Initialize DialogManager
@@ -217,70 +230,54 @@ export class Editor {
     private _isMultiplayer: boolean = false;
     private _localPlayerNumber: 1 | 2 = 1;
 
-    get isMultiplayer(): boolean { return this._isMultiplayer; }
-    get localPlayerNumber(): 1 | 2 { return this._localPlayerNumber; }
+    public get isMultiplayer(): boolean { return this._isMultiplayer; }
+    public get localPlayerNumber(): 1 | 2 { return this._localPlayerNumber; }
 
-    private get currentObjects(): TWindow[] {
-        // Nutze das neue stages-Array wenn vorhanden
-        if (this.project.stages && this.project.stages.length > 0) {
-            const activeStage = this.getActiveStage();
-            if (activeStage) {
-                return activeStage.objects || [];
-            }
-        }
+    // --- DELEGATIONS ---
+    public get currentObjects(): TWindow[] { return this.stageManager.currentObjects(); }
+    public get currentActions(): GameAction[] { return this.stageManager.currentActions(); }
+    public get currentTasks(): GameTask[] { return this.stageManager.currentTasks(); }
+    public get currentVariables(): ProjectVariable[] { return this.stageManager.currentVariables(); }
 
-        // Legacy-Fallback für alte Projekte
-        if (this.currentContext === 'splash') {
-            if (!this.project.splashObjects) this.project.splashObjects = [];
-            return this.project.splashObjects;
-        }
-        return this.project.objects || [];
-    }
+    public getActiveStage(): StageDefinition | null { return this.stageManager.getActiveStage(); }
+    private migrateToStages(): void { this.stageManager.migrateToStages(); }
+    // --- END DELEGATIONS ---
 
     private set currentObjects(objs: TWindow[]) {
-        // Nutze das neue stages-Array wenn vorhanden
-        if (this.project.stages && this.project.stages.length > 0) {
-            const activeStage = this.getActiveStage();
-            if (activeStage) {
-                activeStage.objects = objs;
-                return;
-            }
+        // IMPORTANT: The setter must only save objects that BELONG to the active stage.
+        const activeStage = this.getActiveStage();
+        if (activeStage) {
+            const localObjs = objs.filter(obj => {
+                const isAlreadyLocal = (activeStage.objects || []).some(o => o.id === obj.id) ||
+                    (activeStage.variables || []).some(v => (v as any).id === obj.id);
+                if (isAlreadyLocal) return true;
+
+                // If it's NEW (not in any stage), it belongs here.
+                const existsElsewhere = (this.project.stages || []).some(s =>
+                    s.id !== activeStage.id && (
+                        (s.objects || []).some(o => o.id === obj.id) ||
+                        (s.variables || []).some(v => (v as any).id === obj.id)
+                    )
+                );
+                return !existsElsewhere;
+            });
+
+            // STRICT SEPARATION: Split into objects and variables
+            activeStage.objects = localObjs.filter(o => !o.isVariable);
+            activeStage.variables = localObjs.filter(o => o.isVariable) as any;
+            return;
         }
 
         // Legacy-Fallback
         if (this.currentContext === 'splash') {
             this.project.splashObjects = objs;
         } else {
-            this.project.objects = objs;
+            this.project.objects = objs.filter(o => !o.isVariable);
+            this.project.variables = objs.filter(o => o.isVariable) as any;
         }
     }
 
-    get currentActions(): GameAction[] {
-        const globalActions = this.project.actions || [];
-        const activeStage = this.getActiveStage();
-        if (activeStage && activeStage.actions) {
-            return [...globalActions, ...activeStage.actions];
-        }
-        return globalActions;
-    }
 
-    get currentTasks(): GameTask[] {
-        const globalTasks = this.project.tasks || [];
-        const activeStage = this.getActiveStage();
-        if (activeStage && activeStage.tasks) {
-            return [...globalTasks, ...activeStage.tasks];
-        }
-        return globalTasks;
-    }
-
-    get currentVariables(): ProjectVariable[] {
-        const globalVars = this.project.variables || [];
-        const activeStage = this.getActiveStage();
-        if (activeStage && activeStage.variables) {
-            return [...globalVars, ...activeStage.variables];
-        }
-        return globalVars;
-    }
 
     /**
      * Gibt die passende Liste (Global vs Stage) für eine neue Action zurück
@@ -458,7 +455,6 @@ export class Editor {
         window.addEventListener('offline', updateSystemInfoObjects);
     }
 
-    private currentSelectedId: string | null = null;
 
     private bindViewEvents() {
         const tabs = document.querySelectorAll('.tab-btn');
@@ -473,308 +469,21 @@ export class Editor {
         });
     }
 
-    private switchView(view: 'stage' | 'json' | 'run' | 'flow' | 'code') {
-        // Sync flow editor changes back to project before switching views
-        if (this.currentView === 'flow' && this.flowEditor) {
-            this.flowEditor.syncToProject();
-            // Aggressive sync: ensure all tasks are synchronized from their diagrams
-            // This prevents "split-brain" where some tasks were changed but not the active one
-            this.flowEditor.syncAllTasksFromFlow(this.project);
-        }
-
-        this.currentView = view;
-        const stageWrapper = document.getElementById('stage-wrapper');
-        const jsonPanel = document.getElementById('json-viewer');
-        const flowPanel = document.getElementById('flow-viewer');
-        const codePanel = document.getElementById('code-viewer');
-        const tabs = document.querySelectorAll('.tab-btn');
-
-        // Update Tabs
-        tabs.forEach(t => t.classList.remove('active'));
-        document.querySelector(`.tab-btn[data-view="${view}"]`)?.classList.add('active');
-
-        // 1. Hide ALL panels
-        if (stageWrapper) stageWrapper.style.display = 'none';
-        if (jsonPanel) jsonPanel.style.display = 'none';
-        if (flowPanel) flowPanel.style.display = 'none';
-        if (codePanel) codePanel.style.display = 'none';
-
-        // Hide standard toolboxes
-        const jsonToolbox = document.getElementById('json-toolbox-content');
-        if (jsonToolbox) jsonToolbox.style.display = 'none';
-
-        // Hide flow toolbox if it exists
-        if (this.flowToolbox) this.flowToolbox.hide();
-
-        // Stop debug logging when switching views (focus loss)
-        if (this.debugLog) {
-            this.debugLog.setRecordingActive(false);
-        }
-
-        // 2. Show Selected Panel
-        if (view === 'stage') {
-            this.setRunMode(false);
-            if (stageWrapper) stageWrapper.style.display = 'flex';
-            if (jsonToolbox) jsonToolbox.style.display = 'block';
-
-            // Reset Inspector context to Stage objects
-            if (this.jsonInspector) {
-                this.jsonInspector.setFlowContext(null);
-            }
-        } else if (view === 'run') {
-            this.setRunMode(true);
-            if (stageWrapper) stageWrapper.style.display = 'flex';
-        } else if (view === 'json') {
-            this.setRunMode(false);
-            if (jsonPanel) {
-                jsonPanel.style.display = 'block';
-                // Reset state on entry
-                this.jsonMode = 'viewer';
-                this.workingProjectData = JSON.parse(JSON.stringify(this.project));
-                this.isProjectDirty = false;
-                this.refreshJSONView();
-            }
-        } else if (view === 'flow') {
-            this.setRunMode(false);
-            if (flowPanel) flowPanel.style.display = 'block';
-
-            // Show Flow Editor
-            if (this.flowEditor) {
-                this.flowEditor.show();
-                this.flowEditor.setProject(this.project);
-
-                // Update Inspector context to show Flow elements
-                if (this.jsonInspector) {
-                    this.jsonInspector.setFlowContext(this.flowEditor.getNodes());
-                }
-            }
-            // Show Flow Toolbox
-            if (this.flowToolbox) {
-                this.flowToolbox.show();
-            }
-        } else if (view === 'code') {
-            console.log('[Editor] Switching to Pascal Code View');
-            this.setRunMode(false);
-            if (codePanel) {
-                codePanel.style.display = 'flex';
-                codePanel.style.flexDirection = 'column';
-                codePanel.style.padding = '0';
-                codePanel.style.height = '100%';
-                codePanel.style.minHeight = '300px';
-
-                // 1. Toolbar
-                let toolbar = document.getElementById('code-viewer-toolbar');
-                if (!toolbar) {
-                    console.log('[Editor] Creating Code Viewer Toolbar');
-                    toolbar = document.createElement('div');
-                    toolbar.id = 'code-viewer-toolbar';
-                    toolbar.style.padding = '8px 16px';
-                    toolbar.style.backgroundColor = '#2d2d2d';
-                    toolbar.style.borderBottom = '1px solid #3c3c3c';
-                    toolbar.style.display = 'flex';
-                    toolbar.style.alignItems = 'center';
-                    toolbar.style.gap = '12px';
-
-                    const label = document.createElement('label');
-                    label.style.cssText = 'display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc; font-size: 12px;';
-
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.checked = this.pascalEditorMode;
-                    checkbox.onchange = (e) => {
-                        this.pascalEditorMode = (e.target as HTMLInputElement).checked;
-                        this.switchView('code');
-                    };
-
-                    label.appendChild(checkbox);
-                    label.appendChild(document.createTextNode('Editor-Modus'));
-                    toolbar.appendChild(label);
-
-                    // Scope Selector (Stage vs Project)
-                    const sourceSelect = document.createElement('select');
-                    sourceSelect.id = 'pascal-scope-select';
-                    sourceSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-left: auto;`;
-
-                    const updateScopeOptions = () => {
-                        sourceSelect.innerHTML = '';
-                        const aStage = this.getActiveStage();
-                        const sName = aStage ? aStage.name : 'Unknown';
-                        const opts = [
-                            { id: 'stage', label: `Stage: ${sName}` },
-                            { id: 'project', label: 'Gesamtes Projekt' }
-                        ];
-                        opts.forEach(s => {
-                            const opt = document.createElement('option');
-                            opt.value = s.id;
-                            opt.textContent = s.label;
-                            opt.selected = (s.id === 'stage' && this.useStageIsolatedView) || (s.id === 'project' && !this.useStageIsolatedView);
-                            sourceSelect.appendChild(opt);
-                        });
-                        // Hide if no active stage or main?
-                        if (!aStage || aStage.type === 'main') {
-                            // allow switch even in main?
-                        }
-                    };
-                    updateScopeOptions();
-
-                    sourceSelect.onchange = () => {
-                        console.log('[Editor] Pascal Scope Toggle Changed:', sourceSelect.value);
-                        this.useStageIsolatedView = sourceSelect.value === 'stage';
-                        this.switchView('code');
-                    };
-
-                    toolbar.appendChild(sourceSelect);
-
-                    codePanel.appendChild(toolbar);
-                } else {
-                    const checkbox = toolbar.querySelector('input');
-                    if (checkbox) checkbox.checked = this.pascalEditorMode;
-
-                    // Update dropdown options in case stage changed
-                    const sourceSelect = toolbar.querySelector('#pascal-scope-select') as HTMLSelectElement;
-                    if (sourceSelect) {
-                        const aStage = this.getActiveStage();
-                        const sName = aStage ? aStage.name : 'Unknown';
-                        // Simple update of stage label, assuming order [Stage, Project]
-                        if (sourceSelect.options.length > 0) {
-                            sourceSelect.options[0].text = `Stage: ${sName}`;
-                            sourceSelect.value = this.useStageIsolatedView ? 'stage' : 'project';
-                        }
-                    }
-                }
-
-                // 2. Render Code Content
-                try {
-                    if (this.pascalEditorMode) {
-                        const activeStage = this.getActiveStage();
-                        console.log('[Editor] Generating Pascal. Isolated:', this.useStageIsolatedView, 'ActiveStage:', activeStage ? activeStage.name : 'None');
-                        const stageToUse = (this.useStageIsolatedView && activeStage && activeStage.type !== 'main') ? activeStage : undefined;
-                        console.log('[Editor] stageToUse:', stageToUse ? stageToUse.name : 'undefined (Full Project)');
-
-                        const plainCode = PascalGenerator.generateFullProgram(this.project, false, stageToUse);
-
-                        // Clear previous content but keep toolbar
-                        const oldContainer = document.getElementById('pascal-editor-container');
-                        if (oldContainer) oldContainer.remove();
-                        const oldContent = document.getElementById('code-viewer-content');
-                        if (oldContent) oldContent.remove();
-
-                        const container = document.createElement('div');
-                        container.id = 'pascal-editor-container';
-                        container.style.cssText = `
-                            flex: 1;
-                            position: relative;
-                            font-family: 'Fira Code', monospace;
-                            font-size: 14px;
-                            line-height: 1.5;
-                            background-color: #1e1e1e;
-                            overflow: hidden;
-                        `;
-
-                        const highlightLayer = document.createElement('div');
-                        highlightLayer.id = 'pascal-editor-highlight';
-                        highlightLayer.style.cssText = `
-                            position: absolute;
-                            top: 0;
-                            left: 0;
-                            width: 100%;
-                            height: 100%;
-                            padding: 1rem;
-                            color: #d4d4d4;
-                            pointer-events: none; /* Allow clicks to pass through to textarea */
-                            overflow: auto;
-                            white-space: pre;
-                            box-sizing: border-box;
-                        `;
-                        highlightLayer.innerHTML = PascalHighlighter.highlight(plainCode);
-
-                        const textarea = document.createElement('textarea');
-                        textarea.id = 'pascal-editor-textarea';
-                        textarea.value = plainCode;
-                        textarea.spellcheck = false;
-                        textarea.style.cssText = `
-                            position: absolute;
-                            top: 0;
-                            left: 0;
-                            width: 100%;
-                            height: 100%;
-                            padding: 1rem;
-                            background: transparent;
-                            color: transparent;
-                            border: none;
-                            outline: none;
-                            resize: none;
-                            font-family: inherit;
-                            font-size: inherit;
-                            line-height: inherit;
-                            overflow: auto;
-                            white-space: pre;
-                            box-sizing: border-box;
-                            caret-color: #d4d4d4; /* Ensure caret is visible */
-                        `;
-
-                        // Sync highlighting on input
-                        textarea.oninput = () => {
-                            highlightLayer.innerHTML = PascalHighlighter.highlight(textarea.value);
-                            try {
-                                PascalGenerator.parse(this.project, textarea.value);
-                                // Refresh inspector if it exists to show new variables/changes
-                                if (this.jsonInspector) {
-                                    // Use the same logic as selectObject to choose what to show in inspector
-                                    const obj = (this as any).currentSelectedId ? this.findObjectById((this as any).currentSelectedId) : null;
-                                    this.jsonInspector.update(obj || this.project);
-                                }
-                                this.autoSaveToLocalStorage();
-                            } catch (err) {
-                                console.error('[Editor] Error parsing Pascal code:', err);
-                            }
-                        };
-
-                        // Sync scrolling
-                        textarea.onscroll = () => {
-                            highlightLayer.scrollTop = textarea.scrollTop;
-                            highlightLayer.scrollLeft = textarea.scrollLeft;
-                        };
-
-                        container.appendChild(highlightLayer);
-                        container.appendChild(textarea);
-                        codePanel.appendChild(container);
-                    } else {
-                        // Static highlighted view - use same PascalHighlighter as Editor for consistent colors
-                        const oldContainer = document.getElementById('pascal-editor-container');
-                        if (oldContainer) oldContainer.remove();
-
-                        let content = document.getElementById('code-viewer-content');
-                        if (!content) {
-                            content = document.createElement('div');
-                            content.id = 'code-viewer-content';
-                            content.style.flex = '1';
-                            content.style.overflow = 'auto';
-                            content.style.padding = '1rem';
-                            content.style.backgroundColor = '#1e1e1e';
-                            codePanel.appendChild(content);
-                        }
-
-
-                        // Generate plain code, then use PascalHighlighter (same as Editor)
-                        const activeStage = this.getActiveStage();
-                        console.log('[Editor] Generating Read-Only Pascal. Isolated:', this.useStageIsolatedView, 'ActiveStage:', activeStage ? activeStage.name : 'None');
-                        const stageToUse = (this.useStageIsolatedView && activeStage && activeStage.type !== 'main') ? activeStage : undefined;
-
-                        const plainCode = PascalGenerator.generateFullProgram(this.project, false, stageToUse);
-                        const highlightedCode = PascalHighlighter.highlight(plainCode);
-                        content.innerHTML = `<pre style="margin: 0; white-space: pre; color: #d4d4d4;" translate="no">${highlightedCode}</pre>`;
-                    }
-                } catch (err) {
-                    console.error('[Editor] Error generating Pascal code:', err);
-                    codePanel.innerHTML += `<pre style="color: red; padding: 1rem; margin: 0;" translate="no">Error generating Pascal code: ${err}</pre>`;
-                }
-            }
-        }
-
-        // Final render to ensure everything is visible after tab switch
-        this.render();
+    public switchView(view: ViewType) {
+        this.viewManager.switchView(view);
     }
+
+    // View State Getters for back-compatibility
+    public get currentView(): string { return this.viewManager.currentView; }
+    public get pascalEditorMode(): boolean { return this.viewManager.pascalEditorMode; }
+    public get useStageIsolatedView(): boolean { return this.viewManager.useStageIsolatedView; }
+    public set useStageIsolatedView(v: boolean) { this.viewManager.useStageIsolatedView = v; }
+    public get jsonMode(): 'viewer' | 'editor' { return this.viewManager.jsonMode; }
+    public set jsonMode(v: 'viewer' | 'editor') { this.viewManager.jsonMode = v; }
+    public get workingProjectData(): any { return this.viewManager.workingProjectData; }
+    public set workingProjectData(v: any) { this.viewManager.workingProjectData = v; }
+    public get isProjectDirty(): boolean { return this.viewManager.isProjectDirty; }
+    public set isProjectDirty(v: boolean) { this.viewManager.isProjectDirty = v; }
 
 
 
@@ -793,59 +502,6 @@ export class Editor {
     /**
      * Migriert Legacy-Projekte (objects/splashObjects) zum neuen stages-Array
      */
-    private migrateToStages(): void {
-        if (this.project.stages && this.project.stages.length > 0) {
-            return; // Bereits migriert
-        }
-
-        console.log('[Editor] Migriere Legacy-Projekt zu stages-Array...');
-        this.project.stages = [];
-
-        // Falls SplashObjects existieren → SplashStage erstellen
-        if (this.project.splashObjects && this.project.splashObjects.length > 0) {
-            this.project.stages.push({
-                id: 'splash',
-                name: 'Splash',
-                type: 'splash',
-                objects: this.project.splashObjects,
-                duration: this.project.splashDuration || 3000,
-                autoHide: this.project.splashAutoHide ?? true,
-                grid: JSON.parse(JSON.stringify(this.project.stage.grid)) // Grid kopieren
-            });
-            console.log(`[Editor] SplashStage erstellt mit ${this.project.splashObjects.length} Objekten.`);
-        } else {
-            console.log('[Editor] Keine splashObjects für Migration gefunden.');
-        }
-
-        // HauptStage erstellen
-        this.project.stages.push({
-            id: 'main',
-            name: 'Hauptspiel',
-            type: 'main',
-            objects: this.project.objects || [],
-            gameName: this.project.meta?.name || '',
-            author: this.project.meta?.author || '',
-            description: this.project.meta?.description || '',
-            grid: JSON.parse(JSON.stringify(this.project.stage.grid)) // Grid kopieren
-        });
-
-        // Aktive Stage setzen (Splash wenn vorhanden, sonst Main)
-        this.project.activeStageId = this.project.stages[0].id;
-        projectRegistry.setActiveStageId(this.project.stages[0].id);
-
-        console.log(`[Editor] Migration abgeschlossen. ${this.project.stages.length} Stages erstellt.`);
-    }
-
-    /**
-     * Gibt die aktuelle Stage zurück
-     */
-    private getActiveStage(): StageDefinition | null {
-        if (!this.project.stages || this.project.stages.length === 0) {
-            return null;
-        }
-        const activeId = this.project.activeStageId || this.project.stages[0].id;
-        return this.project.stages.find(s => s.id === activeId) || this.project.stages[0];
-    }
 
     /**
      * Erstellt eine neue Stage basierend auf einem Template
@@ -916,6 +572,62 @@ export class Editor {
             }
         } catch (e) {
             console.error('[Editor] Template selection failed:', e);
+        }
+    }
+
+    /**
+     * Setzt eine Stage als Hauptstage (exklusiv)
+     */
+    public setStageAsMain(stageId: string) {
+        if (!this.project.stages) return;
+        this.project.stages.forEach(s => {
+            if (s.id === stageId) {
+                s.type = 'main';
+            } else if (s.type === 'main') {
+                s.type = 'standard';
+            }
+        });
+        this.updateStagesMenu();
+        this.render();
+        this.autoSaveToLocalStorage();
+        // Update JSON/Pascal immediately
+        this.refreshJSONView();
+        this.refreshPascalView();
+        console.log(`[Editor] Stage ${stageId} is now the Main Stage.`);
+    }
+
+    /**
+     * Importiert eine globale Instanz eines Objekts aus einer anderen Stage
+     */
+    public importGlobalObject(id: string) {
+        const activeStage = this.getActiveStage();
+        if (!activeStage) return;
+
+        // Check if already there
+        if ((activeStage.objects || []).some(o => o.id === id)) {
+            console.log(`[Editor] Object ${id} already in active stage.`);
+            return;
+        }
+
+        // Find the global object anywhere in the project
+        let globalObj: TWindow | null = null;
+        for (const s of (this.project.stages || [])) {
+            const found = (s.objects || []).find(o => o.id === id && o.scope === 'global');
+            if (found) {
+                globalObj = found;
+                break;
+            }
+        }
+
+        if (globalObj) {
+            // Add reference
+            if (!activeStage.objects) activeStage.objects = [];
+            activeStage.objects.push(globalObj);
+            this.render();
+            this.autoSaveToLocalStorage();
+            console.log(`[Editor] Imported global object ${globalObj.name} into stage ${activeStage.name}`);
+        } else {
+            console.warn(`[Editor] Could not find global object with ID ${id}`);
         }
     }
 
@@ -1075,6 +787,7 @@ export class Editor {
         this.switchView('stage');
 
         console.log(`[Editor] Gewechselt zu Stage: ${stage.name} (${stage.type})`);
+        this.autoSaveToLocalStorage();
     }
 
     /**
@@ -1117,9 +830,13 @@ export class Editor {
         const activeStage = this.getActiveStage();
         if (!activeStage) return this.project.objects || [];
 
-        // OPTIMIZATION: If no inheritance, return mutable objects directly to allow editing!
+        // OPTIMIZATION: If no inheritance, return fresh merged objects directly 
+        // to allow editing and include both variables and objects!
         if (!activeStage.inheritsFrom) {
-            return activeStage.objects || [];
+            return [
+                ...(activeStage.objects || []),
+                ...(activeStage.variables || []) as unknown as any[]
+            ];
         }
 
         // Build chain (child -> parent -> grandparent)
@@ -1140,7 +857,14 @@ export class Editor {
         for (let i = chain.length - 1; i >= 0; i--) {
             const s = chain[i];
             const isTopLevel = (i === 0);
-            (s.objects || []).forEach(obj => {
+
+            // Merge BOTH objects and variables
+            const combined = [
+                ...(s.objects || []),
+                ...(s.variables || []) as unknown as any[]
+            ];
+
+            combined.forEach(obj => {
                 // We clone to avoid polluting the original data with 'isInherited' flag
                 const copy = JSON.parse(JSON.stringify(obj));
                 if (!isTopLevel) {
@@ -1361,8 +1085,15 @@ export class Editor {
             this.flowEditor.syncToProject();
             this.flowEditor.syncAllTasksFromFlow(this.project);
         }
+
+        // Variables and Objects are already separated due to the currentObjects setter/getter logic.
+        // We just need to ensure everything is synced one last time.
+        this.syncStageObjectsToProject();
+
         const json = JSON.stringify(this.project, null, 2);
-        const filename = `project_${this.project.meta.name.replace(/\s+/g, '_')}.json`;
+
+        const projName = this.project.stages?.find((s: any) => s.type === 'main')?.gameName || this.project.meta.name || 'New Game';
+        const filename = `project_${projName.replace(/\s+/g, '_')}.json`;
 
         // Try File System Access API (modern browsers)
         if ('showSaveFilePicker' in window) {
@@ -1468,10 +1199,13 @@ export class Editor {
 
         // Restore Stages (New System)
         if (data.stages && data.stages.length > 0) {
-            const hydratedStages = data.stages.map((s: any) => ({
-                ...s,
-                objects: hydrateObjects(s.objects || [])
-            }));
+            const hydratedStages = data.stages.map((s: any) => {
+                return {
+                    ...s,
+                    objects: hydrateObjects(s.objects || []),
+                    variables: hydrateObjects(s.variables || []) as any
+                };
+            });
             this.project.stages = hydratedStages;
             this.project.activeStageId = data.activeStageId || hydratedStages[0].id;
             projectRegistry.setActiveStageId(this.project.activeStageId || null);
@@ -1479,6 +1213,7 @@ export class Editor {
 
         // Restore Objects (Legacy System)
         this.project.objects = hydrateObjects(data.objects || []);
+        this.project.variables = hydrateObjects(data.variables || []) as any;
         this.project.splashObjects = hydrateObjects(data.splashObjects || []);
         this.project.splashDuration = data.splashDuration ?? 3000;
         this.project.splashAutoHide = data.splashAutoHide ?? true;
@@ -1534,12 +1269,11 @@ export class Editor {
         }, 500);
     }
 
-    private autoSaveToLocalStorage() {
+    public autoSaveToLocalStorage() {
         if (!this.project) return;
         try {
-            // NOTE: Do NOT call syncToProject() here! It triggers onProjectChange which calls
-            // autoSaveToLocalStorage again, causing infinite recursion.
-            // The flowEditor should have already synced its state before this is called.
+            // Ensure the latest stage state (objects & variables) is synced to the project JSON
+            this.syncStageObjectsToProject();
 
             const json = JSON.stringify(this.project);
             localStorage.setItem('gcs_last_project', json);
@@ -1791,10 +1525,35 @@ export class Editor {
      * Remove object without triggering selection change or render (for batch deletion)
      */
     private removeObjectSilent(id: string) {
-        const idx = this.project.objects.findIndex(o => o.id === id);
-        if (idx !== -1) {
-            console.log(`[Editor] Removing object: ${this.project.objects[idx].name}`);
-            this.project.objects.splice(idx, 1);
+        // Search in all potential lists
+        const activeStage = this.getActiveStage();
+        if (activeStage) {
+            const objIdx = (activeStage.objects || []).findIndex(o => o.id === id);
+            if (objIdx !== -1) {
+                console.log(`[Editor] Removing UI object: ${activeStage.objects[objIdx].name}`);
+                activeStage.objects.splice(objIdx, 1);
+                return;
+            }
+
+            const varIdx = (activeStage.variables || []).findIndex(v => (v as any).id === id);
+            if (varIdx !== -1) {
+                console.log(`[Editor] Removing variable: ${(activeStage.variables as any)[varIdx].name}`);
+                activeStage.variables!.splice(varIdx, 1);
+                return;
+            }
+        }
+
+        // Legacy/Global Fallback
+        const objIdx = this.project.objects.findIndex(o => o.id === id);
+        if (objIdx !== -1) {
+            this.project.objects.splice(objIdx, 1);
+            return;
+        }
+
+        const varIdx = this.project.variables.findIndex(v => (v as any).id === id);
+        if (varIdx !== -1) {
+            this.project.variables.splice(varIdx, 1);
+            return;
         }
     }
 
@@ -1902,6 +1661,27 @@ export class Editor {
             case 'StageController':
                 newObj = new TStageController(name, x, y);
                 break;
+            case 'Variable':
+                newObj = new TVariable(name, x, y);
+                break;
+            case 'ObjectList':
+                newObj = new TObjectList(name, x, y);
+                break;
+            case 'Threshold':
+                newObj = new TThresholdVariable(name, x, y);
+                break;
+            case 'Trigger':
+                newObj = new TTriggerVariable(name, x, y);
+                break;
+            case 'Range':
+                newObj = new TRangeVariable(name, x, y);
+                break;
+            case 'List':
+                newObj = new TListVariable(name, x, y);
+                break;
+            case 'Random':
+                newObj = new TRandomVariable(name, x, y);
+                break;
             default:
                 console.warn("Unknown type:", type);
                 return null;
@@ -1913,6 +1693,16 @@ export class Editor {
         const name = `${type}_${this.currentObjects.length + 1}`;
         const newObj = this.createObjectInstance(type, name, x, y);
         if (!newObj) return;
+
+        // Default Scoping Rules:
+        // Main-Stage -> Global
+        // Other Stages -> Stage-local
+        const activeStage = this.getActiveStage();
+        if (activeStage && activeStage.type === 'main') {
+            newObj.scope = 'global';
+        } else {
+            newObj.scope = 'stage';
+        }
 
         // Explicitly set className for robust identification (minification-proof)
         (newObj as any).className = `T${type}`;
@@ -1982,7 +1772,7 @@ export class Editor {
      * Find an object by ID, searching recursively in containers.
      * Searches in RESOLVED objects (including inherited ones).
      */
-    private findObjectById(id: string): any | null {
+    public findObjectById(id: string): any | null {
         // Use resolved objects to find everything including inherited ones
         const objects = this.getResolvedInheritanceObjects();
 
@@ -2016,7 +1806,7 @@ export class Editor {
         return null;
     }
 
-    private setRunMode(running: boolean) {
+    public setRunMode(running: boolean) {
         this.stage.runMode = running;
         this.stage.updateBorder(); // Update border color based on mode
         if (running) {
@@ -2298,15 +2088,28 @@ export class Editor {
             });
             this.selectObject(null);
             this.render();
+            this.autoSaveToLocalStorage();
             return;
         }
 
-        if (!this.runtime) return;
+        if (!this.runtime) {
+            // In editor mode, some events should trigger an immediate save
+            if (eventName === 'move' || eventName === 'resize' || eventName === 'propertyChange') {
+                this.autoSaveToLocalStorage();
+            }
+            return;
+        }
+
         this.runtime.handleEvent(id, eventName, data);
         this.render();
+
+        // Also save if property changed via runtime interaction (rare in editor but possible)
+        if (eventName === 'propertyChange') {
+            this.autoSaveToLocalStorage();
+        }
     }
 
-    private render() {
+    public render() {
         if (!this.project) return;
         try {
             // CRITICAL: Always get fresh objects from runtime if available, 
@@ -2564,7 +2367,7 @@ export class Editor {
     /**
      * Refreshes the JSON Tree View and its toolbar
      */
-    private refreshJSONView(): void {
+    public refreshJSONView(): void {
         const jsonPanel = document.getElementById('json-viewer');
         if (!jsonPanel) return;
 
@@ -3143,6 +2946,14 @@ export class Editor {
                 }
         }
     }
+    public updateProjectJSON() {
+        if (this.project) {
+            this.workingProjectData = JSON.parse(JSON.stringify(this.project));
+            localStorage.setItem('last_project', JSON.stringify(this.project));
+            console.log('[Editor] Project JSON updated in localStorage');
+        }
+    }
+
     /**
      * Synchronizes the current stage objects from the Editor (this.stage.objects)
      * back into the project structure (this.project.stages).
@@ -3159,7 +2970,7 @@ export class Editor {
         const projectStage = this.project.stages?.find((s: any) => s.id === activeStage.id);
         if (projectStage) {
             // Serialize objects using their toJSON method logic. 
-            // We use this.currentObjects which holds the editor's live objects.
+            // We use this.currentObjects() which holds the editor's live objects.
             const serializedObjects = this.currentObjects.map((obj: any) => {
                 if (typeof obj.toJSON === 'function') {
                     return obj.toJSON();
@@ -3167,8 +2978,10 @@ export class Editor {
                 return obj;
             });
 
-            projectStage.objects = serializedObjects;
-            console.log(`[Editor] Synced ${serializedObjects.length} objects.`);
+            // STRICT SEPARATION: Filter objects and variables
+            projectStage.objects = serializedObjects.filter((o: any) => !o.isVariable);
+            projectStage.variables = serializedObjects.filter((o: any) => o.isVariable) || [];
+            console.log(`[Editor] Synced ${projectStage.objects.length} objects and ${projectStage.variables.length} variables.`);
         } else {
             console.warn(`[Editor] Could not find stage "${activeStage.id}" in project to sync objects.`);
         }

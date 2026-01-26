@@ -1262,6 +1262,21 @@ export class Stage {
                     el.onmousedown = () => el.style.transform = 'scale(0.98)';
                     el.onmouseup = () => el.style.transform = 'none';
                 }
+            } else if (obj.isVariable || className === 'TGameLoop' || className === 'TInputController' || className === 'TTimer' || className === 'TRepeater' || className === 'TGameServer' || className === 'TGameState' || className === 'THandshake' || className === 'THeartbeat' || className === 'TStageController') {
+                if (this.runMode) el.style.display = 'none';
+                else {
+                    el.style.display = 'flex'; // Ensure visible in editor
+                    el.style.backgroundColor = className === 'TGameLoop' ? '#2196f3' :
+                        (className === 'TInputController' ? '#9c27b0' :
+                            (className === 'TRepeater' ? '#ff9800' :
+                                (className === 'TGameState' ? '#607d8b' :
+                                    (className === 'TGameServer' ? '#4caf50' :
+                                        (className === 'THandshake' ? '#5c6bc0' :
+                                            (className === 'THeartbeat' ? '#e91e63' :
+                                                (className === 'TStageController' ? '#9c27b0' :
+                                                    (obj.isVariable ? (obj.style?.backgroundColor || '#673ab7') : '#4caf50'))))))));
+                    el.innerText = obj.name;
+                }
             } else if (className === 'TLabel' || className === 'TNumberLabel' || (className !== 'TShape' && ('text' in obj || 'value' in obj))) {
                 const textValue = (obj.text !== undefined && obj.text !== null) ? String(obj.text) :
                     (obj.value !== undefined && obj.value !== null) ? String(obj.value) : '';
@@ -1370,19 +1385,6 @@ export class Stage {
                     label.innerText = obj.name;
                     label.style.cssText = 'position:absolute; font-size:10px; color:rgba(255,255,255,0.5); pointer-events:none;';
                     el.appendChild(label);
-                }
-            } else if (className === 'TGameLoop' || className === 'TInputController' || className === 'TTimer' || className === 'TRepeater' || className === 'TGameServer' || className === 'TGameState' || className === 'THandshake' || className === 'THeartbeat' || className === 'TStageController') {
-                if (this.runMode) el.style.display = 'none';
-                else {
-                    el.style.backgroundColor = className === 'TGameLoop' ? '#2196f3' :
-                        (className === 'TInputController' ? '#9c27b0' :
-                            (className === 'TRepeater' ? '#ff9800' :
-                                (className === 'TGameState' ? '#607d8b' :
-                                    (className === 'TGameServer' ? '#4caf50' :
-                                        (className === 'THandshake' ? '#5c6bc0' :
-                                            (className === 'THeartbeat' ? '#e91e63' :
-                                                (className === 'TStageController' ? '#9c27b0' : '#4caf50')))))));
-                    el.innerText = obj.name;
                 }
             } else if (className === 'TInspectorTemplate') {
                 // Render Inspector Designer preview

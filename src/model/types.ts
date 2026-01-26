@@ -142,8 +142,16 @@ export type VariableType = 'integer' | 'real' | 'string' | 'boolean' | 'timer' |
 export type VariableScope = 'global' | 'local' | string; // Phase 3: Strict scoping + Task-Local Support (Pascal)
 
 export interface ProjectVariable {
+    id?: string;               // Unique ID (for TWindow compatibility)
     name: string;
     type: VariableType;        // Pascal-style type
+    isVariable?: boolean;      // Always true for this interface
+    className?: string;        // Class name (e.g. 'TVariable', 'TRandomVariable')
+    x?: number;                // Stage X position
+    y?: number;                // Stage Y position
+    width?: number;            // Component width
+    height?: number;           // Component height
+    style?: Record<string, any>;// Visual style
     defaultValue: any;         // Default value matching the type
     initialValue?: any;        // Default value for reset/setup
     value?: any;               // Current runtime value (optional)

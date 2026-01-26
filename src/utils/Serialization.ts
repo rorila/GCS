@@ -34,6 +34,13 @@ import { TStageController } from '../components/TStageController';
 import { TNumberLabel } from '../components/TNumberLabel';
 import { TMemo } from '../components/TMemo';
 import { TShape } from '../components/TShape';
+import { TVariable } from '../components/TVariable';
+import { TObjectList } from '../components/TObjectList';
+import { TThresholdVariable } from '../components/TThresholdVariable';
+import { TTriggerVariable } from '../components/TTriggerVariable';
+import { TRangeVariable } from '../components/TRangeVariable';
+import { TListVariable } from '../components/TListVariable';
+import { TRandomVariable } from '../components/TRandomVariable';
 
 export function hydrateObjects(objectsData: any[]): TWindow[] {
     const objects: TWindow[] = [];
@@ -159,6 +166,27 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             case 'TShape':
                 newObj = new TShape(objData.name, objData.x, objData.y, objData.width, objData.height);
                 break;
+            case 'TVariable':
+                newObj = new TVariable(objData.name, objData.x, objData.y);
+                break;
+            case 'TObjectList':
+                newObj = new TObjectList(objData.name, objData.x, objData.y);
+                break;
+            case 'TThresholdVariable':
+                newObj = new TThresholdVariable(objData.name, objData.x, objData.y);
+                break;
+            case 'TTriggerVariable':
+                newObj = new TTriggerVariable(objData.name, objData.x, objData.y);
+                break;
+            case 'TRangeVariable':
+                newObj = new TRangeVariable(objData.name, objData.x, objData.y);
+                break;
+            case 'TListVariable':
+                newObj = new TListVariable(objData.name, objData.x, objData.y);
+                break;
+            case 'TRandomVariable':
+                newObj = new TRandomVariable(objData.name, objData.x, objData.y);
+                break;
             default:
                 console.warn("Unknown class during load:", objData.className);
                 break;
@@ -170,6 +198,8 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
 
             // IMPORTANT: Explicitly set className for production builds where constructor.name is minified
             (newObj as any).className = objData.className;
+            newObj.scope = objData.scope || 'stage';
+            newObj.isVariable = objData.isVariable || false;
 
             // Restore width/height (may have been overwritten by constructor defaults)
             if (objData.width !== undefined) newObj.width = objData.width;
@@ -318,77 +348,50 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             // TInspectorTemplate specific properties
             if (objData.layoutConfig !== undefined) (newObj as any).layoutConfig = objData.layoutConfig;
 
-            // TDialogRoot specific properties
-            if (objData.title !== undefined) (newObj as any).title = objData.title;
-            if (objData.borderRadius !== undefined) (newObj as any).borderRadius = objData.borderRadius;
-            if (objData.padding !== undefined) (newObj as any).padding = objData.padding;
-            if (objData.modal !== undefined) (newObj as any).modal = objData.modal;
-            if (objData.closable !== undefined) (newObj as any).closable = objData.closable;
-            if (objData.draggableAtRuntime !== undefined) (newObj as any).draggableAtRuntime = objData.draggableAtRuntime;
-            if (objData.centerOnShow !== undefined) (newObj as any).centerOnShow = objData.centerOnShow;
-            if (objData.onShowTask !== undefined) (newObj as any).onShowTask = objData.onShowTask;
-            if (objData.onCloseTask !== undefined) (newObj as any).onCloseTask = objData.onCloseTask;
-            if (objData.onCancelTask !== undefined) (newObj as any).onCancelTask = objData.onCancelTask;
+            // --- GENERIC PROPERTIY RESTORATION (The "Magic" Loop) ---
+            // Instead of listing every single property for every single component type,
+            // we iterate over all keys in the JSON object and assign them to the new instance
+            // if they are not reserved internal keys.
 
-            // TInfoWindow specific properties
-            if (objData.message !== undefined) (newObj as any).message = objData.message;
-            if (objData.icon !== undefined) (newObj as any).icon = objData.icon;
-            if (objData.iconSize !== undefined) (newObj as any).iconSize = objData.iconSize;
-            if (objData.showCancelButton !== undefined) (newObj as any).showCancelButton = objData.showCancelButton;
-            if (objData.cancelButtonText !== undefined) (newObj as any).cancelButtonText = objData.cancelButtonText;
-            if (objData.showConfirmButton !== undefined) (newObj as any).showConfirmButton = objData.showConfirmButton;
-            if (objData.confirmButtonText !== undefined) (newObj as any).confirmButtonText = objData.confirmButtonText;
-            if (objData.showSpinner !== undefined) (newObj as any).showSpinner = objData.showSpinner;
-            if (objData.autoClose !== undefined) (newObj as any).autoClose = objData.autoClose;
-            if (objData.autoCloseDelay !== undefined) (newObj as any).autoCloseDelay = objData.autoCloseDelay;
-            if (objData.onConfirmTask !== undefined) (newObj as any).onConfirmTask = objData.onConfirmTask;
-            if (objData.onAutoCloseTask !== undefined) (newObj as any).onAutoCloseTask = objData.onAutoCloseTask;
+            const reservedKeys = [
+                'className', 'id', 'children', 'Tasks', 'style', // Handled explicitly
+                'shapeType', // Often constructor arg, but safe to re-assign if public
+                'type' // Sometimes used for internal typing
+            ];
 
-            // TToast specific properties
-            if (objData.animation !== undefined) (newObj as any).animation = objData.animation;
-            if (objData.position !== undefined) (newObj as any).position = objData.position;
-            if (objData.duration !== undefined) (newObj as any).duration = objData.duration;
-            if (objData.maxVisible !== undefined) (newObj as any).maxVisible = objData.maxVisible;
-            if (objData.infoColor !== undefined) (newObj as any).infoColor = objData.infoColor;
-            if (objData.successColor !== undefined) (newObj as any).successColor = objData.successColor;
-            if (objData.warningColor !== undefined) (newObj as any).warningColor = objData.warningColor;
-            if (objData.errorColor !== undefined) (newObj as any).errorColor = objData.errorColor;
+            // 1. Generic assignment for all primitive properties
+            Object.keys(objData).forEach(key => {
+                if (reservedKeys.includes(key)) return;
 
-            // TStatusBar specific properties
-            if (objData.sections !== undefined) (newObj as any).sections = objData.sections;
-            if (objData.sectionGap !== undefined) (newObj as any).sectionGap = objData.sectionGap;
-            if (objData.separatorColor !== undefined) (newObj as any).separatorColor = objData.separatorColor;
-            if (objData.showSeparators !== undefined) (newObj as any).showSeparators = objData.showSeparators;
-            if (objData.paddingX !== undefined) (newObj as any).paddingX = objData.paddingX;
-            if (objData.paddingY !== undefined) (newObj as any).paddingY = objData.paddingY;
-            if (objData.textColor !== undefined) (newObj as any).textColor = objData.textColor;
-            if (objData.fontSize !== undefined) (newObj as any).fontSize = objData.fontSize;
+                // Skip complex objects/arrays if better handled explicitly, 
+                // but generally we want to restore them too (like 'items' in ListVariable).
+                const val = (objData as any)[key];
 
-            // TGameState specific properties
-            if (objData.state !== undefined) (newObj as any).state = objData.state;
-            if (objData.spritesMoving !== undefined) (newObj as any).spritesMoving = objData.spritesMoving;
-            if (objData.collisionsEnabled !== undefined) (newObj as any).collisionsEnabled = objData.collisionsEnabled;
+                // Safety check: only assign if it's not undefined
+                if (val !== undefined) {
+                    // Direct assignment to the component instance
+                    // casting to any allows dynamic assignment
+                    (newObj as any)[key] = val;
+                }
+            });
 
-            // TButton service binding properties
-            if (objData.service !== undefined) (newObj as any).service = objData.service;
-            if (objData.serviceMethod !== undefined) (newObj as any).serviceMethod = objData.serviceMethod;
-            if (objData.serviceParams !== undefined) (newObj as any).serviceParams = objData.serviceParams;
-            if (objData.onSuccessToast !== undefined) (newObj as any).onSuccessToast = objData.onSuccessToast;
-            if (objData.onSuccessToastType !== undefined) (newObj as any).onSuccessToastType = objData.onSuccessToastType;
-            if (objData.onSuccessStatusSection !== undefined) (newObj as any).onSuccessStatusSection = objData.onSuccessStatusSection;
-            if (objData.onSuccessStatusText !== undefined) (newObj as any).onSuccessStatusText = objData.onSuccessStatusText;
-            if (objData.onSuccessInfoWindow !== undefined) (newObj as any).onSuccessInfoWindow = objData.onSuccessInfoWindow;
-            if (objData.onSuccessInfoMessage !== undefined) (newObj as any).onSuccessInfoMessage = objData.onSuccessInfoMessage;
-            if (objData.onSuccessCloseDialog !== undefined) (newObj as any).onSuccessCloseDialog = objData.onSuccessCloseDialog;
-            if (objData.onErrorToast !== undefined) (newObj as any).onErrorToast = objData.onErrorToast;
-            if (objData.onErrorToastType !== undefined) (newObj as any).onErrorToastType = objData.onErrorToastType;
+            // 2. Variable Special Case: Force 'value' restoration if it exists
+            // (Some variables might not have 'value' in their interface explicitly defined as public field 
+            // but act as containers, so we ensure it's set)
+            if ((newObj as any).isVariable && objData.value !== undefined) {
+                (newObj as any).value = objData.value;
+            }
 
-            // TShape specific properties
-            if (objData.shapeType !== undefined) (newObj as any).shapeType = objData.shapeType;
-            if (objData.fillColor !== undefined) (newObj as any).fillColor = objData.fillColor;
-            if (objData.strokeColor !== undefined) (newObj as any).strokeColor = objData.strokeColor;
-            if (objData.strokeWidth !== undefined) (newObj as any).strokeWidth = objData.strokeWidth;
-            if (objData.opacity !== undefined) (newObj as any).opacity = objData.opacity;
+            // 3. Style Merging (Explicit handling)
+            // We blindly restore style properties if they exist in JSON
+            if (objData.style) {
+                const targetStyle = (newObj as any).style || {};
+                // Merge restored style into existing default style
+                Object.assign(targetStyle, objData.style);
+                (newObj as any).style = targetStyle;
+            }
+
+            // Restore Tasks (Explicit handling)
 
             // Restore Tasks
             if (objData.Tasks) {

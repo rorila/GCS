@@ -13,9 +13,10 @@ export class PascalGenerator {
         const lines: string[] = [];
 
         // Program Header
-        const progName = (project.meta && project.meta.name) ? project.meta.name.replace(/\s+/g, '_') : 'GameBuilderProject';
-        const suffix = activeStage ? `_${activeStage.name.replace(/\s+/g, '_')}` : '';
-        lines.push(`${this.span('PROGRAM', '#c586c0', asHtml)} ${this.span(progName + suffix, '#dcdcaa', asHtml)};`);
+        const mainStage = project.stages?.find(s => s.type === 'main');
+        const projName = mainStage?.gameName || project.meta?.name || 'GameBuilderProject';
+        const suffix = (activeStage && activeStage.type !== 'main') ? `_${activeStage.name.replace(/\s+/g, '_')}` : '';
+        lines.push(`${this.span('PROGRAM', '#c586c0', asHtml)} ${this.span(projName.replace(/\s+/g, '_') + suffix, '#dcdcaa', asHtml)};`);
         lines.push('');
         lines.push(`${this.span('USES', '#c586c0', asHtml)} crt; ${this.span('{ Standard libraries }', '#6a9955', asHtml)}`);
         lines.push('');

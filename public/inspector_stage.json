@@ -91,8 +91,8 @@
         },
         {
             "className": "TEdit",
-            "name": "meta.nameInput",
-            "text": "${selectedObject.meta.name}",
+            "name": "activeStage.gameNameInput",
+            "text": "${(activeStage && activeStage.gameName) || selectedObject.meta.name}",
             "visible": "${activeStage && activeStage.type === 'main' ? true : false}",
             "width": 30,
             "height": 2
@@ -109,8 +109,8 @@
         },
         {
             "className": "TEdit",
-            "name": "meta.authorInput",
-            "text": "${selectedObject.meta.author}",
+            "name": "activeStage.authorInput",
+            "text": "${(activeStage && activeStage.author) || selectedObject.meta.author}",
             "visible": "${activeStage && activeStage.type === 'main' ? true : false}",
             "width": 30,
             "height": 2,

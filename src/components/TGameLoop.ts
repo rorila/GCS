@@ -1,5 +1,5 @@
+import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
-import { TPropertyDef } from './TComponent';
 import { TSprite } from './TSprite';
 import { TGameState } from './TGameState';
 import { GridConfig } from '../model/types';
@@ -12,7 +12,7 @@ export type GameLoopState = 'stopped' | 'running' | 'paused';
  * Place on stage, configure in Inspector, and it will drive sprite movement and collisions.
  * Bounds are read directly from the project's grid config.
  */
-export class TGameLoop extends TWindow {
+export class TGameLoop extends TWindow implements IRuntimeComponent {
     // Loop settings
     public targetFPS: number = 60;
     public state: GameLoopState = 'stopped';
@@ -20,8 +20,6 @@ export class TGameLoop extends TWindow {
     // Grid reference (set via init) - bounds are derived from this
     private gridConfig: GridConfig | null = null;
     private gameState: TGameState | null = null;
-
-
 
     // Offset for playable area (e.g., for headers)
     public boundsOffsetTop: number = 0;
@@ -71,9 +69,8 @@ export class TGameLoop extends TWindow {
     }
 
     public getInspectorProperties(): TPropertyDef[] {
-        const props = super.getInspectorProperties();
         return [
-            ...props,
+            ...super.getInspectorProperties(),
             { name: 'targetFPS', label: 'Target FPS', type: 'number', group: 'Loop Settings' },
             { name: 'boundsOffsetTop', label: 'Bounds Offset Top', type: 'number', group: 'Boundaries' },
             { name: 'boundsOffsetBottom', label: 'Bounds Offset Bottom', type: 'number', group: 'Boundaries' }
@@ -81,12 +78,22 @@ export class TGameLoop extends TWindow {
     }
 
     public toJSON(): any {
-        return {
-            ...super.toJSON(),
-            targetFPS: this.targetFPS,
-            boundsOffsetTop: this.boundsOffsetTop,
-            boundsOffsetBottom: this.boundsOffsetBottom
-        };
+        return super.toJSON();
+    }
+
+    public onRuntimeStart(): void {
+        // Die eigentliche start-Logik bleibt vorerst im GameLoopManager,
+        // da dieser die Abhängigkeiten (objects, callbacks) kennt.
+        // Der GameLoopManager wird in Zukunft die IRuntimeComponent-Signale nutzen.
+    }
+
+    public initRuntime(callbacks: { handleEvent: any; render: any; gridConfig: any; objects: any[] }): void {
+        this.init(
+            callbacks.objects,
+            callbacks.gridConfig,
+            callbacks.render,
+            callbacks.handleEvent
+        );
     }
 
     /**

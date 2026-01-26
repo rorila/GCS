@@ -1,7 +1,7 @@
+import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
-import { TPropertyDef } from './TComponent';
 
-export class TTimer extends TWindow {
+export class TTimer extends TWindow implements IRuntimeComponent {
     public className: string = 'TTimer';
     public interval: number = 1000; // in milliseconds
     public enabled: boolean = true;
@@ -14,15 +14,15 @@ export class TTimer extends TWindow {
 
     constructor(name: string, x: number, y: number) {
         super(name, x, y, 3, 1);
+        this.isVariable = true;
         this.style.backgroundColor = '#4caf50';
         this.style.borderColor = '#2e7d32';
         this.style.borderWidth = 2;
     }
 
     public getInspectorProperties(): TPropertyDef[] {
-        const props = super.getInspectorProperties();
         return [
-            ...props,
+            ...super.getInspectorProperties(),
             { name: 'interval', label: 'Interval (ms)', type: 'number', group: 'Timer' },
             { name: 'enabled', label: 'Aktiviert', type: 'boolean', group: 'Timer' },
             { name: 'maxInterval', label: 'Max Intervalle (0=∞)', type: 'number', group: 'Timer' },
@@ -39,13 +39,23 @@ export class TTimer extends TWindow {
     }
 
     public toJSON(): any {
-        return {
-            ...super.toJSON(),
-            interval: this.interval,
-            enabled: this.enabled,
-            maxInterval: this.maxInterval,
-            currentInterval: this.currentInterval
-        };
+        return super.toJSON();
+    }
+
+    public initRuntime(callbacks: { handleEvent: any }): void {
+        this.onEvent = (ev: string) => callbacks.handleEvent(this.id, ev);
+    }
+
+    public onRuntimeStart(): void {
+        if (this.enabled) {
+            this.start(() => {
+                // Der Callback wird nun über onEvent (gesetzt in initRuntime) gesteuert
+            });
+        }
+    }
+
+    public onRuntimeStop(): void {
+        this.stop();
     }
 
     /**

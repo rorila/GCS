@@ -1,5 +1,89 @@
 # Changelog
 
+## [1.5.0] - 2026-01-26
+
+### Added
+- **Modulare Kern-Architektur**: Vollständige Modularisierung der Monolithen `Editor.ts` und `GameRuntime.ts`.
+- **Editor-Manager**:
+    - `EditorStageManager`: Kapselt Stage-Lifecycle-Operationen (Clone, Delete, Template-Handling).
+    - `EditorViewManager`: Verwaltet die UI-Umschaltung zwischen Stage, Flow, JSON und Code.
+- **Runtime-Manager**:
+    - `RuntimeStageManager`: Zentrale Logik für Stage-Inheritance, Objekt-Aggregation und Cross-Stage Auflösung.
+    - `RuntimeVariableManager`: Handhabt das Scoping (Global/Local/Task) und die reaktive Variablen-Logik.
+- **Reaktive Lifecycle-Events**: Unterstützung für `onRuntimeStart` und `onRuntimeStop` auf allen Komponenten.
+
+### Changed
+- **GameRuntime Refactoring**: Die Runtime nutzt nun das `IVariableHost` Interface, um Variablen-Events sauber an den `RuntimeVariableManager` zu delegieren.
+- **Code-Cleanup**: Reduktion der Dateigrößen von `Editor.ts` und `GameRuntime.ts` um jeweils über 500 Zeilen.
+- **Improved Stage Switching**: Der Stage-Wechsel in der Runtime wurde beschleunigt und robuster gegenüber Race-Conditions bei der Objekt-Initialisierung gemacht.
+
+## [1.4.2] - 2026-01-26
+
+### Added
+- **Strikte Variablen-Trennung im JSON**: Variablen werden nun konsequent in einem separaten `variables`-Array innerhalb der Projekt- und Stage-Definitionen gespeichert.
+- **Positionsdaten für Variablen**: Das `ProjectVariable`-Interface wurde erweitert, um `x`, `y`, `width`, `height` und `style` zu speichern, damit Variablen-Komponenten auf der Stage korrekt gerendert werden können.
+
+### Changed
+- **Editor-Datenmanagement**: 
+    - Der Editor führt `objects` und `variables` dynamisch im Speicher zusammen (Geregelter Zugriff via `currentObjects` Getter/Setter).
+    - Hydrierung beim Laden erfolgt nun getrennt für beide Listen.
+    - Synchronisierung vor dem Speichern filtert Objekte und Variablen sauber in ihre jeweiligen Ziel-Arrays.
+- **Refactoring-Tools**: `RefactoringManager` unterstützt nun die projektweite Umbenennung und Bereinigung von Variablen auch innerhalb der Stage-lokalen `variables`-Listen.
+- **Migration**: Automatische Überführung legacy Hybrid-Listen (Objekte + Variablen gemischt) in die neue getrennte Struktur beim Laden alter Projekte.
+
+## [1.4.1] - 2026-01-25
+
+### Changed
+- **Metadaten-Synchronisierung**: Spielname und Autor werden nun primär in der Haupt-Stage (`type: 'main'`) verwaltet.
+    - Der Stage-Inspector bindet diese Felder nun an `activeStage.gameName` und `activeStage.author`.
+    - Automatisches Fallback auf Projekt-Metadaten (`project.meta`), falls in der Stage keine Werte gesetzt sind.
+- **Artifact-Konsistenz**: 
+    - Der Pascal-Code-Generator bevorzugt nun den Namen aus der Haupt-Stage für den Programm-Header.
+    - Der HTML-Export synchronisiert vor dem Speichern die Projekt-Metadaten mit den Werten der Haupt-Stage.
+    - Die Dateinamen beim Speichern orientieren sich nun am Namen der Haupt-Stage.
+
+### Fixed
+- **Inspector Bindings**: Behebung von Inkonsistenzen bei der Bearbeitung globaler Spiel-Informationen durch Umstellung auf das Standard-Eigenschafts-System (`activeStage.*`).
+- **Sichtbarkeit von Variablen**:
+    - Variablen-Komponenten werden im Run-Modus und im Export nun korrekt ausgeblendet (analog zum `TInputController`).
+    - Im Editor-Modus zeigen Variablen-Komponenten nun ihren **Namen** statt ihres aktuellen Wertes an.
+    - Die Rendering-Reihenfolge in `Stage.ts` wurde priorisiert, um Fehlinterpretationen als Label zu verhindern.
+    - Exportierte Spiele werden im `GameExporter` nun sauber gereinigt, um keine "Geister-Variablen" im UI zu rendern.
+
+
+## [1.4.0] - 2026-01-24
+
+### Added
+- **Hybrides Variablen-System**: Trennung von Variablen und UI-Objekten in der Speicherung bei gleichzeitiger nahtloser Integration im Stage-Editor.
+- **Spezialisierte Variablen-Komponenten**: Neue Toolbar-Kategorie "Variablen" im Stage-Editor mit:
+    - `Variable` (📦): Basiskomponente.
+    - `Timer` (⏲️): Verschoben aus System-Kategorie.
+    - `ObjectList` (🗃️): Verwaltung von Objektlisten.
+    - `Threshold` (📊): Schwellenwert-Logik.
+    - `Trigger` (🎯): Trigger-Logik.
+    - `Range` (📏): Bereichs-Validierung.
+    - `List` (📋): Listen-Management.
+    - `Random` (🎲): Zufallswerte.
+- **Intelligentes Scoping**: 
+    - Automatische Zuweisung `global` in der Main-Stage.
+    - Automatische Zuweisung `stage` (lokal) in Standard-Stages.
+- **Cross-Stage Referenzen**: Neue Methode `importGlobalObject` zum Importieren globaler Instanzen in andere Stages.
+- **Landkarten-Explorer**: Visualisierung aller Variablen und globaler Shared Instances in der Projekt-Landkarte.
+- **Element-Übersicht**: Neue Spalte für Variablen zur besseren Status- und Referenz-Übersicht.
+
+### Changed
+- **Flow-Editor Bereinigung**: Reduktion der Flow-Toolbox auf die generische `Variable` (strikt Task-lokal).
+- **Toolbox Reorganisation**: `Timer` und `GameState` wurden in fachlich passendere Kategorien verschoben.
+
+### Fixed
+- **Hydrierung**: Robuste Wiederherstellung von Scoping- und Typ-Informationen beim Projekt-Laden.
+- **Speicher-Logik**: Saubere Trennung der Arrays `objects` und `variables` im JSON-Export.
+- **Inspector-Bereinigung**: Redundante Eigenschaften bei spezialisierten Komponenten entfernt.
+    - Einführung von `inspector_header.json` für dynamische Komponenten.
+    - Vereinheitlichung und Übersetzung der Eigenschaftsgruppen (GEOMETRIE, IDENTITÄT, STIL, TYPOGRAFIE).
+    - Konsolidierung der "Löschen"-Buttons.
+
+
 ## [1.3.11] - 2026-01-23
 
 ### Fixed
@@ -303,6 +387,14 @@
 - **Architektur:** FlowChart-Elemente (Actions) speichern jetzt nur noch Links (`isLinked: true`) auf globale Action-Definitionen. Die vollständigen Logik-Daten liegen ausschließlich in `project.actions`.
 - **Primat der FlowCharts:** Flow-Diagramme sind nun die definitive "Single Source of Truth" für die Aufgaben-Logik.
 - **Automatischer Sync:** Alle Tasks im Projekt werden vor dem Speichern oder Exportieren (`HTML/JSON`) automatisch aus den Diagrammen regeneriert (`syncAllTasksFromFlow`).
+- **Refactoring:**
+  - `JSONInspector`/`Editor`: Strikt getrennte Datenhaltung für Objekte und Variablen im `project.json` (Arrays `objects` vs `variables`).
+  - `Editor`: Verbesserte Positionierung und Handhabung von Variablen im Editor-Canvas.
+  - `Serialization`: Fix für fehlende Wiederherstellung von Variableneigenschaften (`variableType`, `defaultValue`, `value`) beim Laden.
+  - `AutoSave`: Zuverlässiges Speichern bei Drag&Drop, Löschen und Eigenschaftsänderungen durch Integration von `syncStageObjectsToProject`.
+  - `TButton` / `TLabel`: Inspector-Eigenschaften korrigiert (Label 'Text', Gruppe 'INHALT').
+- **Legacy:** Automatische Migration alter Projekte in das neue `stages`-Format beim Laden.
+
 - **UI-Schutz:** Im `TaskEditor` ist die `actionSequence`-Liste schreibgeschützt (🔒), wenn ein Flow für den Task existiert. Ein Tooltip informiert über das Primat des Flow-Editors.
 - **Automatische Migration:** Bestehende Projekte werden beim Öffnen im Flow-Editor automatisch in das neue Link-Format migriert (Single Source of Truth).
 - **Copy-Logik:** "Embed Action (Copy)" im Kontextmenü erstellt nun eine echte 1:1 Kopie als neue globale Action mit eindeutigem Namen (z.B. `Original_Copy1`).

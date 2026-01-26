@@ -1,13 +1,13 @@
 {
     "meta": {
         "name": "Variable Inspector",
-        "version": "1.2.1"
+        "version": "1.3.0"
     },
     "objects": [
         {
             "className": "TLabel",
             "name": "TitleLabel",
-            "text": "📦 Variable: ${selectedObject.VarName}",
+            "text": "📦 Variable: ${selectedObject.name}",
             "style": {
                 "fontSize": 16,
                 "fontWeight": "bold",
@@ -38,8 +38,8 @@
         },
         {
             "className": "TEdit",
-            "name": "VarName",
-            "text": "${selectedObject.VarName}",
+            "name": "name",
+            "text": "${selectedObject.name}",
             "width": 30,
             "height": 2,
             "style": {
@@ -57,7 +57,7 @@
         },
         {
             "className": "TDropdown",
-            "name": "VarType",
+            "name": "variableType",
             "options": [
                 "integer",
                 "real",
@@ -71,30 +71,11 @@
                 "range",
                 "object_list"
             ],
-            "selectedValue": "${selectedObject.VarType}",
+            "selectedValue": "${selectedObject.variableType}",
             "width": 30,
             "height": 2,
             "style": {
                 "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "DescriptionLabel",
-            "text": "Beschreibung:",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TEdit",
-            "name": "Description",
-            "text": "${selectedObject.Description}",
-            "width": 30,
-            "height": 3,
-            "style": {
-                "marginBottom": 12
             }
         },
         {
@@ -120,8 +101,8 @@
         },
         {
             "className": "TEdit",
-            "name": "Value",
-            "text": "${selectedObject.Value}",
+            "name": "value",
+            "text": "${selectedObject.value}",
             "width": 30,
             "height": 2,
             "style": {
@@ -130,8 +111,9 @@
         },
         {
             "className": "TLabel",
-            "name": "InitialValueLabel",
-            "text": "Initialwert (Reset):",
+            "name": "DefaultValueLabel",
+            "text": "Standardwert (Reset):",
+            "visible": "${selectedObject.variableType !== 'timer' && selectedObject.variableType !== 'random' && selectedObject.variableType !== 'range'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -139,8 +121,9 @@
         },
         {
             "className": "TEdit",
-            "name": "InitialValue",
-            "text": "${selectedObject.InitialValue}",
+            "name": "defaultValue",
+            "text": "${selectedObject.defaultValue}",
+            "visible": "${selectedObject.variableType !== 'timer' && selectedObject.variableType !== 'random' && selectedObject.variableType !== 'range'}",
             "width": 30,
             "height": 2,
             "style": {
@@ -151,7 +134,7 @@
             "className": "TLabel",
             "name": "ThresholdLabel",
             "text": "Schwellenwert (Threshold):",
-            "visible": "${selectedObject.VarType === 'threshold'}",
+            "visible": "${selectedObject.variableType === 'threshold'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -159,9 +142,9 @@
         },
         {
             "className": "TNumberInput",
-            "name": "Threshold",
-            "value": "${selectedObject.Threshold}",
-            "visible": "${selectedObject.VarType === 'threshold'}",
+            "name": "threshold",
+            "value": "${selectedObject.threshold}",
+            "visible": "${selectedObject.variableType === 'threshold'}",
             "width": 30,
             "height": 2,
             "style": {
@@ -172,7 +155,7 @@
             "className": "TLabel",
             "name": "TriggerLabel",
             "text": "Trigger-Wert:",
-            "visible": "${selectedObject.VarType === 'trigger'}",
+            "visible": "${selectedObject.variableType === 'trigger'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -180,9 +163,9 @@
         },
         {
             "className": "TEdit",
-            "name": "TriggerValue",
-            "text": "${selectedObject.TriggerValue}",
-            "visible": "${selectedObject.VarType === 'trigger'}",
+            "name": "triggerValue",
+            "text": "${selectedObject.triggerValue}",
+            "visible": "${selectedObject.variableType === 'trigger'}",
             "width": 30,
             "height": 2,
             "style": {
@@ -191,9 +174,9 @@
         },
         {
             "className": "TLabel",
-            "name": "DurationLabel",
-            "text": "Dauer (ms):",
-            "visible": "${selectedObject.VarType === 'timer'}",
+            "name": "MaxIntervalLabel",
+            "text": "Intervall (ms):",
+            "visible": "${selectedObject.variableType === 'timer'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -201,73 +184,10 @@
         },
         {
             "className": "TNumberInput",
-            "name": "Duration",
-            "value": "${selectedObject.Duration}",
-            "visible": "${selectedObject.VarType === 'timer'}",
+            "name": "maxInterval",
+            "value": "${selectedObject.maxInterval}",
+            "visible": "${selectedObject.variableType === 'timer'}",
             "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "HoursLabel",
-            "text": "Stunden:",
-            "visible": "${selectedObject.VarType === 'timer'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TNumberInput",
-            "name": "Hours",
-            "value": "${selectedObject.Hours}",
-            "visible": "${selectedObject.VarType === 'timer'}",
-            "width": 10,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "MinutesLabel",
-            "text": "Minuten:",
-            "visible": "${selectedObject.VarType === 'timer'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TNumberInput",
-            "name": "Minutes",
-            "value": "${selectedObject.Minutes}",
-            "visible": "${selectedObject.VarType === 'timer'}",
-            "width": 10,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "SecondsLabel",
-            "text": "Sekunden:",
-            "visible": "${selectedObject.VarType === 'timer'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TNumberInput",
-            "name": "Seconds",
-            "value": "${selectedObject.Seconds}",
-            "visible": "${selectedObject.VarType === 'timer'}",
-            "width": 10,
             "height": 2,
             "style": {
                 "marginBottom": 8
@@ -275,10 +195,20 @@
         },
         {
             "className": "TCheckbox",
-            "name": "IsInteger",
-            "checked": "${selectedObject.IsInteger}",
+            "name": "enabled",
+            "checked": "${selectedObject.enabled}",
+            "label": "Aktiviert (Timer)",
+            "visible": "${selectedObject.variableType === 'timer'}",
+            "style": {
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TCheckbox",
+            "name": "isInteger",
+            "checked": "${selectedObject.isInteger}",
             "label": "Ganzzahlen (Integer)",
-            "visible": "${selectedObject.VarType === 'range' || selectedObject.VarType === 'random'}",
+            "visible": "${selectedObject.variableType === 'range' || selectedObject.variableType === 'random'}",
             "style": {
                 "marginBottom": 8
             }
@@ -287,7 +217,7 @@
             "className": "TLabel",
             "name": "MinLabel",
             "text": "Minimum:",
-            "visible": "${selectedObject.VarType === 'range' || selectedObject.VarType === 'random'}",
+            "visible": "${selectedObject.variableType === 'range' || selectedObject.variableType === 'random'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -295,9 +225,9 @@
         },
         {
             "className": "TNumberInput",
-            "name": "Min",
-            "value": "${selectedObject.Min}",
-            "visible": "${selectedObject.VarType === 'range' || selectedObject.VarType === 'random'}",
+            "name": "min",
+            "value": "${selectedObject.min}",
+            "visible": "${selectedObject.variableType === 'range' || selectedObject.variableType === 'random'}",
             "width": 30,
             "height": 2,
             "style": {
@@ -308,7 +238,7 @@
             "className": "TLabel",
             "name": "MaxLabel",
             "text": "Maximum:",
-            "visible": "${selectedObject.VarType === 'range' || selectedObject.VarType === 'random'}",
+            "visible": "${selectedObject.variableType === 'range' || selectedObject.variableType === 'random'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -316,55 +246,13 @@
         },
         {
             "className": "TNumberInput",
-            "name": "Max",
-            "value": "${selectedObject.Max}",
-            "visible": "${selectedObject.VarType === 'range' || selectedObject.VarType === 'random'}",
+            "name": "max",
+            "value": "${selectedObject.max}",
+            "visible": "${selectedObject.variableType === 'range' || selectedObject.variableType === 'random'}",
             "width": 30,
             "height": 2,
             "style": {
                 "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "SearchValueLabel",
-            "text": "Suchwert (für onContains):",
-            "visible": "${selectedObject.VarType === 'list' || selectedObject.VarType === 'object_list'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TEdit",
-            "name": "SearchValue",
-            "text": "${selectedObject.SearchValue}",
-            "visible": "${selectedObject.VarType === 'list' || selectedObject.VarType === 'object_list'}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "SearchPropertyLabel",
-            "text": "Such-Eigenschaft (für Objektsuche):",
-            "visible": "${selectedObject.VarType === 'object_list'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TEdit",
-            "name": "SearchProperty",
-            "text": "${selectedObject.SearchProperty}",
-            "visible": "${selectedObject.VarType === 'object_list'}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 12
             }
         },
         {
@@ -390,25 +278,16 @@
         },
         {
             "className": "TDropdown",
-            "name": "Scope",
+            "name": "scope",
             "options": [
                 "global",
                 "stage"
             ],
-            "selectedValue": "${selectedObject.Scope}",
+            "selectedValue": "${selectedObject.scope}",
             "width": 30,
             "height": 2,
             "style": {
                 "marginBottom": 8
-            }
-        },
-        {
-            "className": "TCheckbox",
-            "name": "IsPublic",
-            "checked": "${selectedObject.IsPublic}",
-            "label": "Öffentlich (für andere Stages sichtbar)",
-            "style": {
-                "marginBottom": 12
             }
         }
     ]

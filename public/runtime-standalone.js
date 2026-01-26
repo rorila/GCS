@@ -2456,6 +2456,10 @@
       __publicField(this, "children", []);
       __publicField(this, "Tasks");
       // EventName -> TaskName
+      __publicField(this, "scope", "stage");
+      // Visibility scope
+      __publicField(this, "isVariable", false);
+      // Flag for variable-like components
       // Drag & Drop Properties
       __publicField(this, "draggable", false);
       __publicField(this, "dragMode", "move");
@@ -2467,11 +2471,12 @@
     }
     getInspectorProperties() {
       return [
-        { name: "name", label: "Name", type: "string", group: "Identity" },
-        { name: "id", label: "ID", type: "string", group: "Identity", readonly: true },
-        { name: "draggable", label: "Draggable", type: "boolean", group: "Interaction" },
-        { name: "dragMode", label: "Drag Mode", type: "select", group: "Interaction", options: ["move", "copy"] },
-        { name: "droppable", label: "Droppable", type: "boolean", group: "Interaction" }
+        { name: "name", label: "Name", type: "string", group: "IDENTIT\xC4T" },
+        { name: "id", label: "ID", type: "string", group: "IDENTIT\xC4T", readonly: true },
+        { name: "scope", label: "Scope", type: "select", group: "IDENTIT\xC4T", options: ["global", "stage"] },
+        { name: "draggable", label: "Draggable", type: "boolean", group: "INTERAKTION" },
+        { name: "dragMode", label: "Drag Mode", type: "select", group: "INTERAKTION", options: ["move", "copy"] },
+        { name: "droppable", label: "Droppable", type: "boolean", group: "INTERAKTION" }
       ];
     }
     toJSON() {
@@ -2479,6 +2484,8 @@
         className: this.constructor.name,
         id: this.id,
         name: this.name,
+        scope: this.scope,
+        isVariable: this.isVariable,
         Tasks: this.Tasks,
         draggable: this.draggable,
         dragMode: this.dragMode,
@@ -2616,18 +2623,16 @@
       const props = super.getInspectorProperties();
       return [
         ...props,
-        { name: "x", label: "X", type: "number", group: "Geometry" },
-        { name: "y", label: "Y", type: "number", group: "Geometry" },
-        { name: "width", label: "Width", type: "number", group: "Geometry" },
-        { name: "height", label: "Height", type: "number", group: "Geometry" },
-        { name: "zIndex", label: "Z-Index", type: "number", group: "Geometry" },
-        { name: "align", label: "Align", type: "select", group: "Geometry", options: ["NONE", "TOP", "BOTTOM", "LEFT", "RIGHT", "CLIENT"] },
-        // Removed duplicate style.visible to reduce confusion. Use root 'visible' instead.
-        { name: "visible", label: "Visible", type: "boolean", group: "Identity" },
-        // Added root visible
-        { name: "style.backgroundColor", label: "Background", type: "color", group: "Style" },
-        { name: "style.borderColor", label: "Border Color", type: "color", group: "Style" },
-        { name: "style.borderWidth", label: "Border Width", type: "number", group: "Style" }
+        { name: "x", label: "X Position", type: "number", group: "GEOMETRIE" },
+        { name: "y", label: "Y Position", type: "number", group: "GEOMETRIE" },
+        { name: "width", label: "Breite", type: "number", group: "GEOMETRIE" },
+        { name: "height", label: "H\xF6he", type: "number", group: "GEOMETRIE" },
+        { name: "zIndex", label: "Z-Index", type: "number", group: "GEOMETRIE" },
+        { name: "align", label: "Ausrichtung", type: "select", group: "GEOMETRIE", options: ["NONE", "TOP", "BOTTOM", "LEFT", "RIGHT", "CLIENT"] },
+        { name: "visible", label: "Sichtbar", type: "boolean", group: "IDENTIT\xC4T" },
+        { name: "style.backgroundColor", label: "Hintergrund", type: "color", group: "STIL" },
+        { name: "style.borderColor", label: "Rahmenfarbe", type: "color", group: "STIL" },
+        { name: "style.borderWidth", label: "Rahmenbreite", type: "number", group: "STIL" }
       ];
     }
   };
@@ -2647,12 +2652,12 @@
       const props = super.getInspectorProperties();
       return [
         ...props,
-        { name: "style.fontSize", label: "Font Size", type: "number", group: "Typography" },
-        { name: "style.fontWeight", label: "Bold", type: "boolean", group: "Typography" },
-        { name: "style.fontStyle", label: "Italic", type: "boolean", group: "Typography" },
-        { name: "style.textAlign", label: "Align", type: "select", group: "Typography", options: ["left", "center", "right"] },
-        { name: "style.fontFamily", label: "Font Family", type: "select", group: "Typography", options: ["Arial", "Verdana", "Times New Roman", "Courier New", "Georgia", "Tahoma", "Trebuchet MS"] },
-        { name: "style.color", label: "Text Color", type: "color", group: "Typography" }
+        { name: "style.fontSize", label: "Schriftgr\xF6\xDFe", type: "number", group: "TYPOGRAFIE" },
+        { name: "style.fontWeight", label: "Fett", type: "boolean", group: "TYPOGRAFIE" },
+        { name: "style.fontStyle", label: "Kursiv", type: "boolean", group: "TYPOGRAFIE" },
+        { name: "style.textAlign", label: "Ausrichtung", type: "select", group: "TYPOGRAFIE", options: ["left", "center", "right"] },
+        { name: "style.fontFamily", label: "Schriftart", type: "select", group: "TYPOGRAFIE", options: ["Arial", "Verdana", "Times New Roman", "Courier New", "Georgia", "Tahoma", "Trebuchet MS"] },
+        { name: "style.color", label: "Textfarbe", type: "color", group: "TYPOGRAFIE" }
       ];
     }
   };
@@ -3057,7 +3062,7 @@
       const props = super.getInspectorProperties();
       return [
         ...props,
-        { name: "title", label: "Title", type: "string", group: "Header" }
+        { name: "title", label: "Titel", type: "string", group: "IDENTIT\xC4T" }
         // Inherits Typography group from TTextControl
       ];
     }
@@ -3697,6 +3702,7 @@
       __publicField(this, "timerId", null);
       __publicField(this, "onTimerCallback", null);
       __publicField(this, "onEvent", null);
+      this.isVariable = true;
       this.style.backgroundColor = "#4caf50";
       this.style.borderColor = "#2e7d32";
       this.style.borderWidth = 2;
@@ -6327,6 +6333,7 @@
       __publicField(this, "state", "menu");
       __publicField(this, "spritesMoving", false);
       __publicField(this, "collisionsEnabled", false);
+      this.isVariable = true;
       this.style.backgroundColor = "#4caf50";
       this.style.color = "#ffffff";
       this.style.visible = true;
@@ -7573,6 +7580,271 @@
     }
   };
 
+  // src/components/TVariable.ts
+  var TVariable = class extends TWindow {
+    constructor(name, x, y) {
+      super(name, x, y, 3, 1);
+      __publicField(this, "className", "TVariable");
+      __publicField(this, "value", 0);
+      __publicField(this, "defaultValue", 0);
+      __publicField(this, "variableType", "integer");
+      this.isVariable = true;
+      this.style.backgroundColor = "#673ab7";
+      this.style.borderColor = "#512da8";
+      this.style.borderWidth = 2;
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props,
+        { name: "variableType", label: "Typ", type: "select", group: "Variable", options: ["integer", "real", "string", "boolean"] },
+        { name: "defaultValue", label: "Standardwert", type: "string", group: "Variable" },
+        { name: "value", label: "Aktueller Wert", type: "string", group: "Variable" }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        variableType: this.variableType,
+        defaultValue: this.defaultValue,
+        value: this.value
+      };
+    }
+  };
+
+  // src/components/TObjectList.ts
+  var TObjectList = class extends TWindow {
+    constructor(name, x, y) {
+      super(name, x, y, 4, 2);
+      __publicField(this, "className", "TObjectList");
+      __publicField(this, "items", []);
+      // List of object IDs or names
+      __publicField(this, "searchValue", "");
+      __publicField(this, "searchProperty", "name");
+      this.isVariable = true;
+      this.style.backgroundColor = "#009688";
+      this.style.borderColor = "#00796b";
+      this.style.borderWidth = 2;
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props,
+        { name: "searchValue", label: "Suche (Wert)", type: "string", group: "List" },
+        { name: "searchProperty", label: "Suche (Property)", type: "string", group: "List" }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        items: this.items,
+        searchValue: this.searchValue,
+        searchProperty: this.searchProperty
+      };
+    }
+  };
+
+  // src/components/TThresholdVariable.ts
+  var TThresholdVariable = class extends TWindow {
+    constructor(name, x, y) {
+      super(name, x, y, 3, 1);
+      __publicField(this, "className", "TThresholdVariable");
+      __publicField(this, "value", 0);
+      __publicField(this, "threshold", 100);
+      this.isVariable = true;
+      this.style.backgroundColor = "#ff9800";
+      this.style.borderColor = "#f57c00";
+      this.style.borderWidth = 2;
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props,
+        { name: "value", label: "Wert", type: "number", group: "Threshold" },
+        { name: "threshold", label: "Schwellenwert", type: "number", group: "Threshold" }
+      ];
+    }
+    getEvents() {
+      return [
+        ...super.getEvents(),
+        "onThresholdReached",
+        "onThresholdLeft",
+        "onThresholdExceeded"
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        value: this.value,
+        threshold: this.threshold
+      };
+    }
+  };
+
+  // src/components/TTriggerVariable.ts
+  var TTriggerVariable = class extends TWindow {
+    constructor(name, x, y) {
+      super(name, x, y, 3, 1);
+      __publicField(this, "className", "TTriggerVariable");
+      __publicField(this, "value", 0);
+      __publicField(this, "triggerValue", 1);
+      this.isVariable = true;
+      this.style.backgroundColor = "#f44336";
+      this.style.borderColor = "#d32f2f";
+      this.style.borderWidth = 2;
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props,
+        { name: "value", label: "Wert", type: "string", group: "Trigger" },
+        { name: "triggerValue", label: "Trigger-Wert", type: "string", group: "Trigger" }
+      ];
+    }
+    getEvents() {
+      return [
+        ...super.getEvents(),
+        "onTriggerEnter",
+        "onTriggerExit"
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        value: this.value,
+        triggerValue: this.triggerValue
+      };
+    }
+  };
+
+  // src/components/TRangeVariable.ts
+  var TRangeVariable = class extends TWindow {
+    constructor(name, x, y) {
+      super(name, x, y, 3, 1);
+      __publicField(this, "className", "TRangeVariable");
+      __publicField(this, "value", 50);
+      __publicField(this, "min", 0);
+      __publicField(this, "max", 100);
+      this.isVariable = true;
+      this.style.backgroundColor = "#2196f3";
+      this.style.borderColor = "#1976d2";
+      this.style.borderWidth = 2;
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props,
+        { name: "value", label: "Wert", type: "number", group: "Range" },
+        { name: "min", label: "Minimum", type: "number", group: "Range" },
+        { name: "max", label: "Maximum", type: "number", group: "Range" }
+      ];
+    }
+    getEvents() {
+      return [
+        ...super.getEvents(),
+        "onMinReached",
+        "onMaxReached",
+        "onInside",
+        "onOutside"
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        value: this.value,
+        min: this.min,
+        max: this.max
+      };
+    }
+  };
+
+  // src/components/TListVariable.ts
+  var TListVariable = class extends TWindow {
+    constructor(name, x, y) {
+      super(name, x, y, 3, 2);
+      __publicField(this, "className", "TListVariable");
+      __publicField(this, "items", []);
+      this.isVariable = true;
+      this.style.backgroundColor = "#9c27b0";
+      this.style.borderColor = "#7b1fa2";
+      this.style.borderWidth = 2;
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props
+        // Value editing for lists might be complex in property inspector,
+        // but we can show the item count at least.
+      ];
+    }
+    getEvents() {
+      return [
+        ...super.getEvents(),
+        "onItemAdded",
+        "onItemRemoved",
+        "onCleared"
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        items: this.items
+      };
+    }
+  };
+
+  // src/components/TRandomVariable.ts
+  var TRandomVariable = class extends TWindow {
+    constructor(name, x, y) {
+      super(name, x, y, 3, 1);
+      __publicField(this, "className", "TRandomVariable");
+      __publicField(this, "value", 0);
+      __publicField(this, "min", 1);
+      __publicField(this, "max", 100);
+      __publicField(this, "isInteger", true);
+      this.isVariable = true;
+      this.style.backgroundColor = "#607d8b";
+      this.style.borderColor = "#455a64";
+      this.style.borderWidth = 2;
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props,
+        { name: "min", label: "Minimum", type: "number", group: "Random" },
+        { name: "max", label: "Maximum", type: "number", group: "Random" },
+        { name: "isInteger", label: "Nur Ganzzahlen", type: "boolean", group: "Random" },
+        { name: "value", label: "Aktueller Wert", type: "number", group: "Random", readonly: true }
+      ];
+    }
+    getEvents() {
+      return [
+        ...super.getEvents(),
+        "onGenerated"
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        min: this.min,
+        max: this.max,
+        isInteger: this.isInteger,
+        value: this.value
+      };
+    }
+    /**
+     * Generates a new random value (callable via call_method)
+     */
+    generate() {
+      if (this.isInteger) {
+        this.value = Math.floor(Math.random() * (this.max - this.min + 1)) + this.min;
+      } else {
+        this.value = Math.random() * (this.max - this.min) + this.min;
+      }
+      console.log(`[TRandomVariable] ${this.name} generated: ${this.value}`);
+    }
+  };
+
   // src/utils/Serialization.ts
   function hydrateObjects(objectsData) {
     const objects = [];
@@ -7692,6 +7964,27 @@
         case "TShape":
           newObj = new TShape(objData.name, objData.x, objData.y, objData.width, objData.height);
           break;
+        case "TVariable":
+          newObj = new TVariable(objData.name, objData.x, objData.y);
+          break;
+        case "TObjectList":
+          newObj = new TObjectList(objData.name, objData.x, objData.y);
+          break;
+        case "TThresholdVariable":
+          newObj = new TThresholdVariable(objData.name, objData.x, objData.y);
+          break;
+        case "TTriggerVariable":
+          newObj = new TTriggerVariable(objData.name, objData.x, objData.y);
+          break;
+        case "TRangeVariable":
+          newObj = new TRangeVariable(objData.name, objData.x, objData.y);
+          break;
+        case "TListVariable":
+          newObj = new TListVariable(objData.name, objData.x, objData.y);
+          break;
+        case "TRandomVariable":
+          newObj = new TRandomVariable(objData.name, objData.x, objData.y);
+          break;
         default:
           console.warn("Unknown class during load:", objData.className);
           break;
@@ -7699,6 +7992,8 @@
       if (newObj) {
         newObj.id = objData.id;
         newObj.className = objData.className;
+        newObj.scope = objData.scope || "stage";
+        newObj.isVariable = objData.isVariable || false;
         if (objData.width !== void 0) newObj.width = objData.width;
         if (objData.height !== void 0) newObj.height = objData.height;
         if (objData.x !== void 0) newObj.x = objData.x;
@@ -8320,7 +8615,25 @@
       }
     }
     triggerStartAnimation(stageConfig) {
-      const invisibleClasses = ["TGameLoop", "TInputController", "TTimer", "TGameState", "THandshake", "THeartbeat", "TGameServer", "TStage"];
+      const invisibleClasses = [
+        "TGameLoop",
+        "TInputController",
+        "TTimer",
+        "TGameState",
+        "THandshake",
+        "THeartbeat",
+        "TGameServer",
+        "TStage",
+        "TVariable",
+        "TThresholdVariable",
+        "TTriggerVariable",
+        "TRangeVariable",
+        "TListVariable",
+        "TRandomVariable",
+        "TObjectList",
+        "TRepeater",
+        "TStageController"
+      ];
       const visualObjects = this.objects.filter((o) => !invisibleClasses.includes(o.className));
       visualObjects.forEach((obj, index) => {
         if (typeof obj.moveTo === "function") {

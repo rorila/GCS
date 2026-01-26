@@ -90,19 +90,9 @@ export class TEdit extends TTextControl {
         const props = super.getInspectorProperties();
         return [
             ...props,
-            { name: 'text', label: 'Value', type: 'string', group: 'Specifics' },
             { name: 'placeholder', label: 'Placeholder', type: 'string', group: 'Specifics' },
             { name: 'maxLength', label: 'Max Length', type: 'number', group: 'Specifics' }
             // Inherits styles from TTextControl
         ];
-    }
-
-    public toJSON(): any {
-        return {
-            ...super.toJSON(),
-            text: this.text,
-            placeholder: this.placeholder,
-            maxLength: this.maxLength
-        };
     }
 }

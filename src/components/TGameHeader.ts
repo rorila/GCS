@@ -72,7 +72,7 @@ export class TGameHeader extends TTextControl {
         // Remove redundant props if any, or just add specific 'title' alias
         return [
             ...props,
-            { name: 'title', label: 'Title', type: 'string', group: 'Header' }
+            { name: 'title', label: 'Titel', type: 'string', group: 'IDENTITÄT' }
             // Inherits Typography group from TTextControl
         ];
     }

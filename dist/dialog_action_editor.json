@@ -37,7 +37,7 @@
         {
             "className": "TMemo",
             "name": "DescriptionInput",
-            "text": "${description || ''}",
+            "text": "${dialogData.description || ''}",
             "placeholder": "Describe what this action does...",
             "style": {
                 "marginBottom": 16,
@@ -64,12 +64,13 @@
                 "📝 Property Change (Set)",
                 "➕ Increment (Add)",
                 "📦 Read Variable",
+                "💾 Set Variable (Assign)",
                 "☁️ Service Call (RPC)",
                 "↔️ Negate (Invert)",
                 "📞 Call Method",
                 "🧮 Calculate"
             ],
-            "selectedIndex": "${dialogData.type === 'property' ? 0 : dialogData.type === 'increment' ? 1 : dialogData.type === 'variable' ? 2 : dialogData.type === 'service' ? 3 : dialogData.type === 'negate' ? 4 : dialogData.type === 'call_method' ? 5 : dialogData.type === 'calculate' ? 6 : 0}",
+            "selectedIndex": "${dialogData.type === 'property' ? 0 : dialogData.type === 'increment' ? 1 : dialogData.type === 'variable' ? 2 : dialogData.type === 'set_variable' ? 3 : dialogData.type === 'service' ? 4 : dialogData.type === 'negate' ? 5 : dialogData.type === 'call_method' ? 6 : dialogData.type === 'calculate' ? 7 : 0}",
             "action": "changeActionType",
             "style": {
                 "marginBottom": 16
@@ -88,7 +89,7 @@
             "className": "TLabel",
             "name": "VariableNameTitle",
             "text": "Variable Name",
-            "visible": "${dialogData.type === 'variable'}",
+            "visible": "${dialogData.type === 'variable' || dialogData.type === 'set_variable'}",
             "style": {
                 "fontSize": 12,
                 "fontWeight": "bold",
@@ -97,11 +98,15 @@
             }
         },
         {
-            "className": "TEdit",
             "name": "VariableNameInput",
-            "text": "${dialogData.variableName || ''}",
+            "text": "${(dialogData.type === 'set_variable' ? dialogData.variable : dialogData.variableName) || ''}",
             "placeholder": "z.B. userName",
-            "visible": "${dialogData.type === 'variable'}",
+            "visible": "${dialogData.type === 'variable' || dialogData.type === 'set_variable'}",
+            "action": "updateValue",
+            "actionData": {
+                "field": "${dialogData.type === 'set_variable' ? 'variable' : 'variableName'}",
+                "input": "VariableNameInput"
+            },
             "style": {
                 "marginTop": 4,
                 "marginBottom": 12
@@ -190,7 +195,7 @@
         {
             "className": "TDropdown",
             "name": "TargetObjectSelect",
-            "options": "${['📦 Neue Funktionsvariable...'].concat((dialogData.taskParams || []).map(p => '📦 ${' + p.name + '}')).concat(project.objects.map(o => o.name))}",
+            "options": "${['📦 Select Target...'].concat((dialogData.taskParams || []).map(p => '📦 ${' + p.name + '}')).concat(project.variables ? project.variables.map(v => v.name) : []).concat(project.objects.map(o => o.name))}",
             "selectedValue": "${dialogData.target || ''}",
             "visible": "${dialogData.type === 'property' || dialogData.type === 'increment' || dialogData.type === 'negate'}",
             "action": "selectTarget",
@@ -201,9 +206,37 @@
         },
         {
             "className": "TLabel",
+            "name": "IncVarLabel",
+            "text": "Increment Amount",
+            "visible": "${dialogData.type === 'increment' && getProperties(dialogData.target).includes('value')}",
+            "style": {
+                "fontSize": 12,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "IncrementVariableInput",
+            "text": "${dialogData.changes && dialogData.changes.value !== undefined ? dialogData.changes.value : '1'}",
+            "placeholder": "Amount (e.g. 1)",
+            "visible": "${dialogData.type === 'increment' && getProperties(dialogData.target).includes('value')}",
+            "action": "updateValue",
+            "actionData": {
+                "field": "IncrementVariableInput",
+                "input": "IncrementVariableInput"
+            },
+            "style": {
+                "marginTop": 4,
+                "marginBottom": 12
+            }
+        },
+        {
+            "className": "TLabel",
             "name": "PropertyChangesTitle",
-            "text": "Properties to Negate",
-            "visible": "${dialogData.type === 'property' || dialogData.type === 'increment' || dialogData.type === 'negate'}",
+            "text": "${dialogData.type === 'negate' ? 'Properties to Negate' : dialogData.type === 'increment' ? 'Properties to Increment' : 'Properties to Change'}",
+            "visible": "${(dialogData.type === 'property' || dialogData.type === 'increment' || dialogData.type === 'negate') && !(dialogData.type === 'increment' && getProperties(dialogData.target).includes('value'))}",
             "style": {
                 "fontSize": 12,
                 "fontWeight": "bold",
@@ -215,7 +248,7 @@
             "className": "TForEach",
             "name": "PropertyChangesList",
             "source": "${Object.entries(dialogData.changes || {})}",
-            "visible": "${dialogData.type === 'property' || dialogData.type === 'increment' || dialogData.type === 'negate'}",
+            "visible": "${(dialogData.type === 'property' || dialogData.type === 'increment' || dialogData.type === 'negate') && !(dialogData.type === 'increment' && getProperties(dialogData.target).includes('value'))}",
             "template": [
                 {
                     "className": "TPanel",
@@ -233,7 +266,7 @@
                         {
                             "className": "TLabel",
                             "name": "ChangeLabel_${item[0]}",
-                            "text": "${item[0]} = ${item[1]}",
+                            "text": "${dialogData.type === 'increment' ? 'inc(' + item[0] + ') by ' + item[1] : dialogData.type === 'negate' ? 'negate(' + item[0] + ')' : item[0] + ' = ' + item[1]}",
                             "style": {
                                 "fontFamily": "monospace",
                                 "color": "#9cdcfe",
@@ -263,8 +296,8 @@
         {
             "className": "TLabel",
             "name": "AddPropertyTitle",
-            "text": "Add Property to Negate",
-            "visible": "${dialogData.type === 'property' || dialogData.type === 'increment' || dialogData.type === 'negate'}",
+            "text": "${dialogData.type === 'negate' ? 'Add Property to Negate' : dialogData.type === 'increment' ? 'Add Property to Increment' : 'Add Property Change'}",
+            "visible": "${(dialogData.type === 'property' || dialogData.type === 'increment' || dialogData.type === 'negate') && !(dialogData.type === 'increment' && getProperties(dialogData.target).includes('value'))}",
             "style": {
                 "fontSize": 12,
                 "fontWeight": "bold",
@@ -279,7 +312,7 @@
             "name": "PropertySelect",
             "options": "${getProperties(dialogData.target)}",
             "selectedIndex": 0,
-            "visible": "${dialogData.type === 'property' || dialogData.type === 'increment' || dialogData.type === 'negate'}",
+            "visible": "${(dialogData.type === 'property' || dialogData.type === 'increment' || dialogData.type === 'negate') && !(dialogData.type === 'increment' && getProperties(dialogData.target).includes('value'))}",
             "style": {
                 "marginTop": 16
             }
@@ -302,6 +335,51 @@
             "text": "${dialogData.resultVariable || ''}",
             "placeholder": "z.B. myVar",
             "visible": "${dialogData.type === 'calculate'}",
+            "style": {
+                "marginTop": 4,
+                "marginBottom": 12
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "CalcResultVariableSelect",
+            "options": "${['📦 Select Variable...'].concat((dialogData.taskParams || []).map(p => p.name)).concat(project.variables ? project.variables.map(v => v.name) : [])}",
+            "selectedIndex": 0,
+            "action": "insertVariableToField",
+            "actionData": {
+                "field": "CalcResultVariable"
+            },
+            "visible": "${dialogData.type === 'calculate' && ((project.variables && project.variables.length > 0) || (dialogData.taskParams && dialogData.taskParams.length > 0))}",
+            "style": {
+                "marginTop": -10,
+                "marginBottom": 12,
+                "backgroundColor": "#2e7d32",
+                "fontSize": 11
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "SetValueTitle",
+            "text": "Value",
+            "visible": "${dialogData.type === 'set_variable'}",
+            "style": {
+                "fontSize": 12,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginTop": 8
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "SetValueInput",
+            "text": "${dialogData.value !== undefined ? dialogData.value : ''}",
+            "placeholder": "Value (String, Number, Boolean)",
+            "visible": "${dialogData.type === 'set_variable'}",
+            "action": "updateValue",
+            "actionData": {
+                "field": "value",
+                "input": "SetValueInput"
+            },
             "style": {
                 "marginTop": 4,
                 "marginBottom": 12
@@ -335,7 +413,7 @@
             "name": "PropertyValueInput",
             "text": "",
             "placeholder": "Value or ${varName}",
-            "visible": "${dialogData.type === 'property' || dialogData.type === 'increment'}",
+            "visible": "${(dialogData.type === 'property' || dialogData.type === 'increment') && !(dialogData.type === 'increment' && getProperties(dialogData.target).includes('value'))}",
             "style": {
                 "marginTop": 4
             }
@@ -357,7 +435,7 @@
             "name": "AddPropertyButton",
             "caption": "+ Add",
             "action": "addPropertyChange",
-            "visible": "${dialogData.type === 'property' || dialogData.type === 'increment' || dialogData.type === 'negate'}",
+            "visible": "${(dialogData.type === 'property' || dialogData.type === 'increment' || dialogData.type === 'negate') && !(dialogData.type === 'increment' && getProperties(dialogData.target).includes('value'))}",
             "style": {
                 "backgroundColor": "#0e639c",
                 "color": "#fff",
@@ -545,7 +623,7 @@
         {
             "className": "TDropdown",
             "name": "CallMethodTargetSelect",
-            "options": "${project.objects.map(o => o.name)}",
+            "options": "${['📦 Select Target...'].concat(project.variables ? project.variables.map(v => v.name) : []).concat(project.objects.map(o => o.name))}",
             "selectedValue": "${dialogData.target || ''}",
             "visible": "${dialogData.type === 'call_method'}",
             "action": "updateValue",

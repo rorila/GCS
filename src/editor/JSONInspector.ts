@@ -234,96 +234,108 @@ export class JSONInspector {
                 console.error('[JSONInspector] Failed to load inspector:', error);
             }
             return;
-        } else if (object && (typeof object.getInspectorProperties === 'function' || object.className)) {
+        } else if (object) {
+            // --- GENERIC INSPECTOR LOADING ---
+            // We prioritize dynamic generation via getInspectorProperties() to ensure
+            // that ALL properties defined in code are visible, without relying on static JSONs.
 
+            inspectorFile = './inspector.json'; // Default fallback
 
-            // Determine which JSON to load based on activeTab
-            inspectorFile = './inspector.json';
-
-            // Check for Flow Elements (Task/Action) -> Load specific schemas
-            const type = object.getType ? object.getType() : (object.type || '');
+            // 1. Determine Inspector File (mainly for Header/Layout or Special Tabs)
             if (this.activeTab === 'events') {
                 inspectorFile = './inspector_events.json';
-            } else if (type === 'Task') {
-                inspectorFile = './inspector_task.json';
-            } else if (type === 'Action') {
-                inspectorFile = './inspector_action.json';
-            } else if (type === 'VariableDecl') {
-                inspectorFile = './inspector_variable.json';
-            } else if (object.constructor && object.constructor.name === 'FlowEditor') {
-                // FlowEditor only uses dynamic properties via getInspectorProperties
-                // Do not load generic inspector.json to avoid duplicates (Geometry, Style, etc.)
-                inspectorFile = null as any;
-            }
+            } else if (this.activeTab === 'properties') {
+                // For Properties, we use the minimal header and generate the rest dynamically
+                inspectorFile = './inspector_header.json';
 
-            // Get supported events dynamically from the component
-            let events: string[] = ['onClick', 'onDragStart', 'onDragEnd', 'onDrop']; // Default fallback
+                // Special handling for Flow Elements if they don't support getInspectorProperties fully yet
+                // (Though the goal is they SHOULD)
+                const type = object.getType ? object.getType() : (object.type || '');
+                if (type === 'Task') {
+                    inspectorFile = './inspector_task.json'; // Keep specific task layout for now if complex
+                } else if (type === 'Action') {
+                    inspectorFile = './inspector_action.json';
+                }
 
-            // Try to call getEvents() on the object if it exists
-            if (typeof (object as any).getEvents === 'function') {
-                events = (object as any).getEvents();
-            } else {
-                console.log(`[JSONInspector] Events Tab - FALLBACK used, no getEvents() method!`);
-                // Fallback for objects without getEvents()
-                const className = (object as any).className || object.constructor?.name;
-
-                if (className === 'TSprite') {
-                    events.push('onCollision', 'onCollisionTop', 'onCollisionBottom', 'onCollisionLeft', 'onCollisionRight', 'onBoundaryHit');
-                } else if (className === 'TGameCard') {
-                    events.push('onSingleClick', 'onMultiClick');
-                } else if (className === 'TGameServer') {
-                    events.push('onConnected', 'onDisconnected', 'onRoomCreated', 'onRoomJoined', 'onPlayerJoined', 'onPlayerLeft', 'onGameStart', 'onError');
-                } else if (className === 'TNumberLabel') {
-                    events.push('onMaxValueReached', 'onMinValueReached');
+                // FORCE HEADER only if we have dynamic properties to show
+                if (typeof object.getInspectorProperties === 'function') {
+                    inspectorFile = './inspector_header.json';
                 }
             }
 
-            // Add to object as virtual property for TForEach
-            (object as any)._supportedEvents = events.map(evt => ({ key: evt }));
+            // 2. Load Static JSON (Header/Framework)
+            let staticObjects: any[] = [];
+            try {
+                if (inspectorFile) {
+                    const response = await fetch(`${inspectorFile}?v=${Date.now()}`);
+                    if (response.ok) {
+                        const inspectorJSON = await response.json();
+                        staticObjects = this.expandForEach(inspectorJSON.objects, object);
+                    }
+                }
+            } catch (error) {
+                console.error('[JSONInspector] Failed to load inspector JSON:', error);
+            }
 
+            // 3. Generate Dynamic UI
+            let dynamicObjects: any[] = [];
+            const hasDynamicProps = typeof (object as any).getInspectorProperties === 'function';
+            let useDynamic = false;
+
+            if (this.activeTab === 'properties' && hasDynamicProps) {
+                try {
+                    console.log('[JSONInspector] Generating dynamic UI for:', object.name || object.className);
+                    dynamicObjects = this.generateUIFromProperties(object, true);
+                    console.log('[JSONInspector] Generated dynamic objects count:', dynamicObjects.length);
+                    // Only switch to dynamic if we actually got results (all TWindows should return props)
+                    if (dynamicObjects.length > 0) {
+                        useDynamic = true;
+                    }
+                } catch (err) {
+                    console.error('[JSONInspector] Error generating properties:', err);
+                }
+            }
+
+            // FALLBACK: If dynamic generation yielded nothing, but we expected it, 
+            // OR if we didn't try dynamic, we might need to load inspector.json content if header only?
+            // Actually, if we used inspector_header.json (staticObjects has header), and dynamicObjects is empty,
+            // the user sees empty inspector.
+            // Force load inspector.json properties if dynamic failed/empty?
+            if (!useDynamic && this.activeTab === 'properties' && inspectorFile !== './inspector.json') {
+                console.warn('[JSONInspector] Dynamic generation failed/empty. Falling back to inspector.json');
+                try {
+                    const fbRes = await fetch(`./inspector.json?v=${Date.now()}`);
+                    const fbJson = await fbRes.json();
+                    const fbObjs = this.expandForEach(fbJson.objects, object);
+                    // Filter out Title/Name if header already has them? 
+                    // Or just append everything (might duplicate title).
+                    // Simplify: Just use what we got.
+                    staticObjects = fbObjs; // Replace header with full inspector
+                } catch (e) { console.error('Fallback failed', e); }
+            }
+
+            // 4. Combine & Render
+            // Static (Title) + Dynamic (Properties)
+            this.inspectorObjects = [...staticObjects, ...dynamicObjects];
+
+            // Register
+            this.inspectorObjects.forEach(obj => {
+                this.runtime.registerObject(obj.name, obj, false);
+            });
+
+            // Events Fallback Logic (if strictly needed for virtual property)
+            if (!object._supportedEvents) {
+                const events = typeof (object as any).getEvents === 'function'
+                    ? (object as any).getEvents()
+                    : ['onClick', 'onDragStart', 'onDragEnd', 'onDrop'];
+                (object as any)._supportedEvents = events.map((evt: string) => ({ key: evt }));
+            }
+
+            this.setupBindings();
+            this.runtime.setVariable('selectedObject', object);
+            this.render();
+            return;
         }
-
-        // Load static JSON (Action/Task/Standard)
-        let staticObjects: any[] = [];
-        try {
-            // Add version parameter to bypass browser cache
-            const response = await fetch(`${inspectorFile}?v=${Date.now()}`);
-            const inspectorJSON = await response.json();
-
-            // Expand TForEach
-            staticObjects = this.expandForEach(inspectorJSON.objects, object);
-        } catch (error) {
-            console.error('[JSONInspector] Failed to load inspector JSON:', error);
-        }
-
-        // Merge with Dynamic Properties if available
-        // If it's a Flow Task/Action, we allow merging to support dynamic params + static header
-        // If it's pure Properties tab for generic object, we PREFER dynamic properties if they replace the whole UI? 
-        // Current logic was: Properties Tab -> Dynamic OR Static.
-        // New logic: JSON (Static) + Dynamic.
-
-        let dynamicObjects: any[] = [];
-        if (this.activeTab as string === 'properties' && typeof object.getInspectorProperties === 'function') {
-            dynamicObjects = this.generateUIFromProperties(object, true);
-        }
-
-        // Combine: Static (Header/Main) + Dynamic (Params/Extras)
-        this.inspectorObjects = [...staticObjects, ...dynamicObjects];
-
-        // Register all inspector objects
-        this.inspectorObjects.forEach(obj => {
-            this.runtime.registerObject(obj.name, obj, false);
-        });
-
-        // Setup bindings
-        this.setupBindings();
-
-        // Update selectedObject variable
-        this.runtime.setVariable('selectedObject', object);
-
-        // Re-render
-        this.render();
-        return;
     }
 
     /**
@@ -742,6 +754,9 @@ export class JSONInspector {
 
             // Properties in group
             props.forEach((prop: any, idx: number) => {
+                // Debug: Log property processing
+                console.log(`[JSONInspector] Processing prop: ${prop.name} (Group: ${groupName})`);
+
                 // Debug: Log layoutConfig state for first property
                 if (idx === 0 && groupName === 'Geometry') {
                     console.log('[JSONInspector] layoutConfig state:', this.layoutConfig ? 'loaded' : 'null');

@@ -181,11 +181,26 @@ export class GameExporter {
             });
         }
 
-        // 5. Clean Objects (Phase B: Empty Tasks)
+        // 5. Clean Objects & Stages
         if (clean.objects) {
+            clean.objects = clean.objects.filter((o: any) => !o.isVariable);
             clean.objects.forEach((obj: any) => {
                 if (obj.Tasks && Object.keys(obj.Tasks).length === 0) {
                     delete obj.Tasks;
+                }
+            });
+        }
+
+        if (clean.stages) {
+            clean.stages.forEach((s: any) => {
+                if (s.objects) {
+                    // Filter variables out of objects list (they are already in s.variables)
+                    s.objects = s.objects.filter((o: any) => !o.isVariable);
+                    s.objects.forEach((obj: any) => {
+                        if (obj.Tasks && Object.keys(obj.Tasks).length === 0) {
+                            delete obj.Tasks;
+                        }
+                    });
                 }
             });
         }
@@ -195,6 +210,13 @@ export class GameExporter {
 
         // 7. Add meta info for platform
         if (!clean.meta) clean.meta = {};
+        const mainStage = clean.stages?.find((s: any) => s.type === 'main');
+        if (mainStage) {
+            if (mainStage.gameName) clean.meta.name = mainStage.gameName;
+            if (mainStage.author) clean.meta.author = mainStage.author;
+            if (mainStage.description) clean.meta.description = mainStage.description;
+        }
+
         clean.meta.exportedAt = new Date().toISOString();
         clean.meta.type = 'standalone_game';
         clean.meta.runtimeVersion = RUNTIME_VERSION;
@@ -216,7 +238,7 @@ export class GameExporter {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${this.escapeHtml(project.meta.name)}</title>
+    <title>${this.escapeHtml(project.meta.name || 'New Game')}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -306,7 +328,7 @@ export class GameExporter {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${this.escapeHtml(project.meta.name)}</title>
+    <title>${this.escapeHtml(project.meta.name || 'New Game')}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {

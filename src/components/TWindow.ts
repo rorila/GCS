@@ -52,20 +52,6 @@ export class TWindow extends TComponent {
     // Animation flag - wenn true, wird Physik pausiert
     public isAnimating: boolean = false;
 
-    public toJSON(): any {
-        return {
-            ...super.toJSON(),
-            x: this.x,
-            y: this.y,
-            width: this.width,
-            height: this.height,
-            zIndex: this.zIndex,
-            visible: this.visible,
-            align: this._align,
-            style: { ...this.style },
-            Tasks: this.Tasks
-        };
-    }
 
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name);
@@ -153,20 +139,19 @@ export class TWindow extends TComponent {
     }
 
     public getInspectorProperties(): TPropertyDef[] {
-        const props = super.getInspectorProperties();
         return [
-            ...props,
-            { name: 'x', label: 'X', type: 'number', group: 'Geometry' },
-            { name: 'y', label: 'Y', type: 'number', group: 'Geometry' },
-            { name: 'width', label: 'Width', type: 'number', group: 'Geometry' },
-            { name: 'height', label: 'Height', type: 'number', group: 'Geometry' },
-            { name: 'zIndex', label: 'Z-Index', type: 'number', group: 'Geometry' },
-            { name: 'align', label: 'Align', type: 'select', group: 'Geometry', options: ['NONE', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CLIENT'] },
-            // Removed duplicate style.visible to reduce confusion. Use root 'visible' instead.
-            { name: 'visible', label: 'Visible', type: 'boolean', group: 'Identity' }, // Added root visible
-            { name: 'style.backgroundColor', label: 'Background', type: 'color', group: 'Style' },
-            { name: 'style.borderColor', label: 'Border Color', type: 'color', group: 'Style' },
-            { name: 'style.borderWidth', label: 'Border Width', type: 'number', group: 'Style' }
+            ...this.getBaseProperties(),
+            { name: 'x', label: 'X Position', type: 'number', group: 'GEOMETRIE' },
+            { name: 'y', label: 'Y Position', type: 'number', group: 'GEOMETRIE' },
+            { name: 'width', label: 'Breite', type: 'number', group: 'GEOMETRIE' },
+            { name: 'height', label: 'Höhe', type: 'number', group: 'GEOMETRIE' },
+            { name: 'zIndex', label: 'Z-Index', type: 'number', group: 'GEOMETRIE' },
+            { name: 'align', label: 'Ausrichtung', type: 'select', group: 'GEOMETRIE', options: ['NONE', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CLIENT'] },
+            { name: 'caption', label: 'Text', type: 'string', group: 'INHALT' },
+            { name: 'visible', label: 'Sichtbar', type: 'boolean', group: 'IDENTITÄT' },
+            { name: 'style.backgroundColor', label: 'Hintergrund', type: 'color', group: 'STIL' },
+            { name: 'style.borderColor', label: 'Rahmenfarbe', type: 'color', group: 'STIL' },
+            { name: 'style.borderWidth', label: 'Rahmenbreite', type: 'number', group: 'STIL' }
         ];
     }
 }

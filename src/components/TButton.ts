@@ -23,27 +23,7 @@ export class TButton extends TTextControl {
         const props = super.getInspectorProperties();
         return [
             ...props,
-            // Basic (Specifics only, styles inherited from TTextControl/TWindow)
-            { name: 'caption', label: 'Caption', type: 'string', group: 'Specifics' },
-            { name: 'icon', label: 'Icon Image', type: 'image_picker', group: 'Specifics' }
+            { name: 'icon', label: 'Icon', type: 'image_picker', group: 'DARSTELLUNG' }
         ];
-    }
-
-    // Color property wrapper mapping to style (legacy support)
-    get color(): string | undefined {
-        return this.style.backgroundColor;
-    }
-
-    set color(value: string | undefined) {
-        this.style.backgroundColor = value;
-    }
-
-    public toJSON(): any {
-        return {
-            ...super.toJSON(),
-            caption: this.caption,
-            color: this.color, // Keep legacy mapping for now
-            icon: this.icon
-        };
     }
 }

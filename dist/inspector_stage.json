@@ -91,8 +91,8 @@
         },
         {
             "className": "TEdit",
-            "name": "meta.nameInput",
-            "text": "${selectedObject.meta.name}",
+            "name": "activeStage.gameNameInput",
+            "text": "${(activeStage && activeStage.gameName) || selectedObject.meta.name}",
             "visible": "${activeStage && activeStage.type === 'main' ? true : false}",
             "width": 30,
             "height": 2
@@ -109,8 +109,8 @@
         },
         {
             "className": "TEdit",
-            "name": "meta.authorInput",
-            "text": "${selectedObject.meta.author}",
+            "name": "activeStage.authorInput",
+            "text": "${(activeStage && activeStage.author) || selectedObject.meta.author}",
             "visible": "${activeStage && activeStage.type === 'main' ? true : false}",
             "width": 30,
             "height": 2,
@@ -389,24 +389,13 @@
             "template": [
                 {
                     "className": "TLabel",
-                    "name": "VarScope_${index}",
-                    "text": "[${item.scope || 'global'}]${item.publicIcon}",
-                    "style": {
-                        "fontSize": 9,
-                        "color": "${item.scope && item.scope !== 'global' ? '#ffaa00' : '#888'}",
-                        "minWidth": "70px",
-                        "flex": "0 0 70px"
-                    }
-                },
-                {
-                    "className": "TLabel",
                     "name": "VarName_${index}",
-                    "text": "${item.name}:",
+                    "text": "${item.uiEmoji} ${item.name}:",
                     "style": {
                         "fontSize": 11,
                         "color": "#9cdcfe",
-                        "minWidth": "70px",
-                        "flex": "0 0 70px"
+                        "minWidth": "100px",
+                        "flex": "0 0 100px"
                     }
                 },
                 {
@@ -423,7 +412,7 @@
                 {
                     "className": "TLabel",
                     "name": "VarDefault_${index}",
-                    "text": ":= ${item.defaultValue}",
+                    "text": "= ${item.value !== undefined ? item.value : item.defaultValue}",
                     "style": {
                         "fontSize": 10,
                         "color": "#b5cea8",

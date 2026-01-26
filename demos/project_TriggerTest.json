@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "name": "TriggerTest",
+    "version": "1.0.0",
+    "author": "RoRiLa"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "main",
+      "name": "Test_Variable_Typ_Trigger",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "obj_1769360082755_tsulj8sve",
+          "name": "InputController_2",
+          "scope": "global",
+          "isVariable": false,
+          "Tasks": {},
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 2,
+          "width": 6,
+          "height": 3,
+          "zIndex": 0,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2,
+            "color": "#ffffff"
+          },
+          "enabled": true
+        }
+      ],
+      "gameName": "TriggerTest",
+      "author": "RoRiLa",
+      "description": "Getestet wird die Variable Typ: Trigger. Feuert der Event: onTriggerEnter",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#d65151"
+      },
+      "flowCharts": {
+        "global": {
+          "elements": [],
+          "connections": [],
+          "stage": {
+            "cols": 100,
+            "rows": 100,
+            "cellSize": 20,
+            "snapToGrid": true,
+            "visible": true,
+            "backgroundColor": "#1e1e1e"
+          }
+        }
+      },
+      "variables": [
+        {
+          "className": "TTriggerVariable",
+          "id": "obj_1769359001761_t9syo2a2v",
+          "name": "Trigger_1",
+          "scope": "global",
+          "isVariable": true,
+          "Tasks": {},
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 5,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "visible": true,
+          "align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "#f44336",
+            "borderColor": "#d32f2f",
+            "borderWidth": 2
+          },
+          "value": 0,
+          "triggerValue": 1
+        }
+      ]
+    }
+  ],
+  "activeStageId": "main",
+  "flowCharts": {
+    "global": {
+      "stage": {
+        "cols": 100,
+        "rows": 100,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#1e1e1e"
+      },
+      "elements": [],
+      "connections": []
+    }
+  }
+}

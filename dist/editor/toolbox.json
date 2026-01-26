@@ -88,6 +88,11 @@
             "expanded": false,
             "items": [
                 {
+                    "type": "Shape",
+                    "icon": "🔷",
+                    "label": "Shape"
+                },
+                {
                     "type": "Sprite",
                     "icon": "🎯",
                     "label": "Sprite"
@@ -101,6 +106,57 @@
                     "type": "GameCard",
                     "icon": "🃏",
                     "label": "Game Card"
+                },
+                {
+                    "type": "GameState",
+                    "icon": "⏯️",
+                    "label": "Game State"
+                }
+            ]
+        },
+        {
+            "name": "Variablen",
+            "expanded": true,
+            "items": [
+                {
+                    "type": "Variable",
+                    "icon": "📦",
+                    "label": "Variable"
+                },
+                {
+                    "type": "Timer",
+                    "icon": "⏲️",
+                    "label": "Timer"
+                },
+                {
+                    "type": "ObjectList",
+                    "icon": "🗃️",
+                    "label": "Object List"
+                },
+                {
+                    "type": "Threshold",
+                    "icon": "📊",
+                    "label": "Threshold"
+                },
+                {
+                    "type": "Trigger",
+                    "icon": "🎯",
+                    "label": "Trigger"
+                },
+                {
+                    "type": "Range",
+                    "icon": "📏",
+                    "label": "Range"
+                },
+                {
+                    "type": "List",
+                    "icon": "📋",
+                    "label": "List"
+                },
+                {
+                    "type": "Random",
+                    "icon": "🎲",
+                    "label": "Random"
                 }
             ]
         },
@@ -119,11 +175,6 @@
                     "label": "Input Controller"
                 },
                 {
-                    "type": "Timer",
-                    "icon": "⏲️",
-                    "label": "Timer"
-                },
-                {
                     "type": "Repeater",
                     "icon": "🔁",
                     "label": "Repeater"
@@ -137,11 +188,6 @@
                     "type": "GameServer",
                     "icon": "🌐",
                     "label": "Game Server"
-                },
-                {
-                    "type": "GameState",
-                    "icon": "⏯️",
-                    "label": "Game State"
                 },
                 {
                     "type": "StageController",

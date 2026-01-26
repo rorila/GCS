@@ -1,18 +1,16 @@
+import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
-import { TPropertyDef } from './TComponent';
-// import { TSprite } from './TSprite';
 
 /**
  * TInputController - A stage-placeable component that handles keyboard input.
  * Place on stage, configure target sprites in Inspector, and it will handle player controls.
  */
-export class TInputController extends TWindow {
+export class TInputController extends TWindow implements IRuntimeComponent {
     // Input settings
     public enabled: boolean = true;
 
     // Internal state
     private keysPressed: Set<string> = new Set();
-    // private sprites: TSprite[] = [];
     private isActive: boolean = false;
     private eventCallback: ((id: string, event: string, data?: any) => void) | null = null;
 
@@ -34,18 +32,26 @@ export class TInputController extends TWindow {
     }
 
     public getInspectorProperties(): TPropertyDef[] {
-        const props = super.getInspectorProperties();
         return [
-            ...props,
+            ...super.getInspectorProperties(),
             { name: 'enabled', label: 'Enabled', type: 'boolean', group: 'Input' }
         ];
     }
 
     public toJSON(): any {
-        return {
-            ...super.toJSON(),
-            enabled: this.enabled
-        };
+        return super.toJSON();
+    }
+
+    public initRuntime(callbacks: { handleEvent: any, objects: any[] }): void {
+        this.init(callbacks.objects, callbacks.handleEvent);
+    }
+
+    public onRuntimeStart(): void {
+        this.start();
+    }
+
+    public onRuntimeStop(): void {
+        this.stop();
     }
 
     /**

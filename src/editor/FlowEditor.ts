@@ -210,11 +210,27 @@ export class FlowEditor {
 
     private getCurrentObjects(): any[] {
         if (!this.project) return [];
+        let all: any[] = [];
         const activeStage = this.getActiveStage();
+
         if (activeStage) {
-            return activeStage.objects || [];
+            all = [...(activeStage.objects || [])];
+        } else {
+            all = [...(this.project.objects || [])];
         }
-        return this.project.objects || []; // Legacy/Main
+
+        // Add Globals from other stages
+        if (this.project.stages) {
+            this.project.stages.forEach(s => {
+                if (s.id === activeStage?.id) return;
+                const stageGlobals = (s.objects || []).filter(o => o.scope === 'global');
+                stageGlobals.forEach(g => {
+                    if (!all.some(o => o.id === g.id)) all.push(g);
+                });
+            });
+        }
+
+        return all;
     }
 
     private editor: any; // Reference to main Editor for routing logic
@@ -4123,6 +4139,8 @@ export class FlowEditor {
             return ctx.measureText(text).width;
         };
 
+        const activeStage = this.getActiveStage();
+
         // Find longest action name
         let maxActionWidth = 150; // Minimum width
         const currentActions = this.editor ? this.editor.currentActions : (this.project.actions || []);
@@ -4138,13 +4156,22 @@ export class FlowEditor {
             const width = measureTextWidth(t.name || "") + 60;
             if (width > maxTaskWidth) maxTaskWidth = width;
         });
+
         const taskX = actionX + maxActionWidth + 80; // 80px gap between columns
+
+        // Find longest variable name
+        let maxVarWidth = 150;
+        const currentVariables = [...(this.project.variables || []), ...(activeStage?.variables || [])];
+        currentVariables.forEach((v: any) => {
+            const width = measureTextWidth(v.name || "") + 60;
+            if (width > maxVarWidth) maxVarWidth = width;
+        });
+        const varX = taskX + maxTaskWidth + 80;
 
         // 2. Collect Usage Data
         const stageRelevantTasks = new Set<string>();
         const usedActions = new Set<string>();
 
-        const activeStage = this.getActiveStage();
         const activeStageId = activeStage ? activeStage.id : null;
         const isGlobalView = !activeStage || activeStage.type === 'main';
 
@@ -4343,6 +4370,15 @@ export class FlowEditor {
         taskHeader.getElement().style.textAlign = "center";
         this.nodes.push(taskHeader);
 
+        const varHeader = new FlowStart('header-vars', varX, headerY, this.canvas, gridSize);
+        varHeader.Text = "Alle Variablen";
+        varHeader.Width = maxVarWidth;
+        varHeader.Height = 40;
+        varHeader.getElement().style.color = "#ffcc00";
+        varHeader.getElement().style.fontWeight = "bold";
+        varHeader.getElement().style.textAlign = "center";
+        this.nodes.push(varHeader);
+
         // 4. Render Actions (sorted) with unified width
         actionItems.sort((a: any, b: any) => (a.action.name || "").localeCompare(b.action.name || ""));
 
@@ -4455,6 +4491,32 @@ export class FlowEditor {
             this.nodes.push(node);
             this.setupNodeListeners(node);
             currentTaskY += spacingY;
+        });
+
+        // 6. Render Variables (sorted)
+        let currentVarY = Math.round(90 / gridSize) * gridSize;
+        currentVariables.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+        currentVariables.forEach((v, idx) => {
+            const refs = projectRegistry.findReferences(v.name);
+            const isUsed = refs.length > 0;
+
+            const nodeId = 'over-var-' + idx + '-' + (v.name || 'unnamed').replace(/\s+/g, '_');
+            const node = new FlowComponent(nodeId, varX, currentVarY, this.canvas, gridSize);
+
+            node.Name = v.name || "Unbenannte Variable";
+            node.setText(node.Name);
+            node.Width = maxVarWidth;
+            node.Height = baseNodeHeight;
+
+            node.data = { isOverviewLink: true, type: 'VariableDecl', canDelete: !isUsed };
+            node.setDetailed(true);
+
+            (node as any).setUsageInfo(refs);
+            if (!isUsed) node.setUnused(true);
+
+            this.nodes.push(node);
+            this.setupNodeListeners(node);
+            currentVarY += spacingY;
         });
 
         this.updateScrollArea();

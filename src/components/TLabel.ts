@@ -24,17 +24,7 @@ export class TLabel extends TTextControl {
     }
 
     public getInspectorProperties(): TPropertyDef[] {
-        const props = super.getInspectorProperties();
-        return [
-            ...props,
-            { name: 'text', label: 'Text', type: 'string', group: 'Specifics' }
-        ];
-    }
-    public toJSON(): any {
-        return {
-            ...super.toJSON(),
-            text: this.text
-        };
+        return super.getInspectorProperties();
     }
 }
 

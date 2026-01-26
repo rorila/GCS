@@ -12,6 +12,17 @@ export class RefactoringManager {
             if (v.name === oldName) v.name = newName;
         });
 
+        // 1b. Update stage-local variables list
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.variables) {
+                    stage.variables.forEach(v => {
+                        if (v.name === oldName) v.name = newName;
+                    });
+                }
+            });
+        }
+
         // 2. Update actions
         project.actions.forEach(action => {
             // Variable assignments and reads
@@ -248,6 +259,18 @@ export class RefactoringManager {
                         if (obj.name === oldName) obj.name = newName;
                     });
                 }
+                if (stage.variables) {
+                    stage.variables.forEach(v => {
+                        if (v.name === oldName) v.name = newName;
+                    });
+                }
+            });
+        }
+
+        // 7. Update global variables list
+        if (project.variables) {
+            project.variables.forEach(v => {
+                if (v.name === oldName) v.name = newName;
             });
         }
     }
@@ -527,10 +550,11 @@ export class RefactoringManager {
 
         // 3. Remove task mappings for non-existent tasks (all stages)
         // Note: taskNames already includes all tasks from all stages now.
-        const allObjectsScope = [...project.objects];
+        const allObjectsScope = [...project.objects, ...(project.variables || [])];
         if (project.stages) {
             project.stages.forEach(s => {
                 if (s.objects) allObjectsScope.push(...s.objects);
+                if (s.variables) allObjectsScope.push(...(s.variables as any));
             });
         }
 
