@@ -28,7 +28,7 @@ function resolveTarget(targetName: string, objects: any[], vars: Record<string, 
  */
 export function registerStandardActions(objects: any[]) {
 
-    // 1. Variable / Property
+    // 1. Property ändern
     actionRegistry.register('property', (action, context) => {
         const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
         if (target && action.changes) {
@@ -38,8 +38,17 @@ export function registerStandardActions(objects: any[]) {
                 PropertyHelper.setPropertyValue(target, prop, PropertyHelper.autoConvert(value));
             });
         }
+    }, {
+        type: 'property',
+        label: 'Eigenschaft ändern',
+        description: 'Ändert eine oder mehrere Eigenschaften eines Objekts.',
+        parameters: [
+            { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects' },
+            { name: 'changes', label: 'Änderungen (JSON)', type: 'json', hint: 'Beispiel: { "text": "Hallo", "visible": true }' }
+        ]
     });
 
+    // 2. Variable setzen
     actionRegistry.register('variable', (action, context) => {
         const srcObj = resolveTarget(action.source, objects, context.vars, context.contextVars);
         if (srcObj && action.variableName && action.sourceProperty) {
@@ -47,9 +56,18 @@ export function registerStandardActions(objects: any[]) {
             context.vars[action.variableName] = val;
             context.contextVars[action.variableName] = val;
         }
+    }, {
+        type: 'variable',
+        label: 'Variable setzen',
+        description: 'Kopiert den Wert einer Objekteigenschaft in eine Variable.',
+        parameters: [
+            { name: 'variableName', label: 'Variablen-Name', type: 'variable', source: 'variables' },
+            { name: 'source', label: 'Quell-Objekt', type: 'object', source: 'objects' },
+            { name: 'sourceProperty', label: 'Quell-Eigenschaft', type: 'string', placeholder: 'z.B. x' }
+        ]
     });
 
-    // 2. Berechnung
+    // 3. Berechnung
     actionRegistry.register('calculate', (action, context) => {
         if (action.formula) {
             const result = ExpressionParser.evaluate(action.formula, { ...context.contextVars, ...context.vars });
@@ -58,17 +76,37 @@ export function registerStandardActions(objects: any[]) {
                 context.contextVars[action.resultVariable] = result;
             }
         }
+    }, {
+        type: 'calculate',
+        label: 'Berechnung',
+        description: 'Führt eine mathematische Berechnung aus.',
+        parameters: [
+            { name: 'resultVariable', label: 'Ziel-Variable', type: 'variable', source: 'variables' },
+            { name: 'formula', label: 'Formel', type: 'string', placeholder: 'z.B. score + 10' }
+        ]
     });
 
-    // 3. Animation
+    // 4. Animation
     actionRegistry.register('animate', (action, context) => {
         const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
         if (target) {
             const toValue = Number(PropertyHelper.interpolate(String(action.to), context.vars, objects));
             AnimationManager.getInstance().addTween(target, action.property || 'x', toValue, action.duration || 500, action.easing || 'easeOut');
         }
+    }, {
+        type: 'animate',
+        label: 'Animieren',
+        description: 'Animiert eine Eigenschaft eines Objekts.',
+        parameters: [
+            { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects' },
+            { name: 'property', label: 'Eigenschaft', type: 'string', defaultValue: 'x' },
+            { name: 'to', label: 'Ziel-Wert', type: 'number' },
+            { name: 'duration', label: 'Dauer (ms)', type: 'number', defaultValue: 500 },
+            { name: 'easing', label: 'Easing', type: 'select', source: 'easing-functions', defaultValue: 'easeOut' }
+        ]
     });
 
+    // 5. Bewegen zu
     actionRegistry.register('move_to', (action, context) => {
         const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
         if (target) {
@@ -81,15 +119,32 @@ export function registerStandardActions(objects: any[]) {
                 AnimationManager.getInstance().addTween(target, 'y', toY, action.duration || 500, action.easing || 'easeOut');
             }
         }
+    }, {
+        type: 'move_to',
+        label: 'Bewegen zu',
+        description: 'Bewegt ein Objekt an eine bestimmte Position.',
+        parameters: [
+            { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects' },
+            { name: 'x', label: 'Ziel-X', type: 'number' },
+            { name: 'y', label: 'Ziel-Y', type: 'number' },
+            { name: 'duration', label: 'Dauer (ms)', type: 'number', defaultValue: 500 },
+            { name: 'easing', label: 'Easing', type: 'select', source: 'easing-functions', defaultValue: 'easeOut' }
+        ]
     });
 
-    // 4. Methoden-Aufrufe
-    // 7. Navigation
+    // 6. Navigation
     actionRegistry.register('navigate', (action, context) => {
         let targetGame = PropertyHelper.interpolate(action.target, context.vars, objects);
         if (targetGame && context.onNavigate) {
             context.onNavigate(targetGame, action.params);
         }
+    }, {
+        type: 'navigate',
+        label: 'Spiel wechseln',
+        description: 'Wechselt zu einem anderen Projekt.',
+        parameters: [
+            { name: 'target', label: 'Ziel-Projekt', type: 'string' }
+        ]
     });
 
     actionRegistry.register('navigate_stage', (action, context) => {
@@ -98,9 +153,16 @@ export function registerStandardActions(objects: any[]) {
             const resolved = PropertyHelper.interpolate(String(stageId), context.vars, objects);
             context.onNavigate(`stage:${resolved}`, action.params);
         }
+    }, {
+        type: 'navigate_stage',
+        label: 'Stage wechseln',
+        description: 'Wechselt zu einer anderen Stage innerhalb des Projekts.',
+        parameters: [
+            { name: 'stageId', label: 'Ziel-Stage', type: 'stage', source: 'stages' }
+        ]
     });
 
-    // 8. Service Calls
+    // 7. Service Calls
     actionRegistry.register('service', async (action, context) => {
         if (action.service && action.method && serviceRegistry.has(action.service)) {
             const params = Object.values(action.serviceParams || {}).map(v =>
@@ -112,14 +174,31 @@ export function registerStandardActions(objects: any[]) {
                 context.contextVars[action.resultVariable] = result;
             }
         }
+    }, {
+        type: 'service',
+        label: 'Service aufrufen',
+        description: 'Ruft eine Methode eines registrierten Services auf.',
+        parameters: [
+            { name: 'service', label: 'Service', type: 'select', source: 'services' },
+            { name: 'method', label: 'Methode', type: 'string' },
+            { name: 'serviceParams', label: 'Parameter (JSON)', type: 'json' },
+            { name: 'resultVariable', label: 'Ergebnis speichern in', type: 'variable', source: 'variables' }
+        ]
     });
 
-    // 9. Multiplayer Room Management
+    // 8. Multiplayer Room Management
     actionRegistry.register('create_room', (action, context) => {
         if (context.multiplayerManager) {
             let gameName = PropertyHelper.interpolate(action.game, context.vars, objects);
             context.multiplayerManager.createRoom(gameName);
         }
+    }, {
+        type: 'create_room',
+        label: 'Multiplayer-Raum erstellen',
+        description: 'Erstellt einen neuen Multiplayer-Raum.',
+        parameters: [
+            { name: 'game', label: 'Spiel-Identifikator', type: 'string' }
+        ]
     });
 
     actionRegistry.register('join_room', (action, context) => {
@@ -129,5 +208,12 @@ export function registerStandardActions(objects: any[]) {
                 context.multiplayerManager.joinRoom(code);
             }
         }
+    }, {
+        type: 'join_room',
+        label: 'Multiplayer-Raum beitreten',
+        description: 'Tritt einem Multiplayer-Raum bei.',
+        parameters: [
+            { name: 'code', label: 'Raum-Code', type: 'string' }
+        ]
     });
 }

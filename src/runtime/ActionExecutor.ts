@@ -56,6 +56,14 @@ export class ActionExecutor {
     }
 
     private getDescriptiveName(action: any): string {
+        const meta = actionRegistry.getMetadata(action.type);
+        if (meta) {
+            let name = meta.label;
+            if (action.target) name += ` auf ${action.target}`;
+            else if (action.variableName) name += ` (${action.variableName})`;
+            return name;
+        }
+
         switch (action.type) {
             case 'variable': return `Set ${action.variableName || 'var'}`;
             case 'calculate': return `Calc ${action.resultVariable || 'result'}`;

@@ -4,119 +4,51 @@
             "name": "NameInput",
             "className": "TEdit",
             "label": "Name",
-            "text": "${selectedObject.Name}"
+            "text": "${selectedObject.name || selectedObject.Name}"
         },
         {
-            "name": "ActionType",
-            "className": "TSelect",
+            "name": "ActionTypeSelect",
+            "className": "TDropdown",
             "label": "Aktions-Typ",
-            "selected": "${selectedObject.actionType}",
-            "items": [
-                {
-                    "value": "property",
-                    "text": "Eigenschaft ändern (Property)"
-                },
-                {
-                    "value": "variable",
-                    "text": "Variable setzen"
-                },
-                {
-                    "value": "service",
-                    "text": "Service aufrufen"
-                },
-                {
-                    "value": "calculate",
-                    "text": "Berechnung"
-                },
-                {
-                    "value": "condition",
-                    "text": "Bedingung (Condition)"
-                }
-            ],
-            "allowEmpty": false
+            "selectedValue": "${selectedObject.actionType || selectedObject.type}",
+            "options": "${getAllActionTypes()}",
+            "action": "changeActionType"
         },
         {
-            "name": "PropTarget",
-            "className": "TSelect",
-            "label": "Ziel-Objekt",
-            "source": "objects",
-            "selectedValue": "${selectedObject.target}",
-            "visible": "${selectedObject.actionType == 'property'}"
+            "name": "ActionParams",
+            "className": "TActionParams"
+        }
+    ],
+    "footer": [
+        {
+            "name": "DeleteBtn",
+            "className": "TButton",
+            "caption": "Löschen",
+            "action": "delete",
+            "style": {
+                "backgroundColor": "#d11a2a",
+                "flex": "0 1 auto"
+            }
         },
         {
-            "name": "PropChanges",
-            "className": "TEdit",
-            "label": "Änderungen (JSON)",
-            "text": "${selectedObject.changesJSON}",
-            "hint": "Beispiel: { \"text\": \"Hallo\" }",
-            "visible": "${selectedObject.actionType == 'property'}"
+            "name": "CancelBtn",
+            "className": "TButton",
+            "caption": "Abbrechen",
+            "action": "cancel",
+            "style": {
+                "backgroundColor": "#444",
+                "flex": "0 1 auto"
+            }
         },
         {
-            "name": "VarName",
-            "className": "TSelect",
-            "label": "Variable",
-            "source": "variables",
-            "selectedValue": "${selectedObject.variableName}",
-            "visible": "${selectedObject.actionType == 'variable'}"
-        },
-        {
-            "name": "VarOp",
-            "className": "TSelect",
-            "label": "Operation",
-            "selected": "${selectedObject.operation}",
-            "items": [
-                "set",
-                "add",
-                "sub",
-                "min",
-                "max",
-                "toggle"
-            ],
-            "visible": "${selectedObject.actionType == 'variable'}"
-        },
-        {
-            "name": "VarValue",
-            "className": "TEdit",
-            "label": "Wert",
-            "text": "${selectedObject.value}",
-            "visible": "${selectedObject.actionType == 'variable'}"
-        },
-        {
-            "name": "SvcName",
-            "className": "TSelect",
-            "label": "Service",
-            "source": "services",
-            "selectedValue": "${selectedObject.service}",
-            "visible": "${selectedObject.actionType == 'service'}"
-        },
-        {
-            "name": "SvcMethod",
-            "className": "TEdit",
-            "label": "Methode",
-            "text": "${selectedObject.method}",
-            "visible": "${selectedObject.actionType == 'service'}"
-        },
-        {
-            "name": "SvcParams",
-            "className": "TEdit",
-            "label": "Parameter (JSON)",
-            "text": "${selectedObject.paramsJSON}",
-            "visible": "${selectedObject.actionType == 'service'}"
-        },
-        {
-            "name": "CalcResult",
-            "className": "TSelect",
-            "label": "Ergebnis-Variable",
-            "source": "variables",
-            "selectedValue": "${selectedObject.resultVariable}",
-            "visible": "${selectedObject.actionType == 'calculate'}"
-        },
-        {
-            "name": "CalcSteps",
-            "className": "TEdit",
-            "label": "Schritte (JSON)",
-            "text": "${selectedObject.calcStepsJSON}",
-            "visible": "${selectedObject.actionType == 'calculate'}"
+            "name": "SaveBtn",
+            "className": "TButton",
+            "caption": "Speichern",
+            "action": "save",
+            "style": {
+                "backgroundColor": "#0e639c",
+                "flex": "1"
+            }
         }
     ]
 }

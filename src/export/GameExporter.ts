@@ -6,7 +6,7 @@ import { gzipSync } from 'fflate';
  * Increment this when making breaking changes to the runtime.
  * Format: MAJOR.MINOR.PATCH
  */
-export const RUNTIME_VERSION = '1.0.0';
+export const RUNTIME_VERSION = '1.5.0';
 
 /**
  * GameExporter - Generates a standalone HTML or JSON game from a GameProject
@@ -150,65 +150,30 @@ export class GameExporter {
      * to keep the game file small and clean for the platform.
      */
     private getCleanProject(project: GameProject): any {
-        // Deep clone to avoid modifying original project
-        const clean = JSON.parse(JSON.stringify(project));
+        // 1. Whitelist for top-level keys
+        const whitelist = ['meta', 'stages', 'activeStageId', 'variables', 'tasks', 'actions', 'stage'];
 
-        // 1. Remove Flow Editor data (both new and legacy)
-        delete clean.flow;
-        delete clean.flowCharts;
+        const clean: any = {};
+        whitelist.forEach(key => {
+            if ((project as any)[key] !== undefined) {
+                clean[key] = JSON.parse(JSON.stringify((project as any)[key]));
+            }
+        });
 
-        // 2. Clean any remaining legacy flowGraph from Tasks
-        if (clean.tasks) {
-            clean.tasks.forEach((task: any) => {
-                delete task.flowGraph;
-                delete task.description; // Phase A: Remove editor-only description
-            });
-        }
+        // 2. Recursive deep clean
+        this.deepClean(clean);
 
-        // 3. Clean Actions (Phase A)
-        if (clean.actions) {
-            clean.actions.forEach((action: any) => {
-                delete action.description;
-                delete action.details;
-                delete action.showDetails;
-            });
-        }
-
-        // 4. Clean Variables (Phase A)
-        if (clean.variables) {
-            clean.variables.forEach((variable: any) => {
-                delete variable.description;
-            });
-        }
-
-        // 5. Clean Objects & Stages
-        if (clean.objects) {
-            clean.objects = clean.objects.filter((o: any) => !o.isVariable);
-            clean.objects.forEach((obj: any) => {
-                if (obj.Tasks && Object.keys(obj.Tasks).length === 0) {
-                    delete obj.Tasks;
-                }
-            });
-        }
-
+        // 3. Specialized cleaning for Stages (variables move to objects if needed, but usually redundant)
         if (clean.stages) {
             clean.stages.forEach((s: any) => {
                 if (s.objects) {
                     // Filter variables out of objects list (they are already in s.variables)
                     s.objects = s.objects.filter((o: any) => !o.isVariable);
-                    s.objects.forEach((obj: any) => {
-                        if (obj.Tasks && Object.keys(obj.Tasks).length === 0) {
-                            delete obj.Tasks;
-                        }
-                    });
                 }
             });
         }
 
-        // 6. Project Top-Level Cleanup (Phase A)
-        delete clean.description;
-
-        // 7. Add meta info for platform
+        // 4. Add meta info for platform
         if (!clean.meta) clean.meta = {};
         const mainStage = clean.stages?.find((s: any) => s.type === 'main');
         if (mainStage) {
@@ -222,6 +187,29 @@ export class GameExporter {
         clean.meta.runtimeVersion = RUNTIME_VERSION;
 
         return clean;
+    }
+
+    /**
+     * Recursively removes internal properties and editor-only noise
+     */
+    private deepClean(obj: any): void {
+        if (!obj || typeof obj !== 'object') return;
+
+        if (Array.isArray(obj)) {
+            obj.forEach(item => this.deepClean(item));
+            return;
+        }
+
+        const editorOnlyKeys = ['flow', 'flowCharts', 'flowGraph', 'description', 'details', 'showDetails', 'nodePositions', 'connections'];
+
+        Object.keys(obj).forEach(key => {
+            // Remove keys starting with _ (internal state) or in editor-only list
+            if (key.startsWith('_') || editorOnlyKeys.includes(key)) {
+                delete obj[key];
+            } else {
+                this.deepClean(obj[key]);
+            }
+        });
     }
 
     /**

@@ -3,6 +3,7 @@ import { TComponent } from './src/components/TComponent';
 
 class MockComponent extends TComponent {
     constructor(name: string) { super(name); }
+    getInspectorProperties() { return []; }
 }
 
 try {

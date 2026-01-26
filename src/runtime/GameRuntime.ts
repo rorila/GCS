@@ -174,7 +174,7 @@ export class GameRuntime implements IVariableHost {
         }
     }
 
-    private handleStageChange(oldStageId: string, newStageId: string): void {
+    private handleStageChange(_oldStageId: string, newStageId: string): void {
         this.stage = this.project.stages?.find((s: any) => s.id === newStageId);
         if (!this.stage) return;
 
@@ -271,7 +271,11 @@ export class GameRuntime implements IVariableHost {
         if (obj.onEvent) {
             const actions = obj.onEvent[eventName];
             if (actions) {
-                this.actionExecutor.executeActions(actions, obj, data, this.contextVars);
+                this.actionExecutor.execute(actions, {
+                    vars: this.contextVars,
+                    contextVars: this.contextVars,
+                    eventData: data
+                });
             }
         }
 
@@ -295,14 +299,15 @@ export class GameRuntime implements IVariableHost {
     }
 
     public executeRemoteAction(action: any) {
-        const target = this.objects.find(o => o.id === action.targetId);
-        if (target) this.actionExecutor.executeAction(action, target, {}, this.contextVars);
+        this.actionExecutor.execute(action, {
+            vars: this.contextVars,
+            contextVars: this.contextVars
+        });
     }
 
     public executeRemoteTask(taskName: string, params: any = {}, mode?: string) {
         if (!this.taskExecutor) return;
-        if (mode === 'sequential') this.taskExecutor.executeSequential(taskName, params, this.contextVars);
-        else this.taskExecutor.execute(taskName, params, this.contextVars);
+        this.taskExecutor.execute(taskName, params, this.contextVars, mode === 'sequential');
     }
 
     public getObjects(): any[] {

@@ -1,6 +1,5 @@
 import { GameProject, StageDefinition } from '../model/types';
 import { JSONInspector } from './JSONInspector';
-import { JSONToolbox } from './JSONToolbox';
 import { FlowEditor } from './FlowEditor';
 import { FlowToolbox } from './FlowToolbox';
 import { TDebugLog } from '../components/TDebugLog';
@@ -115,7 +114,6 @@ export class EditorViewManager {
 
     private renderCodeView(codePanel: HTMLElement | null) {
         if (!codePanel) return;
-        const h = this.host;
 
         codePanel.style.display = 'flex';
         codePanel.style.flexDirection = 'column';

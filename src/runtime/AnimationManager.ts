@@ -111,6 +111,29 @@ export class AnimationManager {
     }
 
     /**
+     * Animiert mehrere Eigenschaften eines Objekts gleichzeitig.
+     */
+    public animate(
+        target: any,
+        properties: Record<string, number>,
+        duration: number,
+        easingName: string = 'easeOut',
+        onComplete?: () => void
+    ): void {
+        const keys = Object.keys(properties);
+        let completedCount = 0;
+
+        keys.forEach(prop => {
+            this.addTween(target, prop, properties[prop], duration, easingName, () => {
+                completedCount++;
+                if (completedCount === keys.length && onComplete) {
+                    onComplete();
+                }
+            });
+        });
+    }
+
+    /**
      * Bricht einen laufenden Tween ab.
      */
     public cancelTween(target: any, property: string): void {

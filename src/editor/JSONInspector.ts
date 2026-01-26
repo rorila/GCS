@@ -7,6 +7,7 @@ import { serviceRegistry } from '../services/ServiceRegistry';
 import { RefactoringManager } from './RefactoringManager';
 import { projectRegistry } from '../services/ProjectRegistry';
 import { imageService } from '../services/ImageService'; // Added import
+import { actionRegistry } from '../runtime/ActionRegistry';
 
 type InspectorTab = 'properties' | 'events';
 
@@ -79,6 +80,10 @@ export class JSONInspector {
         // Register available actions as variable
         const actionNames = project.actions?.map(a => a.name) || [];
         this.runtime.registerVariable('availableActions', actionNames);
+
+        this.runtime.registerVariable('getAllActionTypes', () => {
+            return actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
+        });
 
 
         // Always trigger update to refresh object dropdown
@@ -2313,6 +2318,99 @@ export class JSONInspector {
             };
 
             el.appendChild(button);
+        }
+        else if (className === 'TActionParams') {
+            const selectedObject = this.runtime.getVariable('selectedObject');
+            if (selectedObject && selectedObject.type) {
+                const meta = actionRegistry.getMetadata(selectedObject.actionType || selectedObject.type);
+                if (meta) {
+                    const container = document.createElement('div');
+                    container.className = 'action-params-container';
+                    container.style.display = 'flex';
+                    container.style.flexDirection = 'column';
+                    container.style.gap = '8px';
+                    container.style.marginTop = '8px';
+
+                    meta.parameters.forEach(param => {
+                        const row = document.createElement('div');
+                        row.style.display = 'flex';
+                        row.style.alignItems = 'center';
+                        row.style.gap = '8px';
+                        row.style.marginBottom = '4px';
+
+                        const label = document.createElement('label');
+                        label.innerText = param.label;
+                        label.style.minWidth = '80px';
+                        label.style.fontSize = '11px';
+                        label.style.color = '#888';
+                        row.appendChild(label);
+
+                        let input: HTMLElement | null = null;
+                        const currentVal = selectedObject[param.name];
+
+                        if (param.type === 'object' || param.type === 'variable' || param.type === 'select' || param.type === 'stage') {
+                            const select = document.createElement('select');
+                            select.style.flex = '1';
+                            select.style.padding = '4px';
+                            select.style.backgroundColor = '#333';
+                            select.style.color = '#fff';
+                            select.style.border = '1px solid #555';
+                            select.style.borderRadius = '3px';
+                            select.style.fontSize = '11px';
+
+                            let items: any[] = [];
+                            if (param.source === 'objects') items = projectRegistry.getObjects().map(o => o.name);
+                            else if (param.source === 'variables') items = projectRegistry.getVariables().map(v => v.name);
+                            else if (param.source === 'stages') items = (this.project?.stages || []).map((s: any) => s.id);
+                            else if (param.source === 'services') items = serviceRegistry.listServices();
+                            else if (param.source === 'easing-functions') items = ['linear', 'easeIn', 'easeOut', 'easeInOut'];
+
+                            const empty = document.createElement('option');
+                            empty.value = '';
+                            empty.text = '--';
+                            select.appendChild(empty);
+
+                            items.forEach(it => {
+                                const opt = document.createElement('option');
+                                opt.value = it;
+                                opt.text = it;
+                                if (currentVal === it) opt.selected = true;
+                                select.appendChild(opt);
+                            });
+
+                            select.onchange = () => {
+                                selectedObject[param.name] = select.value;
+                                this.handleObjectChange({ name: `${param.name}Input`, value: select.value });
+                            };
+                            input = select;
+                        } else {
+                            const edit = document.createElement('input');
+                            edit.type = 'text';
+                            edit.style.flex = '1';
+                            edit.style.padding = '4px';
+                            edit.style.backgroundColor = '#333';
+                            edit.style.color = '#fff';
+                            edit.style.border = '1px solid #555';
+                            edit.style.borderRadius = '3px';
+                            edit.style.fontSize = '11px';
+                            edit.value = currentVal !== undefined ? (typeof currentVal === 'object' ? JSON.stringify(currentVal) : String(currentVal)) : '';
+
+                            edit.onchange = () => {
+                                let val: any = edit.value;
+                                if (param.type === 'number') val = Number(val);
+                                if (param.type === 'json') { try { val = JSON.parse(val); } catch (e) { } }
+                                selectedObject[param.name] = val;
+                                this.handleObjectChange({ name: `${param.name}Input`, value: val });
+                            };
+                            input = edit;
+                        }
+
+                        if (input) row.appendChild(input);
+                        container.appendChild(row);
+                    });
+                    el.appendChild(container);
+                }
+            }
         }
         else if (className === 'TPanel') {
             // Apply flex styles if specified

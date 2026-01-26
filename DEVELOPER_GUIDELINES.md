@@ -70,12 +70,11 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **Client-Verbindung**: `NetworkManager` und `TGameServer` nutzen `ws://localhost:8080` als Default-WebSocket-URL.
 - **Deployment**: In `Dockerfile` und `fly.toml` muss Port 8080 exposed bzw. als `internal_port` konfiguriert sein.
 
-## Export-System
-- **Formate**: Plain (lesbar) und gZip (komprimiert, ~70% kleiner).
-- **gZip-Frontend**: `JSON → gzipSync (fflate) → Base64 → PROJECT_DATA` (HTML) oder `{_compressed: true, data: "..."}` (JSON). Siehe `GameExporter.ts`.
-- **Runtime-Kompatibilität**: `player-standalone.ts` erkennt automatisch komprimierte Daten und dekomprimiert via `gunzipSync`.
-- **Backend-Dekomprimierung**: Die Game Platform (`server.ts`) dekomprimiert hochgeladene, komprimierte JSONs on-the-fly (`zlib.gunzipSync`), um dem Spieler unabhängig vom Speicherformat immer valides JSON zu liefern.
-- **Bibliotheken**: `fflate` im Frontend, `zlib` im Backend.
+## Export-System (GameExporter)
+- **Meta-Filterung**: Der Exporter nutzt eine Whitelist für Top-Level-Keys und eine rekursive `deepClean` Funktion.
+- **Editor-Daten**: Keys mit `_` Präfix oder in der `editorOnlyKeys` Liste (`flow`, `flowCharts`, `nodePositions`, etc.) werden automatisch entfernt.
+- **Autarkie**: Bilder werden als Base64 eingebettet, damit die HTML-Datei ohne externe Abhängigkeiten funktioniert.
+- **Versionierung**: Die `RUNTIME_VERSION` in `GameExporter.ts` steuert die Kompatibilität mit der Plattform.
 
 ## Proxy-Objekte & Reactive Runtime
 - **Spread-Operator Limitation**: Der Spread-Operator (`{...obj}`) kopiert KEINE Getter-basierten Properties von Proxy-Objekten. Bei reaktiven Komponenten (TImage, TSprite, TPanel) müssen image-relevante Properties (`backgroundImage`, `src`, `objectFit`, `imageOpacity`) explizit kopiert werden.
@@ -268,7 +267,12 @@ Wenn eine Stage isoliert im JSON-Tab angezeigt wird (`activeStage`), werden glob
   - **Duplikate vermeiden**: Eigenschaften, die bereits in der statischen JSON-Datei definiert sind, **DÜRFEN NICHT** zusätzlich in `getInspectorProperties()` zurückgegeben werden. Dies ist essenziell für eine saubere UI (wie z.B. bei `FlowVariable` umgesetzt).
 - **Action-Properties**: `FlowAction` fungiert als Proxy für die globale `project.actions` Definition. Getters/Setters wie `actionType`, `target`, `changesJSON` wandeln die internen Strukturen für den Inspector in Strings oder primitive Werte um.
 - **Datenquellen**: `TSelect` Komponenten unterstützen dynamische Quellen via `source`:
-  - `tasks`, `actions`, `variables`, `stages`, `objects` und neu `services`.
+  - `tasks`, `actions`, `variables`, `stages`, `objects`, `services` und `easing-functions`.
+- **Dynamische Action-Parameter (TActionParams)**:
+  - Jede neue Aktion muss in der `ActionRegistry.ts` (und optional in `StandardActions.ts`) registriert werden.
+  - Die UI für Parameter wird automatisch aus dem `parameters`-Array der Metadaten generiert.
+  - Verwende `source: 'variables' | 'objects' | 'stages' | 'services' | 'easing-functions'`, um Dropdowns automatisch zu befüllen.
+  - Komplexere Aktionen (wie `animate`) können so ohne Änderungen an JSON-Dateien oder Dialog-Renderern hinzugefügt werden.
 - **Dialog-Expressions**:
   - Im `JSONDialogRenderer` müssen Variablen in Properties wie `source` zwingend mit `${...}` umschlossen werden (z.B. `"source": "${dialogData.images}"`), damit sie als Expression ausgewertet werden. Ohne `${}` wird der Wert als String-Literal behandelt.
 

@@ -87,7 +87,7 @@ export class TSystemInfo extends TComponent {
     }
 
     public getInspectorProperties(): TPropertyDef[] {
-        const props = super.getInspectorProperties();
+        const props = this.getBaseProperties();
         return [
             ...props,
             // Browser

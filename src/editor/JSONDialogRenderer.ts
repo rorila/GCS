@@ -6,7 +6,7 @@ import { imageService } from '../services/ImageService';
 import { MethodRegistry } from './MethodRegistry';
 import { projectRegistry } from '../services/ProjectRegistry';
 
-// Interface to avoid circular dependency with DialogManager
+import { actionRegistry } from '../runtime/ActionRegistry';
 export interface IActionEditorDialogManager {
     showDialog(name: string, modal: boolean, data: any): Promise<any>;
 }
@@ -85,6 +85,9 @@ export class JSONDialogRenderer {
         this.runtime.registerVariable('getMethodSignature', (target: string, method: string) => this.getMethodSignature(target, method));
         this.runtime.registerVariable('getStageOptions', () => {
             return (this.enrichedProject.stages || []).map(s => ({ value: s.id, label: s.name || s.id }));
+        });
+        this.runtime.registerVariable('getAllActionTypes', () => {
+            return actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
         });
 
         // Create overlay
@@ -263,6 +266,10 @@ export class JSONDialogRenderer {
 
             if (className === 'TForEach') {
                 return this.renderForEach(obj);
+            }
+
+            if (className === 'TActionParams') {
+                return this.renderActionParams(obj);
             }
 
             const el = document.createElement('div');
@@ -502,8 +509,6 @@ export class JSONDialogRenderer {
                     el.style.color = '#666';
             }
 
-
-
             return el;
         } catch (e: any) {
             console.error('[JSONDialogRenderer] Error rendering object:', obj, e);
@@ -512,6 +517,110 @@ export class JSONDialogRenderer {
             errEl.innerText = `Error rendering ${obj.className || 'object'}: ${e.message}`;
             return errEl;
         }
+    }
+
+    private renderActionParams(_obj: any): HTMLElement | null {
+        const type = this.dialogData.type;
+        const meta = actionRegistry.getMetadata(type);
+        if (!meta) return null;
+
+        const container = document.createElement('div');
+        container.className = 'action-params-container';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.gap = '12px';
+        container.style.width = '100%';
+
+        meta.parameters.forEach(param => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.flexDirection = 'column';
+            row.style.gap = '4px';
+
+            const label = document.createElement('label');
+            label.innerText = param.label;
+            label.style.fontSize = '12px';
+            label.style.color = '#aaa';
+            row.appendChild(label);
+
+            let input: HTMLElement | null = null;
+
+            switch (param.type) {
+                case 'object':
+                case 'variable':
+                case 'stage':
+                case 'select': {
+                    const sel = document.createElement('select');
+                    sel.setAttribute('data-name', param.name);
+                    sel.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
+
+                    let items: any[] = [];
+                    if (param.source === 'objects') items = projectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }));
+                    else if (param.source === 'variables') items = projectRegistry.getVariables().map(v => ({ value: v.name, label: v.name }));
+                    else if (param.source === 'stages') items = (this.project.stages || []).map((s: any) => ({ value: s.id, label: s.name || s.id }));
+                    else if (param.source === 'services') items = serviceRegistry.listServices().map(s => ({ value: s, label: s }));
+                    else if (param.source === 'easing-functions') items = ['linear', 'easeIn', 'easeOut', 'easeInOut'].map(e => ({ value: e, label: e }));
+
+                    // Add empty option
+                    const empty = document.createElement('option');
+                    empty.value = '';
+                    empty.text = '--- wählen ---';
+                    sel.appendChild(empty);
+
+                    items.forEach(it => {
+                        const opt = document.createElement('option');
+                        opt.value = it.value;
+                        opt.text = it.label;
+                        if (this.dialogData[param.name] === it.value) opt.selected = true;
+                        sel.appendChild(opt);
+                    });
+
+                    sel.onchange = () => {
+                        this.dialogData[param.name] = sel.value;
+                        this.render();
+                    };
+                    input = sel;
+                    break;
+                }
+                case 'json':
+                case 'string':
+                case 'number':
+                default: {
+                    const edit = document.createElement('input');
+                    edit.type = 'text';
+                    edit.setAttribute('data-name', param.name);
+                    edit.value = this.dialogData[param.name] !== undefined ? (typeof this.dialogData[param.name] === 'object' ? JSON.stringify(this.dialogData[param.name]) : this.dialogData[param.name]) : (param.defaultValue || '');
+                    edit.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
+
+                    edit.onchange = () => {
+                        let val: any = edit.value;
+                        if (param.type === 'number') val = Number(val);
+                        if (param.type === 'json') {
+                            try { val = JSON.parse(val); } catch (e) { console.error('Invalid JSON in param', param.name); }
+                        }
+                        this.dialogData[param.name] = val;
+                        if (param.name === 'target' || param.name === 'service' || param.name === 'method') {
+                            this.render();
+                        }
+                    };
+                    input = edit;
+                    break;
+                }
+            }
+
+            if (input) row.appendChild(input);
+            if (param.hint) {
+                const hint = document.createElement('div');
+                hint.innerText = param.hint;
+                hint.style.fontSize = '10px';
+                hint.style.color = '#666';
+                row.appendChild(hint);
+            }
+
+            container.appendChild(row);
+        });
+
+        return container;
     }
 
     private renderForEach(obj: any): HTMLElement | null {

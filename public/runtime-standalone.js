@@ -105,6 +105,21 @@
           return tween;
         }
         /**
+         * Animiert mehrere Eigenschaften eines Objekts gleichzeitig.
+         */
+        animate(target, properties, duration, easingName = "easeOut", onComplete) {
+          const keys = Object.keys(properties);
+          let completedCount = 0;
+          keys.forEach((prop) => {
+            this.addTween(target, prop, properties[prop], duration, easingName, () => {
+              completedCount++;
+              if (completedCount === keys.length && onComplete) {
+                onComplete();
+              }
+            });
+          });
+        }
+        /**
          * Bricht einen laufenden Tween ab.
          */
         cancelTween(target, property) {
@@ -746,6 +761,41 @@
     }
   };
 
+  // src/runtime/ActionRegistry.ts
+  var _ActionRegistry = class _ActionRegistry {
+    constructor() {
+      __publicField(this, "handlers", /* @__PURE__ */ new Map());
+      __publicField(this, "metadata", /* @__PURE__ */ new Map());
+    }
+    static getInstance() {
+      if (!_ActionRegistry.instance) {
+        _ActionRegistry.instance = new _ActionRegistry();
+      }
+      return _ActionRegistry.instance;
+    }
+    register(type, handler, meta) {
+      this.handlers.set(type, handler);
+      if (meta) {
+        this.metadata.set(type, meta);
+      }
+    }
+    getHandler(type) {
+      return this.handlers.get(type);
+    }
+    getMetadata(type) {
+      return this.metadata.get(type);
+    }
+    getAllMetadata() {
+      return Array.from(this.metadata.values());
+    }
+    hasHandler(type) {
+      return this.handlers.has(type);
+    }
+  };
+  __publicField(_ActionRegistry, "instance", null);
+  var ActionRegistry = _ActionRegistry;
+  var actionRegistry = ActionRegistry.getInstance();
+
   // src/runtime/PropertyHelper.ts
   var PropertyHelper = class {
     /**
@@ -817,6 +867,9 @@
       return value;
     }
   };
+
+  // src/runtime/actions/StandardActions.ts
+  init_AnimationManager();
 
   // src/services/ServiceRegistry.ts
   var ServiceRegistryClass = class {
@@ -927,6 +980,194 @@
     }
   };
   var serviceRegistry = new ServiceRegistryClass();
+
+  // src/runtime/actions/StandardActions.ts
+  function resolveTarget(targetName, objects, vars, contextObj) {
+    if (!targetName) return null;
+    if ((targetName === "$eventSource" || targetName === "self" || targetName === "$self") && contextObj) return contextObj;
+    if ((targetName === "other" || targetName === "$other") && vars.otherSprite) return vars.otherSprite;
+    let actualName = targetName;
+    if (targetName.startsWith("${") && targetName.endsWith("}")) {
+      const varName = targetName.substring(2, targetName.length - 1);
+      const varVal = vars[varName];
+      if (varVal && typeof varVal === "object" && varVal.id) return varVal;
+      if (varVal) actualName = String(varVal);
+    }
+    return objects.find((o) => o.name === actualName || o.id === actualName || o.name?.toLowerCase() === actualName.toLowerCase());
+  }
+  function registerStandardActions(objects) {
+    actionRegistry.register("property", (action, context) => {
+      const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+      if (target && action.changes) {
+        Object.keys(action.changes).forEach((prop) => {
+          const rawValue = action.changes[prop];
+          const value = PropertyHelper.interpolate(String(rawValue), context.vars, objects);
+          PropertyHelper.setPropertyValue(target, prop, PropertyHelper.autoConvert(value));
+        });
+      }
+    }, {
+      type: "property",
+      label: "Eigenschaft \xE4ndern",
+      description: "\xC4ndert eine oder mehrere Eigenschaften eines Objekts.",
+      parameters: [
+        { name: "target", label: "Ziel-Objekt", type: "object", source: "objects" },
+        { name: "changes", label: "\xC4nderungen (JSON)", type: "json", hint: 'Beispiel: { "text": "Hallo", "visible": true }' }
+      ]
+    });
+    actionRegistry.register("variable", (action, context) => {
+      const srcObj = resolveTarget(action.source, objects, context.vars, context.contextVars);
+      if (srcObj && action.variableName && action.sourceProperty) {
+        const val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
+        context.vars[action.variableName] = val;
+        context.contextVars[action.variableName] = val;
+      }
+    }, {
+      type: "variable",
+      label: "Variable setzen",
+      description: "Kopiert den Wert einer Objekteigenschaft in eine Variable.",
+      parameters: [
+        { name: "variableName", label: "Variablen-Name", type: "variable", source: "variables" },
+        { name: "source", label: "Quell-Objekt", type: "object", source: "objects" },
+        { name: "sourceProperty", label: "Quell-Eigenschaft", type: "string", placeholder: "z.B. x" }
+      ]
+    });
+    actionRegistry.register("calculate", (action, context) => {
+      if (action.formula) {
+        const result = ExpressionParser.evaluate(action.formula, { ...context.contextVars, ...context.vars });
+        if (action.resultVariable) {
+          context.vars[action.resultVariable] = result;
+          context.contextVars[action.resultVariable] = result;
+        }
+      }
+    }, {
+      type: "calculate",
+      label: "Berechnung",
+      description: "F\xFChrt eine mathematische Berechnung aus.",
+      parameters: [
+        { name: "resultVariable", label: "Ziel-Variable", type: "variable", source: "variables" },
+        { name: "formula", label: "Formel", type: "string", placeholder: "z.B. score + 10" }
+      ]
+    });
+    actionRegistry.register("animate", (action, context) => {
+      const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+      if (target) {
+        const toValue = Number(PropertyHelper.interpolate(String(action.to), context.vars, objects));
+        AnimationManager.getInstance().addTween(target, action.property || "x", toValue, action.duration || 500, action.easing || "easeOut");
+      }
+    }, {
+      type: "animate",
+      label: "Animieren",
+      description: "Animiert eine Eigenschaft eines Objekts.",
+      parameters: [
+        { name: "target", label: "Ziel-Objekt", type: "object", source: "objects" },
+        { name: "property", label: "Eigenschaft", type: "string", defaultValue: "x" },
+        { name: "to", label: "Ziel-Wert", type: "number" },
+        { name: "duration", label: "Dauer (ms)", type: "number", defaultValue: 500 },
+        { name: "easing", label: "Easing", type: "select", source: "easing-functions", defaultValue: "easeOut" }
+      ]
+    });
+    actionRegistry.register("move_to", (action, context) => {
+      const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+      if (target) {
+        const toX = Number(PropertyHelper.interpolate(String(action.x), context.vars, objects));
+        const toY = Number(PropertyHelper.interpolate(String(action.y), context.vars, objects));
+        if (typeof target.moveTo === "function") {
+          target.moveTo(toX, toY, action.duration || 500, action.easing || "easeOut");
+        } else {
+          AnimationManager.getInstance().addTween(target, "x", toX, action.duration || 500, action.easing || "easeOut");
+          AnimationManager.getInstance().addTween(target, "y", toY, action.duration || 500, action.easing || "easeOut");
+        }
+      }
+    }, {
+      type: "move_to",
+      label: "Bewegen zu",
+      description: "Bewegt ein Objekt an eine bestimmte Position.",
+      parameters: [
+        { name: "target", label: "Ziel-Objekt", type: "object", source: "objects" },
+        { name: "x", label: "Ziel-X", type: "number" },
+        { name: "y", label: "Ziel-Y", type: "number" },
+        { name: "duration", label: "Dauer (ms)", type: "number", defaultValue: 500 },
+        { name: "easing", label: "Easing", type: "select", source: "easing-functions", defaultValue: "easeOut" }
+      ]
+    });
+    actionRegistry.register("navigate", (action, context) => {
+      let targetGame = PropertyHelper.interpolate(action.target, context.vars, objects);
+      if (targetGame && context.onNavigate) {
+        context.onNavigate(targetGame, action.params);
+      }
+    }, {
+      type: "navigate",
+      label: "Spiel wechseln",
+      description: "Wechselt zu einem anderen Projekt.",
+      parameters: [
+        { name: "target", label: "Ziel-Projekt", type: "string" }
+      ]
+    });
+    actionRegistry.register("navigate_stage", (action, context) => {
+      const stageId = action.params?.stageId || action.stageId;
+      if (stageId && context.onNavigate) {
+        const resolved = PropertyHelper.interpolate(String(stageId), context.vars, objects);
+        context.onNavigate(`stage:${resolved}`, action.params);
+      }
+    }, {
+      type: "navigate_stage",
+      label: "Stage wechseln",
+      description: "Wechselt zu einer anderen Stage innerhalb des Projekts.",
+      parameters: [
+        { name: "stageId", label: "Ziel-Stage", type: "stage", source: "stages" }
+      ]
+    });
+    actionRegistry.register("service", async (action, context) => {
+      if (action.service && action.method && serviceRegistry.has(action.service)) {
+        const params = Object.values(action.serviceParams || {}).map(
+          (v) => PropertyHelper.interpolate(String(v), { ...context.contextVars, ...context.vars }, objects)
+        );
+        const result = await serviceRegistry.call(action.service, action.method, params);
+        if (action.resultVariable) {
+          context.vars[action.resultVariable] = result;
+          context.contextVars[action.resultVariable] = result;
+        }
+      }
+    }, {
+      type: "service",
+      label: "Service aufrufen",
+      description: "Ruft eine Methode eines registrierten Services auf.",
+      parameters: [
+        { name: "service", label: "Service", type: "select", source: "services" },
+        { name: "method", label: "Methode", type: "string" },
+        { name: "serviceParams", label: "Parameter (JSON)", type: "json" },
+        { name: "resultVariable", label: "Ergebnis speichern in", type: "variable", source: "variables" }
+      ]
+    });
+    actionRegistry.register("create_room", (action, context) => {
+      if (context.multiplayerManager) {
+        let gameName = PropertyHelper.interpolate(action.game, context.vars, objects);
+        context.multiplayerManager.createRoom(gameName);
+      }
+    }, {
+      type: "create_room",
+      label: "Multiplayer-Raum erstellen",
+      description: "Erstellt einen neuen Multiplayer-Raum.",
+      parameters: [
+        { name: "game", label: "Spiel-Identifikator", type: "string" }
+      ]
+    });
+    actionRegistry.register("join_room", (action, context) => {
+      if (context.multiplayerManager) {
+        let code = action.params?.code ? PropertyHelper.interpolate(String(action.params.code), context.vars, objects) : "";
+        if (code.length >= 4) {
+          context.multiplayerManager.joinRoom(code);
+        }
+      }
+    }, {
+      type: "join_room",
+      label: "Multiplayer-Raum beitreten",
+      description: "Tritt einem Multiplayer-Raum bei.",
+      parameters: [
+        { name: "code", label: "Raum-Code", type: "string" }
+      ]
+    });
+  }
 
   // src/services/DebugLogService.ts
   var _DebugLogService = class _DebugLogService {
@@ -1039,608 +1280,51 @@
   var DebugLogService = _DebugLogService;
 
   // src/runtime/ActionExecutor.ts
-  init_AnimationManager();
   var ActionExecutor = class {
-    constructor(objects, multiplayerManager, onNavigate, controller) {
+    constructor(objects, multiplayerManager, onNavigate) {
       this.objects = objects;
       this.multiplayerManager = multiplayerManager;
       this.onNavigate = onNavigate;
-      this.controller = controller;
+      registerStandardActions(this.objects);
     }
     setObjects(objects) {
       this.objects = objects;
+      registerStandardActions(this.objects);
     }
     /**
      * Executes a single action
-     * @param action The action definition (from project JSON)
-     * @param vars Local task variables context
-     * @param globalVars Persistent global variables context
-     * @param contextObj The object that triggered the event (for $eventSource resolution)
      */
     async execute(action, vars, globalVars = {}, contextObj, parentId) {
-      console.log(`[ActionExecutor] execute start: type=${action?.type} name=${action?.name}`);
       if (!action || !action.type) return;
       const actionName = action.name || this.getDescriptiveName(action);
-      const actionLogId = DebugLogService.getInstance().log("Action", actionName, {
+      DebugLogService.getInstance().log("Action", actionName, {
         parentId,
         data: action
       });
       console.log(`%c[Action] Executing: type="${action.type}"`, "color: #4caf50", action);
-      console.log(`[ActionExecutor] About to switch on type: ${action.type}`);
-      switch (action.type) {
-        case "variable":
-          this.handleVariableAction(action, vars, globalVars, contextObj, actionLogId);
-          break;
-        case "set_variable":
-          this.handleSetVariableAction(action, vars, globalVars);
-          break;
-        case "property":
-          this.handlePropertyAction(action, vars, contextObj);
-          break;
-        case "increment":
-          this.handleNumericAction(action, vars, "increment", contextObj);
-          break;
-        case "negate":
-          this.handleNumericAction(action, vars, "negate", contextObj);
-          break;
-        case "navigate":
-          this.handleNavigateAction(action, vars);
-          break;
-        case "create_room":
-          this.handleCreateRoomAction(action, vars);
-          break;
-        case "join_room":
-          this.handleJoinRoomAction(action, vars);
-          break;
-        case "send_multiplayer_sync":
-          this.handleSendSyncAction(action, vars, contextObj);
-          break;
-        case "smooth_sync":
-          this.handleSmoothSyncAction(action, vars, contextObj);
-          break;
-        case "service":
-          this.handleServiceAction(action, vars, globalVars);
-          break;
-        case "calculate":
-          this.handleCalculateAction(action, vars, globalVars, actionLogId);
-          break;
-        case "log":
-          this.handleLogAction(action, vars);
-          break;
-        case "http":
-          await this.handleHttpAction(action, vars, globalVars);
-          break;
-        case "create_object":
-          this.handleCreateObjectAction(action, vars);
-          break;
-        case "send_remote_event":
-          this.handleSendRemoteEventAction(action, vars, contextObj);
-          break;
-        case "call_method":
-          this.handleCallMethodAction(action, vars, contextObj);
-          break;
-        case "animate":
-          this.handleAnimateAction(action, vars, contextObj);
-          break;
-        case "move_to":
-          this.handleMoveToAction(action, vars, contextObj);
-          break;
-        case "navigate_stage":
-          this.handleNavigateStageAction(action, vars);
-          break;
-        case "shake":
-          this.handleShakeAction(action, vars, contextObj);
-          break;
-        default:
-          console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
-      }
-    }
-    resolveTarget(targetName, vars, contextObj) {
-      if (!targetName) return null;
-      if ((targetName === "$eventSource" || targetName === "self" || targetName === "$self") && contextObj) {
-        return contextObj;
-      }
-      if ((targetName === "other" || targetName === "$other") && vars.otherSprite) {
-        return vars.otherSprite;
-      }
-      let actualName = targetName;
-      if (targetName.startsWith("${") && targetName.endsWith("}")) {
-        const varName = targetName.substring(2, targetName.length - 1);
-        const varVal = vars[varName];
-        if (varVal && typeof varVal === "object" && varVal.id) return varVal;
-        if (varVal) actualName = String(varVal);
-      }
-      let obj = this.objects.find((o) => o.name === actualName);
-      if (!obj) {
-        obj = this.objects.find((o) => o.name?.toLowerCase() === actualName.toLowerCase());
-      }
-      if (!obj) {
-        obj = this.objects.find((o) => o.id === actualName);
-      }
-      return obj;
-    }
-    handleVariableAction(action, vars, globalVars, contextObj, parentId) {
-      console.log(`[ActionExecutor] handleVariableAction: source=${action.source} var=${action.variableName} prop=${action.sourceProperty}`);
-      const srcObj = this.resolveTarget(action.source, vars, contextObj);
-      console.log(`%c[Variable] source="${action.source}" -> resolved=${srcObj?.name || "NULL"}`, "color: #9c27b0");
-      if (srcObj && action.variableName && action.sourceProperty) {
-        console.log(`[ActionExecutor] Getting property ${action.sourceProperty} from ${srcObj.name}`);
-        const val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
-        console.log(`[ActionExecutor] Value is: ${val}`);
-        vars[action.variableName] = val;
-        globalVars[action.variableName] = val;
-        DebugLogService.getInstance().log("Variable", `${action.variableName} = ${srcObj.name}.${action.sourceProperty} = ${val}`, {
-          parentId,
-          objectName: srcObj.name
+      const handler = actionRegistry.getHandler(action.type);
+      if (handler) {
+        await handler(action, {
+          vars,
+          contextVars: globalVars,
+          eventData: contextObj,
+          multiplayerManager: this.multiplayerManager,
+          onNavigate: this.onNavigate
         });
-        console.log(`%c[Variable] ${action.variableName} = ${srcObj.name}.${action.sourceProperty} = ${val}`, "color: #9c27b0");
-      } else {
-        console.warn(`[ActionExecutor] Variable action failed: srcObj=${!!srcObj} varName=${action.variableName} srcProp=${action.sourceProperty}`);
-      }
-    }
-    handleSetVariableAction(action, vars, globalVars) {
-      if (action.variable && action.value !== void 0) {
-        vars[action.variable] = action.value;
-        globalVars[action.variable] = action.value;
-      }
-    }
-    handlePropertyAction(action, vars, contextObj) {
-      const isSyncActive = action.hostOnly === true;
-      const targetObj = this.resolveTarget(action.target, vars, contextObj);
-      if (action.changes) {
-        Object.keys(action.changes).forEach((prop) => {
-          const rawValue = action.changes[prop];
-          let finalValue;
-          if (typeof rawValue === "boolean") {
-            finalValue = rawValue;
-          } else if (typeof rawValue === "number") {
-            finalValue = rawValue;
-          } else {
-            const value = PropertyHelper.interpolate(String(rawValue), vars, this.objects);
-            if (value !== "" && !isNaN(Number(value))) {
-              finalValue = Number(value);
-            } else if (value === "true") {
-              finalValue = true;
-            } else if (value === "false") {
-              finalValue = false;
-            } else {
-              finalValue = value;
-            }
-          }
-          if (targetObj) {
-            this.applyChange(action.target, prop, finalValue, vars, contextObj, isSyncActive);
-          } else {
-            const targetName = action.target;
-            if (targetName && typeof targetName === "string") {
-              console.log(`[ActionExecutor] Setting variable ${targetName} to`, finalValue);
-              vars[targetName] = finalValue;
-            }
-          }
-        });
-      }
-    }
-    handleNumericAction(action, vars, mode, contextObj) {
-      const isSyncActive = action.hostOnly === true;
-      if (action.changes) {
-        Object.keys(action.changes).forEach((prop) => {
-          const targetObj = this.resolveTarget(action.target, vars, contextObj);
-          if (targetObj) {
-            const currentValue = Number(PropertyHelper.getPropertyValue(targetObj, prop)) || 0;
-            let newValue;
-            if (mode === "increment") {
-              const rawIncrementValue = action.changes[prop];
-              const interpolatedValue = PropertyHelper.interpolate(String(rawIncrementValue), vars, this.objects);
-              const incrementValue = Number(interpolatedValue) || 0;
-              newValue = currentValue + incrementValue;
-            } else {
-              newValue = currentValue * -1;
-              console.log(`[ActionExecutor] Negating ${action.target}.${prop}: ${currentValue} -> ${newValue}`);
-            }
-            this.applyChange(action.target, prop, newValue, vars, contextObj, isSyncActive);
-          } else {
-            const targetName = action.target;
-            if (targetName && typeof targetName === "string" && (prop === "value" || prop === "defaultValue")) {
-              const currentValue = Number(vars[targetName]) || 0;
-              let newValue;
-              if (mode === "increment") {
-                const rawIncrementValue = action.changes[prop];
-                const interpolatedValue = PropertyHelper.interpolate(String(rawIncrementValue), vars, this.objects);
-                const incrementValue = Number(interpolatedValue) || 0;
-                newValue = currentValue + incrementValue;
-                console.log(`[ActionExecutor] Incrementing variable ${targetName} by ${incrementValue}: ${currentValue} -> ${newValue}`);
-              } else {
-                newValue = currentValue * -1;
-                console.log(`[ActionExecutor] Negating variable ${targetName}: ${currentValue} -> ${newValue}`);
-              }
-              vars[targetName] = newValue;
-            }
-          }
-        });
-      }
-    }
-    handleNavigateAction(action, vars) {
-      let targetGame = PropertyHelper.interpolate(action.target, vars, this.objects);
-      if (targetGame && this.onNavigate) {
-        this.onNavigate(targetGame, action.params);
-      }
-    }
-    /**
-     * Handle navigate_stage action - switches to another stage at runtime.
-     * Action format:
-     * {
-     *   type: 'navigate_stage',
-     *   params: { stageId: 'level-2' }  // or stageId: 'next' for next stage
-     * }
-     */
-    handleNavigateStageAction(action, vars) {
-      const stageId = action.params?.stageId || action.stageId;
-      if (!stageId) {
-        console.warn("[ActionExecutor] navigate_stage: Missing stageId");
         return;
       }
-      const resolvedStageId = PropertyHelper.interpolate(String(stageId), vars, this.objects);
-      console.log(`[ActionExecutor] Navigating to stage: ${resolvedStageId}`);
-      if (this.onNavigate) {
-        this.onNavigate(`stage:${resolvedStageId}`, action.params);
+      if (!handler) {
+        console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
       }
-    }
-    handleLogAction(action, vars) {
-      const message = PropertyHelper.interpolate(action.message || "", vars, this.objects);
-      if (action.showToast) {
-        const toast = this.objects.find((o) => o.className === "TToast");
-        if (toast) {
-          if (typeof toast.show === "function") {
-            toast.show(message, "info");
-          } else {
-            toast.text = message;
-          }
-        }
-      }
-    }
-    handleCreateRoomAction(action, vars) {
-      if (this.multiplayerManager) {
-        let gameName = PropertyHelper.interpolate(action.game, vars, this.objects);
-        console.log(`[ActionExecutor] Creating room for game: ${gameName}`);
-        this.multiplayerManager.createRoom(gameName);
-      } else {
-        console.error(`[ActionExecutor] Cannot create room: MultiplayerManager not available!`);
-      }
-    }
-    handleJoinRoomAction(action, vars) {
-      if (this.multiplayerManager) {
-        const srcObj = this.objects.find((o) => o.name === action.source);
-        let code = "";
-        if (srcObj) {
-          code = PropertyHelper.getPropertyValue(srcObj, "text");
-        } else if (action.params && action.params.code) {
-          code = PropertyHelper.interpolate(String(action.params.code), vars, this.objects);
-        }
-        if (code && String(code).length >= 4) {
-          this.multiplayerManager.joinRoom(code);
-        }
-      }
-    }
-    handleSendSyncAction(action, vars, contextObj) {
-      const target = this.resolveTarget(action.target, vars, contextObj);
-      if (target && this.multiplayerManager) {
-        const state = {
-          x: target.x,
-          y: target.y,
-          vx: target.velocityX,
-          vy: target.velocityY,
-          text: target.text,
-          value: target.value,
-          spritesMoving: target.spritesMoving
-          // Include GameState flag
-        };
-        if (target.name === "BallSprite") {
-          console.log(`[MULTIPLAYER] Sending Sync for Ball: x=${target.x.toFixed(2)}, y=${target.y.toFixed(2)}, vx=${target.velocityX.toFixed(2)}`);
-        }
-        this.multiplayerManager.sendStateSync(target.id, state);
-      } else if (!this.multiplayerManager) {
-      }
-    }
-    handleSendRemoteEventAction(action, vars, _contextObj) {
-      const objectId = PropertyHelper.interpolate(action.target, vars, this.objects);
-      const eventName = action.event || "onClick";
-      const params = action.params;
-      if (objectId && this.multiplayerManager) {
-        this.multiplayerManager.triggerRemoteEvent(objectId, eventName, params);
-      } else if (!this.multiplayerManager) {
-      }
-    }
-    handleSmoothSyncAction(action, vars, contextObj) {
-      const target = this.resolveTarget(action.target, vars, contextObj);
-      if (target) {
-        if (vars.targetX !== void 0) target.x = Number(vars.targetX);
-        if (vars.targetY !== void 0) target.y = Number(vars.targetY);
-        if (vars.targetVX !== void 0) target.velocityX = Number(vars.targetVX);
-        if (vars.targetVY !== void 0) target.velocityY = Number(vars.targetVY);
-        if (vars.targetText !== void 0) target.text = vars.targetText;
-      }
-    }
-    applyChange(targetName, propPath, value, vars, contextObj, isSyncActive = false) {
-      const targetObj = this.resolveTarget(targetName, vars, contextObj);
-      if (targetObj) {
-        PropertyHelper.setPropertyValue(targetObj, propPath, value);
-        if (targetObj.name === "BallSprite" && (propPath === "x" || propPath === "y")) {
-          console.log(`[ACTION] Local Ball Move: ${propPath} = ${value}`);
-        }
-        if (isSyncActive && this.multiplayerManager) {
-          const motionProps = ["x", "y", "velocityX", "velocityY", "spritesMoving", "value"];
-          if (motionProps.includes(propPath)) {
-            this.handleSendSyncAction({ target: targetName }, vars, contextObj);
-          }
-        }
-      } else {
-        console.warn(`[ActionExecutor] Target not found: ${targetName}`);
-      }
-    }
-    async handleServiceAction(action, vars, globalVars) {
-      const serviceName = action.service;
-      const methodName = action.method;
-      const resultVarName = action.resultVariable;
-      if (!serviceName || !methodName) {
-        console.warn("[ActionExecutor] Service action missing service or method");
-        return;
-      }
-      if (!serviceRegistry.has(serviceName)) {
-        console.error(`[ActionExecutor] Service not found: ${serviceName}`);
-        return;
-      }
-      const params = [];
-      if (action.serviceParams && typeof action.serviceParams === "object") {
-        for (const [, value] of Object.entries(action.serviceParams)) {
-          const interpolated = PropertyHelper.interpolate(String(value), { ...globalVars, ...vars });
-          params.push(interpolated);
-        }
-      }
-      try {
-        const result = await serviceRegistry.call(serviceName, methodName, params);
-        if (resultVarName) {
-          vars[resultVarName] = result;
-          globalVars[resultVarName] = result;
-        }
-      } catch (error) {
-        console.error(`[ActionExecutor] Service call failed:`, error);
-        if (resultVarName) {
-          vars[resultVarName] = { error: String(error) };
-          globalVars[resultVarName] = { error: String(error) };
-        }
-      }
-    }
-    handleCalculateAction(action, vars, globalVars, parentId) {
-      let result = 0;
-      const allVars = { ...globalVars, ...vars };
-      console.log(`[ActionExecutor] handleCalculateAction: formula=${action.formula} resultVar=${action.resultVariable}`, { allVars });
-      if (action.formula) {
-        try {
-          console.log(`[ActionExecutor] Evaluating formula: ${action.formula}`);
-          result = ExpressionParser.evaluate(action.formula, allVars);
-          console.log(`[ActionExecutor] Formula result: ${result}`);
-        } catch (e) {
-          console.error("[ActionExecutor] Failed to evaluate formula:", action.formula, e);
-        }
-      } else if (action.calcSteps && Array.isArray(action.calcSteps)) {
-        console.log(`[ActionExecutor] Falling back to calcSteps`);
-        action.calcSteps.forEach((step, index) => {
-          let value = 0;
-          if (step.operandType === "variable") {
-            const varName = step.variable;
-            if (varName) {
-              const rawVal = allVars[varName];
-              value = Number(rawVal) || 0;
-            }
-          } else {
-            value = Number(step.constant) || 0;
-          }
-          if (index === 0 || !step.operator) {
-            result = value;
-          } else {
-            switch (step.operator) {
-              case "+":
-                result += value;
-                break;
-              case "-":
-                result -= value;
-                break;
-              case "*":
-                result *= value;
-                break;
-              case "/":
-                result = value !== 0 ? result / value : 0;
-                break;
-              case "%":
-                result = value !== 0 ? result % value : 0;
-                break;
-              default:
-                result += value;
-                break;
-            }
-          }
-        });
-      } else {
-        console.warn("[ActionExecutor] Calculate action missing formula or calcSteps");
-        return;
-      }
-      if (action.resultVariable) {
-        vars[action.resultVariable] = result;
-        globalVars[action.resultVariable] = result;
-        console.log(`  %c[Calculate] ${action.resultVariable} = ${result}`, "color: #9c27b0; font-style: italic;");
-        DebugLogService.getInstance().log("Variable", `${action.resultVariable} = ${action.formula || "formula"} = ${result}`, {
-          parentId
-        });
-      }
-      const isSyncActive = action.hostOnly === true;
-      if (action.target && action.changes) {
-        Object.keys(action.changes).forEach((prop) => {
-          const expression = action.changes[prop];
-          try {
-            const value = ExpressionParser.evaluate(expression, { ...globalVars, ...vars });
-            this.applyChange(action.target, prop, value, vars, void 0, isSyncActive);
-          } catch (e) {
-            console.error(`[ActionExecutor] Calculate change failed for ${prop}:`, e);
-          }
-        });
-      }
-    }
-    async handleHttpAction(action, vars, globalVars) {
-      const url = PropertyHelper.interpolate(action.url, { ...vars, ...globalVars }, this.objects);
-      const method = action.method || "GET";
-      const resultVar = action.resultVariable || "httpResult";
-      try {
-        console.log(`[ActionExecutor] HTTP: ${method} ${url}`);
-        const options = { method };
-        if (action.body && (method === "POST" || method === "PUT" || method === "PATCH")) {
-          options.headers = {
-            "Content-Type": "application/json"
-          };
-          let bodyData = action.body;
-          if (typeof bodyData === "string") {
-            bodyData = PropertyHelper.interpolate(bodyData, { ...vars, ...globalVars }, this.objects);
-          } else if (typeof bodyData === "object" && bodyData !== null) {
-            const stringified = JSON.stringify(bodyData);
-            const interpolated = PropertyHelper.interpolate(stringified, { ...vars, ...globalVars }, this.objects);
-            bodyData = JSON.parse(interpolated);
-          }
-          options.body = typeof bodyData === "string" ? bodyData : JSON.stringify(bodyData);
-          console.log(`[ActionExecutor] HTTP Body:`, options.body);
-        }
-        const resp = await fetch(url, options);
-        if (resp.ok) {
-          const data = await resp.json();
-          vars[resultVar] = data;
-          globalVars[resultVar] = data;
-          console.log(`[ActionExecutor] HTTP Success, stored in ${resultVar}`, data);
-        } else {
-          const errorText = await resp.text();
-          console.error(`[ActionExecutor] HTTP Error ${resp.status}: ${errorText}`);
-          vars[resultVar] = { success: false, status: resp.status, error: errorText };
-          globalVars[resultVar] = vars[resultVar];
-        }
-      } catch (e) {
-        console.error("[ActionExecutor] HTTP Action failed:", e);
-      }
-    }
-    handleCreateObjectAction(action, vars) {
-      if (!action.objectData) return;
-      const rawData = JSON.stringify(action.objectData);
-      const interpolatedData = PropertyHelper.interpolate(rawData, vars, this.objects);
-      const config = JSON.parse(interpolatedData);
-      if (!config.id) config.id = crypto.randomUUID();
-      this.objects.push(config);
-      console.log(`[ActionExecutor] Created dynamic object: ${config.name} (${config.className})`);
-    }
-    handleCallMethodAction(action, vars, contextObj) {
-      const methodName = action.method;
-      if (!methodName) return;
-      let params = [];
-      if (action.params) {
-        if (Array.isArray(action.params)) {
-          params = action.params.map((p) => {
-            if (typeof p === "string") {
-              return PropertyHelper.autoConvert(PropertyHelper.interpolate(p, vars, this.objects));
-            }
-            return p;
-          });
-        } else if (typeof action.params === "string") {
-          const interpolated = PropertyHelper.interpolate(action.params, vars, this.objects);
-          params = [PropertyHelper.autoConvert(interpolated)];
-        }
-      }
-      const target = this.resolveTarget(action.target, vars, contextObj);
-      if (target) {
-        if (typeof target[methodName] === "function") {
-          console.log(`[ActionExecutor] Calling ${methodName} on object ${target.name}`);
-          target[methodName](...params);
-        } else {
-          console.warn(`[ActionExecutor] Method '${methodName}' not found on ${target.name}`);
-        }
-      } else if (this.controller && typeof this.controller.callVariableMethod === "function") {
-        console.log(`[ActionExecutor] Calling ${methodName} on variable ${action.target} via controller`);
-        this.controller.callVariableMethod(action.target, methodName, params);
-      } else {
-        console.warn(`[ActionExecutor] Target not found: ${action.target}`);
-      }
-    }
-    /**
-     * Handle animate action - animates any numeric property on a target.
-     * Action format:
-     * {
-     *   type: 'animate',
-     *   target: 'SpriteA',
-     *   property: 'x',
-     *   to: 100,
-     *   duration: 500,
-     *   easing: 'easeOut'
-     * }
-     */
-    handleAnimateAction(action, vars, contextObj) {
-      const target = this.resolveTarget(action.target, vars, contextObj);
-      if (!target) {
-        console.warn(`[ActionExecutor] animate: Target not found: ${action.target}`);
-        return;
-      }
-      const property = action.property || "x";
-      const toValue = typeof action.to === "string" ? Number(PropertyHelper.interpolate(action.to, vars, this.objects)) : Number(action.to);
-      const duration = Number(action.duration) || 500;
-      const easing = action.easing || "easeOut";
-      console.log(`[ActionExecutor] Animating ${target.name}.${property} to ${toValue} over ${duration}ms (${easing})`);
-      AnimationManager.getInstance().addTween(target, property, toValue, duration, easing);
-    }
-    /**
-     * Handle move_to action - convenience action to animate x and y together.
-     * Action format:
-     * {
-     *   type: 'move_to',
-     *   target: 'SpriteA',
-     *   x: 100,
-     *   y: 50,
-     *   duration: 500,
-     *   easing: 'easeOut'
-     * }
-     */
-    handleMoveToAction(action, vars, contextObj) {
-      const target = this.resolveTarget(action.target, vars, contextObj);
-      if (!target) {
-        console.warn(`[ActionExecutor] move_to: Target not found: ${action.target}`);
-        return;
-      }
-      const toX = typeof action.x === "string" ? Number(PropertyHelper.interpolate(action.x, vars, this.objects)) : Number(action.x);
-      const toY = typeof action.y === "string" ? Number(PropertyHelper.interpolate(action.y, vars, this.objects)) : Number(action.y);
-      const duration = Number(action.duration) || 500;
-      const easing = action.easing || "easeOut";
-      console.log(`[ActionExecutor] Moving ${target.name} to (${toX}, ${toY}) over ${duration}ms (${easing})`);
-      if (typeof target.moveTo === "function") {
-        target.moveTo(toX, toY, duration, easing);
-      } else {
-        const manager = AnimationManager.getInstance();
-        manager.addTween(target, "x", toX, duration, easing);
-        manager.addTween(target, "y", toY, duration, easing);
-      }
-    }
-    /**
-     * Handle shake action - shakes a target object.
-     * Action format:
-     * {
-     *   type: 'shake',
-     *   target: 'SpriteA',
-     *   intensity: 5,
-     *   duration: 500
-     * }
-     */
-    handleShakeAction(action, vars, contextObj) {
-      const target = this.resolveTarget(action.target, vars, contextObj);
-      if (!target) {
-        console.warn(`[ActionExecutor] shake: Target not found: ${action.target}`);
-        return;
-      }
-      const intensity = typeof action.intensity === "string" ? Number(PropertyHelper.interpolate(action.intensity, vars, this.objects)) : Number(action.intensity) || 5;
-      const duration = Number(action.duration) || 500;
-      console.log(`[ActionExecutor] Shaking ${target.name} (intensity: ${intensity}, duration: ${duration}ms)`);
-      AnimationManager.getInstance().shake(target, intensity, duration);
     }
     getDescriptiveName(action) {
+      const meta = actionRegistry.getMetadata(action.type);
+      if (meta) {
+        let name = meta.label;
+        if (action.target) name += ` auf ${action.target}`;
+        else if (action.variableName) name += ` (${action.variableName})`;
+        return name;
+      }
       switch (action.type) {
         case "variable":
           return `Set ${action.variableName || "var"}`;
@@ -2445,6 +2129,186 @@
   __publicField(_GameLoopManager, "instance", null);
   var GameLoopManager = _GameLoopManager;
 
+  // src/runtime/RuntimeVariableManager.ts
+  var RuntimeVariableManager = class {
+    constructor(host, initialGlobalVars = {}) {
+      this.host = host;
+      __publicField(this, "projectVariables", {});
+      __publicField(this, "stageVariables", {});
+      __publicField(this, "contextVars");
+      this.projectVariables = { ...initialGlobalVars };
+      this.contextVars = this.createVariableContext();
+    }
+    initializeVariables(project) {
+      if (project.variables) {
+        project.variables.forEach((v) => {
+          const isGlobal = !v.scope || v.scope === "global";
+          if (isGlobal) {
+            if (this.projectVariables[v.name] === void 0) {
+              this.projectVariables[v.name] = v.defaultValue;
+            }
+          } else if (v.scope === "local") {
+            if (this.stageVariables[v.name] === void 0) {
+              this.stageVariables[v.name] = v.defaultValue;
+            }
+          }
+        });
+      }
+    }
+    createStageProxy(stage) {
+      return new Proxy({}, {
+        get: (_target, prop) => {
+          const variableDef = stage.variables?.find((v) => v.name === prop);
+          if (!variableDef) return void 0;
+          if (!variableDef.isPublic) {
+            console.warn(`[Scope] Access denied: Variable '${prop}' in stage '${stage.name}' is private.`);
+            return void 0;
+          }
+          if (this.host.stage && this.host.stage.id === stage.id) {
+            return this.stageVariables[prop];
+          }
+          return variableDef.defaultValue;
+        },
+        set: () => {
+          console.warn(`[Scope] Cannot set properties on Stage Proxy '${stage.name}'. Cross-stage writes are forbidden.`);
+          return false;
+        }
+      });
+    }
+    createVariableContext() {
+      return new Proxy({}, {
+        get: (_target, prop) => {
+          if (prop in this.stageVariables) return this.stageVariables[prop];
+          if (prop in this.projectVariables) return this.projectVariables[prop];
+          return void 0;
+        },
+        set: (_target, prop, value) => {
+          const oldValue = this.stageVariables[prop] !== void 0 ? this.stageVariables[prop] : this.projectVariables[prop];
+          let varDef = this.host.stage?.variables?.find((v) => v.name === prop);
+          if (!varDef && this.host.project.variables) {
+            varDef = this.host.project.variables.find((v) => v.name === prop);
+          }
+          let finalValue = value;
+          if (varDef && varDef.isInteger && typeof value === "number") {
+            finalValue = Math.floor(value);
+          }
+          if (prop in this.stageVariables) {
+            this.stageVariables[prop] = finalValue;
+          } else if (prop in this.projectVariables) {
+            this.projectVariables[prop] = finalValue;
+          } else {
+            this.stageVariables[prop] = finalValue;
+          }
+          this.host.reactiveRuntime.setVariable(prop, finalValue);
+          if (this.host.taskExecutor) {
+            if (varDef) {
+              this.processVariableEvents(prop, finalValue, oldValue, varDef);
+            }
+          }
+          return true;
+        },
+        ownKeys: () => {
+          const keys = /* @__PURE__ */ new Set([...Object.keys(this.projectVariables), ...Object.keys(this.stageVariables)]);
+          return Array.from(keys);
+        },
+        has: (_target, prop) => {
+          return prop in this.stageVariables || prop in this.projectVariables;
+        },
+        getOwnPropertyDescriptor: (_target, prop) => {
+          const val = this.stageVariables[prop] !== void 0 ? this.stageVariables[prop] : this.projectVariables[prop];
+          if (val !== void 0) {
+            return { configurable: true, enumerable: true, value: val };
+          }
+          return void 0;
+        }
+      });
+    }
+    processVariableEvents(prop, value, oldValue, varDef) {
+      const executor = this.host.taskExecutor;
+      if (!executor) return;
+      if (oldValue !== value && varDef.onValueChanged) {
+        executor.execute(varDef.onValueChanged, {}, this.contextVars);
+      }
+      if ((value === "" || value === null || value === void 0) && varDef.onValueEmpty) {
+        executor.execute(varDef.onValueEmpty, {}, this.contextVars);
+      }
+      if (typeof value === "number" && typeof oldValue === "number" && typeof varDef.threshold === "number") {
+        const t = varDef.threshold;
+        if (oldValue < t && value >= t && varDef.onThresholdReached) {
+          executor.execute(varDef.onThresholdReached, {}, this.contextVars);
+        }
+        if (oldValue >= t && value < t && varDef.onThresholdLeft) {
+          executor.execute(varDef.onThresholdLeft, {}, this.contextVars);
+        }
+        if (oldValue <= t && value > t && varDef.onThresholdExceeded) {
+          executor.execute(varDef.onThresholdExceeded, {}, this.contextVars);
+        }
+      }
+      if (varDef.triggerValue !== void 0 && varDef.triggerValue !== "" && varDef.triggerValue !== null) {
+        const isTrigger = value == varDef.triggerValue;
+        const wasTrigger = oldValue == varDef.triggerValue;
+        if (isTrigger && !wasTrigger && varDef.onTriggerEnter) {
+          executor.execute(varDef.onTriggerEnter, {}, this.contextVars);
+        }
+        if (!isTrigger && wasTrigger && varDef.onTriggerExit) {
+          executor.execute(varDef.onTriggerExit, {}, this.contextVars);
+        }
+      }
+      if (typeof value === "number" && varDef.min !== void 0 && varDef.max !== void 0) {
+        const min = Number(varDef.min);
+        const max2 = Number(varDef.max);
+        if (value <= min && (oldValue > min || oldValue === void 0) && varDef.onMinReached) {
+          executor.execute(varDef.onMinReached, {}, this.contextVars);
+        }
+        if (value >= max2 && (oldValue < max2 || oldValue === void 0) && varDef.onMaxReached) {
+          executor.execute(varDef.onMaxReached, {}, this.contextVars);
+        }
+        const isInside = value > min && value < max2;
+        const wasInside = oldValue > min && oldValue < max2;
+        if (isInside && !wasInside && varDef.onInside) {
+          executor.execute(varDef.onInside, {}, this.contextVars);
+        }
+        if (!isInside && wasInside && varDef.onOutside) {
+          executor.execute(varDef.onOutside, {}, this.contextVars);
+        }
+      }
+      if (varDef.isRandom && oldValue !== value && varDef.onGenerated) {
+        executor.execute(varDef.onGenerated, {}, this.contextVars);
+      }
+      if (varDef.type === "list" && value !== oldValue) {
+        this.processListEvents(value, oldValue, varDef);
+      }
+      if (varDef.type === "timer" && typeof value === "number" && value > 0 && (oldValue === 0 || oldValue === void 0)) {
+        this.host.startTimer(prop, varDef, value);
+      }
+    }
+    processListEvents(value, oldValue, varDef) {
+      const executor = this.host.taskExecutor;
+      if (!executor) return;
+      try {
+        const list = Array.isArray(value) ? value : JSON.parse(value);
+        const oldList = Array.isArray(oldValue) ? oldValue : oldValue ? JSON.parse(oldValue) : [];
+        if (list.length > oldList.length && varDef.onItemAdded) {
+          executor.execute(varDef.onItemAdded, {}, this.contextVars);
+        }
+        if (list.length < oldList.length && varDef.onItemRemoved) {
+          executor.execute(varDef.onItemRemoved, {}, this.contextVars);
+        }
+        if (varDef.searchValue) {
+          const contains = list.includes(varDef.searchValue);
+          const wasContains = oldList.includes(varDef.searchValue);
+          if (contains && !wasContains && varDef.onContains) {
+            executor.execute(varDef.onContains, {}, this.contextVars);
+          }
+          if (!contains && wasContains && varDef.onNotContains) {
+            executor.execute(varDef.onNotContains, {}, this.contextVars);
+          }
+        }
+      } catch (e) {
+      }
+    }
+  };
+
   // src/components/TComponent.ts
   var TComponent = class {
     constructor(name) {
@@ -2469,28 +2333,50 @@
       this.className = this.constructor.name;
       this.Tasks = {};
     }
-    getInspectorProperties() {
+    getBaseProperties() {
       return [
         { name: "name", label: "Name", type: "string", group: "IDENTIT\xC4T" },
         { name: "id", label: "ID", type: "string", group: "IDENTIT\xC4T", readonly: true },
         { name: "scope", label: "Scope", type: "select", group: "IDENTIT\xC4T", options: ["global", "stage"] },
-        { name: "draggable", label: "Draggable", type: "boolean", group: "INTERAKTION" },
-        { name: "dragMode", label: "Drag Mode", type: "select", group: "INTERAKTION", options: ["move", "copy"] },
-        { name: "droppable", label: "Droppable", type: "boolean", group: "INTERAKTION" }
+        { name: "draggable", label: "Draggable", type: "boolean", group: "INTERAKTION", editorOnly: true },
+        { name: "dragMode", label: "Drag Mode", type: "select", group: "INTERAKTION", options: ["move", "copy"], editorOnly: true },
+        { name: "droppable", label: "Droppable", type: "boolean", group: "INTERAKTION", editorOnly: true }
       ];
     }
+    /**
+     * Generisches toJSON, das die Metadaten aus getInspectorProperties nutzt.
+     */
     toJSON() {
-      return {
-        className: this.constructor.name,
+      const json = {
+        className: this.className || this.constructor.name,
         id: this.id,
-        name: this.name,
-        scope: this.scope,
-        isVariable: this.isVariable,
-        Tasks: this.Tasks,
-        draggable: this.draggable,
-        dragMode: this.dragMode,
-        droppable: this.droppable
+        isVariable: this.isVariable
       };
+      if (this.Tasks && Object.keys(this.Tasks).length > 0) {
+        json.Tasks = this.Tasks;
+      }
+      const props = this.getInspectorProperties();
+      props.forEach((p) => {
+        if (p.serializable === false) return;
+        const value = this.getPropertyValue(p.name);
+        if (value !== void 0) {
+          json[p.name] = value;
+        }
+      });
+      return json;
+    }
+    /**
+     * Hilfsmethode um Property-Werte (auch verschachtelte) zu lesen
+     */
+    getPropertyValue(path) {
+      if (!path.includes(".")) return this[path];
+      const parts = path.split(".");
+      let current = this;
+      for (const part of parts) {
+        if (current === void 0 || current === null) return void 0;
+        current = current[part];
+      }
+      return current;
     }
     addChild(child) {
       if (child.parent) {
@@ -2557,20 +2443,6 @@
         this.x = 0;
       }
     }
-    toJSON() {
-      return {
-        ...super.toJSON(),
-        x: this.x,
-        y: this.y,
-        width: this.width,
-        height: this.height,
-        zIndex: this.zIndex,
-        visible: this.visible,
-        align: this._align,
-        style: { ...this.style },
-        Tasks: this.Tasks
-      };
-    }
     get caption() {
       return this._caption;
     }
@@ -2620,15 +2492,15 @@
       return ["onClick", "onFocus", "onBlur", "onDragStart", "onDragEnd", "onDrop"];
     }
     getInspectorProperties() {
-      const props = super.getInspectorProperties();
       return [
-        ...props,
+        ...this.getBaseProperties(),
         { name: "x", label: "X Position", type: "number", group: "GEOMETRIE" },
         { name: "y", label: "Y Position", type: "number", group: "GEOMETRIE" },
         { name: "width", label: "Breite", type: "number", group: "GEOMETRIE" },
         { name: "height", label: "H\xF6he", type: "number", group: "GEOMETRIE" },
         { name: "zIndex", label: "Z-Index", type: "number", group: "GEOMETRIE" },
         { name: "align", label: "Ausrichtung", type: "select", group: "GEOMETRIE", options: ["NONE", "TOP", "BOTTOM", "LEFT", "RIGHT", "CLIENT"] },
+        { name: "caption", label: "Text", type: "string", group: "INHALT" },
         { name: "visible", label: "Sichtbar", type: "boolean", group: "IDENTIT\xC4T" },
         { name: "style.backgroundColor", label: "Hintergrund", type: "color", group: "STIL" },
         { name: "style.borderColor", label: "Rahmenfarbe", type: "color", group: "STIL" },
@@ -2679,26 +2551,8 @@
       const props = super.getInspectorProperties();
       return [
         ...props,
-        // Basic (Specifics only, styles inherited from TTextControl/TWindow)
-        { name: "caption", label: "Caption", type: "string", group: "Specifics" },
-        { name: "icon", label: "Icon Image", type: "image_picker", group: "Specifics" }
+        { name: "icon", label: "Icon", type: "image_picker", group: "DARSTELLUNG" }
       ];
-    }
-    // Color property wrapper mapping to style (legacy support)
-    get color() {
-      return this.style.backgroundColor;
-    }
-    set color(value) {
-      this.style.backgroundColor = value;
-    }
-    toJSON() {
-      return {
-        ...super.toJSON(),
-        caption: this.caption,
-        color: this.color,
-        // Keep legacy mapping for now
-        icon: this.icon
-      };
     }
   };
 
@@ -2784,17 +2638,7 @@
       this.text = v;
     }
     getInspectorProperties() {
-      const props = super.getInspectorProperties();
-      return [
-        ...props,
-        { name: "text", label: "Text", type: "string", group: "Specifics" }
-      ];
-    }
-    toJSON() {
-      return {
-        ...super.toJSON(),
-        text: this.text
-      };
+      return super.getInspectorProperties();
     }
   };
 
@@ -2860,19 +2704,10 @@
       const props = super.getInspectorProperties();
       return [
         ...props,
-        { name: "text", label: "Value", type: "string", group: "Specifics" },
         { name: "placeholder", label: "Placeholder", type: "string", group: "Specifics" },
         { name: "maxLength", label: "Max Length", type: "number", group: "Specifics" }
         // Inherits styles from TTextControl
       ];
-    }
-    toJSON() {
-      return {
-        ...super.toJSON(),
-        text: this.text,
-        placeholder: this.placeholder,
-        maxLength: this.maxLength
-      };
     }
   };
 
@@ -2948,7 +2783,7 @@
       return match ? match[2] : "Unknown";
     }
     getInspectorProperties() {
-      const props = super.getInspectorProperties();
+      const props = this.getBaseProperties();
       return [
         ...props,
         // Browser
@@ -3123,9 +2958,8 @@
       this._objectFit = value;
     }
     getInspectorProperties() {
-      const props = super.getInspectorProperties();
       return [
-        ...props,
+        ...super.getInspectorProperties(),
         // Motion group
         { name: "velocityX", label: "Velocity X", type: "number", group: "Motion" },
         { name: "velocityY", label: "Velocity Y", type: "number", group: "Motion" },
@@ -3140,20 +2974,6 @@
         { name: "backgroundImage", label: "Sprite Image", type: "image_picker", group: "Appearance" },
         { name: "objectFit", label: "Image Fit", type: "select", group: "Appearance", options: ["cover", "contain", "fill", "none"] }
       ];
-    }
-    toJSON() {
-      return {
-        ...super.toJSON(),
-        velocityX: this.velocityX,
-        velocityY: this.velocityY,
-        lerpSpeed: this.lerpSpeed,
-        collisionEnabled: this.collisionEnabled,
-        collisionGroup: this.collisionGroup,
-        shape: this.shape,
-        spriteColor: this.spriteColor,
-        backgroundImage: this._backgroundImage,
-        objectFit: this._objectFit
-      };
     }
     /**
      * Smoothly sync to a new position using additive error correction
@@ -3329,21 +3149,25 @@
     set boundsHeight(_) {
     }
     getInspectorProperties() {
-      const props = super.getInspectorProperties();
       return [
-        ...props,
+        ...super.getInspectorProperties(),
         { name: "targetFPS", label: "Target FPS", type: "number", group: "Loop Settings" },
         { name: "boundsOffsetTop", label: "Bounds Offset Top", type: "number", group: "Boundaries" },
         { name: "boundsOffsetBottom", label: "Bounds Offset Bottom", type: "number", group: "Boundaries" }
       ];
     }
     toJSON() {
-      return {
-        ...super.toJSON(),
-        targetFPS: this.targetFPS,
-        boundsOffsetTop: this.boundsOffsetTop,
-        boundsOffsetBottom: this.boundsOffsetBottom
-      };
+      return super.toJSON();
+    }
+    onRuntimeStart() {
+    }
+    initRuntime(callbacks) {
+      this.init(
+        callbacks.objects,
+        callbacks.gridConfig,
+        callbacks.render,
+        callbacks.handleEvent
+      );
     }
     /**
      * Initialize the game loop with objects, grid config, and callbacks
@@ -3552,7 +3376,6 @@
       __publicField(this, "enabled", true);
       // Internal state
       __publicField(this, "keysPressed", /* @__PURE__ */ new Set());
-      // private sprites: TSprite[] = [];
       __publicField(this, "isActive", false);
       __publicField(this, "eventCallback", null);
       // Event handlers (bound for proper removal)
@@ -3566,17 +3389,22 @@
       this.handleKeyUp = this.onKeyUp.bind(this);
     }
     getInspectorProperties() {
-      const props = super.getInspectorProperties();
       return [
-        ...props,
+        ...super.getInspectorProperties(),
         { name: "enabled", label: "Enabled", type: "boolean", group: "Input" }
       ];
     }
     toJSON() {
-      return {
-        ...super.toJSON(),
-        enabled: this.enabled
-      };
+      return super.toJSON();
+    }
+    initRuntime(callbacks) {
+      this.init(callbacks.objects, callbacks.handleEvent);
+    }
+    onRuntimeStart() {
+      this.start();
+    }
+    onRuntimeStop() {
+      this.stop();
     }
     /**
      * Initialize with game objects and event callback
@@ -3708,9 +3536,8 @@
       this.style.borderWidth = 2;
     }
     getInspectorProperties() {
-      const props = super.getInspectorProperties();
       return [
-        ...props,
+        ...super.getInspectorProperties(),
         { name: "interval", label: "Interval (ms)", type: "number", group: "Timer" },
         { name: "enabled", label: "Aktiviert", type: "boolean", group: "Timer" },
         { name: "maxInterval", label: "Max Intervalle (0=\u221E)", type: "number", group: "Timer" },
@@ -3725,13 +3552,19 @@
       ];
     }
     toJSON() {
-      return {
-        ...super.toJSON(),
-        interval: this.interval,
-        enabled: this.enabled,
-        maxInterval: this.maxInterval,
-        currentInterval: this.currentInterval
-      };
+      return super.toJSON();
+    }
+    initRuntime(callbacks) {
+      this.onEvent = (ev) => callbacks.handleEvent(this.id, ev);
+    }
+    onRuntimeStart() {
+      if (this.enabled) {
+        this.start(() => {
+        });
+      }
+    }
+    onRuntimeStop() {
+      this.stop();
     }
     /**
      * Start the timer with a callback. Used internally by Editor/GameRuntime.
@@ -4609,20 +4442,25 @@
       return this._lastError;
     }
     getInspectorProperties() {
-      const props = super.getInspectorProperties();
       return [
-        ...props,
+        ...super.getInspectorProperties(),
         { name: "serverUrl", label: "Server URL", type: "string", group: "Server" },
         { name: "autoConnect", label: "Auto Connect", type: "boolean", group: "Server" }
       ];
     }
     toJSON() {
-      return {
-        ...super.toJSON(),
-        serverUrl: this.serverUrl,
-        autoConnect: this.autoConnect,
-        Tasks: this.Tasks
-      };
+      return super.toJSON();
+    }
+    initRuntime(callbacks) {
+      this.eventCallback = (ev, data) => callbacks.handleEvent(this.id, ev, data);
+    }
+    onRuntimeStart() {
+      if (this.autoConnect) {
+        this.connect();
+      }
+    }
+    onRuntimeStop() {
+      this.stop();
     }
     /**
      * Set the event callback for triggering tasks
@@ -6339,21 +6177,15 @@
       this.style.visible = true;
     }
     getInspectorProperties() {
-      const props = super.getInspectorProperties();
       return [
-        ...props,
+        ...super.getInspectorProperties(),
         { name: "state", label: "Initial State", type: "select", group: "Game State", options: ["menu", "playing", "paused", "gameover"] },
         { name: "spritesMoving", label: "Sprites Moving", type: "boolean", group: "Game State" },
         { name: "collisionsEnabled", label: "Collisions Enabled", type: "boolean", group: "Game State" }
       ];
     }
     toJSON() {
-      return {
-        ...super.toJSON(),
-        state: this.state,
-        spritesMoving: this.spritesMoving,
-        collisionsEnabled: this.collisionsEnabled
-      };
+      return super.toJSON();
     }
   };
 
@@ -7602,13 +7434,11 @@
         { name: "value", label: "Aktueller Wert", type: "string", group: "Variable" }
       ];
     }
-    toJSON() {
-      return {
-        ...super.toJSON(),
-        variableType: this.variableType,
-        defaultValue: this.defaultValue,
-        value: this.value
-      };
+    getEvents() {
+      return [
+        ...super.getEvents(),
+        "onValueChanged"
+      ];
     }
   };
 
@@ -8097,64 +7927,33 @@
         if (objData.activeTabIndex !== void 0) newObj.activeTabIndex = objData.activeTabIndex;
         if (objData.activeTabName !== void 0) newObj.activeTabName = objData.activeTabName;
         if (objData.layoutConfig !== void 0) newObj.layoutConfig = objData.layoutConfig;
-        if (objData.title !== void 0) newObj.title = objData.title;
-        if (objData.borderRadius !== void 0) newObj.borderRadius = objData.borderRadius;
-        if (objData.padding !== void 0) newObj.padding = objData.padding;
-        if (objData.modal !== void 0) newObj.modal = objData.modal;
-        if (objData.closable !== void 0) newObj.closable = objData.closable;
-        if (objData.draggableAtRuntime !== void 0) newObj.draggableAtRuntime = objData.draggableAtRuntime;
-        if (objData.centerOnShow !== void 0) newObj.centerOnShow = objData.centerOnShow;
-        if (objData.onShowTask !== void 0) newObj.onShowTask = objData.onShowTask;
-        if (objData.onCloseTask !== void 0) newObj.onCloseTask = objData.onCloseTask;
-        if (objData.onCancelTask !== void 0) newObj.onCancelTask = objData.onCancelTask;
-        if (objData.message !== void 0) newObj.message = objData.message;
-        if (objData.icon !== void 0) newObj.icon = objData.icon;
-        if (objData.iconSize !== void 0) newObj.iconSize = objData.iconSize;
-        if (objData.showCancelButton !== void 0) newObj.showCancelButton = objData.showCancelButton;
-        if (objData.cancelButtonText !== void 0) newObj.cancelButtonText = objData.cancelButtonText;
-        if (objData.showConfirmButton !== void 0) newObj.showConfirmButton = objData.showConfirmButton;
-        if (objData.confirmButtonText !== void 0) newObj.confirmButtonText = objData.confirmButtonText;
-        if (objData.showSpinner !== void 0) newObj.showSpinner = objData.showSpinner;
-        if (objData.autoClose !== void 0) newObj.autoClose = objData.autoClose;
-        if (objData.autoCloseDelay !== void 0) newObj.autoCloseDelay = objData.autoCloseDelay;
-        if (objData.onConfirmTask !== void 0) newObj.onConfirmTask = objData.onConfirmTask;
-        if (objData.onAutoCloseTask !== void 0) newObj.onAutoCloseTask = objData.onAutoCloseTask;
-        if (objData.animation !== void 0) newObj.animation = objData.animation;
-        if (objData.position !== void 0) newObj.position = objData.position;
-        if (objData.duration !== void 0) newObj.duration = objData.duration;
-        if (objData.maxVisible !== void 0) newObj.maxVisible = objData.maxVisible;
-        if (objData.infoColor !== void 0) newObj.infoColor = objData.infoColor;
-        if (objData.successColor !== void 0) newObj.successColor = objData.successColor;
-        if (objData.warningColor !== void 0) newObj.warningColor = objData.warningColor;
-        if (objData.errorColor !== void 0) newObj.errorColor = objData.errorColor;
-        if (objData.sections !== void 0) newObj.sections = objData.sections;
-        if (objData.sectionGap !== void 0) newObj.sectionGap = objData.sectionGap;
-        if (objData.separatorColor !== void 0) newObj.separatorColor = objData.separatorColor;
-        if (objData.showSeparators !== void 0) newObj.showSeparators = objData.showSeparators;
-        if (objData.paddingX !== void 0) newObj.paddingX = objData.paddingX;
-        if (objData.paddingY !== void 0) newObj.paddingY = objData.paddingY;
-        if (objData.textColor !== void 0) newObj.textColor = objData.textColor;
-        if (objData.fontSize !== void 0) newObj.fontSize = objData.fontSize;
-        if (objData.state !== void 0) newObj.state = objData.state;
-        if (objData.spritesMoving !== void 0) newObj.spritesMoving = objData.spritesMoving;
-        if (objData.collisionsEnabled !== void 0) newObj.collisionsEnabled = objData.collisionsEnabled;
-        if (objData.service !== void 0) newObj.service = objData.service;
-        if (objData.serviceMethod !== void 0) newObj.serviceMethod = objData.serviceMethod;
-        if (objData.serviceParams !== void 0) newObj.serviceParams = objData.serviceParams;
-        if (objData.onSuccessToast !== void 0) newObj.onSuccessToast = objData.onSuccessToast;
-        if (objData.onSuccessToastType !== void 0) newObj.onSuccessToastType = objData.onSuccessToastType;
-        if (objData.onSuccessStatusSection !== void 0) newObj.onSuccessStatusSection = objData.onSuccessStatusSection;
-        if (objData.onSuccessStatusText !== void 0) newObj.onSuccessStatusText = objData.onSuccessStatusText;
-        if (objData.onSuccessInfoWindow !== void 0) newObj.onSuccessInfoWindow = objData.onSuccessInfoWindow;
-        if (objData.onSuccessInfoMessage !== void 0) newObj.onSuccessInfoMessage = objData.onSuccessInfoMessage;
-        if (objData.onSuccessCloseDialog !== void 0) newObj.onSuccessCloseDialog = objData.onSuccessCloseDialog;
-        if (objData.onErrorToast !== void 0) newObj.onErrorToast = objData.onErrorToast;
-        if (objData.onErrorToastType !== void 0) newObj.onErrorToastType = objData.onErrorToastType;
-        if (objData.shapeType !== void 0) newObj.shapeType = objData.shapeType;
-        if (objData.fillColor !== void 0) newObj.fillColor = objData.fillColor;
-        if (objData.strokeColor !== void 0) newObj.strokeColor = objData.strokeColor;
-        if (objData.strokeWidth !== void 0) newObj.strokeWidth = objData.strokeWidth;
-        if (objData.opacity !== void 0) newObj.opacity = objData.opacity;
+        const reservedKeys = [
+          "className",
+          "id",
+          "children",
+          "Tasks",
+          "style",
+          // Handled explicitly
+          "shapeType",
+          // Often constructor arg, but safe to re-assign if public
+          "type"
+          // Sometimes used for internal typing
+        ];
+        Object.keys(objData).forEach((key) => {
+          if (reservedKeys.includes(key)) return;
+          const val = objData[key];
+          if (val !== void 0) {
+            newObj[key] = val;
+          }
+        });
+        if (newObj.isVariable && objData.value !== void 0) {
+          newObj.value = objData.value;
+        }
+        if (objData.style) {
+          const targetStyle = newObj.style || {};
+          Object.assign(targetStyle, objData.style);
+          newObj.style = targetStyle;
+        }
         if (objData.Tasks) {
           newObj.Tasks = objData.Tasks;
         }
@@ -8170,597 +7969,14 @@
     return objects;
   }
 
-  // src/runtime/GameRuntime.ts
-  var GameRuntime = class {
-    constructor(project, objects, options = {}) {
+  // src/runtime/RuntimeStageManager.ts
+  var RuntimeStageManager = class {
+    constructor(project) {
       this.project = project;
-      this.options = options;
-      __publicField(this, "reactiveRuntime");
-      __publicField(this, "actionExecutor");
-      __publicField(this, "taskExecutor");
-      // Phase 3: Variable Scopes
-      __publicField(this, "projectVariables", {});
-      // Global persistence
-      __publicField(this, "stageVariables", {});
-      // Local ephemeral
-      __publicField(this, "contextVars");
-      // Proxy for access
-      __publicField(this, "objects");
-      __publicField(this, "isSplashActive", false);
-      __publicField(this, "splashTimerId", null);
-      __publicField(this, "stage", null);
-      // Public property for external access (e.g. Standalone Player)
-      __publicField(this, "stageController", null);
-      __publicField(this, "varTimers", /* @__PURE__ */ new Map());
-      this.projectVariables = { ...options.initialGlobalVars };
-      if (project.variables) {
-        project.variables.forEach((v) => {
-          const isGlobal = !v.scope || v.scope === "global";
-          if (isGlobal) {
-            if (this.projectVariables[v.name] === void 0) {
-              this.projectVariables[v.name] = v.defaultValue;
-            }
-          } else if (v.scope === "local") {
-            if (this.stageVariables[v.name] === void 0) {
-              this.stageVariables[v.name] = v.defaultValue;
-            }
-          }
-        });
-      }
-      this.contextVars = this.createVariableContext();
-      this.reactiveRuntime = new ReactiveRuntime();
-      const hasStages = project.stages && project.stages.length > 0;
-      let activeStage = null;
-      if (options.startStageId && hasStages) {
-        activeStage = project.stages.find((s) => s.id === options.startStageId);
-        console.log(`[GameRuntime] Context-Aware Start. Requested stage: ${activeStage?.name || options.startStageId}`);
-      } else {
-        console.log(`[GameRuntime] Default Start. Searching for Splash.`);
-        if (hasStages) {
-          const splashStage = project.stages.find((s) => s.type === "splash");
-          if (splashStage) {
-            activeStage = splashStage;
-            console.log(`[GameRuntime] Found Splash: ${activeStage.name}`);
-          } else {
-            activeStage = project.stages.find((s) => s.id === project.activeStageId) || project.stages[0];
-            console.log(`[GameRuntime] No Splash. Using: ${activeStage?.name}`);
-          }
-        }
-      }
-      if (objects) {
-        this.objects = objects;
-        this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
-        this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
-      } else if (activeStage) {
-        this.stage = activeStage;
-        this.isSplashActive = activeStage.type === "splash";
-        const stageChain = this.resolveInheritanceChain(activeStage.id);
-        console.log(`[GameRuntime] Resolved inheritance chain: ${stageChain.map((s) => s.name).join(" -> ")}`);
-        let mergedObjects = [];
-        let mergedTasks = [];
-        let mergedActions = [];
-        let mergedFlowCharts = { ...project.flowCharts || {} };
-        const objectIdSet = /* @__PURE__ */ new Set();
-        stageChain.forEach((stage) => {
-          const stageObjects = hydrateObjects(stage.objects || []);
-          stageObjects.forEach((obj) => {
-            mergedObjects = mergedObjects.filter((o) => o.id !== obj.id);
-            mergedObjects.push(obj);
-            objectIdSet.add(obj.id);
-          });
-          if (stage.tasks) {
-            stage.tasks.forEach((t) => {
-              mergedTasks = mergedTasks.filter((existing) => existing.name !== t.name);
-              mergedTasks.push(t);
-            });
-          }
-          if (stage.actions) {
-            stage.actions.forEach((a) => {
-              mergedActions = mergedActions.filter((existing) => existing.name !== a.name);
-              mergedActions.push(a);
-            });
-          }
-          if (stage.flowCharts) {
-            Object.assign(mergedFlowCharts, stage.flowCharts);
-          }
-          if (stage.variables) {
-            stage.variables.forEach((v) => {
-              this.stageVariables[v.name] = v.defaultValue;
-            });
-          }
-        });
-        if (activeStage.type !== "splash" && activeStage.type !== "main") {
-          const mainStage = project.stages.find((s) => s.type === "main");
-          if (mainStage && mainStage.objects) {
-            const globalObjects = hydrateObjects(mainStage.objects);
-            const systemClasses = [
-              "TGameLoop",
-              "TStageController",
-              "TGameState",
-              "THandshake",
-              "THeartbeat",
-              "TGameServer",
-              "TInputController",
-              "TDebugLog"
-            ];
-            globalObjects.forEach((gObj) => {
-              const isSystem = systemClasses.includes(gObj.className);
-              if (isSystem && !objectIdSet.has(gObj.id)) {
-                const nameCollision = mergedObjects.find((l) => l.name === gObj.name);
-                if (!nameCollision) {
-                  mergedObjects.push(gObj);
-                }
-              }
-            });
-          }
-        }
-        this.objects = mergedObjects;
-        if (options.makeReactive) {
-          this.objects.forEach((obj) => {
-            this.reactiveRuntime.registerObject(obj.name, obj, true);
-          });
-          this.reactiveRuntime.setVariable("isSplashActive", this.isSplashActive);
-          const mp2 = options.multiplayerManager || window.multiplayerManager;
-          this.reactiveRuntime.setVariable("isMultiplayer", !!mp2);
-          if (mp2) {
-            this.reactiveRuntime.setVariable("playerNumber", mp2.playerNumber || 1);
-            this.reactiveRuntime.setVariable("isHost", mp2.isHost !== void 0 ? mp2.isHost : mp2.playerNumber === 1);
-          } else {
-            this.reactiveRuntime.setVariable("playerNumber", 1);
-            this.reactiveRuntime.setVariable("isHost", true);
-          }
-          this.objects = this.reactiveRuntime.getObjects();
-        }
-        this.actionExecutor = new ActionExecutor(
-          this.objects,
-          options.multiplayerManager || window.multiplayerManager,
-          options.onNavigate,
-          this
-        );
-        const mp = options.multiplayerManager || window.multiplayerManager;
-        const finalTasks = [...project.tasks || [], ...mergedTasks];
-        const finalActions = [...project.actions || [], ...mergedActions];
-        this.taskExecutor = new TaskExecutor(
-          project,
-          finalActions,
-          this.actionExecutor,
-          mergedFlowCharts,
-          mp,
-          finalTasks
-        );
-      } else {
-        const hasLegacySplash = project.splashObjects && project.splashObjects.length > 0;
-        if (hasLegacySplash) {
-          this.isSplashActive = true;
-          this.objects = hydrateObjects(project.splashObjects || []);
-        } else {
-          this.objects = hydrateObjects(project.objects || []);
-        }
-        this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
-        this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
-      }
-      if (options.multiplayerManager) {
-        options.multiplayerManager.onRemoteTask = (msg) => {
-          this.executeRemoteTask(msg.taskName, msg.params);
-        };
-      }
-      this.init();
-      this.initStageController();
-      if (activeStage && options.onStageSwitch) {
-        options.onStageSwitch(activeStage.id);
-      }
-    }
-    stop() {
-      if (this.splashTimerId) {
-        clearTimeout(this.splashTimerId);
-        this.splashTimerId = null;
-      }
-      const gameLoop = this.objects.find((o) => o.className === "TGameLoop");
-      if (gameLoop && typeof gameLoop.stop === "function") {
-        gameLoop.stop();
-      }
-      GameLoopManager.getInstance().stop();
-      const inputControllers = this.objects.filter((o) => o.className === "TInputController");
-      inputControllers.forEach((ic) => {
-        if (typeof ic.stop === "function") ic.stop();
-      });
-      const timers = this.objects.filter((o) => o.className === "TTimer");
-      timers.forEach((timer) => {
-        if (typeof timer.stop === "function") timer.stop();
-      });
-      const servers = this.objects.filter((o) => o.className === "TGameServer");
-      servers.forEach((server) => {
-        if (typeof server.stop === "function") server.stop();
-      });
-      AnimationManager.getInstance().clear();
-    }
-    start() {
-      if (this.options.onRender) this.options.onRender();
-      this.objects.forEach((obj) => {
-        this.handleEvent(obj.id, "onStart");
-      });
-      if (this.isSplashActive) {
-        if (this.project.splashAutoHide) {
-          const duration = this.stage?.duration || this.project.splashDuration || 3e3;
-          console.log(`[GameRuntime] Splash active. Auto-hiding in ${duration}ms`);
-          this.splashTimerId = setTimeout(() => {
-            this.finishSplash();
-          }, duration);
-        }
-        return;
-      }
-      this.initMainGame();
-    }
-    initMainGame() {
-      let stageConfig = this.stage || this.project.stage || this.project.grid;
-      if (stageConfig && stageConfig.startAnimation && stageConfig.startAnimation !== "none") {
-        this.triggerStartAnimation(stageConfig);
-      }
-      const inputControllers = this.objects.filter((o) => o.className === "TInputController");
-      inputControllers.forEach((ic) => {
-        if (typeof ic.init === "function") {
-          ic.init(this.objects, (id, ev, data) => this.handleEvent(id, ev, data));
-        }
-        if (typeof ic.start === "function") ic.start();
-      });
-      const gridConfig = this.stage && this.stage.grid || this.project.stage?.grid || this.project.grid;
-      GameLoopManager.getInstance().init(
-        this.objects,
-        gridConfig,
-        this.options.onRender || (() => {
-        }),
-        (id, ev, data) => this.handleEvent(id, ev, data)
-      );
-      GameLoopManager.getInstance().start();
-      const timers = this.objects.filter((o) => o.className === "TTimer");
-      timers.forEach((timer) => {
-        if ("onEvent" in timer) timer.onEvent = (ev) => this.handleEvent(timer.id, ev);
-        if (typeof timer.start === "function") timer.start(() => this.handleEvent(timer.id, "onTimer"));
-      });
-      const numberLabels = this.objects.filter((o) => o.className === "TNumberLabel");
-      numberLabels.forEach((nl) => {
-        if ("onEvent" in nl) nl.onEvent = (ev) => this.handleEvent(nl.id, ev);
-      });
-      const splashScreens = this.objects.filter((o) => o.className === "TSplashScreen");
-      splashScreens.forEach((splash) => {
-        const duration = splash.duration || 3e3;
-        setTimeout(() => {
-          this.handleEvent(splash.id, "onFinish");
-          if (splash.autoHide) {
-            splash.visible = false;
-            if (this.options.onRender) this.options.onRender();
-          }
-        }, duration);
-      });
-      this.initMultiplayer();
-      if (this.options.onRender) this.options.onRender();
-    }
-    finishSplash() {
-      if (!this.isSplashActive) return;
-      if (this.splashTimerId) {
-        clearTimeout(this.splashTimerId);
-        this.splashTimerId = null;
-      }
-      console.log("[GameRuntime] Splash finished. Using TStageController to switch to Main.");
-      this.isSplashActive = false;
-      if (this.stageController) {
-        this.stageController.goToMainStage();
-      } else {
-        console.warn("[GameRuntime] No StageController found, using legacy stage switch");
-        this.legacyStageSwitch();
-      }
-    }
-    /**
-     * Initialisiert den TStageController und registriert den Stage-Wechsel Callback
-     */
-    initStageController() {
-      this.stageController = this.objects.find(
-        (o) => o.className === "TStageController"
-      );
-      if (this.stageController && this.project.stages) {
-        this.stageController.setStages(this.project.stages);
-        this.stageController.setOnStageChangeCallback(
-          (oldId, newId) => this.handleStageChange(oldId, newId)
-        );
-        console.log(`[GameRuntime] StageController initialized with ${this.project.stages.length} stages`);
-      }
-    }
-    /**
-     * Wird vom TStageController aufgerufen wenn die Stage wechselt
-     */
-    handleStageChange(oldStageId, newStageId) {
-      console.log(`[GameRuntime] Stage change: ${oldStageId} \u2192 ${newStageId}`);
-      if (this.project.stages) {
-        this.stage = this.project.stages.find((s) => s.id === newStageId);
-      }
-      const targetStage = this.project.stages?.find((s) => s.id === newStageId);
-      if (!targetStage) {
-        console.error(`[GameRuntime] Stage not found: ${newStageId}`);
-        return;
-      }
-      let combinedObjects = [...targetStage.objects || []];
-      if (targetStage.type !== "main") {
-        const mainStage = this.project.stages?.find((s) => s.type === "main");
-        if (mainStage && mainStage.objects) {
-          const systemClasses = [
-            "TGameLoop",
-            "TStageController",
-            "TGameState",
-            "THandshake",
-            "THeartbeat",
-            "TGameServer",
-            "TInputController",
-            "TDebugLog"
-          ];
-          const existingIds = new Set(combinedObjects.map((o) => o.id));
-          mainStage.objects.forEach((gObj) => {
-            if (systemClasses.includes(gObj.className) && !existingIds.has(gObj.id)) {
-              combinedObjects.push(gObj);
-            }
-          });
-        }
-      }
-      console.log(`[GameRuntime] Loading ${combinedObjects.length} objects for stage ${newStageId}`);
-      this.objects = hydrateObjects(combinedObjects);
-      const stageFlowCharts = this.stage?.flowCharts || {};
-      const stageTasks = this.stage?.tasks || [];
-      const stageActions = this.stage?.actions || [];
-      const mergedFlowCharts = {
-        ...this.project.flowCharts || {},
-        ...stageFlowCharts
-      };
-      const mergedTasks = [
-        ...this.project.tasks || [],
-        ...stageTasks
-      ];
-      const mergedActions = [
-        ...this.project.actions || [],
-        ...stageActions
-      ];
-      this.taskExecutor.setFlowCharts(mergedFlowCharts);
-      this.taskExecutor.setTasks(mergedTasks);
-      this.taskExecutor.setActions(mergedActions);
-      console.log(`[GameRuntime] TaskExecutor updated with ${Object.keys(mergedFlowCharts).length} flowCharts, ${mergedTasks.length} tasks and ${mergedActions.length} actions`);
-      if (this.options.makeReactive) {
-        this.reactiveRuntime.clear();
-        this.clearAllTimers();
-        AnimationManager.getInstance().clear();
-        this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
-        this.reactiveRuntime.setVariable("isSplashActive", false);
-        this.objects = this.reactiveRuntime.getObjects();
-      }
-      this.stageVariables = {};
-      if (this.stage?.variables) {
-        this.stage.variables.forEach((v) => {
-          this.stageVariables[v.name] = v.defaultValue;
-        });
-      }
-      console.log(`[GameRuntime] Local variables reset for stage ${newStageId}`);
-      this.actionExecutor.setObjects(this.objects);
-      this.initStageController();
-      this.start();
-      if (this.options.onStageSwitch) {
-        console.log(`[GameRuntime] Notifying host of stage switch to: ${newStageId}`);
-        this.options.onStageSwitch(newStageId);
-      }
-    }
-    /**
-     * Legacy Stage-Wechsel (Fallback wenn kein TStageController vorhanden)
-     */
-    legacyStageSwitch() {
-      if (this.project.stages) {
-        const mainStage = this.project.stages.find((s) => s.type === "main");
-        if (mainStage) {
-          this.handleStageChange("splash", mainStage.id);
-        }
-      } else {
-        this.objects = hydrateObjects(this.project.objects || []);
-        this.start();
-      }
-    }
-    initMultiplayer() {
-      const mp = this.options.multiplayerManager || window.multiplayerManager;
-      if (!mp) return;
-      if (typeof mp.on === "function") {
-        mp.on((msg) => {
-          const handshakes = this.objects.filter((o) => o.className === "THandshake");
-          handshakes.forEach((hs) => {
-            if (msg.type === "room_joined") {
-              hs._setRoomInfo(msg.roomCode, msg.playerNumber, msg.playerNumber === 1);
-              hs._setStatus("waiting");
-              hs._fireEvent("onRoomJoined", msg);
-            } else if (msg.type === "game_start") {
-              hs._setStatus("playing");
-              hs._fireEvent("onGameStart", msg);
-            } else if (msg.type === "room_created") {
-              hs._setRoomInfo(msg.roomCode, 1, true);
-              hs._setStatus("waiting");
-              hs._fireEvent("onRoomCreated", msg);
-            }
-          });
-          const heartbeats = this.objects.filter((o) => o.className === "THeartbeat");
-          heartbeats.forEach((hb) => {
-            if (msg.type === "pong") hb._handlePong(msg.serverTime);
-            else if (msg.type === "player_timeout") hb._setConnectionLost();
-          });
-        });
-      }
-      this.objects.filter((o) => o.className === "THandshake").forEach((hs) => {
-        hs.onEvent = (ev, data) => {
-          if (ev === "_createRoom") mp.createRoom();
-          else if (ev === "_joinRoom") mp.joinRoom(data?.code);
-          else if (ev === "_ready") mp.ready();
-          else this.handleEvent(hs.id, ev, data);
-        };
-      });
-      this.objects.filter((o) => o.className === "THeartbeat").forEach((hb) => {
-        hb.onEvent = (ev, data) => {
-          if (ev === "_start") hb._startTimer(() => mp.send({ type: "ping", timestamp: Date.now() }));
-          else if (ev === "_stop") hb._stopTimer();
-          else this.handleEvent(hb.id, ev, data);
-        };
-      });
-      this.objects.filter((o) => o.className === "TGameServer").forEach((server) => {
-        if (typeof server.start === "function") {
-          server.start((ev, data) => this.handleEvent(server.id, ev, data));
-        }
-      });
-      if (mp.roomCode) {
-        this.objects.filter((o) => o.className === "THandshake").forEach((hs) => {
-          hs._setRoomInfo(mp.roomCode, mp.playerNumber, mp.playerNumber === 1);
-          hs._setStatus("waiting");
-          if (mp.playerNumber === 1) hs._fireEvent("onRoomCreated", { roomCode: mp.roomCode });
-          else hs._fireEvent("onRoomJoined", { roomCode: mp.roomCode, playerNumber: mp.playerNumber });
-        });
-      }
-    }
-    triggerStartAnimation(stageConfig) {
-      const invisibleClasses = [
-        "TGameLoop",
-        "TInputController",
-        "TTimer",
-        "TGameState",
-        "THandshake",
-        "THeartbeat",
-        "TGameServer",
-        "TStage",
-        "TVariable",
-        "TThresholdVariable",
-        "TTriggerVariable",
-        "TRangeVariable",
-        "TListVariable",
-        "TRandomVariable",
-        "TObjectList",
-        "TRepeater",
-        "TStageController"
-      ];
-      const visualObjects = this.objects.filter((o) => !invisibleClasses.includes(o.className));
-      visualObjects.forEach((obj, index) => {
-        if (typeof obj.moveTo === "function") {
-          const targetX = obj.x, targetY = obj.y;
-          const duration = stageConfig.startAnimationDuration || 1e3;
-          const easing = stageConfig.startAnimationEasing || "easeOut";
-          const start = this.getPatternStartPosition(stageConfig.startAnimation, targetX, targetY, index, stageConfig);
-          obj.x = start.x;
-          obj.y = start.y;
-          if (!obj.style) obj.style = {};
-          obj.style.opacity = 0;
-          obj.moveTo(targetX, targetY, duration, easing);
-          AnimationManager.getInstance().addTween(obj, "style.opacity", 1, duration, easing);
-        }
-      });
-    }
-    async handleEvent(objectId, eventName, data = {}) {
-      const obj = this.objects.find((o) => o.id === objectId || o.name === objectId);
-      if (!obj) {
-        return;
-      }
-      const taskName = obj.Tasks?.[eventName] || obj[eventName] || obj.properties?.[eventName];
-      if (taskName && typeof taskName === "string") {
-        console.log(`[GameRuntime] Handling ${eventName} on ${obj.name} -> Task: ${taskName}`, data);
-        const vars = {};
-        await this.taskExecutor.execute(taskName, vars, this.contextVars, obj, 0, void 0, data);
-      }
-    }
-    updateRemoteState(objectIdOrName, state) {
-      const target = this.objects.find((o) => o.id === objectIdOrName || o.name === objectIdOrName);
-      if (!target) return;
-      if (state.x !== void 0 || state.y !== void 0) {
-        if (typeof target.smoothSync === "function") target.smoothSync(state.x ?? target.x, state.y ?? target.y);
-        else {
-          if (state.x !== void 0) target.x = state.x;
-          if (state.y !== void 0) target.y = state.y;
-        }
-      }
-      if (state.vx !== void 0) target.velocityX = state.vx;
-      if (state.vy !== void 0) target.velocityY = state.vy;
-      if (state.text !== void 0) target.text = state.text;
-      if (state.value !== void 0) target.value = state.value;
-      if (state.spritesMoving !== void 0) target.spritesMoving = state.spritesMoving;
-      this.handleEvent(target.id, "onSyncState", { ...state, syncedObject: target.name });
-    }
-    /**
-     * Multiplayer: Triggers an event on a specific object from a remote peer
-     */
-    async triggerRemoteEvent(objectId, eventName, params) {
-      console.log(`[Runtime] Remote Event: ${objectId}.${eventName}`, params);
-      await this.handleEvent(objectId, eventName, params);
-    }
-    /**
-     * Multiplayer: Executes an action from a remote peer
-     */
-    async executeRemoteAction(action) {
-      console.log(`[Runtime] Remote Action:`, action);
-      await this.actionExecutor.execute(action, {}, this.contextVars);
-    }
-    /**
-     * Multiplayer: Executes a task from a remote peer
-     */
-    async executeRemoteTask(taskName, params = {}, mode) {
-      console.log(`[GameRuntime] Executing remote task: ${taskName} (mode: ${mode})`);
-      const vars = {};
-      if (this.project.variables) {
-        this.project.variables.forEach((v) => vars[v.name] = this.contextVars[v.name]);
-      }
-      Object.assign(vars, this.stageVariables, params || {});
-      this.taskExecutor.execute(taskName, vars, this.contextVars, null, 0, void 0, params, true);
-    }
-    /**
-     * Returns all runtime objects as a flattened list with absolute coordinates for rendering.
-     * Also accumulates z-index to ensure children of high-z parents (like Splash) are rendered on top.
-     */
-    getObjects() {
-      const all = [];
-      const process = (objs, parentX = 0, parentY = 0, parentZ = 0) => {
-        objs.forEach((obj) => {
-          const currentZ = typeof obj.zIndex === "number" ? obj.zIndex : 0;
-          const effectiveZ = parentZ + currentZ;
-          const renderObj = {
-            ...obj,
-            x: (obj.x || 0) + parentX,
-            y: (obj.y || 0) + parentY,
-            zIndex: effectiveZ,
-            // Explicitly copy image properties that may be lost on Proxy spread
-            backgroundImage: obj.backgroundImage,
-            src: obj.src,
-            objectFit: obj.objectFit,
-            imageOpacity: obj.imageOpacity
-          };
-          all.push(renderObj);
-          if (obj.children && obj.children.length > 0) {
-            process(obj.children, renderObj.x, renderObj.y, effectiveZ);
-          }
-        });
-      };
-      process(this.objects);
-      return all;
-    }
-    /**
-     * Creates a temporary shallow clone of an object.
-     * Used for 'copy' drag mode.
-     */
-    createPhantom(original) {
-      const phantom = {
-        ...original,
-        id: `phantom_${Date.now()}`,
-        name: `${original.name}_phantom`,
-        _isPhantom: true,
-        _original: original,
-        draggable: false
-        // Phantoms themselves aren't draggable
-      };
-      this.objects.push(phantom);
-      return phantom;
-    }
-    /**
-     * Removes an object from the runtime.
-     */
-    removeObject(id) {
-      this.objects = this.objects.filter((o) => o.id !== id);
     }
     resolveInheritanceChain(stageId, visited = /* @__PURE__ */ new Set()) {
       if (visited.has(stageId)) {
-        console.error(`[GameRuntime] Circular inheritance detected for stage: ${stageId}`);
+        console.error(`[RuntimeStageManager] Circular inheritance detected for stage: ${stageId}`);
         return [];
       }
       visited.add(stageId);
@@ -8772,325 +7988,411 @@
       }
       return chain;
     }
-    init() {
-      if (!this.options.makeReactive) {
-        this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, false));
-      }
-      if (this.project.variables) {
-        this.project.variables.forEach((v) => {
-          const val = this.projectVariables[v.name];
-          this.reactiveRuntime.registerVariable(v.name, val);
+    getMergedStageData(stageId) {
+      const stageChain = this.resolveInheritanceChain(stageId);
+      let mergedObjects = [];
+      let mergedTasks = [];
+      let mergedActions = [];
+      let mergedFlowCharts = { ...this.project.flowCharts || {} };
+      const objectIdSet = /* @__PURE__ */ new Set();
+      stageChain.forEach((stage) => {
+        const stageObjects = hydrateObjects(stage.objects || []);
+        stageObjects.forEach((obj) => {
+          mergedObjects = mergedObjects.filter((o) => o.id !== obj.id);
+          mergedObjects.push(obj);
+          objectIdSet.add(obj.id);
         });
-      }
-      if (this.stage && this.stage.variables) {
-        this.stage.variables.forEach((v) => {
-          this.stageVariables[v.name] = v.defaultValue;
-          this.reactiveRuntime.registerVariable(v.name, v.defaultValue);
-        });
-      }
-      this.setupBindings();
-      if (this.project.stages) {
-        this.project.stages.forEach((stage) => {
-          if (stage.name) {
-            this.reactiveRuntime.registerObject(stage.name, this.createStageProxy(stage), false);
-          }
-        });
-      }
-    }
-    /**
-     * Phase 3: Creates a Proxy for a Stage to allow read-only access to its public variables.
-     * Usage: ${StageName.VarName}
-     */
-    createStageProxy(stage) {
-      return new Proxy({}, {
-        get: (_target, prop) => {
-          const variableDef = stage.variables?.find((v) => v.name === prop);
-          if (!variableDef) return void 0;
-          if (!variableDef.isPublic) {
-            console.warn(`[Scope] Access denied: Variable '${prop}' in stage '${stage.name}' is private.`);
-            return void 0;
-          }
-          if (this.stage && this.stage.id === stage.id) {
-            return this.stageVariables[prop];
-          }
-          return variableDef.defaultValue;
-        },
-        set: () => {
-          console.warn(`[Scope] Cannot set properties on Stage Proxy '${stage.name}'. Cross-stage writes are forbidden.`);
-          return false;
+        if (stage.tasks) {
+          stage.tasks.forEach((t) => {
+            mergedTasks = mergedTasks.filter((existing) => existing.name !== t.name);
+            mergedTasks.push(t);
+          });
+        }
+        if (stage.actions) {
+          stage.actions.forEach((a) => {
+            mergedActions = mergedActions.filter((existing) => existing.name !== a.name);
+            mergedActions.push(a);
+          });
+        }
+        if (stage.flowCharts) {
+          Object.assign(mergedFlowCharts, stage.flowCharts);
+        }
+        if (stage.variables) {
+          const hydratedVars = hydrateObjects(stage.variables);
+          hydratedVars.forEach((vObj) => {
+            mergedObjects = mergedObjects.filter((o) => o.id !== vObj.id);
+            mergedObjects.push(vObj);
+            objectIdSet.add(vObj.id);
+          });
         }
       });
+      const activeStage = stageChain[stageChain.length - 1];
+      if (activeStage && activeStage.type !== "splash" && activeStage.type !== "main") {
+        const mainStage = this.project.stages?.find((s) => s.type === "main");
+        if (mainStage && mainStage.objects) {
+          const globalObjects = hydrateObjects(mainStage.objects);
+          const systemClasses = [
+            "TGameLoop",
+            "TStageController",
+            "TGameState",
+            "THandshake",
+            "THeartbeat",
+            "TGameServer",
+            "TInputController",
+            "TDebugLog"
+          ];
+          globalObjects.forEach((gObj) => {
+            const isSystem = systemClasses.includes(gObj.className);
+            if (isSystem && !objectIdSet.has(gObj.id)) {
+              const nameCollision = mergedObjects.find((l) => l.name === gObj.name);
+              if (!nameCollision) {
+                mergedObjects.push(gObj);
+              }
+            }
+          });
+        }
+      }
+      return {
+        objects: mergedObjects,
+        tasks: mergedTasks,
+        actions: mergedActions,
+        flowCharts: mergedFlowCharts
+      };
     }
-    /**
-     * Phase 3: Creates a Proxy handles variable scoping (Local > Global).
-     */
-    /**
-     * Phase 3: Creates a Proxy handles variable scoping (Local > Global).
-     * Includes Reactive Event Logic (Thresholds, Triggers, Changed).
-     */
-    createVariableContext() {
-      return new Proxy({}, {
-        get: (_target, prop) => {
-          if (prop in this.stageVariables) {
-            return this.stageVariables[prop];
-          }
-          if (prop in this.projectVariables) {
-            return this.projectVariables[prop];
-          }
-          return void 0;
-        },
-        set: (_target, prop, value) => {
-          const oldValue = this.stageVariables[prop] !== void 0 ? this.stageVariables[prop] : this.projectVariables[prop];
-          let varDef = this.stage?.variables?.find((v) => v.name === prop);
-          if (!varDef && this.project.variables) {
-            varDef = this.project.variables.find((v) => v.name === prop);
-          }
-          let finalValue = value;
-          if (varDef && varDef.isInteger && typeof value === "number") {
-            finalValue = Math.floor(value);
-          }
-          if (prop in this.stageVariables) {
-            this.stageVariables[prop] = finalValue;
-          } else if (prop in this.projectVariables) {
-            this.projectVariables[prop] = finalValue;
+  };
+
+  // src/runtime/GameRuntime.ts
+  var GameRuntime = class {
+    constructor(project, objects, options = {}) {
+      this.project = project;
+      this.options = options;
+      __publicField(this, "reactiveRuntime");
+      __publicField(this, "actionExecutor");
+      __publicField(this, "taskExecutor", null);
+      __publicField(this, "variableManager");
+      __publicField(this, "stageManager");
+      __publicField(this, "objects", []);
+      __publicField(this, "isSplashActive", false);
+      __publicField(this, "splashTimerId", null);
+      __publicField(this, "stage", null);
+      __publicField(this, "stageController", null);
+      __publicField(this, "varTimers", /* @__PURE__ */ new Map());
+      this.reactiveRuntime = new ReactiveRuntime();
+      this.variableManager = new RuntimeVariableManager(this, options.initialGlobalVars);
+      this.variableManager.initializeVariables(project);
+      this.stageManager = new RuntimeStageManager(project);
+      const hasStages = project.stages && project.stages.length > 0;
+      let activeStage = null;
+      if (options.startStageId && hasStages) {
+        activeStage = project.stages.find((s) => s.id === options.startStageId);
+      } else if (hasStages) {
+        activeStage = project.stages.find((s) => s.type === "splash") || project.stages.find((s) => s.id === project.activeStageId) || project.stages[0];
+      }
+      if (objects) {
+        this.objects = objects;
+        this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
+        this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
+      } else if (activeStage) {
+        this.stage = activeStage;
+        this.isSplashActive = activeStage.type === "splash";
+        const merged = this.stageManager.getMergedStageData(activeStage.id);
+        this.objects = merged.objects;
+        if (options.makeReactive) {
+          this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
+          this.reactiveRuntime.setVariable("isSplashActive", this.isSplashActive);
+          const mp = options.multiplayerManager || window.multiplayerManager;
+          this.reactiveRuntime.setVariable("isMultiplayer", !!mp);
+          if (mp) {
+            this.reactiveRuntime.setVariable("playerNumber", mp.playerNumber || 1);
+            this.reactiveRuntime.setVariable("isHost", mp.isHost !== void 0 ? mp.isHost : mp.playerNumber === 1);
           } else {
-            this.stageVariables[prop] = finalValue;
+            this.reactiveRuntime.setVariable("playerNumber", 1);
+            this.reactiveRuntime.setVariable("isHost", true);
           }
-          this.reactiveRuntime.setVariable(prop, finalValue);
-          if (this.taskExecutor) {
-            let varDef2 = this.stage?.variables?.find((v) => v.name === prop);
-            if (!varDef2 && this.project.variables) {
-              varDef2 = this.project.variables.find((v) => v.name === prop);
-            }
-            if (varDef2) {
-              if (oldValue !== value && varDef2.onValueChanged) {
-                console.log(`[Reactive] ${prop} changed -> executing ${varDef2.onValueChanged}`);
-                this.taskExecutor.execute(varDef2.onValueChanged, {}, this.contextVars);
-              }
-              if ((value === "" || value === null || value === void 0) && varDef2.onValueEmpty) {
-                console.log(`[Reactive] ${prop} is empty -> executing ${varDef2.onValueEmpty}`);
-                this.taskExecutor.execute(varDef2.onValueEmpty, {}, this.contextVars);
-              }
-              if (typeof value === "number" && typeof oldValue === "number" && typeof varDef2.threshold === "number") {
-                const t = varDef2.threshold;
-                if (oldValue < t && value >= t && varDef2.onThresholdReached) {
-                  console.log(`[Reactive] ${prop} reached threshold ${t} -> executing ${varDef2.onThresholdReached}`);
-                  this.taskExecutor.execute(varDef2.onThresholdReached, {}, this.contextVars);
-                }
-                if (oldValue >= t && value < t && varDef2.onThresholdLeft) {
-                  console.log(`[Reactive] ${prop} left threshold ${t} -> executing ${varDef2.onThresholdLeft}`);
-                  this.taskExecutor.execute(varDef2.onThresholdLeft, {}, this.contextVars);
-                }
-                if (oldValue <= t && value > t && varDef2.onThresholdExceeded) {
-                  console.log(`[Reactive] ${prop} exceeded threshold ${t} -> executing ${varDef2.onThresholdExceeded}`);
-                  this.taskExecutor.execute(varDef2.onThresholdExceeded, {}, this.contextVars);
-                }
-              }
-              if (varDef2.triggerValue !== void 0 && varDef2.triggerValue !== "" && varDef2.triggerValue !== null) {
-                const isTrigger = value == varDef2.triggerValue;
-                const wasTrigger = oldValue == varDef2.triggerValue;
-                if (isTrigger && !wasTrigger && varDef2.onTriggerEnter) {
-                  console.log(`[Reactive] ${prop} entered trigger ${varDef2.triggerValue} -> executing ${varDef2.onTriggerEnter}`);
-                  this.taskExecutor.execute(varDef2.onTriggerEnter, {}, this.contextVars);
-                }
-                if (!isTrigger && wasTrigger && varDef2.onTriggerExit) {
-                  console.log(`[Reactive] ${prop} exited trigger ${varDef2.triggerValue} -> executing ${varDef2.onTriggerExit}`);
-                  this.taskExecutor.execute(varDef2.onTriggerExit, {}, this.contextVars);
-                }
-              }
-              if (typeof value === "number" && varDef2.min !== void 0 && varDef2.max !== void 0) {
-                const min = Number(varDef2.min);
-                const max2 = Number(varDef2.max);
-                if (value <= min && (oldValue > min || oldValue === void 0) && varDef2.onMinReached) {
-                  this.taskExecutor.execute(varDef2.onMinReached, {}, this.contextVars);
-                }
-                if (value >= max2 && (oldValue < max2 || oldValue === void 0) && varDef2.onMaxReached) {
-                  this.taskExecutor.execute(varDef2.onMaxReached, {}, this.contextVars);
-                }
-                const isInside = value > min && value < max2;
-                const wasInside = oldValue > min && oldValue < max2;
-                if (isInside && !wasInside && varDef2.onInside) {
-                  this.taskExecutor.execute(varDef2.onInside, {}, this.contextVars);
-                }
-                if (!isInside && wasInside && varDef2.onOutside) {
-                  this.taskExecutor.execute(varDef2.onOutside, {}, this.contextVars);
-                }
-              }
-              if (varDef2.isRandom && oldValue !== value && varDef2.onGenerated) {
-                this.taskExecutor.execute(varDef2.onGenerated, {}, this.contextVars);
-              }
-              if (varDef2.type === "list" && value !== oldValue) {
-                try {
-                  const list = Array.isArray(value) ? value : JSON.parse(value);
-                  const oldList = Array.isArray(oldValue) ? oldValue : oldValue ? JSON.parse(oldValue) : [];
-                  if (list.length > oldList.length && varDef2.onItemAdded) {
-                    this.taskExecutor.execute(varDef2.onItemAdded, {}, this.contextVars);
-                  }
-                  if (list.length < oldList.length && varDef2.onItemRemoved) {
-                    this.taskExecutor.execute(varDef2.onItemRemoved, {}, this.contextVars);
-                  }
-                  if (varDef2.searchValue) {
-                    const contains = list.includes(varDef2.searchValue);
-                    const wasContains = oldList.includes(varDef2.searchValue);
-                    if (contains && !wasContains && varDef2.onContains) {
-                      this.taskExecutor.execute(varDef2.onContains, {}, this.contextVars);
-                    }
-                    if (!contains && wasContains && varDef2.onNotContains) {
-                      this.taskExecutor.execute(varDef2.onNotContains, {}, this.contextVars);
-                    }
-                  }
-                } catch (e) {
-                }
-              }
-              if (varDef2.type === "timer" && typeof value === "number" && value > 0 && (oldValue === 0 || oldValue === void 0)) {
-                this.startTimer(prop, varDef2, value);
-              }
-            }
+          this.objects = this.reactiveRuntime.getObjects();
+        }
+        this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
+        this.taskExecutor = new TaskExecutor(project, merged.actions, this.actionExecutor, merged.flowCharts, options.multiplayerManager, merged.tasks);
+      } else {
+        this.objects = [];
+        this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
+        this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
+      }
+      if (options.multiplayerManager) {
+        options.multiplayerManager.onRemoteTask = (msg) => this.executeRemoteTask(msg.taskName, msg.params);
+      }
+      this.init();
+      this.initStageController();
+      if (activeStage && options.onStageSwitch) options.onStageSwitch(activeStage.id);
+    }
+    get contextVars() {
+      return this.variableManager.contextVars;
+    }
+    get projectVariables() {
+      return this.variableManager.projectVariables;
+    }
+    get stageVariables() {
+      return this.variableManager.stageVariables;
+    }
+    stop() {
+      if (this.splashTimerId) {
+        clearTimeout(this.splashTimerId);
+        this.splashTimerId = null;
+      }
+      this.objects.forEach((obj) => obj.onRuntimeStop?.());
+      GameLoopManager.getInstance().stop();
+      AnimationManager.getInstance().clear();
+    }
+    start() {
+      if (this.options.onRender) this.options.onRender();
+      this.objects.forEach((obj) => this.handleEvent(obj.id, "onStart"));
+      if (this.isSplashActive) {
+        if (this.project.splashAutoHide) {
+          const duration = this.stage?.duration || this.project.splashDuration || 3e3;
+          this.splashTimerId = setTimeout(() => this.finishSplash(), duration);
+        }
+        return;
+      }
+      this.initMainGame();
+    }
+    initMainGame() {
+      let stageConfig = this.stage || this.project.stage || this.project.grid;
+      if (stageConfig?.startAnimation && stageConfig.startAnimation !== "none") {
+        this.triggerStartAnimation(stageConfig);
+      }
+      const gridConfig = this.stage && this.stage.grid || this.project.stage?.grid || this.project.grid;
+      const runtimeCallbacks = {
+        handleEvent: (id, ev, data) => this.handleEvent(id, ev, data),
+        render: this.options.onRender || (() => {
+        }),
+        gridConfig,
+        objects: this.objects
+      };
+      this.objects.forEach((obj) => {
+        obj.initRuntime?.(runtimeCallbacks);
+        obj.onRuntimeStart?.();
+      });
+      this.initMultiplayer();
+      this.objects.filter((o) => o.className === "TSplashScreen").forEach((splash) => {
+        setTimeout(() => {
+          this.handleEvent(splash.id, "onFinish");
+          if (splash.autoHide) {
+            splash.visible = false;
+            this.options.onRender?.();
           }
-          return true;
-        },
-        ownKeys: () => {
-          const keys = /* @__PURE__ */ new Set([
-            ...Object.keys(this.projectVariables),
-            ...Object.keys(this.stageVariables)
-          ]);
-          return Array.from(keys);
-        },
-        has: (_target, prop) => {
-          return prop in this.stageVariables || prop in this.projectVariables;
-        },
-        getOwnPropertyDescriptor: (_target, prop) => {
-          const val = this.stageVariables[prop] !== void 0 ? this.stageVariables[prop] : this.projectVariables[prop];
-          if (val !== void 0) {
-            return { configurable: true, enumerable: true, value: val };
+        }, splash.duration || 3e3);
+      });
+      this.options.onRender?.();
+    }
+    finishSplash() {
+      if (!this.isSplashActive) return;
+      if (this.splashTimerId) {
+        clearTimeout(this.splashTimerId);
+        this.splashTimerId = null;
+      }
+      this.isSplashActive = false;
+      if (this.stageController) this.stageController.goToMainStage();
+      else this.legacyStageSwitch();
+    }
+    initStageController() {
+      this.stageController = this.objects.find((o) => o.className === "TStageController");
+      if (this.stageController && this.project.stages) {
+        this.stageController.setStages(this.project.stages);
+        this.stageController.setOnStageChangeCallback((oldId, newId) => this.handleStageChange(oldId, newId));
+      }
+    }
+    handleStageChange(_oldStageId, newStageId) {
+      this.stage = this.project.stages?.find((s) => s.id === newStageId);
+      if (!this.stage) return;
+      const merged = this.stageManager.getMergedStageData(newStageId);
+      this.objects = merged.objects;
+      if (this.taskExecutor) {
+        this.taskExecutor.setFlowCharts(merged.flowCharts);
+        this.taskExecutor.setTasks(merged.tasks);
+        this.taskExecutor.setActions(merged.actions);
+      }
+      if (this.options.makeReactive) {
+        this.reactiveRuntime.clear();
+        this.clearAllTimers();
+        AnimationManager.getInstance().clear();
+        this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
+        this.reactiveRuntime.setVariable("isSplashActive", false);
+        this.objects = this.reactiveRuntime.getObjects();
+      }
+      this.variableManager.stageVariables = {};
+      if (this.stage.variables) {
+        this.stage.variables.forEach((v) => {
+          this.variableManager.stageVariables[v.name] = v.defaultValue;
+        });
+      }
+      this.actionExecutor.setObjects(this.objects);
+      this.initStageController();
+      this.start();
+      if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
+    }
+    legacyStageSwitch() {
+      const mainStage = this.project.stages?.find((s) => s.type === "main");
+      if (mainStage) this.handleStageChange("splash", mainStage.id);
+      else {
+        this.objects = hydrateObjects(this.project.objects || []);
+        this.start();
+      }
+    }
+    initMultiplayer() {
+      const mp = this.options.multiplayerManager || window.multiplayerManager;
+      if (!mp?.on) return;
+      mp.on((msg) => {
+        this.objects.filter((o) => o.className === "THandshake").forEach((hs) => {
+          if (msg.type === "room_joined") {
+            hs._setRoomInfo(msg.roomCode, msg.playerNumber, msg.playerNumber === 1);
+            hs._setStatus("waiting");
+            hs._fireEvent("onRoomJoined", msg);
+          } else if (msg.type === "game_start") {
+            hs._setStatus("playing");
+            hs._fireEvent("onGameStart", msg);
+          } else if (msg.type === "room_created") {
+            hs._setRoomInfo(msg.roomCode, 1, true);
+            hs._setStatus("waiting");
+            hs._fireEvent("onRoomCreated", msg);
           }
-          return void 0;
+        });
+        this.objects.filter((o) => o.className === "THeartbeat").forEach((hb) => {
+          if (msg.type === "pong") hb._handlePong(msg.serverTime);
+          else if (msg.type === "player_timeout") hb._setConnectionLost();
+        });
+      });
+    }
+    triggerStartAnimation(stageConfig) {
+      let animationType = stageConfig.startAnimation || "fade-in";
+      let duration = stageConfig.startAnimationDuration || 1e3;
+      this.objects.forEach((obj) => {
+        if (obj.visible !== false) {
+          if (animationType === "fade-in") {
+            const originalOpacity = obj.opacity !== void 0 ? obj.opacity : 1;
+            obj.opacity = 0;
+            AnimationManager.getInstance().animate(obj, { opacity: originalOpacity }, duration);
+          } else if (animationType === "slide-up") {
+            const originalY = obj.y;
+            obj.y += 100;
+            AnimationManager.getInstance().animate(obj, { y: originalY }, duration);
+          }
         }
       });
     }
-    setupBindings() {
-      this.objects.forEach((obj) => {
-        Object.keys(obj).forEach((prop) => {
-          if (typeof obj[prop] === "string" && obj[prop].includes("${")) this.reactiveRuntime.bind(obj, prop, obj[prop]);
-          if (prop === "style" && typeof obj[prop] === "object" && obj[prop] !== null) {
-            Object.keys(obj[prop]).forEach((sp) => {
-              if (typeof obj[prop][sp] === "string" && obj[prop][sp].includes("${")) this.reactiveRuntime.bind(obj[prop], sp, obj[prop][sp]);
-            });
+    handleEvent(objectId, eventName, data = {}) {
+      const obj = this.objects.find((o) => o.id === objectId);
+      if (!obj) return;
+      if (obj.onEvent) {
+        const actions = obj.onEvent[eventName];
+        if (actions) {
+          this.actionExecutor.execute(actions, {
+            vars: this.contextVars,
+            contextVars: this.contextVars,
+            eventData: data
+          });
+        }
+      }
+      if (this.taskExecutor) {
+        const taskName = `${obj.name}.${eventName}`;
+        this.taskExecutor.execute(taskName, { ...data, sender: obj }, this.contextVars);
+      }
+    }
+    updateRemoteState(objectIdOrName, state) {
+      const obj = this.objects.find((o) => o.id === objectIdOrName || o.name === objectIdOrName);
+      if (obj) {
+        Object.assign(obj, state);
+        if (this.options.onRender) this.options.onRender();
+      }
+    }
+    triggerRemoteEvent(objectId, eventName, params) {
+      const obj = this.objects.find((o) => o.id === objectId);
+      if (obj) this.handleEvent(objectId, eventName, params);
+    }
+    executeRemoteAction(action) {
+      this.actionExecutor.execute(action, {
+        vars: this.contextVars,
+        contextVars: this.contextVars
+      });
+    }
+    executeRemoteTask(taskName, params = {}, mode) {
+      if (!this.taskExecutor) return;
+      this.taskExecutor.execute(taskName, params, this.contextVars, mode === "sequential");
+    }
+    getObjects() {
+      const results = [];
+      const process = (objs, parentX = 0, parentY = 0, parentZ = 0) => {
+        objs.forEach((obj) => {
+          if (obj.visible === false) return;
+          const absoluteX = parentX + (obj.x || 0);
+          const absoluteY = parentY + (obj.y || 0);
+          const absoluteZ = parentZ + (obj.zIndex || 0);
+          results.push({ ...obj, x: absoluteX, y: absoluteY, zIndex: absoluteZ });
+          if (obj.children && obj.children.length > 0) {
+            process(obj.children, absoluteX, absoluteY, absoluteZ);
           }
         });
-      });
+      };
+      process(this.objects);
+      return results;
+    }
+    createPhantom(original) {
+      return {
+        ...original,
+        id: "phantom_" + Math.random().toString(36).substr(2, 9),
+        isPhantom: true,
+        opacity: (original.opacity || 1) * 0.5
+      };
+    }
+    removeObject(id) {
+      this.objects = this.objects.filter((o) => o.id !== id);
+      if (this.options.onRender) this.options.onRender();
+    }
+    init() {
+      if (this.options.makeReactive) {
+        this.objects.forEach((obj) => {
+          const mp = this.options.multiplayerManager || window.multiplayerManager;
+          if (obj.className === "THandshake" && mp) {
+            obj._setRoomInfo(mp.roomCode, mp.playerNumber, mp.isHost);
+            obj._setStatus(mp.roomCode ? "playing" : "idle");
+          }
+        });
+      }
     }
     startTimer(prop, varDef, duration) {
-      if (this.varTimers.has(prop)) {
-        clearInterval(this.varTimers.get(prop));
-      }
-      let currentTime = duration;
-      varDef.currentTime = currentTime;
-      let lastH = -1, lastM = -1, lastS = -1;
-      const updateHMS = (ms) => {
-        const h = Math.floor(ms / (1e3 * 60 * 60));
-        const m = Math.floor(ms % (1e3 * 60 * 60) / (1e3 * 60));
-        const s = Math.floor(ms % (1e3 * 60) / 1e3);
-        if (h !== lastH) {
-          varDef.hours = h;
-          this.reactiveRuntime.setVariable(`${prop}.hours`, h);
-          if (lastH !== -1 && varDef.onHour) this.taskExecutor.execute(varDef.onHour, {}, this.contextVars);
-          lastH = h;
-        }
-        if (m !== lastM) {
-          varDef.minutes = m;
-          this.reactiveRuntime.setVariable(`${prop}.minutes`, m);
-          if (lastM !== -1 && varDef.onMinute) this.taskExecutor.execute(varDef.onMinute, {}, this.contextVars);
-          lastM = m;
-        }
-        if (s !== lastS) {
-          varDef.seconds = s;
-          this.reactiveRuntime.setVariable(`${prop}.seconds`, s);
-          if (lastS !== -1 && varDef.onSecond) this.taskExecutor.execute(varDef.onSecond, {}, this.contextVars);
-          lastS = s;
-        }
-      };
-      updateHMS(currentTime);
-      this.reactiveRuntime.setVariable(`${prop}.currentTime`, currentTime);
+      if (this.varTimers.has(prop)) clearInterval(this.varTimers.get(prop));
+      let timeLeft = duration;
       const interval = setInterval(() => {
-        currentTime -= 100;
-        if (currentTime < 0) currentTime = 0;
-        varDef.currentTime = currentTime;
-        updateHMS(currentTime);
-        this.reactiveRuntime.setVariable(`${prop}.currentTime`, currentTime);
-        if (this.options.onRender) this.options.onRender();
-        if (varDef.onTick) {
-          this.taskExecutor.execute(varDef.onTick, {}, this.contextVars);
-        }
-        if (currentTime <= 0) {
+        timeLeft--;
+        this.contextVars[prop] = timeLeft;
+        if (timeLeft <= 0) {
           clearInterval(interval);
           this.varTimers.delete(prop);
-          if (prop in this.stageVariables) this.stageVariables[prop] = 0;
-          else this.projectVariables[prop] = 0;
-          this.reactiveRuntime.setVariable(prop, 0);
-          if (varDef.onFinished) {
-            console.log(`[Timer] ${prop} finished -> executing ${varDef.onFinished}`);
-            this.taskExecutor.execute(varDef.onFinished, {}, this.contextVars);
+          if (this.taskExecutor && varDef.onTimerEnd) {
+            this.taskExecutor.execute(varDef.onTimerEnd, {}, this.contextVars);
           }
-          if (this.options.onRender) this.options.onRender();
         }
-      }, 100);
+      }, 1e3);
       this.varTimers.set(prop, interval);
-      console.log(`[Timer] Started ${prop} with ${duration}ms`);
     }
     clearAllTimers() {
       this.varTimers.forEach((t) => clearInterval(t));
       this.varTimers.clear();
-      console.log("[GameRuntime] All variable timers cleared.");
     }
-    getPatternStartPosition(pattern, targetX, targetY, index, stage) {
-      const cols = stage.grid?.cols || stage.cols || 32, rows = stage.grid?.rows || stage.rows || 24, margin = 10;
-      switch (pattern) {
-        case "UpLeft":
-          return { x: -margin, y: -margin };
-        case "UpMiddle":
-          return { x: cols / 2, y: -margin };
-        case "UpRight":
-          return { x: cols + margin, y: -margin };
-        case "Left":
-          return { x: -margin, y: targetY };
-        case "Right":
-          return { x: cols + margin, y: targetY };
-        case "BottomLeft":
-          return { x: -margin, y: rows + margin };
-        case "BottomMiddle":
-          return { x: cols / 2, y: rows + margin };
-        case "BottomRight":
-          return { x: cols + margin, y: rows + margin };
-        case "ChaosIn": {
-          const a = Math.random() * Math.PI * 2, d = Math.max(cols, rows) + margin;
-          return { x: cols / 2 + Math.cos(a) * d, y: rows / 2 + Math.sin(a) * d };
-        }
-        case "ChaosOut":
-          return { x: cols / 2, y: rows / 2 };
-        case "Matrix":
-          return { x: targetX, y: -margin - index * 2 };
-        default:
-          return { x: targetX, y: targetY };
-      }
-    }
-    callVariableMethod(name, method, params = []) {
+    handleVariableAction(name, action, ...params) {
       const varDef = this.getVarDef(name);
       if (!varDef) return;
-      switch (method) {
+      switch (action) {
+        case "set":
+          this.contextVars[name] = params[0];
+          break;
         case "reset":
-          console.log(`[GameRuntime] Resetting variable ${name} to initial value`);
-          this.contextVars[name] = varDef.initialValue !== void 0 ? varDef.initialValue : varDef.defaultValue;
+          this.contextVars[name] = varDef.defaultValue;
           break;
         case "start":
-          if (varDef.type === "timer") {
-            console.log(`[GameRuntime] Explicit start for timer ${name}`);
-            this.contextVars[name] = varDef.duration || 1e3;
-          }
+          if (varDef.type === "timer") this.startTimer(name, varDef, params[0] || varDef.duration || 10);
           break;
         case "stop":
           if (varDef.type === "timer" && this.varTimers.has(name)) {
-            console.log(`[GameRuntime] Explicit stop for timer ${name}`);
             clearInterval(this.varTimers.get(name));
             this.varTimers.delete(name);
           }
@@ -9112,15 +8414,6 @@
             }
           }
           break;
-        case "removeByProperty":
-          if (varDef.type === "object_list") {
-            const prop = params[0];
-            const val = params[1];
-            const list = Array.isArray(this.contextVars[name]) ? [...this.contextVars[name]] : [];
-            const newList = list.filter((item) => !item || item[prop] != val);
-            this.contextVars[name] = newList;
-          }
-          break;
         case "clear":
           if (varDef.type === "list" || varDef.type === "object_list") this.contextVars[name] = [];
           break;
@@ -9128,8 +8421,7 @@
           if (varDef.type === "random" || varDef.isRandom) {
             const min = Number(varDef.min) || 0;
             const max2 = Number(varDef.max) || 100;
-            const val = min + Math.random() * (max2 - min);
-            this.contextVars[name] = val;
+            this.contextVars[name] = min + Math.random() * (max2 - min);
           }
           break;
       }
