@@ -82,7 +82,14 @@ export class GameRuntime implements IVariableHost {
                     this.reactiveRuntime.setVariable('playerNumber', 1);
                     this.reactiveRuntime.setVariable('isHost', true);
                 }
+
+                // Register global render listener
+                if (options.onRender) {
+                    this.reactiveRuntime.getWatcher().addGlobalListener(() => options.onRender!());
+                }
+
                 this.objects = this.reactiveRuntime.getObjects();
+                this.initializeReactiveBindings();
             }
 
             this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
@@ -193,7 +200,14 @@ export class GameRuntime implements IVariableHost {
             AnimationManager.getInstance().clear();
             this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
             this.reactiveRuntime.setVariable('isSplashActive', false);
+
+            // Re-register global render listener after clear
+            if (this.options.onRender) {
+                this.reactiveRuntime.getWatcher().addGlobalListener(() => this.options.onRender!());
+            }
+
             this.objects = this.reactiveRuntime.getObjects();
+            this.initializeReactiveBindings();
         }
 
         this.variableManager.stageVariables = {};
@@ -310,6 +324,23 @@ export class GameRuntime implements IVariableHost {
         this.taskExecutor.execute(taskName, params, this.contextVars, mode === 'sequential');
     }
 
+    public getContext(): Record<string, any> {
+        const context: Record<string, any> = {
+            project: this.project
+        };
+
+        // Add all objects to context
+        this.objects.forEach(obj => {
+            context[obj.name] = obj;
+            context[obj.id] = obj;
+        });
+
+        // Add variables
+        Object.assign(context, this.contextVars);
+
+        return context;
+    }
+
     public getObjects(): any[] {
         const results: any[] = [];
         const process = (objs: any[], parentX = 0, parentY = 0, parentZ = 0) => {
@@ -399,5 +430,72 @@ export class GameRuntime implements IVariableHost {
             varDef = this.project.variables.find((v: any) => v.name === name);
         }
         return varDef;
+    }
+
+    /**
+     * Traverses all objects and registers reactive bindings for properties containing ${...}
+     */
+    private initializeReactiveBindings(): void {
+        console.log(`[GameRuntime] Initializing reactive bindings for ${this.objects.length} objects.`);
+
+        const process = (objs: any[]) => {
+            objs.forEach(obj => {
+                this.bindObjectProperties(obj);
+                if (obj.children && obj.children.length > 0) {
+                    process(obj.children);
+                }
+            });
+        };
+
+        process(this.objects);
+
+        // BRIDGE: If a component is a variable, its property changes (value, items)
+        // must be directed to the VariableManager to fire events (onTriggerEnter, etc.)
+        // because actions often target the component directly (TestVar.value = ...)
+        // bypassing the contextVars proxy.
+        const variableComponents = this.objects.filter(obj => obj.isVariable || obj.className?.includes('Variable'));
+
+        variableComponents.forEach(obj => {
+            // Watch 'value'
+            this.reactiveRuntime.getWatcher().watch(obj, 'value', (newValue, oldValue) => {
+                const varDef = this.getVarDef(obj.name);
+                if (varDef) {
+                    this.variableManager.processVariableEvents(obj.name, newValue, oldValue, varDef);
+                }
+            });
+
+            // Watch 'items' for TListVariable
+            this.reactiveRuntime.getWatcher().watch(obj, 'items', (newValue, oldValue) => {
+                const varDef = this.getVarDef(obj.name);
+                if (varDef) {
+                    this.variableManager.processVariableEvents(obj.name, newValue, oldValue, varDef);
+                }
+            });
+        });
+    }
+
+    private bindObjectProperties(obj: any): void {
+        const skipProps = ['id', 'name', 'className', 'parentId', 'constructor', 'Tasks'];
+
+        const bindProps = (target: any, pathPrefix: string = '') => {
+            if (!target || typeof target !== 'object') return;
+
+            Object.keys(target).forEach(key => {
+                if (skipProps.includes(key)) return;
+
+                const val = target[key];
+                const propPath = pathPrefix ? `${pathPrefix}.${key}` : key;
+
+                if (typeof val === 'string' && val.includes('${')) {
+                    console.log(`[GameRuntime] Binding reaktiv: ${obj.name}.${propPath} ← ${val}`);
+                    this.reactiveRuntime.bindComponent(obj, propPath, val);
+                } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'Tasks')) {
+                    // Recursive binding for nested objects like style
+                    bindProps(val, propPath);
+                }
+            });
+        };
+
+        bindProps(obj);
     }
 }

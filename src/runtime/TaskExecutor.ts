@@ -46,14 +46,64 @@ export class TaskExecutor {
         }
 
         // 1. Resolve Task
-        let task = this.tasks?.find(t => t.name === taskName) || this.project.tasks.find(t => t.name === taskName);
+        let task = this.tasks?.find(t => t.name === taskName) || this.project.tasks?.find(t => t.name === taskName);
+
         if (!task) {
             // Check Library
             task = libraryService.getTask(taskName);
         }
 
+        // 1b. Recursive Resolution for dot-notation (e.g., ObjectName.EventName)
+        if (!task && taskName.includes('.')) {
+            const [objName, evtName] = taskName.split('.');
+            let foundTaskName = '';
+
+            const findDeep = (objs: any[]): any => {
+                for (const o of objs) {
+                    if (o.name === objName || o.id === objName) return o;
+                    if (o.children && o.children.length > 0) {
+                        const found = findDeep(o.children);
+                        if (found) return found;
+                    }
+                }
+                return null;
+            };
+
+            // Search in objects (recursive) and variables of all stages
+            this.project.stages?.forEach(s => {
+                if (foundTaskName) return;
+
+                // Search in objects
+                const obj = findDeep(s.objects || []);
+                if (obj && obj.Tasks && obj.Tasks[evtName]) {
+                    foundTaskName = obj.Tasks[evtName];
+                }
+
+                // Search in stage variables
+                if (!foundTaskName && s.variables) {
+                    const v = s.variables.find((v: any) => v.name === objName);
+                    if (v && (v as any).Tasks && (v as any).Tasks[evtName]) {
+                        foundTaskName = (v as any).Tasks[evtName];
+                    }
+                }
+            });
+
+            // Search in global project variables
+            if (!foundTaskName && this.project.variables) {
+                const v = this.project.variables.find((v: any) => v.name === objName);
+                if (v && (v as any).Tasks && (v as any).Tasks[evtName]) {
+                    foundTaskName = (v as any).Tasks[evtName];
+                }
+            }
+
+            if (foundTaskName) {
+                console.log(`[TaskExecutor] Resolved "${taskName}" to assigned task: "${foundTaskName}"`);
+                return this.execute(foundTaskName, vars, globalVars, contextObj, depth + 1, parentId, params, isRemoteExecution);
+            }
+        }
+
         if (!task) {
-            console.warn(`[TaskExecutor] Task definition not found: ${taskName} `);
+            console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
             return;
         }
 

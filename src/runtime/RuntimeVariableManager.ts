@@ -113,43 +113,45 @@ export class RuntimeVariableManager {
         });
     }
 
-    private processVariableEvents(prop: string, value: any, oldValue: any, varDef: any) {
+    public processVariableEvents(prop: string, value: any, oldValue: any, varDef: any) {
         const executor = this.host.taskExecutor;
         if (!executor) return;
 
         // a) onValueChanged
-        if (oldValue !== value && varDef.onValueChanged) {
-            executor.execute(varDef.onValueChanged, {}, this.contextVars);
+        if (oldValue !== value) {
+            this.executeVariableEvent(varDef, 'onValueChanged');
         }
 
         // b) onValueEmpty
-        if ((value === "" || value === null || value === undefined) && varDef.onValueEmpty) {
-            executor.execute(varDef.onValueEmpty, {}, this.contextVars);
+        if ((value === "" || value === null || value === undefined)) {
+            this.executeVariableEvent(varDef, 'onValueEmpty');
         }
 
         // c) Thresholds
         if (typeof value === 'number' && typeof oldValue === 'number' && typeof varDef.threshold === 'number') {
             const t = varDef.threshold;
-            if (oldValue < t && value >= t && varDef.onThresholdReached) {
-                executor.execute(varDef.onThresholdReached, {}, this.contextVars);
+            if (oldValue < t && value >= t) {
+                this.executeVariableEvent(varDef, 'onThresholdReached');
             }
-            if (oldValue >= t && value < t && varDef.onThresholdLeft) {
-                executor.execute(varDef.onThresholdLeft, {}, this.contextVars);
+            if (oldValue >= t && value < t) {
+                this.executeVariableEvent(varDef, 'onThresholdLeft');
             }
-            if (oldValue <= t && value > t && varDef.onThresholdExceeded) {
-                executor.execute(varDef.onThresholdExceeded, {}, this.contextVars);
+            if (oldValue <= t && value > t) {
+                this.executeVariableEvent(varDef, 'onThresholdExceeded');
             }
         }
 
         // d) Trigger Values
         if (varDef.triggerValue !== undefined && varDef.triggerValue !== "" && varDef.triggerValue !== null) {
+            // Use loose equality to handle string/number mismatch
             const isTrigger = value == varDef.triggerValue;
             const wasTrigger = oldValue == varDef.triggerValue;
-            if (isTrigger && !wasTrigger && varDef.onTriggerEnter) {
-                executor.execute(varDef.onTriggerEnter, {}, this.contextVars);
+
+            if (isTrigger && !wasTrigger) {
+                this.executeVariableEvent(varDef, 'onTriggerEnter');
             }
-            if (!isTrigger && wasTrigger && varDef.onTriggerExit) {
-                executor.execute(varDef.onTriggerExit, {}, this.contextVars);
+            if (!isTrigger && wasTrigger) {
+                this.executeVariableEvent(varDef, 'onTriggerExit');
             }
         }
 
@@ -157,25 +159,25 @@ export class RuntimeVariableManager {
         if (typeof value === 'number' && varDef.min !== undefined && varDef.max !== undefined) {
             const min = Number(varDef.min);
             const max = Number(varDef.max);
-            if (value <= min && (oldValue > min || oldValue === undefined) && varDef.onMinReached) {
-                executor.execute(varDef.onMinReached, {}, this.contextVars);
+            if (value <= min && (oldValue > min || oldValue === undefined)) {
+                this.executeVariableEvent(varDef, 'onMinReached');
             }
-            if (value >= max && (oldValue < max || oldValue === undefined) && varDef.onMaxReached) {
-                executor.execute(varDef.onMaxReached, {}, this.contextVars);
+            if (value >= max && (oldValue < max || oldValue === undefined)) {
+                this.executeVariableEvent(varDef, 'onMaxReached');
             }
             const isInside = value > min && value < max;
             const wasInside = oldValue > min && oldValue < max;
-            if (isInside && !wasInside && varDef.onInside) {
-                executor.execute(varDef.onInside, {}, this.contextVars);
+            if (isInside && !wasInside) {
+                this.executeVariableEvent(varDef, 'onInside');
             }
-            if (!isInside && wasInside && varDef.onOutside) {
-                executor.execute(varDef.onOutside, {}, this.contextVars);
+            if (!isInside && wasInside) {
+                this.executeVariableEvent(varDef, 'onOutside');
             }
         }
 
         // f) Random Logic
-        if (varDef.isRandom && oldValue !== value && varDef.onGenerated) {
-            executor.execute(varDef.onGenerated, {}, this.contextVars);
+        if (varDef.isRandom && oldValue !== value) {
+            this.executeVariableEvent(varDef, 'onGenerated');
         }
 
         // g) List Logic
@@ -189,6 +191,19 @@ export class RuntimeVariableManager {
         }
     }
 
+    /**
+     * Helper to execute a variable event. 
+     * Delegated to TaskExecutor using ComponentName.EventName notation.
+     */
+    private executeVariableEvent(varDef: any, eventName: string): void {
+        const executor = this.host.taskExecutor;
+        if (!executor) return;
+
+        // The TaskExecutor now handles the lookup (direct, onEvent map, or named task)
+        const taskName = `${varDef.name}.${eventName}`;
+        executor.execute(taskName, { sender: varDef }, this.contextVars);
+    }
+
     private processListEvents(value: any, oldValue: any, varDef: any) {
         const executor = this.host.taskExecutor;
         if (!executor) return;
@@ -196,21 +211,21 @@ export class RuntimeVariableManager {
             const list = Array.isArray(value) ? value : JSON.parse(value);
             const oldList = Array.isArray(oldValue) ? oldValue : (oldValue ? JSON.parse(oldValue) : []);
 
-            if (list.length > oldList.length && varDef.onItemAdded) {
-                executor.execute(varDef.onItemAdded, {}, this.contextVars);
+            if (list.length > oldList.length) {
+                this.executeVariableEvent(varDef, 'onItemAdded');
             }
-            if (list.length < oldList.length && varDef.onItemRemoved) {
-                executor.execute(varDef.onItemRemoved, {}, this.contextVars);
+            if (list.length < oldList.length) {
+                this.executeVariableEvent(varDef, 'onItemRemoved');
             }
 
             if (varDef.searchValue) {
                 const contains = list.includes(varDef.searchValue);
                 const wasContains = oldList.includes(varDef.searchValue);
-                if (contains && !wasContains && varDef.onContains) {
-                    executor.execute(varDef.onContains, {}, this.contextVars);
+                if (contains && !wasContains) {
+                    this.executeVariableEvent(varDef, 'onContains');
                 }
-                if (!contains && wasContains && varDef.onNotContains) {
-                    executor.execute(varDef.onNotContains, {}, this.contextVars);
+                if (!contains && wasContains) {
+                    this.executeVariableEvent(varDef, 'onNotContains');
                 }
             }
         } catch (e) {

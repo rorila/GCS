@@ -48,6 +48,7 @@ export class TWindow extends TComponent {
     }
 
     public visible: boolean = true;
+    public text: string = "";
 
     // Animation flag - wenn true, wird Physik pausiert
     public isAnimating: boolean = false;
@@ -62,6 +63,7 @@ export class TWindow extends TComponent {
         this.zIndex = 0;
         this._align = 'NONE';
         this.visible = true;
+        this.text = "";
         this.style = {
             visible: true,
             backgroundColor: 'transparent',
@@ -70,14 +72,13 @@ export class TWindow extends TComponent {
         };
     }
 
-    private _caption: string = "";
-
+    // Alias for backward compatibility (JSON loading)
     get caption(): string {
-        return this._caption;
+        return this.text;
     }
 
     set caption(v: string) {
-        this._caption = v;
+        this.text = v;
     }
 
     // Focus event methods
@@ -147,7 +148,7 @@ export class TWindow extends TComponent {
             { name: 'height', label: 'Höhe', type: 'number', group: 'GEOMETRIE' },
             { name: 'zIndex', label: 'Z-Index', type: 'number', group: 'GEOMETRIE' },
             { name: 'align', label: 'Ausrichtung', type: 'select', group: 'GEOMETRIE', options: ['NONE', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CLIENT'] },
-            { name: 'caption', label: 'Text', type: 'string', group: 'INHALT' },
+            { name: 'text', label: 'Text', type: 'string', group: 'INHALT' },
             { name: 'visible', label: 'Sichtbar', type: 'boolean', group: 'IDENTITÄT' },
             { name: 'style.backgroundColor', label: 'Hintergrund', type: 'color', group: 'STIL' },
             { name: 'style.borderColor', label: 'Rahmenfarbe', type: 'color', group: 'STIL' },

@@ -47,7 +47,7 @@ export class ExpressionParser {
         const result = text.replace(/\$\{([^}]+)\}/g, (match, expression) => {
             try {
                 const value = this.evaluate(expression.trim(), context);
-                return value !== undefined ? String(value) : '';
+                return this.valueToString(value);
             } catch (error) {
                 console.warn(`[ExpressionParser] Failed to evaluate: ${expression}`, error);
                 return match; // Return original if evaluation fails
@@ -56,16 +56,61 @@ export class ExpressionParser {
 
         // Try to parse as number or boolean if entire string was a single expression
         if (text.startsWith('${') && text.endsWith('}') && !text.includes('${', 2)) {
-            // Single expression - try to preserve type
+            // Single expression - try to preserve type for primitives, but stringify objects
             const expression = text.slice(2, -1).trim();
             try {
-                return this.evaluate(expression, context);
+                const value = this.evaluate(expression, context);
+                // If it's a "real" object (and not null/primitive), stringify it
+                // to avoid [object Object] when it's assigned to a string property like a label's text.
+                if (value !== null && typeof value === 'object') {
+                    return this.valueToString(value);
+                }
+                return value;
             } catch (error) {
                 return result;
             }
         }
 
         return result;
+    }
+
+    /**
+     * Converts any value to a human-readable string representation
+     */
+    private static valueToString(value: any): string {
+        if (value === undefined || value === null) return '';
+        if (typeof value === 'string') return value;
+        if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+
+        // If it's a Variable-Component, we want its actual value/content
+        if (value.isVariable === true) {
+            if (value.value !== undefined) return this.valueToString(value.value);
+            if (Array.isArray(value.items)) return this.valueToString(value.items);
+        }
+
+        // Handle Arrays
+        if (Array.isArray(value)) {
+            return value.map(v => this.valueToString(v)).join(', ');
+        }
+
+        // Handle Components/Proxies with a name property
+        if (value.name && typeof value.name === 'string') {
+            return value.name;
+        }
+
+        // Handle Objects (prevent [object Object])
+        try {
+            // If it's a complex object, show a small preview or its class name
+            if (value.className) return `[${value.className}]`;
+            if (value.constructor && value.constructor.name !== 'Object') {
+                return `[${value.constructor.name}]`;
+            }
+
+            const json = JSON.stringify(value);
+            return json.length > 50 ? json.substring(0, 47) + '...' : json;
+        } catch (e) {
+            return '[Object]';
+        }
     }
 
     /**

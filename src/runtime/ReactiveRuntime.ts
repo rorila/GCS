@@ -96,6 +96,9 @@ export class ReactiveRuntime {
             update: () => {
                 const context = this.getContext();
                 const newValue = ExpressionParser.interpolate(expression, context);
+                const targetName = targetObj.name || targetObj.id || 'Unknown';
+
+                console.log(`%c[Binding] Updating ${targetName}.${targetProp} ← ${newValue}`, 'color: #9c27b0; font-weight: bold');
 
                 // Update target property
                 if (targetProp.includes('.')) {
@@ -115,9 +118,19 @@ export class ReactiveRuntime {
             const sourceObj = this.objectsByName.get(objName) || this.variables;
 
             if (sourceObj) {
+                // Initial watch
                 this.watcher.watch(sourceObj, propPath || objName, () => {
                     binding.update();
                 });
+
+                // SPECIAL CASE: If we depend on a Variable Component (objName) 
+                // but didn't specify a property (like .value), automatically watch .value
+                // because we intelligently stringify variables by their value.
+                if (!propPath && sourceObj.isVariable === true) {
+                    console.log(`[ReactiveRuntime] Deep watch enabled for variable: ${objName}.value`);
+                    this.watcher.watch(sourceObj, 'value', () => binding.update());
+                    this.watcher.watch(sourceObj, 'items', () => binding.update());
+                }
             }
         });
 
@@ -251,6 +264,13 @@ export class ReactiveRuntime {
             variableCount: this.variables.size,
             watcherCount: this.watcher.getTotalWatchers()
         };
+    }
+
+    /**
+     * Returns the property watcher instance
+     */
+    public getWatcher(): PropertyWatcher {
+        return this.watcher;
     }
 
     /**

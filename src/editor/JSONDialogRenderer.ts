@@ -596,7 +596,23 @@ export class JSONDialogRenderer {
                         let val: any = edit.value;
                         if (param.type === 'number') val = Number(val);
                         if (param.type === 'json') {
-                            try { val = JSON.parse(val); } catch (e) { console.error('Invalid JSON in param', param.name); }
+                            try {
+                                val = JSON.parse(val);
+                            } catch (e) {
+                                // Support "prop=val" syntax for convenience (as requested by user)
+                                if (typeof val === 'string' && val.includes('=') && !val.trim().startsWith('{')) {
+                                    const parts = val.split('=').map(s => s.trim());
+                                    if (parts.length === 2) {
+                                        const [k, v] = parts;
+                                        // Auto-convert numbers if possible
+                                        const numV = Number(v);
+                                        val = { [k]: !isNaN(numV) && v !== '' ? numV : v };
+                                        console.log(`[JSONDialogRenderer] Auto-converted "${edit.value}" to JSON:`, val);
+                                    }
+                                } else {
+                                    console.error('Invalid JSON in param', param.name, val);
+                                }
+                            }
                         }
                         this.dialogData[param.name] = val;
                         if (param.name === 'target' || param.name === 'service' || param.name === 'method') {

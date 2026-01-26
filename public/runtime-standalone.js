@@ -287,7 +287,7 @@
       const result = text.replace(/\$\{([^}]+)\}/g, (match, expression) => {
         try {
           const value = this.evaluate(expression.trim(), context);
-          return value !== void 0 ? String(value) : "";
+          return this.valueToString(value);
         } catch (error) {
           console.warn(`[ExpressionParser] Failed to evaluate: ${expression}`, error);
           return match;
@@ -296,12 +296,44 @@
       if (text.startsWith("${") && text.endsWith("}") && !text.includes("${", 2)) {
         const expression = text.slice(2, -1).trim();
         try {
-          return this.evaluate(expression, context);
+          const value = this.evaluate(expression, context);
+          if (value !== null && typeof value === "object") {
+            return this.valueToString(value);
+          }
+          return value;
         } catch (error) {
           return result;
         }
       }
       return result;
+    }
+    /**
+     * Converts any value to a human-readable string representation
+     */
+    static valueToString(value) {
+      if (value === void 0 || value === null) return "";
+      if (typeof value === "string") return value;
+      if (typeof value === "number" || typeof value === "boolean") return String(value);
+      if (value.isVariable === true) {
+        if (value.value !== void 0) return this.valueToString(value.value);
+        if (Array.isArray(value.items)) return this.valueToString(value.items);
+      }
+      if (Array.isArray(value)) {
+        return value.map((v) => this.valueToString(v)).join(", ");
+      }
+      if (value.name && typeof value.name === "string") {
+        return value.name;
+      }
+      try {
+        if (value.className) return `[${value.className}]`;
+        if (value.constructor && value.constructor.name !== "Object") {
+          return `[${value.constructor.name}]`;
+        }
+        const json = JSON.stringify(value);
+        return json.length > 50 ? json.substring(0, 47) + "..." : json;
+      } catch (e) {
+        return "[Object]";
+      }
     }
     /**
      * Evaluates an expression (without ${})
@@ -393,8 +425,17 @@
     constructor() {
       // Map: Object -> Map: PropertyPath -> Set of Callbacks
       __publicField(this, "watchers", /* @__PURE__ */ new Map());
-      // Track watched objects to prevent memory leaks
-      __publicField(this, "watchedObjects", /* @__PURE__ */ new WeakSet());
+      // Global listeners called for ANY property change
+      __publicField(this, "globalListeners", /* @__PURE__ */ new Set());
+    }
+    /**
+     * Helper to get the raw object if it's a proxy
+     */
+    unwrap(obj) {
+      if (obj !== null && typeof obj === "object" && obj.__isProxy__) {
+        return obj.__target__;
+      }
+      return obj;
     }
     /**
      * Registers a watcher for a specific property
@@ -403,19 +444,31 @@
      * @param callback Function to call when property changes
      */
     watch(object, propertyPath, callback) {
-      if (!object || typeof object !== "object") {
-        console.warn("[PropertyWatcher] Cannot watch non-object:", object);
+      const target = this.unwrap(object);
+      if (!target || typeof target !== "object") {
+        console.warn("[PropertyWatcher] Cannot watch non-object:", target);
         return;
       }
-      if (!this.watchers.has(object)) {
-        this.watchers.set(object, /* @__PURE__ */ new Map());
+      if (!this.watchers.has(target)) {
+        this.watchers.set(target, /* @__PURE__ */ new Map());
       }
-      const objectWatchers = this.watchers.get(object);
+      const objectWatchers = this.watchers.get(target);
       if (!objectWatchers.has(propertyPath)) {
         objectWatchers.set(propertyPath, /* @__PURE__ */ new Set());
       }
       objectWatchers.get(propertyPath).add(callback);
-      this.watchedObjects.add(object);
+    }
+    /**
+     * Adds a global listener
+     */
+    addGlobalListener(callback) {
+      this.globalListeners.add(callback);
+    }
+    /**
+     * Removes a global listener
+     */
+    removeGlobalListener(callback) {
+      this.globalListeners.delete(callback);
     }
     /**
      * Removes a specific watcher
@@ -424,7 +477,8 @@
      * @param callback Callback to remove (if omitted, removes all callbacks for this property)
      */
     unwatch(object, propertyPath, callback) {
-      const objectWatchers = this.watchers.get(object);
+      const target = this.unwrap(object);
+      const objectWatchers = this.watchers.get(target);
       if (!objectWatchers) return;
       const propertyWatchers = objectWatchers.get(propertyPath);
       if (!propertyWatchers) return;
@@ -437,7 +491,7 @@
         objectWatchers.delete(propertyPath);
       }
       if (objectWatchers.size === 0) {
-        this.watchers.delete(object);
+        this.watchers.delete(target);
       }
     }
     /**
@@ -445,7 +499,7 @@
      * @param object Object to stop watching
      */
     unwatchAll(object) {
-      this.watchers.delete(object);
+      this.watchers.delete(this.unwrap(object));
     }
     /**
      * Notifies all watchers that a property has changed
@@ -455,40 +509,53 @@
      * @param oldValue Old value (optional)
      */
     notify(object, propertyPath, newValue, oldValue) {
-      const objectWatchers = this.watchers.get(object);
-      if (!objectWatchers) return;
+      const target = this.unwrap(object);
+      const objectWatchers = this.watchers.get(target);
+      const objName = target.name || target.id || "Unknown";
+      if (!objectWatchers) {
+        this.notifyGlobal(target, propertyPath, newValue, oldValue);
+        return;
+      }
       const propertyWatchers = objectWatchers.get(propertyPath);
-      if (!propertyWatchers || propertyWatchers.size === 0) return;
-      propertyWatchers.forEach((callback) => {
-        try {
-          callback(newValue, oldValue);
-        } catch (error) {
-          console.error("[PropertyWatcher] Callback error:", error);
-        }
-      });
+      if (propertyWatchers && propertyWatchers.size > 0) {
+        console.log(`[PropertyWatcher] Notifying ${propertyWatchers.size} listeners for ${objName}.${propertyPath}`);
+        propertyWatchers.forEach((callback) => {
+          try {
+            callback(newValue, oldValue);
+          } catch (error) {
+            console.error("[PropertyWatcher] Callback error:", error);
+          }
+        });
+      }
+      this.notifyGlobal(target, propertyPath, newValue, oldValue);
     }
     /**
      * Gets the number of watchers for a specific property
-     * @param object Object being watched
-     * @param propertyPath Property path
-     * @returns Number of watchers
      */
     getWatcherCount(object, propertyPath) {
-      const objectWatchers = this.watchers.get(object);
+      const target = this.unwrap(object);
+      const objectWatchers = this.watchers.get(target);
       if (!objectWatchers) return 0;
       const propertyWatchers = objectWatchers.get(propertyPath);
       return propertyWatchers ? propertyWatchers.size : 0;
     }
+    notifyGlobal(object, propertyPath, newValue, oldValue) {
+      this.globalListeners.forEach((callback) => {
+        try {
+          callback(object, propertyPath, newValue, oldValue);
+        } catch (error) {
+          console.error("[PropertyWatcher] Global callback error:", error);
+        }
+      });
+    }
     /**
      * Gets total number of watched objects
-     * @returns Number of objects being watched
      */
     getTotalWatchedObjects() {
       return this.watchers.size;
     }
     /**
      * Gets total number of watchers across all objects
-     * @returns Total watcher count
      */
     getTotalWatchers() {
       let total = 0;
@@ -500,16 +567,11 @@
       return total;
     }
     /**
-     * Helper to get object name for logging
-     */
-    getObjectName(object) {
-      return object.name || object.id || object.constructor?.name || "Unknown";
-    }
-    /**
      * Clears all watchers (useful for cleanup)
      */
     clear() {
       this.watchers.clear();
+      this.globalListeners.clear();
     }
     /**
      * Debug: Lists all active watchers
@@ -517,7 +579,7 @@
     debug() {
       console.log("[PropertyWatcher] Active Watchers:");
       this.watchers.forEach((objectWatchers, object) => {
-        const objName = this.getObjectName(object);
+        const objName = object.name || object.id || "Unknown";
         objectWatchers.forEach((callbacks, propertyPath) => {
           console.log(`  ${objName}.${propertyPath}: ${callbacks.size} watchers`);
         });
@@ -526,22 +588,25 @@
   };
 
   // src/runtime/ReactiveProperty.ts
-  function makeReactive(obj, watcher, path = "") {
+  function makeReactive(obj, watcher, path = "", root = null) {
     if (obj === null || typeof obj !== "object") {
       return obj;
     }
     if (obj instanceof HTMLElement || obj instanceof Node || obj instanceof Set || obj instanceof Map || obj instanceof Date || obj instanceof RegExp) {
       return obj;
     }
+    const actualRoot = root || obj;
     return new Proxy(obj, {
       get(target, property) {
+        if (property === "__isProxy__") return true;
+        if (property === "__target__") return target;
         if (typeof property === "symbol") {
           return target[property];
         }
         const value = target[property];
         if (value && typeof value === "object" && !(value instanceof HTMLElement) && !(value instanceof Set) && !(value instanceof Map) && !(value instanceof Date) && !(value instanceof RegExp)) {
           const nestedPath = path ? `${path}.${property}` : property;
-          return makeReactive(value, watcher, nestedPath);
+          return makeReactive(value, watcher, nestedPath, actualRoot);
         }
         return value;
       },
@@ -554,7 +619,9 @@
         if (oldValue !== newValue) {
           target[property] = newValue;
           const propertyPath = path ? `${path}.${property}` : property;
-          watcher.notify(target, propertyPath, newValue, oldValue);
+          const objName = actualRoot.name || actualRoot.id || "Unknown";
+          console.log(`%c[Proxy] Set ${objName}.${propertyPath} = ${newValue}`, "color: #2196f3");
+          watcher.notify(actualRoot, propertyPath, newValue, oldValue);
         } else {
           target[property] = newValue;
         }
@@ -634,6 +701,8 @@
         update: () => {
           const context = this.getContext();
           const newValue = ExpressionParser.interpolate(expression, context);
+          const targetName = targetObj.name || targetObj.id || "Unknown";
+          console.log(`%c[Binding] Updating ${targetName}.${targetProp} \u2190 ${newValue}`, "color: #9c27b0; font-weight: bold");
           if (targetProp.includes(".")) {
             ExpressionParser.setNestedProperty(targetProp, newValue, targetObj);
           } else {
@@ -650,6 +719,11 @@
           this.watcher.watch(sourceObj, propPath || objName, () => {
             binding.update();
           });
+          if (!propPath && sourceObj.isVariable === true) {
+            console.log(`[ReactiveRuntime] Deep watch enabled for variable: ${objName}.value`);
+            this.watcher.watch(sourceObj, "value", () => binding.update());
+            this.watcher.watch(sourceObj, "items", () => binding.update());
+          }
         }
       });
       if (!this.bindings.has(bindingId)) {
@@ -752,6 +826,12 @@
         variableCount: this.variables.size,
         watcherCount: this.watcher.getTotalWatchers()
       };
+    }
+    /**
+     * Returns the property watcher instance
+     */
+    getWatcher() {
+      return this.watcher;
     }
     /**
      * Returns all registered objects (proxies)
@@ -1451,12 +1531,49 @@
       if (params) {
         vars = { ...vars, ...params };
       }
-      let task = this.tasks?.find((t) => t.name === taskName) || this.project.tasks.find((t) => t.name === taskName);
+      let task = this.tasks?.find((t) => t.name === taskName) || this.project.tasks?.find((t) => t.name === taskName);
       if (!task) {
         task = libraryService.getTask(taskName);
       }
+      if (!task && taskName.includes(".")) {
+        const [objName, evtName] = taskName.split(".");
+        let foundTaskName = "";
+        const findDeep = (objs) => {
+          for (const o of objs) {
+            if (o.name === objName || o.id === objName) return o;
+            if (o.children && o.children.length > 0) {
+              const found = findDeep(o.children);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+        this.project.stages?.forEach((s) => {
+          if (foundTaskName) return;
+          const obj = findDeep(s.objects || []);
+          if (obj && obj.Tasks && obj.Tasks[evtName]) {
+            foundTaskName = obj.Tasks[evtName];
+          }
+          if (!foundTaskName && s.variables) {
+            const v = s.variables.find((v2) => v2.name === objName);
+            if (v && v.Tasks && v.Tasks[evtName]) {
+              foundTaskName = v.Tasks[evtName];
+            }
+          }
+        });
+        if (!foundTaskName && this.project.variables) {
+          const v = this.project.variables.find((v2) => v2.name === objName);
+          if (v && v.Tasks && v.Tasks[evtName]) {
+            foundTaskName = v.Tasks[evtName];
+          }
+        }
+        if (foundTaskName) {
+          console.log(`[TaskExecutor] Resolved "${taskName}" to assigned task: "${foundTaskName}"`);
+          return this.execute(foundTaskName, vars, globalVars, contextObj, depth + 1, parentId, params, isRemoteExecution);
+        }
+      }
       if (!task) {
-        console.warn(`[TaskExecutor] Task definition not found: ${taskName} `);
+        console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
         return;
       }
       const triggerMode = task.triggerMode || "local-sync";
@@ -2226,54 +2343,54 @@
     processVariableEvents(prop, value, oldValue, varDef) {
       const executor = this.host.taskExecutor;
       if (!executor) return;
-      if (oldValue !== value && varDef.onValueChanged) {
-        executor.execute(varDef.onValueChanged, {}, this.contextVars);
+      if (oldValue !== value) {
+        this.executeVariableEvent(varDef, "onValueChanged");
       }
-      if ((value === "" || value === null || value === void 0) && varDef.onValueEmpty) {
-        executor.execute(varDef.onValueEmpty, {}, this.contextVars);
+      if (value === "" || value === null || value === void 0) {
+        this.executeVariableEvent(varDef, "onValueEmpty");
       }
       if (typeof value === "number" && typeof oldValue === "number" && typeof varDef.threshold === "number") {
         const t = varDef.threshold;
-        if (oldValue < t && value >= t && varDef.onThresholdReached) {
-          executor.execute(varDef.onThresholdReached, {}, this.contextVars);
+        if (oldValue < t && value >= t) {
+          this.executeVariableEvent(varDef, "onThresholdReached");
         }
-        if (oldValue >= t && value < t && varDef.onThresholdLeft) {
-          executor.execute(varDef.onThresholdLeft, {}, this.contextVars);
+        if (oldValue >= t && value < t) {
+          this.executeVariableEvent(varDef, "onThresholdLeft");
         }
-        if (oldValue <= t && value > t && varDef.onThresholdExceeded) {
-          executor.execute(varDef.onThresholdExceeded, {}, this.contextVars);
+        if (oldValue <= t && value > t) {
+          this.executeVariableEvent(varDef, "onThresholdExceeded");
         }
       }
       if (varDef.triggerValue !== void 0 && varDef.triggerValue !== "" && varDef.triggerValue !== null) {
         const isTrigger = value == varDef.triggerValue;
         const wasTrigger = oldValue == varDef.triggerValue;
-        if (isTrigger && !wasTrigger && varDef.onTriggerEnter) {
-          executor.execute(varDef.onTriggerEnter, {}, this.contextVars);
+        if (isTrigger && !wasTrigger) {
+          this.executeVariableEvent(varDef, "onTriggerEnter");
         }
-        if (!isTrigger && wasTrigger && varDef.onTriggerExit) {
-          executor.execute(varDef.onTriggerExit, {}, this.contextVars);
+        if (!isTrigger && wasTrigger) {
+          this.executeVariableEvent(varDef, "onTriggerExit");
         }
       }
       if (typeof value === "number" && varDef.min !== void 0 && varDef.max !== void 0) {
         const min = Number(varDef.min);
         const max2 = Number(varDef.max);
-        if (value <= min && (oldValue > min || oldValue === void 0) && varDef.onMinReached) {
-          executor.execute(varDef.onMinReached, {}, this.contextVars);
+        if (value <= min && (oldValue > min || oldValue === void 0)) {
+          this.executeVariableEvent(varDef, "onMinReached");
         }
-        if (value >= max2 && (oldValue < max2 || oldValue === void 0) && varDef.onMaxReached) {
-          executor.execute(varDef.onMaxReached, {}, this.contextVars);
+        if (value >= max2 && (oldValue < max2 || oldValue === void 0)) {
+          this.executeVariableEvent(varDef, "onMaxReached");
         }
         const isInside = value > min && value < max2;
         const wasInside = oldValue > min && oldValue < max2;
-        if (isInside && !wasInside && varDef.onInside) {
-          executor.execute(varDef.onInside, {}, this.contextVars);
+        if (isInside && !wasInside) {
+          this.executeVariableEvent(varDef, "onInside");
         }
-        if (!isInside && wasInside && varDef.onOutside) {
-          executor.execute(varDef.onOutside, {}, this.contextVars);
+        if (!isInside && wasInside) {
+          this.executeVariableEvent(varDef, "onOutside");
         }
       }
-      if (varDef.isRandom && oldValue !== value && varDef.onGenerated) {
-        executor.execute(varDef.onGenerated, {}, this.contextVars);
+      if (varDef.isRandom && oldValue !== value) {
+        this.executeVariableEvent(varDef, "onGenerated");
       }
       if (varDef.type === "list" && value !== oldValue) {
         this.processListEvents(value, oldValue, varDef);
@@ -2282,26 +2399,36 @@
         this.host.startTimer(prop, varDef, value);
       }
     }
+    /**
+     * Helper to execute a variable event. 
+     * Delegated to TaskExecutor using ComponentName.EventName notation.
+     */
+    executeVariableEvent(varDef, eventName) {
+      const executor = this.host.taskExecutor;
+      if (!executor) return;
+      const taskName = `${varDef.name}.${eventName}`;
+      executor.execute(taskName, { sender: varDef }, this.contextVars);
+    }
     processListEvents(value, oldValue, varDef) {
       const executor = this.host.taskExecutor;
       if (!executor) return;
       try {
         const list = Array.isArray(value) ? value : JSON.parse(value);
         const oldList = Array.isArray(oldValue) ? oldValue : oldValue ? JSON.parse(oldValue) : [];
-        if (list.length > oldList.length && varDef.onItemAdded) {
-          executor.execute(varDef.onItemAdded, {}, this.contextVars);
+        if (list.length > oldList.length) {
+          this.executeVariableEvent(varDef, "onItemAdded");
         }
-        if (list.length < oldList.length && varDef.onItemRemoved) {
-          executor.execute(varDef.onItemRemoved, {}, this.contextVars);
+        if (list.length < oldList.length) {
+          this.executeVariableEvent(varDef, "onItemRemoved");
         }
         if (varDef.searchValue) {
           const contains = list.includes(varDef.searchValue);
           const wasContains = oldList.includes(varDef.searchValue);
-          if (contains && !wasContains && varDef.onContains) {
-            executor.execute(varDef.onContains, {}, this.contextVars);
+          if (contains && !wasContains) {
+            this.executeVariableEvent(varDef, "onContains");
           }
-          if (!contains && wasContains && varDef.onNotContains) {
-            executor.execute(varDef.onNotContains, {}, this.contextVars);
+          if (!contains && wasContains) {
+            this.executeVariableEvent(varDef, "onNotContains");
           }
         }
       } catch (e) {
@@ -2413,9 +2540,9 @@
       __publicField(this, "onFocusCallback", null);
       __publicField(this, "onBlurCallback", null);
       __publicField(this, "visible", true);
+      __publicField(this, "text", "");
       // Animation flag - wenn true, wird Physik pausiert
       __publicField(this, "isAnimating", false);
-      __publicField(this, "_caption", "");
       this.x = x;
       this.y = y;
       this.width = width;
@@ -2423,6 +2550,7 @@
       this.zIndex = 0;
       this._align = "NONE";
       this.visible = true;
+      this.text = "";
       this.style = {
         visible: true,
         backgroundColor: "transparent",
@@ -2443,11 +2571,12 @@
         this.x = 0;
       }
     }
+    // Alias for backward compatibility (JSON loading)
     get caption() {
-      return this._caption;
+      return this.text;
     }
     set caption(v) {
-      this._caption = v;
+      this.text = v;
     }
     // Focus event methods
     triggerFocus() {
@@ -2500,7 +2629,7 @@
         { name: "height", label: "H\xF6he", type: "number", group: "GEOMETRIE" },
         { name: "zIndex", label: "Z-Index", type: "number", group: "GEOMETRIE" },
         { name: "align", label: "Ausrichtung", type: "select", group: "GEOMETRIE", options: ["NONE", "TOP", "BOTTOM", "LEFT", "RIGHT", "CLIENT"] },
-        { name: "caption", label: "Text", type: "string", group: "INHALT" },
+        { name: "text", label: "Text", type: "string", group: "INHALT" },
         { name: "visible", label: "Sichtbar", type: "boolean", group: "IDENTIT\xC4T" },
         { name: "style.backgroundColor", label: "Hintergrund", type: "color", group: "STIL" },
         { name: "style.borderColor", label: "Rahmenfarbe", type: "color", group: "STIL" },
@@ -2539,7 +2668,7 @@
     constructor(name, x, y, width, height, text) {
       super(name, x, y, width, height);
       __publicField(this, "icon", "");
-      this.caption = text !== void 0 ? text : name;
+      this.text = text !== void 0 ? text : name;
       this.style.backgroundColor = "#007bff";
       this.style.borderColor = "#000000";
       this.style.borderWidth = 1;
@@ -2624,18 +2753,10 @@
   var TLabel = class extends TTextControl {
     constructor(name, x, y, text) {
       super(name, x, y, 100, 20);
-      __publicField(this, "text");
       this.text = text !== void 0 ? text : name;
       this.style.backgroundColor = "transparent";
       this.style.color = "#000000";
       this.style.textAlign = "left";
-    }
-    // Mapping caption to text for TLabel
-    get caption() {
-      return this.text;
-    }
-    set caption(v) {
-      this.text = v;
     }
     getInspectorProperties() {
       return super.getInspectorProperties();
@@ -5950,15 +6071,6 @@
       ];
     }
     /**
-     * Text property alias for the main status section
-     */
-    get text() {
-      return this.getSection("status")?.text || "";
-    }
-    set text(value) {
-      this.setSection("status", value);
-    }
-    /**
      * Set or update a section
      */
     setSection(id, text, icon) {
@@ -8109,7 +8221,11 @@
             this.reactiveRuntime.setVariable("playerNumber", 1);
             this.reactiveRuntime.setVariable("isHost", true);
           }
+          if (options.onRender) {
+            this.reactiveRuntime.getWatcher().addGlobalListener(() => options.onRender());
+          }
           this.objects = this.reactiveRuntime.getObjects();
+          this.initializeReactiveBindings();
         }
         this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
         this.taskExecutor = new TaskExecutor(project, merged.actions, this.actionExecutor, merged.flowCharts, options.multiplayerManager, merged.tasks);
@@ -8217,7 +8333,11 @@
         AnimationManager.getInstance().clear();
         this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
         this.reactiveRuntime.setVariable("isSplashActive", false);
+        if (this.options.onRender) {
+          this.reactiveRuntime.getWatcher().addGlobalListener(() => this.options.onRender());
+        }
         this.objects = this.reactiveRuntime.getObjects();
+        this.initializeReactiveBindings();
       }
       this.variableManager.stageVariables = {};
       if (this.stage.variables) {
@@ -8317,6 +8437,17 @@
     executeRemoteTask(taskName, params = {}, mode) {
       if (!this.taskExecutor) return;
       this.taskExecutor.execute(taskName, params, this.contextVars, mode === "sequential");
+    }
+    getContext() {
+      const context = {
+        project: this.project
+      };
+      this.objects.forEach((obj) => {
+        context[obj.name] = obj;
+        context[obj.id] = obj;
+      });
+      Object.assign(context, this.contextVars);
+      return context;
     }
     getObjects() {
       const results = [];
@@ -8432,6 +8563,54 @@
         varDef = this.project.variables.find((v) => v.name === name);
       }
       return varDef;
+    }
+    /**
+     * Traverses all objects and registers reactive bindings for properties containing ${...}
+     */
+    initializeReactiveBindings() {
+      console.log(`[GameRuntime] Initializing reactive bindings for ${this.objects.length} objects.`);
+      const process = (objs) => {
+        objs.forEach((obj) => {
+          this.bindObjectProperties(obj);
+          if (obj.children && obj.children.length > 0) {
+            process(obj.children);
+          }
+        });
+      };
+      process(this.objects);
+      const variableComponents = this.objects.filter((obj) => obj.isVariable || obj.className?.includes("Variable"));
+      variableComponents.forEach((obj) => {
+        this.reactiveRuntime.getWatcher().watch(obj, "value", (newValue, oldValue) => {
+          const varDef = this.getVarDef(obj.name);
+          if (varDef) {
+            this.variableManager.processVariableEvents(obj.name, newValue, oldValue, varDef);
+          }
+        });
+        this.reactiveRuntime.getWatcher().watch(obj, "items", (newValue, oldValue) => {
+          const varDef = this.getVarDef(obj.name);
+          if (varDef) {
+            this.variableManager.processVariableEvents(obj.name, newValue, oldValue, varDef);
+          }
+        });
+      });
+    }
+    bindObjectProperties(obj) {
+      const skipProps = ["id", "name", "className", "parentId", "constructor", "Tasks"];
+      const bindProps = (target, pathPrefix = "") => {
+        if (!target || typeof target !== "object") return;
+        Object.keys(target).forEach((key) => {
+          if (skipProps.includes(key)) return;
+          const val = target[key];
+          const propPath = pathPrefix ? `${pathPrefix}.${key}` : key;
+          if (typeof val === "string" && val.includes("${")) {
+            console.log(`[GameRuntime] Binding reaktiv: ${obj.name}.${propPath} \u2190 ${val}`);
+            this.reactiveRuntime.bindComponent(obj, propPath, val);
+          } else if (val && typeof val === "object" && !Array.isArray(val) && (key === "style" || key === "Tasks")) {
+            bindProps(val, propPath);
+          }
+        });
+      };
+      bindProps(obj);
     }
   };
 

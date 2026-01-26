@@ -7,7 +7,7 @@
         {
             "className": "TLabel",
             "name": "ActionNameLabel",
-            "text": "Action Name:",
+            "text": "Aktions-Name:",
             "style": {
                 "fontSize": 12,
                 "fontWeight": "bold",
@@ -17,37 +17,17 @@
         },
         {
             "className": "TEdit",
-            "name": "ActionNameInput",
-            "text": "${dialogData.actionName}",
-            "placeholder": "Enter action name",
+            "name": "NameInput",
+            "text": "${dialogData.name}",
+            "placeholder": "z.B. punkteErhoehen",
             "style": {
-                "marginBottom": 16
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "TargetLabel",
-            "text": "Target Object:",
-            "style": {
-                "fontSize": 12,
-                "fontWeight": "bold",
-                "color": "#fff",
-                "marginBottom": 4
-            }
-        },
-        {
-            "className": "TEdit",
-            "name": "TargetInput",
-            "text": "${dialogData.target}",
-            "placeholder": "Object name",
-            "style": {
-                "marginBottom": 16
+                "marginBottom": 12
             }
         },
         {
             "className": "TLabel",
             "name": "TypeLabel",
-            "text": "Action Type:",
+            "text": "Aktions-Typ:",
             "style": {
                 "fontSize": 12,
                 "fontWeight": "bold",
@@ -57,50 +37,35 @@
         },
         {
             "className": "TDropdown",
-            "name": "TypeDropdown",
+            "name": "ActionTypeSelect",
             "selectedValue": "${dialogData.type}",
-            "options": [
-                "property",
-                "method",
-                "navigate"
-            ],
+            "options": "${getAllActionTypes()}",
             "style": {
-                "marginBottom": 16
+                "marginBottom": 12
             }
         },
         {
             "className": "TLabel",
-            "name": "ChangesLabel",
-            "text": "Property Changes:",
+            "name": "ParamsHeader",
+            "text": "Parameter:",
             "style": {
                 "fontSize": 12,
                 "fontWeight": "bold",
-                "color": "#fff",
-                "marginBottom": 8
+                "color": "#888",
+                "marginTop": 8,
+                "marginBottom": 4
             }
         },
         {
-            "className": "TLabel",
-            "name": "ChangesHint",
-            "text": "Define what properties to change:",
-            "style": {
-                "fontSize": 11,
-                "color": "#888",
-                "marginBottom": 12
-            }
+            "className": "TActionParams",
+            "name": "ActionParams"
         }
     ],
-    "buttons": [
+    "footer": [
         {
-            "caption": "Save",
-            "action": "save",
-            "style": {
-                "backgroundColor": "#28a745",
-                "color": "#fff"
-            }
-        },
-        {
-            "caption": "Delete",
+            "className": "TButton",
+            "name": "DeleteBtn",
+            "caption": "🗑️ Löschen",
             "action": "delete",
             "style": {
                 "backgroundColor": "#dc3545",
@@ -108,11 +73,24 @@
             }
         },
         {
-            "caption": "Cancel",
+            "className": "TButton",
+            "name": "CancelBtn",
+            "caption": "Abbrechen",
             "action": "cancel",
             "style": {
-                "backgroundColor": "#6c757d",
+                "backgroundColor": "#444",
                 "color": "#fff"
+            }
+        },
+        {
+            "className": "TButton",
+            "name": "SaveBtn",
+            "caption": "✅ Speichern",
+            "action": "save",
+            "style": {
+                "backgroundColor": "#28a745",
+                "color": "#fff",
+                "flex": 1
             }
         }
     ]

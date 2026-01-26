@@ -43,7 +43,7 @@ export class ProjectRegistry {
 
         // 1. Global variables
         visibleVars = this.project.variables
-            .filter(v => !v.scope || v.scope.toLowerCase() === 'global')
+            .filter(v => !v.scope || String(v.scope).toLowerCase() === 'global')
             .map(v => ({ ...v, uiScope: 'global' as const }));
 
         // 2. Stage variables (from active stage)

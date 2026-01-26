@@ -7,12 +7,14 @@ import { PropertyWatcher } from './PropertyWatcher';
  * @param obj Object to make reactive
  * @param watcher PropertyWatcher instance
  * @param path Current property path (for nested objects)
+ * @param root Root object for this reactive tree
  * @returns Proxied object
  */
 export function makeReactive<T extends object>(
     obj: T,
     watcher: PropertyWatcher,
-    path: string = ''
+    path: string = '',
+    root: any = null
 ): T {
     // Don't wrap primitives or null
     if (obj === null || typeof obj !== 'object') {
@@ -26,9 +28,15 @@ export function makeReactive<T extends object>(
         return obj;
     }
 
+    const actualRoot = root || obj;
+
     // Create proxy
     return new Proxy(obj, {
         get(target: any, property: string | symbol) {
+            // Handle proxy detection and unwrapping
+            if (property === '__isProxy__') return true;
+            if (property === '__target__') return target;
+
             // Skip symbol properties
             if (typeof property === 'symbol') {
                 return target[property];
@@ -43,7 +51,7 @@ export function makeReactive<T extends object>(
                 !(value instanceof Set) && !(value instanceof Map) &&
                 !(value instanceof Date) && !(value instanceof RegExp)) {
                 const nestedPath = path ? `${path}.${property}` : property;
-                return makeReactive(value, watcher, nestedPath);
+                return makeReactive(value, watcher, nestedPath, actualRoot);
             }
 
             return value;
@@ -63,7 +71,10 @@ export function makeReactive<T extends object>(
                 target[property] = newValue;
 
                 const propertyPath = path ? `${path}.${property}` : property;
-                watcher.notify(target, propertyPath, newValue, oldValue);
+                const objName = actualRoot.name || actualRoot.id || 'Unknown';
+                console.log(`%c[Proxy] Set ${objName}.${propertyPath} = ${newValue}`, 'color: #2196f3');
+
+                watcher.notify(actualRoot, propertyPath, newValue, oldValue);
             } else {
                 target[property] = newValue;
             }
@@ -75,16 +86,19 @@ export function makeReactive<T extends object>(
 
 /**
  * Checks if an object is reactive (wrapped in Proxy)
- * Note: This is a heuristic check, not 100% reliable
  */
 export function isReactive(obj: any): boolean {
-    try {
-        // Try to detect if it's a Proxy by checking for Proxy-specific behavior
-        return obj !== null && typeof obj === 'object' &&
-            Object.getOwnPropertyDescriptor(obj, '__isReactive__') !== undefined;
-    } catch {
-        return false;
+    return obj !== null && typeof obj === 'object' && (obj as any).__isProxy__ === true;
+}
+
+/**
+ * Returns the raw object behind a reactive proxy
+ */
+export function unwrap<T extends object>(obj: T): T {
+    if (obj !== null && typeof obj === 'object' && (obj as any).__isProxy__) {
+        return (obj as any).__target__;
     }
+    return obj;
 }
 
 /**

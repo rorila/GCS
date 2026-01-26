@@ -49,6 +49,7 @@ import { inputSyncer, collisionSyncer, network } from '../multiplayer';
 import { jsonLobby } from '../multiplayer/JSONMultiplayerLobby';
 import { FlowDiagramGenerator } from './FlowDiagramGenerator';
 import mermaid from 'mermaid';
+import { ExpressionParser } from '../runtime/ExpressionParser';
 import { JSONInspector } from './JSONInspector';
 import { JSONToolbox } from './JSONToolbox';
 import { JSONComponentPalette } from './JSONComponentPalette';
@@ -2114,24 +2115,83 @@ export class Editor implements IViewHost {
         try {
             // CRITICAL: Always get fresh objects from runtime if available, 
             // as the runtime might replace the objects array on stage switches.
-            const objectsToRender = this.runtime ? this.runtime.getObjects() : (this.runtimeObjects || this.getResolvedInheritanceObjects());
+            let objectsToRender = this.runtime ? this.runtime.getObjects() : (this.runtimeObjects || this.getResolvedInheritanceObjects());
+
+            // NEW: In Editor-Mode (no runtime active), resolve property bindings (${varName}) for visual preview
+            if (!this.runtime) {
+                const varContext = this.getVariableContext();
+                objectsToRender = objectsToRender.map(obj => this.resolveObjectPreview(obj, varContext));
+            }
 
             // Custom Render Callback (if needed) to inject extra logic
             // ...
 
             this.stage.renderObjects(objectsToRender);
 
-            // If JSON view is active, refresh it (but only if it's visible to save performance)
-            const jsonPanel = document.getElementById('json-viewer');
-            if (jsonPanel && jsonPanel.style.display !== 'none' && this.jsonMode === 'viewer') {
-                // We let refreshJSONView handle complex tree rendering
-                // but we might need a signal or just rely on the fact that viewer refreshes itself
-                // in switchView. If we want real-time updates in JSON View:
-                this.refreshJSONView();
-            }
+            // JSON-View Refresh entfernt (darf nicht vom Spielverlauf tangiert sein)
         } catch (err) {
             console.error("[Editor] Render error:", err);
         }
+    }
+
+    /**
+     * Creates a temporary copy of an object for rendering with resolved bindings.
+     * Does NOT modify the original project data.
+     */
+    private resolveObjectPreview(obj: any, context: Record<string, any>): any {
+        // Create a shallow copy + deep copy of relevant properties to avoid modifying original
+        // We only need to resolve string properties that start with ${
+        const previewObj = { ...obj };
+
+        // Helper to resolve nested props
+        const resolveProps = (target: any) => {
+            if (!target || typeof target !== 'object') return;
+
+            Object.keys(target).forEach(key => {
+                const val = target[key];
+                if (typeof val === 'string' && val.includes('${')) {
+                    try {
+                        target[key] = ExpressionParser.interpolate(val, context);
+                    } catch (e) {
+                        // Keep original on error
+                    }
+                } else if (val && typeof val === 'object' && !Array.isArray(val) && key === 'style') {
+                    // Dive into style
+                    target[key] = { ...val };
+                    resolveProps(target[key]);
+                }
+            });
+        };
+
+        resolveProps(previewObj);
+
+        // Also handle children if it's a TDialogRoot or similar
+        if (previewObj.children && Array.isArray(previewObj.children)) {
+            previewObj.children = previewObj.children.map((child: any) => this.resolveObjectPreview(child, context));
+        }
+
+        return previewObj;
+    }
+
+    /**
+     * Generates a context for ExpressionParser based on all active project variables
+     */
+    private getVariableContext(): Record<string, any> {
+        const context: Record<string, any> = {
+            project: this.project,
+            // Add system-like variables that are also available in ReactiveRuntime
+            isMultiplayer: this._isMultiplayer,
+            playerNumber: this._localPlayerNumber
+        };
+
+        // Add all variables from registry (Global + Scoped)
+        const variables = projectRegistry.getVariables();
+        variables.forEach(v => {
+            // Use defaultValue for preview in editor
+            context[v.name] = v.defaultValue;
+        });
+
+        return context;
     }
 
     /**
@@ -2969,19 +3029,16 @@ export class Editor implements IViewHost {
 
         const projectStage = this.project.stages?.find((s: any) => s.id === activeStage.id);
         if (projectStage) {
-            // Serialize objects using their toJSON method logic. 
-            // We use this.currentObjects() which holds the editor's live objects.
-            const serializedObjects = this.currentObjects.map((obj: any) => {
-                if (typeof obj.toJSON === 'function') {
-                    return obj.toJSON();
-                }
-                return obj;
-            });
+            // Keep LIVE instances in the project structure to preserve methods and reactivity.
+            // JSON.stringify will handle serialization when saving to localStorage.
+            const allObjs = this.currentObjects;
 
             // STRICT SEPARATION: Filter objects and variables
-            projectStage.objects = serializedObjects.filter((o: any) => !o.isVariable);
-            projectStage.variables = serializedObjects.filter((o: any) => o.isVariable) || [];
-            console.log(`[Editor] Synced ${projectStage.objects.length} objects and ${projectStage.variables.length} variables.`);
+            projectStage.objects = allObjs.filter(o => !o.isVariable);
+            (projectStage as any).variables = allObjs.filter(o => o.isVariable);
+
+            const varCount = (projectStage.variables || []).length;
+            console.log(`[Editor] Synced ${projectStage.objects.length} objects and ${varCount} variables (Instances preserved).`);
         } else {
             console.warn(`[Editor] Could not find stage "${activeStage.id}" in project to sync objects.`);
         }

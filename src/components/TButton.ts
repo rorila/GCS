@@ -7,8 +7,8 @@ export class TButton extends TTextControl {
     constructor(name: string, x: number, y: number, width: number, height: number, text?: string) {
         super(name, x, y, width, height);
 
-        // Use inherited caption setter
-        this.caption = text !== undefined ? text : name;
+        // Use inherited text property
+        this.text = text !== undefined ? text : name;
 
         // Default Button Style
         this.style.backgroundColor = '#007bff';

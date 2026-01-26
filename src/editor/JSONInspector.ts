@@ -3335,16 +3335,14 @@ export class JSONInspector {
             '${selectedObject.id}'
         ];
 
-        // Add project variables
-        if (this.project) {
-            this.project.variables?.forEach((v: any) => {
-                suggestions.push(`\${${v.name}}`);
-            });
+        // Use ProjectRegistry to get all visible variables (Global, Stage, etc.)
+        const visibleVars = projectRegistry.getVariables();
+        visibleVars.forEach(v => {
+            suggestions.push(`\${${v.name}}`);
+        });
 
-            // Add other objects as potential targets? 
-            // maybe later, for now system and variables are most important
-        }
-
+        // Add other objects as potential targets? 
+        // maybe later, for now system and variables are most important
         return suggestions;
     }
 

@@ -281,3 +281,38 @@ Wenn eine Stage isoliert im JSON-Tab angezeigt wird (`activeStage`), werden glob
 - **Automatik**: Bei der Erstellung über den Flow-Editor wird automatisch eine laufende Nummer angehängt, falls der Name bereits vergeben ist (`generateUniqueActionName`, `generateUniqueVariableName`, `generateUniqueTaskName`).
 - **PascalCase**: Tasks sollten stets in PascalCase benannt werden (z.B. `MoveAndJump`).
 
+## Fortgeschrittene Reaktive Logik (v1.6.0)
+
+### Proxy-Identität & Unwrapping
+Ein häufiges Problem in reaktiven Systemen ist die Diskrepanz zwischen **Proxy-Objekten** (die vom Watcher beobachtet werden) und **rohen Objekten** (die die Benachrichtigungen senden).
+- **Regel**: Der `PropertyWatcher` muss alle eingehenden Objekte via `unwrap(obj)` (aus `ReactiveProperty.ts`) behandeln. Dies stellt sicher, dass Watcher für Proxies auch dann ausgelöst werden, wenn die Benachrichtigung vom zugrunde liegenden rohen Objekt kommt.
+- **Implementierung**: Methoden wie `watch`, `unwatch` und `notify` im `PropertyWatcher` nutzen konsistent das unwrapped Objekt als Schlüssel in der Map.
+
+### Deep Dependency Tracking für Variablen
+Benutzer binden oft direkt an das Variablen-Objekt (z.B. `${Score}`), erwarten aber eine Aktualisierung, wenn sich dessen Wert (`Score.value`) ändert.
+- **Automatisierung**: Die `ReactiveRuntime` erkennt beim Binden, ob das Ziel-Objekt eine Variable ist (`isVariable: true`). Ist dies der Fall, wird automatisch ein zusätzlicher Watcher auf die Eigenschaften `.value` und `.items` registriert.
+- **Vorteil**: Vereinfachung der UI-Expressions für den Benutzer, ohne die reaktive Kette zu unterbrechen.
+
+### Intelligente Stringifizierung
+Um die Anzeige von `[object Object]` im UI zu vermeiden, verfügt der `ExpressionParser` über eine hierarchische Umwandlungslogik (`valueToString`):
+1. **Variable**: Inhalt (`value`) anzeigen.
+2. **Array**: Elemente kommagetrennt auflisten.
+3. **Komponente**: Name der Komponente anzeigen (z.B. `Ball`).
+4. **Objekt**: Klassennamen (z.B. `[TSprite]`) oder JSON-Vorschau anzeigen.
+
+### Debugging des reaktiven Flusses
+Zur Analyse von Bindungsproblemen ist in der Konsole ein farbcodierter Flow implementiert:
+- **BLAU (`[Proxy]`)**: Ein Wert wurde in einem reaktiven Objekt gesetzt.
+- **DUNKELGRAU (`[PropertyWatcher]`)**: Ein Beobachter wurde für eine Änderung gefunden und wird benachrichtigt.
+- **VIOLETT (`[Binding]`)**: Eine UI-Eigenschaft wurde aufgrund einer Abhängigkeit aktualisiert.
+
+- **Ticker-Synchronisation**: Falls der `Editor` einen Fallback-Animations-Ticker verwendet (z.B. wenn keine `GameLoop` vorhanden ist), muss dieser gestoppt werden (`stopAnimationTicker`), sobald eine echte `GameLoop` zur Laufzeit erscheint (z.B. nach einem Stage-Switch).
+
+### Eigenschafts-Standards & Reaktivität
+- **Standard-Inhalt (`text`)**: Alle Komponenten, die Text anzeigen (Labels, Buttons, Statusbars), MÜSSEN die Eigenschaft `text` für ihren Inhalt verwenden. 
+- **Alias-Vermeidung**: Vermeide Getter/Setter für reaktive Felder, da diese am Proxy vorbeioperieren können. `TWindow` bietet `text` als einfache Property an.
+- **JSON-Kompatibilität**: Falls `caption` im JSON vorhanden ist, wird es via Getter/Setter in `TWindow` automatisch auf `text` umgeleitet.
+
+### Event-Resolution
+- **Zentralisierung**: Logik-Events (Trigger, Clicks, etc.) werden IMMER über den `TaskExecutor` mit der Notation `ObjektName.EventName` aufgelöst.
+- **Keine Spezial-Lookups**: Komponenten-spezifische Manager (wie `VariableManager`) sollten keine eigene Suchlogik für Tasks implementieren, sondern den `TaskExecutor` beauftragen.

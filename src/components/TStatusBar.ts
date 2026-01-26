@@ -52,17 +52,6 @@ export class TStatusBar extends TWindow {
     }
 
     /**
-     * Text property alias for the main status section
-     */
-    public get text(): string {
-        return this.getSection('status')?.text || '';
-    }
-
-    public set text(value: string) {
-        this.setSection('status', value);
-    }
-
-    /**
      * Set or update a section
      */
     public setSection(id: string, text: string, icon?: string): void {
