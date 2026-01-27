@@ -305,6 +305,15 @@ Zur Analyse von Bindungsproblemen ist in der Konsole ein farbcodierter Flow impl
 - **BLAU (`[Proxy]`)**: Ein Wert wurde in einem reaktiven Objekt gesetzt.
 - **DUNKELGRAU (`[PropertyWatcher]`)**: Ein Beobachter wurde für eine Änderung gefunden und wird benachrichtigt.
 - **VIOLETT (`[Binding]`)**: Eine UI-Eigenschaft wurde aufgrund einer Abhängigkeit aktualisiert.
+- **Kontext-Priorität (Object-over-Data)**: Im Auswertungs-Kontext (`getContext`) haben registrierte Objekt-Proxies IMMER Vorrang vor den Map-Einträgen in `variables`. Dies stellt sicher, dass Bindungen an Variablen-Komponenten (`TVariable`) deren aktuelles Verhalten (isVariable-Logik, Live-Werte) nutzen und nicht auf veraltete primitive Datensätze zurückfallen.
+- **INITIAL SYNC**: Die `GameRuntime` synchronisiert beim Start einmalig alle `value`-Eigenschaften von Variablen-Komponenten in das `variableManager`-System. Dies garantiert, dass Live-Edits im Editor (die in `component.value` gespeichert sind) sofort für Bindungen und Logik verfügbar sind.
+- **Initialisierungs-Sicherheit**: Alle Variablen (Projekt-global, Main-Stage und aktuelle Start-Stage) werden beim Konstruieren der `GameRuntime` via `initializeVariables` und `initializeStageVariables` geladen, bevor Bindungen erstellt werden.
+
+### Multi-Stage-Merging für globale Objekte
+In Projekten mit mehreren Stages müssen globale Komponenten (insbesondere Variablen) aus der `Main`-Stage in jede andere Stage übernommen werden:
+1. **RuntimeStageManager**: Mergt beim Laden einer Stage alle Objekte der `Main`-Stage, die `scope: 'global'` haben oder Variablen sind.
+2. **RuntimeVariableManager**: Initialisiert beim Start zusätzlich alle Variablen aus der `Main`-Stage in den globalen `projectVariables` Pool.
+3. **Vorteil**: Globale Variablen müssen nicht manuell in jede Stage kopiert werden; sie stehen automatisch für Reaktivität und Tasks (z.B. Punkteanzeige in Level 2 für Variable aus dem Startscreen) zur Verfügung.
 
 - **Ticker-Synchronisation**: Falls der `Editor` einen Fallback-Animations-Ticker verwendet (z.B. wenn keine `GameLoop` vorhanden ist), muss dieser gestoppt werden (`stopAnimationTicker`), sobald eine echte `GameLoop` zur Laufzeit erscheint (z.B. nach einem Stage-Switch).
 
@@ -316,3 +325,9 @@ Zur Analyse von Bindungsproblemen ist in der Konsole ein farbcodierter Flow impl
 ### Event-Resolution
 - **Zentralisierung**: Logik-Events (Trigger, Clicks, etc.) werden IMMER über den `TaskExecutor` mit der Notation `ObjektName.EventName` aufgelöst.
 - **Keine Spezial-Lookups**: Komponenten-spezifische Manager (wie `VariableManager`) sollten keine eigene Suchlogik für Tasks implementieren, sondern den `TaskExecutor` beauftragen.
+
+### Variable Lifecycle & Priorität
+- **Standard-Initialisierung**: Variablen-Komponenten (`TVariable`, `TTriggerVariable` etc.) initialisieren `value` und `defaultValue` mit `undefined`. Dies verhindert "Verschmutzung" des Projekt-JSONs durch Standard-Nullen und stellt sicher, dass nur explizit vom Benutzer gesetzte Werte gespeichert werden.
+- **Start-Priorität**: Beim Spielstart (Initialisierung im `RuntimeVariableManager`) wird `defaultValue` gegenüber `value` bevorzugt. `defaultValue` repräsentiert den beabsichtigten Startzustand des Designs, während `value` den (potenziell im Editor flüchtigen) aktuellen Zustand widerspiegelt.
+- **Initial-Sync**: Die `GameRuntime` führt nach der Initialisierung des `VariableManager` einen obligatorischen Rück-Sync in die Komponenten-Instanzen durch (`syncVariableComponents`). Dies ist kritisch, damit die Proxies in der `ReactiveRuntime` von Beginn an die korrekten Werte für Datenbindungen (`${...}`) besitzen.
+- **Stage-Wechsel**: Der Variablen-Sync wird bei jedem Stage-Wechsel automatisch wiederholt, um lokale Variablen der neuen Stage korrekt zu laden.

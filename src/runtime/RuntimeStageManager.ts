@@ -79,21 +79,27 @@ export class RuntimeStageManager {
             }
         });
 
-        // 3. Special Inheritance: Global System Services from 'Main' (baseline for all sub-stages)
+        // 3. Special Inheritance: Global Objects from 'Main' (baseline for all sub-stages)
         const activeStage = stageChain[stageChain.length - 1];
         if (activeStage && activeStage.type !== 'splash' && activeStage.type !== 'main') {
             const mainStage = this.project.stages?.find((s: any) => s.type === 'main');
             if (mainStage && mainStage.objects) {
                 const globalObjects = hydrateObjects(mainStage.objects);
-                const systemClasses = [
-                    'TGameLoop', 'TStageController', 'TGameState',
-                    'THandshake', 'THeartbeat', 'TGameServer',
-                    'TInputController', 'TDebugLog'
-                ];
 
-                globalObjects.forEach(gObj => {
+                // Also hydrate main stage variables as global objects if they are public
+                const globalVariables = hydrateObjects(mainStage.variables || []);
+
+                [...globalObjects, ...globalVariables].forEach(gObj => {
+                    const isGlobal = gObj.scope === 'global' || (gObj as any).isVariable;
+                    // System objects are always considered global for stage baseline
+                    const systemClasses = [
+                        'TGameLoop', 'TStageController', 'TGameState',
+                        'THandshake', 'THeartbeat', 'TGameServer',
+                        'TInputController', 'TDebugLog'
+                    ];
                     const isSystem = systemClasses.includes(gObj.className);
-                    if (isSystem && !objectIdSet.has(gObj.id)) {
+
+                    if ((isGlobal || isSystem) && !objectIdSet.has(gObj.id)) {
                         const nameCollision = mergedObjects.find(l => l.name === gObj.name);
                         if (!nameCollision) {
                             mergedObjects.push(gObj);

@@ -4,8 +4,8 @@ import { VariableType } from '../model/types';
 
 export class TVariable extends TWindow {
     public className: string = 'TVariable';
-    public value: any = 0;
-    public defaultValue: any = 0;
+    public value: any = undefined;
+    public defaultValue: any = undefined;
     public variableType: VariableType = 'integer';
 
     constructor(name: string, x: number, y: number) {

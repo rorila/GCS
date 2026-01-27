@@ -756,14 +756,14 @@
      */
     getContext() {
       const context = {};
+      this.variables.forEach((value, name) => {
+        context[name] = value;
+      });
       this.objectsByName.forEach((obj, name) => {
         context[name] = obj;
       });
       this.objectsById.forEach((obj, id) => {
-        context[id] = obj;
-      });
-      this.variables.forEach((value, name) => {
-        context[name] = value;
+        if (!context[id]) context[id] = obj;
       });
       return context;
     }
@@ -2258,19 +2258,34 @@
     }
     initializeVariables(project) {
       if (project.variables) {
-        project.variables.forEach((v) => {
-          const isGlobal = !v.scope || v.scope === "global";
-          if (isGlobal) {
-            if (this.projectVariables[v.name] === void 0) {
-              this.projectVariables[v.name] = v.defaultValue;
-            }
-          } else if (v.scope === "local") {
-            if (this.stageVariables[v.name] === void 0) {
-              this.stageVariables[v.name] = v.defaultValue;
-            }
-          }
-        });
+        this.importVariables(project.variables);
       }
+      if (project.stages) {
+        const mainStage = project.stages.find((s) => s.type === "main");
+        if (mainStage && mainStage.variables) {
+          this.importVariables(mainStage.variables);
+        }
+      }
+    }
+    initializeStageVariables(stage) {
+      if (stage && stage.variables) {
+        this.importVariables(stage.variables);
+      }
+    }
+    importVariables(vars) {
+      vars.forEach((v) => {
+        const isGlobal = !v.scope || v.scope === "global";
+        const initialValue = v.defaultValue !== void 0 ? v.defaultValue : v.value;
+        if (isGlobal) {
+          if (this.projectVariables[v.name] === void 0) {
+            this.projectVariables[v.name] = initialValue !== void 0 ? initialValue : 0;
+          }
+        } else {
+          if (this.stageVariables[v.name] === void 0) {
+            this.stageVariables[v.name] = initialValue !== void 0 ? initialValue : 0;
+          }
+        }
+      });
     }
     createStageProxy(stage) {
       return new Proxy({}, {
@@ -2315,6 +2330,10 @@
             this.projectVariables[prop] = finalValue;
           } else {
             this.stageVariables[prop] = finalValue;
+          }
+          const component = this.host.objects?.find((o) => o.name === prop && o.isVariable);
+          if (component && component.value !== finalValue) {
+            component.value = finalValue;
           }
           this.host.reactiveRuntime.setVariable(prop, finalValue);
           if (this.host.taskExecutor) {
@@ -7529,8 +7548,8 @@
     constructor(name, x, y) {
       super(name, x, y, 3, 1);
       __publicField(this, "className", "TVariable");
-      __publicField(this, "value", 0);
-      __publicField(this, "defaultValue", 0);
+      __publicField(this, "value");
+      __publicField(this, "defaultValue");
       __publicField(this, "variableType", "integer");
       this.isVariable = true;
       this.style.backgroundColor = "#673ab7";
@@ -7591,7 +7610,7 @@
     constructor(name, x, y) {
       super(name, x, y, 3, 1);
       __publicField(this, "className", "TThresholdVariable");
-      __publicField(this, "value", 0);
+      __publicField(this, "value");
       __publicField(this, "threshold", 100);
       this.isVariable = true;
       this.style.backgroundColor = "#ff9800";
@@ -7628,7 +7647,7 @@
     constructor(name, x, y) {
       super(name, x, y, 3, 1);
       __publicField(this, "className", "TTriggerVariable");
-      __publicField(this, "value", 0);
+      __publicField(this, "value");
       __publicField(this, "triggerValue", 1);
       this.isVariable = true;
       this.style.backgroundColor = "#f44336";
@@ -7664,7 +7683,7 @@
     constructor(name, x, y) {
       super(name, x, y, 3, 1);
       __publicField(this, "className", "TRangeVariable");
-      __publicField(this, "value", 50);
+      __publicField(this, "value");
       __publicField(this, "min", 0);
       __publicField(this, "max", 100);
       this.isVariable = true;
@@ -8143,19 +8162,21 @@
         const mainStage = this.project.stages?.find((s) => s.type === "main");
         if (mainStage && mainStage.objects) {
           const globalObjects = hydrateObjects(mainStage.objects);
-          const systemClasses = [
-            "TGameLoop",
-            "TStageController",
-            "TGameState",
-            "THandshake",
-            "THeartbeat",
-            "TGameServer",
-            "TInputController",
-            "TDebugLog"
-          ];
-          globalObjects.forEach((gObj) => {
+          const globalVariables = hydrateObjects(mainStage.variables || []);
+          [...globalObjects, ...globalVariables].forEach((gObj) => {
+            const isGlobal = gObj.scope === "global" || gObj.isVariable;
+            const systemClasses = [
+              "TGameLoop",
+              "TStageController",
+              "TGameState",
+              "THandshake",
+              "THeartbeat",
+              "TGameServer",
+              "TInputController",
+              "TDebugLog"
+            ];
             const isSystem = systemClasses.includes(gObj.className);
-            if (isSystem && !objectIdSet.has(gObj.id)) {
+            if ((isGlobal || isSystem) && !objectIdSet.has(gObj.id)) {
               const nameCollision = mergedObjects.find((l) => l.name === gObj.name);
               if (!nameCollision) {
                 mergedObjects.push(gObj);
@@ -8209,6 +8230,8 @@
         this.isSplashActive = activeStage.type === "splash";
         const merged = this.stageManager.getMergedStageData(activeStage.id);
         this.objects = merged.objects;
+        this.variableManager.initializeStageVariables(activeStage);
+        this.syncVariableComponents();
         if (options.makeReactive) {
           this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
           this.reactiveRuntime.setVariable("isSplashActive", this.isSplashActive);
@@ -8340,11 +8363,8 @@
         this.initializeReactiveBindings();
       }
       this.variableManager.stageVariables = {};
-      if (this.stage.variables) {
-        this.stage.variables.forEach((v) => {
-          this.variableManager.stageVariables[v.name] = v.defaultValue;
-        });
-      }
+      this.variableManager.initializeStageVariables(this.stage);
+      this.syncVariableComponents();
       this.actionExecutor.setObjects(this.objects);
       this.initStageController();
       this.start();
@@ -8442,11 +8462,15 @@
       const context = {
         project: this.project
       };
-      this.objects.forEach((obj) => {
-        context[obj.name] = obj;
-        context[obj.id] = obj;
-      });
       Object.assign(context, this.contextVars);
+      this.objects.forEach((obj) => {
+        if (obj.name) {
+          context[obj.name] = obj;
+        }
+        if (obj.id) {
+          context[obj.id] = obj;
+        }
+      });
       return context;
     }
     getObjects() {
@@ -8568,7 +8592,6 @@
      * Traverses all objects and registers reactive bindings for properties containing ${...}
      */
     initializeReactiveBindings() {
-      console.log(`[GameRuntime] Initializing reactive bindings for ${this.objects.length} objects.`);
       const process = (objs) => {
         objs.forEach((obj) => {
           this.bindObjectProperties(obj);
@@ -8592,6 +8615,11 @@
             this.variableManager.processVariableEvents(obj.name, newValue, oldValue, varDef);
           }
         });
+        if (obj.value !== void 0) {
+          this.contextVars[obj.name] = obj.value;
+        } else if (Array.isArray(obj.items)) {
+          this.contextVars[obj.name] = obj.items;
+        }
       });
     }
     bindObjectProperties(obj) {
@@ -8603,7 +8631,7 @@
           const val = target[key];
           const propPath = pathPrefix ? `${pathPrefix}.${key}` : key;
           if (typeof val === "string" && val.includes("${")) {
-            console.log(`[GameRuntime] Binding reaktiv: ${obj.name}.${propPath} \u2190 ${val}`);
+            console.log(`%c[GameRuntime] Creating reactive binding: ${obj.name}.${propPath} \u2190 ${val}`, "color: #4caf50; font-weight: bold");
             this.reactiveRuntime.bindComponent(obj, propPath, val);
           } else if (val && typeof val === "object" && !Array.isArray(val) && (key === "style" || key === "Tasks")) {
             bindProps(val, propPath);
@@ -8611,6 +8639,17 @@
         });
       };
       bindProps(obj);
+    }
+    syncVariableComponents() {
+      if (!this.objects) return;
+      this.objects.forEach((obj) => {
+        if (obj.isVariable && obj.name) {
+          const runtimeValue = this.variableManager.contextVars[obj.name];
+          if (runtimeValue !== void 0) {
+            obj.value = runtimeValue;
+          }
+        }
+      });
     }
   };
 

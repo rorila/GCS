@@ -1409,11 +1409,52 @@ export class JSONInspector {
 
             const prevClass = input.className;
             if (isBound) {
-                input.className = 'TEdit';
-                input.noEval = true; // Prevent evaluation to show raw binding string
-                if (typeof input.text !== 'string' || !input.text.startsWith('${')) {
-                    input.text = (typeof currentVal === 'string' && currentVal.startsWith('${')) ? currentVal : String(currentVal);
+                // In binding mode, render a SELECT dropdown instead of a text input with datalist
+                const select = document.createElement('select');
+                select.style.cssText = 'flex: 1; padding: 4px 6px; background-color: #333; color: #fff; border: 1px solid #555; border-radius: 3px; font-size: 11px; cursor: pointer;';
+
+                // Get current value
+                const currentBinding = (typeof currentVal === 'string' && currentVal.startsWith('${'))
+                    ? currentVal
+                    : (typeof input.text === 'string' && input.text.startsWith('${') ? input.text : '');
+
+                // Get all suggestions
+                const suggestions = this.getBindingSuggestions();
+
+                // Add empty option for manual entry
+                const emptyOpt = document.createElement('option');
+                emptyOpt.value = '';
+                emptyOpt.text = '-- Binding auswählen --';
+                select.appendChild(emptyOpt);
+
+                // Add all suggestions as options
+                suggestions.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.text = s;
+                    opt.selected = s === currentBinding;
+                    select.appendChild(opt);
+                });
+
+                // If current value is not in suggestions, add it as an option
+                if (currentBinding && !suggestions.includes(currentBinding)) {
+                    const customOpt = document.createElement('option');
+                    customOpt.value = currentBinding;
+                    customOpt.text = currentBinding + ' (custom)';
+                    customOpt.selected = true;
+                    select.appendChild(customOpt);
                 }
+
+                select.onchange = () => {
+                    if (select.value) {
+                        input.text = select.value;
+                        this.handleObjectChange(input);
+                    }
+                };
+
+                inputWrapper.appendChild(select);
+                input.className = prevClass;
+                return; // Early return - rest of the function is for non-bound mode
             }
 
             const inputEl = this.renderInput(input);
@@ -1423,21 +1464,6 @@ export class JSONInspector {
 
             if (inputEl) {
                 inputEl.style.flex = '1';
-
-                // If in binding mode, provide suggestions
-                if (isBound && inputEl instanceof HTMLInputElement) {
-                    const listId = `suggestions_${Math.random().toString(36).substr(2, 9)}`;
-                    const datalist = document.createElement('datalist');
-                    datalist.id = listId;
-                    this.getBindingSuggestions().forEach(s => {
-                        const opt = document.createElement('option');
-                        opt.value = s;
-                        datalist.appendChild(opt);
-                    });
-                    inputWrapper.appendChild(datalist);
-                    inputEl.setAttribute('list', listId);
-                }
-
                 inputWrapper.appendChild(inputEl);
             }
 
@@ -3341,8 +3367,6 @@ export class JSONInspector {
             suggestions.push(`\${${v.name}}`);
         });
 
-        // Add other objects as potential targets? 
-        // maybe later, for now system and variables are most important
         return suggestions;
     }
 

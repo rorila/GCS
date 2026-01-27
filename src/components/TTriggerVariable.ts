@@ -3,7 +3,7 @@ import { TPropertyDef } from './TComponent';
 
 export class TTriggerVariable extends TWindow {
     public className: string = 'TTriggerVariable';
-    public value: any = 0;
+    public value: any = undefined;
     public triggerValue: any = 1;
 
     constructor(name: string, x: number, y: number) {

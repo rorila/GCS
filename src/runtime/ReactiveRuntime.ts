@@ -172,19 +172,19 @@ export class ReactiveRuntime {
     public getContext(): Record<string, any> {
         const context: Record<string, any> = {};
 
-        // Add all registered objects (by name for expression access)
+        // 1. Add all variables (Data) first as baseline
+        this.variables.forEach((value, name) => {
+            context[name] = value;
+        });
+
+        // 2. Add all registered objects (Proxies/Components) - they overwrite variables with same name
         this.objectsByName.forEach((obj, name) => {
             context[name] = obj;
         });
 
-        // Also add by ID for direct reference if needed
+        // 3. Add by ID
         this.objectsById.forEach((obj, id) => {
-            context[id] = obj;
-        });
-
-        // Add all variables
-        this.variables.forEach((value, name) => {
-            context[name] = value;
+            if (!context[id]) context[id] = obj;
         });
 
         return context;

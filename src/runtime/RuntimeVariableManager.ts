@@ -20,20 +20,45 @@ export class RuntimeVariableManager {
     }
 
     public initializeVariables(project: any) {
+        // 1. Project Global Variables
         if (project.variables) {
-            project.variables.forEach((v: any) => {
-                const isGlobal = !v.scope || v.scope === 'global';
-                if (isGlobal) {
-                    if (this.projectVariables[v.name] === undefined) {
-                        this.projectVariables[v.name] = v.defaultValue;
-                    }
-                } else if (v.scope === 'local') {
-                    if (this.stageVariables[v.name] === undefined) {
-                        this.stageVariables[v.name] = v.defaultValue;
-                    }
-                }
-            });
+            this.importVariables(project.variables);
         }
+
+        // 2. Main Stage Variables (treated as Global)
+        if (project.stages) {
+            const mainStage = project.stages.find((s: any) => s.type === 'main');
+            if (mainStage && mainStage.variables) {
+                this.importVariables(mainStage.variables);
+            }
+        }
+    }
+
+    public initializeStageVariables(stage: any) {
+        if (stage && stage.variables) {
+            this.importVariables(stage.variables);
+        }
+    }
+
+    private importVariables(vars: any[]) {
+        vars.forEach((v: any) => {
+            const isGlobal = !v.scope || v.scope === 'global';
+            // PRIORITIZATION: 
+            // At game start, we prefer 'defaultValue' (the design-time start state).
+            // 'value' is used as a fallback (legacy or stateful resume).
+            const initialValue = v.defaultValue !== undefined ? v.defaultValue : v.value;
+
+            if (isGlobal) {
+                if (this.projectVariables[v.name] === undefined) {
+                    this.projectVariables[v.name] = initialValue !== undefined ? initialValue : 0;
+                }
+            } else {
+                // local/stage scope
+                if (this.stageVariables[v.name] === undefined) {
+                    this.stageVariables[v.name] = initialValue !== undefined ? initialValue : 0;
+                }
+            }
+        });
     }
 
     public createStageProxy(stage: any): any {
@@ -85,6 +110,12 @@ export class RuntimeVariableManager {
                     this.projectVariables[prop] = finalValue;
                 } else {
                     this.stageVariables[prop] = finalValue;
+                }
+
+                // Sync to Stage Component if exists (for reactivity and visual consistency)
+                const component = (this.host as any).objects?.find((o: any) => o.name === prop && o.isVariable);
+                if (component && component.value !== finalValue) {
+                    component.value = finalValue;
                 }
 
                 this.host.reactiveRuntime.setVariable(prop, finalValue);

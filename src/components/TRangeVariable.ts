@@ -3,7 +3,7 @@ import { TPropertyDef } from './TComponent';
 
 export class TRangeVariable extends TWindow {
     public className: string = 'TRangeVariable';
-    public value: number = 50;
+    public value: any = undefined;
     public min: number = 0;
     public max: number = 100;
 

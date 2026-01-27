@@ -3,7 +3,7 @@ import { TPropertyDef } from './TComponent';
 
 export class TThresholdVariable extends TWindow {
     public className: string = 'TThresholdVariable';
-    public value: number = 0;
+    public value: any = undefined;
     public threshold: number = 100;
 
     constructor(name: string, x: number, y: number) {

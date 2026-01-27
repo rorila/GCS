@@ -70,6 +70,10 @@ export class GameRuntime implements IVariableHost {
             const merged = this.stageManager.getMergedStageData(activeStage.id);
             this.objects = merged.objects;
 
+            // NEW: Initialize stage variables for the first stage correctly!
+            this.variableManager.initializeStageVariables(activeStage);
+            this.syncVariableComponents();
+
             if (options.makeReactive) {
                 this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
                 this.reactiveRuntime.setVariable('isSplashActive', this.isSplashActive);
@@ -211,11 +215,8 @@ export class GameRuntime implements IVariableHost {
         }
 
         this.variableManager.stageVariables = {};
-        if (this.stage.variables) {
-            this.stage.variables.forEach((v: any) => {
-                this.variableManager.stageVariables[v.name] = v.defaultValue;
-            });
-        }
+        this.variableManager.initializeStageVariables(this.stage);
+        this.syncVariableComponents();
 
         this.actionExecutor.setObjects(this.objects);
         this.initStageController();
@@ -329,14 +330,19 @@ export class GameRuntime implements IVariableHost {
             project: this.project
         };
 
-        // Add all objects to context
-        this.objects.forEach(obj => {
-            context[obj.name] = obj;
-            context[obj.id] = obj;
-        });
-
-        // Add variables
+        // 1. Add variables (Data) first as baseline
         Object.assign(context, this.contextVars);
+
+        // 2. Add all objects (Proxies/Components) - they overwrite variables with same name
+        // This is crucial because TVariable components carry the "real" UI value.
+        this.objects.forEach(obj => {
+            if (obj.name) {
+                context[obj.name] = obj;
+            }
+            if (obj.id) {
+                context[obj.id] = obj;
+            }
+        });
 
         return context;
     }
@@ -436,8 +442,6 @@ export class GameRuntime implements IVariableHost {
      * Traverses all objects and registers reactive bindings for properties containing ${...}
      */
     private initializeReactiveBindings(): void {
-        console.log(`[GameRuntime] Initializing reactive bindings for ${this.objects.length} objects.`);
-
         const process = (objs: any[]) => {
             objs.forEach(obj => {
                 this.bindObjectProperties(obj);
@@ -471,6 +475,14 @@ export class GameRuntime implements IVariableHost {
                     this.variableManager.processVariableEvents(obj.name, newValue, oldValue, varDef);
                 }
             });
+
+            // INITIAL SYNC: Map initial component values back to VariableManager
+            // This ensures contextVars correctly reflect stage-specific variable values from the start.
+            if (obj.value !== undefined) {
+                this.contextVars[obj.name] = obj.value;
+            } else if (Array.isArray((obj as any).items)) {
+                this.contextVars[obj.name] = (obj as any).items;
+            }
         });
     }
 
@@ -487,7 +499,7 @@ export class GameRuntime implements IVariableHost {
                 const propPath = pathPrefix ? `${pathPrefix}.${key}` : key;
 
                 if (typeof val === 'string' && val.includes('${')) {
-                    console.log(`[GameRuntime] Binding reaktiv: ${obj.name}.${propPath} ← ${val}`);
+                    console.log(`%c[GameRuntime] Creating reactive binding: ${obj.name}.${propPath} ← ${val}`, 'color: #4caf50; font-weight: bold');
                     this.reactiveRuntime.bindComponent(obj, propPath, val);
                 } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'Tasks')) {
                     // Recursive binding for nested objects like style
@@ -497,5 +509,17 @@ export class GameRuntime implements IVariableHost {
         };
 
         bindProps(obj);
+    }
+
+    private syncVariableComponents() {
+        if (!this.objects) return;
+        this.objects.forEach(obj => {
+            if ((obj as any).isVariable && obj.name) {
+                const runtimeValue = this.variableManager.contextVars[obj.name];
+                if (runtimeValue !== undefined) {
+                    (obj as any).value = runtimeValue;
+                }
+            }
+        });
     }
 }
