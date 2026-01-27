@@ -8,6 +8,7 @@ import { RefactoringManager } from './RefactoringManager';
 import { projectRegistry } from '../services/ProjectRegistry';
 import { imageService } from '../services/ImageService'; // Added import
 import { actionRegistry } from '../runtime/ActionRegistry';
+import { changeRecorder } from '../services/ChangeRecorder';
 
 type InspectorTab = 'properties' | 'events';
 
@@ -2611,6 +2612,14 @@ export class JSONInspector {
 
         console.log(`[JSONInspector] Extracted property: ${propertyName}`);
 
+        // Capture old value BEFORE applying the change (for ChangeRecorder)
+        let previousValue: any = undefined;
+        try {
+            previousValue = this.getNestedProperty(selectedObject, propertyName);
+        } catch (e) {
+            // Property might not exist yet
+        }
+
         // Get the value from the inspector object based on its type
         let value: any;
         if (obj.value !== undefined) {
@@ -2721,7 +2730,41 @@ export class JSONInspector {
         } else if (this.onObjectUpdate) {
             this.onObjectUpdate();
         }
+
+        // Record change for Undo/Redo (only if value actually changed)
+        if (previousValue !== value && !changeRecorder.isApplyingAction) {
+            changeRecorder.record({
+                type: 'property',
+                description: `${(selectedObject as any).name || 'Object'}.${propertyName} geändert`,
+                objectType: 'object',
+                objectId: (selectedObject as any).id,
+                property: propertyName,
+                oldValue: previousValue,
+                newValue: value
+            });
+        }
     }
+
+    /**
+     * Liest eine verschachtelte Eigenschaft (z.B. "style.backgroundColor")
+     */
+    private getNestedProperty(obj: any, path: string): any {
+        if (!path.includes('.')) return obj[path];
+
+        const parts = path.split('.');
+        let current = obj;
+        for (const part of parts) {
+            if (current === undefined || current === null) return undefined;
+            // Falls der Pfad 'activeStage' enthält, müssen wir in das interne Stage-Objekt schauen
+            if (part === 'activeStage' && this.project) {
+                current = this.project.stages?.find((s: any) => s.id === this.project?.activeStageId);
+            } else {
+                current = current[part];
+            }
+        }
+        return current;
+    }
+
 
     /**
      * Handles button actions (e.g., opening dialogs)

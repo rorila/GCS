@@ -138,7 +138,7 @@ export type FlowCharts = Record<string, FlowChart>;
 // ─────────────────────────────────────────────
 // Project Variable (Pascal-style)
 // ─────────────────────────────────────────────
-export type VariableType = 'integer' | 'real' | 'string' | 'boolean' | 'timer' | 'random' | 'list' | 'object_list' | 'threshold' | 'trigger' | 'range';
+export type VariableType = 'integer' | 'real' | 'string' | 'boolean' | 'timer' | 'random' | 'list' | 'object_list' | 'threshold' | 'trigger' | 'range' | 'keystore';
 export type VariableScope = 'global' | 'local' | string; // Phase 3: Strict scoping + Task-Local Support (Pascal)
 
 export interface ProjectVariable {
@@ -209,6 +209,13 @@ export interface ProjectVariable {
 
     // Random Events
     onGenerated?: string;
+
+    // KeyStore Events
+    onItemCreated?: string;
+    onItemUpdated?: string;
+    onItemDeleted?: string;
+    onItemRead?: string;
+    onNotFound?: string;
 }
 
 // ─────────────────────────────────────────────

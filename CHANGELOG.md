@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.9.1] - 2026-01-27
+### Build-Fixes & Maintenance
+- **Build-Fixes**: Behebung von TypeScript-Fehlern (TS6133) durch Entfernen unbenutzter Variablen und Importe in `ChangeRecorder.ts` und `PlaybackEngine.ts`.
+- **Stabilitäts-Check**: Erfolgreicher Full-Build des Projekts (`npm run build`).
+
+## [1.9.0] - 2026-01-27
+### ChangeRecorder System (Undo/Redo & Playback)
+- **Undo/Redo**: Volle Unterstützung für `Strg+Z` / `Strg+Y` im Editor.
+- **Recording**: Aufzeichnung von Editor-Sitzungen mit Mauspfad-Tracking (Drag-Paths).
+- **Playback**: Animiertes Abspielen von Aufzeichnungen mit Ghost-Cursor und Timeline-Steuerung.
+- **Export/Import**: Austausch von Aufzeichnungen via `.gcsrec` Dateien für Tutorials und Demos.
+- **Batch-Actions**: Gruppierung von Aktionen (z.B. Multi-Delete) für sauberes Rückgängigmachen.
+
+## [1.8.0] - 2026-01-27
+### Neue Komponente: TKeyStore
+- **Schlüssel-Wert-Speicher**: Neue Variable `TKeyStore` zum Speichern und Abrufen von Datensätzen über eindeutige Schlüssel (z.B. Kundennummer)
+- **CRUD-Operationen**: `create()`, `read()`, `update()`, `delete()`, `set()`, `get()`
+- **Filter & Suche**: `filter()`, `find()`, `has()`, `keys()`, `values()`, `entries()`, `count()`, `clear()`
+- **Events**: `onItemCreated`, `onItemUpdated`, `onItemDeleted`, `onItemRead`, `onNotFound`, `onCleared`
+
 ## [1.7.2] - 2026-01-27
 ### Binding-Dropdown Verbesserung
 - **Variable-Auswahl via Select-Dropdown**: Der Binding-Modus im Inspector verwendet nun ein echtes `<select>` Dropdown anstatt eines `<datalist>`. Nutzer können jetzt alle verfügbaren Variablen direkt in einem klickbaren Dropdown sehen und auswählen, anstatt tippen zu müssen.

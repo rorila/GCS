@@ -40,6 +40,7 @@ import { TTriggerVariable } from '../components/TTriggerVariable';
 import { TRangeVariable } from '../components/TRangeVariable';
 import { TListVariable } from '../components/TListVariable';
 import { TRandomVariable } from '../components/TRandomVariable';
+import { TKeyStore } from '../components/TKeyStore';
 import { TWindow } from '../components/TWindow';
 import { AnimationManager } from '../runtime/AnimationManager';
 import { TDebugLog } from '../components/TDebugLog';
@@ -70,6 +71,10 @@ import { EditorStageManager } from './EditorStageManager';
 import { projectRegistry } from '../services/ProjectRegistry';
 import { libraryService } from '../services/LibraryService';
 import { EditorViewManager, IViewHost, ViewType } from './EditorViewManager';
+import { changeRecorder, RecordedAction } from '../services/ChangeRecorder';
+import { PlaybackControls } from '../components/PlaybackControls';
+import { PlaybackOverlay } from '../components/PlaybackOverlay';
+import { playbackEngine } from '../services/PlaybackEngine';
 
 export class Editor implements IViewHost {
     private stage: Stage;
@@ -79,6 +84,8 @@ export class Editor implements IViewHost {
     public flowToolbox: FlowToolbox | null = null;
     private menuBar: MenuBar | null = null;
     private componentPalette: JSONComponentPalette | null = null;
+    public playbackControls: PlaybackControls | null = null;
+    public playbackOverlay: PlaybackOverlay | null = null;
     private dialogManager: DialogManager;
     private stageManager: EditorStageManager;
     private viewManager: EditorViewManager;
@@ -1513,9 +1520,215 @@ export class Editor implements IViewHost {
         this.render();
         // Select project by default
         this.selectObject(null);
+
+        // Initialize Undo/Redo keyboard shortcuts
+        this.initKeyboardShortcuts();
+
+        // Initialize Playback UI (hidden by default)
+        this.playbackControls = new PlaybackControls(document.body);
+        this.playbackOverlay = new PlaybackOverlay(document.getElementById('stage-container') || document.body);
     }
 
+    /**
+     * Initialisiert Keyboard-Shortcuts für Undo/Redo
+     */
+    private initKeyboardShortcuts(): void {
+        document.addEventListener('keydown', (e) => {
+            // Ignoriere wenn in einem Input-Feld
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+                return;
+            }
+
+            // Strg+Z = Undo (Rewind)
+            if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                this.handleRewind();
+            }
+
+            // Strg+Y oder Strg+Shift+Z = Redo (Forward)
+            if (e.ctrlKey && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+                e.preventDefault();
+                this.handleForward();
+            }
+        });
+
+        console.log('[Editor] Keyboard shortcuts initialized (Strg+Z/Y for Undo/Redo)');
+    }
+
+    /**
+     * Führt Undo aus (Strg+Z)
+     */
+    private handleRewind(): void {
+        const action = changeRecorder.rewind();
+        if (action) {
+            this.applyRecordedAction(action, 'rewind');
+        } else {
+            console.log('[Editor] Nothing to undo');
+        }
+    }
+
+    /**
+     * Führt Redo aus (Strg+Y)
+     */
+    private handleForward(): void {
+        const action = changeRecorder.forward();
+        if (action) {
+            this.applyRecordedAction(action, 'forward');
+        } else {
+            console.log('[Editor] Nothing to redo');
+        }
+    }
+
+    /**
+     * Wendet eine aufgezeichnete Aktion an (für Undo/Redo)
+     */
+    private applyRecordedAction(action: RecordedAction, direction: 'rewind' | 'forward'): void {
+        changeRecorder.beginApplyAction();
+
+        try {
+            switch (action.type) {
+                case 'property':
+                    this.applyPropertyChange(action, direction);
+                    break;
+
+                case 'drag':
+                    this.applyDragChange(action, direction);
+                    break;
+
+                case 'batch':
+                    // Batch-Aktionen: Alle Kinder einzeln anwenden
+                    if (action.children) {
+                        const children = direction === 'rewind'
+                            ? [...action.children].reverse()
+                            : action.children;
+                        for (const child of children) {
+                            this.applyRecordedAction(child, direction);
+                        }
+                    }
+                    break;
+
+                case 'create':
+                    if (direction === 'rewind') {
+                        // Undo Create = Delete
+                        if (action.objectId) {
+                            this.removeObjectSilent(action.objectId);
+                        }
+                    } else {
+                        // Redo Create = Recreate
+                        if (action.objectData) {
+                            this.recreateObject(action.objectData);
+                        }
+                    }
+                    break;
+
+                case 'delete':
+                    if (direction === 'rewind') {
+                        // Undo Delete = Recreate
+                        if (action.objectData) {
+                            this.recreateObject(action.objectData);
+                        }
+                    } else {
+                        // Redo Delete = Delete again
+                        if (action.objectId) {
+                            this.removeObjectSilent(action.objectId);
+                        }
+                    }
+                    break;
+            }
+
+            this.render();
+            this.autoSaveToLocalStorage();
+            console.log(`[Editor] Applied ${direction}: ${action.description}`);
+
+        } finally {
+            changeRecorder.endApplyAction();
+        }
+    }
+
+    /**
+     * Wendet Property-Änderung an
+     */
+    private applyPropertyChange(action: RecordedAction, direction: 'rewind' | 'forward'): void {
+        if (!action.objectId || !action.property) return;
+
+        const value = direction === 'rewind' ? action.oldValue : action.newValue;
+
+        // Object finden
+        const obj = this.findObjectById(action.objectId);
+        if (obj) {
+            this.setNestedProperty(obj, action.property, value);
+            if (this.jsonInspector) {
+                this.jsonInspector.update(obj);
+            }
+            return;
+        }
+
+        // Action/Task/Variable suchen
+        // TODO: Erweitern für andere ObjectTypes
+    }
+
+    /**
+     * Wendet Drag-Änderung an
+     */
+    private applyDragChange(action: RecordedAction, direction: 'rewind' | 'forward'): void {
+        if (!action.objectId) return;
+
+        const position = direction === 'rewind' ? action.startPosition : action.endPosition;
+        if (!position) return;
+
+        const obj = this.findObjectById(action.objectId);
+        if (obj) {
+            obj.x = position.x;
+            obj.y = position.y;
+            if (this.jsonInspector) {
+                this.jsonInspector.update(obj);
+            }
+        }
+    }
+
+    /**
+     * Erstellt ein Objekt neu (für Undo Delete / Redo Create)
+     */
+    private recreateObject(objectData: any): void {
+        const list = this.currentObjects;
+        // Hydrate the object
+        const hydrated = hydrateObjects([objectData]);
+        if (hydrated.length > 0) {
+            list.push(hydrated[0]);
+            this.currentObjects = list;
+        }
+    }
+
+    /**
+     * Setzt eine verschachtelte Property (z.B. "style.backgroundColor")
+     */
+    private setNestedProperty(obj: any, path: string, value: any): void {
+        const parts = path.split('.');
+        let current = obj;
+
+        for (let i = 0; i < parts.length - 1; i++) {
+            if (current[parts[i]] === undefined) {
+                current[parts[i]] = {};
+            }
+            current = current[parts[i]];
+        }
+
+        current[parts[parts.length - 1]] = value;
+    }
+
+
     private removeObject(id: string) {
+        const obj = this.findObjectById(id);
+        if (obj && !changeRecorder.isApplyingAction) {
+            changeRecorder.record({
+                type: 'delete',
+                description: `${obj.name} gelöscht`,
+                objectId: id,
+                objectData: JSON.parse(JSON.stringify(obj))
+            });
+        }
+
         this.currentObjects = this.currentObjects.filter(o => o.id !== id);
         this.selectObject(null); // Deselect
         this.render();
@@ -1683,6 +1896,9 @@ export class Editor implements IViewHost {
             case 'Random':
                 newObj = new TRandomVariable(name, x, y);
                 break;
+            case 'KeyStore':
+                newObj = new TKeyStore(name, x, y);
+                break;
             default:
                 console.warn("Unknown type:", type);
                 return null;
@@ -1750,6 +1966,16 @@ export class Editor implements IViewHost {
         // Auto-select the newly created object
         this.selectObject(newObj.id);
         this.autoSaveToLocalStorage();
+
+        // Record creation for Undo/Redo
+        if (!changeRecorder.isApplyingAction) {
+            changeRecorder.record({
+                type: 'create',
+                description: `${newObj.name} erstellt`,
+                objectId: newObj.id,
+                objectData: JSON.parse(JSON.stringify(newObj))
+            });
+        }
     }
 
     private selectObject(id: string | null) {
@@ -2084,9 +2310,19 @@ export class Editor implements IViewHost {
         // Handle multi-delete event
         if (eventName === 'deleteMultiple' && Array.isArray(data)) {
             console.log(`[Editor] Deleting ${data.length} objects:`, data);
+
+            if (!changeRecorder.isApplyingAction) {
+                changeRecorder.startBatch(`${data.length} Objekte gelöscht`);
+            }
+
             data.forEach((objId: string) => {
-                this.removeObjectSilent(objId);
+                this.removeObject(objId);
             });
+
+            if (!changeRecorder.isApplyingAction) {
+                changeRecorder.endBatch();
+            }
+
             this.selectObject(null);
             this.render();
             this.autoSaveToLocalStorage();
@@ -3002,8 +3238,77 @@ export class Editor implements IViewHost {
                     const stageId = normalizedAction.replace('switch-stage-', '');
                     this.switchStage(stageId);
                 } else {
-                    console.warn('[Editor] Unknown menu action:', action);
+                    // Recording Aktionen
+                    this.handleRecordingAction(action);
                 }
+        }
+    }
+
+    /**
+     * Spezielle Behandlung für Recording-Aktionen
+     */
+    private handleRecordingAction(action: string): void {
+        switch (action) {
+            case 'record-start':
+                const name = prompt('Name für das Recording:', `Tutorial_${new Date().toLocaleTimeString()}`);
+                if (name) changeRecorder.startRecording(name);
+                break;
+
+            case 'record-stop':
+                const recording = changeRecorder.stopRecording();
+                if (recording) {
+                    alert(`Recording "${recording.name}" gestoppt. ${recording.actions.length} Aktionen aufgezeichnet.`);
+                    playbackEngine.load(recording);
+                    this.playbackControls?.show();
+                }
+                break;
+
+            case 'playback-show':
+                this.playbackControls?.show();
+                break;
+
+            case 'recording-export':
+                const currentRec = (playbackEngine as any).currentRecording;
+                if (currentRec) {
+                    const json = JSON.stringify(currentRec, null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${currentRec.name}.gcsrec`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } else {
+                    alert('Kein Recording zum Exportieren vorhanden.');
+                }
+                break;
+
+            case 'recording-import':
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.gcsrec, .json';
+                input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (re) => {
+                            try {
+                                const rec = JSON.parse(re.target?.result as string);
+                                playbackEngine.load(rec);
+                                this.playbackControls?.show();
+                                alert(`Recording "${rec.name}" erfolgreich importiert.`);
+                            } catch (err) {
+                                alert('Fehler beim Importieren des Recordings.');
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                };
+                input.click();
+                break;
+
+            default:
+                console.warn('[Editor] Unknown menu action:', action);
         }
     }
     public updateProjectJSON() {

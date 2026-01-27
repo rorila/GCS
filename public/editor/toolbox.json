@@ -157,6 +157,11 @@
                     "type": "Random",
                     "icon": "🎲",
                     "label": "Random"
+                },
+                {
+                    "type": "KeyStore",
+                    "icon": "🔑",
+                    "label": "Key Store"
                 }
             ]
         },

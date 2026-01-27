@@ -331,3 +331,11 @@ In Projekten mit mehreren Stages müssen globale Komponenten (insbesondere Varia
 - **Start-Priorität**: Beim Spielstart (Initialisierung im `RuntimeVariableManager`) wird `defaultValue` gegenüber `value` bevorzugt. `defaultValue` repräsentiert den beabsichtigten Startzustand des Designs, während `value` den (potenziell im Editor flüchtigen) aktuellen Zustand widerspiegelt.
 - **Initial-Sync**: Die `GameRuntime` führt nach der Initialisierung des `VariableManager` einen obligatorischen Rück-Sync in die Komponenten-Instanzen durch (`syncVariableComponents`). Dies ist kritisch, damit die Proxies in der `ReactiveRuntime` von Beginn an die korrekten Werte für Datenbindungen (`${...}`) besitzen.
 - **Stage-Wechsel**: Der Variablen-Sync wird bei jedem Stage-Wechsel automatisch wiederholt, um lokale Variablen der neuen Stage korrekt zu laden.
+
+## [Undo/Redo & Recording (ChangeRecorder)](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/services/ChangeRecorder.ts)
+- **Service:** `src/services/ChangeRecorder.ts` verwaltet zwei Stacks (`history` und `future`).
+- **Aktionen:** Aktionen werden über `changeRecorder.record({ ... })` aufgezeichnet.
+- **Batches:** Verwende `startBatch()` und `endBatch()` für zusammenhängende Operationen (z.B. Multi-Selection Drag oder Delete).
+- **Interpolation:** Drag-Aktionen speichern einen Pfad (`DragPoint[]`). Die `PlaybackEngine` interpoliert diese Punkte beim Abspielen für flüssige Animationen.
+- **UI Integration:** Editor-Fenster (wie `PlaybackControls`) sollten direkt in den DOM des Editor-Containers gerendert werden, um unabhängig vom Stage-Zustand zu sein.
+- **Shortcuts:** `Editor.initKeyboardShortcuts()` registriert dumentweite Listeners für `Strg+Z/Y`.

@@ -41,6 +41,7 @@ import { TTriggerVariable } from '../components/TTriggerVariable';
 import { TRangeVariable } from '../components/TRangeVariable';
 import { TListVariable } from '../components/TListVariable';
 import { TRandomVariable } from '../components/TRandomVariable';
+import { TKeyStore } from '../components/TKeyStore';
 
 export function hydrateObjects(objectsData: any[]): TWindow[] {
     const objects: TWindow[] = [];
@@ -186,6 +187,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 break;
             case 'TRandomVariable':
                 newObj = new TRandomVariable(objData.name, objData.x, objData.y);
+                break;
+            case 'TKeyStore':
+                newObj = new TKeyStore(objData.name, objData.x, objData.y);
                 break;
             default:
                 console.warn("Unknown class during load:", objData.className);

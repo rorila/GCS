@@ -1,4 +1,5 @@
 import { GridConfig } from '../model/types';
+import { changeRecorder, DragPoint } from '../services/ChangeRecorder';
 
 export class Stage {
     private container: HTMLElement;
@@ -46,6 +47,9 @@ export class Stage {
     private placingGhostEl: HTMLElement | null = null;
     private lastMousePos: { x: number, y: number } | null = null;
     private lastRenderedObjects: any[] = []; // Track objects for runtime lookup (e.g. draggable)
+    private currentDragPath: DragPoint[] = [];
+    private dragStartTime: number = 0;
+    private initialDragPositions: Map<string, { x: number, y: number }> = new Map();
 
     public set runMode(running: boolean) {
         if (this.runMode !== running) {
@@ -277,6 +281,21 @@ export class Stage {
                     });
 
                     if (this.onSelectCallback) this.onSelectCallback(Array.from(this.selectedIds));
+
+                    // Initialize drag path recording
+                    this.dragStartTime = Date.now();
+                    this.currentDragPath = [{ x: e.clientX, y: e.clientY, t: 0 }];
+                    this.initialDragPositions.clear();
+
+                    // Store initial coordinates for ALL selected objects (for undo/redo)
+                    this.selectedIds.forEach(selectedId => {
+                        const obj = this.lastRenderedObjects.find(o => o.id === selectedId);
+                        if (obj) {
+                            this.initialDragPositions.set(selectedId, { x: obj.x, y: obj.y });
+                        }
+                    });
+
+                    changeRecorder.startBatch(`Objekte verschoben`);
                 }
             } else {
                 // Click on empty space OR CLIENT panel: Prepare for rectangle selection
@@ -444,6 +463,15 @@ export class Stage {
                         el.style.transform = `translate(${dx}px, ${dy}px)`;
                     }
                 });
+
+                // Record path point
+                if (this.dragStartTime > 0) {
+                    this.currentDragPath.push({
+                        x: e.clientX,
+                        y: e.clientY,
+                        t: Date.now() - this.dragStartTime
+                    });
+                }
             }
         });
 
@@ -600,18 +628,38 @@ export class Stage {
                             el.style.transform = 'none';
 
                             const initPos = this.initialPositions.get(id);
-                            if (initPos) {
+                            const initGridPos = this.initialDragPositions.get(id);
+
+                            if (initPos && initGridPos) {
                                 const newPixelX = initPos.left + dx;
                                 const newPixelY = initPos.top + dy;
                                 const gridX = Math.round(newPixelX / this.gridConfig.cellSize);
                                 const gridY = Math.round(newPixelY / this.gridConfig.cellSize);
 
-                                if (this.onObjectMove) {
-                                    this.onObjectMove(id, Math.max(0, gridX), Math.max(0, gridY));
+                                // If moved, record and apply
+                                if (gridX !== initGridPos.x || gridY !== initGridPos.y) {
+                                    const obj = this.lastRenderedObjects.find(o => o.id === id);
+                                    if (obj) {
+                                        changeRecorder.record({
+                                            type: 'drag',
+                                            description: `${obj.name} verschoben nach (${gridX}, ${gridY})`,
+                                            objectId: id,
+                                            objectType: 'object',
+                                            startPosition: { x: initGridPos.x, y: initGridPos.y },
+                                            endPosition: { x: gridX, y: gridY },
+                                            dragPath: [...this.currentDragPath] // Copy path
+                                        });
+
+                                        if (this.onObjectMove) {
+                                            this.onObjectMove(id, Math.max(0, gridX), Math.max(0, gridY));
+                                        }
+                                    }
                                 }
                             }
                         }
                     });
+
+                    changeRecorder.endBatch();
                 }
             }
 
@@ -623,6 +671,9 @@ export class Stage {
             this.initialSize = null;
             this.initialPos = null;
             this.initialPositions.clear();
+            this.initialDragPositions.clear();
+            this.currentDragPath = [];
+            this.dragStartTime = 0;
         });
 
         // Ctrl+A: Select all objects

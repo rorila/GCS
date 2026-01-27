@@ -89,6 +89,42 @@
                     "icon": "🗑️"
                 }
             ]
+        },
+        {
+            "id": "recording",
+            "label": "Recording",
+            "items": [
+                {
+                    "id": "record-start",
+                    "label": "Aufnahme starten",
+                    "action": "record-start",
+                    "icon": "🔴"
+                },
+                {
+                    "id": "record-stop",
+                    "label": "Aufnahme stoppen",
+                    "action": "record-stop",
+                    "icon": "⏹️"
+                },
+                {
+                    "id": "playback-show",
+                    "label": "Playback-Steuerung",
+                    "action": "playback-show",
+                    "icon": "🎬"
+                },
+                {
+                    "id": "recording-export",
+                    "label": "Recording exportieren",
+                    "action": "recording-export",
+                    "icon": "📤"
+                },
+                {
+                    "id": "recording-import",
+                    "label": "Recording importieren",
+                    "action": "recording-import",
+                    "icon": "📥"
+                }
+            ]
         }
     ]
 }
