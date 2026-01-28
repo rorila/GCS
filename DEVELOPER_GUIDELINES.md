@@ -77,9 +77,12 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **Versionierung**: Die `RUNTIME_VERSION` in `GameExporter.ts` steuert die Kompatibilität mit der Plattform.
 
 ## Proxy-Objekte & Reactive Runtime
-- **Spread-Operator Limitation**: Der Spread-Operator (`{...obj}`) kopiert KEINE Getter-basierten Properties von Proxy-Objekten. Bei reaktiven Komponenten (TImage, TSprite, TPanel) müssen image-relevante Properties (`backgroundImage`, `src`, `objectFit`, `imageOpacity`) explizit kopiert werden.
-- **Betroffene Stelle**: `GameRuntime.getObjects()` - hier werden alle Properties für das Rendering aufbereitet.
-- **Symptom**: Bilder werden im Run-Modus nicht angezeigt, obwohl die Daten korrekt im Projekt gespeichert sind.
+- **Spread-Operator Limitation**: Der Spread-Operator (`{...obj}`) kopiert KEINE Getter-basierten Properties von Proxy-Objekten oder Prototypen.
+- **Lösung (Allgemeingültig)**: 
+  - **Run-Modus**: `GameRuntime.getObjects()` scannt die Prototyp-Hierarchie und kopiert Getter manuell in den Snapshot.
+  - **Editor-Modus**: `resolveObjectPreview` in `Editor.ts` nutzt `Object.create(Object.getPrototypeOf(obj))`, um die Klassen-Struktur (und damit alle Getter für Bilder/Videos) im Preview-Snapshot zu erhalten.
+- **Vorteil**: Bilder (`TImage.src`), Videos (`TVideo.videoSource`) und andere zustandsabhängige Ansichten bleiben in allen Modi konsistent sichtbar, ohne die Original-Objekte (Proxies) zu verändern.
+- **Symptom bei Fehlern**: Bilder verschwinden im Editor oder Run-Modus, obwohl die Daten im Model vorhanden sind.
 
 ## Standalone Runtime & Export Build-Prozess
 - **Bundle erforderlich**: Nach jeder Änderung an TypeScript-Dateien, die die Runtime betreffen (`GameRuntime.ts`, `GameLoopManager.ts`, `player-standalone.ts`, etc.), MUSS `npm run bundle:runtime` ausgeführt werden.

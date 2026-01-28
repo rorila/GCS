@@ -355,7 +355,36 @@ export class GameRuntime implements IVariableHost {
                 const absoluteX = parentX + (obj.x || 0);
                 const absoluteY = parentY + (obj.y || 0);
                 const absoluteZ = parentZ + (obj.zIndex || 0);
-                results.push({ ...obj, x: absoluteX, y: absoluteY, zIndex: absoluteZ });
+
+                // 1. Basis-Kopie der eigenen Properties
+                const copy: any = { ...obj };
+
+                // 2. Erfassen aller Eigenschaften aus der Prototyp-Kette (Getter)
+                // Dies ist notwendig, da der Spread-Operator Getter ignoriert.
+                let proto = Object.getPrototypeOf(obj);
+                while (proto && proto !== Object.prototype) {
+                    const descriptors = Object.getOwnPropertyDescriptors(proto);
+                    for (const key in descriptors) {
+                        const descriptor = descriptors[key];
+                        // Wenn es ein Getter ist und noch nicht in der Kopie (Override-Schutz)
+                        if (descriptor.get && !(key in copy)) {
+                            try {
+                                copy[key] = obj[key];
+                            } catch (e) {
+                                // Ignoriere Fehler bei Gettern, die Kontext benötigen
+                            }
+                        }
+                    }
+                    proto = Object.getPrototypeOf(proto);
+                }
+
+                // 3. Absolute Koordinaten setzen
+                copy.x = absoluteX;
+                copy.y = absoluteY;
+                copy.zIndex = absoluteZ;
+
+                results.push(copy);
+
                 if (obj.children && obj.children.length > 0) {
                     process(obj.children, absoluteX, absoluteY, absoluteZ);
                 }

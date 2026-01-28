@@ -1113,7 +1113,7 @@ export class Stage {
                 }
             }
 
-            // Type-specific content
+            // Content based on type
             // (className already defined above)
 
             // Interaction hints & Click handlers

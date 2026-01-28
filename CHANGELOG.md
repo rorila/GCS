@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.2] - 2026-01-28
+### Bugfixes
+- **Editor-Rendering**: Behebung verschwundener Bilder im Entwurfsmodus. Korrektur von `resolveObjectPreview` in `Editor.ts` zur Erhaltung der Prototyp-Kette (Getter) bei der Erstellung von Preview-Snapshots.
+- **Runtime-Rendering**: Behebung fehlender Bilder im Run-Modus durch Implementierung einer Prototyp-Scan-Logik in `GameRuntime.getObjects()`. Dies stellt die Getter-Integrität bei reaktiven Proxies sicher.
+- **Stage-Renderer**: Bereinigung und Rückkehr zum direkten Objektzugriff, da die Datenbereitstellung nun in allen Modi konsistent Getter auflöst.
+- **Dokumentation**: Aktualisierung der `DEVELOPER_GUIDELINES.md` bezüglich Getter-Integrität und Snapshotting.
+
 ## [1.9.1] - 2026-01-27
 ### Build-Fixes & Maintenance
 - **Build-Fixes**: Behebung von TypeScript-Fehlern (TS6133) durch Entfernen unbenutzter Variablen und Importe in `ChangeRecorder.ts` und `PlaybackEngine.ts`.

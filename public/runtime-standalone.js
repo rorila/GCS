@@ -8690,7 +8690,25 @@
           const absoluteX = parentX + (obj.x || 0);
           const absoluteY = parentY + (obj.y || 0);
           const absoluteZ = parentZ + (obj.zIndex || 0);
-          results.push({ ...obj, x: absoluteX, y: absoluteY, zIndex: absoluteZ });
+          const copy = { ...obj };
+          let proto = Object.getPrototypeOf(obj);
+          while (proto && proto !== Object.prototype) {
+            const descriptors = Object.getOwnPropertyDescriptors(proto);
+            for (const key in descriptors) {
+              const descriptor = descriptors[key];
+              if (descriptor.get && !(key in copy)) {
+                try {
+                  copy[key] = obj[key];
+                } catch (e) {
+                }
+              }
+            }
+            proto = Object.getPrototypeOf(proto);
+          }
+          copy.x = absoluteX;
+          copy.y = absoluteY;
+          copy.zIndex = absoluteZ;
+          results.push(copy);
           if (obj.children && obj.children.length > 0) {
             process(obj.children, absoluteX, absoluteY, absoluteZ);
           }

@@ -45,6 +45,7 @@ import { TWindow } from '../components/TWindow';
 import { AnimationManager } from '../runtime/AnimationManager';
 import { TDebugLog } from '../components/TDebugLog';
 import { hydrateObjects } from '../utils/Serialization';
+import { unwrap } from '../runtime/ReactiveProperty';
 import { GameExporter } from '../export/GameExporter';
 import { inputSyncer, collisionSyncer, network } from '../multiplayer';
 import { jsonLobby } from '../multiplayer/JSONMultiplayerLobby';
@@ -2375,9 +2376,14 @@ export class Editor implements IViewHost {
      * Does NOT modify the original project data.
      */
     private resolveObjectPreview(obj: any, context: Record<string, any>): any {
-        // Create a shallow copy + deep copy of relevant properties to avoid modifying original
-        // We only need to resolve string properties that start with ${
-        const previewObj = { ...obj };
+        if (!obj || typeof obj !== 'object') return obj;
+
+        // Unwrapping is important if we are dealing with proxies in the editor
+        const rawObj = unwrap(obj);
+
+        // Create a copy that preserves the prototype to keep getters (like backgroundImage, src)
+        const previewObj = Object.create(Object.getPrototypeOf(rawObj));
+        Object.assign(previewObj, rawObj);
 
         // Helper to resolve nested props
         const resolveProps = (target: any) => {
@@ -2403,6 +2409,7 @@ export class Editor implements IViewHost {
 
         // Also handle children if it's a TDialogRoot or similar
         if (previewObj.children && Array.isArray(previewObj.children)) {
+            // Need to recursively apply resolving, but ensure children are also prototype-preserved copies
             previewObj.children = previewObj.children.map((child: any) => this.resolveObjectPreview(child, context));
         }
 

@@ -1,0 +1,983 @@
+{
+  "meta": {
+    "name": "TriggerTest",
+    "version": "1.0.0",
+    "author": "RoRiLa"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "main",
+      "name": "Test_Variable_Typ_Trigger",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "obj_1769360082755_tsulj8sve",
+          "isVariable": false,
+          "name": "InputController_2",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 3,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style.backgroundColor": "#9c27b0",
+          "style.borderColor": "#6a1b9a",
+          "style.borderWidth": 2,
+          "enabled": true
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1769420436760_c72cqhdgs",
+          "isVariable": false,
+          "Tasks": {
+            "onClick": "SetTriggerEnterTrue"
+          },
+          "name": "TestTrueBtn",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 2,
+          "y": 33,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "TriggerEnter == true",
+          "visible": true,
+          "style.backgroundColor": "#007bff",
+          "style.borderColor": "#000000",
+          "style.borderWidth": 1,
+          "style.fontSize": 14,
+          "style.fontWeight": "bold",
+          "style.fontStyle": "normal",
+          "style.textAlign": "center",
+          "style.fontFamily": "Arial",
+          "style.color": "#ffffff",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1769421106724_etva0hbji",
+          "isVariable": false,
+          "name": "Label_5",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 10,
+          "y": 4,
+          "width": 10,
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "${TestVar}",
+          "visible": true,
+          "style.backgroundColor": "transparent",
+          "style.borderColor": "transparent",
+          "style.borderWidth": 0,
+          "style.fontSize": 14,
+          "style.fontWeight": "normal",
+          "style.fontStyle": "normal",
+          "style.textAlign": "left",
+          "style.fontFamily": "Arial",
+          "style.color": "#000000"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1769421220728_sg649qx60",
+          "isVariable": false,
+          "name": "Label_7",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 9,
+          "y": 1,
+          "width": 22,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "${messageVar}",
+          "visible": true,
+          "style.backgroundColor": "#f02d2d",
+          "style.borderColor": "transparent",
+          "style.borderWidth": 0,
+          "style.fontSize": 36,
+          "style.fontWeight": "normal",
+          "style.fontStyle": "normal",
+          "style.textAlign": "center",
+          "style.fontFamily": "Arial",
+          "style.color": "#000000"
+        },
+        {
+          "className": "TButton",
+          "id": "40c87186-cec3-431c-8dd3-0ef54e7d8e2f",
+          "isVariable": false,
+          "Tasks": {
+            "onClick": "SetTriggerEnterFalse"
+          },
+          "name": "TestFalseBtn",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 14,
+          "y": 33,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "TriggerEnter == false",
+          "visible": true,
+          "style.backgroundColor": "#007bff",
+          "style.borderColor": "#000000",
+          "style.borderWidth": 1,
+          "style.fontSize": 14,
+          "style.fontWeight": "bold",
+          "style.fontStyle": "normal",
+          "style.textAlign": "center",
+          "style.fontFamily": "Arial",
+          "style.color": "#ffffff",
+          "icon": ""
+        },
+        {
+          "className": "TImage",
+          "id": "obj_1769537168817_1ivhoawfe",
+          "isVariable": false,
+          "name": "brightBulb",
+          "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 52,
+          "y": 1,
+          "width": 4,
+          "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": false,
+          "style.backgroundColor": "#2a2a2a",
+          "style.borderColor": "#999999",
+          "style.borderWidth": 0,
+          "src": "Birnen/Helle Birne.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "caption": "brightBulb",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "style": {
+            "borderColor": "#999999",
+            "borderWidth": 0,
+            "backgroundColor": "#2a2a2a"
+          },
+          "children": [],
+          "backgroundImage": "Birnen/Helle Birne.png"
+        },
+        {
+          "className": "TImage",
+          "id": "1812723c-be75-40b9-b249-b9b5e09c23d7",
+          "isVariable": false,
+          "name": "DarkBulb",
+          "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 52,
+          "y": 1,
+          "width": 4,
+          "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": false,
+          "style.backgroundColor": "#2a2a2a",
+          "style.borderColor": "#999999",
+          "style.borderWidth": 0,
+          "src": "Birnen/Dunkle Birne.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "caption": "DarkBulb",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "style": {
+            "borderColor": "#999999",
+            "borderWidth": 0,
+            "backgroundColor": "#2a2a2a"
+          },
+          "children": [],
+          "backgroundImage": "Birnen/Dunkle Birne.png"
+        }
+      ],
+      "gameName": "TriggerTest",
+      "author": "RoRiLa",
+      "description": "Getestet wird die Variable Typ: Trigger. Feuert der Event: onTriggerEnter",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#d65151"
+      },
+      "flowCharts": {
+        "global": {
+          "elements": [],
+          "connections": [],
+          "stage": {
+            "cols": 100,
+            "rows": 100,
+            "cellSize": 20,
+            "snapToGrid": true,
+            "visible": true,
+            "backgroundColor": "#1e1e1e"
+          }
+        },
+        "SetTriggerEnterTrue": {
+          "elements": [
+            {
+              "id": "node-1769421479795",
+              "type": "Task",
+              "x": 120,
+              "y": 100,
+              "width": 200,
+              "height": 60,
+              "properties": {
+                "name": "SetTriggerEnterTrue",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "SetTriggerEnterTrue",
+                "paramValues": {},
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1769421492396",
+              "type": "Action",
+              "x": 420,
+              "y": 100,
+              "width": 160,
+              "height": 80,
+              "properties": {
+                "name": "testVarValueToTrue",
+                "details": "(nicht definiert)",
+                "description": ""
+              },
+              "data": {
+                "name": "testVarValueToTrue",
+                "isLinked": true
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1769421479795",
+              "endTargetId": "node-1769421492396",
+              "startX": 320,
+              "startY": 130,
+              "endX": 480,
+              "endY": 130,
+              "data": {
+                "startAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        },
+        "ShowTestOkInfo": {
+          "elements": [
+            {
+              "id": "node-1769442209207",
+              "type": "Task",
+              "x": 80,
+              "y": 180,
+              "width": 180,
+              "height": 60,
+              "properties": {
+                "name": "ShowTestOkInfo",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "ShowTestOkInfo",
+                "paramValues": {},
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1769442215447",
+              "type": "Action",
+              "x": 380,
+              "y": 80,
+              "width": 180,
+              "height": 80,
+              "properties": {
+                "name": "Label_7.captionTrue",
+                "details": "(nicht definiert)",
+                "description": ""
+              },
+              "data": {
+                "name": "Label_7.captionTrue",
+                "isLinked": true
+              }
+            },
+            {
+              "id": "node-1769620549537",
+              "type": "Action",
+              "x": 380,
+              "y": 180,
+              "width": 180,
+              "height": 80,
+              "properties": {
+                "name": "BrightBulb.visibleTrue",
+                "details": "(nicht definiert)",
+                "description": ""
+              },
+              "data": {
+                "name": "BrightBulb.visibleTrue",
+                "isLinked": true
+              }
+            },
+            {
+              "id": "node-1769621010289",
+              "type": "Action",
+              "x": 380,
+              "y": 280,
+              "width": 180,
+              "height": 80,
+              "properties": {
+                "name": "DarkBulb.visibleFalse",
+                "details": "(nicht definiert)",
+                "description": ""
+              },
+              "data": {
+                "name": "DarkBulb.visibleFalse",
+                "isLinked": true
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1769442209207",
+              "endTargetId": "node-1769442215447",
+              "startX": 319.328125,
+              "startY": 109,
+              "endX": 500,
+              "endY": 110,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "startTargetId": "node-1769442209207",
+              "endTargetId": "node-1769620549537",
+              "startX": 274.328125,
+              "startY": 108,
+              "endX": 380,
+              "endY": 210,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "startTargetId": "node-1769442209207",
+              "endTargetId": "node-1769621010289",
+              "startX": 272.328125,
+              "startY": 106,
+              "endX": 380,
+              "endY": 310,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        },
+        "ShowNotOkStatus": {
+          "elements": [
+            {
+              "id": "node-1769621294100",
+              "type": "Task",
+              "x": 60,
+              "y": 180,
+              "width": 200,
+              "height": 60,
+              "properties": {
+                "name": "ShowNotOkStatus",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "ShowNotOkStatus",
+                "paramValues": {},
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1769621303275",
+              "type": "Action",
+              "x": 360,
+              "y": 80,
+              "width": 220,
+              "height": 60,
+              "properties": {
+                "name": "messageVar.triggerOff",
+                "details": "(nicht definiert)",
+                "description": ""
+              },
+              "data": {
+                "name": "messageVar.triggerOff",
+                "isLinked": true
+              }
+            },
+            {
+              "id": "node-1769621430611",
+              "type": "Action",
+              "x": 360,
+              "y": 180,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "ActionBlaBla",
+                "details": "(nicht definiert)",
+                "description": ""
+              },
+              "data": {
+                "name": "ActionBlaBla",
+                "isLinked": true
+              }
+            },
+            {
+              "id": "node-1769621608832",
+              "type": "Action",
+              "x": 360,
+              "y": 280,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "Action2",
+                "details": "(nicht definiert)",
+                "description": ""
+              },
+              "data": {
+                "name": "Action2",
+                "isLinked": true
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1769621294100",
+              "endTargetId": "node-1769621303275",
+              "startX": 238.328125,
+              "startY": 110,
+              "endX": 360,
+              "endY": 110,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "startTargetId": "node-1769621294100",
+              "endTargetId": "node-1769621430611",
+              "startX": 277.328125,
+              "startY": 112,
+              "endX": 360,
+              "endY": 210,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "startTargetId": "node-1769621294100",
+              "endTargetId": "node-1769621608832",
+              "startX": 275.328125,
+              "startY": 106,
+              "endX": 360,
+              "endY": 350,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        },
+        "SetTriggerEnterFalse": {
+          "elements": [
+            {
+              "id": "node-1769621826943",
+              "type": "Task",
+              "x": 80,
+              "y": 100,
+              "width": 200,
+              "height": 60,
+              "properties": {
+                "name": "SetTriggerEnterFalse",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "SetTriggerEnterFalse",
+                "paramValues": {},
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1769621858813",
+              "type": "Action",
+              "x": 400,
+              "y": 100,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "Action3",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "Action3",
+                "isLinked": true
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1769621826943",
+              "endTargetId": "node-1769621858813",
+              "startX": 278.328125,
+              "startY": 130,
+              "endX": 440,
+              "endY": 150,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        }
+      },
+      "variables": [
+        {
+          "className": "TTriggerVariable",
+          "id": "obj_1769364560469_8r8dqzg33",
+          "isVariable": true,
+          "Tasks": {
+            "onTriggerEnter": "ShowTestOkInfo",
+            "onTriggerExit": "ShowNotOkStatus"
+          },
+          "name": "testTriggerVar",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 1,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style.backgroundColor": "#f44336",
+          "style.borderColor": "#d32f2f",
+          "style.borderWidth": 2,
+          "value": "${TestVar}",
+          "triggerValue": "10"
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1769421026733_w3rn7s3a5",
+          "isVariable": true,
+          "name": "TestVar",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 5,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style.backgroundColor": "#673ab7",
+          "style.borderColor": "#512da8",
+          "style.borderWidth": 2,
+          "variableType": "integer",
+          "defaultValue": 0,
+          "value": 0
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1769451201806_e5t71n2dy",
+          "isVariable": true,
+          "name": "messageVar",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 7,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style.backgroundColor": "#673ab7",
+          "style.borderColor": "#512da8",
+          "style.borderWidth": 2,
+          "variableType": "string",
+          "defaultValue": "Aktueller Tigger-Status",
+          "value": 0
+        }
+      ],
+      "tasks": [
+        {
+          "name": "SetTriggerEnterTrue",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "testVarValueToTrue"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": ""
+        },
+        {
+          "name": "ShowTestOkInfo",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Label_7.captionTrue"
+            },
+            {
+              "type": "action",
+              "name": "BrightBulb.visibleTrue"
+            },
+            {
+              "type": "action",
+              "name": "DarkBulb.visibleFalse"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": ""
+        },
+        {
+          "name": "ShowNotOkStatus",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "messageVar.triggerOff"
+            },
+            {
+              "type": "action",
+              "name": "ActionBlaBla"
+            },
+            {
+              "type": "action",
+              "name": "Action2"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": ""
+        },
+        {
+          "name": "SetTriggerEnterFalse",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Action3"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": ""
+        }
+      ],
+      "actions": [
+        {
+          "name": "testVarValueToTrue",
+          "details": "(nicht definiert)",
+          "showDetails": true,
+          "type": "property",
+          "target": "TestVar",
+          "changes": {
+            "value": 10
+          },
+          "method": "",
+          "description": ""
+        },
+        {
+          "name": "Action1",
+          "details": "(nicht definiert)",
+          "showDetails": true
+        },
+        {
+          "name": "Label_7.captionTrue",
+          "details": "(nicht definiert)",
+          "showDetails": true,
+          "type": "property",
+          "target": "messageVar",
+          "changes": {
+            "value": "Trigger zündet"
+          },
+          "method": "",
+          "description": ""
+        },
+        {
+          "name": "BrightBulb.visibleTrue",
+          "details": "(nicht definiert)",
+          "showDetails": true,
+          "type": "property",
+          "target": "brightBulb",
+          "changes": {
+            "visible": true
+          },
+          "method": "",
+          "description": ""
+        },
+        {
+          "name": "DarkBulb.visibleFalse",
+          "details": "(nicht definiert)",
+          "showDetails": true,
+          "type": "property",
+          "target": "DarkBulb",
+          "changes": {
+            "visible": false
+          },
+          "method": "",
+          "description": ""
+        },
+        {
+          "name": "messageVar.triggerOff",
+          "details": "(nicht definiert)",
+          "showDetails": false,
+          "type": "property",
+          "target": "messageVar",
+          "changes": {
+            "value": "BlaBlaBla"
+          },
+          "method": "",
+          "description": ""
+        },
+        {
+          "name": "ActionBlaBla",
+          "details": "(nicht definiert)",
+          "showDetails": false,
+          "type": "property",
+          "target": "DarkBulb",
+          "changes": {
+            "visible": true
+          },
+          "method": "",
+          "description": ""
+        },
+        {
+          "name": "Action2",
+          "showDetails": true,
+          "type": "property",
+          "target": "brightBulb",
+          "changes": {
+            "visible": false
+          },
+          "method": "",
+          "description": ""
+        },
+        {
+          "name": "Action3",
+          "details": "(nicht definiert)",
+          "showDetails": true,
+          "type": "property",
+          "target": "TestVar",
+          "changes": {
+            "value": false
+          },
+          "method": "",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "stage - 1769365787587 ",
+      "name": "Stage 1 ",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TInputController",
+          "id": "obj_1769360082755_tsulj8sve",
+          "isVariable": false,
+          "name": "InputController_2",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 7,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style.backgroundColor": "#9c27b0",
+          "style.borderColor": "#6a1b9a",
+          "style.borderWidth": 2,
+          "enabled": true
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1769365791573_p3cgrh3s0",
+          "isVariable": false,
+          "name": "Button_3",
+          "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 10,
+          "y": 12,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "Button_3",
+          "visible": true,
+          "style.backgroundColor": "#007bff",
+          "style.borderColor": "#000000",
+          "style.borderWidth": 1,
+          "style.fontSize": 14,
+          "style.fontWeight": "bold",
+          "style.fontStyle": "normal",
+          "style.textAlign": "center",
+          "style.fontFamily": "Arial",
+          "style.color": "#ffffff",
+          "icon": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "variables": [
+        {
+          "className": "TTriggerVariable",
+          "id": "obj_1769364560469_8r8dqzg33",
+          "isVariable": true,
+          "name": "testTriggerVar",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 1,
+          "y": 10,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style.backgroundColor": "#f44336",
+          "style.borderColor": "#d32f2f",
+          "style.borderWidth": 2,
+          "value": 0,
+          "triggerValue": 1
+        }
+      ]
+    }
+  ],
+  "activeStageId": "main",
+  "flowCharts": {
+    "global": {
+      "stage": {
+        "cols": 100,
+        "rows": 100,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#1e1e1e"
+      },
+      "elements": [],
+      "connections": []
+    }
+  }
+}
