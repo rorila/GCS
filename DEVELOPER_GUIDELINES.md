@@ -175,6 +175,7 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 
 ## Pascal-Generierung & Metadaten
 - **Metadaten in Kommentaren**: Der `PascalGenerator` fügt spezialisierte Eigenschaften (Threshold, Duration, etc.) als Kommentar hinter die Variablendeklaration ein, um die Logik-Konfiguration im Code-Viewer lesbar zu machen.
+- **Generische Event-Entdeckung**: Variablen-Events werden im Pascal-Generator dynamisch erkannt (Pattern: `on...`). Da Variablen von `TComponent` erben, prüft der Generator sowohl die Top-Level-Properties der Variable als auch das `Tasks`-Unterobjekt (Wiring), um sicherzustellen, dass Events für alle Typen (Trigger, Range, etc.) korrekt in Pascal-Prozeduren übersetzt werden.
 - **Intelligente Synchronisation (v1.9.9) - Smart-Sync**:
   - **Reihenfolge & Wiederverwendung**: Der Parser vergleicht die aktuelle Code-Zeile bevorzugt mit dem Element an der gleichen Position in der ursprünglichen `actionSequence`, um Aktionsnamen zu erhalten.
   - **Casing-Konsistenz (Smart-Sync)**: Da Pascal case-insensitive ist, die Engine aber camelCase (z.B. `fillColor`) erwartet, nutzt der Parser eine projektweite Suche nach der bevorzugten Schreibweise. Wenn ein Key (z.B. `fillColor`) bereits im Projekt existiert, wird dieser exakt so genutzt. Fallback ist Kleinschreibung.
@@ -187,8 +188,13 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **Methoden-Registrierung**:
   - Neue Methoden für Komponenten MÜSSEN in der `MethodRegistry.ts` (Parameter-Definitionen) UND im `methodMap` von `JSONDialogRenderer.getMethodsForObject` (Sichtbarkeit im Dropdown) eingetragen werden.
   - Visuelle Standard-Methoden wie `moveTo` sollten für alle von `TWindow` erbenden Komponenten im `methodMap` freigeschaltet sein.
--### [Refactoring & Umbenennung](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/RefactoringManager.ts)
-Bei der Implementierung von Refactoring-Logik muss darauf geachtet werden, dass das Projekt eine Multi-Stage-Architektur hat. Referenzen (Umbenennungen von Variablen, Tasks, Objekten) müssen in allen Stages (`project.stages`) aktualisiert werden, da diese eigene Objekt-Listen und FlowCharts führen können.
+### [Refactoring & Umbenennung](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/RefactoringManager.ts)
+- **Multi-Stage Awareness**: Referenzen (Tasks, Objekte, Variablen) müssen in allen Stages aktualisiert werden (`project.stages`).
+- **Cross-Refactoring (v2.0)**: 
+    - Objekte sind oft Namensbestandteil von Actions (z.B. `Label.setCaption`). `RefactoringManager.renameObject` prüft dies automatisch und benennt solche Aktionen ebenfalls um (`NewName.setCaption`).
+- **Flow-Chart Consistency**: 
+    - Da der `FlowEditor` Tasks basierend auf Diagrammen regeneriert, MÜSSEN Änderungen rekursiv in die `flowCharts` (Global & Stages) geschrieben werden. Ein reines Update von `project.tasks` reicht nicht aus, da es beim nächsten Speichern überschrieben würde.
+    - Nutze `replaceInObjectRecursive` für robuste Ersetzungen in tief verschachtelten Node-Daten.
 
 ### [FlowCharts & Task-Diagramme](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/FlowEditor.ts)
 - **Doppelklick-Logik**: Standard-Doppelklick öffnet IMMER den Editor (Task/Action). Die Expansion von Tasks (Sub-Flow anzeigen) wurde vom Doppelklick entfernt und ist nur über das Kontextmenü möglich ("Ausklappen").
@@ -353,3 +359,25 @@ In Projekten mit mehreren Stages müssen globale Komponenten (insbesondere Varia
 - **Interpolation:** Drag-Aktionen speichern einen Pfad (`DragPoint[]`). Die `PlaybackEngine` interpoliert diese Punkte beim Abspielen für flüssige Animationen.
 - **UI Integration:** Editor-Fenster (wie `PlaybackControls`) sollten direkt in den DOM des Editor-Containers gerendert werden, um unabhängig vom Stage-Zustand zu sein.
 - **Shortcuts:** `Editor.initKeyboardShortcuts()` registriert dumentweite Listeners für `Strg+Z/Y`.
+
+## Trinity-Synchronisation (Pascal | JSON | Flow)
+
+### Zentrale Kopplung (refreshAllViews)
+Der `Editor` fungiert als Sync-Hub. Nach jeder strukturellen Änderung (z.B. Task-Umbenennung, neue Action, Variablen-Update) MUSS `refreshAllViews()` aufgerufen werden. Diese Methode orchestriert:
+1. `render()`: UI-Vorschau aktualisieren.
+2. `updateAvailableActions()`: Kontextsensitive Aktions-Listen (Stage-aware) neu filtern.
+3. `refreshJSONView()`: Den JSON-Baum (ggf. mit Stage-Isolierung) neu zeichnen.
+4. `refreshPascalView()`: Den Pascal-Code neu generieren und im Viewer/Editor highlighten.
+
+### Intelligente Task-Identifikation (Logik-Signatur)
+Tasks werden nicht nur über ihren Namen, sondern über eine **Logik-Signatur** (`PascalGenerator.getLogicSignature`) identifiziert. Dies ermöglicht:
+- **Umbenennungs-Erkennung**: Wenn ein Task-Name im Code geändert wird, vergleicht der Parser die Logik mit dem Projektstand und erkennt die Umbenennung, anstatt den alten Task zu löschen und einen neuen zu erstellen.
+- **Referenz-Sync**: Beim Erkennen einer Umbenennung aktualisiert die `ProjectRegistry` automatisch alle Aufrufe und Event-Mappings (Wiring) im gesamten Projekt.
+
+### Pascal-Parser Kopplung
+- **Parameter & Variablen**: Lokale Prozedur-Parameter (`procedure MyTask(val: number)`) und `VAR`-Blöcke werden direkt in das JSON-Datenmodell synchronisiert.
+- **Action-Discovery**: Der Parser versucht, bestehende Aktionen anhand ihrer Logik wiederzuverwenden. Neue Aktionen erhalten sprechende Namen (Muster: `Target_Property_Value`).
+
+### Lifecycle & Cleanup
+- **Orphan Cleanup**: `ProjectRegistry.deleteTask` entfernt automatisch alle Aktionen, die ausschließlich von diesem Task genutzt wurden (Dependency Indexing).
+- **Stage-Isolierung**: In der JSON-Ansicht einer Stage werden globale Abhängigkeiten (Tasks/Actions) temporär injiziert, um eine vollständige Bearbeitbarkeit ohne Datenverlust zu gewährleisten.

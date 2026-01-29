@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.0.2] - 2026-01-29
+### Bugfix & Event Discovery
+- **Fix Variablen-Events**: Korrektur der Event-Entdeckung im Pascal-Generator. Er sucht nun sowohl in den Top-Level-Properties als auch im `Tasks`-Objekt der Variablen nach Event-Handlern. Dies stellt sicher, dass Events wie `onTriggerEnter` (die in der App im `Tasks`-Pattern gespeichert werden) korrekt generiert werden.
+
+## [2.0.1] - 2026-01-29
+### Refactoring & Stability
+- **Generische Event-Generierung**: Der Pascal-Generator wurde refactored, um *alle* Variablen-Events (Pattern: `on[UpperCamelCase]`) dynamisch zu unterstützen, ohne dass diese hardcodiert sein müssen. Dies ermöglicht die nahtlose Erweiterung um eigene Events via `TKeyStore` oder Plugins.
+- **Robustheit**: Verbesserte Fehlerbehandlung (`try-catch`) im Code-Generator verhindert Abstürze bei unvollständigen Projektdaten während der Entwicklung.
+
+## [2.0.0] - 2026-01-29
+### Trinity-Synchronisation (Pascal | JSON | Flow)
+- **Zentraler Trinity-Sync**: Einführung von `refreshAllViews` als Hub zur sofortigen Synchronisation aller Editor-Sichten.
+- **Dependency Indexing**: Neue Listen für Variablen, Tasks, Actions und Objekte in den Stage-Einstellungen inklusive Nutzungs-Häufigkeit (🔗).
+- **Bugfix**: Behebung eines `Maximum call stack size exceeded` Fehlers in der `ProjectRegistry`, der durch zirkuläre Abhängigkeiten bei der Nutzungs-Berechnung verursacht wurde.
+- **Automatischer Lifecycle**: 
+  - Automatisches Löschen verwaister Aktionen (Orphan Cleanup).
+  - Konsistente Aktualisierung von Event-Mappings nach Task-Umbenennungen.
+- **Pascal-Integrität**: 
+  - Synchronisation von Prozedur-Parametern und lokalen Variablen (`VAR`-Blöcke) direkt in das JSON-Datenmodell.
+  - Generierung sprechender Aktions-Namen basierend auf Zielen und Properties.
+- **Variablen-Events**: Vollständige Unterstützung für Variablen-Events im Pascal-Editor. Events wie `onValueChanged` oder `onThresholdReached` werden nun als Prozeduren (`PROCEDURE VariableName.EventName`) angezeigt und können direkt im Code bearbeitet werden.
+- **Cross-Refactoring**: Automatische Erkennung und Umbenennung von Aktionen, die namentlich an Objekte gebunden sind (z.B. `Label.caption` -> `Neu.caption`) inklusive rekursiver Updates aller Flow-Diagramme (Global & Stage).
+- **Stabilität**: Robuste JSON-Vorschau mit Deep-Copy-Isolierung für Stages.
+
 ## [1.9.9] - 2026-01-29
 ### Pascal-Editor & Rendering Optimierungen
 - **Intelligente Action-Synchronisation**: Der Pascal-Parser erkennt nun bestehende Aktionen (`messageVar.triggerOff` etc.) anhand ihrer Position und Logik wieder und aktualisiert deren `changes`, statt neue redundante Aktionen zu erstellen.

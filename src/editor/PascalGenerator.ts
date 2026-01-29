@@ -1,10 +1,15 @@
 import { GameProject, SequenceItem, ProjectVariable, VariableScope, GameTask } from '../model/types';
+import { projectRegistry } from '../services/ProjectRegistry';
 
 export class PascalGenerator {
     private static span(text: string, color: string, asHtml: boolean): string {
         if (!asHtml) return text;
         return `<span style="color: ${color};">${text}</span>`;
     }
+
+    // Generic event handling: we no longer use a hardcoded list.
+    // Events are identified by keys starting with 'on' + Uppercase letter convention
+
 
     /**
      * Generates a full Pascal program representation of the project
@@ -142,9 +147,61 @@ export class PascalGenerator {
             });
         }
 
+        // VARIABLE EVENT HANDLERS
+        const relevantVars = [...(project.variables || []).filter(v => !v.scope || v.scope === 'global')];
+        if (activeStage && activeStage.variables) {
+            relevantVars.push(...activeStage.variables);
+        }
+
+        if (relevantVars.length > 0) {
+            const varLines: string[] = [];
+            relevantVars.forEach(v => {
+                // Generic Event Discovery
+                // We check both the top-level properties (for compatibility) 
+                // and the 'Tasks' object (standard TComponent pattern)
+                const eventMap: Record<string, string> = {};
+
+                // 1. Top-level properties (legacy/simple)
+                Object.keys(v).forEach(key => {
+                    if (key.startsWith('on') && key.length > 2) {
+                        const val = (v as any)[key];
+                        if (typeof val === 'string' && val.length > 0) {
+                            eventMap[key] = val;
+                        }
+                    }
+                });
+
+                // 2. Tasks object (standard for components)
+                const tasksMap = (v as any).Tasks || {};
+                Object.keys(tasksMap).forEach(key => {
+                    if (key.startsWith('on') && key.length > 2) {
+                        const val = tasksMap[key];
+                        if (typeof val === 'string' && val.length > 0) {
+                            eventMap[key] = val;
+                        }
+                    }
+                });
+
+                // Generate Code for all discovered events
+                Object.keys(eventMap).forEach(key => {
+                    const eventTaskName = eventMap[key];
+                    varLines.push(`${PascalGenerator.span('PROCEDURE', '#c586c0', asHtml)} ${PascalGenerator.span(v.name, '#9cdcfe', asHtml)}.${PascalGenerator.span(key, '#dcdcaa', asHtml)}();`);
+                    varLines.push(`${PascalGenerator.span('BEGIN', '#c586c0', asHtml)}`);
+                    varLines.push(`  ${PascalGenerator.span(eventTaskName, '#dcdcaa', asHtml)}();`);
+                    varLines.push(`${PascalGenerator.span('END', '#c586c0', asHtml)};`);
+                    varLines.push('');
+                });
+            });
+
+            if (varLines.length > 0) {
+                lines.push(`${this.span('{ VARIABLE EVENT HANDLERS }', '#6a9955', asHtml)}`);
+                lines.push(...varLines);
+            }
+        }
+
         // Main Program
-        lines.push(`${this.span('BEGIN', '#c586c0', asHtml)} ${this.span('{ Main Program Entry Point }', '#6a9955', asHtml)}`);
-        lines.push(`  ${this.span('clrscr', '#dcdcaa', asHtml)};`);
+        lines.push(`${this.span('BEGIN', '#c586c0', asHtml)} ${this.span('{ Main Program Entry Point }', '#6a9955', asHtml)} `);
+        lines.push(`  ${this.span('clrscr', '#dcdcaa', asHtml)}; `);
 
         // Find all tasks triggered by onStart events (Stage Specific!)
         const startTasks: string[] = [];
@@ -159,10 +216,10 @@ export class PascalGenerator {
 
         if (startTasks.length > 0) {
             [...new Set(startTasks)].forEach(taskName => {
-                lines.push(`  ${this.span(taskName, '#dcdcaa', asHtml)}(); ${this.span('{ Triggered by onStart }', '#6a9955', asHtml)}`);
+                lines.push(`  ${this.span(taskName, '#dcdcaa', asHtml)} (); ${this.span('{ Triggered by onStart }', '#6a9955', asHtml)} `);
             });
         } else {
-            lines.push(`  ${this.span('// No onStart tasks defined', '#6a9955', asHtml)}`);
+            lines.push(`  ${this.span('// No onStart tasks defined', '#6a9955', asHtml)} `);
         }
 
         lines.push(`${this.span('END', '#c586c0', asHtml)}.`);
@@ -187,38 +244,38 @@ export class PascalGenerator {
         }).map((obj: any) => obj.name);
 
         if (users.length > 0) {
-            lines.push(`${space}${this.span('{ Used by: ' + users.join(', ') + ' }', '#6a9955', asHtml)}`);
+            lines.push(`${space}${this.span('{ Used by: ' + users.join(', ') + ' }', '#6a9955', asHtml)} `);
         }
 
-        lines.push(`${space}${this.span('PROCEDURE', '#c586c0', asHtml)} ${this.span(taskName, '#dcdcaa', asHtml)};`);
+        lines.push(`${space}${this.span('PROCEDURE', '#c586c0', asHtml)} ${this.span(taskName, '#dcdcaa', asHtml)}; `);
 
         // VAR Section (Task Scoped)
         const taskVars = project.variables.filter(v => (v.scope || '').toLowerCase() === taskName.toLowerCase());
         if (taskVars.length > 0) {
-            lines.push(`${space}${this.span('VAR', '#c586c0', asHtml)}`);
+            lines.push(`${space}${this.span('VAR', '#c586c0', asHtml)} `);
             taskVars.forEach(v => {
                 const typeStr = v.type || 'string';
                 const pascalType = typeStr.charAt(0).toUpperCase() + typeStr.slice(1);
                 let metadata = '';
-                if (v.threshold !== undefined) metadata += ` Threshold=${v.threshold}`;
-                if (v.triggerValue !== undefined) metadata += ` TriggerValue='${v.triggerValue}'`;
-                if (v.duration !== undefined) metadata += ` Duration=${v.duration}`;
-                if (v.min !== undefined) metadata += ` Min=${v.min}`;
-                if (v.max !== undefined) metadata += ` Max=${v.max}`;
+                if (v.threshold !== undefined) metadata += ` Threshold = ${v.threshold} `;
+                if (v.triggerValue !== undefined) metadata += ` TriggerValue = '${v.triggerValue}'`;
+                if (v.duration !== undefined) metadata += ` Duration = ${v.duration} `;
+                if (v.min !== undefined) metadata += ` Min = ${v.min} `;
+                if (v.max !== undefined) metadata += ` Max = ${v.max} `;
 
-                const comment = ` { Default: ${v.initialValue ?? v.defaultValue ?? 'nil'}${metadata} }`;
-                lines.push(`${space}  ${this.span(v.name, '#9cdcfe', asHtml)}: ${this.span(pascalType, '#4ec9b0', asHtml)};${this.span(comment, '#6a9955', asHtml)}`);
+                const comment = ` { Default: ${v.initialValue ?? v.defaultValue ?? 'nil'}${metadata} } `;
+                lines.push(`${space}  ${this.span(v.name, '#9cdcfe', asHtml)}: ${this.span(pascalType, '#4ec9b0', asHtml)};${this.span(comment, '#6a9955', asHtml)} `);
             });
         }
 
         // BEGIN Section
-        lines.push(`${space}${this.span('BEGIN', '#c586c0', asHtml)}`);
+        lines.push(`${space}${this.span('BEGIN', '#c586c0', asHtml)} `);
 
         // Recursively render sequence
         this.renderSequenceToPascal(project, sequence, lines, indent + 2, asHtml, activeStage);
 
         // END Section
-        lines.push(`${space}${this.span('END', '#c586c0', asHtml)};`);
+        lines.push(`${space}${this.span('END', '#c586c0', asHtml)}; `);
 
         return lines.join('\n');
     }
@@ -227,16 +284,16 @@ export class PascalGenerator {
         const space = ' '.repeat(indent);
 
         if (sequence.length === 0) {
-            lines.push(`${space}${this.span('// Empty sequence', '#6a9955', asHtml)}`);
+            lines.push(`${space}${this.span('// Empty sequence', '#6a9955', asHtml)} `);
             return;
         }
 
         sequence.forEach(item => {
             if (item.type === 'action' || !item.type) {
                 // Support both standalone actions (by name) and embedded action data
-                lines.push(`${space}${this.getActionPascalCode(project, item.name, asHtml, activeStage, (item as any).data)}`);
+                lines.push(`${space}${this.getActionPascalCode(project, item.name, asHtml, activeStage, (item as any).data)} `);
             } else if (item.type === 'task') {
-                lines.push(`${space}${this.span(item.name, '#dcdcaa', asHtml)}; ${this.span('// Task Call', '#6a9955', asHtml)}`);
+                lines.push(`${space}${this.span(item.name, '#dcdcaa', asHtml)}; ${this.span('// Task Call', '#6a9955', asHtml)} `);
             } else if (item.type === 'condition') {
                 const cond = item.condition;
                 if (cond) {
@@ -245,30 +302,30 @@ export class PascalGenerator {
                     const val = isString ? ("'" + cond.value + "'") : cond.value;
                     const valColor = isString ? '#ce9178' : '#b5cea8'; // Orange for strings, green for numbers
                     let sysVarComment = '';
-                    if (cond.variable === 'hitSide') sysVarComment = ` ${this.span('{ System variable: side of collision/boundary }', '#6a9955', asHtml)}`;
-                    if (cond.variable === 'direction') sysVarComment = ` ${this.span('{ System variable: move direction (up/down) }', '#6a9955', asHtml)}`;
+                    if (cond.variable === 'hitSide') sysVarComment = ` ${this.span('{ System variable: side of collision/boundary }', '#6a9955', asHtml)} `;
+                    if (cond.variable === 'direction') sysVarComment = ` ${this.span('{ System variable: move direction (up/down) }', '#6a9955', asHtml)} `;
 
-                    lines.push(`${space}${this.span('IF', '#c586c0', asHtml)} ${this.span(cond.variable, '#9cdcfe', asHtml)} ${op} ${this.span(val.toString(), valColor, asHtml)} ${this.span('THEN', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}${sysVarComment}`);
+                    lines.push(`${space}${this.span('IF', '#c586c0', asHtml)} ${this.span(cond.variable, '#9cdcfe', asHtml)} ${op} ${this.span(val.toString(), valColor, asHtml)} ${this.span('THEN', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}${sysVarComment} `);
 
                     // Then branch
                     if (item.thenAction) {
-                        lines.push(`${space}  ${this.getActionPascalCode(project, item.thenAction, asHtml, activeStage)}`);
+                        lines.push(`${space}  ${this.getActionPascalCode(project, item.thenAction, asHtml, activeStage)} `);
                     } else if (item.thenTask) {
-                        lines.push(`${space}  ${this.span(item.thenTask, '#dcdcaa', asHtml)};`);
+                        lines.push(`${space}  ${this.span(item.thenTask, '#dcdcaa', asHtml)}; `);
                     } else if (item.body) {
                         this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
                     }
 
-                    lines.push(`${space}${this.span('END', '#c586c0', asHtml)}`);
+                    lines.push(`${space}${this.span('END', '#c586c0', asHtml)} `);
 
                     if (item.elseAction || item.elseTask) {
-                        lines.push(`${space}${this.span('ELSE', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
+                        lines.push(`${space}${this.span('ELSE', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)} `);
                         if (item.elseAction) {
-                            lines.push(`${space}  ${this.getActionPascalCode(project, item.elseAction, asHtml, activeStage)}`);
+                            lines.push(`${space}  ${this.getActionPascalCode(project, item.elseAction, asHtml, activeStage)} `);
                         } else if (item.elseTask) {
-                            lines.push(`${space}  ${this.span(item.elseTask, '#dcdcaa', asHtml)};`);
+                            lines.push(`${space}  ${this.span(item.elseTask, '#dcdcaa', asHtml)}; `);
                         }
-                        lines.push(`${space}${this.span('END', '#c586c0', asHtml)};`);
+                        lines.push(`${space}${this.span('END', '#c586c0', asHtml)}; `);
                     } else {
                         lines[lines.length - 1] += ';';
                     }
@@ -280,31 +337,31 @@ export class PascalGenerator {
                     const isString = typeof cond.value === 'string';
                     const val = isString ? ("'" + cond.value + "'") : cond.value;
                     const valColor = isString ? '#ce9178' : '#b5cea8';
-                    lines.push(`${space}${this.span('WHILE', '#c586c0', asHtml)} ${this.span(cond.variable, '#9cdcfe', asHtml)} ${op} ${this.span(val.toString(), valColor, asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
+                    lines.push(`${space}${this.span('WHILE', '#c586c0', asHtml)} ${this.span(cond.variable, '#9cdcfe', asHtml)} ${op} ${this.span(val.toString(), valColor, asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)} `);
                     if (item.body) {
                         this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
                     }
-                    lines.push(`${space}${this.span('END', '#c586c0', asHtml)};`);
+                    lines.push(`${space}${this.span('END', '#c586c0', asHtml)}; `);
                 }
             } else if (item.type === 'for') {
-                lines.push(`${space}${this.span('FOR', '#c586c0', asHtml)} ${this.span(item.iteratorVar || 'i', '#9cdcfe', asHtml)} := ${this.span((item.from ?? 0).toString(), '#b5cea8', asHtml)} ${this.span('TO', '#c586c0', asHtml)} ${this.span((item.to ?? 10).toString(), '#b5cea8', asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
+                lines.push(`${space}${this.span('FOR', '#c586c0', asHtml)} ${this.span(item.iteratorVar || 'i', '#9cdcfe', asHtml)} := ${this.span((item.from ?? 0).toString(), '#b5cea8', asHtml)} ${this.span('TO', '#c586c0', asHtml)} ${this.span((item.to ?? 10).toString(), '#b5cea8', asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)} `);
                 if (item.body) {
                     this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
                 }
-                lines.push(`${space}${this.span('END', '#c586c0', asHtml)};`);
+                lines.push(`${space}${this.span('END', '#c586c0', asHtml)}; `);
             } else if (item.type === 'foreach') {
-                lines.push(`${space}${this.span('FOR', '#c586c0', asHtml)} ${this.span(item.itemVar || 'item', '#9cdcfe', asHtml)} ${this.span('IN', '#c586c0', asHtml)} ${this.span(item.sourceArray || 'list', '#9cdcfe', asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
+                lines.push(`${space}${this.span('FOR', '#c586c0', asHtml)} ${this.span(item.itemVar || 'item', '#9cdcfe', asHtml)} ${this.span('IN', '#c586c0', asHtml)} ${this.span(item.sourceArray || 'list', '#9cdcfe', asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)} `);
                 if (item.body) {
                     this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
                 }
-                lines.push(`${space}${this.span('END', '#c586c0', asHtml)};`);
+                lines.push(`${space}${this.span('END', '#c586c0', asHtml)}; `);
             }
         });
     }
 
     private static getActionPascalCode(project: GameProject, actionName: string, asHtml: boolean, activeStage?: any, embeddedData?: any): string {
         const action = embeddedData || project.actions.find(a => a.name === actionName) || (activeStage?.actions?.find((a: any) => a.name === actionName));
-        if (!action) return `${this.span(actionName, '#dcdcaa', asHtml)}();`;
+        if (!action) return `${this.span(actionName, '#dcdcaa', asHtml)} (); `;
 
         let code = '';
         if (action.type === 'property' && action.target && action.changes) {
@@ -330,46 +387,46 @@ export class PascalGenerator {
 
                     // Capitalize property name to match Editor (Text instead of text)
                     const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-                    parts.push(`${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := ${this.span(valStr, color, asHtml)};`);
+                    parts.push(`${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := ${this.span(valStr, color, asHtml)}; `);
                 }
                 code = parts.join('\n'); // Note: This might need adjustment if used in single line IF
             } else {
-                code = `${this.span(actionName, '#dcdcaa', asHtml)}();`;
+                code = `${this.span(actionName, '#dcdcaa', asHtml)} (); `;
             }
         } else if (action.type === 'service' && action.service && action.method) {
             const resultPart = action.resultVariable ? `${this.span(action.resultVariable, '#9cdcfe', asHtml)} := ` : '';
-            code = `${resultPart}${this.span(action.service, '#4ec9b0', asHtml)}.${this.span(action.method, '#dcdcaa', asHtml)}();`;
+            code = `${resultPart}${this.span(action.service, '#4ec9b0', asHtml)}.${this.span(action.method, '#dcdcaa', asHtml)} (); `;
         } else if (action.type === 'variable' && action.variableName) {
             const capitalizedProp = action.sourceProperty ? action.sourceProperty.charAt(0).toUpperCase() + action.sourceProperty.slice(1) : '';
-            code = `${this.span(action.variableName, '#9cdcfe', asHtml)} := ${this.span(action.source || '', '#9cdcfe', asHtml)}.${this.span(capitalizedProp, '#9cdcfe', asHtml)};`;
+            code = `${this.span(action.variableName, '#9cdcfe', asHtml)} := ${this.span(action.source || '', '#9cdcfe', asHtml)}.${this.span(capitalizedProp, '#9cdcfe', asHtml)}; `;
         } else if (action.type === 'increment' && action.target && action.changes) {
             const key = Object.keys(action.changes)[0] || 'value';
             const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
             const amount = action.changes[key] || 1;
-            code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := ${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} + ${this.span(amount.toString(), '#b5cea8', asHtml)};`;
+            code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := ${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} + ${this.span(amount.toString(), '#b5cea8', asHtml)}; `;
         } else if (action.type === 'negate' && action.target && action.changes) {
             const key = Object.keys(action.changes)[0] || 'value';
             const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-            code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := -${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)};`;
+            code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := -${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)}; `;
         } else if (action.type === 'calculate' && action.resultVariable) {
             let expr = '';
             if (action.calcSteps && action.calcSteps.length > 0) {
                 expr = action.calcSteps.map((s: any, i: number) => {
                     const val = s.operandType === 'variable'
-                        ? `${this.span(s.variable || '?', '#9cdcfe', asHtml)}`
-                        : `${this.span((s.constant ?? 0).toString(), '#b5cea8', asHtml)}`;
-                    return (i === 0 || !s.operator) ? val : `${this.span(s.operator, '#d4d4d4', asHtml)} ${val}`;
+                        ? `${this.span(s.variable || '?', '#9cdcfe', asHtml)} `
+                        : `${this.span((s.constant ?? 0).toString(), '#b5cea8', asHtml)} `;
+                    return (i === 0 || !s.operator) ? val : `${this.span(s.operator, '#d4d4d4', asHtml)} ${val} `;
                 }).join(' ');
             }
-            code = `${this.span(action.resultVariable, '#9cdcfe', asHtml)} := ${expr};`;
+            code = `${this.span(action.resultVariable, '#9cdcfe', asHtml)} := ${expr}; `;
         } else if (action.type === 'call_method' && action.target && action.method) {
-            code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(action.method, '#dcdcaa', asHtml)}();`;
+            code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(action.method, '#dcdcaa', asHtml)} (); `;
         } else if (action.type === 'navigate_stage') {
-            code = `${this.span('Application', '#4ec9b0', asHtml)}.${this.span('GoToStage', '#dcdcaa', asHtml)}(${this.span("'" + (action.params?.stageId || action.target || '?') + "'", '#ce9178', asHtml)});`;
+            code = `${this.span('Application', '#4ec9b0', asHtml)}.${this.span('GoToStage', '#dcdcaa', asHtml)} (${this.span("'" + (action.params?.stageId || action.target || '?') + "'", '#ce9178', asHtml)}); `;
         } else {
             // Generic fallback for any other type
-            const typeLabel = action.type ? ` { ${action.type} }` : '';
-            code = `${this.span(actionName, '#dcdcaa', asHtml)}(); ${this.span(typeLabel, '#6a9955', asHtml)}`;
+            const typeLabel = action.type ? ` { ${action.type} } ` : '';
+            code = `${this.span(actionName, '#dcdcaa', asHtml)} (); ${this.span(typeLabel, '#6a9955', asHtml)} `;
         }
 
         return code;
@@ -402,34 +459,61 @@ export class PascalGenerator {
 
         // 3. Procedures (Tasks & Event Handlers)
         // Match both: 
-        // - PROCEDURE TaskName;
+        // - PROCEDURE TaskName(p1: type; ...);
         // - PROCEDURE ObjectName.EventName();
-        const procedureRegex = /PROCEDURE\s+([a-zA-Z0-9_.]+)(?:\s*\(\s*\))?\s*;\s*(?:VAR\s+([\s\S]*?))?\s*BEGIN\s+([\s\S]*?)\s*END\s*;/gi;
+        const procedureRegex = /PROCEDURE\s+([a-zA-Z0-9_.]+)(?:\s*\(([\s\S]*?)\))?\s*;\s*(?:VAR\s+([\s\S]*?))?\s*BEGIN\s+([\s\S]*?)\s*END\s*;/gi;
         let procMatch;
+
+        // Pre-parse: Collect all procedures from code to identify renames
+        const codeTasks: Map<string, { params: string, varBlock: string, bodyBlock: string, signature: string }> = new Map();
         while ((procMatch = procedureRegex.exec(code)) !== null) {
-            const fullIdent = procMatch[1];
-            const varBlock = procMatch[2];
-            const bodyBlock = procMatch[3];
+            const ident = procMatch[1];
+            const paramsStr = procMatch[2] || '';
+            const varBlock = procMatch[3] || '';
+            const bodyBlock = procMatch[4];
 
-            if (fullIdent.includes('.')) {
-                // Object Event Handler: procedure MyBtn.onClick();
-                const [objName, eventName] = fullIdent.split('.');
-                // Find target task call in body
+            if (ident.includes('.')) {
+                const [objName, eventName] = ident.split('.');
                 const callMatch = bodyBlock.match(/([a-zA-Z0-9_]+)\(\);/);
-                if (callMatch) {
-                    foundHandlers.add({ objectName: objName, eventName, targetTask: callMatch[1] });
-                }
+                if (callMatch) foundHandlers.add({ objectName: objName, eventName, targetTask: callMatch[1] });
             } else {
-                // Regular Task: procedure MyTask;
-                const taskName = fullIdent;
-                foundTasks.add(taskName);
+                const tempSeq = this.parseBodyToSequence(project, ident, bodyBlock, { count: 0 }, [], targetStage);
+                codeTasks.set(ident, {
+                    params: paramsStr,
+                    varBlock: varBlock,
+                    bodyBlock,
+                    signature: this.getLogicSignature(tempSeq)
+                });
+            }
+        }
 
-                // Find existing task in Stage or Project
-                let task = (targetStage?.tasks?.find((t: any) => t.name === taskName)) || project.tasks.find(t => t.name === taskName);
+        // Identify Renames and Updates
+        const jsonTasks = [...(targetStage?.tasks || project.tasks || [])] as GameTask[];
+        const matchedJsonTasks: Set<string> = new Set();
 
-                if (!task) {
+        codeTasks.forEach((codeData, taskName) => {
+            foundTasks.add(taskName);
+
+            // 1. Exact Match by Name
+            let task = jsonTasks.find(t => t.name === taskName);
+            if (task) {
+                matchedJsonTasks.add(task.name);
+            } else {
+                // 2. Potential Rename: Match by Logic Signature
+                const potentialOldTask = jsonTasks.find(t =>
+                    !matchedJsonTasks.has(t.name) &&
+                    !codeTasks.has(t.name) &&
+                    this.getLogicSignature(t.actionSequence) === codeData.signature
+                );
+
+                if (potentialOldTask) {
+                    console.log(`[PascalGenerator] Detected rename: ${potentialOldTask.name} -> ${taskName} `);
+                    projectRegistry.renameTask(potentialOldTask.name, taskName);
+                    task = potentialOldTask;
+                    matchedJsonTasks.add(taskName);
+                } else {
+                    // 3. Truly New Task
                     task = { name: taskName, actionSequence: [] };
-                    // If targetStage is provided, new tasks go there by default (modular)
                     if (targetStage) {
                         if (!targetStage.tasks) targetStage.tasks = [];
                         targetStage.tasks.push(task);
@@ -437,34 +521,35 @@ export class PascalGenerator {
                         project.tasks.push(task);
                     }
                 }
+            }
 
-                // Parse task variables
-                if (varBlock) {
-                    this.parseVariables(project, varBlock, taskName, foundVariables, targetStage);
+            // Update matched task
+            if (task) {
+                // Sync Parameters
+                if (codeData.params) {
+                    const paramPairs = codeData.params.split(';').filter((p: string) => p.trim());
+                    task.params = paramPairs.map((pair: string) => {
+                        const parts = pair.split(':').map((s: string) => s.trim());
+                        return { name: parts[0], type: (parts[1] || 'string').toLowerCase() };
+                    });
+                } else {
+                    delete task.params;
                 }
 
-                // Parse body into sequence
+                if (codeData.varBlock) {
+                    this.parseVariables(project, codeData.varBlock, `task:${taskName} `, foundVariables, targetStage);
+                }
                 const oldSequence = task.actionSequence || [];
-                const newSequence = this.parseBodyToSequence(project, taskName, bodyBlock, { count: 0 }, oldSequence, targetStage);
+                const newSequence = this.parseBodyToSequence(project, taskName, codeData.bodyBlock, { count: 0 }, oldSequence, targetStage);
 
-                // Check if sequence changed to invalidate flowchart
-                const oldSeqJson = JSON.stringify(oldSequence);
-                const newSeqJson = JSON.stringify(newSequence);
-
-                if (oldSeqJson !== newSeqJson) {
-                    console.log(`[PascalGenerator] Task "${taskName}" updated from code. Invalidating FlowChart.`);
+                if (JSON.stringify(oldSequence) !== JSON.stringify(newSequence)) {
+                    console.log(`[PascalGenerator] Task "${taskName}" updated.Invalidating FlowChart.`);
                     task.actionSequence = newSequence;
-
-                    // Invalidate FlowChart so it gets re-synced visually
-                    if (targetStage?.flowCharts && targetStage.flowCharts[taskName]) {
-                        delete targetStage.flowCharts[taskName];
-                    }
-                    if (project.flowCharts && project.flowCharts[taskName]) {
-                        delete project.flowCharts[taskName];
-                    }
+                    if (targetStage?.flowCharts?.[taskName]) delete targetStage.flowCharts[taskName];
+                    if (project.flowCharts?.[taskName]) delete project.flowCharts[taskName];
                 }
             }
-        }
+        });
 
         // 4. Update Event Handlers on Objects
         const stageToUse = targetStage || project.stages?.find(s => s.type === 'main');
@@ -474,6 +559,26 @@ export class PascalGenerator {
                 if (obj) {
                     if (!obj.Tasks) obj.Tasks = {};
                     obj.Tasks[h.eventName] = h.targetTask;
+                }
+            });
+        }
+
+        // 4b. Update Event Handlers on Variables
+        // Variables can be global or in targetStage
+        const targetVariables = [
+            ...(targetStage?.variables || []),
+            ...(project.variables || [])
+        ];
+
+        if (targetVariables.length > 0) {
+            foundHandlers.forEach(h => {
+                // Try to find a variable matching the objectName (which is VarName in this case)
+                const variable = targetVariables.find((v: any) => v.name === h.objectName);
+                if (variable) {
+                    // Check if it's a known variable event (generic check)
+                    if (h.eventName.startsWith('on') && h.eventName.length > 2) {
+                        (variable as any)[h.eventName] = h.targetTask;
+                    }
                 }
             });
         }
@@ -562,7 +667,7 @@ export class PascalGenerator {
                     const oldItem = oldSubSeq[itemIndex];
                     const item: SequenceItem = {
                         type: 'condition',
-                        name: oldItem && oldItem.type === 'condition' ? oldItem.name : `if_${actionCounter.count++}`,
+                        name: oldItem && oldItem.type === 'condition' ? oldItem.name : `if_${actionCounter.count++} `,
                         condition: this.parseCondition(conditionStr.trim())
                     };
 
@@ -600,7 +705,7 @@ export class PascalGenerator {
                     const oldItem = oldSubSeq[itemIndex];
                     const item: SequenceItem = {
                         type: 'while',
-                        name: oldItem && oldItem.type === 'while' ? oldItem.name : `while_${actionCounter.count++}`,
+                        name: oldItem && oldItem.type === 'while' ? oldItem.name : `while_${actionCounter.count++} `,
                         condition: this.parseCondition(conditionStr.trim())
                     };
                     if (tokens[i]?.trim().toUpperCase() === 'BEGIN') {
@@ -617,7 +722,7 @@ export class PascalGenerator {
                     const oldItem = oldSubSeq[itemIndex];
                     const item: SequenceItem = {
                         type: 'for',
-                        name: oldItem && oldItem.type === 'for' ? oldItem.name : `for_${actionCounter.count++}`
+                        name: oldItem && oldItem.type === 'for' ? oldItem.name : `for_${actionCounter.count++} `
                     };
                     // Parse: iterator := start TO end
                     const forMatch = forHeader.match(/([a-zA-Z0-9_]+)\s*:=\s*([0-9]+)\s+TO\s+([0-9]+)/i);
@@ -684,6 +789,31 @@ export class PascalGenerator {
         return { variable: condStr, operator: '==', value: true };
     }
 
+    public static getLogicSignature(sequence: SequenceItem[]): string {
+        if (!sequence || sequence.length === 0) return 'empty';
+
+        return sequence.map(item => {
+            const anyItem = item as any;
+            let part = `[${item.type}]`;
+            if (item.type === 'action') {
+                // Include target and sorted property keys
+                const keys = Object.keys(anyItem.changes || {}).sort().join(',');
+                part += `:${anyItem.target}:${keys} `;
+            } else if (item.type === 'task') {
+                part += `:${item.name} `;
+            } else if (item.type === 'condition' || item.type === 'while') {
+                // Include condition structure and branches
+                const branchA = anyItem.thenTask || anyItem.thenAction || '';
+                const branchB = anyItem.elseTask || anyItem.elseAction || '';
+                part += `:${branchA}| ${branchB} `;
+                if (anyItem.body) {
+                    part += `{${this.getLogicSignature(anyItem.body)} } `;
+                }
+            }
+            return part;
+        }).join(';');
+    }
+
     private static getPreferredCasing(project: GameProject, propName: string, targetStage?: any): string {
         const searchString = propName.toLowerCase();
 
@@ -723,7 +853,7 @@ export class PascalGenerator {
                 val = parseFloat(source);
             } else if (/^[a-zA-Z0-9_$]+$/.test(source)) {
                 // Variable name reference
-                val = `\${${source}}`;
+                val = `\${${source} } `;
             }
 
             if (target.includes('.')) {
@@ -750,7 +880,7 @@ export class PascalGenerator {
                 }
 
                 // 3. Fallback: Create new action name
-                const actionName = action ? action.name : `${taskName}_action_${index}`;
+                const actionName = action ? action.name : `${taskName}_action_${index} `;
 
                 if (!action) {
                     action = { name: actionName, type: 'property', target: objName, changes: {} };
@@ -785,7 +915,7 @@ export class PascalGenerator {
                     }
                 }
 
-                const actionName = action ? action.name : `${taskName}_action_${index}`;
+                const actionName = action ? action.name : `${taskName}_action_${index} `;
                 const isNumeric = /^\d+(\.\d+)?$/.test(source);
                 const calcStep: any = {
                     operandType: isNumeric ? 'constant' : 'variable',
