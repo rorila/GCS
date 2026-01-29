@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.1.4] - 2026-01-29
+### Bugfix & Flow Editor
+- **Fix: Action-Details**: Behebung des Fehlers, bei dem Action-Knoten im Detail-Modus "(nicht definiert)" anzeigten. Die Logik zur Auflösung der Action-Definition wurde verbessert, um lokale Daten korrekt als Fallback zu nutzen.
+
+## [2.1.3] - 2026-01-29
+### Usability & Toolbox
+- **Optimierung der Toolbox-Übersicht**: Alle Sektionen der Toolbox im Stage-Editor sind nun standardmäßig eingeklappt, um eine übersichtlichere Arbeitsumgebung zu schaffen.
+
+## [2.1.2] - 2026-01-29
+### Usability & Inspector
+- **Fix: Inspector-Eigenschaften**: Spezifische Inspector-Templates (wie für Tasks und Actions) werden nun priorisiert. Dies behebt den Fehler, dass Name und Beschreibung im Inspector nicht sichtbar oder uneditierbar waren.
+- **Stabilität**: Die automatische Selektion nach der Task-Erstellung wurde stabilisiert (Timing-Fix), um eine zuverlässige Anzeige im Inspector zu gewährleisten.
+
+## [2.1.0] - 2026-01-29
+### Usability & Task Creation
+- **Optimierung der Task-Erstellung**: Der `prompt()` beim Erstellen eines neuen Tasks wurde entfernt. Ein Klick auf `+` generiert nun sofort einen Task mit Standardnamen (`ANewTask`), wechselt in dessen Flow-Ansicht, fügt einen Task-Node ein und selektiert diesen für den Inspector.
+
 ## [2.0.2] - 2026-01-29
 ### Bugfix & Event Discovery
 - **Fix Variablen-Events**: Korrektur der Event-Entdeckung im Pascal-Generator. Er sucht nun sowohl in den Top-Level-Properties als auch im `Tasks`-Objekt der Variablen nach Event-Handlern. Dies stellt sicher, dass Events wie `onTriggerEnter` (die in der App im `Tasks`-Pattern gespeichert werden) korrekt generiert werden.

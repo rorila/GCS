@@ -109,21 +109,21 @@
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
-          "x": 10,
+          "x": 9,
           "y": 4,
-          "width": 10,
+          "width": 42,
           "height": 4,
           "zIndex": 0,
           "align": "NONE",
           "text": "${TestVar}",
           "visible": true,
-          "style.backgroundColor": "transparent",
+          "style.backgroundColor": "#d35f5f",
           "style.borderColor": "transparent",
           "style.borderWidth": 0,
-          "style.fontSize": 14,
+          "style.fontSize": 48,
           "style.fontWeight": "normal",
           "style.fontStyle": "normal",
-          "style.textAlign": "left",
+          "style.textAlign": "center",
           "style.fontFamily": "Arial",
           "style.color": "#000000"
         },
@@ -138,13 +138,13 @@
           "droppable": false,
           "x": 9,
           "y": 1,
-          "width": 22,
+          "width": 42,
           "height": 3,
           "zIndex": 0,
           "align": "NONE",
           "text": "${messageVar}",
           "visible": true,
-          "style.backgroundColor": "#f02d2d",
+          "style.backgroundColor": "#d35f5f",
           "style.borderColor": "transparent",
           "style.borderWidth": 0,
           "style.fontSize": 36,
@@ -484,7 +484,7 @@
               "height": 60,
               "properties": {
                 "name": "messageVar.triggerOff",
-                "details": "(nicht definiert)",
+                "details": "",
                 "description": ""
               },
               "data": {
@@ -715,7 +715,6 @@
             }
           ],
           "triggerMode": "local-sync",
-          "params": [],
           "description": ""
         },
         {
@@ -735,7 +734,6 @@
             }
           ],
           "triggerMode": "local-sync",
-          "params": [],
           "description": ""
         },
         {
@@ -755,8 +753,8 @@
             }
           ],
           "triggerMode": "local-sync",
-          "params": [],
-          "description": ""
+          "description": "",
+          "params": []
         },
         {
           "name": "SetTriggerEnterFalse",
@@ -767,7 +765,6 @@
             }
           ],
           "triggerMode": "local-sync",
-          "params": [],
           "description": ""
         }
       ],
@@ -808,7 +805,7 @@
           "type": "property",
           "target": "brightBulb",
           "changes": {
-            "visible": true
+            "visible": "${true } "
           },
           "method": "",
           "description": ""
@@ -820,19 +817,19 @@
           "type": "property",
           "target": "DarkBulb",
           "changes": {
-            "visible": false
+            "visible": "${false } "
           },
           "method": "",
           "description": ""
         },
         {
           "name": "messageVar.triggerOff",
-          "details": "(nicht definiert)",
+          "details": "",
           "showDetails": false,
           "type": "property",
           "target": "messageVar",
           "changes": {
-            "value": "BlaBlaBla"
+            "value": "Der Triggerwert ist nicht 10"
           },
           "method": "",
           "description": ""
@@ -844,21 +841,22 @@
           "type": "property",
           "target": "DarkBulb",
           "changes": {
-            "visible": true
+            "visible": "${true } "
           },
           "method": "",
           "description": ""
         },
         {
           "name": "Action2",
-          "showDetails": true,
+          "showDetails": false,
           "type": "property",
           "target": "brightBulb",
           "changes": {
-            "visible": false
+            "visible": "${false } "
           },
           "method": "",
-          "description": ""
+          "description": "",
+          "details": "(nicht definiert)"
         },
         {
           "name": "Action3",
@@ -867,7 +865,7 @@
           "type": "property",
           "target": "TestVar",
           "changes": {
-            "value": false
+            "value": "${false } "
           },
           "method": "",
           "description": ""

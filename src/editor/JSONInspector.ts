@@ -264,8 +264,11 @@ export class JSONInspector {
                 }
 
                 // FORCE HEADER only if we have dynamic properties to show
+                // BUT: Keep Specific Templates (Task/Action) if they were already selected!
                 if (typeof object.getInspectorProperties === 'function') {
-                    inspectorFile = './inspector_header.json';
+                    if (inspectorFile !== './inspector_task.json' && inspectorFile !== './inspector_action.json') {
+                        inspectorFile = './inspector_header.json';
+                    }
                 }
             }
 
@@ -318,6 +321,20 @@ export class JSONInspector {
                     // Simplify: Just use what we got.
                     staticObjects = fbObjs; // Replace header with full inspector
                 } catch (e) { console.error('Fallback failed', e); }
+            }
+
+            // Detect definition for Variables
+            if ((object as any).variableType || (object as any).value !== undefined) {
+                // It's likely a ProjectVariable
+                const variableEvents = [
+                    'onValueChanged', 'onValueEmpty',
+                    'onThresholdReached', 'onThresholdLeft', 'onThresholdExceeded',
+                    'onTriggerEnter', 'onTriggerExit',
+                    'onFinished', 'onTick', 'onHour', 'onMinute', 'onSecond',
+                    'onMinReached', 'onMaxReached', 'onInside',
+                    'onItemCreated', 'onItemUpdated', 'onItemDeleted', 'onItemRead', 'onNotFound', 'onCleared'
+                ];
+                (object as any)._supportedEvents = variableEvents.map(evt => ({ key: evt }));
             }
 
             // 4. Combine & Render
@@ -1044,7 +1061,7 @@ export class JSONInspector {
             // Add safety check for selectedObject
             if (!selectedObject) return undefined;
 
-            const fn = new Function('selectedObject', 'project', 'activeStage', `
+            const fn = new Function('selectedObject', 'project', 'activeStage', 'projectRegistry', `
                 try {
                     return ${expr.startsWith('${') ? expr.slice(2, -1) : expr};
                 } catch(e) {
@@ -1052,7 +1069,7 @@ export class JSONInspector {
                 }
             `);
             const activeStage = this.runtime.getVariable('activeStage');
-            return fn(selectedObject, this.project, activeStage);
+            return fn(selectedObject, this.project, activeStage, projectRegistry);
         } catch (e) {
             return undefined;
         }
@@ -1084,6 +1101,8 @@ export class JSONInspector {
             '${item.publicIcon}': item.isPublic ? '🌐' : '',
             '${item.defaultValue}': item.defaultValue,
             '${item.description}': item.description || '',
+            '${item.usageCount}': item.usageCount || 0,
+            '${item.className}': item.className || '',
             '${item}': item,
             '${index}': index
         };
@@ -2675,10 +2694,15 @@ export class JSONInspector {
                 RefactoringManager.renameAction(this.project, oldValue, value);
             } else if (flowType === 'Task') {
                 RefactoringManager.renameTask(this.project, oldValue, value);
-            } else if (this.project.variables.some(v => v === selectedObject)) {
+            } else if (this.project.variables.some(v => v === selectedObject) ||
+                this.project.stages?.some((s: any) => s.variables?.some((v: any) => v === selectedObject))) {
                 RefactoringManager.renameVariable(this.project, oldValue, value);
-            } else if (this.project.objects.some(o => o === selectedObject)) {
+            } else if (this.project.objects.some(o => o === selectedObject) ||
+                this.project.stages?.some((s: any) => s.objects?.some((o: any) => o === selectedObject))) {
+                console.log(`[JSONInspector] Triggering renameObject for: ${oldValue} -> ${value}`);
                 RefactoringManager.renameObject(this.project, oldValue, value);
+            } else {
+                console.warn('[JSONInspector] Name change detected but could not identify object type for refactoring', selectedObject);
             }
 
             // After refactoring, the object's name property in the project list might already have been updated
@@ -2898,13 +2922,20 @@ export class JSONInspector {
 
             case 'openTaskEditor': {
                 // Get taskName from eventKey (simplified approach)
-                // eventKey is the event name like "onClick", and we read the task from selectedObject.Tasks[eventKey]
                 const eventKey = buttonDef.eventKey;
                 let taskName = '';
 
-                if (eventKey && selectedObject?.Tasks) {
-                    taskName = selectedObject.Tasks[eventKey] || '';
-                } else if (buttonDef.taskName) {
+                if (eventKey) {
+                    if (selectedObject?.Tasks) {
+                        // Object Style: Tasks map
+                        taskName = selectedObject.Tasks[eventKey] || '';
+                    } else if (selectedObject && (selectedObject as any)[eventKey]) {
+                        // Variable Style: Direct property
+                        taskName = (selectedObject as any)[eventKey] || '';
+                    }
+                }
+
+                if (!taskName && buttonDef.taskName) {
                     // Fallback to old approach if taskName is directly specified
                     taskName = this.evaluateExpression(buttonDef.taskName, selectedObject);
                 }

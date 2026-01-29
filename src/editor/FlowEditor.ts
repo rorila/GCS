@@ -485,38 +485,32 @@ export class FlowEditor {
     private createNewTaskFlow() {
         if (!this.project) return;
 
-        // Prompt for Task Name (Use simple prompt for now, or DialogService later)
-        const initialName = prompt('Enter new Task Name (PascalCase):', this.generateUniqueTaskName("ANewTask")) || undefined;
-        if (!initialName) return;
+        // 1. Generate unique Name (No more prompt!)
+        const name = this.generateUniqueTaskName("ANewTask");
 
-        // Validation (Still enforce PascalCase, but we can generate a unique one)
-        if (!/^[A-Z][a-zA-Z0-9]*$/.test(initialName)) {
-            alert('Task Name must be PascalCase (Start with Uppercase, no spaces/special chars).');
-            return;
-        }
-
-        // Ensure uniqueness project-wide
-        const name = this.generateUniqueTaskName(initialName);
-
-        // Create Task (Standardmäßig in die aktive Stage via Editor)
+        // 2. Create Task (Standardmäßig in die aktive Stage via Editor)
         const targetCollection = this.editor ? this.editor.getTargetTaskCollection(name) : (this.project.tasks || (this.project.tasks = []));
         targetCollection.push({
             name: name,
             actionSequence: []
         });
 
-        // Initialize flowChart for this task
+        // 3. Initialize flowChart for this task
         const targetCharts = this.getTargetFlowCharts(name);
         targetCharts[name] = { elements: [], connections: [] };
 
-        // Namen für den nächsten Drop merken
-        this.suggestedTaskName = name;
-
-        // Update UI
+        // 4. Update UI
         this.updateFlowSelector();
 
-        // Switch to new Task
+        // 5. Switch to new Task (Canvas wird geleert)
         this.switchActionFlow(name);
+
+        // 6. Automatically insert a task node representing itself
+        // (x=400, y=200 matches the layout start of generateFlowFromActionSequence)
+        // Use a small timeout to ensure the canvas is fully ready after the switch
+        setTimeout(() => {
+            this.createNode('Task', 400, 200, name);
+        }, 100);
     }
 
     /**

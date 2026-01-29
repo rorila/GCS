@@ -217,62 +217,229 @@ export class RefactoringManager {
     public static renameObject(project: GameProject, oldName: string, newName: string): void {
         if (!oldName || !newName || oldName === newName) return;
 
-        // 1. Update object name itself
+        console.log(`[Refactoring] Umbenennung Objekt: ${oldName} -> ${newName}`);
+
+        // 1. Update object name itself (Global + Stages)
+        let renameCount = 0;
         project.objects.forEach(obj => {
-            if (obj.name === oldName) obj.name = newName;
+            if (obj.name === oldName) {
+                obj.name = newName;
+                renameCount++;
+            }
         });
 
-        // 2. Update actions targeting or using the object
-        project.actions.forEach(action => {
-            if (action.target === oldName) action.target = newName;
-            if (action.source === oldName) action.source = newName;
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.objects) {
+                    stage.objects.forEach(obj => {
+                        if (obj.name === oldName) {
+                            obj.name = newName;
+                            renameCount++;
+                        }
+                    });
+                }
+            });
+        }
+        console.log(`[Refactoring] Objektnamen aktualisiert: ${renameCount}`);
 
-            // 3. Update interpolations in property changes (e.g., "${OldName.text}")
+        // 2. Update all actions (Global + Stages)
+        // 2. Update all actions (Global + Stages)
+        const allActions = [...project.actions];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.actions) allActions.push(...s.actions);
+            });
+        }
+
+        // NEW: Check for actions that "belong" to this object (e.g. "Label_7.captionTrue")
+        // and rename them as well.
+        allActions.forEach(action => {
+            if (action.name.startsWith(oldName + '.') || action.name.startsWith(oldName + '_')) {
+                const newActionName = action.name.replace(oldName, newName);
+                console.log(`[Refactoring] Automatische Umbenennung zugehöriger Aktion: ${action.name} -> ${newActionName}`);
+                this.renameAction(project, action.name, newActionName);
+                // Update the local variable strictly for the next loop (though renameAction handles the project lists)
+                action.name = newActionName;
+            }
+        });
+
+        let actionUpdateCount = 0;
+        console.log(`[Refactoring] Scanne ${allActions.length} Aktionen...`);
+        allActions.forEach((action, idx) => {
+            let changed = false;
+            // DEBUG: Log every action target
+            if (action.target || action.source) {
+                console.log(`[Refactoring] Aktion [${idx}] "${action.name}": target="${action.target}", source="${action.source}"`);
+            }
+            if (action.target === oldName) {
+                console.log(`[Refactoring] Treffer in Aktion "${action.name}": target "${oldName}" -> "${newName}"`);
+                action.target = newName;
+                changed = true;
+            }
+            if (action.source === oldName) {
+                console.log(`[Refactoring] Treffer in Aktion "${action.name}": source "${oldName}" -> "${newName}"`);
+                action.source = newName;
+                changed = true;
+            }
+
             if (action.changes) {
                 for (const key in action.changes) {
                     let val = action.changes[key];
                     if (typeof val === 'string') {
-                        action.changes[key] = this.replaceInterpolation(val, oldName, newName);
+                        if (val === oldName) {
+                            action.changes[key] = newName;
+                            changed = true;
+                        } else if (val.includes(`\${${oldName}`)) {
+                            action.changes[key] = this.replaceObjectInterpolation(val, oldName, newName);
+                            changed = true;
+                        }
                     }
                 }
             }
 
-            // 4. Update interpolations in service params
             if (action.serviceParams) {
                 for (const key in action.serviceParams) {
-                    action.serviceParams[key] = this.replaceInterpolation(action.serviceParams[key], oldName, newName);
+                    let val = action.serviceParams[key];
+                    if (typeof val === 'string') {
+                        if (val === oldName) {
+                            action.serviceParams[key] = newName;
+                            changed = true;
+                        } else if (val.includes(`\${${oldName}`)) {
+                            action.serviceParams[key] = this.replaceObjectInterpolation(val, oldName, newName);
+                            changed = true;
+                        }
+                    }
                 }
             }
+            if (changed) actionUpdateCount++;
         });
+        console.log(`[Refactoring] Aktionen aktualisiert: ${actionUpdateCount}`);
 
-        // 5. Update input targets
+        // 3. Update all task sequences (Global + Stages)
+        const allTasks = [...project.tasks];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks) allTasks.push(...s.tasks);
+            });
+        }
+
+        let sequenceUpdateCount = 0;
+        console.log(`[Refactoring] Scanne ${allTasks.length} Tasks...`);
+        allTasks.forEach(task => {
+            let taskChanged = false;
+            this.processSequenceItems(task.actionSequence, (item) => {
+                const str = JSON.stringify(item);
+                // Check for literal "Label_7" or interpolated ${Label_7}
+                if (str.includes(`"${oldName}"`) || str.includes(`\${${oldName}`)) {
+                    console.log(`[Refactoring] Potenzieller Treffer in Task "${task.name}", Element:`, item);
+                    const changed = this.replaceInObjectRecursive(item, oldName, newName);
+                    if (changed) taskChanged = true;
+                }
+            });
+            if (taskChanged) sequenceUpdateCount++;
+        });
+        console.log(`[Refactoring] Task-Sequenzen aktualisiert: ${sequenceUpdateCount}`);
+
+        // 4. Update input targets
         if (project.input) {
             if (project.input.player1Target === oldName) project.input.player1Target = newName;
             if (project.input.player2Target === oldName) project.input.player2Target = newName;
         }
 
-        // 6. Update objects in all stages
+        // 5. Update Flow Charts
+        const charts: { [key: string]: any } = { ... (project.flowCharts || {}) };
         if (project.stages) {
             project.stages.forEach(stage => {
-                if (stage.objects) {
-                    stage.objects.forEach(obj => {
-                        if (obj.name === oldName) obj.name = newName;
-                    });
-                }
-                if (stage.variables) {
-                    stage.variables.forEach(v => {
-                        if (v.name === oldName) v.name = newName;
-                    });
-                }
+                if (stage.flowCharts) Object.assign(charts, stage.flowCharts);
             });
         }
 
-        // 7. Update global variables list
-        if (project.variables) {
-            project.variables.forEach(v => {
-                if (v.name === oldName) v.name = newName;
+        let flowUpdateCount = 0;
+        console.log(`[Refactoring] Scanne Flow-Charts: ${Object.keys(charts).length}...`);
+        Object.keys(charts).forEach(key => {
+            const chart = charts[key];
+            if (chart?.elements) {
+                chart.elements.forEach((el: any) => {
+                    let nodeChanged = false;
+                    // Check element data (properties, params, etc.)
+                    if (el.data) {
+                        const strBefore = JSON.stringify(el.data);
+                        if (this.replaceInObjectRecursive(el.data, oldName, newName)) {
+                            nodeChanged = true;
+                        }
+                        if (JSON.stringify(el.data) !== strBefore) nodeChanged = true;
+                    }
+
+                    // Check properties specifically (some nodes use this)
+                    if (el.properties) {
+                        if (this.replaceInObjectRecursive(el.properties, oldName, newName)) {
+                            nodeChanged = true;
+                        }
+                    }
+
+                    if (nodeChanged) {
+                        console.log(`[Refactoring] Treffer in Flow-Chart "${key}", Node "${el.id}": ${oldName} -> ${newName}`);
+                        flowUpdateCount++;
+                    }
+                });
+            }
+        });
+        console.log(`[Refactoring] Flow-Charts Nodes aktualisiert: ${flowUpdateCount}`);
+        // 6. Update all objects properties for interpolations (Global + Stages)
+        let objectPropUpdateCount = 0;
+        const allObjectsToScan = [...project.objects];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.objects) allObjectsToScan.push(...s.objects);
             });
         }
+        allObjectsToScan.forEach(obj => {
+            const strBefore = JSON.stringify(obj);
+            this.replaceInObjectRecursive(obj, oldName, newName);
+            if (JSON.stringify(obj) !== strBefore) objectPropUpdateCount++;
+        });
+        console.log(`[Refactoring] Objekt-Properties aktualisiert: ${objectPropUpdateCount}`);
+    }
+
+    /**
+     * Helper to replace ${obj.prop} or ${obj} in strings
+     */
+    private static replaceObjectInterpolation(text: string, oldName: string, newName: string): string {
+        // Match ${oldName} or ${oldName.something}
+        const pattern = new RegExp(`\\$\\{${oldName}([.}])`, 'g');
+        return text.replace(pattern, (_, suffix) => `\${${newName}${suffix}`);
+    }
+
+    /**
+     * Helper to recursively replace object references in any object
+     * Returns true if anything was changed
+     */
+    private static replaceInObjectRecursive(obj: any, oldName: string, newName: string): boolean {
+        if (!obj || typeof obj !== 'object') return false;
+        let changed = false;
+
+        if (Array.isArray(obj)) {
+            obj.forEach(item => {
+                if (this.replaceInObjectRecursive(item, oldName, newName)) changed = true;
+            });
+            return changed;
+        }
+
+        for (const key in obj) {
+            const val = obj[key];
+            if (typeof val === 'string') {
+                if (val === oldName) {
+                    obj[key] = newName;
+                    changed = true;
+                } else if (val.includes(`\${${oldName}`)) {
+                    obj[key] = this.replaceObjectInterpolation(val, oldName, newName);
+                    changed = true;
+                }
+            } else if (typeof val === 'object') {
+                if (this.replaceInObjectRecursive(val, oldName, newName)) changed = true;
+            }
+        }
+        return changed;
     }
 
     /**
@@ -333,28 +500,52 @@ export class RefactoringManager {
             });
         }
 
+        let flowUpdateCount = 0;
+        console.log(`[Refactoring] Scanne Flow-Charts für Aktion "${oldName}": ${Object.keys(charts).length}...`);
         Object.keys(charts).forEach(key => {
-            const flowChart = charts[key];
-            if (flowChart?.elements) {
-                flowChart.elements.forEach((el: any) => {
+            const chart = charts[key];
+            if (chart?.elements) {
+                chart.elements.forEach((el: any) => {
+                    let nodeChanged = false;
+
+                    // Specific Handling for Action Type Nodes
                     if (el.type === 'Action') {
-                        // Update various possible name fields
+                        // Update Check 1: properties.name
                         if (el.properties && el.properties.name === oldName) {
                             el.properties.name = newName;
+                            nodeChanged = true;
                         }
+                        // Update Check 2: data properties explicitly
                         if (el.data) {
-                            if (el.data.name === oldName) el.data.name = newName;
-                            if (el.data.actionName === oldName) el.data.actionName = newName;
+                            if (el.data.name === oldName) { el.data.name = newName; nodeChanged = true; }
+                            if (el.data.actionName === oldName) { el.data.actionName = newName; nodeChanged = true; }
                         }
                     } else if (el.type === 'Condition') {
                         if (el.data) {
-                            if (el.data.thenAction === oldName) el.data.thenAction = newName;
-                            if (el.data.elseAction === oldName) el.data.elseAction = newName;
+                            if (el.data.thenAction === oldName) { el.data.thenAction = newName; nodeChanged = true; }
+                            if (el.data.elseAction === oldName) { el.data.elseAction = newName; nodeChanged = true; }
                         }
+                    }
+
+                    // GENERAL RECURSIVE CHECK (covers parameters, interpolation in data, etc.)
+                    // This is crucial for things like "Label_7.captionTrue" inside data objects
+                    if (el.data) {
+                        const strBefore = JSON.stringify(el.data);
+                        // Be careful not to double-replace if we handled it above, but recursive handles partials
+                        if (this.replaceInObjectRecursive(el.data, oldName, newName)) nodeChanged = true;
+
+                        // Explicit string check to be sure
+                        if (JSON.stringify(el.data) !== strBefore) nodeChanged = true;
+                    }
+
+                    if (nodeChanged) {
+                        console.log(`[Refactoring] Treffer für Aktion in Flow-Chart "${key}", Node "${el.id}": ${oldName} -> ${newName}`);
+                        flowUpdateCount++;
                     }
                 });
             }
         });
+        console.log(`[Refactoring] Flow-Chart Nodes für Aktion aktualisiert: ${flowUpdateCount}`);
     }
 
     /**

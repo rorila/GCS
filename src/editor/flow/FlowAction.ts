@@ -54,17 +54,26 @@ export class FlowAction extends FlowElement {
      * Helper to get the underlying action definition
      */
     private getActionDefinition(): any | null {
-        // 1. Embedded Internal Actions (in this.data)
-        if (this.data?.isEmbeddedInternal) {
-            return this.data;
+        // 1. Linked Mode: Get from project/stage (Single Source of Truth)
+        if (this.data?.isLinked && this.projectRef && this.Name) {
+            // Priority: Global Actions
+            let action = this.projectRef.actions.find(a => a.name === this.Name);
+            if (action) return action;
+
+            // Secondary: Stage Actions
+            const proj = this.projectRef as any;
+            if (proj.activeStageId && proj.stages) {
+                const stage = proj.stages.find((s: any) => s.id === proj.activeStageId);
+                if (stage?.actions) {
+                    action = stage.actions.find((a: any) => a.name === this.Name);
+                    if (action) return action;
+                }
+            }
         }
 
-        // 2. Linked Global Actions (in project.actions)
-        if (this.projectRef && this.Name) {
-            return this.projectRef.actions.find(a => a.name === this.Name);
-        }
-
-        return null;
+        // 2. Embedded/Local Mode: Use local data copy
+        // This handles both marked 'isEmbeddedInternal' and generic local actions.
+        return this.data;
     }
 
     // --- Inspector Property Accessors ---

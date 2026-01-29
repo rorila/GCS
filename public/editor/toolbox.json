@@ -7,7 +7,7 @@
     "categories": [
         {
             "name": "Standard",
-            "expanded": true,
+            "expanded": false,
             "items": [
                 {
                     "type": "Panel",
@@ -38,7 +38,7 @@
         },
         {
             "name": "Media",
-            "expanded": true,
+            "expanded": false,
             "items": [
                 {
                     "type": "Image",
@@ -116,7 +116,7 @@
         },
         {
             "name": "Variablen",
-            "expanded": true,
+            "expanded": false,
             "items": [
                 {
                     "type": "Variable",

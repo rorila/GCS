@@ -2786,7 +2786,6 @@ export class Editor implements IViewHost {
                 this.workingProjectData = safeDeepCopy(this.project);
             } catch (err) {
                 console.error("[Editor] Failed to copy project for JSON view:", err);
-                // Fallback: stay with current working data or show error
                 const errorMsg = document.createElement('div');
                 errorMsg.style.cssText = 'color: #ff6b6b; padding: 20px; background: #2a1111; border: 1px solid #ff4444; margin: 10px; border-radius: 4px;';
                 errorMsg.innerHTML = `
@@ -2803,15 +2802,12 @@ export class Editor implements IViewHost {
         jsonPanel.appendChild(treeContainer);
 
         let dataToShow = this.workingProjectData;
+
         if (this.useStageIsolatedView && activeStage) {
-            // We need to pick the "live" object from workingProjectData that corresponds to activeStage
-            // workingProjectData IS a project structure.
-            // We need to find the stage within workingProjectData.stages
             if (this.workingProjectData.stages) {
                 const workingStage = this.workingProjectData.stages.find((s: any) => s.id === activeStage.id);
                 if (workingStage) {
                     try {
-                        // Create a safe deep copy to avoid modifying the original stage in a way that breaks serialization
                         dataToShow = safeDeepCopy(workingStage);
                     } catch (err) {
                         console.error("[Editor] Failed to copy stage for JSON view:", err);
@@ -2823,89 +2819,42 @@ export class Editor implements IViewHost {
                     }
 
                     // Inject relevant tasks for better visibility
-
-                    // 1. Tasks that have a flow chart in this stage (exclude 'global' metadata key)
-                    const stageTaskNames = Object.keys(workingStage.flowCharts || {})
-                        .filter(key => key !== 'global');
-
+                    const stageTaskNames = Object.keys(workingStage.flowCharts || {}).filter(key => key !== 'global');
                     const globalTaskNames = new Set(this.project.tasks.map(t => t.name));
-
-                    // 2. Tasks referenced by objects in this stage
                     const referencedTaskNames = new Set<string>();
                     (workingStage.objects || []).forEach((obj: any) => {
                         if (obj.Tasks) {
                             Object.values(obj.Tasks).forEach((tName: any) => {
-                                if (tName && typeof tName === 'string' && tName.trim() !== '') {
-                                    // Only add if task actually exists globally
-                                    if (globalTaskNames.has(tName)) {
-                                        referencedTaskNames.add(tName);
-                                    }
+                                if (tName && typeof tName === 'string' && tName.trim() !== '' && globalTaskNames.has(tName)) {
+                                    referencedTaskNames.add(tName);
                                 }
                             });
                         }
                     });
 
                     const allRelevantNames = new Set([...stageTaskNames, ...referencedTaskNames]);
-
                     if (allRelevantNames.size > 0) {
-                        // MERGE: Keep existing local tasks and add relevant global tasks
                         const existingLocalTasks = dataToShow.tasks || [];
                         const localTaskNames = new Set(existingLocalTasks.map((t: any) => t.name));
-
                         const relevantGlobalTasks = this.project.tasks.filter(t =>
                             allRelevantNames.has(t.name) && !localTaskNames.has(t.name)
                         );
-
                         dataToShow.tasks = [...existingLocalTasks, ...relevantGlobalTasks];
                     }
 
-                    // Actions: Always check ALL tasks now in dataToShow (local + injected global)
-                    // for referenced global actions and ensure they are present in definitions
+                    // Actions injection logic
                     const existingLocalActions = dataToShow.actions || [];
                     const localActionNames = new Set(existingLocalActions.map((a: any) => a.name));
                     const usedActionNames = new Set<string>();
-
                     if (dataToShow.tasks) {
-                        const usedTaskNamesInSeq = new Set<string>();
-                        const scanSequence = (seq: any[]) => {
-                            if (!seq || !Array.isArray(seq)) return;
-                            seq.forEach((item: any) => {
-                                if ((item.type === 'action' || !item.type) && item.name) {
-                                    usedActionNames.add(item.name);
-                                } else if (item.type === 'task' && item.name) {
-                                    usedTaskNamesInSeq.add(item.name);
-                                } else if (item.type === 'condition') {
-                                    if (item.thenAction) usedActionNames.add(item.thenAction);
-                                    if (item.elseAction) usedActionNames.add(item.elseAction);
-                                    if (item.thenTask) usedTaskNamesInSeq.add(item.thenTask);
-                                    if (item.elseTask) usedTaskNamesInSeq.add(item.elseTask);
-                                    if (item.body) scanSequence(item.body);
-                                    if (item.elseBody) scanSequence(item.elseBody);
-                                } else if (item.type === 'while' || item.type === 'for' || item.type === 'foreach') {
-                                    if (item.body) scanSequence(item.body);
-                                }
-                            });
-                        };
-
-                        // Initial scan of already included tasks
                         dataToShow.tasks.forEach((t: any) => {
-                            scanSequence(t.actionSequence);
-                        });
-
-                        // If we found new task dependencies, inject them and scan them too (recursive)
-                        if (usedTaskNamesInSeq.size > 0) {
-                            const localTaskNames = new Set((dataToShow.tasks || []).map((t: any) => t.name));
-                            const newGlobalTasks = this.project.tasks.filter(t =>
-                                usedTaskNamesInSeq.has(t.name) && !localTaskNames.has(t.name)
-                            );
-                            if (newGlobalTasks.length > 0) {
-                                dataToShow.tasks = [...dataToShow.tasks, ...newGlobalTasks];
-                                // Rescan to find actions used by these newly injected tasks
-                                newGlobalTasks.forEach(t => scanSequence(t.actionSequence));
+                            if (t.actionSequence) {
+                                t.actionSequence.forEach((item: any) => {
+                                    if ((item.type === 'action' || !item.type) && item.name) usedActionNames.add(item.name);
+                                });
                             }
-                        }
+                        });
                     }
-
                     if (usedActionNames.size > 0 && this.project.actions) {
                         const relevantGlobalActions = this.project.actions.filter(a =>
                             usedActionNames.has(a.name) && !localActionNames.has(a.name)
@@ -2916,9 +2865,13 @@ export class Editor implements IViewHost {
             }
         }
 
-        JSONTreeViewer.render(dataToShow, treeContainer, this.jsonMode === 'editor', (newData) => {
+        this.renderJSONTree(dataToShow, treeContainer, applyBtn);
+    }
+
+    private renderJSONTree(data: any, container: HTMLElement, applyBtn: HTMLElement) {
+        JSONTreeViewer.render(data, container, this.jsonMode === 'editor', (newData) => {
             this.isProjectDirty = true;
-            // If we are editing a sub-object (stage), we need to merge it back into workingProjectData
+            const activeStage = this.getActiveStage();
             if (this.useStageIsolatedView && activeStage && this.workingProjectData.stages) {
                 const idx = this.workingProjectData.stages.findIndex((s: any) => s.id === activeStage.id);
                 if (idx !== -1) {
@@ -2929,6 +2882,32 @@ export class Editor implements IViewHost {
             }
             applyBtn.style.display = 'block';
         });
+    }
+
+
+
+    /**
+     * Zentrale Methode zur Synchronisation aller Trinity-Ansichten.
+     * Sollte nach jeder strukturellen Änderung gerufen werden.
+     */
+    public refreshAllViews(): void {
+        console.log('[Editor] Refreshing all views (Trinity-Sync)...');
+        this.render();
+        this.updateAvailableActions();
+        this.refreshJSONView();
+        this.refreshPascalView();
+
+        if (this.flowEditor && this.currentView === 'flow') {
+            this.flowEditor.setProject(this.project);
+            this.flowEditor.show();
+        }
+
+        if (this.jsonInspector && this.currentSelectedId) {
+            const obj = this.findObjectById(this.currentSelectedId);
+            this.jsonInspector.update(obj || this.project);
+        }
+
+        this.autoSaveToLocalStorage();
     }
 
     /**
@@ -2966,6 +2945,8 @@ export class Editor implements IViewHost {
             }
         }
     }
+
+
 
     /**
      * Updates the 'availableActions' variable in JSONInspector based on the active stage.
