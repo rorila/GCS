@@ -32,6 +32,7 @@ export class ActionEditor {
     // Original action name (for looking up the action when saving, even if name was changed)
     private taskName: string;
     private originalName: string;
+    private currentScope: 'global' | 'stage';
 
     constructor(project: GameProject, name: string, taskName: string, onSave: () => void) {
         this.project = project;
@@ -46,11 +47,14 @@ export class ActionEditor {
             action = {
                 name: name,
                 type: 'property',
-                target: projectRegistry.getObjects()[0]?.name || '',
-                changes: {}
+                target: projectRegistry.getObjects('stage-only')[0]?.name || projectRegistry.getObjects()[0]?.name || '',
+                changes: {},
+                scope: 'stage'
             };
             this.project.actions.push(action);
         }
+
+        this.currentScope = (action.scope as any) || 'stage';
 
         this.currentType = action.type || 'property';
         this.currentTarget = action.target || '';
@@ -147,6 +151,39 @@ export class ActionEditor {
         body.appendChild(nameSection);
 
         // ─────────────────────────────────────────────
+        // Action Scope Selector
+        // ─────────────────────────────────────────────
+        const scopeSection = document.createElement('div');
+        scopeSection.style.marginBottom = '1rem';
+        scopeSection.innerHTML = '<strong>Action Scope</strong><br>';
+
+        const scopeSelect = document.createElement('select');
+        scopeSelect.style.width = '100%';
+        scopeSelect.style.padding = '6px';
+        scopeSelect.style.marginTop = '8px';
+        scopeSelect.style.background = '#333';
+        scopeSelect.style.color = 'white';
+        scopeSelect.style.border = '1px solid #555';
+
+        const scopes: { value: 'global' | 'stage'; label: string }[] = [
+            { value: 'stage', label: '🎭 Stage (Nur lokale Ressourcen)' },
+            { value: 'global', label: '🌎 Global (Alle Ressourcen)' }
+        ];
+        scopes.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.value;
+            opt.innerText = s.label;
+            if (s.value === this.currentScope) opt.selected = true;
+            scopeSelect.appendChild(opt);
+        });
+        scopeSelect.onchange = () => {
+            this.currentScope = scopeSelect.value as 'global' | 'stage';
+            this.render(); // Re-render to update dependent list contents
+        };
+        scopeSection.appendChild(scopeSelect);
+        body.appendChild(scopeSection);
+
+        // ─────────────────────────────────────────────
         // Action Type Selector
         // ─────────────────────────────────────────────
         const typeSection = document.createElement('div');
@@ -220,9 +257,8 @@ export class ActionEditor {
     }
 
     private getVisibleVariables(): string[] {
-        if (!this.project.variables) return [];
-        return this.project.variables
-            .filter(v => v.scope === 'global' || v.scope === this.taskName)
+        const filter = this.currentScope === 'stage' ? 'stage-only' as const : 'all' as const;
+        return projectRegistry.getVariables({ taskName: this.taskName }, false, filter)
             .map(v => v.name);
     }
 
@@ -284,7 +320,8 @@ export class ActionEditor {
             sourceSelect.appendChild(opt);
         });
 
-        projectRegistry.getObjects().forEach(o => {
+        const filter = this.currentScope === 'stage' ? 'stage-only' as const : 'all' as const;
+        projectRegistry.getObjects(filter).forEach(o => {
             const opt = document.createElement('option');
             opt.value = o.name;
             opt.innerText = `${o.name} (${(o as any).className || o.constructor.name})`;
@@ -583,7 +620,8 @@ export class ActionEditor {
             targetSelect.appendChild(opt);
         });
 
-        projectRegistry.getObjects().forEach(o => {
+        const filter = this.currentScope === 'stage' ? 'stage-only' as const : 'all' as const;
+        projectRegistry.getObjects(filter).forEach(o => {
             const opt = document.createElement('option');
             opt.value = o.name;
             opt.innerText = `[Obj] ${o.name}`;
@@ -591,7 +629,7 @@ export class ActionEditor {
             targetSelect.appendChild(opt);
         });
 
-        projectRegistry.getVariables().forEach(v => {
+        projectRegistry.getVariables(undefined, false, filter).forEach(v => {
             const opt = document.createElement('option');
             opt.value = v.name;
             opt.innerText = `[Var] ${v.name}`;
@@ -1061,7 +1099,8 @@ export class ActionEditor {
 
         const updatedAction: GameAction = {
             name: this.name,
-            type: this.currentType
+            type: this.currentType,
+            scope: this.currentScope
         };
 
         if (this.currentType === 'variable') {
@@ -1070,11 +1109,11 @@ export class ActionEditor {
             updatedAction.sourceProperty = this.currentSourceProperty;
 
             // Auto-register variable to project.variables
-            if (this.currentVariableName && !this.project.variables.some(v => v.name === this.currentVariableName)) {
+            if (this.currentVariableName && !projectRegistry.getVariables().some(v => v.name === this.currentVariableName)) {
                 this.project.variables.push({
                     name: this.currentVariableName,
                     type: 'string',  // Default type for runtime values
-                    scope: 'global',
+                    scope: this.currentScope === 'global' ? 'global' : (this.project.activeStageId || 'global'),
                     defaultValue: ''  // Will be set at runtime
                 });
             }
@@ -1085,11 +1124,11 @@ export class ActionEditor {
             updatedAction.resultVariable = this.currentResultVariable;
 
             // Auto-register result variable to project.variables
-            if (this.currentResultVariable && !this.project.variables.some(v => v.name === this.currentResultVariable)) {
+            if (this.currentResultVariable && !projectRegistry.getVariables().some(v => v.name === this.currentResultVariable)) {
                 this.project.variables.push({
                     name: this.currentResultVariable,
                     type: 'string',  // Default type for service results
-                    scope: 'global',
+                    scope: this.currentScope === 'global' ? 'global' : (this.project.activeStageId || 'global'),
                     defaultValue: ''  // Will be set at runtime
                 });
             }
@@ -1097,12 +1136,12 @@ export class ActionEditor {
             updatedAction.resultVariable = this.currentCalcResultVariable;
             updatedAction.calcSteps = JSON.parse(JSON.stringify(this.currentCalcSteps));
 
-            // Auto-register result variable if not exists (default to global)
-            if (this.currentCalcResultVariable && !this.project.variables.some(v => v.name === this.currentCalcResultVariable)) {
+            // Auto-register result variable if not exists
+            if (this.currentCalcResultVariable && !projectRegistry.getVariables().some(v => v.name === this.currentCalcResultVariable)) {
                 this.project.variables.push({
                     name: this.currentCalcResultVariable,
                     type: 'real',  // Calculations usually result in numbers
-                    scope: 'global',
+                    scope: this.currentScope === 'global' ? 'global' : (this.project.activeStageId || 'global'),
                     defaultValue: 0
                 });
             }

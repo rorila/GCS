@@ -180,7 +180,7 @@
         "spritesMoving": true
       },
       "sync": true,
-      "isLinked": true,
+      "isLinked": false,
       "method": "info",
       "params": [
         "Das Spiel wurde pausiert"

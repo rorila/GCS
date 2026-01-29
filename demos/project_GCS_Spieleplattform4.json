@@ -868,7 +868,7 @@
               },
               "data": {
                 "name": "CalcAddRocket",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -905,7 +905,7 @@
               },
               "data": {
                 "name": "CalcAddStar",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -942,7 +942,7 @@
               },
               "data": {
                 "name": "CalcAddCrown",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -979,7 +979,7 @@
               },
               "data": {
                 "name": "CalcAddCity",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -1016,7 +1016,7 @@
               },
               "data": {
                 "name": "CalcAddKey",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -1053,7 +1053,7 @@
               },
               "data": {
                 "name": "CalcAddShield",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -1090,7 +1090,7 @@
               },
               "data": {
                 "name": "CalcAddHouse",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -1127,7 +1127,7 @@
               },
               "data": {
                 "name": "CalcAddBat",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -1164,7 +1164,7 @@
               },
               "data": {
                 "name": "CalcAddUnicorn",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -1201,7 +1201,7 @@
               },
               "data": {
                 "name": "CalcResetPIN",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -1238,7 +1238,7 @@
               },
               "data": {
                 "name": "HttpLogin",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -1253,7 +1253,7 @@
               },
               "data": {
                 "name": "CalcExtractAvatar",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -1268,7 +1268,7 @@
               },
               "data": {
                 "name": "NavToRoleSelection",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -1283,7 +1283,7 @@
               },
               "data": {
                 "name": "NavToLobby",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],

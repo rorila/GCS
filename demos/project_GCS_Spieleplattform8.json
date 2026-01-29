@@ -318,7 +318,7 @@
               },
               "data": {
                 "name": "testVarValueToTrue",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -372,7 +372,7 @@
               },
               "data": {
                 "name": "Label_7.captionTrue",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -389,7 +389,7 @@
               },
               "data": {
                 "name": "BrightBulb.visibleTrue",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -406,7 +406,7 @@
               },
               "data": {
                 "name": "DarkBulb.visibleFalse",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -489,7 +489,7 @@
               },
               "data": {
                 "name": "messageVar.triggerOff",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -506,7 +506,7 @@
               },
               "data": {
                 "name": "ActionBlaBla",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -523,7 +523,7 @@
               },
               "data": {
                 "name": "Action2",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -606,7 +606,7 @@
               },
               "data": {
                 "name": "Action3",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],

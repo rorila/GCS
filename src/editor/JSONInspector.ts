@@ -35,6 +35,8 @@ export class JSONInspector {
     public onProjectUpdate?: () => void;
     public onObjectSelect?: (objectId: string | null) => void;
     public onFlowObjectSelect?: (objectId: string | null) => void; // For flow element selection
+    public onSave?: () => void;
+    private editor: any | null = null;
 
     constructor(containerId: string) {
         const container = document.getElementById(containerId);
@@ -91,6 +93,13 @@ export class JSONInspector {
         const currentObject = this.runtime.getVariable('selectedObject');
         // If an object is selected, update it; otherwise update with project (Stage)
         this.update(currentObject || project);
+    }
+
+    /**
+     * Sets the editor reference
+     */
+    public setEditor(editor: any) {
+        this.editor = editor;
     }
 
     /**
@@ -932,13 +941,24 @@ export class JSONInspector {
 
                 // Check if this is an embedded/linked element (read-only)
                 const isLinked = object.data?.isLinked || object.data?.isEmbeddedInternal;
+                const isActionOrTask = (typeof object.getType === 'function') && (object.getType() === 'Action' || object.getType() === 'Task');
 
                 // Mark the input UI object as read-only based on the property definition
                 // OR if the object is linked and it's NOT a dynamic parameter (param_ prefix)
+                // SMART-SYNC EXCEPTION: Allow editing linked Actions/Tasks
                 const uiInput = uiObjects[uiObjects.length - 1];
                 if (uiInput) {
                     const isParameter = prop.name.startsWith('param_');
-                    uiInput.readOnly = prop.readOnly === true || (isLinked && !isParameter);
+                    const isReadOnlyProp = prop.readOnly === true;
+
+                    if (isReadOnlyProp) {
+                        uiInput.readOnly = true;
+                    } else if (isLinked && !isParameter) {
+                        // Allow editing if it's an action/task (Smart-Sync)
+                        uiInput.readOnly = !isActionOrTask;
+                    } else {
+                        uiInput.readOnly = false;
+                    }
                 }
             });
         });
@@ -947,12 +967,18 @@ export class JSONInspector {
         const isEmbeddedElement = object.data?.isLinked || object.data?.isEmbeddedInternal;
 
         if (isEmbeddedElement) {
-            // Show read-only notice instead of delete button
+            const isActionOrTask = (typeof object.getType === 'function') && (object.getType() === 'Action' || object.getType() === 'Task');
+            const scope = object.data?.scope || 'stage';
+            const scopeEmoji = scope === 'global' ? '🌎 Global' : '🎭 Stage';
+
+            // Show scope notice instead of read-only block if it's an action/task
             uiObjects.push({
                 className: 'TLabel',
                 name: 'EmbeddedNoticeLabel',
-                text: '🔒 Eingebettetes Element (schreibgeschützt)',
-                style: { fontSize: 11, color: '#ff9800', marginTop: 16, fontStyle: 'italic' }
+                text: isActionOrTask
+                    ? `🔗 Verlinktes Element (${scopeEmoji}) - Änderungen synchronisieren`
+                    : '🔒 Eingebettetes Element (schreibgeschützt)',
+                style: { fontSize: 11, color: isActionOrTask ? '#4caf50' : '#ff9800', marginTop: 16, fontStyle: 'italic' }
             });
         } else {
             // Delete button (Skip for Stages)
@@ -2139,7 +2165,6 @@ export class JSONInspector {
             select.style.borderRadius = '3px';
             select.style.boxSizing = 'border-box';
             select.style.fontSize = '12px';
-            select.style.fontSize = '12px';
             select.style.cursor = 'pointer';
 
             // Resolve selectedValue binding for initial render
@@ -2152,17 +2177,24 @@ export class JSONInspector {
                 selectedVal = resolved !== undefined && resolved !== null ? String(resolved) : '';
             }
 
-            const optionsArr = obj.options || [];
-            optionsArr.forEach((opt: any) => {
-                const option = document.createElement('option');
-                const val = (typeof opt === 'object' && opt !== null) ? opt.value : opt;
-                const label = (typeof opt === 'object' && opt !== null) ? opt.label : opt;
+            let optionsArr = obj.options || [];
+            if (typeof optionsArr === 'string' && optionsArr.startsWith('${')) {
+                const resolved = this.runtime.evaluate(optionsArr);
+                optionsArr = Array.isArray(resolved) ? resolved : [];
+            }
 
-                option.value = val;
-                option.text = label;
-                option.selected = String(val) === String(selectedVal);
-                select.appendChild(option);
-            });
+            if (Array.isArray(optionsArr)) {
+                optionsArr.forEach((opt: any) => {
+                    const option = document.createElement('option');
+                    const val = (typeof opt === 'object' && opt !== null) ? opt.value : opt;
+                    const label = (typeof opt === 'object' && opt !== null) ? opt.label : opt;
+
+                    option.value = val;
+                    option.text = label;
+                    option.selected = String(val) === String(selectedVal);
+                    select.appendChild(option);
+                });
+            }
 
             // Set up reactive binding Data -> DOM (only after options are present)
             if (bindingExpression) {
@@ -2259,11 +2291,17 @@ export class JSONInspector {
                 options = (this.project?.stages || []).map((s: any) => ({ value: s.id, text: s.name || s.id }));
             } else if (obj.source === 'services') {
                 options = serviceRegistry.listServices().map(s => ({ value: s, text: s }));
-            } else if (Array.isArray(obj.options) || Array.isArray(obj.items)) {
-                const sourceArr = obj.options || obj.items;
-                options = sourceArr.map((opt: any) =>
-                    typeof opt === 'string' ? { value: opt, text: opt } : { value: opt.value, text: opt.label || opt.text }
-                );
+            } else {
+                let sourceArr = obj.options || obj.items;
+                if (typeof sourceArr === 'string' && sourceArr.startsWith('${')) {
+                    sourceArr = this.runtime.evaluate(sourceArr);
+                }
+
+                if (Array.isArray(sourceArr)) {
+                    options = sourceArr.map((opt: any) =>
+                        typeof opt === 'string' ? { value: opt, text: opt } : { value: opt.value, text: (opt.label || opt.text || opt) }
+                    );
+                }
             }
 
             // Add empty option if allowed
@@ -2619,8 +2657,9 @@ export class JSONInspector {
 
         // EXCEPTION: Allow dynamic parameters (param_ prefix) even for embedded elements
         const isParameter = propertyName.startsWith('param_');
+        const isActionOrTask = selectedObject.data?.type === 'Action' || (selectedObject.constructor.name === 'FlowTask');
 
-        if (isEmbeddedElement && !isParameter) {
+        if (isEmbeddedElement && !isParameter && !isActionOrTask) {
             console.warn('[JSONInspector] Cannot modify embedded element - it is read-only');
             alert('Eingebettete Elemente können nicht bearbeitet werden.\n\nBitte wechsle zum Original-Flow-Diagramm.');
             return;
@@ -2753,6 +2792,35 @@ export class JSONInspector {
             this.onProjectUpdate();
         } else if (this.onObjectUpdate) {
             this.onObjectUpdate();
+        }
+
+        // SMART-SYNC: If this is a linked action/task, sync back to project registry
+        if (selectedObject.data?.isLinked && isActionOrTask && !isParameter) {
+            const name = selectedObject.data.name;
+            const scope = selectedObject.data.scope;
+
+            console.log(`[JSONInspector] Smart-Sync for linked element: ${name} (Scope: ${scope})`);
+
+            if (this.editor) {
+                if (selectedObject.data.type === 'Action') {
+                    const targetCollection = this.editor.getTargetActionCollection(name, selectedObject.data);
+                    const index = targetCollection.findIndex((a: any) => a.name === name);
+                    if (index !== -1) {
+                        targetCollection[index] = { ...targetCollection[index], ...selectedObject.data };
+                        console.log(`[JSONInspector] Updated original action definition in ${scope} scope`);
+                    }
+                } else {
+                    const targetCollection = this.editor.getTargetTaskCollection(name, selectedObject.data);
+                    const index = targetCollection.findIndex((t: any) => t.name === name);
+                    if (index !== -1) {
+                        targetCollection[index] = { ...targetCollection[index], ...selectedObject.data };
+                        console.log(`[JSONInspector] Updated original task definition in ${scope} scope`);
+                    }
+                }
+
+                // Triggers auto-save
+                if (this.onSave) this.onSave();
+            }
         }
 
         // Record change for Undo/Redo (only if value actually changed)

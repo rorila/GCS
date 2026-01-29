@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.1.5] - 2026-01-29
+### Smart-Sync & Scoping
+- **Explizites Scoping**: Einführung der `scope`-Eigenschaft für `GameAction` und `GameTask`. Neue Aktionen liegen standardmäßig im `stage`-Scope, können aber auf `global` umgestellt werden.
+- **Smart-Sync im Inspector**: Verlinkte Aktionen und Tasks sind nun im Inspector editierbar. Änderungen werden automatisch in die Original-Definitionen (global oder stage-lokal) zurückgeschrieben.
+- **Scope-Aware Filtering**: Der `ActionEditor` und der `JSONInspector` filtern verfügbare Variablen und Objekte nun intelligent basierend auf dem gewählten Scope.
+- **Visuelles Feedback**: Emojis (🌎 für Global, 🎭 für Stage) zeigen im Inspector und Editor den Ursprung/Scope von Ressourcen an.
+- **Bugfix: Options-Binding**: Fehler behoben, bei dem der Inspector beim Rendern von Dropdowns mit Bindings (`${...}`) abstürzte.
+- **Bugfix: Smart-Sync Schreibschutz**: Fehler behoben, bei dem verlinkte Actions im Inspector fälschlicherweise als schreibgeschützt markiert wurden (Logikfehler in `isActionOrTask`).
+
 ## [2.1.4] - 2026-01-29
 ### Bugfix & Flow Editor
 - **Fix: Action-Details**: Behebung des Fehlers, bei dem Action-Knoten im Detail-Modus "(nicht definiert)" anzeigten. Die Logik zur Auflösung der Action-Definition wurde verbessert, um lokale Daten korrekt als Fallback zu nutzen.

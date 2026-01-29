@@ -292,16 +292,21 @@ export class Editor implements IViewHost {
     /**
      * Gibt die passende Liste (Global vs Stage) für eine neue Action zurück
      */
-    public getTargetActionCollection(actionName?: string): GameAction[] {
+    public getTargetActionCollection(actionName?: string, action?: GameAction): GameAction[] {
         const activeStage = this.getActiveStage();
+
+        // 1. Explicit Scope Check
+        if (action?.scope === 'global') return this.project.actions || (this.project.actions = []);
+        if (action?.scope === 'stage' && activeStage) return activeStage.actions || (activeStage.actions = []);
+
         if (!activeStage) return this.project.actions || (this.project.actions = []);
 
-        // Wenn die Action bereits in der Stage existiert (oder dorthin gehört)
+        // 2. Existence Check (Existing logic)
+        // ... rest of the logic ...
         if (activeStage.actions && activeStage.actions.find(a => a.name === actionName)) {
             return activeStage.actions;
         }
 
-        // Wenn sie global existiert
         if (this.project.actions && this.project.actions.find(a => a.name === actionName)) {
             return this.project.actions;
         }
@@ -314,8 +319,13 @@ export class Editor implements IViewHost {
     /**
      * Gibt die passende Liste (Global vs Stage) für einen neuen Task zurück
      */
-    public getTargetTaskCollection(taskName?: string): GameTask[] {
+    public getTargetTaskCollection(taskName?: string, task?: GameTask): GameTask[] {
         const activeStage = this.getActiveStage();
+
+        // 1. Explicit Scope Check
+        if (task?.scope === 'global') return this.project.tasks || (this.project.tasks = []);
+        if (task?.scope === 'stage' && activeStage) return activeStage.tasks || (activeStage.tasks = []);
+
         if (!activeStage) return this.project.tasks || (this.project.tasks = []);
 
         if (activeStage.tasks && activeStage.tasks.find(t => t.name === taskName)) {
@@ -2493,6 +2503,8 @@ export class Editor implements IViewHost {
             // Set project and dialog manager
             this.jsonInspector.setProject(this.project);
             this.jsonInspector.setDialogManager(this.dialogManager);
+            this.jsonInspector.setEditor(this);
+            this.jsonInspector.onSave = () => this.autoSaveToLocalStorage();
 
             // Load inspector UI from JSON
             const response = await fetch('./inspector.json');

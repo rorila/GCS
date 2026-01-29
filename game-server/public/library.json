@@ -61,7 +61,7 @@
                         },
                         "data": {
                             "name": "StageController.goToMainStage",
-                            "isLinked": true
+                            "isLinked": false
                         }
                     }
                 ],

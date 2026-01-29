@@ -68,6 +68,7 @@ export interface GameAction {
     calcSteps?: CalcStep[];       // Steps in the calculation expression
 
     params?: Record<string, any>;   // For other types (animate, audio, etc.)
+    scope?: VariableScope;         // Visibility: global (Project) or local (Stage)
 }
 
 // ─────────────────────────────────────────────
@@ -119,6 +120,7 @@ export interface GameTask {
     params?: any[];                  // Parameter definitions (for inspector metadata)
     actionSequence: SequenceItem[];  // Array of actions or task calls
     usedVariables?: string[];        // Names of variables this task uses
+    scope?: VariableScope;           // Visibility: global (Project) or local (Stage)
     flowChart?: FlowChart;           // Optional visual representation (used in library)
     // flowGraph is now stored separately in project.flowCharts[taskName]
 }

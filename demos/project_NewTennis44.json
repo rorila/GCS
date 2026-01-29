@@ -1012,7 +1012,7 @@
         "NameInput": "SetSpriteMovingToTrue",
         "ActionTypeSelect": "📝 Property Change (Set)"
       },
-      "isLinked": true,
+      "isLinked": false,
       "method": "info",
       "params": [
         "Das Spiel wurde pausiert"
@@ -3386,7 +3386,7 @@
             },
             "sync": true,
             "taskName": "GetGameStatus",
-            "isLinked": true,
+            "isLinked": false,
             "method": "info",
             "params": [
               "Das Spiel wurde pausiert"
@@ -3587,7 +3587,7 @@
             "description": "Resets the score, ball position, and synchronizes the ball for Player 1."
           },
           "data": {
-            "isLinked": true,
+            "isLinked": false,
             "isExpanded": true,
             "sourceTaskName": "InitialAllGameElements",
             "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
@@ -3706,7 +3706,7 @@
             "description": "Sets the initial velocity for the ball to start the rally."
           },
           "data": {
-            "isLinked": true,
+            "isLinked": false,
             "isExpanded": true,
             "sourceTaskName": "ServeBall",
             "description": "Sets the initial velocity for the ball to start the rally.",
@@ -4684,7 +4684,7 @@
             "description": "Resets the scores of both players to zero."
           },
           "data": {
-            "isLinked": true,
+            "isLinked": false,
             "isExpanded": true,
             "sourceTaskName": "ResetScore",
             "description": "Resets the scores of both players to zero.",

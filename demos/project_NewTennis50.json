@@ -218,7 +218,7 @@
         "spritesMoving": true
       },
       "sync": true,
-      "isLinked": true,
+      "isLinked": false,
       "method": "info",
       "params": [
         "Das Spiel wurde pausiert"
@@ -1606,7 +1606,7 @@
               },
               "data": {
                 "name": "PauseTimer.timerStart",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -1623,7 +1623,7 @@
               },
               "data": {
                 "name": "ScoreLblRight.incValue",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -1640,7 +1640,7 @@
               },
               "data": {
                 "name": "stopBall",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -1657,7 +1657,7 @@
               },
               "data": {
                 "name": "BallSprite.moveToStartpoint",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -2565,7 +2565,7 @@
               },
               "data": {
                 "name": "StageController.goToMainStage",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
@@ -2644,7 +2644,7 @@
           },
           "data": {
             "name": "Get Paddle Y",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2661,7 +2661,7 @@
           },
           "data": {
             "name": "Get Paddle H",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2678,7 +2678,7 @@
           },
           "data": {
             "name": "Get Ball Y",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2695,7 +2695,7 @@
           },
           "data": {
             "name": "Get Ball H",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2712,7 +2712,7 @@
           },
           "data": {
             "name": "Calc Paddle Half",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2729,7 +2729,7 @@
           },
           "data": {
             "name": "Calc Ball Half",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2746,7 +2746,7 @@
           },
           "data": {
             "name": "Paddle Center Y",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2763,7 +2763,7 @@
           },
           "data": {
             "name": "Ball Center Y",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2780,7 +2780,7 @@
           },
           "data": {
             "name": "Calc Diff Y",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2797,7 +2797,7 @@
           },
           "data": {
             "name": "Calc Factor",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2814,7 +2814,7 @@
           },
           "data": {
             "name": "Calc New VY",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2831,7 +2831,7 @@
           },
           "data": {
             "name": "Set Velocity Y",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -2848,7 +2848,7 @@
           },
           "data": {
             "name": "Negate Velocity X",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -3015,7 +3015,7 @@
           },
           "data": {
             "name": "getHitSide",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -3112,7 +3112,7 @@
           },
           "data": {
             "name": "ChangeY_DirectionToDown",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -3129,7 +3129,7 @@
           },
           "data": {
             "name": "ChangeY_DirectionToUp",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -3416,7 +3416,7 @@
           },
           "data": {
             "name": "setGameStatusToPaused",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -3433,7 +3433,7 @@
           },
           "data": {
             "name": "SetResumeGameBtn.CaptionToGoOn",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -3519,7 +3519,7 @@
           },
           "data": {
             "name": "GetGameStatus",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -3710,7 +3710,7 @@
             "description": "Resets the score, ball position, and synchronizes the ball for Player 1."
           },
           "data": {
-            "isLinked": true,
+            "isLinked": false,
             "isExpanded": false,
             "sourceTaskName": "InitialAllGameElements",
             "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
@@ -3764,7 +3764,7 @@
           },
           "data": {
             "name": "SetSpriteMovingToTrue",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -3781,7 +3781,7 @@
           },
           "data": {
             "name": "SetCollisionsToTrue",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -3797,7 +3797,7 @@
             "description": "Sets the initial velocity for the ball to start the rally."
           },
           "data": {
-            "isLinked": true,
+            "isLinked": false,
             "isExpanded": false,
             "sourceTaskName": "ServeBall",
             "description": "Sets the initial velocity for the ball to start the rally.",
@@ -3959,7 +3959,7 @@
           },
           "data": {
             "name": "SetGameState.spritesMovingToTrue",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -3976,7 +3976,7 @@
           },
           "data": {
             "name": "SetResumeGameBtn.captionToGoOn",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4105,7 +4105,7 @@
           },
           "data": {
             "name": "SetSpeed",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4156,7 +4156,7 @@
           },
           "data": {
             "name": "IncrementLeftPaddleY_Position",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4205,7 +4205,7 @@
           },
           "data": {
             "name": "IncrementRightPaddleY_Position",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4255,7 +4255,7 @@
           },
           "data": {
             "name": "PauseTimer.timerStart",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -4272,7 +4272,7 @@
           },
           "data": {
             "name": "ScoreLblRight.incValue",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -4289,7 +4289,7 @@
           },
           "data": {
             "name": "stopBall",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -4306,7 +4306,7 @@
           },
           "data": {
             "name": "BallSprite.moveToStartpoint",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4399,7 +4399,7 @@
           },
           "data": {
             "name": "ScoreLblLeft.incValue",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -4416,7 +4416,7 @@
           },
           "data": {
             "name": "stopBall",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -4433,7 +4433,7 @@
           },
           "data": {
             "name": "BallSprite.moveToStartpoint",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -4450,7 +4450,7 @@
           },
           "data": {
             "name": "PauseTimer.timerStart",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4544,7 +4544,7 @@
           },
           "data": {
             "name": "ScoreLblLeft.reset",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -4561,7 +4561,7 @@
           },
           "data": {
             "name": "ScoreLblRight.reset",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4619,7 +4619,7 @@
             "description": "Resets the scores of both players to zero."
           },
           "data": {
-            "isLinked": true,
+            "isLinked": false,
             "isExpanded": true,
             "sourceTaskName": "ResetScore",
             "description": "Resets the scores of both players to zero.",
@@ -4668,7 +4668,7 @@
           },
           "data": {
             "name": "stopBall",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4727,7 +4727,7 @@
           },
           "data": {
             "name": "SetRightPaddle.velocityYToNull",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4776,7 +4776,7 @@
           },
           "data": {
             "name": "ShowPlayerLeftToast",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4825,7 +4825,7 @@
           },
           "data": {
             "name": "setStartMessageToToast",
-            "isLinked": true
+            "isLinked": false
           }
         },
         {
@@ -4842,7 +4842,7 @@
           },
           "data": {
             "name": "setStatusLabelToRunning",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4906,7 +4906,7 @@
           },
           "data": {
             "name": "DecrementRightPaddleY_Position",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],
@@ -4954,7 +4954,7 @@
           },
           "data": {
             "name": "StageController.gotoStageImpressum",
-            "isLinked": true
+            "isLinked": false
           }
         }
       ],

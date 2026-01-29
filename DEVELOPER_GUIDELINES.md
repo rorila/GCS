@@ -149,6 +149,16 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **Runtime Sync**:
   - Die `GameRuntime` muss bei jedem Stage-Wechsel die lokalen Logik-Pakete in den `TaskExecutor` injizieren: `taskExecutor.setTasks(mergedTasks)`, `taskExecutor.setActions(mergedActions)`.
 
+### Smart-Sync & Scoping (v2.1.5)
+- **Explizites Scoping**: `GameAction` und `GameTask` besitzen eine `scope`-Eigenschaft (`global` | `stage`).
+- **Standard-Verhalten**: Neue Actions werden standardmäßig im `stage`-Scope der aktiven Stage angelegt.
+- **Hierarchische Auflösung**: Der `Editor` nutzt `getTargetActionCollection()` und `getTargetTaskCollection()`, um basierend auf dem Namen und dem gesetzten Scope das richtige Register (global vs. lokal) für Schreibvorgänge zu identifizieren.
+- **Smart-Sync im Inspector**: 
+  - Verlinkte Elemente (Actions/Tasks) sind im `JSONInspector` editierbar.
+  - Beim Speichern (`handleObjectChange`) erkennt der Inspector verlinkte Elemente und schreibt Änderungen via `editor.getTarget...` direkt in die Original-Definition zurück.
+  - Dies stellt sicher, dass Änderungen an einer globalen Action an allen Verwendungsstellen sofort wirksam werden (Single Source of Truth).
+- **Visuelle Indikatoren**: Verwende Emojis (🌎 `global`, 🎭 `stage`) in UI-Listen und im Inspector-Header, um den Scope einer Ressource zu verdeutlichen.
+
 ### Variable Scopes & Visibility (Phase 3)
 - **Scoping-Regeln (Automatisch)**:
     - **Main-Stage**: Beim Hinzufügen von Variablen in der Main-Stage wird standardmäßig der Scope `global` zugewiesen.

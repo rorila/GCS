@@ -37,7 +37,7 @@ export class ProjectRegistry {
      * Retrieves variables visible in a specific context.
      * Hierarchy: Global > Stage (if active) > Task (if in task) > Action (if in action)
      */
-    public getVariables(context?: VariableScopeContext, resolveUsage: boolean = true): ScopedVariable[] {
+    public getVariables(context?: VariableScopeContext, resolveUsage: boolean = true, scopeFilter?: 'stage-only' | 'all'): ScopedVariable[] {
         if (!this.project) return [];
 
         let visibleVars: ScopedVariable[] = [];
@@ -75,6 +75,12 @@ export class ProjectRegistry {
                 .filter(v => v.scope === `action:${context.actionId}`)
                 .map(v => ({ ...v, uiScope: 'local' as const }));
             visibleVars = [...visibleVars, ...actionVars];
+        }
+
+        // 5. Apply scope filter if requested
+        if (scopeFilter === 'stage-only') {
+            // Only keep stage/local variables
+            visibleVars = visibleVars.filter(v => v.uiScope === 'stage' || v.uiScope === 'local');
         }
 
         const vars = visibleVars.map(v => ({
@@ -224,7 +230,7 @@ export class ProjectRegistry {
      * - If activeStageId is set, returns objects from that stage PLUS global services from all stages
      * - Otherwise, returns all objects from all stages (plus legacy project.objects)
      */
-    public getObjects(): TWindow[] {
+    public getObjects(scopeFilter?: 'stage-only' | 'all'): TWindow[] {
         if (!this.project) return [];
 
         // Global service components (visible across all stages)
@@ -269,9 +275,11 @@ export class ProjectRegistry {
                 }
             });
 
-            // If no stage was active, we return everything (old behavior + global filter not needed since ID set handles it)
-            if (!this.activeStageId) {
-                return allObjects;
+            // 3. Apply scope filter
+            if (scopeFilter === 'stage-only') {
+                // Return only objects from exact active stage (exclude globals)
+                const activeStage = this.project.stages.find((s: any) => s.id === this.activeStageId);
+                return activeStage?.objects || [];
             }
 
             return allObjects;
