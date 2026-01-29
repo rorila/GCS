@@ -213,7 +213,7 @@ export class EditorViewManager {
     private renderPascalEditor(codePanel: HTMLElement) {
         const h = this.host;
         const activeStage = h.getActiveStage();
-        const stageToUse = (this.useStageIsolatedView && activeStage && activeStage.type !== 'main') ? activeStage : undefined;
+        const stageToUse = (this.useStageIsolatedView && activeStage) ? activeStage : undefined;
         const plainCode = PascalGenerator.generateFullProgram(h.project, false, stageToUse);
 
         const oldContainer = document.getElementById('pascal-editor-container');
@@ -239,7 +239,7 @@ export class EditorViewManager {
         textarea.oninput = () => {
             highlightLayer.innerHTML = PascalHighlighter.highlight(textarea.value);
             try {
-                PascalGenerator.parse(h.project, textarea.value);
+                PascalGenerator.parse(h.project, textarea.value, stageToUse);
                 if (h.jsonInspector) {
                     const obj = h.currentSelectedId ? h.findObjectById(h.currentSelectedId) : null;
                     h.jsonInspector.update(obj || h.project);
@@ -274,7 +274,7 @@ export class EditorViewManager {
         }
 
         const activeStage = h.getActiveStage();
-        const stageToUse = (this.useStageIsolatedView && activeStage && activeStage.type !== 'main') ? activeStage : undefined;
+        const stageToUse = (this.useStageIsolatedView && activeStage) ? activeStage : undefined;
         const plainCode = PascalGenerator.generateFullProgram(h.project, false, stageToUse);
         const highlightedCode = PascalHighlighter.highlight(plainCode);
         content.innerHTML = `<pre style="margin: 0; white-space: pre; color: #d4d4d4;" translate="no">${highlightedCode}</pre>`;

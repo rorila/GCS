@@ -1995,11 +1995,11 @@ export class FlowEditor {
     }
 
     /**
-     * Generiert ein initiales FlowChart-Diagramm aus einer bestehenden actionSequence eines Tasks.
-     * Dies wird verwendet, um eine visuelle Darstellung für Tasks zu erzeugen, die noch kein Diagramm haben.
+     * Generiert ein strukturiertes FlowChart-Diagramm aus einer bestehenden actionSequence eines Tasks.
+     * Unterstützt rekursive Verschachtelungen (Conditions, Loops) und setzt visuelle Verbindungen.
      */
     private generateFlowFromActionSequence(task: any): { elements: any[], connections: any[] } {
-        console.log(`[FlowEditor] Generating flow for task: ${task.name}`);
+        console.log(`[FlowEditor] Auto-Reconstructing flow for task: ${task.name}`);
         const elements: any[] = [];
         const connections: any[] = [];
 
@@ -2007,84 +2007,138 @@ export class FlowEditor {
         elements.push({
             id: startId,
             type: 'Start',
-            x: 100,
-            y: 100,
+            x: 400, // Center start
+            y: 50,
             properties: { name: 'Start' }
         });
 
-        let currentY = 250;
-        let lastNodeId = startId;
+        let nextNodeId = 0;
+        const getNewId = (type: string) => `auto_${type}_${nextNodeId++}_${Date.now()}`;
 
-        const processSequence = (sequence: any[], depth: number = 0) => {
-            sequence.forEach((item, index) => {
-                const nodeId = `node_${depth}_${index}_${Date.now()}`;
-                const x = 100 + (depth * 250);
-                const y = currentY;
-                currentY += 150;
+        // Recursive processor
+        const process = (sequence: any[], startNodeId: string, startAnchor: string = 'output', branch?: 'true' | 'false', startX: number = 400, startY: number = 200): { lastId: string, endY: number } => {
+            let lastId = startNodeId;
+            let currentY = startY;
+            let currentX = startX;
+
+            sequence.forEach((item) => {
+                const id = getNewId(item.type || 'action');
+
+                // Connection from previous
+                connections.push({
+                    startTargetId: lastId,
+                    endTargetId: id,
+                    data: {
+                        startAnchorType: lastId === startNodeId ? startAnchor : 'output',
+                        branchType: lastId === startNodeId ? branch : undefined
+                    }
+                });
 
                 if (item.type === 'condition') {
                     elements.push({
-                        id: nodeId,
+                        id: id,
                         type: 'Condition',
-                        x: x,
-                        y: y,
-                        data: { condition: { variable: item.formula || '', operator: '==', value: '' } },
-                        properties: { name: 'Check', details: item.formula || '' }
+                        x: currentX,
+                        y: currentY,
+                        data: { condition: item.condition || { variable: 'condition', operator: '==', value: 'true' } },
+                        properties: { name: 'Check', details: item.condition ? `${item.condition.variable} ${item.condition.operator} ${item.condition.value}` : '' }
                     });
 
-                    connections.push({
-                        startTargetId: lastNodeId,
-                        endTargetId: nodeId,
-                        data: { startAnchorType: 'output' }
-                    });
+                    let maxY = currentY + 200;
 
-                    lastNodeId = nodeId;
-
-                    // Simple reconstruction for conditions (only showing the main path)
-                    if (item.thenTask || item.thenAction) {
-                        // We could recursively process branches here in the future
+                    // IF body (True branch)
+                    if (item.body && item.body.length > 0) {
+                        const res = process(item.body, id, 'output', 'true', currentX + 300, currentY + 150);
+                        maxY = Math.max(maxY, res.endY);
+                    } else if (item.thenAction || item.thenTask) {
+                        // Simple single-action then
+                        const thenId = getNewId('then');
+                        elements.push({
+                            id: thenId,
+                            type: item.thenTask ? 'Task' : 'Action',
+                            x: currentX + 300,
+                            y: currentY + 100,
+                            data: { name: item.thenTask || item.thenAction },
+                            properties: { name: item.thenTask || item.thenAction }
+                        });
+                        connections.push({
+                            startTargetId: id,
+                            endTargetId: thenId,
+                            data: { startAnchorType: 'output', branchType: 'true' }
+                        });
                     }
-                } else if (item.type === 'task') {
+
+                    // ELSE body (False branch)
+                    if (item.elseBody && item.elseBody.length > 0) {
+                        const res = process(item.elseBody, id, 'output', 'false', currentX - 300, currentY + 150);
+                        maxY = Math.max(maxY, res.endY);
+                    } else if (item.elseAction || item.elseTask) {
+                        const elseId = getNewId('else');
+                        elements.push({
+                            id: elseId,
+                            type: item.elseTask ? 'Task' : 'Action',
+                            x: currentX - 300,
+                            y: currentY + 100,
+                            data: { name: item.elseTask || item.elseAction },
+                            properties: { name: item.elseTask || item.elseAction }
+                        });
+                        connections.push({
+                            startTargetId: id,
+                            endTargetId: elseId,
+                            data: { startAnchorType: 'output', branchType: 'false' }
+                        });
+                    }
+
+                    currentY = maxY;
+                    lastId = id;
+
+                } else if (item.type === 'while' || item.type === 'for') {
                     elements.push({
-                        id: nodeId,
-                        type: 'Task',
-                        x: x,
-                        y: y,
-                        data: { taskName: item.name },
-                        properties: { name: item.name }
+                        id: id,
+                        type: 'Condition', // Use Condition node for loop head
+                        x: currentX,
+                        y: currentY,
+                        data: { condition: item.condition || { variable: 'loop', operator: '==', value: 'true' } },
+                        properties: { name: item.type.toUpperCase(), details: item.type === 'for' ? `${item.iteratorVar}: ${item.from}..${item.to}` : '' }
                     });
 
-                    connections.push({
-                        startTargetId: lastNodeId,
-                        endTargetId: nodeId,
-                        data: { startAnchorType: 'output' }
-                    });
+                    if (item.body && item.body.length > 0) {
+                        const res = process(item.body, id, 'output', 'true', currentX + 300, currentY + 150);
+                        // Back connection to loop head
+                        connections.push({
+                            startTargetId: res.lastId,
+                            endTargetId: id,
+                            data: { startAnchorType: 'output' }
+                        });
+                        currentY = res.endY + 100;
+                    } else {
+                        currentY += 200;
+                    }
+                    lastId = id;
 
-                    lastNodeId = nodeId;
                 } else {
-                    // Standard Action
+                    // Standard Action / Task
                     elements.push({
-                        id: nodeId,
-                        type: 'Action',
-                        x: x,
-                        y: y,
+                        id: id,
+                        type: item.type === 'task' ? 'Task' : 'Action',
+                        x: currentX,
+                        y: currentY,
                         data: { ...item },
-                        properties: { name: item.type || 'Action', details: item.formula || '' }
+                        properties: {
+                            name: item.name || item.type || 'Action',
+                            details: item.type === 'calculate' ? (item.resultVariable || '') : ''
+                        }
                     });
-
-                    connections.push({
-                        startTargetId: lastNodeId,
-                        endTargetId: nodeId,
-                        data: { startAnchorType: 'output' }
-                    });
-
-                    lastNodeId = nodeId;
+                    currentY += 150;
+                    lastId = id;
                 }
             });
+
+            return { lastId, endY: currentY };
         };
 
-        if (task.actionSequence) {
-            processSequence(task.actionSequence);
+        if (task.actionSequence && task.actionSequence.length > 0) {
+            process(task.actionSequence, startId);
         }
 
         return { elements, connections };

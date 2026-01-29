@@ -1,4 +1,4 @@
-import { GameProject, SequenceItem, ProjectVariable, VariableScope } from '../model/types';
+import { GameProject, SequenceItem, ProjectVariable, VariableScope, GameTask } from '../model/types';
 
 export class PascalGenerator {
     private static span(text: string, color: string, asHtml: boolean): string {
@@ -23,9 +23,15 @@ export class PascalGenerator {
 
         // Global Variables (Always global, unless we want stage locals?)
         // For now, keep project globals available
-        const globalVars = (project.variables || []).filter(v => !v.scope || v.scope === 'global');
+        let globalVars = (project.variables || []).filter(v => !v.scope || v.scope === 'global');
+
+        // Add Stage-Local Variables if in activeStage
+        if (activeStage && activeStage.variables) {
+            globalVars = [...globalVars, ...activeStage.variables];
+        }
+
         if (globalVars.length > 0) {
-            lines.push(`${this.span('VAR', '#c586c0', asHtml)} ${this.span('{ GLOBAL VARIABLES }', '#6a9955', asHtml)}`);
+            lines.push(`${this.span('VAR', '#c586c0', asHtml)} ${this.span('{ PROJECT & STAGE VARIABLES }', '#6a9955', asHtml)}`);
             globalVars.forEach(v => {
                 const pascalType = (v.type || 'string').charAt(0).toUpperCase() + (v.type || 'string').slice(1);
                 let metadata = '';
@@ -42,58 +48,98 @@ export class PascalGenerator {
         }
 
         // Procedures (Tasks)
-        // Filter tasks if activeStage is provided
-        let tasks = project.tasks || [];
-        if (activeStage) {
-            const stageTasks = new Set<string>();
-
-            // 1. Explicitly defined in stage flowCharts
-            if (activeStage.flowCharts) {
-                Object.keys(activeStage.flowCharts).forEach(key => stageTasks.add(key));
-            }
-
-            // 2. Used by objects in this stage
-            const stageObjects = activeStage.objects || [];
-            stageObjects.forEach((obj: any) => {
-                if (obj.Tasks) {
-                    Object.values(obj.Tasks).forEach((t: any) => stageTasks.add(t));
+        // Aggregation: Collect EVERY task from the entire project (global + all stages)
+        let allTasks: GameTask[] = [...(project.tasks || [])];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks) {
+                    s.tasks.forEach((st: any) => {
+                        if (!allTasks.some(t => t.name === st.name)) {
+                            allTasks.push(st);
+                        }
+                    });
                 }
             });
+        }
 
-            // 3. Keep Global Flow tasks only if Main stage or explicitly used?
-            // "Global" in flowCharts means visible everywhere, but strictly speaking,
-            // if we are in Splash, we only care about Splash stuff.
-            // Let's stick to: Show tasks RELEVANT to this stage.
-            if (activeStage.type === 'main') {
-                // Main stage sees everything usually, or just globals + main specific?
-                // For simplicity, let's say Main sees everything for now, OR filter if we had explicit main tasks.
-                // But tasks array is flat in project. 
-                // Fallback: If no filtering logic, show all.
-                // Better: Only show tasks used by objects present in this stage + globals
+        let tasksToShow = allTasks;
+
+        if (activeStage) {
+            const relevantTaskNames = new Set<string>();
+
+            // 1. Explicitly defined in stage flowCharts (local or global)
+            if (activeStage.flowCharts) {
+                Object.keys(activeStage.flowCharts).forEach(key => relevantTaskNames.add(key));
             }
 
-            // Refined Logic:
-            // Include task if:
-            // - It is in activeStage.flowCharts
-            // - OR it is used by an object in activeStage.objects
-            // - OR it is a global task (only if activeStage is Main?) -> Let's show all for now on Main, 
-            // but strict for others.
+            // 2. Defined in global flowCharts OR in any other stage's flowCharts (might be cross-referenced)
+            if (project.flowCharts) {
+                Object.keys(project.flowCharts).forEach(key => {
+                    if (key !== 'global') relevantTaskNames.add(key);
+                });
+            }
+            if (project.stages) {
+                project.stages.forEach(s => {
+                    if (s.flowCharts) {
+                        Object.keys(s.flowCharts).forEach(key => {
+                            if (key !== 'global') relevantTaskNames.add(key);
+                        });
+                    }
+                });
+            }
 
+            // 3. Used by objects in this stage
+            const stageObjects = activeStage.objects || [];
+            stageObjects.forEach((obj: any) => {
+                const tasksMap = (obj as any).Tasks || {};
+                Object.values(tasksMap).forEach((t: any) => {
+                    if (typeof t === 'string' && t) relevantTaskNames.add(t);
+                });
+            });
+
+            // 4. Local tasks are ALWAYS relevant for the stage view
+            if (activeStage.tasks) {
+                activeStage.tasks.forEach((t: any) => relevantTaskNames.add(t.name));
+            }
+
+            // Filter logic:
+            // - If Main stage: Show all tasks (Global + all Locals)
+            // - If other stage: Show only relevant tasks
             if (activeStage.type !== 'main') {
-                tasks = tasks.filter(t => stageTasks.has(t.name));
+                tasksToShow = allTasks.filter(t => t && t.name && relevantTaskNames.has(t.name));
             }
         }
 
-        if (tasks.length > 0) {
-            tasks.forEach(task => {
+        if (tasksToShow.length > 0) {
+            tasksToShow.forEach(task => {
                 // Pass activeStageObjects to generateProcedure for "Used by" comments?
                 // For now just generate code
-                lines.push(this.generateProcedure(project, task.name, 0, undefined, asHtml, activeStage ? activeStage.objects : undefined));
+                lines.push(this.generateProcedure(project, task.name, 0, undefined, asHtml, activeStage));
                 lines.push('');
             });
         } else {
             lines.push(`${this.span('{ NO TASKS DEFINED FOR THIS STAGE }', '#6a9955', asHtml)}`);
             lines.push('');
+        }
+
+        // Object Event Handlers (Wiring)
+        if (activeStage && activeStage.objects && activeStage.objects.length > 0) {
+            lines.push(`${this.span('{ OBJECT EVENT HANDLERS }', '#6a9955', asHtml)}`);
+            activeStage.objects.forEach((obj: any) => {
+                const tasksMap = obj.Tasks || {};
+                const events = Object.keys(tasksMap);
+
+                events.forEach(event => {
+                    const targetTask = tasksMap[event];
+                    if (targetTask) {
+                        lines.push(`${this.span('PROCEDURE', '#c586c0', asHtml)} ${this.span(obj.name, '#9cdcfe', asHtml)}.${this.span(event, '#dcdcaa', asHtml)}();`);
+                        lines.push(`${this.span('BEGIN', '#c586c0', asHtml)}`);
+                        lines.push(`  ${this.span(targetTask, '#dcdcaa', asHtml)}();`);
+                        lines.push(`${this.span('END', '#c586c0', asHtml)};`);
+                        lines.push('');
+                    }
+                });
+            });
         }
 
         // Main Program
@@ -316,8 +362,14 @@ export class PascalGenerator {
                 }).join(' ');
             }
             code = `${this.span(action.resultVariable, '#9cdcfe', asHtml)} := ${expr};`;
+        } else if (action.type === 'call_method' && action.target && action.method) {
+            code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(action.method, '#dcdcaa', asHtml)}();`;
+        } else if (action.type === 'navigate_stage') {
+            code = `${this.span('Application', '#4ec9b0', asHtml)}.${this.span('GoToStage', '#dcdcaa', asHtml)}(${this.span("'" + (action.params?.stageId || action.target || '?') + "'", '#ce9178', asHtml)});`;
         } else {
-            code = `${this.span(actionName, '#dcdcaa', asHtml)}();`;
+            // Generic fallback for any other type
+            const typeLabel = action.type ? ` { ${action.type} }` : '';
+            code = `${this.span(actionName, '#dcdcaa', asHtml)}(); ${this.span(typeLabel, '#6a9955', asHtml)}`;
         }
 
         return code;
@@ -325,12 +377,14 @@ export class PascalGenerator {
 
     /**
      * Parses a full Pascal program and updates the GameProject
+     * @param targetStage If provided, the parser will prioritize updating this stage's tasks/variables
      */
-    public static parse(project: GameProject, code: string): void {
+    public static parse(project: GameProject, code: string, targetStage?: any): void {
         console.log('[PascalGenerator] Parsing Pascal program...');
 
         const foundTasks: Set<string> = new Set();
         const foundVariables: Set<{ name: string, scope: string }> = new Set();
+        const foundHandlers: Set<{ objectName: string, eventName: string, targetTask: string }> = new Set();
 
         // 1. Program Name
         const programMatch = code.match(/program\s+([a-zA-Z0-9_]+)\s*;/i);
@@ -339,56 +393,111 @@ export class PascalGenerator {
             project.meta.name = programMatch[1].replace(/_/g, ' ');
         }
 
-        // 2. Global Variables
-        // Only look for global variables BEFORE any PROCEDURE declaration
+        // 2. Variables (Global & Task-Scoped)
         const codeBeforeFirstProc = code.split(/PROCEDURE/i)[0];
-        const globalVarBlock = codeBeforeFirstProc.match(/VAR\s+({ GLOBAL VARIABLES }|{ GLOBALVARS })?\s*([\s\S]*?)(?=BEGIN|$)/i);
+        const globalVarBlock = codeBeforeFirstProc.match(/VAR\s+({[\s\S]*?})?\s*([\s\S]*?)(?=BEGIN|PROCEDURE|$)/i);
         if (globalVarBlock) {
-            this.parseVariables(project, globalVarBlock[2], 'global', foundVariables);
+            this.parseVariables(project, globalVarBlock[2], 'global', foundVariables, targetStage);
         }
 
-        // 3. Procedures (Tasks)
-        const procedureRegex = /PROCEDURE\s+([a-zA-Z0-9_]+)\s*;\s*(?:VAR\s+([\s\S]*?))?\s*BEGIN\s+([\s\S]*?)\s*END\s*;/gi;
+        // 3. Procedures (Tasks & Event Handlers)
+        // Match both: 
+        // - PROCEDURE TaskName;
+        // - PROCEDURE ObjectName.EventName();
+        const procedureRegex = /PROCEDURE\s+([a-zA-Z0-9_.]+)(?:\s*\(\s*\))?\s*;\s*(?:VAR\s+([\s\S]*?))?\s*BEGIN\s+([\s\S]*?)\s*END\s*;/gi;
         let procMatch;
         while ((procMatch = procedureRegex.exec(code)) !== null) {
-            const taskName = procMatch[1];
+            const fullIdent = procMatch[1];
             const varBlock = procMatch[2];
             const bodyBlock = procMatch[3];
-            foundTasks.add(taskName);
 
-            let task = project.tasks.find(t => t.name === taskName);
-            if (!task) {
-                task = { name: taskName, actionSequence: [] };
-                project.tasks.push(task);
+            if (fullIdent.includes('.')) {
+                // Object Event Handler: procedure MyBtn.onClick();
+                const [objName, eventName] = fullIdent.split('.');
+                // Find target task call in body
+                const callMatch = bodyBlock.match(/([a-zA-Z0-9_]+)\(\);/);
+                if (callMatch) {
+                    foundHandlers.add({ objectName: objName, eventName, targetTask: callMatch[1] });
+                }
+            } else {
+                // Regular Task: procedure MyTask;
+                const taskName = fullIdent;
+                foundTasks.add(taskName);
+
+                // Find existing task in Stage or Project
+                let task = (targetStage?.tasks?.find((t: any) => t.name === taskName)) || project.tasks.find(t => t.name === taskName);
+
+                if (!task) {
+                    task = { name: taskName, actionSequence: [] };
+                    // If targetStage is provided, new tasks go there by default (modular)
+                    if (targetStage) {
+                        if (!targetStage.tasks) targetStage.tasks = [];
+                        targetStage.tasks.push(task);
+                    } else {
+                        project.tasks.push(task);
+                    }
+                }
+
+                // Parse task variables
+                if (varBlock) {
+                    this.parseVariables(project, varBlock, taskName, foundVariables, targetStage);
+                }
+
+                // Parse body into sequence
+                const oldSequence = task.actionSequence || [];
+                const newSequence = this.parseBodyToSequence(project, taskName, bodyBlock, { count: 0 }, oldSequence, targetStage);
+
+                // Check if sequence changed to invalidate flowchart
+                const oldSeqJson = JSON.stringify(oldSequence);
+                const newSeqJson = JSON.stringify(newSequence);
+
+                if (oldSeqJson !== newSeqJson) {
+                    console.log(`[PascalGenerator] Task "${taskName}" updated from code. Invalidating FlowChart.`);
+                    task.actionSequence = newSequence;
+
+                    // Invalidate FlowChart so it gets re-synced visually
+                    if (targetStage?.flowCharts && targetStage.flowCharts[taskName]) {
+                        delete targetStage.flowCharts[taskName];
+                    }
+                    if (project.flowCharts && project.flowCharts[taskName]) {
+                        delete project.flowCharts[taskName];
+                    }
+                }
             }
-
-            // Parse task variables
-            if (varBlock) {
-                this.parseVariables(project, varBlock, taskName, foundVariables);
-            }
-
-            // Parse body into sequence
-            task.actionSequence = this.parseBodyToSequence(project, taskName, bodyBlock);
         }
 
-        // 4. Synchronize Collections (Delete orphans)
-        // Remove tasks not found in code
-        project.tasks = project.tasks.filter(t => foundTasks.has(t.name));
+        // 4. Update Event Handlers on Objects
+        const stageToUse = targetStage || project.stages?.find(s => s.type === 'main');
+        if (stageToUse && stageToUse.objects) {
+            foundHandlers.forEach(h => {
+                const obj = stageToUse.objects.find((o: any) => o.name === h.objectName);
+                if (obj) {
+                    if (!obj.Tasks) obj.Tasks = {};
+                    obj.Tasks[h.eventName] = h.targetTask;
+                }
+            });
+        }
 
-        // Remove variables not found in code
-        project.variables = project.variables.filter(v => {
-            const vScope = v.scope || 'global';
-            const found = Array.from(foundVariables).some(fv => fv.name === v.name && fv.scope === vScope);
-            if (!found && vScope !== 'global') {
-                console.log(`[PascalGenerator] Removing orphaned variable: ${v.name} (scope: ${vScope})`);
+        // 5. Synchronize Collections (CLEVER deletion)
+        // Only delete tasks that were "supposed" to be in this code block
+        if (!targetStage) {
+            // Global view: We can safely delete global orphans
+            project.tasks = project.tasks.filter(t => foundTasks.has(t.name));
+        } else {
+            // Stage view: Only delete tasks from targetStage that aren't in code
+            if (targetStage.tasks) {
+                targetStage.tasks = targetStage.tasks.filter((t: any) => foundTasks.has(t.name));
             }
-            return found || vScope === 'global'; // Keep globals for now unless explicitly deleted
-        });
+            // Do NOT delete project.tasks here, as they might not be visible in isolated view
+        }
+
+        // Handle variables similarly... (omitted for brevity in first pass or implemented robustly)
+        // For now, let's keep variables as is to avoid accidental loss of global vars
 
         console.log('[PascalGenerator] Parser finished updating project.');
     }
 
-    private static parseVariables(project: GameProject, block: string, scope: string, foundSet: Set<{ name: string, scope: string }>) {
+    private static parseVariables(project: GameProject, block: string, scope: string, foundSet: Set<{ name: string, scope: string }>, targetStage?: any) {
         const varRegex = /([a-zA-Z0-9_]+)\s*:\s*([a-zA-Z0-9_]+)\s*;/gi;
         let match;
         while ((match = varRegex.exec(block)) !== null) {
@@ -396,7 +505,10 @@ export class PascalGenerator {
             const type = match[2].toLowerCase() as any;
             foundSet.add({ name, scope });
 
-            let variable = project.variables.find(v => v.name === name && (v.scope || 'global') === scope);
+            // Find existing variable (in Stage OR Global)
+            let variable = (targetStage?.variables?.find((v: any) => v.name === name && (v.scope || 'global') === scope)) ||
+                project.variables.find(v => v.name === name && (v.scope || 'global') === scope);
+
             if (!variable) {
                 const newVar: ProjectVariable = {
                     name,
@@ -404,14 +516,19 @@ export class PascalGenerator {
                     defaultValue: '',
                     scope: scope as VariableScope
                 };
-                project.variables.push(newVar);
+                if (targetStage) {
+                    if (!targetStage.variables) targetStage.variables = [];
+                    targetStage.variables.push(newVar);
+                } else {
+                    project.variables.push(newVar);
+                }
             } else {
                 variable.type = type;
             }
         }
     }
 
-    private static parseBodyToSequence(project: GameProject, taskName: string, body: string, actionCounter: { count: number } = { count: 0 }): SequenceItem[] {
+    private static parseBodyToSequence(project: GameProject, taskName: string, body: string, actionCounter: { count: number } = { count: 0 }, oldSequence: SequenceItem[] = [], targetStage?: any): SequenceItem[] {
         // Instead of line by line, let's look for tokens
         const tokens = body.split(/(\bBEGIN\b|\bEND\b|\bIF\b|\bTHEN\b|\bELSE\b|\bWHILE\b|\bDO\b|\bFOR\b|\bTO\b|\bIN\b|;)/i);
 
@@ -425,8 +542,9 @@ export class PascalGenerator {
             return content;
         };
 
-        const parseBlock = (): SequenceItem[] => {
+        const parseBlock = (oldSubSeq: SequenceItem[] = []): SequenceItem[] => {
             const blockSequence: SequenceItem[] = [];
+            let itemIndex = 0;
             while (i < tokens.length) {
                 let token = tokens[i].trim();
                 let upperToken = token.toUpperCase();
@@ -441,15 +559,16 @@ export class PascalGenerator {
                     const conditionStr = consumeUntil('THEN');
                     i++; // consume THEN
 
+                    const oldItem = oldSubSeq[itemIndex];
                     const item: SequenceItem = {
                         type: 'condition',
-                        name: `if_${actionCounter.count++}`,
+                        name: oldItem && oldItem.type === 'condition' ? oldItem.name : `if_${actionCounter.count++}`,
                         condition: this.parseCondition(conditionStr.trim())
                     };
 
                     if (tokens[i]?.trim().toUpperCase() === 'BEGIN') {
                         i++; // consume BEGIN
-                        item.body = parseBlock();
+                        item.body = parseBlock(oldItem && oldItem.body ? oldItem.body : []);
                     } else {
                         // Single line then? Support only simple calls for now in single line IF
                         const nextLine = consumeUntil(';');
@@ -465,7 +584,7 @@ export class PascalGenerator {
                         i++; // consume ELSE
                         if (tokens[i]?.trim().toUpperCase() === 'BEGIN') {
                             i++; // consume BEGIN
-                            const elseBody = parseBlock();
+                            const elseBody = parseBlock((oldItem as any)?.elseBody || []);
                             // In our model, condition usually has thenAction, thenTask, elseAction, elseTask, body.
                             // We use 'body' for the 'then' branch if it's a block.
                             (item as any).elseBody = elseBody;
@@ -473,28 +592,32 @@ export class PascalGenerator {
                     }
 
                     blockSequence.push(item);
+                    itemIndex++;
                 } else if (upperToken === 'WHILE') {
                     i++; // consume WHILE
                     const conditionStr = consumeUntil('DO');
                     i++; // consume DO
+                    const oldItem = oldSubSeq[itemIndex];
                     const item: SequenceItem = {
                         type: 'while',
-                        name: `while_${actionCounter.count++}`,
+                        name: oldItem && oldItem.type === 'while' ? oldItem.name : `while_${actionCounter.count++}`,
                         condition: this.parseCondition(conditionStr.trim())
                     };
                     if (tokens[i]?.trim().toUpperCase() === 'BEGIN') {
                         i++; // consume BEGIN
-                        item.body = parseBlock();
+                        item.body = parseBlock(oldItem && oldItem.body ? oldItem.body : []);
                     }
                     blockSequence.push(item);
+                    itemIndex++;
                 } else if (upperToken === 'FOR') {
                     i++; // consume FOR
                     const forHeader = consumeUntil('DO');
                     i++; // consume DO
 
+                    const oldItem = oldSubSeq[itemIndex];
                     const item: SequenceItem = {
                         type: 'for',
-                        name: `for_${actionCounter.count++}`
+                        name: oldItem && oldItem.type === 'for' ? oldItem.name : `for_${actionCounter.count++}`
                     };
                     // Parse: iterator := start TO end
                     const forMatch = forHeader.match(/([a-zA-Z0-9_]+)\s*:=\s*([0-9]+)\s+TO\s+([0-9]+)/i);
@@ -514,9 +637,10 @@ export class PascalGenerator {
 
                     if (tokens[i]?.trim().toUpperCase() === 'BEGIN') {
                         i++; // consume BEGIN
-                        item.body = parseBlock();
+                        item.body = parseBlock(oldItem && oldItem.body ? oldItem.body : []);
                     }
                     blockSequence.push(item);
+                    itemIndex++;
                 } else if (token === ';') {
                     i++;
                 } else if (token.trim() && !['BEGIN'].includes(upperToken)) {
@@ -525,8 +649,12 @@ export class PascalGenerator {
                     i++; // consume ;
                     const cleanStatement = statement.trim();
                     if (cleanStatement) {
-                        const parsed = this.parseSimpleStatement(project, taskName, cleanStatement, actionCounter.count++);
-                        if (parsed) blockSequence.push(parsed);
+                        const oldItem = oldSubSeq[itemIndex];
+                        const parsed = this.parseSimpleStatement(project, taskName, cleanStatement, actionCounter.count++, oldItem, targetStage);
+                        if (parsed) {
+                            blockSequence.push(parsed);
+                            itemIndex++;
+                        }
                     }
                 } else {
                     i++;
@@ -535,7 +663,7 @@ export class PascalGenerator {
             return blockSequence;
         };
 
-        return parseBlock();
+        return parseBlock(oldSequence);
     }
 
     private static parseCondition(condStr: string): any {
@@ -556,49 +684,123 @@ export class PascalGenerator {
         return { variable: condStr, operator: '==', value: true };
     }
 
-    private static parseSimpleStatement(project: GameProject, taskName: string, statement: string, index: number): SequenceItem | null {
+    private static getPreferredCasing(project: GameProject, propName: string, targetStage?: any): string {
+        const searchString = propName.toLowerCase();
+
+        // 1. Search in targetStage.actions matching the target property name
+        if (targetStage && targetStage.actions) {
+            for (const action of targetStage.actions) {
+                if (action.changes) {
+                    const key = Object.keys(action.changes).find(k => k.toLowerCase() === searchString);
+                    if (key) return key;
+                }
+            }
+        }
+
+        // 2. Search in project.actions
+        for (const action of project.actions) {
+            if (action.changes) {
+                const key = Object.keys(action.changes).find(k => k.toLowerCase() === searchString);
+                if (key) return key;
+            }
+        }
+
+        // 3. Fallback to lowercase (standard for engine)
+        return searchString;
+    }
+
+    private static parseSimpleStatement(project: GameProject, taskName: string, statement: string, index: number, oldItem?: SequenceItem, targetStage?: any): SequenceItem | null {
         // Assignment
         const assignMatch = statement.match(/^([a-zA-Z0-9_.]+)\s*:=\s*(.+)$/);
         if (assignMatch) {
             const target = assignMatch[1];
             let source = assignMatch[2].trim();
-            const actionName = `${taskName}_action_${index}`;
+
+            let val: any = source;
+            if (source.startsWith("'") && source.endsWith("'")) {
+                val = source.slice(1, -1);
+            } else if (/^\d+(\.\d+)?$/.test(source)) {
+                val = parseFloat(source);
+            } else if (/^[a-zA-Z0-9_$]+$/.test(source)) {
+                // Variable name reference
+                val = `\${${source}}`;
+            }
 
             if (target.includes('.')) {
+                // Property change: Object.Property := Value
                 const parts = target.split('.');
                 const objName = parts[0];
                 const propName = parts[1];
-                let action = project.actions.find(a => a.name === actionName);
+
+                // FIND EXISTING ACTION CANDIDATE
+                // 1. Try to use oldItem if it was a property action on the same target
+                let action: any = null;
+                if (oldItem && oldItem.type === 'action') {
+                    const candidate = (targetStage?.actions || project.actions || []).find((a: any) => a.name === oldItem.name);
+                    if (candidate && candidate.type === 'property' && candidate.target.toLowerCase() === objName.toLowerCase()) {
+                        action = candidate;
+                    }
+                }
+
+                // 2. If no oldItem match, look for ANY action with same target and property (case-insensitive)
+                if (!action) {
+                    action = (targetStage?.actions || project.actions || []).find((a: any) =>
+                        a.type === 'property' && a.target.toLowerCase() === objName.toLowerCase() && (a.changes && Object.keys(a.changes).some(k => k.toLowerCase() === propName.toLowerCase()))
+                    );
+                }
+
+                // 3. Fallback: Create new action name
+                const actionName = action ? action.name : `${taskName}_action_${index}`;
+
                 if (!action) {
                     action = { name: actionName, type: 'property', target: objName, changes: {} };
-                    project.actions.push(action);
+                    if (targetStage) {
+                        if (!targetStage.actions) targetStage.actions = [];
+                        targetStage.actions.push(action);
+                    } else {
+                        project.actions.push(action);
+                    }
                 }
 
-                let val: any = source;
-                if (source.startsWith("'") && source.endsWith("'")) {
-                    val = source.slice(1, -1);
-                } else if (/^\d+(\.\d+)?$/.test(source)) {
-                    val = parseFloat(source);
-                } else if (/^[a-zA-Z0-9_$]+$/.test(source)) {
-                    // Variable name reference
-                    val = `\${${source}}`;
-                }
-
+                // Update or add property change
                 action.type = 'property';
                 action.target = objName;
-                action.changes = { [propName]: val };
+                // Smart-Sync: Nutze die projektweit bevorzugte Schreibweise (z.B. fillColor)
+                // oder einen bereits in DIESER Action existierenden Key
+                if (!action.changes) action.changes = {};
+                const existingInAction = Object.keys(action.changes).find(k => k.toLowerCase() === propName.toLowerCase());
+                const finalKey = existingInAction || this.getPreferredCasing(project, propName, targetStage);
+
+                action.changes[finalKey] = val;
+
                 return { type: 'action', name: actionName };
             } else {
-                let action = project.actions.find(a => a.name === actionName);
+                // Variable assignment: Var := Value
+                // FIND EXISTING CALCULATE CANDIDATE
+                let action: any = null;
+                if (oldItem && oldItem.type === 'action') {
+                    const candidate = (targetStage?.actions || project.actions || []).find((a: any) => a.name === oldItem.name);
+                    if (candidate && candidate.type === 'calculate' && candidate.resultVariable.toLowerCase() === target.toLowerCase()) {
+                        action = candidate;
+                    }
+                }
+
+                const actionName = action ? action.name : `${taskName}_action_${index}`;
                 const isNumeric = /^\d+(\.\d+)?$/.test(source);
                 const calcStep: any = {
                     operandType: isNumeric ? 'constant' : 'variable',
                     constant: isNumeric ? parseFloat(source) : 0,
                     variable: isNumeric ? undefined : source
                 };
+
                 if (!action) {
                     action = { name: actionName, type: 'calculate', resultVariable: target, calcSteps: [calcStep] };
-                    project.actions.push(action);
+                    if (targetStage) {
+                        if (!targetStage.actions) targetStage.actions = [];
+                        targetStage.actions.push(action);
+                    } else {
+                        project.actions.push(action);
+                    }
                 } else {
                     action.type = 'calculate';
                     action.resultVariable = target;
@@ -608,11 +810,15 @@ export class PascalGenerator {
             }
         }
 
-        // Call
+        // Call (either Task or Action)
         if (statement.endsWith('()')) {
             const callName = statement.replace('()', '');
+
+            // Check if it's a Task (Global or Stage-Local)
+            const isTask = project.tasks.some(t => t.name === callName) || (targetStage?.tasks?.some((t: any) => t.name === callName));
+
             return {
-                type: project.tasks.find(t => t.name === callName) ? 'task' : 'action',
+                type: isTask ? 'task' : 'action',
                 name: callName
             };
         }

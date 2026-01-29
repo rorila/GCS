@@ -1,11 +1,46 @@
 # Changelog
 
-## [1.9.2] - 2026-01-28
+## [1.9.9] - 2026-01-29
+### Pascal-Editor & Rendering Optimierungen
+- **Intelligente Action-Synchronisation**: Der Pascal-Parser erkennt nun bestehende Aktionen (`messageVar.triggerOff` etc.) anhand ihrer Position und Logik wieder und aktualisiert deren `changes`, statt neue redundante Aktionen zu erstellen.
+- **Smart-Sync für Casing**: Der Parser erkennt nun die projektweit bevorzugte Schreibweise von Properties (z.B. `fillColor`). Dies verhindert Dubletten im JSON und stellt die Kompatibilität mit der Engine sicher, während der Pascal-Code weiterhin lesbare Großschreibung nutzt.
+- **Namenserhalt**: Sprechende Namen von Aktionen bleiben bei Code-Änderungen erhalten.
+- **Flow-Garantie**: Automatische Invalidierung und Neu-Generierung von Flow-Diagrammen sorgt für sofortige visuelle Synchronisation nach Pascal-Änderungen.
+- **Bugfix**: Korrekte Unterscheidung zwischen Task-Aufrufen und Aktions-Zuweisungen im Parser.
+
+
+## [1.9.7] - 2026-01-28
+### Features
+- **Pascal-zu-Flow Rekonstruktion**: Vollautomatische Generierung von Flow-Diagrammen aus Pascal-Code.
+- **Intelligente Konnektivität**: Automatische Verknüpfung von Nodes inkl. True/False-Zweigen und Schleifen-Rücksprüngen.
+- **Auto-Layout**: Räumliche Anordnung von Verzweigungen für maximale Übersichtlichkeit nach Code-Änderungen.
+
+## [1.9.6] - 2026-01-28
+### Features
+- **Bidirektionaler Pascal-Editor**: Änderungen im Pascal-Code werden nun sofort in die JSON-Daten (Tasks, Variablen, Event-Mappings) zurückgeschrieben.
+- **Flow-Diagramm Invalidation**: Bei Code-Änderungen an Aufgaben werden die zugehörigen Flow-Diagramme automatisch invalidiert, um eine korrekte visuelle Neu-Generierung sicherzustellen.
+- **Stage-Aware Parsing**: Korrektes Zurückschreiben von Änderungen auch in isolierten Stage-Ansichten (kein Datenverlust bei globalen Aufgaben).
+
+## [1.9.5] - 2026-01-28
+### Bugfixes & Features
+- **Pascal-Viewer**: Unterstützung für Objekt-Event-Handler implementiert. Events (z.B. `onClick`) werden nun als Prozeduren nach dem Muster `procedure ObjectName.EventName` angezeigt.
+- **Detaillierungsgrad**: Bessere Sichtbarkeit der Verknüpfung zwischen UI-Elementen und Logik im Pascal-Code.
+
+## [1.9.4] - 2026-01-28
 ### Bugfixes
-- **Editor-Rendering**: Behebung verschwundener Bilder im Entwurfsmodus. Korrektur von `resolveObjectPreview` in `Editor.ts` zur Erhaltung der Prototyp-Kette (Getter) bei der Erstellung von Preview-Snapshots.
-- **Runtime-Rendering**: Behebung fehlender Bilder im Run-Modus durch Implementierung einer Prototyp-Scan-Logik in `GameRuntime.getObjects()`. Dies stellt die Getter-Integrität bei reaktiven Proxies sicher.
-- **Stage-Renderer**: Bereinigung und Rückkehr zum direkten Objektzugriff, da die Datenbereitstellung nun in allen Modi konsistent Getter auflöst.
-- **Dokumentation**: Aktualisierung der `DEVELOPER_GUIDELINES.md` bezüglich Getter-Integrität und Snapshotting.
+- **Pascal-Viewer**: Einführung einer super-robusten Task-Aggregation, die alle Stages und FlowCharts (global & lokal) durchsucht. Behebt das Problem fehlender Tasks in isolierten Ansichten.
+- **EditorViewManager**: Veraltete Stage-Filterlogik entfernt, um Konsistenz mit der Haupt-Editor-Logik sicherzustellen.
+- **PascalGenerator**: Erweiterte Relevanz-Prüfung, die auch Diagramme ohne direkte Referenzierung berücksichtigt.
+
+## [1.9.3] - 2026-01-28
+### Bugfixes
+- **JSON-Viewer & Editor**: Behebung von Abstürzen bei der Anzeige komplexer Projekte. Einführung von `safeDeepCopy`, um zirkuläre Referenzen und reaktive Proxies vor der Serialisierung sicher zu handhaben.
+- **Pascal-Viewer**: Reparatur der Task-Anzeige. Der Generator aggregiert nun korrekt globale UND stage-lokale Tasks sowie Variablen.
+- **Action-Rendering**: Erweiterung des Pascal-Generators um moderne Action-Typen wie `call_method` und `navigate_stage`.
+- **Robustheit**: Implementierung von `try-catch` Blöcken in `refreshJSONView` und visuelles Feedback bei Serialisierungsfehlern statt Silent-Fails oder UI-Freezes.
+- **Dienst-Integration**: Einbettung der Klon-Logik in den `Editor`-Kern zur Entkopplung von Live-Daten und UI-Vorschau.
+
+## [1.9.2] - 2026-01-28
 
 ## [1.9.1] - 2026-01-27
 ### Build-Fixes & Maintenance

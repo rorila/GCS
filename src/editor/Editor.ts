@@ -76,6 +76,7 @@ import { changeRecorder, RecordedAction } from '../services/ChangeRecorder';
 import { PlaybackControls } from '../components/PlaybackControls';
 import { PlaybackOverlay } from '../components/PlaybackOverlay';
 import { playbackEngine } from '../services/PlaybackEngine';
+import { safeDeepCopy } from '../utils/DeepCopy';
 
 export class Editor implements IViewHost {
     private stage: Stage;
@@ -2445,7 +2446,7 @@ export class Editor implements IViewHost {
 
         try {
             const activeStage = this.getActiveStage();
-            const stageToUse = (this.useStageIsolatedView && activeStage && activeStage.type !== 'main') ? activeStage : undefined;
+            const stageToUse = (this.useStageIsolatedView && activeStage) ? activeStage : undefined;
             const plainCode = PascalGenerator.generateFullProgram(this.project, false, stageToUse);
 
             // Update Highlight Layer based on mode
@@ -2780,7 +2781,22 @@ export class Editor implements IViewHost {
 
         // 2. Refresh working data from live project if in viewer mode (Flow edits might have occurred)
         if (this.jsonMode === 'viewer') {
-            this.workingProjectData = JSON.parse(JSON.stringify(this.project));
+            try {
+                console.log("[Editor] Creating safe deep copy of project for JSON view...");
+                this.workingProjectData = safeDeepCopy(this.project);
+            } catch (err) {
+                console.error("[Editor] Failed to copy project for JSON view:", err);
+                // Fallback: stay with current working data or show error
+                const errorMsg = document.createElement('div');
+                errorMsg.style.cssText = 'color: #ff6b6b; padding: 20px; background: #2a1111; border: 1px solid #ff4444; margin: 10px; border-radius: 4px;';
+                errorMsg.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 8px;">Fehler bei der JSON-Vorbereitung</div>
+                    <div style="font-size: 12px; opacity: 0.8;">Das Projekt konnte nicht sicher kopiert werden (Zirkuläre Referenz?).</div>
+                    <pre style="font-size: 11px; margin-top: 10px; white-space: pre-wrap;">${err}</pre>
+                `;
+                jsonPanel.appendChild(errorMsg);
+                return;
+            }
         }
 
         const treeContainer = document.createElement('div');
@@ -2794,8 +2810,17 @@ export class Editor implements IViewHost {
             if (this.workingProjectData.stages) {
                 const workingStage = this.workingProjectData.stages.find((s: any) => s.id === activeStage.id);
                 if (workingStage) {
-                    // Create a deep copy to avoid modifying the original stage in a way that breaks serialization
-                    dataToShow = JSON.parse(JSON.stringify(workingStage));
+                    try {
+                        // Create a safe deep copy to avoid modifying the original stage in a way that breaks serialization
+                        dataToShow = safeDeepCopy(workingStage);
+                    } catch (err) {
+                        console.error("[Editor] Failed to copy stage for JSON view:", err);
+                        const errorMsg = document.createElement('div');
+                        errorMsg.style.cssText = 'color: #ffcc00; padding: 10px; background: #332200; border: 1px solid #ffaa00; margin: 10px; border-radius: 4px; font-size: 12px;';
+                        errorMsg.textContent = `Warnung: Stage "${activeStage.name}" konnte nicht sicher isoliert kopiert werden. Anzeige des Gesamtprojekts.`;
+                        jsonPanel.appendChild(errorMsg);
+                        dataToShow = this.workingProjectData;
+                    }
 
                     // Inject relevant tasks for better visibility
 

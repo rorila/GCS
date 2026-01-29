@@ -175,6 +175,10 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 
 ## Pascal-Generierung & Metadaten
 - **Metadaten in Kommentaren**: Der `PascalGenerator` fügt spezialisierte Eigenschaften (Threshold, Duration, etc.) als Kommentar hinter die Variablendeklaration ein, um die Logik-Konfiguration im Code-Viewer lesbar zu machen.
+- **Intelligente Synchronisation (v1.9.9) - Smart-Sync**:
+  - **Reihenfolge & Wiederverwendung**: Der Parser vergleicht die aktuelle Code-Zeile bevorzugt mit dem Element an der gleichen Position in der ursprünglichen `actionSequence`, um Aktionsnamen zu erhalten.
+  - **Casing-Konsistenz (Smart-Sync)**: Da Pascal case-insensitive ist, die Engine aber camelCase (z.B. `fillColor`) erwartet, nutzt der Parser eine projektweite Suche nach der bevorzugten Schreibweise. Wenn ein Key (z.B. `fillColor`) bereits im Projekt existiert, wird dieser exakt so genutzt. Fallback ist Kleinschreibung.
+  - **FlowChart-Trigger**: Nach jeder Code-Änderung wird das Flow-Diagramm des Tasks invalidiert (Auto-Layout Trigger).
 - **Live-Synchronisation**: Änderungen im Inspector triggern über `refreshPascalView` (Editor.ts) sofort eine Aktualisierung des generierten Pascal-Codes.
 - **Typkonvertierung (autoConvert)**: Benutzereingaben aus Textfeldern sind im DOM immer Strings. Nutze `PropertyHelper.autoConvert(value)` nach der Interpolation, um Werte intelligent zurück in `number` oder `boolean` zu wandeln. Dies ist essenziell für Methoden wie `moveTo`, die numerische Parameter erwarten.
 - **Bereitstellung von Hilfsfunktionen (Scope)**:
@@ -193,6 +197,13 @@ Bei der Implementierung von Refactoring-Logik muss darauf geachtet werden, dass 
 
 ### [JSON Viewer & Isolated Stages](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/Editor.ts)
 Wenn eine Stage isoliert im JSON-Tab angezeigt wird (`activeStage`), werden globale Daten (Tasks UND Actions), die für diese Stage relevant sind (d.h. dort benutzt werden), manuell injiziert, damit sie bearbeitbar bleiben und vollständig sind.
+- **Sichere Serialisierung (`safeDeepCopy`)**:
+  - Live-Objekte im Editor (z.B. reaktive Proxies oder Komponenten-Instanzen) enthalten oft zirkuläre Referenzen. 
+  - Nutze NIEMALS `JSON.stringify` direkt auf dem `project`-Objekt für UI-Anzeigen. 
+  - Verwende stattdessen `safeDeepCopy(obj)` aus `src/utils/DeepCopy.ts`. Diese Methode handhabt Zyklen, entpackt Proxies und filtert problematische Objekte wie DOM-Elemente.
+- **Fehlerbehandlung**: 
+  - Die Methode `refreshJSONView` in `Editor.ts` muss IMMER in `try-catch` Blöcke gefasst sein. 
+  - Bei Serialisierungsfehlern soll ein visuelles Feedback im JSON-Panel erscheinen, statt die UI einzufrieren.
 - **Scoping & Refactoring**:
   - Beim Umbenennen (Refactoring) von Tasks, Aktionen oder Variablen müssen IMMER alle Scopes (`project.tasks/actions` UND alle `project.stages[].tasks/actions`) gescannt werden. Siehe `RefactoringManager.ts`.
   - Die isolierte JSON-Ansicht einer Stage (`Editor.refreshJSONView`) muss lokale Daten (`actions`, `tasks`) erhalten und darf sie nicht durch globale Listen überschreiben (Merge-Logik).
