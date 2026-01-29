@@ -367,14 +367,21 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             Object.keys(objData).forEach(key => {
                 if (reservedKeys.includes(key)) return;
 
-                // Skip complex objects/arrays if better handled explicitly, 
-                // but generally we want to restore them too (like 'items' in ListVariable).
                 const val = (objData as any)[key];
+                if (val === undefined) return;
 
-                // Safety check: only assign if it's not undefined
-                if (val !== undefined) {
-                    // Direct assignment to the component instance
-                    // casting to any allows dynamic assignment
+                // Handle nested properties like "style.fontSize"
+                if (key.includes('.')) {
+                    const parts = key.split('.');
+                    let target: any = newObj;
+                    for (let i = 0; i < parts.length - 1; i++) {
+                        const part = parts[i];
+                        if (!target[part]) target[part] = {};
+                        target = target[part];
+                    }
+                    target[parts[parts.length - 1]] = val;
+                } else {
+                    // Direct assignment
                     (newObj as any)[key] = val;
                 }
             });

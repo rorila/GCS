@@ -117,10 +117,10 @@
           "align": "NONE",
           "text": "${TestVar}",
           "visible": true,
-          "style.backgroundColor": "#d35f5f",
+          "style.backgroundColor": "#de8282",
           "style.borderColor": "transparent",
           "style.borderWidth": 0,
-          "style.fontSize": 48,
+          "style.fontSize": 36,
           "style.fontWeight": "normal",
           "style.fontStyle": "normal",
           "style.textAlign": "center",
@@ -144,7 +144,7 @@
           "align": "NONE",
           "text": "${messageVar}",
           "visible": true,
-          "style.backgroundColor": "#d35f5f",
+          "style.backgroundColor": "#de8282",
           "style.borderColor": "transparent",
           "style.borderWidth": 0,
           "style.fontSize": 36,
@@ -345,7 +345,7 @@
               "type": "Task",
               "x": 80,
               "y": 180,
-              "width": 180,
+              "width": 160,
               "height": 60,
               "properties": {
                 "name": "ShowTestOkInfo",
@@ -355,7 +355,7 @@
               "data": {
                 "name": "ShowTestOkInfo",
                 "paramValues": {},
-                "showDetails": false
+                "showDetails": true
               }
             },
             {
@@ -363,16 +363,16 @@
               "type": "Action",
               "x": 380,
               "y": 80,
-              "width": 180,
+              "width": 260,
               "height": 80,
               "properties": {
                 "name": "Label_7.captionTrue",
-                "details": "(nicht definiert)",
+                "details": "messageVar.value := Trigger zündet",
                 "description": ""
               },
               "data": {
                 "name": "Label_7.captionTrue",
-                "isLinked": false
+                "isLinked": true
               }
             },
             {
@@ -380,16 +380,16 @@
               "type": "Action",
               "x": 380,
               "y": 180,
-              "width": 180,
+              "width": 240,
               "height": 80,
               "properties": {
                 "name": "BrightBulb.visibleTrue",
-                "details": "(nicht definiert)",
+                "details": "brightBulb.visible := ${true }",
                 "description": ""
               },
               "data": {
                 "name": "BrightBulb.visibleTrue",
-                "isLinked": false
+                "isLinked": true
               }
             },
             {
@@ -397,16 +397,16 @@
               "type": "Action",
               "x": 380,
               "y": 280,
-              "width": 180,
+              "width": 240,
               "height": 80,
               "properties": {
                 "name": "DarkBulb.visibleFalse",
-                "details": "(nicht definiert)",
+                "details": "DarkBulb.visible := ${false }",
                 "description": ""
               },
               "data": {
                 "name": "DarkBulb.visibleFalse",
-                "isLinked": false
+                "isLinked": true
               }
             }
           ],
@@ -734,7 +734,8 @@
             }
           ],
           "triggerMode": "local-sync",
-          "description": ""
+          "description": "",
+          "params": []
         },
         {
           "name": "ShowNotOkStatus",
@@ -788,7 +789,7 @@
         },
         {
           "name": "Label_7.captionTrue",
-          "details": "(nicht definiert)",
+          "details": "messageVar.value := Trigger zündet",
           "showDetails": true,
           "type": "property",
           "target": "messageVar",
@@ -800,31 +801,30 @@
         },
         {
           "name": "BrightBulb.visibleTrue",
-          "details": "(nicht definiert)",
+          "details": "brightBulb.visible := ${true }",
           "showDetails": true,
           "type": "property",
           "target": "brightBulb",
           "changes": {
-            "visible": "${true } "
+            "visible": "${true }"
           },
           "method": "",
           "description": ""
         },
         {
           "name": "DarkBulb.visibleFalse",
-          "details": "(nicht definiert)",
+          "details": "DarkBulb.visible := ${false }",
           "showDetails": true,
           "type": "property",
           "target": "DarkBulb",
           "changes": {
-            "visible": "${false } "
+            "visible": "${false }"
           },
           "method": "",
           "description": ""
         },
         {
           "name": "messageVar.triggerOff",
-          "details": "",
           "showDetails": false,
           "type": "property",
           "target": "messageVar",
@@ -860,7 +860,6 @@
         },
         {
           "name": "Action3",
-          "details": "(nicht definiert)",
           "showDetails": true,
           "type": "property",
           "target": "TestVar",

@@ -8,6 +8,7 @@
 - **Visuelles Feedback**: Emojis (🌎 für Global, 🎭 für Stage) zeigen im Inspector und Editor den Ursprung/Scope von Ressourcen an.
 - **Bugfix: Options-Binding**: Fehler behoben, bei dem der Inspector beim Rendern von Dropdowns mit Bindings (`${...}`) abstürzte.
 - **Bugfix: Smart-Sync Schreibschutz**: Fehler behoben, bei dem verlinkte Actions im Inspector fälschlicherweise als schreibgeschützt markiert wurden (Logikfehler in `isActionOrTask`).
+- **Bugfix: Label-Persistenz**: Behebung des Fehlers, bei dem Style-Änderungen an Labels (Hintergrund, Schriftgröße, Ausrichtung) nach dem Neuladen des Projekts verloren gingen. Die Hydrierungs-Logik unterstützt nun Punkt-Notationen für verschachtelte Eigenschaften.
 
 ## [2.1.4] - 2026-01-29
 ### Bugfix & Flow Editor
