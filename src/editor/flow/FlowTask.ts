@@ -34,7 +34,12 @@ export class FlowTask extends FlowElement {
      * Set project reference for task definition lookups
      */
     public setProjectRef(project: GameProject | null) {
+        if (this.projectRef === project) return; // Guard
         this.projectRef = project;
+        // SINGLE SOURCE OF TRUTH: Refresh details if project is set
+        if (project && this.showDetails) {
+            this.setShowDetails(true, project);
+        }
     }
 
     /**
@@ -364,8 +369,8 @@ export class FlowTask extends FlowElement {
 
             this.content.innerHTML = `
                 <div style="text-align:center;padding:8px 4px">
-                    <div style="font-weight:bold;font-size:12px">${title}</div>
-                    <div style="font-family:'Courier New', monospace;font-size:10px;color:#ccc;margin-top:4px;font-weight:normal;line-height:1.2">
+                    <div style="font-weight:bold;font-size:12px;white-space:nowrap">${title}</div>
+                    <div style="font-family:'Courier New', monospace;font-size:10px;color:#ccc;margin-top:4px;font-weight:normal;line-height:1.2;white-space:nowrap">
                         ${details}
                     </div>
                 </div>

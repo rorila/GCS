@@ -1210,7 +1210,10 @@ export class FlowEditor {
                 // SINGLE SOURCE OF TRUTH: If it's an Action node in the flow diagram, 
                 // it MUST be registered in the project/stage actions list.
                 if (actionName) {
-                    this.updateGlobalActionDefinition({ ...node.data, name: actionName, details: node.Details });
+                    // ROBUST SYNC: Prefer node.data over node.Details to avoid using truncated visual details
+                    const fullData = { details: node.Details, ...node.data, name: actionName };
+                    this.updateGlobalActionDefinition(fullData);
+
                     syncCount++;
                 }
             }
@@ -1865,9 +1868,11 @@ export class FlowEditor {
                 if (data.properties.text && !data.properties.name) node.Name = data.properties.text;
             }
 
-            // Ensure project reference is set for Task nodes
-            if (node instanceof FlowTask && this.project) {
-                node.setProjectRef(this.project);
+            // Ensure project reference is set for Action and Task nodes
+            // This allows them to recalculate details from the Single Source of Truth
+            if (this.project && (node instanceof FlowTask || node instanceof FlowAction)) {
+                // This will internally call setShowDetails if this.showDetails is true
+                (node as any).setProjectRef(this.project);
             }
 
             // Restore loops and variables
@@ -4567,7 +4572,7 @@ export class FlowEditor {
             node.Width = maxActionWidth;
             node.Height = baseNodeHeight;
 
-            node.data = { isOverviewLink: true, type: 'Action', canDelete: !isUsed, originalIndex: item.originalIndex };
+            node.data = { ...action, isOverviewLink: true, type: action.type || 'Action', canDelete: !isUsed, originalIndex: item.originalIndex };
             node.setDetailed(true);
 
             (node as any).setUsageInfo(refs);

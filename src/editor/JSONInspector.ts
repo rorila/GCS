@@ -201,6 +201,21 @@ export class JSONInspector {
      * Updates the inspector with a new selected object
      */
     public async update(object: any) {
+        // CRITICAL: Clear previous bindings and objects to prevent memory leaks and log floods
+        this.runtime.clear();
+
+        // Re-register required base variables after clear
+        if (this.project) {
+            this.runtime.registerVariable('project', this.project);
+            this.runtime.registerVariable('availableTasks', this.project.tasks?.map(t => t.name) || []);
+            this.runtime.registerVariable('availableActions', this.project.actions?.map(a => a.name) || []);
+            this.runtime.registerVariable('getAllActionTypes', () => {
+                return actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
+            });
+            const activeStage = this.project.stages?.find(s => s.id === this.project?.activeStageId);
+            this.runtime.registerVariable('activeStage', activeStage || null);
+        }
+
         let inspectorFile = './inspector.json';
 
         // Check if this is a TInspectorTemplate - use special designer

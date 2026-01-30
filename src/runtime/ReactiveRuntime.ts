@@ -98,7 +98,7 @@ export class ReactiveRuntime {
                 const newValue = ExpressionParser.interpolate(expression, context);
                 const targetName = targetObj.name || targetObj.id || 'Unknown';
 
-                console.log(`%c[Binding] Updating ${targetName}.${targetProp} ← ${newValue}`, 'color: #9c27b0; font-weight: bold');
+                console.debug(`%c[Binding] Updating ${targetName}.${targetProp} ← ${newValue}`, 'color: #9c27b0; font-weight: bold');
 
                 // Update target property
                 if (targetProp.includes('.')) {

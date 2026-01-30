@@ -9,6 +9,11 @@ Die Klasse `Editor.ts` fungiert nur noch als Orchestrator. Die Fachlogik liegt i
 - **EditorViewManager.ts**: Steuerung der Tabs und Ansichten (Stage, Flow, JSON, Pascal).
 - **RefactoringManager.ts**: Projektweite Umbenennungen und Referenz-Updates.
 
+### Stage-Awareness in der Entwicklung
+- **Code-Generierung**: Bei der Generierung von Code (z.B. `PascalGenerator`) muss immer projektweit gesucht werden (Global + alle Stages), da Tasks und Aktionen in verschiedenen Scopes liegen können.
+- **Refactoring**: Operationen wie Löschen (`deleteTask`, `deleteAction`) oder Bereinigen (`cleanActionSequences`) müssen zwingend alle Stages iterieren, um verwaiste Referenzen oder Datenleichen in nicht-aktiven Stages zu vermeiden.
+- **Primat der Stages**: Da der Editor zunehmend stage-basiert arbeitet, sollten neue Funktionen standardmäßig stage-übergreifend implementiert werden.
+
 ### Runtime-Architektur
 Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **RuntimeStageManager.ts**: Auflösung der Vererbungskette (`inheritsFrom`), Mergen von Objekten/Tasks aus mehreren Ebenen.
@@ -405,6 +410,11 @@ Tasks werden nicht nur über ihren Namen, sondern über eine **Logik-Signatur** 
 - **Sichtbarkeit Priorität**: Die Eigenschaft `visible` hat im Stage-Renderer IMMER Vorrang. Vermeide "Force-Visible"-Logiken (z.B. bei Vorhandensein eines Bildes), da diese die reaktive Logik der Engine unterlaufen.
 - **Auto-Konvertierung**: Nutze `PropertyHelper.autoConvert`, um String-Ergebnisse der Interpolation (`"true"`, `"123"`) wieder in ihre korrekten Typen (`boolean`, `number`) zu wandeln, bevor sie auf Komponenten-Eigenschaften angewendet werden.
 
-## Visual vs. Data Integrity (Kürzung)
-- **Visuelle Textkürzung**: Um FlowCharts kompakt zu halten, werden lange Texte (z.B. in `FlowAction`) in der Diagrammansicht visuell gekürzt (via `formatValue`).
-- **Datenintegrität**: Diese Kürzung darf NUR beim Rendern erfolgen. Die zugrunde liegenden Daten (z.B. die Eigenschaft `Details` in `FlowElement`) müssen stets den vollständigen, ungekürzten Text enthalten, damit er im Inspector, im Pascal-Code und exportierten JSON korrekt erhalten bleibt.
+## Visual vs. Data Integrity (Kürzung & Links)
+- **Visuelle Textkürzung**: Um FlowCharts kompakt zu halten, werden lange Texte (z.B. in `FlowAction`) in der Diagrammansicht visuell gekürzt.
+- **Datenintegrität**: Diese Kürzung darf NUR beim Rendern erfolgen.
+    - **FlowAction**: Methoden wie `getActionDetails` müssen stets den VOLLSTÄNDIGEN Datensatz zurckgeben. Die Kürzung passiert erst im HTML-Template (`slice` auf View-Ebene).
+    - **FlowTask**: Verwende `white-space: nowrap`, damit Layout-Berechnungen (`autoSize`) auf der realen Textbreite basieren und nicht auf umgebrochenen Fragmenten. Dies verhindert, dass Nodes zu klein gerendert werden.
+- **Single Source of Truth (SSoT)**:
+    - **Actions**: Global definierte Aktionen sind die Quelle der Wahrheit. Verlinkte Nodes speichern nur eine Referenz (`isLinked: true`, `name`).
+    - **Kritische Pfade**: Beim Speichern (`toJSON`) dürfen verlinkte Daten NICHT überschrieben werden. Kopiere niemals gekürzte View-Daten zurück in das Datenmodell.

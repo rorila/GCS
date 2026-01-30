@@ -7,6 +7,10 @@
     "dev": "vite",
     "predev": "npm run bundle:runtime",
     "bundle:runtime": "esbuild src/player-standalone.ts --bundle --outfile=public/runtime-standalone.js --format=iife --target=es2020",
+    "clean": "npm run clean:vite && npm run clean:build && npm run clean:runtime",
+    "clean:vite": "if exist node_modules\\.vite rmdir /s /q node_modules\\.vite",
+    "clean:build": "if exist dist rmdir /s /q dist",
+    "clean:runtime": "if exist public\\runtime-standalone.js del /f /q public\\runtime-standalone.js",
     "build": "npm run bundle:runtime && tsc && vite build",
     "preview": "vite preview"
   },

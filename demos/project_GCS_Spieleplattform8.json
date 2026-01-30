@@ -345,7 +345,7 @@
               "type": "Task",
               "x": 80,
               "y": 180,
-              "width": 160,
+              "width": 180,
               "height": 60,
               "properties": {
                 "name": "ShowTestOkInfo",
@@ -355,7 +355,7 @@
               "data": {
                 "name": "ShowTestOkInfo",
                 "paramValues": {},
-                "showDetails": true
+                "showDetails": false
               }
             },
             {
@@ -363,7 +363,7 @@
               "type": "Action",
               "x": 380,
               "y": 80,
-              "width": 260,
+              "width": 180,
               "height": 80,
               "properties": {
                 "name": "Label_7.captionTrue",
@@ -380,8 +380,8 @@
               "type": "Action",
               "x": 380,
               "y": 180,
-              "width": 240,
-              "height": 80,
+              "width": 220,
+              "height": 60,
               "properties": {
                 "name": "BrightBulb.visibleTrue",
                 "details": "brightBulb.visible := ${true }",
@@ -397,8 +397,8 @@
               "type": "Action",
               "x": 380,
               "y": 280,
-              "width": 240,
-              "height": 80,
+              "width": 200,
+              "height": 60,
               "properties": {
                 "name": "DarkBulb.visibleFalse",
                 "details": "DarkBulb.visible := ${false }",
@@ -480,11 +480,11 @@
               "type": "Action",
               "x": 360,
               "y": 80,
-              "width": 280,
+              "width": 400,
               "height": 80,
               "properties": {
                 "name": "messageVar.triggerOff",
-                "details": "messageVar.value := Der Triggerw...",
+                "details": "messageVar.value := Der Triggerwert ist ungleich 10 ",
                 "description": ""
               },
               "data": {
@@ -497,11 +497,11 @@
               "type": "Action",
               "x": 360,
               "y": 180,
-              "width": 220,
+              "width": 240,
               "height": 80,
               "properties": {
                 "name": "ActionBlaBla",
-                "details": "DarkBulb.visible := ${true }",
+                "details": "DarkBulb.visible := ${true }  ",
                 "description": ""
               },
               "data": {
@@ -514,11 +514,11 @@
               "type": "Action",
               "x": 360,
               "y": 280,
-              "width": 240,
+              "width": 260,
               "height": 80,
               "properties": {
                 "name": "Action2",
-                "details": "brightBulb.visible := ${false }",
+                "details": "brightBulb.visible := ${false }  ",
                 "description": ""
               },
               "data": {
@@ -734,8 +734,7 @@
             }
           ],
           "triggerMode": "local-sync",
-          "description": "",
-          "params": []
+          "description": ""
         },
         {
           "name": "ShowNotOkStatus",
@@ -766,8 +765,7 @@
             }
           ],
           "triggerMode": "local-sync",
-          "description": "",
-          "params": []
+          "description": ""
         }
       ],
       "actions": [
@@ -784,11 +782,6 @@
           "description": ""
         },
         {
-          "name": "Action1",
-          "details": "(nicht definiert)",
-          "showDetails": true
-        },
-        {
           "name": "Label_7.captionTrue",
           "details": "messageVar.value := Trigger zündet",
           "showDetails": true,
@@ -803,11 +796,11 @@
         {
           "name": "BrightBulb.visibleTrue",
           "details": "brightBulb.visible := ${true }",
-          "showDetails": true,
+          "showDetails": false,
           "type": "property",
           "target": "brightBulb",
           "changes": {
-            "visible": "${true }"
+            "visible": "${true } "
           },
           "method": "",
           "description": ""
@@ -815,11 +808,11 @@
         {
           "name": "DarkBulb.visibleFalse",
           "details": "DarkBulb.visible := ${false }",
-          "showDetails": true,
+          "showDetails": false,
           "type": "property",
           "target": "DarkBulb",
           "changes": {
-            "visible": "${false }"
+            "visible": "${false } "
           },
           "method": "",
           "description": ""
@@ -830,11 +823,11 @@
           "type": "property",
           "target": "messageVar",
           "changes": {
-            "value": "Der Triggerw..."
+            "value": "Der Triggerwert ist ungleich 10"
           },
           "method": "",
           "description": "",
-          "details": "messageVar.value := Der Triggerw..."
+          "details": "messageVar.value := Der Triggerwert ist ungleich 10"
         },
         {
           "name": "ActionBlaBla",
@@ -843,7 +836,7 @@
           "type": "property",
           "target": "DarkBulb",
           "changes": {
-            "visible": "${true }"
+            "visible": "${true } "
           },
           "method": "",
           "description": ""
@@ -854,7 +847,7 @@
           "type": "property",
           "target": "brightBulb",
           "changes": {
-            "visible": "${false }"
+            "visible": "${false } "
           },
           "method": "",
           "description": "",
@@ -880,11 +873,14 @@
       "type": "standard",
       "objects": [
         {
-          "className": "TInputController",
           "id": "obj_1769360082755_tsulj8sve",
-          "isVariable": false,
           "name": "InputController_2",
+          "className": "TInputController",
+          "parent": null,
+          "children": [],
+          "Tasks": {},
           "scope": "global",
+          "isVariable": false,
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
@@ -893,20 +889,33 @@
           "width": 6,
           "height": 2,
           "zIndex": 0,
-          "align": "NONE",
-          "text": "",
+          "_align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2,
+            "color": "#ffffff"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
           "visible": true,
-          "style.backgroundColor": "#9c27b0",
-          "style.borderColor": "#6a1b9a",
-          "style.borderWidth": 2,
-          "enabled": true
+          "text": "",
+          "isAnimating": false,
+          "enabled": true,
+          "keysPressed": {},
+          "isActive": false,
+          "eventCallback": null
         },
         {
-          "className": "TButton",
           "id": "obj_1769365791573_p3cgrh3s0",
-          "isVariable": false,
           "name": "Button_3",
+          "className": "TButton",
+          "parent": null,
+          "children": [],
+          "Tasks": {},
           "scope": "stage",
+          "isVariable": false,
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
@@ -915,18 +924,24 @@
           "width": 6,
           "height": 2,
           "zIndex": 0,
-          "align": "NONE",
-          "text": "Button_3",
+          "_align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1,
+            "fontSize": 14,
+            "color": "#ffffff",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial"
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
           "visible": true,
-          "style.backgroundColor": "#007bff",
-          "style.borderColor": "#000000",
-          "style.borderWidth": 1,
-          "style.fontSize": 14,
-          "style.fontWeight": "bold",
-          "style.fontStyle": "normal",
-          "style.textAlign": "center",
-          "style.fontFamily": "Arial",
-          "style.color": "#ffffff",
+          "text": "Button_3",
+          "isAnimating": false,
           "icon": ""
         }
       ],
@@ -940,11 +955,14 @@
       },
       "variables": [
         {
-          "className": "TTriggerVariable",
           "id": "obj_1769364560469_8r8dqzg33",
-          "isVariable": true,
           "name": "testTriggerVar",
+          "className": "TTriggerVariable",
+          "parent": null,
+          "children": [],
+          "Tasks": {},
           "scope": "global",
+          "isVariable": true,
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
@@ -953,12 +971,18 @@
           "width": 6,
           "height": 2,
           "zIndex": 0,
-          "align": "NONE",
-          "text": "",
+          "_align": "NONE",
+          "style": {
+            "visible": true,
+            "backgroundColor": "#f44336",
+            "borderColor": "#d32f2f",
+            "borderWidth": 2
+          },
+          "onFocusCallback": null,
+          "onBlurCallback": null,
           "visible": true,
-          "style.backgroundColor": "#f44336",
-          "style.borderColor": "#d32f2f",
-          "style.borderWidth": 2,
+          "text": "",
+          "isAnimating": false,
           "value": 0,
           "triggerValue": 1
         }

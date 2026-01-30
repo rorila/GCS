@@ -231,7 +231,21 @@ export class PascalGenerator {
      * Generates a single Pascal procedure for a task
      */
     public static generateProcedure(project: GameProject, taskName: string, indent: number = 0, sequenceOverride?: SequenceItem[], asHtml: boolean = true, activeStage?: any): string {
-        const task = project.tasks.find(t => t.name === taskName) || (activeStage?.tasks?.find((t: any) => t.name === taskName));
+        // Robust Search: Global -> Active Stage -> Any other Stage
+        let task = project.tasks.find(t => t.name === taskName);
+        if (!task && activeStage) {
+            task = activeStage.tasks?.find((t: any) => t.name === taskName);
+        }
+        if (!task && project.stages) {
+            for (const s of project.stages) {
+                const found = s.tasks?.find((t: any) => t.name === taskName);
+                if (found) {
+                    task = found;
+                    break;
+                }
+            }
+        }
+
         const sequence = sequenceOverride || task?.actionSequence || [];
 
         const lines: string[] = [];

@@ -47,7 +47,13 @@ export class FlowAction extends FlowElement {
     private projectRef: GameProject | null = null;
 
     public setProjectRef(project: GameProject | null) {
+        if (this.projectRef === project) return; // Guard against infinite recursion
         this.projectRef = project;
+        // SINGLE SOURCE OF TRUTH: If project is set, we can recalculate details from the true definition
+        // This fixes cases where truncated "details" were loaded from saved JSON.
+        if (project && this.showDetails) {
+            this.setShowDetails(true, project);
+        }
     }
 
     /**
@@ -236,7 +242,11 @@ export class FlowAction extends FlowElement {
      */
     public setShowDetails(show: boolean, project: GameProject | null): void {
         super.setShowDetails(show, project);
-        if (project) this.setProjectRef(project);
+        // Do NOT call setProjectRef here if project is already set, 
+        // to avoid infinite recursion (setShowDetails -> setProjectRef -> setShowDetails)
+        if (project && this.projectRef !== project) {
+            this.setProjectRef(project);
+        }
 
         const title = this.Name;
         const action = this.getActionDefinition(); // Use helper
@@ -255,17 +265,33 @@ export class FlowAction extends FlowElement {
             const displayAction = action;
             this.Details = this.getActionDetails(displayAction);
 
+            const allDetails = this.Details.split(';').map(d => d.trim()).filter(d => d);
+            const visibleDetails = allDetails.slice(0, 2);
+            const hiddenCount = allDetails.length - 2;
+
             this.content.innerHTML = `
                 <div style="text-align:center;padding:8px 4px" translate="no">
                     <div style="font-weight:bold;font-size:12px;white-space:nowrap">${title}</div>
                     <div style="font-family:'Courier New', monospace;font-size:10px;color:#00ffff;margin-top:4px;font-weight:normal;line-height:1.2">
-                        ${this.Details.split(';').map(d => `<div style="white-space:nowrap">${this.formatValue(d.trim())}</div>`).join('')}
-                    </div>
+                    ${visibleDetails.map(d => `<div title="${d}" style="white-space:nowrap; cursor:help">${this.formatValue(d)}</div>`).join('')}
+                    ${hiddenCount > 0 ? `<div style="font-size:9px;color:#888;font-style:italic;margin-top:2px">(+${hiddenCount})</div>` : ''}
                 </div>
-            `;
+            </div>
+        `;
 
             this.element.style.borderRadius = '15px';
+
+            // Standard autoSize often fails with glass-node styles in some contexts, so we enforce minimum width based on text length
             this.autoSize();
+
+            // Manual override: Check if width is enough for the content
+            const maxLineLength = Math.max(title.length, ...this.Details.split(';').map(d => this.formatValue(d.trim()).length));
+            // Approx 7px per char + 40px padding
+            const requiredWidth = (maxLineLength * 7) + 40;
+            if (this.width < requiredWidth) {
+                this.width = Math.ceil(requiredWidth / this.gridSize) * this.gridSize;
+                this.updatePosition();
+            }
         }
 
         // Apply visual updates
@@ -327,40 +353,39 @@ export class FlowAction extends FlowElement {
             }
 
             return entries
-                .slice(0, 2) // Maximal 2 Änderungen anzeigen
-                .map(([prop, value]) => `${displayAction.target}.${prop} := ${value}`)
-                .join('; ') + (entries.length > 2 ? ` (+${entries.length - 2})` : '');
+                .map(([prop, value]) => `${displayAction.target}.${prop} := ${value} `)
+                .join('; ');
         }
 
         if (displayAction.type === 'variable') {
-            return `${displayAction.variableName} := ${displayAction.source}.${displayAction.sourceProperty}`;
+            return `${displayAction.variableName} := ${displayAction.source}.${displayAction.sourceProperty} `;
         }
 
         if (displayAction.type === 'service') {
             const result = displayAction.resultVariable ? `${displayAction.resultVariable} := ` : '';
-            return `${result}${displayAction.service}.${displayAction.method}()`;
+            return `${result}${displayAction.service}.${displayAction.method} ()`;
         }
 
         if (displayAction.type === 'calculate') {
             const result = displayAction.resultVariable ? `${displayAction.resultVariable} := ` : '';
-            return `${result}(Berechnung)`;
+            return `${result} (Berechnung)`;
         }
 
         if (displayAction.type === 'call_method') {
             // Cast to access properties that might be missing in strict type (until generic params are fully typed)
             const da = displayAction as any;
             const params = da.params ? (Array.isArray(da.params) ? da.params.join(', ') : da.params) : '';
-            return `${da.target}.${da.method}(${params})`;
+            return `${da.target}.${da.method} (${params})`;
         }
 
         return `(${displayAction.type})`;
     }
 
-    private formatValue(value: any): string {
+    private formatValue(value: any, truncate: boolean = true): string {
         if (typeof value === 'string') {
-            // Kürzen wenn zu lang
-            if (value.length > 15) {
-                return value.substring(0, 12) + '...';
+            // Kürzen wenn zu lang (Limit erhöht auf 100 für bessere Lesbarkeit in Flow-Diagrammen)
+            if (truncate && value.length > 100) {
+                return value.substring(0, 97) + '...';
             }
             return value;
         }

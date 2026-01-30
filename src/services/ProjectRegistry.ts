@@ -84,11 +84,14 @@ export class ProjectRegistry {
             visibleVars = visibleVars.filter(v => v.uiScope === 'stage' || v.uiScope === 'local');
         }
 
+        // Optimization: Return without usage calculation if not requested
+        if (!resolveUsage) return visibleVars as ScopedVariable[];
+
         const vars = visibleVars.map(v => ({
             ...v,
-            usageCount: resolveUsage ? this.getVariableUsage(v.name).length : 0
+            usageCount: this.getVariableUsage(v.name).length
         }));
-        return vars;
+        return vars as ScopedVariable[];
     }
 
     public validateVariableName(name: string, context?: VariableScopeContext): { valid: boolean; error?: string } {
@@ -98,12 +101,6 @@ export class ProjectRegistry {
         }
 
         // Rule 2: Uniqueness in visible scope
-        // Note: Shadowing global variables might be allowed in some langs, but here we enforce uniqueness to avoid confusion?
-        // Let's enforce global uniqueness for simplicity for now, or at least check against conflicts.
-        // Actually, user wants scope rules. Shadowing is typically tricky. 
-        // Let's check if name already exists in the *same* scope.
-        // And maybe warn if it shadows an outer scope.
-
         const visibleVars = this.getVariables(context);
         if (visibleVars.some(v => v.name === name)) {
             return { valid: false, error: 'Name bereits vergeben.' };
@@ -214,10 +211,6 @@ export class ProjectRegistry {
 
     private activeStageId: string | null = null;
 
-    /**
-     * Set the active stage ID to filter getObjects() results.
-     * If null, returns objects from all stages.
-     */
     public setActiveStageId(id: string | null): void {
         this.activeStageId = id;
     }
@@ -226,34 +219,18 @@ export class ProjectRegistry {
         return this.activeStageId;
     }
 
-    /**
-     * Returns objects for the current context:
-     * - If activeStageId is set, returns objects from that stage PLUS global services from all stages
-     * - Otherwise, returns all objects from all stages (plus legacy project.objects)
-     */
     public getObjects(scopeFilter?: 'stage-only' | 'all'): TWindow[] {
         if (!this.project) return [];
 
-        // Global service components (visible across all stages)
         const globalServiceClasses = [
-            'TStageController',
-            'TGameLoop',
-            'TGameState',
-            'TGameServer',
-            'TInputController',
-            'THandshake',
-            'THeartbeat',
-            'TToast',
-            'TStatusBar'
+            'TStageController', 'TGameLoop', 'TGameState', 'TGameServer',
+            'TInputController', 'THandshake', 'THeartbeat', 'TToast', 'TStatusBar'
         ];
 
-        // If using multi-stage architecture
         if (this.project.stages && this.project.stages.length > 0) {
-            // Context-aware collection
             const allObjects: TWindow[] = [];
             const objectIds = new Set<string>();
 
-            // 1. Add objects from active stage (if set)
             if (this.activeStageId) {
                 const activeStage = this.project.stages.find((s: any) => s.id === this.activeStageId);
                 if (activeStage && activeStage.objects) {
@@ -264,7 +241,6 @@ export class ProjectRegistry {
                 }
             }
 
-            // 2. Add global services from ALL stages (even if not on active stage)
             this.project.stages.forEach((stage: any) => {
                 if (stage.objects && Array.isArray(stage.objects)) {
                     stage.objects.forEach((obj: any) => {
@@ -276,9 +252,7 @@ export class ProjectRegistry {
                 }
             });
 
-            // 3. Apply scope filter
             if (scopeFilter === 'stage-only') {
-                // Return only objects from exact active stage (exclude globals)
                 const activeStage = this.project.stages.find((s: any) => s.id === this.activeStageId);
                 return activeStage?.objects || [];
             }
@@ -286,7 +260,6 @@ export class ProjectRegistry {
             return allObjects;
         }
 
-        // Legacy fallback: use project.objects directly
         return this.project.objects || [];
     }
 
@@ -307,19 +280,15 @@ export class ProjectRegistry {
     }
 
     public validateObjectName(name: string): { valid: boolean; error?: string } {
-        // Rule: PascalCase
-        if (!/^[A-Z][a-zA-Z0-9_]*$/.test(name)) { // Allow underscores for generated names like Button_1
+        if (!/^[A-Z][a-zA-Z0-9_]*$/.test(name)) {
             return { valid: false, error: 'Objekt-Namen müssen mit einem Großbuchstaben beginnen.' };
         }
 
-        // Rule: Unique across Stage Objects AND Flow Objects
-        // Use getObjects() to get the correct object list (which includes active stage + globals)
         const objects = this.getObjects();
         if (objects.some(o => o.name === name)) {
             return { valid: false, error: 'Objekt-Name existiert bereits auf der Stage.' };
         }
 
-        // Check Flow Objects in ALL charts
         const checkFlows = (charts: any) => {
             if (!charts) return false;
             return Object.values(charts).some((chart: any) =>
@@ -346,57 +315,31 @@ export class ProjectRegistry {
     //  Reference Tracking
     // =========================================================================================
 
-    /**
-     * Finds all references to a specific named entity (Task, Action, Variable or Object)
-     */
     public findReferences(name: string): string[] {
-        console.log(`%c[ProjectRegistry] findReferences('${name}') START`, "color: #00bcd4; font-weight: bold;");
-        // alert("ProjectRegistry: Suche Referenzen für: " + name); 
         const refs: string[] = [];
-        if (!this.project) {
-            console.warn(`[ProjectRegistry] findReferences: No project loaded!`);
-            return refs;
-        }
+        if (!this.project) return refs;
 
         const taskRefs = this.getTaskUsage(name);
         const actionRefs = this.getActionUsage(name);
         const varRefs = this.getVariableUsage(name);
         const objRefs = this.getObjectUsage(name);
 
-        const allRefs = [
-            ...taskRefs,
-            ...actionRefs,
-            ...varRefs,
-            ...objRefs
-        ].filter((v, i, a) => a.indexOf(v) === i);
-
-        console.log(`[ProjectRegistry] findReferences('${name}') END. Found ${allRefs.length} total refs. (T:${taskRefs.length}, A:${actionRefs.length}, V:${varRefs.length}, O:${objRefs.length})`);
-        return allRefs;
+        return [...taskRefs, ...actionRefs, ...varRefs, ...objRefs].filter((v, i, a) => a.indexOf(v) === i);
     }
 
     public getObjectUsage(name: string): string[] {
-        console.log(`  [ProjectRegistry] getObjectUsage('${name}')`);
         const refs: string[] = [];
         if (!this.project) return refs;
 
-        // 1. Used in Actions (Target or Source or interpolations) - AVOID RECURSION
         this.getActions('all', false).forEach(action => {
-            if (action.target === name) {
-                refs.push(`Aktion: ${action.name} -> Target ist Objekt: ${name}`);
-            }
-            if (action.source === name) {
-                refs.push(`Aktion: ${action.name} -> Source ist Objekt: ${name}`);
-            }
-            // Interpolations in changes
+            if (action.target === name) refs.push(`Aktion: ${action.name} -> Target ist Objekt: ${name}`);
+            if (action.source === name) refs.push(`Aktion: ${action.name} -> Source ist Objekt: ${name}`);
             if (action.changes) {
                 const str = JSON.stringify(action.changes);
-                if (str.includes(`\${${name}.`)) {
-                    refs.push(`Aktion: ${action.name} -> Referenziert Objekt: ${name}`);
-                }
+                if (str.includes(`\${${name}.`)) refs.push(`Aktion: ${action.name} -> Referenziert Objekt: ${name}`);
             }
         });
 
-        // 2. Used in Input Configuration
         const checkInput = (input: any, source: string) => {
             if (input.player1Target === name) refs.push(`${source} -> Player 1 Target ist: ${name}`);
             if (input.player2Target === name) refs.push(`${source} -> Player 2 Target ist: ${name}`);
@@ -407,35 +350,24 @@ export class ProjectRegistry {
             if (stage.input) checkInput(stage.input, `Stage: ${stage.name} Input`);
         });
 
-        // 3. Expressions in Tasks/Sequences - AVOID RECURSION
         const objRegex = new RegExp(`\\$\\{${name}\\.`, 'g');
         this.getTasks('all', false).forEach(task => {
             const str = JSON.stringify(task.actionSequence);
-            if (objRegex.test(str)) {
-                refs.push(`Task: ${task.name} -> Referenziert Objekt: ${name}`);
-            }
+            if (objRegex.test(str)) refs.push(`Task: ${task.name} -> Referenziert Objekt: ${name}`);
         });
 
-        // 4. Object Bindings
         this.getAllObjectsWithSource().forEach(({ obj, source }) => {
             const str = JSON.stringify(obj);
-            if (objRegex.test(str)) {
-                refs.push(`${source} Objekt: ${obj.name} -> Binding auf Objekt: ${name}`);
-            }
+            if (objRegex.test(str)) refs.push(`${source} Objekt: ${obj.name} -> Binding auf Objekt: ${name}`);
         });
 
         return refs;
     }
 
-    /**
-     * Sammelt ALLE Task-Namen, die irgendwo im Projekt-JSON referenziert werden.
-     * Dies ist die "Soll"-Liste der benutzten Tasks.
-     */
     public getAllReferencedTaskNames(): Set<string> {
         const referenced = new Set<string>();
         if (!this.project) return referenced;
 
-        // 1. Tasks in Sequenzen (Aufrufe, Then, Else)
         this.getTasks('all', false).forEach(task => {
             const scanSeq = (seq: any[]) => {
                 if (!seq) return;
@@ -449,12 +381,9 @@ export class ProjectRegistry {
             scanSeq(task.actionSequence);
         });
 
-        // 2. Events an Objekten und Variablen
         const allPotentialHolders: any[] = [];
         this.getAllObjectsWithSource().forEach(({ obj }) => allPotentialHolders.push(obj));
-        if (this.project.variables) {
-            this.project.variables.forEach(v => allPotentialHolders.push(v));
-        }
+        if (this.project.variables) this.project.variables.forEach(v => allPotentialHolders.push(v));
         if (this.project.stages) {
             this.project.stages.forEach(s => {
                 if (s.variables) s.variables.forEach(v => allPotentialHolders.push(v));
@@ -468,9 +397,7 @@ export class ProjectRegistry {
                     if (typeof val === 'string' && (key.startsWith('on') || key === 'onChange' || key === 'onValueTrue' || key === 'onValueFalse')) {
                         referenced.add(val);
                     }
-                    if (key === 'Tasks' || key === 'events' || key === 'properties') {
-                        checkProps(val);
-                    }
+                    if (key === 'Tasks' || key === 'events' || key === 'properties') checkProps(val);
                 });
             };
             checkProps(item);
@@ -483,10 +410,8 @@ export class ProjectRegistry {
         const refs: string[] = [];
         if (!this.project) return refs;
 
-        // 1. Calls in other Tasks
         this.getTasks('all', false).forEach(task => {
             if (task.name === name) return;
-
             const scanSeq = (seq: any[]) => {
                 if (!seq) return;
                 seq.forEach(item => {
@@ -499,76 +424,45 @@ export class ProjectRegistry {
             scanSeq(task.actionSequence);
         });
 
-        // 2. Object and Variable Events
         const allPotentialHolders: { item: any, source: string }[] = [];
         this.getAllObjectsWithSource().forEach(({ obj, source }) => {
             allPotentialHolders.push({ item: obj, source: `Objekt: ${obj.name} (${source})` });
         });
 
-        if (this.project.variables) {
-            this.project.variables.forEach(v => allPotentialHolders.push({ item: v, source: `Glb-Variable: ${v.name}` }));
-        }
+        if (this.project.variables) this.project.variables.forEach(v => allPotentialHolders.push({ item: v, source: `Glb-Variable: ${v.name}` }));
         if (this.project.stages) {
             this.project.stages.forEach(s => {
-                if (s.variables) {
-                    s.variables.forEach(v => allPotentialHolders.push({ item: v, source: `Stage-Variable: ${v.name} (${s.name || s.id})` }));
-                }
+                if (s.variables) s.variables.forEach(v => allPotentialHolders.push({ item: v, source: `Stage-Variable: ${v.name} (${s.name || s.id})` }));
             });
         }
 
-
         allPotentialHolders.forEach(({ item, source }) => {
-            const initialRefsLength = refs.length;
             const checkProps = (target: any, path: string = '') => {
                 if (!target || typeof target !== 'object') return;
-
                 Object.entries(target).forEach(([key, val]) => {
-                    // Check direct property match (especially for events)
                     if (val === name) {
                         const isLikelyEvent = key.startsWith('on') || key === 'onValueTrue' || key === 'onValueFalse' || key === 'onChange';
-                        if (isLikelyEvent) {
-                            refs.push(`${source} -> Event: ${path}${key}`);
-                        } else {
-                            refs.push(`${source} -> Property: ${path}${key}`);
-                        }
+                        refs.push(`${source} -> ${isLikelyEvent ? 'Event' : 'Property'}: ${path}${key}`);
                     }
-
-                    // Recursive check for sub-objects
-                    if (key === 'Tasks' || key === 'events' || key === 'properties') {
-                        checkProps(val, `${key}.`);
-                    }
+                    if (key === 'Tasks' || key === 'events' || key === 'properties') checkProps(val, `${key}.`);
                 });
             };
-
             checkProps(item);
-
-            // HAMMER SCAN: If no ref found by structure, try simple JSON search as safety net
-            if (refs.length === initialRefsLength) {
-                try {
-                    const json = JSON.stringify(item);
-                    if (json.includes(`"${name}"`)) {
-                        refs.push(`${source} -> Gefunden in JSON-Daten (Struktur-Scan fehlgeschlagen)`);
-                    }
-                } catch (e) { }
-            }
         });
 
         return refs;
     }
 
     public getActionUsage(name: string): string[] {
-        console.log(`  [ProjectRegistry] getActionUsage('${name}')`);
+        // console.log(`  [ProjectRegistry] getActionUsage('${name}')`);
         const refs: string[] = [];
         if (!this.project) return refs;
 
-        // 1. Used in Tasks - AVOID RECURSION
         this.getTasks('all', false).forEach(task => {
             const scanSeq = (seq: any[]) => {
                 if (!seq) return;
                 seq.forEach(item => {
-                    if (item.type === 'action' && item.name === name) {
-                        refs.push(`Task: ${task.name} -> Verwendet Aktion: ${name}`);
-                    }
+                    if (item.type === 'action' && item.name === name) refs.push(`Task: ${task.name} -> Verwendet Aktion: ${name}`);
                     if (item.thenAction === name) refs.push(`Task: ${task.name} -> Condition (Then): ${name}`);
                     if (item.elseAction === name) refs.push(`Task: ${task.name} -> Condition (Else): ${name}`);
                     if (item.body) scanSeq(item.body);
@@ -581,45 +475,29 @@ export class ProjectRegistry {
     }
 
     public getVariableUsage(name: string): string[] {
-        console.log(`  [ProjectRegistry] getVariableUsage('${name}')`);
+        // console.log(`  [ProjectRegistry] getVariableUsage('${name}')`);
         const refs: string[] = [];
         if (!this.project) return refs;
 
-        const varRegex = new RegExp(`\\$\\{${name}([.}]|$)`); // Matches ${var} or ${var.prop}
-
-        // 1. Used in Task Actions / Expressions
+        const varRegex = new RegExp(`\\$\\{${name}([.}]|$)`);
         this.getTasks('all', false).forEach(task => {
             const scanSeq = (seq: any[]) => {
                 if (!seq) return;
                 seq.forEach(item => {
-                    const str = JSON.stringify(item);
-                    if (varRegex.test(str)) {
-                        refs.push(`Task: ${task.name} -> Referenziert Variable: ${name}`);
-                    }
-
-                    // Direct Action fields
+                    if (varRegex.test(JSON.stringify(item))) refs.push(`Task: ${task.name} -> Referenziert Variable: ${name}`);
                     if (item.type === 'action') {
                         const action = item as any;
-                        if (action.variableName === name || action.resultVariable === name) {
-                            refs.push(`Task: ${task.name} -> Aktion nutzt Variable: ${name}`);
-                        }
+                        if (action.variableName === name || action.resultVariable === name) refs.push(`Task: ${task.name} -> Aktion nutzt Variable: ${name}`);
                     }
-                    if (item.condition && (item.condition.variable === name)) {
-                        refs.push(`Task: ${task.name} -> Bedingung nutzt Variable: ${name}`);
-                    }
-
+                    if (item.condition && (item.condition.variable === name)) refs.push(`Task: ${task.name} -> Bedingung nutzt Variable: ${name}`);
                     if (item.body) scanSeq(item.body);
                 });
             };
             scanSeq(task.actionSequence);
         });
 
-        // 2. Used in Object Properties (Bindings)
         this.getAllObjectsWithSource().forEach(({ obj, source }) => {
-            const str = JSON.stringify(obj);
-            if (varRegex.test(str)) {
-                refs.push(`${source} Objekt: ${obj.name} -> Binding auf Variable: ${name}`);
-            }
+            if (varRegex.test(JSON.stringify(obj))) refs.push(`${source} Objekt: ${obj.name} -> Binding auf Variable: ${name}`);
         });
 
         return refs;
@@ -628,7 +506,6 @@ export class ProjectRegistry {
     private getAllObjectsWithSource(): { obj: any, source: string }[] {
         const results: { obj: any, source: string }[] = [];
         if (!this.project) return results;
-
         (this.project.objects || []).forEach(obj => results.push({ obj, source: 'Global' }));
         if (this.project.stages) {
             this.project.stages.forEach(s => {
@@ -638,50 +515,20 @@ export class ProjectRegistry {
         return results;
     }
 
-    // =========================================================================================
-    //  Renaming
-    // =========================================================================================
-
     public renameVariable(oldName: string, newName: string): boolean {
-        if (!this.project) return false;
-
-        // 1. Validate new name
-        // Scope context is hard to know here, assuming global check vs all visible for now or just generic valid check
-        if (!this.validateVariableName(newName).valid) return false;
-
-        // 2. Rename definition
+        if (!this.project || !this.validateVariableName(newName).valid) return false;
         const variable = this.project.variables.find(v => v.name === oldName);
-        if (variable) {
-            variable.name = newName;
-        } else {
-            return false;
-        }
-
-        // 3. Update references
-        // Update in Property Bindings: ${oldName} -> ${newName}
+        if (variable) { variable.name = newName; } else { return false; }
         this.updateReferencesInProperties(oldName, newName);
-
-        // Update in Actions (variableName, source, arguments)
         this.updateReferencesInActions(oldName, newName);
-
         return true;
     }
 
     public renameTask(oldName: string, newName: string): boolean {
-        if (!this.project) return false;
-        if (!this.validateTaskName(newName).valid) return false;
+        if (!this.project || !this.validateTaskName(newName).valid) return false;
+        let task = this.getTasks().find(t => t.name === oldName);
+        if (task) { task.name = newName; } else { return false; }
 
-        // Find and rename in whichever collection it resides
-        let task: GameTask | undefined;
-        task = this.getTasks().find(t => t.name === oldName);
-        if (task) {
-            task.name = newName;
-        } else {
-            console.warn(`[ProjectRegistry] renameTask: Task '${oldName}' not found.`);
-            return false;
-        }
-
-        // 1. Update calls to this task in ALL Task Sequences
         this.getTasks().forEach(t => {
             if (t.actionSequence) {
                 t.actionSequence.forEach(item => {
@@ -692,16 +539,12 @@ export class ProjectRegistry {
             }
         });
 
-        // 2. Update Object Events
         this.getAllObjectsWithSource().forEach(({ obj }) => {
             if (obj.Tasks) {
-                Object.keys(obj.Tasks).forEach(key => {
-                    if (obj.Tasks[key] === oldName) obj.Tasks[key] = newName;
-                });
+                Object.keys(obj.Tasks).forEach(key => { if (obj.Tasks[key] === oldName) obj.Tasks[key] = newName; });
             }
         });
 
-        // 3. Rename Flow Charts
         if (this.project.flowCharts && this.project.flowCharts[oldName]) {
             this.project.flowCharts[newName] = this.project.flowCharts[oldName];
             delete this.project.flowCharts[oldName];
@@ -714,23 +557,15 @@ export class ProjectRegistry {
                 }
             });
         }
-
         return true;
     }
 
     public deleteTask(name: string): boolean {
         if (!this.project) return false;
-
-        // 1. Find the task to get its actions before deletion
-        const allTasks = this.getTasks();
-        const task = allTasks.find(t => t.name === name);
+        const task = this.getTasks().find(t => t.name === name);
         if (!task) return false;
 
-        const actionsToCleanup = (task.actionSequence || [])
-            .filter(item => item.type === 'action')
-            .map(item => item.name!);
-
-        // 2. Remove Task from project/stages
+        const actionsToCleanup = (task.actionSequence || []).filter(item => item.type === 'action').map(item => item.name!);
         this.project.tasks = this.project.tasks.filter(t => t.name !== name);
         if (this.project.stages) {
             this.project.stages.forEach(s => {
@@ -740,34 +575,23 @@ export class ProjectRegistry {
         }
         if (this.project.flowCharts && this.project.flowCharts[name]) delete this.project.flowCharts[name];
 
-        // 3. Orphan Action Cleanup
         actionsToCleanup.forEach(actionName => {
-            if (this.getActionUsage(actionName).length === 0) {
-                console.log(`[ProjectRegistry] Cleaning up orphan action: ${actionName}`);
-                this.deleteAction(actionName);
-            }
+            if (this.getActionUsage(actionName).length === 0) this.deleteAction(actionName);
         });
 
-        // 4. Update References (Calls/Events)
-        // Clear references in other tasks
         this.getTasks().forEach(t => {
             if (t.actionSequence) {
                 t.actionSequence.forEach(item => {
-                    if (item.type === 'task' && item.name === name) {
-                        item.name = ''; // Or keep as placeholder? For now clear.
-                    }
+                    if (item.type === 'task' && item.name === name) item.name = '';
                     if (item.thenTask === name) item.thenTask = '';
                     if (item.elseTask === name) item.elseTask = '';
                 });
             }
         });
 
-        // Clear Object Events
         this.getAllObjectsWithSource().forEach(({ obj }) => {
             if (obj.Tasks) {
-                Object.keys(obj.Tasks).forEach(evt => {
-                    if (obj.Tasks[evt] === name) delete obj.Tasks[evt];
-                });
+                Object.keys(obj.Tasks).forEach(evt => { if (obj.Tasks[evt] === name) delete obj.Tasks[evt]; });
             }
         });
 
@@ -778,20 +602,14 @@ export class ProjectRegistry {
         if (!this.project) return false;
         this.project.actions = this.project.actions.filter(a => a.name !== name);
         if (this.project.stages) {
-            this.project.stages.forEach(s => {
-                if (s.actions) s.actions = s.actions.filter((a: any) => a.name !== name);
-            });
+            this.project.stages.forEach(s => { if (s.actions) s.actions = s.actions.filter((a: any) => a.name !== name); });
         }
         return true;
     }
 
-    /**
-     * Generates a smart name for a new action based on its initial content
-     */
     public getNextSmartActionName(action: any): string {
         const target = (action.target || 'global').replace(/[^a-zA-Z0-9]/g, '');
         let propPart = 'action';
-
         if (action.changes) {
             const keys = Object.keys(action.changes);
             if (keys.length > 0) {
@@ -802,41 +620,27 @@ export class ProjectRegistry {
                 propPart = `${firstKey}_${valStr}`;
             }
         }
-
         const baseName = `${target}_${propPart}`;
-        let finalName = baseName;
-        let counter = 1;
-
+        let finalName = baseName, counter = 1;
         const allActionNames = new Set(this.getActions().map(a => a.name));
-        while (allActionNames.has(finalName)) {
-            finalName = `${baseName}_${counter++}`;
-        }
+        while (allActionNames.has(finalName)) { finalName = `${baseName}_${counter++}`; }
         return finalName;
     }
 
     public renameAction(oldName: string, newName: string): boolean {
         if (!this.project) return false;
-
-        let action: any;
-        action = this.project.actions.find(a => a.name === oldName);
+        let action = this.project.actions.find((a: any) => a.name === oldName);
         if (!action && this.project.stages) {
             for (const stage of this.project.stages) {
                 if (stage.actions) {
-                    action = stage.actions.find(a => a.name === oldName);
+                    action = stage.actions.find((a: any) => a.name === oldName);
                     if (action) break;
                 }
             }
         }
+        if (action) { action.name = newName; } else { return false; }
 
-        if (action) {
-            action.name = newName;
-        } else {
-            return false;
-        }
-
-        // Update references in all Task Sequences
-        const allTasks = this.getTasks();
-        allTasks.forEach(t => {
+        this.getTasks().forEach(t => {
             if (t.actionSequence) {
                 t.actionSequence.forEach(item => {
                     if (item.type === 'action' && item.name === oldName) item.name = newName;
@@ -845,79 +649,41 @@ export class ProjectRegistry {
                 });
             }
         });
-
         return true;
     }
 
     private updateReferencesInProperties(oldName: string, newName: string) {
-        // Helper to replace ${oldName} with ${newName} in object and string values
-        const regex = new RegExp(`\\$\\{${oldName}\\}`, 'g'); // Simple exact match ${var}
-        // Also handle Nested: ${var.prop} -> ${new.prop}
+        const regex = new RegExp(`\\$\\{${oldName}\\}`, 'g');
         const regexNested = new RegExp(`\\$\\{${oldName}\\.`, 'g');
-
-        const replaceInString = (str: string): string => {
-            return str.replace(regex, `\${${newName}}`).replace(regexNested, `\${${newName}.`);
-        };
+        const replaceInString = (str: string) => str.replace(regex, `\${${newName}}`).replace(regexNested, `\${${newName}.`);
 
         const traverseAndReplace = (obj: any) => {
-            if (!obj) return;
-            if (typeof obj === 'string') {
-                return replaceInString(obj); // Can't mutate string in place
-            }
-            if (typeof obj === 'object') {
-                Object.keys(obj).forEach(key => {
-                    const val = obj[key];
-                    if (typeof val === 'string') {
-                        obj[key] = replaceInString(val);
-                    } else if (typeof val === 'object') {
-                        traverseAndReplace(val);
-                    }
-                });
-            }
+            if (!obj || typeof obj !== 'object') return;
+            Object.keys(obj).forEach(key => {
+                const val = obj[key];
+                if (typeof val === 'string') { obj[key] = replaceInString(val); }
+                else if (typeof val === 'object') { traverseAndReplace(val); }
+            });
         };
 
-        // Scan ALL Objects in ALL Stages
         const allObjects = [...(this.project!.objects || [])];
-        if (this.project!.stages) {
-            this.project!.stages.forEach(s => {
-                if (s.objects) allObjects.push(...s.objects);
-            });
-        }
+        if (this.project!.stages) this.project!.stages.forEach(s => { if (s.objects) allObjects.push(...s.objects); });
         allObjects.forEach(obj => traverseAndReplace(obj));
-
-        // Scan Actions properties in all Tasks (Global + Stages)
         this.project!.actions.forEach(act => traverseAndReplace(act));
-        if (this.project!.stages) {
-            this.project!.stages.forEach(stage => {
-                if (stage.actions) stage.actions.forEach(act => traverseAndReplace(act));
-            });
-        }
-
-        const allTasks = this.getTasks();
-        allTasks.forEach(t => traverseAndReplace(t)); // Sequence items
+        if (this.project!.stages) this.project!.stages.forEach(stage => { if (stage.actions) stage.actions.forEach(act => traverseAndReplace(act)); });
+        this.getTasks().forEach(t => traverseAndReplace(t));
     }
 
     private updateReferencesInActions(oldName: string, newName: string) {
-        // Specific Action fields that reference variables directly (not via ${})
         this.project!.tasks.forEach(task => {
             task.actionSequence.forEach(item => {
                 if (item.type === 'action') {
                     const action = item as any;
                     if (action.variableName === oldName) action.variableName = newName;
                     if (action.resultVariable === oldName) action.resultVariable = newName;
-
-                    // Calc steps
-                    if (action.calcSteps) {
-                        action.calcSteps.forEach((step: any) => {
-                            if (step.operandType === 'variable' && step.variable === oldName) {
-                                step.variable = newName;
-                            }
-                        });
-                    }
+                    if (action.calcSteps) action.calcSteps.forEach((step: any) => { if (step.operandType === 'variable' && step.variable === oldName) step.variable = newName; });
                 } else if (item.type === 'condition' || item.type === 'while') {
-                    if (item.condition && item.condition.variable === oldName) {
-                        item.condition.variable = newName;
-                    }
+                    if (item.condition && item.condition.variable === oldName) item.condition.variable = newName;
                 }
             });
         });

@@ -567,11 +567,23 @@ export class RefactoringManager {
     public static deleteAction(project: GameProject, actionName: string): void {
         if (!actionName) return;
 
-        // 1. Remove from global list
+        // 1. Remove from global list and all stages
         project.actions = project.actions.filter(a => a.name !== actionName);
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.actions) s.actions = s.actions.filter(a => a.name !== actionName);
+            });
+        }
 
-        // 2. Remove from task sequences
-        project.tasks.forEach(task => {
+        // 2. Remove from task sequences (Global + Stages)
+        const allTasks = [...project.tasks];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks) allTasks.push(...s.tasks);
+            });
+        }
+
+        allTasks.forEach(task => {
             if (task.actionSequence) {
                 task.actionSequence = this.filterSequenceItems(task.actionSequence, actionName, 'action');
             }
@@ -606,8 +618,13 @@ export class RefactoringManager {
     public static deleteTask(project: GameProject, taskName: string): void {
         if (!taskName) return;
 
-        // 1. Remove from global list
+        // 1. Remove from global list and all stages
         project.tasks = project.tasks.filter(t => t.name !== taskName);
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks) s.tasks = s.tasks.filter(t => t.name !== taskName);
+            });
+        }
 
         // 2. Remove from object mappings in all stages
         const allObjects = [...project.objects];
@@ -626,8 +643,15 @@ export class RefactoringManager {
             }
         });
 
-        // 3. Clean up sequence calls
-        project.tasks.forEach(task => {
+        // 3. Clean up sequence calls (Global + Stages)
+        const allTasksToClean = [...project.tasks];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks) allTasksToClean.push(...s.tasks);
+            });
+        }
+
+        allTasksToClean.forEach(task => {
             if (task.actionSequence) {
                 task.actionSequence = this.filterSequenceItems(task.actionSequence, taskName, 'task');
             }
@@ -682,9 +706,14 @@ export class RefactoringManager {
      * Prevents "ghost" nodes in diagrams and logic issues.
      */
     public static cleanActionSequences(project: GameProject): void {
-        if (!project.tasks) return;
+        const allTasks = [...(project.tasks || [])];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks) allTasks.push(...s.tasks);
+            });
+        }
 
-        project.tasks.forEach(task => {
+        allTasks.forEach(task => {
             if (task.actionSequence) {
                 task.actionSequence = task.actionSequence.filter(item => {
                     if (!item) return false;

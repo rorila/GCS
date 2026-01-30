@@ -958,7 +958,11 @@
   // src/services/ServiceRegistry.ts
   var ServiceRegistryClass = class {
     constructor() {
+      __publicField(this, "id", Math.random().toString(36).substr(2, 9));
       __publicField(this, "services", /* @__PURE__ */ new Map());
+      console.log(`%c[ServiceRegistry] INSTANCE CREATED: ${this.id}`, "background: #000; color: #fff; font-size: 14px; padding: 4px;");
+      window._serviceRegistryInstances = window._serviceRegistryInstances || [];
+      window._serviceRegistryInstances.push(this.id);
     }
     /**
      * Register a service with the registry
@@ -991,14 +995,14 @@
         methods,
         description
       });
-      console.log(`[ServiceRegistry] Registered service: ${name} with methods:`, methods.map((m) => m.name));
+      console.log(`[ServiceRegistry:${this.id}] Registered service: ${name} with methods:`, methods.map((m) => m.name));
     }
     /**
      * Unregister a service
      */
     unregister(name) {
       this.services.delete(name);
-      console.log(`[ServiceRegistry] Unregistered service: ${name}`);
+      console.log(`[ServiceRegistry] Unregistered service: ${name} `);
     }
     /**
      * Get a service by name
@@ -1028,13 +1032,13 @@
       if (typeof method !== "function") {
         throw new Error(`Method '${methodName}' not found on service '${serviceName}'`);
       }
-      console.log(`[ServiceRegistry] Calling ${serviceName}.${methodName}(`, params, ")");
+      console.log(`[ServiceRegistry] Calling ${serviceName}.${methodName} (`, params, ")");
       try {
         const result = await method.apply(serviceInfo.instance, params || []);
-        console.log(`[ServiceRegistry] ${serviceName}.${methodName} returned:`, result);
+        console.log(`[ServiceRegistry] ${serviceName}.${methodName} returned: `, result);
         return result;
       } catch (error) {
-        console.error(`[ServiceRegistry] ${serviceName}.${methodName} threw:`, error);
+        console.error(`[ServiceRegistry] ${serviceName}.${methodName} threw: `, error);
         throw error;
       }
     }
@@ -1063,7 +1067,9 @@
       return Array.from(this.services.values());
     }
   };
-  var serviceRegistry = new ServiceRegistryClass();
+  var serviceRegistry = window._globalServiceRegistry || new ServiceRegistryClass();
+  window._globalServiceRegistry = serviceRegistry;
+  console.log(`[ServiceRegistry] Singleton bound to window. ID: ${serviceRegistry.id}`);
 
   // src/runtime/actions/StandardActions.ts
   function resolveTarget(targetName, objects, vars, contextObj) {
