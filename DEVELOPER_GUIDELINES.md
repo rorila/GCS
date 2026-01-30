@@ -391,3 +391,11 @@ Tasks werden nicht nur über ihren Namen, sondern über eine **Logik-Signatur** 
 ### Lifecycle & Cleanup
 - **Orphan Cleanup**: `ProjectRegistry.deleteTask` entfernt automatisch alle Aktionen, die ausschließlich von diesem Task genutzt wurden (Dependency Indexing).
 - **Stage-Isolierung**: In der JSON-Ansicht einer Stage werden globale Abhängigkeiten (Tasks/Actions) temporär injiziert, um eine vollständige Bearbeitbarkeit ohne Datenverlust zu gewährleisten.
+## [Eigenschaftsauswertung & Sichtbarkeit](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/runtime/PropertyHelper.ts) (v2.1.6)
+- **Template-Interpolation**: Der `PropertyHelper.interpolate` unterstützt Literale (`true`, `false`, Zahlen) innerhalb von `${}`. Leerzeichen werden getrimmt. Dies ist essenziell für Aktionen, die Booleans via Template-Syntax setzen (z.B. `${true }`).
+- **Sichtbarkeit Priorität**: Die Eigenschaft `visible` hat im Stage-Renderer IMMER Vorrang. Vermeide "Force-Visible"-Logiken (z.B. bei Vorhandensein eines Bildes), da diese die reaktive Logik der Engine unterlaufen.
+- **Auto-Konvertierung**: Nutze `PropertyHelper.autoConvert`, um String-Ergebnisse der Interpolation (`"true"`, `"123"`) wieder in ihre korrekten Typen (`boolean`, `number`) zu wandeln, bevor sie auf Komponenten-Eigenschaften angewendet werden.
+
+## Visual vs. Data Integrity (Kürzung)
+- **Visuelle Textkürzung**: Um FlowCharts kompakt zu halten, werden lange Texte (z.B. in `FlowAction`) in der Diagrammansicht visuell gekürzt (via `formatValue`).
+- **Datenintegrität**: Diese Kürzung darf NUR beim Rendern erfolgen. Die zugrunde liegenden Daten (z.B. die Eigenschaft `Details` in `FlowElement`) müssen stets den vollständigen, ungekürzten Text enthalten, damit er im Inspector, im Pascal-Code und exportierten JSON korrekt erhalten bleibt.

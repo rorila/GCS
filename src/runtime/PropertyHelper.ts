@@ -51,12 +51,19 @@ export class PropertyHelper {
         }
 
         return template.replace(/\$\{([^}]+)\}/g, (_, path) => {
+            const trimmedPath = path.trim();
+
+            // 0. Try literals first
+            if (trimmedPath === 'true') return 'true';
+            if (trimmedPath === 'false') return 'false';
+            if (!isNaN(Number(trimmedPath))) return trimmedPath;
+
             // 1. Try simple vars
-            if (vars[path] !== undefined) return String(vars[path]);
+            if (vars[trimmedPath] !== undefined) return String(vars[trimmedPath]);
 
             // 2. Try object property path if objects are provided
-            if (objects && path.includes('.')) {
-                const [objName, ...propParts] = path.split('.');
+            if (objects && trimmedPath.includes('.')) {
+                const [objName, ...propParts] = trimmedPath.split('.');
                 const propPath = propParts.join('.');
                 const obj = objects.find(o => o.name === objName || o.id === objName);
                 if (obj) {

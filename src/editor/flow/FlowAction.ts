@@ -259,7 +259,7 @@ export class FlowAction extends FlowElement {
                 <div style="text-align:center;padding:8px 4px" translate="no">
                     <div style="font-weight:bold;font-size:12px;white-space:nowrap">${title}</div>
                     <div style="font-family:'Courier New', monospace;font-size:10px;color:#00ffff;margin-top:4px;font-weight:normal;line-height:1.2">
-                        ${this.Details.split(';').map(d => `<div style="white-space:nowrap">${d.trim()}</div>`).join('')}
+                        ${this.Details.split(';').map(d => `<div style="white-space:nowrap">${this.formatValue(d.trim())}</div>`).join('')}
                     </div>
                 </div>
             `;
@@ -328,7 +328,7 @@ export class FlowAction extends FlowElement {
 
             return entries
                 .slice(0, 2) // Maximal 2 Änderungen anzeigen
-                .map(([prop, value]) => `${displayAction.target}.${prop} := ${this.formatValue(value)}`)
+                .map(([prop, value]) => `${displayAction.target}.${prop} := ${value}`)
                 .join('; ') + (entries.length > 2 ? ` (+${entries.length - 2})` : '');
         }
 

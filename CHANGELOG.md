@@ -1,4 +1,14 @@
 # Changelog
+3: 
+4: ## [2.1.7] - 2026-01-30
+- Behebung der Textkürzung: Aktionen im Flow-Diagramm werden nun nur noch visuell gekürzt dargestellt.
+- Im Inspector, Pascal-Code und JSON-Export bleiben alle Texte (z.B. Nachrichten) vollständig erhalten.
+
+## [2.1.6] - 2026-01-30
+5: ### Fix: Image Visibility & Template Literals
+6: - **Fix: Bild-Sichtbarkeit**: Der Stage-Renderer respektiert nun die `visible`-Eigenschaft auch dann, wenn eine Bild-Quelle (`backgroundImage` / `src`) gesetzt ist. Zuvor wurde `display: flex` erzwungen.
+7: - **Verbesserung: Template-Interpolation**: `PropertyHelper.interpolate` unterstützt nun Literale (`true`, `false`, Zahlen) innerhalb von `${}`-Blöcken. Zudem werden Leerzeichen innerhalb der geschweiften Klammern (z.B. `${true }`) nun korrekt ignoriert.
+8: 
 
 ## [2.1.5] - 2026-01-29
 ### Smart-Sync & Scoping

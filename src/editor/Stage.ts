@@ -1062,9 +1062,6 @@ export class Stage {
                 }
 
                 if (bgImg) {
-                    // Force display if an image is present
-                    el.style.display = 'flex';
-
                     // Robust path handling for images:
                     let src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:'))
                         ? bgImg

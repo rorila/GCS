@@ -231,7 +231,7 @@
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
-          "x": 52,
+          "x": 57,
           "y": 1,
           "width": 4,
           "height": 6,
@@ -462,7 +462,7 @@
               "type": "Task",
               "x": 60,
               "y": 180,
-              "width": 200,
+              "width": 160,
               "height": 60,
               "properties": {
                 "name": "ShowNotOkStatus",
@@ -472,7 +472,7 @@
               "data": {
                 "name": "ShowNotOkStatus",
                 "paramValues": {},
-                "showDetails": false
+                "showDetails": true
               }
             },
             {
@@ -480,16 +480,16 @@
               "type": "Action",
               "x": 360,
               "y": 80,
-              "width": 220,
-              "height": 60,
+              "width": 280,
+              "height": 80,
               "properties": {
                 "name": "messageVar.triggerOff",
-                "details": "",
+                "details": "messageVar.value := Der Triggerw...",
                 "description": ""
               },
               "data": {
                 "name": "messageVar.triggerOff",
-                "isLinked": false
+                "isLinked": true
               }
             },
             {
@@ -497,16 +497,16 @@
               "type": "Action",
               "x": 360,
               "y": 180,
-              "width": 140,
-              "height": 60,
+              "width": 220,
+              "height": 80,
               "properties": {
                 "name": "ActionBlaBla",
-                "details": "(nicht definiert)",
+                "details": "DarkBulb.visible := ${true }",
                 "description": ""
               },
               "data": {
                 "name": "ActionBlaBla",
-                "isLinked": false
+                "isLinked": true
               }
             },
             {
@@ -514,16 +514,16 @@
               "type": "Action",
               "x": 360,
               "y": 280,
-              "width": 140,
-              "height": 60,
+              "width": 240,
+              "height": 80,
               "properties": {
                 "name": "Action2",
-                "details": "(nicht definiert)",
+                "details": "brightBulb.visible := ${false }",
                 "description": ""
               },
               "data": {
                 "name": "Action2",
-                "isLinked": false
+                "isLinked": true
               }
             }
           ],
@@ -579,7 +579,7 @@
               "type": "Task",
               "x": 80,
               "y": 100,
-              "width": 200,
+              "width": 180,
               "height": 60,
               "properties": {
                 "name": "SetTriggerEnterFalse",
@@ -589,24 +589,24 @@
               "data": {
                 "name": "SetTriggerEnterFalse",
                 "paramValues": {},
-                "showDetails": false
+                "showDetails": true
               }
             },
             {
               "id": "node-1769621858813",
               "type": "Action",
-              "x": 400,
+              "x": 360,
               "y": 100,
-              "width": 140,
-              "height": 60,
+              "width": 160,
+              "height": 80,
               "properties": {
                 "name": "Action3",
-                "details": "",
+                "details": "TestVar.value := 9",
                 "description": ""
               },
               "data": {
                 "name": "Action3",
-                "isLinked": false
+                "isLinked": true
               }
             }
           ],
@@ -766,7 +766,8 @@
             }
           ],
           "triggerMode": "local-sync",
-          "description": ""
+          "description": "",
+          "params": []
         }
       ],
       "actions": [
@@ -825,38 +826,39 @@
         },
         {
           "name": "messageVar.triggerOff",
-          "showDetails": false,
+          "showDetails": true,
           "type": "property",
           "target": "messageVar",
           "changes": {
-            "value": "Der Triggerwert ist nicht 10"
+            "value": "Der Triggerw..."
           },
           "method": "",
-          "description": ""
+          "description": "",
+          "details": "messageVar.value := Der Triggerw..."
         },
         {
           "name": "ActionBlaBla",
-          "details": "(nicht definiert)",
-          "showDetails": false,
+          "details": "DarkBulb.visible := ${true }",
+          "showDetails": true,
           "type": "property",
           "target": "DarkBulb",
           "changes": {
-            "visible": "${true } "
+            "visible": "${true }"
           },
           "method": "",
           "description": ""
         },
         {
           "name": "Action2",
-          "showDetails": false,
+          "showDetails": true,
           "type": "property",
           "target": "brightBulb",
           "changes": {
-            "visible": "${false } "
+            "visible": "${false }"
           },
           "method": "",
           "description": "",
-          "details": "(nicht definiert)"
+          "details": "brightBulb.visible := ${false }"
         },
         {
           "name": "Action3",
@@ -864,10 +866,11 @@
           "type": "property",
           "target": "TestVar",
           "changes": {
-            "value": "${false } "
+            "value": 9
           },
           "method": "",
-          "description": ""
+          "description": "",
+          "details": "TestVar.value := 9"
         }
       ]
     },
