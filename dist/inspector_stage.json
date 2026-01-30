@@ -467,8 +467,132 @@
             "style": {
                 "backgroundColor": "#0e639c",
                 "color": "#fff",
-                "marginTop": 8
+                "marginTop": 8,
+                "marginBottom": 16
             }
+        },
+        {
+            "className": "TLabel",
+            "name": "TasksHeaderLabel",
+            "text": "Tasks",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginTop": 16,
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TForEach",
+            "name": "TasksList",
+            "source": "projectRegistry.getTasks('all')",
+            "rowLayout": true,
+            "template": [
+                {
+                    "className": "TLabel",
+                    "name": "TaskLabel_${index}",
+                    "text": "${item.uiEmoji} ${item.name}",
+                    "style": {
+                        "fontSize": 11,
+                        "color": "#dcdcaa",
+                        "flex": "1"
+                    }
+                },
+                {
+                    "className": "TLabel",
+                    "name": "TaskUsage_${index}",
+                    "text": "🔗 ${item.usageCount}",
+                    "style": {
+                        "fontSize": 10,
+                        "color": "#aaa",
+                        "flex": "0 0 40px",
+                        "textAlign": "right"
+                    }
+                }
+            ]
+        },
+        {
+            "className": "TLabel",
+            "name": "ActionsHeaderLabel",
+            "text": "Actions",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginTop": 16,
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TForEach",
+            "name": "ActionsList",
+            "source": "projectRegistry.getActions('all')",
+            "rowLayout": true,
+            "template": [
+                {
+                    "className": "TLabel",
+                    "name": "ActionLabel_${index}",
+                    "text": "${item.uiEmoji} ${item.name}",
+                    "style": {
+                        "fontSize": 11,
+                        "color": "#4fc3f7",
+                        "flex": "1"
+                    }
+                },
+                {
+                    "className": "TLabel",
+                    "name": "ActionUsage_${index}",
+                    "text": "🔗 ${item.usageCount}",
+                    "style": {
+                        "fontSize": 10,
+                        "color": "#aaa",
+                        "flex": "0 0 40px",
+                        "textAlign": "right"
+                    }
+                }
+            ]
+        },
+        {
+            "className": "TLabel",
+            "name": "ObjectsHeaderLabel",
+            "text": "Objects (Stage)",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#fff",
+                "marginTop": 16,
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TForEach",
+            "name": "ObjectsList",
+            "source": "projectRegistry.getObjectsWithMetadata()",
+            "rowLayout": true,
+            "template": [
+                {
+                    "className": "TLabel",
+                    "name": "ObjectLabel_${index}",
+                    "text": "📦 ${item.name}",
+                    "style": {
+                        "fontSize": 11,
+                        "color": "#9cdcfe",
+                        "flex": "1"
+                    }
+                },
+                {
+                    "className": "TLabel",
+                    "name": "ObjectUsage_${index}",
+                    "text": "🔗 ${item.usageCount}",
+                    "style": {
+                        "fontSize": 10,
+                        "color": "#aaa",
+                        "flex": "0 0 40px",
+                        "textAlign": "right"
+                    }
+                }
+            ]
         }
     ]
 }

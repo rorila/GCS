@@ -1,0 +1,59 @@
+import { TTextControl } from './TTextControl';
+/**
+ * TNumberInput - Specialized number input component
+ *
+ * Allows users to enter numeric values with constraints.
+ * Useful for coordinates, sizes, speeds, and other numeric properties.
+ */
+export class TNumberInput extends TTextControl {
+    constructor(name, x, y, width = 8, height = 2) {
+        super(name, x, y, width, height);
+        this.value = 0;
+        this.min = -Infinity;
+        this.max = Infinity;
+        this.step = 1;
+        // Default NumberInput Style
+        this.style.backgroundColor = '#ffffff';
+        this.style.borderColor = '#cccccc';
+        this.style.borderWidth = 1;
+        this.style.color = '#000000';
+    }
+    /**
+     * Set value with constraint validation
+     */
+    setValue(value) {
+        this.value = Math.max(this.min, Math.min(this.max, value));
+    }
+    /**
+     * Increment value by step
+     */
+    increment() {
+        this.setValue(this.value + this.step);
+    }
+    /**
+     * Decrement value by step
+     */
+    decrement() {
+        this.setValue(this.value - this.step);
+    }
+    getInspectorProperties() {
+        const props = super.getInspectorProperties();
+        return [
+            ...props,
+            { name: 'value', label: 'Value', type: 'number', group: 'Specifics' },
+            { name: 'min', label: 'Min', type: 'number', group: 'Specifics' },
+            { name: 'max', label: 'Max', type: 'number', group: 'Specifics' },
+            { name: 'step', label: 'Step', type: 'number', group: 'Specifics' }
+            // Inherits styles from TTextControl
+        ];
+    }
+    toJSON() {
+        return {
+            ...super.toJSON(),
+            value: this.value,
+            min: this.min,
+            max: this.max,
+            step: this.step
+        };
+    }
+}

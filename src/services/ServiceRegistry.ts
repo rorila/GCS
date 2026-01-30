@@ -18,7 +18,14 @@ export interface ServiceInfo {
 }
 
 class ServiceRegistryClass {
+    private id: string = Math.random().toString(36).substr(2, 9);
     private services: Map<string, ServiceInfo> = new Map();
+
+    constructor() {
+        console.log(`%c[ServiceRegistry] INSTANCE CREATED: ${this.id}`, 'background: #000; color: #fff; font-size: 14px; padding: 4px;');
+        (window as any)._serviceRegistryInstances = (window as any)._serviceRegistryInstances || [];
+        (window as any)._serviceRegistryInstances.push(this.id);
+    }
 
     /**
      * Register a service with the registry
@@ -58,7 +65,7 @@ class ServiceRegistryClass {
             description
         });
 
-        console.log(`[ServiceRegistry] Registered service: ${name} with methods:`, methods.map(m => m.name));
+        console.log(`[ServiceRegistry:${this.id}] Registered service: ${name} with methods:`, methods.map(m => m.name));
     }
 
     /**
@@ -66,7 +73,7 @@ class ServiceRegistryClass {
      */
     unregister(name: string): void {
         this.services.delete(name);
-        console.log(`[ServiceRegistry] Unregistered service: ${name}`);
+        console.log(`[ServiceRegistry] Unregistered service: ${name} `);
     }
 
     /**
@@ -103,14 +110,14 @@ class ServiceRegistryClass {
             throw new Error(`Method '${methodName}' not found on service '${serviceName}'`);
         }
 
-        console.log(`[ServiceRegistry] Calling ${serviceName}.${methodName}(`, params, ')');
+        console.log(`[ServiceRegistry] Calling ${serviceName}.${methodName} (`, params, ')');
 
         try {
             const result = await method.apply(serviceInfo.instance, params || []);
-            console.log(`[ServiceRegistry] ${serviceName}.${methodName} returned:`, result);
+            console.log(`[ServiceRegistry] ${serviceName}.${methodName} returned: `, result);
             return result;
         } catch (error) {
-            console.error(`[ServiceRegistry] ${serviceName}.${methodName} threw:`, error);
+            console.error(`[ServiceRegistry] ${serviceName}.${methodName} threw: `, error);
             throw error;
         }
     }
@@ -144,5 +151,8 @@ class ServiceRegistryClass {
     }
 }
 
-// Singleton instance
-export const serviceRegistry = new ServiceRegistryClass();
+// Singleton instance - WINDOW BOUND to prevent dual instances
+export const serviceRegistry = (window as any)._globalServiceRegistry || new ServiceRegistryClass();
+(window as any)._globalServiceRegistry = serviceRegistry;
+
+console.log(`[ServiceRegistry] Singleton bound to window. ID: ${(serviceRegistry as any).id}`);

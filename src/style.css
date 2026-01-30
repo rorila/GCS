@@ -456,6 +456,13 @@ h2 {
   box-shadow: 0 8px 32px 0 rgba(0, 100, 120, 0.6) !important;
 }
 
+/* Orange/Amber Glass (Variable) */
+.glass-node-variable {
+  background: rgba(255, 170, 0, 0.35) !important;
+  border-color: rgba(255, 170, 0, 0.7) !important;
+  box-shadow: 0 8px 32px 0 rgba(150, 100, 0, 0.5) !important;
+}
+
 /* Outer Glow / Halo Effect (Generalized) */
 .flow-node-glass::before {
   content: '';
@@ -489,6 +496,10 @@ h2 {
 
 .glass-node-component::before {
   border-color: rgba(38, 198, 218, 0.4);
+}
+
+.glass-node-variable::before {
+  border-color: rgba(255, 170, 0, 0.3);
 }
 
 .flow-node-glass .node-content {

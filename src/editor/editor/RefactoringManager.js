@@ -1,0 +1,844 @@
+export class RefactoringManager {
+    /**
+     * Renames a variable project-wide
+     */
+    static renameVariable(project, oldName, newName) {
+        if (!oldName || !newName || oldName === newName)
+            return;
+        // 1. Update project variables list
+        project.variables.forEach(v => {
+            if (v.name === oldName)
+                v.name = newName;
+        });
+        // 1b. Update stage-local variables list
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.variables) {
+                    stage.variables.forEach(v => {
+                        if (v.name === oldName)
+                            v.name = newName;
+                    });
+                }
+            });
+        }
+        // 2. Update actions
+        project.actions.forEach(action => {
+            // Variable assignments and reads
+            if (action.variableName === oldName)
+                action.variableName = newName;
+            if (action.resultVariable === oldName)
+                action.resultVariable = newName;
+            // Calculation steps
+            if (action.calcSteps) {
+                action.calcSteps.forEach(step => {
+                    if (step.operandType === 'variable' && step.variable === oldName) {
+                        step.variable = newName;
+                    }
+                });
+            }
+            // String interpolation in property changes
+            if (action.type === 'property' && action.changes) {
+                for (const key in action.changes) {
+                    let val = action.changes[key];
+                    if (typeof val === 'string') {
+                        action.changes[key] = this.replaceInterpolation(val, oldName, newName);
+                    }
+                }
+            }
+            // Service params interpolation
+            if (action.serviceParams) {
+                for (const key in action.serviceParams) {
+                    action.serviceParams[key] = this.replaceInterpolation(action.serviceParams[key], oldName, newName);
+                }
+            }
+        });
+        // 3. Update task sequences
+        project.tasks.forEach(task => {
+            this.processSequenceItems(task.actionSequence, (item) => {
+                if (item.type === 'condition' && item.condition) {
+                    if (item.condition.variable === oldName)
+                        item.condition.variable = newName;
+                }
+                if (item.type === 'while' && item.condition) {
+                    if (item.condition.variable === oldName)
+                        item.condition.variable = newName;
+                }
+                if (item.type === 'for') {
+                    if (item.iteratorVar === oldName)
+                        item.iteratorVar = newName;
+                    if (typeof item.from === 'string')
+                        item.from = this.replaceInterpolation(item.from, oldName, newName);
+                    if (typeof item.to === 'string')
+                        item.to = this.replaceInterpolation(item.to, oldName, newName);
+                }
+                if (item.type === 'foreach') {
+                    if (item.sourceArray === oldName)
+                        item.sourceArray = newName;
+                    if (item.itemVar === oldName)
+                        item.itemVar = newName;
+                    if (item.indexVar === oldName)
+                        item.indexVar = newName;
+                }
+            });
+        });
+        // 5. Update all stages
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                // Update stage objects
+                if (stage.objects) {
+                    stage.objects.forEach(obj => {
+                        // String interpolation in properties
+                        for (const key in obj) {
+                            if (typeof obj[key] === 'string') {
+                                obj[key] = this.replaceInterpolation(obj[key], oldName, newName);
+                            }
+                        }
+                    });
+                }
+                // Update stage flow charts
+                if (stage.flowCharts) {
+                    Object.keys(stage.flowCharts).forEach(key => {
+                        const flowChart = stage.flowCharts[key];
+                        if (flowChart?.elements) {
+                            flowChart.elements.forEach((el) => {
+                                if (el.type === 'Condition' && el.data?.condition) {
+                                    if (el.data.condition.variable === oldName) {
+                                        el.data.condition.variable = newName;
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    }
+    /**
+     * Renames a task project-wide
+     */
+    static renameTask(project, oldName, newName) {
+        if (!oldName || !newName || oldName === newName)
+            return;
+        // 1. Update project tasks list (Global)
+        project.tasks.forEach(task => {
+            if (task.name === oldName)
+                task.name = newName;
+        });
+        // 1b. Update stage-specific tasks
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.tasks) {
+                    stage.tasks.forEach(task => {
+                        if (task.name === oldName)
+                            task.name = newName;
+                    });
+                }
+            });
+        }
+        // 2. Update task calls in sequences (Global + all Stages)
+        const allTasks = [...project.tasks];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks)
+                    allTasks.push(...s.tasks);
+            });
+        }
+        allTasks.forEach(task => {
+            this.processSequenceItems(task.actionSequence, (item) => {
+                if (item.type === 'task' && item.name === oldName)
+                    item.name = newName;
+                if (item.thenTask === oldName)
+                    item.thenTask = newName;
+                if (item.elseTask === oldName)
+                    item.elseTask = newName;
+            });
+        });
+        // 3. Update object event bindings
+        project.objects.forEach(obj => {
+            if (obj.Tasks) {
+                for (const event in obj.Tasks) {
+                    if (obj.Tasks[event] === oldName) {
+                        obj.Tasks[event] = newName;
+                    }
+                }
+            }
+        });
+        // 4. Update variable scopes
+        project.variables.forEach(v => {
+            if (v.scope === oldName)
+                v.scope = newName;
+        });
+        // 5. Update flowChart key if task was renamed
+        if (project.flowCharts && project.flowCharts[oldName]) {
+            project.flowCharts[newName] = project.flowCharts[oldName];
+            delete project.flowCharts[oldName];
+        }
+        // 6. Update Task nodes within all flowCharts that might refer to this task
+        const charts = { ...(project.flowCharts || {}) };
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.flowCharts) {
+                    Object.assign(charts, stage.flowCharts);
+                }
+            });
+        }
+        Object.keys(charts).forEach(key => {
+            const flowChart = charts[key];
+            if (flowChart?.elements) {
+                flowChart.elements.forEach((el) => {
+                    if (el.type === 'Task' && el.data?.taskName === oldName) {
+                        el.data.taskName = newName;
+                    }
+                });
+            }
+        });
+        // 7. Update object event bindings in all stages
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.objects) {
+                    stage.objects.forEach(obj => {
+                        if (obj.Tasks) {
+                            for (const event in obj.Tasks) {
+                                if (obj.Tasks[event] === oldName) {
+                                    obj.Tasks[event] = newName;
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+    /**
+     * Renames an object project-wide
+     */
+    static renameObject(project, oldName, newName) {
+        if (!oldName || !newName || oldName === newName)
+            return;
+        console.log(`[Refactoring] Umbenennung Objekt: ${oldName} -> ${newName}`);
+        // 1. Update object name itself (Global + Stages)
+        let renameCount = 0;
+        project.objects.forEach(obj => {
+            if (obj.name === oldName) {
+                obj.name = newName;
+                renameCount++;
+            }
+        });
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.objects) {
+                    stage.objects.forEach(obj => {
+                        if (obj.name === oldName) {
+                            obj.name = newName;
+                            renameCount++;
+                        }
+                    });
+                }
+            });
+        }
+        console.log(`[Refactoring] Objektnamen aktualisiert: ${renameCount}`);
+        // 2. Update all actions (Global + Stages)
+        // 2. Update all actions (Global + Stages)
+        const allActions = [...project.actions];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.actions)
+                    allActions.push(...s.actions);
+            });
+        }
+        // NEW: Check for actions that "belong" to this object (e.g. "Label_7.captionTrue")
+        // and rename them as well.
+        allActions.forEach(action => {
+            if (action.name.startsWith(oldName + '.') || action.name.startsWith(oldName + '_')) {
+                const newActionName = action.name.replace(oldName, newName);
+                console.log(`[Refactoring] Automatische Umbenennung zugehöriger Aktion: ${action.name} -> ${newActionName}`);
+                this.renameAction(project, action.name, newActionName);
+                // Update the local variable strictly for the next loop (though renameAction handles the project lists)
+                action.name = newActionName;
+            }
+        });
+        let actionUpdateCount = 0;
+        console.log(`[Refactoring] Scanne ${allActions.length} Aktionen...`);
+        allActions.forEach((action, idx) => {
+            let changed = false;
+            // DEBUG: Log every action target
+            if (action.target || action.source) {
+                console.log(`[Refactoring] Aktion [${idx}] "${action.name}": target="${action.target}", source="${action.source}"`);
+            }
+            if (action.target === oldName) {
+                console.log(`[Refactoring] Treffer in Aktion "${action.name}": target "${oldName}" -> "${newName}"`);
+                action.target = newName;
+                changed = true;
+            }
+            if (action.source === oldName) {
+                console.log(`[Refactoring] Treffer in Aktion "${action.name}": source "${oldName}" -> "${newName}"`);
+                action.source = newName;
+                changed = true;
+            }
+            if (action.changes) {
+                for (const key in action.changes) {
+                    let val = action.changes[key];
+                    if (typeof val === 'string') {
+                        if (val === oldName) {
+                            action.changes[key] = newName;
+                            changed = true;
+                        }
+                        else if (val.includes(`\${${oldName}`)) {
+                            action.changes[key] = this.replaceObjectInterpolation(val, oldName, newName);
+                            changed = true;
+                        }
+                    }
+                }
+            }
+            if (action.serviceParams) {
+                for (const key in action.serviceParams) {
+                    let val = action.serviceParams[key];
+                    if (typeof val === 'string') {
+                        if (val === oldName) {
+                            action.serviceParams[key] = newName;
+                            changed = true;
+                        }
+                        else if (val.includes(`\${${oldName}`)) {
+                            action.serviceParams[key] = this.replaceObjectInterpolation(val, oldName, newName);
+                            changed = true;
+                        }
+                    }
+                }
+            }
+            if (changed)
+                actionUpdateCount++;
+        });
+        console.log(`[Refactoring] Aktionen aktualisiert: ${actionUpdateCount}`);
+        // 3. Update all task sequences (Global + Stages)
+        const allTasks = [...project.tasks];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks)
+                    allTasks.push(...s.tasks);
+            });
+        }
+        let sequenceUpdateCount = 0;
+        console.log(`[Refactoring] Scanne ${allTasks.length} Tasks...`);
+        allTasks.forEach(task => {
+            let taskChanged = false;
+            this.processSequenceItems(task.actionSequence, (item) => {
+                const str = JSON.stringify(item);
+                // Check for literal "Label_7" or interpolated ${Label_7}
+                if (str.includes(`"${oldName}"`) || str.includes(`\${${oldName}`)) {
+                    console.log(`[Refactoring] Potenzieller Treffer in Task "${task.name}", Element:`, item);
+                    const changed = this.replaceInObjectRecursive(item, oldName, newName);
+                    if (changed)
+                        taskChanged = true;
+                }
+            });
+            if (taskChanged)
+                sequenceUpdateCount++;
+        });
+        console.log(`[Refactoring] Task-Sequenzen aktualisiert: ${sequenceUpdateCount}`);
+        // 4. Update input targets
+        if (project.input) {
+            if (project.input.player1Target === oldName)
+                project.input.player1Target = newName;
+            if (project.input.player2Target === oldName)
+                project.input.player2Target = newName;
+        }
+        // 5. Update Flow Charts
+        const charts = { ...(project.flowCharts || {}) };
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.flowCharts)
+                    Object.assign(charts, stage.flowCharts);
+            });
+        }
+        let flowUpdateCount = 0;
+        console.log(`[Refactoring] Scanne Flow-Charts: ${Object.keys(charts).length}...`);
+        Object.keys(charts).forEach(key => {
+            const chart = charts[key];
+            if (chart?.elements) {
+                chart.elements.forEach((el) => {
+                    let nodeChanged = false;
+                    // Check element data (properties, params, etc.)
+                    if (el.data) {
+                        const strBefore = JSON.stringify(el.data);
+                        if (this.replaceInObjectRecursive(el.data, oldName, newName)) {
+                            nodeChanged = true;
+                        }
+                        if (JSON.stringify(el.data) !== strBefore)
+                            nodeChanged = true;
+                    }
+                    // Check properties specifically (some nodes use this)
+                    if (el.properties) {
+                        if (this.replaceInObjectRecursive(el.properties, oldName, newName)) {
+                            nodeChanged = true;
+                        }
+                    }
+                    if (nodeChanged) {
+                        console.log(`[Refactoring] Treffer in Flow-Chart "${key}", Node "${el.id}": ${oldName} -> ${newName}`);
+                        flowUpdateCount++;
+                    }
+                });
+            }
+        });
+        console.log(`[Refactoring] Flow-Charts Nodes aktualisiert: ${flowUpdateCount}`);
+        // 6. Update all objects properties for interpolations (Global + Stages)
+        let objectPropUpdateCount = 0;
+        const allObjectsToScan = [...project.objects];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.objects)
+                    allObjectsToScan.push(...s.objects);
+            });
+        }
+        allObjectsToScan.forEach(obj => {
+            const strBefore = JSON.stringify(obj);
+            this.replaceInObjectRecursive(obj, oldName, newName);
+            if (JSON.stringify(obj) !== strBefore)
+                objectPropUpdateCount++;
+        });
+        console.log(`[Refactoring] Objekt-Properties aktualisiert: ${objectPropUpdateCount}`);
+    }
+    /**
+     * Helper to replace ${obj.prop} or ${obj} in strings
+     */
+    static replaceObjectInterpolation(text, oldName, newName) {
+        // Match ${oldName} or ${oldName.something}
+        const pattern = new RegExp(`\\$\\{${oldName}([.}])`, 'g');
+        return text.replace(pattern, (_, suffix) => `\${${newName}${suffix}`);
+    }
+    /**
+     * Helper to recursively replace object references in any object
+     * Returns true if anything was changed
+     */
+    static replaceInObjectRecursive(obj, oldName, newName) {
+        if (!obj || typeof obj !== 'object')
+            return false;
+        let changed = false;
+        if (Array.isArray(obj)) {
+            obj.forEach(item => {
+                if (this.replaceInObjectRecursive(item, oldName, newName))
+                    changed = true;
+            });
+            return changed;
+        }
+        for (const key in obj) {
+            const val = obj[key];
+            if (typeof val === 'string') {
+                if (val === oldName) {
+                    obj[key] = newName;
+                    changed = true;
+                }
+                else if (val.includes(`\${${oldName}`)) {
+                    obj[key] = this.replaceObjectInterpolation(val, oldName, newName);
+                    changed = true;
+                }
+            }
+            else if (typeof val === 'object') {
+                if (this.replaceInObjectRecursive(val, oldName, newName))
+                    changed = true;
+            }
+        }
+        return changed;
+    }
+    /**
+     * Renames an action project-wide
+     */
+    static renameAction(project, oldName, newName) {
+        if (!oldName || !newName || oldName === newName)
+            return;
+        // 1. Update project actions list (Global)
+        project.actions.forEach(action => {
+            if (action.name === oldName)
+                action.name = newName;
+        });
+        // 2. Update stage-specific actions
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.actions) {
+                    stage.actions.forEach(action => {
+                        if (action.name === oldName)
+                            action.name = newName;
+                    });
+                }
+            });
+        }
+        // 3. Update task sequences (Global + all Stages)
+        project.tasks.forEach(task => {
+            this.processSequenceItems(task.actionSequence, (item) => {
+                if (item.type === 'action' && item.name === oldName) {
+                    item.name = newName;
+                }
+            });
+        });
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.tasks) {
+                    stage.tasks.forEach(task => {
+                        this.processSequenceItems(task.actionSequence, (item) => {
+                            if (item.type === 'action' && item.name === oldName) {
+                                item.name = newName;
+                            }
+                        });
+                    });
+                }
+            });
+        }
+        // 3. Update flow chart elements (ghost nodes or nested actions)
+        const charts = { ...(project.flowCharts || {}) };
+        if (project.flow)
+            charts['__legacy_flow__'] = project.flow;
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.flowCharts) {
+                    Object.assign(charts, stage.flowCharts);
+                }
+            });
+        }
+        let flowUpdateCount = 0;
+        console.log(`[Refactoring] Scanne Flow-Charts für Aktion "${oldName}": ${Object.keys(charts).length}...`);
+        Object.keys(charts).forEach(key => {
+            const chart = charts[key];
+            if (chart?.elements) {
+                chart.elements.forEach((el) => {
+                    let nodeChanged = false;
+                    // Specific Handling for Action Type Nodes
+                    if (el.type === 'Action') {
+                        // Update Check 1: properties.name
+                        if (el.properties && el.properties.name === oldName) {
+                            el.properties.name = newName;
+                            nodeChanged = true;
+                        }
+                        // Update Check 2: data properties explicitly
+                        if (el.data) {
+                            if (el.data.name === oldName) {
+                                el.data.name = newName;
+                                nodeChanged = true;
+                            }
+                            if (el.data.actionName === oldName) {
+                                el.data.actionName = newName;
+                                nodeChanged = true;
+                            }
+                        }
+                    }
+                    else if (el.type === 'Condition') {
+                        if (el.data) {
+                            if (el.data.thenAction === oldName) {
+                                el.data.thenAction = newName;
+                                nodeChanged = true;
+                            }
+                            if (el.data.elseAction === oldName) {
+                                el.data.elseAction = newName;
+                                nodeChanged = true;
+                            }
+                        }
+                    }
+                    // GENERAL RECURSIVE CHECK (covers parameters, interpolation in data, etc.)
+                    // This is crucial for things like "Label_7.captionTrue" inside data objects
+                    if (el.data) {
+                        const strBefore = JSON.stringify(el.data);
+                        // Be careful not to double-replace if we handled it above, but recursive handles partials
+                        if (this.replaceInObjectRecursive(el.data, oldName, newName))
+                            nodeChanged = true;
+                        // Explicit string check to be sure
+                        if (JSON.stringify(el.data) !== strBefore)
+                            nodeChanged = true;
+                    }
+                    if (nodeChanged) {
+                        console.log(`[Refactoring] Treffer für Aktion in Flow-Chart "${key}", Node "${el.id}": ${oldName} -> ${newName}`);
+                        flowUpdateCount++;
+                    }
+                });
+            }
+        });
+        console.log(`[Refactoring] Flow-Chart Nodes für Aktion aktualisiert: ${flowUpdateCount}`);
+    }
+    /**
+     * Renames a service project-wide
+     */
+    static renameService(project, oldName, newName) {
+        if (!oldName || !newName || oldName === newName)
+            return;
+        project.actions.forEach(action => {
+            if (action.type === 'service' && action.service === oldName) {
+                action.service = newName;
+            }
+        });
+    }
+    /**
+     * Deletes an action project-wide (references in flows and sequences)
+     */
+    static deleteAction(project, actionName) {
+        if (!actionName)
+            return;
+        // 1. Remove from global list
+        project.actions = project.actions.filter(a => a.name !== actionName);
+        // 2. Remove from task sequences
+        project.tasks.forEach(task => {
+            if (task.actionSequence) {
+                task.actionSequence = this.filterSequenceItems(task.actionSequence, actionName, 'action');
+            }
+        });
+        // 3. Remove from flow charts
+        const charts = { ...(project.flowCharts || {}) };
+        if (project.flow)
+            charts['__legacy_flow__'] = project.flow;
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.flowCharts) {
+                    Object.assign(charts, stage.flowCharts);
+                }
+            });
+        }
+        Object.keys(charts).forEach(key => {
+            const flowChart = charts[key];
+            if (flowChart?.elements) {
+                flowChart.elements = flowChart.elements.filter((el) => {
+                    const elName = el.data?.name || el.data?.actionName || el.properties?.name;
+                    return !(el.type === 'Action' && elName === actionName);
+                });
+            }
+        });
+    }
+    /**
+     * Deletes a task project-wide
+     */
+    static deleteTask(project, taskName) {
+        if (!taskName)
+            return;
+        // 1. Remove from global list
+        project.tasks = project.tasks.filter(t => t.name !== taskName);
+        // 2. Remove from object mappings in all stages
+        const allObjects = [...project.objects];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.objects)
+                    allObjects.push(...s.objects);
+            });
+        }
+        allObjects.forEach(obj => {
+            const mappings = obj.Tasks;
+            if (mappings) {
+                Object.keys(mappings).forEach(evt => {
+                    if (mappings[evt] === taskName)
+                        delete mappings[evt];
+                });
+            }
+        });
+        // 3. Clean up sequence calls
+        project.tasks.forEach(task => {
+            if (task.actionSequence) {
+                task.actionSequence = this.filterSequenceItems(task.actionSequence, taskName, 'task');
+            }
+        });
+        // 4. Remove flow chart (from project and all stages)
+        if (project.flowCharts)
+            delete project.flowCharts[taskName];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.flowCharts)
+                    delete s.flowCharts[taskName];
+            });
+        }
+    }
+    static filterSequenceItems(sequence, name, type) {
+        if (!sequence)
+            return [];
+        return sequence.filter(item => {
+            if (!item)
+                return false;
+            if (typeof item === 'string')
+                return item !== name; // Very old legacy support
+            const seqItem = item;
+            if (seqItem.type === type && seqItem.name === name)
+                return false;
+            if (seqItem.body) {
+                seqItem.body = this.filterSequenceItems(seqItem.body, name, type);
+            }
+            return true;
+        });
+    }
+    /**
+     * Helper to replace ${varName} interpolation in strings
+     */
+    static replaceInterpolation(text, oldName, newName) {
+        const pattern = new RegExp(`\\$\\{${oldName}\\}`, 'g');
+        return text.replace(pattern, `\${${newName}}`);
+    }
+    /**
+     * Helper to recursively scan sequence items
+     */
+    static processSequenceItems(sequence, callback) {
+        if (!sequence)
+            return;
+        sequence.forEach(item => {
+            callback(item);
+            if (item.body) {
+                this.processSequenceItems(item.body, callback);
+            }
+        });
+    }
+    /**
+     * Cleans up all action sequences in the project by removing empty or invalid items.
+     * Prevents "ghost" nodes in diagrams and logic issues.
+     */
+    static cleanActionSequences(project) {
+        if (!project.tasks)
+            return;
+        project.tasks.forEach(task => {
+            if (task.actionSequence) {
+                task.actionSequence = task.actionSequence.filter(item => {
+                    if (!item)
+                        return false;
+                    // If it's a string, it's a legacy action name - keep it
+                    if (typeof item === 'string')
+                        return true;
+                    // If it's an object, it must have a type or at least a name
+                    const obj = item;
+                    return obj.type !== undefined || obj.name !== undefined || obj.condition !== undefined;
+                });
+            }
+        });
+        console.log('[RefactoringManager] Action sequences cleaned');
+    }
+    /**
+     * Performs a full project hygiene check and sanitization.
+     * - Removes flow charts that don't have a corresponding task
+     * - Cleans up action sequences
+     * - Returns a report of what was cleaned
+     */
+    static sanitizeProject(project) {
+        const report = [];
+        if (!project)
+            return report;
+        // 1. Clean up orphaned flow charts (Project + Stages)
+        const taskNames = new Set(project.tasks.map(t => t.name));
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks)
+                    s.tasks.forEach(t => taskNames.add(t.name));
+            });
+        }
+        const cleanFlowCharts = (charts, label) => {
+            if (!charts)
+                return;
+            Object.keys(charts).forEach(key => {
+                // Keep the global flow chart and other essentials
+                if (key === 'global' || key === 'event-map' || key === 'element-overview' || key === '__legacy_flow__')
+                    return;
+                if (!taskNames.has(key)) {
+                    delete charts[key];
+                    report.push(`Entfernter verwaister Flow-Chart in ${label}: ${key}`);
+                }
+            });
+        };
+        cleanFlowCharts(project.flowCharts, 'Projekt');
+        if (project.stages) {
+            project.stages.forEach(s => cleanFlowCharts(s.flowCharts, `Stage ${s.name}`));
+        }
+        // 2. Clean action sequences
+        this.cleanActionSequences(project);
+        report.push('Action-Sequenzen bereinigt');
+        // 3. Remove task mappings for non-existent tasks (all stages)
+        // Note: taskNames already includes all tasks from all stages now.
+        const allObjectsScope = [...project.objects, ...(project.variables || [])];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.objects)
+                    allObjectsScope.push(...s.objects);
+                if (s.variables)
+                    allObjectsScope.push(...s.variables);
+            });
+        }
+        allObjectsScope.forEach(obj => {
+            if (obj.Tasks) {
+                const tasks = obj.Tasks;
+                Object.keys(tasks).forEach(key => {
+                    const mappedTask = tasks[key];
+                    if (mappedTask && !taskNames.has(mappedTask)) {
+                        delete tasks[key];
+                        report.push(`Entfernte verwaiste Task-Zuweisung in ${obj.name}: ${key} -> ${mappedTask}`);
+                    }
+                });
+            }
+        });
+        // 4. Migrate FlowChart actions to Single Source of Truth
+        this.migrateFlowChartActions(project, report);
+        if (report.length > 0) {
+            console.log('[RefactoringManager] Project sanitized:', report);
+        }
+        return report;
+    }
+    /**
+     * Migrates all actions in all flowCharts to links (Single Source of Truth).
+     * Removes redundant data copies from the project file.
+     * Also cleans up transient UI data like _formValues, taskName, actionName.
+     */
+    static migrateFlowChartActions(project, report = []) {
+        // Fields that should be removed from action definitions (transient/legacy)
+        const transientFields = ['_formValues', 'taskName', 'actionName'];
+        let cleanupCount = 0;
+        // 1. Clean up project.actions
+        if (project.actions) {
+            project.actions.forEach(action => {
+                transientFields.forEach(field => {
+                    if (action[field] !== undefined) {
+                        delete action[field];
+                        cleanupCount++;
+                    }
+                });
+            });
+        }
+        if (!project.flowCharts) {
+            if (cleanupCount > 0) {
+                report.push(`${cleanupCount} transiente Felder aus Actions entfernt.`);
+            }
+            return;
+        }
+        const globalActionNames = new Set((project.actions || []).map(a => a.name));
+        let migrationCount = 0;
+        const migrateCharts = (charts) => {
+            if (!charts)
+                return;
+            Object.keys(charts).forEach(contextKey => {
+                const flowChart = charts[contextKey];
+                if (!flowChart || !flowChart.elements)
+                    return;
+                flowChart.elements.forEach((el) => {
+                    if (el.type === 'Action') {
+                        const actionName = el.properties?.name || el.data?.name;
+                        // Clean transient fields from element data
+                        if (el.data) {
+                            transientFields.forEach(field => {
+                                if (el.data[field] !== undefined) {
+                                    delete el.data[field];
+                                    cleanupCount++;
+                                }
+                            });
+                        }
+                        if (actionName && globalActionNames.has(actionName)) {
+                            // Check if it's already a clean link
+                            const isMinimalLink = el.data?.isLinked && Object.keys(el.data).length <= 2; // name + isLinked
+                            if (!isMinimalLink) {
+                                // MIGRATE: Replace full data with minimal link
+                                el.data = {
+                                    name: actionName,
+                                    isLinked: true
+                                };
+                                migrationCount++;
+                            }
+                        }
+                    }
+                });
+            });
+        };
+        migrateCharts(project.flowCharts);
+        if (project.stages) {
+            project.stages.forEach(s => migrateCharts(s.flowCharts));
+        }
+        if (migrationCount > 0) {
+            report.push(`${migrationCount} FlowChart-Aktionen auf Single-Source-of-Truth (Links) migriert.`);
+        }
+        if (cleanupCount > 0) {
+            report.push(`${cleanupCount} transiente Felder (_formValues, taskName, actionName) entfernt.`);
+        }
+    }
+}

@@ -54,6 +54,15 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **UI-Sperre**: Wenn ein Flow existiert, muss die Listen-Ansicht (`TaskEditor.ts`) schreibgeschützt sein. Verwende das `isReadOnly`-Flag in `createSequenceItemElement`.
 - **Synchronisation**: Rufe vor allen Persistenz-Operationen `flowEditor.syncAllTasksFromFlow(project)` auf, um Datenkonsistenz zu garantieren.
 
+## Action-Check & Referenzsuche
+- **Aufgabe**: Der Action-Check identifiziert unbenutzte Tasks, Aktionen und Variablen, um das Projekt sauber zu halten.
+- **Logik**: `ProjectRegistry.getTaskUsage` ist die Referenz-Implementierung. Sie scannt:
+    1.  Alle Task-Sequenzen (direkte Aufrufe, Then-Zweige, Else-Zweige).
+    2.  Alle Objekt-Events (z.B. `onEnter`, `onClick`).
+    3.  Alle Variablen-Events (z.B. `onValueTrue`, `onChange`).
+- **Hammer-Scan (Sicherheitsnetz)**: Zusätzlich zum strukturierten Scan führt die Registry einen "Hammer-Scan" via JSON-String-Suche durch. Falls ein Task-Name im JSON vorkommt, aber strukturell nicht zugeordnet werden konnte, wird er dennoch als "benutzt" markiert (mit Warnung/Hinweis). Dies verhindert Datenverlust beim Löschen vermeintlich unbenutzter Elemente.
+- **Transparenz**: Der `FlowEditor` bietet einen Diagnostics-Modus (`Action-Check`), der die Differenz zwischen definierten und referenzierten Elementen visuell hervorhebt.
+
 ## Debugging
 - **Identitäts-Prüfung**: Bei Verdacht auf "Geister-Objekte" (Logik läuft, Rendering steht), prüfe die Objekt-Identität mit einem temporären "Tag" (`__debugId`), das vor der Proxy-Erstellung angehängt wird.
 - **JSON-Vergleich**: Nutze `JSON.stringify`, um tiefere Unterschiede in Objekt-Strukturen zu erkennen, falls die Identität gleich scheint.

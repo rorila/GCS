@@ -919,9 +919,13 @@
         return template;
       }
       return template.replace(/\$\{([^}]+)\}/g, (_, path) => {
-        if (vars[path] !== void 0) return String(vars[path]);
-        if (objects && path.includes(".")) {
-          const [objName, ...propParts] = path.split(".");
+        const trimmedPath = path.trim();
+        if (trimmedPath === "true") return "true";
+        if (trimmedPath === "false") return "false";
+        if (!isNaN(Number(trimmedPath))) return trimmedPath;
+        if (vars[trimmedPath] !== void 0) return String(vars[trimmedPath]);
+        if (objects && trimmedPath.includes(".")) {
+          const [objName, ...propParts] = trimmedPath.split(".");
           const propPath = propParts.join(".");
           const obj = objects.find((o) => o.name === objName || o.id === objName);
           if (obj) {
@@ -8282,7 +8286,17 @@
         Object.keys(objData).forEach((key) => {
           if (reservedKeys.includes(key)) return;
           const val = objData[key];
-          if (val !== void 0) {
+          if (val === void 0) return;
+          if (key.includes(".")) {
+            const parts = key.split(".");
+            let target = newObj;
+            for (let i = 0; i < parts.length - 1; i++) {
+              const part = parts[i];
+              if (!target[part]) target[part] = {};
+              target = target[part];
+            }
+            target[parts[parts.length - 1]] = val;
+          } else {
             newObj[key] = val;
           }
         });

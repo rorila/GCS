@@ -1369,9 +1369,8 @@ export class JSONDialogRenderer {
         }
 
         if (!variable) {
-            console.warn(`[JSONDialogRenderer] -> FAILED to find variable "${objectName}" in any source!`);
-            // List some available names for debugging
-            console.log(`[JSONDialogRenderer] -> Available in enrichedProject:`, allVars.map(v => v.name));
+            // Not found as variable. This is normal if it is an object/component.
+            // console.warn(`[JSONDialogRenderer] -> FAILED to find variable "${objectName}" in any source!`);
         }
 
         return variable;

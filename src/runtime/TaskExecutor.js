@@ -1,0 +1,488 @@
+import { DebugLogService } from '../services/DebugLogService';
+import { libraryService } from '../services/LibraryService';
+export class TaskExecutor {
+    constructor(project, actions, actionExecutor, flowCharts, multiplayerManager, tasks) {
+        this.project = project;
+        this.actions = actions;
+        this.actionExecutor = actionExecutor;
+        this.flowCharts = flowCharts;
+        this.multiplayerManager = multiplayerManager;
+        this.tasks = tasks;
+        this.tasks = tasks || project.tasks || [];
+    }
+    /**
+     * Aktualisiert die FlowCharts (z.B. bei Stage-Wechsel)
+     */
+    setFlowCharts(flowCharts) {
+        this.flowCharts = flowCharts;
+    }
+    setTasks(tasks) {
+        this.tasks = tasks;
+    }
+    setActions(actions) {
+        this.actions = actions;
+    }
+    async execute(taskName, vars, globalVars, contextObj, depth = 0, parentId, params, isRemoteExecution = false) {
+        if (depth >= TaskExecutor.MAX_DEPTH) {
+            console.error(`[TaskExecutor] Max recursion depth exceeded: ${taskName} `);
+            return;
+        }
+        // Merge parameters into local variables scope
+        if (params) {
+            vars = { ...vars, ...params };
+        }
+        // 1. Resolve Task
+        let task = this.tasks?.find(t => t.name === taskName) || this.project.tasks?.find(t => t.name === taskName);
+        if (!task) {
+            // Check Library
+            task = libraryService.getTask(taskName);
+        }
+        // 1b. Recursive Resolution for dot-notation (e.g., ObjectName.EventName)
+        if (!task && taskName.includes('.')) {
+            const [objName, evtName] = taskName.split('.');
+            let foundTaskName = '';
+            const findDeep = (objs) => {
+                for (const o of objs) {
+                    if (o.name === objName || o.id === objName)
+                        return o;
+                    if (o.children && o.children.length > 0) {
+                        const found = findDeep(o.children);
+                        if (found)
+                            return found;
+                    }
+                }
+                return null;
+            };
+            // Search in objects (recursive) and variables of all stages
+            this.project.stages?.forEach(s => {
+                if (foundTaskName)
+                    return;
+                // Search in objects
+                const obj = findDeep(s.objects || []);
+                if (obj && obj.Tasks && obj.Tasks[evtName]) {
+                    foundTaskName = obj.Tasks[evtName];
+                }
+                // Search in stage variables
+                if (!foundTaskName && s.variables) {
+                    const v = s.variables.find((v) => v.name === objName);
+                    if (v && v.Tasks && v.Tasks[evtName]) {
+                        foundTaskName = v.Tasks[evtName];
+                    }
+                }
+            });
+            // Search in global project variables
+            if (!foundTaskName && this.project.variables) {
+                const v = this.project.variables.find((v) => v.name === objName);
+                if (v && v.Tasks && v.Tasks[evtName]) {
+                    foundTaskName = v.Tasks[evtName];
+                }
+            }
+            if (foundTaskName) {
+                console.log(`[TaskExecutor] Resolved "${taskName}" to assigned task: "${foundTaskName}"`);
+                return this.execute(foundTaskName, vars, globalVars, contextObj, depth + 1, parentId, params, isRemoteExecution);
+            }
+        }
+        if (!task) {
+            console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
+            return;
+        }
+        // ─────────────────────────────────────────────
+        // TriggerMode Logic (Multiplayer only)
+        // ─────────────────────────────────────────────
+        const triggerMode = task.triggerMode || 'local-sync';
+        const isMultiplayer = this.multiplayerManager?.isConnected === true;
+        const isHost = this.multiplayerManager?.isHost === true;
+        if (isMultiplayer && !isRemoteExecution) {
+            // broadcast: Non-host sends to host, does NOT execute locally
+            if (triggerMode === 'broadcast' && !isHost) {
+                console.log(`[TaskExecutor] Broadcasting task "${taskName}" to host (not executing locally)`);
+                this.multiplayerManager.sendTriggerTask(taskName, params);
+                return; // Do NOT execute locally
+            }
+        }
+        if (isMultiplayer && isRemoteExecution) {
+            // broadcast + remote: Only host should execute
+            if (triggerMode === 'broadcast' && !isHost) {
+                console.log(`[TaskExecutor] Skipping remote broadcast task "${taskName}" - only host executes`);
+                return;
+            }
+        }
+        // 2. Merge task parameter defaults into vars (for cloned tasks with ${param} placeholders)
+        // This allows direct execution of tasks without passing explicit params
+        if (task.params && Array.isArray(task.params)) {
+            const paramDefaults = {};
+            task.params.forEach((p) => {
+                // Only use default if param not already provided
+                if (p.name && p.default !== undefined && vars[p.name] === undefined) {
+                    paramDefaults[p.name] = p.default;
+                }
+            });
+            if (Object.keys(paramDefaults).length > 0) {
+                console.log(`[TaskExecutor] Applied param defaults for "${taskName}":`, paramDefaults);
+                vars = { ...vars, ...paramDefaults };
+            }
+        }
+        const taskLogId = DebugLogService.getInstance().log('Task', `START: ${taskName} `, {
+            parentId,
+            objectName: contextObj?.name
+        });
+        // Bestimme Ausführungsquelle: Bevorzuge FlowChart (Source of Truth im Editor)
+        const flowChart = this.flowCharts?.[taskName];
+        const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
+        const actionSequence = task.actionSequence || [];
+        if (hasFlowChart) {
+            console.log(`[TaskExecutor] Nutze Flussdiagramm für "${taskName}" (Elemente: ${flowChart.elements.length})`);
+            await this.executeFlowChart(taskName, flowChart, vars, globalVars, contextObj, depth, taskLogId);
+        }
+        else {
+            if (actionSequence.length === 0) {
+                console.log(`[TaskExecutor] Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
+            }
+            for (const seqItem of actionSequence) {
+                try {
+                    await this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
+                }
+                catch (err) {
+                    console.error(`[TaskExecutor] Error in item of task ${taskName}: `, err);
+                    DebugLogService.getInstance().log('Event', `ERROR executing task ${taskName}: ${err}`, { parentId: taskLogId });
+                }
+            }
+        }
+        // local-sync: After execution, sync to other player
+        if (isMultiplayer && triggerMode === 'local-sync' && !isRemoteExecution) {
+            console.log(`[TaskExecutor] Syncing task "${taskName}" to other player`);
+            this.multiplayerManager.sendSyncTask(taskName, params);
+        }
+    }
+    /**
+     * Execute a task's flowChart directly at runtime
+     * This is a fallback for when actionSequence wasn't properly synced
+     */
+    async executeFlowChart(taskName, flowChart, vars, globalVars, contextObj, depth, parentId) {
+        const { elements, connections } = flowChart;
+        const visited = new Set();
+        // Find the start node (Task node with same name as the task, or a Start node)
+        const startNode = elements.find((e) => (e.type === 'Task' && e.properties?.name === taskName) ||
+            (e.type === 'Start'));
+        if (!startNode) {
+            console.warn(`[TaskExecutor] No start node found in flowChart for task: ${taskName}. elements:`, elements.map(e => `${e.type}:${e.properties?.name || e.id}`));
+            return;
+        }
+        console.log(`[TaskExecutor] FlowChart Elements for "${taskName}":`, elements.map(e => `${e.type}:${e.properties?.name || e.id}`));
+        const executeNode = async (node) => {
+            if (!node || visited.has(node.id))
+                return;
+            visited.add(node.id);
+            const nodeType = node.type;
+            const name = node.properties?.name || node.data?.name || node.data?.actionName;
+            // Skip the task node itself (it's just the entry point)
+            if (nodeType === 'Task' && name === taskName) {
+                // Find outgoing connections and execute them
+                const outgoing = connections.filter((c) => c.startTargetId === node.id);
+                for (const conn of outgoing) {
+                    const nextNode = elements.find((e) => e.id === conn.endTargetId);
+                    if (nextNode)
+                        await executeNode(nextNode);
+                }
+                return;
+            }
+            if (nodeType === 'Action' || nodeType === 'action') {
+                // Execute this action
+                const action = this.resolveAction({ type: 'action', name: name }) || node.data;
+                if (action) {
+                    await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+                }
+                // Find and execute next node (non-conditional connection)
+                const outgoing = connections.find((c) => c.startTargetId === node.id &&
+                    !['true', 'false'].includes(c.data?.startAnchorType || c.data?.anchorType || ''));
+                if (outgoing) {
+                    const nextNode = elements.find((e) => e.id === outgoing.endTargetId);
+                    if (nextNode)
+                        await executeNode(nextNode);
+                }
+                return;
+            }
+            if (nodeType === 'Task' || nodeType === 'task') {
+                // Execute sub-task
+                await this.execute(name, vars, globalVars, contextObj, depth + 1, parentId, node.data?.params);
+                // Find and execute next node
+                const outgoing = connections.find((c) => c.startTargetId === node.id &&
+                    !['true', 'false'].includes(c.data?.startAnchorType || c.data?.anchorType || ''));
+                if (outgoing) {
+                    const nextNode = elements.find((e) => e.id === outgoing.endTargetId);
+                    if (nextNode)
+                        await executeNode(nextNode);
+                }
+                return;
+            }
+            if (nodeType === 'Condition' || nodeType === 'condition') {
+                const condition = node.data?.condition;
+                if (!condition) {
+                    console.warn(`[TaskExecutor] Condition node without condition data: ${node.id} `);
+                    return;
+                }
+                // Evaluate the condition
+                const result = this.evaluateCondition(condition, vars, globalVars);
+                console.log(`[TaskExecutor] Condition ${condition.variable} ${condition.operator || '=='} ${condition.value} => ${result} `);
+                // Find the appropriate branch connection
+                const trueConn = connections.find((c) => c.startTargetId === node.id &&
+                    (c.data?.startAnchorType === 'true' || c.data?.anchorType === 'true'));
+                const falseConn = connections.find((c) => c.startTargetId === node.id &&
+                    (c.data?.startAnchorType === 'false' || c.data?.anchorType === 'false'));
+                if (result && trueConn) {
+                    const trueNode = elements.find((e) => e.id === trueConn.endTargetId);
+                    if (trueNode)
+                        await executeNode(trueNode);
+                }
+                else if (!result && falseConn) {
+                    const falseNode = elements.find((e) => e.id === falseConn.endTargetId);
+                    if (falseNode)
+                        await executeNode(falseNode);
+                }
+                return;
+            }
+        };
+        // Start execution from start node's outgoing connections
+        const initialOutgoing = connections.filter((c) => c.startTargetId === startNode.id);
+        for (const conn of initialOutgoing) {
+            const firstNode = elements.find((e) => e.id === conn.endTargetId);
+            if (firstNode)
+                await executeNode(firstNode);
+        }
+    }
+    async executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, parentId) {
+        const item = typeof seqItem === 'string'
+            ? { type: 'action', name: seqItem }
+            : seqItem;
+        // Debug: Log every sequence item being processed
+        console.log(`[TaskExecutor] Processing item: type = "${item.type}" name = "${item.name || 'N/A'}" condition = "${item.condition?.variable || 'none'}"`);
+        // Check condition if present
+        const condition = item.itemCondition || (typeof item.condition === 'string' ? item.condition : null);
+        if (condition && !this.evaluateCondition(condition, vars, globalVars)) {
+            console.log(`[TaskExecutor] Item condition FALSE, skipping: ${condition} `);
+            return;
+        }
+        switch (item.type) {
+            case 'condition':
+                await this.handleCondition(item, vars, globalVars, contextObj, depth, parentId);
+                break;
+            case 'task':
+                await this.execute(item.name, vars, globalVars, contextObj, depth + 1, parentId, item.params);
+                break;
+            case 'action':
+                const action = this.resolveAction(item);
+                if (action) {
+                    await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+                }
+                else {
+                    console.warn(`[TaskExecutor] Action definition not found: ${item.name} `);
+                }
+                break;
+            case 'while':
+                await this.handleWhile(item, vars, globalVars, contextObj, depth, parentId);
+                break;
+            case 'for':
+                await this.handleFor(item, vars, globalVars, contextObj, depth, parentId);
+                break;
+            case 'foreach':
+                await this.handleForeach(item, vars, globalVars, contextObj, depth, parentId);
+                break;
+            default:
+                // Legacy: execute as direct action
+                if (item.type) {
+                    await this.actionExecutor.execute(item, vars, globalVars, contextObj, parentId);
+                }
+        }
+    }
+    async executeBody(body, vars, globalVars, contextObj, depth, parentId) {
+        if (!body || !Array.isArray(body))
+            return;
+        for (const item of body) {
+            await this.executeSequenceItem(item, vars, globalVars, contextObj, depth, parentId);
+        }
+    }
+    resolveAction(item) {
+        if (typeof item === 'string') {
+            return this.actions.find(a => a.name === item);
+        }
+        if (item.type === 'action' && item.name) {
+            return this.actions.find(a => a.name === item.name);
+        }
+        return item;
+    }
+    evaluateCondition(condition, vars, globalVars) {
+        if (!condition)
+            return false;
+        // Support string condition like "isPlayer1 == 1"
+        if (typeof condition === 'string') {
+            const parts = condition.split(/\s*(==|!=|>|<|>=|<=)\s*/);
+            if (parts.length === 3) {
+                const left = parts[0].trim();
+                const operator = parts[1];
+                const right = parts[2].trim();
+                const leftValue = vars[left] !== undefined ? vars[left] : globalVars[left];
+                const rightValue = right.startsWith("'") || right.startsWith('"')
+                    ? right.substring(1, right.length - 1)
+                    : isNaN(Number(right)) ? (vars[right] !== undefined ? vars[right] : globalVars[right]) : Number(right);
+                switch (operator) {
+                    case '==': return String(leftValue) === String(rightValue);
+                    case '!=': return String(leftValue) !== String(rightValue);
+                    case '>': return Number(leftValue) > Number(rightValue);
+                    case '<': return Number(leftValue) < Number(rightValue);
+                    case '>=': return Number(leftValue) >= Number(rightValue);
+                    case '<=': return Number(leftValue) <= Number(rightValue);
+                }
+            }
+            return !!vars[condition] || !!globalVars[condition];
+        }
+        const varName = condition.variable;
+        const varValue = vars[varName] !== undefined ? vars[varName] : globalVars[varName];
+        const compareValue = condition.value;
+        // Default to equality if no operator specified
+        const operator = condition.operator || '==';
+        switch (operator) {
+            case '==': return String(varValue) === String(compareValue);
+            case '!=': return String(varValue) !== String(compareValue);
+            case '>': return Number(varValue) > Number(compareValue);
+            case '<': return Number(varValue) < Number(compareValue);
+            case '>=': return Number(varValue) >= Number(compareValue);
+            case '<=': return Number(varValue) <= Number(compareValue);
+            default: return String(varValue) === String(compareValue);
+        }
+    }
+    resolveValue(value, vars, globalVars) {
+        if (typeof value === 'number')
+            return value;
+        if (typeof value === 'string') {
+            // Check for ${variable} syntax
+            const match = value.match(/^\$\{(.+)\}$/);
+            if (match) {
+                const varName = match[1];
+                const val = vars[varName] !== undefined ? vars[varName] : globalVars[varName];
+                return Number(val) || 0;
+            }
+            return Number(value) || 0;
+        }
+        return 0;
+    }
+    async handleCondition(item, vars, globalVars, contextObj, depth, parentId) {
+        if (!item.condition)
+            return;
+        const varName = item.condition.variable;
+        const varValue = vars[varName] !== undefined ? vars[varName] : globalVars[varName];
+        const compareValue = item.condition.value;
+        const operator = item.condition.operator || '==';
+        const result = this.evaluateCondition(item.condition, vars, globalVars);
+        // Log to DebugLogService
+        const conditionExpr = `${varName} ${operator} "${compareValue}"`;
+        DebugLogService.getInstance().log('Condition', `${conditionExpr} => ${result ? 'TRUE' : 'FALSE'} (${varName}="${varValue}")`, {
+            parentId,
+            objectName: contextObj?.name,
+            data: { variable: varName, value: varValue, expected: compareValue, result }
+        });
+        // Debug: Log condition evaluation for boundary checks
+        console.log(`[TaskExecutor] Condition: ${varName}="${varValue}" == "${compareValue}" => ${result}`);
+        if (result) {
+            if (item.thenAction) {
+                const action = this.resolveAction(item.thenAction);
+                console.log(`[TaskExecutor] Condition TRUE, executing thenAction: ${item.thenAction} `);
+                if (action)
+                    await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+            }
+            if (item.thenTask) {
+                console.log(`[TaskExecutor] Condition TRUE, executing thenTask: ${item.thenTask} `);
+                await this.execute(item.thenTask, vars, globalVars, contextObj, depth + 1, parentId);
+            }
+            if (item.body)
+                await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+        }
+        else {
+            if (item.elseAction) {
+                const action = this.resolveAction(item.elseAction);
+                if (action)
+                    await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+            }
+            if (item.elseTask)
+                await this.execute(item.elseTask, vars, globalVars, contextObj, depth + 1, parentId);
+            if (item.elseBody)
+                await this.executeBody(item.elseBody, vars, globalVars, contextObj, depth, parentId);
+        }
+    }
+    /**
+     * WHILE loop: Execute body while condition is true
+     */
+    async handleWhile(item, vars, globalVars, contextObj, depth, parentId) {
+        if (!item.condition || !item.body) {
+            console.warn('[TaskExecutor] WHILE loop missing condition or body');
+            return;
+        }
+        let iterations = 0;
+        while (this.evaluateCondition(item.condition, vars, globalVars)) {
+            if (iterations++ >= TaskExecutor.MAX_ITERATIONS) {
+                console.error(`[TaskExecutor] WHILE loop exceeded max iterations(${TaskExecutor.MAX_ITERATIONS})`);
+                break;
+            }
+            await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+        }
+        console.log(`[TaskExecutor] WHILE loop completed after ${iterations} iterations`);
+    }
+    /**
+     * FOR loop: Execute body for each value from 'from' to 'to'
+     */
+    async handleFor(item, vars, globalVars, contextObj, depth, parentId) {
+        if (!item.iteratorVar || !item.body) {
+            console.warn('[TaskExecutor] FOR loop missing iteratorVar or body');
+            return;
+        }
+        const from = this.resolveValue(item.from, vars, globalVars);
+        const to = this.resolveValue(item.to, vars, globalVars);
+        const step = item.step || 1;
+        let iterations = 0;
+        for (let i = from; (step > 0 ? i <= to : i >= to); i += step) {
+            if (iterations++ >= TaskExecutor.MAX_ITERATIONS) {
+                console.error(`[TaskExecutor] FOR loop exceeded max iterations(${TaskExecutor.MAX_ITERATIONS})`);
+                break;
+            }
+            // Set iterator variable
+            vars[item.iteratorVar] = i;
+            globalVars[item.iteratorVar] = i;
+            await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+        }
+        console.log(`[TaskExecutor] FOR loop completed after ${iterations} iterations`);
+    }
+    /**
+     * FOREACH loop: Execute body for each item in array
+     */
+    async handleForeach(item, vars, globalVars, contextObj, depth, parentId) {
+        if (!item.sourceArray || !item.itemVar || !item.body) {
+            console.warn('[TaskExecutor] FOREACH loop missing sourceArray, itemVar, or body');
+            return;
+        }
+        // Get the array from variables
+        const arrayName = item.sourceArray;
+        const arr = vars[arrayName] !== undefined ? vars[arrayName] : globalVars[arrayName];
+        if (!Array.isArray(arr)) {
+            console.warn(`[TaskExecutor] FOREACH: ${arrayName} is not an array`);
+            return;
+        }
+        let idx = 0;
+        for (const element of arr) {
+            if (idx >= TaskExecutor.MAX_ITERATIONS) {
+                console.error(`[TaskExecutor] FOREACH loop exceeded max iterations(${TaskExecutor.MAX_ITERATIONS})`);
+                break;
+            }
+            // Set item and index variables
+            vars[item.itemVar] = element;
+            globalVars[item.itemVar] = element;
+            if (item.indexVar) {
+                vars[item.indexVar] = idx;
+                globalVars[item.indexVar] = idx;
+            }
+            await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+            idx++;
+        }
+        console.log(`[TaskExecutor] FOREACH loop completed after ${idx} iterations`);
+    }
+}
+TaskExecutor.MAX_DEPTH = 10;
+TaskExecutor.MAX_ITERATIONS = 1000; // Prevent infinite loops

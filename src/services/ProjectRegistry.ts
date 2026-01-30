@@ -1,4 +1,5 @@
 import { GameProject, ProjectVariable, GameTask, GameAction } from '../model/types';
+
 import { libraryService } from './LibraryService';
 import { TWindow } from '../components/TWindow';
 
@@ -349,19 +350,32 @@ export class ProjectRegistry {
      * Finds all references to a specific named entity (Task, Action, Variable or Object)
      */
     public findReferences(name: string): string[] {
+        console.log(`%c[ProjectRegistry] findReferences('${name}') START`, "color: #00bcd4; font-weight: bold;");
+        // alert("ProjectRegistry: Suche Referenzen für: " + name); 
         const refs: string[] = [];
-        if (!this.project) return refs;
+        if (!this.project) {
+            console.warn(`[ProjectRegistry] findReferences: No project loaded!`);
+            return refs;
+        }
 
-        // Combine all specific usages
-        return [
-            ...this.getTaskUsage(name),
-            ...this.getActionUsage(name),
-            ...this.getVariableUsage(name),
-            ...this.getObjectUsage(name)
-        ].filter((v, i, a) => a.indexOf(v) === i); // Deduplicate
+        const taskRefs = this.getTaskUsage(name);
+        const actionRefs = this.getActionUsage(name);
+        const varRefs = this.getVariableUsage(name);
+        const objRefs = this.getObjectUsage(name);
+
+        const allRefs = [
+            ...taskRefs,
+            ...actionRefs,
+            ...varRefs,
+            ...objRefs
+        ].filter((v, i, a) => a.indexOf(v) === i);
+
+        console.log(`[ProjectRegistry] findReferences('${name}') END. Found ${allRefs.length} total refs. (T:${taskRefs.length}, A:${actionRefs.length}, V:${varRefs.length}, O:${objRefs.length})`);
+        return allRefs;
     }
 
     public getObjectUsage(name: string): string[] {
+        console.log(`  [ProjectRegistry] getObjectUsage('${name}')`);
         const refs: string[] = [];
         if (!this.project) return refs;
 
@@ -413,36 +427,129 @@ export class ProjectRegistry {
         return refs;
     }
 
-    public getTaskUsage(name: string): string[] {
-        const refs: string[] = [];
-        if (!this.project) return refs;
+    /**
+     * Sammelt ALLE Task-Namen, die irgendwo im Projekt-JSON referenziert werden.
+     * Dies ist die "Soll"-Liste der benutzten Tasks.
+     */
+    public getAllReferencedTaskNames(): Set<string> {
+        const referenced = new Set<string>();
+        if (!this.project) return referenced;
 
-        // 1. Calls in other Tasks - AVOID RECURSION (resolveUsage = false)
+        // 1. Tasks in Sequenzen (Aufrufe, Then, Else)
         this.getTasks('all', false).forEach(task => {
-            if (task.name === name) return; // Skip self
-
             const scanSeq = (seq: any[]) => {
                 if (!seq) return;
                 seq.forEach(item => {
-                    if (item.type === 'task' && item.name === name) {
-                        refs.push(`Task: ${task.name} -> Ruft Task auf: ${name}`);
-                    }
-                    if (item.thenTask === name) refs.push(`Task: ${task.name} -> Condition (Then): ${name}`);
-                    if (item.elseTask === name) refs.push(`Task: ${task.name} -> Condition (Else): ${name}`);
+                    if (item.type === 'task' && item.name) referenced.add(item.name);
+                    if (item.thenTask) referenced.add(item.thenTask);
+                    if (item.elseTask) referenced.add(item.elseTask);
                     if (item.body) scanSeq(item.body);
                 });
             };
             scanSeq(task.actionSequence);
         });
 
-        // 2. Object Events
-        this.getAllObjectsWithSource().forEach(({ obj, source }) => {
-            if ((obj as any).Tasks) {
-                Object.entries((obj as any).Tasks).forEach(([evt, taskName]) => {
-                    if (taskName === name) {
-                        refs.push(`${source} Objekt: ${obj.name} -> Event: ${evt}`);
+        // 2. Events an Objekten und Variablen
+        const allPotentialHolders: any[] = [];
+        this.getAllObjectsWithSource().forEach(({ obj }) => allPotentialHolders.push(obj));
+        if (this.project.variables) {
+            this.project.variables.forEach(v => allPotentialHolders.push(v));
+        }
+        if (this.project.stages) {
+            this.project.stages.forEach(s => {
+                if (s.variables) s.variables.forEach(v => allPotentialHolders.push(v));
+            });
+        }
+
+        allPotentialHolders.forEach(item => {
+            const checkProps = (target: any) => {
+                if (!target || typeof target !== 'object') return;
+                Object.entries(target).forEach(([key, val]) => {
+                    if (typeof val === 'string' && (key.startsWith('on') || key === 'onChange' || key === 'onValueTrue' || key === 'onValueFalse')) {
+                        referenced.add(val);
+                    }
+                    if (key === 'Tasks' || key === 'events' || key === 'properties') {
+                        checkProps(val);
                     }
                 });
+            };
+            checkProps(item);
+        });
+
+        return referenced;
+    }
+
+    public getTaskUsage(name: string): string[] {
+        const refs: string[] = [];
+        if (!this.project) return refs;
+
+        // 1. Calls in other Tasks
+        this.getTasks('all', false).forEach(task => {
+            if (task.name === name) return;
+
+            const scanSeq = (seq: any[]) => {
+                if (!seq) return;
+                seq.forEach(item => {
+                    if (item.type === 'task' && item.name === name) refs.push(`Task: ${task.name} -> Task-Aufruf`);
+                    if (item.thenTask === name) refs.push(`Task: ${task.name} -> Then-Task`);
+                    if (item.elseTask === name) refs.push(`Task: ${task.name} -> Else-Task`);
+                    if (item.body) scanSeq(item.body);
+                });
+            };
+            scanSeq(task.actionSequence);
+        });
+
+        // 2. Object and Variable Events
+        const allPotentialHolders: { item: any, source: string }[] = [];
+        this.getAllObjectsWithSource().forEach(({ obj, source }) => {
+            allPotentialHolders.push({ item: obj, source: `Objekt: ${obj.name} (${source})` });
+        });
+
+        if (this.project.variables) {
+            this.project.variables.forEach(v => allPotentialHolders.push({ item: v, source: `Glb-Variable: ${v.name}` }));
+        }
+        if (this.project.stages) {
+            this.project.stages.forEach(s => {
+                if (s.variables) {
+                    s.variables.forEach(v => allPotentialHolders.push({ item: v, source: `Stage-Variable: ${v.name} (${s.name || s.id})` }));
+                }
+            });
+        }
+
+
+        allPotentialHolders.forEach(({ item, source }) => {
+            const initialRefsLength = refs.length;
+            const checkProps = (target: any, path: string = '') => {
+                if (!target || typeof target !== 'object') return;
+
+                Object.entries(target).forEach(([key, val]) => {
+                    // Check direct property match (especially for events)
+                    if (val === name) {
+                        const isLikelyEvent = key.startsWith('on') || key === 'onValueTrue' || key === 'onValueFalse' || key === 'onChange';
+                        if (isLikelyEvent) {
+                            refs.push(`${source} -> Event: ${path}${key}`);
+                        } else {
+                            refs.push(`${source} -> Property: ${path}${key}`);
+                        }
+                    }
+
+                    // Recursive check for sub-objects
+                    if (key === 'Tasks' || key === 'events' || key === 'properties') {
+                        checkProps(val, `${key}.`);
+                    }
+                });
+            };
+
+            checkProps(item);
+
+            // HAMMER SCAN: If no ref found by structure, try simple JSON search as safety net
+            if (refs.length === initialRefsLength) {
+                try {
+                    const json = JSON.stringify(item);
+                    if (json.includes(`"${name}"`)) {
+                        refs.push(`${source} -> Gefunden in JSON-Daten (Struktur-Scan fehlgeschlagen)`);
+                    }
+                } catch (e) { }
             }
         });
 
@@ -450,6 +557,7 @@ export class ProjectRegistry {
     }
 
     public getActionUsage(name: string): string[] {
+        console.log(`  [ProjectRegistry] getActionUsage('${name}')`);
         const refs: string[] = [];
         if (!this.project) return refs;
 
@@ -473,6 +581,7 @@ export class ProjectRegistry {
     }
 
     public getVariableUsage(name: string): string[] {
+        console.log(`  [ProjectRegistry] getVariableUsage('${name}')`);
         const refs: string[] = [];
         if (!this.project) return refs;
 

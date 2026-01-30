@@ -233,6 +233,30 @@ export class FlowEditor {
         return all;
     }
 
+    private getAllVariables(): any[] {
+        if (!this.project) return [];
+
+        // 1. Gather all variables from project and stages
+        let all: any[] = [...(this.project.variables || [])];
+
+        if (this.project.stages) {
+            this.project.stages.forEach(s => {
+                if (s.variables) {
+                    all = [...all, ...s.variables];
+                }
+            });
+        }
+
+        // 2. Deduplicate
+        const seen = new Set<string>();
+        return all.filter(v => {
+            const id = v.id || v.name;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+        });
+    }
+
     private editor: any; // Reference to main Editor for routing logic
 
     constructor(containerId: string, editor?: any) {
@@ -2384,20 +2408,40 @@ export class FlowEditor {
         if (!this.project) return;
         if (type === 'Action') {
             // 1. Precise deletion from global array (handles duplicates)
+            let deletedGlobal = false;
             if (index !== undefined && index >= 0 && index < this.project.actions.length) {
                 this.project.actions.splice(index, 1);
                 console.log(`[FlowEditor] Deleted Action instance at index ${index}: ${name}`);
+                deletedGlobal = true;
             } else {
+                const initialLen = this.project.actions.length;
                 this.project.actions = this.project.actions.filter(a => a.name !== name);
-                console.log(`[FlowEditor] Deleted all Action instances with name: ${name}`);
+                if (this.project.actions.length < initialLen) {
+                    console.log(`[FlowEditor] Deleted all Global Action instances with name: ${name}`);
+                    deletedGlobal = true;
+                }
             }
 
+            // 1b. Delete from matching Stage lists (Robust multi-scope cleanup)
+            let deletedStage = false;
+            if (this.project.stages) {
+                this.project.stages.forEach(stage => {
+                    if (stage.actions) {
+                        const sLen = stage.actions.length;
+                        stage.actions = stage.actions.filter(a => a.name !== name);
+                        if (stage.actions.length < sLen) {
+                            console.log(`[FlowEditor] Deleted Action "${name}" from Stage "${stage.name || stage.id}"`);
+                            deletedStage = true;
+                        }
+                    }
+                });
+            }
+
+            console.log(`[FlowEditor] Deletion Verification for "${name}": Global=${deletedGlobal}, Stage=${deletedStage}`);
+
             // 2. Project-wide reference cleanup (Flowcharts, Sequences)
-            // Note: We only do this if no other action with the same name exists anymore?
-            // Actually, if it's a duplicate, other nodes might still point to it.
-            // But if it's UNUSED (red), we can clean up everything.
-            const stillExists = this.project.actions.some(a => a.name === name);
-            if (!stillExists) {
+            // If we deleted it from everywhere, we should definitely clean up references
+            if (deletedGlobal || deletedStage) {
                 RefactoringManager.deleteAction(this.project, name);
             }
         } else if (type === 'Task') {
@@ -4033,14 +4077,31 @@ export class FlowEditor {
                 const eventNames = hasTasks ? Object.keys(tasks) : [];
                 const eventMatches = eventNames.some(e => e.toLowerCase().includes(this.filterText));
 
-                // Auch nach Bindungen filtern? (Optional, aber hilfreich)
-                // const bindingMatches = ... 
-
                 return nameMatches || taskMatches || eventMatches || (hasBindings && obj.name.toLowerCase().includes(this.filterText));
             }
             return true;
         });
 
+        // --- NEW: Identify Variables with Tasks/Events ---
+        const variablesWithTasks = this.getAllVariables().filter(v => {
+            // Find all properties starting with "on" that have a value (Top-Level or inside Tasks)
+            const topLevelEvents = Object.keys(v).filter(k => k.startsWith('on') && (v as any)[k]);
+            const taskEvents = (v as any).Tasks ? Object.keys((v as any).Tasks).filter(k => k.startsWith('on') && (v as any).Tasks[k]) : [];
+            const hasTasks = topLevelEvents.length > 0 || taskEvents.length > 0;
+
+            if (!hasTasks) return false;
+
+            if (this.filterText) {
+                const nameMatches = v.name.toLowerCase().includes(this.filterText);
+                const taskMatches = [...topLevelEvents.map(e => (v as any)[e]), ...taskEvents.map(e => (v as any).Tasks[e])]
+                    .some(t => String(t).toLowerCase().includes(this.filterText));
+                const eventMatches = [...topLevelEvents, ...taskEvents].some(e => e.toLowerCase().includes(this.filterText));
+                return nameMatches || taskMatches || eventMatches;
+            }
+            return true;
+        });
+
+        // 1. Process Objects
         objectsWithTasks.forEach(obj => {
             // Create Object Proxy Node
             const objNode = new FlowComponent('proxy-' + obj.id, startX, currentY, this.canvas, this.flowStage.cellSize);
@@ -4068,7 +4129,6 @@ export class FlowEditor {
                 paramValues: bindings // Will be rendered by FlowComponent.setShowDetails
             };
             // Call setShowDetails to trigger updateContent and show f(x) indicator
-            // The global showDetails toggle determines if we show detailed or concept view
             objNode.setShowDetails(this.showDetails && Object.keys(bindings).length > 0);
 
             // Highlight if selected
@@ -4083,71 +4143,56 @@ export class FlowEditor {
             // Events/Tasks for this object
             const taskMappings = (obj as any).Tasks || {};
             const events = Object.entries(taskMappings);
-            console.log(`[FlowEditor] Event-Map: Object "${obj.name}" has ${events.length} events:`, events);
-
             events.forEach(([eventName, taskName], idx) => {
-                console.log(`[FlowEditor]   Processing event ${idx}: ${eventName} -> ${taskName}`);
-                if (typeof taskName !== 'string') return;
+                if (typeof taskName !== 'string' || !taskName) return;
 
                 // Create a Task Node for EACH event (no deduplication)
                 const taskY = currentY + (idx * eventLinkSpacing);
-                const taskNode = new FlowTask('map-task-' + eventName + '-' + taskName, taskX, taskY, this.canvas, this.flowStage.cellSize);
-                taskNode.Text = taskName;
-                taskNode.autoSize();
-
-                const taskDef = this.project!.tasks.find((t: any) => t.name === taskName);
-                if (taskDef && taskDef.description) {
-                    taskNode.Description = taskDef.description;
-                }
-
-                // Check if this task uses a library task internally
-                let usedLibraryTaskName: string | null = null;
-                const flowData = (taskDef as any)?.flowChart || (taskDef as any)?.flowGraph ||
-                    this.project!.flowCharts?.[taskName];
-
-                if (flowData?.elements) {
-                    for (const el of flowData.elements) {
-                        const elTaskName = el.data?.taskName;
-                        if (elTaskName && libraryService.getTask(elTaskName)) {
-                            usedLibraryTaskName = elTaskName;
-                            break;
-                        }
-                    }
-                }
-
-                const isLibraryBased = !!usedLibraryTaskName;
-
-                if (isLibraryBased) {
-                    taskNode.setLinked(true);
-                    taskNode.Details = `📚 ${usedLibraryTaskName}`;
-                }
-
-                taskNode.data = {
-                    taskName: taskName,
-                    eventName: eventName,
-                    stageObjectId: obj.id, // VITAL for cloning mapping update!
-                    isMapLink: true,
-                    isLibraryBased,
-                    usedLibraryTaskName
-                };
-                taskNode.setDetailed(isLibraryBased);
+                const taskNode = this.createMapTaskNode(taskName, eventName, taskX, taskY, obj.id);
                 this.nodes.push(taskNode);
                 this.setupNodeListeners(taskNode);
 
                 // Create Connection
-                const conn = new FlowConnection(this.canvas, 0, 0, 0, 0);
-                conn.setGridConfig(this.flowStage.cellSize);
-                conn.attachStart(objNode);
-                conn.attachEnd(taskNode);
-                conn.data = {
-                    objectName: obj.name,
-                    eventName: eventName,
-                    isMapLink: true
-                };
-                conn.Text = eventName;
-                conn.updatePosition();
-                this.connections.push(conn);
-                this.setupConnectionListeners(conn);
+                this.createEventLink(objNode, taskNode, obj.name, eventName);
+            });
+
+            currentY += Math.max(rowHeight, events.length * eventLinkSpacing + 20);
+        });
+
+        // 2. Process Variables
+        variablesWithTasks.forEach(variable => {
+            // Create Variable Proxy Node
+            const varId = variable.id || variable.name;
+            const varNode = new FlowVariable('proxy-var-' + varId, startX, currentY, this.canvas, this.flowStage.cellSize);
+            varNode.VarName = variable.name;
+            varNode.VarType = variable.type;
+            varNode.autoSize();
+
+            this.nodes.push(varNode);
+            this.setupNodeListeners(varNode);
+
+            // Extract events (on...) from Top-Level AND Tasks object
+            const topLevelEvents = Object.entries(variable)
+                .filter(([k, v]) => k.startsWith('on') && typeof v === 'string' && v) as [string, string][];
+            const taskEvents = (variable as any).Tasks ? Object.entries((variable as any).Tasks)
+                .filter(([k, v]) => k.startsWith('on') && typeof v === 'string' && v) as [string, string][] : [];
+
+            // Deduplicate (Top-Level has priority)
+            const eventMap = new Map<string, string>();
+            taskEvents.forEach(([k, v]) => eventMap.set(k, v));
+            topLevelEvents.forEach(([k, v]) => eventMap.set(k, v));
+
+            const events = Array.from(eventMap.entries());
+
+            events.forEach(([eventName, taskName], idx) => {
+                // Create a Task Node for EACH event
+                const taskY = currentY + (idx * eventLinkSpacing);
+                const taskNode = this.createMapTaskNode(taskName, eventName, taskX, taskY, varId);
+                this.nodes.push(taskNode);
+                this.setupNodeListeners(taskNode);
+
+                // Create Connection
+                this.createEventLink(varNode, taskNode, variable.name, eventName);
             });
 
             currentY += Math.max(rowHeight, events.length * eventLinkSpacing + 20);
@@ -4161,11 +4206,71 @@ export class FlowEditor {
         this.updateScrollArea();
     }
 
+    private createMapTaskNode(taskName: string, eventName: string, x: number, y: number, sourceId: string): FlowTask {
+        const taskNode = new FlowTask('map-task-' + eventName + '-' + taskName + '-' + sourceId, x, y, this.canvas, this.flowStage.cellSize);
+        taskNode.Text = taskName;
+        taskNode.autoSize();
+
+        const taskDef = this.project!.tasks.find((t: any) => t.name === taskName);
+        if (taskDef && taskDef.description) {
+            taskNode.Description = taskDef.description;
+        }
+
+        // Check if this task uses a library task internally
+        let usedLibraryTaskName: string | null = null;
+        const flowData = (taskDef as any)?.flowChart || (taskDef as any)?.flowGraph ||
+            this.project!.flowCharts?.[taskName];
+
+        if (flowData?.elements) {
+            for (const el of flowData.elements) {
+                const elTaskName = el.data?.taskName;
+                if (elTaskName && libraryService.getTask(elTaskName)) {
+                    usedLibraryTaskName = elTaskName;
+                    break;
+                }
+            }
+        }
+
+        const isLibraryBased = !!usedLibraryTaskName;
+        if (isLibraryBased) {
+            taskNode.setLinked(true);
+            taskNode.Details = `📚 ${usedLibraryTaskName}`;
+        }
+
+        taskNode.data = {
+            taskName: taskName,
+            eventName: eventName,
+            stageObjectId: sourceId,
+            isMapLink: true,
+            isLibraryBased,
+            usedLibraryTaskName
+        };
+        taskNode.setDetailed(isLibraryBased);
+        return taskNode;
+    }
+
+    private createEventLink(sourceNode: FlowElement, targetNode: FlowElement, sourceName: string, eventName: string) {
+        const conn = new FlowConnection(this.canvas, 0, 0, 0, 0);
+        conn.setGridConfig(this.flowStage.cellSize);
+        conn.attachStart(sourceNode);
+        conn.attachEnd(targetNode);
+        conn.data = {
+            objectName: sourceName,
+            eventName: eventName,
+            isMapLink: true
+        };
+        conn.Text = eventName;
+        conn.updatePosition();
+        this.connections.push(conn);
+        this.setupConnectionListeners(conn);
+    }
+
     /**
      * Generiert eine Übersicht über alle Tasks und Actions und deren Verwendungsstatus.
      * Ermöglicht das Löschen von ungenutzten Elementen.
      */
     private generateElementOverview(): void {
+        console.log("%c[FlowEditor] generateElementOverview()", "color: #e65100; font-weight: bold;");
         if (!this.project) return;
 
         const actionX = 50;
@@ -4230,6 +4335,22 @@ export class FlowEditor {
             const mappings = (obj as any).Tasks || {};
             Object.values(mappings).forEach(t => {
                 if (typeof t === 'string') stageRelevantTasks.add(t);
+            });
+        });
+
+        // B. Tasks used by variables of the current stage
+        const relevantVars = [...(this.project.variables || []), ...(activeStage?.variables || [])];
+        relevantVars.forEach(v => {
+            // Check top-level events
+            Object.entries(v).forEach(([k, val]) => {
+                if (k.startsWith('on') && typeof val === 'string' && val) {
+                    stageRelevantTasks.add(val);
+                }
+            });
+            // Check Tasks object
+            const taskMappings = (v as any).Tasks || {};
+            Object.values(taskMappings).forEach(t => {
+                if (typeof t === 'string' && t) stageRelevantTasks.add(t);
             });
         });
 
@@ -4483,6 +4604,7 @@ export class FlowEditor {
         taskItems.forEach((item: any, displayIdx: number) => {
             const task = item.task;
             const refs = projectRegistry.findReferences(task.name);
+
             const isUsed = refs.length > 0;
 
             const nodeId = 'over-task-' + displayIdx + '-' + (task.name || 'unnamed').replace(/\s+/g, '_');
@@ -4601,18 +4723,32 @@ export class FlowEditor {
      * Highlights or unhighlights unused action and task nodes
      */
     private highlightUnusedActions(highlight: boolean): void {
+        const unusedDetails: any[] = [];
         let unusedActionCount = 0;
         let unusedTaskCount = 0;
+        let unusedVariableCount = 0;
+
+        if (highlight) {
+            console.group(`[FlowEditor] Action-Check Result`);
+        }
 
         this.nodes.forEach(node => {
             const nodeType = node.getType();
             const isUnused = node.data?.canDelete === true;
+            const name = node.Name || (node as any).taskName || "unknown";
 
-            if ((nodeType === 'Action' || nodeType === 'Task') && isUnused) {
+            if ((nodeType === 'Action' || nodeType === 'Task' || nodeType === 'VariableDecl' || nodeType === 'TVariable') && isUnused) {
+                unusedDetails.push({
+                    Type: nodeType,
+                    Name: name,
+                    Refs: (node.data?.references || []).length > 0 ? node.data.references : "(Keine Referenzen gefunden!)"
+                });
+
                 const el = node.getElement();
 
                 if (nodeType === 'Action') unusedActionCount++;
                 if (nodeType === 'Task') unusedTaskCount++;
+                if (nodeType === 'VariableDecl' || nodeType === 'TVariable') unusedVariableCount++;
 
                 if (highlight) {
                     // Apply strong highlight
@@ -4642,7 +4778,13 @@ export class FlowEditor {
         });
 
         if (highlight) {
-            console.log(`[FlowEditor] Action-Check: ${unusedActionCount} nicht verwendete Actions, ${unusedTaskCount} nicht verwendete Tasks gefunden.`);
+            console.log(`Found ${unusedActionCount} Actions, ${unusedTaskCount} Tasks unused.`);
+            if (unusedDetails.length > 0) {
+                console.table(unusedDetails);
+            } else {
+                console.log("Alles super! Keine ungenutzten Elemente gefunden.");
+            }
+            console.groupEnd();
         }
     }
 

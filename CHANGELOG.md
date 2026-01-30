@@ -1,6 +1,23 @@
 # Changelog
 3: 
-4: ## [2.1.7] - 2026-01-30
+4: ## [2.1.9] - 2026-01-30
+- **Verbesserung: Action-Check & Referenzsuche**:
+    - Komplette Überarbeitung der `getTaskUsage`-Logik in der `ProjectRegistry`. 
+    - Unterstützung für die Erkennung von Task-Referenzen in Variablen-Events (z.B. `onValueTrue`, `onChange`) und verschachtelten Pfaden.
+    - Implementierung eines Sicherheits-Scans ("Hammer-Scan") via JSON-Analyse, um sicherzustellen, dass keine Referenzen bei der Lösch-Prüfung übersehen werden.
+    - Optimierung der Diagnostics im `FlowEditor`: Der Action-Check liefert nun präzise Informationen über die Verwendung von Tasks, Aktionen und Variablen.
+- **Bereinigung**: Entfernung veralteter `.js`-Dateien im Quellcode-Verzeichnis zur Vermeidung von Cache-Problemen.
+- **Bugfix (Kritisch): ServiceRegistry Singleton**:
+    - Das Problem der "doppelten ServiceRegistry" (JS vs. TS) wurde behoben, indem die Instanz global an das `window`-Objekt gebunden wurde.
+    - Dies stellt sicher, dass alle Module (FlowEditor, ActionEditor, Runtime) auf dieselbe Registry zugreifen und Services wie 'Dialog' zuverlässig gefunden werden.
+- **Verbesserung: Logging**:
+    - Entfernung irreführender Warnmeldungen ("FAILED to find variable") im Action-Editor, wenn Objekte statt Variablen referenziert werden.
+- **Bugfix: Action Löschen**:
+    - Die Lösch-Funktion im FlowEditor entfernt Aktionen nun zuverlässig aus beiden Scopes (Global & Stage), auch wenn sie in der jeweils anderen Liste noch als "Leiche" existieren.
+
+## [2.1.8] - 2026-01-30
+
+## [2.1.7] - 2026-01-30
 - Behebung der Textkürzung: Aktionen im Flow-Diagramm werden nun nur noch visuell gekürzt dargestellt.
 - Im Inspector, Pascal-Code und JSON-Export bleiben alle Texte (z.B. Nachrichten) vollständig erhalten.
 
