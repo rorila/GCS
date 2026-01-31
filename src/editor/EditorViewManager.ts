@@ -43,10 +43,12 @@ export class EditorViewManager {
     }
 
     private initMediator() {
-        mediatorService.on(MediatorEvents.DATA_CHANGED, () => {
-            if (this.currentView === 'management') {
-                const panel = document.getElementById('management-viewer');
-                if (panel) this.renderManagementView(panel);
+        mediatorService.on(MediatorEvents.DATA_CHANGED, (_data: any, originator?: string) => {
+            // Always refresh management data if panel is present
+            const panel = document.getElementById('management-viewer');
+            if (panel) {
+                console.log(`[ViewManager] Refreshing management view due to ${originator || 'external'} change`);
+                this.renderManagementView(panel);
             }
         });
 
@@ -276,6 +278,10 @@ export class EditorViewManager {
             highlightLayer.innerHTML = PascalHighlighter.highlight(textarea.value);
             try {
                 PascalGenerator.parse(h.project, textarea.value, stageToUse);
+
+                // Notify Mediator that project data has changed via Pascal Editor
+                mediatorService.notifyDataChanged(h.project, 'pascal-editor');
+
                 if (h.jsonInspector) {
                     const obj = h.currentSelectedId ? h.findObjectById(h.currentSelectedId) : null;
                     h.jsonInspector.update(obj || h.project);

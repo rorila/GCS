@@ -430,6 +430,7 @@ Der Management-Tab (`EditorViewManager.renderManagementView`) dient als zentrale
 - **Reaktive Synchronisation (Mediator)**: 
     - Der `Editor` emittiert Events (`OBJECT_SELECTED`, `DATA_CHANGED`) bei Interaktionen auf der Stage.
     - Andere Komponenten (wie `EditorViewManager` für den Management-Tab) abonnieren diese Events, um ihre Daten reaktiv zu aktualisieren, ohne dass ein manueller Reload nötig ist.
+    - **Vermeidung von Zirkularität**: Beim Versenden von `DATA_CHANGED` kann ein `originator` (z.B. `'pascal-editor'`) angegeben werden. Abonnenten können prüfen, ob sie selbst der Auslöser waren, um unnötige Re-Updates zu vermeiden.
     - **Wichtig**: Nutze beim Versenden von Daten-Änderungen (`DATA_CHANGED`) immer die debounced Version des Mediators, um Performance-Einbußen bei kontinuierlichen Operationen (Drag, Resize) zu vermeiden.
 - **Vorteile**:
     - **Saubere Stage**: Die Spiel-Stage im Design-Modus ist frei von transienten Tabellen.
@@ -449,4 +450,9 @@ Der Management-Tab (`EditorViewManager.renderManagementView`) dient als zentrale
 
 ### TTable Komponente & Statisches Rendering
 Die `TTable` ist eine Erweiterung von `TWindow`. Für die Nutzung in Sichten außerhalb der Stage (wie dem Management-Tab) bietet die `Stage` Klasse die statische Methode `Stage.renderTable(element, object)`. Dies ermöglicht es, die mächtige Tabellen-Rendering-Logik überall in der Editor-UI wiederzuverwenden.
+
+### Serialisierung & Trinity-Sync (v2.3.1)
+- **Zentralisierung**: Die `toJSON`-Logik wurde in `TComponent.ts` zentralisiert. Subklassen sollten `toJSON` nur in Ausnahmefällen überschreiben.
+- **Verschachtelte Pfade**: Der Serialisierer unterstützt nun Punkt-Notation in Property-Namen (z.B. `style.visible`). Dies erzeugt automatisch verschachtelte Objekte im JSON, was für den Renderer essenziell ist.
+- **Vermeidung von Datenverlust**: Durch die Automatisierung über `getInspectorProperties` wird sichergestellt, dass alle persistierbaren Eigenschaften (inkl. Sichtbarkeit) bei Synchronisationen (z.B. nach Pascal-Änderungen) erhalten bleiben.
 

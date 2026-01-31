@@ -58,22 +58,4 @@ export class TPanel extends TWindow {
             { name: 'gridStyle', label: 'Grid Style', type: 'select', options: ['lines', 'dots'], group: 'Specifics' }
         ];
     }
-
-    public toJSON(): any {
-        return {
-            ...super.toJSON(),
-            caption: this.caption,
-            showGrid: this._showGrid,
-            gridColor: this._gridColor,
-            gridStyle: this._gridStyle,
-            style: {
-                ...super.toJSON().style,
-                borderColor: this.style.borderColor,
-                borderWidth: this.style.borderWidth,
-                backgroundColor: this.style.backgroundColor
-            },
-            // Serialize children explicitly
-            children: this.children.map(child => child.toJSON())
-        };
-    }
 }

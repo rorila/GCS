@@ -65,7 +65,7 @@ export class TWindow extends TComponent {
         this.visible = true;
         this.text = "";
         this.style = {
-            visible: true,
+            // visible: true, // Do NOT force true here, let it be undefined so it falls back to this.visible
             backgroundColor: 'transparent',
             borderColor: 'transparent',
             borderWidth: 0
@@ -150,6 +150,7 @@ export class TWindow extends TComponent {
             { name: 'align', label: 'Ausrichtung', type: 'select', group: 'GEOMETRIE', options: ['NONE', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CLIENT'] },
             { name: 'text', label: 'Text', type: 'string', group: 'INHALT' },
             { name: 'visible', label: 'Sichtbar', type: 'boolean', group: 'IDENTITÄT' },
+            { name: 'style.visible', label: 'Style Sichtbar', type: 'boolean', group: 'STIL', editorOnly: true },
             { name: 'style.backgroundColor', label: 'Hintergrund', type: 'color', group: 'STIL' },
             { name: 'style.borderColor', label: 'Rahmenfarbe', type: 'color', group: 'STIL' },
             { name: 'style.borderWidth', label: 'Rahmenbreite', type: 'number', group: 'STIL' }

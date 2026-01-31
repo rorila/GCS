@@ -958,8 +958,19 @@ export class Stage {
                 el.style.height = `${(obj.height || 0) * this.gridConfig.cellSize}px`;
             }
 
-            // Visibility
-            const isVisible = (obj.visible !== false) && (obj.style?.visible !== false);
+            // Visibility - Robust check for booleans and strings
+            const checkVisible = (val: any): boolean => {
+                if (val === undefined || val === null) return true;
+                if (typeof val === 'boolean') return val;
+                if (typeof val === 'string') {
+                    const clean = val.trim().toLowerCase();
+                    if (clean === 'false') return false;
+                    if (clean === 'true') return true;
+                }
+                return !!val;
+            };
+
+            const isVisible = checkVisible(obj.visible) && checkVisible(obj.style?.visible);
             el.style.display = isVisible ? 'flex' : 'none';
 
             // Inherited/Ghosted State

@@ -55,9 +55,11 @@ export class ExpressionParser {
         });
 
         // Try to parse as number or boolean if entire string was a single expression
-        if (text.startsWith('${') && text.endsWith('}') && !text.includes('${', 2)) {
+        // Enhanced trim to handle cases like "${ value } "
+        const trimmedText = text.trim();
+        if (trimmedText.startsWith('${') && trimmedText.endsWith('}') && !trimmedText.includes('${', 2)) {
             // Single expression - try to preserve type for primitives, but stringify objects
-            const expression = text.slice(2, -1).trim();
+            const expression = trimmedText.slice(2, -1).trim();
             try {
                 const value = this.evaluate(expression, context);
                 // If it's a "real" object (and not null/primitive), stringify it

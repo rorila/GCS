@@ -28,7 +28,6 @@ import { dialogService } from '../services/DialogService';
 import { serviceRegistry } from '../services/ServiceRegistry';
 import { PascalGenerator } from './PascalGenerator';
 import { PascalHighlighter } from './PascalHighlighter';
-import { mediatorService } from '../services/MediatorService';
 import { JSONTreeViewer } from './JSONTreeViewer';
 import { FlowEditor } from './FlowEditor';
 import { FlowToolbox } from './FlowToolbox';
@@ -43,6 +42,7 @@ import { PlaybackControls } from '../components/PlaybackControls';
 import { PlaybackOverlay } from '../components/PlaybackOverlay';
 import { playbackEngine } from '../services/PlaybackEngine';
 import { safeDeepCopy } from '../utils/DeepCopy';
+import { mediatorService, MediatorEvents } from '../services/MediatorService';
 
 export class Editor implements IViewHost {
     private stage: Stage;
@@ -170,6 +170,7 @@ export class Editor implements IViewHost {
 
         // Note: Toolbar is now inside Toolbox
         this.init();
+        this.initMediator();
         this.bindViewEvents();
         this.bindSystemInfoEvents();
 
@@ -2528,6 +2529,22 @@ export class Editor implements IViewHost {
 
     // Legacy toggle method removed - now using only JSON-based UI
 
+    private initMediator(): void {
+        mediatorService.on(MediatorEvents.DATA_CHANGED, (_data: any, originator?: string) => {
+            // If the change came from JSON Editor itself, we don't need a full refresh-all (it already refreshed)
+            if (originator !== 'json-editor') {
+                console.log(`[Editor] Data changed by ${originator || 'unknown'}, refreshing all views...`);
+                this.refreshAllViews(originator);
+            }
+        });
+
+        mediatorService.on(MediatorEvents.OBJECT_SELECTED, (obj: any) => {
+            if (obj && obj.id) {
+                this.selectObject(obj.id);
+            }
+        });
+    }
+
     /**
      * Refreshes the JSON Tree View and its toolbar
      */
@@ -2726,16 +2743,16 @@ export class Editor implements IViewHost {
 
     /**
      * Zentrale Methode zur Synchronisation aller Trinity-Ansichten.
-     * Sollte nach jeder strukturellen Änderung gerufen werden.
+     * @param originator Optionale ID des auslösenden Tools zur Vermeidung von Redundanz.
      */
-    public refreshAllViews(): void {
+    public refreshAllViews(originator?: string): void {
         console.log('[Editor] Refreshing all views (Trinity-Sync)...');
         this.render();
         this.updateAvailableActions();
         this.refreshJSONView();
         this.refreshPascalView();
 
-        if (this.flowEditor && this.currentView === 'flow') {
+        if (this.flowEditor && this.currentView === 'flow' && originator !== 'flow-editor') {
             this.flowEditor.setProject(this.project);
             this.flowEditor.show();
         }
@@ -2775,6 +2792,9 @@ export class Editor implements IViewHost {
             this.isProjectDirty = false;
             this.autoSaveToLocalStorage();
             this.refreshJSONView(); // Hide apply button
+
+            // Notify Mediator that project data has changed via JSON Editor
+            mediatorService.notifyDataChanged(this.project, 'json-editor');
 
             // Show success toast
             const toast = this.project.objects.find(o => (o as any).className === 'TToast');

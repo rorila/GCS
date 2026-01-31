@@ -8,6 +8,8 @@
 - **Daten-Anreicherung**: Anzeige von X/Y-Positionen, Klassen, Typen, Zielobjekten und aktuellen Werten.
 - **TTable-Komponente**: Statischer Renderer für systemweite Tabellen-Visualisierung.
 - **Reaktive Synchronisation**: Kopplung des Editors an den `MediatorService`. Interaktionen auf der Stage (Selektion, Verschieben, Skalieren) triggern nun automatische Updates in allen anderen Ansichten (insbes. Management-Tab).
+- **Cross-Tool Synchronisation**: Nahtloser Datenfluss zwischen JSON-, Pascal-, Action- und Flow-Editor. Änderungen in einem Tool werden sofort in allen anderen Ansichten reflektiert, ohne zirkuläre Event-Schleifen zu erzeugen (Trinity-Sync).
+- **Robuste Serialisierung**: Zentralisierte `toJSON`-Logik in `TComponent` unterstützt nun verschachtelte Objekt-Pfade (z.B. `style.visible`) und automatische Kind-Serialisierung.
 
 ### Behoben
 - **Stage-Bereinigung**: Korrektur der Rendering-Logik; Manager-Tabellen werden nicht mehr auf der Stage angezeigt.
@@ -15,7 +17,9 @@
 - **Button-Rendering**: Zusätzliche Texte auf Buttons ("(0 Einträge)") wurden entfernt.
 - **Stage-Bereinigung**: Transiente Manager-Tabellen wurden von der Spiel-Stage entfernt, um das Design-Interface sauber zu halten.
 - **TObjectList Refactoring**: Erbt nun von `TTable`, um tabellarische Eigenschaften direkt zu nutzen.
-- Verbesserung der Synchronisation zwischen Editor-State und Projekt-JSON.
+- **Image-Sichtbarkeit**: Behebung eines Fehlers, bei dem Bilder nach Pascal-Änderungen ihre Sichtbarkeitseinstellungen verloren haben (Sichtbarkeit wird nun konsistent über das verschachtelte `style`-Objekt serialisiert).
+- **Tool-Sync Stabilität**: Flow-Editor wird nicht mehr bei eigenen Änderungen neu initialisiert (Verhinderung von View-Resets).
+- **TImage/TPanel Bereinigung**: Entfernung redundanter manueller Serialisierungs-Logik zugunsten der automatisierten Basis-Logik.
 
 ## [2.2.0] - 2026-01-31
 - **Fix (Kritisch): JSON-Viewer Abstürze**:

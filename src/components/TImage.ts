@@ -97,16 +97,4 @@ export class TImage extends TPanel {
     // ─────────────────────────────────────────────
     // Serialization
     // ─────────────────────────────────────────────
-
-    public toJSON(): any {
-        return {
-            ...super.toJSON(),
-            backgroundImage: this._backgroundImage,
-            src: this._backgroundImage, // Alias for Inspector compatibility
-            objectFit: this._objectFit,
-            imageOpacity: this._imageOpacity,
-            alt: this.alt,
-            fallbackColor: this.fallbackColor
-        };
-    }
 }

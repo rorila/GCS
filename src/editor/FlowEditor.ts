@@ -18,6 +18,7 @@ import { FlowLoop } from './flow/FlowLoop';
 import { FlowStateManager } from './flow/FlowStateManager';
 import { TFlowStage } from '../components/TFlowStage';
 import { serviceRegistry } from '../services/ServiceRegistry';
+import { mediatorService } from '../services/MediatorService';
 import { TaskEditor } from './TaskEditor';
 import { ContextMenu, ContextMenuItem } from './ui/ContextMenu';
 import { RefactoringManager } from './RefactoringManager';
@@ -525,6 +526,11 @@ export class FlowEditor {
 
         // 4. Update UI
         this.updateFlowSelector();
+
+        // Notify Mediator that project data has changed
+        if (this.project) {
+            mediatorService.notifyDataChanged(this.project, 'flow-editor');
+        }
 
         // 5. Switch to new Task (Canvas wird geleert)
         this.switchActionFlow(name);
@@ -1321,6 +1327,11 @@ export class FlowEditor {
 
         // Update flow selector to show any newly created tasks
         this.updateFlowSelector();
+
+        // Notify Mediator that project data has changed via Flow Editor
+        if (this.project) {
+            mediatorService.notifyDataChanged(this.project, 'flow-editor');
+        }
     }
 
     /**

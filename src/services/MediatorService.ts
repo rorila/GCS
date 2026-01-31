@@ -38,15 +38,15 @@ export class MediatorService {
     /**
      * Benachrichtigt über eine Datenänderung (mit Debouncing).
      */
-    public notifyDataChanged(data?: any): void {
-        this.notifyDebounced(MediatorEvents.DATA_CHANGED, data);
+    public notifyDataChanged(data?: any, originator?: string): void {
+        this.notifyDebounced(MediatorEvents.DATA_CHANGED, data, 300, originator);
     }
 
     /**
      * Benachrichtigt über eine Objekt-Selektion (sofort).
      */
-    public notifyObjectSelected(object: any): void {
-        this.notify(MediatorEvents.OBJECT_SELECTED, object);
+    public notifyObjectSelected(object: any, originator?: string): void {
+        this.notify(MediatorEvents.OBJECT_SELECTED, object, originator);
     }
 
     /**
@@ -72,13 +72,13 @@ export class MediatorService {
     /**
      * Benachrichtigt alle Listener eines Events (sofort).
      */
-    public notify(event: string, data?: any): void {
-        console.log(`[Mediator] Notify Event: ${event}`, data);
+    public notify(event: string, data?: any, originator?: string): void {
+        console.log(`[Mediator] Notify Event: ${event}${originator ? ` (Originator: ${originator})` : ''}`, data);
         const listeners = this.eventListeners.get(event);
         if (listeners) {
             listeners.forEach(cb => {
                 try {
-                    cb(data);
+                    cb(data, originator);
                 } catch (e) {
                     console.error(`[Mediator] Error in Listener for "${event}":`, e);
                 }
@@ -90,14 +90,14 @@ export class MediatorService {
      * Benachrichtigt alle Listener mit "Entprellung" (Debouncing).
      * Verhindert Flut von Updates bei schnellen Änderungen (z.B. Tippen).
      */
-    public notifyDebounced(event: string, data?: any, delay: number = 300): void {
+    public notifyDebounced(event: string, data?: any, delay: number = 300, originator?: string): void {
         if (this.debounceTimers.has(event)) {
             clearTimeout(this.debounceTimers.get(event));
         }
 
         const timer = setTimeout(() => {
-            console.log(`[Mediator] Debounced Execution: ${event}`);
-            this.notify(event, data);
+            console.log(`[Mediator] Debounced Execution: ${event}${originator ? ` (Originator: ${originator})` : ''}`);
+            this.notify(event, data, originator);
             this.debounceTimers.delete(event);
         }, delay);
 

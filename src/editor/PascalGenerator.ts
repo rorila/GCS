@@ -865,9 +865,13 @@ export class PascalGenerator {
                 val = source.slice(1, -1);
             } else if (/^\d+(\.\d+)?$/.test(source)) {
                 val = parseFloat(source);
+            } else if (source.toLowerCase() === 'true') {
+                val = true;
+            } else if (source.toLowerCase() === 'false') {
+                val = false;
             } else if (/^[a-zA-Z0-9_$]+$/.test(source)) {
                 // Variable name reference
-                val = `\${${source} } `;
+                val = `\${${source}}`;
             }
 
             if (target.includes('.')) {
@@ -894,7 +898,7 @@ export class PascalGenerator {
                 }
 
                 // 3. Fallback: Create new action name
-                const actionName = action ? action.name : `${taskName}_action_${index} `;
+                const actionName = action ? action.name : `${taskName}_action_${index}`;
 
                 if (!action) {
                     action = { name: actionName, type: 'property', target: objName, changes: {} };
@@ -929,7 +933,7 @@ export class PascalGenerator {
                     }
                 }
 
-                const actionName = action ? action.name : `${taskName}_action_${index} `;
+                const actionName = action ? action.name : `${taskName}_action_${index}`;
                 const isNumeric = /^\d+(\.\d+)?$/.test(source);
                 const calcStep: any = {
                     operandType: isNumeric ? 'constant' : 'variable',

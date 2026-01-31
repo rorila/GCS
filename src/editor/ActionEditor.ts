@@ -1,5 +1,6 @@
 import { GameProject, GameAction, ActionType, CalcStep } from '../model/types';
 import { projectRegistry } from '../services/ProjectRegistry';
+import { mediatorService } from '../services/MediatorService';
 
 export class ActionEditor {
     private overlay: HTMLElement;
@@ -1156,6 +1157,9 @@ export class ActionEditor {
         } else {
             this.project.actions.push(updatedAction);
         }
+
+        // Notify Mediator that an action has changed
+        mediatorService.notifyDataChanged(this.project, 'action-editor');
 
         this.onSave();
         this.close();

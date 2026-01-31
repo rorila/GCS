@@ -66,6 +66,7 @@ export abstract class TComponent {
 
     /**
      * Generisches toJSON, das die Metadaten aus getInspectorProperties nutzt.
+     * Unterstützt verschachtelte Property-Pfade (z.B. 'style.backgroundColor').
      */
     public toJSON(): any {
         const json: any = {
@@ -86,9 +87,26 @@ export abstract class TComponent {
 
             const value = this.getPropertyValue(p.name);
             if (value !== undefined) {
-                json[p.name] = value;
+                if (!p.name.includes('.')) {
+                    json[p.name] = value;
+                } else {
+                    // Handle nested paths (e.g. style.backgroundColor)
+                    const parts = p.name.split('.');
+                    let current = json;
+                    for (let i = 0; i < parts.length - 1; i++) {
+                        const part = parts[i];
+                        if (!current[part]) current[part] = {};
+                        current = current[part];
+                    }
+                    current[parts[parts.length - 1]] = value;
+                }
             }
         });
+
+        // Kinder rekursiv serialisieren
+        if (this.children.length > 0) {
+            json.children = this.children.map(child => child.toJSON());
+        }
 
         return json;
     }
