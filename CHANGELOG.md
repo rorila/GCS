@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.0] - 2026-01-31
+- **Fix (Kritisch): JSON-Viewer Abstürze**:
+    - Ersatz von `JSON.stringify(this.project)` durch `safeDeepCopy` in `Editor.ts` und `EditorViewManager.ts`. Dies verhindert Abstürze durch zirkuläre Referenzen (z.B. reaktive Proxies).
+    - Implementierung eines robusten `try-catch`-Blocks um die gesamte `refreshJSONView`-Logik.
+    - Neuer Fehler-Bildschirm im JSON-Viewer mit hilfreicher Fehlermeldung und "Editor neu laden"-Option.
+- **Dokumentation**:
+    - Explizite Warnung vor `JSON.stringify` auf dem Projekt-Objekt in den `DEVELOPER_GUIDELINES.md` ergänzt.
+
 ## [2.1.9] - 2026-01-30
 - **Verbesserung: Action-Check & Referenzsuche**:
     - Komplette Überarbeitung der `getTaskUsage`-Logik in der `ProjectRegistry`. 

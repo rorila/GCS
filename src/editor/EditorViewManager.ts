@@ -5,6 +5,7 @@ import { FlowToolbox } from './FlowToolbox';
 import { TDebugLog } from '../components/TDebugLog';
 import { PascalGenerator } from './PascalGenerator';
 import { PascalHighlighter } from './PascalHighlighter';
+import { safeDeepCopy } from '../utils/DeepCopy';
 
 export interface IViewHost {
     project: GameProject;
@@ -88,7 +89,7 @@ export class EditorViewManager {
             if (jsonPanel) {
                 jsonPanel.style.display = 'block';
                 this.jsonMode = 'viewer';
-                this.workingProjectData = JSON.parse(JSON.stringify(h.project));
+                this.workingProjectData = safeDeepCopy(h.project);
                 this.isProjectDirty = false;
                 h.refreshJSONView();
             }

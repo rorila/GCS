@@ -207,7 +207,7 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **Live-Synchronisation**: Änderungen im Inspector triggern über `refreshPascalView` (Editor.ts) sofort eine Aktualisierung des generierten Pascal-Codes.
 - **Typkonvertierung (autoConvert)**: Benutzereingaben aus Textfeldern sind im DOM immer Strings. Nutze `PropertyHelper.autoConvert(value)` nach der Interpolation, um Werte intelligent zurück in `number` oder `boolean` zu wandeln. Dies ist essenziell für Methoden wie `moveTo`, die numerische Parameter erwarten.
 - **Bereitstellung von Hilfsfunktionen (Scope)**:
-  - Funktionen, die in Dialog-Expressions (`${...}`) genutzt werden sollen, müssen sowohl in `JSONDialogRenderer.evaluateExpression` als auch in `replaceTemplateVars` registriert werden.
+  - Funktionen, die in Dialog-Expressions (`${...}`) genutzt werden sollen, müssen sowohl in `JSONDialogRenderer.evaluateExpression` auch in `replaceTemplateVars` registriert werden.
   - Aktuelle Standard-Funktionen: `getMethodSignature(target, method)`, `getStageOptions()`, `getMethods(target)`, `getProperties(target)`.
 - **Methoden-Registrierung**:
   - Neue Methoden für Komponenten MÜSSEN in der `MethodRegistry.ts` (Parameter-Definitionen) UND im `methodMap` von `JSONDialogRenderer.getMethodsForObject` (Sichtbarkeit im Dropdown) eingetragen werden.
@@ -229,11 +229,11 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 Wenn eine Stage isoliert im JSON-Tab angezeigt wird (`activeStage`), werden globale Daten (Tasks UND Actions), die für diese Stage relevant sind (d.h. dort benutzt werden), manuell injiziert, damit sie bearbeitbar bleiben und vollständig sind.
 - **Sichere Serialisierung (`safeDeepCopy`)**:
   - Live-Objekte im Editor (z.B. reaktive Proxies oder Komponenten-Instanzen) enthalten oft zirkuläre Referenzen. 
-  - Nutze NIEMALS `JSON.stringify` direkt auf dem `project`-Objekt für UI-Anzeigen. 
-  - Verwende stattdessen `safeDeepCopy(obj)` aus `src/utils/DeepCopy.ts`. Diese Methode handhabt Zyklen, entpackt Proxies und filtert problematische Objekte wie DOM-Elemente.
+  - **WICHTIG**: Nutze NIEMALS `JSON.stringify` direkt auf dem `project`-Objekt für UI-Anzeigen oder Kopien innerhalb des Editors. Dies führt bei zirkulären Referenzen (z.B. durch reaktive Proxies) zu sofortigen Abstürzen.
+  - Verwende stattdessen konsequent `safeDeepCopy(obj)` aus `src/utils/DeepCopy.ts`. Diese Methode handhabt Zyklen, entpackt Proxies und filtert problematische Objekte wie DOM-Elemente automatisch.
 - **Fehlerbehandlung**: 
   - Die Methode `refreshJSONView` in `Editor.ts` muss IMMER in `try-catch` Blöcke gefasst sein. 
-  - Bei Serialisierungsfehlern soll ein visuelles Feedback im JSON-Panel erscheinen, statt die UI einzufrieren.
+  - Bei Serialisierungsfehlern soll ein visuelles Feedback im JSON-Panel erscheinen (Fehler-Bildschirm mit Reload-Option), statt die UI einzufrieren.
 - **Scoping & Refactoring**:
   - Beim Umbenennen (Refactoring) von Tasks, Aktionen oder Variablen müssen IMMER alle Scopes (`project.tasks/actions` UND alle `project.stages[].tasks/actions`) gescannt werden. Siehe `RefactoringManager.ts`.
   - Die isolierte JSON-Ansicht einer Stage (`Editor.refreshJSONView`) muss lokale Daten (`actions`, `tasks`) erhalten und darf sie nicht durch globale Listen überschreiben (Merge-Logik).
@@ -359,8 +359,6 @@ In Projekten mit mehreren Stages müssen globale Komponenten (insbesondere Varia
 2. **RuntimeVariableManager**: Initialisiert beim Start zusätzlich alle Variablen aus der `Main`-Stage in den globalen `projectVariables` Pool.
 3. **Vorteil**: Globale Variablen müssen nicht manuell in jede Stage kopiert werden; sie stehen automatisch für Reaktivität und Tasks (z.B. Punkteanzeige in Level 2 für Variable aus dem Startscreen) zur Verfügung.
 
-- **Ticker-Synchronisation**: Falls der `Editor` einen Fallback-Animations-Ticker verwendet (z.B. wenn keine `GameLoop` vorhanden ist), muss dieser gestoppt werden (`stopAnimationTicker`), sobald eine echte `GameLoop` zur Laufzeit erscheint (z.B. nach einem Stage-Switch).
-
 ### Eigenschafts-Standards & Reaktivität
 - **Standard-Inhalt (`text`)**: Alle Komponenten, die Text anzeigen (Labels, Buttons, Statusbars), MÜSSEN die Eigenschaft `text` für ihren Inhalt verwenden. 
 - **Alias-Vermeidung**: Vermeide Getter/Setter für reaktive Felder, da diese am Proxy vorbeioperieren können. `TWindow` bietet `text` als einfache Property an.
@@ -413,7 +411,7 @@ Tasks werden nicht nur über ihren Namen, sondern über eine **Logik-Signatur** 
 ## Visual vs. Data Integrity (Kürzung & Links)
 - **Visuelle Textkürzung**: Um FlowCharts kompakt zu halten, werden lange Texte (z.B. in `FlowAction`) in der Diagrammansicht visuell gekürzt.
 - **Datenintegrität**: Diese Kürzung darf NUR beim Rendern erfolgen.
-    - **FlowAction**: Methoden wie `getActionDetails` müssen stets den VOLLSTÄNDIGEN Datensatz zurckgeben. Die Kürzung passiert erst im HTML-Template (`slice` auf View-Ebene).
+    - **FlowAction**: Methoden wie `getActionDetails` müssen stets den VOLLSTÄNDIGEN Datensatz zurückgeben. Die Kürzung passiert erst im HTML-Template (`slice` auf View-Ebene).
     - **FlowTask**: Verwende `white-space: nowrap`, damit Layout-Berechnungen (`autoSize`) auf der realen Textbreite basieren und nicht auf umgebrochenen Fragmenten. Dies verhindert, dass Nodes zu klein gerendert werden.
 - **Single Source of Truth (SSoT)**:
     - **Actions**: Global definierte Aktionen sind die Quelle der Wahrheit. Verlinkte Nodes speichern nur eine Referenz (`isLinked: true`, `name`).

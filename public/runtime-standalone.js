@@ -702,7 +702,7 @@
           const context = this.getContext();
           const newValue = ExpressionParser.interpolate(expression, context);
           const targetName = targetObj.name || targetObj.id || "Unknown";
-          console.log(`%c[Binding] Updating ${targetName}.${targetProp} \u2190 ${newValue}`, "color: #9c27b0; font-weight: bold");
+          console.debug(`%c[Binding] Updating ${targetName}.${targetProp} \u2190 ${newValue}`, "color: #9c27b0; font-weight: bold");
           if (targetProp.includes(".")) {
             ExpressionParser.setNestedProperty(targetProp, newValue, targetObj);
           } else {

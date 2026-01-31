@@ -2551,7 +2551,7 @@ export class Editor implements IViewHost {
 
                 // Refresh JSON view if active
                 if (this.currentView === 'json') {
-                    this.workingProjectData = JSON.parse(JSON.stringify(this.project));
+                    this.workingProjectData = safeDeepCopy(this.project);
                     this.refreshJSONView();
                 }
 
@@ -2687,197 +2687,175 @@ export class Editor implements IViewHost {
         const jsonPanel = document.getElementById('json-viewer');
         if (!jsonPanel) return;
 
-        jsonPanel.innerHTML = '';
+        try {
+            jsonPanel.innerHTML = '';
 
-        // 1. Create Toolbar
-        const toolbar = document.createElement('div');
-        toolbar.className = 'json-toolbar';
-        toolbar.style.cssText = `
-            display: flex; gap: 12px; padding: 8px 16px; margin-bottom: 8px;
-            border-bottom: 1px solid #3a3a3a; align-items: center;
-            position: sticky; top: 0; background: #1e1e1e; z-index: 10;
-        `;
+            // 1. Create Toolbar
+            const toolbar = document.createElement('div');
+            toolbar.className = 'json-toolbar';
+            toolbar.style.cssText = `
+                display: flex; gap: 12px; padding: 8px 16px; margin-bottom: 8px;
+                border-bottom: 1px solid #3a3a3a; align-items: center;
+                position: sticky; top: 0; background: #1e1e1e; z-index: 10;
+            `;
 
-        // Mode Selector
-        const modeLabel = document.createElement('span');
-        modeLabel.textContent = 'Modus:';
-        modeLabel.style.color = '#888';
-        modeLabel.style.fontSize = '12px';
+            // Mode Selector
+            const modeLabel = document.createElement('span');
+            modeLabel.textContent = 'Modus:';
+            modeLabel.style.color = '#888';
+            modeLabel.style.fontSize = '12px';
 
-        const modeSelect = document.createElement('select');
-        modeSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer;`;
-        ['viewer', 'editor'].forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m;
-            opt.textContent = m.charAt(0).toUpperCase() + m.slice(1);
-            opt.selected = this.jsonMode === m;
-            modeSelect.appendChild(opt);
-        });
-        modeSelect.onchange = () => {
-            this.jsonMode = modeSelect.value as 'viewer' | 'editor';
-            this.refreshJSONView();
-        };
+            const modeSelect = document.createElement('select');
+            modeSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer;`;
+            ['viewer', 'editor'].forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m.charAt(0).toUpperCase() + m.slice(1);
+                opt.selected = this.jsonMode === m;
+                modeSelect.appendChild(opt);
+            });
+            modeSelect.onchange = () => {
+                this.jsonMode = modeSelect.value as 'viewer' | 'editor';
+                this.refreshJSONView();
+            };
 
-        // Source Selector (Active Stage vs Project)
-        const sourceSelect = document.createElement('select');
-        sourceSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-left: auto;`;
+            // ... (restliche Toolbar-Logik bleibt gleich, wird aber jetzt im try-block ausgeführt)
+            // Source Selector (Active Stage vs Project)
+            const sourceSelect = document.createElement('select');
+            sourceSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-left: auto;`;
 
-        const activeStage = this.getActiveStage();
-        const stageName = activeStage ? activeStage.name : 'Unknown';
+            const activeStage = this.getActiveStage();
+            const stageName = activeStage ? activeStage.name : 'Unknown';
 
-        const scopes = [
-            { id: 'stage', label: `Stage: ${stageName}` },
-            { id: 'project', label: 'Gesamtes Projekt' }
-        ];
+            const scopes = [
+                { id: 'stage', label: `Stage: ${stageName}` },
+                { id: 'project', label: 'Gesamtes Projekt' }
+            ];
 
-        scopes.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.id;
-            opt.textContent = s.label;
-            // Default to 'stage' if we are not in main/legacy, otherwise 'project' mostly fine
-            // But requirement is: Show active stage data by default.
-            // Let's verify what 'showActiveStageOnly' state we want. 
-            // We can store a minimal view state for this? Or just check if displayed
-            opt.selected = (s.id === 'stage' && this.useStageIsolatedView) || (s.id === 'project' && !this.useStageIsolatedView);
-            sourceSelect.appendChild(opt);
-        });
+            scopes.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.label;
+                opt.selected = (s.id === 'stage' && this.useStageIsolatedView) || (s.id === 'project' && !this.useStageIsolatedView);
+                sourceSelect.appendChild(opt);
+            });
 
-        if (!activeStage || activeStage.type === 'main') {
-            // If main stage, maybe "stage" view is effectively same as project? 
-            // Or Main Stage object specifically?
-            // Let's allow switching if user wants to see ONLY main stage object structure
-        }
+            sourceSelect.onchange = () => {
+                this.useStageIsolatedView = sourceSelect.value === 'stage';
+                this.updateAvailableActions();
+                this.refreshJSONView();
+            };
 
-        sourceSelect.onchange = () => {
-            this.useStageIsolatedView = sourceSelect.value === 'stage';
-            this.updateAvailableActions(); // Ensure context is correct when switching view/stage implies focus change
-            this.refreshJSONView();
-        };
+            // Search Input
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Im JSON suchen...';
+            searchInput.style.cssText = `flex: 1; padding: 6px 10px; background: #2d2d2d; border: 1px solid #3a3a3a; border-radius: 4px; color: #fff; font-size: 13px; outline: none;`;
+            searchInput.oninput = () => JSONTreeViewer.search(searchInput.value);
 
-        // Search Input
-        const searchInput = document.createElement('input');
-        searchInput.type = 'text';
-        searchInput.placeholder = 'Im JSON suchen...';
-        searchInput.style.cssText = `flex: 1; padding: 6px 10px; background: #2d2d2d; border: 1px solid #3a3a3a; border-radius: 4px; color: #fff; font-size: 13px; outline: none;`;
-        searchInput.oninput = () => JSONTreeViewer.search(searchInput.value);
+            // Apply Changes Button
+            const applyBtn = document.createElement('button');
+            applyBtn.textContent = 'Änderungen anwenden';
+            applyBtn.style.cssText = `
+                background: #28a745; border: none; color: #fff; padding: 6px 12px; border-radius: 4px; 
+                cursor: pointer; font-size: 13px; font-weight: bold;
+                display: ${this.jsonMode === 'editor' && this.isProjectDirty ? 'block' : 'none'};
+            `;
+            applyBtn.onclick = () => this.applyJSONChanges();
 
-        // Apply Changes Button (only in editor mode + dirty)
-        const applyBtn = document.createElement('button');
-        applyBtn.textContent = 'Änderungen anwenden';
-        applyBtn.style.cssText = `
-            background: #28a745; border: none; color: #fff; padding: 6px 12px; border-radius: 4px; 
-            cursor: pointer; font-size: 13px; font-weight: bold;
-            display: ${this.jsonMode === 'editor' && this.isProjectDirty ? 'block' : 'none'};
-        `;
-        applyBtn.onclick = () => this.applyJSONChanges();
+            toolbar.appendChild(modeLabel);
+            toolbar.appendChild(modeSelect);
+            toolbar.appendChild(sourceSelect);
+            toolbar.appendChild(searchInput);
+            toolbar.appendChild(applyBtn);
+            jsonPanel.appendChild(toolbar);
 
-        toolbar.appendChild(modeLabel);
-        toolbar.appendChild(modeSelect);
-
-        // Add Source Selector to toolbar
-        const spacer = document.createElement('div');
-        spacer.style.flex = '1';
-        toolbar.appendChild(spacer);
-        toolbar.appendChild(sourceSelect);
-
-        // toolbar.appendChild(searchInput); // Moved search to right or below?
-        // Layout: [Mode] [Spacer] [Source] [Search] [Apply] ? 
-        // Original layout: Mode, Search, Apply.
-        // Let's re-arrange: Mode, Source, Search, Apply.
-        spacer.remove();
-
-        toolbar.appendChild(sourceSelect);
-        toolbar.appendChild(searchInput);
-        toolbar.appendChild(applyBtn);
-        jsonPanel.appendChild(toolbar);
-
-        // 2. Refresh working data from live project if in viewer mode (Flow edits might have occurred)
-        if (this.jsonMode === 'viewer') {
-            try {
+            // 2. Refresh working data from live project if in viewer mode
+            if (this.jsonMode === 'viewer') {
                 console.log("[Editor] Creating safe deep copy of project for JSON view...");
                 this.workingProjectData = safeDeepCopy(this.project);
-            } catch (err) {
-                console.error("[Editor] Failed to copy project for JSON view:", err);
-                const errorMsg = document.createElement('div');
-                errorMsg.style.cssText = 'color: #ff6b6b; padding: 20px; background: #2a1111; border: 1px solid #ff4444; margin: 10px; border-radius: 4px;';
-                errorMsg.innerHTML = `
-                    <div style="font-weight: bold; margin-bottom: 8px;">Fehler bei der JSON-Vorbereitung</div>
-                    <div style="font-size: 12px; opacity: 0.8;">Das Projekt konnte nicht sicher kopiert werden (Zirkuläre Referenz?).</div>
-                    <pre style="font-size: 11px; margin-top: 10px; white-space: pre-wrap;">${err}</pre>
-                `;
-                jsonPanel.appendChild(errorMsg);
-                return;
             }
-        }
 
-        const treeContainer = document.createElement('div');
-        jsonPanel.appendChild(treeContainer);
+            const treeContainer = document.createElement('div');
+            jsonPanel.appendChild(treeContainer);
 
-        let dataToShow = this.workingProjectData;
+            let dataToShow = this.workingProjectData;
 
-        if (this.useStageIsolatedView && activeStage) {
-            if (this.workingProjectData.stages) {
-                const workingStage = this.workingProjectData.stages.find((s: any) => s.id === activeStage.id);
-                if (workingStage) {
-                    try {
-                        dataToShow = safeDeepCopy(workingStage);
-                    } catch (err) {
-                        console.error("[Editor] Failed to copy stage for JSON view:", err);
-                        const errorMsg = document.createElement('div');
-                        errorMsg.style.cssText = 'color: #ffcc00; padding: 10px; background: #332200; border: 1px solid #ffaa00; margin: 10px; border-radius: 4px; font-size: 12px;';
-                        errorMsg.textContent = `Warnung: Stage "${activeStage.name}" konnte nicht sicher isoliert kopiert werden. Anzeige des Gesamtprojekts.`;
-                        jsonPanel.appendChild(errorMsg);
-                        dataToShow = this.workingProjectData;
-                    }
-
-                    // Inject relevant tasks for better visibility
-                    const stageTaskNames = Object.keys(workingStage.flowCharts || {}).filter(key => key !== 'global');
-                    const globalTaskNames = new Set(this.project.tasks.map(t => t.name));
-                    const referencedTaskNames = new Set<string>();
-                    (workingStage.objects || []).forEach((obj: any) => {
-                        if (obj.Tasks) {
-                            Object.values(obj.Tasks).forEach((tName: any) => {
-                                if (tName && typeof tName === 'string' && tName.trim() !== '' && globalTaskNames.has(tName)) {
-                                    referencedTaskNames.add(tName);
-                                }
-                            });
+            if (this.useStageIsolatedView && activeStage) {
+                if (this.workingProjectData.stages) {
+                    const workingStage = this.workingProjectData.stages.find((s: any) => s.id === activeStage.id);
+                    if (workingStage) {
+                        try {
+                            dataToShow = safeDeepCopy(workingStage);
+                        } catch (err) {
+                            console.error("[Editor] Failed to copy stage for JSON view:", err);
+                            const warningMsg = document.createElement('div');
+                            warningMsg.style.cssText = 'color: #ffcc00; padding: 10px; background: #332200; border: 1px solid #ffaa00; margin: 10px; border-radius: 4px; font-size: 12px;';
+                            warningMsg.textContent = `Warnung: Stage "${activeStage.name}" konnte nicht sicher isoliert kopiert werden.`;
+                            jsonPanel.appendChild(warningMsg);
+                            dataToShow = this.workingProjectData;
                         }
-                    });
 
-                    const allRelevantNames = new Set([...stageTaskNames, ...referencedTaskNames]);
-                    if (allRelevantNames.size > 0) {
-                        const existingLocalTasks = dataToShow.tasks || [];
-                        const localTaskNames = new Set(existingLocalTasks.map((t: any) => t.name));
-                        const relevantGlobalTasks = this.project.tasks.filter(t =>
-                            allRelevantNames.has(t.name) && !localTaskNames.has(t.name)
-                        );
-                        dataToShow.tasks = [...existingLocalTasks, ...relevantGlobalTasks];
-                    }
-
-                    // Actions injection logic
-                    const existingLocalActions = dataToShow.actions || [];
-                    const localActionNames = new Set(existingLocalActions.map((a: any) => a.name));
-                    const usedActionNames = new Set<string>();
-                    if (dataToShow.tasks) {
-                        dataToShow.tasks.forEach((t: any) => {
-                            if (t.actionSequence) {
-                                t.actionSequence.forEach((item: any) => {
-                                    if ((item.type === 'action' || !item.type) && item.name) usedActionNames.add(item.name);
+                        // Inject relevant tasks/actions logic remains same ...
+                        const stageTaskNames = Object.keys(workingStage.flowCharts || {}).filter(key => key !== 'global');
+                        const globalTaskNames = new Set(this.project.tasks.map(t => t.name));
+                        const referencedTaskNames = new Set<string>();
+                        (workingStage.objects || []).forEach((obj: any) => {
+                            if (obj.Tasks) {
+                                Object.values(obj.Tasks).forEach((tName: any) => {
+                                    if (tName && typeof tName === 'string' && tName.trim() !== '' && globalTaskNames.has(tName)) {
+                                        referencedTaskNames.add(tName);
+                                    }
                                 });
                             }
                         });
-                    }
-                    if (usedActionNames.size > 0 && this.project.actions) {
-                        const relevantGlobalActions = this.project.actions.filter(a =>
-                            usedActionNames.has(a.name) && !localActionNames.has(a.name)
-                        );
-                        dataToShow.actions = [...existingLocalActions, ...relevantGlobalActions];
+
+                        const allRelevantNames = new Set([...stageTaskNames, ...referencedTaskNames]);
+                        if (allRelevantNames.size > 0) {
+                            const existingLocalTasks = dataToShow.tasks || [];
+                            const localTaskNames = new Set(existingLocalTasks.map((t: any) => t.name));
+                            const relevantGlobalTasks = this.project.tasks.filter(t =>
+                                allRelevantNames.has(t.name) && !localTaskNames.has(t.name)
+                            );
+                            dataToShow.tasks = [...existingLocalTasks, ...relevantGlobalTasks];
+                        }
+
+                        const existingLocalActions = dataToShow.actions || [];
+                        const localActionNames = new Set(existingLocalActions.map((a: any) => a.name));
+                        const usedActionNames = new Set<string>();
+                        if (dataToShow.tasks) {
+                            dataToShow.tasks.forEach((t: any) => {
+                                if (t.actionSequence) {
+                                    t.actionSequence.forEach((item: any) => {
+                                        if ((item.type === 'action' || !item.type) && item.name) usedActionNames.add(item.name);
+                                    });
+                                }
+                            });
+                        }
+                        if (usedActionNames.size > 0 && this.project.actions) {
+                            const relevantGlobalActions = this.project.actions.filter(a =>
+                                usedActionNames.has(a.name) && !localActionNames.has(a.name)
+                            );
+                            dataToShow.actions = [...existingLocalActions, ...relevantGlobalActions];
+                        }
                     }
                 }
             }
-        }
 
-        this.renderJSONTree(dataToShow, treeContainer, applyBtn);
+            this.renderJSONTree(dataToShow, treeContainer, applyBtn);
+
+        } catch (err) {
+            console.error("[Editor] Fatal error in refreshJSONView:", err);
+            const errorMsg = document.createElement('div');
+            errorMsg.style.cssText = 'color: #ff6b6b; padding: 20px; background: #2a1111; border: 1px solid #ff4444; margin: 10px; border-radius: 4px;';
+            errorMsg.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 8px;">Fehler beim Laden der JSON-Ansicht</div>
+                <div style="font-size: 12px; opacity: 0.8;">Ein unerwarteter Fehler ist aufgetreten:</div>
+                <pre style="font-size: 11px; margin-top: 10px; white-space: pre-wrap;">${err}</pre>
+                <button onclick="location.reload()" style="margin-top: 15px; padding: 6px 12px; background: #ff4444; border: none; color: white; border-radius: 4px; cursor: pointer;">Editor neu laden</button>
+            `;
+            jsonPanel.appendChild(errorMsg);
+        }
     }
 
     private renderJSONTree(data: any, container: HTMLElement, applyBtn: HTMLElement) {
