@@ -347,17 +347,28 @@ export class JSONInspector {
                 } catch (e) { console.error('Fallback failed', e); }
             }
 
-            // Detect definition for Variables
-            if ((object as any).variableType || (object as any).value !== undefined) {
-                // It's likely a ProjectVariable
-                const variableEvents = [
-                    'onValueChanged', 'onValueEmpty',
-                    'onThresholdReached', 'onThresholdLeft', 'onThresholdExceeded',
-                    'onTriggerEnter', 'onTriggerExit',
-                    'onFinished', 'onTick', 'onHour', 'onMinute', 'onSecond',
-                    'onMinReached', 'onMaxReached', 'onInside',
-                    'onItemCreated', 'onItemUpdated', 'onItemDeleted', 'onItemRead', 'onNotFound', 'onCleared'
-                ];
+            // Detect definition for Variables and assign specialized events
+            if ((object as any).variableType || (object as any).value !== undefined || (object as any).isVariable) {
+                // Determine events based on specialized class type
+                const cName = (object as any).className || '';
+                let variableEvents: string[] = ['onValueChanged'];
+
+                if (cName === 'TTriggerVariable') {
+                    variableEvents = ['onTriggerEnter', 'onTriggerExit'];
+                } else if (cName === 'TTimer') {
+                    variableEvents = ['onTimer', 'onMaxIntervalReached'];
+                } else if (cName === 'TThresholdVariable') {
+                    variableEvents = ['onValueChanged', 'onThresholdReached', 'onThresholdLeft', 'onThresholdExceeded'];
+                } else if (cName === 'TRangeVariable') {
+                    variableEvents = ['onValueChanged', 'onMinReached', 'onMaxReached', 'onInside', 'onOutside'];
+                } else if (cName === 'TRandomVariable') {
+                    variableEvents = ['onValueChanged', 'onGenerated'];
+                } else if (cName === 'TListVariable') {
+                    variableEvents = ['onItemAdded', 'onItemRemoved', 'onCleared'];
+                } else if (cName === 'TVariable') {
+                    variableEvents = ['onValueChanged'];
+                }
+
                 (object as any)._supportedEvents = variableEvents.map(evt => ({ key: evt }));
             }
 
