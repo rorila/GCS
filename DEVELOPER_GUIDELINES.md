@@ -431,6 +431,7 @@ Der Management-Tab (`EditorViewManager.renderManagementView`) dient als zentrale
     - **Saubere Stage**: Die Spiel-Stage im Design-Modus ist frei von transienten Tabellen.
     - **Schnelle Navigation**: Direktes Anfahren von Ressourcen aus einer zentralen Liste.
     - **Datenintegrität**: Der Mediator stellt sicher, dass alle Sichten (Flow, Code, Tabelle) auf denselben konsistenten Datenbestand zugreifen.
+- **Variablen-Events im Inspektor**: Im `JSONInspector` (Methode `update`) werden Events für Variablen klassenspezifisch zugewiesen. Anstatt einer globalen Liste für alle Variablen wird anhand von `className` (z.B. `TTriggerVariable`, `TTimer`) gefiltert. Dies verhindert, dass unpassende Events (z.B. Timer-Events bei einem Trigger) zur Auswahl stehen.
 - **Status (Aktuell)**: Der `MediatorService` verwaltet diese Manager zentral. Sie nutzen die `TTable`-Komponente zur Darstellung.
     - **isTransient**: Manager-Komponenten sind transient – sie werden im Editor dargestellt, aber NICHT im Projekt-JSON gespeichert.
     - **Manager-Übersicht**:

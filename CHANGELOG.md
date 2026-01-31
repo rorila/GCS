@@ -4,6 +4,7 @@
 ### Hinzugefügt
 - **Management-Tab**: Einführung eines dedizierten Tabs zur zentralen Ressourcenverwaltung.
 - **Interaktive Navigation**: Klick auf Tabellenzeilen fokussiert Objekte auf der Stage (mit Highlight-Effekt) oder öffnet den Flow-Editor.
+- **Event-Präzision**: Spezialisierte Variablen (Timer, Trigger, etc.) zeigen im Inspektor nur noch ihre klassenspezifischen Events an.
 - **Daten-Anreicherung**: Anzeige von X/Y-Positionen, Klassen, Typen, Zielobjekten und aktuellen Werten.
 - **TTable-Komponente**: Statischer Renderer für systemweite Tabellen-Visualisierung.
 
