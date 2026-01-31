@@ -9,6 +9,7 @@ import { projectRegistry } from '../services/ProjectRegistry';
 import { imageService } from '../services/ImageService'; // Added import
 import { actionRegistry } from '../runtime/ActionRegistry';
 import { changeRecorder } from '../services/ChangeRecorder';
+import { componentRegistry } from '../services/ComponentRegistry';
 
 type InspectorTab = 'properties' | 'events';
 
@@ -347,30 +348,11 @@ export class JSONInspector {
                 } catch (e) { console.error('Fallback failed', e); }
             }
 
-            // Detect definition for Variables and assign specialized events
-            if ((object as any).variableType || (object as any).value !== undefined || (object as any).isVariable) {
-                // Determine events based on specialized class type
-                const cName = (object as any).className || '';
-                let variableEvents: string[] = ['onValueChanged'];
-
-                if (cName === 'TTriggerVariable') {
-                    variableEvents = ['onTriggerEnter', 'onTriggerExit'];
-                } else if (cName === 'TTimer') {
-                    variableEvents = ['onTimer', 'onMaxIntervalReached'];
-                } else if (cName === 'TThresholdVariable') {
-                    variableEvents = ['onValueChanged', 'onThresholdReached', 'onThresholdLeft', 'onThresholdExceeded'];
-                } else if (cName === 'TRangeVariable') {
-                    variableEvents = ['onValueChanged', 'onMinReached', 'onMaxReached', 'onInside', 'onOutside'];
-                } else if (cName === 'TRandomVariable') {
-                    variableEvents = ['onValueChanged', 'onGenerated'];
-                } else if (cName === 'TListVariable') {
-                    variableEvents = ['onItemAdded', 'onItemRemoved', 'onCleared'];
-                } else if (cName === 'TVariable') {
-                    variableEvents = ['onValueChanged'];
-                }
-
-                (object as any)._supportedEvents = variableEvents.map(evt => ({ key: evt }));
-            }
+            // GENERIC EVENT DETECTION via ComponentRegistry
+            // We use the registry to get the events from a hydrated instance (SSoT)
+            const events = componentRegistry.getEvents(object);
+            (object as any)._supportedEvents = events.map(evt => ({ key: evt }));
+            console.log(`[JSONInspector] Auto-detections for ${object.className}: ${events.length} events found.`);
 
             // 4. Combine & Render
             // Static (Title) + Dynamic (Properties)
@@ -381,13 +363,6 @@ export class JSONInspector {
                 this.runtime.registerObject(obj.name, obj, false);
             });
 
-            // Events Fallback Logic (if strictly needed for virtual property)
-            if (!object._supportedEvents) {
-                const events = typeof (object as any).getEvents === 'function'
-                    ? (object as any).getEvents()
-                    : ['onClick', 'onDragStart', 'onDragEnd', 'onDrop'];
-                (object as any)._supportedEvents = events.map((evt: string) => ({ key: evt }));
-            }
 
             this.setupBindings();
             this.runtime.setVariable('selectedObject', object);

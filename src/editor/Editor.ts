@@ -1,47 +1,11 @@
 import { Stage } from './Stage';
 import { GameProject, StageType, StageDefinition, GameAction, GameTask, ProjectVariable } from '../model/types';
-import { TButton } from '../components/TButton';
-import { TPanel } from '../components/TPanel';
-import { TLabel } from '../components/TLabel';
-import { TNumberLabel } from '../components/TNumberLabel';
-import { TEdit } from '../components/TEdit';
-import { TSystemInfo } from '../components/TSystemInfo';
-import { TGameHeader } from '../components/TGameHeader';
-import { TSprite } from '../components/TSprite';
-import { TShape } from '../components/TShape';
+import { TWindow } from '../components/TWindow';
 import { TGameLoop } from '../components/TGameLoop';
 import { TInputController } from '../components/TInputController';
 import { TTimer } from '../components/TTimer';
-import { TRepeater } from '../components/TRepeater';
-import { TGameCard } from '../components/TGameCard';
 import { TGameServer } from '../components/TGameServer';
-import { TDropdown } from '../components/TDropdown';
-import { TCheckbox } from '../components/TCheckbox';
-import { TColorPicker } from '../components/TColorPicker';
-import { TNumberInput } from '../components/TNumberInput';
-import { TTabControl } from '../components/TTabControl';
-import { TInspectorTemplate } from '../components/TInspectorTemplate';
-// New dialog components
 import { TDialogRoot } from '../components/TDialogRoot';
-import { TInfoWindow } from '../components/TInfoWindow';
-import { TToast } from '../components/TToast';
-import { TStatusBar } from '../components/TStatusBar';
-import { TGameState } from '../components/TGameState';
-import { THandshake } from '../components/THandshake';
-import { THeartbeat } from '../components/THeartbeat';
-import { TImage } from '../components/TImage';
-import { TVideo } from '../components/TVideo';
-import { TSplashScreen } from '../components/TSplashScreen';
-import { TStageController } from '../components/TStageController';
-import { TVariable } from '../components/TVariable';
-import { TObjectList } from '../components/TObjectList';
-import { TThresholdVariable } from '../components/TThresholdVariable';
-import { TTriggerVariable } from '../components/TTriggerVariable';
-import { TRangeVariable } from '../components/TRangeVariable';
-import { TListVariable } from '../components/TListVariable';
-import { TRandomVariable } from '../components/TRandomVariable';
-import { TKeyStore } from '../components/TKeyStore';
-import { TWindow } from '../components/TWindow';
 import { AnimationManager } from '../runtime/AnimationManager';
 import { TDebugLog } from '../components/TDebugLog';
 import { hydrateObjects } from '../utils/Serialization';
@@ -57,6 +21,7 @@ import { JSONToolbox } from './JSONToolbox';
 import { JSONComponentPalette } from './JSONComponentPalette';
 import { DialogManager } from './DialogManager';
 import { GameRuntime } from '../runtime/GameRuntime';
+import { componentRegistry } from '../services/ComponentRegistry';
 // Import services to trigger auto-registration
 import '../services/RemoteGameManager';
 import { dialogService } from '../services/DialogService';
@@ -1782,138 +1747,24 @@ export class Editor implements IViewHost {
     }
 
     private createObjectInstance(type: string, name: string, x: number, y: number): TWindow | null {
-        let newObj: TWindow;
+        console.log(`[Editor] Erzeuge Instanz über Registry für Typ: ${type}, Name: ${name}`);
+        const instance = componentRegistry.createInstance({ type, name, x, y });
 
-        switch (type) {
-            case 'Button':
-                newObj = new TButton(name, x, y, 6, 2);
-                break;
-            case 'Panel':
-                newObj = new TPanel(name, x, y, 10, 5);
-                break;
-            case 'Image':
-                newObj = new TImage(name, x, y, 5, 5);
-                break;
-            case 'Video':
-                newObj = new TVideo(name, x, y, 10, 6);
-                break;
-            case 'SplashScreen':
-                newObj = new TSplashScreen(name, x, y, 32, 24);
-                break;
-            case 'Label':
-                newObj = new TLabel(name, x, y);
-                newObj.width = 6;
-                newObj.height = 1;
-                break;
-            case 'NumberLabel':
-                newObj = new TNumberLabel(name, x, y, 0);
-                newObj.width = 6;
-                newObj.height = 1;
-                break;
-            case 'Edit':
-                newObj = new TEdit(name, x, y, 8, 2);
-                break;
-            case 'SystemInfo':
-                newObj = new TSystemInfo(name) as unknown as TWindow;
-                break;
-            case 'GameHeader':
-                newObj = new TGameHeader(name, x, y, 32, 2);
-                break;
-            case 'Sprite':
-                newObj = new TSprite(name, x, y, 2, 2);
-                break;
-            case 'Shape':
-                newObj = new TShape(name, x, y, 5, 5);
-                break;
-            case 'GameLoop':
-                newObj = new TGameLoop(name, x, y);
-                break;
-            case 'InputController':
-                newObj = new TInputController(name, x, y);
-                break;
-            case 'Timer':
-                newObj = new TTimer(name, x, y);
-                break;
-            case 'Repeater':
-                newObj = new TRepeater(name, x, y);
-                break;
-            case 'GameCard':
-                newObj = new TGameCard(name, x, y);
-                break;
-            case 'GameServer':
-                newObj = new TGameServer(name, x, y);
-                break;
-            case 'Dropdown':
-                newObj = new TDropdown(name, x, y, 8, 2);
-                break;
-            case 'Checkbox':
-                newObj = new TCheckbox(name, x, y, 8, 2);
-                break;
-            case 'ColorPicker':
-                newObj = new TColorPicker(name, x, y, 8, 2);
-                break;
-            case 'NumberInput':
-                newObj = new TNumberInput(name, x, y, 8, 2);
-                break;
-            case 'TabControl':
-                newObj = new TTabControl(name, x, y, 20, 10);
-                break;
-            case 'InspectorTemplate':
-                newObj = new TInspectorTemplate(name, x, y, 15, 20);
-                break;
-            case 'DialogRoot':
-                newObj = new TDialogRoot(name, x, y, 20, 15);
-                break;
-            case 'InfoWindow':
-                newObj = new TInfoWindow(name, x, y);
-                break;
-            case 'Toast':
-                newObj = new TToast(name);
-                break;
-            case 'StatusBar':
-                newObj = new TStatusBar(name, x, y, 40, 2);
-                break;
-            case 'GameState':
-                newObj = new TGameState(name, x, y);
-                break;
-            case 'Handshake':
-                newObj = new THandshake(name, x, y);
-                break;
-            case 'Heartbeat':
-                newObj = new THeartbeat(name, x, y);
-                break;
-            case 'StageController':
-                newObj = new TStageController(name, x, y);
-                break;
-            case 'Variable':
-                newObj = new TVariable(name, x, y);
-                break;
-            case 'ObjectList':
-                newObj = new TObjectList(name, x, y);
-                break;
-            case 'Threshold':
-                newObj = new TThresholdVariable(name, x, y);
-                break;
-            case 'Trigger':
-                newObj = new TTriggerVariable(name, x, y);
-                break;
-            case 'Range':
-                newObj = new TRangeVariable(name, x, y);
-                break;
-            case 'List':
-                newObj = new TListVariable(name, x, y);
-                break;
-            case 'Random':
-                newObj = new TRandomVariable(name, x, y);
-                break;
-            case 'KeyStore':
-                newObj = new TKeyStore(name, x, y);
-                break;
-            default:
-                console.warn("Unknown type:", type);
-                return null;
+        if (!instance) {
+            console.error(`[Editor] Konnte keine Instanz für Typ "${type}" erstellen.`);
+            return null;
         }
-        return newObj;
+
+        // Spezielle Nachbearbeitung für bestimmte Typen (falls nötig, aber Ziel ist Umzug in die Klassen)
+        if (type === 'Label' || type === 'NumberLabel') {
+            instance.width = 6;
+            instance.height = 1;
+        } else if (type === 'Button') {
+            instance.width = 6;
+            instance.height = 2;
+        }
+
+        return instance;
     }
 
     private addObject(type: string, x: number, y: number) {
