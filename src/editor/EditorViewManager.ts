@@ -9,6 +9,7 @@ import { safeDeepCopy } from '../utils/DeepCopy';
 import { mediatorService } from '../services/MediatorService';
 import { Stage } from './Stage';
 import { MediatorEvents } from '../services/MediatorService';
+import { JSONTreeViewer } from './JSONTreeViewer';
 
 export interface IViewHost {
     project: GameProject;
@@ -148,6 +149,14 @@ export class EditorViewManager {
 
     public render() {
         this.host.render();
+    }
+
+    public renderJSONTree(data: any, container: HTMLElement) {
+        JSONTreeViewer.render(data, container, this.jsonMode === 'editor', (updatedData) => {
+            this.workingProjectData = updatedData;
+            this.isProjectDirty = true;
+            this.host.refreshJSONView(); // Refresh to show apply button if implemented there
+        });
     }
 
     private renderCodeView(codePanel: HTMLElement | null) {

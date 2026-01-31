@@ -2,15 +2,9 @@ import { Stage } from './Stage';
 import { GameProject, StageType, StageDefinition, GameAction, GameTask, ProjectVariable } from '../model/types';
 import { TWindow } from '../components/TWindow';
 import { TGameLoop } from '../components/TGameLoop';
-import { TInputController } from '../components/TInputController';
-import { TTimer } from '../components/TTimer';
-import { TGameServer } from '../components/TGameServer';
-import { TDialogRoot } from '../components/TDialogRoot';
-import { AnimationManager } from '../runtime/AnimationManager';
 import { TDebugLog } from '../components/TDebugLog';
 import { hydrateObjects } from '../utils/Serialization';
 import { unwrap } from '../runtime/ReactiveProperty';
-import { GameExporter } from '../export/GameExporter';
 import { inputSyncer, collisionSyncer, network } from '../multiplayer';
 import { jsonLobby } from '../multiplayer/JSONMultiplayerLobby';
 import { FlowDiagramGenerator } from './FlowDiagramGenerator';
@@ -20,15 +14,11 @@ import { JSONInspector } from './JSONInspector';
 import { JSONToolbox } from './JSONToolbox';
 import { JSONComponentPalette } from './JSONComponentPalette';
 import { DialogManager } from './DialogManager';
-import { GameRuntime } from '../runtime/GameRuntime';
-import { componentRegistry } from '../services/ComponentRegistry';
-// Import services to trigger auto-registration
-import '../services/RemoteGameManager';
 import { dialogService } from '../services/DialogService';
 import { serviceRegistry } from '../services/ServiceRegistry';
+import '../services/RemoteGameManager';
 import { PascalGenerator } from './PascalGenerator';
 import { PascalHighlighter } from './PascalHighlighter';
-import { JSONTreeViewer } from './JSONTreeViewer';
 import { FlowEditor } from './FlowEditor';
 import { FlowToolbox } from './FlowToolbox';
 import { MenuBar } from './MenuBar';
@@ -43,9 +33,12 @@ import { PlaybackOverlay } from '../components/PlaybackOverlay';
 import { playbackEngine } from '../services/PlaybackEngine';
 import { safeDeepCopy } from '../utils/DeepCopy';
 import { mediatorService, MediatorEvents } from '../services/MediatorService';
+import { projectPersistenceService } from '../services/ProjectPersistenceService';
+import { EditorCommandManager } from './services/EditorCommandManager';
+import { EditorRunManager } from './services/EditorRunManager';
 
 export class Editor implements IViewHost {
-    private stage: Stage;
+    public stage: Stage;
     public jsonInspector: JSONInspector | null = null;
     private jsonToolbox: JSONToolbox | null = null;
     public flowEditor: FlowEditor | null = null;
@@ -54,20 +47,18 @@ export class Editor implements IViewHost {
     private componentPalette: JSONComponentPalette | null = null;
     public playbackControls: PlaybackControls | null = null;
     public playbackOverlay: PlaybackOverlay | null = null;
-    private dialogManager: DialogManager;
-    private stageManager: EditorStageManager;
-    private viewManager: EditorViewManager;
+    public dialogManager: DialogManager;
+    public stageManager: EditorStageManager;
+    public viewManager: EditorViewManager;
+    public commandManager: EditorCommandManager;
+    public runManager: EditorRunManager;
     public project: GameProject;
-    private runtimeObjects: TWindow[] | null = null;
-    private activeGameLoop: TGameLoop | null = null;
-    private activeInputControllers: TInputController[] = [];
-    private activeTimers: TTimer[] = [];
-    private activeGameServers: TGameServer[] = [];
-    private runtime: GameRuntime | null = null;
-    private useHorizontalToolbox: boolean = false;
-    private currentContext: 'game' | 'splash' = 'game';
     public debugLog: TDebugLog | null = null;
     public currentSelectedId: string | null = null;
+    private useHorizontalToolbox: boolean = false;
+
+    public get workingProjectData() { return this.viewManager.workingProjectData; }
+    public set workingProjectData(v: any) { this.viewManager.workingProjectData = v; }
 
     constructor() {
         // Initialize Default Project
@@ -130,6 +121,8 @@ export class Editor implements IViewHost {
 
         // Initialize ViewManager
         this.viewManager = new EditorViewManager(this);
+        this.commandManager = new EditorCommandManager(this);
+        this.runManager = new EditorRunManager(this);
 
         // Initialisiere Stages (Migration für Default-Projekt)
         this.migrateToStages();
@@ -167,10 +160,10 @@ export class Editor implements IViewHost {
         this.initComponentPalette();
         this.initFlowEditor();
         this.initMenuBar();
+        this.initMediator();
 
         // Note: Toolbar is now inside Toolbox
         this.init();
-        this.initMediator();
         this.bindViewEvents();
         this.bindSystemInfoEvents();
 
@@ -210,48 +203,100 @@ export class Editor implements IViewHost {
     public get isMultiplayer(): boolean { return this._isMultiplayer; }
     public get localPlayerNumber(): 1 | 2 { return this._localPlayerNumber; }
 
-    // --- DELEGATIONS ---
     public get currentObjects(): TWindow[] { return this.stageManager.currentObjects(); }
+    public set currentObjects(objs: TWindow[]) { this.stageManager.setCurrentObjects(objs); }
     public get currentActions(): GameAction[] { return this.stageManager.currentActions(); }
     public get currentTasks(): GameTask[] { return this.stageManager.currentTasks(); }
     public get currentVariables(): ProjectVariable[] { return this.stageManager.currentVariables(); }
 
     public getActiveStage(): StageDefinition | null { return this.stageManager.getActiveStage(); }
     private migrateToStages(): void { this.stageManager.migrateToStages(); }
-    // --- END DELEGATIONS ---
 
-    private set currentObjects(objs: TWindow[]) {
-        // IMPORTANT: The setter must only save objects that BELONG to the active stage.
-        const activeStage = this.getActiveStage();
-        if (activeStage) {
-            const localObjs = objs.filter(obj => {
-                const isAlreadyLocal = (activeStage.objects || []).some(o => o.id === obj.id) ||
-                    (activeStage.variables || []).some(v => (v as any).id === obj.id);
-                if (isAlreadyLocal) return true;
+    public get runtime() { return this.runManager.runtime; }
+    public get runtimeObjects() { return this.runManager.runtimeObjects; }
+    public get activeGameLoop() { return this.runManager.activeGameLoop; }
+    public get activeTimers() { return this.runManager.activeTimers; }
 
-                // If it's NEW (not in any stage), it belongs here.
-                const existsElsewhere = (this.project.stages || []).some(s =>
-                    s.id !== activeStage.id && (
-                        (s.objects || []).some(o => o.id === obj.id) ||
-                        (s.variables || []).some(v => (v as any).id === obj.id)
-                    )
-                );
-                return !existsElsewhere;
+    // --- COMMAND DELEGATIONS ---
+    public addObject(type: string, x: number, y: number) { this.commandManager.addObject(type, x, y); }
+    public removeObject(id: string) { this.commandManager.removeObject(id); }
+    public removeObjectSilent(id: string) { this.commandManager.removeObjectSilent(id); }
+    public selectObject(id: string | null, focus?: boolean) { this.commandManager.selectObject(id, focus); }
+    public findObjectById(id: string) { return this.commandManager.findObjectById(id); }
+    public findParentContainer(childId: string) { return this.commandManager.findParentContainer(childId); }
+    public createObjectInstance(type: string, name: string, x: number, y: number) { return this.commandManager.createObjectInstance(type, name, x, y); }
+
+    // --- RUN MODE DELEGATION ---
+    public setRunMode(running: boolean) { this.runManager.setRunMode(running); }
+    // --- VIEW DELEGATIONS ---
+    public switchView(view: ViewType) { this.viewManager.switchView(view); }
+    public refreshJSONView() {
+        const jsonPanel = document.getElementById('json-viewer');
+        if (jsonPanel && this.project) {
+            const data = this.viewManager.useStageIsolatedView ? (this.getActiveStage() || this.project) : this.project;
+            this.viewManager.renderJSONTree(data, jsonPanel);
+        }
+    }
+
+    public render() {
+        if (!this.project) return;
+        try {
+            // CRITICAL: Always get fresh objects from runtime if available
+            let objectsToRender = this.runtime ? this.runtime.getObjects() : (this.runtimeObjects || this.getResolvedInheritanceObjects());
+
+            // Resolve preview (bindings, etc) for non-run mode
+            if (!this.runtime) {
+                const varContext = this.getVariableContext();
+                objectsToRender = objectsToRender.map(obj => this.resolveObjectPreview(obj, varContext));
+            }
+
+            this.stage.renderObjects(objectsToRender);
+        } catch (err) {
+            console.error("[Editor] Render error:", err);
+        }
+    }
+
+    private resolveObjectPreview(obj: any, context: Record<string, any>): any {
+        if (!obj || typeof obj !== 'object') return obj;
+        const rawObj = unwrap(obj);
+
+        // Preserve prototype for rendering getters like backgroundImage, src
+        const previewObj = Object.create(Object.getPrototypeOf(rawObj));
+        Object.assign(previewObj, rawObj);
+
+        // Resolve nested bindings ${varName}
+        const resolveProps = (target: any) => {
+            if (!target || typeof target !== 'object') return;
+            Object.keys(target).forEach(key => {
+                const val = target[key];
+                if (typeof val === 'string' && val.includes('${')) {
+                    try { target[key] = ExpressionParser.interpolate(val, context); } catch (e) { }
+                } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'grid')) {
+                    target[key] = { ...val };
+                    resolveProps(target[key]);
+                }
             });
+        };
+        resolveProps(previewObj);
 
-            // STRICT SEPARATION: Split into objects and variables
-            activeStage.objects = localObjs.filter(o => !o.isVariable && !o.isTransient);
-            activeStage.variables = localObjs.filter(o => o.isVariable && !o.isTransient) as any;
-            return;
+        if (previewObj.children && Array.isArray(previewObj.children)) {
+            previewObj.children = previewObj.children.map((child: any) => this.resolveObjectPreview(child, context));
         }
+        return previewObj;
+    }
 
-        // Legacy-Fallback
-        if (this.currentContext === 'splash') {
-            this.project.splashObjects = objs.filter(o => !o.isTransient);
-        } else {
-            this.project.objects = objs.filter(o => !o.isVariable && !o.isTransient);
-            this.project.variables = objs.filter(o => o.isVariable && !o.isTransient) as any;
-        }
+    private getVariableContext(): Record<string, any> {
+        const context: Record<string, any> = {
+            project: this.project,
+            isMultiplayer: this._isMultiplayer,
+            playerNumber: this._localPlayerNumber
+        };
+        projectRegistry.getVariables().forEach(v => { context[v.name] = v.defaultValue; });
+        return context;
+    }
+
+    public autoSaveToLocalStorage() {
+        this.updateProjectJSON();
     }
 
 
@@ -417,9 +462,57 @@ export class Editor implements IViewHost {
                 this.setRunMode(true);
             });
         });
-    }/**
-     * Bind window events to update TSystemInfo components live
-     */
+    }
+
+    private bindViewEvents() {
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = e.target as HTMLElement;
+                const view = target.getAttribute('data-view') as ViewType;
+                if (view) {
+                    this.switchView(view);
+                }
+            });
+        });
+    }
+
+    public refreshPascalView() {
+        if (this.currentView !== 'code') return;
+        try {
+            const activeStage = this.getActiveStage();
+            const stageToUse = (this.viewManager.useStageIsolatedView && activeStage) ? activeStage : undefined;
+            const plainCode = PascalGenerator.generateFullProgram(this.project, false, stageToUse);
+
+            if (this.viewManager.pascalEditorMode) {
+                const highlightLayer = document.getElementById('pascal-editor-highlight');
+                if (highlightLayer) {
+                    highlightLayer.innerHTML = PascalHighlighter.highlight(plainCode);
+                }
+                const textarea = document.getElementById('pascal-editor-textarea') as HTMLTextAreaElement;
+                if (textarea && textarea.value !== plainCode) {
+                    const scrollTop = textarea.scrollTop;
+                    const scrollLeft = textarea.scrollLeft;
+                    const selectionStart = textarea.selectionStart;
+                    const selectionEnd = textarea.selectionEnd;
+                    textarea.value = plainCode;
+                    textarea.scrollTop = scrollTop;
+                    textarea.scrollLeft = scrollLeft;
+                    textarea.selectionStart = selectionStart;
+                    textarea.selectionEnd = selectionEnd;
+                }
+            } else {
+                const content = document.getElementById('code-viewer-content');
+                if (content) {
+                    const highlightedCode = PascalHighlighter.highlight(plainCode);
+                    content.innerHTML = `<pre style="margin: 0; white-space: pre; color: #d4d4d4;" translate="no">${highlightedCode}</pre>`;
+                }
+            }
+        } catch (err) {
+            console.error("[Editor] Failed to refresh Pascal view:", err);
+        }
+    }
+
     private bindSystemInfoEvents() {
         const updateSystemInfoObjects = () => {
             this.currentObjects.forEach(obj => {
@@ -429,9 +522,8 @@ export class Editor implements IViewHost {
             });
             // Re-render inspector if a TSystemInfo is currently selected
             if (this.jsonInspector && this.currentSelectedId) {
-                const selectedObj = this.currentObjects.find(o => o.id === this.currentSelectedId);
+                const selectedObj = this.findObjectById(this.currentSelectedId);
                 if (selectedObj) {
-                    this.stage.selectedObject = selectedObj;
                     this.jsonInspector.update(selectedObj);
                 }
             }
@@ -442,41 +534,15 @@ export class Editor implements IViewHost {
         window.addEventListener('offline', updateSystemInfoObjects);
     }
 
-
-    private bindViewEvents() {
-        const tabs = document.querySelectorAll('.tab-btn');
-        tabs.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const target = e.target as HTMLElement;
-                const view = target.getAttribute('data-view');
-                if (view === 'stage' || view === 'json' || view === 'run' || view === 'flow' || view === 'code' || view === 'management') {
-                    this.switchView(view as any);
-                }
-            });
-        });
-    }
-
-    public switchView(view: ViewType) {
-        this.viewManager.switchView(view);
-    }
-
     // View State Getters for back-compatibility
-    public get currentView(): string { return this.viewManager.currentView; }
+    public get currentView(): ViewType { return this.viewManager.currentView; }
     public get pascalEditorMode(): boolean { return this.viewManager.pascalEditorMode; }
     public get useStageIsolatedView(): boolean { return this.viewManager.useStageIsolatedView; }
     public set useStageIsolatedView(v: boolean) { this.viewManager.useStageIsolatedView = v; }
     public get jsonMode(): 'viewer' | 'editor' { return this.viewManager.jsonMode; }
     public set jsonMode(v: 'viewer' | 'editor') { this.viewManager.jsonMode = v; }
-    public get workingProjectData(): any { return this.viewManager.workingProjectData; }
-    public set workingProjectData(v: any) { this.viewManager.workingProjectData = v; }
     public get isProjectDirty(): boolean { return this.viewManager.isProjectDirty; }
     public set isProjectDirty(v: boolean) { this.viewManager.isProjectDirty = v; }
-
-
-
-    // ─────────────────────────────────────────────
-    // Multi-Stage Verwaltung
-    // ─────────────────────────────────────────────
 
     /**
      * Prüft ob bereits ein Splashscreen existiert
@@ -760,8 +826,6 @@ export class Editor implements IViewHost {
             this.stage.grid = stage.grid;
         }
 
-        // currentContext für Legacy-Kompatibilität aktualisieren
-        this.currentContext = stage.type === 'splash' ? 'splash' : 'game';
 
         // Deselect current
         this.selectObject(null);
@@ -1039,30 +1103,15 @@ export class Editor implements IViewHost {
     }
 
     // Helper to trigger hidden file input from Toolbox button
-    private triggerLoad() {
-        // We create a temporary input if needed, or reuse one.
-        // For simplicity, create dynamic one here to avoid DOM clutter in main layout
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = '.json';
-        fileInput.style.display = 'none';
-        fileInput.onchange = (e) => {
-            const file = (e.target as HTMLInputElement).files?.[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                try {
-                    const json = JSON.parse(evt.target?.result as string);
-                    this.loadProject(json);
-                } catch (err) {
-                    alert("Error loading project: " + err);
-                }
-            };
-            reader.readAsText(file);
-        };
-        document.body.appendChild(fileInput); // Needs to be in DOM for some browsers?
-        fileInput.click();
-        document.body.removeChild(fileInput);
+    private async triggerLoad() {
+        try {
+            const json = await projectPersistenceService.triggerLoad();
+            if (json) {
+                this.loadProject(json);
+            }
+        } catch (err) {
+            alert("Error loading project: " + err);
+        }
     }
 
     private async saveProject() {
@@ -1071,72 +1120,34 @@ export class Editor implements IViewHost {
             this.flowEditor.syncAllTasksFromFlow(this.project);
         }
 
-        // Variables and Objects are already separated due to the currentObjects setter/getter logic.
-        // We just need to ensure everything is synced one last time.
         this.syncStageObjectsToProject();
 
-        const json = JSON.stringify(this.project, null, 2);
-
-        const projName = this.project.stages?.find((s: any) => s.type === 'main')?.gameName || this.project.meta.name || 'New Game';
-        const filename = `project_${projName.replace(/\s+/g, '_')}.json`;
-
-        // Try File System Access API (modern browsers)
-        if ('showSaveFilePicker' in window) {
-            try {
-                const handle = await (window as any).showSaveFilePicker({
-                    suggestedName: filename,
-                    types: [{
-                        description: 'JSON Project File',
-                        accept: { 'application/json': ['.json'] }
-                    }]
-                });
-                const writable = await handle.createWritable();
-                await writable.write(json);
-                await writable.close();
-                alert(`Project saved successfully!\n\nFile: ${handle.name}`);
-                return;
-            } catch (err: any) {
-                // User cancelled or error - fall through to legacy method
-                if (err.name === 'AbortError') return;
-                console.warn('File System Access API failed, using fallback:', err);
-            }
-        }
-
-        // Fallback for browsers without File System Access API
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => document.body.removeChild(a), 2000);
-        alert(`Project saved to Downloads folder.\n\nFile: ${filename}`);
+        await projectPersistenceService.saveProject(this.project);
+        alert('Projekt erfolgreich gespeichert!');
     }
 
     private async exportHTML() {
         if (this.flowEditor) this.flowEditor.syncAllTasksFromFlow(this.project);
-        const exporter = new GameExporter();
-        await exporter.exportHTML(this.project);
+        this.syncStageObjectsToProject();
+        await projectPersistenceService.exportHTML(this.project);
     }
 
     private async exportJSON() {
         if (this.flowEditor) this.flowEditor.syncAllTasksFromFlow(this.project);
-        const exporter = new GameExporter();
-        await exporter.exportJSON(this.project);
+        this.syncStageObjectsToProject();
+        await projectPersistenceService.exportJSON(this.project);
     }
 
     private async exportHTMLCompressed() {
         if (this.flowEditor) this.flowEditor.syncAllTasksFromFlow(this.project);
-        const exporter = new GameExporter();
-        await exporter.exportHTMLCompressed(this.project);
+        this.syncStageObjectsToProject();
+        await projectPersistenceService.exportHTMLCompressed(this.project);
     }
 
     private async exportJSONCompressed() {
         if (this.flowEditor) this.flowEditor.syncAllTasksFromFlow(this.project);
-        const exporter = new GameExporter();
-        await exporter.exportJSONCompressed(this.project);
+        this.syncStageObjectsToProject();
+        await projectPersistenceService.exportJSONCompressed(this.project);
     }
 
     private loadProject(data: any) {
@@ -1254,18 +1265,6 @@ export class Editor implements IViewHost {
         }, 500);
     }
 
-    public autoSaveToLocalStorage() {
-        if (!this.project) return;
-        try {
-            // Ensure the latest stage state (objects & variables) is synced to the project JSON
-            this.syncStageObjectsToProject();
-
-            const json = JSON.stringify(this.project);
-            localStorage.setItem('gcs_last_project', json);
-        } catch (err) {
-            console.error('[Editor] Auto-save to localStorage failed:', err);
-        }
-    }
 
 
 
@@ -1360,8 +1359,9 @@ export class Editor implements IViewHost {
 
         // onDragStart: Runtime Event
         this.stage.onDragStart = (id) => {
-            if (this.stage.runMode) {
-                console.log(`[Editor] onDragStart: ${id}`);
+            if (this.stage.runMode && !changeRecorder.isApplyingAction) {
+                // Determine if we should record or just handle
+                // For tutorials/undo we might record drag end position later
                 this.runtime?.handleEvent(id, 'onDragStart');
             }
         };
@@ -1700,490 +1700,31 @@ export class Editor implements IViewHost {
             }
             current = current[parts[i]];
         }
-
         current[parts[parts.length - 1]] = value;
-    }
-
-
-    private removeObject(id: string) {
-        const obj = this.findObjectById(id);
-        if (obj && !changeRecorder.isApplyingAction) {
-            changeRecorder.record({
-                type: 'delete',
-                description: `${obj.name} gelöscht`,
-                objectId: id,
-                objectData: JSON.parse(JSON.stringify(obj))
-            });
-        }
-
-        this.currentObjects = this.currentObjects.filter(o => o.id !== id);
-        this.selectObject(null); // Deselect
-        this.render();
-        this.autoSaveToLocalStorage();
-    }
-
-    /**
-     * Remove object without triggering selection change or render (for batch deletion)
-     */
-    private removeObjectSilent(id: string) {
-        // Search in all potential lists
-        const activeStage = this.getActiveStage();
-        if (activeStage) {
-            const objIdx = (activeStage.objects || []).findIndex(o => o.id === id);
-            if (objIdx !== -1) {
-                console.log(`[Editor] Removing UI object: ${activeStage.objects[objIdx].name}`);
-                activeStage.objects.splice(objIdx, 1);
-                return;
-            }
-
-            const varIdx = (activeStage.variables || []).findIndex(v => (v as any).id === id);
-            if (varIdx !== -1) {
-                console.log(`[Editor] Removing variable: ${(activeStage.variables as any)[varIdx].name}`);
-                activeStage.variables!.splice(varIdx, 1);
-                return;
-            }
-        }
-
-        // Legacy/Global Fallback
-        const objIdx = this.project.objects.findIndex(o => o.id === id);
-        if (objIdx !== -1) {
-            this.project.objects.splice(objIdx, 1);
-            return;
-        }
-
-        const varIdx = this.project.variables.findIndex(v => (v as any).id === id);
-        if (varIdx !== -1) {
-            this.project.variables.splice(varIdx, 1);
-            return;
-        }
-    }
-
-    private createObjectInstance(type: string, name: string, x: number, y: number): TWindow | null {
-        console.log(`[Editor] Erzeuge Instanz über Registry für Typ: ${type}, Name: ${name}`);
-        const instance = componentRegistry.createInstance({ type, name, x, y });
-
-        if (!instance) {
-            console.error(`[Editor] Konnte keine Instanz für Typ "${type}" erstellen.`);
-            return null;
-        }
-
-        // Spezielle Nachbearbeitung für bestimmte Typen (falls nötig, aber Ziel ist Umzug in die Klassen)
-        if (type === 'Label' || type === 'NumberLabel') {
-            instance.width = 6;
-            instance.height = 1;
-        } else if (type === 'Button') {
-            instance.width = 6;
-            instance.height = 2;
-        }
-
-        return instance;
-    }
-
-    private addObject(type: string, x: number, y: number) {
-        const name = `${type}_${this.currentObjects.length + 1}`;
-        const newObj = this.createObjectInstance(type, name, x, y);
-        if (!newObj) return;
-
-        // Default Scoping Rules:
-        // Main-Stage -> Global
-        // Other Stages -> Stage-local
-        const activeStage = this.getActiveStage();
-        if (activeStage && activeStage.type === 'main') {
-            newObj.scope = 'global';
-        } else {
-            newObj.scope = 'stage';
-        }
-
-        // Explicitly set className for robust identification (minification-proof)
-        (newObj as any).className = `T${type}`;
-
-        // Ensure bounds validation if needed, or leave to stage logic
-        newObj.x = Math.max(0, x);
-        newObj.y = Math.max(0, y);
-
-        // Check if this object lands inside a Container (TDialogRoot, TSplashScreen)
-        // If so, make it a child with relative positioning
-        const dialogContainers = this.currentObjects.filter(o => {
-            const cn = (o as any).className || o.constructor?.name;
-            return cn === 'TDialogRoot' || cn === 'TSplashScreen';
-        }) as any[];
-
-        console.log(`[Editor] Adding ${newObj.name} at (${newObj.x}, ${newObj.y}). Found ${dialogContainers.length} dialog containers.`);
-
-        let parentDialog: TDialogRoot | null = null;
-        for (const dialog of dialogContainers) {
-            if (dialog.containsObject && dialog.containsObject(newObj)) {
-                parentDialog = dialog;
-                break;
-            }
-        }
-
-        if (parentDialog) {
-            // Convert to relative coordinates within the dialog
-            newObj.x = newObj.x - parentDialog.x;
-            newObj.y = newObj.y - parentDialog.y;
-
-            // Add as child of dialog
-            parentDialog.addChild(newObj);
-            console.log(`[Editor] ✓ Added ${newObj.name} as CHILD of ${parentDialog.name} at relative (${newObj.x}, ${newObj.y})`);
-        } else {
-            // Add to root level objects
-            const list = this.currentObjects;
-            list.push(newObj);
-            this.currentObjects = list;
-            console.log(`[Editor] Added ${newObj.name} to ROOT level`);
-        }
-
-        this.render();
-
-        // Auto-select the newly created object
-        this.selectObject(newObj.id);
-        this.autoSaveToLocalStorage();
-
-        // Record creation for Undo/Redo
-        if (!changeRecorder.isApplyingAction) {
-            changeRecorder.record({
-                type: 'create',
-                description: `${newObj.name} erstellt`,
-                objectId: newObj.id,
-                objectData: JSON.parse(JSON.stringify(newObj))
-            });
-        }
-    }
-
-    public selectObject(id: string | null, focus: boolean = false) {
-        this.currentSelectedId = id;
-        if (id) {
-            const obj = this.findObjectById(id);
-            this.stage.selectedObject = obj || null;
-            if (this.jsonInspector) this.jsonInspector.update(obj || null);
-            if (focus && obj) this.stage.focusObject(id);
-        } else {
-            this.stage.selectedObject = null;
-            if (this.jsonInspector) this.jsonInspector.update(this.project);
-        }
-        console.log("Selected:", id ? id : "Stage");
-        this.render(); // Update stage to show selection visually
-    }
-
-    /**
-     * Find an object by ID, searching recursively in containers
-     */
-    /**
-     * Find an object by ID, searching recursively in containers.
-     * Searches in RESOLVED objects (including inherited ones).
-     */
-    public findObjectById(id: string): any | null {
-        // Use resolved objects to find everything including inherited ones
-        const objects = this.getResolvedInheritanceObjects();
-
-        // First search in root level
-        for (const obj of objects) {
-            if (obj.id === id) return obj;
-
-            // Search in children (for containers like TDialogRoot)
-            if (obj.children && Array.isArray(obj.children)) {
-                for (const child of obj.children) {
-                    if (child.id === id) return child;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Find the parent container for a child object
-     */
-    private findParentContainer(childId: string): any | null {
-        for (const obj of this.currentObjects) {
-            if (obj.children && Array.isArray(obj.children)) {
-                for (const child of obj.children) {
-                    if (child.id === childId) {
-                        return obj; // Return the parent container
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    public setRunMode(running: boolean) {
-        this.stage.runMode = running;
-        this.stage.updateBorder(); // Update border color based on mode
-        if (running) {
-            this.selectObject(null); // Deselect everything
-            console.log("Game Running...");
-
-            // Create Snapshot for Sandbox
-            // 1. Serialize current objects
-
-            // 3. Initialize Unified GameRuntime
-            // In multiplayer mode, pass the network manager for player number and state sync
-            const mpManager = this._isMultiplayer ? network : undefined;
-
-            // Context-Aware Run: If we are in a sub-stage (not Main/Splash), start directly there
-            const activeStage = this.getActiveStage();
-            let startStageId: string | undefined;
-            if (activeStage && activeStage.type !== 'main' && activeStage.type !== 'splash') {
-                startStageId = activeStage.id;
-                console.log(`[Editor] Context-Aware Run: Starting in stage '${activeStage.name}' (${startStageId})`);
-            }
-
-            let runtimeInstance: any = null;
-
-            // Sync current editor state to project JSON before starting runtime
-            // This ensures that changes made in the editor (e.g. image src) are available to the runtime
-            this.syncStageObjectsToProject();
-
-            runtimeInstance = new GameRuntime(this.project, undefined, { // Force undefined objects to let Runtime load them from Stage
-                onNavigate: (_target) => this.switchView('run'), // Standalone would use real nav
-                makeReactive: true,
-                multiplayerManager: mpManager,
-                onRender: () => this.render(),
-                startStageId: startStageId,
-                onStageSwitch: (stageId: string) => {
-                    // Runtime (e.g. Splash finished) wants to switch background/grid context
-                    const targetStage = this.project.stages?.find((s: any) => s.id === stageId);
-                    if (targetStage) {
-                        console.log(`[Editor] Runtime requested stage switch to: ${targetStage.name}`);
-
-                        // Update Stage background/grid
-                        if (this.stage) {
-                            this.stage.grid = {
-                                cols: targetStage.grid?.cols || 32,
-                                rows: targetStage.grid?.rows || 24,
-                                cellSize: targetStage.grid?.cellSize || 20,
-                                snapToGrid: targetStage.grid?.snapToGrid ?? true,
-                                visible: (this.stage?.runMode) ? (targetStage.grid?.visible ?? false) : (targetStage.grid?.visible ?? true),
-                                backgroundColor: targetStage.grid?.backgroundColor || '#1e1e1e'
-                            };
-                        }
-
-                        // CRITICAL: Refresh runtimeObjects from the instance (even if not yet assigned to this.runtime)
-                        const rt = runtimeInstance || this.runtime;
-                        if (rt) {
-                            console.log("[Editor] Refreshing runtimeObjects reference after stage switch.");
-                            this.runtimeObjects = rt.getObjects();
-
-                            // UPDATE GameLoop reference to allow ticker to pause correctly!
-                            if (this.runtimeObjects) {
-                                this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as any) || null;
-                                if (this.activeGameLoop) {
-                                    console.log("[Editor] GameLoop found after stage switch. Stopping fallback ticker.");
-                                    this.stopAnimationTicker();
-                                }
-                            }
-
-                            this.render();
-                        }
-                    }
-                }
-            });
-
-            this.runtime = runtimeInstance;
-
-            // CRITICAL: The GameRuntime creates reactive proxies for our objects.
-            // We MUST use these proxies for rendering and all other logic.
-            if (this.runtime) {
-                this.runtimeObjects = this.runtime.getObjects();
-                this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as TGameLoop) || null;
-            }
-
-            // Connect Stage Events to Runtime
-            if (this.stage) {
-                this.stage.onEvent = (objectId: string, eventName: string) => {
-                    console.log(`[Editor] Stage Event: ${objectId}.${eventName}`);
-                    if (this.runtime) {
-                        this.runtime.handleEvent(objectId, eventName);
-                    }
-                };
-            }
-
-            if (!this.activeGameLoop) {
-                console.warn("[Editor] No GameLoop component found. Starting animation ticker fallback.");
-                this.startAnimationTicker();
-            }
-
-            // Initialize and start Timers
-            if (this.runtimeObjects) {
-                this.activeTimers = this.runtimeObjects.filter(
-                    obj => (obj as any).className === 'TTimer'
-                ) as any[];
-                this.activeTimers.forEach(timer => {
-                    // Register onEvent callback for maxInterval event
-                    if (timer && 'onEvent' in timer) {
-                        (timer as any).onEvent = (eventName: string) => {
-                            console.log(`[Editor] TTimer ${timer.name} fired event: ${eventName}`);
-                            this.handleEvent(timer.id, eventName);
-                        };
-                    }
-                    if (timer && typeof timer.start === 'function') {
-                        timer.start(() => {
-                            this.handleEvent(timer.id, 'onTimer');
-                        });
-                    }
-                });
-            }
-
-            // Initialize NumberLabel event callbacks (for onMaxValueReached, onMinValueReached)
-            if (this.runtimeObjects) {
-                const numberLabels = this.runtimeObjects.filter(
-                    obj => (obj as any).className === 'TNumberLabel'
-                );
-                numberLabels.forEach(nl => {
-                    if (nl && 'onEvent' in nl) {
-                        (nl as any).onEvent = (eventName: string) => {
-                            console.log(`[Editor] TNumberLabel ${nl.name} fired event: ${eventName}`);
-                            this.handleEvent(nl.id, eventName);
-                        };
-                    }
-                });
-            }
-
-            // Initialize and start GameServers
-            if (this.runtimeObjects) {
-                this.activeGameServers = this.runtimeObjects.filter(
-                    obj => (obj as any).className === 'TGameServer'
-                ) as any[];
-                this.activeGameServers.forEach(server => {
-                    if (server && typeof server.start === 'function') {
-                        server.start((eventName: string, data: any) => {
-                            this.handleGameServerEvent(server.id, eventName, data);
-                        });
-                    }
-                });
-            }
-
-            // Start Runtime - this triggers onStart events for all objects and startAnimation
-            console.log("[Editor] Starting GameRuntime...");
-            if (this.runtime) {
-                this.runtime.start();
-            }
-
-
-
-            this.render(); // Render runtime objects
-        } else {
-            // console.log("Game Stopped.");
-
-            // 1. Stop GameRuntime (which stops Loop, Timers, Server, Animation internally)
-            if (this.runtime) {
-                this.runtime.stop();
-                this.runtime = null;
-            }
-
-            // 2. Clear Stage Events
-            if (this.stage) {
-                this.stage.onEvent = null;
-            }
-
-            // NEW: Robust stop calls
-            if (this.activeGameLoop && typeof (this.activeGameLoop as any).stop === 'function') {
-                (this.activeGameLoop as any).stop();
-            }
-
-            this.activeInputControllers.forEach(ic => {
-                if (typeof (ic as any).stop === 'function') ic.stop();
-            });
-            this.activeTimers.forEach(timer => {
-                if (typeof (timer as any).stop === 'function') timer.stop();
-            });
-            this.activeGameServers.forEach(server => {
-                if (typeof (server as any).stop === 'function') server.stop();
-            });
-
-            this.activeGameLoop = null;
-            this.activeInputControllers = [];
-            this.activeTimers = [];
-            this.activeGameServers = [];
-            this.runtimeObjects = null; // discard snapshot
-            this.stopAnimationTicker();
-
-            // Remove Debug Logger when stopping
-            if (this.debugLog) {
-                this.debugLog.dispose();
-                this.debugLog = null;
-            }
-
-            this.render(); // Render editor objects
-
-            // CRITICAL FIX: Force reload - Removed due to recursion loop
-            // this.render() should be sufficient as runtime is nullified.
-        }
-    }
-
-
-    private handleGameServerEvent(id: string, eventName: string, data?: any) {
-        if (!this.runtime) return;
-        this.runtime.handleEvent(id, eventName, data);
-        this.render();
-    }
-
-    private animationTickerId: number | null = null;
-    private startAnimationTicker() {
-        if (this.animationTickerId) return;
-        const tick = () => {
-            // STOP condition 1: Run mode disabled
-            if (!this.stage || !this.stage.runMode) {
-                this.stopAnimationTicker();
-                return;
-            }
-
-            // STOP condition 2: GameLoop is active (it handles rendering)
-            if (this.activeGameLoop) {
-                // But wait, if we stop here, we lose animation support if GameLoop doesn't use AnimationManager?
-                // TGameLoop DOES call AnimationManager.update().
-                // So we can safely stop this ticker if a real loop exists.
-                console.log("[Editor] GameLoop detected, stopping fallback ticker.");
-                this.stopAnimationTicker();
-                return;
-            }
-
-            AnimationManager.getInstance().update();
-
-            const hasTweens = AnimationManager.getInstance().hasActiveTweens();
-            // Render on animation or first frame
-            if (hasTweens || !(this as any).firstRunRenderDone) {
-                this.render();
-                if (!hasTweens) (this as any).firstRunRenderDone = true;
-            }
-
-            // Continue loop
-            this.animationTickerId = requestAnimationFrame(tick);
-        };
-        this.animationTickerId = requestAnimationFrame(tick);
-    }
-
-    private stopAnimationTicker() {
-        if (this.animationTickerId) {
-            cancelAnimationFrame(this.animationTickerId);
-            this.animationTickerId = null;
-        }
     }
 
     private handleEvent(id: string, eventName: string, data?: any) {
         // Handle delete event specially
         if (eventName === 'delete') {
             this.removeObject(id);
+            this.selectObject(null); // Deselect
+            this.render();
+            this.autoSaveToLocalStorage();
             return;
         }
 
         // Handle multi-delete event
         if (eventName === 'deleteMultiple' && Array.isArray(data)) {
             console.log(`[Editor] Deleting ${data.length} objects:`, data);
-
             if (!changeRecorder.isApplyingAction) {
                 changeRecorder.startBatch(`${data.length} Objekte gelöscht`);
             }
-
             data.forEach((objId: string) => {
                 this.removeObject(objId);
             });
-
             if (!changeRecorder.isApplyingAction) {
                 changeRecorder.endBatch();
             }
-
             this.selectObject(null);
             this.render();
             this.autoSaveToLocalStorage();
@@ -2207,550 +1748,11 @@ export class Editor implements IViewHost {
         }
     }
 
-    public render() {
-        if (!this.project) return;
-        try {
-            // CRITICAL: Always get fresh objects from runtime if available, 
-            // as the runtime might replace the objects array on stage switches.
-            let objectsToRender = this.runtime ? this.runtime.getObjects() : (this.runtimeObjects || this.getResolvedInheritanceObjects());
-
-            // NEW: In Editor-Mode (no runtime active), resolve property bindings (${varName}) for visual preview
-            if (!this.runtime) {
-                const varContext = this.getVariableContext();
-                objectsToRender = objectsToRender.map(obj => this.resolveObjectPreview(obj, varContext));
-            }
-
-            // Custom Render Callback (if needed) to inject extra logic
-            // ...
-
-            this.stage.renderObjects(objectsToRender);
-
-            // JSON-View Refresh entfernt (darf nicht vom Spielverlauf tangiert sein)
-        } catch (err) {
-            console.error("[Editor] Render error:", err);
-        }
-    }
-
-    /**
-     * Creates a temporary copy of an object for rendering with resolved bindings.
-     * Does NOT modify the original project data.
-     */
-    private resolveObjectPreview(obj: any, context: Record<string, any>): any {
-        if (!obj || typeof obj !== 'object') return obj;
-
-        // Unwrapping is important if we are dealing with proxies in the editor
-        const rawObj = unwrap(obj);
-
-        // Create a copy that preserves the prototype to keep getters (like backgroundImage, src)
-        const previewObj = Object.create(Object.getPrototypeOf(rawObj));
-        Object.assign(previewObj, rawObj);
-
-        // Helper to resolve nested props
-        const resolveProps = (target: any) => {
-            if (!target || typeof target !== 'object') return;
-
-            Object.keys(target).forEach(key => {
-                const val = target[key];
-                if (typeof val === 'string' && val.includes('${')) {
-                    try {
-                        target[key] = ExpressionParser.interpolate(val, context);
-                    } catch (e) {
-                        // Keep original on error
-                    }
-                } else if (val && typeof val === 'object' && !Array.isArray(val) && key === 'style') {
-                    // Dive into style
-                    target[key] = { ...val };
-                    resolveProps(target[key]);
-                }
-            });
-        };
-
-        resolveProps(previewObj);
-
-        // Also handle children if it's a TDialogRoot or similar
-        if (previewObj.children && Array.isArray(previewObj.children)) {
-            // Need to recursively apply resolving, but ensure children are also prototype-preserved copies
-            previewObj.children = previewObj.children.map((child: any) => this.resolveObjectPreview(child, context));
-        }
-
-        return previewObj;
-    }
-
-    /**
-     * Generates a context for ExpressionParser based on all active project variables
-     */
-    private getVariableContext(): Record<string, any> {
-        const context: Record<string, any> = {
-            project: this.project,
-            // Add system-like variables that are also available in ReactiveRuntime
-            isMultiplayer: this._isMultiplayer,
-            playerNumber: this._localPlayerNumber
-        };
-
-        // Add all variables from registry (Global + Scoped)
-        const variables = projectRegistry.getVariables();
-        variables.forEach(v => {
-            // Use defaultValue for preview in editor
-            context[v.name] = v.defaultValue;
-        });
-
-        return context;
-    }
-
-    /**
-     * Refreshes the Pascal Code Viewer if it is currently active.
-     */
-    public refreshPascalView() {
-        if (this.currentView !== 'pascal') return;
-
-        try {
-            const activeStage = this.getActiveStage();
-            const stageToUse = (this.useStageIsolatedView && activeStage) ? activeStage : undefined;
-            const plainCode = PascalGenerator.generateFullProgram(this.project, false, stageToUse);
-
-            // Update Highlight Layer based on mode
-            if (this.pascalEditorMode) {
-                const highlightLayer = document.getElementById('pascal-editor-highlight');
-                if (highlightLayer) {
-                    highlightLayer.innerHTML = PascalHighlighter.highlight(plainCode);
-                }
-
-                const textarea = document.getElementById('pascal-editor-textarea') as HTMLTextAreaElement;
-                if (textarea && textarea.value !== plainCode) {
-                    const scrollTop = textarea.scrollTop;
-                    const scrollLeft = textarea.scrollLeft;
-                    const selectionStart = textarea.selectionStart;
-                    const selectionEnd = textarea.selectionEnd;
-
-                    textarea.value = plainCode;
-
-                    textarea.scrollTop = scrollTop;
-                    textarea.scrollLeft = scrollLeft;
-                    textarea.selectionStart = selectionStart;
-                    textarea.selectionEnd = selectionEnd;
-                }
-            } else {
-                const content = document.getElementById('code-viewer-content');
-                if (content) {
-                    const highlightedCode = PascalHighlighter.highlight(plainCode);
-                    content.innerHTML = `<pre style="margin: 0; white-space: pre; color: #d4d4d4;" translate="no">${highlightedCode}</pre>`;
-                }
-            }
-        } catch (err) {
-            console.error("[Editor] Failed to refresh Pascal view:", err);
-        }
-    }
-
-    /**
-     * Initializes the JSON-based Inspector
-     */
-    private async initJSONInspector() {
-        try {
-            // Create JSONInspector instance
-            this.jsonInspector = new JSONInspector('json-inspector-content');
-
-            // Set project and dialog manager
-            this.jsonInspector.setProject(this.project);
-            this.jsonInspector.setDialogManager(this.dialogManager);
-            this.jsonInspector.setEditor(this);
-            this.jsonInspector.onSave = () => this.autoSaveToLocalStorage();
-
-            // Load inspector UI from JSON
-            const response = await fetch('./inspector.json');
-            const inspectorJSON = await response.json();
-            await this.jsonInspector.loadFromJSON(inspectorJSON);
-
-            // Ensure we start in Stage context and populate dropdown
-            this.jsonInspector.setFlowContext(null);
-
-            // Wire up callbacks
-            this.jsonInspector.onObjectUpdate = () => {
-                // Check if the modified object was an inherited one
-                const selObj = this.stage.selectedObject as any;
-                if (selObj && selObj.isInherited) {
-                    // Materialize: create a local copy in the active stage
-                    const activeStage = this.getActiveStage();
-                    if (activeStage) {
-                        console.log(`[Editor] Materializing inherited object: ${selObj.name}`);
-                        const copy = JSON.parse(JSON.stringify(selObj));
-                        delete copy.isInherited; // It's now local
-
-                        // Add to current stage
-                        if (!activeStage.objects) activeStage.objects = [];
-
-                        // Check if it already exists
-                        const existingIdx = activeStage.objects.findIndex(o => o.name === copy.name);
-                        if (existingIdx >= 0) {
-                            activeStage.objects[existingIdx] = copy;
-                        } else {
-                            activeStage.objects.push(copy);
-                        }
-
-                        this.render();
-                        this.selectObject(copy.id);
-                    }
-                }
-
-                this.render();
-                this.refreshPascalView(); // Ensure Pascal code stays in sync
-                if (this.flowEditor) {
-                    this.flowEditor.refreshSelectedNode();
-                    this.flowEditor.syncToProject();
-                }
-
-                // Refresh JSON view if active
-                if (this.currentView === 'json') {
-                    this.workingProjectData = safeDeepCopy(this.project);
-                    this.refreshJSONView();
-                }
-
-                this.autoSaveToLocalStorage();
-            };
-
-            this.jsonInspector.onProjectUpdate = () => {
-                this.updateStagesMenu();
-                const activeStage = this.project.stages?.find(s => s.id === this.project.activeStageId);
-                const g = (activeStage && activeStage.grid) || this.project.stage.grid;
-
-                if (g) {
-                    this.stage.grid = {
-                        cols: g.cols, rows: g.rows, cellSize: g.cellSize,
-                        snapToGrid: g.snapToGrid, visible: g.visible,
-                        backgroundColor: g.backgroundColor
-                    };
-                }
-
-                this.stage.updategrid();
-                this.updateAvailableActions();
-                this.render();
-                this.autoSaveToLocalStorage();
-            };
-
-            this.jsonInspector.onObjectDelete = (obj) => {
-                if (!obj) return;
-
-                const type = obj.getType ? obj.getType() : (obj.type || '');
-                const name = obj.Name || obj.name;
-
-                if (type === 'Task') {
-                    if (confirm(`Möchten Sie den Task "${name}" wirklich unwiderruflich löschen?`)) {
-                        RefactoringManager.deleteTask(this.project, name);
-                        if (this.flowEditor) this.flowEditor.setProject(this.project);
-                        this.render();
-                        this.autoSaveToLocalStorage();
-                        serviceRegistry.call('Dialog', 'showToast', [`Task "${name}" wurde gelöscht.`, 'success']);
-                    }
-                    return;
-                }
-
-                if (type === 'Action') {
-                    if (confirm(`Möchten Sie die Aktion "${name}" wirklich unwiderruflich löschen?`)) {
-                        RefactoringManager.deleteAction(this.project, name);
-                        if (this.flowEditor) this.flowEditor.setProject(this.project);
-                        this.render();
-                        this.autoSaveToLocalStorage();
-                        serviceRegistry.call('Dialog', 'showToast', [`Aktion "${name}" wurde gelöscht.`, 'success']);
-                    }
-                    return;
-                }
-
-                // Stage Objects
-                if (this.flowEditor && this.flowEditor.hasNode(obj.id)) {
-                    this.flowEditor.removeNode(obj.id);
-                } else {
-                    this.removeObject(obj.id);
-                }
-            };
-
-            // Wire up object selection from dropdown (Stage context)
-            this.jsonInspector.onObjectSelect = (objectId) => {
-                this.selectObject(objectId);
-            };
-
-            // Wire up flow object selection from dropdown (Flow context)
-            this.jsonInspector.onFlowObjectSelect = (objectId) => {
-                if (this.flowEditor) {
-                    this.flowEditor.selectNodeById(objectId);
-                }
-            };
-
-            // Initial update to show project/Stage settings
-            this.jsonInspector.update(this.project);
-
-            // Initial filtered actions update
-            this.updateAvailableActions();
-
-            console.log('[Editor] JSONInspector initialized');
-
-        } catch (error) {
-            console.error('[Editor] Failed to initialize JSONInspector:', error);
-        }
-    }
-
-    /**
-     * Initializes the JSON-based Toolbox
-     */
-    private async initJSONToolbox() {
-        try {
-            this.jsonToolbox = new JSONToolbox('json-toolbox-content');
-
-            // Register action handlers
-            this.jsonToolbox.registerAction('save', () => this.saveProject());
-            this.jsonToolbox.registerAction('load', () => this.triggerLoad());
-            this.jsonToolbox.registerAction('export', () => this.exportHTML());
-            this.jsonToolbox.registerAction('multiplayer', () => this.startMultiplayer());
-            this.jsonToolbox.registerAction('start', () => this.switchView('run'));
-            this.jsonToolbox.registerAction('stop', () => this.switchView('stage'));
-
-            // Load toolbox config from JSON
-            const response = await fetch('./editor/toolbox.json');
-            const toolboxJSON = await response.json();
-            await this.jsonToolbox.loadFromJSON(toolboxJSON);
-
-            console.log('[Editor] JSONToolbox initialized');
-        } catch (error) {
-            console.error('[Editor] Failed to initialize JSONToolbox:', error);
-        }
-    }
-
-    /**
-     * Initializes the JSON-based Multiplayer Lobby
-     */
-    private async initJSONLobby(): Promise<void> {
-        try {
-            const response = await fetch('./multiplayer/lobby.json');
-            const lobbyJSON = await response.json();
-            await jsonLobby.loadFromJSON(lobbyJSON);
-            console.log('[Editor] JSONMultiplayerLobby initialized');
-        } catch (error) {
-            console.error('[Editor] Failed to initialize JSONMultiplayerLobby:', error);
-        }
-    }
-
-    // Legacy toggle method removed - now using only JSON-based UI
-
-    private initMediator(): void {
-        mediatorService.on(MediatorEvents.DATA_CHANGED, (_data: any, originator?: string) => {
-            // If the change came from JSON Editor itself, we don't need a full refresh-all (it already refreshed)
-            if (originator !== 'json-editor') {
-                console.log(`[Editor] Data changed by ${originator || 'unknown'}, refreshing all views...`);
-                this.refreshAllViews(originator);
-            }
-        });
-
-        mediatorService.on(MediatorEvents.OBJECT_SELECTED, (obj: any) => {
-            if (obj && obj.id) {
-                this.selectObject(obj.id);
-            }
-        });
-    }
-
-    /**
-     * Refreshes the JSON Tree View and its toolbar
-     */
-    public refreshJSONView(): void {
-        const jsonPanel = document.getElementById('json-viewer');
-        if (!jsonPanel) return;
-
-        try {
-            jsonPanel.innerHTML = '';
-
-            // 1. Create Toolbar
-            const toolbar = document.createElement('div');
-            toolbar.className = 'json-toolbar';
-            toolbar.style.cssText = `
-                display: flex; gap: 12px; padding: 8px 16px; margin-bottom: 8px;
-                border-bottom: 1px solid #3a3a3a; align-items: center;
-                position: sticky; top: 0; background: #1e1e1e; z-index: 10;
-            `;
-
-            // Mode Selector
-            const modeLabel = document.createElement('span');
-            modeLabel.textContent = 'Modus:';
-            modeLabel.style.color = '#888';
-            modeLabel.style.fontSize = '12px';
-
-            const modeSelect = document.createElement('select');
-            modeSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer;`;
-            ['viewer', 'editor'].forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m;
-                opt.textContent = m.charAt(0).toUpperCase() + m.slice(1);
-                opt.selected = this.jsonMode === m;
-                modeSelect.appendChild(opt);
-            });
-            modeSelect.onchange = () => {
-                this.jsonMode = modeSelect.value as 'viewer' | 'editor';
-                this.refreshJSONView();
-            };
-
-            // ... (restliche Toolbar-Logik bleibt gleich, wird aber jetzt im try-block ausgeführt)
-            // Source Selector (Active Stage vs Project)
-            const sourceSelect = document.createElement('select');
-            sourceSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-left: auto;`;
-
-            const activeStage = this.getActiveStage();
-            const stageName = activeStage ? activeStage.name : 'Unknown';
-
-            const scopes = [
-                { id: 'stage', label: `Stage: ${stageName}` },
-                { id: 'project', label: 'Gesamtes Projekt' }
-            ];
-
-            scopes.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.id;
-                opt.textContent = s.label;
-                opt.selected = (s.id === 'stage' && this.useStageIsolatedView) || (s.id === 'project' && !this.useStageIsolatedView);
-                sourceSelect.appendChild(opt);
-            });
-
-            sourceSelect.onchange = () => {
-                this.useStageIsolatedView = sourceSelect.value === 'stage';
-                this.updateAvailableActions();
-                this.refreshJSONView();
-            };
-
-            // Search Input
-            const searchInput = document.createElement('input');
-            searchInput.type = 'text';
-            searchInput.placeholder = 'Im JSON suchen...';
-            searchInput.style.cssText = `flex: 1; padding: 6px 10px; background: #2d2d2d; border: 1px solid #3a3a3a; border-radius: 4px; color: #fff; font-size: 13px; outline: none;`;
-            searchInput.oninput = () => JSONTreeViewer.search(searchInput.value);
-
-            // Apply Changes Button
-            const applyBtn = document.createElement('button');
-            applyBtn.textContent = 'Änderungen anwenden';
-            applyBtn.style.cssText = `
-                background: #28a745; border: none; color: #fff; padding: 6px 12px; border-radius: 4px; 
-                cursor: pointer; font-size: 13px; font-weight: bold;
-                display: ${this.jsonMode === 'editor' && this.isProjectDirty ? 'block' : 'none'};
-            `;
-            applyBtn.onclick = () => this.applyJSONChanges();
-
-            toolbar.appendChild(modeLabel);
-            toolbar.appendChild(modeSelect);
-            toolbar.appendChild(sourceSelect);
-            toolbar.appendChild(searchInput);
-            toolbar.appendChild(applyBtn);
-            jsonPanel.appendChild(toolbar);
-
-            // 2. Refresh working data from live project if in viewer mode
-            if (this.jsonMode === 'viewer') {
-                console.log("[Editor] Creating safe deep copy of project for JSON view...");
-                this.workingProjectData = safeDeepCopy(this.project);
-            }
-
-            const treeContainer = document.createElement('div');
-            jsonPanel.appendChild(treeContainer);
-
-            let dataToShow = this.workingProjectData;
-
-            if (this.useStageIsolatedView && activeStage) {
-                if (this.workingProjectData.stages) {
-                    const workingStage = this.workingProjectData.stages.find((s: any) => s.id === activeStage.id);
-                    if (workingStage) {
-                        try {
-                            dataToShow = safeDeepCopy(workingStage);
-                        } catch (err) {
-                            console.error("[Editor] Failed to copy stage for JSON view:", err);
-                            const warningMsg = document.createElement('div');
-                            warningMsg.style.cssText = 'color: #ffcc00; padding: 10px; background: #332200; border: 1px solid #ffaa00; margin: 10px; border-radius: 4px; font-size: 12px;';
-                            warningMsg.textContent = `Warnung: Stage "${activeStage.name}" konnte nicht sicher isoliert kopiert werden.`;
-                            jsonPanel.appendChild(warningMsg);
-                            dataToShow = this.workingProjectData;
-                        }
-
-                        // Inject relevant tasks/actions logic remains same ...
-                        const stageTaskNames = Object.keys(workingStage.flowCharts || {}).filter(key => key !== 'global');
-                        const globalTaskNames = new Set(this.project.tasks.map(t => t.name));
-                        const referencedTaskNames = new Set<string>();
-                        (workingStage.objects || []).forEach((obj: any) => {
-                            if (obj.Tasks) {
-                                Object.values(obj.Tasks).forEach((tName: any) => {
-                                    if (tName && typeof tName === 'string' && tName.trim() !== '' && globalTaskNames.has(tName)) {
-                                        referencedTaskNames.add(tName);
-                                    }
-                                });
-                            }
-                        });
-
-                        const allRelevantNames = new Set([...stageTaskNames, ...referencedTaskNames]);
-                        if (allRelevantNames.size > 0) {
-                            const existingLocalTasks = dataToShow.tasks || [];
-                            const localTaskNames = new Set(existingLocalTasks.map((t: any) => t.name));
-                            const relevantGlobalTasks = this.project.tasks.filter(t =>
-                                allRelevantNames.has(t.name) && !localTaskNames.has(t.name)
-                            );
-                            dataToShow.tasks = [...existingLocalTasks, ...relevantGlobalTasks];
-                        }
-
-                        const existingLocalActions = dataToShow.actions || [];
-                        const localActionNames = new Set(existingLocalActions.map((a: any) => a.name));
-                        const usedActionNames = new Set<string>();
-                        if (dataToShow.tasks) {
-                            dataToShow.tasks.forEach((t: any) => {
-                                if (t.actionSequence) {
-                                    t.actionSequence.forEach((item: any) => {
-                                        if ((item.type === 'action' || !item.type) && item.name) usedActionNames.add(item.name);
-                                    });
-                                }
-                            });
-                        }
-                        if (usedActionNames.size > 0 && this.project.actions) {
-                            const relevantGlobalActions = this.project.actions.filter(a =>
-                                usedActionNames.has(a.name) && !localActionNames.has(a.name)
-                            );
-                            dataToShow.actions = [...existingLocalActions, ...relevantGlobalActions];
-                        }
-                    }
-                }
-            }
-
-            this.renderJSONTree(dataToShow, treeContainer, applyBtn);
-
-        } catch (err) {
-            console.error("[Editor] Fatal error in refreshJSONView:", err);
-            const errorMsg = document.createElement('div');
-            errorMsg.style.cssText = 'color: #ff6b6b; padding: 20px; background: #2a1111; border: 1px solid #ff4444; margin: 10px; border-radius: 4px;';
-            errorMsg.innerHTML = `
-                <div style="font-weight: bold; margin-bottom: 8px;">Fehler beim Laden der JSON-Ansicht</div>
-                <div style="font-size: 12px; opacity: 0.8;">Ein unerwarteter Fehler ist aufgetreten:</div>
-                <pre style="font-size: 11px; margin-top: 10px; white-space: pre-wrap;">${err}</pre>
-                <button onclick="location.reload()" style="margin-top: 15px; padding: 6px 12px; background: #ff4444; border: none; color: white; border-radius: 4px; cursor: pointer;">Editor neu laden</button>
-            `;
-            jsonPanel.appendChild(errorMsg);
-        }
-    }
-
-    private renderJSONTree(data: any, container: HTMLElement, applyBtn: HTMLElement) {
-        JSONTreeViewer.render(data, container, this.jsonMode === 'editor', (newData) => {
-            this.isProjectDirty = true;
-            const activeStage = this.getActiveStage();
-            if (this.useStageIsolatedView && activeStage && this.workingProjectData.stages) {
-                const idx = this.workingProjectData.stages.findIndex((s: any) => s.id === activeStage.id);
-                if (idx !== -1) {
-                    this.workingProjectData.stages[idx] = newData;
-                }
-            } else {
-                this.workingProjectData = newData;
-            }
-            applyBtn.style.display = 'block';
-        });
-    }
-
-
-
-    /**
-     * Zentrale Methode zur Synchronisation aller Trinity-Ansichten.
-     * @param originator Optionale ID des auslösenden Tools zur Vermeidung von Redundanz.
-     */
     public refreshAllViews(originator?: string): void {
         console.log('[Editor] Refreshing all views (Trinity-Sync)...');
         this.render();
         this.updateAvailableActions();
         this.refreshJSONView();
-        this.refreshPascalView();
 
         if (this.flowEditor && this.currentView === 'flow' && originator !== 'flow-editor') {
             this.flowEditor.setProject(this.project);
@@ -2768,39 +1770,18 @@ export class Editor implements IViewHost {
     /**
      * Prompts the user to apply changes and updates the permanent project state
      */
-    private applyJSONChanges(): void {
+    public applyJSONChanges(): void {
         const confirmed = confirm('Möchten Sie die Änderungen am Projekt wirklich übernehmen? Dies kann nicht rückgängig gemacht werden und wird sofort wirksam.');
-        if (confirmed) {
-            this.project = JSON.parse(JSON.stringify(this.workingProjectData));
+        if (confirmed && this.workingProjectData) {
+            // Apply sync to project before loading back
+            this.syncFlowChartsWithActions();
 
-            // Re-sync registries
-            projectRegistry.setProject(this.project);
-            // Sanitize project to remove orphaned flow charts and invalid sequences
-            RefactoringManager.sanitizeProject(this.project);
-            if (this.dialogManager) this.dialogManager.setProject(this.project);
-
-            // IMPORTANT: First sync action data in FlowCharts before setting project on FlowEditor
-            // This ensures FlowChart elements use the updated action definitions
-            if (this.flowEditor) {
-                // Sync the action data directly in project.flowCharts BEFORE loading into FlowEditor
-                this.syncFlowChartsWithActions();
-                this.flowEditor.setProject(this.project);
-                // After loading, sync the currently displayed nodes as well
-                this.flowEditor.syncActionsFromProject();
-            }
-
+            this.loadProject(safeDeepCopy(this.workingProjectData));
             this.isProjectDirty = false;
-            this.autoSaveToLocalStorage();
             this.refreshJSONView(); // Hide apply button
 
             // Notify Mediator that project data has changed via JSON Editor
             mediatorService.notifyDataChanged(this.project, 'json-editor');
-
-            // Show success toast
-            const toast = this.project.objects.find(o => (o as any).className === 'TToast');
-            if (toast && typeof (toast as any).success === 'function') {
-                (toast as any).success('Projekt-Daten wurden erfolgreich aktualisiert.');
-            }
         }
     }
 
@@ -3177,14 +2158,66 @@ export class Editor implements IViewHost {
                 };
                 input.click();
                 break;
-
             default:
                 console.warn('[Editor] Unknown menu action:', action);
         }
     }
+
+    private initJSONInspector() {
+        this.jsonInspector = new JSONInspector('inspector-content');
+        this.jsonInspector.setProject(this.project);
+        this.jsonInspector.setEditor(this);
+
+        this.jsonInspector.onObjectUpdate = () => {
+            this.render();
+            this.autoSaveToLocalStorage();
+            mediatorService.notifyDataChanged({ object: null, property: 'all', type: 'update' }, 'inspector');
+        };
+
+        this.jsonInspector.onProjectUpdate = () => {
+            this.render();
+            this.autoSaveToLocalStorage();
+            this.refreshAllViews('inspector');
+        };
+
+        this.jsonInspector.onObjectDelete = (obj: any) => {
+            if (obj && obj.id) {
+                this.commandManager.removeObject(obj.id);
+            }
+        };
+
+        this.jsonInspector.onObjectSelect = (id: string | null) => {
+            this.selectObject(id);
+        };
+    }
+
+    private initJSONToolbox() {
+        this.jsonToolbox = new JSONToolbox('toolbox-content');
+    }
+
+    private initMediator() {
+        mediatorService.on(MediatorEvents.DATA_CHANGED, (_data: any, originator?: string) => {
+            if (originator !== 'editor' && originator !== 'inspector' && this.project) {
+                this.render();
+            }
+        });
+    }
+
+    private async initJSONLobby(): Promise<void> {
+        try {
+            const response = await fetch('./multiplayer/lobby_config.json');
+            if (response.ok) {
+                const config = await response.json();
+                await jsonLobby.loadFromJSON(config);
+                console.log('[Editor] Multiplayer Lobby initialized');
+            }
+        } catch (e) {
+            console.error('[Editor] Failed to initialize Multiplayer Lobby:', e);
+        }
+    }
+
     public updateProjectJSON() {
         if (this.project) {
-            this.workingProjectData = JSON.parse(JSON.stringify(this.project));
             localStorage.setItem('last_project', JSON.stringify(this.project));
             console.log('[Editor] Project JSON updated in localStorage');
         }

@@ -1,6 +1,5 @@
 import { TObjectList } from '../components/TObjectList';
 import { GameAction, GameTask, ProjectVariable } from '../model/types';
-import { TWindow } from '../components/TWindow';
 import { projectRegistry } from './ProjectRegistry';
 import { RefactoringManager } from '../editor/RefactoringManager';
 // import { serviceRegistry } from './ServiceRegistry';
@@ -195,7 +194,7 @@ export class MediatorService {
     /**
      * Hilfsmethode: Liefert alle visuellen Objekte (Lokale + Globale) für eine Stage.
      */
-    public getVisualObjects(stageId: string): TWindow[] {
+    public getVisualObjects(_stageId: string): any[] {
         const objs = projectRegistry.getObjects();
         const project = (projectRegistry as any).project;
 

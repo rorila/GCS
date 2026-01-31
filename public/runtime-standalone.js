@@ -293,8 +293,9 @@
           return match;
         }
       });
-      if (text.startsWith("${") && text.endsWith("}") && !text.includes("${", 2)) {
-        const expression = text.slice(2, -1).trim();
+      const trimmedText = text.trim();
+      if (trimmedText.startsWith("${") && trimmedText.endsWith("}") && !trimmedText.includes("${", 2)) {
+        const expression = trimmedText.slice(2, -1).trim();
         try {
           const value = this.evaluate(expression, context);
           if (value !== null && typeof value === "object") {
@@ -2480,6 +2481,8 @@
       // Visibility scope
       __publicField(this, "isVariable", false);
       // Flag for variable-like components
+      __publicField(this, "isTransient", false);
+      // If true, this component is not persisted in project files
       // Drag & Drop Properties
       __publicField(this, "draggable", false);
       __publicField(this, "dragMode", "move");
@@ -2501,6 +2504,7 @@
     }
     /**
      * Generisches toJSON, das die Metadaten aus getInspectorProperties nutzt.
+     * Unterstützt verschachtelte Property-Pfade (z.B. 'style.backgroundColor').
      */
     toJSON() {
       const json = {
@@ -2516,9 +2520,23 @@
         if (p.serializable === false) return;
         const value = this.getPropertyValue(p.name);
         if (value !== void 0) {
-          json[p.name] = value;
+          if (!p.name.includes(".")) {
+            json[p.name] = value;
+          } else {
+            const parts = p.name.split(".");
+            let current = json;
+            for (let i = 0; i < parts.length - 1; i++) {
+              const part = parts[i];
+              if (!current[part]) current[part] = {};
+              current = current[part];
+            }
+            current[parts[parts.length - 1]] = value;
+          }
         }
       });
+      if (this.children.length > 0) {
+        json.children = this.children.map((child) => child.toJSON());
+      }
       return json;
     }
     /**
@@ -2581,7 +2599,7 @@
       this.visible = true;
       this.text = "";
       this.style = {
-        visible: true,
+        // visible: true, // Do NOT force true here, let it be undefined so it falls back to this.visible
         backgroundColor: "transparent",
         borderColor: "transparent",
         borderWidth: 0
@@ -2660,6 +2678,7 @@
         { name: "align", label: "Ausrichtung", type: "select", group: "GEOMETRIE", options: ["NONE", "TOP", "BOTTOM", "LEFT", "RIGHT", "CLIENT"] },
         { name: "text", label: "Text", type: "string", group: "INHALT" },
         { name: "visible", label: "Sichtbar", type: "boolean", group: "IDENTIT\xC4T" },
+        { name: "style.visible", label: "Style Sichtbar", type: "boolean", group: "STIL", editorOnly: true },
         { name: "style.backgroundColor", label: "Hintergrund", type: "color", group: "STIL" },
         { name: "style.borderColor", label: "Rahmenfarbe", type: "color", group: "STIL" },
         { name: "style.borderWidth", label: "Rahmenbreite", type: "number", group: "STIL" }
@@ -2758,23 +2777,6 @@
         { name: "gridColor", label: "Grid Color", type: "color", group: "Specifics" },
         { name: "gridStyle", label: "Grid Style", type: "select", options: ["lines", "dots"], group: "Specifics" }
       ];
-    }
-    toJSON() {
-      return {
-        ...super.toJSON(),
-        caption: this.caption,
-        showGrid: this._showGrid,
-        gridColor: this._gridColor,
-        gridStyle: this._gridStyle,
-        style: {
-          ...super.toJSON().style,
-          borderColor: this.style.borderColor,
-          borderWidth: this.style.borderWidth,
-          backgroundColor: this.style.backgroundColor
-        },
-        // Serialize children explicitly
-        children: this.children.map((child) => child.toJSON())
-      };
     }
   };
 
@@ -6665,18 +6667,6 @@
     // ─────────────────────────────────────────────
     // Serialization
     // ─────────────────────────────────────────────
-    toJSON() {
-      return {
-        ...super.toJSON(),
-        backgroundImage: this._backgroundImage,
-        src: this._backgroundImage,
-        // Alias for Inspector compatibility
-        objectFit: this._objectFit,
-        imageOpacity: this._imageOpacity,
-        alt: this.alt,
-        fallbackColor: this.fallbackColor
-      };
-    }
   };
 
   // src/components/TVideo.ts
@@ -7583,10 +7573,50 @@
     }
   };
 
+  // src/components/TTable.ts
+  var TTable = class extends TWindow {
+    constructor(name, x, y, width = 8, height = 6) {
+      super(name, x, y, width, height);
+      __publicField(this, "className", "TTable");
+      __publicField(this, "data", []);
+      __publicField(this, "columns", []);
+      __publicField(this, "selectedIndex", -1);
+      __publicField(this, "rowHeight", 30);
+      __publicField(this, "showHeader", true);
+      __publicField(this, "onRowClick");
+      this.style.backgroundColor = "#2c3e50";
+      this.style.color = "#ecf0f1";
+      this.style.borderColor = "rgba(255,255,255,0.1)";
+      this.style.borderWidth = 1;
+      this.columns = [
+        { property: "name", label: "Name", width: "1fr" },
+        { property: "type", label: "Typ", width: "80px" }
+      ];
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props,
+        { name: "rowHeight", label: "Zeilenh\xF6he", type: "number", group: "Table" },
+        { name: "showHeader", label: "Header anzeigen", type: "boolean", group: "Table" }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        data: this.data,
+        columns: this.columns,
+        selectedIndex: this.selectedIndex,
+        rowHeight: this.rowHeight,
+        showHeader: this.showHeader
+      };
+    }
+  };
+
   // src/components/TObjectList.ts
-  var TObjectList = class extends TWindow {
+  var TObjectList = class extends TTable {
     constructor(name, x, y) {
-      super(name, x, y, 4, 2);
+      super(name, x, y, 8, 4);
       __publicField(this, "className", "TObjectList");
       __publicField(this, "items", []);
       // List of object IDs or names
@@ -7596,6 +7626,12 @@
       this.style.backgroundColor = "#009688";
       this.style.borderColor = "#00796b";
       this.style.borderWidth = 2;
+      this.rowHeight = 28;
+      this.columns = [
+        { property: "name", label: "Name", width: "1fr" },
+        { property: "uiScope", label: "Scope", width: "60px" },
+        { property: "usageCount", label: "Links", width: "50px" }
+      ];
     }
     getInspectorProperties() {
       const props = super.getInspectorProperties();

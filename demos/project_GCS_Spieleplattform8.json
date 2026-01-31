@@ -64,9 +64,11 @@
           "align": "NONE",
           "text": "",
           "visible": true,
-          "style.backgroundColor": "#9c27b0",
-          "style.borderColor": "#6a1b9a",
-          "style.borderWidth": 2,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
           "enabled": true
         },
         {
@@ -89,15 +91,17 @@
           "align": "NONE",
           "text": "TriggerEnter == true",
           "visible": true,
-          "style.backgroundColor": "#007bff",
-          "style.borderColor": "#000000",
-          "style.borderWidth": 1,
-          "style.fontSize": 14,
-          "style.fontWeight": "bold",
-          "style.fontStyle": "normal",
-          "style.textAlign": "center",
-          "style.fontFamily": "Arial",
-          "style.color": "#ffffff",
+          "style": {
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1,
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial",
+            "color": "#ffffff"
+          },
           "icon": ""
         },
         {
@@ -117,15 +121,17 @@
           "align": "NONE",
           "text": "${TestVar}",
           "visible": true,
-          "style.backgroundColor": "#de8282",
-          "style.borderColor": "transparent",
-          "style.borderWidth": 0,
-          "style.fontSize": 36,
-          "style.fontWeight": "normal",
-          "style.fontStyle": "normal",
-          "style.textAlign": "center",
-          "style.fontFamily": "Arial",
-          "style.color": "#000000"
+          "style": {
+            "backgroundColor": "#de8282",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 36,
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial",
+            "color": "#000000"
+          }
         },
         {
           "className": "TLabel",
@@ -144,15 +150,17 @@
           "align": "NONE",
           "text": "${messageVar}",
           "visible": true,
-          "style.backgroundColor": "#de8282",
-          "style.borderColor": "transparent",
-          "style.borderWidth": 0,
-          "style.fontSize": 36,
-          "style.fontWeight": "normal",
-          "style.fontStyle": "normal",
-          "style.textAlign": "center",
-          "style.fontFamily": "Arial",
-          "style.color": "#000000"
+          "style": {
+            "backgroundColor": "#de8282",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 36,
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial",
+            "color": "#000000"
+          }
         },
         {
           "className": "TButton",
@@ -174,15 +182,17 @@
           "align": "NONE",
           "text": "TriggerEnter == false",
           "visible": true,
-          "style.backgroundColor": "#007bff",
-          "style.borderColor": "#000000",
-          "style.borderWidth": 1,
-          "style.fontSize": 14,
-          "style.fontWeight": "bold",
-          "style.fontStyle": "normal",
-          "style.textAlign": "center",
-          "style.fontFamily": "Arial",
-          "style.color": "#ffffff",
+          "style": {
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1,
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial",
+            "color": "#ffffff"
+          },
           "icon": ""
         },
         {
@@ -202,25 +212,16 @@
           "align": "NONE",
           "text": "",
           "visible": false,
-          "style.backgroundColor": "#2a2a2a",
-          "style.borderColor": "#999999",
-          "style.borderWidth": 0,
+          "style": {
+            "backgroundColor": "#2a2a2a",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
           "src": "Birnen/Helle Birne.png",
           "objectFit": "contain",
           "alt": "",
           "imageOpacity": 1,
-          "fallbackColor": "#2a2a2a",
-          "caption": "brightBulb",
-          "showGrid": false,
-          "gridColor": "#000000",
-          "gridStyle": "lines",
-          "style": {
-            "borderColor": "#999999",
-            "borderWidth": 0,
-            "backgroundColor": "#2a2a2a"
-          },
-          "children": [],
-          "backgroundImage": "Birnen/Helle Birne.png"
+          "fallbackColor": "#2a2a2a"
         },
         {
           "className": "TImage",
@@ -239,25 +240,16 @@
           "align": "NONE",
           "text": "",
           "visible": false,
-          "style.backgroundColor": "#2a2a2a",
-          "style.borderColor": "#999999",
-          "style.borderWidth": 0,
+          "style": {
+            "backgroundColor": "#2a2a2a",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
           "src": "Birnen/Dunkle Birne.png",
           "objectFit": "contain",
           "alt": "",
           "imageOpacity": 1,
-          "fallbackColor": "#2a2a2a",
-          "caption": "DarkBulb",
-          "showGrid": false,
-          "gridColor": "#000000",
-          "gridStyle": "lines",
-          "style": {
-            "borderColor": "#999999",
-            "borderWidth": 0,
-            "backgroundColor": "#2a2a2a"
-          },
-          "children": [],
-          "backgroundImage": "Birnen/Dunkle Birne.png"
+          "fallbackColor": "#2a2a2a"
         }
       ],
       "gameName": "TriggerTest",
@@ -650,9 +642,11 @@
           "align": "NONE",
           "text": "",
           "visible": true,
-          "style.backgroundColor": "#f44336",
-          "style.borderColor": "#d32f2f",
-          "style.borderWidth": 2,
+          "style": {
+            "backgroundColor": "#f44336",
+            "borderColor": "#d32f2f",
+            "borderWidth": 2
+          },
           "value": "${TestVar}",
           "triggerValue": "10"
         },
@@ -673,9 +667,11 @@
           "align": "NONE",
           "text": "",
           "visible": true,
-          "style.backgroundColor": "#673ab7",
-          "style.borderColor": "#512da8",
-          "style.borderWidth": 2,
+          "style": {
+            "backgroundColor": "#673ab7",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
           "variableType": "integer",
           "defaultValue": 0,
           "value": 0
@@ -697,9 +693,11 @@
           "align": "NONE",
           "text": "",
           "visible": true,
-          "style.backgroundColor": "#673ab7",
-          "style.borderColor": "#512da8",
-          "style.borderWidth": 2,
+          "style": {
+            "backgroundColor": "#673ab7",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
           "variableType": "string",
           "defaultValue": "Aktueller Tigger-Status",
           "value": 0
@@ -734,8 +732,7 @@
             }
           ],
           "triggerMode": "local-sync",
-          "description": "",
-          "params": []
+          "description": ""
         },
         {
           "name": "ShowNotOkStatus",
@@ -754,8 +751,7 @@
             }
           ],
           "triggerMode": "local-sync",
-          "description": "",
-          "params": []
+          "description": ""
         },
         {
           "name": "SetTriggerEnterFalse",
@@ -789,7 +785,7 @@
           "type": "property",
           "target": "messageVar",
           "changes": {
-            "value": "Trigger zündet"
+            "value": "Trigger NEU zündet"
           },
           "method": "",
           "description": ""
@@ -801,7 +797,7 @@
           "type": "property",
           "target": "brightBulb",
           "changes": {
-            "visible": "${true }"
+            "visible": true
           },
           "method": "",
           "description": ""
@@ -813,7 +809,7 @@
           "type": "property",
           "target": "DarkBulb",
           "changes": {
-            "visible": "${false }"
+            "visible": false
           },
           "method": "",
           "description": ""
@@ -824,7 +820,7 @@
           "type": "property",
           "target": "messageVar",
           "changes": {
-            "value": "Der Triggerwert ist ungleich 10"
+            "value": "Der Triggerwert NEU ist ungleich 10"
           },
           "method": "",
           "description": "",
@@ -837,7 +833,7 @@
           "type": "property",
           "target": "DarkBulb",
           "changes": {
-            "visible": "${true }"
+            "visible": true
           },
           "method": "",
           "description": ""
@@ -848,7 +844,7 @@
           "type": "property",
           "target": "brightBulb",
           "changes": {
-            "visible": "${false }"
+            "visible": false
           },
           "method": "",
           "description": "",
@@ -890,9 +886,11 @@
           "align": "NONE",
           "text": "",
           "visible": true,
-          "style.backgroundColor": "#9c27b0",
-          "style.borderColor": "#6a1b9a",
-          "style.borderWidth": 2,
+          "style": {
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
           "enabled": true
         },
         {
@@ -912,15 +910,17 @@
           "align": "NONE",
           "text": "Button_3",
           "visible": true,
-          "style.backgroundColor": "#007bff",
-          "style.borderColor": "#000000",
-          "style.borderWidth": 1,
-          "style.fontSize": 14,
-          "style.fontWeight": "bold",
-          "style.fontStyle": "normal",
-          "style.textAlign": "center",
-          "style.fontFamily": "Arial",
-          "style.color": "#ffffff",
+          "style": {
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1,
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial",
+            "color": "#ffffff"
+          },
           "icon": ""
         }
       ],
@@ -950,9 +950,11 @@
           "align": "NONE",
           "text": "",
           "visible": true,
-          "style.backgroundColor": "#f44336",
-          "style.borderColor": "#d32f2f",
-          "style.borderWidth": 2,
+          "style": {
+            "backgroundColor": "#f44336",
+            "borderColor": "#d32f2f",
+            "borderWidth": 2
+          },
           "value": 0,
           "triggerValue": 1
         }

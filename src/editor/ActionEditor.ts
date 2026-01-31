@@ -1,6 +1,7 @@
 import { GameProject, GameAction, ActionType, CalcStep } from '../model/types';
 import { projectRegistry } from '../services/ProjectRegistry';
 import { mediatorService } from '../services/MediatorService';
+import { serviceRegistry } from '../services/ServiceRegistry';
 
 export class ActionEditor {
     private overlay: HTMLElement;
@@ -389,212 +390,210 @@ export class ActionEditor {
     }
 
     private renderServiceUI(body: HTMLElement) {
-        // Needs ServiceRegistry
-        import('../services/ServiceRegistry').then(({ serviceRegistry }) => {
-            const services = serviceRegistry.listServices();
+        // Use static serviceRegistry import
+        const services = serviceRegistry.listServices();
 
-            // Service Select
-            const serviceSection = document.createElement('div');
-            serviceSection.style.marginBottom = '1rem';
-            serviceSection.innerHTML = '<strong>Target Service</strong><br>';
+        // Service Select
+        const serviceSection = document.createElement('div');
+        serviceSection.style.marginBottom = '1rem';
+        serviceSection.innerHTML = '<strong>Target Service</strong><br>';
 
-            const serviceSelect = document.createElement('select');
-            serviceSelect.style.width = '100%';
-            serviceSelect.style.padding = '6px';
-            serviceSelect.style.marginTop = '8px';
-            serviceSelect.style.background = '#333';
-            serviceSelect.style.color = 'white';
-            serviceSelect.style.border = '1px solid #555';
+        const serviceSelect = document.createElement('select');
+        serviceSelect.style.width = '100%';
+        serviceSelect.style.padding = '6px';
+        serviceSelect.style.marginTop = '8px';
+        serviceSelect.style.background = '#333';
+        serviceSelect.style.color = 'white';
+        serviceSelect.style.border = '1px solid #555';
 
-            services.forEach(s => {
+        services.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s;
+            opt.innerText = s;
+            if (s === this.currentService) opt.selected = true;
+            serviceSelect.appendChild(opt);
+        });
+        serviceSelect.onchange = () => {
+            this.currentService = serviceSelect.value;
+            this.currentMethod = ''; // Reset method on service change
+            this.render(); // Re-render to update method list
+        };
+        serviceSection.appendChild(serviceSelect);
+        body.appendChild(serviceSection);
+
+        if (this.currentService) {
+            // Method Select
+            const methodSection = document.createElement('div');
+            methodSection.style.marginBottom = '1rem';
+            methodSection.innerHTML = '<strong>Method</strong><br>';
+
+            const methodSelect = document.createElement('select');
+            methodSelect.style.width = '100%';
+            methodSelect.style.padding = '6px';
+            methodSelect.style.marginTop = '8px';
+            methodSelect.style.background = '#333';
+            methodSelect.style.color = 'white';
+            methodSelect.style.border = '1px solid #555';
+
+            const methods = serviceRegistry.listMethods(this.currentService);
+            methods.forEach(m => {
                 const opt = document.createElement('option');
-                opt.value = s;
-                opt.innerText = s;
-                if (s === this.currentService) opt.selected = true;
-                serviceSelect.appendChild(opt);
+                opt.value = m.name;
+                opt.innerText = m.name;
+                if (m.name === this.currentMethod) opt.selected = true;
+                methodSelect.appendChild(opt);
             });
-            serviceSelect.onchange = () => {
-                this.currentService = serviceSelect.value;
-                this.currentMethod = ''; // Reset method on service change
-                this.render(); // Re-render to update method list
+            methodSelect.onchange = () => {
+                this.currentMethod = methodSelect.value;
+                // Don't need full re-render, just state update
             };
-            serviceSection.appendChild(serviceSelect);
-            body.appendChild(serviceSection);
+            methodSection.appendChild(methodSelect);
+            body.appendChild(methodSection);
 
-            if (this.currentService) {
-                // Method Select
-                const methodSection = document.createElement('div');
-                methodSection.style.marginBottom = '1rem';
-                methodSection.innerHTML = '<strong>Method</strong><br>';
+            // Parameters UI
+            const paramsSection = document.createElement('div');
+            paramsSection.style.marginBottom = '1rem';
+            paramsSection.innerHTML = '<strong>Parameters</strong><br>';
 
-                const methodSelect = document.createElement('select');
-                methodSelect.style.width = '100%';
-                methodSelect.style.padding = '6px';
-                methodSelect.style.marginTop = '8px';
-                methodSelect.style.background = '#333';
-                methodSelect.style.color = 'white';
-                methodSelect.style.border = '1px solid #555';
+            const paramsList = document.createElement('div');
+            paramsList.style.marginTop = '8px';
 
-                const methods = serviceRegistry.listMethods(this.currentService);
-                methods.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.name;
-                    opt.innerText = m.name;
-                    if (m.name === this.currentMethod) opt.selected = true;
-                    methodSelect.appendChild(opt);
-                });
-                methodSelect.onchange = () => {
-                    this.currentMethod = methodSelect.value;
-                    // Don't need full re-render, just state update
-                };
-                methodSection.appendChild(methodSelect);
-                body.appendChild(methodSection);
+            Object.keys(this.currentServiceParams).forEach(key => {
+                const val = this.currentServiceParams[key];
+                const item = document.createElement('div');
+                item.className = 'action-item';
+                item.style.padding = '6px';
+                item.style.marginBottom = '4px';
+                item.style.background = '#2a2a2a';
+                item.style.borderRadius = '4px';
+                const isVarRef = typeof val === 'string' && val.includes('${');
+                const valueColor = isVarRef ? '#c586c0' : '#ce9178';
 
-                // Parameters UI
-                const paramsSection = document.createElement('div');
-                paramsSection.style.marginBottom = '1rem';
-                paramsSection.innerHTML = '<strong>Parameters</strong><br>';
-
-                const paramsList = document.createElement('div');
-                paramsList.style.marginTop = '8px';
-
-                Object.keys(this.currentServiceParams).forEach(key => {
-                    const val = this.currentServiceParams[key];
-                    const item = document.createElement('div');
-                    item.className = 'action-item';
-                    item.style.padding = '6px';
-                    item.style.marginBottom = '4px';
-                    item.style.background = '#2a2a2a';
-                    item.style.borderRadius = '4px';
-                    const isVarRef = typeof val === 'string' && val.includes('${');
-                    const valueColor = isVarRef ? '#c586c0' : '#ce9178';
-
-                    item.innerHTML = `
+                item.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span style="font-family:monospace; color:#9cdcfe;">${key} = <span style="color:${valueColor};">${val}</span></span>
                             <button class="del-btn" style="background:transparent; border:none; color:#d32f2f; cursor:pointer; font-size:1.2rem;">&times;</button>
                         </div>
                     `;
-                    item.querySelector('.del-btn')!.addEventListener('click', () => {
-                        delete this.currentServiceParams[key];
-                        this.render(); // Re-render to refresh list
-                    });
-                    paramsList.appendChild(item);
+                item.querySelector('.del-btn')!.addEventListener('click', () => {
+                    delete this.currentServiceParams[key];
+                    this.render(); // Re-render to refresh list
                 });
+                paramsList.appendChild(item);
+            });
 
-                paramsSection.appendChild(paramsList);
-                body.appendChild(paramsSection);
+            paramsSection.appendChild(paramsList);
+            body.appendChild(paramsSection);
 
 
-                // Add Parameter Form
-                const addParamSection = document.createElement('div');
-                addParamSection.style.marginTop = '10px';
-                addParamSection.style.padding = '10px';
-                addParamSection.style.borderTop = '1px solid #444';
-                addParamSection.innerHTML = '<strong>Add Parameter</strong>';
+            // Add Parameter Form
+            const addParamSection = document.createElement('div');
+            addParamSection.style.marginTop = '10px';
+            addParamSection.style.padding = '10px';
+            addParamSection.style.borderTop = '1px solid #444';
+            addParamSection.innerHTML = '<strong>Add Parameter</strong>';
 
-                const row = document.createElement('div');
-                row.style.display = 'flex';
-                row.style.gap = '8px';
-                row.style.marginTop = '8px';
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.gap = '8px';
+            row.style.marginTop = '8px';
 
-                const nameInput = document.createElement('input');
-                nameInput.placeholder = 'Param Name';
-                nameInput.style.flex = '1';
-                nameInput.style.padding = '4px';
-                nameInput.style.background = '#333';
-                nameInput.style.color = 'white';
-                nameInput.style.border = '1px solid #555';
-                row.appendChild(nameInput);
+            const nameInput = document.createElement('input');
+            nameInput.placeholder = 'Param Name';
+            nameInput.style.flex = '1';
+            nameInput.style.padding = '4px';
+            nameInput.style.background = '#333';
+            nameInput.style.color = 'white';
+            nameInput.style.border = '1px solid #555';
+            row.appendChild(nameInput);
 
-                const valInput = document.createElement('input');
-                valInput.placeholder = 'Value or ${var}';
-                valInput.style.flex = '1';
-                valInput.style.padding = '4px';
-                valInput.style.background = '#333';
-                valInput.style.color = 'white';
-                valInput.style.border = '1px solid #555';
-                row.appendChild(valInput);
+            const valInput = document.createElement('input');
+            valInput.placeholder = 'Value or ${var}';
+            valInput.style.flex = '1';
+            valInput.style.padding = '4px';
+            valInput.style.background = '#333';
+            valInput.style.color = 'white';
+            valInput.style.border = '1px solid #555';
+            row.appendChild(valInput);
 
-                // Var Picker for Params
-                const visibleVars = this.getVisibleVariables();
-                if (visibleVars.length > 0) {
-                    const varSelect = document.createElement('select');
-                    varSelect.style.padding = '4px';
-                    varSelect.style.background = '#2e7d32';
-                    varSelect.style.color = 'white';
-                    varSelect.style.border = 'none';
-                    varSelect.style.cursor = 'pointer';
-                    const defOpt = document.createElement('option');
-                    defOpt.innerText = '📦';
-                    varSelect.appendChild(defOpt);
-                    visibleVars.forEach(v => {
-                        const o = document.createElement('option');
-                        o.value = v;
-                        o.innerText = v;
-                        varSelect.appendChild(o);
-                    });
-                    varSelect.onchange = () => {
-                        if (varSelect.value) {
-                            valInput.value = `\${${varSelect.value}}`;
-                            varSelect.value = '';
-                        }
-                    };
-                    row.appendChild(varSelect);
-                }
-
-                const addBtn = document.createElement('button');
-                addBtn.innerText = '+';
-                addBtn.style.padding = '4px 10px';
-                addBtn.style.background = '#00695c';
-                addBtn.style.color = 'white';
-                addBtn.style.border = 'none';
-                addBtn.style.cursor = 'pointer';
-                addBtn.onclick = () => {
-                    const key = nameInput.value.trim();
-                    const val = valInput.value;
-                    if (key) {
-                        this.currentServiceParams[key] = val;
-                        this.render();
+            // Var Picker for Params
+            const visibleVars = this.getVisibleVariables();
+            if (visibleVars.length > 0) {
+                const varSelect = document.createElement('select');
+                varSelect.style.padding = '4px';
+                varSelect.style.background = '#2e7d32';
+                varSelect.style.color = 'white';
+                varSelect.style.border = 'none';
+                varSelect.style.cursor = 'pointer';
+                const defOpt = document.createElement('option');
+                defOpt.innerText = '📦';
+                varSelect.appendChild(defOpt);
+                visibleVars.forEach(v => {
+                    const o = document.createElement('option');
+                    o.value = v;
+                    o.innerText = v;
+                    varSelect.appendChild(o);
+                });
+                varSelect.onchange = () => {
+                    if (varSelect.value) {
+                        valInput.value = `\${${varSelect.value}}`;
+                        varSelect.value = '';
                     }
                 };
-                row.appendChild(addBtn);
-                addParamSection.appendChild(row);
-                body.appendChild(addParamSection);
-
-                // Result Variable
-                const resultSection = document.createElement('div');
-                resultSection.style.marginTop = '1rem';
-                resultSection.innerHTML = '<strong>Store Result In Variable</strong><br>';
-
-                const resultSelect = document.createElement('select');
-                resultSelect.style.width = '100%';
-                resultSelect.style.padding = '6px';
-                resultSelect.style.marginTop = '8px';
-                resultSelect.style.background = '#333';
-                resultSelect.style.color = 'white';
-                resultSelect.style.border = '1px solid #555';
-
-                const emptyOpt = document.createElement('option');
-                emptyOpt.value = '';
-                emptyOpt.text = '-- Keine (optional) --';
-                resultSelect.appendChild(emptyOpt);
-
-                this.getVisibleVariables().forEach(v => {
-                    const opt = document.createElement('option');
-                    opt.value = v;
-                    opt.text = v;
-                    if (v === this.currentResultVariable) opt.selected = true;
-                    resultSelect.appendChild(opt);
-                });
-
-                resultSelect.onchange = () => {
-                    this.currentResultVariable = resultSelect.value;
-                };
-                resultSection.appendChild(resultSelect);
-                body.appendChild(resultSection);
+                row.appendChild(varSelect);
             }
-        });
+
+            const addBtn = document.createElement('button');
+            addBtn.innerText = '+';
+            addBtn.style.padding = '4px 10px';
+            addBtn.style.background = '#00695c';
+            addBtn.style.color = 'white';
+            addBtn.style.border = 'none';
+            addBtn.style.cursor = 'pointer';
+            addBtn.onclick = () => {
+                const key = nameInput.value.trim();
+                const val = valInput.value;
+                if (key) {
+                    this.currentServiceParams[key] = val;
+                    this.render();
+                }
+            };
+            row.appendChild(addBtn);
+            addParamSection.appendChild(row);
+            body.appendChild(addParamSection);
+
+            // Result Variable
+            const resultSection = document.createElement('div');
+            resultSection.style.marginTop = '1rem';
+            resultSection.innerHTML = '<strong>Store Result In Variable</strong><br>';
+
+            const resultSelect = document.createElement('select');
+            resultSelect.style.width = '100%';
+            resultSelect.style.padding = '6px';
+            resultSelect.style.marginTop = '8px';
+            resultSelect.style.background = '#333';
+            resultSelect.style.color = 'white';
+            resultSelect.style.border = '1px solid #555';
+
+            const emptyOpt = document.createElement('option');
+            emptyOpt.value = '';
+            emptyOpt.text = '-- Keine (optional) --';
+            resultSelect.appendChild(emptyOpt);
+
+            this.getVisibleVariables().forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.text = v;
+                if (v === this.currentResultVariable) opt.selected = true;
+                resultSelect.appendChild(opt);
+            });
+
+            resultSelect.onchange = () => {
+                this.currentResultVariable = resultSelect.value;
+            };
+            resultSection.appendChild(resultSelect);
+            body.appendChild(resultSection);
+        }
     }
 
 

@@ -30,6 +30,10 @@ export class ProjectRegistry {
         this.project = project;
     }
 
+    public getProject(): GameProject | null {
+        return this.project;
+    }
+
     // =========================================================================================
     //  Variables
     // =========================================================================================

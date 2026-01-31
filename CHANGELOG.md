@@ -1,5 +1,19 @@
 # Changelog
 
+## [Refactoring] - 2026-01-31
+- **Editor.ts**: Massive Modularisierung und Bereinigung. Die Datei fungiert nun als schlanker Orchestrator.
+- **EditorCommandManager**: Neue Komponente für Objekt-Manipulation und Befehlsausführung (Undo/Redo Support).
+- **EditorRunManager**: Neue Komponente für die Verwaltung der Game-Runtime und des Game-Loops.
+- **EditorStageManager**: Neue Komponente für Stage-spezifische Operationen und Objekt-Synchronisation.
+- **Trinity-Sync**: Konsolidierung der Synchronisation zwischen Stage-Editor, JSON-Code und Pascal-Sicht.
+- **Build & Typ-Sicherheit**:
+  - Sämtliche TypeScript-Fehler (8 Fehler in 6 Dateien) behoben.
+  - `ServiceRegistry` wurde korrekt typisiert, um `any`-Inferenz zu vermeiden.
+  - Fehlende `renderJSONTree`-Methode in `EditorViewManager` implementiert.
+  - Syntaxfehler und verwaiste Imports in `ActionEditor.ts` und `MediatorService.ts` bereinigt.
+  - Erfolgreiche Verifizierung durch `npm run build`.
+- **Fehlerbehebung**: Beseitigung zahlreicher Code-Duplikate und Syntaxfehler, die durch fehlerhafte Merges entstanden waren.
+
 ## [2.3.0] - 2026-01-31
 ### Hinzugefügt
 - **Management-Tab**: Einführung eines dedizierten Tabs zur zentralen Ressourcenverwaltung.

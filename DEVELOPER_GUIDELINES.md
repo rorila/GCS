@@ -456,3 +456,11 @@ Die `TTable` ist eine Erweiterung von `TWindow`. Für die Nutzung in Sichten au�
 - **Verschachtelte Pfade**: Der Serialisierer unterstützt nun Punkt-Notation in Property-Namen (z.B. `style.visible`). Dies erzeugt automatisch verschachtelte Objekte im JSON, was für den Renderer essenziell ist.
 - **Vermeidung von Datenverlust**: Durch die Automatisierung über `getInspectorProperties` wird sichergestellt, dass alle persistierbaren Eigenschaften (inkl. Sichtbarkeit) bei Synchronisationen (z.B. nach Pascal-Änderungen) erhalten bleiben.
 
+### ServiceRegistry & Typisierung (v2.3.2)
+- **Singleton-Pattern**: Die `serviceRegistry` muss explizit mit `ServiceRegistryClass` typisiert werden, um `any`-Inferenz in abhängigen Dateien (ActionEditor, JSONInspector) zu vermeiden.
+- **Dienste-Aufruf**: Nutze die typisierte `serviceRegistry.listServices()` und `serviceRegistry.getService(name)` für sichere Interaktionen.
+- **Build-Pipeline**: Führe nach größeren Refactorings IMMER `npm run build` (beinhaltet `tsc`) aus. Ein erfolgreiches Durchlaufen der `tsc`-Prüfung ist Voraussetzung für die Stabilität der modularisierten Architektur.
+
+### Mediator-Datenmodelle
+- **getVisualObjects**: Gibt angereicherte Datenobjekte (`any[]`) zurück, die zusätzliche Metadaten wie `uiScope` enthalten. Diese Objekte dienen rein der Visualisierung im Management-Tab und entsprechen nicht zwingend der strengen `TWindow`-Klassendefinition.
+

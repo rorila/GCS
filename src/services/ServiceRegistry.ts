@@ -17,7 +17,7 @@ export interface ServiceInfo {
     description?: string;
 }
 
-class ServiceRegistryClass {
+export class ServiceRegistryClass {
     private id: string = Math.random().toString(36).substr(2, 9);
     private services: Map<string, ServiceInfo> = new Map();
 
@@ -152,7 +152,7 @@ class ServiceRegistryClass {
 }
 
 // Singleton instance - WINDOW BOUND to prevent dual instances
-export const serviceRegistry = (window as any)._globalServiceRegistry || new ServiceRegistryClass();
+export const serviceRegistry: ServiceRegistryClass = (window as any)._globalServiceRegistry || new ServiceRegistryClass();
 (window as any)._globalServiceRegistry = serviceRegistry;
 
 console.log(`[ServiceRegistry] Singleton bound to window. ID: ${(serviceRegistry as any).id}`);
