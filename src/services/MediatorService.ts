@@ -3,6 +3,17 @@ import { GameAction, GameTask, ProjectVariable } from '../model/types';
 import { TWindow } from '../components/TWindow';
 import { projectRegistry } from './ProjectRegistry';
 import { RefactoringManager } from '../editor/RefactoringManager';
+// import { serviceRegistry } from './ServiceRegistry';
+
+/**
+ * Zentrale Event-Typen für den Mediator.
+ */
+export enum MediatorEvents {
+    DATA_CHANGED = 'DATA_CHANGED',
+    OBJECT_SELECTED = 'OBJECT_SELECTED',
+    PROJECT_LOADED = 'PROJECT_LOADED',
+    STAGE_CHANGED = 'STAGE_CHANGED'
+}
 
 /**
  * Der MediatorService verwaltet die transienten Komponenten-Manager (TObjectList)
@@ -12,6 +23,8 @@ import { RefactoringManager } from '../editor/RefactoringManager';
 export class MediatorService {
     private static instance: MediatorService;
     private transientManagers: Map<string, TObjectList[]> = new Map();
+    private eventListeners: Map<string, Function[]> = new Map();
+    private debounceTimers: Map<string, any> = new Map();
 
     private constructor() { }
 
@@ -20,6 +33,75 @@ export class MediatorService {
             MediatorService.instance = new MediatorService();
         }
         return MediatorService.instance;
+    }
+
+    /**
+     * Benachrichtigt über eine Datenänderung (mit Debouncing).
+     */
+    public notifyDataChanged(data?: any): void {
+        this.notifyDebounced(MediatorEvents.DATA_CHANGED, data);
+    }
+
+    /**
+     * Benachrichtigt über eine Objekt-Selektion (sofort).
+     */
+    public notifyObjectSelected(object: any): void {
+        this.notify(MediatorEvents.OBJECT_SELECTED, object);
+    }
+
+    /**
+     * Registriert einen Listener für ein bestimmtes Event.
+     */
+    public on(event: string, callback: Function): void {
+        if (!this.eventListeners.has(event)) {
+            this.eventListeners.set(event, []);
+        }
+        this.eventListeners.get(event)!.push(callback);
+    }
+
+    /**
+     * Entfernt einen Listener.
+     */
+    public off(event: string, callback: Function): void {
+        if (!this.eventListeners.has(event)) return;
+        const listeners = this.eventListeners.get(event)!;
+        const index = listeners.indexOf(callback);
+        if (index > -1) listeners.splice(index, 1);
+    }
+
+    /**
+     * Benachrichtigt alle Listener eines Events (sofort).
+     */
+    public notify(event: string, data?: any): void {
+        console.log(`[Mediator] Notify Event: ${event}`, data);
+        const listeners = this.eventListeners.get(event);
+        if (listeners) {
+            listeners.forEach(cb => {
+                try {
+                    cb(data);
+                } catch (e) {
+                    console.error(`[Mediator] Error in Listener for "${event}":`, e);
+                }
+            });
+        }
+    }
+
+    /**
+     * Benachrichtigt alle Listener mit "Entprellung" (Debouncing).
+     * Verhindert Flut von Updates bei schnellen Änderungen (z.B. Tippen).
+     */
+    public notifyDebounced(event: string, data?: any, delay: number = 300): void {
+        if (this.debounceTimers.has(event)) {
+            clearTimeout(this.debounceTimers.get(event));
+        }
+
+        const timer = setTimeout(() => {
+            console.log(`[Mediator] Debounced Execution: ${event}`);
+            this.notify(event, data);
+            this.debounceTimers.delete(event);
+        }, delay);
+
+        this.debounceTimers.set(event, timer);
     }
 
     /**

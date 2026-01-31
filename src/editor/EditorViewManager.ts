@@ -8,6 +8,7 @@ import { PascalHighlighter } from './PascalHighlighter';
 import { safeDeepCopy } from '../utils/DeepCopy';
 import { mediatorService } from '../services/MediatorService';
 import { Stage } from './Stage';
+import { MediatorEvents } from '../services/MediatorService';
 
 export interface IViewHost {
     project: GameProject;
@@ -37,7 +38,24 @@ export class EditorViewManager {
     public isProjectDirty: boolean = false;
     public selectedManager: string = 'VisualObjects';
 
-    constructor(private host: IViewHost) { }
+    constructor(private host: IViewHost) {
+        this.initMediator();
+    }
+
+    private initMediator() {
+        mediatorService.on(MediatorEvents.DATA_CHANGED, () => {
+            if (this.currentView === 'management') {
+                const panel = document.getElementById('management-viewer');
+                if (panel) this.renderManagementView(panel);
+            }
+        });
+
+        mediatorService.on(MediatorEvents.OBJECT_SELECTED, (obj: any) => {
+            if (this.currentView === 'management' && obj) {
+                // Potential: Highlight row if manager matches object type
+            }
+        });
+    }
 
     public switchView(view: ViewType) {
         const h = this.host;

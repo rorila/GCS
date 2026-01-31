@@ -427,6 +427,10 @@ Der Management-Tab (`EditorViewManager.renderManagementView`) dient als zentrale
 - **Sanitizer**: Der `RefactoringManager` muss bei signifikanten Änderungen am Datenmodell aktualisiert werden, um "Leichen" in alten Projektdateien automatisch zu entfernen.
 - **Rolle als Mediator**: Der `MediatorService` dient als zentrale Anlaufstelle ("Broker"). Er reichert Rohdaten (Tasks, Aktionen etc.) zur Laufzeit mit Metadaten an (z.B. Link-Counter, Scope-Emojis).
 - **Interaktive Navigation**: Die Tabellen unterstützen `onRowClick`. Im `EditorViewManager` wird dies genutzt, um bei Klick auf visuelle Objekte oder Variablen die `Stage.focusObject(id)` Methode aufzurufen, die das Objekt zentriert und optisch hervorhebt. Bei Tasks wird automatisch in den Flow-Editor gewechselt.
+- **Reaktive Synchronisation (Mediator)**: 
+    - Der `Editor` emittiert Events (`OBJECT_SELECTED`, `DATA_CHANGED`) bei Interaktionen auf der Stage.
+    - Andere Komponenten (wie `EditorViewManager` für den Management-Tab) abonnieren diese Events, um ihre Daten reaktiv zu aktualisieren, ohne dass ein manueller Reload nötig ist.
+    - **Wichtig**: Nutze beim Versenden von Daten-Änderungen (`DATA_CHANGED`) immer die debounced Version des Mediators, um Performance-Einbußen bei kontinuierlichen Operationen (Drag, Resize) zu vermeiden.
 - **Vorteile**:
     - **Saubere Stage**: Die Spiel-Stage im Design-Modus ist frei von transienten Tabellen.
     - **Schnelle Navigation**: Direktes Anfahren von Ressourcen aus einer zentralen Liste.

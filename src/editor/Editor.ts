@@ -28,6 +28,7 @@ import { dialogService } from '../services/DialogService';
 import { serviceRegistry } from '../services/ServiceRegistry';
 import { PascalGenerator } from './PascalGenerator';
 import { PascalHighlighter } from './PascalHighlighter';
+import { mediatorService } from '../services/MediatorService';
 import { JSONTreeViewer } from './JSONTreeViewer';
 import { FlowEditor } from './FlowEditor';
 import { FlowToolbox } from './FlowToolbox';
@@ -1283,6 +1284,10 @@ export class Editor implements IViewHost {
             } else {
                 this.selectObject(null);
             }
+
+            // Notify Mediator about selection change
+            const selectedObj = ids.length > 0 ? this.findObjectById(ids[0]) : null;
+            mediatorService.notifyObjectSelected(selectedObj);
         };
 
         this.stage.onObjectMove = (id, newX, newY) => {
@@ -1319,6 +1324,9 @@ export class Editor implements IViewHost {
                 if (this.jsonInspector) this.jsonInspector.update(obj);
                 this.render();
                 this.autoSaveToLocalStorage();
+
+                // Notify Mediator about data change (debounced move)
+                mediatorService.notifyDataChanged({ object: obj, property: 'position', type: 'move' });
             }
         };
 
@@ -1330,6 +1338,9 @@ export class Editor implements IViewHost {
                 if (this.jsonInspector) this.jsonInspector.update(obj);
                 this.render();
                 this.autoSaveToLocalStorage();
+
+                // Notify Mediator about data change (debounced resize)
+                mediatorService.notifyDataChanged({ object: obj, property: 'size', type: 'resize' });
             }
         };
 
@@ -1974,19 +1985,6 @@ export class Editor implements IViewHost {
             // We MUST use these proxies for rendering and all other logic.
             if (this.runtime) {
                 this.runtimeObjects = this.runtime.getObjects();
-                this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as any) || null;
-            }
-
-            // Initialize Debug Logger if not already active
-            if (!this.debugLog) {
-                this.debugLog = new TDebugLog();
-                this.debugLog.setProject(this.project);
-            }
-
-            // Start the Runtime (this starts GameLoop, Timers, InputControllers internally)
-            // MOVED to end of block to ensure all systems are ready
-            // this.runtime.start();
-            if (this.runtimeObjects) {
                 this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as TGameLoop) || null;
             }
 

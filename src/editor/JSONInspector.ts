@@ -10,6 +10,8 @@ import { imageService } from '../services/ImageService'; // Added import
 import { actionRegistry } from '../runtime/ActionRegistry';
 import { changeRecorder } from '../services/ChangeRecorder';
 import { componentRegistry } from '../services/ComponentRegistry';
+import { MediatorService } from '../services/MediatorService';
+// import { MediatorEvents } from '../services/MediatorService';
 
 type InspectorTab = 'properties' | 'events';
 
@@ -369,6 +371,9 @@ export class JSONInspector {
             this.render();
             return;
         }
+
+        // Notify Mediator about object selection
+        MediatorService.getInstance().notifyObjectSelected(object);
     }
 
     /**
@@ -866,9 +871,9 @@ export class JSONInspector {
                                 className: 'TButton',
                                 name: `${prop.name}ClearBtn`,
                                 caption: '🚫',
-                                style: { width: '32px', padding: '0', fontSize: '14px', backgroundColor: '#444' },
                                 action: 'setTransparent',
-                                actionData: { property: prop.name }
+                                actionData: { property: prop.name },
+                                style: { width: '32px', padding: '0', fontSize: '14px', backgroundColor: '#444' }
                             }
                         ]
                     });
@@ -1807,7 +1812,8 @@ export class JSONInspector {
         else if (className === 'TSelect') {
             // TSelect - Dropdown with dynamic source
             const select = document.createElement('select');
-            select.style.flex = '1';
+
+            // Base styles
             select.style.padding = '4px 6px';
             select.style.backgroundColor = '#333';
             select.style.color = '#fff';
@@ -1886,6 +1892,7 @@ export class JSONInspector {
 
             select.onchange = () => {
                 obj.selectedValue = select.value;
+                if (obj.selected !== undefined) obj.selected = select.value;
                 this.handleObjectChange(obj);
             };
 
@@ -2259,10 +2266,10 @@ export class JSONInspector {
             // Apply flex styles if specified
             if (obj.style?.flex) {
                 select.style.flex = obj.style.flex;
+                if (obj.style.minWidth) select.style.minWidth = obj.style.minWidth;
             } else {
                 select.style.width = '100%';
             }
-            if (obj.style?.minWidth) select.style.minWidth = obj.style.minWidth;
 
             // Get options from source
             // Get options from source
@@ -2455,7 +2462,11 @@ export class JSONInspector {
                             empty.text = '--';
                             select.appendChild(empty);
 
-                            items.forEach(it => {
+                            const sorted = items.sort((a, b) => {
+                                return a.localeCompare(b); // Default sort
+                            });
+
+                            sorted.forEach(it => {
                                 const opt = document.createElement('option');
                                 opt.value = it;
                                 opt.text = it;
@@ -2836,6 +2847,13 @@ export class JSONInspector {
                 newValue: value
             });
         }
+
+        // Notify Mediator about data change (debounced)
+        MediatorService.getInstance().notifyDataChanged({
+            object: selectedObject,
+            property: propertyName,
+            value: value
+        });
     }
 
     /**
