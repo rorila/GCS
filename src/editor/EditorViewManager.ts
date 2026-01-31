@@ -385,8 +385,8 @@ export class EditorViewManager {
             // Variable selektieren (öffnet den Variablen-Inspektor)
             h.selectObject(row.id, true);
             h.switchView('stage');
-        } else if (managerId === 'Tasks' || managerId === 'Actions') {
-            // Zum Flow-Editor wechseln und den entsprechenden Task/Aktion laden
+        } else if (managerId === 'Tasks' || managerId === 'Actions' || managerId === 'FlowCharts') {
+            // Zum Flow-Editor wechseln und den entsprechenden Task/Aktion/Flow laden
             h.switchView('flow');
             if (h.flowEditor && row.name) {
                 h.flowEditor.switchActionFlow(row.name);
