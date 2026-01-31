@@ -693,7 +693,7 @@ export class FlowEditor {
         this.flowSelect.value = this.currentFlowContext;
     }
 
-    private switchActionFlow(context: string, addToHistory: boolean = true) {
+    public switchActionFlow(context: string, addToHistory: boolean = true) {
         if (this.currentFlowContext === context) return;
 
         // 1. Save current scroll position before switching

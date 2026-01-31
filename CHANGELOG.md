@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.3.0] - 2026-01-31
+### Hinzugefügt
+- **Management-Tab**: Einführung eines dedizierten Tabs zur zentralen Ressourcenverwaltung.
+- **Interaktive Navigation**: Klick auf Tabellenzeilen fokussiert Objekte auf der Stage (mit Highlight-Effekt) oder öffnet den Flow-Editor.
+- **Daten-Anreicherung**: Anzeige von X/Y-Positionen, Klassen, Typen, Zielobjekten und aktuellen Werten.
+- **TTable-Komponente**: Statischer Renderer für systemweite Tabellen-Visualisierung.
+
+### Behoben
+- **Stage-Bereinigung**: Korrektur der Rendering-Logik; Manager-Tabellen werden nicht mehr auf der Stage angezeigt.
+- **Sanitizer-Härtung**: Automatische Entfernung transienter Management-Objekte aus Projektdaten.
+- **Button-Rendering**: Zusätzliche Texte auf Buttons ("(0 Einträge)") wurden entfernt.
+- **Stage-Bereinigung**: Transiente Manager-Tabellen wurden von der Spiel-Stage entfernt, um das Design-Interface sauber zu halten.
+- **TObjectList Refactoring**: Erbt nun von `TTable`, um tabellarische Eigenschaften direkt zu nutzen.
+- Verbesserung der Synchronisation zwischen Editor-State und Projekt-JSON.
+
 ## [2.2.0] - 2026-01-31
 - **Fix (Kritisch): JSON-Viewer Abstürze**:
     - Ersatz von `JSON.stringify(this.project)` durch `safeDeepCopy` in `Editor.ts` und `EditorViewManager.ts`. Dies verhindert Abstürze durch zirkuläre Referenzen (z.B. reaktive Proxies).

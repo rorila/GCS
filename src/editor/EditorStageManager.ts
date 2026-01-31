@@ -1,6 +1,8 @@
 import { GameProject, StageDefinition, GameAction, GameTask, ProjectVariable } from '../model/types';
 import { Stage } from './Stage';
 import { TWindow } from '../components/TWindow';
+import { TObjectList } from '../components/TObjectList';
+import { mediatorService } from '../services/MediatorService';
 
 /**
  * EditorStageManager handles all stage-related operations within the Editor:
@@ -148,5 +150,12 @@ export class EditorStageManager {
     public switchStage(id: string): void {
         this.project.activeStageId = id;
         this.onRefresh();
+    }
+
+    /**
+     * Proxied Call zum MediatorService
+     */
+    public ensureManagerLists(stageId: string): TObjectList[] {
+        return mediatorService.getManagersForStage(stageId);
     }
 }

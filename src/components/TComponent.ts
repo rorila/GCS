@@ -37,6 +37,7 @@ export abstract class TComponent {
     public Tasks?: Record<string, string>; // EventName -> TaskName
     public scope: 'global' | 'stage' | string = 'stage'; // Visibility scope
     public isVariable: boolean = false; // Flag for variable-like components
+    public isTransient: boolean = false; // If true, this component is not persisted in project files
 
     // Drag & Drop Properties
     public draggable: boolean = false;

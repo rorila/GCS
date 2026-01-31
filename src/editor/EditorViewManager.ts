@@ -6,6 +6,8 @@ import { TDebugLog } from '../components/TDebugLog';
 import { PascalGenerator } from './PascalGenerator';
 import { PascalHighlighter } from './PascalHighlighter';
 import { safeDeepCopy } from '../utils/DeepCopy';
+import { mediatorService } from '../services/MediatorService';
+import { Stage } from './Stage';
 
 export interface IViewHost {
     project: GameProject;
@@ -20,9 +22,11 @@ export interface IViewHost {
     findObjectById(id: string): any;
     autoSaveToLocalStorage(): void;
     currentSelectedId: string | null;
+    selectObject(id: string | null, focus?: boolean): void;
+    switchView(view: ViewType): void;
 }
 
-export type ViewType = 'stage' | 'json' | 'run' | 'flow' | 'code';
+export type ViewType = 'stage' | 'json' | 'run' | 'flow' | 'code' | 'management';
 
 export class EditorViewManager {
     public currentView: ViewType = 'stage';
@@ -31,6 +35,7 @@ export class EditorViewManager {
     public useStageIsolatedView: boolean = true;
     public workingProjectData: any = null;
     public isProjectDirty: boolean = false;
+    public selectedManager: string = 'VisualObjects';
 
     constructor(private host: IViewHost) { }
 
@@ -48,6 +53,7 @@ export class EditorViewManager {
         const jsonPanel = document.getElementById('json-viewer');
         const flowPanel = document.getElementById('flow-viewer');
         const codePanel = document.getElementById('code-viewer');
+        const managementPanel = document.getElementById('management-viewer');
         const tabs = document.querySelectorAll('.tab-btn');
 
         // Update Tabs
@@ -59,6 +65,7 @@ export class EditorViewManager {
         if (jsonPanel) jsonPanel.style.display = 'none';
         if (flowPanel) flowPanel.style.display = 'none';
         if (codePanel) codePanel.style.display = 'none';
+        if (managementPanel) managementPanel.style.display = 'none';
 
         // Hide standard toolboxes
         const jsonToolbox = document.getElementById('json-toolbox-content');
@@ -108,9 +115,19 @@ export class EditorViewManager {
         } else if (view === 'code') {
             h.setRunMode(false);
             this.renderCodeView(codePanel);
+        } else if (view === 'management') {
+            h.setRunMode(false);
+            if (managementPanel) {
+                managementPanel.style.display = 'flex';
+                this.renderManagementView(managementPanel);
+            }
         }
 
         h.render();
+    }
+
+    public render() {
+        this.host.render();
     }
 
     private renderCodeView(codePanel: HTMLElement | null) {
@@ -279,5 +296,101 @@ export class EditorViewManager {
         const plainCode = PascalGenerator.generateFullProgram(h.project, false, stageToUse);
         const highlightedCode = PascalHighlighter.highlight(plainCode);
         content.innerHTML = `<pre style="margin: 0; white-space: pre; color: #d4d4d4;" translate="no">${highlightedCode}</pre>`;
+    }
+
+    private renderManagementView(panel: HTMLElement) {
+        panel.innerHTML = '';
+
+        // 1. Sidebar
+        const sidebar = document.createElement('div');
+        sidebar.className = 'management-sidebar';
+
+        const managers = [
+            { id: 'VisualObjects', label: 'Visuelle Objekte', emoji: '🖼️' },
+            { id: 'Tasks', label: 'Tasks', emoji: '⚡' },
+            { id: 'Actions', label: 'Aktionen', emoji: '🎬' },
+            { id: 'Variables', label: 'Variablen', emoji: '📊' },
+            { id: 'FlowCharts', label: 'Ablaufdiagramme', emoji: '🗺️' }
+        ];
+
+        managers.forEach(m => {
+            const btn = document.createElement('button');
+            btn.className = `management-sidebar-btn ${this.selectedManager === m.id ? 'active' : ''}`;
+            btn.innerHTML = `${m.emoji} ${m.label}`;
+            btn.onclick = () => {
+                this.selectedManager = m.id;
+                this.renderManagementView(panel);
+            };
+            sidebar.appendChild(btn);
+        });
+
+        panel.appendChild(sidebar);
+
+        // 2. Content Area
+        const content = document.createElement('div');
+        content.className = 'management-content';
+
+        const stage = this.host.getActiveStage();
+        if (stage) {
+            const managerList = mediatorService.getManagersForStage(stage.id);
+            const activeManager = managerList.find(m => m.name === this.selectedManager);
+
+            if (activeManager) {
+                // We need a way to render the TTable in a regular HTML element
+                // Since TTable uses SVG/Canvas/DOM via Stage.renderTable, 
+                // we'll use a hidden stage or direct table rendering.
+                // For now, let's create a temporary container and use the Stage renderer.
+
+                const tableContainer = document.createElement('div');
+                tableContainer.style.flex = '1';
+                tableContainer.style.position = 'relative';
+                content.appendChild(tableContainer);
+
+                // Re-purpose the Stage rendering logic for this container
+                // We'll create a "Mini-Stage" for the table if needed, or just let Stage.renderTable handle it if we provide a parent.
+                // Actually, TTable/TObjectList are components that normally render into the main Stage.
+                // We want them here. 
+
+                const tableEl = document.createElement('div');
+                tableEl.id = `mgr-${activeManager.id}`;
+                tableEl.style.width = '100%';
+                tableEl.style.height = '100%';
+                tableContainer.appendChild(tableEl);
+
+                // Render the table
+                (activeManager as any).onRowClick = (row: any) => {
+                    this.handleManagerRowClick(this.selectedManager, row);
+                };
+                Stage.renderTable(tableEl, activeManager as any);
+
+                // Add title
+                const title = document.createElement('h2');
+                title.textContent = managers.find(m => m.id === this.selectedManager)?.label || '';
+                title.style.margin = '0 0 1rem 0';
+                content.insertBefore(title, tableContainer);
+            }
+        }
+
+        panel.appendChild(content);
+    }
+
+    private handleManagerRowClick(managerId: string, row: any) {
+        const h = this.host;
+
+        if (managerId === 'VisualObjects') {
+            // Objekt auf der Stage selektieren und dorthin wechseln
+            h.selectObject(row.id, true);
+            h.switchView('stage');
+        } else if (managerId === 'Variables') {
+            // Variable selektieren (öffnet den Variablen-Inspektor)
+            h.selectObject(row.id, true);
+            h.switchView('stage');
+        } else if (managerId === 'Tasks' || managerId === 'Actions') {
+            // Zum Flow-Editor wechseln und den entsprechenden Task/Aktion laden
+            h.switchView('flow');
+            if (h.flowEditor && row.name) {
+                h.flowEditor.switchActionFlow(row.name);
+            }
+        }
     }
 }

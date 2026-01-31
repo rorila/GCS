@@ -1290,6 +1290,9 @@ export class Stage {
                 const titleEl = el.querySelector('.card-title') as HTMLElement;
                 if (titleEl && titleEl.innerText !== obj.gameName) titleEl.innerText = obj.gameName;
             } else if (className === 'TButton') {
+                // BUGFIX: Clear any existing table structures if element is reused from a previous buggy render
+                if (el.querySelector('.table-title-bar')) el.innerHTML = '';
+
                 if (el.innerText !== (obj.caption || obj.name)) el.innerText = obj.caption || obj.name;
 
                 // Button Font Styles
@@ -1310,6 +1313,8 @@ export class Stage {
                     el.onmousedown = () => el.style.transform = 'scale(0.98)';
                     el.onmouseup = () => el.style.transform = 'none';
                 }
+            } else if (className === 'TTable' || className === 'TObjectList') {
+                Stage.renderTable(el, obj);
             } else if (obj.isVariable || className === 'TGameLoop' || className === 'TInputController' || className === 'TTimer' || className === 'TRepeater' || className === 'TGameServer' || className === 'TGameState' || className === 'THandshake' || className === 'THeartbeat' || className === 'TStageController') {
                 if (this.runMode) el.style.display = 'none';
                 else {
@@ -1427,8 +1432,7 @@ export class Stage {
                 svgTag += `</svg>`;
 
                 el.innerHTML = svgTag;
-                if (!this.runMode) {
-                    // Show name on top in editor mode
+                if (isNew) {
                     const label = document.createElement('span');
                     label.innerText = obj.name;
                     label.style.cssText = 'position:absolute; font-size:10px; color:rgba(255,255,255,0.5); pointer-events:none;';
@@ -1983,13 +1987,127 @@ export class Stage {
         this.cancelPlacing();
     }
 
-    private cancelPlacing() {
+    public cancelPlacing() {
         this.isPlacing = false;
         this.element.style.cursor = 'default';
 
         if (this.placingGhostEl) {
             this.placingGhostEl.remove();
             this.placingGhostEl = null;
+        }
+    }
+
+    /**
+     * Scrollt zum angegebenen Objekt und lässt es kurz aufleuchten.
+     */
+    public focusObject(id: string): void {
+        setTimeout(() => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                const originalOutline = el.style.outline;
+                el.style.outline = '4px solid #fff';
+                el.style.zIndex = '9999';
+                setTimeout(() => {
+                    el.style.outline = (this.isSelected(id)) ? '2px solid #4fc3f7' : originalOutline;
+                    el.style.zIndex = '';
+                }, 1000);
+            }
+        }, 50); // Kleiner Delay damit das Tab-Switching im Editor ggf. erst abgeschlossen ist
+    }
+
+    /**
+     * Rendert eine TTable-Komponente in ein HTML-Element.
+     * Kann statisch aufgerufen werden (z.B. für den Management-View).
+     */
+    public static renderTable(el: HTMLElement, obj: any): void {
+        if (!obj.columns) return; // Sicherheitscheck: Nur rendern wenn Spalten definiert sind
+
+        el.style.flexDirection = 'column';
+        el.style.overflow = 'hidden';
+        el.style.display = 'flex';
+        el.style.fontSize = '12px';
+
+        // Container-Struktur sicherstellen
+        let scrollArea = el.querySelector('.table-scroll-area') as HTMLElement;
+        if (!scrollArea) {
+            el.innerHTML = '';
+            const titleBar = document.createElement('div');
+            titleBar.className = 'table-title-bar';
+            titleBar.style.cssText = 'padding:6px 12px; font-weight:bold; background:rgba(0,0,0,0.3); border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center; color:#fff; font-size: 13px;';
+            el.appendChild(titleBar);
+
+            scrollArea = document.createElement('div');
+            scrollArea.className = 'table-scroll-area';
+            scrollArea.style.cssText = 'flex:1; overflow-y:auto; overflow-x:hidden;';
+            el.appendChild(scrollArea);
+        }
+
+        const titleBar = el.querySelector('.table-title-bar') as HTMLElement;
+        if (titleBar) {
+            titleBar.innerHTML = `<span>${obj.name}</span> <span style="font-weight:normal; opacity:0.6; font-size:11px;">(${obj.data?.length || 0} Einträge)</span>`;
+        }
+
+        // Render Table Headers & Rows
+        if (scrollArea) {
+            scrollArea.innerHTML = '';
+
+            const table = document.createElement('table');
+            table.style.cssText = 'width:100%; border-collapse:collapse; color:inherit; table-layout:fixed;';
+
+            // Header
+            if (obj.showHeader !== false && obj.columns) {
+                const thead = document.createElement('thead');
+                const hRow = document.createElement('tr');
+                hRow.style.cssText = 'text-align:left; background:rgba(255,255,255,0.05);';
+                obj.columns.forEach((col: any) => {
+                    const th = document.createElement('th');
+                    th.style.cssText = `padding:4px 8px; border-bottom:1px solid rgba(255,255,255,0.1); width:${col.width || 'auto'}; font-size:10px; opacity:0.7;`;
+                    th.innerText = col.label;
+                    hRow.appendChild(th);
+                });
+                thead.appendChild(hRow);
+                table.appendChild(thead);
+            }
+
+            // Body
+            const tbody = document.createElement('tbody');
+            const data = obj.data || [];
+            data.forEach((row: any, idx: number) => {
+                const tr = document.createElement('tr');
+                tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; height:${obj.rowHeight || 28}px;`;
+                if (idx === obj.selectedIndex) tr.style.backgroundColor = 'rgba(255,255,255,0.1)';
+
+                tr.onmouseenter = () => tr.style.backgroundColor = 'rgba(255,255,255,0.15)';
+                tr.onmouseleave = () => tr.style.backgroundColor = (idx === obj.selectedIndex) ? 'rgba(255,255,255,0.1)' : 'transparent';
+                tr.onclick = (e) => {
+                    e.stopPropagation();
+                    obj.selectedIndex = idx;
+                    if (typeof obj.onRowClick === 'function') {
+                        obj.onRowClick(row, idx);
+                    }
+                    Stage.renderTable(el, obj); // Re-render to show selection
+                };
+
+                if (obj.columns) {
+                    obj.columns.forEach((col: any) => {
+                        const td = document.createElement('td');
+                        td.style.cssText = 'padding:4px 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+                        let val = row[col.property] ?? '';
+
+                        // Emoji support for scope
+                        if (col.property === 'uiScope') {
+                            val = val === 'global' ? '🌎' : (val === 'stage' ? '🎭' : (val === 'library' ? '📚' : '📍'));
+                        }
+
+                        td.innerText = String(val);
+                        tr.appendChild(td);
+                    });
+                }
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            scrollArea.appendChild(table);
         }
     }
 }

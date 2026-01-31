@@ -794,6 +794,28 @@ export class RefactoringManager {
         // 4. Migrate FlowChart actions to Single Source of Truth
         this.migrateFlowChartActions(project, report);
 
+        // 5. Clean up old manager tables from persistent data
+        const managerNames = ['VisualObjects', 'Tasks', 'Actions', 'Variables', 'FlowCharts'];
+        const cleanManagers = (objs: any[]) => {
+            if (!objs) return [];
+            return objs.filter(obj => {
+                const isMgr = (obj as any).isManager === true ||
+                    (obj as any).isTransient === true ||
+                    (managerNames.includes(obj.name) && (obj.className === 'TObjectList' || obj.className === 'TTable' || obj.className === 'TWindow'));
+                if (isMgr) report.push(`Manager-Leiche entfernt: ${obj.name} (${obj.id})`);
+                return !isMgr;
+            });
+        };
+
+        if (project.objects) project.objects = cleanManagers(project.objects);
+        if (project.variables) project.variables = (project.variables as any[]).filter(v => !(v as any).isManager);
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.objects) s.objects = cleanManagers(s.objects);
+                if (s.variables) s.variables = (s.variables as any[]).filter(v => !(v as any).isManager);
+            });
+        }
+
         if (report.length > 0) {
             console.log('[RefactoringManager] Project sanitized:', report);
         }

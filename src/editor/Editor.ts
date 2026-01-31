@@ -273,17 +273,17 @@ export class Editor implements IViewHost {
             });
 
             // STRICT SEPARATION: Split into objects and variables
-            activeStage.objects = localObjs.filter(o => !o.isVariable);
-            activeStage.variables = localObjs.filter(o => o.isVariable) as any;
+            activeStage.objects = localObjs.filter(o => !o.isVariable && !o.isTransient);
+            activeStage.variables = localObjs.filter(o => o.isVariable && !o.isTransient) as any;
             return;
         }
 
         // Legacy-Fallback
         if (this.currentContext === 'splash') {
-            this.project.splashObjects = objs;
+            this.project.splashObjects = objs.filter(o => !o.isTransient);
         } else {
-            this.project.objects = objs.filter(o => !o.isVariable);
-            this.project.variables = objs.filter(o => o.isVariable) as any;
+            this.project.objects = objs.filter(o => !o.isVariable && !o.isTransient);
+            this.project.variables = objs.filter(o => o.isVariable && !o.isTransient) as any;
         }
     }
 
@@ -482,7 +482,7 @@ export class Editor implements IViewHost {
             btn.addEventListener('click', (e) => {
                 const target = e.target as HTMLElement;
                 const view = target.getAttribute('data-view');
-                if (view === 'stage' || view === 'json' || view === 'run' || view === 'flow' || view === 'code') {
+                if (view === 'stage' || view === 'json' || view === 'run' || view === 'flow' || view === 'code' || view === 'management') {
                     this.switchView(view as any);
                 }
             });
@@ -850,8 +850,6 @@ export class Editor implements IViewHost {
         const activeStage = this.getActiveStage();
         if (!activeStage) return this.project.objects || [];
 
-        // OPTIMIZATION: If no inheritance, return fresh merged objects directly 
-        // to allow editing and include both variables and objects!
         if (!activeStage.inheritsFrom) {
             return [
                 ...(activeStage.objects || []),
@@ -1990,12 +1988,13 @@ export class Editor implements IViewHost {
         }
     }
 
-    private selectObject(id: string | null) {
+    public selectObject(id: string | null, focus: boolean = false) {
         this.currentSelectedId = id;
         if (id) {
             const obj = this.findObjectById(id);
             this.stage.selectedObject = obj || null;
             if (this.jsonInspector) this.jsonInspector.update(obj || null);
+            if (focus && obj) this.stage.focusObject(id);
         } else {
             this.stage.selectedObject = null;
             if (this.jsonInspector) this.jsonInspector.update(this.project);
@@ -3333,6 +3332,8 @@ export class Editor implements IViewHost {
         const activeStage = this.getActiveStage();
         if (!this.stage || !activeStage) return;
 
+        // Managers removed from stage sync
+
         console.log(`[Editor] Syncing objects for stage "${activeStage.id}" to project JSON...`);
 
         const projectStage = this.project.stages?.find((s: any) => s.id === activeStage.id);
@@ -3342,8 +3343,9 @@ export class Editor implements IViewHost {
             const allObjs = this.currentObjects;
 
             // STRICT SEPARATION: Filter objects and variables
-            projectStage.objects = allObjs.filter(o => !o.isVariable);
-            (projectStage as any).variables = allObjs.filter(o => o.isVariable);
+            // WICHTIG: Transiente Objekte (Manager-Listen) herausfiltern!
+            projectStage.objects = allObjs.filter(o => !o.isVariable && !o.isTransient);
+            (projectStage as any).variables = allObjs.filter(o => o.isVariable && !o.isTransient);
 
             const varCount = (projectStage.variables || []).length;
             console.log(`[Editor] Synced ${projectStage.objects.length} objects and ${varCount} variables (Instances preserved).`);

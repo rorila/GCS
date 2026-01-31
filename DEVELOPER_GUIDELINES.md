@@ -416,3 +416,30 @@ Tasks werden nicht nur über ihren Namen, sondern über eine **Logik-Signatur** 
 - **Single Source of Truth (SSoT)**:
     - **Actions**: Global definierte Aktionen sind die Quelle der Wahrheit. Verlinkte Nodes speichern nur eine Referenz (`isLinked: true`, `name`).
     - **Kritische Pfade**: Beim Speichern (`toJSON`) dürfen verlinkte Daten NICHT überschrieben werden. Kopiere niemals gekürzte View-Daten zurück in das Datenmodell.
+
+### Management-Tab & Mediator
+Der Management-Tab (`EditorViewManager.renderManagementView`) dient als zentrale Übersicht. Er ist vollständig von der Stage entkoppelt.
+
+**Wichtige Implementierungshilfen:**
+- **Manager-Listen**: Werden im `MediatorService` erzeugt und über `isTransient = true` markiert. Sie werden **nie** permanent in die Stage-Objekte gespeichert.
+- **Rendering**: Nutzt `Stage.renderTable(el, obj)`. Diese Methode ist statisch und konfiguriert das DOM basierend auf dem `columns`-Array des Objekts.
+- **Daten-Mapping**: Komplexe Eigenschaften (wie Aktions-Änderungen) sollten im `MediatorService` für die Anzeige vor-formatiert werden (z.B. `changesDisplay`).
+- **Sanitizer**: Der `RefactoringManager` muss bei signifikanten Änderungen am Datenmodell aktualisiert werden, um "Leichen" in alten Projektdateien automatisch zu entfernen.
+- **Rolle als Mediator**: Der `MediatorService` dient als zentrale Anlaufstelle ("Broker"). Er reichert Rohdaten (Tasks, Aktionen etc.) zur Laufzeit mit Metadaten an (z.B. Link-Counter, Scope-Emojis).
+- **Interaktive Navigation**: Die Tabellen unterstützen `onRowClick`. Im `EditorViewManager` wird dies genutzt, um bei Klick auf visuelle Objekte oder Variablen die `Stage.focusObject(id)` Methode aufzurufen, die das Objekt zentriert und optisch hervorhebt. Bei Tasks wird automatisch in den Flow-Editor gewechselt.
+- **Vorteile**:
+    - **Saubere Stage**: Die Spiel-Stage im Design-Modus ist frei von transienten Tabellen.
+    - **Schnelle Navigation**: Direktes Anfahren von Ressourcen aus einer zentralen Liste.
+    - **Datenintegrität**: Der Mediator stellt sicher, dass alle Sichten (Flow, Code, Tabelle) auf denselben konsistenten Datenbestand zugreifen.
+- **Status (Aktuell)**: Der `MediatorService` verwaltet diese Manager zentral. Sie nutzen die `TTable`-Komponente zur Darstellung.
+    - **isTransient**: Manager-Komponenten sind transient – sie werden im Editor dargestellt, aber NICHT im Projekt-JSON gespeichert.
+    - **Manager-Übersicht**:
+        - **VisualObjects**: Alle Objekte der Stage (inkl. Klassenname und Scope).
+        - **Tasks**: Alle Workflows inkl. Link-Counter (`usageCount`).
+        - **Actions**: Alle atomaren Operationen inkl. Ziel und Scope.
+        - **Variables**: Alle Datenzustände inkl. Initialwert.
+        - **FlowCharts**: Alle Diagramme der Stage inkl. Node-Anzahl.
+
+### TTable Komponente & Statisches Rendering
+Die `TTable` ist eine Erweiterung von `TWindow`. Für die Nutzung in Sichten außerhalb der Stage (wie dem Management-Tab) bietet die `Stage` Klasse die statische Methode `Stage.renderTable(element, object)`. Dies ermöglicht es, die mächtige Tabellen-Rendering-Logik überall in der Editor-UI wiederzuverwenden.
+
