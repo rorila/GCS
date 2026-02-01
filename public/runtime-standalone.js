@@ -2448,8 +2448,12 @@
     executeVariableEvent(varDef, eventName) {
       const executor = this.host.taskExecutor;
       if (!executor) return;
+      const eventLogId = DebugLogService.getInstance().log("Event", `Triggered: ${varDef.name}.${eventName}`, {
+        objectName: varDef.name,
+        eventName
+      });
       const taskName = `${varDef.name}.${eventName}`;
-      executor.execute(taskName, { sender: varDef }, this.contextVars);
+      executor.execute(taskName, { sender: varDef }, this.contextVars, void 0, 0, eventLogId);
     }
     processListEvents(value, oldValue, varDef) {
       const executor = this.host.taskExecutor;
@@ -8826,7 +8830,11 @@
           clearInterval(interval);
           this.varTimers.delete(prop);
           if (this.taskExecutor && varDef.onTimerEnd) {
-            this.taskExecutor.execute(varDef.onTimerEnd, {}, this.contextVars);
+            const eventLogId = DebugLogService.getInstance().log("Event", `Triggered: ${prop}.onTimerEnd`, {
+              objectName: prop,
+              eventName: "onTimerEnd"
+            });
+            this.taskExecutor.execute(varDef.onTimerEnd, {}, this.contextVars, void 0, 0, eventLogId);
           }
         }
       }, 1e3);
