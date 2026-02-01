@@ -59,6 +59,11 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **UI-Sperre**: Wenn ein Flow existiert, muss die Listen-Ansicht (`TaskEditor.ts`) schreibgeschützt sein. Verwende das `isReadOnly`-Flag in `createSequenceItemElement`.
 - **Synchronisation**: Rufe vor allen Persistenz-Operationen `flowEditor.syncAllTasksFromFlow(project)` auf, um Datenkonsistenz zu garantieren.
 
+## Synchronisation & Persistenz
+- **Pascal -> Flow Sync**: Änderungen im Pascal-Code müssen explizit in den Flow-Editor synchronisiert werden. Nutze dazu `flowEditor.syncActionsFromProject()`. Dies ist besonders wichtig, da Flow-Knoten ihre Daten (`node.data`) teilweise redundant halten, um die UI-Performance zu verbessern.
+- **Local Storage Authority**: Der einzige gültige Schlüssel für die automatische Speicherung im Local Storage ist `gcs_last_project`. Verwende den `ProjectPersistenceService.autoSaveToLocalStorage()`, anstatt `localStorage` direkt anzusprechen.
+- **Save Hooks**: Persistenz-Calls (Auto-Save) sollten immer nach erfolgreichem Parsing (Pascal) oder nach Mediator-Events (Objekt-Manipulation) erfolgen.
+
 ## Action-Check & Referenzsuche
 - **Aufgabe**: Der Action-Check identifiziert unbenutzte Tasks, Aktionen und Variablen, um das Projekt sauber zu halten.
 - **Logik**: `ProjectRegistry.getTaskUsage` ist die Referenz-Implementierung. Sie scannt:
@@ -212,6 +217,7 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
   - **Casing-Konsistenz (Smart-Sync)**: Da Pascal case-insensitive ist, die Engine aber camelCase (z.B. `fillColor`) erwartet, nutzt der Parser eine projektweite Suche nach der bevorzugten Schreibweise. Wenn ein Key (z.B. `fillColor`) bereits im Projekt existiert, wird dieser exakt so genutzt. Fallback ist Kleinschreibung.
   - **FlowChart-Trigger**: Nach jeder Code-Änderung wird das Flow-Diagramm des Tasks invalidiert (Auto-Layout Trigger).
 - **Live-Synchronisation**: Änderungen im Inspector triggern über `refreshPascalView` (Editor.ts) sofort eine Aktualisierung des generierten Pascal-Codes.
+- **Deep Cloning bei Sync**: Bei der Synchronisation von Daten zwischen verschiedenen Editoren (z.B. `FlowEditor.syncActionsFromProject`) MÜSSEN Objekte tiefenkopiert werden (`JSON.parse(JSON.stringify(obj))`). Dies verhindert, dass sich Änderungen in einem Editor unkontrolliert auf andere Editoren oder das zentrale Datenmodell auswirken (Shared References).
 - **Typkonvertierung (autoConvert)**: Benutzereingaben aus Textfeldern sind im DOM immer Strings. Nutze `PropertyHelper.autoConvert(value)` nach der Interpolation, um Werte intelligent zurück in `number` oder `boolean` zu wandeln. Dies ist essenziell für Methoden wie `moveTo`, die numerische Parameter erwarten.
 - **Bereitstellung von Hilfsfunktionen (Scope)**:
   - Funktionen, die in Dialog-Expressions (`${...}`) genutzt werden sollen, müssen sowohl in `JSONDialogRenderer.evaluateExpression` auch in `replaceTemplateVars` registriert werden.
@@ -245,7 +251,14 @@ Wenn eine Stage isoliert im JSON-Tab angezeigt wird (`activeStage`), werden glob
   - Beim Umbenennen (Refactoring) von Tasks, Aktionen oder Variablen müssen IMMER alle Scopes (`project.tasks/actions` UND alle `project.stages[].tasks/actions`) gescannt werden. Siehe `RefactoringManager.ts`.
   - Die isolierte JSON-Ansicht einer Stage (`Editor.refreshJSONView`) muss lokale Daten (`actions`, `tasks`) erhalten und darf sie nicht durch globale Listen überschreiben (Merge-Logik).
 - **Re-rendering**: Änderungen an `TargetObjectSelect` oder `MethodSelect` im Action Editor MÜSSEN einen `this.render()` Aufruf in `updateModelValue` auslösen, damit die Parameter-Eingabefelder dynamisch regeneriert werden.
-- **Expression Scoping**: Beim Erweitern der Dialog-Evaluation (`evaluateExpression`) darauf achten, dass alle benötigten Variablen (wie `dialogData`, `project`) explizit als Funktionsargumente übergeben werden. Direkter Zugriff auf Model-Eigenschaften ohne `dialogData.` Präfix führt zu ReferenceErrors, wenn sie nicht explizit in der Argumentliste stehen.
+- **JSON Inspector & Circularity**:
+    - Der `JSONTreeViewer` nutzt eine pfad-basierte Zirkularitäts-Prüfung (`pathStack`), um echte Loops von einfachen geteilten Objektreferenzen zu unterscheiden.
+    - Warnungen wie `[Zirkuläre Referenz]` erscheinen nur dann, wenn ein Objekt innerhalb seiner eigenen Ahnenreihe erneut vorkommt. Mehrfaches Vorkommen desselben Objekts an unterschiedlichen Stellen im Baum wird als valide Referenz akzeptiert.
+- **Runtime Event Logging**:
+    - Alle Ereignisse, die einen Task oder eine Aktion auslösen, MÜSSEN im `DebugLogService` mit `log('Event', ...)` protokolliert werden.
+    - Dies gilt nicht nur für DOM-Events (Buttons), sondern auch für Variablen-Events (`onTriggerEnter`) und Timer-Events (`onTimerEnd`).
+    - Die `logId` des Events sollte als `parentId` an den `TaskExecutor` oder `ActionExecutor` übergeben werden, damit die Hierarchie im Log erhalten bleibt.
+- **Expression Scoping**: Beim Erweitern der Dialog-Evaluation (`evaluateExpression`) darauf achten, dass alle benötigten Variablen (wie `dialogData`, `project`) explizit als Funktionsargumente übergeben werden. Direkter Zugriff auf Model-Eigenschaften ohne `dialogData.` Präfix führt zu ReferenceErrors, wenn sie nicht explizit in der Argument liste stehen.
 - **Data Collection**: Jede neue Input-Komponente im Dialog-System muss das Attribut `data-name` setzen, damit `collectFormData` sie beim finalen Speichern erfassen kann.
 
 

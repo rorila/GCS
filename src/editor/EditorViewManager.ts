@@ -309,6 +309,10 @@ export class EditorViewManager {
                 // Notify Mediator that project data has changed via Pascal Editor
                 mediatorService.notifyDataChanged(h.project, 'pascal-editor');
 
+                if (h.flowEditor) {
+                    h.flowEditor.syncActionsFromProject();
+                }
+
                 if (h.jsonInspector) {
                     const obj = h.currentSelectedId ? h.findObjectById(h.currentSelectedId) : null;
                     h.jsonInspector.update(obj || h.project);

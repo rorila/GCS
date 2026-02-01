@@ -310,7 +310,17 @@
               },
               "data": {
                 "name": "testVarValueToTrue",
-                "isLinked": false
+                "details": "(nicht definiert)",
+                "showDetails": true,
+                "type": "property",
+                "target": "TestVar",
+                "changes": {
+                  "value": 10
+                },
+                "method": "",
+                "description": "",
+                "uiScope": "stage",
+                "usageCount": 1
               }
             }
           ],
@@ -355,11 +365,11 @@
               "type": "Action",
               "x": 380,
               "y": 80,
-              "width": 200,
-              "height": 60,
+              "width": 320,
+              "height": 80,
               "properties": {
                 "name": "Label_7.captionTrue",
-                "details": "messageVar.value := Trigger zündet",
+                "details": "messageVar.value := Trigger NEU zündet ",
                 "description": ""
               },
               "data": {
@@ -481,7 +491,17 @@
               },
               "data": {
                 "name": "messageVar.triggerOff",
-                "isLinked": true
+                "showDetails": true,
+                "type": "property",
+                "target": "messageVar",
+                "changes": {
+                  "value": "Der Triggerwert ist NEU ungleich 10"
+                },
+                "method": "",
+                "description": "",
+                "details": "messageVar.value := Der Triggerwert ist ungleich 10 ",
+                "uiScope": "stage",
+                "usageCount": 1
               }
             },
             {
@@ -498,7 +518,17 @@
               },
               "data": {
                 "name": "ActionBlaBla",
-                "isLinked": true
+                "details": "DarkBulb.visible := ${true }  ",
+                "showDetails": true,
+                "type": "property",
+                "target": "DarkBulb",
+                "changes": {
+                  "visible": true
+                },
+                "method": "",
+                "description": "",
+                "uiScope": "stage",
+                "usageCount": 1
               }
             },
             {
@@ -515,7 +545,17 @@
               },
               "data": {
                 "name": "Action2",
-                "isLinked": true
+                "showDetails": true,
+                "type": "property",
+                "target": "brightBulb",
+                "changes": {
+                  "visible": false
+                },
+                "method": "",
+                "description": "",
+                "details": "brightBulb.visible := ${false }  ",
+                "uiScope": "stage",
+                "usageCount": 1
               }
             }
           ],
@@ -598,7 +638,17 @@
               },
               "data": {
                 "name": "Action3",
-                "isLinked": true
+                "showDetails": false,
+                "type": "property",
+                "target": "TestVar",
+                "changes": {
+                  "value": 9
+                },
+                "method": "",
+                "description": "",
+                "details": "TestVar.value := 9",
+                "uiScope": "stage",
+                "usageCount": 1
               }
             }
           ],
@@ -732,7 +782,8 @@
             }
           ],
           "triggerMode": "local-sync",
-          "description": ""
+          "description": "",
+          "params": []
         },
         {
           "name": "ShowNotOkStatus",
@@ -776,19 +827,23 @@
             "value": 10
           },
           "method": "",
-          "description": ""
+          "description": "",
+          "uiScope": "stage",
+          "usageCount": 1
         },
         {
           "name": "Label_7.captionTrue",
           "details": "messageVar.value := Trigger zündet",
-          "showDetails": false,
+          "showDetails": true,
           "type": "property",
           "target": "messageVar",
           "changes": {
-            "value": "Trigger Neu zündet"
+            "value": "Trigger NEU zündet"
           },
           "method": "",
-          "description": ""
+          "description": "",
+          "uiScope": "stage",
+          "usageCount": 1
         },
         {
           "name": "BrightBulb.visibleTrue",
@@ -800,7 +855,9 @@
             "visible": true
           },
           "method": "",
-          "description": ""
+          "description": "",
+          "uiScope": "stage",
+          "usageCount": 1
         },
         {
           "name": "DarkBulb.visibleFalse",
@@ -812,7 +869,9 @@
             "visible": false
           },
           "method": "",
-          "description": ""
+          "description": "",
+          "uiScope": "stage",
+          "usageCount": 1
         },
         {
           "name": "messageVar.triggerOff",
@@ -820,11 +879,13 @@
           "type": "property",
           "target": "messageVar",
           "changes": {
-            "value": "Der Triggerwert ist Neu ungleich 10"
+            "value": "Der Triggerwert ist NEU ungleich 10"
           },
           "method": "",
           "description": "",
-          "details": "messageVar.value := Der Triggerwert ist ungleich 10 "
+          "details": "messageVar.value := Der Triggerwert ist ungleich 10 ",
+          "uiScope": "stage",
+          "usageCount": 1
         },
         {
           "name": "ActionBlaBla",
@@ -836,7 +897,9 @@
             "visible": true
           },
           "method": "",
-          "description": ""
+          "description": "",
+          "uiScope": "stage",
+          "usageCount": 1
         },
         {
           "name": "Action2",
@@ -848,7 +911,9 @@
           },
           "method": "",
           "description": "",
-          "details": "brightBulb.visible := ${false }  "
+          "details": "brightBulb.visible := ${false }  ",
+          "uiScope": "stage",
+          "usageCount": 1
         },
         {
           "name": "Action3",
@@ -860,7 +925,9 @@
           },
           "method": "",
           "description": "",
-          "details": "TestVar.value := 9"
+          "details": "TestVar.value := 9",
+          "uiScope": "stage",
+          "usageCount": 1
         }
       ]
     },

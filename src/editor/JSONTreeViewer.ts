@@ -24,7 +24,6 @@ export class JSONTreeViewer {
     // Callbacks
     private static onChange?: (data: any) => void;
 
-    private static seenObjects: WeakSet<object>;
     private static currentTree: HTMLElement | null = null;
     private static matchElements: HTMLElement[] = [];
     private static rootData: any = null;
@@ -47,7 +46,6 @@ export class JSONTreeViewer {
         container.style.color = '#d4d4d4';
         container.style.backgroundColor = '#1e1e1e';
 
-        this.seenObjects = new WeakSet();
         this.matchElements = [];
 
         // Toolbar is managed by the caller (Editor.ts) to allow for external controls like mode-toggle
@@ -57,13 +55,16 @@ export class JSONTreeViewer {
         tree.className = 'json-tree';
         tree.style.padding = '10px';
         tree.setAttribute('translate', 'no');
-        tree.appendChild(this.renderNode(null, data, 0, true, null));
+
+        // Use a Set to track the current ancestry path for TRUE circular reference detection
+        const pathStack = new Set<any>();
+        tree.appendChild(this.renderNode(null, data, 0, true, null, pathStack));
         container.appendChild(tree);
 
         this.currentTree = tree;
     }
 
-    private static renderNode(key: string | null, value: any, depth: number, isLast: boolean, parentContext: { obj: any, key: string | number } | null): HTMLElement {
+    private static renderNode(key: string | null, value: any, depth: number, isLast: boolean, parentContext: { obj: any, key: string | number } | null, pathStack: Set<any>): HTMLElement {
         const node = document.createElement('div');
         node.className = 'json-node';
         node.style.paddingLeft = `${depth * 1.5}em`;
@@ -73,9 +74,10 @@ export class JSONTreeViewer {
         const isExpandable = type === 'object' || type === 'array';
 
         if (isExpandable && value !== null) {
-            if (this.seenObjects.has(value)) return this.renderWarning(key, depth, isLast, '[Zirkuläre Referenz]');
+            // Check only if object is already in the CURRENT path (True circularity)
+            if (pathStack.has(value)) return this.renderWarning(key, depth, isLast, '[Zirkuläre Referenz]');
             if (depth >= this.MAX_DEPTH) return this.renderWarning(key, depth, isLast, '[Max. Tiefe erreicht]');
-            this.seenObjects.add(value);
+            pathStack.add(value);
         }
 
         const line = document.createElement('div');
@@ -158,7 +160,7 @@ export class JSONTreeViewer {
             }
 
             entries.forEach(([k, v]: [string | number, any], index: number) => {
-                children.appendChild(this.renderNode(type === 'object' ? String(k) : null, v, depth + 1, index === entries.length - 1, { obj: value, key: k }));
+                children.appendChild(this.renderNode(type === 'object' ? String(k) : null, v, depth + 1, index === entries.length - 1, { obj: value, key: k }, pathStack));
             });
             node.appendChild(children);
 
@@ -172,6 +174,9 @@ export class JSONTreeViewer {
             bracketClose.textContent = closeBracket + (isLast ? '' : ',');
             closingLine.appendChild(bracketClose);
             node.appendChild(closingLine);
+
+            // Important: Remove from path stack after processing children
+            pathStack.delete(value);
         } else {
             const valueSpan = document.createElement('span');
             valueSpan.className = `json-value json-${type}`;

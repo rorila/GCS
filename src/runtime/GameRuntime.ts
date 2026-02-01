@@ -443,7 +443,11 @@ export class GameRuntime implements IVariableHost {
                 clearInterval(interval);
                 this.varTimers.delete(prop);
                 if (this.taskExecutor && varDef.onTimerEnd) {
-                    this.taskExecutor.execute(varDef.onTimerEnd, {}, this.contextVars);
+                    const eventLogId = DebugLogService.getInstance().log('Event', `Triggered: ${prop}.onTimerEnd`, {
+                        objectName: prop,
+                        eventName: 'onTimerEnd'
+                    });
+                    this.taskExecutor.execute(varDef.onTimerEnd, {}, this.contextVars, undefined, 0, eventLogId);
                 }
             }
         }, 1000);

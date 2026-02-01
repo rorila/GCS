@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.4.2] - 2026-02-01
+### Behoben
+- **Pascal Synchronisation**: Automatisches Update des Flow-Editors bei Code-Änderungen im Pascal-Editor.
+    - Integration von `flowEditor.syncActionsFromProject()` in den `oninput`-Handler des Pascal-Editors.
+    - Robustere Suche nach Aktionen über alle Stages hinweg in `FlowEditor.ts`.
+- **Zirkuläre Referenzen**: Behebung fälschlicher Warnungen im JSON-Inspector.
+    - **Fix (Circular References)**: Zirkularitäts-Warnungen im JSON-Inspector korrigiert (pfad-basierte Prüfung statt globaler WeakSet).
+- **Fix (Event Logging)**: Variablen-Events (z.B. `onTriggerEnter`, `onTimerEnd`) werden nun korrekt im Debug-Log als Event-Einträge protokolliert.
+- **Sync (FlowEditor)**: Deep Cloning bei der Synchronisation von Aktionen implementiert, um Shared References zu vermeiden.
+- **Persistenz & Local Storage**: Beseitigung redundanter Einträge und Vereinheitlichung der Speicherung.
+    - Umstellung aller Speicheroperationen auf den einheitlichen Key `gcs_last_project`.
+    - Konsolidierung der Speicherlogik in `Editor.ts` durch Nutzung des `ProjectPersistenceService`.
+
 ## [2.4.1] - 2026-02-01
 ### Behoben
 - **Debug-Log System**: Vollständige Wiederherstellung der Funktionalität und Sichtbarkeit.

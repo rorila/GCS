@@ -443,6 +443,8 @@ export class FlowEditor {
         if (!this.project) return;
 
         let syncCount = 0;
+        // Holen aller Aktionen über alle Scopes hinweg
+        const allActions = projectRegistry.getActions('all');
 
         // Helper: Update action data in a single element
         const syncElement = (el: any) => {
@@ -451,8 +453,7 @@ export class FlowEditor {
             const actionName = el.properties?.name || el.data?.name;
             if (!actionName) return;
 
-            const stage = this.getActiveStage();
-            const projectAction = (this.project!.actions || []).find(a => a.name === actionName) || (stage?.actions || []).find(a => a.name === actionName);
+            const projectAction = allActions.find(a => a.name === actionName);
             if (projectAction) {
                 // Update the element's data with the current action definition
                 // Keep node-specific properties (isEmbeddedInternal, parentProxyId, etc.)
@@ -462,12 +463,12 @@ export class FlowEditor {
                     if (el.data?.[key] !== undefined) preserved[key] = el.data[key];
                 });
 
-                el.data = { ...projectAction, ...preserved };
+                el.data = { ...JSON.parse(JSON.stringify(projectAction)), ...preserved };
                 syncCount++;
             }
         };
 
-        // 1. Sync FlowCharts (stored in project.flowCharts)
+        // 1. Sync GLOBAL FlowCharts
         if (this.project.flowCharts) {
             Object.keys(this.project.flowCharts).forEach(chartKey => {
                 const chart = this.project!.flowCharts![chartKey];
@@ -477,7 +478,21 @@ export class FlowEditor {
             });
         }
 
-        // 2. Sync legacy task.flowGraph (if any)
+        // 2. Sync STAGE FlowCharts
+        if (this.project.stages) {
+            this.project.stages.forEach(stage => {
+                if (stage.flowCharts) {
+                    Object.keys(stage.flowCharts).forEach(chartKey => {
+                        const chart = stage.flowCharts![chartKey];
+                        if (chart?.elements) {
+                            chart.elements.forEach(syncElement);
+                        }
+                    });
+                }
+            });
+        }
+
+        // 3. Sync legacy task.flowGraph (if any)
         this.project.tasks.forEach(task => {
             const anyTask = task as any;
             if (anyTask.flowGraph?.elements) {
@@ -485,13 +500,12 @@ export class FlowEditor {
             }
         });
 
-        // 3. Sync currently loaded nodes in the editor
+        // 4. Sync currently loaded nodes in the editor UI
         this.nodes.forEach(node => {
             if (node.getType() !== 'Action') return;
 
             const actionName = node.Name;
-            const stage = this.getActiveStage();
-            const projectAction = (this.project!.actions || []).find(a => a.name === actionName) || (stage?.actions || []).find(a => a.name === actionName);
+            const projectAction = allActions.find(a => a.name === actionName);
             if (projectAction) {
                 const preserveKeys = ['isEmbeddedInternal', 'parentProxyId', 'parentParams', 'showDetails', 'originalId'];
                 const preserved: any = {};
@@ -499,7 +513,7 @@ export class FlowEditor {
                     if (node.data?.[key] !== undefined) preserved[key] = node.data[key];
                 });
 
-                node.data = { ...projectAction, ...preserved };
+                node.data = { ...JSON.parse(JSON.stringify(projectAction)), ...preserved };
             }
         });
 

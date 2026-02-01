@@ -2232,8 +2232,7 @@ export class Editor implements IViewHost {
 
     public updateProjectJSON() {
         if (this.project) {
-            localStorage.setItem('last_project', JSON.stringify(this.project));
-            console.log('[Editor] Project JSON updated in localStorage');
+            projectPersistenceService.autoSaveToLocalStorage(this.project);
         }
     }
 

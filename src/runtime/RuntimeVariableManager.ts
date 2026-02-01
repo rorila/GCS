@@ -1,5 +1,6 @@
 import { ReactiveRuntime } from './ReactiveRuntime';
 import { TaskExecutor } from './TaskExecutor';
+import { DebugLogService } from '../services/DebugLogService';
 
 export interface IVariableHost {
     project: any;
@@ -230,9 +231,15 @@ export class RuntimeVariableManager {
         const executor = this.host.taskExecutor;
         if (!executor) return;
 
+        // Log to DebugLogService
+        const eventLogId = DebugLogService.getInstance().log('Event', `Triggered: ${varDef.name}.${eventName}`, {
+            objectName: varDef.name,
+            eventName: eventName
+        });
+
         // The TaskExecutor now handles the lookup (direct, onEvent map, or named task)
         const taskName = `${varDef.name}.${eventName}`;
-        executor.execute(taskName, { sender: varDef }, this.contextVars);
+        executor.execute(taskName, { sender: varDef }, this.contextVars, undefined, 0, eventLogId);
     }
 
     private processListEvents(value: any, oldValue: any, varDef: any) {
