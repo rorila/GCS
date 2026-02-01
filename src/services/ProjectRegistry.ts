@@ -419,9 +419,10 @@ export class ProjectRegistry {
             const scanSeq = (seq: any[]) => {
                 if (!seq) return;
                 seq.forEach(item => {
-                    if (item.type === 'task' && item.name === name) refs.push(`Task: ${task.name} -> Task-Aufruf`);
-                    if (item.thenTask === name) refs.push(`Task: ${task.name} -> Then-Task`);
-                    if (item.elseTask === name) refs.push(`Task: ${task.name} -> Else-Task`);
+                    if (item.type === 'task' && item.name === name) refs.push(`➡️ Wird aufgerufen von Task: "${task.name}"`);
+                    if (item.thenTask === name) refs.push(`➡️ Aufruf (Folge-Task) in: "${task.name}"`);
+                    if (item.elseTask === name) refs.push(`➡️ Aufruf (Else-Zweig) in: "${task.name}"`);
+                    if (item.resultTask === name) refs.push(`➡️ Aufruf (Ergebnis-Zweig) in: "${task.name}"`);
                     if (item.body) scanSeq(item.body);
                 });
             };
@@ -446,7 +447,12 @@ export class ProjectRegistry {
                 Object.entries(target).forEach(([key, val]) => {
                     if (val === name) {
                         const isLikelyEvent = key.startsWith('on') || key === 'onValueTrue' || key === 'onValueFalse' || key === 'onChange';
-                        refs.push(`${source} -> ${isLikelyEvent ? 'Event' : 'Property'}: ${path}${key}`);
+                        const cleanKey = key.replace(/^on/, '');
+                        if (isLikelyEvent) {
+                            refs.push(`⚡ Gestartet durch Event "${cleanKey}" von ${source}`);
+                        } else {
+                            refs.push(`🔗 Referenziert in Eigenschaft "${path}${key}" von ${source}`);
+                        }
                     }
                     if (key === 'Tasks' || key === 'events' || key === 'properties') checkProps(val, `${key}.`);
                 });
@@ -466,9 +472,9 @@ export class ProjectRegistry {
             const scanSeq = (seq: any[]) => {
                 if (!seq) return;
                 seq.forEach(item => {
-                    if (item.type === 'action' && item.name === name) refs.push(`Task: ${task.name} -> Verwendet Aktion: ${name}`);
-                    if (item.thenAction === name) refs.push(`Task: ${task.name} -> Condition (Then): ${name}`);
-                    if (item.elseAction === name) refs.push(`Task: ${task.name} -> Condition (Else): ${name}`);
+                    if (item.type === 'action' && item.name === name) refs.push(`🎬 Wird ausgeführt von Task: "${task.name}"`);
+                    if (item.thenAction === name) refs.push(`🎬 Aufruf (Folge-Aktion) in: "${task.name}"`);
+                    if (item.elseAction === name) refs.push(`🎬 Aufruf (Else-Zweig) in: "${task.name}"`);
                     if (item.body) scanSeq(item.body);
                 });
             };
@@ -488,12 +494,16 @@ export class ProjectRegistry {
             const scanSeq = (seq: any[]) => {
                 if (!seq) return;
                 seq.forEach(item => {
-                    if (varRegex.test(JSON.stringify(item))) refs.push(`Task: ${task.name} -> Referenziert Variable: ${name}`);
+                    if (varRegex.test(JSON.stringify(item))) refs.push(`📦 Referenziert in Task: "${task.name}"`);
                     if (item.type === 'action') {
                         const action = item as any;
-                        if (action.variableName === name || action.resultVariable === name) refs.push(`Task: ${task.name} -> Aktion nutzt Variable: ${name}`);
+                        if (action.variableName === name || action.resultVariable === name) {
+                            refs.push(`📦 Genutzt als Ziel/Quelle in Aktion von Task: "${task.name}"`);
+                        }
                     }
-                    if (item.condition && (item.condition.variable === name)) refs.push(`Task: ${task.name} -> Bedingung nutzt Variable: ${name}`);
+                    if (item.condition && (item.condition.variable === name)) {
+                        refs.push(`📦 Genutzt in Bedingung von Task: "${task.name}"`);
+                    }
                     if (item.body) scanSeq(item.body);
                 });
             };
@@ -501,7 +511,7 @@ export class ProjectRegistry {
         });
 
         this.getAllObjectsWithSource().forEach(({ obj, source }) => {
-            if (varRegex.test(JSON.stringify(obj))) refs.push(`${source} Objekt: ${obj.name} -> Binding auf Variable: ${name}`);
+            if (varRegex.test(JSON.stringify(obj))) refs.push(`🔗 Gebunden an Objekt "${obj.name}" (${source})`);
         });
 
         return refs;
@@ -518,6 +528,127 @@ export class ProjectRegistry {
         }
         return results;
     }
+
+    /**
+     * Performs a project-wide Static Deep-Scan analysis to find all logically reachable
+     * Tasks, Actions, and Variables.
+     */
+    public getLogicalUsage(): { tasks: Set<string>, actions: Set<string>, variables: Set<string> } {
+        if (!this.project) return { tasks: new Set(), actions: new Set(), variables: new Set() };
+        const proj = this.project;
+
+        const usedTasks = new Set<string>();
+        const usedActions = new Set<string>();
+        const usedVariables = new Set<string>();
+
+        console.log(`[LogicalUsage] Starting Static Deep-Scan for Project: ${proj.meta.name}`);
+
+        // 1. Inventory: Get all existing names
+        const allTasks = this.getTasks('all', false).map(t => t.name.trim());
+        const allActions = this.getActions('all', false).map(a => a.name.trim());
+        const allVars: string[] = [];
+
+        // Collect variable names (global + stage)
+        (proj.variables || []).forEach(v => { if (v.name) allVars.push(v.name.trim()); });
+        proj.stages?.forEach(s => {
+            (s.variables || []).forEach(v => { if (v.name) allVars.push(v.name.trim()); });
+            (s.objects || []).forEach((obj: any) => {
+                if ((obj.isVariable || obj.type === 'TVariable' || obj.type === 'TTimer' || obj.type === 'TWindow') && obj.name) {
+                    const trimmed = obj.name.trim();
+                    if (!allVars.includes(trimmed)) allVars.push(trimmed);
+                }
+            });
+        });
+
+        console.log(`[LogicalUsage] Inventory: ${allTasks.length} Tasks, ${allActions.length} Actions, ${allVars.length} Variables`);
+
+        // 2. Deep Walk: Scan entire project structure
+        // We use a Set of definition objects to correctly ignore their own .name properties
+        const definitionObjects = new Set<any>();
+        proj.tasks?.forEach(t => definitionObjects.add(t));
+        proj.actions?.forEach(a => definitionObjects.add(a));
+        proj.variables?.forEach(v => definitionObjects.add(v));
+        proj.stages?.forEach(s => {
+            s.tasks?.forEach((t: any) => definitionObjects.add(t));
+            s.actions?.forEach((a: any) => definitionObjects.add(a));
+            s.variables?.forEach((v: any) => definitionObjects.add(v));
+            s.objects?.forEach((o: any) => {
+                if (o.isVariable || o.type === 'TVariable' || o.type === 'TTimer' || o.type === 'TWindow') {
+                    definitionObjects.add(o);
+                }
+            });
+        });
+
+        const scanValue = (val: any, path: string = '', parentObj: any = null) => {
+            if (val === null || val === undefined) return;
+
+            if (typeof val === 'string') {
+                const trimmed = val.trim();
+
+                const key = path.split('.').pop() || '';
+
+                // IGNORE: If this string is the NAME of its parent definition object
+                // we don't want to count the definition itself as usage.
+                if ((key === 'name' || key === 'taskName') && definitionObjects.has(parentObj)) {
+                    return;
+                }
+
+                // Check for Task usage
+                if (allTasks.includes(trimmed)) {
+                    if (!usedTasks.has(trimmed)) {
+                        console.log(`  [Logic-Usage] Found Task: "${trimmed}" at ${path}`);
+                        usedTasks.add(trimmed);
+                    }
+                }
+                // Check for Action usage
+                else if (allActions.includes(trimmed)) {
+                    if (!usedActions.has(trimmed)) {
+                        console.log(`  [Logic-Usage] Found Action: "${trimmed}" at ${path}`);
+                        usedActions.add(trimmed);
+                    }
+                }
+                // Check for Variable usage (Whole string)
+                else if (allVars.includes(trimmed)) {
+                    if (!usedVariables.has(trimmed)) {
+                        console.log(`  [Logic-Usage] Found Variable: "${trimmed}" at ${path}`);
+                        usedVariables.add(trimmed);
+                    }
+                }
+
+                // Check for Template Refs ${varName}
+                if (trimmed.includes('${')) {
+                    const regex = /\$\{([^}.]+)[}.]/g;
+                    let match;
+                    while ((match = regex.exec(trimmed)) !== null) {
+                        const varName = match[1].trim();
+                        if (allVars.includes(varName) && !usedVariables.has(varName)) {
+                            // console.log(`  [Found] Template usage: "${varName}" in ${trimmed} at ${path}`);
+                            usedVariables.add(varName);
+                        }
+                    }
+                }
+                return;
+            }
+
+            if (Array.isArray(val)) {
+                val.forEach((item, i) => scanValue(item, `${path}[${i}]`, val));
+                return;
+            }
+
+            if (typeof val === 'object') {
+                Object.entries(val).forEach(([k, subVal]) => {
+                    scanValue(subVal, path ? `${path}.${k}` : k, val);
+                });
+            }
+        };
+
+        // Start scanning at project root
+        scanValue(proj);
+
+        console.log(`[LogicalUsage] Finished. Marked as used: ${usedTasks.size} Tasks, ${usedActions.size} Actions, ${usedVariables.size} Variables.`);
+        return { tasks: usedTasks, actions: usedActions, variables: usedVariables };
+    }
+
 
     public renameVariable(oldName: string, newName: string): boolean {
         if (!this.project || !this.validateVariableName(newName).valid) return false;

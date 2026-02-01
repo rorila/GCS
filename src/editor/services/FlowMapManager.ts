@@ -7,7 +7,6 @@ import { FlowVariable } from '../flow/FlowVariable';
 import { FlowStart } from '../flow/FlowStart';
 import { FlowConnection } from '../flow/FlowConnection';
 import { libraryService } from '../../services/LibraryService';
-import { serviceRegistry } from '../../services/ServiceRegistry';
 import { projectRegistry } from '../../services/ProjectRegistry';
 
 export interface FlowMapHost {
@@ -209,10 +208,11 @@ export class FlowMapManager {
 
         const actionX = 50;
         const gridSize = this.host.flowStage.cellSize;
-
         const snappedActionX = Math.round(actionX / gridSize) * gridSize;
         let currentActionY = Math.round(90 / gridSize) * gridSize;
         let currentTaskY = Math.round(90 / gridSize) * gridSize;
+        let currentVarY = Math.round(90 / gridSize) * gridSize;
+
         const spacingY = Math.round(70 / gridSize) * gridSize;
         const baseNodeHeight = gridSize * 3;
 
@@ -225,7 +225,10 @@ export class FlowMapManager {
         };
 
         const activeStage = this.host.getActiveStage();
+        const isGlobalView = !activeStage || activeStage.type === 'main';
+        const usage = projectRegistry.getLogicalUsage();
 
+        // 1. Prepare Widths and Maps
         let maxActionWidth = 150;
         const actionMap = new Map<string, any>();
         (project.actions || []).forEach((a: any) => actionMap.set(a.name, a));
@@ -259,322 +262,118 @@ export class FlowMapManager {
         });
         const varX = taskX + maxTaskWidth + 80;
 
-        const stageRelevantTasks = new Set<string>();
-        const usedActions = new Set<string>();
-
-        const activeStageId = activeStage ? activeStage.id : null;
-        const isGlobalView = !activeStage || activeStage.type === 'main';
-
-        this.host.getCurrentObjects().forEach(obj => {
-            const mappings = (obj as any).Tasks || {};
-            Object.values(mappings).forEach(t => {
-                if (typeof t === 'string') stageRelevantTasks.add(t);
-            });
-        });
-
-        const relevantVars = [...(project.variables || []), ...(activeStage?.variables || [])];
-        relevantVars.forEach(v => {
-            Object.entries(v).forEach(([k, val]) => {
-                if (k.startsWith('on') && typeof val === 'string' && val) {
-                    stageRelevantTasks.add(val);
-                }
-            });
-            const taskMappings = (v as any).Tasks || {};
-            Object.values(taskMappings).forEach(t => {
-                if (typeof t === 'string' && t) stageRelevantTasks.add(t);
-            });
-        });
-
-        if (activeStage?.flowCharts) {
-            Object.keys(activeStage.flowCharts).forEach(taskName => {
-                if (taskName !== 'global') stageRelevantTasks.add(taskName);
-            });
-        }
-
-        currentTasks.forEach((t: any) => {
-            if (stageRelevantTasks.has(t.name) && t.actionSequence) {
-                const processSeq = (seq: any[]) => {
-                    seq.forEach(item => {
-                        if (item.type === 'action' && item.name) usedActions.add(item.name);
-                        if (item.type === 'condition') {
-                            if (item.thenAction) usedActions.add(item.thenAction);
-                            if (item.elseAction) usedActions.add(item.elseAction);
-                        }
-                    });
-                };
-                processSeq(t.actionSequence);
-            }
-        });
-
-        const relevantCharts: any = {};
-        if (activeStage?.flowCharts) {
-            Object.entries(activeStage.flowCharts).forEach(([name, chart]) => {
-                if (name !== 'global') relevantCharts[name] = chart;
-            });
-        }
-
-        Object.values(relevantCharts).forEach((chart: any) => {
-            (chart.elements || []).forEach((el: any) => {
-                const name = el.data?.name || el.data?.actionName || el.properties?.name;
-                if (el.type === 'Action' && name) usedActions.add(name);
-                if (el.type === 'Condition' && el.data) {
-                    if (el.data.thenAction) usedActions.add(el.data.thenAction);
-                    if (el.data.elseAction) usedActions.add(el.data.elseAction);
-                }
-            });
-        });
-
-        const objectStageMap = new Map<string, string>();
-        if (project.stages) {
-            project.stages.forEach(stage => {
-                if (stage.objects) {
-                    stage.objects.forEach((obj: any) => {
-                        objectStageMap.set(obj.name, stage.id);
-                    });
-                }
-            });
-        }
-        project.objects.forEach(obj => {
-            if (!objectStageMap.has(obj.name)) objectStageMap.set(obj.name, 'legacy_main');
-        });
-
-        const globalServices = new Set(serviceRegistry.listServices());
-        const globalSingletons = new Set(['StageController', 'GameState', 'InputController', 'GameLoop', 'RemoteGameManager', 'Player1', 'Player2']);
-
-        const localActions = activeStage?.actions || [];
-
-        const actionItems = currentActions
-            .map((action: any) => {
-                const isLocal = localActions.some((la: any) => la.name === action.name);
-                return { action, isLocal };
-            })
-            .filter((item: { action: any, isLocal: boolean }) => {
-                const action = item.action;
-                const actionName = action.name || "";
-                const isLocal = item.isLocal;
-
-                // Apply filterText if set (Priority: Filter FIRST)
-                const filterText = (this.host as any).filterText;
-                if (filterText && !actionName.toLowerCase().includes(filterText)) {
-                    return false;
-                }
-
-                if (isLocal) return true;
-                if (isGlobalView) return true;
-
-                const dotIndex = actionName.indexOf('.');
-                const prefix = dotIndex !== -1 ? actionName.substring(0, dotIndex) : null;
-
-                if (prefix && (globalServices.has(prefix) || globalSingletons.has(prefix))) {
-                    if (prefix === 'StageController') {
-                        const method = action.method || (action as any).methodName;
-                        if (method === 'goToStage') {
-                            const targetStageId = action.params && action.params[0];
-                            if (targetStageId === activeStageId) return false;
-                        }
-                        if (method === 'goToMainStage' && activeStage?.type === 'main') return false;
-                    }
-                    return true;
-                }
-
-                if (usedActions.has(actionName)) return true;
-
-                const targetsToCheck = [prefix, action.target, (action as any).targetName, action.source].filter(Boolean) as string[];
-                for (const t of targetsToCheck) {
-                    if (objectStageMap.has(t)) {
-                        // If it belongs to a SPECIFIC other stage, we still show it in the overview 
-                        // but it might be filtered in the Link Map.
-                        // For the general overview, we keep it.
-                    }
-                }
-
-                const lowerName = actionName.toLowerCase();
-                const words = lowerName.split(/[\s\._]+/).filter((w: string) => w.length > 2);
-
-                for (const [objName] of objectStageMap.entries()) {
-                    const lowerObj = objName.toLowerCase();
-                    if (lowerName.includes(lowerObj) || words.some((w: string) => lowerObj.includes(w))) {
-                        return true;
-                    }
-                }
-
-                // Default: If no clear stage assignment, show it unless assigned to another stage
-                return true;
-            });
-
-        const actionCounts = new Map<string, number>();
-        project.actions.forEach(a => {
-            actionCounts.set(a.name, (actionCounts.get(a.name) || 0) + 1);
-        });
-
+        // 2. Render Headers
         const headerY = Math.round(20 / gridSize) * gridSize;
+        const createHeader = (id: string, x: number, text: string, color: string, width: number) => {
+            const header = new FlowStart(id, x, headerY, this.host.canvas, gridSize);
+            header.Text = text;
+            header.Width = width;
+            header.Height = 40;
+            header.getElement().style.color = color;
+            header.getElement().style.fontWeight = "bold";
+            header.getElement().style.textAlign = "center";
+            this.host.nodes.push(header);
+        };
+        createHeader('header-actions', snappedActionX, "Alle Actions", "#00ffff", maxActionWidth);
+        createHeader('header-tasks', taskX, "Alle Tasks", "#00ff00", maxTaskWidth);
+        createHeader('header-vars', varX, "Alle Variablen", "#ffcc00", maxVarWidth);
 
-        const actionHeader = new FlowStart('header-actions', snappedActionX, headerY, this.host.canvas, gridSize);
-        actionHeader.Text = "Alle Actions";
-        actionHeader.Width = maxActionWidth;
-        actionHeader.Height = 40;
-        actionHeader.getElement().style.color = "#00ffff";
-        actionHeader.getElement().style.fontWeight = "bold";
-        actionHeader.getElement().style.textAlign = "center";
-        this.host.nodes.push(actionHeader);
+        // 3. Render Actions
+        const filterText = (this.host as any).filterText?.toLowerCase();
+        currentActions
+            .filter(a => !filterText || (a.name || "").toLowerCase().includes(filterText))
+            .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+            .forEach((action, idx) => {
+                const isUsed = usage.actions.has(action.name);
+                const refs = projectRegistry.findReferences(action.name);
 
-        const taskHeader = new FlowStart('header-tasks', taskX, headerY, this.host.canvas, gridSize);
-        taskHeader.Text = "Alle Tasks";
-        taskHeader.Width = maxTaskWidth;
-        taskHeader.Height = 40;
-        taskHeader.getElement().style.color = "#00ff00";
-        taskHeader.getElement().style.fontWeight = "bold";
-        taskHeader.getElement().style.textAlign = "center";
-        this.host.nodes.push(taskHeader);
+                const node = new FlowAction('over-action-' + idx, snappedActionX, currentActionY, this.host.canvas, gridSize);
+                node.Name = action.name || "Unbenannte Aktion";
+                node.setText(node.Name);
+                node.Width = maxActionWidth;
+                node.Height = baseNodeHeight;
+                node.data = { ...action, isOverviewLink: true, type: 'Action', canDelete: !isUsed };
+                node.setDetailed(true);
+                (node as any).setUsageInfo(refs);
+                if (!isUsed) node.setUnused(true);
 
-        const varHeader = new FlowStart('header-vars', varX, headerY, this.host.canvas, gridSize);
-        varHeader.Text = "Alle Variablen";
-        varHeader.Width = maxVarWidth;
-        varHeader.Height = 40;
-        varHeader.getElement().style.color = "#ffcc00";
-        varHeader.getElement().style.fontWeight = "bold";
-        varHeader.getElement().style.textAlign = "center";
-        this.host.nodes.push(varHeader);
-
-        actionItems.sort((a: any, b: any) => (a.action.name || "").localeCompare(b.action.name || ""));
-
-        actionItems.forEach((item: any, displayIdx: number) => {
-            const action = item.action;
-            const refs = projectRegistry.findReferences(action.name);
-            const isUsed = refs.length > 0;
-            const isDuplicate = (actionCounts.get(action.name) || 0) > 1;
-
-            const nodeId = 'over-action-' + displayIdx + '-' + (action.name || 'unnamed').replace(/\s+/g, '_');
-            const node = new FlowAction(nodeId, snappedActionX, currentActionY, this.host.canvas, gridSize);
-
-            node.Name = action.name || "Unbenannte Aktion";
-            node.setText(node.Name);
-            node.Width = maxActionWidth;
-            node.Height = baseNodeHeight;
-
-            node.data = { ...action, isOverviewLink: true, type: action.type || 'Action', canDelete: !isUsed, originalIndex: item.originalIndex };
-            node.setDetailed(true);
-
-            (node as any).setUsageInfo(refs);
-            if (!isUsed) node.setUnused(true);
-            if (isDuplicate) node.setDuplicate(true);
-
-            this.host.nodes.push(node);
-            this.host.setupNodeListeners(node);
-            currentActionY += spacingY;
-        });
-
-        const localTasks = activeStage?.tasks || [];
-        const taskItems = currentTasks
-            .map((task: any) => {
-                const isLocal = localTasks.some((lt: any) => lt.name === task.name);
-                return { task, isLocal };
-            })
-            .filter((item: any) => {
-                const task = item.task;
-                const taskName = task.name || "";
-                const isLocal = item.isLocal;
-
-                // Apply filterText (Priority: Filter FIRST)
-                const filterText = (this.host as any).filterText;
-                if (filterText && !taskName.toLowerCase().includes(filterText)) {
-                    return false;
-                }
-
-                if (isLocal) return true;
-                if (isGlobalView) return true;
-
-                if (stageRelevantTasks.has(taskName)) return true;
-
-                // Default: Show if no specific stage assignment excludes it (balanced view)
-                return true;
+                this.host.nodes.push(node);
+                this.host.setupNodeListeners(node);
+                currentActionY += spacingY;
             });
 
-        taskItems.sort((a: any, b: any) => (a.task.name || "").localeCompare(b.task.name || ""));
+        // 4. Render Tasks
+        currentTasks
+            .filter(t => !filterText || (t.name || "").toLowerCase().includes(filterText))
+            .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+            .forEach((task, idx) => {
+                const isUsed = usage.tasks.has(task.name);
+                const refs = projectRegistry.findReferences(task.name);
+                const isLocal = (activeStage?.tasks || []).some((lt: any) => lt.name === task.name);
 
-        taskItems.forEach((item: any, displayIdx: number) => {
-            const task = item.task;
-            const refs = projectRegistry.findReferences(task.name);
-            const isUsed = refs.length > 0;
+                // Filter logic: Only show if local, global, or used in current stage
+                if (!isLocal && !isGlobalView && !isUsed) return;
 
-            const nodeId = 'over-task-' + displayIdx + '-' + (task.name || 'unnamed').replace(/\s+/g, '_');
-            const node = new FlowTask(nodeId, taskX, currentTaskY, this.host.canvas, gridSize);
+                const node = new FlowTask('over-task-' + idx, taskX, currentTaskY, this.host.canvas, gridSize);
+                node.Name = task.name || "Unbenannter Task";
+                node.setText(node.Name);
+                node.Width = maxTaskWidth;
+                node.Height = baseNodeHeight;
 
-            node.Name = task.name || "Unbenannter Task";
-            node.setText(node.Name);
-            node.Width = maxTaskWidth;
-            node.Height = baseNodeHeight;
-
-            let usedLibraryTaskName: string | null = null;
-            const flowData = activeStage?.flowCharts?.[task.name] ||
-                project.flowCharts?.[task.name] ||
-                (task as any)?.flowChart ||
-                (task as any)?.flowGraph;
-
-            if (flowData?.elements) {
-                for (const el of flowData.elements) {
-                    const elTaskName = el.data?.taskName;
-                    if (elTaskName && libraryService.getTask(elTaskName)) {
-                        usedLibraryTaskName = elTaskName;
-                        break;
+                // Library Check
+                let usedLib = null;
+                const flow = activeStage?.flowCharts?.[task.name] || project.flowCharts?.[task.name] || (task as any).flowChart;
+                if (flow?.elements) {
+                    for (const el of flow.elements) {
+                        if (el.data?.taskName && libraryService.getTask(el.data.taskName)) {
+                            usedLib = el.data.taskName;
+                            break;
+                        }
                     }
                 }
-            }
 
-            const isLibraryBased = !!usedLibraryTaskName;
-            if (isLibraryBased) {
-                node.setLinked(true);
-                node.Details = `📚 ${usedLibraryTaskName}`;
-            }
+                if (usedLib) {
+                    node.setLinked(true);
+                    node.Details = `📚 ${usedLib}`;
+                }
 
-            node.data = {
-                isOverviewLink: true,
-                type: 'Task',
-                canDelete: !isUsed,
-                taskName: task.name,
-                isLocal: item.isLocal,
-                isLibraryBased,
-                usedLibraryTaskName
-            };
-            node.setDetailed(true);
+                node.data = { isOverviewLink: true, type: 'Task', canDelete: !isUsed, taskName: task.name, isLocal };
+                node.setDetailed(true);
+                (node as any).setUsageInfo(refs);
+                if (!isUsed) node.setUnused(true);
+                if (isLocal) {
+                    node.getElement().style.borderLeft = '6px solid #00ff00';
+                    const currentTitle = node.getElement().title || "";
+                    node.getElement().title = (currentTitle ? currentTitle + "\n---\n" : "") + '📍 Stage-lokaler Task';
+                }
 
-            (node as any).setUsageInfo(refs);
-            if (!isUsed) node.setUnused(true);
+                this.host.nodes.push(node);
+                this.host.setupNodeListeners(node);
+                currentTaskY += spacingY;
+            });
 
-            if (item.isLocal) {
-                node.getElement().style.borderLeft = '6px solid #00ff00';
-                node.getElement().title = 'Stage-lokaler Task';
-            }
+        // 5. Render Variables
+        currentVariables
+            .filter(v => !filterText || (v.name || "").toLowerCase().includes(filterText))
+            .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+            .forEach((v, idx) => {
+                const isUsed = usage.variables.has(v.name);
+                const refs = projectRegistry.findReferences(v.name);
 
-            this.host.nodes.push(node);
-            this.host.setupNodeListeners(node);
-            currentTaskY += spacingY;
-        });
+                const node = new FlowComponent('over-var-' + idx, varX, currentVarY, this.host.canvas, gridSize);
+                node.Name = v.name || "Unbenannte Variable";
+                node.setText(node.Name);
+                node.Width = maxVarWidth;
+                node.Height = baseNodeHeight;
+                node.data = { isOverviewLink: true, type: 'VariableDecl', canDelete: !isUsed };
+                node.setDetailed(true);
+                (node as any).setUsageInfo(refs);
+                if (!isUsed) node.setUnused(true);
 
-        let currentVarY = Math.round(90 / gridSize) * gridSize;
-        currentVariables.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-        currentVariables.forEach((v, idx) => {
-            const refs = projectRegistry.findReferences(v.name);
-            const isUsed = refs.length > 0;
-
-            const nodeId = 'over-var-' + idx + '-' + (v.name || 'unnamed').replace(/\s+/g, '_');
-            const node = new FlowComponent(nodeId, varX, currentVarY, this.host.canvas, gridSize);
-
-            node.Name = v.name || "Unbenannte Variable";
-            node.setText(node.Name);
-            node.Width = maxVarWidth;
-            node.Height = baseNodeHeight;
-
-            node.data = { isOverviewLink: true, type: 'VariableDecl', canDelete: !isUsed };
-            node.setDetailed(true);
-
-            (node as any).setUsageInfo(refs);
-            if (!isUsed) node.setUnused(true);
-
-            this.host.nodes.push(node);
-            this.host.setupNodeListeners(node);
-            currentVarY += spacingY;
-        });
+                this.host.nodes.push(node);
+                this.host.setupNodeListeners(node);
+                currentVarY += spacingY;
+            });
 
         this.host.updateScrollArea();
     }
@@ -638,65 +437,74 @@ export class FlowMapManager {
     }
 
     public highlightUnusedActions(highlight: boolean): void {
+        this.host.nodes.forEach(node => {
+            const el = node.getElement();
+            el.style.outline = '';
+            el.style.boxShadow = '';
+            el.style.animation = '';
+        });
+
+        if (!highlight) return;
+
+        const usage = projectRegistry.getLogicalUsage();
         const unusedDetails: any[] = [];
         let unusedActionCount = 0;
         let unusedTaskCount = 0;
         let unusedVariableCount = 0;
 
-        if (highlight) {
-            console.group(`[FlowEditor] Action-Check Result`);
-        }
+        console.group(`[FlowEditor] Action-Check Result`);
 
         this.host.nodes.forEach(node => {
             const nodeType = node.getType();
-            const isUnused = node.data?.canDelete === true;
-            const name = node.Name || (node as any).taskName || "unknown";
+            let name = (node as any).Name || (node as any).taskName || "unknown";
+            name = name.trim();
+            let isUnused = false;
 
-            if ((nodeType === 'Action' || nodeType === 'Task' || nodeType === 'VariableDecl' || nodeType === 'TVariable') && isUnused) {
+            if (nodeType === 'Action') {
+                isUnused = !usage.actions.has(name);
+                if (isUnused) {
+                    unusedActionCount++;
+                    // console.log(`  [Check] Action "${name}" (ID: ${node.id}) is UNUSED. Usage Set contains:`, Array.from(usage.actions));
+                }
+            } else if (nodeType === 'Task') {
+                isUnused = !usage.tasks.has(name);
+                if (isUnused) unusedTaskCount++;
+            } else if (nodeType === 'VariableDecl' || nodeType === 'TVariable') {
+                isUnused = !usage.variables.has(name);
+                if (isUnused) unusedVariableCount++;
+            }
+
+            if (isUnused) {
                 unusedDetails.push({
                     Type: nodeType,
-                    Name: name,
-                    Refs: (node.data?.references || []).length > 0 ? node.data.references : "(Keine Referenzen gefunden!)"
+                    Name: name
                 });
 
                 const el = node.getElement();
+                el.style.outline = '4px solid #ff5722';
+                el.style.boxShadow = '0 0 20px rgba(255, 87, 34, 0.8)';
+                el.style.animation = 'pulse-unused 1s infinite alternate';
 
-                if (nodeType === 'Action') unusedActionCount++;
-                if (nodeType === 'Task') unusedTaskCount++;
-                if (nodeType === 'VariableDecl' || nodeType === 'TVariable') unusedVariableCount++;
-
-                if (highlight) {
-                    el.style.outline = '4px solid #ff5722';
-                    el.style.boxShadow = '0 0 20px rgba(255, 87, 34, 0.8)';
-                    el.style.animation = 'pulse-unused 1s infinite alternate';
-
-                    if (!document.getElementById('unused-action-styles')) {
-                        const style = document.createElement('style');
-                        style.id = 'unused-action-styles';
-                        style.textContent = `
-                            @keyframes pulse-unused {
-                                from { box-shadow: 0 0 10px rgba(255, 87, 34, 0.6); }
-                                to { box-shadow: 0 0 25px rgba(255, 87, 34, 1); }
-                            }
-                        `;
-                        document.head.appendChild(style);
-                    }
-                } else {
-                    el.style.outline = '';
-                    el.style.boxShadow = '';
-                    el.style.animation = '';
+                if (!document.getElementById('unused-action-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'unused-action-styles';
+                    style.textContent = `
+                        @keyframes pulse-unused {
+                            from { box-shadow: 0 0 10px rgba(255, 87, 34, 0.6); }
+                            to { box-shadow: 0 0 25px rgba(255, 87, 34, 1); }
+                        }
+                    `;
+                    document.head.appendChild(style);
                 }
             }
         });
 
-        if (highlight) {
-            console.log(`Found ${unusedActionCount} Actions, ${unusedTaskCount} Tasks unused.`);
-            if (unusedDetails.length > 0) {
-                console.table(unusedDetails);
-            } else {
-                console.log("Alles super! Keine ungenutzten Elemente gefunden.");
-            }
-            console.groupEnd();
+        console.log(`Found ${unusedActionCount} Actions, ${unusedTaskCount} Tasks, ${unusedVariableCount} Variables unused.`);
+        if (unusedDetails.length > 0) {
+            console.table(unusedDetails);
+        } else {
+            console.log("Alles super! Keine ungenutzten Elemente gefunden.");
         }
+        console.groupEnd();
     }
 }

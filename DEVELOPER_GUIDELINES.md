@@ -80,14 +80,17 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **Local Storage Authority**: Der einzige gültige Schlüssel für die automatische Speicherung im Local Storage ist `gcs_last_project`. Verwende den `ProjectPersistenceService.autoSaveToLocalStorage()`, anstatt `localStorage` direkt anzusprechen.
 - **Save Hooks**: Persistenz-Calls (Auto-Save) sollten immer nach erfolgreichem Parsing (Pascal) oder nach Mediator-Events (Objekt-Manipulation) erfolgen.
 
-## Action-Check & Referenzsuche
-- **Aufgabe**: Der Action-Check identifiziert unbenutzte Tasks, Aktionen und Variablen, um das Projekt sauber zu halten.
-- **Logik**: `ProjectRegistry.getTaskUsage` ist die Referenz-Implementierung. Sie scannt:
-    1.  Alle Task-Sequenzen (direkte Aufrufe, Then-Zweige, Else-Zweige).
-    2.  Alle Objekt-Events (z.B. `onEnter`, `onClick`).
-    3.  Alle Variablen-Events (z.B. `onValueTrue`, `onChange`).
-- **Hammer-Scan (Sicherheitsnetz)**: Zusätzlich zum strukturierten Scan führt die Registry einen "Hammer-Scan" via JSON-String-Suche durch. Falls ein Task-Name im JSON vorkommt, aber strukturell nicht zugeordnet werden konnte, wird er dennoch als "benutzt" markiert (mit Warnung/Hinweis). Dies verhindert Datenverlust beim Löschen vermeintlich unbenutzter Elemente.
-- **Transparenz**: Die Projekt-Statistiken und Belegung (Referenz-Counter) sind zentral über den Management-Tab einsehbar. Der veraltete visuelle Action-Check direkt im FlowEditor wurde zugunsten dieser zentralen Übersicht entfernt.
+### Action-Check & Referenzsuche (v2.5.2)
+- **Aufgabe**: Der Action-Check identifiziert unbenutzte Tasks, Aktionen und Variablen projektweit.
+- **Logik (Statischer Deep-Scan)**: `ProjectRegistry.getLogicalUsage()` scannt das gesamte Projekt-JSON rekursiv nach Namensvorkommen.
+- **Exklusion**: Um "Self-Usage" zu vermeiden, werden die `name`-Felder der Definitionsobjekte (`definitionObjects`) ignoriert.
+- **Tooltips im Flow-Editor**:
+    - ⚡ für Events / Trigger (z.B. Clicked, Collision)
+    - ➡️ für Task-Aufrufe (Explizite Aufrufer)
+    - 🎬 für Aktionen (Action-Ebene)
+    - 📦 für Variablen-Referenzen (Task/Aktions-Ebene)
+    - 🔗 für Objekt-Bindings (Stage-Ebene)
+- **Visualisierung**: Verwaiste Elemente pulsieren rot. Detail-Infos (Trigger/Aufrufer) sind via Hover-Tooltip verfügbar.
 
 ## Debugging
 - **JSON-Vergleich**: Nutze `JSON.stringify`, um tiefere Unterschiede in Objekt-Strukturen zu erkennen, falls die Identität gleich scheint.
