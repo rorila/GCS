@@ -89,11 +89,19 @@ export class EditorViewManager {
         if (managementPanel) managementPanel.style.display = 'none';
 
         // Hide standard toolboxes
-        const jsonToolbox = document.getElementById('json-toolbox-content');
-        if (jsonToolbox) jsonToolbox.style.display = 'none';
-
         // Hide flow toolbox if it exists
         if (h.flowToolbox) h.flowToolbox.hide();
+
+        // 2. Clear state
+        h.selectObject(null);
+
+        // Hide standard toolboxes and inspectors
+        const jsonToolbox = document.getElementById('json-toolbox-content');
+        const jsonInspector = document.getElementById('json-inspector-content');
+        const toolboxFooter = document.getElementById('toolbox-footer');
+        if (jsonToolbox) jsonToolbox.style.display = 'none';
+        if (jsonInspector) jsonInspector.style.display = 'none';
+        if (toolboxFooter) toolboxFooter.style.display = 'none';
 
         // Stop debug logging when switching views (focus loss)
         if (h.debugLog) {
@@ -105,6 +113,9 @@ export class EditorViewManager {
             h.setRunMode(false);
             if (stageWrapper) stageWrapper.style.display = 'flex';
             if (jsonToolbox) jsonToolbox.style.display = 'block';
+            if (jsonInspector) jsonInspector.style.display = 'block';
+            // Debug Log button hidden in stage view
+            if (toolboxFooter) toolboxFooter.style.display = 'none';
 
             if (h.jsonInspector) {
                 h.jsonInspector.setFlowContext(null);
@@ -112,6 +123,10 @@ export class EditorViewManager {
         } else if (view === 'run') {
             h.setRunMode(true);
             if (stageWrapper) stageWrapper.style.display = 'flex';
+            if (toolboxFooter) {
+                toolboxFooter.style.display = 'block';
+                toolboxFooter.style.minHeight = '60px';
+            }
         } else if (view === 'json') {
             h.setRunMode(false);
             if (jsonPanel) {
@@ -124,6 +139,9 @@ export class EditorViewManager {
         } else if (view === 'flow') {
             h.setRunMode(false);
             if (flowPanel) flowPanel.style.display = 'block';
+            if (jsonInspector) jsonInspector.style.display = 'block';
+            // Debug Log button hidden in flow view
+            if (toolboxFooter) toolboxFooter.style.display = 'none';
 
             if (h.flowEditor) {
                 h.flowEditor.show();

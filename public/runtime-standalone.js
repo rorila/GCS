@@ -421,6 +421,116 @@
     }
   };
 
+  // src/services/DebugLogService.ts
+  var _DebugLogService = class _DebugLogService {
+    constructor() {
+      __publicField(this, "logs", []);
+      __publicField(this, "listeners", []);
+      __publicField(this, "maxLogs", 1e3);
+      __publicField(this, "counter", 0);
+      __publicField(this, "enabled", false);
+    }
+    setEnabled(enabled) {
+      console.log(`[DebugLogService] setEnabled(${enabled})`);
+      this.enabled = enabled;
+    }
+    isEnabled() {
+      return this.enabled;
+    }
+    static getInstance() {
+      if (!_DebugLogService.instance) {
+        _DebugLogService.instance = new _DebugLogService();
+      }
+      return _DebugLogService.instance;
+    }
+    log(type, message, options = {}) {
+      if (!this.enabled) return "";
+      const id = `log-${Date.now()}-${this.counter++}`;
+      const entry = {
+        id,
+        type,
+        message,
+        timestamp: Date.now(),
+        parentId: options.parentId,
+        children: [],
+        isExpanded: true,
+        data: options.data,
+        objectName: options.objectName,
+        eventName: options.eventName
+      };
+      if (options.parentId) {
+        const parent = this.findEntry(this.logs, options.parentId);
+        if (parent) {
+          parent.children.push(entry);
+          this.notify();
+          return id;
+        }
+      }
+      this.logs.push(entry);
+      if (this.logs.length > this.maxLogs) {
+        this.logs.shift();
+      }
+      this.notify();
+      return id;
+    }
+    findEntry(list, id) {
+      for (const entry of list) {
+        if (entry.id === id) return entry;
+        const found = this.findEntry(entry.children, id);
+        if (found) return found;
+      }
+      return void 0;
+    }
+    getLogs() {
+      return [...this.logs];
+    }
+    clear() {
+      this.logs = [];
+      this.notify();
+    }
+    subscribe(listener) {
+      this.listeners.push(listener);
+      listener(this.logs);
+      return () => {
+        this.listeners = this.listeners.filter((l) => l !== listener);
+      };
+    }
+    notify() {
+      this.listeners.forEach((l) => l(this.logs));
+    }
+    toggleExpand(id) {
+      const entry = this.findEntry(this.logs, id);
+      if (entry) {
+        entry.isExpanded = !entry.isExpanded;
+        this.notify();
+      }
+    }
+    getUniqueObjects() {
+      const objects = /* @__PURE__ */ new Set();
+      const traverse = (list) => {
+        list.forEach((e) => {
+          if (e.objectName) objects.add(e.objectName);
+          traverse(e.children);
+        });
+      };
+      traverse(this.logs);
+      return Array.from(objects).sort();
+    }
+    getUniqueEventsForObject(objectName) {
+      const events = /* @__PURE__ */ new Set();
+      const traverse = (list) => {
+        list.forEach((e) => {
+          if (e.objectName === objectName && e.eventName) events.add(e.eventName);
+          traverse(e.children);
+        });
+      };
+      traverse(this.logs);
+      return Array.from(events).sort();
+    }
+  };
+  __publicField(_DebugLogService, "instance");
+  var DebugLogService = _DebugLogService;
+
   // src/runtime/PropertyWatcher.ts
   var PropertyWatcher = class {
     constructor() {
@@ -513,6 +623,18 @@
       const target = this.unwrap(object);
       const objectWatchers = this.watchers.get(target);
       const objName = target.name || target.id || "Unknown";
+      if (DebugLogService.getInstance().isEnabled()) {
+        const displayNew = typeof newValue === "object" ? JSON.stringify(newValue).substring(0, 50) : newValue;
+        const displayOld = typeof oldValue === "object" ? JSON.stringify(oldValue).substring(0, 50) : oldValue;
+        DebugLogService.getInstance().log(
+          "Variable",
+          `${objName}.${propertyPath} changed: ${displayOld} -> ${displayNew}`,
+          {
+            objectName: objName,
+            data: { newValue, oldValue }
+          }
+        );
+      }
       if (!objectWatchers) {
         this.notifyGlobal(target, propertyPath, newValue, oldValue);
         return;
@@ -1259,116 +1381,6 @@
       ]
     });
   }
-
-  // src/services/DebugLogService.ts
-  var _DebugLogService = class _DebugLogService {
-    constructor() {
-      __publicField(this, "logs", []);
-      __publicField(this, "listeners", []);
-      __publicField(this, "maxLogs", 1e3);
-      __publicField(this, "counter", 0);
-      __publicField(this, "enabled", false);
-    }
-    setEnabled(enabled) {
-      console.log(`[DebugLogService] setEnabled(${enabled})`);
-      this.enabled = enabled;
-    }
-    isEnabled() {
-      return this.enabled;
-    }
-    static getInstance() {
-      if (!_DebugLogService.instance) {
-        _DebugLogService.instance = new _DebugLogService();
-      }
-      return _DebugLogService.instance;
-    }
-    log(type, message, options = {}) {
-      if (!this.enabled) return "";
-      const id = `log-${Date.now()}-${this.counter++}`;
-      const entry = {
-        id,
-        type,
-        message,
-        timestamp: Date.now(),
-        parentId: options.parentId,
-        children: [],
-        isExpanded: true,
-        data: options.data,
-        objectName: options.objectName,
-        eventName: options.eventName
-      };
-      if (options.parentId) {
-        const parent = this.findEntry(this.logs, options.parentId);
-        if (parent) {
-          parent.children.push(entry);
-          this.notify();
-          return id;
-        }
-      }
-      this.logs.push(entry);
-      if (this.logs.length > this.maxLogs) {
-        this.logs.shift();
-      }
-      this.notify();
-      return id;
-    }
-    findEntry(list, id) {
-      for (const entry of list) {
-        if (entry.id === id) return entry;
-        const found = this.findEntry(entry.children, id);
-        if (found) return found;
-      }
-      return void 0;
-    }
-    getLogs() {
-      return [...this.logs];
-    }
-    clear() {
-      this.logs = [];
-      this.notify();
-    }
-    subscribe(listener) {
-      this.listeners.push(listener);
-      listener(this.logs);
-      return () => {
-        this.listeners = this.listeners.filter((l) => l !== listener);
-      };
-    }
-    notify() {
-      this.listeners.forEach((l) => l(this.logs));
-    }
-    toggleExpand(id) {
-      const entry = this.findEntry(this.logs, id);
-      if (entry) {
-        entry.isExpanded = !entry.isExpanded;
-        this.notify();
-      }
-    }
-    getUniqueObjects() {
-      const objects = /* @__PURE__ */ new Set();
-      const traverse = (list) => {
-        list.forEach((e) => {
-          if (e.objectName) objects.add(e.objectName);
-          traverse(e.children);
-        });
-      };
-      traverse(this.logs);
-      return Array.from(objects).sort();
-    }
-    getUniqueEventsForObject(objectName) {
-      const events = /* @__PURE__ */ new Set();
-      const traverse = (list) => {
-        list.forEach((e) => {
-          if (e.objectName === objectName && e.eventName) events.add(e.eventName);
-          traverse(e.children);
-        });
-      };
-      traverse(this.logs);
-      return Array.from(events).sort();
-    }
-  };
-  __publicField(_DebugLogService, "instance");
-  var DebugLogService = _DebugLogService;
 
   // src/runtime/ActionExecutor.ts
   var ActionExecutor = class {
@@ -8687,19 +8699,27 @@
     handleEvent(objectId, eventName, data = {}) {
       const obj = this.objects.find((o) => o.id === objectId);
       if (!obj) return;
+      const eventLogId = DebugLogService.getInstance().log("Event", `Triggered: ${obj.name}.${eventName}`, {
+        objectName: obj.name,
+        eventName,
+        data
+      });
       if (obj.onEvent) {
         const actions = obj.onEvent[eventName];
         if (actions) {
-          this.actionExecutor.execute(actions, {
-            vars: this.contextVars,
-            contextVars: this.contextVars,
-            eventData: data
-          });
+          const actionList = Array.isArray(actions) ? actions : [actions];
+          for (const action of actionList) {
+            this.actionExecutor.execute(action, {
+              vars: this.contextVars,
+              contextVars: this.contextVars,
+              eventData: data
+            }, {}, void 0, eventLogId);
+          }
         }
       }
       if (this.taskExecutor) {
         const taskName = `${obj.name}.${eventName}`;
-        this.taskExecutor.execute(taskName, { ...data, sender: obj }, this.contextVars);
+        this.taskExecutor.execute(taskName, { ...data, sender: obj }, this.contextVars, obj, 0, eventLogId);
       }
     }
     updateRemoteState(objectIdOrName, state) {

@@ -1,3 +1,5 @@
+import { DebugLogService } from '../services/DebugLogService';
+
 /**
  * PropertyWatcher - Watches object properties and triggers callbacks on changes
  * 
@@ -119,6 +121,20 @@ export class PropertyWatcher {
         const target = this.unwrap(object);
         const objectWatchers = this.watchers.get(target);
         const objName = target.name || target.id || 'Unknown';
+
+        // Log to DebugLogService
+        if (DebugLogService.getInstance().isEnabled()) {
+            const displayNew = typeof newValue === 'object' ? JSON.stringify(newValue).substring(0, 50) : newValue;
+            const displayOld = typeof oldValue === 'object' ? JSON.stringify(oldValue).substring(0, 50) : oldValue;
+
+            DebugLogService.getInstance().log('Variable',
+                `${objName}.${propertyPath} changed: ${displayOld} -> ${displayNew}`,
+                {
+                    objectName: objName,
+                    data: { newValue, oldValue }
+                }
+            );
+        }
 
         if (!objectWatchers) {
             // Still notify global listeners even if no specific object watchers exist

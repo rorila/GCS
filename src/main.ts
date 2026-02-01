@@ -12,6 +12,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <h2>Toolbox <span id="toolbox-layout-toggle" style="font-size: 16px; cursor: pointer; float: right; padding: 0 8px;" title="Toggle Horizontal/Vertical Layout">⇄</span></h2>
         <div id="toolbox-content" style="display: none;"></div>
         <div id="json-toolbox-content"></div>
+        <div id="toolbox-footer"></div>
       </aside>
       
       <!-- Main content area -->

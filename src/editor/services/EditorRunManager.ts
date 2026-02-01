@@ -152,11 +152,6 @@ export class EditorRunManager {
         this.activeGameServers = [];
         this.runtimeObjects = null;
         this.stopAnimationTicker();
-
-        if (this.editor.debugLog) {
-            this.editor.debugLog.dispose();
-            this.editor.debugLog = null;
-        }
     }
 
     private handleRuntimeEvent(id: string, eventName: string, data?: any) {

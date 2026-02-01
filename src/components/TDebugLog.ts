@@ -12,11 +12,15 @@ export class TDebugLog {
     private isPaused: boolean = false;
     private unsubscribe: (() => void) | null = null;
     private project: any | null = null;
+    private isVisible: boolean = false;
 
     constructor() {
         console.log('[TDebugLog] Initializing...');
-        // Add a toggle button to the page FIRST
-        this.createToggleButton();
+        // Add a toggle button to the page with a small delay to ensure DOM is ready
+        setTimeout(() => {
+            console.log('[TDebugLog] Running delayed createToggleButton');
+            this.createToggleButton();
+        }, 500);
 
         this.element = document.createElement('div');
         this.element.id = 'debug-log-panel';
@@ -50,15 +54,16 @@ export class TDebugLog {
         btn.id = 'debug-log-toggle';
         btn.innerHTML = '⚪ DEBUG LOG';
 
-        // Try to find the toolbox content area
-        const toolbox = document.getElementById('json-toolbox-content');
+        // Try to find the toolbox footer area
+        const footer = document.getElementById('toolbox-footer');
         const asideToolbox = document.getElementById('toolbox');
 
-        // Check if we are in the editor (toolbox exists and is not hidden by a parent)
-        const inEditor = toolbox && asideToolbox && window.getComputedStyle(asideToolbox).display !== 'none';
+        // Check if we are in the editor (toolbox elements exist)
+        const inEditor = !!(footer && asideToolbox);
+        console.log(`[TDebugLog] inEditor check: footer=${!!footer}, asideToolbox=${!!asideToolbox} -> result=${inEditor}`);
 
-        if (inEditor && toolbox) {
-            console.log('[TDebugLog] Editor detected, placing button in toolbox');
+        if (inEditor && footer) {
+            console.log('[TDebugLog] Editor detected, placing button in toolbox footer');
             btn.style.cssText = `
                 display: block;
                 width: calc(100% - 24px);
@@ -76,9 +81,7 @@ export class TDebugLog {
                 transition: all 0.2s;
                 text-align: center;
             `;
-            // Ensure toolbox-content is visible if it was hidden
-            toolbox.style.display = 'block';
-            toolbox.appendChild(btn);
+            footer.appendChild(btn);
         } else {
             console.log('[TDebugLog] Standalone/Fallback detected, placing fixed button');
             btn.style.cssText = `
@@ -102,14 +105,20 @@ export class TDebugLog {
         }
 
         btn.onclick = () => {
-            const isRecording = this.service.isEnabled();
-            if (!isRecording) {
-                // Erster Klick: Aufnahme starten UND Panel zeigen
-                this.setRecordingActive(true);
+            console.log(`[TDebugLog] Button clicked. isVisible=${this.isVisible}, id=${this.element.id}, parent=${this.element.parentElement?.tagName}`);
+
+            // Critical check: if isVisible is out of sync with actual style
+            const actualTransform = this.element.style.transform;
+            console.log(`[TDebugLog] Current transform style: "${actualTransform}"`);
+
+            if (!this.isVisible) {
                 this.setPanelVisible(true);
+                if (!this.service.isEnabled()) {
+                    console.log('[TDebugLog] Enabling recording');
+                    this.setRecordingActive(true);
+                }
             } else {
-                // Zweiter Klick: Nur Aufnahme stoppen, Panel offen lassen für Analyse
-                this.setRecordingActive(false);
+                this.setPanelVisible(false);
             }
         };
         console.log('[TDebugLog] Toggle button ready');
@@ -121,7 +130,17 @@ export class TDebugLog {
     }
 
     private setPanelVisible(visible: boolean) {
+        console.log(`[TDebugLog] setPanelVisible(${visible}). Current zIndex=${this.element.style.zIndex}`);
+        this.isVisible = visible;
         this.element.style.transform = visible ? 'translateX(0)' : 'translateX(100%)';
+        this.element.style.opacity = visible ? '1' : '0';
+        this.element.style.pointerEvents = visible ? 'all' : 'none';
+
+        // Ensure the element is actually in document.body
+        if (!this.element.parentElement) {
+            console.warn('[TDebugLog] Element was not in DOM, re-appending to body');
+            document.body.appendChild(this.element);
+        }
     }
 
     /**
@@ -376,9 +395,15 @@ export class TDebugLog {
     private renderLogs(logs: LogEntry[]) {
         if (this.isPaused) return;
 
+        console.log(`[TDebugLog] Rendering ${logs.length} logs...`);
         this.updateObjectDropdown();
         this.updateEventDropdown();
         this.logList.innerHTML = '';
+
+        if (logs.length === 0) {
+            this.logList.innerHTML = '<div style="padding: 20px; color: #666; font-style: italic;">No logs recorded yet. Start interacting with the game!</div>';
+            return;
+        }
 
         // Root entries are shown if they or any child matches the filter
         // Root context check happens inside recursive filter
@@ -393,19 +418,22 @@ export class TDebugLog {
 
     private shouldShowRecursive(e: LogEntry, parentMatched: boolean): boolean {
         // 1. Determine if this node matches the Content Filter (Object/Event)
-        // Parent matched? OR Local Context Match? OR Deep Data Match?
         const localMatch = this.isContextMatch(e);
         const deepMatch = this.isDeepMatch(e);
         const effectiveMatched = parentMatched || localMatch || deepMatch;
 
-        // 2. Check Type Visibility (Checkbox hierarchy)
+        // 2. Check Type Visibility
         const typeOK = this.matchesTypeHierarchy(e);
 
         // 3. Should self be visible?
         const showSelf = effectiveMatched && typeOK;
 
-        // 4. Check children (pass down effective match)
+        // 4. Check children
         const childMatch = e.children.some(child => this.shouldShowRecursive(child, effectiveMatched));
+
+        if (showSelf) {
+            console.log(`[TDebugLog] Match found: [${e.type}] ${e.message.substring(0, 30)}...`);
+        }
 
         return showSelf || childMatch;
     }
@@ -423,26 +451,8 @@ export class TDebugLog {
     }
 
     private matchesTypeHierarchy(e: LogEntry): boolean {
-        const taskEnabled = this.typeFilters.has('Task');
-        const actionEnabled = this.typeFilters.has('Action');
-        const variableEnabled = this.typeFilters.has('Variable');
-        const conditionEnabled = this.typeFilters.has('Condition');
-
-        if (e.type === 'Event' && !this.typeFilters.has('Event')) return false;
-
-        // Task needs Task
-        if (e.type === 'Task' && !taskEnabled) return false;
-
-        // Action needs Task + Action
-        if (e.type === 'Action' && (!taskEnabled || !actionEnabled)) return false;
-
-        // Variable needs Task + Action + Variable
-        if (e.type === 'Variable' && (!taskEnabled || !actionEnabled || !variableEnabled)) return false;
-
-        // Condition needs Task + Condition
-        if (e.type === 'Condition' && (!taskEnabled || !conditionEnabled)) return false;
-
-        return true;
+        // Simple independence: Show if the type itself is enabled
+        return this.typeFilters.has(e.type);
     }
 
     private renderEntry(entry: LogEntry, container: HTMLElement, level: number, parentMatched: boolean) {

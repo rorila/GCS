@@ -571,7 +571,7 @@
               "type": "Task",
               "x": 80,
               "y": 100,
-              "width": 180,
+              "width": 200,
               "height": 60,
               "properties": {
                 "name": "SetTriggerEnterFalse",
@@ -581,7 +581,7 @@
               "data": {
                 "name": "SetTriggerEnterFalse",
                 "paramValues": {},
-                "showDetails": true
+                "showDetails": false
               }
             },
             {
@@ -589,8 +589,8 @@
               "type": "Action",
               "x": 360,
               "y": 100,
-              "width": 160,
-              "height": 80,
+              "width": 140,
+              "height": 60,
               "properties": {
                 "name": "Action3",
                 "details": "TestVar.value := 9",
@@ -785,7 +785,7 @@
           "type": "property",
           "target": "messageVar",
           "changes": {
-            "value": "Trigger NEU zündet"
+            "value": "Trigger Neu zündet"
           },
           "method": "",
           "description": ""
@@ -820,7 +820,7 @@
           "type": "property",
           "target": "messageVar",
           "changes": {
-            "value": "Der Triggerwert NEU ist ungleich 10"
+            "value": "Der Triggerwert ist Neu ungleich 10"
           },
           "method": "",
           "description": "",
@@ -852,7 +852,7 @@
         },
         {
           "name": "Action3",
-          "showDetails": true,
+          "showDetails": false,
           "type": "property",
           "target": "TestVar",
           "changes": {

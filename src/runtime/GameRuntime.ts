@@ -5,6 +5,7 @@ import { AnimationManager } from './AnimationManager';
 import { GameLoopManager } from './GameLoopManager';
 import { RuntimeVariableManager, IVariableHost } from './RuntimeVariableManager';
 import { RuntimeStageManager } from './RuntimeStageManager';
+import { DebugLogService } from '../services/DebugLogService';
 
 import { hydrateObjects } from '../utils/Serialization';
 import { TStageController } from '../components/TStageController';
@@ -283,20 +284,31 @@ export class GameRuntime implements IVariableHost {
         const obj = this.objects.find(o => o.id === objectId);
         if (!obj) return;
 
+        // Log to DebugLogService
+        const eventLogId = DebugLogService.getInstance().log('Event', `Triggered: ${obj.name}.${eventName}`, {
+            objectName: obj.name,
+            eventName: eventName,
+            data: data
+        });
+
         if (obj.onEvent) {
             const actions = obj.onEvent[eventName];
             if (actions) {
-                this.actionExecutor.execute(actions, {
-                    vars: this.contextVars,
-                    contextVars: this.contextVars,
-                    eventData: data
-                });
+                // Actions can be a single object or an array
+                const actionList = Array.isArray(actions) ? actions : [actions];
+                for (const action of actionList) {
+                    this.actionExecutor.execute(action, {
+                        vars: this.contextVars,
+                        contextVars: this.contextVars,
+                        eventData: data
+                    }, {}, undefined, eventLogId);
+                }
             }
         }
 
         if (this.taskExecutor) {
             const taskName = `${obj.name}.${eventName}`;
-            this.taskExecutor.execute(taskName, { ...data, sender: obj }, this.contextVars);
+            this.taskExecutor.execute(taskName, { ...data, sender: obj }, this.contextVars, obj, 0, eventLogId);
         }
     }
 

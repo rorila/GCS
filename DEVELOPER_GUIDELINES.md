@@ -69,8 +69,15 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **Transparenz**: Der `FlowEditor` bietet einen Diagnostics-Modus (`Action-Check`), der die Differenz zwischen definierten und referenzierten Elementen visuell hervorhebt.
 
 ## Debugging
-- **Identitäts-Prüfung**: Bei Verdacht auf "Geister-Objekte" (Logik läuft, Rendering steht), prüfe die Objekt-Identität mit einem temporären "Tag" (`__debugId`), das vor der Proxy-Erstellung angehängt wird.
 - **JSON-Vergleich**: Nutze `JSON.stringify`, um tiefere Unterschiede in Objekt-Strukturen zu erkennen, falls die Identität gleich scheint.
+- **Debug-Log System (Runtime Recording)**: 
+    - Der `DebugLogService` (Singleton) sammelt Ereignisse während der Ausführung. 
+    - **Anbindung**:
+        - `GameRuntime.handleEvent`: Primärer Einstiegspunkt für Benutzerinteraktionen (`Event`).
+        - `PropertyWatcher.notify`: Automatische Erfassung von Eigenschafts- und Variablenänderungen (`Variable`).
+        - `TaskExecutor / ActionExecutor`: Protokollierung der Logik-Ausführung (`Task`, `Action`, `Condition`).
+    - **Hierarchie**: Übergebe beim Start einer Kette (z.B. in `handleEvent`) die resultierende `logId` als `parentId` an nachfolgende Aufrufe. Dies ermöglicht die eingerückte Darstellung im Panel.
+    - **Filter**: Das Panel filtert nach Typ, Objekt und Event. Die Filter sind unabhängig voneinander.
 
 ## Internationalisierung (i18n)
 - **Browser-Übersetzung kontrollieren**: Code-Bereiche (Pascal, JSON, Flow-Details, Expressions) müssen mit `translate="no"` markiert werden, um Browser-Übersetzungen (Google Translate etc.) zu verhindern.

@@ -155,6 +155,7 @@ export class Editor implements IViewHost {
         libraryService.loadLibrary();
 
         // Initialize JSON-based UI components
+        this.debugLog = new TDebugLog();
         this.initJSONInspector();
         this.initJSONToolbox();
         this.initComponentPalette();
@@ -184,7 +185,11 @@ export class Editor implements IViewHost {
                 }, 1000);
             } catch (err) {
                 console.error('[Editor] Failed to restore project from last session:', err);
+                this.switchView('stage');
             }
+        } else {
+            // No last project, ensure we are in stage view
+            this.switchView('stage');
         }
 
         // Setup toolbox layout toggle button
@@ -2164,7 +2169,7 @@ export class Editor implements IViewHost {
     }
 
     private initJSONInspector() {
-        this.jsonInspector = new JSONInspector('inspector-content');
+        this.jsonInspector = new JSONInspector('json-inspector-content');
         this.jsonInspector.setProject(this.project);
         this.jsonInspector.setEditor(this);
 
@@ -2191,8 +2196,17 @@ export class Editor implements IViewHost {
         };
     }
 
-    private initJSONToolbox() {
-        this.jsonToolbox = new JSONToolbox('toolbox-content');
+    private async initJSONToolbox() {
+        this.jsonToolbox = new JSONToolbox('json-toolbox-content');
+        try {
+            const response = await fetch('./editor/toolbox.json');
+            if (response.ok) {
+                const config = await response.json();
+                await this.jsonToolbox.loadFromJSON(config);
+            }
+        } catch (error) {
+            console.error('[Editor] Failed to load toolbox configuration:', error);
+        }
     }
 
     private initMediator() {
