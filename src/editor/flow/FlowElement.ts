@@ -3,7 +3,7 @@ import { GameProject } from '../../model/types';
 export abstract class FlowElement {
     public abstract getType(): string;
 
-    protected id: string;
+    public id: string;
     protected x: number;
     protected y: number;
     protected width: number = 150;
@@ -384,6 +384,13 @@ export abstract class FlowElement {
             return { x: centerX, y: this.y + this.height };
         }
         return { x: this.x + this.width, y: centerY };
+    }
+
+    /**
+     * Flow elements do not have configurable events in the inspector
+     */
+    public getEvents(): string[] {
+        return [];
     }
 
     // Inspector Properties

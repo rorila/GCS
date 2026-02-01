@@ -9,6 +9,22 @@ Die Klasse `Editor.ts` fungiert nur noch als Orchestrator. Die Fachlogik liegt i
 - **EditorViewManager.ts**: Steuerung der Tabs und Ansichten (Stage, Flow, JSON, Pascal).
 - **RefactoringManager.ts**: Projektweite Umbenennungen und Referenz-Updates.
 
+### FlowEditor-Architektur (v2.5.0)
+Die Klasse `FlowEditor.ts` wurde modularisiert, um die Komplexität zu reduzieren:
+- **FlowSyncManager.ts**: Übernimmt die gesamte Synchronisations-Logik zwischen dem visuellen Diagramm und dem Datenmodell (JSON/Pascal). Beinhaltet Methoden wie `syncVariablesFromFlow`, `syncTaskFromFlow`, `restoreNode` und `generateFlowFromActionSequence`.
+- **FlowStateManager.ts**: Verwaltet den UI-Zustand des Editors (z.B. Detailtiefe der Nodes, Zoom).
+- **FlowMapManager.ts**: (v2.5.1) Kapselt die Generierung der "Landkarte" (Events/Links) und der "Elementenübersicht" sowie die "Action-Check" Logik.
+- **Workflow**: Änderungen an der Fachlogik sollten bevorzugt in den jeweiligen Managern vorgenommen werden. `FlowEditor` fungiert primär als UI-Host und Event-Verteiler.
+- **Koordinaten & NaN-Safety**:
+    - Der Flow-Editor nutzt einen **Canvas-World-Koordinatenraum** (0 bis 5000px). Maus-Events müssen stets um den `scrollLeft`/`scrollTop` des Canvas korrigiert werden, um absolute Welt-Koordinaten zu erhalten.
+    - Die `cellSize` ist eine kritische Eigenschaft für das Grid-Snapping. Alle Manager müssen via `host.cellSize` (lowercase!) darauf zugreifen. Fehlende cellSize führt zu `NaN`-Werten.
+    - `FlowSyncManager.restoreNode` enthält redundante `isNaN`-Prüfungen als Sicherheitsnetz für beschädigte Projektdaten.
+
+### Inspector Integration for Flow Elements
+- **Events**: Flow elements (running in the Editor context) must implement `public getEvents(): string[]` (returning `[]` if none) to bypass the `ComponentRegistry` lookup. The `JSONInspector` prefers this method over the registry to avoid warnings for non-GameObjects.
+- **Deletion**: Deleting elements via the Inspector requires explicit routing in `Editor.ts`. If the `FlowEditor` is active (`currentView === 'flow'`), delete requests for Flow nodes must be delegated to `FlowEditor.deleteNode()` to handle reference checks and specific cleanup logic.
+
+
 ### Stage-Awareness in der Entwicklung
 - **Code-Generierung**: Bei der Generierung von Code (z.B. `PascalGenerator`) muss immer projektweit gesucht werden (Global + alle Stages), da Tasks und Aktionen in verschiedenen Scopes liegen können.
 - **Refactoring**: Operationen wie Löschen (`deleteTask`, `deleteAction`) oder Bereinigen (`cleanActionSequences`) müssen zwingend alle Stages iterieren, um verwaiste Referenzen oder Datenleichen in nicht-aktiven Stages zu vermeiden.
@@ -71,7 +87,7 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
     2.  Alle Objekt-Events (z.B. `onEnter`, `onClick`).
     3.  Alle Variablen-Events (z.B. `onValueTrue`, `onChange`).
 - **Hammer-Scan (Sicherheitsnetz)**: Zusätzlich zum strukturierten Scan führt die Registry einen "Hammer-Scan" via JSON-String-Suche durch. Falls ein Task-Name im JSON vorkommt, aber strukturell nicht zugeordnet werden konnte, wird er dennoch als "benutzt" markiert (mit Warnung/Hinweis). Dies verhindert Datenverlust beim Löschen vermeintlich unbenutzter Elemente.
-- **Transparenz**: Der `FlowEditor` bietet einen Diagnostics-Modus (`Action-Check`), der die Differenz zwischen definierten und referenzierten Elementen visuell hervorhebt.
+- **Transparenz**: Die Projekt-Statistiken und Belegung (Referenz-Counter) sind zentral über den Management-Tab einsehbar. Der veraltete visuelle Action-Check direkt im FlowEditor wurde zugunsten dieser zentralen Übersicht entfernt.
 
 ## Debugging
 - **JSON-Vergleich**: Nutze `JSON.stringify`, um tiefere Unterschiede in Objekt-Strukturen zu erkennen, falls die Identität gleich scheint.

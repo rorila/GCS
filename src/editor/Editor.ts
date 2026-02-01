@@ -2186,6 +2186,16 @@ export class Editor implements IViewHost {
         };
 
         this.jsonInspector.onObjectDelete = (obj: any) => {
+            // Check if this is a Flow Element delegated to FlowEditor
+            if (this.currentView === 'flow' && this.flowEditor) {
+                // Try to find the node in FlowEditor
+                const flowNode = this.flowEditor.getNodes().find(n => n.id === obj.id);
+                if (flowNode) {
+                    this.flowEditor.deleteNode(flowNode);
+                    return;
+                }
+            }
+
             if (obj && obj.id) {
                 this.commandManager.removeObject(obj.id);
             }

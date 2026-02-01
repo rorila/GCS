@@ -350,11 +350,12 @@ export class JSONInspector {
                 } catch (e) { console.error('Fallback failed', e); }
             }
 
-            // GENERIC EVENT DETECTION via ComponentRegistry
-            // We use the registry to get the events from a hydrated instance (SSoT)
-            const events = componentRegistry.getEvents(object);
-            (object as any)._supportedEvents = events.map(evt => ({ key: evt }));
-            console.log(`[JSONInspector] Auto-detections for ${object.className}: ${events.length} events found.`);
+            // GENERIC EVENT DETECTION via ComponentRegistry or Object method (SSoT)
+            // If the object is already a class instance that knows its events, use it directly.
+            const events = (typeof (object as any).getEvents === 'function') ? (object as any).getEvents() : componentRegistry.getEvents(object);
+            (object as any)._supportedEvents = (events || []).map((evt: string) => ({ key: evt }));
+            const className = object.className || (object.getType ? object.getType() : 'Unknown');
+            console.log(`[JSONInspector] Auto-detections for ${className}: ${events.length} events found.`);
 
             // 4. Combine & Render
             // Static (Title) + Dynamic (Properties)

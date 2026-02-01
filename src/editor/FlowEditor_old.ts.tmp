@@ -2,10 +2,10 @@ import { GameProject, StageDefinition } from '../model/types';
 
 import { FlowElement } from './flow/FlowElement';
 import { FlowAction } from './flow/FlowAction';
-import { FlowTask } from './flow/FlowTask'; import { FlowStart } from './flow/FlowStart';
+import { FlowTask } from './flow/FlowTask';
+import { FlowStart } from './flow/FlowStart';
 import { FlowCondition } from './flow/FlowCondition';
-
-
+import { FlowComponent } from './flow/FlowComponent';
 import { FlowConnection } from './flow/FlowConnection';
 import { FlowVariable } from './flow/FlowVariable';
 import { FlowThresholdVariable } from './flow/FlowThresholdVariable';
@@ -24,31 +24,20 @@ import { ContextMenu, ContextMenuItem } from './ui/ContextMenu';
 import { RefactoringManager } from './RefactoringManager';
 import { projectRegistry } from '../services/ProjectRegistry';
 import { libraryService } from '../services/LibraryService';
-import { FlowSyncManager } from './services/FlowSyncManager';
-import { FlowMapManager, FlowMapHost } from './services/FlowMapManager';
 
-
-export class FlowEditor implements FlowMapHost {
+export class FlowEditor {
     private container: HTMLElement;
-    public project: GameProject | null = null;
+    private project: GameProject | null = null;
     public flowStage: TFlowStage; // Initialized in constructor or setProject
 
     // State Manager - Single Source of Truth für Flow-State
     private stateManager: FlowStateManager;
 
-    // Sync Manager - Kapselt Synchronisations-Logik
-    private syncManager: FlowSyncManager;
-
-    // Map Manager - Kapselt Landkarte/Übersicht
-    private mapManager: FlowMapManager;
-    public actionCheckMode: boolean = false;
-    public filterText: string = "";
-
     private flowSelect!: HTMLSelectElement;
 
     private contextMenu: ContextMenu;
 
-    public canvas: HTMLElement;
+    private canvas: HTMLElement;
 
     public onObjectSelect?: (obj: FlowElement | null) => void;
     public onNodesChanged?: (nodes: FlowElement[]) => void;
@@ -61,7 +50,6 @@ export class FlowEditor implements FlowMapHost {
 
     // UI Elements
     private detailsToggleBtn!: HTMLButtonElement;
-    public actionCheckBtn!: HTMLButtonElement;
     private filterInput!: HTMLInputElement;
     private backButton!: HTMLButtonElement; // Zurück-Button
     public currentSelectedStageObjectId: string | null = null;
@@ -73,20 +61,23 @@ export class FlowEditor implements FlowMapHost {
     // Scroll positions per context (key = context name, value = {scrollX, scrollY})
     private scrollPositions: Map<string, { x: number; y: number }> = new Map();
 
+    // Action-Check mode for highlighting unused actions
+    private actionCheckMode: boolean = false;
+    private actionCheckBtn!: HTMLButtonElement;
 
     // ─────────────────────────────────────────────
     // State Accessors (delegate to StateManager)
     // ─────────────────────────────────────────────
-    public get nodes(): FlowElement[] {
+    private get nodes(): FlowElement[] {
         return this.stateManager.getNodesInternal();
     }
-    public set nodes(value: FlowElement[]) {
+    private set nodes(value: FlowElement[]) {
         this.stateManager.setNodes(value);
     }
-    public get connections(): FlowConnection[] {
+    private get connections(): FlowConnection[] {
         return this.stateManager.getConnectionsInternal();
     }
-    public set connections(value: FlowConnection[]) {
+    private set connections(value: FlowConnection[]) {
         this.stateManager.setConnections(value);
     }
     private get selectedConnection(): FlowConnection | null {
@@ -95,28 +86,87 @@ export class FlowEditor implements FlowMapHost {
     private set selectedConnection(value: FlowConnection | null) {
         this.stateManager.selectConnection(value);
     }
-    public get currentFlowContext(): string {
+    private get currentFlowContext(): string {
         return this.stateManager.getContext();
     }
-    public set currentFlowContext(value: string) {
+    private set currentFlowContext(value: string) {
         this.stateManager.setContext(value);
     }
-    public get showDetails(): boolean {
+    private get showDetails(): boolean {
         return this.stateManager.getShowDetails();
     }
-    public set showDetails(value: boolean) {
+    private set showDetails(value: boolean) {
         this.stateManager.setShowDetails(value);
+    }
+    private get filterText(): string {
+        return this.stateManager.getFilter();
+    }
+    private set filterText(value: string) {
+        this.stateManager.setFilter(value);
     }
     private get selectedNode(): FlowElement | null {
         return this.stateManager.getSelectedNode();
     }
 
-    public get cellSize(): number {
-        return this.flowStage ? this.flowStage.cellSize : 20;
-    }
+    /**
+     * Synchronisiert alle Tasks im Projekt aus ihren jeweiligen Flow-Diagrammen.
+     * Stellt sicher, dass die actionSequence-Daten im Projekt immer aktuell sind.
+     * Berücksichtigt nun auch stage-spezifische Flow-Diagramme.
+     */
+    public syncAllTasksFromFlow(project: GameProject): void {
+        console.log(`[FlowEditor] Starting global sync for tasks in project: ${project.meta.name}`);
 
-    public syncAllTasksFromFlow(_project: GameProject): void {
-        this.syncManager.syncAllTasksFromFlow();
+        const syncFromCharts = (charts: any) => {
+            if (!charts) return;
+            project.tasks.forEach(task => {
+                const flowData = charts[task.name];
+                if (flowData && flowData.elements && flowData.elements.length > 0) {
+                    const prevContext = this.currentFlowContext;
+                    this.stateManager.setContext(task.name);
+                    try {
+                        this.syncTaskFromFlow(task, flowData.elements, flowData.connections || []);
+                    } finally {
+                        this.stateManager.setContext(prevContext);
+                    }
+                }
+            });
+        };
+
+        // 1. Sync from global project charts
+        syncFromCharts(project.flowCharts);
+
+        // 2. Sync from all stage-specific charts
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.flowCharts) {
+                    console.log(`[FlowEditor] Syncing tasks from stage: ${stage.name}`);
+                    // Ensure the stage-local tasks are accessible for matching
+                    const stageTasks = stage.tasks || [];
+
+                    const syncStageCharts = (charts: any) => {
+                        if (!charts) return;
+                        Object.keys(charts).forEach(taskName => {
+                            // Find task in stage-local OR project-global
+                            const task = stageTasks.find(t => t.name === taskName) || project.tasks.find(t => t.name === taskName);
+                            if (task) {
+                                const flowData = charts[taskName];
+                                if (flowData && flowData.elements && flowData.elements.length > 0) {
+                                    const prevContext = this.currentFlowContext;
+                                    this.stateManager.setContext(taskName);
+                                    try {
+                                        this.syncTaskFromFlow(task, flowData.elements, flowData.connections || []);
+                                    } finally {
+                                        this.stateManager.setContext(prevContext);
+                                    }
+                                }
+                            }
+                        });
+                    };
+                    syncStageCharts(stage.flowCharts);
+                }
+            });
+        }
+        console.log(`[FlowEditor] Global sync completed.`);
     }
 
     private set selectedNode(value: FlowElement | null) {
@@ -127,7 +177,7 @@ export class FlowEditor implements FlowMapHost {
         }
     }
 
-    public getActiveStage(): StageDefinition | null {
+    private getActiveStage(): StageDefinition | null {
         if (!this.project || !this.project.stages) return null;
         return this.project.stages.find(s => s.id === this.project!.activeStageId) || this.project.stages[0] || null;
     }
@@ -159,25 +209,54 @@ export class FlowEditor implements FlowMapHost {
         return null;
     }
 
-    // --- Helpers for MapManager (Host Implementation) ---
-
-    public getCurrentObjects(): any[] {
+    private getCurrentObjects(): any[] {
         if (!this.project) return [];
+        let all: any[] = [];
         const activeStage = this.getActiveStage();
-        if (activeStage) return activeStage.objects || [];
-        return this.project.objects || [];
+
+        if (activeStage) {
+            all = [...(activeStage.objects || [])];
+        } else {
+            all = [...(this.project.objects || [])];
+        }
+
+        // Add Globals from other stages
+        if (this.project.stages) {
+            this.project.stages.forEach(s => {
+                if (s.id === activeStage?.id) return;
+                const stageGlobals = (s.objects || []).filter(o => o.scope === 'global');
+                stageGlobals.forEach(g => {
+                    if (!all.some(o => o.id === g.id)) all.push(g);
+                });
+            });
+        }
+
+        return all;
     }
 
-    public getAllVariables(): any[] {
+    private getAllVariables(): any[] {
         if (!this.project) return [];
-        const activeStage = this.getActiveStage();
-        const globalVars = this.project.variables || [];
-        const stageVars = activeStage?.variables || [];
-        return [...globalVars, ...stageVars];
+
+        // 1. Gather all variables from project and stages
+        let all: any[] = [...(this.project.variables || [])];
+
+        if (this.project.stages) {
+            this.project.stages.forEach(s => {
+                if (s.variables) {
+                    all = [...all, ...s.variables];
+                }
+            });
+        }
+
+        // 2. Deduplicate
+        const seen = new Set<string>();
+        return all.filter(v => {
+            const id = v.id || v.name;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+        });
     }
-
-
-
 
     private editor: any; // Reference to main Editor for routing logic
 
@@ -190,12 +269,6 @@ export class FlowEditor implements FlowMapHost {
         // Initialize State Manager FIRST
         this.stateManager = new FlowStateManager();
         this.stateManager.loadShowDetailsFromStorage();
-
-        // Initialize Sync Manager
-        this.syncManager = new FlowSyncManager(this as any);
-
-        // Initialize Map Manager
-        this.mapManager = new FlowMapManager(this as any);
 
         this.contextMenu = new ContextMenu();
 
@@ -251,29 +324,31 @@ export class FlowEditor implements FlowMapHost {
         this.detailsToggleBtn.onclick = () => this.toggleDetailsView();
         toolbar.appendChild(this.detailsToggleBtn);
 
-        // Separator
+        // Separator before Filter
         const sep2 = document.createElement('div');
         sep2.style.cssText = 'width:1px;height:24px;background:#555;margin:0 10px';
         toolbar.appendChild(sep2);
 
-        // Action Check Button
-        this.actionCheckBtn = document.createElement('button');
-        this.actionCheckBtn.innerText = '🔍 Action-Check';
-        this.actionCheckBtn.title = 'Ungenutzte Elemente hervorheben';
-        this.actionCheckBtn.style.cssText = 'padding:5px 10px;background:#e65100;color:white;border:none;border-radius:4px;cursor:pointer;margin-right:10px;display:none';
-        this.actionCheckBtn.onclick = () => this.mapManager.toggleActionCheckMode();
-        toolbar.appendChild(this.actionCheckBtn);
-
         // Filter Input
+        toolbar.appendChild(document.createTextNode('Filter: '));
         this.filterInput = document.createElement('input');
-        this.filterInput.type = 'text';
-        this.filterInput.placeholder = 'Filter...';
-        this.filterInput.style.cssText = 'padding:5px;background:#333;color:white;border:1px solid #555;border-radius:4px;margin-right:10px;width:120px;display:none';
-        this.filterInput.oninput = (e) => {
-            this.filterText = (e.target as HTMLInputElement).value.toLowerCase();
-            this.loadFromProject(); // Refresh view with filter
+        this.filterInput.placeholder = 'Suchen...';
+        this.filterInput.style.cssText = 'padding:5px;background:#333;color:white;border:1px solid #555;border-radius:4px;width:120px';
+        this.filterInput.oninput = () => {
+            this.filterText = this.filterInput.value.toLowerCase();
+            if (this.currentFlowContext === 'event-map') {
+                this.loadFromProject();
+            }
         };
         toolbar.appendChild(this.filterInput);
+
+        // Action-Check Button (nur sichtbar in element-overview)
+        this.actionCheckBtn = document.createElement('button');
+        this.actionCheckBtn.innerText = '🔍 Action-Check';
+        this.actionCheckBtn.title = 'Nicht verwendete Actions hervorheben';
+        this.actionCheckBtn.style.cssText = 'padding:5px 10px;background:#e65100;color:white;border:none;border-radius:4px;cursor:pointer;margin-left:10px;display:none';
+        this.actionCheckBtn.onclick = () => this.toggleActionCheckMode();
+        toolbar.appendChild(this.actionCheckBtn);
 
         this.container.appendChild(toolbar);
 
@@ -341,7 +416,7 @@ export class FlowEditor implements FlowMapHost {
 
         const savedContext = localStorage.getItem('gcs_last_flow_context');
         const isValidTask = this.project.tasks.some(t => t.name === savedContext);
-        const isStaticContext = savedContext === 'global';
+        const isStaticContext = savedContext === 'global' || savedContext === 'event-map' || savedContext === 'element-overview';
 
         if (savedContext && (isStaticContext || isValidTask)) {
             this.currentFlowContext = savedContext;
@@ -359,8 +434,91 @@ export class FlowEditor implements FlowMapHost {
         this.rebuildActionRegistry();
     }
 
+    /**
+     * Synchronisiert Action-Daten in FlowCharts mit den aktuellen Definitionen aus project.actions.
+     * Wichtig: Rufe diese Methode auf, nachdem Actions im JSON-Editor geändert wurden,
+     * um sicherzustellen, dass FlowChart-Elemente die aktualisierten Daten verwenden.
+     */
     public syncActionsFromProject(): void {
-        this.syncManager.syncActionsFromProject();
+        if (!this.project) return;
+
+        let syncCount = 0;
+        // Holen aller Aktionen über alle Scopes hinweg
+        const allActions = projectRegistry.getActions('all');
+
+        // Helper: Update action data in a single element
+        const syncElement = (el: any) => {
+            if (el.type !== 'Action') return;
+
+            const actionName = el.properties?.name || el.data?.name;
+            if (!actionName) return;
+
+            const projectAction = allActions.find(a => a.name === actionName);
+            if (projectAction) {
+                // Update the element's data with the current action definition
+                // Keep node-specific properties (isEmbeddedInternal, parentProxyId, etc.)
+                const preserveKeys = ['isEmbeddedInternal', 'parentProxyId', 'parentParams', 'showDetails', 'originalId'];
+                const preserved: any = {};
+                preserveKeys.forEach(key => {
+                    if (el.data?.[key] !== undefined) preserved[key] = el.data[key];
+                });
+
+                el.data = { ...JSON.parse(JSON.stringify(projectAction)), ...preserved };
+                syncCount++;
+            }
+        };
+
+        // 1. Sync GLOBAL FlowCharts
+        if (this.project.flowCharts) {
+            Object.keys(this.project.flowCharts).forEach(chartKey => {
+                const chart = this.project!.flowCharts![chartKey];
+                if (chart?.elements) {
+                    chart.elements.forEach(syncElement);
+                }
+            });
+        }
+
+        // 2. Sync STAGE FlowCharts
+        if (this.project.stages) {
+            this.project.stages.forEach(stage => {
+                if (stage.flowCharts) {
+                    Object.keys(stage.flowCharts).forEach(chartKey => {
+                        const chart = stage.flowCharts![chartKey];
+                        if (chart?.elements) {
+                            chart.elements.forEach(syncElement);
+                        }
+                    });
+                }
+            });
+        }
+
+        // 3. Sync legacy task.flowGraph (if any)
+        this.project.tasks.forEach(task => {
+            const anyTask = task as any;
+            if (anyTask.flowGraph?.elements) {
+                anyTask.flowGraph.elements.forEach(syncElement);
+            }
+        });
+
+        // 4. Sync currently loaded nodes in the editor UI
+        this.nodes.forEach(node => {
+            if (node.getType() !== 'Action') return;
+
+            const actionName = node.Name;
+            const projectAction = allActions.find(a => a.name === actionName);
+            if (projectAction) {
+                const preserveKeys = ['isEmbeddedInternal', 'parentProxyId', 'parentParams', 'showDetails', 'originalId'];
+                const preserved: any = {};
+                preserveKeys.forEach(key => {
+                    if (node.data?.[key] !== undefined) preserved[key] = node.data[key];
+                });
+
+                node.data = { ...JSON.parse(JSON.stringify(projectAction)), ...preserved };
+            }
+        });
+
+        // Refresh the display to show updated action details
+        this.updateActionDetails();
     }
 
     private createNewTaskFlow() {
@@ -402,7 +560,7 @@ export class FlowEditor implements FlowMapHost {
     /**
      * Ermittelt die passende FlowCharts-Collection (Global vs Stage)
      */
-    public getTargetFlowCharts(taskName?: string): any {
+    private getTargetFlowCharts(taskName?: string): any {
         if (!this.project) return {};
         const activeStage = this.getActiveStage();
         if (!activeStage) return this.project.flowCharts || (this.project.flowCharts = {});
@@ -449,23 +607,21 @@ export class FlowEditor implements FlowMapHost {
         this.flowSelect.innerHTML = '';
         const activeStage = this.getActiveStage();
 
-        // --- Overviews ---
-        const optOverviewGroup = document.createElement('optgroup');
-        optOverviewGroup.label = '🗺️ OVERVIEWS';
+        // --- View Section ---
+        const viewGroup = document.createElement('optgroup');
+        viewGroup.label = 'Ansichten';
 
         const mapOpt = document.createElement('option');
         mapOpt.value = 'event-map';
-        mapOpt.innerText = '🗺️ Landkarte (Events/Links)';
-        mapOpt.selected = this.currentFlowContext === 'event-map';
-        optOverviewGroup.appendChild(mapOpt);
+        mapOpt.text = '🔍 Projekt-Landkarte (Explorer)';
+        viewGroup.appendChild(mapOpt);
 
-        const overOpt = document.createElement('option');
-        overOpt.value = 'element-overview';
-        overOpt.innerText = '📊 Elementenübersicht';
-        overOpt.selected = this.currentFlowContext === 'element-overview';
-        optOverviewGroup.appendChild(overOpt);
+        const overviewOpt = document.createElement('option');
+        overviewOpt.value = 'element-overview';
+        overviewOpt.text = '📋 Elementen-Übersicht (Cleanup)';
+        viewGroup.appendChild(overviewOpt);
 
-        this.flowSelect.appendChild(optOverviewGroup);
+        this.flowSelect.appendChild(viewGroup);
 
         // --- Current Stage Section ---
         if (activeStage) {
@@ -587,7 +743,13 @@ export class FlowEditor implements FlowMapHost {
         // 5. Load new state
         this.loadFromProject();
 
-        // cleanup
+        // 6. Reset Action-Check mode when leaving element-overview
+        if (context !== 'element-overview' && this.actionCheckBtn) {
+            this.actionCheckBtn.style.display = 'none';
+            this.actionCheckMode = false;
+            this.actionCheckBtn.style.background = '#e65100';
+            this.actionCheckBtn.innerText = '🔍 Action-Check';
+        }
 
         // 7. Update dropdown to show current context
         this.flowSelect.value = context;
@@ -644,7 +806,7 @@ export class FlowEditor implements FlowMapHost {
 
                     const isMeaningful = el.data?.type || el.data?.actionName || el.data?.taskName || (el.properties?.details && el.properties.details.trim() !== '');
                     if (name && (name !== 'Action' && name !== 'Aktion' || isMeaningful)) {
-                        this.syncManager.updateGlobalActionDefinition({ ...el.data, name, details });
+                        this.updateGlobalActionDefinition({ ...el.data, name, details });
                     }
                 }
             });
@@ -688,7 +850,168 @@ export class FlowEditor implements FlowMapHost {
         console.log(`[FlowEditor] Registry rebuilt. Total actions found: ${totalActions}`);
     }
 
-    // parseDetailsToCommand, updateGlobalActionDefinition, ensureTaskExists ... sind nun im SyncManager delegiert oder redundant.
+    private parseDetailsToCommand(details: string): any {
+        if (!details) return null;
+
+        // Handle multiple assignments within one string (e.g., "x := 10; y := 20")
+        const commands = details.split(';').map(s => s.trim()).filter(s => s.length > 0);
+
+        if (commands.length > 1) {
+            // Check if all are property assignments to the same target
+            const subParses = commands.map(cmd => {
+                const match = cmd.match(/^([a-zA-Z0-9_.]+)\s*:=\s*(.+)$/);
+                if (match) {
+                    const target = match[1];
+                    const source = match[2].trim();
+                    if (target.includes('.')) {
+                        const [objName, propName] = target.split('.');
+                        return { objName, propName, source };
+                    }
+                }
+                return null;
+            }).filter(p => p !== null);
+
+            if (subParses.length > 0) {
+                const targetObj = subParses[0]!.objName;
+                // Ensure all sub-parses refer to the same object
+                if (subParses.every(p => p!.objName === targetObj)) {
+                    const changes: Record<string, any> = {};
+                    subParses.forEach(p => {
+                        let finalVal: any = p!.source;
+                        if (p!.source.startsWith("'") && p!.source.endsWith("'")) {
+                            finalVal = p!.source.slice(1, -1);
+                        } else if (/^\d+(\.\d+)?$/.test(p!.source)) {
+                            finalVal = parseFloat(p!.source);
+                        } else if (/^[a-zA-Z0-9_$]+$/.test(p!.source)) {
+                            finalVal = `\${${p!.source}}`;
+                        }
+                        changes[p!.propName] = finalVal;
+                    });
+
+                    return {
+                        type: 'property',
+                        target: targetObj,
+                        changes: changes
+                    };
+                }
+            }
+        }
+
+        // Fallback or single assignment logic
+        const assignMatch = details.match(/^([a-zA-Z0-9_.]+)\s*:=\s*(.+)$/);
+        if (assignMatch) {
+            const target = assignMatch[1];
+            let source = assignMatch[2].trim();
+
+            if (target.includes('.')) {
+                const [objName, propName] = target.split('.');
+                let val: any = source;
+                if (source.startsWith("'") && source.endsWith("'")) {
+                    val = source.slice(1, -1);
+                } else if (/^\d+(\.\d+)?$/.test(source)) {
+                    val = parseFloat(source);
+                } else if (/^[a-zA-Z0-9_$]+$/.test(source)) {
+                    val = `\${${source}}`;
+                }
+
+                return {
+                    type: 'property',
+                    target: objName,
+                    changes: { [propName]: val }
+                };
+            } else {
+                const isNumeric = /^\d+(\.\d+)?$/.test(source);
+                return {
+                    type: 'calculate',
+                    resultVariable: target,
+                    calcSteps: [{
+                        operandType: isNumeric ? 'constant' : 'variable',
+                        constant: isNumeric ? parseFloat(source) : 0,
+                        variable: isNumeric ? undefined : source
+                    }]
+                };
+            }
+        }
+        return null;
+    }
+
+    private findActionInSequence(sequence: any[], name: string): any | null {
+        if (!sequence) return null;
+        for (const item of sequence) {
+            const itemName = item.name || item.actionName;
+            if (itemName === name) return item;
+            if (item.body) {
+                const found = this.findActionInSequence(item.body, name);
+                if (found) return found;
+            }
+            if (item.then) {
+                const found = this.findActionInSequence(item.then, name);
+                if (found) return found;
+            }
+            if (item.else) {
+                const found = this.findActionInSequence(item.else, name);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+    private updateGlobalActionDefinition(actionData: any) {
+        if (!this.project) return;
+
+        // Normalize name - handle both legacy and new standard
+        const name = actionData.name || actionData.actionName;
+        if (!name) {
+            // console.log('[FlowEditor] Action node has no name, skipping registration.');
+            return;
+        }
+
+        // SINGLE SOURCE OF TRUTH: If actionData is just a link (marked as isLinked)
+        // and doesn't contain a full definition, SKIP the update.
+        // BUT: If it has details that can be parsed, it should NOT be skipped as it has content.
+        const canBeParsed = actionData.details && this.parseDetailsToCommand(actionData.details);
+        const isMinimalLink = actionData.isLinked && !actionData.type && !actionData.target && !actionData.service && !canBeParsed;
+
+        if (isMinimalLink) {
+            // console.log(`[FlowEditor] Skipping update for linked action "${name}" (minimal data)`);
+            return;
+        }
+
+        // Ensure actions array exists
+        if (!this.project.actions) this.project.actions = [];
+
+        // Filter out Task-specific and internal fields that don't belong in an Action
+        const taskFields = ['taskName', 'isMapLink', 'isProxy', 'stageObjectId', 'embeddedGroupId', 'parentProxyId', 'isLinked', 'isEmbeddedInternal', 'isExpanded', 'sourceTaskName', '_formValues'];
+        const cleanedData = { ...actionData };
+        taskFields.forEach(field => delete cleanedData[field]);
+
+        const newAction = {
+            ...cleanedData,
+            name: name
+        };
+        // AUTO-PARSE: If it's a "ghost" action (no logic) but has details, try to populate it
+        if (newAction.details && !newAction.type && !newAction.target && !newAction.service && !newAction.calcSteps) {
+            const parsed = this.parseDetailsToCommand(newAction.details);
+            if (parsed) {
+                console.log(`[FlowEditor] Auto-parsed logic for ${name}:`, parsed);
+                Object.assign(newAction, parsed);
+            }
+        }
+
+        // Clean up legacy property if it exists
+        if (newAction.actionName) delete newAction.actionName;
+
+        // Update or Add
+        const targetCollection = this.editor ? this.editor.getTargetActionCollection(name) : (this.project.actions || (this.project.actions = []));
+        const idx = targetCollection.findIndex((a: any) => a.name === name);
+        if (idx !== -1) {
+            // Only update if changed? For now overwrite.
+            targetCollection[idx] = { ...targetCollection[idx], ...newAction };
+        } else {
+            console.log(`[FlowEditor] Registering new action (Scope determined by Editor): ${name}`);
+            targetCollection.push(newAction);
+        }
+    }
 
     /**
      * Generates a unique action name with a running number (Action1, Action2, etc.)
@@ -842,30 +1165,548 @@ export class FlowEditor implements FlowMapHost {
     }
 
     public syncToProject() {
-        this.syncManager.syncToProject(this.currentFlowContext);
+        if (!this.project) return;
+        if (this.currentFlowContext === 'event-map' || this.currentFlowContext === 'element-overview') return;
+
+        // 0. CAPTURE all current ghost node positions and connection anchors into their respective proxies
+        // This ensures that manual layout and anchor changes are persisted before the diagram is saved/switched
+        const proxyNodes = this.nodes.filter(n => n.data?.isExpanded);
+        proxyNodes.forEach(proxy => {
+            // 0a. Capture Node Positions (Keyed by originalId)
+            const ghosts = this.nodes.filter(n => n.data?.parentProxyId === proxy.name);
+            if (ghosts.length > 0) {
+                if (!proxy.data.ghostPositions) proxy.data.ghostPositions = {};
+                ghosts.forEach(g => {
+                    const originalId = g.data?.originalId;
+                    if (originalId) {
+                        proxy.data.ghostPositions[originalId] = { x: g.X, y: g.Y };
+                    }
+                });
+            }
+
+            // 0b. Capture ALL Connections within this expanded proxy
+            const ghostConns = this.connections.filter(c => c.data?.parentProxyId === proxy.name);
+            if (ghostConns.length > 0) {
+                // We store the full connection state but translated back to originalIds
+                // This allows us to RE-APPLY these overrides during import
+                proxy.data.ghostConnections = ghostConns.map(c => {
+                    const startNode = c.startTarget;
+                    const endNode = c.endTarget;
+
+                    // If both targets are known, we can store a robust reference
+                    if (startNode && endNode) {
+                        return {
+                            startOriginalId: startNode.data?.originalId || startNode.name,
+                            endOriginalId: endNode.data?.originalId || endNode.name,
+                            originalStartAnchorType: c.data?.originalStartAnchorType || c.data?.startAnchorType || 'output',
+                            startAnchorType: c.data?.startAnchorType,
+                            endAnchorType: c.data?.endAnchorType
+                        };
+                    }
+                    return null;
+                }).filter(Boolean);
+            }
+        });
+
+        // Sync Global Actions from current nodes
+        let syncCount = 0;
+
+        // Filter out elements that are internally embedded (Ghost Nodes)
+        // We only want to save the "Proxy" nodes that trigger the expansion
+        const persistentNodes = this.nodes.filter(n => !n.data?.isEmbeddedInternal && !n.data?.parentProxyId);
+        const elements = persistentNodes.map(n => n.toJSON());
+
+        const persistentConnections = this.connections.filter(c => {
+            // A connection is persistent if it's NOT a ghost connection
+            return !c.data?.isEmbeddedInternal && !c.data?.parentProxyId;
+        });
+        const connections = persistentConnections.map(c => c.toJSON());
+
+        this.nodes.forEach(node => {
+            if (node.getType() === 'Action' && node.data && !node.data.isEmbeddedInternal) {
+                // Ensure we have a name to sync with
+                const actionName = node.Name || node.data.name || node.data.actionName;
+
+                // SINGLE SOURCE OF TRUTH: If it's an Action node in the flow diagram, 
+                // it MUST be registered in the project/stage actions list.
+                if (actionName) {
+                    // ROBUST SYNC: Prefer node.data over node.Details to avoid using truncated visual details
+                    const fullData = { details: node.Details, ...node.data, name: actionName };
+                    this.updateGlobalActionDefinition(fullData);
+
+                    syncCount++;
+                }
+            }
+
+            // SYNC TASK NODES: Create task entry if it doesn't exist
+            // IMPORTANT: Do NOT create tasks for linked proxy nodes (they reference library tasks)
+            // and do NOT create tasks for embedded internal nodes (ghost nodes from expansion)
+            const isTask = node.getType() === 'Task';
+            const skipConditions = {
+                isEmbeddedInternal: !!node.data?.isEmbeddedInternal,
+                isMapLink: !!node.data?.isMapLink,
+                isProxy: !!node.data?.isProxy,
+                isLinked: !!node.data?.isLinked
+            };
+
+            if (isTask && !skipConditions.isEmbeddedInternal && !skipConditions.isMapLink && !skipConditions.isProxy && !skipConditions.isLinked) {
+                const taskName = node.Name || node.data?.name || node.data?.taskName;
+                if (taskName && taskName !== 'Task') {
+                    // Check if task exists in Library OR Locally/Globally
+                    const existsInLib = !!libraryService.getTask(taskName);
+                    const activeStage = this.getActiveStage();
+                    const existsLocally = activeStage?.tasks?.some(t => t.name === taskName) || false;
+                    const existsGlobally = this.project!.tasks?.some(t => t.name === taskName) || false;
+
+                    if (!existsInLib && !existsLocally && !existsGlobally) {
+                        this.ensureTaskExists(taskName, node.Description);
+                    } else {
+                        console.log(`[FlowEditor] syncToProject: Task "${taskName}" already exists (Lib: ${existsInLib}, Local: ${existsLocally}, Global: ${existsGlobally}), skipping creation.`);
+                    }
+                }
+            } else if (isTask) {
+                console.log(`[FlowEditor] syncToProject: Skipping Task Sync for node ${node.Name || node.name}`, skipConditions);
+            }
+        });
+
+        // --- Determine destination Table: Active Stage or Project (Single Source of Truth) ---
+        const activeStage = this.getActiveStage();
+        let targetCharts = this.getTargetFlowCharts(this.currentFlowContext);
+
+        if (!targetCharts) {
+            console.warn(`[FlowEditor] syncToProject: No target collection found for "${this.currentFlowContext}". Falling back to project.flowCharts.`);
+            if (!this.project.flowCharts) this.project.flowCharts = {};
+            targetCharts = this.project.flowCharts;
+        }
+
+        console.log(`[FlowEditor] syncToProject: Saving Context "${this.currentFlowContext}" to ${targetCharts === this.project.flowCharts ? 'GLOBAL' : 'STAGE'} flowCharts.`);
+
+        if (this.currentFlowContext === 'global') {
+            // Global Flow Storage (Stage-Specific or Project-Global)
+            targetCharts.global = {
+                elements: elements,
+                connections: connections,
+                stage: {
+                    cols: this.flowStage.cols,
+                    rows: this.flowStage.rows,
+                    cellSize: this.flowStage.cellSize,
+                    snapToGrid: this.flowStage.snapToGrid,
+                    visible: this.flowStage.showGrid,
+                    backgroundColor: this.flowStage.style.backgroundColor || '#1e1e1e'
+                }
+            };
+
+            // Also keep legacy 'flow' for backwards compatibility if saving to project root
+            if (targetCharts === this.project.flowCharts) {
+                if (!this.project.flow) {
+                    this.project.flow = {
+                        stage: { cols: 100, rows: 100, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#1e1e1e' },
+                        elements: [], connections: []
+                    };
+                }
+                this.project.flow.elements = elements;
+                this.project.flow.connections = connections;
+                this.project.flow.stage = targetCharts.global.stage!;
+            }
+
+            // VARIABLE SYNC: Sync global variables from nodes
+            this.syncVariablesFromFlow();
+
+        } else {
+            // Task Specific Flow
+            const task = this.getTaskDefinitionByName(this.currentFlowContext);
+            if (task) {
+                // Store in flowCharts
+                console.log(`[FlowEditor] syncToProject: Saving ${elements.length} elements to ${targetCharts === activeStage?.flowCharts ? 'stage' : 'project'}.flowCharts["${this.currentFlowContext}"]`);
+                targetCharts[this.currentFlowContext] = { elements, connections };
+
+                // LOGIC SYNC: Generate Action Sequence from Graph
+                this.syncTaskFromFlow(task, elements, connections);
+
+                // PARAMETER SYNC: Extract and sync parameters from Actions
+                this.syncTaskParameters(task, elements);
+
+                // PARAMETER VALUE SYNC: Sync edited param values from Task node to task.params defaults
+                this.syncTaskParamValues(task, elements);
+
+                // VARIABLE SYNC: Sync variables from nodes
+                this.syncVariablesFromFlow();
+            }
+        }
+
+        // Notify Editor to trigger auto-save
+        if (this.onProjectChange) {
+            this.onProjectChange();
+        }
+
+        // Update flow selector to show any newly created tasks
+        this.updateFlowSelector();
+
+        // Notify Mediator that project data has changed via Flow Editor
+        if (this.project) {
+            mediatorService.notifyDataChanged(this.project, 'flow-editor');
+        }
     }
 
-    // syncTaskParameters, syncTaskParamValues, syncVariablesFromFlow, syncTaskFromFlow sind nun im SyncManager.
+    /**
+     * Extracts ${param} placeholders from all Action nodes and syncs them to the task's params array.
+     * Adds new params, removes unused params, warns about type conflicts.
+     */
+    private syncTaskParameters(task: any, elements: any[]) {
+        // Extract all ${param} references from Action nodes
+        const usedParams = new Map<string, { types: Set<string>, sources: string[] }>();
+        const paramRegex = /\$\{(\w+)\}/g;
+
+        elements.forEach((el: any) => {
+            if (el.type !== 'Action') return;
+
+            // Stringify the action data to find all ${param} occurrences
+            const jsonStr = JSON.stringify(el.data || {});
+            let match;
+            while ((match = paramRegex.exec(jsonStr)) !== null) {
+                const paramName = match[1];
+                if (!usedParams.has(paramName)) {
+                    usedParams.set(paramName, { types: new Set<string>(), sources: [] });
+                }
+                usedParams.get(paramName)!.sources.push(el.properties?.name || el.id);
+
+                // Try to infer type from context
+                // Look for number-ish values like velocity, speed, x, y
+                if (/velocity|speed|x|y|width|height|size|delay|duration/i.test(paramName)) {
+                    usedParams.get(paramName)!.types.add('number');
+                } else {
+                    usedParams.get(paramName)!.types.add('string');
+                }
+            }
+        });
+
+        // Initialize params array if not present
+        if (!task.params) task.params = [];
+
+        // Track which existing params are still used
+        const existingParamNames = new Set(task.params.map((p: any) => p.name));
+        const nowUsedNames = new Set(usedParams.keys());
+
+        // Add new params
+        usedParams.forEach((info, paramName) => {
+            if (!existingParamNames.has(paramName)) {
+                // Determine type (prefer number if any source suggests it)
+                const type = info.types.has('number') ? 'number' : 'string';
+
+                task.params.push({
+                    name: paramName,
+                    type: type,
+                    label: paramName,
+                    default: type === 'number' ? 0 : ''
+                });
+                console.log(`[FlowEditor] Parameter hinzugefügt: ${paramName} (${type})`);
+            }
+
+            // Check for type conflicts
+            if (info.types.size > 1) {
+                console.warn(`[FlowEditor] Typ-Konflikt bei Parameter "${paramName}": Verschiedene Typen in Actions ${info.sources.join(', ')}`);
+            }
+        });
+
+        // Remove unused params (only if they were auto-generated, not from library)
+        // We only remove params that are no longer referenced
+        const removedParams: string[] = [];
+        task.params = task.params.filter((p: any) => {
+            // Keep library-defined params (they have metadata)
+            if (p.fromLibrary) return true;
+
+            // Remove if no longer used
+            if (!nowUsedNames.has(p.name)) {
+                removedParams.push(p.name);
+                return false;
+            }
+            return true;
+        });
+
+        if (removedParams.length > 0) {
+            console.log(`[FlowEditor] Unbenutzte Parameter entfernt: ${removedParams.join(', ')}`);
+        }
+    }
+
+    /**
+     * Syncs parameter VALUES from the Task entry node in the FlowChart back to task.params defaults.
+     * This ensures edited values in the Inspector are used at runtime.
+     */
+    private syncTaskParamValues(task: any, elements: any[]) {
+        if (!task.params || !Array.isArray(task.params)) return;
+
+        // Find the Task entry node (same name as the task)
+        const taskNode = elements.find(el =>
+            el.type === 'Task' &&
+            (el.properties?.name === task.name || el.data?.taskName === task.name)
+        );
+
+        if (!taskNode) return;
+
+        // Get param values from either paramValues or params object
+        const paramValues = taskNode.data?.paramValues || taskNode.data?.params;
+        if (!paramValues || typeof paramValues !== 'object') return;
+
+        let syncedCount = 0;
+        task.params.forEach((p: any) => {
+            if (p.name && paramValues[p.name] !== undefined) {
+                const newValue = paramValues[p.name];
+                if (p.default !== newValue) {
+                    console.log(`[FlowEditor] syncTaskParamValues: ${task.name}.${p.name} = ${newValue}`);
+                    p.default = newValue;
+                    syncedCount++;
+                }
+            }
+        });
+
+        if (syncedCount > 0) {
+            console.log(`[FlowEditor] Synced ${syncedCount} param values for task "${task.name}"`);
+        }
+    }
+
+    /**
+     * Synchronizes VariableDecl nodes from the current diagram with the project's variables list.
+     * Only manages variables with a scope matching the current context (global or taskName).
+     */
+    private syncVariablesFromFlow() {
+        if (!this.project) return;
+        if (!this.project.variables) this.project.variables = [];
+
+        const currentScope = this.currentFlowContext === 'global' ? 'global' : this.currentFlowContext;
+
+        // 1. Get all VariableDecl nodes in the current diagram (ignore ghosts)
+        const varNodes = this.nodes.filter(n => n.getType() === 'VariableDecl' && !n.data?.isEmbeddedInternal);
+        const nodeVars = varNodes.map(n => n.data.variable).filter(v => !!v);
+
+        console.log(`[FlowEditor] syncVariablesFromFlow: Found ${nodeVars.length} variable dec nodes in scope "${currentScope}"`);
+
+        // 2. Identify variables that currently belong to this scope in the project
+        const projectVarsInScope = this.project.variables.filter(v => v.scope === currentScope);
+
+        // 3. Update or Add variables from nodes
+        nodeVars.forEach(vData => {
+            const existingIdx = this.project!.variables.findIndex(v => v.name === vData.name && v.scope === currentScope);
+            if (existingIdx >= 0) {
+                // Update
+                this.project!.variables[existingIdx] = { ...this.project!.variables[existingIdx], ...vData, scope: currentScope };
+            } else {
+                // Add
+                this.project!.variables.push({ ...vData, scope: currentScope });
+                console.log(`[FlowEditor] Added variable "${vData.name}" to scope "${currentScope}"`);
+            }
+        });
+
+        // 4. Remove variables in project that no longer have a node in the diagram (within THIS scope)
+        const nodeVarNames = new Set(nodeVars.map(v => v.name));
+        const toRemove = projectVarsInScope.filter(v => !nodeVarNames.has(v.name));
+
+        if (toRemove.length > 0) {
+            this.project.variables = this.project.variables.filter(v => {
+                if (v.scope === currentScope && !nodeVarNames.has(v.name)) {
+                    console.log(`[FlowEditor] Removed variable "${v.name}" from scope "${currentScope}" (node deleted)`);
+                    return false;
+                }
+                return true;
+            });
+        }
+    }
+
+    private syncTaskFromFlow(task: any, elements: any[], connections: any[]) {
+        // SAFETY: Only sync task logic if we are actually in a flow-view that contains task logic.
+        // In the Event-Map or Element-Overview, we only have proxy nodes which would clear the sequence.
+        if (this.currentFlowContext === 'event-map' || this.currentFlowContext === 'element-overview') {
+            console.log(`[FlowEditor] syncTaskFromFlow: Skipped for task "${task.name}" (Context is "${this.currentFlowContext}")`);
+            return;
+        }
+
+        const startNode = elements.find(e => e.type === 'Task' || (e.type === 'Start' && e.properties?.text?.toLowerCase() === 'start'));
+        if (!startNode) {
+            console.log(`[FlowEditor] syncTaskFromFlow: No start node found for task "${task.name}". Keeping existing sequence (len: ${task.actionSequence?.length || 0}).`);
+            return;
+        }
+
+        console.log(`[FlowEditor] syncTaskFromFlow: Regenerating sequence for task "${task.name}" from ${elements.length} elements.`);
+        const sequence: any[] = [];
+        const visited = new Set<string>();
+
+        const buildSequence = (nodeId: string, targetSeq: any[], stopSet: Set<string> = new Set()) => {
+            if (!nodeId || visited.has(nodeId) || stopSet.has(nodeId)) return;
+
+            const node = elements.find(e => e.id === nodeId);
+            if (!node) return;
+
+            // Mark as visited to avoid infinite loops in the graph
+            visited.add(nodeId);
+
+            const nodeType = node.type;
+            const name = node.properties?.name || node.data?.name || node.data?.actionName || node.properties?.text;
+
+            if (nodeType === 'Action' || nodeType === 'Task') {
+                const item: any = {
+                    type: nodeType === 'Task' ? 'task' : 'action',
+                    name: name
+                };
+
+                // Embed local action data if not a global/stage action
+                if (node.data && nodeType === 'Action') {
+                    const activeStage = this.getActiveStage();
+                    const isGlobalAction = this.project?.actions?.some(a => a.name === name);
+                    const isStageAction = activeStage?.actions?.some(a => a.name === name);
+
+                    if (node.data.type && !isGlobalAction && !isStageAction) {
+                        Object.assign(item, node.data);
+                        item.name = name;
+                    }
+                }
+                targetSeq.push(item);
+
+                // Continue to next node
+                const outgoing = connections.find(c =>
+                    c.startTargetId === node.id &&
+                    (!c.data?.startAnchorType || ['output', 'right', 'bottom'].includes(c.data?.startAnchorType))
+                );
+                if (outgoing) {
+                    buildSequence(outgoing.endTargetId, targetSeq, stopSet);
+                }
+            } else if (nodeType === 'Condition') {
+                const conditionItem: any = {
+                    type: 'condition',
+                    condition: node.data?.condition || { variable: 'var', operator: '==', value: 'val' },
+                    body: [],
+                    elseBody: []
+                };
+                targetSeq.push(conditionItem);
+
+                // Find True/False branches
+                const trueConn = connections.find(c =>
+                    c.startTargetId === node.id &&
+                    (c.data?.anchorType === 'true' || c.data?.startAnchorType === 'true' || c.data?.branchType === 'true')
+                );
+                const falseConn = connections.find(c =>
+                    c.startTargetId === node.id &&
+                    (c.data?.anchorType === 'false' || c.data?.startAnchorType === 'false' || c.data?.branchType === 'false')
+                );
+
+                if (trueConn) {
+                    buildSequence(trueConn.endTargetId, conditionItem.body, stopSet);
+                }
+                if (falseConn) {
+                    // Important for else-if: Stop if hitting another condition that we will process later
+                    // (Actually, recursive call is fine, but we need to manage visited set carefully)
+                    buildSequence(falseConn.endTargetId, conditionItem.elseBody, stopSet);
+                }
+            } else if (nodeType === 'While' || nodeType === 'For') {
+                const loopItem: any = {
+                    type: nodeType.toLowerCase(),
+                    body: []
+                };
+                if (nodeType === 'While') {
+                    loopItem.condition = node.data?.condition || { variable: 'var', operator: '==', value: 'val' };
+                } else {
+                    Object.assign(loopItem, node.data?.loop || { iterator: 'i', from: 0, to: 10, step: 1 });
+                }
+                targetSeq.push(loopItem);
+
+                // Body Branch (True/Body)
+                const bodyConn = connections.find(c =>
+                    c.startTargetId === node.id &&
+                    (c.data?.anchorType === 'true' || c.data?.startAnchorType === 'true' || c.data?.branchType === 'true')
+                );
+                if (bodyConn) {
+                    // To capture the body, we recurse but treat CURRENT LOOP NODE as a stop node
+                    // We also need to temporarily REMOVE the current node from visited so we can "see" the cycle end
+                    visited.delete(node.id);
+                    const bodyVisited = new Set(visited); // Local visited set for the body
+
+                    // We need a separate builder for the cycle to not mess with the global visited set too much
+                    const buildSubSequence = (sNodeId: string, sTargetSeq: any[], sStopNodeId: string, sVisited: Set<string>) => {
+                        if (!sNodeId || sNodeId === sStopNodeId || sVisited.has(sNodeId)) return;
+                        sVisited.add(sNodeId);
+
+                        const sNode = elements.find(e => e.id === sNodeId);
+                        if (!sNode) return;
+
+                        // Process node type (simplified Action/Task for body)
+                        const sType = sNode.type;
+                        const sName = sNode.properties?.name || sNode.data?.name || sNode.data?.actionName || sNode.properties?.text;
+
+                        if (sType === 'Action' || sType === 'Task') {
+                            const sItem = { type: sType === 'Task' ? 'task' : 'action', name: sName };
+                            sTargetSeq.push(sItem);
+                            const out = connections.find(c => c.startTargetId === sNode.id);
+                            if (out) buildSubSequence(out.endTargetId, sTargetSeq, sStopNodeId, sVisited);
+                        }
+                        // Handle nested conditions/loops if needed... 
+                        // For MVP: simple linear body
+                    };
+
+                    buildSubSequence(bodyConn.endTargetId, loopItem.body, node.id, bodyVisited);
+
+                    // Mark loop node as visited again
+                    visited.add(node.id);
+                }
+
+                // Exit Branch (False/Exit)
+                const exitConn = connections.find(c =>
+                    c.startTargetId === node.id &&
+                    (c.data?.anchorType === 'false' || c.data?.startAnchorType === 'false' || c.data?.branchType === 'false')
+                );
+                if (exitConn) {
+                    buildSequence(exitConn.endTargetId, targetSeq, stopSet);
+                }
+            } else if (nodeType === 'VariableDecl') {
+                // Skip declarations in the execution sequence
+                const outgoing = connections.find(c =>
+                    c.startTargetId === node.id &&
+                    (!c.data?.startAnchorType || ['output', 'right', 'bottom'].includes(c.data?.startAnchorType))
+                );
+                if (outgoing) {
+                    buildSequence(outgoing.endTargetId, targetSeq, stopSet);
+                }
+            }
+        };
+
+        // Start from first outgoing
+        const initialOutgoing = connections.filter(c => c.startTargetId === startNode.id);
+        initialOutgoing.sort((a, b) => {
+            const nodeA = elements.find(e => e.id === a.endTargetId);
+            const nodeB = elements.find(e => e.id === b.endTargetId);
+            return (nodeA?.y || 0) - (nodeB?.y || 0);
+        });
+
+        initialOutgoing.forEach(conn => {
+            buildSequence(conn.endTargetId, sequence);
+        });
+
+        const sequenceToSync = sequence;
+        task.actionSequence = sequenceToSync;
+
+        const oldLen = task.actionSequence?.length || 0;
+
+        // KRITISCHER SCHUTZ: Niemals eine existierende Sequenz mit einer leeren überschreiben!
+        // Dies kann passieren, wenn der Task-Einstiegsknoten beim Import übersprungen wird
+        // und syncToProject dann nur die sichtbaren (0) Aktionen sieht.
+        if (sequence.length === 0 && oldLen > 0) {
+            console.warn(`[FlowEditor] syncTaskFromFlow: PROTECTED! Would have deleted ${oldLen} items. Keeping existing sequence.`);
+            return;
+        }
+
+        task.actionSequence = sequence;
+        console.log(`[FlowEditor] syncTaskFromFlow: Task "${task.name}" sequence updated. ${oldLen} -> ${sequence.length} items.`);
+    }
 
     private loadFromProject() {
         if (!this.project) return;
 
         this.clearFlowCanvas();
 
-        // Hide special buttons by default
-        if (this.actionCheckBtn) this.actionCheckBtn.style.display = 'none';
-        if (this.filterInput) this.filterInput.style.display = 'none';
-
         if (this.currentFlowContext === 'event-map') {
-            if (this.filterInput) this.filterInput.style.display = 'inline-block';
-            this.mapManager.generateEventMap();
+            this.generateEventMap();
             return;
         }
 
         if (this.currentFlowContext === 'element-overview') {
-            if (this.actionCheckBtn) this.actionCheckBtn.style.display = 'inline-block';
-            if (this.filterInput) this.filterInput.style.display = 'inline-block';
-            this.mapManager.generateElementOverview();
+            this.generateElementOverview();
             return;
         }
 
@@ -937,7 +1778,7 @@ export class FlowEditor implements FlowMapHost {
                 } else if (task) {
                     // AUTO-RECONSTRUCT: If task has an actionSequence but no flowChart, generate one
                     console.log(`[FlowEditor] Task "${this.currentFlowContext}" exists but has no visual flow data. Reconstruction needed.`);
-                    sourceData = this.syncManager.generateFlowFromActionSequence(task);
+                    sourceData = this.generateFlowFromActionSequence(task);
                 } else {
                     // Initialize new empty flow for this task
                     console.warn(`[FlowEditor] No flow data found for task "${this.currentFlowContext}"! Initializing empty flow.`);
@@ -961,7 +1802,7 @@ export class FlowEditor implements FlowMapHost {
         // Restore Elements
         if (sourceData.elements) {
             sourceData.elements.forEach((data: any) => {
-                const node = this.syncManager.restoreNode(data);
+                const node = this.restoreNode(data);
                 if (node) this.nodes.push(node);
             });
         }
@@ -993,7 +1834,146 @@ export class FlowEditor implements FlowMapHost {
         this.updateActionDetails();
     }
 
-    // restoreNode wurde in den FlowSyncManager verschoben.
+    private restoreNode(data: any): FlowElement | null {
+        let node: FlowElement | null = null;
+        const gridConfig = this.project?.flow?.stage || { cellSize: 20 };
+        const snap = true;
+
+        if (data.type === 'Start') {
+            node = new FlowStart(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+        } else if (data.type === 'Action') {
+            node = new FlowAction(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+        } else if (data.type === 'Condition') {
+            node = new FlowCondition(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+        } else if (data.type === 'Task') {
+            node = new FlowTask(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+        } else if (data.type === 'VariableDecl') {
+            const vData = data.data?.variable;
+            if (vData) {
+                if (vData.threshold !== undefined) {
+                    node = new FlowThresholdVariable(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+                } else if (vData.triggerValue !== undefined) {
+                    node = new FlowTriggerVariable(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+                } else if (vData.duration !== undefined) {
+                    node = new FlowTimerVariable(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+                } else if (vData.min !== undefined && vData.max !== undefined) {
+                    // Could be Range or Random. Logic choice here: if min/max exists and it's not a Timer?
+                    // Let's assume Range by default if both exist, Random we might need a hint or we check if there's an 'onGenerated' event binding.
+                    // For now, let's use a simple field check.
+                    if (vData.isRandom) {
+                        node = new FlowRandomVariable(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+                    } else {
+                        node = new FlowRangeVariable(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+                    }
+                } else if (vData.type === 'list') {
+                    node = new FlowListVariable(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+                } else {
+                    node = new FlowVariable(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+                }
+            } else {
+                node = new FlowVariable(data.id, data.x, data.y, this.canvas, gridConfig.cellSize);
+            }
+        } else if (['While', 'For', 'Repeat'].includes(data.type)) {
+            node = new FlowLoop(data.id, data.x, data.y, this.canvas, gridConfig.cellSize, data.type);
+        }
+
+        if (node) {
+            node.setGridConfig(gridConfig.cellSize, snap);
+
+            // Restore size and position with grid snapping
+            node.Width = Math.round((data.width || 150) / gridConfig.cellSize) * gridConfig.cellSize;
+            node.Height = Math.round((data.height || 60) / gridConfig.cellSize) * gridConfig.cellSize;
+            node.X = Math.round((data.x || 0) / gridConfig.cellSize) * gridConfig.cellSize;
+            node.Y = Math.round((data.y || 0) / gridConfig.cellSize) * gridConfig.cellSize;
+
+            if (data.properties) {
+                if (data.properties.name) node.Name = data.properties.name;
+                if (data.properties.details) node.Details = data.properties.details;
+                if (data.properties.description) node.Description = data.properties.description;
+                if (data.properties.text && !data.properties.name) node.Name = data.properties.text;
+            }
+
+            // Ensure project reference is set for Action and Task nodes
+            // This allows them to recalculate details from the Single Source of Truth
+            if (this.project && (node instanceof FlowTask || node instanceof FlowAction)) {
+                // This will internally call setShowDetails if this.showDetails is true
+                (node as any).setProjectRef(this.project);
+            }
+
+            // Restore loops and variables
+            if (node instanceof FlowVariable) {
+                (node as any).updateVisuals?.();
+            }
+            if (node instanceof FlowLoop) {
+                (node as any).updateVisuals?.();
+            }
+
+            if (data.data) {
+                // SINGLE SOURCE OF TRUTH: For Action nodes, load data from project.actions
+                // instead of using the FlowChart copy. This ensures all references to the same
+                // action use the same data.
+                if (data.type === 'Action' && this.project) {
+                    const actionName = data.properties?.name || data.data?.name;
+                    const stage = this.getActiveStage();
+                    const projectAction = (this.project.actions || []).find(a => a.name === actionName) || (stage?.actions || []).find(a => a.name === actionName);
+
+                    if (projectAction) {
+                        // Load from project.actions or stage.actions (Single Source of Truth)
+                        node.data = { ...projectAction, isLinked: true };
+                        node.setLinked(true);
+                    } else {
+                        // Action not found - use local data (legacy or copy)
+                        node.data = { ...data.data };
+                        console.warn(`[FlowEditor] Action "${actionName}" not found in project.actions or stage.actions - using local FlowChart data`);
+                    }
+                } else {
+                    // Non-Action nodes: use FlowChart data as before
+                    node.data = { ...data.data };
+                }
+
+                // Logic-aware "Detailed" state restoration
+                const hasLogic = node.data.actionName || node.data.taskName || node.data.condition;
+                if (hasLogic) node.setDetailed(true);
+
+                if (data.data.isLinked) node.setLinked(true);
+
+                // For linked Task nodes: Show the actual task name (e.g., "MoveAndLog")
+                // instead of the generic "Task" placeholder
+                if (node.getType() === 'Task' && node.data.taskName) {
+                    node.Name = node.data.taskName;
+                    node.setText(node.data.taskName);
+                }
+
+                // For Condition nodes: Display the condition expression
+                if (node.getType() === 'Condition' && node.data.condition) {
+                    const cond = node.data.condition;
+                    if (cond.variable) {
+                        node.setText(`${cond.variable} ${cond.operator || '=='} ${cond.value || ''}`, true);
+                    }
+                }
+
+                // Persistence: Restore detailed view if it was saved
+                if (data.data.showDetails) {
+                    node.setShowDetails(true, this.project);
+                }
+            }
+
+            // Ensure node is in DOM
+            this.canvas.appendChild(node.getElement());
+
+            // Note: hostOnly sync removed - Multiplayer logic now uses Task.triggerMode
+
+            // For Task nodes: set project reference for parameter lookups
+            if (node.getType() === 'Task' && this.project) {
+                (node as FlowTask).setProjectRef(this.project);
+            }
+
+            // Setup events
+            this.setupNodeListeners(node);
+        }
+
+        return node;
+    }
 
     /**
      * Re-expands a Proxy node to show its internal ghost nodes
@@ -1062,7 +2042,155 @@ export class FlowEditor implements FlowMapHost {
         }
     }
 
-    // generateFlowFromActionSequence wurde in den FlowSyncManager verschoben.
+    /**
+     * Generiert ein strukturiertes FlowChart-Diagramm aus einer bestehenden actionSequence eines Tasks.
+     * Unterstützt rekursive Verschachtelungen (Conditions, Loops) und setzt visuelle Verbindungen.
+     */
+    private generateFlowFromActionSequence(task: any): { elements: any[], connections: any[] } {
+        console.log(`[FlowEditor] Auto-Reconstructing flow for task: ${task.name}`);
+        const elements: any[] = [];
+        const connections: any[] = [];
+
+        const startId = 'start_' + Date.now();
+        elements.push({
+            id: startId,
+            type: 'Start',
+            x: 400, // Center start
+            y: 50,
+            properties: { name: 'Start' }
+        });
+
+        let nextNodeId = 0;
+        const getNewId = (type: string) => `auto_${type}_${nextNodeId++}_${Date.now()}`;
+
+        // Recursive processor
+        const process = (sequence: any[], startNodeId: string, startAnchor: string = 'output', branch?: 'true' | 'false', startX: number = 400, startY: number = 200): { lastId: string, endY: number } => {
+            let lastId = startNodeId;
+            let currentY = startY;
+            let currentX = startX;
+
+            sequence.forEach((item) => {
+                const id = getNewId(item.type || 'action');
+
+                // Connection from previous
+                connections.push({
+                    startTargetId: lastId,
+                    endTargetId: id,
+                    data: {
+                        startAnchorType: lastId === startNodeId ? startAnchor : 'output',
+                        branchType: lastId === startNodeId ? branch : undefined
+                    }
+                });
+
+                if (item.type === 'condition') {
+                    elements.push({
+                        id: id,
+                        type: 'Condition',
+                        x: currentX,
+                        y: currentY,
+                        data: { condition: item.condition || { variable: 'condition', operator: '==', value: 'true' } },
+                        properties: { name: 'Check', details: item.condition ? `${item.condition.variable} ${item.condition.operator} ${item.condition.value}` : '' }
+                    });
+
+                    let maxY = currentY + 200;
+
+                    // IF body (True branch)
+                    if (item.body && item.body.length > 0) {
+                        const res = process(item.body, id, 'output', 'true', currentX + 300, currentY + 150);
+                        maxY = Math.max(maxY, res.endY);
+                    } else if (item.thenAction || item.thenTask) {
+                        // Simple single-action then
+                        const thenId = getNewId('then');
+                        elements.push({
+                            id: thenId,
+                            type: item.thenTask ? 'Task' : 'Action',
+                            x: currentX + 300,
+                            y: currentY + 100,
+                            data: { name: item.thenTask || item.thenAction },
+                            properties: { name: item.thenTask || item.thenAction }
+                        });
+                        connections.push({
+                            startTargetId: id,
+                            endTargetId: thenId,
+                            data: { startAnchorType: 'output', branchType: 'true' }
+                        });
+                    }
+
+                    // ELSE body (False branch)
+                    if (item.elseBody && item.elseBody.length > 0) {
+                        const res = process(item.elseBody, id, 'output', 'false', currentX - 300, currentY + 150);
+                        maxY = Math.max(maxY, res.endY);
+                    } else if (item.elseAction || item.elseTask) {
+                        const elseId = getNewId('else');
+                        elements.push({
+                            id: elseId,
+                            type: item.elseTask ? 'Task' : 'Action',
+                            x: currentX - 300,
+                            y: currentY + 100,
+                            data: { name: item.elseTask || item.elseAction },
+                            properties: { name: item.elseTask || item.elseAction }
+                        });
+                        connections.push({
+                            startTargetId: id,
+                            endTargetId: elseId,
+                            data: { startAnchorType: 'output', branchType: 'false' }
+                        });
+                    }
+
+                    currentY = maxY;
+                    lastId = id;
+
+                } else if (item.type === 'while' || item.type === 'for') {
+                    elements.push({
+                        id: id,
+                        type: 'Condition', // Use Condition node for loop head
+                        x: currentX,
+                        y: currentY,
+                        data: { condition: item.condition || { variable: 'loop', operator: '==', value: 'true' } },
+                        properties: { name: item.type.toUpperCase(), details: item.type === 'for' ? `${item.iteratorVar}: ${item.from}..${item.to}` : '' }
+                    });
+
+                    if (item.body && item.body.length > 0) {
+                        const res = process(item.body, id, 'output', 'true', currentX + 300, currentY + 150);
+                        // Back connection to loop head
+                        connections.push({
+                            startTargetId: res.lastId,
+                            endTargetId: id,
+                            data: { startAnchorType: 'output' }
+                        });
+                        currentY = res.endY + 100;
+                    } else {
+                        currentY += 200;
+                    }
+                    lastId = id;
+
+                } else {
+                    // Standard Action / Task
+                    elements.push({
+                        id: id,
+                        type: item.type === 'task' ? 'Task' : 'Action',
+                        x: currentX,
+                        y: currentY,
+                        data: { ...item },
+                        properties: {
+                            name: item.name || item.type || 'Action',
+                            details: item.type === 'calculate' ? (item.resultVariable || '') : ''
+                        }
+                    });
+                    currentY += 150;
+                    lastId = id;
+                }
+            });
+
+            return { lastId, endY: currentY };
+        };
+
+        if (task.actionSequence && task.actionSequence.length > 0) {
+            process(task.actionSequence, startId);
+        }
+
+        return { elements, connections };
+    }
 
     private restoreConnection(data: any) {
         // Find targets
@@ -1248,7 +2376,7 @@ export class FlowEditor implements FlowMapHost {
         }
     }
 
-    public deleteNode(node: FlowElement) {
+    private deleteNode(node: FlowElement) {
         // Embedded elements restriction check
         if (node.data?.isLinked || node.data?.isEmbeddedInternal) {
             alert('Eingebettete Tasks können nur im Original editiert oder gelöscht werden.');
@@ -1403,7 +2531,7 @@ export class FlowEditor implements FlowMapHost {
         this.suggestedTaskName = null; // Reset
     }
 
-    public setupNodeListeners(node: FlowElement) {
+    private setupNodeListeners(node: FlowElement) {
         // Double Click for Detailing Phase
         node.getElement().addEventListener('dblclick', (e) => {
             e.stopPropagation();
@@ -1444,6 +2572,29 @@ export class FlowEditor implements FlowMapHost {
                 node.Y = newY;
                 node.updatePosition();
                 if (node.onMove) node.onMove();
+
+                // Update connections (Legacy or Direct logic)
+                /* 
+                   Wait, node.onMove() triggers the callback we set in setupNodeListeners!
+                   Let's see: node.getElement().addEventListener...
+                   This listener in FlowEditor duplicates logic or attempts to override?
+                   
+                   If FlowElement handles drag (which it does via its own mousedown), then FlowEditor's listener creates conflict?
+                   
+                   FlowElement.ts (lines 109+) adds mousedown.
+                   FlowEditor.ts (line 691) adds mousedown with stopPropagation.
+                   
+                   Since FlowEditor adds stopPropagation, FlowElement's internal drag logic is BLOCKED.
+                   So FlowEditor is fully responsible for dragging.
+                   
+                   So we need to update connections here.
+                */
+
+                this.connections.forEach(c => {
+                    if (c.startTarget === node || c.endTarget === node) {
+                        c.updatePosition();
+                    }
+                });
             };
 
             const onMouseUp = () => {
@@ -1459,14 +2610,7 @@ export class FlowEditor implements FlowMapHost {
             this.selectNode(node);
         });
 
-        // Update connections when node moves/resizes
-        node.onMove = () => {
-            this.connections.forEach(c => {
-                if (c.startTarget === node || c.endTarget === node) {
-                    c.updatePosition();
-                }
-            });
-        };
+        // Update connections when node resizes
         node.onResize = () => {
             this.connections.forEach(c => c.updatePosition());
         };
@@ -1481,8 +2625,8 @@ export class FlowEditor implements FlowMapHost {
                 if (!isOutput) return; // Currently we only drag from Output to Input
 
                 const rect = this.canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left + this.canvas.scrollLeft;
-                const y = e.clientY - rect.top + this.canvas.scrollTop;
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
 
                 // Create new connection
                 const conn = new FlowConnection(this.canvas, x, y, x, y);
@@ -1693,7 +2837,7 @@ export class FlowEditor implements FlowMapHost {
             }
 
             console.log(`[FlowEditor]   -> Restoring node: ${newData.properties?.name || newData.type} at ${newData.x},${newData.y}`);
-            const newNode = this.syncManager.restoreNode(newData);
+            const newNode = this.restoreNode(newData);
             if (newNode) {
                 this.nodes.push(newNode);
                 newNodes.push(newNode);
@@ -2160,7 +3304,7 @@ export class FlowEditor implements FlowMapHost {
 
                     const actionName = el.properties?.name || el.data?.name || el.data?.actionName;
                     if (el.type === 'Action' && actionName) {
-                        const actionInLibrary = this.syncManager.findActionInSequence(libraryTask.actionSequence, actionName);
+                        const actionInLibrary = this.findActionInSequence(libraryTask.actionSequence, actionName);
                         if (actionInLibrary) {
                             el.data = { ...el.data, ...actionInLibrary, name: actionName };
                         }
@@ -2311,7 +3455,7 @@ export class FlowEditor implements FlowMapHost {
             sequence.forEach(item => {
                 const name = item.name || item.actionName;
                 if (name) {
-                    this.syncManager.updateGlobalActionDefinition(item);
+                    this.updateGlobalActionDefinition(item);
                 }
 
                 if (item.body) processSequence(item.body);
@@ -2328,7 +3472,7 @@ export class FlowEditor implements FlowMapHost {
                     const name = el.properties?.name || el.data?.name || el.data?.actionName;
                     const isMeaningful = el.data?.type || el.data?.actionName || el.data?.taskName;
                     if (name && (name !== 'Action' && name !== 'Aktion' || isMeaningful)) {
-                        this.syncManager.updateGlobalActionDefinition({ ...el.data, name });
+                        this.updateGlobalActionDefinition({ ...el.data, name });
                     }
                 }
             });
@@ -2434,7 +3578,7 @@ export class FlowEditor implements FlowMapHost {
 
                     // SINGLE SOURCE OF TRUTH: Update the global definition in project.actions
                     // Note: result.data contains the full action definition from the dialog
-                    this.syncManager.updateGlobalActionDefinition({ ...result.data, name: newName });
+                    this.updateGlobalActionDefinition({ ...result.data, name: newName });
 
                     // Update the node's visual name
                     node.Name = newName;
@@ -2545,7 +3689,7 @@ export class FlowEditor implements FlowMapHost {
         }
     }
 
-    public setupConnectionListeners(conn: FlowConnection) {
+    private setupConnectionListeners(conn: FlowConnection) {
         // Selection
         conn.getElement().addEventListener('mousedown', (e) => {
             e.stopPropagation();
@@ -2596,8 +3740,8 @@ export class FlowEditor implements FlowMapHost {
         if (!this.isDraggingHandle || !this.activeConnection || !this.activeHandle) return;
 
         const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left + this.canvas.scrollLeft;
-        const y = e.clientY - rect.top + this.canvas.scrollTop;
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
 
         // Clear previous highlights
         this.canvas.querySelectorAll('.flow-anchor.snap-target').forEach(a => a.classList.remove('snap-target'));
@@ -2643,8 +3787,8 @@ export class FlowEditor implements FlowMapHost {
 
         const isStart = this.activeHandle.dataset.isStart === 'true';
         const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left + this.canvas.scrollLeft;
-        const y = e.clientY - rect.top + this.canvas.scrollTop;
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
 
         // Final snap check
         // isStart=true means we're moving the START of the connection -> should snap to OUTPUTs
@@ -2922,13 +4066,762 @@ export class FlowEditor implements FlowMapHost {
         this.connections = [];
     }
 
+    /**
+     * Generiert eine automatische Übersicht über alle Objekt-Event-Task Verbindungen
+     */
+    private generateEventMap(): void {
+        if (!this.project) return;
 
+        // No need to clear here, loadFromProject already calls clearFlowCanvas()
 
+        const startX = 50;
+        const taskX = 600;
+        let currentY = 50;
+        const rowHeight = 80;
+        const eventLinkSpacing = 80; // 60px node height + 20px gap
+
+        const objectsWithTasks = this.getCurrentObjects().filter(obj => {
+            const tasks = (obj as any).Tasks;
+            const hasTasks = tasks && Object.keys(tasks).length > 0;
+
+            // Auch Objekte mit Bindungen anzeigen (selbst ohne Tasks)
+            let hasBindings = false;
+            const checkBindings = (target: any) => {
+                if (!target || hasBindings) return;
+                Object.entries(target).forEach(([key, val]) => {
+                    if (typeof val === 'string' && val.startsWith('${')) {
+                        hasBindings = true;
+                    } else if (key === 'style' && typeof val === 'object') {
+                        checkBindings(val);
+                    }
+                });
+            };
+            checkBindings(obj);
+
+            if (!hasTasks && !hasBindings) return false;
+
+            if (this.filterText) {
+                const nameMatches = obj.name.toLowerCase().includes(this.filterText);
+                const taskNames = hasTasks ? Object.values(tasks) as string[] : [];
+                const taskMatches = taskNames.some(t => t.toLowerCase().includes(this.filterText));
+                const eventNames = hasTasks ? Object.keys(tasks) : [];
+                const eventMatches = eventNames.some(e => e.toLowerCase().includes(this.filterText));
+
+                return nameMatches || taskMatches || eventMatches || (hasBindings && obj.name.toLowerCase().includes(this.filterText));
+            }
+            return true;
+        });
+
+        // --- NEW: Identify Variables with Tasks/Events ---
+        const variablesWithTasks = this.getAllVariables().filter(v => {
+            // Find all properties starting with "on" that have a value (Top-Level or inside Tasks)
+            const topLevelEvents = Object.keys(v).filter(k => k.startsWith('on') && (v as any)[k]);
+            const taskEvents = (v as any).Tasks ? Object.keys((v as any).Tasks).filter(k => k.startsWith('on') && (v as any).Tasks[k]) : [];
+            const hasTasks = topLevelEvents.length > 0 || taskEvents.length > 0;
+
+            if (!hasTasks) return false;
+
+            if (this.filterText) {
+                const nameMatches = v.name.toLowerCase().includes(this.filterText);
+                const taskMatches = [...topLevelEvents.map(e => (v as any)[e]), ...taskEvents.map(e => (v as any).Tasks[e])]
+                    .some(t => String(t).toLowerCase().includes(this.filterText));
+                const eventMatches = [...topLevelEvents, ...taskEvents].some(e => e.toLowerCase().includes(this.filterText));
+                return nameMatches || taskMatches || eventMatches;
+            }
+            return true;
+        });
+
+        // 1. Process Objects
+        objectsWithTasks.forEach(obj => {
+            // Create Object Proxy Node
+            const objNode = new FlowComponent('proxy-' + obj.id, startX, currentY, this.canvas, this.flowStage.cellSize);
+            objNode.Name = obj.name;  // Use Name to set dataset.name for stable name storage
+            objNode.autoSize();
+            objNode.Details = (obj as any).className || 'Object';
+
+            // Extract reactive bindings from object to show them in the diagram
+            const bindings: Record<string, any> = {};
+            const gatherBindings = (target: any, prefix = '') => {
+                if (!target) return;
+                Object.entries(target).forEach(([key, val]) => {
+                    if (typeof val === 'string' && val.startsWith('${')) {
+                        bindings[prefix + key] = val;
+                    } else if (key === 'style' && typeof val === 'object') {
+                        gatherBindings(val, 'style.');
+                    }
+                });
+            };
+            gatherBindings(obj);
+
+            objNode.data = {
+                stageObjectId: obj.id,
+                isProxy: true,
+                paramValues: bindings // Will be rendered by FlowComponent.setShowDetails
+            };
+            // Call setShowDetails to trigger updateContent and show f(x) indicator
+            objNode.setShowDetails(this.showDetails && Object.keys(bindings).length > 0);
+
+            // Highlight if selected
+            if (obj.id === this.currentSelectedStageObjectId) {
+                objNode.getElement().style.background = '#444400';
+                objNode.getElement().style.border = '2px solid #ffcc00';
+            }
+
+            this.nodes.push(objNode);
+            this.setupNodeListeners(objNode);
+
+            // Events/Tasks for this object
+            const taskMappings = (obj as any).Tasks || {};
+            const events = Object.entries(taskMappings);
+            events.forEach(([eventName, taskName], idx) => {
+                if (typeof taskName !== 'string' || !taskName) return;
+
+                // Create a Task Node for EACH event (no deduplication)
+                const taskY = currentY + (idx * eventLinkSpacing);
+                const taskNode = this.createMapTaskNode(taskName, eventName, taskX, taskY, obj.id);
+                this.nodes.push(taskNode);
+                this.setupNodeListeners(taskNode);
+
+                // Create Connection
+                this.createEventLink(objNode, taskNode, obj.name, eventName);
+            });
+
+            currentY += Math.max(rowHeight, events.length * eventLinkSpacing + 20);
+        });
+
+        // 2. Process Variables
+        variablesWithTasks.forEach(variable => {
+            // Create Variable Proxy Node
+            const varId = variable.id || variable.name;
+            const varNode = new FlowVariable('proxy-var-' + varId, startX, currentY, this.canvas, this.flowStage.cellSize);
+            varNode.VarName = variable.name;
+            varNode.VarType = variable.type;
+            varNode.autoSize();
+
+            this.nodes.push(varNode);
+            this.setupNodeListeners(varNode);
+
+            // Extract events (on...) from Top-Level AND Tasks object
+            const topLevelEvents = Object.entries(variable)
+                .filter(([k, v]) => k.startsWith('on') && typeof v === 'string' && v) as [string, string][];
+            const taskEvents = (variable as any).Tasks ? Object.entries((variable as any).Tasks)
+                .filter(([k, v]) => k.startsWith('on') && typeof v === 'string' && v) as [string, string][] : [];
+
+            // Deduplicate (Top-Level has priority)
+            const eventMap = new Map<string, string>();
+            taskEvents.forEach(([k, v]) => eventMap.set(k, v));
+            topLevelEvents.forEach(([k, v]) => eventMap.set(k, v));
+
+            const events = Array.from(eventMap.entries());
+
+            events.forEach(([eventName, taskName], idx) => {
+                // Create a Task Node for EACH event
+                const taskY = currentY + (idx * eventLinkSpacing);
+                const taskNode = this.createMapTaskNode(taskName, eventName, taskX, taskY, varId);
+                this.nodes.push(taskNode);
+                this.setupNodeListeners(taskNode);
+
+                // Create Connection
+                this.createEventLink(varNode, taskNode, variable.name, eventName);
+            });
+
+            currentY += Math.max(rowHeight, events.length * eventLinkSpacing + 20);
+        });
+
+        // Notify listeners
+        if (this.onNodesChanged) {
+            this.onNodesChanged(this.nodes);
+        }
+
+        this.updateScrollArea();
+    }
+
+    private createMapTaskNode(taskName: string, eventName: string, x: number, y: number, sourceId: string): FlowTask {
+        const taskNode = new FlowTask('map-task-' + eventName + '-' + taskName + '-' + sourceId, x, y, this.canvas, this.flowStage.cellSize);
+        taskNode.Text = taskName;
+        taskNode.autoSize();
+
+        const taskDef = this.project!.tasks.find((t: any) => t.name === taskName);
+        if (taskDef && taskDef.description) {
+            taskNode.Description = taskDef.description;
+        }
+
+        // Check if this task uses a library task internally
+        let usedLibraryTaskName: string | null = null;
+        const flowData = (taskDef as any)?.flowChart || (taskDef as any)?.flowGraph ||
+            this.project!.flowCharts?.[taskName];
+
+        if (flowData?.elements) {
+            for (const el of flowData.elements) {
+                const elTaskName = el.data?.taskName;
+                if (elTaskName && libraryService.getTask(elTaskName)) {
+                    usedLibraryTaskName = elTaskName;
+                    break;
+                }
+            }
+        }
+
+        const isLibraryBased = !!usedLibraryTaskName;
+        if (isLibraryBased) {
+            taskNode.setLinked(true);
+            taskNode.Details = `📚 ${usedLibraryTaskName}`;
+        }
+
+        taskNode.data = {
+            taskName: taskName,
+            eventName: eventName,
+            stageObjectId: sourceId,
+            isMapLink: true,
+            isLibraryBased,
+            usedLibraryTaskName
+        };
+        taskNode.setDetailed(isLibraryBased);
+        return taskNode;
+    }
+
+    private createEventLink(sourceNode: FlowElement, targetNode: FlowElement, sourceName: string, eventName: string) {
+        const conn = new FlowConnection(this.canvas, 0, 0, 0, 0);
+        conn.setGridConfig(this.flowStage.cellSize);
+        conn.attachStart(sourceNode);
+        conn.attachEnd(targetNode);
+        conn.data = {
+            objectName: sourceName,
+            eventName: eventName,
+            isMapLink: true
+        };
+        conn.Text = eventName;
+        conn.updatePosition();
+        this.connections.push(conn);
+        this.setupConnectionListeners(conn);
+    }
+
+    /**
+     * Generiert eine Übersicht über alle Tasks und Actions und deren Verwendungsstatus.
+     * Ermöglicht das Löschen von ungenutzten Elementen.
+     */
+    private generateElementOverview(): void {
+        console.log("%c[FlowEditor] generateElementOverview()", "color: #e65100; font-weight: bold;");
+        if (!this.project) return;
+
+        const actionX = 50;
+        const gridSize = this.flowStage.cellSize;
+
+        // Snap all positions to grid from the start
+        const snappedActionX = Math.round(actionX / gridSize) * gridSize;
+        let currentActionY = Math.round(90 / gridSize) * gridSize; // Snapped to grid
+        let currentTaskY = Math.round(90 / gridSize) * gridSize;   // Snapped to grid
+        const spacingY = Math.round(70 / gridSize) * gridSize; // Snap spacing to grid
+        const baseNodeHeight = gridSize * 3; // 3 rows
+
+        // 1. Calculate maximum widths for each category
+        const measureTextWidth = (text: string, fontSize: number = 14): number => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return 150; // Fallback
+            ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+            return ctx.measureText(text).width;
+        };
+
+        const activeStage = this.getActiveStage();
+
+        // Find longest action name
+        let maxActionWidth = 150; // Minimum width
+        const currentActions = this.editor ? this.editor.currentActions : (this.project.actions || []);
+        currentActions.forEach((a: any) => {
+            const width = measureTextWidth(a.name || "") + 60; // Padding for anchors/borders
+            if (width > maxActionWidth) maxActionWidth = width;
+        });
+
+        // Find longest task name
+        let maxTaskWidth = 150; // Minimum width
+        const currentTasks = this.editor ? this.editor.currentTasks : (this.project.tasks || []);
+        currentTasks.forEach((t: any) => {
+            const width = measureTextWidth(t.name || "") + 60;
+            if (width > maxTaskWidth) maxTaskWidth = width;
+        });
+
+        const taskX = actionX + maxActionWidth + 80; // 80px gap between columns
+
+        // Find longest variable name
+        let maxVarWidth = 150;
+        const currentVariables = [...(this.project.variables || []), ...(activeStage?.variables || [])];
+        currentVariables.forEach((v: any) => {
+            const width = measureTextWidth(v.name || "") + 60;
+            if (width > maxVarWidth) maxVarWidth = width;
+        });
+        const varX = taskX + maxTaskWidth + 80;
+
+        // 2. Collect Usage Data
+        const stageRelevantTasks = new Set<string>();
+        const usedActions = new Set<string>();
+
+        const activeStageId = activeStage ? activeStage.id : null;
+        const isGlobalView = !activeStage || activeStage.type === 'main';
+
+        console.log(`[FlowEditor] generateElementOverview - activeStage: ${activeStage?.name} (${activeStageId}), isGlobalView: ${isGlobalView}`);
+
+        // A. Tasks used by objects of the current stage
+        this.getCurrentObjects().forEach(obj => {
+            const mappings = (obj as any).Tasks || {};
+            Object.values(mappings).forEach(t => {
+                if (typeof t === 'string') stageRelevantTasks.add(t);
+            });
+        });
+
+        // B. Tasks used by variables of the current stage
+        const relevantVars = [...(this.project.variables || []), ...(activeStage?.variables || [])];
+        relevantVars.forEach(v => {
+            // Check top-level events
+            Object.entries(v).forEach(([k, val]) => {
+                if (k.startsWith('on') && typeof val === 'string' && val) {
+                    stageRelevantTasks.add(val);
+                }
+            });
+            // Check Tasks object
+            const taskMappings = (v as any).Tasks || {};
+            Object.values(taskMappings).forEach(t => {
+                if (typeof t === 'string' && t) stageRelevantTasks.add(t);
+            });
+        });
+
+        // B. Tasks defined in the stage's local flowCharts
+        if (activeStage?.flowCharts) {
+            Object.keys(activeStage.flowCharts).forEach(taskName => {
+                if (taskName !== 'global') stageRelevantTasks.add(taskName);
+            });
+        }
+
+        console.log(`[FlowEditor] stageRelevantTasks:`, Array.from(stageRelevantTasks));
+
+        // C. Actions used by these relevant tasks
+        currentTasks.forEach((t: any) => {
+            if (stageRelevantTasks.has(t.name) && t.actionSequence) {
+                const processSeq = (seq: any[]) => {
+                    seq.forEach(item => {
+                        if (item.type === 'action' && item.name) usedActions.add(item.name);
+                        if (item.type === 'condition') {
+                            if (item.thenAction) usedActions.add(item.thenAction);
+                            if (item.elseAction) usedActions.add(item.elseAction);
+                        }
+                    });
+                };
+                processSeq(t.actionSequence);
+            }
+        });
+
+        // Also check task-specific flowCharts for actions (even if not synced to actionSequence yet)
+        const relevantCharts: any = {};
+        if (activeStage?.flowCharts) {
+            Object.entries(activeStage.flowCharts).forEach(([name, chart]) => {
+                if (name !== 'global') relevantCharts[name] = chart;
+            });
+        }
+
+        Object.values(relevantCharts).forEach((chart: any) => {
+            (chart.elements || []).forEach((el: any) => {
+                const name = el.data?.name || el.data?.actionName || el.properties?.name;
+                if (el.type === 'Action' && name) usedActions.add(name);
+                if (el.type === 'Condition' && el.data) {
+                    if (el.data.thenAction) usedActions.add(el.data.thenAction);
+                    if (el.data.elseAction) usedActions.add(el.data.elseAction);
+                }
+            });
+        });
+
+        console.log(`[FlowEditor] usedActions for this stage:`, Array.from(usedActions));
+
+        // Map ObjectName -> StageId for all objects (Context-Aware Logic)
+        const objectStageMap = new Map<string, string>();
+        if (this.project.stages) {
+            this.project.stages.forEach(stage => {
+                if (stage.objects) {
+                    stage.objects.forEach((obj: any) => {
+                        objectStageMap.set(obj.name, stage.id);
+                    });
+                }
+            });
+        }
+        this.project.objects.forEach(obj => {
+            if (!objectStageMap.has(obj.name)) objectStageMap.set(obj.name, 'legacy_main');
+        });
+
+        // List of global services and system singletons
+        const globalServices = new Set(serviceRegistry.listServices());
+        const globalSingletons = new Set(['StageController', 'GameState', 'InputController', 'GameLoop', 'RemoteGameManager', 'Player1', 'Player2']);
+        console.log(`[FlowEditor] globalServices:`, Array.from(globalServices));
+
+        const localActions = activeStage?.actions || [];
+
+        const actionItems = currentActions
+            .map((action: any) => {
+                const isLocal = localActions.some((la: any) => la.name === action.name);
+                return { action, isLocal };
+            })
+            .filter((item: { action: any, isLocal: boolean }) => {
+                const action = item.action;
+                const actionName = action.name || "";
+                const isLocal = item.isLocal;
+
+                // Stage-lokale Actions immer anzeigen
+                if (isLocal) return true;
+
+                if (isGlobalView) return true;
+
+                // 1. Service / Singleton Check (High Priority)
+                const dotIndex = actionName.indexOf('.');
+                const prefix = dotIndex !== -1 ? actionName.substring(0, dotIndex) : null;
+
+                if (prefix && (globalServices.has(prefix) || globalSingletons.has(prefix))) {
+                    // Special Rule: Hide redundant navigation for StageController
+                    if (prefix === 'StageController') {
+                        const method = action.method || (action as any).methodName;
+                        if (method === 'goToStage') {
+                            const targetStageId = action.params && action.params[0];
+                            if (targetStageId === activeStageId) {
+                                console.log(`[FlowEditor] HIDING Redundant Navigation: '${actionName}' targets current stage '${activeStageId}'`);
+                                return false;
+                            }
+                        }
+                        if (method === 'goToMainStage' && activeStage?.type === 'main') {
+                            console.log(`[FlowEditor] HIDING Redundant Navigation: '${actionName}' targets main while already on main`);
+                            return false;
+                        }
+                    }
+                    return true; // Always show system services
+                }
+
+                // 2. Used Actions Check (Explicit contextual usage)
+                if (usedActions.has(actionName)) {
+                    return true;
+                }
+
+                // 3. Explicit Object Stage Check
+                const targetsToCheck = [prefix, action.target, (action as any).targetName, action.source].filter(Boolean) as string[];
+                for (const t of targetsToCheck) {
+                    if (objectStageMap.has(t)) {
+                        const targetStageId = objectStageMap.get(t);
+                        if (targetStageId !== activeStageId) {
+                            console.log(`[FlowEditor] REJECTED Action '${actionName}': Target '${t}' resides in stage '${targetStageId}'`);
+                            return false;
+                        }
+                        // If it matches an object in the CURRENT stage, we could return true here, 
+                        // but let's continue to other checks (for heuristics) just in case.
+                    }
+                }
+
+                // 4. Heuristic name match (e.g. "Get Ball H" matching object "BallSprite")
+                const lowerName = actionName.toLowerCase();
+                const words = lowerName.split(/[\s\._]+/).filter((w: string) => w.length > 2);
+
+                for (const [objName, stageId] of objectStageMap.entries()) {
+                    const lowerObj = objName.toLowerCase();
+                    // Match if action name contains object name OR if a significant word in action name is part of object name
+                    if (lowerName.includes(lowerObj) || words.some((w: string) => lowerObj.includes(w))) {
+                        if (stageId !== activeStageId) {
+                            console.log(`[FlowEditor] REJECTED Action '${actionName}' (Heuristic): matches object '${objName}' from stage '${stageId}'`);
+                            return false;
+                        }
+                    }
+                }
+
+                // 5. Final Fallback for Unused/Ambiguous Actions
+                // If it's a standalone action (no dot, no target) and not used here, hide it in stage view.
+                if (dotIndex === -1 && targetsToCheck.length === 0) {
+                    console.log(`[FlowEditor] HIDING Action '${actionName}': Not used in stage and no clear target.`);
+                    return false;
+                }
+
+                // If it has a dot or targets but they are unknown (likely from another stage's custom logic), hide it.
+                if (targetsToCheck.length > 0 || dotIndex !== -1) {
+                    console.log(`[FlowEditor] HIDING Action '${actionName}': Unknown targets/prefix in current stage context.`);
+                    return false;
+                }
+
+                return true;
+            });
+
+        console.log(`[FlowEditor] Final visible actions: ${actionItems.length}`);
+
+        // Count occurrences for duplicate detection
+        const actionCounts = new Map<string, number>();
+        this.project.actions.forEach(a => {
+            actionCounts.set(a.name, (actionCounts.get(a.name) || 0) + 1);
+        });
+
+        // 3. Render Header Labels (same width as objects below)
+        const headerY = Math.round(20 / gridSize) * gridSize; // Snap to grid
+
+        const actionHeader = new FlowStart('header-actions', snappedActionX, headerY, this.canvas, gridSize);
+        actionHeader.Text = "Alle Actions";
+        actionHeader.Width = maxActionWidth;
+        actionHeader.Height = 40;
+        actionHeader.getElement().style.color = "#00ffff";
+        actionHeader.getElement().style.fontWeight = "bold";
+        actionHeader.getElement().style.textAlign = "center";
+        this.nodes.push(actionHeader);
+
+        const taskHeader = new FlowStart('header-tasks', taskX, headerY, this.canvas, gridSize);
+        taskHeader.Text = "Alle Tasks";
+        taskHeader.Width = maxTaskWidth;
+        taskHeader.Height = 40;
+        taskHeader.getElement().style.color = "#00ff00";
+        taskHeader.getElement().style.fontWeight = "bold";
+        taskHeader.getElement().style.textAlign = "center";
+        this.nodes.push(taskHeader);
+
+        const varHeader = new FlowStart('header-vars', varX, headerY, this.canvas, gridSize);
+        varHeader.Text = "Alle Variablen";
+        varHeader.Width = maxVarWidth;
+        varHeader.Height = 40;
+        varHeader.getElement().style.color = "#ffcc00";
+        varHeader.getElement().style.fontWeight = "bold";
+        varHeader.getElement().style.textAlign = "center";
+        this.nodes.push(varHeader);
+
+        // 4. Render Actions (sorted) with unified width
+        actionItems.sort((a: any, b: any) => (a.action.name || "").localeCompare(b.action.name || ""));
+
+        actionItems.forEach((item: any, displayIdx: number) => {
+            const action = item.action;
+            const refs = projectRegistry.findReferences(action.name);
+            const isUsed = refs.length > 0;
+            const isDuplicate = (actionCounts.get(action.name) || 0) > 1;
+
+            const nodeId = 'over-action-' + displayIdx + '-' + (action.name || 'unnamed').replace(/\s+/g, '_');
+            const node = new FlowAction(nodeId, snappedActionX, currentActionY, this.canvas, gridSize);
+
+            node.Name = action.name || "Unbenannte Aktion";
+            node.setText(node.Name);
+
+            // Apply uniform width and height
+            node.Width = maxActionWidth;
+            node.Height = baseNodeHeight;
+
+            node.data = { ...action, isOverviewLink: true, type: action.type || 'Action', canDelete: !isUsed, originalIndex: item.originalIndex };
+            node.setDetailed(true);
+
+            (node as any).setUsageInfo(refs);
+            if (!isUsed) node.setUnused(true);
+            if (isDuplicate) node.setDuplicate(true);
+
+            this.nodes.push(node);
+            this.setupNodeListeners(node);
+            currentActionY += spacingY;
+        });
+
+        // 5. Render Tasks (sorted) with unified width
+        const localTasks = activeStage?.tasks || [];
+        const taskItems = currentTasks
+            .map((task: any) => {
+                const isLocal = localTasks.some((lt: any) => lt.name === task.name);
+                return { task, isLocal };
+            })
+            .filter((item: any) => {
+                const task = item.task;
+                const taskName = task.name || "";
+                const isLocal = item.isLocal;
+
+                if (isLocal) return true;
+                if (isGlobalView) return true;
+
+                // Heuristic filtering for global tasks
+                if (stageRelevantTasks.has(taskName)) return true;
+                return false;
+            });
+
+        taskItems.sort((a: any, b: any) => (a.task.name || "").localeCompare(b.task.name || ""));
+
+        taskItems.forEach((item: any, displayIdx: number) => {
+            const task = item.task;
+            const refs = projectRegistry.findReferences(task.name);
+
+            const isUsed = refs.length > 0;
+
+            const nodeId = 'over-task-' + displayIdx + '-' + (task.name || 'unnamed').replace(/\s+/g, '_');
+            const node = new FlowTask(nodeId, taskX, currentTaskY, this.canvas, gridSize);
+
+            node.Name = task.name || "Unbenannter Task";
+            node.setText(node.Name);
+            node.Width = maxTaskWidth;
+            node.Height = baseNodeHeight;
+
+            // Check if this task uses a library task internally
+            let usedLibraryTaskName: string | null = null;
+            // Check: Active Stage Chart -> Global Project Chart -> Task Internal Chart
+            const flowData = activeStage?.flowCharts?.[task.name] ||
+                this.project!.flowCharts?.[task.name] ||
+                (task as any)?.flowChart ||
+                (task as any)?.flowGraph;
+
+            if (flowData?.elements) {
+                for (const el of flowData.elements) {
+                    const elTaskName = el.data?.taskName;
+                    if (elTaskName && libraryService.getTask(elTaskName)) {
+                        usedLibraryTaskName = elTaskName;
+                        break;
+                    }
+                }
+            }
+
+            const isLibraryBased = !!usedLibraryTaskName;
+            if (isLibraryBased) {
+                node.setLinked(true);
+                node.Details = `📚 ${usedLibraryTaskName}`;
+            }
+
+            node.data = {
+                isOverviewLink: true,
+                type: 'Task',
+                canDelete: !isUsed,
+                taskName: task.name,
+                isLocal: item.isLocal,
+                isLibraryBased,
+                usedLibraryTaskName
+            };
+            node.setDetailed(true);
+
+            (node as any).setUsageInfo(refs);
+            if (!isUsed) node.setUnused(true);
+
+            if (item.isLocal) {
+                node.getElement().style.borderLeft = '6px solid #00ff00';
+                node.getElement().title = 'Stage-lokaler Task';
+            }
+
+            this.nodes.push(node);
+            this.setupNodeListeners(node);
+            currentTaskY += spacingY;
+        });
+
+        // 6. Render Variables (sorted)
+        let currentVarY = Math.round(90 / gridSize) * gridSize;
+        currentVariables.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+        currentVariables.forEach((v, idx) => {
+            const refs = projectRegistry.findReferences(v.name);
+            const isUsed = refs.length > 0;
+
+            const nodeId = 'over-var-' + idx + '-' + (v.name || 'unnamed').replace(/\s+/g, '_');
+            const node = new FlowComponent(nodeId, varX, currentVarY, this.canvas, gridSize);
+
+            node.Name = v.name || "Unbenannte Variable";
+            node.setText(node.Name);
+            node.Width = maxVarWidth;
+            node.Height = baseNodeHeight;
+
+            node.data = { isOverviewLink: true, type: 'VariableDecl', canDelete: !isUsed };
+            node.setDetailed(true);
+
+            (node as any).setUsageInfo(refs);
+            if (!isUsed) node.setUnused(true);
+
+            this.nodes.push(node);
+            this.setupNodeListeners(node);
+            currentVarY += spacingY;
+        });
+
+        this.updateScrollArea();
+
+        // Show Action-Check button in element-overview context
+        if (this.actionCheckBtn) {
+            this.actionCheckBtn.style.display = 'inline-block';
+        }
+
+        // Re-apply highlighting if Action-Check mode is still active
+        if (this.actionCheckMode) {
+            this.highlightUnusedActions(true);
+        }
+    }
+
+    /**
+     * Toggles Action-Check mode - highlights unused actions
+     */
+    private toggleActionCheckMode(): void {
+        this.actionCheckMode = !this.actionCheckMode;
+
+        if (this.actionCheckMode) {
+            this.actionCheckBtn.style.background = '#ff5722';
+            this.actionCheckBtn.innerText = '🔴 Check AUS';
+            this.highlightUnusedActions(true);
+        } else {
+            this.actionCheckBtn.style.background = '#e65100';
+            this.actionCheckBtn.innerText = '🔍 Action-Check';
+            this.highlightUnusedActions(false);
+        }
+    }
+
+    /**
+     * Highlights or unhighlights unused action and task nodes
+     */
+    private highlightUnusedActions(highlight: boolean): void {
+        const unusedDetails: any[] = [];
+        let unusedActionCount = 0;
+        let unusedTaskCount = 0;
+        let unusedVariableCount = 0;
+
+        if (highlight) {
+            console.group(`[FlowEditor] Action-Check Result`);
+        }
+
+        this.nodes.forEach(node => {
+            const nodeType = node.getType();
+            const isUnused = node.data?.canDelete === true;
+            const name = node.Name || (node as any).taskName || "unknown";
+
+            if ((nodeType === 'Action' || nodeType === 'Task' || nodeType === 'VariableDecl' || nodeType === 'TVariable') && isUnused) {
+                unusedDetails.push({
+                    Type: nodeType,
+                    Name: name,
+                    Refs: (node.data?.references || []).length > 0 ? node.data.references : "(Keine Referenzen gefunden!)"
+                });
+
+                const el = node.getElement();
+
+                if (nodeType === 'Action') unusedActionCount++;
+                if (nodeType === 'Task') unusedTaskCount++;
+                if (nodeType === 'VariableDecl' || nodeType === 'TVariable') unusedVariableCount++;
+
+                if (highlight) {
+                    // Apply strong highlight
+                    el.style.outline = '4px solid #ff5722';
+                    el.style.boxShadow = '0 0 20px rgba(255, 87, 34, 0.8)';
+                    el.style.animation = 'pulse-unused 1s infinite alternate';
+
+                    // Add animation keyframes if not already present
+                    if (!document.getElementById('unused-action-styles')) {
+                        const style = document.createElement('style');
+                        style.id = 'unused-action-styles';
+                        style.textContent = `
+                            @keyframes pulse-unused {
+                                from { box-shadow: 0 0 10px rgba(255, 87, 34, 0.6); }
+                                to { box-shadow: 0 0 25px rgba(255, 87, 34, 1); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+                } else {
+                    // Remove highlight
+                    el.style.outline = '';
+                    el.style.boxShadow = '';
+                    el.style.animation = '';
+                }
+            }
+        });
+
+        if (highlight) {
+            console.log(`Found ${unusedActionCount} Actions, ${unusedTaskCount} Tasks unused.`);
+            if (unusedDetails.length > 0) {
+                console.table(unusedDetails);
+            } else {
+                console.log("Alles super! Keine ungenutzten Elemente gefunden.");
+            }
+            console.groupEnd();
+        }
+    }
 
     /**
      * Updates the internal 'world' size to ensure the canvas is scrollable
      */
-    public updateScrollArea(): void {
+    private updateScrollArea(): void {
         const world = document.getElementById('flow-world');
         if (!world) return;
 
