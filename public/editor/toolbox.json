@@ -33,6 +33,11 @@
                     "type": "Edit",
                     "icon": "✏️",
                     "label": "Edit"
+                },
+                {
+                    "type": "EmojiPicker",
+                    "icon": "😃",
+                    "label": "Emoji Picker"
                 }
             ]
         },
@@ -208,6 +213,11 @@
                     "type": "Heartbeat",
                     "icon": "💓",
                     "label": "Heartbeat"
+                },
+                {
+                    "type": "APIServer",
+                    "icon": "🔌",
+                    "label": "API Server"
                 }
             ]
         },

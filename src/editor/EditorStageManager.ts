@@ -3,6 +3,7 @@ import { Stage } from './Stage';
 import { TWindow } from '../components/TWindow';
 import { TObjectList } from '../components/TObjectList';
 import { mediatorService } from '../services/MediatorService';
+import { ProjectRegistry } from '../services/ProjectRegistry';
 
 /**
  * EditorStageManager handles all stage-related operations within the Editor:
@@ -19,34 +20,7 @@ export class EditorStageManager {
     ) { }
 
     public currentObjects(): TWindow[] {
-        let allObjects: TWindow[] = [];
-        const activeStage = this.getActiveStage();
-
-        if (activeStage) {
-            allObjects = [
-                ...(activeStage.objects || []),
-                ...(activeStage.variables || []) as unknown as TWindow[]
-            ];
-
-            // Resolve Global Objects from other stages
-            if (this.project.stages) {
-                this.project.stages.forEach(s => {
-                    if (s.id === activeStage.id) return;
-
-                    const globalsFromStage = [
-                        ...(s.objects || []).filter(obj => (obj as any).scope === 'global'),
-                        ...(s.variables || []).filter(v => (v as any).scope === 'global') as unknown as TWindow[]
-                    ];
-
-                    globalsFromStage.forEach(gObj => {
-                        if (!allObjects.some(o => o.id === gObj.id)) {
-                            allObjects.push(gObj);
-                        }
-                    });
-                });
-            }
-        }
-        return allObjects;
+        return ProjectRegistry.getInstance().getObjects();
     }
 
     public setCurrentObjects(objs: TWindow[]) {
@@ -63,7 +37,9 @@ export class EditorStageManager {
                         (s.objects || []).some(o => o.id === obj.id) ||
                         (s.variables || []).some(v => (v as any).id === obj.id)
                     )
-                );
+                ) || (this.project.objects || []).some(o => o.id === obj.id)
+                    || (this.project.variables || []).some(v => (v as any).id === obj.id);
+
                 return !existsElsewhere;
             });
 

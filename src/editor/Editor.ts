@@ -36,6 +36,7 @@ import { mediatorService, MediatorEvents } from '../services/MediatorService';
 import { projectPersistenceService } from '../services/ProjectPersistenceService';
 import { EditorCommandManager } from './services/EditorCommandManager';
 import { EditorRunManager } from './services/EditorRunManager';
+import { dataService } from '../services/DataService';
 
 export class Editor implements IViewHost {
     public stage: Stage;
@@ -154,6 +155,28 @@ export class Editor implements IViewHost {
         serviceRegistry.register('Library', libraryService, 'Global Library for Tasks and Actions');
         libraryService.loadLibrary();
 
+        // Register Data service
+        serviceRegistry.register('Data', dataService, 'Data Persistence Service');
+
+        // Register Mock HttpServer for API Simulation in Editor
+        serviceRegistry.register('HttpServer', {
+            respond: (requestId: string, status: number, data: any) => {
+                if (requestId && requestId.startsWith('sim-')) {
+                    console.log(`[Editor] Sim-Response empfangen für ${requestId}:`, data);
+                    // Suche nach der TAPIServer Komponente im Projekt
+                    const allObjects = projectRegistry.getObjects();
+                    const server = allObjects.find(o => (o as any).className === 'TAPIServer');
+                    if (server) {
+                        (server as any).testResponse = `Status: ${status}\n\n${JSON.stringify(data, null, 2)}`;
+                        // Update Inspector falls dieses Objekt ausgewählt ist
+                        if (this.jsonInspector && this.jsonInspector.getSelectedObject() === server) {
+                            this.jsonInspector.update(server);
+                        }
+                    }
+                }
+            }
+        });
+
         // Initialize JSON-based UI components
         this.debugLog = new TDebugLog();
         this.initJSONInspector();
@@ -238,7 +261,7 @@ export class Editor implements IViewHost {
     public refreshJSONView() {
         const jsonPanel = document.getElementById('json-viewer');
         if (jsonPanel && this.project) {
-            const data = this.viewManager.useStageIsolatedView ? (this.getActiveStage() || this.project) : this.project;
+            const data = (this.viewManager.useStageIsolatedView) ? (this.getActiveStage() || this.project) : this.project;
             this.viewManager.renderJSONTree(data, jsonPanel);
         }
     }
@@ -884,16 +907,21 @@ export class Editor implements IViewHost {
      */
     private getResolvedInheritanceObjects(): any[] {
         const activeStage = this.getActiveStage();
-        if (!activeStage) return this.project.objects || [];
+        const mergedMap = new Map<string, any>();
 
-        if (!activeStage.inheritsFrom) {
-            return [
-                ...(activeStage.objects || []),
-                ...(activeStage.variables || []) as unknown as any[]
-            ];
-        }
+        // 1. Start with Project Level Globals (References!)
+        const rootGlobals = [
+            ...(this.project.objects || []).filter(obj => (obj as any).scope === 'global'),
+            ...(this.project.variables || []).filter(v => (v as any).scope === 'global') as unknown as any[]
+        ];
 
-        // Build chain (child -> parent -> grandparent)
+        rootGlobals.forEach(obj => {
+            mergedMap.set(obj.id || obj.name, obj);
+        });
+
+        if (!activeStage) return Array.from(mergedMap.values());
+
+        // 2. Resolve Inheritance Chain (if any)
         const chain: StageDefinition[] = [];
         let curr: StageDefinition | undefined = activeStage;
         const seen = new Set<string>();
@@ -905,26 +933,27 @@ export class Editor implements IViewHost {
             curr = parentId ? (this.project.stages || []).find(s => s.id === parentId) : undefined;
         }
 
-        const mergedMap = new Map<string, any>();
-
         // bottom-up merge: start from most distant ancestor so children can override
         for (let i = chain.length - 1; i >= 0; i--) {
             const s = chain[i];
             const isTopLevel = (i === 0);
 
-            // Merge BOTH objects and variables
+            // Merge BOTH objects and variables from this stage
             const combined = [
                 ...(s.objects || []),
                 ...(s.variables || []) as unknown as any[]
             ];
 
             combined.forEach(obj => {
-                // We clone to avoid polluting the original data with 'isInherited' flag
-                const copy = JSON.parse(JSON.stringify(obj));
-                if (!isTopLevel) {
+                if (isTopLevel) {
+                    // Current Stage objects: Use Reference
+                    mergedMap.set(obj.id || obj.name, obj);
+                } else {
+                    // Inherited objects: Clone and mark as ghost
+                    const copy = JSON.parse(JSON.stringify(obj));
                     (copy as any).isInherited = true;
+                    mergedMap.set(obj.id || obj.name, copy);
                 }
-                mergedMap.set(obj.name, copy);
             });
         }
         return Array.from(mergedMap.values());
@@ -1164,6 +1193,11 @@ export class Editor implements IViewHost {
         // Metadata wiederherstellen
         if (data.meta) this.project.meta = data.meta;
         if (data.stage && data.stage.grid) this.project.stage.grid = data.stage.grid;
+
+        // Cleanup korrupter Task-Daten
+        if (this.flowEditor) {
+            this.flowEditor.cleanCorruptTaskData();
+        }
 
         // Actions, Tasks, Variables
         this.project.actions = data.actions || [];

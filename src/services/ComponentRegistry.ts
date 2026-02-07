@@ -23,6 +23,11 @@ import { TThresholdVariable } from '../components/TThresholdVariable';
 import { TRangeVariable } from '../components/TRangeVariable';
 import { TRandomVariable } from '../components/TRandomVariable';
 import { TListVariable } from '../components/TListVariable';
+import { TStringVariable } from '../components/TStringVariable';
+import { TIntegerVariable } from '../components/TIntegerVariable';
+import { TBooleanVariable } from '../components/TBooleanVariable';
+import { TRealVariable } from '../components/TRealVariable';
+import { TObjectVariable } from '../components/TObjectVariable';
 
 // Zusätzliche System-Komponenten
 import { TSplashScreen } from '../components/TSplashScreen';
@@ -43,7 +48,18 @@ import { TStatusBar } from '../components/TStatusBar';
 import { TObjectList } from '../components/TObjectList';
 import { TTabControl } from '../components/TTabControl';
 import { TInspectorTemplate } from '../components/TInspectorTemplate';
-
+import { TAPIServer } from '../components/TAPIServer';
+import { TToast } from '../components/TToast';
+import { TEmojiPicker } from '../components/TEmojiPicker';
+import { TDataStore } from '../components/TDataStore';
+import { TBadge } from '../components/TBadge';
+import { TAvatar } from '../components/TAvatar';
+import { TCard } from '../components/TCard';
+import { TNavBar } from '../components/TNavBar';
+import { TTabBar } from '../components/TTabBar';
+import { TList } from '../components/TList';
+import { TAuthService } from '../components/TAuthService';
+import { TUserManager } from '../components/TUserManager';
 /**
  * ComponentRegistry - Der zentrale "Broker" für alle GCS-Komponenten.
  */
@@ -108,6 +124,18 @@ export class ComponentRegistry {
         this.register('TObjectList', TObjectList);
         this.register('TTabControl', TTabControl);
         this.register('TInspectorTemplate', TInspectorTemplate);
+        this.register('TAPIServer', TAPIServer);
+        this.register('TToast', TToast);
+        this.register('TEmojiPicker', TEmojiPicker);
+        this.register('TDataStore', TDataStore);
+        this.register('TBadge', TBadge);
+        this.register('TAvatar', TAvatar);
+        this.register('TCard', TCard);
+        this.register('TNavBar', TNavBar);
+        this.register('TTabBar', TTabBar);
+        this.register('TList', TList);
+        this.register('TAuthService', TAuthService);
+        this.register('TUserManager', TUserManager);
 
         // Variablen & Spezial-Variablen
         this.register('TVariable', TVariable);
@@ -117,6 +145,11 @@ export class ComponentRegistry {
         this.register('TRangeVariable', TRangeVariable);
         this.register('TRandomVariable', TRandomVariable);
         this.register('TListVariable', TListVariable);
+        this.register('TStringVariable', TStringVariable);
+        this.register('TIntegerVariable', TIntegerVariable);
+        this.register('TBooleanVariable', TBooleanVariable);
+        this.register('TRealVariable', TRealVariable);
+        this.register('TObjectVariable', TObjectVariable);
 
         console.log(`[ComponentRegistry] ${this.registry.size} Komponenten erfolgreich registriert.`);
     }
@@ -136,6 +169,7 @@ export class ComponentRegistry {
         this.typeMapping.set('SystemInfo', 'TSystemInfo');
         this.typeMapping.set('GameHeader', 'TGameHeader');
         this.typeMapping.set('Sprite', 'TSprite');
+        this.typeMapping.set('EmojiPicker', 'TEmojiPicker');
         this.typeMapping.set('Shape', 'TShape');
         this.typeMapping.set('GameLoop', 'TGameLoop');
         this.typeMapping.set('InputController', 'TInputController');
@@ -164,7 +198,15 @@ export class ComponentRegistry {
         this.typeMapping.set('Range', 'TRangeVariable');
         this.typeMapping.set('List', 'TListVariable');
         this.typeMapping.set('Random', 'TRandomVariable');
+        this.typeMapping.set('StringVariable', 'TStringVariable');
+        this.typeMapping.set('IntegerVariable', 'TIntegerVariable');
+        this.typeMapping.set('BooleanVariable', 'TBooleanVariable');
+        this.typeMapping.set('RealVariable', 'TRealVariable');
+        this.typeMapping.set('ObjectVariable', 'TObjectVariable');
         this.typeMapping.set('KeyStore', 'TKeyStore');
+        this.typeMapping.set('APIServer', 'TAPIServer');
+        this.typeMapping.set('Database', 'TDataStore');
+        this.typeMapping.set('DataStore', 'TDataStore');
     }
 
     /**

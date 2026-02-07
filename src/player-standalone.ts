@@ -2,9 +2,14 @@ import { GameRuntime } from './runtime/GameRuntime';
 import { network, ServerMessage } from './multiplayer';
 import { ExpressionParser } from './runtime/ExpressionParser';
 import { gunzipSync } from 'fflate';
+// HeadlessRuntime and HeadlessServer are Node.js-only (use express)
+// They should NOT be imported in the browser bundle
 
 // Register for runtime access
-(window as any).ExpressionParser = ExpressionParser;
+const globalScope = typeof window !== 'undefined' ? window : global;
+(globalScope as any).ExpressionParser = ExpressionParser;
+(globalScope as any).GameRuntime = GameRuntime;
+
 
 /**
  * Decompress gzip-compressed project data (Base64 encoded)
@@ -868,9 +873,11 @@ class UniversalPlayer {
 }
 
 // Start
-document.addEventListener('DOMContentLoaded', () => {
-    (window as any).player = new UniversalPlayer();
-});
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        (window as any).player = new UniversalPlayer();
+    });
+}
 
 // For embedded projects (Standalone Export)
 (window as any).startStandalone = (project: any) => {

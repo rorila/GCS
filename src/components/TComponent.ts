@@ -1,7 +1,7 @@
 export interface TPropertyDef {
     name: string;      // Property key or path (e.g. 'x', 'style.backgroundColor')
     label: string;     // Display label
-    type: 'string' | 'number' | 'boolean' | 'color' | 'select' | 'checkbox' | 'image_picker';
+    type: 'string' | 'number' | 'boolean' | 'color' | 'select' | 'checkbox' | 'image_picker' | 'json' | 'button';
     group?: string;    // 'Geometry', 'Style', 'Identity' etc.
     readonly?: boolean;
     serializable?: boolean; // Ob die Property gespeichert werden soll (default: true)
@@ -9,6 +9,11 @@ export interface TPropertyDef {
     defaultValue?: any;     // Standardwert
     step?: string;     // for number inputs
     options?: string[]; // for select type - available options
+    hint?: string;      // Tooltip or hint text
+    placeholder?: string; // Input placeholder
+    action?: string;   // For button type: internal action name
+    actionData?: any;  // For button type: payload for action
+    style?: any;       // For button type: custom CSS styles
 }
 
 /**

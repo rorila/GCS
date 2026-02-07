@@ -14,6 +14,7 @@ export interface ComponentStyle {
     fontStyle?: string;
     textAlign?: string;
     fontFamily?: string;
+    borderRadius?: number;
 }
 
 export class TWindow extends TComponent {
@@ -153,7 +154,8 @@ export class TWindow extends TComponent {
             { name: 'style.visible', label: 'Style Sichtbar', type: 'boolean', group: 'STIL', editorOnly: true },
             { name: 'style.backgroundColor', label: 'Hintergrund', type: 'color', group: 'STIL' },
             { name: 'style.borderColor', label: 'Rahmenfarbe', type: 'color', group: 'STIL' },
-            { name: 'style.borderWidth', label: 'Rahmenbreite', type: 'number', group: 'STIL' }
+            { name: 'style.borderWidth', label: 'Rahmenbreite', type: 'number', group: 'STIL' },
+            { name: 'style.borderRadius', label: 'Abrundung', type: 'number', group: 'STIL' }
         ];
     }
 }

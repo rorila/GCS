@@ -228,6 +228,18 @@ export class FlowTask extends FlowElement {
         }
     }
 
+    public get Name(): string {
+        const taskName = this.data?.taskName || super.Name;
+        const eventName = this.data?.eventName;
+        if (eventName) {
+            return `${taskName} ---- ${eventName}`;
+        }
+        return taskName;
+    }
+    public set Name(v: string) {
+        super.Name = v;
+    }
+
     public get Description(): string {
         const t = this.getTaskDefinition();
         return t ? (t.description || '') : (this.data?.description || '');

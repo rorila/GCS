@@ -20,12 +20,13 @@ import { TFlowStage } from '../components/TFlowStage';
 import { serviceRegistry } from '../services/ServiceRegistry';
 import { mediatorService } from '../services/MediatorService';
 import { TaskEditor } from './TaskEditor';
-import { ContextMenu, ContextMenuItem } from './ui/ContextMenu';
+import { ContextMenu } from './ui/ContextMenu';
 import { RefactoringManager } from './RefactoringManager';
 import { projectRegistry } from '../services/ProjectRegistry';
 import { libraryService } from '../services/LibraryService';
 import { FlowSyncManager } from './services/FlowSyncManager';
 import { FlowMapManager, FlowMapHost } from './services/FlowMapManager';
+import { FlowContextMenuProvider, FlowContextMenuHost } from './services/FlowContextMenuProvider';
 
 
 export class FlowEditor implements FlowMapHost {
@@ -41,12 +42,12 @@ export class FlowEditor implements FlowMapHost {
 
     // Map Manager - Kapselt Landkarte/Übersicht
     private mapManager: FlowMapManager;
+    private menuProvider: FlowContextMenuProvider;
     public actionCheckMode: boolean = false;
     public filterText: string = "";
 
     private flowSelect!: HTMLSelectElement;
-
-    private contextMenu: ContextMenu;
+    public contextMenu: ContextMenu;
 
     public canvas: HTMLElement;
 
@@ -192,10 +193,13 @@ export class FlowEditor implements FlowMapHost {
         this.stateManager.loadShowDetailsFromStorage();
 
         // Initialize Sync Manager
-        this.syncManager = new FlowSyncManager(this as any);
+        this.syncManager = new FlowSyncManager(this);
 
         // Initialize Map Manager
-        this.mapManager = new FlowMapManager(this as any);
+        this.mapManager = new FlowMapManager(this);
+
+        // Initialize Context Menu Provider
+        this.menuProvider = new FlowContextMenuProvider(this as any as FlowContextMenuHost);
 
         this.contextMenu = new ContextMenu();
 
@@ -292,6 +296,7 @@ export class FlowEditor implements FlowMapHost {
         this.canvas.ondragover = (e) => e.preventDefault();
         this.canvas.ondrop = (e) => this.handleDrop(e);
         this.canvas.onmousedown = (e) => this.handleCanvasClick(e);
+        this.canvas.oncontextmenu = (e) => this.handleCanvasContextMenu(e);
 
         this.container.appendChild(this.canvas);
 
@@ -314,10 +319,22 @@ export class FlowEditor implements FlowMapHost {
         });
     }
 
+    /**
+     * Delegiert die Bereinigung korrupter Task-Daten an den SyncManager
+     */
+    public cleanCorruptTaskData() {
+        if (this.syncManager) {
+            this.syncManager.cleanCorruptTaskData();
+        }
+    }
+
     public setProject(project: GameProject) {
         this.project = project;
         if (!this.project.actions) this.project.actions = [];
         if (!this.project.tasks) this.project.tasks = [];
+
+        // Bereinigung korrupter Daten beim Laden
+        this.cleanCorruptTaskData();
 
         // Ensure global flow structure exists
         if (!this.project.flow) {
@@ -355,7 +372,6 @@ export class FlowEditor implements FlowMapHost {
 
         this.updateGrid();
 
-        // Initial registry build
         this.rebuildActionRegistry();
     }
 
@@ -694,7 +710,7 @@ export class FlowEditor implements FlowMapHost {
      * Generates a unique action name with a running number (Action1, Action2, etc.)
      * Checks both project actions and current flow nodes for uniqueness.
      */
-    private generateUniqueActionName(baseName: string = 'Action'): string {
+    public generateUniqueActionName(baseName: string = 'Action'): string {
         let counter = 1;
         let finalName = `${baseName}${counter}`;
 
@@ -729,7 +745,7 @@ export class FlowEditor implements FlowMapHost {
         return finalName;
     }
 
-    private generateUniqueVariableName(baseName: string = 'neueVariabel'): string {
+    public generateUniqueVariableName(baseName: string = 'neueVariabel'): string {
         let counter = 1;
         let finalName = baseName;
         const existingNames = new Set<string>();
@@ -758,7 +774,7 @@ export class FlowEditor implements FlowMapHost {
         return finalName;
     }
 
-    private generateUniqueTaskName(baseName: string = 'Task'): string {
+    public generateUniqueTaskName(baseName: string = 'Task'): string {
         let counter = 1;
         let finalName = baseName;
         const existingNames = new Set<string>();
@@ -789,7 +805,7 @@ export class FlowEditor implements FlowMapHost {
     /**
      * Ensures a task exists in project.tasks. Creates it if not present.
      */
-    private ensureTaskExists(taskName: string, description?: string) {
+    public ensureTaskExists(taskName: string, description?: string) {
         if (!this.project) return;
 
         // Ensure tasks array exists
@@ -998,7 +1014,7 @@ export class FlowEditor implements FlowMapHost {
     /**
      * Re-expands a Proxy node to show its internal ghost nodes
      */
-    private refreshEmbeddedTask(proxyNode: FlowElement) {
+    public refreshEmbeddedTask(proxyNode: FlowElement) {
         if (!this.project || !proxyNode.data?.isExpanded || !proxyNode.data?.sourceTaskName) return;
 
         const sourceTaskName = proxyNode.data.sourceTaskName;
@@ -1100,7 +1116,7 @@ export class FlowEditor implements FlowMapHost {
         }
     }
 
-    private deselectAll(emitEvent: boolean = true) {
+    public deselectAll(emitEvent: boolean = true) {
         if (this.selectedConnection) {
             this.selectedConnection.deselect();
             this.selectedConnection = null;
@@ -1134,6 +1150,10 @@ export class FlowEditor implements FlowMapHost {
                     (node as FlowAction).setShowDetails(true, this.project);
                 }
                 break;
+            case 'Condition':
+                node = new FlowCondition(id, x, y, this.canvas, this.flowStage.cellSize);
+                node.Name = initialName || 'Bedingung';
+                break;
             case 'Task':
                 let taskName = initialName;
                 if (!taskName) {
@@ -1161,10 +1181,6 @@ export class FlowEditor implements FlowMapHost {
                         this.ensureTaskExists(taskName, "");
                     }
                 }
-                break;
-            case 'Condition':
-                node = new FlowCondition(id, x, y, this.canvas, this.flowStage.cellSize);
-                node.Name = 'Bedingung';
                 break;
             case 'VariableDecl':
                 // Check for kind in type string (e.g. "VariableDecl:threshold")
@@ -1234,7 +1250,7 @@ export class FlowEditor implements FlowMapHost {
         return node;
     }
 
-    private deleteConnection(conn: FlowConnection) {
+    public deleteConnection(conn: FlowConnection) {
         const index = this.connections.indexOf(conn);
         if (index !== -1) {
             this.connections.splice(index, 1);
@@ -1584,7 +1600,7 @@ export class FlowEditor implements FlowMapHost {
         }
     }
 
-    private importTaskGraph(targetNode: FlowElement, task: any, isLinked: boolean = false): FlowElement[] {
+    public importTaskGraph(targetNode: FlowElement, task: any, isLinked: boolean = false): FlowElement[] {
         // PREVENT RECURSIVE IMPORT: Do not expand a task into its own flow view!
         // This is the root cause of the "duplicates" in task-specific views.
         if (task.name === this.currentFlowContext) {
@@ -1775,8 +1791,7 @@ export class FlowEditor implements FlowMapHost {
                                 ...conn.data,
                                 isEmbeddedInternal: true,
                                 parentProxyId: targetNode.name,
-                                // Store the original anchor type to have a stable key for layout overrides
-                                originalStartAnchorType: data.data?.startAnchorType || 'output'
+                                originalStartAnchorType: origStartAnchor // Mark for future sync matches
                             };
                         }
                     }
@@ -1846,495 +1861,17 @@ export class FlowEditor implements FlowMapHost {
     }
 
     private handleNodeContextMenu(e: MouseEvent, node: FlowElement) {
-        if (!this.project) return;
+        this.menuProvider.handleNodeContextMenu(e, node);
+    }
 
-        // For embedded nodes, show limited context menu (only delete option)
-        // Check for isLinked (legacy) or isEmbeddedInternal (new)
-        if (node.data?.isLinked || node.data?.isEmbeddedInternal) {
-            const items: ContextMenuItem[] = [];
-
-            items.push({
-                label: 'Eingebetteten Task löschen',
-                action: () => {
-                    const groupId = node.data?.embeddedGroupId;
-                    console.log('[FlowEditor] Delete embedded - node:', node.name, 'groupId:', groupId);
-                    console.log('[FlowEditor] All nodes:', this.nodes.map(n => ({ name: n.name, groupId: n.data?.embeddedGroupId })));
-
-                    const nodesToDelete = groupId
-                        ? this.nodes.filter(n => n.data?.embeddedGroupId === groupId)
-                        : [node]; // Fallback for legacy data
-
-                    console.log('[FlowEditor] Nodes to delete:', nodesToDelete.map(n => n.name));
-
-                    const count = nodesToDelete.length;
-                    if (confirm(`Möchtest du den gesamten eingebetteten Task (${count} Elemente) wirklich löschen?`)) {
-                        nodesToDelete.forEach(n => this.removeNode(n.name));
-
-                        // Also find the parent proxy and reset its expanded state
-                        const anyGhost = nodesToDelete[0];
-                        if (anyGhost && anyGhost.data?.parentProxyId) {
-                            const proxy = this.nodes.find(n => n.name === anyGhost.data.parentProxyId);
-                            if (proxy && proxy.data) {
-                                proxy.data.isExpanded = false;
-                            }
-                        }
-
-                        this.syncToProject();
-                    }
-                }
-            });
-
-            items.push({ separator: true, label: '' });
-
-            items.push({
-                label: '➔ Zum Original-Flow springen',
-                action: () => {
-                    const taskName = node.data?.taskName || node.data?.name || 'original';
-                    this.switchActionFlow(taskName);
-                }
-            });
-
-            const menu = new ContextMenu();
-            menu.show(e.clientX, e.clientY, items);
-            return;
-        }
-
-        const items: ContextMenuItem[] = [];
-
-        // 1. Basic Actions
-        if (this.currentFlowContext === 'event-map' && node.data?.isMapLink && node.data?.taskName) {
-            items.push({
-                label: '➔ Gehe zum Task-Workflow',
-                action: () => this.switchActionFlow(node.data.taskName)
-            });
-        }
-
-        items.push({
-            label: 'Bearbeiten...',
-            action: () => this.handleNodeDoubleClick(node)
-        });
-
-        // Delete option: Immer erlaubt, aber mit Referenz-Warnung falls vorhanden
-        const elementName = node.Name || node.name;
-        const liveRefs = projectRegistry.findReferences(elementName);
-        const refCount = liveRefs.length;
-
-        items.push({
-            label: refCount > 0 ? `Löschen (${refCount} Referenz${refCount !== 1 ? 'en' : ''})` : 'Löschen',
-            action: () => this.deleteNode(node),
-            color: '#ff4444'
-        });
-
-        // Expansion Option for Tasks with internal logic
-        if (node instanceof FlowTask) {
-            const taskDef = node.getTaskDefinition();
-            const flowChart = (this.project as any)?.flowCharts?.[node.Name] || taskDef?.flowChart;
-            const hasGhosts = this.nodes.some(n => n.data?.parentProxyId === node.name);
-            const isExpanded = node.data?.isExpanded && hasGhosts;
-
-            if (flowChart && flowChart.elements?.length > 0 && !isExpanded) {
-                items.push({
-                    label: '📂 Ausklappen (Aktionen zeigen)',
-                    action: () => this.handleNodeDoubleClick(node)
-                });
-                items.push({ separator: true, label: '' });
-            }
-        }
-
-        // 2. Assign Actions (Reuse)
-        if (node.getType() === 'Task' && this.project) {
-            // Option A: Link (Default)
-            const linkItems: ContextMenuItem[] = this.project.tasks.map(t => ({
-                label: t.name,
-                action: () => this.assignTaskToNode(node, t)
-            }));
-
-            if (linkItems.length > 0) {
-                items.push({
-                    label: 'Use Existing Task (Link)',
-                    submenu: linkItems
-                });
-            } else {
-                items.push({ label: 'No Existing Tasks', action: () => { } });
-            }
-
-            // Option B: Import
-            const importItems: ContextMenuItem[] = this.project.tasks.map(t => ({
-                label: t.name,
-                action: () => this.importTaskGraph(node, t)
-            }));
-
-            if (importItems.length > 0) {
-                items.push({
-                    label: 'Embed Task (Copy Structure)',
-                    submenu: importItems
-                });
-            }
-
-            // Option C: Library Tasks als Vorlage (Blaupause)
-            const libraryTasks = libraryService.getTasks();
-            if (libraryTasks.length > 0) {
-                const libraryItems: ContextMenuItem[] = libraryTasks.map(t => ({
-                    label: `📋 ${t.name}`,
-                    action: () => this.copyLibraryTaskAsTemplate(node, t)
-                }));
-                items.push({
-                    label: '📚 Library-Task als Vorlage',
-                    submenu: libraryItems
-                });
-            }
-        } else if (node.getType() === 'Action' && this.project) {
-            // Option A: Link
-            const linkItems: ContextMenuItem[] = this.project.actions.map(a => ({
-                label: a.name,
-                action: () => this.linkActionToNode(node, a)
-            }));
-
-            if (linkItems.length > 0) {
-                items.push({
-                    label: 'Use Existing Action (Link)',
-                    submenu: linkItems
-                });
-            }
-
-            // Option B: Copy
-            const copyItems: ContextMenuItem[] = this.project.actions.map(a => ({
-                label: a.name,
-                action: () => this.copyActionToNode(node, a)
-            }));
-
-            if (copyItems.length > 0) {
-                items.push({
-                    label: 'Embed Action (Copy)',
-                    submenu: copyItems
-                });
-            }
-        }
-
-        this.contextMenu.show(e.clientX, e.clientY, items);
+    private handleCanvasContextMenu(e: MouseEvent) {
+        this.menuProvider.handleCanvasContextMenu(e);
     }
 
     private handleConnectionContextMenu(e: MouseEvent, conn: FlowConnection) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const items: ContextMenuItem[] = [
-            { label: 'Verbindung löschen', action: () => this.deleteConnection(conn), color: '#ff4444' }
-        ];
-        this.contextMenu.show(e.clientX, e.clientY, items);
+        this.menuProvider.handleConnectionContextMenu(e, conn);
     }
 
-    private assignTaskToNode(node: FlowElement, task: any) {
-
-        // For "Link" mode, we import the task's graph with hatched styling
-        // This replaces the Task node with the actual content (Task + Actions)
-        // All imported nodes are marked as linked (hatched)
-        this.importTaskGraph(node, task, true);
-    }
-
-    private linkActionToNode(node: FlowElement, action: any) {
-        // SINGLE SOURCE OF TRUTH: Linked nodes store only the name and isLinked flag.
-        // The data is loaded from project.actions at runtime.
-        node.data = { name: action.name, isLinked: true };
-        node.setText(action.name);
-        node.setDetailed(true);
-        node.setLinked(true); // Apply hatched styling
-        if (action.description) node.Description = action.description;
-        this.syncToProject();
-    }
-
-    private copyActionToNode(node: FlowElement, action: any) {
-        if (!this.project) return;
-
-        // SINGLE SOURCE OF TRUTH: Create an independent deep copy of the action
-        // and register it as a new global action with a unique name.
-        const originalName = action.name;
-        const newName = this.generateUniqueActionName(`${originalName}_Copy`);
-
-        const actionCopy = JSON.parse(JSON.stringify(action));
-        actionCopy.name = newName;
-
-        // Add to project actions (Library)
-        this.project.actions.push(actionCopy);
-
-        // Update node to link to this NEW action
-        node.data = { name: newName, isLinked: true, originalName: originalName, isCopy: true };
-        node.setText(newName);
-        node.setDetailed(true);
-        node.setLinked(true); // Technically it's a link to the NEW global action
-
-        if (action.description) node.Description = action.description;
-
-        this.syncToProject();
-    }
-
-    private isTaskEmpty(task: any): boolean {
-        if (!task) return true;
-
-        // A Task is "empty" if it has no params AND no actionSequence.
-        // We ignore the flowChart elements for this check because Auto-Spawn 
-        // creates a stub diagram which would make it "not empty" 
-        // otherwise, but it's still just a placeholder.
-        const hasParams = task.params && task.params.length > 0;
-        const hasLogic = task.actionSequence && task.actionSequence.length > 0;
-
-        return !hasParams && !hasLogic;
-    }
-
-    /**
-     * Kopiert einen Library-Task als Blaupause ins Projekt.
-     * Der kopierte Task ist vollständig editierbar und unabhängig von der Library.
-     */
-    private copyLibraryTaskAsTemplate(node: FlowElement, libraryTask: any) {
-        if (!this.project) return;
-
-        // PRIORITÄT 1: Prüfen ob der Name, den der User dem Knoten bereits gegeben hat, 
-        // existiert und leer ist -> Dann "hydrieren" wir diesen.
-        const currentUserTaskName = node.Name;
-        let existingTask = this.project.tasks.find(t => t.name === currentUserTaskName);
-        let newName = currentUserTaskName;
-        let isHydration = false;
-
-        if (existingTask && this.isTaskEmpty(existingTask)) {
-            // Hydrierung erfolgt nun automatisch ohne Rückfrage (Nutzer-Wunsch)
-            isHydration = true;
-            console.log(`[FlowEditor] Automatically hydrating existing empty task: ${currentUserTaskName}`);
-        }
-
-        if (!isHydration) {
-            // PRIORITÄT 2: Eindeutigen Namen basierend auf Library-Namen generieren
-            let baseName = libraryTask.name;
-            newName = baseName;
-            let counter = 1;
-
-            // Prüfe ob Name bereits existiert und NICHT leer ist
-            while (this.project.tasks.some(t => t.name === newName)) {
-                const conflictTask = this.project.tasks.find(t => t.name === newName);
-                if (this.isTaskEmpty(conflictTask)) {
-                    // Falls wir über einen leeren Task mit dem Namen stolpern, nehmen wir den als Vorschlag
-                    existingTask = conflictTask;
-                    break;
-                }
-                newName = `${baseName}_${counter}`;
-                counter++;
-            }
-
-            // User nach Namen fragen für den NEUEN (oder zu hydrierenden) Task
-            const userInput = prompt(`Name für die Vorlage (basierend auf "${libraryTask.name}"):`, newName);
-            if (!userInput) return;
-            newName = userInput;
-
-            // Nochmal prüfen ob der neue Name bereits existiert und leer ist
-            existingTask = this.project.tasks.find(t => t.name === newName);
-        }
-
-        // 1. Create independent deep copy of library data
-        const taskCopy = JSON.parse(JSON.stringify(libraryTask));
-        taskCopy.name = newName;
-        taskCopy.description = (libraryTask.description || '') + ' (Kopie)';
-        taskCopy.sourceTaskName = libraryTask.name;
-
-        // Mark parameters as library-born so they don't get pruned by syncTaskParameters
-        if (taskCopy.params) {
-            taskCopy.params.forEach((p: any) => p.fromLibrary = true);
-        }
-
-        console.log(`[FlowEditor] CLONE START: Source "${libraryTask.name}" has seq=${libraryTask.actionSequence?.length || 0}, params=${taskCopy.params?.length || 0}`);
-        if (!taskCopy.actionSequence || taskCopy.actionSequence.length === 0) {
-            console.warn(`[FlowEditor] CLONE WARNING: Source task "${libraryTask.name}" has NO actionSequence!`);
-        }
-
-        // 2. FlowChart auch kopieren falls vorhanden
-        if (libraryTask.flowChart) {
-            if (!this.project.flowCharts) this.project.flowCharts = {};
-
-            const flowChartCopy = JSON.parse(JSON.stringify(libraryTask.flowChart));
-            const idMapping: Record<string, string> = {};
-
-            if (flowChartCopy.elements) {
-                flowChartCopy.elements.forEach((el: any) => {
-                    const oldId = el.id;
-                    const newId = `${newName}-${oldId}`;
-                    idMapping[oldId] = newId;
-                    el.id = newId;
-
-                    const actionName = el.properties?.name || el.data?.name || el.data?.actionName;
-                    if (el.type === 'Action' && actionName) {
-                        const actionInLibrary = this.syncManager.findActionInSequence(libraryTask.actionSequence, actionName);
-                        if (actionInLibrary) {
-                            el.data = { ...el.data, ...actionInLibrary, name: actionName };
-                        }
-                    }
-                });
-            }
-
-            if (flowChartCopy.connections) {
-                flowChartCopy.connections.forEach((conn: any) => {
-                    if (conn.startTargetId && idMapping[conn.startTargetId]) conn.startTargetId = idMapping[conn.startTargetId];
-                    if (conn.endTargetId && idMapping[conn.endTargetId]) conn.endTargetId = idMapping[conn.endTargetId];
-                });
-            }
-
-            // Automatisch einen Task-Knoten am Anfang einfügen (falls nicht vorhanden)
-            const hasTaskNode = flowChartCopy.elements?.some((el: any) => el.type === 'Task');
-            if (!hasTaskNode && flowChartCopy.elements?.length > 0) {
-                const taskNodeId = `${newName}-task-entry`;
-                const firstElement = flowChartCopy.elements[0];
-
-                // Initialize paramValues with defaults from library task
-                const paramValues: Record<string, any> = {};
-                if (libraryTask.params && Array.isArray(libraryTask.params)) {
-                    libraryTask.params.forEach((p: any) => {
-                        if (p.name && p.default !== undefined) {
-                            paramValues[p.name] = p.default;
-                        }
-                    });
-                }
-
-                // Task-Knoten vor den ersten Aktionen platzieren
-                const taskNode = {
-                    id: taskNodeId,
-                    type: 'Task',
-                    x: 40,
-                    y: 60,
-                    width: 160,
-                    height: 60,
-                    properties: {
-                        name: newName,
-                        details: libraryTask.description || '',
-                        description: ''
-                    },
-                    data: {
-                        taskName: newName,
-                        paramValues: paramValues
-                    }
-                };
-
-                // Task-Knoten an den Anfang stellen
-                flowChartCopy.elements.unshift(taskNode);
-
-                // Verbindung vom Task-Knoten zur ersten Aktion erstellen
-                if (!flowChartCopy.connections) flowChartCopy.connections = [];
-                flowChartCopy.connections.unshift({
-                    startTargetId: taskNodeId,
-                    endTargetId: firstElement.id,
-                    startX: 200,
-                    startY: 90,
-                    endX: firstElement.x || 260,
-                    endY: 90,
-                    data: {
-                        startAnchorType: 'output',
-                        endAnchorType: 'input'
-                    }
-                });
-
-                // Bestehende Elemente nach rechts verschieben
-                flowChartCopy.elements.forEach((el: any, idx: number) => {
-                    if (idx > 0) { // Überspringe den neuen Task-Knoten
-                        el.x = (el.x || 40) + 220;
-                    }
-                });
-
-                console.log(`[FlowEditor] CLONE: Added Task entry node "${newName}" to flowchart`);
-            }
-
-            // Bind fully prepared flowchart to the task copy
-            taskCopy.flowChart = flowChartCopy;
-            this.project.flowCharts[newName] = flowChartCopy;
-        }
-
-        // 3. ATOMIC COMMIT: Task zum Projekt hinzufügen oder existierenden "hydrieren"
-        console.log(`%c[FlowEditor] CLONE STEP 3: Committing taskCopy with seq=${taskCopy.actionSequence?.length || 0}`, 'color: cyan');
-        if (existingTask) {
-            Object.assign(existingTask, taskCopy);
-            console.log(`%c[FlowEditor] CLONE COMMIT: Hydrated "${newName}". Seq after assign: ${existingTask.actionSequence?.length || 0}`, 'color: lime');
-        } else {
-            this.project.tasks.push(taskCopy);
-            console.log(`%c[FlowEditor] CLONE COMMIT: Pushed "${newName}". Seq after push: ${taskCopy.actionSequence?.length || 0}`, 'color: lime');
-        }
-
-        // 4. UI-Binding (Knoten im Diagramm aktualisieren)
-        node.Name = newName;
-        node.setText(newName);
-
-        // Metadaten MERGEN statt überschreiben (wichtig für stageObjectId und eventName in der Map!)
-        node.data = {
-            ...node.data,
-            name: newName,
-            taskName: newName,
-            copiedFromLibrary: libraryTask.name,
-            sourceTaskName: libraryTask.name
-        };
-
-        // Falls wir in der Event-Map sind: Das Mapping im Projekt-Objekt sofort aktualisieren!
-        if (this.currentFlowContext === 'event-map' && node.data.stageObjectId && node.data.eventName) {
-            const obj = this.project.objects.find(o => o.id === node.data.stageObjectId);
-            if (obj) {
-                if (!(obj as any).Tasks) (obj as any).Tasks = {};
-                (obj as any).Tasks[node.data.eventName] = newName;
-                console.log(`[FlowEditor] CLONE: Updated mapping for ${obj.name}.${node.data.eventName} -> ${newName}`);
-            }
-        }
-        if (libraryTask.description) node.Description = libraryTask.description;
-        node.setDetailed(true);
-        node.setLinked(false);
-
-        // 5. Registry & Persistence
-        this.registerActionsFromTask(existingTask || taskCopy);
-        this.rebuildActionRegistry();
-        this.updateFlowSelector();
-
-        if (this.onProjectChange) this.onProjectChange();
-
-        // Kein syncToProject nötig - Daten sind bereits korrekt im Projekt!
-        // syncToProject würde die Sequenz aus dem aktuellen Diagramm (Event-Map) regenerieren
-        // und dabei die gerade kopierten Daten überschreiben.
-
-        const finalCheck = this.project.tasks.find(t => t.name === newName);
-        console.log(`%c[FlowEditor] CLONE FINAL: Task "${newName}" is ready (Seq: ${finalCheck?.actionSequence?.length || 0}, Params: ${finalCheck?.params?.length || 0}).`, 'color: lime; font-weight: bold');
-
-        // Optional: Direkt zum neuen Task-Flow wechseln
-        if (confirm(`Task "${newName}" wurde erstellt. Möchtest du zum Task-Flow wechseln um ihn zu bearbeiten?`)) {
-            this.switchActionFlow(newName);
-        }
-    }
-
-    /**
-     * Scannt einen Task rekursiv nach Aktionen und registriert diese global im Projekt.
-     */
-    private registerActionsFromTask(task: any) {
-        if (!this.project) return;
-
-        // 1. Aus der Sequenz registrieren (falls benannt)
-        const processSequence = (sequence: any[]) => {
-            if (!sequence) return;
-            sequence.forEach(item => {
-                const name = item.name || item.actionName;
-                if (name) {
-                    this.syncManager.updateGlobalActionDefinition(item);
-                }
-
-                if (item.body) processSequence(item.body);
-                if (item.then) processSequence(item.then);
-                if (item.else) processSequence(item.else);
-            });
-        };
-        processSequence(task.actionSequence);
-
-        // 2. Aus dem FlowChart registrieren (sehr wichtig für Library-Blaupausen!)
-        if (task.flowChart && task.flowChart.elements) {
-            task.flowChart.elements.forEach((el: any) => {
-                if (el.type === 'Action') {
-                    const name = el.properties?.name || el.data?.name || el.data?.actionName;
-                    const isMeaningful = el.data?.type || el.data?.actionName || el.data?.taskName;
-                    if (name && (name !== 'Action' && name !== 'Aktion' || isMeaningful)) {
-                        this.syncManager.updateGlobalActionDefinition({ ...el.data, name });
-                    }
-                }
-            });
-        }
-        console.log(`[FlowEditor] All actions from task "${task.name}" registered globally.`);
-    }
 
     private handleNodeDoubleClick(node: FlowElement) {
         // DEBUG: Log every double-click

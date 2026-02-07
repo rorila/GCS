@@ -855,7 +855,15 @@ export class JSONInspector {
                         checked: binding,
                         label: prop.label
                     });
-                } else if (prop.type === 'color') {
+                } else if (prop.type === 'json') {
+                    uiObjects.push({
+                        className: 'TEdit',
+                        name: inputName,
+                        text: binding,
+                        placeholder: 'JSON String...'
+                    });
+                }
+                else if (prop.type === 'color') {
                     // Color picker with transparency option
                     uiObjects.push({
                         className: 'TPanel',
@@ -1157,6 +1165,13 @@ export class JSONInspector {
         };
 
         replace(obj);
+    }
+
+    /**
+     * Gibt das aktuell ausgewählte Objekt zurück
+     */
+    public getSelectedObject(): any {
+        return this.runtime.getVariable('selectedObject');
     }
 
     /**
@@ -3042,6 +3057,16 @@ export class JSONInspector {
                     // Re-render inspector to reflect any changes
                     this.update(selectedObject);
                 });
+                break;
+            }
+
+            case 'testApi': {
+                if (selectedObject && typeof (selectedObject as any).simulateRequest === 'function') {
+                    (selectedObject as any).simulateRequest();
+                    this.update(selectedObject);
+                } else {
+                    console.warn('[JSONInspector] selectedObject supports no API simulation');
+                }
                 break;
             }
 

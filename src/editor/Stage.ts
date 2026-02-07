@@ -1326,6 +1326,8 @@ export class Stage {
                 }
             } else if (className === 'TTable' || className === 'TObjectList') {
                 Stage.renderTable(el, obj);
+            } else if (className === 'TEmojiPicker') {
+                Stage.renderEmojiPicker(el, obj, this.gridConfig.cellSize, this.onEvent || undefined);
             } else if (obj.isVariable || className === 'TGameLoop' || className === 'TInputController' || className === 'TTimer' || className === 'TRepeater' || className === 'TGameServer' || className === 'TGameState' || className === 'THandshake' || className === 'THeartbeat' || className === 'TStageController') {
                 if (this.runMode) el.style.display = 'none';
                 else {
@@ -2120,5 +2122,62 @@ export class Stage {
             table.appendChild(tbody);
             scrollArea.appendChild(table);
         }
+    }
+
+    /**
+     * Rendert einen TEmojiPicker.
+     */
+    public static renderEmojiPicker(el: HTMLElement, obj: any, cellSize: number, onEvent?: (id: string, event: string, data?: any) => void): void {
+        el.style.display = 'grid';
+        el.style.gridTemplateColumns = `repeat(${obj.columns || 5}, 1fr)`;
+        el.style.gap = '5px';
+        el.style.padding = '10px';
+        el.style.overflowY = 'auto';
+        el.style.alignContent = 'start';
+        el.style.justifyItems = 'center';
+
+        // Clear and rebuild
+        el.innerHTML = '';
+
+        const emojiList = Array.isArray(obj.emojis) ? obj.emojis : [];
+        // itemSize wird als Zellen interpretiert (Konsistenz mit GCS)
+        const cellItemSize = obj.itemSize || 2;
+        const itemSizePx = cellItemSize * cellSize;
+
+        emojiList.forEach((emoji: string) => {
+            const btn = document.createElement('div');
+            btn.className = 'emoji-item';
+            btn.style.width = `${itemSizePx}px`;
+            btn.style.height = `${itemSizePx}px`;
+            btn.style.display = 'flex';
+            btn.style.alignItems = 'center';
+            btn.style.justifyContent = 'center';
+            btn.style.fontSize = `${itemSizePx * 0.7}px`;
+            btn.style.cursor = 'pointer';
+            btn.style.borderRadius = '8px';
+            btn.style.transition = 'background 0.2s, transform 0.1s';
+            btn.innerText = emoji;
+
+            if (emoji === obj.selectedEmoji) {
+                btn.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                btn.style.boxShadow = '0 0 0 2px #4fc3f7';
+            }
+
+            btn.onmouseenter = () => btn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            btn.onmouseleave = () => {
+                btn.style.backgroundColor = (emoji === obj.selectedEmoji) ? 'rgba(255, 255, 255, 0.2)' : 'transparent';
+            };
+            btn.onmousedown = () => btn.style.transform = 'scale(0.9)';
+            btn.onmouseup = () => btn.style.transform = 'scale(1)';
+
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                obj.selectedEmoji = emoji;
+                if (onEvent) onEvent(obj.id, 'onSelect', emoji);
+                Stage.renderEmojiPicker(el, obj, cellSize, onEvent); // Re-render for selection highlight
+            };
+
+            el.appendChild(btn);
+        });
     }
 }

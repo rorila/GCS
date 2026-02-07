@@ -248,7 +248,8 @@ export class FlowAction extends FlowElement {
             this.setProjectRef(project);
         }
 
-        const title = this.Name;
+        const taskPrefix = (this.data && (this.data.taskName || this.data.sourceTaskName)) ? `${this.data.taskName || this.data.sourceTaskName} ---- ` : '';
+        const title = taskPrefix + this.Name;
         const action = this.getActionDefinition(); // Use helper
 
         if (!show) {

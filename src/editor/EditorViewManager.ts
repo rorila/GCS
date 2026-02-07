@@ -84,6 +84,8 @@ export class EditorViewManager {
         // 1. Hide ALL panels
         if (stageWrapper) stageWrapper.style.display = 'none';
         if (jsonPanel) jsonPanel.style.display = 'none';
+        const jsonToolbar = document.getElementById('json-viewer-toolbar');
+        if (jsonToolbar) jsonToolbar.style.display = 'none';
         if (flowPanel) flowPanel.style.display = 'none';
         if (codePanel) codePanel.style.display = 'none';
         if (managementPanel) managementPanel.style.display = 'none';
@@ -134,6 +136,16 @@ export class EditorViewManager {
                 this.jsonMode = 'viewer';
                 this.workingProjectData = safeDeepCopy(h.project);
                 this.isProjectDirty = false;
+
+                // Add toolbar for JSON view if not present
+                let toolbar = document.getElementById('json-viewer-toolbar');
+                if (!toolbar) {
+                    toolbar = this.createJSONToolbar();
+                    jsonPanel.parentNode?.insertBefore(toolbar, jsonPanel);
+                } else {
+                    this.updateJSONToolbar(toolbar);
+                }
+
                 h.refreshJSONView();
             }
         } else if (view === 'flow') {
@@ -175,6 +187,39 @@ export class EditorViewManager {
             this.isProjectDirty = true;
             this.host.refreshJSONView(); // Refresh to show apply button if implemented there
         });
+    }
+
+    private createJSONToolbar(): HTMLElement {
+        const toolbar = document.createElement('div');
+        toolbar.id = 'json-viewer-toolbar';
+        toolbar.style.cssText = 'padding: 8px 16px; background-color: #2d2d2d; border-bottom: 1px solid #3c3c3c; display: flex; align-items: center; gap: 12px;';
+
+        const label = document.createElement('div');
+        label.style.cssText = 'color: #ccc; font-size: 12px; font-weight: bold;';
+        label.textContent = 'JSON-Ansicht';
+        toolbar.appendChild(label);
+
+        const sourceSelect = document.createElement('select');
+        sourceSelect.id = 'json-scope-select';
+        sourceSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer; margin-left: auto;`;
+
+        this.updateScopeSelectOptions(sourceSelect);
+
+        sourceSelect.onchange = () => {
+            this.useStageIsolatedView = sourceSelect.value === 'stage';
+            this.host.refreshJSONView();
+        };
+
+        toolbar.appendChild(sourceSelect);
+        return toolbar;
+    }
+
+    private updateJSONToolbar(toolbar: HTMLElement) {
+        toolbar.style.display = 'flex';
+        const sourceSelect = toolbar.querySelector('#json-scope-select') as HTMLSelectElement;
+        if (sourceSelect) {
+            this.updateScopeSelectOptions(sourceSelect);
+        }
     }
 
     private renderCodeView(codePanel: HTMLElement | null) {

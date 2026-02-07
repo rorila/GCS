@@ -11,6 +11,7 @@ export interface ActionParameter {
     label: string;
     type: 'string' | 'number' | 'boolean' | 'variable' | 'object' | 'json' | 'stage' | 'select' | 'method';
     source?: string; // e.g. 'variables', 'objects', 'stages', 'services'
+    options?: string[]; // Hardcoded options for select
     hint?: string;
     placeholder?: string;
     defaultValue?: any;

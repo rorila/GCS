@@ -231,40 +231,77 @@ export class ProjectRegistry {
             'TInputController', 'THandshake', 'THeartbeat', 'TToast', 'TStatusBar'
         ];
 
-        if (this.project.stages && this.project.stages.length > 0) {
-            const allObjects: TWindow[] = [];
-            const objectIds = new Set<string>();
+        const allObjects: TWindow[] = [];
+        const objectIds = new Set<string>();
 
-            if (this.activeStageId) {
-                const activeStage = this.project.stages.find((s: any) => s.id === this.activeStageId);
-                if (activeStage && activeStage.objects) {
-                    activeStage.objects.forEach((obj: any) => {
+        const activeStage = this.activeStageId ? this.project.stages?.find((s: any) => s.id === this.activeStageId) : null;
+        const isBlueprint = activeStage?.type === 'blueprint';
+
+        // 1. Resolve Global Objects/Variables from Root Project Level
+        if (isBlueprint) {
+            const rootGlobals = [
+                ...(this.project.objects || []).filter(obj => (obj as any).scope === 'global'),
+                ...(this.project.variables || []).filter(v => (v as any).scope === 'global') as unknown as TWindow[]
+            ];
+            rootGlobals.forEach(gObj => {
+                if (!objectIds.has(gObj.id)) {
+                    allObjects.push(gObj);
+                    objectIds.add(gObj.id);
+                }
+            });
+        }
+
+        if (this.project.stages && this.project.stages.length > 0) {
+            if (activeStage) {
+                // Include Stage Objects and Stage Variables
+                const stageItems = [
+                    ...(activeStage.objects || []),
+                    ...(activeStage.variables || []) as unknown as TWindow[]
+                ];
+                stageItems.forEach((obj: any) => {
+                    if (!objectIds.has(obj.id)) {
                         allObjects.push(obj);
                         objectIds.add(obj.id);
-                    });
-                }
+                    }
+                });
             }
 
-            this.project.stages.forEach((stage: any) => {
-                if (stage.objects && Array.isArray(stage.objects)) {
-                    stage.objects.forEach((obj: any) => {
-                        if (globalServiceClasses.includes(obj.className) && !objectIds.has(obj.id)) {
+            // Also include Global Service objects from other stages (ONLY if blueprint)
+            if (isBlueprint) {
+                this.project.stages.forEach((stage: any) => {
+                    if (stage.id === this.activeStageId) return;
+
+                    const stageGlobals = [
+                        ...(stage.objects || []).filter((obj: any) => (obj as any).scope === 'global' || globalServiceClasses.includes(obj.className)),
+                        ...(stage.variables || []).filter((v: any) => (v as any).scope === 'global') as unknown as TWindow[]
+                    ];
+
+                    stageGlobals.forEach((obj: any) => {
+                        if (!objectIds.has(obj.id)) {
                             allObjects.push(obj);
                             objectIds.add(obj.id);
                         }
                     });
-                }
-            });
+                });
+            }
 
             if (scopeFilter === 'stage-only') {
                 const activeStage = this.project.stages.find((s: any) => s.id === this.activeStageId);
-                return activeStage?.objects || [];
+                return [
+                    ...(activeStage?.objects || []),
+                    ...(activeStage?.variables || []) as unknown as TWindow[]
+                ];
             }
 
             return allObjects;
         }
 
-        return this.project.objects || [];
+        // Legacy Fallback
+        const legacyItems = [
+            ...(this.project.objects || []),
+            ...(this.project.variables || []) as unknown as TWindow[]
+        ];
+        return legacyItems;
     }
 
     public getFlowObjects(): any[] {
@@ -273,7 +310,7 @@ export class ProjectRegistry {
 
     public getObjectsWithMetadata(resolveUsage: boolean = true): ScopedObject[] {
         const objects = this.getObjects();
-        return objects.map(obj => {
+        return objects.map((obj: any) => {
             const usage = resolveUsage ? this.getObjectUsage(obj.name) : [];
             const isGlobal = this.project?.objects.some(o => o.name === obj.name);
             const scopedObj = { ...obj } as ScopedObject;

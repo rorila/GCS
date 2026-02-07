@@ -557,7 +557,8 @@ export abstract class FlowElement {
             properties: {
                 name: this.Name,
                 details: this.Details,
-                description: this.Description
+                description: this.Description,
+                text: this.Text
             },
             data: this.data
         };

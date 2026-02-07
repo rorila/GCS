@@ -216,4 +216,203 @@ export function registerStandardActions(objects: any[]) {
             { name: 'code', label: 'Raum-Code', type: 'string' }
         ]
     });
+
+    // 9. HTTP Request (API Call)
+    actionRegistry.register('http', async (action, context) => {
+        const url = PropertyHelper.interpolate(String(action.url || ''), context.vars, objects);
+        const method = action.method || 'GET';
+        let body = null;
+
+        if (method !== 'GET' && action.body) {
+            const bodyStr = typeof action.body === 'object' ? JSON.stringify(action.body) : String(action.body);
+            body = PropertyHelper.interpolate(bodyStr, context.vars, objects);
+        }
+
+        try {
+            const options: RequestInit = {
+                method,
+                headers: { 'Content-Type': 'application/json', ...(action.headers || {}) }
+            };
+            if (body) options.body = body;
+
+            const response = await fetch(url, options);
+            const data = await response.json();
+
+            if (action.resultVariable) {
+                context.vars[action.resultVariable] = data;
+                context.contextVars[action.resultVariable] = data;
+            }
+        } catch (err) {
+            console.error('[Action: http] Error:', err);
+        }
+    }, {
+        type: 'http',
+        label: 'HTTP Request',
+        description: 'Führt einen API-Call aus (REST/JSON).',
+        parameters: [
+            { name: 'url', label: 'URL', type: 'string' },
+            { name: 'method', label: 'Methode', type: 'select', options: ['GET', 'POST', 'PUT', 'DELETE'], defaultValue: 'GET' },
+            { name: 'body', label: 'Body (JSON-String oder Objekt)', type: 'string' },
+            { name: 'resultVariable', label: 'Ergebnis speichern in', type: 'variable', source: 'variables' }
+        ]
+    });
+
+    // 10. Token Speicher (JWT)
+    actionRegistry.register('store_token', (action, context) => {
+        const key = action.tokenKey || 'auth_token';
+        const operation = action.operation || 'set';
+
+        if (operation === 'delete') {
+            localStorage.removeItem(key);
+        } else {
+            const token = PropertyHelper.interpolate(String(action.token || ''), context.vars, objects);
+            localStorage.setItem(key, token);
+        }
+    }, {
+        type: 'store_token',
+        label: 'Token speichern/löschen',
+        description: 'Verwaltet Authentifizierungs-Token (JWT) im LocalStorage.',
+        parameters: [
+            { name: 'operation', label: 'Operation', type: 'select', options: ['set', 'delete'], defaultValue: 'set' },
+            { name: 'token', label: 'Token (Daten)', type: 'string' },
+            { name: 'tokenKey', label: 'Speicher-Schlüssel', type: 'string', defaultValue: 'auth_token' }
+        ]
+    });
+
+    // 11. Toast Benachrichtigung
+    actionRegistry.register('show_toast', (action, context) => {
+        const message = PropertyHelper.interpolate(String(action.message || ''), context.vars, objects);
+        const toastType = action.toastType || 'info';
+
+        // Suche nach einer TToast-Komponente im Projekt
+        const toaster = objects.find(o => o.className === 'TToast' || o.constructor?.name === 'TToast');
+
+        if (toaster && typeof (toaster as any).show === 'function') {
+            (toaster as any).show(message, toastType);
+        } else {
+            // Fallback auf Konsole und einfaches Alert für Sichtbarkeit
+            console.log(`[TOAST: ${toastType.toUpperCase()}] ${message}`);
+            // alert(message); // Alert ist oft störend, aber für Debugging gut. Wir lassen es weg, wenn Konsole reicht.
+        }
+    }, {
+        type: 'show_toast',
+        label: 'Toast anzeigen',
+        description: 'Blendet eine kurze Nachricht am Bildschirmrand ein.',
+        parameters: [
+            { name: 'message', label: 'Nachricht', type: 'string' },
+            { name: 'toastType', label: 'Typ', type: 'select', options: ['info', 'success', 'warning', 'error'], defaultValue: 'info' }
+        ]
+    });
+
+    // 12. HTTP Response (Antwort für HeadlessServer)
+    actionRegistry.register('respond_http', async (action, context) => {
+        const requestId = PropertyHelper.interpolate(String(action.requestId || ''), context.vars, objects);
+        const status = Number(PropertyHelper.interpolate(String(action.status || 200), context.vars, objects));
+        const dataStr = typeof action.data === 'object' ? JSON.stringify(action.data) : String(action.data || '{}');
+        const data = JSON.parse(PropertyHelper.interpolate(dataStr, context.vars, objects));
+
+        if (requestId && serviceRegistry.has('HttpServer')) {
+            await serviceRegistry.call('HttpServer', 'respond', [requestId, status, data]);
+        } else {
+            console.warn('[Action: respond_http] Konnte Antwort nicht senden. requestId fehlt oder HttpServer nicht registriert.');
+        }
+    }, {
+        type: 'respond_http',
+        label: 'HTTP Antwort senden',
+        description: 'Sendet eine Antwort auf einen eingehenden HTTP-Request (nur im Server-Modus).',
+        parameters: [
+            { name: 'requestId', label: 'Request ID', type: 'string', hint: 'Wird automatisch vom onRequest-Event bereitgestellt.' },
+            { name: 'status', label: 'HTTP Status', type: 'number', defaultValue: 200 },
+            { name: 'data', label: 'Antwort-Daten (JSON)', type: 'string', hint: 'Das Objekt, das als JSON gesendet wird.' }
+        ]
+    });
+
+    // 13. Datenbank Speichern (UPSERT)
+    actionRegistry.register('db_save', async (action, context) => {
+        const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', context.vars, objects);
+        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', context.vars, objects);
+
+        const dataStr = typeof action.data === 'object' ? JSON.stringify(action.data) : String(action.data || '{}');
+        const data = JSON.parse(PropertyHelper.interpolate(dataStr, context.vars, objects));
+
+        const result = await serviceRegistry.call('Data', 'saveItem', [storagePath, collection, data]);
+
+        if (action.resultVariable) {
+            context.vars[action.resultVariable] = result;
+            context.contextVars[action.resultVariable] = result;
+        }
+
+        if (target && typeof (target as any).triggerEvent === 'function') {
+            (target as any).triggerEvent('onDataChanged', { collection, operation: 'save', item: result });
+            (target as any).triggerEvent('onSave', { collection, item: result });
+        }
+    }, {
+        type: 'db_save',
+        label: 'DB: Speichern',
+        description: 'Speichert oder aktualisiert ein Objekt in der Datenbank.',
+        parameters: [
+            { name: 'target', label: 'DataStore Objekt', type: 'object', source: 'objects' },
+            { name: 'collection', label: 'Collection', type: 'string', placeholder: 'z.B. users' },
+            { name: 'data', label: 'Daten (JSON)', type: 'string' },
+            { name: 'resultVariable', label: 'Ergebnis (mit ID) speichern in', type: 'variable', source: 'variables' }
+        ]
+    });
+
+    // 14. Datenbank Finden
+    actionRegistry.register('db_find', async (action, context) => {
+        const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', context.vars, objects);
+        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', context.vars, objects);
+
+        const queryStr = typeof action.query === 'object' ? JSON.stringify(action.query) : String(action.query || '{}');
+        const query = JSON.parse(PropertyHelper.interpolate(queryStr, context.vars, objects));
+
+        const results = await serviceRegistry.call('Data', 'findItems', [storagePath, collection, query]);
+
+        if (action.resultVariable) {
+            context.vars[action.resultVariable] = results;
+            context.contextVars[action.resultVariable] = results;
+        }
+    }, {
+        type: 'db_find',
+        label: 'DB: Suchen',
+        description: 'Sucht Objekte in der Datenbank anhand von Filtern.',
+        parameters: [
+            { name: 'target', label: 'DataStore Objekt', type: 'object', source: 'objects' },
+            { name: 'collection', label: 'Collection', type: 'string', placeholder: 'z.B. users' },
+            { name: 'query', label: 'Filter (JSON)', type: 'string', hint: 'Beispiel: { "name": "Rolf" }' },
+            { name: 'resultVariable', label: 'Ergebnisse speichern in', type: 'variable', source: 'variables' }
+        ]
+    });
+
+    // 15. Datenbank Löschen
+    actionRegistry.register('db_delete', async (action, context) => {
+        const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', context.vars, objects);
+        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', context.vars, objects);
+        const id = PropertyHelper.interpolate(String(action.id || ''), context.vars, objects);
+
+        const success = await serviceRegistry.call('Data', 'deleteItem', [storagePath, collection, id]);
+
+        if (action.resultVariable) {
+            context.vars[action.resultVariable] = success;
+            context.contextVars[action.resultVariable] = success;
+        }
+
+        if (success && target && typeof (target as any).triggerEvent === 'function') {
+            (target as any).triggerEvent('onDataChanged', { collection, operation: 'delete', id });
+            (target as any).triggerEvent('onDelete', { collection, id });
+        }
+    }, {
+        type: 'db_delete',
+        label: 'DB: Löschen',
+        description: 'Löscht ein Objekt aus der Datenbank.',
+        parameters: [
+            { name: 'target', label: 'DataStore Objekt', type: 'object', source: 'objects' },
+            { name: 'collection', label: 'Collection', type: 'string', placeholder: 'z.B. users' },
+            { name: 'id', label: 'ID des Objekts', type: 'string' },
+            { name: 'resultVariable', label: 'Erfolg (true/false) speichern in', type: 'variable', source: 'variables' }
+        ]
+    });
 }

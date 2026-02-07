@@ -26,7 +26,6 @@ export interface FlowSyncHost {
     updateFlowSelector: () => void;
     getActiveStage: () => any;
     getTargetFlowCharts: (context: string) => any;
-    restoreNode: (data: any) => FlowElement | null;
     setupNodeListeners: (node: FlowElement) => void;
 }
 
@@ -184,12 +183,20 @@ export class FlowSyncManager {
             if (node.type === 'Action') {
                 const actionName = node.data?.name || node.data?.actionName || node.properties?.name || node.properties?.text;
                 if (actionName) {
-                    targetSeq.push({ type: 'action', name: actionName });
+                    // --- MODIFIED: Use node.data to preserve ALL properties (params, etc.) ---
+                    const actionItem = { ...node.data, type: 'action', name: actionName };
+                    // Remove UI-only internal data
+                    delete (actionItem as any).isLinked;
+                    delete (actionItem as any).parentProxyId;
+                    delete (actionItem as any).isEmbeddedInternal;
+                    delete (actionItem as any).originalId;
+
+                    targetSeq.push(actionItem);
                 }
                 const nextConn = connections.find(c => c.startTargetId === nodeId);
                 if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet);
             } else if (node.type === 'Condition') {
-                const condition: any = { type: 'condition', expression: node.properties?.text || '', then: [], else: [] };
+                const condition: any = { type: 'condition', condition: node.properties?.text || '', body: [], elseBody: [] };
                 targetSeq.push(condition);
 
                 const thenConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'true');
@@ -208,8 +215,8 @@ export class FlowSyncManager {
                 if (elseConn) findReachable(elseConn.endTargetId, elseVisited);
                 thenVisited.forEach(id => { if (elseVisited.has(id)) mergePoints.add(id); });
 
-                if (thenConn) buildSequence(thenConn.endTargetId, condition.then, mergePoints);
-                if (elseConn) buildSequence(elseConn.endTargetId, condition.else, mergePoints);
+                if (thenConn) buildSequence(thenConn.endTargetId, condition.body, mergePoints);
+                if (elseConn) buildSequence(elseConn.endTargetId, condition.elseBody, mergePoints);
 
                 const firstMerge = Array.from(mergePoints).filter(id => {
                     const incoming = connections.filter(c => c.endTargetId === id);
@@ -226,7 +233,7 @@ export class FlowSyncManager {
                 if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet);
             } else if (['While', 'For', 'Repeat'].includes(node.type)) {
                 const loop: any = { type: node.type.toLowerCase(), body: [] };
-                if (node.type === 'While') loop.expression = node.properties?.text || '';
+                if (node.type === 'While') loop.condition = node.properties?.text || '';
                 if (node.type === 'Repeat') loop.count = parseInt(node.properties?.text) || 1;
                 targetSeq.push(loop);
 
@@ -245,7 +252,14 @@ export class FlowSyncManager {
         }
 
         if (sequence.length > 0) {
-            task.actionSequence = sequence;
+            // --- MODIFIED: Preserve extra data from node.data to prevent loss of 'params', 'resultVariable', etc. ---
+            task.actionSequence = sequence.map(item => {
+                // If we have an original id, try to find the original item data to preserve fields
+                // that might not be part of the visual node structure but are essential for runtime.
+                // However, building 'sequence' already uses node.data where possible.
+                // We just need to ensure node.data isn't just {type, name}.
+                return item;
+            });
         }
 
         // --- NEW: Sync Parameters and their values ---
@@ -318,32 +332,54 @@ export class FlowSyncManager {
             let lastAnchor = startAnchor;
 
             sequence.forEach(item => {
-                const id = getNewId(item.type);
-                if (item.type === 'action' || item.type === 'task') {
-                    elements.push({
-                        id, type: item.type === 'action' ? 'Action' : 'Task',
-                        x: startX - 80, y: currentY,
-                        properties: { name: item.name, text: item.name }
-                    });
+                const id = getNewId(item.type || 'action');
+                if (item.type === 'condition') {
+                    elements.push({ id, type: 'Condition', x: startX - 80, y: currentY, properties: { text: item.condition || item.expression || '' } });
                     connections.push({
                         startTargetId: lastId, endTargetId: id,
                         data: { startAnchorType: lastAnchor, endAnchorType: 'input' }
                     });
-                    lastId = id; lastAnchor = 'output'; currentY += 120;
-                } else if (item.type === 'condition') {
-                    elements.push({ id, type: 'Condition', x: startX - 80, y: currentY, properties: { text: item.expression } });
-                    connections.push({
-                        startTargetId: lastId, endTargetId: id,
-                        data: { startAnchorType: lastAnchor, endAnchorType: 'input' }
-                    });
-                    const thenRes = process(item.then || [], id, 'true', 'true', startX - 250, currentY + 120);
-                    const elseRes = process(item.else || [], id, 'false', 'false', startX + 250, currentY + 120);
+                    const thenRes = process(item.body || item.then || [], id, 'true', 'true', startX - 250, currentY + 120);
+                    const elseRes = process(item.elseBody || item.else || [], id, 'false', 'false', startX + 250, currentY + 120);
                     currentY = Math.max(thenRes.endY, elseRes.endY) + 50;
                     const mergeId = getNewId('merge');
                     elements.push({ id: mergeId, type: 'Action', x: startX - 80, y: currentY, properties: { name: 'Merge', text: 'Merge' } });
                     connections.push({ startTargetId: thenRes.lastId, endTargetId: mergeId, data: { startAnchorType: 'output', endAnchorType: 'input' } });
                     connections.push({ startTargetId: elseRes.lastId, endTargetId: mergeId, data: { startAnchorType: 'output', endAnchorType: 'input' } });
                     lastId = mergeId; lastAnchor = 'output'; currentY += 120;
+                } else if (['while', 'for', 'repeat'].includes(item.type)) {
+                    elements.push({
+                        id, type: item.type.charAt(0).toUpperCase() + item.type.slice(1) as any,
+                        x: startX - 80, y: currentY,
+                        properties: { text: item.condition || item.count || '' }
+                    });
+                    connections.push({
+                        startTargetId: lastId, endTargetId: id,
+                        data: { startAnchorType: lastAnchor, endAnchorType: 'input' }
+                    });
+                    const bodyRes = process(item.body || [], id, 'output', undefined, startX, currentY + 120);
+                    // Connection back to loop? Usually visualized differently, but for now:
+                    lastId = id; lastAnchor = 'bottom'; currentY = bodyRes.endY + 100;
+                } else {
+                    // Fallback for all other action types (http, db_find, calculate, store_token, show_toast, navigate_stage, etc.)
+                    const isTask = item.type === 'execute_task' || item.type === 'task';
+                    // --- MODIFIED: Support legacy "action" field as fallback for name ---
+                    const itemName = item.name || item.taskName || item.action || item.type || 'Aktion';
+
+                    elements.push({
+                        id, type: isTask ? 'Task' : 'Action',
+                        x: startX - 80, y: currentY,
+                        properties: {
+                            name: itemName,
+                            text: itemName
+                        },
+                        data: { ...item } // Store original data for restoration
+                    });
+                    connections.push({
+                        startTargetId: lastId, endTargetId: id,
+                        data: { startAnchorType: lastAnchor, endAnchorType: 'input' }
+                    });
+                    lastId = id; lastAnchor = 'output'; currentY += 120;
                 }
             });
             return { lastId, endY: currentY };
@@ -351,6 +387,32 @@ export class FlowSyncManager {
 
         if (task.actionSequence?.length > 0) process(task.actionSequence, startId);
         return { elements, connections };
+    }
+
+    /**
+     * Bereinigt das Projekt von korrupten Task-Einträgen (z.B. "elements" oder "connections" fälschlicherweise in der Task-Liste)
+     */
+    public cleanCorruptTaskData() {
+        if (!this.host.project) return;
+        console.log('[FlowSyncManager] Starte Bereinigung korrupter Task-Daten...');
+
+        const cleanCollection = (tasks: any[]) => {
+            if (!tasks) return tasks;
+            return tasks.filter(t => {
+                if (t.name === 'elements' || t.name === 'connections') {
+                    console.warn(`[FlowSyncManager] Entferne fälschlichen Task: ${t.name}`);
+                    return false;
+                }
+                return true;
+            });
+        };
+
+        this.host.project.tasks = cleanCollection(this.host.project.tasks);
+        if (this.host.project.stages) {
+            this.host.project.stages.forEach((s: any) => {
+                s.tasks = cleanCollection(s.tasks);
+            });
+        }
     }
 
     public restoreNode(data: any): FlowElement | null {

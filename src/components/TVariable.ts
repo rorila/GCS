@@ -9,11 +9,12 @@ export class TVariable extends TWindow {
     public variableType: VariableType = 'integer';
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 3, 1);
+        super(name, x, y, 6, 2);
         this.isVariable = true;
-        this.style.backgroundColor = '#673ab7'; // Deep Purple for variables
-        this.style.borderColor = '#512da8';
-        this.style.borderWidth = 2;
+        this.style.backgroundColor = '#d1c4e9'; // Lighter purple for better contrast with black text
+        this.style.borderColor = '#9575cd';
+        this.style.borderWidth = 1;
+        this.style.color = '#000000'; // Black text as requested
     }
 
     public getInspectorProperties(): TPropertyDef[] {

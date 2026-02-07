@@ -33,6 +33,11 @@
                     "type": "Edit",
                     "icon": "✏️",
                     "label": "Edit"
+                },
+                {
+                    "type": "EmojiPicker",
+                    "icon": "😊",
+                    "label": "EmojiPicker"
                 }
             ]
         },
@@ -183,6 +188,11 @@
                     "type": "StageController",
                     "icon": "🎬",
                     "label": "StageController"
+                },
+                {
+                    "type": "APIServer",
+                    "icon": "🖥️",
+                    "label": "APIServer"
                 }
             ]
         },

@@ -103,15 +103,15 @@ export class FlowCondition extends FlowElement {
     public getInspectorProperties(): any[] {
         return [
             ...super.getInspectorProperties(),
-            { name: 'Variable', type: 'string', label: 'Variable' },
+            { name: 'VariableName', type: 'string', label: 'Variable' },
             { name: 'Operator', type: 'select', label: 'Operator', options: ['==', '!=', '>', '<', '>=', '<='] },
             { name: 'Value', type: 'string', label: 'Value' }
         ];
     }
 
     // Property Accessors
-    public get Variable(): string { return this.data.condition?.variable || ''; }
-    public set Variable(v: string) {
+    public get VariableName(): string { return this.data.condition?.variable || ''; }
+    public set VariableName(v: string) {
         if (!this.data.condition) this.data.condition = {};
         this.data.condition.variable = v;
         this.updateText();

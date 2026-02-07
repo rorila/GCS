@@ -142,3 +142,8 @@ export class DebugLogService {
         return Array.from(events).sort();
     }
 }
+
+// Singleton instance - WINDOW/GLOBAL BOUND to prevent dual instances
+const globalScope = typeof window !== 'undefined' ? window : global;
+export const debugLogService: DebugLogService = (globalScope as any)._globalDebugLogService || DebugLogService.getInstance();
+(globalScope as any)._globalDebugLogService = debugLogService;

@@ -151,8 +151,9 @@ export class ServiceRegistryClass {
     }
 }
 
-// Singleton instance - WINDOW BOUND to prevent dual instances
-export const serviceRegistry: ServiceRegistryClass = (window as any)._globalServiceRegistry || new ServiceRegistryClass();
-(window as any)._globalServiceRegistry = serviceRegistry;
+// Singleton instance - WINDOW/GLOBAL BOUND to prevent dual instances
+const globalScope = typeof window !== 'undefined' ? window : global;
+export const serviceRegistry: ServiceRegistryClass = (globalScope as any)._globalServiceRegistry || new ServiceRegistryClass();
+(globalScope as any)._globalServiceRegistry = serviceRegistry;
 
 console.log(`[ServiceRegistry] Singleton bound to window. ID: ${(serviceRegistry as any).id}`);

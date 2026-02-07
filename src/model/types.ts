@@ -140,7 +140,7 @@ export type FlowCharts = Record<string, FlowChart>;
 // ─────────────────────────────────────────────
 // Project Variable (Pascal-style)
 // ─────────────────────────────────────────────
-export type VariableType = 'integer' | 'real' | 'string' | 'boolean' | 'timer' | 'random' | 'list' | 'object_list' | 'threshold' | 'trigger' | 'range' | 'keystore';
+export type VariableType = 'integer' | 'real' | 'string' | 'boolean' | 'timer' | 'random' | 'list' | 'object' | 'object_list' | 'threshold' | 'trigger' | 'range' | 'keystore';
 export type VariableScope = 'global' | 'local' | string; // Phase 3: Strict scoping + Task-Local Support (Pascal)
 
 export interface ProjectVariable {
@@ -243,7 +243,7 @@ export interface InputConfig {
 // ─────────────────────────────────────────────
 // Stage System (Multi-Stage Support)
 // ─────────────────────────────────────────────
-export type StageType = 'standard' | 'splash' | 'main' | 'template';
+export type StageType = 'standard' | 'splash' | 'main' | 'template' | 'blueprint';
 
 export interface StageDefinition {
     id: string;               // Eindeutige ID der Stage

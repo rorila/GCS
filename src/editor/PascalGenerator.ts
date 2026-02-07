@@ -332,12 +332,14 @@ export class PascalGenerator {
 
                     lines.push(`${space}${this.span('END', '#c586c0', asHtml)} `);
 
-                    if (item.elseAction || item.elseTask) {
+                    if (item.elseAction || item.elseTask || (item as any).elseBody) {
                         lines.push(`${space}${this.span('ELSE', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)} `);
                         if (item.elseAction) {
                             lines.push(`${space}  ${this.getActionPascalCode(project, item.elseAction, asHtml, activeStage)} `);
                         } else if (item.elseTask) {
                             lines.push(`${space}  ${this.span(item.elseTask, '#dcdcaa', asHtml)}; `);
+                        } else if ((item as any).elseBody) {
+                            this.renderSequenceToPascal(project, (item as any).elseBody, lines, indent + 2, asHtml, activeStage);
                         }
                         lines.push(`${space}${this.span('END', '#c586c0', asHtml)}; `);
                     } else {

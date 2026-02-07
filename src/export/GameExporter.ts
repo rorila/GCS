@@ -1,5 +1,5 @@
 import { GameProject } from '../model/types';
-import { gzipSync } from 'fflate';
+import { gzipSync, zipSync } from 'fflate';
 
 /**
  * Runtime version for exported games.
@@ -129,6 +129,117 @@ export class GameExporter {
 
         const json = JSON.stringify(wrapper, null, 2);
         await this.downloadFile(json, `${project.meta.name.replace(/\s+/g, '_')}_compressed.json`, 'application/json');
+    }
+
+    /**
+     * Export the project as a Node.js server bundle (ZIP)
+     */
+    async exportServerBundle(project: GameProject): Promise<void> {
+        // 1. Fetch runtime
+        let runtimeCode = '';
+        try {
+            const resp = await fetch('/runtime-standalone.js');
+            if (resp.ok) {
+                runtimeCode = await resp.text();
+            }
+        } catch (e) {
+            console.error('GameExporter: Error fetching runtime:', e);
+        }
+
+        const cleanedProject = this.getCleanProject(project);
+        const projectName = project.meta.name.replace(/\s+/g, '_');
+
+        // 2. Prepare files for ZIP
+        const files: Record<string, Uint8Array> = {};
+        const encoder = new TextEncoder();
+
+        files['project.json'] = encoder.encode(JSON.stringify(cleanedProject, null, 2));
+        files['runtime.js'] = encoder.encode(runtimeCode);
+        files['server.js'] = encoder.encode(this.generateServerJS());
+        files['package.json'] = encoder.encode(this.generateServerPackageJSON(projectName));
+        files['Dockerfile'] = encoder.encode(this.generateDockerfile());
+        files['fly.toml'] = encoder.encode(this.generateFlyToml(projectName));
+
+        // Add Headless Runtime files (this is a bit tricky as they are TS, but for the bundle 
+        // we might want to include them or assume they are part of the runtime.js)
+        // Since runtime.js is bundled, it should ideally include everything.
+        // But for clarity, we provide a generic server.js that imports from the bundle.
+
+        // 3. Create ZIP
+        const zipped = zipSync(files);
+
+        // 4. Download
+        const blob = new Blob([zipped.buffer as ArrayBuffer], { type: 'application/zip' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${projectName}_server_bundle.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        alert(`Server-Bundle exportiert: ${projectName}_server_bundle.zip\n\nEnthält Dockerfile und fly.toml für das Deployment.`);
+    }
+
+    private generateServerJS(): string {
+        return `
+/**
+ * GCS Standalone Server Entry
+ * Lädt die GCS Engine (IIFE) und startet die Headless Runtime.
+ */
+require('./runtime.js'); 
+const project = require('./project.json');
+
+// HeadlessRuntime und HeadlessServer sind durch das IIFE-Bundle global verfügbar
+const runtime = new HeadlessRuntime(project);
+const server = new HeadlessServer(runtime);
+
+console.log('--- GCS Headless Server Start ---');
+server.start();
+`;
+    }
+
+    private generateServerPackageJSON(name: string): string {
+        return JSON.stringify({
+            name: name.toLowerCase(),
+            version: "1.0.0",
+            description: "GCS Exported Backend",
+            main: "server.js",
+            dependencies: {
+                "express": "^4.18.2",
+                "fflate": "^0.8.2"
+            },
+            scripts: {
+                "start": "node server.js"
+            }
+        }, null, 2);
+    }
+
+    private generateDockerfile(): string {
+        return `
+FROM node:18-slim
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --production
+COPY . .
+EXPOSE 3000
+CMD ["npm", "start"]
+`;
+    }
+
+    private generateFlyToml(name: string): string {
+        return `
+app = "${name.toLowerCase()}"
+primary_region = "fra"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+`;
     }
 
     /**

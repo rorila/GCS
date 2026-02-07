@@ -146,31 +146,54 @@ export class FlowDiagramGenerator {
 
                 if (seqItem.type === 'condition') {
                     const condId = sanitizeId(`c_${++conditionCounter}`);
-                    const condVar = seqItem.condition?.variable || '?';
+                    let condLabel = '?';
+                    if (typeof seqItem.condition === 'string') {
+                        condLabel = seqItem.condition;
+                    } else if (seqItem.condition?.variable) {
+                        condLabel = `${seqItem.condition.variable} ${seqItem.condition.operator || '=='} ${seqItem.condition.value}`;
+                    }
 
-                    addEdge(parentId, parentShape, condId, `{${condVar}}`);
+                    addEdge(parentId, parentShape, condId, `{${condLabel}}`);
+
+                    const trueLabel = 'Ja';
+                    const falseLabel = 'Nein';
 
                     if (seqItem.thenTask) {
                         const thenId = sanitizeId(`t_${seqItem.thenTask}`);
-                        const label = seqItem.condition?.value || 'Ja';
-                        addEdge(condId, `{${condVar}}`, thenId, `["${seqItem.thenTask}"]`, String(label));
+                        addEdge(condId, `{${condLabel}}`, thenId, `["${seqItem.thenTask}"]`, trueLabel);
                         processTask(thenId, `["${seqItem.thenTask}"]`, seqItem.thenTask);
-                    }
-                    if (seqItem.thenAction) {
+                    } else if (seqItem.thenAction) {
                         const thenId = sanitizeId(`a_${seqItem.thenAction}`);
-                        const label = seqItem.condition?.value || 'Ja';
-                        addEdge(condId, `{${condVar}}`, thenId, getActionLabel(seqItem.thenAction), String(label));
+                        addEdge(condId, `{${condLabel}}`, thenId, getActionLabel(seqItem.thenAction), trueLabel);
                         trackAction(seqItem.thenAction);
+                    } else if (seqItem.body && Array.isArray(seqItem.body)) {
+                        for (const subItem of seqItem.body) {
+                            const subSeqItem: any = typeof subItem === 'string' ? { type: 'action', name: subItem } : subItem;
+                            const subId = subSeqItem.name ? sanitizeId(`${subSeqItem.type === 'task' ? 't' : 'a'}_${subSeqItem.name}`) : sanitizeId(`item_${++conditionCounter}`);
+                            const subShape = subSeqItem.type === 'task' ? `["${subSeqItem.name}"]` : getActionLabel(subSeqItem.name);
+                            addEdge(condId, `{${condLabel}}`, subId, subShape, trueLabel);
+                            if (subSeqItem.type === 'task') processTask(subId, subShape, subSeqItem.name);
+                            else if (subSeqItem.type === 'action') trackAction(subSeqItem.name);
+                        }
                     }
+
                     if (seqItem.elseTask) {
                         const elseId = sanitizeId(`t_${seqItem.elseTask}`);
-                        addEdge(condId, `{${condVar}}`, elseId, `["${seqItem.elseTask}"]`, 'Nein');
+                        addEdge(condId, `{${condLabel}}`, elseId, `["${seqItem.elseTask}"]`, falseLabel);
                         processTask(elseId, `["${seqItem.elseTask}"]`, seqItem.elseTask);
-                    }
-                    if (seqItem.elseAction) {
+                    } else if (seqItem.elseAction) {
                         const elseId = sanitizeId(`a_${seqItem.elseAction}`);
-                        addEdge(condId, `{${condVar}}`, elseId, getActionLabel(seqItem.elseAction), 'Nein');
+                        addEdge(condId, `{${condLabel}}`, elseId, getActionLabel(seqItem.elseAction), falseLabel);
                         trackAction(seqItem.elseAction);
+                    } else if (seqItem.elseBody && Array.isArray(seqItem.elseBody)) {
+                        for (const subItem of seqItem.elseBody) {
+                            const subSeqItem: any = typeof subItem === 'string' ? { type: 'action', name: subItem } : subItem;
+                            const subId = subSeqItem.name ? sanitizeId(`${subSeqItem.type === 'task' ? 't' : 'a'}_${subSeqItem.name}`) : sanitizeId(`item_${++conditionCounter}`);
+                            const subShape = subSeqItem.type === 'task' ? `["${subSeqItem.name}"]` : getActionLabel(subSeqItem.name);
+                            addEdge(condId, `{${condLabel}}`, subId, subShape, falseLabel);
+                            if (subSeqItem.type === 'task') processTask(subId, subShape, subSeqItem.name);
+                            else if (subSeqItem.type === 'action') trackAction(subSeqItem.name);
+                        }
                     }
 
                 } else if (seqItem.type === 'task') {
