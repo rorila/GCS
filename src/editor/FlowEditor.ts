@@ -483,8 +483,10 @@ export class FlowEditor implements FlowMapHost {
 
         this.flowSelect.appendChild(optOverviewGroup);
 
+        const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint';
+
         // --- Current Stage Section ---
-        if (activeStage) {
+        if (activeStage && !isBlueprint) {
             const stageGroup = document.createElement('optgroup');
             stageGroup.label = `Stage: ${activeStage.name}`;
 
@@ -526,11 +528,10 @@ export class FlowEditor implements FlowMapHost {
         }
 
         // --- Global Section ---
-        // Nur anzeigen, wenn wir in der Haupt-Stage sind oder keine Stage definiert ist (Legacy).
-        // Dies sorgt für die gewünschte Isolation in Splash- oder Standard-Stages.
-        if (!activeStage || activeStage.type === 'main') {
+        // Nur anzeigen, wenn wir in der Blueprint-Stage oder Root (Legacy) sind.
+        if (!activeStage || isBlueprint) {
             const globalGroup = document.createElement('optgroup');
-            globalGroup.label = 'Global / Projekt';
+            globalGroup.label = 'Global / Projekt (Infrastruktur)';
 
             const globalTasksFound = new Set<string>();
             const stageTaskKeys = activeStage?.flowCharts ? Object.keys(activeStage.flowCharts) : [];
@@ -538,8 +539,6 @@ export class FlowEditor implements FlowMapHost {
             // 1. Global tasks with flowchart
             if (this.project.flowCharts) {
                 Object.keys(this.project.flowCharts).forEach(key => {
-                    // Nur anzeigen, wenn nicht im global-Key (Landkarte/Übersicht) 
-                    // UND wenn nicht bereits in der Stage definiert
                     if (key !== 'global' && !stageTaskKeys.includes(key)) {
                         const opt = document.createElement('option');
                         opt.value = key;

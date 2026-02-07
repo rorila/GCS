@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.10.0] - 2026-02-07
+### Hinzugefügt
+- **Flow-Diagramm Refactoring**: Task-Objekte dienen nun als visuelle Wurzel-Knoten in Task-Diagrammen (Ersatz der generischen Start-Knoten).
+- **Obligatorische Task-Action Verbindung**: Task-Knoten sind nun zwingend mit der nachfolgenden Aktionskette verbunden.
+
+### Geändert
+- **Strikte Flow-Isolation**: Der Flow-Editor filtert nun strikt zwischen globalen und lokalen Elementen.
+  - Standard-Stages zeigen nur noch ihre eigenen (lokalen) Tasks und Actions.
+  - Globale "Infrastruktur"-Tasks und Actions werden ausschließlich auf der Blueprint-Stage visualisiert.
+  - Dies beseitigt redundante "Müll"-Einträge in funktionalen Stages.
+- **FlowMapManager & FlowSyncManager**: Logik zur Übersichtsberechnung und Flow-Generierung für das neue Scoping angepasst.
+
 ## [2.9.0] - 2026-02-07
 ### Hinzugefügt
 - Spezialisierte GCS-Variablentypen: `TStringVariable`, `TIntegerVariable`, `TBooleanVariable`, `TRealVariable`, `TObjectVariable`.

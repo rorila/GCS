@@ -320,8 +320,22 @@ export class FlowSyncManager {
     public generateFlowFromActionSequence(task: any): { elements: any[], connections: any[] } {
         const elements: any[] = [];
         const connections: any[] = [];
-        const startId = 'start_' + Date.now();
-        elements.push({ id: startId, type: 'Start', x: 400, y: 50, properties: { name: 'Start' } });
+
+        // --- NEW: Use the Task itself as the root instead of a generic Start node ---
+        const rootId = 'root_task_' + Date.now();
+        const taskName = task.name || 'Unbenannter Task';
+
+        elements.push({
+            id: rootId,
+            type: 'Task',
+            x: 400,
+            y: 50,
+            properties: {
+                name: taskName,
+                text: taskName
+            },
+            data: { taskName: taskName }
+        });
 
         let nextNodeId = 0;
         const getNewId = (type: string) => `auto_${type}_${nextNodeId++}_${Date.now()}`;
@@ -358,12 +372,9 @@ export class FlowSyncManager {
                         data: { startAnchorType: lastAnchor, endAnchorType: 'input' }
                     });
                     const bodyRes = process(item.body || [], id, 'output', undefined, startX, currentY + 120);
-                    // Connection back to loop? Usually visualized differently, but for now:
                     lastId = id; lastAnchor = 'bottom'; currentY = bodyRes.endY + 100;
                 } else {
-                    // Fallback for all other action types (http, db_find, calculate, store_token, show_toast, navigate_stage, etc.)
                     const isTask = item.type === 'execute_task' || item.type === 'task';
-                    // --- MODIFIED: Support legacy "action" field as fallback for name ---
                     const itemName = item.name || item.taskName || item.action || item.type || 'Aktion';
 
                     elements.push({
@@ -373,7 +384,7 @@ export class FlowSyncManager {
                             name: itemName,
                             text: itemName
                         },
-                        data: { ...item } // Store original data for restoration
+                        data: { ...item }
                     });
                     connections.push({
                         startTargetId: lastId, endTargetId: id,
@@ -385,7 +396,9 @@ export class FlowSyncManager {
             return { lastId, endY: currentY };
         };
 
-        if (task.actionSequence?.length > 0) process(task.actionSequence, startId);
+        if (task.actionSequence?.length > 0) {
+            process(task.actionSequence, rootId);
+        }
         return { elements, connections };
     }
 

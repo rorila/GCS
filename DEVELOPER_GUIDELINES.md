@@ -95,6 +95,11 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 
 ## Task-Logik (Primat der FlowCharts)
 - **Master-Status**: Flow-Diagramme sind die primäre Quelle für die Task-Logik. Die `actionSequence` wird bei jedem Speichern/Export automatisch aus dem Diagramm regeneriert.
+- **Diagramm-Struktur**: Ein Task-Diagramm MUSS das **Task-Objekt** als Wurzelknoten verwenden. Generische `Start`-Knoten sind zugunsten der semantischen Klarheit (GCS-Konformität) veraltet. Es muss eine direkte Verbindung vom Task zur ersten Action bestehen.
+- **Stage-Isolation (v2.10.0)**:
+  - **Funktionale Stages**: Zeigen im Flow-Editor ausschließlich ihre lokalen Tasks und Actions.
+  - **Blueprint-Stage**: Dient als Hub für alle globalen (Projekt-Wurzel) Tasks und Actions.
+  - **Sichtbarkeit**: Diese Trennung verhindert das "Zumüllen" der Diagramme durch Infrastruktur-Elemente in der UI-Logik.
 - **UI-Sperre**: Wenn ein Flow existiert, muss die Listen-Ansicht (`TaskEditor.ts`) schreibgeschützt sein. Verwende das `isReadOnly`-Flag in `createSequenceItemElement`.
 - **Synchronisation**: Rufe vor allen Persistenz-Operationen `flowEditor.syncAllTasksFromFlow(project)` auf, um Datenkonsistenz zu garantieren.
 

@@ -225,14 +225,21 @@ export class FlowMapManager {
         };
 
         const activeStage = this.host.getActiveStage();
-        const isGlobalView = !activeStage || activeStage.type === 'main';
+        const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint';
         const usage = projectRegistry.getLogicalUsage();
 
         // 1. Prepare Widths and Maps
         let maxActionWidth = 150;
         const actionMap = new Map<string, any>();
-        (project.actions || []).forEach((a: any) => actionMap.set(a.name, a));
-        (activeStage?.actions || []).forEach((a: any) => actionMap.set(a.name, a));
+
+        if (isBlueprint) {
+            // Blueprint: Nur globale Actions
+            (project.actions || []).forEach((a: any) => actionMap.set(a.name, a));
+        } else if (activeStage) {
+            // Standard-Stage: Nur lokale Actions
+            (activeStage.actions || []).forEach((a: any) => actionMap.set(a.name, a));
+        }
+
         const currentActions = Array.from(actionMap.values());
         currentActions.forEach((a: any) => {
             const width = measureTextWidth(a.name || "") + 60;
@@ -241,8 +248,15 @@ export class FlowMapManager {
 
         let maxTaskWidth = 150;
         const taskMap = new Map<string, any>();
-        (project.tasks || []).forEach((t: any) => taskMap.set(t.name, t));
-        (activeStage?.tasks || []).forEach((t: any) => taskMap.set(t.name, t));
+
+        if (isBlueprint) {
+            // Blueprint: Nur globale Tasks
+            (project.tasks || []).forEach((t: any) => taskMap.set(t.name, t));
+        } else if (activeStage) {
+            // Standard-Stage: Nur lokale Tasks
+            (activeStage.tasks || []).forEach((t: any) => taskMap.set(t.name, t));
+        }
+
         const currentTasks = Array.from(taskMap.values());
         currentTasks.forEach((t: any) => {
             const width = measureTextWidth(t.name || "") + 60;
@@ -253,8 +267,15 @@ export class FlowMapManager {
 
         let maxVarWidth = 150;
         const varMap = new Map<string, any>();
-        (project.variables || []).forEach((v: any) => varMap.set(v.name, v));
-        (activeStage?.variables || []).forEach((v: any) => varMap.set(v.name, v));
+
+        if (isBlueprint) {
+            // Blueprint: Nur globale Variablen
+            (project.variables || []).forEach((v: any) => varMap.set(v.name, v));
+        } else if (activeStage) {
+            // Standard-Stage: Nur lokale Variablen
+            (activeStage.variables || []).forEach((v: any) => varMap.set(v.name, v));
+        }
+
         const currentVariables = Array.from(varMap.values());
         currentVariables.forEach((v: any) => {
             const width = measureTextWidth(v.name || "") + 60;
@@ -311,8 +332,8 @@ export class FlowMapManager {
                 const refs = projectRegistry.findReferences(task.name);
                 const isLocal = (activeStage?.tasks || []).some((lt: any) => lt.name === task.name);
 
-                // Filter logic: Only show if local, global, or used in current stage
-                if (!isLocal && !isGlobalView && !isUsed) return;
+                // Filter logic: Only show if local, or if global on blueprint stage
+                if (!isLocal && !isBlueprint) return;
 
                 const node = new FlowTask('over-task-' + idx, taskX, currentTaskY, this.host.canvas, gridSize);
                 node.Name = task.name || "Unbenannter Task";
