@@ -15,6 +15,25 @@ export class DataService {
     }
 
     /**
+     * Lädt Daten von einer URL und speichert sie im localStorage (Seeding).
+     */
+    public async seedFromUrl(storagePath: string, url: string): Promise<void> {
+        if (typeof window === 'undefined') return;
+
+        try {
+            console.log(`[DataService] Seeding '${storagePath}' from ${url}...`);
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const data = await response.json();
+            await this.writeDb(storagePath, data);
+            console.log(`[DataService] Seeding successful for '${storagePath}'`);
+        } catch (e) {
+            console.error(`[DataService] Seeding failed for '${storagePath}':`, e);
+        }
+    }
+
+    /**
      * Speichert oder aktualisiert ein Objekt in einer Collection.
      */
     public async saveItem(storagePath: string, collection: string, item: any): Promise<any> {
@@ -38,16 +57,33 @@ export class DataService {
      * Findet Objekte in einer Collection basierend auf Filtern.
      */
     public async findItems(storagePath: string, collection: string, query: any = {}): Promise<any[]> {
-        const db = await this.readDb(storagePath);
-        const list = db[collection] || [];
+        console.log(`[DataService] findItems in '${storagePath}' -> '${collection}' with query:`, JSON.stringify(query));
 
-        // Einfache Filterung (Equality)
-        return list.filter((item: any) => {
+        const db = await this.readDb(storagePath);
+        if (!db[collection]) {
+            console.warn(`[DataService] Collection '${collection}' not found in '${storagePath}'`);
+            return [];
+        }
+
+        const list = db[collection] || [];
+        console.log(`[DataService] Searching in ${list.length} items...`);
+
+        const results = list.filter((item: any) => {
             for (const key in query) {
-                if (item[key] !== query[key]) return false;
+                // Fuzzy check for loose type matching (e.g. number vs string)
+                if (item[key] != query[key]) {
+                    // console.log(`[DataService] Mismatch: item.${key}=${item[key]} != query.${key}=${query[key]}`);
+                    return false;
+                }
             }
             return true;
         });
+
+        console.log(`[DataService] Found ${results.length} matches.`);
+        if (results.length === 0 && list.length > 0) {
+            console.log('[DataService] No matches found. Dump first item for debug:', list[0]);
+        }
+        return results;
     }
 
     /**
@@ -75,6 +111,7 @@ export class DataService {
             // Browser / Editor
             const key = `gcs_db_${storagePath}`;
             const content = localStorage.getItem(key);
+            console.log(`[DataService] Reading from localStorage: ${key} (${content ? 'found' : 'not found'})`);
             try {
                 return content ? JSON.parse(content) : {};
             } catch (e) {
@@ -87,6 +124,7 @@ export class DataService {
                 const path = await import('path');
                 const fullPath = path.join(process.cwd(), 'data', storagePath);
 
+                console.log(`[DataService] Reading from file: ${fullPath}`);
                 const content = await fs.readFile(fullPath, 'utf-8');
                 return JSON.parse(content);
             } catch (e) {

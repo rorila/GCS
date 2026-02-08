@@ -11,18 +11,38 @@ export class TDataStore extends TPanel implements IRuntimeComponent {
     public storagePath: string = 'data.json';
     public defaultCollection: string = 'items';
 
+    // Explicitly decouple caption from name prevents runtime renaming issues
+    private _caption: string = '🗄️ Database';
+
     // Runtime-Callback für Events (z.B. onDataChanged)
     private eventCallback: ((eventName: string, data?: any) => void) | null = null;
 
     constructor(name: string = 'DataStore', x: number = 0, y: number = 0) {
         super(name, x, y, 6, 4);
+        console.log(`[TDataStore] Constructor: name=${this.name} (arg=${name})`);
 
         // Datenbank-Design (Zylinder-Optik via Hintergrund)
         this.style.backgroundColor = '#2c3e50';
         this.style.borderColor = '#bdc3c7';
         this.style.borderWidth = 2;
         this.style.borderRadius = 8;
-        this.caption = '🗄️ Database';
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
+    }
+
+    get caption(): string {
+        return this._caption;
+    }
+
+    set caption(v: string) {
+        console.log(`[TDataStore] set caption("${v}") - Current name: ${this.name}`);
+        this._caption = v;
+        if (this.name !== 'UserData' && this.name !== 'DataStore') {
+            console.warn(`[TDataStore] Warning: name has changed to ${this.name}!`);
+        }
     }
 
     /**

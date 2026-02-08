@@ -158,6 +158,11 @@ export class Editor implements IViewHost {
         // Register Data service
         serviceRegistry.register('Data', dataService, 'Data Persistence Service');
 
+        // Auto-seed important data from server for the Editor simulator (Dev Mode)
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+            dataService.seedFromUrl('users.json', '/api/dev/data/users.json');
+        }
+
         // Register Mock HttpServer for API Simulation in Editor
         serviceRegistry.register('HttpServer', {
             respond: (requestId: string, status: number, data: any) => {
@@ -174,8 +179,71 @@ export class Editor implements IViewHost {
                         }
                     }
                 }
+                // Store response for ApiSimulator to retrieve
+                if ((window as any).__pendingApiResponses) {
+                    const resolver = (window as any).__pendingApiResponses.get(requestId);
+                    if (resolver) {
+                        resolver({ status, data });
+                        (window as any).__pendingApiResponses.delete(requestId);
+                    }
+                }
             }
         });
+
+        // Register ApiSimulator service for intercepting http action requests in Editor
+        (window as any).__pendingApiResponses = new Map();
+        serviceRegistry.register('ApiSimulator', {
+            request: async (method: string, url: string, body: any): Promise<any> => {
+                return new Promise((resolve) => {
+                    const requestId = 'sim-' + Math.floor(Math.random() * 1000000);
+
+                    // Parse URL to extract path
+                    let path = url;
+                    try {
+                        const urlObj = new URL(url);
+                        path = urlObj.pathname;
+                    } catch (e) {
+                        // URL is already a path
+                    }
+
+                    console.log(`[ApiSimulator] Simulating: ${method} ${path}`, body);
+
+                    // Store resolver for when respond is called
+                    (window as any).__pendingApiResponses.set(requestId, (response: any) => {
+                        console.log(`[ApiSimulator] Response received for ${requestId}:`, response);
+                        resolve(response.data);
+                    });
+
+                    // Find TAPIServer and trigger onRequest event
+                    const allObjects = projectRegistry.getObjects();
+                    const server = allObjects.find(o => (o as any).className === 'TAPIServer') as any;
+
+                    if (server && this.runManager && this.runManager.runtime) {
+                        const runtime = this.runManager.runtime;
+                        runtime.handleEvent(server.id, 'onRequest', {
+                            method,
+                            path,
+                            body,
+                            requestId,
+                            isSimulation: true
+                        });
+                    } else {
+                        // No TAPIServer found, return mock error
+                        console.warn('[ApiSimulator] No TAPIServer found. Returning mock error.');
+                        resolve({ error: 'No API Server configured', status: 503 });
+                    }
+
+                    // Timeout after 5 seconds
+                    setTimeout(() => {
+                        if ((window as any).__pendingApiResponses.has(requestId)) {
+                            (window as any).__pendingApiResponses.delete(requestId);
+                            console.warn(`[ApiSimulator] Timeout for request ${requestId}`);
+                            resolve({ error: 'Simulation timeout - no respond_http action executed', status: 504 });
+                        }
+                    }, 5000);
+                });
+            }
+        }, 'API Request Simulator for Editor Mode');
 
         // Initialize JSON-based UI components
         this.debugLog = new TDebugLog();
@@ -269,6 +337,10 @@ export class Editor implements IViewHost {
     public render() {
         if (!this.project) return;
         try {
+            // Set Blueprint Mode on stage
+            const activeStage = this.getActiveStage();
+            this.stage.isBlueprint = activeStage?.type === 'blueprint';
+
             // CRITICAL: Always get fresh objects from runtime if available
             let objectsToRender = this.runtime ? this.runtime.getObjects() : (this.runtimeObjects || this.getResolvedInheritanceObjects());
 
@@ -1186,6 +1258,10 @@ export class Editor implements IViewHost {
 
     private loadProject(data: any) {
         if (!data) return;
+
+        // CLEAR old LocalStorage before loading new project
+        localStorage.removeItem('gcs_last_project');
+        console.log('[Editor] LocalStorage cleared for fresh project load');
 
         // Clean up data artifacts before loading
         RefactoringManager.cleanActionSequences(data);

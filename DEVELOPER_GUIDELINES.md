@@ -21,6 +21,13 @@ Die Klasse `FlowEditor.ts` wurde modularisiert, um die Komplexität zu reduziere
 - **Flow Cleanup Logic**:
     - Der `FlowSyncManager` verfügt über eine `cleanCorruptTaskData` Methode. Diese entfernt automatisch fehlerhafte Einträge (wie `"elements"` oder `"connections"`), die durch fehlerhafte Speichervorgänge fälschlicherweise in der Task-Liste gelandet sind.
     - Dieser Cleanup wird automatisch beim Laden eines Projekts in `Editor.loadProject` ausgeführt.
+- **Koordinaten-Ausrichtung (v2.10.1)**:
+    - Der Flow-Editor nutzt ein Grid-System. Historisch gewachsene Offsets (z.B. -80px auf der X-Achse) wurden entfernt, um eine konsistente Ausrichtung zwischen Knoten und Verbindungen zu gewährleisten.
+    - Achte darauf, dass beim Generieren neuer Diagramme keine künstlichen Offsets in `FlowSyncManager.generateFlowFromActionSequence` eingeführt werden.
+- **Persistenz & Scoping (v2.10.1)**:
+    - FlowChart-Daten (`elements`, `connections`) müssen IMMER unter dem Namen des Tasks als Key in der `flowCharts` Collection gespeichert werden (z.B. `targetCharts[taskName] = chartData`).
+    - Ein direktes Speichern auf dem Collection-Objekt führt dazu, dass sich Diagramme verschiedener Tasks gegenseitig überschreiben.
+    - Verwende das `isLoading` Flag im `FlowEditor`, um zu verhindern, dass während des Ladevorgangs unvollständige Daten zurück in das Projekt synchronisiert werden.
 - **Logik-Standardisierung (v2.7.0)**:
     - **Inline-Actions**: Das Verwenden von Inline-Aktionen innerhalb der `actionSequence` eines Tasks ist veraltet. Aktionen sollten IMMER im `actions`-Array der Stage (oder global) als benannte Entitäten definiert werden.
     - **Referenzierung**: In Tasks erfolgt der Aufruf ausschließlich via `{ "action": "Name", "params": { ... } }`.
@@ -79,6 +86,14 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
   - Anordnung: Vertikale Stapelung am linken Rand (X=0). Globale Variablen starten bei Y=0, Stage-Variablen bei Y=12.
 - **Farbschema**: Schwarz (`#000000`) auf Hellviolett (`#d1c4e9`) mit dunklerer Umrandung (`#9575cd`).
 - **Persistenz**: `EditorStageManager.syncStageObjectsToProject` sorgt für die saubere Trennung beim Speichern.
+- **Variablen-Wert-Konsolidierung & Reaktivität (v2.12.1)**:
+  - **Single Source of Truth**: Die Methode `PropertyHelper.resolveValue(obj)` extrahiert zuverlässig den Inhalt einer Variablen-Komponente (`.value` oder `.items`). Sie muss in allen Logik-Komponenten verwendet werden.
+  - **Context Precedence**: In `ReactiveRuntime.getContext()` haben explizite Variablen-Werte Vorrang vor Objekt-Proxies gleichen Namens, um Shadowing-Probleme zu vermeiden.
+  - **Präzise Synchronisation**: Der `RuntimeVariableManager` synchronisiert Werte zu Komponenten-Instanzen immer über deren eindeutige `id` (nicht nur via `name`), um Verwechslungen bei gleichnamigen Variablen in unterschiedlichen Scopes auszuschließen.
+  - **JS-Formeln**: `ExpressionParser.evaluate` löst nun automatisch alle Kontext-Variablen via `resolveValue()` auf, BEVOR der JS-Ausdruck evaluiert wird. Dies stellt sicher, dass Operatoren wie `+` mit Primitiven (Strings/Zahlen) arbeiten und nicht mit Proxy-Objekten (`[object Object]`).
+  - **Synchronisations-Reihenfolge**: Im `RuntimeVariableManager` muss die visuelle Komponente (`component.value = ...`) ZUERST aktualisiert werden, bevor `reactiveRuntime.setVariable` aufgerufen wird. Dies verhindert, dass Bindings bei einer Benachrichtigung noch den alten Wert im Kontext vorfinden.
+  - **ActionExecutor & Proxies**: Wenn sich eine Stage ändert (`GameRuntime.handleStageChange`), muss der `ActionExecutor` explizit mit der Liste der neuen Proxies (`reactiveRuntime.getObjects()`) aktualisiert werden, damit Aktionen direkt auf den reaktiven Instanzen operieren.
+  - **valueOf() Support**: Alle Komponenten erben `valueOf()` von `TComponent`, was bei Variablen automatisch `.value` zurückgibt – ein Sicherheitsnetz für direkte JS-Interaktionen.
 
 ## Editor -> Runtime Transition
 - **Data Sync**: Vor dem Start der Runtime (`new GameRuntime`) müssen die aktuellen Editor-Objekte explizit in das Projekt-JSON serialisiert werden (`syncStageObjectsToProject`), damit Änderungen (z.B. neue Bilder) übernommen werden.
@@ -143,6 +158,12 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Client-Verbindung**: `NetworkManager` und `TGameServer` nutzen `ws://localhost:8080` als Default-WebSocket-URL.
 - **Deployment**: In `Dockerfile` und `fly.toml` muss Port 8080 exposed bzw. als `internal_port` konfiguriert sein.
 
+## Daten-Persistenz & Synchronisierung (v2.11.0)
+- **Dual-Storage**: Der `DataService` abstrahiert den Zugriff auf Daten. Im Browser (Editor/Player) wird `localStorage` verwendet, im Server-Modus (Node.js) das Dateisystem (`fs`).
+- **Editor-Simulator**: Im Editor läuft das Spiel im Browser-Kontext. Um auf Server-Daten (z.B. `users.json`) zuzugreifen, nutzen wir "Seeding".
+- **Seeding**: Beim Start des Editors werden kritische Daten (wie Benutzerkonten) automatisch vom lokalen Dev-Server (`/api/dev/data/:file`) abgerufen und in den `localStorage` des Simulators kopiert. Dies ermöglicht realistische Login-Tests ohne manuelle Datenpflege.
+- **Debugging**: Datenbank-Aktionen (`db_find`, `db_save`) loggen nun im Debug Log Viewer detaillierte Informationen über Abfragen und Ergebnismengen ("Found X items...").
+
 ## Export-System (GameExporter)
 - **Meta-Filterung**: Der Exporter nutzt eine Whitelist für Top-Level-Keys und eine rekursive `deepClean` Funktion.
 - **Editor-Daten**: Keys mit `_` Präfix oder in der `editorOnlyKeys` Liste (`flow`, `flowCharts`, `nodePositions`, etc.) werden automatisch entfernt.
@@ -195,9 +216,12 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
     - **Caching**: Um sicherzustellen, dass Änderungen an der JSON-Konfiguration sofort sichtbar sind, werden fetch-Aufrufe mit einem Cache-Buster (`?v=Date.now()`) versehen.
     - **Metadaten (Main Stage)**: Globale Spiel-Metadaten (Name, Autor) werden bevorzugt in der Haupt-Stage (`type: 'main'`) gespeichert (`gameName`, `author`). Der Inspector bindet diese via `activeStage.*`. Generatoren und Exporter müssen dies berücksichtigen und die Haupt-Stage-Werte gegenüber `project.meta` priorisieren.
 - **Sichtbarkeit von Komponenten**:
-    - **System- & Variablen-Komponenten**: Komponenten wie `TGameLoop`, `TInputController`, `TTimer` und alle spezialisierten Variablen (`isVariable: true`) sind nur im **Editor-Modus** sichtbar.
-    - **Editor-Anzeige**: Diese Komponenten zeigen im Editor ihren `name` als Text an, um die Identifizierung zu erleichtern (statt z.B. den aktuellen Wert einer Variable).
-    - **Run-Modus / Export**: Diese Komponenten müssen via `display: none` ausgeblendet werden. Im `GameExporter` sollten sie zudem aus dem `objects`-Array gefiltert werden, da sie als Daten bereits im `variables`-Array existieren.
+    - **Metadaten-Flags (v2.11.0)**: Die Sichtbarkeit wird zentral über Flags in `TComponent` gesteuert:
+        - `isService`: Markiert die Komponente als System-Dienst (wird global über Stages gemergt).
+        - `isHiddenInRun`: Wenn `true`, wird die Komponente im Run-Modus (Spiel-Modus) ausgeblendet.
+        - `isBlueprintOnly`: Wenn `true`, ist die Komponente im Editor NUR auf Stages vom Typ `blueprint` sichtbar.
+    - **Editor-Anzeige**: System-Komponenten zeigen im Editor ihren `name` als Text an, um die Identifizierung zu erleichtern.
+    - **Umsetzung**: `Stage.renderObjects` wertet diese Flags aus. Der `Editor` muss beim Rendern das `isBlueprint`-Flag auf der Stage setzen.
 - **Runtime-Navigation**: Die Action `navigate_stage` ermöglicht Stage-Wechsel zur Laufzeit:
   ```json
   { "type": "navigate_stage", "params": { "stageId": "level-2" } }
@@ -410,8 +434,8 @@ Benutzer binden oft direkt an das Variablen-Objekt (z.B. `${Score}`), erwarten a
 - **Vorteil**: Vereinfachung der UI-Expressions für den Benutzer, ohne die reaktive Kette zu unterbrechen.
 
 ### Intelligente Stringifizierung
-Um die Anzeige von `[object Object]` im UI zu vermeiden, verfügt der `ExpressionParser` über eine hierarchische Umwandlungslogik (`valueToString`):
-1. **Variable**: Inhalt (`value`) anzeigen.
+Um die Anzeige von `[object Object]` im UI zu vermeiden, verfügt der `ExpressionParser` über eine hierarchische Umwandlungslogik (`valueToString`), die intern `PropertyHelper.resolveValue()` nutzt:
+1. **Variable**: Inhalt (`value` oder `items`) anzeigen.
 2. **Array**: Elemente kommagetrennt auflisten.
 3. **Komponente**: Name der Komponente anzeigen (z.B. `Ball`).
 4. **Objekt**: Klassennamen (z.B. `[TSprite]`) oder JSON-Vorschau anzeigen.
@@ -425,11 +449,14 @@ Zur Analyse von Bindungsproblemen ist in der Konsole ein farbcodierter Flow impl
 - **INITIAL SYNC**: Die `GameRuntime` synchronisiert beim Start einmalig alle `value`-Eigenschaften von Variablen-Komponenten in das `variableManager`-System. Dies garantiert, dass Live-Edits im Editor (die in `component.value` gespeichert sind) sofort für Bindungen und Logik verfügbar sind.
 - **Initialisierungs-Sicherheit**: Alle Variablen (Projekt-global, Main-Stage und aktuelle Start-Stage) werden beim Konstruieren der `GameRuntime` via `initializeVariables` und `initializeStageVariables` geladen, bevor Bindungen erstellt werden.
 
-### Multi-Stage-Merging für globale Objekte
-In Projekten mit mehreren Stages müssen globale Komponenten (insbesondere Variablen) aus der `Main`-Stage in jede andere Stage übernommen werden:
-1. **RuntimeStageManager**: Mergt beim Laden einer Stage alle Objekte der `Main`-Stage, die `scope: 'global'` haben oder Variablen sind.
+### Multi-Stage-Merging & Blueprints (v2.10.3)
+In Projekten mit mehreren Stages werden globale Komponenten und Logik-Elemente (Tasks/Actions) aus spezialisierten Stages übernommen:
+1. **RuntimeStageManager**: 
+   - Mergt beim Laden einer Stage automatisch ALLE Objekte, Tasks und Actions aus JEDER Stage vom Typ `blueprint`. 
+   - Dies ermöglicht eine systemweite Verfügbarkeit von Infrastruktur-Diensten (z.B. `TAPIServer`) und deren globaler Logik, ohne dass diese manuell in jede Stage kopiert werden müssen.
+   - **Präzidenz**: Blueprint-Daten bilden die Basis. Die Daten der aktuellen Stage (und ihrer Vererbungskette via `inheritsFrom`) überschreiben Blueprint-Daten bei Namensgleichheit ("Last Write Wins").
 2. **RuntimeVariableManager**: Initialisiert beim Start zusätzlich alle Variablen aus der `Main`-Stage in den globalen `projectVariables` Pool.
-3. **Vorteil**: Globale Variablen müssen nicht manuell in jede Stage kopiert werden; sie stehen automatisch für Reaktivität und Tasks (z.B. Punkteanzeige in Level 2 für Variable aus dem Startscreen) zur Verfügung.
+3. **Vorteil**: Globale Dienste müssen nur einmal auf einer Blueprint-Stage visualisiert und konfiguriert werden; sie stehen automatisch für Reaktivität und Logik auf allen funktionalen Stages (z.B. Login, Dashboard) zur Verfügung.
 
 ### Eigenschafts-Standards & Reaktivität
 - **Standard-Inhalt (`text`)**: Alle Komponenten, die Text anzeigen (Labels, Buttons, Statusbars), MÜSSEN die Eigenschaft `text` für ihren Inhalt verwenden. 
@@ -475,8 +502,13 @@ Tasks werden nicht nur über ihren Namen, sondern über eine **Logik-Signatur** 
 ### Lifecycle & Cleanup
 - **Orphan Cleanup**: `ProjectRegistry.deleteTask` entfernt automatisch alle Aktionen, die ausschließlich von diesem Task genutzt wurden (Dependency Indexing).
 - **Stage-Isolierung**: In der JSON-Ansicht einer Stage werden globale Abhängigkeiten (Tasks/Actions) temporär injiziert, um eine vollständige Bearbeitbarkeit ohne Datenverlust zu gewährleisten.
-## [Eigenschaftsauswertung & Sichtbarkeit](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/runtime/PropertyHelper.ts) (v2.1.6)
-- **Template-Interpolation**: Der `PropertyHelper.interpolate` unterstützt Literale (`true`, `false`, Zahlen) innerhalb von `${}`. Leerzeichen werden getrimmt. Dies ist essenziell für Aktionen, die Booleans via Template-Syntax setzen (z.B. `${true }`).
+## [Eigenschaftsauswertung & Sichtbarkeit](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/runtime/PropertyHelper.ts) (v2.1.6 / v2.10.2)
+- **Template-Interpolation**: Der `PropertyHelper.interpolate` unterstützt Literale (`true`, `false`, Zahlen) innerhalb von `${}`.
+- **Automatisches Dereferenzieren (v2.10.2)**: 
+    - Variablen-Komponenten (z.B. `TStringVariable`) werden bei der Interpolation automatisch aufgelöst. `${myVar}` gibt direkt den Wert von `myVar.value` zurück.
+    - Dies gilt auch, wenn kein expliziter Pfad wie `.value` angegeben ist.
+    - Objekte ohne Punkt-Notation werden nun korrekt aufgelöst, sofern sie in der `objects`-Liste existieren.
+- **Kontext-Merging**: In Aktionen (`StandardActions.ts`) wird stets ein kombinierter Kontext aus `contextVars` (global) und `vars` (lokal) verwendet. Globale Objekte haben im Zweifelsfall Vorrang vor lokalen Variablen gleichen Namens, um Infrastruktur-Konflikte zu vermeiden.
 - **Sichtbarkeit Priorität**: Die Eigenschaft `visible` hat im Stage-Renderer IMMER Vorrang. Vermeide "Force-Visible"-Logiken (z.B. bei Vorhandensein eines Bildes), da diese die reaktive Logik der Engine unterlaufen.
 - **Auto-Konvertierung**: Nutze `PropertyHelper.autoConvert`, um String-Ergebnisse der Interpolation (`"true"`, `"123"`) wieder in ihre korrekten Typen (`boolean`, `number`) zu wandeln, bevor sie auf Komponenten-Eigenschaften angewendet werden.
 
@@ -571,3 +603,19 @@ In Projekten vom Typ "Server" (Stage-lose Applikationen) wird die Stage als **Sy
 - **Zustand**: Verwende reaktive Properties (z.B. `selectedEmoji`), um den Zustand der Komponente zu halten, sodass der `JSONInspector` und andere Komponenten darauf reagieren können.
 - **Events**: Löse fachliche Events (wie `onSelect`) immer über den `onEvent`-Callback der Stage aus, um die Anbindung an den Flow-Editor zu gewährleisten.
 
+
+## Object Interpolation & Data Integrity (v2.11.0)
+- **Object vs String**: `PropertyHelper.interpolate` gibt bei komplexen Ausdrücken (`${user} ${role}`) immer einen String zurück. Dies zerstört die Objektreferenz.
+- **Lösung (ExpressionParser.evaluate)**:
+    - Wenn ein Ausdruck NUR eine Variable enthält (z.B. `${currentUser}`), muss `ExpressionParser.evaluate` verwendet werden.
+    - Dies gibt das rohe Objekt (Referenz) zurück, anstatt `[object Object]` oder eine String-Repräsentation.
+    - **Anwendung**: In Aktionen wie `respond_http` oder `db_save`, die strukturierte Daten erwarten, muss zwingend geprüft werden, ob es sich um einen "Simple Expression" handelt.
+- **Deep Interpolation**: Beim Durchlaufen von verschachtelten Objekten (z.B. `body` in einem API-Request) muss die Rekursion (Deep Clone) erhalten bleiben, um z.B. `user.role` auch in Unterobjekten korrekt aufzulösen.
+
+## Editor Runtime Navigation
+- **onNavigate Handler**: Die `GameRuntime` kennt nur `options.onNavigate`.
+- **Implementierung**: Der Host (z.B. `EditorRunManager`) muss diesen Handler implementieren und die Navigation logisch ausführen:
+    1. Parsing des Targets (`stage:ID` oder `ID`).
+    2. Validierung der Stage-ID.
+    3. **WICHTIG**: Aufruf von `editor.switchStage(id)`, um den Editor-State (und damit die aktive Stage für den Renderer) zu aktualisieren.
+    4. Ein reiner View-Wechsel (`switchView`) reicht nicht aus, da die `GameRuntime` sonst auf der alten Stage weiterläuft (Geister-Zustand).

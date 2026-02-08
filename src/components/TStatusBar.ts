@@ -49,6 +49,11 @@ export class TStatusBar extends TWindow {
         this.sections = [
             { id: 'status', text: 'Ready', icon: '●', width: 'auto', align: 'left' }
         ];
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     /**

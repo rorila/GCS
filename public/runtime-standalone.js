@@ -255,6 +255,110 @@
     }
   });
 
+  // src/runtime/PropertyHelper.ts
+  var PropertyHelper = class _PropertyHelper {
+    /**
+     * Reads a property value using a dot-path (e.g., "style.backgroundColor")
+     */
+    static getPropertyValue(obj, propPath) {
+      if (!obj || !propPath) return void 0;
+      const parts = propPath.split(".");
+      let current = obj;
+      for (const part of parts) {
+        if (current === void 0 || current === null) return void 0;
+        current = current[part];
+      }
+      return this.resolveValue(current);
+    }
+    /**
+     * Resolves a value from an object, unpacking variable components if necessary.
+     */
+    static resolveValue(val) {
+      if (val && typeof val === "object" && (val.isVariable === true || val.className?.includes("Variable"))) {
+        if (val.value !== void 0) return val.value;
+        if (Array.isArray(val.items)) return val.items;
+      }
+      return val;
+    }
+    /**
+     * Sets a property value using a dot-path
+     */
+    static setPropertyValue(obj, propPath, value) {
+      if (!obj || !propPath) return;
+      const parts = propPath.split(".");
+      if (parts.length === 1) {
+        obj[parts[0]] = value;
+      } else {
+        let current = obj;
+        for (let i = 0; i < parts.length - 1; i++) {
+          const part = parts[i];
+          if (!current[part]) {
+            current[part] = {};
+          }
+          current = current[part];
+        }
+        current[parts[parts.length - 1]] = value;
+      }
+    }
+    /**
+     * Interpolates variables in a string template (e.g., "Score: ${score}" or "Value: ${Object.property}")
+     */
+    static interpolate(template, vars, objects) {
+      if (typeof template !== "string" || !template.includes("${")) {
+        return template;
+      }
+      return template.replace(/\$\{([^}]+)\}/g, (_, path) => {
+        const trimmedPath = path.trim();
+        if (trimmedPath === "true") return "true";
+        if (trimmedPath === "false") return "false";
+        if (!isNaN(Number(trimmedPath))) return trimmedPath;
+        if (objects) {
+          if (trimmedPath.includes(".")) {
+            const [objName, ...propParts] = trimmedPath.split(".");
+            const propPath = propParts.join(".");
+            const obj = objects.find((o) => o.name === objName || o.id === objName);
+            if (obj) {
+              const val2 = this.getPropertyValue(obj, propPath);
+              if (val2 !== void 0) return String(val2);
+            }
+          } else {
+            const obj = objects.find((o) => o.name === trimmedPath || o.id === trimmedPath);
+            if (obj) {
+              const resolved = this.resolveValue(obj);
+              if (resolved !== obj) return String(resolved ?? "");
+              return obj.name || obj.id || String(obj);
+            }
+          }
+        }
+        let val = vars[trimmedPath];
+        if (val === void 0 && trimmedPath.includes(".")) {
+          const [rootVar, ...parts] = trimmedPath.split(".");
+          if (vars[rootVar] !== void 0) {
+            val = _PropertyHelper.getPropertyValue(vars[rootVar], parts.join("."));
+          }
+        }
+        if (val !== void 0) {
+          return String(this.resolveValue(val));
+        }
+        return "";
+      });
+    }
+    /**
+     * Tries to convert a string value back to its likely intended type (number or boolean)
+     */
+    static autoConvert(value) {
+      if (typeof value !== "string") return value;
+      if (value === "") return value;
+      const num = Number(value);
+      if (!isNaN(num) && value.trim() !== "") {
+        return num;
+      }
+      if (value.toLowerCase() === "true") return true;
+      if (value.toLowerCase() === "false") return false;
+      return value;
+    }
+  };
+
   // src/runtime/ExpressionParser.ts
   var ExpressionParser = class {
     /**
@@ -315,10 +419,8 @@
       if (value === void 0 || value === null) return "";
       if (typeof value === "string") return value;
       if (typeof value === "number" || typeof value === "boolean") return String(value);
-      if (value.isVariable === true) {
-        if (value.value !== void 0) return this.valueToString(value.value);
-        if (Array.isArray(value.items)) return this.valueToString(value.items);
-      }
+      const resolved = PropertyHelper.resolveValue(value);
+      if (resolved !== value) return this.valueToString(resolved);
       if (Array.isArray(value)) {
         return value.map((v) => this.valueToString(v)).join(", ");
       }
@@ -380,7 +482,7 @@
         }
         current = current[part];
       }
-      return current;
+      return PropertyHelper.resolveValue(current);
     }
     /**
      * Sets a nested property value (e.g., "player.score.total")
@@ -1002,82 +1104,6 @@
   var ActionRegistry = _ActionRegistry;
   var actionRegistry = ActionRegistry.getInstance();
 
-  // src/runtime/PropertyHelper.ts
-  var PropertyHelper = class {
-    /**
-     * Reads a property value using a dot-path (e.g., "style.backgroundColor")
-     */
-    static getPropertyValue(obj, propPath) {
-      if (!obj || !propPath) return void 0;
-      const parts = propPath.split(".");
-      let current = obj;
-      for (const part of parts) {
-        if (current === void 0 || current === null) return void 0;
-        current = current[part];
-      }
-      return current;
-    }
-    /**
-     * Sets a property value using a dot-path
-     */
-    static setPropertyValue(obj, propPath, value) {
-      if (!obj || !propPath) return;
-      const parts = propPath.split(".");
-      if (parts.length === 1) {
-        obj[parts[0]] = value;
-      } else {
-        let current = obj;
-        for (let i = 0; i < parts.length - 1; i++) {
-          const part = parts[i];
-          if (!current[part]) {
-            current[part] = {};
-          }
-          current = current[part];
-        }
-        current[parts[parts.length - 1]] = value;
-      }
-    }
-    /**
-     * Interpolates variables in a string template (e.g., "Score: ${score}" or "Value: ${Object.property}")
-     */
-    static interpolate(template, vars, objects) {
-      if (typeof template !== "string" || !template.includes("${")) {
-        return template;
-      }
-      return template.replace(/\$\{([^}]+)\}/g, (_, path) => {
-        const trimmedPath = path.trim();
-        if (trimmedPath === "true") return "true";
-        if (trimmedPath === "false") return "false";
-        if (!isNaN(Number(trimmedPath))) return trimmedPath;
-        if (vars[trimmedPath] !== void 0) return String(vars[trimmedPath]);
-        if (objects && trimmedPath.includes(".")) {
-          const [objName, ...propParts] = trimmedPath.split(".");
-          const propPath = propParts.join(".");
-          const obj = objects.find((o) => o.name === objName || o.id === objName);
-          if (obj) {
-            const val = this.getPropertyValue(obj, propPath);
-            if (val !== void 0) return String(val);
-          }
-        }
-        return "";
-      });
-    }
-    /**
-     * Tries to convert a string value back to its likely intended type (number or boolean)
-     */
-    static autoConvert(value) {
-      if (typeof value !== "string") return value;
-      if (value === "") return value;
-      const num = Number(value);
-      if (!isNaN(num) && value.trim() !== "") {
-        return num;
-      }
-      if (value.toLowerCase() === "true") return true;
-      if (value.toLowerCase() === "false") return false;
-      return value;
-    }
-  };
-
   // src/runtime/actions/StandardActions.ts
   init_AnimationManager();
 
@@ -1215,10 +1241,11 @@
   function registerStandardActions(objects) {
     actionRegistry.register("property", (action, context) => {
       const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (target && action.changes) {
         Object.keys(action.changes).forEach((prop) => {
           const rawValue = action.changes[prop];
-          const value = PropertyHelper.interpolate(String(rawValue), context.vars, objects);
+          const value = PropertyHelper.interpolate(String(rawValue), combinedContext, objects);
           PropertyHelper.setPropertyValue(target, prop, PropertyHelper.autoConvert(value));
         });
       }
@@ -1267,8 +1294,9 @@
     });
     actionRegistry.register("animate", (action, context) => {
       const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (target) {
-        const toValue = Number(PropertyHelper.interpolate(String(action.to), context.vars, objects));
+        const toValue = Number(PropertyHelper.interpolate(String(action.to), combinedContext, objects));
         AnimationManager.getInstance().addTween(target, action.property || "x", toValue, action.duration || 500, action.easing || "easeOut");
       }
     }, {
@@ -1285,9 +1313,10 @@
     });
     actionRegistry.register("move_to", (action, context) => {
       const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (target) {
-        const toX = Number(PropertyHelper.interpolate(String(action.x), context.vars, objects));
-        const toY = Number(PropertyHelper.interpolate(String(action.y), context.vars, objects));
+        const toX = Number(PropertyHelper.interpolate(String(action.x), combinedContext, objects));
+        const toY = Number(PropertyHelper.interpolate(String(action.y), combinedContext, objects));
         if (typeof target.moveTo === "function") {
           target.moveTo(toX, toY, action.duration || 500, action.easing || "easeOut");
         } else {
@@ -1308,7 +1337,8 @@
       ]
     });
     actionRegistry.register("navigate", (action, context) => {
-      let targetGame = PropertyHelper.interpolate(action.target, context.vars, objects);
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+      let targetGame = PropertyHelper.interpolate(action.target, combinedContext, objects);
       if (targetGame && context.onNavigate) {
         context.onNavigate(targetGame, action.params);
       }
@@ -1322,8 +1352,9 @@
     });
     actionRegistry.register("navigate_stage", (action, context) => {
       const stageId = action.params?.stageId || action.stageId;
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (stageId && context.onNavigate) {
-        const resolved = PropertyHelper.interpolate(String(stageId), context.vars, objects);
+        const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, objects);
         context.onNavigate(`stage:${resolved}`, action.params);
       }
     }, {
@@ -1357,8 +1388,9 @@
       ]
     });
     actionRegistry.register("create_room", (action, context) => {
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (context.multiplayerManager) {
-        let gameName = PropertyHelper.interpolate(action.game, context.vars, objects);
+        let gameName = PropertyHelper.interpolate(action.game, combinedContext, objects);
         context.multiplayerManager.createRoom(gameName);
       }
     }, {
@@ -1370,8 +1402,9 @@
       ]
     });
     actionRegistry.register("join_room", (action, context) => {
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (context.multiplayerManager) {
-        let code = action.params?.code ? PropertyHelper.interpolate(String(action.params.code), context.vars, objects) : "";
+        let code = action.params?.code ? PropertyHelper.interpolate(String(action.params.code), combinedContext, objects) : "";
         if (code.length >= 4) {
           context.multiplayerManager.joinRoom(code);
         }
@@ -1385,12 +1418,39 @@
       ]
     });
     actionRegistry.register("http", async (action, context) => {
-      const url = PropertyHelper.interpolate(String(action.url || ""), context.vars, objects);
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+      const url = PropertyHelper.interpolate(String(action.url || ""), combinedContext, objects);
       const method = action.method || "GET";
       let body = null;
+      let parsedBody = {};
       if (method !== "GET" && action.body) {
         const bodyStr = typeof action.body === "object" ? JSON.stringify(action.body) : String(action.body);
-        body = PropertyHelper.interpolate(bodyStr, context.vars, objects);
+        body = PropertyHelper.interpolate(bodyStr, combinedContext, objects);
+        try {
+          parsedBody = JSON.parse(body);
+        } catch (e) {
+          parsedBody = body;
+        }
+      }
+      DebugLogService.getInstance().log("Action", `HTTP: ${method} ${url}`, {
+        data: { type: "http", method, url, body: parsedBody }
+      });
+      if (serviceRegistry.has("ApiSimulator")) {
+        console.log(`[Action: http] Using API Simulation for: ${method} ${url}`);
+        try {
+          const result = await serviceRegistry.call("ApiSimulator", "request", [method, url, parsedBody]);
+          if (action.resultVariable) {
+            context.vars[action.resultVariable] = result;
+            context.contextVars[action.resultVariable] = result;
+          }
+        } catch (err2) {
+          console.error("[Action: http] Simulation Error:", err2);
+          if (action.resultVariable) {
+            context.vars[action.resultVariable] = { error: String(err2) };
+            context.contextVars[action.resultVariable] = { error: String(err2) };
+          }
+        }
+        return;
       }
       try {
         const options = {
@@ -1406,6 +1466,10 @@
         }
       } catch (err2) {
         console.error("[Action: http] Error:", err2);
+        if (action.resultVariable) {
+          context.vars[action.resultVariable] = { error: String(err2) };
+          context.contextVars[action.resultVariable] = { error: String(err2) };
+        }
       }
     }, {
       type: "http",
@@ -1424,7 +1488,8 @@
       if (operation === "delete") {
         localStorage.removeItem(key);
       } else {
-        const token = PropertyHelper.interpolate(String(action.token || ""), context.vars, objects);
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        const token = PropertyHelper.interpolate(String(action.token || ""), combinedContext, objects);
         localStorage.setItem(key, token);
       }
     }, {
@@ -1438,7 +1503,8 @@
       ]
     });
     actionRegistry.register("show_toast", (action, context) => {
-      const message = PropertyHelper.interpolate(String(action.message || ""), context.vars, objects);
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+      const message = PropertyHelper.interpolate(String(action.message || ""), combinedContext, objects);
       const toastType = action.toastType || "info";
       const toaster = objects.find((o) => o.className === "TToast" || o.constructor?.name === "TToast");
       if (toaster && typeof toaster.show === "function") {
@@ -1456,10 +1522,11 @@
       ]
     });
     actionRegistry.register("respond_http", async (action, context) => {
-      const requestId = PropertyHelper.interpolate(String(action.requestId || ""), context.vars, objects);
-      const status = Number(PropertyHelper.interpolate(String(action.status || 200), context.vars, objects));
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+      const requestId = PropertyHelper.interpolate(String(action.requestId || ""), combinedContext, objects);
+      const status = Number(PropertyHelper.interpolate(String(action.status || 200), combinedContext, objects));
       const dataStr = typeof action.data === "object" ? JSON.stringify(action.data) : String(action.data || "{}");
-      const data = JSON.parse(PropertyHelper.interpolate(dataStr, context.vars, objects));
+      const data = JSON.parse(PropertyHelper.interpolate(dataStr, combinedContext, objects));
       if (requestId && serviceRegistry.has("HttpServer")) {
         await serviceRegistry.call("HttpServer", "respond", [requestId, status, data]);
       } else {
@@ -1477,11 +1544,15 @@
     });
     actionRegistry.register("db_save", async (action, context) => {
       const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-      const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || "data.json", context.vars, objects);
-      const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || "items", context.vars, objects);
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+      const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || "data.json", combinedContext, objects);
+      const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || "items", combinedContext, objects);
       const dataStr = typeof action.data === "object" ? JSON.stringify(action.data) : String(action.data || "{}");
-      const data = JSON.parse(PropertyHelper.interpolate(dataStr, context.vars, objects));
+      const data = JSON.parse(PropertyHelper.interpolate(dataStr, combinedContext, objects));
       const result = await serviceRegistry.call("Data", "saveItem", [storagePath, collection, data]);
+      DebugLogService.getInstance().log("Variable", `Data saved in ${storagePath}::${collection}`, {
+        data: { type: "db_save", storagePath, collection, result }
+      });
       if (action.resultVariable) {
         context.vars[action.resultVariable] = result;
         context.contextVars[action.resultVariable] = result;
@@ -1503,11 +1574,23 @@
     });
     actionRegistry.register("db_find", async (action, context) => {
       const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-      const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || "data.json", context.vars, objects);
-      const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || "items", context.vars, objects);
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+      const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || "data.json", combinedContext, objects);
+      const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || "items", combinedContext, objects);
+      console.log(`[Action: db_find] Target: ${target ? target.name : "null"}, Storage: ${storagePath}, Collection: ${collection}`);
+      if (target) {
+        console.log(`[Action: db_find] Target Properties: storagePath=${target.storagePath}, defaultCollection=${target.defaultCollection}`);
+      } else {
+        console.warn(`[Action: db_find] Target '${action.target}' NOT FOUND. Available objects:`, objects.map((o) => o.name).join(", "));
+      }
       const queryStr = typeof action.query === "object" ? JSON.stringify(action.query) : String(action.query || "{}");
-      const query = JSON.parse(PropertyHelper.interpolate(queryStr, context.vars, objects));
+      const query = JSON.parse(PropertyHelper.interpolate(queryStr, combinedContext, objects));
+      console.log(`[Action: db_find] Searching in ${storagePath}::${collection} with Query:`, JSON.stringify(query));
       const results = await serviceRegistry.call("Data", "findItems", [storagePath, collection, query]);
+      console.log(`[Action: db_find] Found ${results.length} items.`);
+      DebugLogService.getInstance().log("Variable", `Found ${results.length} items in ${storagePath}::${collection}`, {
+        data: { type: "db_find", storagePath, collection, query, resultsCount: results.length }
+      });
       if (action.resultVariable) {
         context.vars[action.resultVariable] = results;
         context.contextVars[action.resultVariable] = results;
@@ -1525,10 +1608,14 @@
     });
     actionRegistry.register("db_delete", async (action, context) => {
       const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-      const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || "data.json", context.vars, objects);
-      const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || "items", context.vars, objects);
-      const id = PropertyHelper.interpolate(String(action.id || ""), context.vars, objects);
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+      const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || "data.json", combinedContext, objects);
+      const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || "items", combinedContext, objects);
+      const id = PropertyHelper.interpolate(String(action.id || ""), combinedContext, objects);
       const success = await serviceRegistry.call("Data", "deleteItem", [storagePath, collection, id]);
+      DebugLogService.getInstance().log("Variable", `Deleted from ${storagePath}::${collection}: ${success}`, {
+        data: { type: "db_delete", storagePath, collection, id, success }
+      });
       if (action.resultVariable) {
         context.vars[action.resultVariable] = success;
         context.contextVars[action.resultVariable] = success;
@@ -1546,6 +1633,101 @@
         { name: "collection", label: "Collection", type: "string", placeholder: "z.B. users" },
         { name: "id", label: "ID des Objekts", type: "string" },
         { name: "resultVariable", label: "Erfolg (true/false) speichern in", type: "variable", source: "variables" }
+      ]
+    });
+    actionRegistry.register("condition", async (action, context) => {
+      if (!action.condition) {
+        console.warn("[Action: condition] No condition specified");
+        return;
+      }
+      const evalContext = { ...context.contextVars, ...context.vars };
+      let result = false;
+      try {
+        result = ExpressionParser.evaluate(action.condition, evalContext);
+      } catch (e) {
+        console.error(`[Action: condition] Error evaluating condition "${action.condition}":`, e);
+      }
+      console.log(`[Action: condition] "${action.condition}" => ${result}`);
+      DebugLogService.getInstance().log("Condition", `${action.condition} => ${result}`, {
+        data: { type: "condition", condition: action.condition, result }
+      });
+      if (result && action.body && Array.isArray(action.body)) {
+        for (const bodyAction of action.body) {
+          const handler = actionRegistry.getHandler(bodyAction.type);
+          if (handler) {
+            await handler(bodyAction, context);
+          } else {
+            console.warn(`[Action: condition] Unknown action type in body: ${bodyAction.type}`);
+          }
+        }
+      } else if (!result && action.elseBody && Array.isArray(action.elseBody)) {
+        for (const elseAction of action.elseBody) {
+          const handler = actionRegistry.getHandler(elseAction.type);
+          if (handler) {
+            await handler(elseAction, context);
+          } else {
+            console.warn(`[Action: condition] Unknown action type in elseBody: ${elseAction.type}`);
+          }
+        }
+      }
+    }, {
+      type: "condition",
+      label: "Bedingung",
+      description: "F\xFChrt Aktionen basierend auf einer Bedingung aus (If/Else).",
+      parameters: [
+        { name: "condition", label: "Bedingung (JS)", type: "string", placeholder: "z.B. user.score > 10" },
+        { name: "body", label: "Dann (Aktionen)", type: "json" },
+        { name: "elseBody", label: "Sonst (Aktionen)", type: "json" }
+      ]
+    });
+    actionRegistry.register("respond_http", async (action, context) => {
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+      const requestId = PropertyHelper.interpolate(action.requestId || "", combinedContext, objects);
+      const status = parseInt(PropertyHelper.interpolate(String(action.status || 200), combinedContext, objects));
+      let data = action.data;
+      if (typeof data === "string" && data.includes("${")) {
+        data = PropertyHelper.interpolate(data, combinedContext, objects);
+        try {
+          data = JSON.parse(data);
+        } catch (e) {
+        }
+      } else if (typeof data === "object" && data !== null) {
+        data = JSON.parse(JSON.stringify(data));
+        const interpolateDeep = (obj) => {
+          for (const key in obj) {
+            const val = obj[key];
+            if (typeof val === "string" && val.startsWith("${") && val.endsWith("}")) {
+              const expression = val.slice(2, -1).trim();
+              const isSimpleExpression = !val.includes("${", 2);
+              if (isSimpleExpression) {
+                try {
+                  obj[key] = ExpressionParser.evaluate(expression, combinedContext);
+                } catch (e) {
+                  console.warn(`[Action: respond_http] Failed to evaluate: ${expression}`, e);
+                  obj[key] = val;
+                }
+              } else {
+                obj[key] = PropertyHelper.interpolate(val, combinedContext, objects);
+              }
+            } else if (typeof val === "string") {
+              obj[key] = PropertyHelper.interpolate(val, combinedContext, objects);
+            } else if (typeof val === "object" && val !== null) {
+              interpolateDeep(val);
+            }
+          }
+        };
+        interpolateDeep(data);
+      }
+      console.log(`[Action: respond_http] Responding to ${requestId} with status ${status}`);
+      serviceRegistry.call("HttpServer", "respond", [requestId, status, data]);
+    }, {
+      type: "respond_http",
+      label: "HTTP: Antworten",
+      description: "Sendet eine Antwort auf einen simulierten HTTP-Request.",
+      parameters: [
+        { name: "requestId", label: "Request ID", type: "string" },
+        { name: "status", label: "Status Code", type: "number", defaultValue: 200 },
+        { name: "data", label: "Antwort-Daten (JSON)", type: "string" }
       ]
     });
   }
@@ -1764,7 +1946,11 @@
         }
       }
       if (!task) {
-        console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
+        const optionalEvents = ["onStart", "onStop", "onValueChanged", "onLoad", "onUnload", "onFocus", "onBlur"];
+        const isOptionalEvent = optionalEvents.some((evt) => taskName.endsWith(`.${evt}`));
+        if (!isOptionalEvent) {
+          console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
+        }
         return;
       }
       const triggerMode = task.triggerMode || "local-sync";
@@ -1838,6 +2024,7 @@
         return;
       }
       console.log(`[TaskExecutor] FlowChart Elements for "${taskName}":`, elements.map((e) => `${e.type}:${e.properties?.name || e.id}`));
+      console.log(`[TaskExecutor] FlowChart vars.eventData =`, vars.eventData, "contextObj =", contextObj?.name || contextObj?.className);
       const executeNode = async (node) => {
         if (!node || visited.has(node.id)) return;
         visited.add(node.id);
@@ -1854,7 +2041,34 @@
         if (nodeType === "Action" || nodeType === "action") {
           const action = this.resolveAction({ type: "action", name }) || node.data;
           if (action) {
-            await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+            if (action.body && Array.isArray(action.body)) {
+              const itemParams = node.data?.params || {};
+              const resolvedParams = {};
+              for (const [key, value] of Object.entries(itemParams)) {
+                if (typeof value === "string") {
+                  if (value === "$eventData") {
+                    resolvedParams[key] = vars.eventData ?? contextObj;
+                  } else if (value.startsWith("${") && value.endsWith("}")) {
+                    const varName = value.slice(2, -1);
+                    resolvedParams[key] = vars[varName] ?? globalVars[varName];
+                  } else if (value.startsWith("$")) {
+                    const varName = value.slice(1);
+                    resolvedParams[key] = vars[varName] ?? globalVars[varName];
+                  } else {
+                    resolvedParams[key] = value;
+                  }
+                } else {
+                  resolvedParams[key] = value;
+                }
+              }
+              console.log(`[TaskExecutor] FlowChart: Executing action body for "${action.name}" with params:`, resolvedParams);
+              const bodyVars = { ...vars, $params: resolvedParams };
+              for (const bodyItem of action.body) {
+                await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, parentId);
+              }
+            } else {
+              await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+            }
           }
           const outgoing = connections.find(
             (c) => c.startTargetId === node.id && !["true", "false"].includes(c.data?.startAnchorType || c.data?.anchorType || "")
@@ -1909,10 +2123,12 @@
     async executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, parentId) {
       const item = typeof seqItem === "string" ? { type: "action", name: seqItem } : seqItem;
       console.log(`[TaskExecutor] Processing item: type = "${item.type}" name = "${item.name || "N/A"}" condition = "${item.condition?.variable || "none"}"`);
-      const condition = item.itemCondition || (typeof item.condition === "string" ? item.condition : null);
-      if (condition && !this.evaluateCondition(condition, vars, globalVars)) {
-        console.log(`[TaskExecutor] Item condition FALSE, skipping: ${condition} `);
-        return;
+      if (item.type !== "condition") {
+        const condition = item.itemCondition || (typeof item.condition === "string" ? item.condition : null);
+        if (condition && !this.evaluateCondition(condition, vars, globalVars)) {
+          console.log(`[TaskExecutor] Item condition FALSE, skipping: ${condition} `);
+          return;
+        }
       }
       switch (item.type) {
         case "condition":
@@ -1924,7 +2140,34 @@
         case "action":
           const action = this.resolveAction(item);
           if (action) {
-            await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+            if (action.body && Array.isArray(action.body)) {
+              const resolvedParams = {};
+              if (item.params) {
+                for (const [key, value] of Object.entries(item.params)) {
+                  if (typeof value === "string") {
+                    if (value === "$eventData") {
+                      resolvedParams[key] = vars.eventData ?? contextObj;
+                    } else if (value.startsWith("${") && value.endsWith("}")) {
+                      const varName = value.slice(2, -1);
+                      resolvedParams[key] = this.resolveVarPath(varName, vars, globalVars);
+                    } else if (value.startsWith("$")) {
+                      resolvedParams[key] = this.resolveVarPath(value, vars, globalVars);
+                    } else {
+                      resolvedParams[key] = value;
+                    }
+                  } else {
+                    resolvedParams[key] = value;
+                  }
+                }
+              }
+              console.log(`[TaskExecutor] Executing action body for "${action.name}" with params:`, resolvedParams);
+              const bodyVars = { ...vars, $params: resolvedParams };
+              for (const bodyItem of action.body) {
+                await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, parentId);
+              }
+            } else {
+              await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+            }
           } else {
             console.warn(`[TaskExecutor] Action definition not found: ${item.name} `);
           }
@@ -1961,83 +2204,116 @@
     }
     evaluateCondition(condition, vars, globalVars) {
       if (!condition) return false;
+      let leftValue;
+      let rightValue;
+      let operator = "==";
+      let conditionStr = "";
       if (typeof condition === "string") {
+        conditionStr = condition;
         const parts = condition.split(/\s*(==|!=|>|<|>=|<=)\s*/);
         if (parts.length === 3) {
           const left = parts[0].trim();
-          const operator2 = parts[1];
+          operator = parts[1];
           const right = parts[2].trim();
-          const leftValue = vars[left] !== void 0 ? vars[left] : globalVars[left];
-          const rightValue = right.startsWith("'") || right.startsWith('"') ? right.substring(1, right.length - 1) : isNaN(Number(right)) ? vars[right] !== void 0 ? vars[right] : globalVars[right] : Number(right);
-          switch (operator2) {
-            case "==":
-              return String(leftValue) === String(rightValue);
-            case "!=":
-              return String(leftValue) !== String(rightValue);
-            case ">":
-              return Number(leftValue) > Number(rightValue);
-            case "<":
-              return Number(leftValue) < Number(rightValue);
-            case ">=":
-              return Number(leftValue) >= Number(rightValue);
-            case "<=":
-              return Number(leftValue) <= Number(rightValue);
-          }
+          leftValue = this.resolveValue(left, vars, globalVars);
+          rightValue = this.resolveValue(right, vars, globalVars);
+        } else {
+          return !!this.resolveValue(condition, vars, globalVars);
         }
-        return !!vars[condition] || !!globalVars[condition];
+      } else {
+        const varName = condition.variable;
+        conditionStr = `${varName} ${condition.operator || "=="} ${condition.value}`;
+        leftValue = this.resolveValue(varName, vars, globalVars);
+        rightValue = condition.value;
+        operator = condition.operator || "==";
       }
-      const varName = condition.variable;
-      const varValue = vars[varName] !== void 0 ? vars[varName] : globalVars[varName];
-      const compareValue = condition.value;
-      const operator = condition.operator || "==";
+      console.log(`[TaskExecutor] Evaluating Condition: "${conditionStr}"`);
+      console.log(`               Left:  "${leftValue}" (type: ${typeof leftValue})`);
+      console.log(`               Right: "${rightValue}" (type: ${typeof rightValue})`);
+      console.log(`               Op:    "${operator}"`);
       switch (operator) {
         case "==":
-          return String(varValue) === String(compareValue);
+          return String(leftValue) === String(rightValue);
         case "!=":
-          return String(varValue) !== String(compareValue);
+          return String(leftValue) !== String(rightValue);
         case ">":
-          return Number(varValue) > Number(compareValue);
+          return Number(leftValue) > Number(rightValue);
         case "<":
-          return Number(varValue) < Number(compareValue);
+          return Number(leftValue) < Number(rightValue);
         case ">=":
-          return Number(varValue) >= Number(compareValue);
+          return Number(leftValue) >= Number(rightValue);
         case "<=":
-          return Number(varValue) <= Number(compareValue);
+          return Number(leftValue) <= Number(rightValue);
         default:
-          return String(varValue) === String(compareValue);
+          return String(leftValue) === String(rightValue);
       }
     }
     resolveValue(value, vars, globalVars) {
       if (typeof value === "number") return value;
+      if (typeof value === "boolean") return value;
+      if (value === void 0 || value === null) return value;
       if (typeof value === "string") {
+        if (value.startsWith("'") && value.endsWith("'") || value.startsWith('"') && value.endsWith('"')) {
+          return value.substring(1, value.length - 1);
+        }
         const match = value.match(/^\$\{(.+)\}$/);
         if (match) {
-          const varName = match[1];
-          const val = vars[varName] !== void 0 ? vars[varName] : globalVars[varName];
-          return Number(val) || 0;
+          return this.resolveVarPath(match[1], vars, globalVars);
         }
-        return Number(value) || 0;
+        return this.resolveVarPath(value, vars, globalVars);
       }
-      return 0;
+      return value;
+    }
+    resolveVarPath(path, vars, globalVars) {
+      let lookupPath = path;
+      if (path.startsWith("$")) {
+        if (vars[path] !== void 0) return vars[path];
+      }
+      const getDeep = (obj, p) => {
+        const parts = p.split(".");
+        let current = obj;
+        if (parts[0].startsWith("$") && current[parts[0]] === void 0 && current[parts[0].substring(1)] !== void 0) {
+          parts[0] = parts[0].substring(1);
+        }
+        for (const part of parts) {
+          if (current === void 0 || current === null) return void 0;
+          current = current[part];
+        }
+        return current;
+      };
+      let val = getDeep(vars, lookupPath);
+      if (val !== void 0) return val;
+      val = getDeep(globalVars, lookupPath);
+      if (val !== void 0) return val;
+      if (!isNaN(Number(path))) return Number(path);
+      return void 0;
     }
     async handleCondition(item, vars, globalVars, contextObj, depth, parentId) {
       if (!item.condition) return;
-      const varName = item.condition.variable;
-      const varValue = vars[varName] !== void 0 ? vars[varName] : globalVars[varName];
-      const compareValue = item.condition.value;
-      const operator = item.condition.operator || "==";
       const result = this.evaluateCondition(item.condition, vars, globalVars);
-      const conditionExpr = `${varName} ${operator} "${compareValue}"`;
+      let conditionExpr = "";
+      let logData = { result };
+      if (typeof item.condition === "string") {
+        conditionExpr = item.condition;
+        logData.expression = item.condition;
+      } else {
+        const varName = item.condition.variable;
+        const varValue = vars[varName] !== void 0 ? vars[varName] : globalVars[varName];
+        const compareValue = item.condition.value;
+        const operator = item.condition.operator || "==";
+        conditionExpr = `${varName} ${operator} "${compareValue}"`;
+        logData = { variable: varName, value: varValue, expected: compareValue, result };
+      }
       DebugLogService.getInstance().log(
         "Condition",
-        `${conditionExpr} => ${result ? "TRUE" : "FALSE"} (${varName}="${varValue}")`,
+        `${conditionExpr} => ${result ? "TRUE" : "FALSE"}`,
         {
           parentId,
           objectName: contextObj?.name,
-          data: { variable: varName, value: varValue, expected: compareValue, result }
+          data: logData
         }
       );
-      console.log(`[TaskExecutor] Condition: ${varName}="${varValue}" == "${compareValue}" => ${result}`);
+      console.log(`[TaskExecutor] Condition: ${conditionExpr} => ${result}`);
       if (result) {
         if (item.thenAction) {
           const action = this.resolveAction(item.thenAction);
@@ -2523,8 +2799,14 @@
             this.stageVariables[prop] = finalValue;
           }
           const component = this.host.objects?.find((o) => o.name === prop && o.isVariable);
-          if (component && component.value !== finalValue) {
-            component.value = finalValue;
+          if (component) {
+            if (component.items !== void 0 && Array.isArray(value)) {
+              if (JSON.stringify(component.items) !== JSON.stringify(value)) {
+                component.items = value;
+              }
+            } else if (component.value !== value) {
+              component.value = value;
+            }
           }
           this.host.reactiveRuntime.setVariable(prop, finalValue);
           if (this.host.taskExecutor) {
@@ -2667,6 +2949,13 @@
       // Flag for variable-like components
       __publicField(this, "isTransient", false);
       // If true, this component is not persisted in project files
+      // Visibility & Scoping Meta-Flags
+      __publicField(this, "isService", false);
+      // If true, component is merged globally across stages
+      __publicField(this, "isHiddenInRun", false);
+      // If true, component is hidden in run mode
+      __publicField(this, "isBlueprintOnly", false);
+      // If true, component is only visible on blueprint stages in editor
       // Drag & Drop Properties
       __publicField(this, "draggable", false);
       __publicField(this, "dragMode", "move");
@@ -2694,7 +2983,10 @@
       const json = {
         className: this.className || this.constructor.name,
         id: this.id,
-        isVariable: this.isVariable
+        isVariable: this.isVariable,
+        isService: this.isService,
+        isHiddenInRun: this.isHiddenInRun,
+        isBlueprintOnly: this.isBlueprintOnly
       };
       if (this.Tasks && Object.keys(this.Tasks).length > 0) {
         json.Tasks = this.Tasks;
@@ -2752,6 +3044,23 @@
     }
     findChild(name) {
       return this.children.find((c) => c.name === name) || null;
+    }
+    /**
+     * JS-Integration: Erlaubt es Komponenten, in Ausdrücken (z.B. currentPIN + '2')
+     * direkt ihren Wert zu verwenden.
+     */
+    valueOf() {
+      if (this.isVariable) {
+        if (this.value !== void 0) return this.value;
+        if (this.items !== void 0) return this.items;
+      }
+      return this;
+    }
+    toString() {
+      const val = this.valueOf();
+      if (val === this) return `[${this.className || this.constructor.name}: ${this.name}]`;
+      if (Array.isArray(val)) return val.join(", ");
+      return String(val ?? "");
     }
   };
 
@@ -2933,6 +3242,7 @@
       return this.name;
     }
     set caption(v) {
+      console.log(`[TPanel] set caption("${v}") - Renaming ${this.name} to ${v}`);
       this.name = v;
     }
     get showGrid() {
@@ -3471,6 +3781,9 @@
       this.style.borderColor = "#1565c0";
       this.style.borderWidth = 2;
       this.style.color = "#ffffff";
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     // Getter for bounds - derived from gridConfig
     get boundsWidth() {
@@ -3724,6 +4037,9 @@
       this.style.color = "#ffffff";
       this.handleKeyDown = this.onKeyDown.bind(this);
       this.handleKeyUp = this.onKeyUp.bind(this);
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       return [
@@ -3871,6 +4187,9 @@
       this.style.backgroundColor = "#4caf50";
       this.style.borderColor = "#2e7d32";
       this.style.borderWidth = 2;
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       return [
@@ -3989,6 +4308,9 @@
       this.style.backgroundColor = "#ff9800";
       this.style.borderColor = "#e65100";
       this.style.borderWidth = 2;
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       const props = super.getInspectorProperties();
@@ -4761,6 +5083,9 @@
       this.style.borderColor = "#512da8";
       this.style.borderWidth = 2;
       this.style.color = "#ffffff";
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     // Getters for runtime state
     get connected() {
@@ -5952,6 +6277,9 @@
       this.style.backgroundColor = "transparent";
       this.style.borderWidth = 0;
       this.style.visible = true;
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     /**
      * Show a toast notification
@@ -6285,6 +6613,9 @@
       this.sections = [
         { id: "status", text: "Ready", icon: "\u25CF", width: "auto", align: "left" }
       ];
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     /**
      * Set or update a section
@@ -6503,6 +6834,9 @@
       this.style.backgroundColor = "#4caf50";
       this.style.color = "#ffffff";
       this.style.visible = true;
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       return [
@@ -6536,6 +6870,9 @@
       this.style.backgroundColor = "#5c6bc0";
       this.style.borderColor = "#3949ab";
       this.style.borderWidth = 2;
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       const props = super.getInspectorProperties();
@@ -6650,6 +6987,9 @@
       this.style.backgroundColor = "#e91e63";
       this.style.borderColor = "#c2185b";
       this.style.borderWidth = 2;
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       const props = super.getInspectorProperties();
@@ -7363,6 +7703,9 @@
       this.style.backgroundColor = "#9c27b0";
       this.style.color = "#ffffff";
       this.visible = true;
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     // ─────────────────────────────────────────────
     // Properties (Nur-Lesen im Inspector)
@@ -7731,15 +8074,18 @@
   // src/components/TVariable.ts
   var TVariable = class extends TWindow {
     constructor(name, x, y) {
-      super(name, x, y, 3, 1);
+      super(name, x, y, 6, 2);
       __publicField(this, "className", "TVariable");
       __publicField(this, "value");
       __publicField(this, "defaultValue");
       __publicField(this, "variableType", "integer");
       this.isVariable = true;
-      this.style.backgroundColor = "#673ab7";
-      this.style.borderColor = "#512da8";
-      this.style.borderWidth = 2;
+      this.style.backgroundColor = "#d1c4e9";
+      this.style.borderColor = "#9575cd";
+      this.style.borderWidth = 1;
+      this.style.color = "#000000";
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       const props = super.getInspectorProperties();
@@ -8243,6 +8589,655 @@
     }
   };
 
+  // src/components/TEmojiPicker.ts
+  var TEmojiPicker = class extends TPanel {
+    constructor(name = "EmojiPicker", x = 0, y = 0) {
+      super(name, x, y, 10, 5);
+      __publicField(this, "emojis", ["\u{1F600}", "\u{1F60E}", "\u{1F680}", "\u2B50", "\u{1F308}", "\u{1F355}", "\u{1F3AE}", "\u{1F984}", "\u{1F388}", "\u{1F3A8}"]);
+      __publicField(this, "columns", 5);
+      __publicField(this, "itemSize", 2);
+      // In Grid-Zellen
+      __publicField(this, "selectedEmoji", "");
+      this.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+      this.style.borderColor = "rgba(255, 255, 255, 0.2)";
+      this.style.borderWidth = 1;
+      this.style.borderRadius = 12;
+    }
+    /**
+     * Verfügbare Events für den Picker
+     */
+    getEvents() {
+      return ["onSelect", "onClick", "onFocus", "onBlur"];
+    }
+    /**
+     * Inspector-Eigenschaften
+     */
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      return [
+        ...props,
+        { name: "columns", label: "Spalten", type: "number", group: "PICKER", defaultValue: 5 },
+        { name: "itemSize", label: "Emoji-Gr\xF6\xDFe (Cells)", type: "number", group: "PICKER", defaultValue: 2 },
+        { name: "emojis", label: "Emoji-Liste (JSON)", type: "json", group: "PICKER" }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        emojis: this.emojis,
+        columns: this.columns,
+        itemSize: this.itemSize,
+        selectedEmoji: this.selectedEmoji
+      };
+    }
+  };
+
+  // src/components/TStringVariable.ts
+  var TStringVariable = class extends TVariable {
+    constructor(name, x, y) {
+      super(name, x, y);
+      __publicField(this, "className", "TStringVariable");
+      this.variableType = "string";
+      this.defaultValue = "";
+      this.value = "";
+      this.caption = `\u{1F4DD} ${name}`;
+    }
+  };
+
+  // src/components/TIntegerVariable.ts
+  var TIntegerVariable = class extends TVariable {
+    constructor(name, x, y) {
+      super(name, x, y);
+      __publicField(this, "className", "TIntegerVariable");
+      this.variableType = "integer";
+      this.defaultValue = 0;
+      this.value = 0;
+      this.caption = `\u{1F522} ${name}`;
+    }
+  };
+
+  // src/components/TBooleanVariable.ts
+  var TBooleanVariable = class extends TVariable {
+    constructor(name, x, y) {
+      super(name, x, y);
+      __publicField(this, "className", "TBooleanVariable");
+      this.variableType = "boolean";
+      this.defaultValue = false;
+      this.value = false;
+      this.caption = `\u2696\uFE0F ${name}`;
+    }
+  };
+
+  // src/components/TRealVariable.ts
+  var TRealVariable = class extends TVariable {
+    constructor(name, x, y) {
+      super(name, x, y);
+      __publicField(this, "className", "TRealVariable");
+      this.variableType = "real";
+      this.defaultValue = 0;
+      this.value = 0;
+      this.caption = `\u{1F4CF} ${name}`;
+    }
+  };
+
+  // src/components/TObjectVariable.ts
+  var TObjectVariable = class extends TVariable {
+    constructor(name, x, y) {
+      super(name, x, y);
+      __publicField(this, "className", "TObjectVariable");
+      this.variableType = "object";
+      this.defaultValue = {};
+      this.value = {};
+      this.caption = `\u{1F4E6} ${name}`;
+    }
+  };
+
+  // src/components/TNavBar.ts
+  var TNavBar = class extends TPanel {
+    constructor(name = "Sidebar", x = 0, y = 0) {
+      super(name, x, y, 4, 30);
+      __publicField(this, "navItems", [
+        { id: "dashboard", label: "Dashboard", icon: "\u{1F4CA}", targetStage: "stage_main" },
+        { id: "users", label: "Benutzer", icon: "\u{1F465}", targetStage: "stage_user_admin" },
+        { id: "settings", label: "Einstellungen", icon: "\u2699\uFE0F", targetStage: "stage_settings" }
+      ]);
+      __publicField(this, "activeId", "dashboard");
+      __publicField(this, "collapsed", false);
+      this.align = "LEFT";
+      this.style.backgroundColor = "#2c3e50";
+      this.style.borderColor = "#34495e";
+      this.style.borderWidth = 0;
+      this.style.borderRadius = 0;
+      this.style.color = "#ecf0f1";
+    }
+    getEvents() {
+      return ["onSelect", "onCollapse", "onExpand", ...super.getEvents()];
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      const filtered = props.filter((p) => !p.name.startsWith("grid"));
+      return [
+        ...filtered,
+        { name: "navItems", label: "Men\xFC-Items (JSON)", type: "json", group: "NAVIGATION" },
+        { name: "activeId", label: "Aktive ID", type: "string", group: "NAVIGATION" },
+        { name: "collapsed", label: "Eingeklappt", type: "boolean", group: "NAVIGATION", defaultValue: false }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        navItems: this.navItems,
+        activeId: this.activeId,
+        collapsed: this.collapsed
+      };
+    }
+  };
+
+  // src/components/TCard.ts
+  var TCard = class extends TPanel {
+    constructor(name = "Card", x = 0, y = 0) {
+      super(name, x, y, 8, 10);
+      __publicField(this, "title", "Card Titel");
+      __publicField(this, "subtitle", "Subtitel");
+      __publicField(this, "showHeader", true);
+      __publicField(this, "showFooter", false);
+      this.style.backgroundColor = "#ffffff";
+      this.style.borderColor = "rgba(0,0,0,0.05)";
+      this.style.borderWidth = 1;
+      this.style.borderRadius = 12;
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      const filtered = props.filter((p) => !p.name.startsWith("grid"));
+      return [
+        ...filtered,
+        { name: "title", label: "Titel", type: "string", group: "CARD" },
+        { name: "subtitle", label: "Subtitel", type: "string", group: "CARD" },
+        { name: "showHeader", label: "Header anzeigen", type: "boolean", group: "CARD", defaultValue: true },
+        { name: "showFooter", label: "Footer anzeigen", type: "boolean", group: "CARD", defaultValue: false }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        title: this.title,
+        subtitle: this.subtitle,
+        showHeader: this.showHeader,
+        showFooter: this.showFooter
+      };
+    }
+  };
+
+  // src/components/TList.ts
+  var TList = class extends TWindow {
+    // In Grid-Zellen
+    constructor(name = "List", x = 0, y = 0) {
+      super(name, x, y, 10, 12);
+      __publicField(this, "items", []);
+      __publicField(this, "displayField", "");
+      // Falls Objekte in der Liste sind
+      __publicField(this, "selectedIndex", -1);
+      __publicField(this, "itemHeight", 1.5);
+      this.style.backgroundColor = "#ffffff";
+      this.style.borderColor = "#bdc3c7";
+      this.style.borderWidth = 1;
+      this.style.borderRadius = 4;
+      this.style.fontSize = 14;
+    }
+    getEvents() {
+      return ["onSelect", "onDoubleClick", ...super.getEvents()];
+    }
+    getInspectorProperties() {
+      return [
+        ...super.getInspectorProperties(),
+        { name: "items", label: "Items (JSON)", type: "json", group: "LISTE" },
+        { name: "displayField", label: "Anzeige-Feld", type: "string", group: "LISTE", hint: "Property-Name f\xFCr Objekt-Anzeige" },
+        { name: "itemHeight", label: "Zeilenh\xF6he (Cells)", type: "number", group: "LISTE", defaultValue: 1.5 },
+        { name: "selectedIndex", label: "Gew\xE4hlter Index", type: "number", group: "LISTE", readonly: true }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        items: this.items,
+        displayField: this.displayField,
+        selectedIndex: this.selectedIndex,
+        itemHeight: this.itemHeight
+      };
+    }
+  };
+
+  // src/components/TDataStore.ts
+  var TDataStore = class extends TPanel {
+    constructor(name = "DataStore", x = 0, y = 0) {
+      super(name, x, y, 6, 4);
+      __publicField(this, "storagePath", "data.json");
+      __publicField(this, "defaultCollection", "items");
+      // Explicitly decouple caption from name prevents runtime renaming issues
+      __publicField(this, "_caption", "\u{1F5C4}\uFE0F Database");
+      // Runtime-Callback für Events (z.B. onDataChanged)
+      __publicField(this, "eventCallback", null);
+      console.log(`[TDataStore] Constructor: name=${this.name} (arg=${name})`);
+      this.style.backgroundColor = "#2c3e50";
+      this.style.borderColor = "#bdc3c7";
+      this.style.borderWidth = 2;
+      this.style.borderRadius = 8;
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
+    }
+    get caption() {
+      return this._caption;
+    }
+    set caption(v) {
+      console.log(`[TDataStore] set caption("${v}") - Current name: ${this.name}`);
+      this._caption = v;
+      if (this.name !== "UserData" && this.name !== "DataStore") {
+        console.warn(`[TDataStore] Warning: name has changed to ${this.name}!`);
+      }
+    }
+    /**
+     * Verfügbare Events
+     */
+    getEvents() {
+      return ["onDataChanged", "onSave", "onDelete", "onError"];
+    }
+    /**
+     * Runtime-Initialisierung
+     */
+    initRuntime(callbacks) {
+      this.eventCallback = (ev, data) => callbacks.handleEvent(this.id, ev, data);
+    }
+    /**
+     * Hilfsmethode zum Feuern von Events
+     */
+    triggerEvent(eventName, data) {
+      if (this.eventCallback) {
+        this.eventCallback(eventName, data);
+      }
+    }
+    /**
+     * Inspector-Eigenschaften
+     */
+    getInspectorProperties() {
+      const baseProps = super.getInspectorProperties();
+      const filtered = baseProps.filter((p) => !["showGrid", "gridColor", "caption"].includes(p.name));
+      return [
+        ...filtered,
+        { name: "caption", label: "Titel", type: "string", group: "IDENTIT\xC4T" },
+        { name: "storagePath", label: "Datei-Pfad", type: "string", group: "DATABASE", defaultValue: "data.json" },
+        { name: "defaultCollection", label: "Standard-Collection", type: "string", group: "DATABASE", defaultValue: "items" }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        storagePath: this.storagePath,
+        defaultCollection: this.defaultCollection
+      };
+    }
+  };
+
+  // src/components/TBadge.ts
+  var TBadge = class extends TWindow {
+    constructor(name = "Badge", x = 0, y = 0) {
+      super(name, x, y, 3, 1);
+      __publicField(this, "badgeType", "info");
+      __publicField(this, "pill", false);
+      this.style.borderRadius = 4;
+      this.style.borderWidth = 0;
+      this.style.fontSize = 12;
+      this.style.fontWeight = "bold";
+      this.style.textAlign = "center";
+      this.style.color = "#ffffff";
+      this.updateStyle();
+    }
+    /**
+     * Aktualisiert die Farben basierend auf dem Typ
+     */
+    updateStyle() {
+      switch (this.badgeType) {
+        case "success":
+          this.style.backgroundColor = "#2ecc71";
+          break;
+        case "warning":
+          this.style.backgroundColor = "#f1c40f";
+          break;
+        case "error":
+          this.style.backgroundColor = "#e74c3c";
+          break;
+        case "primary":
+          this.style.backgroundColor = "#3498db";
+          break;
+        case "secondary":
+          this.style.backgroundColor = "#95a5a6";
+          break;
+        default:
+          this.style.backgroundColor = "#34495e";
+          break;
+      }
+      if (this.pill) {
+        this.style.borderRadius = 15;
+      } else {
+        this.style.borderRadius = 4;
+      }
+    }
+    getInspectorProperties() {
+      return [
+        ...super.getInspectorProperties(),
+        {
+          name: "badgeType",
+          label: "Typ",
+          type: "select",
+          group: "BADGE",
+          options: ["info", "success", "warning", "error", "primary", "secondary"],
+          defaultValue: "info"
+        },
+        { name: "pill", label: "Pill-Style", type: "boolean", group: "BADGE", defaultValue: false }
+      ];
+    }
+    toJSON() {
+      this.updateStyle();
+      return {
+        ...super.toJSON(),
+        badgeType: this.badgeType,
+        pill: this.pill
+      };
+    }
+  };
+
+  // src/components/TAvatar.ts
+  var TAvatar = class extends TWindow {
+    constructor(name = "Avatar", x = 0, y = 0) {
+      super(name, x, y, 2, 2);
+      __publicField(this, "src", "");
+      __publicField(this, "status", "none");
+      __publicField(this, "shape", "circle");
+      this.style.backgroundColor = "#ecf0f1";
+      this.style.borderRadius = 100;
+      this.style.borderColor = "#bdc3c7";
+      this.style.borderWidth = 1;
+      this.updateStyle();
+    }
+    updateStyle() {
+      this.style.borderRadius = this.shape === "circle" ? 100 : 8;
+    }
+    getInspectorProperties() {
+      return [
+        ...super.getInspectorProperties(),
+        { name: "src", label: "Bild-URL / Icon", type: "image_picker", group: "AVATAR" },
+        {
+          name: "status",
+          label: "Status",
+          type: "select",
+          group: "AVATAR",
+          options: ["none", "online", "offline", "busy"],
+          defaultValue: "none"
+        },
+        {
+          name: "shape",
+          label: "Form",
+          type: "select",
+          group: "AVATAR",
+          options: ["circle", "square"],
+          defaultValue: "circle"
+        }
+      ];
+    }
+    toJSON() {
+      this.updateStyle();
+      return {
+        ...super.toJSON(),
+        src: this.src,
+        status: this.status,
+        shape: this.shape
+      };
+    }
+  };
+
+  // src/components/TTabBar.ts
+  var TTabBar = class extends TPanel {
+    constructor(name = "TabBar", x = 0, y = 0) {
+      super(name, x, y, 20, 2);
+      __publicField(this, "tabs", [
+        { label: "\xDCbersicht", icon: "\u{1F3E0}" },
+        { label: "Details", icon: "\u{1F4DD}" },
+        { label: "Historie", icon: "\u{1F4DC}" }
+      ]);
+      __publicField(this, "activeTabIndex", 0);
+      this.style.backgroundColor = "#ffffff";
+      this.style.borderColor = "#bdc3c7";
+      this.style.borderWidth = 0;
+      this.style.borderRadius = 0;
+      this.style.fontSize = 14;
+    }
+    getEvents() {
+      return ["onChange", ...super.getEvents()];
+    }
+    getInspectorProperties() {
+      const props = super.getInspectorProperties();
+      const filtered = props.filter((p) => !p.name.startsWith("grid"));
+      return [
+        ...filtered,
+        { name: "tabs", label: "Tabs (JSON)", type: "json", group: "TABS" },
+        { name: "activeTabIndex", label: "Aktiver Tab (Index)", type: "number", group: "TABS", defaultValue: 0 }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        tabs: this.tabs,
+        activeTabIndex: this.activeTabIndex
+      };
+    }
+  };
+
+  // src/components/TAuthService.ts
+  var TAuthService = class extends TComponent {
+    // in Sekunden
+    constructor(name = "AuthService") {
+      super(name);
+      __publicField(this, "secret", "gcs-super-secret");
+      __publicField(this, "tokenExpiration", 3600);
+      this.isVariable = true;
+    }
+    /**
+     * Verfügbare Events für den Service
+     */
+    getEvents() {
+      return ["onLoginSuccess", "onLoginFailure", "onTokenVerified", "onTokenInvalid"];
+    }
+    /**
+     * Inspector-Eigenschaften
+     */
+    getInspectorProperties() {
+      return [
+        ...this.getBaseProperties(),
+        { name: "secret", label: "JWT Secret", type: "string", group: "AUTH-CONFIG" },
+        { name: "tokenExpiration", label: "Token Ablauf (Sek.)", type: "number", group: "AUTH-CONFIG", defaultValue: 3600 }
+      ];
+    }
+    /**
+     * Erstellt einen simulierten JWT Token
+     */
+    createToken(payload) {
+      const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+      const data = btoa(JSON.stringify({
+        ...payload,
+        exp: Math.floor(Date.now() / 1e3) + this.tokenExpiration
+      }));
+      const signature = btoa(this.secret).substring(0, 10);
+      return `${header}.${data}.${signature}`;
+    }
+    /**
+     * Validiert einen simulierten JWT Token
+     */
+    verifyToken(token) {
+      try {
+        const parts = token.split(".");
+        if (parts.length !== 3) return null;
+        const payload = JSON.parse(atob(parts[1]));
+        if (payload.exp < Date.now() / 1e3) {
+          console.warn("[TAuthService] Token abgelaufen");
+          return null;
+        }
+        return payload;
+      } catch (e) {
+        console.error("[TAuthService] Token Validierung fehlgeschlagen", e);
+        return null;
+      }
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        secret: this.secret,
+        tokenExpiration: this.tokenExpiration
+      };
+    }
+  };
+
+  // src/components/TUserManager.ts
+  var TUserManager = class extends TComponent {
+    constructor(name = "UserManager") {
+      super(name);
+      __publicField(this, "userCollection", "users");
+      __publicField(this, "hashPasswords", true);
+      this.isVariable = true;
+    }
+    /**
+     * Verfügbare Events
+     */
+    getEvents() {
+      return ["onUserCreated", "onUserUpdated", "onUserDeleted", "onAuthFailed"];
+    }
+    /**
+     * Inspector-Eigenschaften
+     */
+    getInspectorProperties() {
+      return [
+        ...this.getBaseProperties(),
+        { name: "userCollection", label: "DB Collection", type: "string", group: "USER-CONFIG", defaultValue: "users" },
+        { name: "hashPasswords", label: "Passw\xF6rter hashen", type: "boolean", group: "USER-CONFIG", defaultValue: true }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        userCollection: this.userCollection,
+        hashPasswords: this.hashPasswords
+      };
+    }
+  };
+
+  // src/components/TAPIServer.ts
+  var TAPIServer = class extends TPanel {
+    constructor(name = "APIServer", x = 0, y = 0) {
+      super(name, x, y, 6, 4);
+      __publicField(this, "port", 3e3);
+      __publicField(this, "baseUrl", "/api");
+      __publicField(this, "cors", true);
+      __publicField(this, "active", true);
+      // Tester-Properties (nur für Editor/Simulation)
+      __publicField(this, "testMethod", "GET");
+      __publicField(this, "testPath", "/");
+      __publicField(this, "testBody", "{}");
+      __publicField(this, "testResponse", "");
+      // Runtime-Callback
+      __publicField(this, "eventCallback", null);
+      this.style.backgroundColor = "#1a1a2e";
+      this.style.borderColor = "#4fc3f7";
+      this.style.borderWidth = 2;
+      this.style.borderRadius = 8;
+      this.caption = "\u{1F5A5}\uFE0F API Server";
+      this.isService = true;
+      this.isHiddenInRun = true;
+      this.isBlueprintOnly = true;
+    }
+    /**
+     * Verfügbare Events für den Server
+     */
+    getEvents() {
+      return ["onRequest", "onStart", "onStop", "onError"];
+    }
+    /**
+     * Simuliert einen API-Request (für den Editor-Tester)
+     */
+    simulateRequest() {
+      const requestId = "sim-" + Math.floor(Math.random() * 1e6);
+      let body = {};
+      try {
+        if (this.testBody) body = JSON.parse(this.testBody);
+      } catch (e) {
+        console.error("[TAPIServer] Invalid JSON in testBody");
+      }
+      console.log(`[TAPIServer] Simuliere Request: ${this.testMethod} ${this.testPath}`, body);
+      this.testResponse = "Warte auf Antwort...";
+      this.triggerEvent("onRequest", {
+        method: this.testMethod,
+        path: this.testPath,
+        body,
+        requestId,
+        isSimulation: true
+      });
+    }
+    /**
+     * Runtime-Initialisierung
+     */
+    initRuntime(callbacks) {
+      this.eventCallback = (ev, data) => callbacks.handleEvent(this.id, ev, data);
+    }
+    /**
+     * Hilfsmethode zum Feuern von Events
+     */
+    triggerEvent(eventName, data) {
+      if (this.eventCallback) {
+        this.eventCallback(eventName, data);
+      } else {
+        console.warn(`[TAPIServer] Event ${eventName} gefeuert, aber kein Runtime-Callback registriert.`);
+      }
+    }
+    /**
+     * Inspector-Eigenschaften für den Server
+     */
+    getInspectorProperties() {
+      const baseProps = super.getInspectorProperties();
+      const filtered = baseProps.filter((p) => !["showGrid", "gridColor", "caption"].includes(p.name));
+      return [
+        ...filtered,
+        { name: "caption", label: "Titel", type: "string", group: "IDENTIT\xC4T" },
+        { name: "port", label: "Netzwerk-Port", type: "number", group: "SERVER", defaultValue: 3e3 },
+        { name: "baseUrl", label: "Basis-URL", type: "string", group: "SERVER", defaultValue: "/api" },
+        { name: "cors", label: "CORS erlauben", type: "boolean", group: "SERVER", defaultValue: true },
+        { name: "active", label: "Server Aktiv", type: "boolean", group: "SERVER", defaultValue: true },
+        // TESTER GROUP
+        { name: "testMethod", label: "Methode", type: "select", group: "API TESTER", options: ["GET", "POST", "PUT", "DELETE", "PATCH"], defaultValue: "GET" },
+        { name: "testPath", label: "Relative Path", type: "string", group: "API TESTER", defaultValue: "/" },
+        { name: "testBody", label: "Request Body (JSON)", type: "json", group: "API TESTER", defaultValue: "{}" },
+        {
+          name: "testApiBtn",
+          label: "\u{1F680} Request Senden",
+          type: "button",
+          group: "API TESTER",
+          action: "testApi",
+          style: { backgroundColor: "#4caf50", color: "#fff", marginTop: 12, fontWeight: "bold" }
+        },
+        { name: "testResponse", label: "Response", type: "string", group: "API TESTER", readonly: true }
+      ];
+    }
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        port: this.port,
+        baseUrl: this.baseUrl,
+        cors: this.cors,
+        active: this.active,
+        testMethod: this.testMethod,
+        testPath: this.testPath,
+        testBody: this.testBody
+      };
+    }
+  };
+
   // src/utils/Serialization.ts
   function hydrateObjects(objectsData) {
     const objects = [];
@@ -8386,6 +9381,62 @@
         case "TKeyStore":
           newObj = new TKeyStore(objData.name, objData.x, objData.y);
           break;
+        case "TEmojiPicker":
+          newObj = new TEmojiPicker(objData.name, objData.x, objData.y);
+          break;
+        case "TStringVariable":
+          newObj = new TStringVariable(objData.name, objData.x, objData.y);
+          break;
+        case "TIntegerVariable":
+          newObj = new TIntegerVariable(objData.name, objData.x, objData.y);
+          break;
+        case "TBooleanVariable":
+          newObj = new TBooleanVariable(objData.name, objData.x, objData.y);
+          break;
+        case "TRealVariable":
+          newObj = new TRealVariable(objData.name, objData.x, objData.y);
+          break;
+        case "TObjectVariable":
+          newObj = new TObjectVariable(objData.name, objData.x, objData.y);
+          break;
+        case "TNavBar":
+          newObj = new TNavBar(objData.name, objData.x, objData.y);
+          break;
+        case "TCard":
+          newObj = new TCard(objData.name, objData.x, objData.y);
+          break;
+        case "TList":
+          newObj = new TList(objData.name, objData.x, objData.y);
+          break;
+        case "TDataStore":
+          newObj = new TDataStore(objData.name, objData.x, objData.y);
+          if (objData.storagePath) newObj.storagePath = objData.storagePath;
+          if (objData.defaultCollection) newObj.defaultCollection = objData.defaultCollection;
+          break;
+        case "TBadge":
+          newObj = new TBadge(objData.name, objData.x, objData.y);
+          break;
+        case "TAvatar":
+          newObj = new TAvatar(objData.name, objData.x, objData.y);
+          break;
+        case "TTabBar":
+          newObj = new TTabBar(objData.name, objData.x, objData.y);
+          break;
+        case "TAuthService":
+          newObj = new TAuthService(objData.name);
+          break;
+        case "TUserManager":
+          newObj = new TUserManager(objData.name);
+          break;
+        case "TAPIServer":
+          newObj = new TAPIServer(objData.name, objData.x, objData.y);
+          break;
+        case "TTextControl":
+          newObj = new TTextControl(objData.name, objData.x, objData.y, objData.width, objData.height);
+          break;
+        case "TTable":
+          newObj = new TTable(objData.name, objData.x, objData.y, objData.width, objData.height);
+          break;
         default:
           console.warn("Unknown class during load:", objData.className);
           break;
@@ -8404,10 +9455,15 @@
         if (objData.draggable !== void 0) newObj.draggable = objData.draggable;
         if (objData.dragMode !== void 0) newObj.dragMode = objData.dragMode;
         if (objData.droppable !== void 0) newObj.droppable = objData.droppable;
-        if (objData.style) {
+        if (objData.style && newObj.style) {
           Object.assign(newObj.style, objData.style);
         }
-        if (objData.caption !== void 0) newObj.caption = objData.caption;
+        if (objData.caption !== void 0) {
+          if (newObj.constructor.name === "TDataStore") {
+            console.log(`[Serialization] Assigning caption "${objData.caption}" to TDataStore "${newObj.name}"`);
+          }
+          newObj.caption = objData.caption;
+        }
         if (objData.text !== void 0) newObj.text = objData.text;
         if (objData.fontSize !== void 0) newObj.fontSize = objData.fontSize;
         if (objData.alignment !== void 0) newObj.alignment = objData.alignment;
@@ -8576,7 +9632,8 @@
       let mergedActions = [];
       let mergedFlowCharts = { ...this.project.flowCharts || {} };
       const objectIdSet = /* @__PURE__ */ new Set();
-      stageChain.forEach((stage) => {
+      const blueprintStages = this.project.stages?.filter((s) => s.type === "blueprint") || [];
+      const processStage = (stage) => {
         const stageObjects = hydrateObjects(stage.objects || []);
         stageObjects.forEach((obj) => {
           mergedObjects = mergedObjects.filter((o) => o.id !== obj.id);
@@ -8606,6 +9663,10 @@
             objectIdSet.add(vObj.id);
           });
         }
+      };
+      blueprintStages.forEach(processStage);
+      stageChain.forEach((s) => {
+        if (s.type !== "blueprint") processStage(s);
       });
       const activeStage = stageChain[stageChain.length - 1];
       if (activeStage && activeStage.type !== "splash" && activeStage.type !== "main") {
@@ -8800,6 +9861,9 @@
         this.taskExecutor.setTasks(merged.tasks);
         this.taskExecutor.setActions(merged.actions);
       }
+      if (this.actionExecutor) {
+        this.actionExecutor.setObjects(this.objects);
+      }
       if (this.options.makeReactive) {
         this.reactiveRuntime.clear();
         this.clearAllTimers();
@@ -8892,7 +9956,8 @@
       }
       if (this.taskExecutor) {
         const taskName = `${obj.name}.${eventName}`;
-        this.taskExecutor.execute(taskName, { ...data, sender: obj }, this.contextVars, obj, 0, eventLogId);
+        const eventVars = typeof data === "object" && data !== null ? { ...data, eventData: data, sender: obj } : { eventData: data, sender: obj };
+        this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
       }
     }
     updateRemoteState(objectIdOrName, state) {
@@ -9126,7 +10191,11 @@
         if (obj.isVariable && obj.name) {
           const runtimeValue = this.variableManager.contextVars[obj.name];
           if (runtimeValue !== void 0) {
-            obj.value = runtimeValue;
+            if (obj.items !== void 0 && Array.isArray(runtimeValue)) {
+              obj.items = runtimeValue;
+            } else {
+              obj.value = runtimeValue;
+            }
           }
         }
       });

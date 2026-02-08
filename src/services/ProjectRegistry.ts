@@ -228,8 +228,11 @@ export class ProjectRegistry {
 
         const globalServiceClasses = [
             'TStageController', 'TGameLoop', 'TGameState', 'TGameServer',
-            'TInputController', 'THandshake', 'THeartbeat', 'TToast', 'TStatusBar'
+            'TInputController', 'THandshake', 'THeartbeat', 'TToast', 'TStatusBar',
+            'TAPIServer', 'TDataStore'
         ];
+
+        const isService = (obj: any) => (obj as any).isService === true || globalServiceClasses.includes(obj.className);
 
         const allObjects: TWindow[] = [];
         const objectIds = new Set<string>();
@@ -266,24 +269,22 @@ export class ProjectRegistry {
                 });
             }
 
-            // Also include Global Service objects from other stages (ONLY if blueprint)
-            if (isBlueprint) {
-                this.project.stages.forEach((stage: any) => {
-                    if (stage.id === this.activeStageId) return;
+            // 2. Also include Global objects and Service objects from other stages
+            this.project.stages.forEach((stage: any) => {
+                if (stage.id === this.activeStageId) return;
 
-                    const stageGlobals = [
-                        ...(stage.objects || []).filter((obj: any) => (obj as any).scope === 'global' || globalServiceClasses.includes(obj.className)),
-                        ...(stage.variables || []).filter((v: any) => (v as any).scope === 'global') as unknown as TWindow[]
-                    ];
+                const stageGlobals = [
+                    ...(stage.objects || []).filter((obj: any) => (obj as any).scope === 'global' || isService(obj)),
+                    ...(stage.variables || []).filter((v: any) => (v as any).scope === 'global') as unknown as TWindow[]
+                ];
 
-                    stageGlobals.forEach((obj: any) => {
-                        if (!objectIds.has(obj.id)) {
-                            allObjects.push(obj);
-                            objectIds.add(obj.id);
-                        }
-                    });
+                stageGlobals.forEach((obj: any) => {
+                    if (!objectIds.has(obj.id)) {
+                        allObjects.push(obj);
+                        objectIds.add(obj.id);
+                    }
                 });
-            }
+            });
 
             if (scopeFilter === 'stage-only') {
                 const activeStage = this.project.stages.find((s: any) => s.id === this.activeStageId);
@@ -411,7 +412,7 @@ export class ProjectRegistry {
 
         this.getTasks('all', false).forEach(task => {
             const scanSeq = (seq: any[]) => {
-                if (!seq) return;
+                if (!seq || !Array.isArray(seq)) return;
                 seq.forEach(item => {
                     if (item.type === 'task' && item.name) referenced.add(item.name);
                     if (item.thenTask) referenced.add(item.thenTask);
@@ -454,7 +455,7 @@ export class ProjectRegistry {
         this.getTasks('all', false).forEach(task => {
             if (task.name === name) return;
             const scanSeq = (seq: any[]) => {
-                if (!seq) return;
+                if (!seq || !Array.isArray(seq)) return;
                 seq.forEach(item => {
                     if (item.type === 'task' && item.name === name) refs.push(`➡️ Wird aufgerufen von Task: "${task.name}"`);
                     if (item.thenTask === name) refs.push(`➡️ Aufruf (Folge-Task) in: "${task.name}"`);
@@ -507,7 +508,7 @@ export class ProjectRegistry {
 
         this.getTasks('all', false).forEach(task => {
             const scanSeq = (seq: any[]) => {
-                if (!seq) return;
+                if (!seq || !Array.isArray(seq)) return;
                 seq.forEach(item => {
                     if (item.type === 'action' && item.name === name) refs.push(`🎬 Wird ausgeführt von Task: "${task.name}"`);
                     if (item.thenAction === name) refs.push(`🎬 Aufruf (Folge-Aktion) in: "${task.name}"`);
@@ -529,7 +530,7 @@ export class ProjectRegistry {
         const varRegex = new RegExp(`\\$\\{${name}([.}]|$)`);
         this.getTasks('all', false).forEach(task => {
             const scanSeq = (seq: any[]) => {
-                if (!seq) return;
+                if (!seq || !Array.isArray(seq)) return;
                 seq.forEach(item => {
                     if (varRegex.test(JSON.stringify(item))) refs.push(`📦 Referenziert in Task: "${task.name}"`);
                     if (item.type === 'action') {

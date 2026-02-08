@@ -14,6 +14,11 @@ export class TGameState extends TWindow {
         this.style.backgroundColor = '#4caf50';
         this.style.color = '#ffffff';
         this.style.visible = true; // Visible by default as requested
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     public getInspectorProperties(): TPropertyDef[] {

@@ -3,6 +3,7 @@ import { PropertyHelper } from '../PropertyHelper';
 import { ExpressionParser } from '../ExpressionParser';
 import { AnimationManager } from '../AnimationManager';
 import { serviceRegistry } from '../../services/ServiceRegistry';
+import { DebugLogService } from '../../services/DebugLogService';
 
 /**
  * Hilfsfunktion zum Auflösen von Targets (aus ActionExecutor kopiert/angepasst)
@@ -31,10 +32,11 @@ export function registerStandardActions(objects: any[]) {
     // 1. Property ändern
     actionRegistry.register('property', (action, context) => {
         const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (target && action.changes) {
             Object.keys(action.changes).forEach(prop => {
                 const rawValue = action.changes[prop];
-                const value = PropertyHelper.interpolate(String(rawValue), context.vars, objects);
+                const value = PropertyHelper.interpolate(String(rawValue), combinedContext, objects);
                 PropertyHelper.setPropertyValue(target, prop, PropertyHelper.autoConvert(value));
             });
         }
@@ -89,8 +91,9 @@ export function registerStandardActions(objects: any[]) {
     // 4. Animation
     actionRegistry.register('animate', (action, context) => {
         const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (target) {
-            const toValue = Number(PropertyHelper.interpolate(String(action.to), context.vars, objects));
+            const toValue = Number(PropertyHelper.interpolate(String(action.to), combinedContext, objects));
             AnimationManager.getInstance().addTween(target, action.property || 'x', toValue, action.duration || 500, action.easing || 'easeOut');
         }
     }, {
@@ -109,9 +112,10 @@ export function registerStandardActions(objects: any[]) {
     // 5. Bewegen zu
     actionRegistry.register('move_to', (action, context) => {
         const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (target) {
-            const toX = Number(PropertyHelper.interpolate(String(action.x), context.vars, objects));
-            const toY = Number(PropertyHelper.interpolate(String(action.y), context.vars, objects));
+            const toX = Number(PropertyHelper.interpolate(String(action.x), combinedContext, objects));
+            const toY = Number(PropertyHelper.interpolate(String(action.y), combinedContext, objects));
             if (typeof target.moveTo === 'function') {
                 target.moveTo(toX, toY, action.duration || 500, action.easing || 'easeOut');
             } else {
@@ -134,7 +138,8 @@ export function registerStandardActions(objects: any[]) {
 
     // 6. Navigation
     actionRegistry.register('navigate', (action, context) => {
-        let targetGame = PropertyHelper.interpolate(action.target, context.vars, objects);
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        let targetGame = PropertyHelper.interpolate(action.target, combinedContext, objects);
         if (targetGame && context.onNavigate) {
             context.onNavigate(targetGame, action.params);
         }
@@ -149,8 +154,9 @@ export function registerStandardActions(objects: any[]) {
 
     actionRegistry.register('navigate_stage', (action, context) => {
         const stageId = action.params?.stageId || action.stageId;
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (stageId && context.onNavigate) {
-            const resolved = PropertyHelper.interpolate(String(stageId), context.vars, objects);
+            const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, objects);
             context.onNavigate(`stage:${resolved}`, action.params);
         }
     }, {
@@ -188,8 +194,9 @@ export function registerStandardActions(objects: any[]) {
 
     // 8. Multiplayer Room Management
     actionRegistry.register('create_room', (action, context) => {
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (context.multiplayerManager) {
-            let gameName = PropertyHelper.interpolate(action.game, context.vars, objects);
+            let gameName = PropertyHelper.interpolate(action.game, combinedContext, objects);
             context.multiplayerManager.createRoom(gameName);
         }
     }, {
@@ -202,8 +209,9 @@ export function registerStandardActions(objects: any[]) {
     });
 
     actionRegistry.register('join_room', (action, context) => {
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (context.multiplayerManager) {
-            let code = action.params?.code ? PropertyHelper.interpolate(String(action.params.code), context.vars, objects) : '';
+            let code = action.params?.code ? PropertyHelper.interpolate(String(action.params.code), combinedContext, objects) : '';
             if (code.length >= 4) {
                 context.multiplayerManager.joinRoom(code);
             }
@@ -219,15 +227,47 @@ export function registerStandardActions(objects: any[]) {
 
     // 9. HTTP Request (API Call)
     actionRegistry.register('http', async (action, context) => {
-        const url = PropertyHelper.interpolate(String(action.url || ''), context.vars, objects);
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        const url = PropertyHelper.interpolate(String(action.url || ''), combinedContext, objects);
         const method = action.method || 'GET';
         let body = null;
+        let parsedBody = {};
 
         if (method !== 'GET' && action.body) {
             const bodyStr = typeof action.body === 'object' ? JSON.stringify(action.body) : String(action.body);
-            body = PropertyHelper.interpolate(bodyStr, context.vars, objects);
+            body = PropertyHelper.interpolate(bodyStr, combinedContext, objects);
+            try {
+                parsedBody = JSON.parse(body);
+            } catch (e) {
+                parsedBody = body;
+            }
         }
 
+        // Log interpolated details for DebugLogViewer
+        DebugLogService.getInstance().log('Action', `HTTP: ${method} ${url}`, {
+            data: { type: 'http', method, url, body: parsedBody }
+        });
+
+        // Check if ApiSimulator service is available (Editor mode simulation)
+        if (serviceRegistry.has('ApiSimulator')) {
+            console.log(`[Action: http] Using API Simulation for: ${method} ${url}`);
+            try {
+                const result = await serviceRegistry.call('ApiSimulator', 'request', [method, url, parsedBody]);
+                if (action.resultVariable) {
+                    context.vars[action.resultVariable] = result;
+                    context.contextVars[action.resultVariable] = result;
+                }
+            } catch (err) {
+                console.error('[Action: http] Simulation Error:', err);
+                if (action.resultVariable) {
+                    context.vars[action.resultVariable] = { error: String(err) };
+                    context.contextVars[action.resultVariable] = { error: String(err) };
+                }
+            }
+            return;
+        }
+
+        // Real HTTP request (Production/Standalone mode)
         try {
             const options: RequestInit = {
                 method,
@@ -244,6 +284,10 @@ export function registerStandardActions(objects: any[]) {
             }
         } catch (err) {
             console.error('[Action: http] Error:', err);
+            if (action.resultVariable) {
+                context.vars[action.resultVariable] = { error: String(err) };
+                context.contextVars[action.resultVariable] = { error: String(err) };
+            }
         }
     }, {
         type: 'http',
@@ -265,7 +309,8 @@ export function registerStandardActions(objects: any[]) {
         if (operation === 'delete') {
             localStorage.removeItem(key);
         } else {
-            const token = PropertyHelper.interpolate(String(action.token || ''), context.vars, objects);
+            const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+            const token = PropertyHelper.interpolate(String(action.token || ''), combinedContext, objects);
             localStorage.setItem(key, token);
         }
     }, {
@@ -281,7 +326,8 @@ export function registerStandardActions(objects: any[]) {
 
     // 11. Toast Benachrichtigung
     actionRegistry.register('show_toast', (action, context) => {
-        const message = PropertyHelper.interpolate(String(action.message || ''), context.vars, objects);
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        const message = PropertyHelper.interpolate(String(action.message || ''), combinedContext, objects);
         const toastType = action.toastType || 'info';
 
         // Suche nach einer TToast-Komponente im Projekt
@@ -306,10 +352,11 @@ export function registerStandardActions(objects: any[]) {
 
     // 12. HTTP Response (Antwort für HeadlessServer)
     actionRegistry.register('respond_http', async (action, context) => {
-        const requestId = PropertyHelper.interpolate(String(action.requestId || ''), context.vars, objects);
-        const status = Number(PropertyHelper.interpolate(String(action.status || 200), context.vars, objects));
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        const requestId = PropertyHelper.interpolate(String(action.requestId || ''), combinedContext, objects);
+        const status = Number(PropertyHelper.interpolate(String(action.status || 200), combinedContext, objects));
         const dataStr = typeof action.data === 'object' ? JSON.stringify(action.data) : String(action.data || '{}');
-        const data = JSON.parse(PropertyHelper.interpolate(dataStr, context.vars, objects));
+        const data = JSON.parse(PropertyHelper.interpolate(dataStr, combinedContext, objects));
 
         if (requestId && serviceRegistry.has('HttpServer')) {
             await serviceRegistry.call('HttpServer', 'respond', [requestId, status, data]);
@@ -330,13 +377,19 @@ export function registerStandardActions(objects: any[]) {
     // 13. Datenbank Speichern (UPSERT)
     actionRegistry.register('db_save', async (action, context) => {
         const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', context.vars, objects);
-        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', context.vars, objects);
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', combinedContext, objects);
+        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', combinedContext, objects);
 
         const dataStr = typeof action.data === 'object' ? JSON.stringify(action.data) : String(action.data || '{}');
-        const data = JSON.parse(PropertyHelper.interpolate(dataStr, context.vars, objects));
+        const data = JSON.parse(PropertyHelper.interpolate(dataStr, combinedContext, objects));
 
         const result = await serviceRegistry.call('Data', 'saveItem', [storagePath, collection, data]);
+
+        // Detail-Logging für Debug-Log-Viewer
+        DebugLogService.getInstance().log('Variable', `Data saved in ${storagePath}::${collection}`, {
+            data: { type: 'db_save', storagePath, collection, result }
+        });
 
         if (action.resultVariable) {
             context.vars[action.resultVariable] = result;
@@ -362,13 +415,32 @@ export function registerStandardActions(objects: any[]) {
     // 14. Datenbank Finden
     actionRegistry.register('db_find', async (action, context) => {
         const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', context.vars, objects);
-        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', context.vars, objects);
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+
+        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', combinedContext, objects);
+        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', combinedContext, objects);
+
+        console.log(`[Action: db_find] Target: ${target ? target.name : 'null'}, Storage: ${storagePath}, Collection: ${collection}`);
+        if (target) {
+            console.log(`[Action: db_find] Target Properties: storagePath=${target.storagePath}, defaultCollection=${target.defaultCollection}`);
+        } else {
+            // Debug: List all available objects if target not found
+            console.warn(`[Action: db_find] Target '${action.target}' NOT FOUND. Available objects:`, objects.map(o => o.name).join(', '));
+        }
 
         const queryStr = typeof action.query === 'object' ? JSON.stringify(action.query) : String(action.query || '{}');
-        const query = JSON.parse(PropertyHelper.interpolate(queryStr, context.vars, objects));
+        const query = JSON.parse(PropertyHelper.interpolate(queryStr, combinedContext, objects));
+
+        // Detail-Logging für Debug-Log-Viewer & Konsole (Transparency)
+        console.log(`[Action: db_find] Searching in ${storagePath}::${collection} with Query:`, JSON.stringify(query));
 
         const results = await serviceRegistry.call('Data', 'findItems', [storagePath, collection, query]);
+
+        console.log(`[Action: db_find] Found ${results.length} items.`);
+
+        DebugLogService.getInstance().log('Variable', `Found ${results.length} items in ${storagePath}::${collection}`, {
+            data: { type: 'db_find', storagePath, collection, query, resultsCount: results.length }
+        });
 
         if (action.resultVariable) {
             context.vars[action.resultVariable] = results;
@@ -389,11 +461,17 @@ export function registerStandardActions(objects: any[]) {
     // 15. Datenbank Löschen
     actionRegistry.register('db_delete', async (action, context) => {
         const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', context.vars, objects);
-        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', context.vars, objects);
-        const id = PropertyHelper.interpolate(String(action.id || ''), context.vars, objects);
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', combinedContext, objects);
+        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', combinedContext, objects);
+        const id = PropertyHelper.interpolate(String(action.id || ''), combinedContext, objects);
 
         const success = await serviceRegistry.call('Data', 'deleteItem', [storagePath, collection, id]);
+
+        // Detail-Logging für Debug-Log-Viewer
+        DebugLogService.getInstance().log('Variable', `Deleted from ${storagePath}::${collection}: ${success}`, {
+            data: { type: 'db_delete', storagePath, collection, id, success }
+        });
 
         if (action.resultVariable) {
             context.vars[action.resultVariable] = success;
@@ -413,6 +491,124 @@ export function registerStandardActions(objects: any[]) {
             { name: 'collection', label: 'Collection', type: 'string', placeholder: 'z.B. users' },
             { name: 'id', label: 'ID des Objekts', type: 'string' },
             { name: 'resultVariable', label: 'Erfolg (true/false) speichern in', type: 'variable', source: 'variables' }
+        ]
+    });
+
+    // 16. Bedingung (if/else)
+    actionRegistry.register('condition', async (action, context) => {
+        if (!action.condition) {
+            console.warn('[Action: condition] No condition specified');
+            return;
+        }
+
+        // Evaluate the condition
+        const evalContext = { ...context.contextVars, ...context.vars };
+        let result = false;
+        try {
+            result = ExpressionParser.evaluate(action.condition, evalContext);
+        } catch (e) {
+            console.error(`[Action: condition] Error evaluating condition "${action.condition}":`, e);
+        }
+
+        console.log(`[Action: condition] "${action.condition}" => ${result}`);
+
+        // Log result for DebugLogViewer
+        DebugLogService.getInstance().log('Condition', `${action.condition} => ${result}`, {
+            data: { type: 'condition', condition: action.condition, result }
+        });
+
+        // Execute body or elseBody based on result
+        if (result && action.body && Array.isArray(action.body)) {
+            // Execute each action in body
+            for (const bodyAction of action.body) {
+                const handler = actionRegistry.getHandler(bodyAction.type);
+                if (handler) {
+                    await handler(bodyAction, context);
+                } else {
+                    console.warn(`[Action: condition] Unknown action type in body: ${bodyAction.type}`);
+                }
+            }
+        } else if (!result && action.elseBody && Array.isArray(action.elseBody)) {
+            // Execute each action in elseBody
+            for (const elseAction of action.elseBody) {
+                const handler = actionRegistry.getHandler(elseAction.type);
+                if (handler) {
+                    await handler(elseAction, context);
+                } else {
+                    console.warn(`[Action: condition] Unknown action type in elseBody: ${elseAction.type}`);
+                }
+            }
+        }
+    }, {
+        type: 'condition',
+        label: 'Bedingung',
+        description: 'Führt Aktionen basierend auf einer Bedingung aus (If/Else).',
+        parameters: [
+            { name: 'condition', label: 'Bedingung (JS)', type: 'string', placeholder: 'z.B. user.score > 10' },
+            { name: 'body', label: 'Dann (Aktionen)', type: 'json' },
+            { name: 'elseBody', label: 'Sonst (Aktionen)', type: 'json' }
+        ]
+    });
+
+    // 17. HTTP Response (für TAPIServer Simulation)
+    actionRegistry.register('respond_http', async (action, context) => {
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        const requestId = PropertyHelper.interpolate(action.requestId || '', combinedContext, objects);
+        const status = parseInt(PropertyHelper.interpolate(String(action.status || 200), combinedContext, objects));
+
+        let data = action.data;
+        if (typeof data === 'string' && data.includes('${')) {
+            data = PropertyHelper.interpolate(data, combinedContext, objects);
+            try { data = JSON.parse(data); } catch (e) { }
+        } else if (typeof data === 'object' && data !== null) {
+            // Deep clone to avoid mutating the original action definition
+            data = JSON.parse(JSON.stringify(data));
+
+            // Helper to recursively interpolate properties
+            const interpolateDeep = (obj: any) => {
+                for (const key in obj) {
+                    const val = obj[key];
+                    if (typeof val === 'string' && val.startsWith('${') && val.endsWith('}')) {
+                        // Direct variable reference - preserve type (might be an object)
+                        const expression = val.slice(2, -1).trim();
+
+                        // Check if it's a complex string interpolation like "${a} ${b}"
+                        const isSimpleExpression = !val.includes('${', 2);
+
+                        if (isSimpleExpression) {
+                            try {
+                                // Use evaluate to get the raw value (e.g. object, number, boolean)
+                                obj[key] = ExpressionParser.evaluate(expression, combinedContext);
+                            } catch (e) {
+                                console.warn(`[Action: respond_http] Failed to evaluate: ${expression}`, e);
+                                obj[key] = val;
+                            }
+                        } else {
+                            // Multiple expressions -> result is always a string
+                            obj[key] = PropertyHelper.interpolate(val, combinedContext, objects);
+                        }
+                    } else if (typeof val === 'string') {
+                        // Regular string with potential embeddings
+                        obj[key] = PropertyHelper.interpolate(val, combinedContext, objects);
+                    } else if (typeof val === 'object' && val !== null) {
+                        interpolateDeep(val);
+                    }
+                }
+            };
+
+            interpolateDeep(data);
+        }
+
+        console.log(`[Action: respond_http] Responding to ${requestId} with status ${status}`);
+        serviceRegistry.call('HttpServer', 'respond', [requestId, status, data]);
+    }, {
+        type: 'respond_http',
+        label: 'HTTP: Antworten',
+        description: 'Sendet eine Antwort auf einen simulierten HTTP-Request.',
+        parameters: [
+            { name: 'requestId', label: 'Request ID', type: 'string' },
+            { name: 'status', label: 'Status Code', type: 'number', defaultValue: 200 },
+            { name: 'data', label: 'Antwort-Daten (JSON)', type: 'string' }
         ]
     });
 }

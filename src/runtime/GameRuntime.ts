@@ -199,6 +199,7 @@ export class GameRuntime implements IVariableHost {
             this.taskExecutor.setActions(merged.actions);
         }
 
+        // IMPORTANT: Update ActionExecutor with new objects!
         if (this.options.makeReactive) {
             this.reactiveRuntime.clear();
             this.clearAllTimers();
@@ -213,6 +214,11 @@ export class GameRuntime implements IVariableHost {
 
             this.objects = this.reactiveRuntime.getObjects();
             this.initializeReactiveBindings();
+        }
+
+        // IMPORTANT: Update ActionExecutor with new objects (Proxies if reactive)
+        if (this.actionExecutor) {
+            this.actionExecutor.setObjects(this.objects);
         }
 
         this.variableManager.stageVariables = {};
@@ -308,7 +314,11 @@ export class GameRuntime implements IVariableHost {
 
         if (this.taskExecutor) {
             const taskName = `${obj.name}.${eventName}`;
-            this.taskExecutor.execute(taskName, { ...data, sender: obj }, this.contextVars, obj, 0, eventLogId);
+            // Ensure eventData is available in vars even when 'data' is not an object (e.g., a string like an emoji)
+            const eventVars = typeof data === 'object' && data !== null
+                ? { ...data, eventData: data, sender: obj }
+                : { eventData: data, sender: obj };
+            this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
         }
     }
 
@@ -562,7 +572,11 @@ export class GameRuntime implements IVariableHost {
             if ((obj as any).isVariable && obj.name) {
                 const runtimeValue = this.variableManager.contextVars[obj.name];
                 if (runtimeValue !== undefined) {
-                    (obj as any).value = runtimeValue;
+                    if (obj.items !== undefined && Array.isArray(runtimeValue)) {
+                        obj.items = runtimeValue;
+                    } else {
+                        (obj as any).value = runtimeValue;
+                    }
                 }
             }
         });

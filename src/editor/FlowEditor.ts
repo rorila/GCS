@@ -57,6 +57,7 @@ export class FlowEditor implements FlowMapHost {
 
     // Interaction State
     private isDraggingHandle: boolean = false;
+    private isLoading: boolean = false;
     private activeHandle: HTMLElement | null = null;
     private activeConnection: FlowConnection | null = null;
 
@@ -857,6 +858,7 @@ export class FlowEditor implements FlowMapHost {
     }
 
     public syncToProject() {
+        if (this.isLoading) return;
         this.syncManager.syncToProject(this.currentFlowContext);
     }
 
@@ -864,6 +866,7 @@ export class FlowEditor implements FlowMapHost {
 
     private loadFromProject() {
         if (!this.project) return;
+        this.isLoading = true;
 
         this.clearFlowCanvas();
 
@@ -1006,6 +1009,8 @@ export class FlowEditor implements FlowMapHost {
 
         // Ensure current detail mode is applied to all loaded nodes
         this.updateActionDetails();
+
+        this.isLoading = false;
     }
 
     // restoreNode wurde in den FlowSyncManager verschoben.

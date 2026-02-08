@@ -66,6 +66,11 @@ export class Stage {
 
     private _runMode: boolean = false;
     public get runMode(): boolean { return this._runMode; }
+
+    private _isBlueprint: boolean = false;
+    public get isBlueprint(): boolean { return this._isBlueprint; }
+    public set isBlueprint(val: boolean) { this._isBlueprint = val; }
+
     public startAnimation: string = 'none';
     public startAnimationDuration: number = 1000;
     public startAnimationEasing: string = 'easeOut';
@@ -1328,20 +1333,41 @@ export class Stage {
                 Stage.renderTable(el, obj);
             } else if (className === 'TEmojiPicker') {
                 Stage.renderEmojiPicker(el, obj, this.gridConfig.cellSize, this.onEvent || undefined);
-            } else if (obj.isVariable || className === 'TGameLoop' || className === 'TInputController' || className === 'TTimer' || className === 'TRepeater' || className === 'TGameServer' || className === 'TGameState' || className === 'THandshake' || className === 'THeartbeat' || className === 'TStageController') {
-                if (this.runMode) el.style.display = 'none';
-                else {
-                    el.style.display = 'flex'; // Ensure visible in editor
-                    el.style.backgroundColor = className === 'TGameLoop' ? '#2196f3' :
-                        (className === 'TInputController' ? '#9c27b0' :
-                            (className === 'TRepeater' ? '#ff9800' :
-                                (className === 'TGameState' ? '#607d8b' :
-                                    (className === 'TGameServer' ? '#4caf50' :
-                                        (className === 'THandshake' ? '#5c6bc0' :
-                                            (className === 'THeartbeat' ? '#e91e63' :
-                                                (className === 'TStageController' ? '#9c27b0' :
-                                                    (obj.isVariable ? (obj.style?.backgroundColor || '#673ab7') : '#4caf50'))))))));
-                    el.innerText = obj.name;
+            } else if (obj.isVariable || obj.isService) {
+                // Determine visibility based on flags
+                let effectivelyVisible = true;
+
+                if (this.runMode) {
+                    if (obj.isHiddenInRun || obj.isVariable) effectivelyVisible = false;
+                } else {
+                    // Editor Mode: Hide if it's blueprint-only and we are NOT on a blueprint stage
+                    if (obj.isBlueprintOnly && !this.isBlueprint) effectivelyVisible = false;
+                }
+
+                if (!effectivelyVisible) {
+                    el.style.display = 'none';
+                } else {
+                    el.style.display = 'flex'; // Ensure visible
+                    if (!this.runMode) {
+                        // System Component / Variable Editor Styling
+                        el.style.backgroundColor =
+                            className === 'TGameLoop' ? '#2196f3' :
+                                (className === 'TInputController' ? '#9c27b0' :
+                                    (className === 'TRepeater' ? '#ff9800' :
+                                        (className === 'TGameState' ? '#607d8b' :
+                                            (className === 'TGameServer' ? '#4caf50' :
+                                                (className === 'THandshake' ? '#5c6bc0' :
+                                                    (className === 'THeartbeat' ? '#e91e63' :
+                                                        (className === 'TStageController' ? '#9c27b0' :
+                                                            (className === 'TAPIServer' ? '#f44336' :
+                                                                (className === 'TDataStore' ? '#3f51b5' :
+                                                                    (obj.isVariable ? (obj.style?.backgroundColor || '#673ab7') : '#4caf50'))))))))));
+                        el.innerText = obj.name;
+                        el.style.color = '#ffffff';
+                        el.style.fontSize = '12px';
+                    } else {
+                        el.innerText = ''; // Clear label in run mode
+                    }
                 }
             } else if (className === 'TLabel' || className === 'TNumberLabel' || (className !== 'TShape' && ('text' in obj || 'value' in obj))) {
                 const textValue = (obj.text !== undefined && obj.text !== null) ? String(obj.text) :

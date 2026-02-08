@@ -21,6 +21,7 @@ export class TPanel extends TWindow {
     }
 
     set caption(v: string) {
+        console.log(`[TPanel] set caption("${v}") - Renaming ${this.name} to ${v}`);
         this.name = v;
     }
 

@@ -103,7 +103,12 @@ export class TaskExecutor {
         }
 
         if (!task) {
-            console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
+            // Only warn for task names that look intentional (not just lifecycle events without handlers)
+            const optionalEvents = ['onStart', 'onStop', 'onValueChanged', 'onLoad', 'onUnload', 'onFocus', 'onBlur'];
+            const isOptionalEvent = optionalEvents.some(evt => taskName.endsWith(`.${evt}`));
+            if (!isOptionalEvent) {
+                console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
+            }
             return;
         }
 
@@ -202,6 +207,7 @@ export class TaskExecutor {
         }
 
         console.log(`[TaskExecutor] FlowChart Elements for "${taskName}":`, elements.map(e => `${e.type}:${e.properties?.name || e.id}`));
+        console.log(`[TaskExecutor] FlowChart vars.eventData =`, vars.eventData, 'contextObj =', contextObj?.name || contextObj?.className);
 
         const executeNode = async (node: any): Promise<void> => {
             if (!node || visited.has(node.id)) return;
@@ -221,11 +227,46 @@ export class TaskExecutor {
                 return;
             }
 
+
             if (nodeType === 'Action' || nodeType === 'action') {
                 // Execute this action
                 const action = this.resolveAction({ type: 'action', name: name }) || node.data;
                 if (action) {
-                    await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+                    // If action has a body (is an action-definition), we execute its body ourselves
+                    if (action.body && Array.isArray(action.body)) {
+                        // Resolve params from node.data (e.g., { emoji: "$eventData" })
+                        const itemParams = node.data?.params || {};
+                        const resolvedParams: Record<string, any> = {};
+                        for (const [key, value] of Object.entries(itemParams)) {
+                            if (typeof value === 'string') {
+                                if (value === '$eventData') {
+                                    resolvedParams[key] = vars.eventData ?? contextObj;
+                                } else if (value.startsWith('${') && value.endsWith('}')) {
+                                    const varName = value.slice(2, -1);
+                                    resolvedParams[key] = vars[varName] ?? globalVars[varName];
+                                } else if (value.startsWith('$')) {
+                                    const varName = value.slice(1);
+                                    resolvedParams[key] = vars[varName] ?? globalVars[varName];
+                                } else {
+                                    resolvedParams[key] = value;
+                                }
+                            } else {
+                                resolvedParams[key] = value;
+                            }
+                        }
+                        console.log(`[TaskExecutor] FlowChart: Executing action body for "${action.name}" with params:`, resolvedParams);
+
+                        // Make $params available in the vars context for body execution
+                        const bodyVars = { ...vars, $params: resolvedParams };
+
+                        // Execute each body item
+                        for (const bodyItem of action.body) {
+                            await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, parentId);
+                        }
+                    } else {
+                        // Regular action (no body), execute directly
+                        await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+                    }
                 }
 
                 // Find and execute next node (non-conditional connection)
@@ -304,11 +345,13 @@ export class TaskExecutor {
         // Debug: Log every sequence item being processed
         console.log(`[TaskExecutor] Processing item: type = "${item.type}" name = "${item.name || 'N/A'}" condition = "${item.condition?.variable || 'none'}"`);
 
-        // Check condition if present
-        const condition = item.itemCondition || (typeof item.condition === 'string' ? item.condition : null);
-        if (condition && !this.evaluateCondition(condition, vars, globalVars)) {
-            console.log(`[TaskExecutor] Item condition FALSE, skipping: ${condition} `);
-            return;
+        // Check condition if present (BUT skip checking for 'condition' type items, as they handle logic internally)
+        if (item.type !== 'condition') {
+            const condition = item.itemCondition || (typeof item.condition === 'string' ? item.condition : null);
+            if (condition && !this.evaluateCondition(condition, vars, globalVars)) {
+                console.log(`[TaskExecutor] Item condition FALSE, skipping: ${condition} `);
+                return;
+            }
         }
 
         switch (item.type) {
@@ -321,7 +364,44 @@ export class TaskExecutor {
             case 'action':
                 const action = this.resolveAction(item);
                 if (action) {
-                    await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+                    // If action has a body (is an action-definition), we execute its body ourselves
+                    if (action.body && Array.isArray(action.body)) {
+                        // Resolve params: replace $eventData, ${var} references with actual values
+                        const resolvedParams: Record<string, any> = {};
+                        if (item.params) {
+                            for (const [key, value] of Object.entries(item.params)) {
+                                if (typeof value === 'string') {
+                                    if (value === '$eventData') {
+                                        // eventData is passed in vars from the event trigger
+                                        resolvedParams[key] = vars.eventData ?? contextObj;
+                                    } else if (value.startsWith('${') && value.endsWith('}')) {
+                                        // Variable reference like ${currentPIN} or ${user.name}
+                                        const varName = value.slice(2, -1);
+                                        resolvedParams[key] = this.resolveVarPath(varName, vars, globalVars);
+                                    } else if (value.startsWith('$')) {
+                                        // Simple $variable reference (e.g. $eventData.body.pin)
+                                        resolvedParams[key] = this.resolveVarPath(value, vars, globalVars);
+                                    } else {
+                                        resolvedParams[key] = value;
+                                    }
+                                } else {
+                                    resolvedParams[key] = value;
+                                }
+                            }
+                        }
+                        console.log(`[TaskExecutor] Executing action body for "${action.name}" with params:`, resolvedParams);
+
+                        // Make $params available in the vars context for body execution
+                        const bodyVars = { ...vars, $params: resolvedParams };
+
+                        // Execute each body item (these are direct action steps like { type: "calculate", ... })
+                        for (const bodyItem of action.body) {
+                            await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, parentId);
+                        }
+                    } else {
+                        // Regular action (no body), execute directly
+                        await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+                    }
                 } else {
                     console.warn(`[TaskExecutor] Action definition not found: ${item.name} `);
                 }
@@ -363,87 +443,153 @@ export class TaskExecutor {
     private evaluateCondition(condition: any, vars: Record<string, any>, globalVars: Record<string, any>): boolean {
         if (!condition) return false;
 
+        let leftValue: any;
+        let rightValue: any;
+        let operator = '==';
+        let conditionStr = '';
+
         // Support string condition like "isPlayer1 == 1"
         if (typeof condition === 'string') {
+            conditionStr = condition;
             const parts = condition.split(/\s*(==|!=|>|<|>=|<=)\s*/);
             if (parts.length === 3) {
                 const left = parts[0].trim();
-                const operator = parts[1];
+                operator = parts[1];
                 const right = parts[2].trim();
 
-                const leftValue = vars[left] !== undefined ? vars[left] : globalVars[left];
-                const rightValue = right.startsWith("'") || right.startsWith('"')
-                    ? right.substring(1, right.length - 1)
-                    : isNaN(Number(right)) ? (vars[right] !== undefined ? vars[right] : globalVars[right]) : Number(right);
-
-                switch (operator) {
-                    case '==': return String(leftValue) === String(rightValue);
-                    case '!=': return String(leftValue) !== String(rightValue);
-                    case '>': return Number(leftValue) > Number(rightValue);
-                    case '<': return Number(leftValue) < Number(rightValue);
-                    case '>=': return Number(leftValue) >= Number(rightValue);
-                    case '<=': return Number(leftValue) <= Number(rightValue);
-                }
+                // Resolve values using helper to support "object.property" and "$variable" syntax
+                leftValue = this.resolveValue(left, vars, globalVars);
+                rightValue = this.resolveValue(right, vars, globalVars);
+            } else {
+                // Boolean check for single variable
+                return !!this.resolveValue(condition, vars, globalVars);
             }
-            return !!vars[condition] || !!globalVars[condition];
+        } else {
+            // Object style condition
+            const varName = condition.variable;
+            conditionStr = `${varName} ${condition.operator || '=='} ${condition.value}`;
+            leftValue = this.resolveValue(varName, vars, globalVars);
+            rightValue = condition.value; // Value in object style is usually a literal
+            operator = condition.operator || '==';
         }
 
-        const varName = condition.variable;
-        const varValue = vars[varName] !== undefined ? vars[varName] : globalVars[varName];
-        const compareValue = condition.value;
-
-        // Default to equality if no operator specified
-        const operator = condition.operator || '==';
+        // Debug Log
+        console.log(`[TaskExecutor] Evaluating Condition: "${conditionStr}"`);
+        console.log(`               Left:  "${leftValue}" (type: ${typeof leftValue})`);
+        console.log(`               Right: "${rightValue}" (type: ${typeof rightValue})`);
+        console.log(`               Op:    "${operator}"`);
 
         switch (operator) {
-            case '==': return String(varValue) === String(compareValue);
-            case '!=': return String(varValue) !== String(compareValue);
-            case '>': return Number(varValue) > Number(compareValue);
-            case '<': return Number(varValue) < Number(compareValue);
-            case '>=': return Number(varValue) >= Number(compareValue);
-            case '<=': return Number(varValue) <= Number(compareValue);
-            default: return String(varValue) === String(compareValue);
+            case '==': return String(leftValue) === String(rightValue);
+            case '!=': return String(leftValue) !== String(rightValue);
+            case '>': return Number(leftValue) > Number(rightValue);
+            case '<': return Number(leftValue) < Number(rightValue);
+            case '>=': return Number(leftValue) >= Number(rightValue);
+            case '<=': return Number(leftValue) <= Number(rightValue);
+            default: return String(leftValue) === String(rightValue);
         }
     }
 
-    private resolveValue(value: number | string | undefined, vars: Record<string, any>, globalVars: Record<string, any>): number {
+    private resolveValue(value: number | string | undefined, vars: Record<string, any>, globalVars: Record<string, any>): any {
         if (typeof value === 'number') return value;
+        if (typeof value === 'boolean') return value;
+        if (value === undefined || value === null) return value;
+
         if (typeof value === 'string') {
-            // Check for ${variable} syntax
+            // 1. String Literal (quoted)
+            if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
+                return value.substring(1, value.length - 1);
+            }
+
+            // 2. Variable Reference with ${...}
             const match = value.match(/^\$\{(.+)\}$/);
             if (match) {
-                const varName = match[1];
-                const val = vars[varName] !== undefined ? vars[varName] : globalVars[varName];
-                return Number(val) || 0;
+                return this.resolveVarPath(match[1], vars, globalVars);
             }
-            return Number(value) || 0;
+
+            // 3. Simple Variable Reference (starts with meaning full char or $)
+            // Try to resolve as path
+            return this.resolveVarPath(value, vars, globalVars);
         }
-        return 0;
+        return value;
+    }
+
+    private resolveVarPath(path: string, vars: Record<string, any>, globalVars: Record<string, any>): any {
+        // Handle $ prefix (strip it if it refers to a variable scope, but keep it if the key in vars actually has it)
+        // Usually vars keys do NOT have $, but usage like $eventData often map to keys like 'eventData' or '$eventData'
+
+        let lookupPath = path;
+        if (path.startsWith('$')) {
+            // Try explicit lookup first (e.g. vars['$eventData'])
+            if (vars[path] !== undefined) return vars[path];
+
+            // If not found, stripping $ might help if the system stores 'eventData' but user writes '$eventData'
+            // BUT: Dot notation handling checks the root object first.
+        }
+
+        // Helper to safely get nested property
+        const getDeep = (obj: any, p: string) => {
+            const parts = p.split('.');
+            let current = obj;
+
+            // Special handling: if first part starts with $, try both with and without $
+            if (parts[0].startsWith('$') && current[parts[0]] === undefined && current[parts[0].substring(1)] !== undefined) {
+                parts[0] = parts[0].substring(1);
+            }
+
+            for (const part of parts) {
+                if (current === undefined || current === null) return undefined;
+                current = current[part];
+            }
+            return current;
+        };
+
+        // 1. Try Local Params/Vars first (PropertyHelper logic style)
+        let val = getDeep(vars, lookupPath);
+        if (val !== undefined) return val;
+
+        // 2. Try Global Vars
+        val = getDeep(globalVars, lookupPath);
+        if (val !== undefined) return val;
+
+        // 3. Fallback: If it's a number string, return number
+        if (!isNaN(Number(path))) return Number(path);
+
+        return undefined;
     }
 
     private async handleCondition(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
         if (!item.condition) return;
 
-        const varName = item.condition.variable;
-        const varValue = vars[varName] !== undefined ? vars[varName] : globalVars[varName];
-        const compareValue = item.condition.value;
-        const operator = item.condition.operator || '==';
-
         const result = this.evaluateCondition(item.condition, vars, globalVars);
 
         // Log to DebugLogService
-        const conditionExpr = `${varName} ${operator} "${compareValue}"`;
+        let conditionExpr = '';
+        let logData: any = { result };
+
+        if (typeof item.condition === 'string') {
+            conditionExpr = item.condition;
+            logData.expression = item.condition;
+        } else {
+            const varName = item.condition.variable;
+            const varValue = vars[varName] !== undefined ? vars[varName] : globalVars[varName];
+            const compareValue = item.condition.value;
+            const operator = item.condition.operator || '==';
+            conditionExpr = `${varName} ${operator} "${compareValue}"`;
+            logData = { variable: varName, value: varValue, expected: compareValue, result };
+        }
+
         DebugLogService.getInstance().log('Condition',
-            `${conditionExpr} => ${result ? 'TRUE' : 'FALSE'} (${varName}="${varValue}")`,
+            `${conditionExpr} => ${result ? 'TRUE' : 'FALSE'}`,
             {
                 parentId,
                 objectName: contextObj?.name,
-                data: { variable: varName, value: varValue, expected: compareValue, result }
+                data: logData
             }
         );
 
         // Debug: Log condition evaluation for boundary checks
-        console.log(`[TaskExecutor] Condition: ${varName}="${varValue}" == "${compareValue}" => ${result}`);
+        console.log(`[TaskExecutor] Condition: ${conditionExpr} => ${result}`);
 
         if (result) {
             if (item.thenAction) {

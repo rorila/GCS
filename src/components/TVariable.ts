@@ -15,6 +15,10 @@ export class TVariable extends TWindow {
         this.style.borderColor = '#9575cd';
         this.style.borderWidth = 1;
         this.style.color = '#000000'; // Black text as requested
+
+        // Visibility & Scoping Meta-Flags
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     public getInspectorProperties(): TPropertyDef[] {

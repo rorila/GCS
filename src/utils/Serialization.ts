@@ -42,6 +42,25 @@ import { TRangeVariable } from '../components/TRangeVariable';
 import { TListVariable } from '../components/TListVariable';
 import { TRandomVariable } from '../components/TRandomVariable';
 import { TKeyStore } from '../components/TKeyStore';
+// NEW: Missing component imports
+import { TEmojiPicker } from '../components/TEmojiPicker';
+import { TStringVariable } from '../components/TStringVariable';
+import { TIntegerVariable } from '../components/TIntegerVariable';
+import { TBooleanVariable } from '../components/TBooleanVariable';
+import { TRealVariable } from '../components/TRealVariable';
+import { TObjectVariable } from '../components/TObjectVariable';
+import { TNavBar } from '../components/TNavBar';
+import { TCard } from '../components/TCard';
+import { TList } from '../components/TList';
+import { TDataStore } from '../components/TDataStore';
+import { TBadge } from '../components/TBadge';
+import { TAvatar } from '../components/TAvatar';
+import { TTabBar } from '../components/TTabBar';
+import { TAuthService } from '../components/TAuthService';
+import { TUserManager } from '../components/TUserManager';
+import { TAPIServer } from '../components/TAPIServer';
+import { TTextControl } from '../components/TTextControl';
+import { TTable } from '../components/TTable';
 
 export function hydrateObjects(objectsData: any[]): TWindow[] {
     const objects: TWindow[] = [];
@@ -191,6 +210,64 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             case 'TKeyStore':
                 newObj = new TKeyStore(objData.name, objData.x, objData.y);
                 break;
+            // NEW: Missing component cases
+            case 'TEmojiPicker':
+                newObj = new TEmojiPicker(objData.name, objData.x, objData.y);
+                break;
+            case 'TStringVariable':
+                newObj = new TStringVariable(objData.name, objData.x, objData.y);
+                break;
+            case 'TIntegerVariable':
+                newObj = new TIntegerVariable(objData.name, objData.x, objData.y);
+                break;
+            case 'TBooleanVariable':
+                newObj = new TBooleanVariable(objData.name, objData.x, objData.y);
+                break;
+            case 'TRealVariable':
+                newObj = new TRealVariable(objData.name, objData.x, objData.y);
+                break;
+            case 'TObjectVariable':
+                newObj = new TObjectVariable(objData.name, objData.x, objData.y);
+                break;
+            case 'TNavBar':
+                newObj = new TNavBar(objData.name, objData.x, objData.y);
+                break;
+            case 'TCard':
+                newObj = new TCard(objData.name, objData.x, objData.y);
+                break;
+            case 'TList':
+                newObj = new TList(objData.name, objData.x, objData.y);
+                break;
+            case 'TDataStore':
+                newObj = new TDataStore(objData.name, objData.x, objData.y);
+                // Explicitly restore critical properties immediately
+                if (objData.storagePath) (newObj as any).storagePath = objData.storagePath;
+                if (objData.defaultCollection) (newObj as any).defaultCollection = objData.defaultCollection;
+                break;
+            case 'TBadge':
+                newObj = new TBadge(objData.name, objData.x, objData.y);
+                break;
+            case 'TAvatar':
+                newObj = new TAvatar(objData.name, objData.x, objData.y);
+                break;
+            case 'TTabBar':
+                newObj = new TTabBar(objData.name, objData.x, objData.y);
+                break;
+            case 'TAuthService':
+                newObj = new TAuthService(objData.name) as any;
+                break;
+            case 'TUserManager':
+                newObj = new TUserManager(objData.name) as any;
+                break;
+            case 'TAPIServer':
+                newObj = new TAPIServer(objData.name, objData.x, objData.y);
+                break;
+            case 'TTextControl':
+                newObj = new TTextControl(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
+            case 'TTable':
+                newObj = new TTable(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
             default:
                 console.warn("Unknown class during load:", objData.className);
                 break;
@@ -218,13 +295,18 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             if (objData.dragMode !== undefined) newObj.dragMode = objData.dragMode;
             if (objData.droppable !== undefined) newObj.droppable = objData.droppable;
 
-            // Generic Style restore (safely merge)
-            if (objData.style) {
+            // Generic Style restore (safely merge) - only if the object has a style property
+            if (objData.style && newObj.style) {
                 Object.assign(newObj.style, objData.style);
             }
 
             // Restore specific properties if available
-            if (objData.caption !== undefined) (newObj as any).caption = objData.caption;
+            if (objData.caption !== undefined) {
+                if (newObj.constructor.name === 'TDataStore') {
+                    console.log(`[Serialization] Assigning caption "${objData.caption}" to TDataStore "${(newObj as any).name}"`);
+                }
+                (newObj as any).caption = objData.caption;
+            }
             if (objData.text !== undefined) (newObj as any).text = objData.text;
             if (objData.fontSize !== undefined) (newObj as any).fontSize = objData.fontSize;
             if (objData.alignment !== undefined) (newObj as any).alignment = objData.alignment;

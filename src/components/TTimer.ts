@@ -18,6 +18,11 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         this.style.backgroundColor = '#4caf50';
         this.style.borderColor = '#2e7d32';
         this.style.borderWidth = 2;
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     public getInspectorProperties(): TPropertyDef[] {

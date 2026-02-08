@@ -229,6 +229,11 @@ export class ComponentRegistry {
         }
 
         if (!className) {
+            // Suppress warning for Editor classes (they are not GCS components)
+            const constructorName = data?.constructor?.name;
+            if (constructorName && (constructorName.endsWith('Editor') || constructorName.endsWith('Manager'))) {
+                return null; // Silently ignore editor/manager instances
+            }
             console.warn("[ComponentRegistry.createInstance] Konnte Klasse nicht bestimmen für:", data);
             return null;
         }

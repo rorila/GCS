@@ -125,15 +125,18 @@ export class FlowSyncManager {
             }
         } else {
             if (targetCharts) {
-                targetCharts.elements = elements;
-                targetCharts.connections = connections;
+                // BUG FIX: Store under the specific task name key, not directly on the collection object
+                const chartData = { elements, connections };
+                targetCharts[currentContext] = chartData;
+
                 const task = this.host.project.tasks.find((t: any) => t.name === currentContext) ||
                     this.host.getActiveStage()?.tasks.find((t: any) => t.name === currentContext);
 
                 if (task) {
                     this.syncTaskFromFlow(task, elements, connections);
-                    if (task.flowChart) task.flowChart = targetCharts;
-                    if (task.flowGraph) task.flowGraph = targetCharts;
+                    // Single Source of Truth: update the local reference too
+                    task.flowChart = chartData;
+                    if ((task as any).flowGraph) delete (task as any).flowGraph;
                 }
             }
         }
@@ -348,7 +351,7 @@ export class FlowSyncManager {
             sequence.forEach(item => {
                 const id = getNewId(item.type || 'action');
                 if (item.type === 'condition') {
-                    elements.push({ id, type: 'Condition', x: startX - 80, y: currentY, properties: { text: item.condition || item.expression || '' } });
+                    elements.push({ id, type: 'Condition', x: startX, y: currentY, properties: { text: item.condition || item.expression || '' } });
                     connections.push({
                         startTargetId: lastId, endTargetId: id,
                         data: { startAnchorType: lastAnchor, endAnchorType: 'input' }
@@ -364,7 +367,7 @@ export class FlowSyncManager {
                 } else if (['while', 'for', 'repeat'].includes(item.type)) {
                     elements.push({
                         id, type: item.type.charAt(0).toUpperCase() + item.type.slice(1) as any,
-                        x: startX - 80, y: currentY,
+                        x: startX, y: currentY,
                         properties: { text: item.condition || item.count || '' }
                     });
                     connections.push({
@@ -379,7 +382,7 @@ export class FlowSyncManager {
 
                     elements.push({
                         id, type: isTask ? 'Task' : 'Action',
-                        x: startX - 80, y: currentY,
+                        x: startX, y: currentY,
                         properties: {
                             name: itemName,
                             text: itemName

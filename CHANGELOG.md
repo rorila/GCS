@@ -1,5 +1,74 @@
 # Changelog
 
+## [2.12.0] - 2026-02-08
+### Behoben
+- **AppendEmoji Action ("calculate")**: Behebung des Fehlers, bei dem Variablen-Komponenten als Objekte (`[object Object]`) statt als Werte in Berechnungen verwendet wurden.
+
+### [v2.12.1] - 2026-02-08
+- **Fix**: Reaktivitäts-Fehler bei shadowing Variablen (Global vs. Stage) behoben.
+- **Fix**: `ReactiveRuntime.getContext()` bevorzugt nun explizite Variablen-Werte vor Objekt-Proxies gleichen Namens.
+- **Fix**: `RuntimeVariableManager` nutzt nun die Komponenten-ID für präzise Wert-Synchronisation (löst Konflikte bei Shadowing).
+- **Logging**: Detaillierte Warnungen für fehlgeschlagene Bindings mit Kontext-Analyse hinzugefügt.
+
+- **Variablen-Konsolidierung & Reaktivität**: Systemweite Vereinheitlichung der Variablen-Auflösung ("Typ-Gewissheit").
+  - **ExpressionParser Optimierung**: Alle Kontext-Variablen werden nun vor der Evaluierung in `new Function()` automatisch via `resolveValue()` aufgelöst. Dies verhindert `[object Proxy]` oder `[object Object]` Fehler in JS-Formeln.
+  - **GameRuntime Fix**: Korrektur der `handleStageChange` Sequenz. Der `ActionExecutor` wird nun erst aktualisiert, nachdem alle Stage-Objekte in reaktive Proxies umgewandelt wurden.
+  - **Reaktivitäts-Synchronität**: Behebung einer Race-Condition im `RuntimeVariableManager`, durch die Bindings benachrichtigt wurden, bevor die visuelle Komponente ihren neuen Wert erhalten hatte.
+  - **Basis-Support**: Einführung von `valueOf()` und `toString()` in der Basisklasse `TComponent`, um Variablen direkt in JS-Ausdrücken nutzbar zu machen.
+  - **Zentrale Auflösung**: Implementierung der `resolveValue()` Logik in `PropertyHelper`, die den Inhalt von Variablen (`.value` oder `.items`) extrahiert.
+
+## [2.11.0] - 2026-02-07
+### Hinzugefügt
+- **Metadaten-gesteuerte Sichtbarkeit**: Einführung eines generischen Systems zur Steuerung der Sichtbarkeit von Komponenten.
+  - Neue Flags in `TComponent`: `isService`, `isHiddenInRun`, `isBlueprintOnly`.
+  - Automatische Persistenz dieser Flags in der `project.json` via `toJSON`.
+- **System-Komponenten Optimierung**: Über 15 System-Komponenten (API-Server, Datenbank, GameLoop etc.) wurden auf das neue Sichtbarkeits-System umgestellt.
+- **Daten-Synchronisierung**: Automatisches Spiegeln von Server-Daten (z.B. `users.json`) in den Simulator des Editors via `DataService.seedFromUrl`.
+- **API-Simulator**: Neue Dev-Route im Game-Server (`/api/dev/data/:file`) zur Bereitstellung von Mock-Daten.
+- **Debug-Logging**: Erweitertes Logging für Datenbank-Aktionen (`db_find`, `db_save`) und HTTP-Anfragen.
+
+### Geändert
+- **Zentralisierte Filter-Logik**: 
+  - `Stage.renderObjects` nutzt nun die neuen Metadaten-Flags statt hartkodierter Listen.
+  - System-Komponenten werden im Run-Modus sowie auf nicht-Blueprint-Stages im Editor automatisch ausgeblendet.
+  - `ProjectRegistry.getObjects` erkennt Services nun dynamisch anhand der Metadaten.
+- **Editor-Integration**: Der `Editor` übergibt nun den aktuellen Stage-Typ ('blueprint') an die Renderschicht.
+
+### Behoben
+- **Variablen-Sichtbarkeit**: Behebung eines Fehlers, bei dem Variablen im Run-Modus weiterhin als Boxen sichtbar waren. 
+  - `TVariable` setzt nun standardmäßig `isHiddenInRun = true` und `isBlueprintOnly = true`.
+  - `Stage.ts` filtert Variablen im Run-Modus nun implizit aus, auch wenn die Metadaten-Flags im JSON fehlen.
+- **Build-Stabilität**: Behebung von Lint-Fehlern (ungenutzte Parameter) in `Editor.ts`.
+- **System-Dienste**: Korrektur von `TStatusBar` und `TToast`, um diese im Run-Modus ebenfalls standardmäßig auszublenden.
+
+## [2.10.3] - 2026-02-07
+### Hinzugefügt
+- **Automatische Blueprint-Vererbung**: Der `RuntimeStageManager` mergt nun automatisch alle Stages vom Typ `blueprint` in die aktuelle Stage. Dies ermöglicht eine systemweite Verfügbarkeit von globalen Diensten (API-Server, Datenbanken) und deren Logik (Tasks/Actions).
+
+### Behoben
+- **API-Simulation**: Behebung des "Stummen Login"-Fehlers durch Beseitigung einer Blueprint-Dublette im `project.json` und Aktivierung der Datenbank-gestützten PIN-Prüfung.
+- **Variablen-Interpolation**: Systemweite Korrektur der String-Interpolation (`${...}`).
+  - `PropertyHelper.interpolate` erkennt nun automatisch Variablen-Komponenten (TStringVariable etc.) und dereferenziert deren `.value`.
+  - Auflösung von Objekten ohne Punkt-Notation (z.B. `${currentPIN}`) gefixt.
+  - Zusammenführung von lokalem und globalem Kontext in allen Standard-Aktionen (`StandardActions.ts`).
+  - Behebung von Namenskonflikten zwischen lokalen Stage-Variablen und globalen Projekt-Variablen.
+  - **Dot-Notation Support**: 
+    - `PropertyHelper` unterstützt nun verschachtelte Variablenpfade wie `${$params.pin}` in lokalen Scopes.
+    - `TaskExecutor` löst Parameter nun rekursiv und korrekt auf, was den Login-Flow repariert hat.
+- **Daten-Integrität**:
+  - Hotfix in `RefactoringManager`, um korrupte `UserData` Namen (`🗄️ Benutzer-DB`) beim Laden automatisch zu korrigieren.
+- **Routing & Navigation**:
+  - **Feat**: Rollen-basiertes Routing in `SubmitLogin` implementiert (Superadmin -> Super Dashboard, etc.).
+  - **Fix**: `StandardActions.ts` (`respond_http`) korrigiert, um Objekte bei Interpolation nicht in Strings umzuwandeln (ermöglicht Zugriff auf `user.role`).
+  - **Fix**: `EditorRunManager.ts` aktualisiert, damit `navigate_stage` im Run-Modus auch tatsächlich die Stage wechselt.
+
+## [2.10.1] - 2026-02-07
+### Behoben
+- **Flow-Editor Ausrichtung**: Fix des 80px Offsets bei Knoten-Koordinaten (X-Achse). Knoten und Verbindungen liegen nun wieder korrekt auf der Grid-Ebene.
+- **Flow-Diagramm Persistenz**: Korrektur der `syncToProject` Logik in `FlowSyncManager.ts`. Diagramm-Daten werden nun korrekt pro Task gespeichert (statt sich gegenseitig zu überschreiben).
+- **Daten-Integrität**: Implementierung eines `isLoading` Flags in `FlowEditor.ts`, um korrupte Synchronisation während des Ladevorgangs zu verhindern.
+- **Render-Stabilität**: `ProjectRegistry.ts` prüft nun mit `Array.isArray` auf valide Action-Sequenzen. Dies verhindert TypeErrors bei beschädigten oder leeren Projektdaten.
+
 ## [2.10.0] - 2026-02-07
 ### Hinzugefügt
 - **Flow-Diagramm Refactoring**: Task-Objekte dienen nun als visuelle Wurzel-Knoten in Task-Diagrammen (Ersatz der generischen Start-Knoten).

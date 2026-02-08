@@ -214,8 +214,49 @@
                                     "resultVariable": "isLoggedIn"
                                 },
                                 {
-                                    "type": "navigate_stage",
-                                    "stageId": "stage_main"
+                                    "type": "calculate",
+                                    "formula": "loginResult.user",
+                                    "resultVariable": "currentUser"
+                                },
+                                {
+                                    "type": "condition",
+                                    "condition": "currentUser.role == 'superadmin'",
+                                    "body": [
+                                        {
+                                            "type": "navigate_stage",
+                                            "stageId": "stage_super_dashboard"
+                                        }
+                                    ],
+                                    "elseBody": [
+                                        {
+                                            "type": "condition",
+                                            "condition": "currentUser.role == 'admin'",
+                                            "body": [
+                                                {
+                                                    "type": "navigate_stage",
+                                                    "stageId": "stage_admin_dashboard"
+                                                }
+                                            ],
+                                            "elseBody": [
+                                                {
+                                                    "type": "condition",
+                                                    "condition": "currentUser.role == 'user'",
+                                                    "body": [
+                                                        {
+                                                            "type": "navigate_stage",
+                                                            "stageId": "stage_player_lobby"
+                                                        }
+                                                    ],
+                                                    "elseBody": [
+                                                        {
+                                                            "type": "navigate_stage",
+                                                            "stageId": "stage_main"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
                                 }
                             ],
                             "elseBody": [
@@ -974,9 +1015,119 @@
                     "style": {
                         "boxShadow": "0 0 20px rgba(79, 195, 247, 0.5)"
                     }
+                },
+                {
+                    "id": "obj_apiServer",
+                    "name": "ApiServer",
+                    "className": "TAPIServer",
+                    "x": 35,
+                    "y": 5,
+                    "width": 10,
+                    "height": 8,
+                    "scope": "global",
+                    "style": {
+                        "boxShadow": "0 0 20px rgba(233, 69, 96, 0.5)"
+                    },
+                    "caption": "🖥️ API Server",
+                    "Tasks": {
+                        "onRequest": "HandleApiRequest"
+                    }
+                },
+                {
+                    "id": "obj_userData",
+                    "name": "UserData",
+                    "className": "TDataStore",
+                    "x": 50,
+                    "y": 5,
+                    "width": 8,
+                    "height": 6,
+                    "scope": "global",
+                    "style": {
+                        "boxShadow": "0 0 20px rgba(79, 195, 247, 0.5)"
+                    },
+                    "caption": "🗄️ Benutzer-DB",
+                    "storagePath": "users.json",
+                    "defaultCollection": "users"
                 }
             ],
-            "tasks": []
+            "actions": [
+                {
+                    "name": "ProcessLoginRequest",
+                    "description": "Verarbeitet den Login-Request",
+                    "parameters": [
+                        "requestId",
+                        "pin"
+                    ],
+                    "body": [
+                        {
+                            "type": "db_find",
+                            "target": "UserData",
+                            "query": {
+                                "pin": "${$params.pin}"
+                            },
+                            "resultVariable": "foundUsers"
+                        },
+                        {
+                            "type": "condition",
+                            "condition": "foundUsers.length > 0",
+                            "body": [
+                                {
+                                    "type": "respond_http",
+                                    "requestId": "${$params.requestId}",
+                                    "status": 200,
+                                    "data": {
+                                        "success": true,
+                                        "token": "gcs-sim-token",
+                                        "user": "${foundUsers[0]}"
+                                    }
+                                }
+                            ],
+                            "elseBody": [
+                                {
+                                    "type": "respond_http",
+                                    "requestId": "${$params.requestId}",
+                                    "status": 401,
+                                    "data": {
+                                        "success": false,
+                                        "error": "Ungültiger PIN"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "tasks": [
+                {
+                    "name": "HandleApiRequest",
+                    "actionSequence": [
+                        {
+                            "type": "condition",
+                            "condition": "$eventData.path == '/api/auth/login'",
+                            "body": [
+                                {
+                                    "type": "action",
+                                    "name": "ProcessLoginRequest",
+                                    "params": {
+                                        "requestId": "$eventData.requestId",
+                                        "pin": "$eventData.body.pin"
+                                    }
+                                }
+                            ],
+                            "elseBody": [
+                                {
+                                    "type": "respond_http",
+                                    "requestId": "${$eventData.requestId}",
+                                    "status": 404,
+                                    "data": {
+                                        "error": "Endpoint not simulated"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         },
         {
             "id": "stage_player_lobby",

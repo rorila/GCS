@@ -228,6 +228,26 @@ app.get('/api/platform/children', (req, res) => {
 });
 
 /**
+ * GET /api/dev/data/:file - Get a raw data file (Development only)
+ * Used to sync server-side data (like users.json) with Editor simulator.
+ */
+app.get('/api/dev/data/:file', (req, res) => {
+    const filename = req.params.file;
+    const filePath = path.join(DATA_DIR, filename);
+
+    if (fs.existsSync(filePath)) {
+        try {
+            const content = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+            res.json(content);
+        } catch (e) {
+            res.status(500).json({ error: 'Failed to parse data file' });
+        }
+    } else {
+        res.status(404).json({ error: 'Data file not found' });
+    }
+});
+
+/**
  * GET /platform/games - List uploaded games only
  */
 app.get('/platform/games', (req, res) => {

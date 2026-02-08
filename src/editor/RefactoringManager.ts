@@ -727,6 +727,28 @@ export class RefactoringManager {
         });
 
         console.log('[RefactoringManager] Action sequences cleaned');
+
+        // HOTFIX: Repair corrupted UserData object name (persisted from previous TPanel bug)
+        // Check objects in stages
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if (stage.objects) {
+                    const userData = stage.objects.find((o: any) => o.id === 'obj_userData');
+                    if (userData && userData.name !== 'UserData') {
+                        console.warn(`[RefactoringManager] Fixing corrupted UserData name: "${userData.name}" -> "UserData"`);
+                        userData.name = 'UserData';
+                    }
+                }
+            });
+        }
+        // Check global objects (legacy)
+        if (project.objects) {
+            const userData = project.objects.find((o: any) => o.id === 'obj_userData');
+            if (userData && userData.name !== 'UserData') {
+                console.warn(`[RefactoringManager] Fixing corrupted UserData name (global): "${userData.name}" -> "UserData"`);
+                userData.name = 'UserData';
+            }
+        }
     }
 
     /**

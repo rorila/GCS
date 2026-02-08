@@ -30,6 +30,11 @@ export class TRepeater extends TWindow {
         this.style.backgroundColor = '#ff9800';  // Orange
         this.style.borderColor = '#e65100';
         this.style.borderWidth = 2;
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     public getInspectorProperties(): TPropertyDef[] {

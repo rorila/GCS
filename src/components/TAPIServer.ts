@@ -31,6 +31,11 @@ export class TAPIServer extends TPanel implements IRuntimeComponent {
         this.style.borderWidth = 2;
         this.style.borderRadius = 8;
         this.caption = '🖥️ API Server';
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     /**

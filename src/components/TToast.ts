@@ -63,6 +63,11 @@ export class TToast extends TWindow {
         this.style.backgroundColor = 'transparent';
         this.style.borderWidth = 0;
         this.style.visible = true;  // Container is always "visible"
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     /**

@@ -38,7 +38,22 @@ export class EditorRunManager {
             (this.editor as any).syncStageObjectsToProject();
 
             this.runtime = new GameRuntime(this.editor.project, undefined, {
-                onNavigate: () => this.editor.switchView('run'),
+                onNavigate: (target: string, params?: any) => {
+                    // target format: "stage:stageId" or just "stageId"
+                    let stageId = target;
+                    if (target.startsWith('stage:')) {
+                        stageId = target.substring(6);
+                    }
+
+                    if (stageId && this.editor.project.stages?.some(s => s.id === stageId)) {
+                        console.log(`[RunManager] Navigating to stage: ${stageId}`);
+                        // Update Editor State (UI)
+                        (this.editor as any).switchStage(stageId);
+                        // Runtime update is handled via onStageSwitch callback which calls handleStageSwitch
+                    }
+
+                    this.editor.switchView('run');
+                },
                 makeReactive: true,
                 multiplayerManager: mpManager,
                 onRender: () => this.editor.render(),
@@ -52,8 +67,8 @@ export class EditorRunManager {
             }
 
             if (this.editor.stage) {
-                this.editor.stage.onEvent = (objectId: string, eventName: string) => {
-                    if (this.runtime) this.runtime.handleEvent(objectId, eventName);
+                this.editor.stage.onEvent = (objectId: string, eventName: string, data?: any) => {
+                    if (this.runtime) this.runtime.handleEvent(objectId, eventName, data);
                 };
             }
 

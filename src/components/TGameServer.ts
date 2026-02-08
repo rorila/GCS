@@ -29,6 +29,11 @@ export class TGameServer extends TWindow implements IRuntimeComponent {
         this.style.borderColor = '#512da8';
         this.style.borderWidth = 2;
         this.style.color = '#ffffff';
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     // Getters for runtime state

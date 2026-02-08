@@ -36,6 +36,11 @@ export class THandshake extends TWindow {
         this.style.backgroundColor = '#5c6bc0';  // Indigo
         this.style.borderColor = '#3949ab';
         this.style.borderWidth = 2;
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     public getInspectorProperties(): TPropertyDef[] {

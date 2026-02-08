@@ -144,8 +144,6 @@ export class PropertyWatcher {
 
         const propertyWatchers = objectWatchers.get(propertyPath);
         if (propertyWatchers && propertyWatchers.size > 0) {
-            console.log(`[PropertyWatcher] Notifying ${propertyWatchers.size} listeners for ${objName}.${propertyPath}`);
-
             // Call all callbacks
             propertyWatchers.forEach(callback => {
                 try {

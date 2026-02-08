@@ -28,6 +28,11 @@ export class TStageController extends TWindow {
         this.style.backgroundColor = '#9c27b0';  // Lila für Stage-Controller
         this.style.color = '#ffffff';
         this.visible = true;
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     // ─────────────────────────────────────────────

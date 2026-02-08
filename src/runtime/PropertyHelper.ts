@@ -17,7 +17,18 @@ export class PropertyHelper {
             current = current[part];
         }
 
-        return current;
+        return this.resolveValue(current);
+    }
+
+    /**
+     * Resolves a value from an object, unpacking variable components if necessary.
+     */
+    static resolveValue(val: any): any {
+        if (val && typeof val === 'object' && (val.isVariable === true || val.className?.includes('Variable'))) {
+            if (val.value !== undefined) return val.value;
+            if (Array.isArray(val.items)) return val.items;
+        }
+        return val;
     }
 
     /**
@@ -58,18 +69,41 @@ export class PropertyHelper {
             if (trimmedPath === 'false') return 'false';
             if (!isNaN(Number(trimmedPath))) return trimmedPath;
 
-            // 1. Try simple vars
-            if (vars[trimmedPath] !== undefined) return String(vars[trimmedPath]);
-
-            // 2. Try object property path if objects are provided
-            if (objects && trimmedPath.includes('.')) {
-                const [objName, ...propParts] = trimmedPath.split('.');
-                const propPath = propParts.join('.');
-                const obj = objects.find(o => o.name === objName || o.id === objName);
-                if (obj) {
-                    const val = this.getPropertyValue(obj, propPath);
-                    if (val !== undefined) return String(val);
+            // 1. Try objects first (Live components have priority)
+            if (objects) {
+                if (trimmedPath.includes('.')) {
+                    const [objName, ...propParts] = trimmedPath.split('.');
+                    const propPath = propParts.join('.');
+                    const obj = objects.find(o => o.name === objName || o.id === objName);
+                    if (obj) {
+                        const val = this.getPropertyValue(obj, propPath);
+                        if (val !== undefined) return String(val);
+                    }
+                } else {
+                    // Direct object reference (e.g. ${currentPIN})
+                    const obj = objects.find(o => o.name === trimmedPath || o.id === trimmedPath);
+                    if (obj) {
+                        const resolved = this.resolveValue(obj);
+                        if (resolved !== obj) return String(resolved ?? '');
+                        // Otherwise return the name or [object]
+                        return obj.name || obj.id || String(obj);
+                    }
                 }
+            }
+
+            // 2. Fallback to simple vars (parameters, event data, etc.)
+            let val = vars[trimmedPath];
+
+            // If not found directly, try dot notation lookup in vars
+            if (val === undefined && trimmedPath.includes('.')) {
+                const [rootVar, ...parts] = trimmedPath.split('.');
+                if (vars[rootVar] !== undefined) {
+                    val = PropertyHelper.getPropertyValue(vars[rootVar], parts.join('.'));
+                }
+            }
+
+            if (val !== undefined) {
+                return String(this.resolveValue(val));
             }
 
             return '';

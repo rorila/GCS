@@ -114,9 +114,21 @@ export class RuntimeVariableManager {
                 }
 
                 // Sync to Stage Component if exists (for reactivity and visual consistency)
-                const component = (this.host as any).objects?.find((o: any) => o.name === prop && o.isVariable);
-                if (component && component.value !== finalValue) {
-                    component.value = finalValue;
+                // Sync to Stage Component if exists (for reactivity and visual consistency)
+                // PREFER ID SYNC if we have a varDef, otherwise fallback to name
+                const component = (this.host as any).objects?.find((o: any) =>
+                    (varDef && o.id === varDef.id) ||
+                    (o.name === prop && o.isVariable)
+                );
+
+                if (component) {
+                    if (component.items !== undefined && Array.isArray(value)) {
+                        if (JSON.stringify(component.items) !== JSON.stringify(value)) {
+                            component.items = value;
+                        }
+                    } else if (component.value !== value) {
+                        component.value = value;
+                    }
                 }
 
                 this.host.reactiveRuntime.setVariable(prop, finalValue);

@@ -98,7 +98,12 @@ export class ReactiveRuntime {
                 const newValue = ExpressionParser.interpolate(expression, context);
                 const targetName = targetObj.name || targetObj.id || 'Unknown';
 
-                console.debug(`%c[Binding] Updating ${targetName}.${targetProp} ← ${newValue}`, 'color: #9c27b0; font-weight: bold');
+                if (newValue === "PIN: " || (expression.includes("${") && newValue === expression)) {
+                    console.warn(`[Binding] Possible resolution failure for ${targetName}.${targetProp}. Context keys:`, Object.keys(context));
+                }
+                if (newValue === undefined || newValue === 'undefined') {
+                    console.warn(`[Binding] WARNING: newValue for ${targetName}.${targetProp} is undefined! Context keys:`, Object.keys(context));
+                }
 
                 // Update target property
                 if (targetProp.includes('.')) {
@@ -177,9 +182,11 @@ export class ReactiveRuntime {
             context[name] = value;
         });
 
-        // 2. Add all registered objects (Proxies/Components) - they overwrite variables with same name
+        // 2. Add all registered objects (Proxies/Components) - they only overwrite if no variable exists
         this.objectsByName.forEach((obj, name) => {
-            context[name] = obj;
+            if (context[name] === undefined) {
+                context[name] = obj;
+            }
         });
 
         // 3. Add by ID
@@ -187,6 +194,7 @@ export class ReactiveRuntime {
             if (!context[id]) context[id] = obj;
         });
 
+        // console.debug('[ReactiveRuntime] Context generated:', Object.keys(context));
         return context;
     }
 

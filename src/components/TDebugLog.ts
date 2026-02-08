@@ -506,6 +506,16 @@ export class TDebugLog {
             } else if (data.type === 'call_method') {
                 const params = data.params ? (Array.isArray(data.params) ? data.params.join(', ') : data.params) : '';
                 detailText = `(${data.target || '?'}.${data.method || '?'}(${params}))`;
+            } else if (data.type === 'http') {
+                const bodyStr = data.body ? (typeof data.body === 'object' ? JSON.stringify(data.body) : String(data.body)) : '';
+                const shortBody = bodyStr.length > 50 ? bodyStr.substring(0, 50) + '...' : bodyStr;
+                detailText = `${data.method || 'GET'} ${data.url || '?'}${shortBody ? ' - Body: ' + shortBody : ''}`;
+            } else if (data.type === 'respond_http') {
+                const dataStr = data.data ? (typeof data.data === 'object' ? JSON.stringify(data.data) : String(data.data)) : '';
+                const shortData = dataStr.length > 50 ? dataStr.substring(0, 50) + '...' : dataStr;
+                detailText = `Status: ${data.status || 200} - Data: ${shortData}`;
+            } else if (data.type === 'condition') {
+                detailText = `Bedingung: ${data.condition || '?'}`;
             }
         }
 

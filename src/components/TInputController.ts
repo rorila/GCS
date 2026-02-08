@@ -29,6 +29,11 @@ export class TInputController extends TWindow implements IRuntimeComponent {
         // Bind handlers
         this.handleKeyDown = this.onKeyDown.bind(this);
         this.handleKeyUp = this.onKeyUp.bind(this);
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     public getInspectorProperties(): TPropertyDef[] {

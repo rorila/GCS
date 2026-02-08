@@ -49,6 +49,11 @@ export class TGameLoop extends TWindow implements IRuntimeComponent {
         this.style.borderColor = '#1565c0';
         this.style.borderWidth = 2;
         this.style.color = '#ffffff';
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     // Getter for bounds - derived from gridConfig

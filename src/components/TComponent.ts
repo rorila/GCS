@@ -44,6 +44,11 @@ export abstract class TComponent {
     public isVariable: boolean = false; // Flag for variable-like components
     public isTransient: boolean = false; // If true, this component is not persisted in project files
 
+    // Visibility & Scoping Meta-Flags
+    public isService: boolean = false;       // If true, component is merged globally across stages
+    public isHiddenInRun: boolean = false;    // If true, component is hidden in run mode
+    public isBlueprintOnly: boolean = false;  // If true, component is only visible on blueprint stages in editor
+
     // Drag & Drop Properties
     public draggable: boolean = false;
     public dragMode: 'move' | 'copy' = 'move';
@@ -77,7 +82,10 @@ export abstract class TComponent {
         const json: any = {
             className: (this as any).className || this.constructor.name,
             id: this.id,
-            isVariable: this.isVariable
+            isVariable: this.isVariable,
+            isService: this.isService,
+            isHiddenInRun: this.isHiddenInRun,
+            isBlueprintOnly: this.isBlueprintOnly
         };
 
         // Tasks separat behandeln
@@ -149,5 +157,24 @@ export abstract class TComponent {
 
     public findChild(name: string): TComponent | null {
         return this.children.find(c => c.name === name) || null;
+    }
+
+    /**
+     * JS-Integration: Erlaubt es Komponenten, in Ausdrücken (z.B. currentPIN + '2')
+     * direkt ihren Wert zu verwenden.
+     */
+    public valueOf(): any {
+        if (this.isVariable) {
+            if ((this as any).value !== undefined) return (this as any).value;
+            if ((this as any).items !== undefined) return (this as any).items;
+        }
+        return this;
+    }
+
+    public toString(): string {
+        const val = this.valueOf();
+        if (val === this) return `[${(this as any).className || this.constructor.name}: ${this.name}]`;
+        if (Array.isArray(val)) return val.join(', ');
+        return String(val ?? '');
     }
 }

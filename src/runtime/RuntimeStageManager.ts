@@ -35,9 +35,10 @@ export class RuntimeStageManager {
         let mergedActions: any[] = [];
         let mergedFlowCharts: any = { ...(this.project.flowCharts || {}) };
 
-        // Process chain from Ancestor to Child (Overriding)
+        // 1. Process Blueprint Stages first (Global Baseline)
         const objectIdSet = new Set<string>();
-        stageChain.forEach(stage => {
+        const blueprintStages = this.project.stages?.filter((s: any) => s.type === 'blueprint') || [];
+        const processStage = (stage: any) => {
             // Objects
             const stageObjects = hydrateObjects(stage.objects || []);
             stageObjects.forEach(obj => {
@@ -77,6 +78,14 @@ export class RuntimeStageManager {
                     objectIdSet.add(vObj.id);
                 });
             }
+        };
+
+        // First merge all blueprints
+        blueprintStages.forEach(processStage);
+
+        // Then merge the actual stage chain (overriding blueprints if necessary)
+        stageChain.forEach(s => {
+            if (s.type !== 'blueprint') processStage(s);
         });
 
         // 3. Special Inheritance: Global Objects from 'Main' (baseline for all sub-stages)

@@ -43,6 +43,11 @@ export class THeartbeat extends TWindow {
         this.style.backgroundColor = '#e91e63';  // Pink
         this.style.borderColor = '#c2185b';
         this.style.borderWidth = 2;
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
+        this.isHiddenInRun = true;
+        this.isBlueprintOnly = true;
     }
 
     public getInspectorProperties(): TPropertyDef[] {

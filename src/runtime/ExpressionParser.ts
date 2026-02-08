@@ -1,3 +1,5 @@
+import { PropertyHelper } from './PropertyHelper';
+
 /**
  * ExpressionParser - Parses and evaluates expressions in strings
  * 
@@ -33,13 +35,8 @@ export class ExpressionParser {
      * @returns Interpolated value (string, number, boolean, etc.)
      */
     static interpolate(text: any, context: Record<string, any>): any {
-        // If not a string, return as-is
-        if (typeof text !== 'string') {
-            return text;
-        }
-
-        // If no ${...} expressions, return as-is
-        if (!text.includes('${')) {
+        // If not a string or no ${...} expressions, return as-is
+        if (typeof text !== 'string' || !text.includes('${')) {
             return text;
         }
 
@@ -49,8 +46,8 @@ export class ExpressionParser {
                 const value = this.evaluate(expression.trim(), context);
                 return this.valueToString(value);
             } catch (error) {
-                console.warn(`[ExpressionParser] Failed to evaluate: ${expression}`, error);
-                return match; // Return original if evaluation fails
+                console.error(`[ExpressionParser] Error evaluating expression "${expression}":`, error);
+                return match; // Return original match on error
             }
         });
 
@@ -85,10 +82,8 @@ export class ExpressionParser {
         if (typeof value === 'number' || typeof value === 'boolean') return String(value);
 
         // If it's a Variable-Component, we want its actual value/content
-        if (value.isVariable === true) {
-            if (value.value !== undefined) return this.valueToString(value.value);
-            if (Array.isArray(value.items)) return this.valueToString(value.items);
-        }
+        const resolved = PropertyHelper.resolveValue(value);
+        if (resolved !== value) return this.valueToString(resolved);
 
         // Handle Arrays
         if (Array.isArray(value)) {
@@ -132,10 +127,11 @@ export class ExpressionParser {
         // but still requires trusted input. For production, use a proper parser.
         try {
             // Create a function with context variables as parameters
-            // Only include keys that are valid JS identifiers to prevent SyntaxErrors
             const validIdentifierRegex = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
             const contextKeys = Object.keys(context).filter(key => validIdentifierRegex.test(key));
-            const contextValues = contextKeys.map(key => context[key]);
+
+            // Resolve all values to their primitive/actual values before evaluation
+            const contextValues = contextKeys.map(key => PropertyHelper.resolveValue(context[key]));
 
             // Create function that evaluates the expression
             const func = new Function(...contextKeys, `return ${expression}`);
@@ -166,13 +162,19 @@ export class ExpressionParser {
      */
     static getNestedProperty(path: string, context: Record<string, any>): any {
         const parts = path.split('.');
-        let current: any = context;
+        const rootKey = parts[0];
+        let current: any = PropertyHelper.resolveValue(context[rootKey]);
 
-        for (const part of parts) {
-            if (current === null || current === undefined) {
-                return undefined;
+        if (parts.length > 1) {
+            for (let i = 1; i < parts.length; i++) {
+                if (current === null || current === undefined) {
+                    return undefined;
+                }
+                current = current[parts[i]];
+
+                // If nested property is also a variable, resolve it
+                current = PropertyHelper.resolveValue(current);
             }
-            current = current[part];
         }
 
         return current;
