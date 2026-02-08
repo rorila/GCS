@@ -96,14 +96,6 @@ export class ReactiveRuntime {
             update: () => {
                 const context = this.getContext();
                 const newValue = ExpressionParser.interpolate(expression, context);
-                const targetName = targetObj.name || targetObj.id || 'Unknown';
-
-                if (newValue === "PIN: " || (expression.includes("${") && newValue === expression)) {
-                    console.warn(`[Binding] Possible resolution failure for ${targetName}.${targetProp}. Context keys:`, Object.keys(context));
-                }
-                if (newValue === undefined || newValue === 'undefined') {
-                    console.warn(`[Binding] WARNING: newValue for ${targetName}.${targetProp} is undefined! Context keys:`, Object.keys(context));
-                }
 
                 // Update target property
                 if (targetProp.includes('.')) {
