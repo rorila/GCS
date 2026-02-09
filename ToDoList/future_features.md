@@ -23,6 +23,14 @@
     - Automatische Platzierung von IF-ELSE Zweigen (True = Rechts, False = Links).
     - Grid-Ausrichtung und Kollisionsvermeidung für Pfeile.
 
+### [ ] Dynamische Ressourcen & Visueller Data-Modeler
+- **Ziel**: Wegfall von statischen URLs; Datenstrukturen werden visuell definiert.
+- **Konzept**: 
+    - Server scannt `db.json` und bietet Top-Level-Keys als Ressourcen an.
+    - `DataAction` nutzt ein "Ressource"-Dropdown statt URL-Input.
+    - Visueller Designer zur Definition von Feldern und Datentypen.
+    - Automatisches API-Routing (`/api/data/:resource`) basierend auf dem Modell.
+
 ---
 
 ## 2. Modularisierung (Code-Hygiene)

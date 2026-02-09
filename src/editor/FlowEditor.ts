@@ -4,6 +4,7 @@ import { FlowElement } from './flow/FlowElement';
 import { FlowAction } from './flow/FlowAction';
 import { FlowTask } from './flow/FlowTask'; import { FlowStart } from './flow/FlowStart';
 import { FlowCondition } from './flow/FlowCondition';
+import { FlowDataAction } from './flow/FlowDataAction';
 
 
 import { FlowConnection } from './flow/FlowConnection';
@@ -1150,6 +1151,18 @@ export class FlowEditor implements FlowMapHost {
                     node.Name = this.generateUniqueActionName(initialName || 'Action');
                 }
                 // Apply current detail mode
+                if (this.showDetails) {
+                    (node as FlowAction).setShowDetails(true, this.project);
+                }
+                break;
+            case 'DataAction':
+                node = new FlowDataAction(id, x, y, this.canvas, this.flowStage.cellSize);
+                // Generate unique name if not provided
+                if (initialName && initialName !== 'DataAction' && initialName !== 'Daten-Aktion') {
+                    node.Name = initialName;
+                } else {
+                    node.Name = this.generateUniqueActionName(initialName || 'DataAction');
+                }
                 if (this.showDetails) {
                     (node as FlowAction).setShowDetails(true, this.project);
                 }

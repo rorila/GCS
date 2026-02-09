@@ -187,6 +187,16 @@ export class GameRuntime implements IVariableHost {
     }
 
     private handleStageChange(_oldStageId: string, newStageId: string): void {
+        // 1. BEFORE Stage Change: Trigger onLeave on the OLD stage
+        // We use the current this.stage as it still represents the old stage
+        if (this.stage && this.taskExecutor) {
+            const onLeaveTask = this.stage.Tasks?.onLeave;
+            if (onLeaveTask) {
+                console.log(`[GameRuntime] Triggering onLeave for stage: ${this.stage.id} (Task: ${onLeaveTask})`);
+                this.taskExecutor.execute(onLeaveTask, { sender: this.stage }, this.contextVars, this.stage);
+            }
+        }
+
         this.stage = this.project.stages?.find((s: any) => s.id === newStageId);
         if (!this.stage) return;
 
@@ -228,6 +238,22 @@ export class GameRuntime implements IVariableHost {
         this.actionExecutor.setObjects(this.objects);
         this.initStageController();
         this.start();
+
+        // 2. AFTER Stage Change: Trigger onEnter and onRuntimeStart on the NEW stage
+        if (this.stage && this.taskExecutor) {
+            const onEnterTask = this.stage.Tasks?.onEnter;
+            if (onEnterTask) {
+                console.log(`[GameRuntime] Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
+                this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage);
+            }
+
+            const onRuntimeStartTask = this.stage.Tasks?.onRuntimeStart;
+            if (onRuntimeStartTask) {
+                console.log(`[GameRuntime] Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
+                this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage);
+            }
+        }
+
         if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
     }
 

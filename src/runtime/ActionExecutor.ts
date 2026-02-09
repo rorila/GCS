@@ -25,7 +25,7 @@ export class ActionExecutor {
     /**
      * Executes a single action
      */
-    async execute(action: any, vars: Record<string, any>, globalVars: Record<string, any> = {}, contextObj?: any, parentId?: string): Promise<void> {
+    async execute(action: any, vars: Record<string, any>, globalVars: Record<string, any> = {}, contextObj?: any, parentId?: string): Promise<any> {
         if (!action || !action.type) return;
 
         const actionName = action.name || this.getDescriptiveName(action);
@@ -39,14 +39,13 @@ export class ActionExecutor {
         // 1. Check Registry first
         const handler = actionRegistry.getHandler(action.type);
         if (handler) {
-            await handler(action, {
+            return await handler(action, {
                 vars,
                 contextVars: globalVars,
                 eventData: contextObj,
                 multiplayerManager: this.multiplayerManager,
                 onNavigate: this.onNavigate
             });
-            return;
         }
 
         // 2. Legacy Fallback (only for anything not yet in Registry)

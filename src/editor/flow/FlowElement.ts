@@ -367,7 +367,7 @@ export abstract class FlowElement {
         return this.bottomAnchor;
     }
 
-    public getAnchorPosition(type: 'input' | 'output' | 'true' | 'false' | 'top' | 'bottom'): { x: number, y: number } {
+    public getAnchorPosition(type: 'input' | 'output' | 'true' | 'false' | 'success' | 'error' | 'top' | 'bottom'): { x: number, y: number } {
         // Use mathematical center. Since we use border-box, x and y are the outer edges.
         const centerX = this.x + (this.width / 2);
         const centerY = this.y + (this.height / 2);

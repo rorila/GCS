@@ -209,6 +209,10 @@ export class FlowContextMenuProvider {
             {
                 label: '📁 Task hinzufügen',
                 action: () => this.host.createNode('Task', x, y)
+            },
+            {
+                label: '🗄️ Daten-Aktion hinzufügen',
+                action: () => this.host.createNode('DataAction', x, y)
             }
         ];
 

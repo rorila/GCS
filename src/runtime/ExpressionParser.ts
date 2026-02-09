@@ -55,16 +55,11 @@ export class ExpressionParser {
         // Enhanced trim to handle cases like "${ value } "
         const trimmedText = text.trim();
         if (trimmedText.startsWith('${') && trimmedText.endsWith('}') && !trimmedText.includes('${', 2)) {
-            // Single expression - try to preserve type for primitives, but stringify objects
+            // Single expression - try to preserve type including objects and arrays.
+            // This is critical for inspector properties like 'options' which expect a real array.
             const expression = trimmedText.slice(2, -1).trim();
             try {
-                const value = this.evaluate(expression, context);
-                // If it's a "real" object (and not null/primitive), stringify it
-                // to avoid [object Object] when it's assigned to a string property like a label's text.
-                if (value !== null && typeof value === 'object') {
-                    return this.valueToString(value);
-                }
-                return value;
+                return this.evaluate(expression, context);
             } catch (error) {
                 return result;
             }

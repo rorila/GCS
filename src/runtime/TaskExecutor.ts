@@ -104,7 +104,7 @@ export class TaskExecutor {
 
         if (!task) {
             // Only warn for task names that look intentional (not just lifecycle events without handlers)
-            const optionalEvents = ['onStart', 'onStop', 'onValueChanged', 'onLoad', 'onUnload', 'onFocus', 'onBlur'];
+            const optionalEvents = ['onStart', 'onStop', 'onValueChanged', 'onLoad', 'onUnload', 'onFocus', 'onBlur', 'onEnter', 'onLeave'];
             const isOptionalEvent = optionalEvents.some(evt => taskName.endsWith(`.${evt}`));
             if (!isOptionalEvent) {
                 console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
@@ -357,6 +357,9 @@ export class TaskExecutor {
         switch (item.type) {
             case 'condition':
                 await this.handleCondition(item, vars, globalVars, contextObj, depth, parentId);
+                break;
+            case 'data_action':
+                await this.handleDataAction(item, vars, globalVars, contextObj, depth, parentId);
                 break;
             case 'task':
                 await this.execute(item.name, vars, globalVars, contextObj, depth + 1, parentId, item.params);
@@ -694,5 +697,30 @@ export class TaskExecutor {
             idx++;
         }
         console.log(`[TaskExecutor] FOREACH loop completed after ${idx} iterations`);
+    }
+
+    /**
+     * Executes a data action and branches based on the result
+     */
+    private async handleDataAction(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
+        const action = this.resolveAction(item);
+        if (!action) {
+            console.warn(`[TaskExecutor] DataAction definition not found: ${item.name || item.type}`);
+            return;
+        }
+
+        console.log(`[TaskExecutor] Executing DataAction: ${action.name || action.type}`);
+
+        // Execute the action and get the result
+        const result = await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+
+        // Branching: result !== false is considered success
+        const isSuccess = result !== false;
+        console.log(`[TaskExecutor] DataAction "${action.name || action.type}" finished. Success: ${isSuccess}`);
+
+        const body = isSuccess ? item.successBody : item.errorBody;
+        if (body && Array.isArray(body)) {
+            await this.executeBody(body, vars, globalVars, contextObj, depth, parentId);
+        }
     }
 }

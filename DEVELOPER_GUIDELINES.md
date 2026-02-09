@@ -406,8 +406,16 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
   - **Dynamische Eigenschaften**: Werden (falls implementiert) über `getInspectorProperties()` generiert (z.B. variable Parameter-Listen bei Tasks).
   - **Duplikate vermeiden**: Eigenschaften, die bereits in der statischen JSON-Datei definiert sind, **DÜRFEN NICHT** zusätzlich in `getInspectorProperties()` zurückgegeben werden. Dies ist essenziell für eine saubere UI (wie z.B. bei `FlowVariable` umgesetzt).
 - **Action-Properties**: `FlowAction` fungiert als Proxy für die globale `project.actions` Definition. Getters/Setters wie `actionType`, `target`, `changesJSON` wandeln die internen Strukturen für den Inspector in Strings oder primitive Werte um.
-- **Datenquellen**: `TSelect` Komponenten unterstützen dynamische Quellen via `source`:
-  - `tasks`, `actions`, `variables`, `stages`, `objects`, `services` und `easing-functions`.
+  - **WICHTIG (v2.14.0)**: Nutze innerhalb der Proxies immer `this.getActionDefinition()`, um sicherzustellen, dass sowohl eigenständige als auch verlinkte Aktionen korrekt gelesen/geschrieben werden.
+
+- **Inspector Template Priority (v2.14.0)**:
+  - Bei der Auswahl eines Templates (`inspectorFile`) hat die fachliche Spezialisierung Vorrang vor der dynamischen Generierung.
+  - Der `JSONInspector` überspringt die dynamische Generierung (`generateUIFromProperties`), wenn ein spezialisiertes Template wie `inspector_data_action.json` oder `inspector_task.json` geladen wurde. Dies verhindert die Duplizierung von Eingabefeldern.
+
+- **DataAction Pattern (v2.14.0)**:
+  - `DataAction` ist ein spezialisierter Knoten für asynchrone Server-Operationen mit visueller Branching-Logik (Success/Error).
+  - Konfiguration erfolgt über `inspector_data_action.json`.
+  - Variablen-Auswahl: Nutze `${availableVariablesWithScope}`, um dem Benutzer via Emojis den Scope (🌎 Global, 🎭 Stage) anzuzeigen.
 - **Dynamische Action-Parameter (TActionParams)**:
   - Jede neue Aktion muss in der `ActionRegistry.ts` (und optional in `StandardActions.ts`) registriert werden.
   - Die UI für Parameter wird automatisch aus dem `parameters`-Array der Metadaten generiert.
@@ -415,6 +423,12 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
   - Komplexere Aktionen (wie `animate`) können so ohne Änderungen an JSON-Dateien oder Dialog-Renderern hinzugefügt werden.
 - **Dialog-Expressions**:
   - Im `JSONDialogRenderer` müssen Variablen in Properties wie `source` zwingend mit `${...}` umschlossen werden (z.B. `"source": "${dialogData.images}"`), damit sie als Expression ausgewertet werden. Ohne `${}` wird der Wert als String-Literal behandelt.
+
+### [Inspector-Property-Sync (v2.14.0)](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/JSONInspector.ts)
+- **Namenskonvention**: Damit der `JSONInspector` Änderungen automatisch in das Fachmodell (`selectedObject`) zurückschreiben kann, müssen die Namen (`name`) der Inspector-Objekte dem Schema `<propertyName>Input` folgen (z.B. `resourceInput` für die Eigenschaft `resource`).
+- **Suffix-Handling**: Der `JSONInspector` entfernt beim Speichern (`handleObjectChange`) automatisch den Suffix `Input`, um den Ziel-Property-Namen zu ermitteln.
+- **Re-rendering**: Wenn eine Änderung an einer Eigenschaft die Sichtbarkeit anderer Felder beeinflusst (z.B. `resource` oder `queryProperty`), muss in `handleObjectChange` explizit `this.render()` aufgerufen werden, um die UI-Struktur zu aktualisieren.
+- **Daten-Abruf**: Nutze `fetchResourceProperties` in `JSONInspector`, um beim Wechsel einer Ressource automatisch deren Metadaten (Properties) abzufragen und als reaktive Variable `availableResourceProperties` zur Verfügung zu stellen.
 
 ## Namensgebung & Eindeutigkeit
 - **Eindeutigkeit**: Namen für Variablen, Actions und Tasks müssen projektweit eindeutig sein.
@@ -619,3 +633,17 @@ In Projekten vom Typ "Server" (Stage-lose Applikationen) wird die Stage als **Sy
     2. Validierung der Stage-ID.
     3. **WICHTIG**: Aufruf von `editor.switchStage(id)`, um den Editor-State (und damit die aktive Stage für den Renderer) zu aktualisieren.
     4. Ein reiner View-Wechsel (`switchView`) reicht nicht aus, da die `GameRuntime` sonst auf der alten Stage weiterläuft (Geister-Zustand).
+
+## [Patching großer Projektdateien](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/patch_project.cjs) (v2.13.0)
+Bei sehr großen `project.json` Dateien (über 1500 Zeilen) können Standard-Editoren an ihre Grenzen stoßen (Token-Limits oder Match-Fehler durch komplexe JSON-Strukturen).
+- **Lösung**: Nutze ein Node.js Patch-Skript (`.cjs`), um strukturelle Änderungen via `JSON.parse` und `JSON.stringify` vorzunehmen.
+- **Workflow**: 
+    1. Skript erstellen, das die Stage via ID sucht.
+    2. Gewünschte Arrays (`actions`, `tasks`, `variables`) direkt im Objekt-Modell ersetzen.
+    3. Datei zurückschreiben.
+- **Vorteil**: 100%ige Integrität der JSON-Syntax und Vermeidung von Zeilenverschiebungs-Problemen.
+
+## [Room Management & Kontext-Auflösung](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/game-server/src/server.ts) (v2.13.0)
+- **Kontext-Endpoint**: Nutze `/api/platform/context/:userId`, um beim Start eines Dashboards die gesamte Hierarchie (City -> House -> Room) des Benutzers in einer einzigen Anfrage aufzulösen.
+- **Speicherung**: Context-Daten im Dashboard sollten in einer globalen oder Stage-lokalen Variable `userContext` vorgehalten werden, um Referenzen in Formeln (z.B. `userContext.house.id`) zu ermöglichen.
+- **API-First**: Das Erstellen von Ressourcen (Räume, User) sollte IMMER über den `TAPIServer` (POST-Request) erfolgen, um die Backend-Validierung und Hierarchie-Logik (z.B. automatisches Zuweisen des Admins zum Raum) zu nutzen.

@@ -228,6 +228,43 @@ app.get('/api/platform/children', (req, res) => {
 });
 
 /**
+ * POST /api/platform/rooms - Create a new room
+ */
+app.post('/api/platform/rooms', (req, res) => {
+    const { name, houseId, adminId } = req.body;
+
+    if (!name || !houseId || !adminId) {
+        return res.status(400).json({ error: 'Missing name, houseId or adminId' });
+    }
+
+    const newRoom: any = {
+        id: `room_${Math.floor(Math.random() * 1000000)}`,
+        name,
+        houseId,
+        adminId,
+        config: {}
+    };
+
+    // 1. Add to hierarchy
+    if (!db.hierarchy.rooms) db.hierarchy.rooms = [];
+    db.hierarchy.rooms.push(newRoom);
+
+    // 2. Update Admin User
+    const admin = db.users.find((u: any) => u.id === adminId);
+    if (admin) {
+        if (!admin.managedRooms) admin.managedRooms = [];
+        if (!admin.managedRooms.includes(newRoom.id)) {
+            admin.managedRooms.push(newRoom.id);
+        }
+    }
+
+    saveDB();
+
+    console.log(`[Platform] Room created: ${newRoom.name} (${newRoom.id}) for admin ${adminId}`);
+    res.json(newRoom);
+});
+
+/**
  * GET /api/dev/data/:file - Get a raw data file (Development only)
  * Used to sync server-side data (like users.json) with Editor simulator.
  */
@@ -244,6 +281,150 @@ app.get('/api/dev/data/:file', (req, res) => {
         }
     } else {
         res.status(404).json({ error: 'Data file not found' });
+    }
+});
+
+/**
+ * GET /api/platform/resources - List all available data resources
+ */
+app.get('/api/platform/resources', (req, res) => {
+    const resources = new Set<string>();
+
+    // Top-level keys from db
+    Object.keys(db).forEach(key => {
+        if (Array.isArray(db[key])) resources.add(key);
+    });
+
+    // Hierarchy keys
+    if (db.hierarchy) {
+        Object.keys(db.hierarchy).forEach(key => {
+            if (Array.isArray(db.hierarchy[key])) resources.add(key);
+        });
+    }
+
+    res.json(Array.from(resources).sort());
+});
+
+/**
+ * GET /api/platform/resources/:resource/properties - List properties of a resource
+ */
+app.get('/api/platform/resources/:resource/properties', (req, res) => {
+    const { resource } = req.params;
+    let data = db[resource];
+    if (!data && db.hierarchy && db.hierarchy[resource]) {
+        data = db.hierarchy[resource];
+    }
+
+    if (data && Array.isArray(data) && data.length > 0) {
+        // Sample first item to get properties
+        const firstItem = data[0];
+        const properties = Object.keys(firstItem).sort();
+        res.json(properties);
+    } else {
+        res.json([]); // Return empty list if no data or not found
+    }
+});
+
+/**
+ * Generic Data API
+ */
+app.get('/api/data/:resource', (req, res) => {
+    const { resource } = req.params;
+    const query = req.query;
+
+    let data = db[resource];
+
+    if (!data && db.hierarchy && db.hierarchy[resource]) {
+        data = db.hierarchy[resource];
+    }
+
+    if (data && Array.isArray(data)) {
+        // Simple query filtering
+        let filtered = data;
+        if (Object.keys(query).length > 0) {
+            filtered = data.filter((item: any) => {
+                return Object.entries(query).every(([key, val]) => {
+                    const itemVal = item[key];
+                    // Handle array comparisons (e.g. authCode)
+                    if (Array.isArray(itemVal)) {
+                        try {
+                            const targetArr = Array.isArray(val) ? val : (typeof val === 'string' && val.startsWith('[') ? JSON.parse(val) : [val]);
+                            return JSON.stringify(itemVal) === JSON.stringify(targetArr);
+                        } catch (e) { return false; }
+                    }
+                    return String(itemVal) === String(val);
+                });
+            });
+        }
+        res.json(filtered);
+    } else {
+        res.status(404).json({ error: `Resource '${resource}' not found or not an array` });
+    }
+});
+
+/**
+ * GET /api/data/:resource/:id - Get a specific item
+ */
+app.get('/api/data/:resource/:id', (req, res) => {
+    const { resource, id } = req.params;
+    let data = db[resource];
+    if (!data && db.hierarchy && db.hierarchy[resource]) {
+        data = db.hierarchy[resource];
+    }
+
+    if (data && Array.isArray(data)) {
+        const item = data.find((i: any) => String(i.id) === String(id));
+        if (item) res.json(item);
+        else res.status(404).json({ error: 'Item not found' });
+    } else {
+        res.status(404).json({ error: `Resource '${resource}' not found` });
+    }
+});
+
+app.post('/api/data/:resource', (req, res) => {
+    const { resource } = req.params;
+    const newItem = req.body;
+
+    let target = db[resource];
+    let isHierarchy = false;
+
+    if (!target && db.hierarchy && db.hierarchy[resource]) {
+        target = db.hierarchy[resource];
+        isHierarchy = true;
+    }
+
+    if (target && Array.isArray(target)) {
+        // Simple auto-id if missing
+        if (!newItem.id) {
+            newItem.id = `${resource}_${Date.now()}`;
+        }
+        target.push(newItem);
+        saveDB();
+        res.json({ success: true, item: newItem });
+    } else {
+        res.status(404).json({ error: `Resource '${resource}' not found` });
+    }
+});
+
+app.delete('/api/data/:resource/:id', (req, res) => {
+    const { resource, id } = req.params;
+    let target = db[resource];
+
+    if (!target && db.hierarchy && db.hierarchy[resource]) {
+        target = db.hierarchy[resource];
+    }
+
+    if (target && Array.isArray(target)) {
+        const idx = target.findIndex((item: any) => String(item.id) === String(id));
+        if (idx !== -1) {
+            target.splice(idx, 1);
+            saveDB();
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: 'Item not found' });
+        }
+    } else {
+        res.status(404).json({ error: `Resource '${resource}' not found` });
     }
 });
 

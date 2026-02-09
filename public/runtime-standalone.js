@@ -382,10 +382,7 @@
      * @returns Interpolated value (string, number, boolean, etc.)
      */
     static interpolate(text, context) {
-      if (typeof text !== "string") {
-        return text;
-      }
-      if (!text.includes("${")) {
+      if (typeof text !== "string" || !text.includes("${")) {
         return text;
       }
       const result = text.replace(/\$\{([^}]+)\}/g, (match, expression) => {
@@ -393,7 +390,7 @@
           const value = this.evaluate(expression.trim(), context);
           return this.valueToString(value);
         } catch (error) {
-          console.warn(`[ExpressionParser] Failed to evaluate: ${expression}`, error);
+          console.error(`[ExpressionParser] Error evaluating expression "${expression}":`, error);
           return match;
         }
       });
@@ -451,7 +448,7 @@
       try {
         const validIdentifierRegex = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
         const contextKeys = Object.keys(context).filter((key) => validIdentifierRegex.test(key));
-        const contextValues = contextKeys.map((key) => context[key]);
+        const contextValues = contextKeys.map((key) => PropertyHelper.resolveValue(context[key]));
         const func = new Function(...contextKeys, `return ${expression}`);
         return func(...contextValues);
       } catch (error) {
@@ -475,14 +472,18 @@
      */
     static getNestedProperty(path, context) {
       const parts = path.split(".");
-      let current = context;
-      for (const part of parts) {
-        if (current === null || current === void 0) {
-          return void 0;
+      const rootKey = parts[0];
+      let current = PropertyHelper.resolveValue(context[rootKey]);
+      if (parts.length > 1) {
+        for (let i = 1; i < parts.length; i++) {
+          if (current === null || current === void 0) {
+            return void 0;
+          }
+          current = current[parts[i]];
+          current = PropertyHelper.resolveValue(current);
         }
-        current = current[part];
       }
-      return PropertyHelper.resolveValue(current);
+      return current;
     }
     /**
      * Sets a nested property value (e.g., "player.score.total")
@@ -746,7 +747,6 @@
       }
       const propertyWatchers = objectWatchers.get(propertyPath);
       if (propertyWatchers && propertyWatchers.size > 0) {
-        console.log(`[PropertyWatcher] Notifying ${propertyWatchers.size} listeners for ${objName}.${propertyPath}`);
         propertyWatchers.forEach((callback) => {
           try {
             callback(newValue, oldValue);
@@ -929,8 +929,6 @@
         update: () => {
           const context = this.getContext();
           const newValue = ExpressionParser.interpolate(expression, context);
-          const targetName = targetObj.name || targetObj.id || "Unknown";
-          console.debug(`%c[Binding] Updating ${targetName}.${targetProp} \u2190 ${newValue}`, "color: #9c27b0; font-weight: bold");
           if (targetProp.includes(".")) {
             ExpressionParser.setNestedProperty(targetProp, newValue, targetObj);
           } else {
@@ -988,7 +986,9 @@
         context[name] = value;
       });
       this.objectsByName.forEach((obj, name) => {
-        context[name] = obj;
+        if (context[name] === void 0) {
+          context[name] = obj;
+        }
       });
       this.objectsById.forEach((obj, id) => {
         if (!context[id]) context[id] = obj;
@@ -2798,7 +2798,9 @@
           } else {
             this.stageVariables[prop] = finalValue;
           }
-          const component = this.host.objects?.find((o) => o.name === prop && o.isVariable);
+          const component = this.host.objects?.find(
+            (o) => varDef && o.id === varDef.id || o.name === prop && o.isVariable
+          );
           if (component) {
             if (component.items !== void 0 && Array.isArray(value)) {
               if (JSON.stringify(component.items) !== JSON.stringify(value)) {
@@ -9861,9 +9863,6 @@
         this.taskExecutor.setTasks(merged.tasks);
         this.taskExecutor.setActions(merged.actions);
       }
-      if (this.actionExecutor) {
-        this.actionExecutor.setObjects(this.objects);
-      }
       if (this.options.makeReactive) {
         this.reactiveRuntime.clear();
         this.clearAllTimers();
@@ -9875,6 +9874,9 @@
         }
         this.objects = this.reactiveRuntime.getObjects();
         this.initializeReactiveBindings();
+      }
+      if (this.actionExecutor) {
+        this.actionExecutor.setObjects(this.objects);
       }
       this.variableManager.stageVariables = {};
       this.variableManager.initializeStageVariables(this.stage);

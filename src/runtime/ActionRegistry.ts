@@ -24,7 +24,7 @@ export interface ActionMetadata {
     parameters: ActionParameter[];
 }
 
-export type ActionHandler = (action: any, context: ActionContext) => Promise<void> | void;
+export type ActionHandler = (action: any, context: ActionContext) => Promise<any> | any;
 
 export class ActionRegistry {
     private static instance: ActionRegistry | null = null;

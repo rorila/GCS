@@ -83,9 +83,22 @@ export class JSONInspector {
         const taskNames = project.tasks?.map(t => t.name) || [];
         this.runtime.registerVariable('availableTasks', taskNames);
 
-        // Register available actions as variable
-        const actionNames = project.actions?.map(a => a.name) || [];
-        this.runtime.registerVariable('availableActions', actionNames);
+        // Register available variables (Global + Stage + Local)
+        const varNames = projectRegistry.getVariables().map(v => v.name);
+        this.runtime.registerVariable('availableVariables', varNames);
+
+        // Register available actions
+        this.runtime.registerVariable('availableActions', project.actions?.map(a => a.name) || []);
+
+        this.runtime.registerVariable('getVariableSuggestions', () => {
+            return projectRegistry.getVariables().map(v => `\${${v.name}}`);
+        });
+
+        this.runtime.registerVariable('getRouteSuggestions', () => {
+            const staticPatterns = ["/api/login", "/api/rooms", "/api/users", "/api/data"];
+            const vars = varNames.map(v => `/api/data?id=\${${v}}`);
+            return [...staticPatterns, ...vars];
+        });
 
         this.runtime.registerVariable('getAllActionTypes', () => {
             return actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
@@ -117,6 +130,31 @@ export class JSONInspector {
      */
     public updateAvailableActions(actions: string[]) {
         this.runtime.setVariable('availableActions', actions);
+    }
+
+    // Fetches properties for a specific resource
+    private async fetchResourceProperties(resource: string) {
+        if (!resource) {
+            this.runtime.setVariable('availableResourceProperties', []);
+            return;
+        }
+        try {
+            const response = await fetch(`/api/platform/resources/${resource}/properties`);
+            if (response.ok) {
+                const props = await response.json();
+                this.runtime.setVariable('availableResourceProperties', props);
+                console.log(`[JSONInspector] Properties for ${resource}:`, props);
+
+                // Force re-render if we are looking at this resource
+                const selected = this.runtime.getVariable('selectedObject');
+                if (selected && selected.resource === resource) {
+                    this.render();
+                }
+            }
+        } catch (e) {
+            console.error(`[JSONInspector] Failed to fetch properties for ${resource}`, e);
+            this.runtime.setVariable('availableResourceProperties', []);
+        }
     }
 
     /**
@@ -212,11 +250,34 @@ export class JSONInspector {
             this.runtime.registerVariable('project', this.project);
             this.runtime.registerVariable('availableTasks', this.project.tasks?.map(t => t.name) || []);
             this.runtime.registerVariable('availableActions', this.project.actions?.map(a => a.name) || []);
+            console.log('[JSONInspector] Registry State:', {
+                projectSet: !!projectRegistry.getProject(),
+                activeStageId: (projectRegistry as any).activeStageId,
+                globalVarCount: this.project.variables?.length || 0
+            });
+            const variables = projectRegistry.getVariables();
+            console.log('[JSONInspector] availableVariables total count:', variables.length);
+            this.runtime.registerVariable('availableVariables', variables.map(v => v.name));
+            this.runtime.registerVariable('availableVariablesWithScope', variables.map(v => ({ value: v.name, label: `${v.uiEmoji || ''} ${v.name}` })));
+            this.runtime.registerVariable('availableVariablesAsTokens', variables.map(v => ({ value: `\${${v.name}}`, label: `${v.uiEmoji || ''} ${v.name}` })));
             this.runtime.registerVariable('getAllActionTypes', () => {
                 return actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
             });
             const activeStage = this.project.stages?.find(s => s.id === this.project?.activeStageId);
             this.runtime.registerVariable('activeStage', activeStage || null);
+
+            // Fetch available resources if a DataAction is selected or for general use
+            try {
+                const resResponse = await fetch('/api/platform/resources');
+                if (resResponse.ok) {
+                    const resources = await resResponse.json();
+                    this.runtime.registerVariable('availableResources', resources);
+                    console.log('[JSONInspector] availableResources loaded:', resources);
+                }
+            } catch (e) {
+                console.error('[JSONInspector] Failed to fetch availableResources:', e);
+                this.runtime.registerVariable('availableResources', []);
+            }
         }
 
         let inspectorFile = './inspector.json';
@@ -233,12 +294,19 @@ export class JSONInspector {
 
         if (isProject) {
             // Load Stage inspector from JSON
-            inspectorFile = './inspector_stage.json';
+            inspectorFile = this.activeTab === 'events' ? './inspector_events.json' : './inspector_stage.json';
 
             // Registriere die aktive Stage als Variable für den Inspector
             if (this.project) {
-                const activeStage = this.project.stages?.find(s => s.id === this.project?.activeStageId);
+                const activeStage = this.project.stages?.find((s: any) => s.id === this.project?.activeStageId);
                 this.runtime.setVariable('activeStage', activeStage || null);
+
+                // Setze unterstützte Events für die Stage/das Projekt
+                (object as any)._supportedEvents = [
+                    { key: 'onEnter' },
+                    { key: 'onLeave' },
+                    { key: 'onRuntimeStart' }
+                ];
             }
 
             try {
@@ -268,109 +336,127 @@ export class JSONInspector {
             }
             return;
         } else if (object) {
-            // --- GENERIC INSPECTOR LOADING ---
-            // We prioritize dynamic generation via getInspectorProperties() to ensure
-            // that ALL properties defined in code are visible, without relying on static JSONs.
-
-            inspectorFile = './inspector.json'; // Default fallback
-
-            // 1. Determine Inspector File (mainly for Header/Layout or Special Tabs)
-            if (this.activeTab === 'events') {
-                inspectorFile = './inspector_events.json';
-            } else if (this.activeTab === 'properties') {
-                // For Properties, we use the minimal header and generate the rest dynamically
-                inspectorFile = './inspector_header.json';
-
-                // Special handling for Flow Elements if they don't support getInspectorProperties fully yet
-                // (Though the goal is they SHOULD)
-                const type = object.getType ? object.getType() : (object.type || '');
-                if (type === 'Task') {
-                    inspectorFile = './inspector_task.json'; // Keep specific task layout for now if complex
-                } else if (type === 'Action') {
-                    inspectorFile = './inspector_action.json';
-                }
-
-                // FORCE HEADER only if we have dynamic properties to show
-                // BUT: Keep Specific Templates (Task/Action) if they were already selected!
-                if (typeof object.getInspectorProperties === 'function') {
-                    if (inspectorFile !== './inspector_task.json' && inspectorFile !== './inspector_action.json') {
-                        inspectorFile = './inspector_header.json';
-                    }
-                }
-            }
-
-            // 2. Load Static JSON (Header/Framework)
-            let staticObjects: any[] = [];
             try {
-                if (inspectorFile) {
-                    const response = await fetch(`${inspectorFile}?v=${Date.now()}`);
-                    if (response.ok) {
-                        const inspectorJSON = await response.json();
-                        staticObjects = this.expandForEach(inspectorJSON.objects, object);
+                // --- GENERIC INSPECTOR LOADING ---
+                // We prioritize dynamic generation via getInspectorProperties() to ensure
+                // that ALL properties defined in code are visible, without relying on static JSONs.
+
+                inspectorFile = './inspector.json'; // Default fallback
+
+                // 1. Determine Inspector File (mainly for Header/Layout or Special Tabs)
+                if (this.activeTab === 'events') {
+                    inspectorFile = './inspector_events.json';
+                } else if (this.activeTab === 'properties') {
+                    // For Properties, we use the minimal header and generate the rest dynamically
+                    inspectorFile = './inspector_header.json';
+
+                    // Special handling for Flow Elements if they don't support getInspectorProperties fully yet
+                    // (Though the goal is they SHOULD)
+                    const type = object.getType ? object.getType() : (object.type || '');
+                    if (type === 'Task') {
+                        inspectorFile = './inspector_task.json'; // Keep specific task layout for now if complex
+                    } else if (type === 'Action') {
+                        inspectorFile = './inspector_action.json';
+                    } else if (type === 'DataAction') {
+                        inspectorFile = './inspector_data_action.json';
+                        // Refresh resources specifically when DataAction is selected
+                        try {
+                            const resResponse = await fetch('/api/platform/resources');
+                            if (resResponse.ok) {
+                                const resources = await resResponse.json();
+                                this.runtime.setVariable('availableResources', resources);
+                            }
+                        } catch (e) { }
+
+                        // Refresh properties for the selected resource
+                        if (object.resource) {
+                            this.fetchResourceProperties(object.resource);
+                        }
+                    }
+
+                    // FORCE HEADER only if we have dynamic properties to show
+                    // BUT: Keep Specific Templates (Task/Action/DataAction) if they were already selected!
+                    if (typeof object.getInspectorProperties === 'function') {
+                        if (inspectorFile !== './inspector_task.json' &&
+                            inspectorFile !== './inspector_action.json' &&
+                            inspectorFile !== './inspector_data_action.json') {
+                            inspectorFile = './inspector_header.json';
+                        }
                     }
                 }
-            } catch (error) {
-                console.error('[JSONInspector] Failed to load inspector JSON:', error);
-            }
 
-            // 3. Generate Dynamic UI
-            let dynamicObjects: any[] = [];
-            const hasDynamicProps = typeof (object as any).getInspectorProperties === 'function';
-            let useDynamic = false;
-
-            if (this.activeTab === 'properties' && hasDynamicProps) {
+                // 2. Load Static JSON (Header/Framework)
+                let staticObjects: any[] = [];
                 try {
-                    console.log('[JSONInspector] Generating dynamic UI for:', object.name || object.className);
-                    dynamicObjects = this.generateUIFromProperties(object, true);
-                    console.log('[JSONInspector] Generated dynamic objects count:', dynamicObjects.length);
-                    // Only switch to dynamic if we actually got results (all TWindows should return props)
-                    if (dynamicObjects.length > 0) {
-                        useDynamic = true;
+                    if (inspectorFile) {
+                        const response = await fetch(`${inspectorFile}?v=${Date.now()}`);
+                        if (response.ok) {
+                            const inspectorJSON = await response.json();
+                            staticObjects = this.expandForEach(inspectorJSON.objects, object);
+                        }
                     }
-                } catch (err) {
-                    console.error('[JSONInspector] Error generating properties:', err);
+                } catch (error) {
+                    console.error('[JSONInspector] Failed to load inspector JSON:', error);
                 }
+
+                // 3. Generate Dynamic UI
+                let dynamicObjects: any[] = [];
+                const hasDynamicProps = typeof (object as any).getInspectorProperties === 'function';
+                let useDynamic = false;
+
+                if (this.activeTab === 'properties' && hasDynamicProps) {
+                    // SKIP dynamic properties if we have a specialized template that already handles the data
+                    if (inspectorFile !== './inspector_data_action.json' &&
+                        inspectorFile !== './inspector_task.json' &&
+                        inspectorFile !== './inspector_action.json') {
+                        try {
+                            console.log('[JSONInspector] Generating dynamic UI for:', object.name || object.className);
+                            dynamicObjects = this.generateUIFromProperties(object, true);
+                        } catch (error) {
+                            console.error('[JSONInspector] Failed to generate properties UI:', error);
+                        }
+                    } else {
+                        console.log('[JSONInspector] Skipping dynamic props for specialized template:', inspectorFile);
+                    }
+                }
+
+                // Only switch to dynamic if we actually got results (all TWindows should return props)
+                if (dynamicObjects.length > 0) {
+                    useDynamic = true;
+                }
+
+                // FALLBACK: If we used the minimal header but dynamic generation yielded nothing,
+                // fallback to the full inspector.json to ensure the user sees SOMETHING.
+                if (!useDynamic && this.activeTab === 'properties' && inspectorFile === './inspector_header.json') {
+                    console.warn('[JSONInspector] Dynamic generation failed/empty. Falling back to inspector.json');
+                    try {
+                        const fbRes = await fetch(`./inspector.json?v=${Date.now()}`);
+                        const fbJson = await fbRes.json();
+                        const fbObjs = this.expandForEach(fbJson.objects, object);
+                        staticObjects = fbObjs; // Replace header with full inspector
+                    } catch (e) { console.error('Fallback failed', e); }
+                }
+
+                // GENERIC EVENT DETECTION via ComponentRegistry or Object method (SSoT)
+                const events = (typeof (object as any).getEvents === 'function') ? (object as any).getEvents() : componentRegistry.getEvents(object);
+                (object as any)._supportedEvents = (events || []).map((evt: string) => ({ key: evt }));
+                const className = object.className || (object.getType ? object.getType() : 'Unknown');
+                console.log(`[JSONInspector] Auto-detections for ${className}: ${events.length} events found.`);
+
+                // 4. Combine & Render
+                this.inspectorObjects = [...staticObjects, ...dynamicObjects];
+
+                // Register
+                this.inspectorObjects.forEach(obj => {
+                    this.runtime.registerObject(obj.name, obj, false);
+                });
+
+                this.setupBindings();
+                this.runtime.setVariable('selectedObject', object);
+                this.render();
+            } catch (err) {
+                console.error('[JSONInspector] Error generating properties:', err);
             }
-
-            // FALLBACK: If dynamic generation yielded nothing, but we expected it, 
-            // OR if we didn't try dynamic, we might need to load inspector.json content if header only?
-            // Actually, if we used inspector_header.json (staticObjects has header), and dynamicObjects is empty,
-            // the user sees empty inspector.
-            // Force load inspector.json properties if dynamic failed/empty?
-            if (!useDynamic && this.activeTab === 'properties' && inspectorFile !== './inspector.json') {
-                console.warn('[JSONInspector] Dynamic generation failed/empty. Falling back to inspector.json');
-                try {
-                    const fbRes = await fetch(`./inspector.json?v=${Date.now()}`);
-                    const fbJson = await fbRes.json();
-                    const fbObjs = this.expandForEach(fbJson.objects, object);
-                    // Filter out Title/Name if header already has them? 
-                    // Or just append everything (might duplicate title).
-                    // Simplify: Just use what we got.
-                    staticObjects = fbObjs; // Replace header with full inspector
-                } catch (e) { console.error('Fallback failed', e); }
-            }
-
-            // GENERIC EVENT DETECTION via ComponentRegistry or Object method (SSoT)
-            // If the object is already a class instance that knows its events, use it directly.
-            const events = (typeof (object as any).getEvents === 'function') ? (object as any).getEvents() : componentRegistry.getEvents(object);
-            (object as any)._supportedEvents = (events || []).map((evt: string) => ({ key: evt }));
-            const className = object.className || (object.getType ? object.getType() : 'Unknown');
-            console.log(`[JSONInspector] Auto-detections for ${className}: ${events.length} events found.`);
-
-            // 4. Combine & Render
-            // Static (Title) + Dynamic (Properties)
-            this.inspectorObjects = [...staticObjects, ...dynamicObjects];
-
-            // Register
-            this.inspectorObjects.forEach(obj => {
-                this.runtime.registerObject(obj.name, obj, false);
-            });
-
-
-            this.setupBindings();
-            this.runtime.setVariable('selectedObject', object);
-            this.render();
-            return;
         }
 
         // Notify Mediator about object selection
@@ -1288,8 +1374,8 @@ export class JSONInspector {
         // isProjectSelected already defined above
         const isProject = isProjectSelected;
 
-        // Render Tabs (only for objects, not for Stage/Project)
-        if (!isProject) {
+        // Render Tabs
+        if (true) { // Enabled for all objects including Stage/Project
             const tabsContainer = document.createElement('div');
             tabsContainer.className = 'inspector-tabs';
             tabsContainer.style.display = 'flex';
@@ -1335,8 +1421,10 @@ export class JSONInspector {
         wrapper.className = 'json-inspector';
         wrapper.style.width = '100%';
         wrapper.style.height = '100%';
-        wrapper.style.overflow = 'auto';
+        wrapper.style.overflowY = 'auto';
+        wrapper.style.overflowX = 'hidden';
         wrapper.style.padding = '8px';
+        wrapper.style.boxSizing = 'border-box';
 
         // Render content based on active tab
         if (isProject || this.activeTab === 'properties') {
@@ -1972,6 +2060,9 @@ export class JSONInspector {
         const el = document.createElement('div');
         el.className = `inspector-object ${className}`;
         el.style.marginBottom = '8px';
+        el.style.maxWidth = '100%';
+        el.style.boxSizing = 'border-box';
+        el.style.minWidth = '0'; // Allow shrinking in flex parents
 
         // Auto-render Label if provided (and not handled by component itself)
         if (obj.label && className !== 'TLabel' && className !== 'TCheckbox' && className !== 'TButton') {
@@ -2050,11 +2141,12 @@ export class JSONInspector {
             input.style.boxSizing = 'border-box';
             input.style.fontSize = '12px';
 
-            // Apply flex styles if specified, otherwise default
+            // Apply flex styles if specified, otherwise default to flex:1
             if (obj.style?.flex) {
                 input.style.flex = obj.style.flex;
             } else {
-                input.style.width = '100%';
+                input.style.flex = '1';
+                input.style.minWidth = '0'; // Allow shrinking
             }
 
             // Extract property name to check if validation is needed
@@ -2069,6 +2161,28 @@ export class JSONInspector {
                 this.validateInput(input, propertyName, input.value, selectedObject);
             }
 
+            // Suggestions support (Datalist)
+            if (obj.suggestions) {
+                let suggestions = obj.suggestions;
+                if (typeof suggestions === 'string' && suggestions.startsWith('${')) {
+                    const resolved = this.runtime.evaluate(suggestions);
+                    suggestions = Array.isArray(resolved) ? resolved : [];
+                }
+
+                if (Array.isArray(suggestions) && suggestions.length > 0) {
+                    const datalistId = 'dl-' + Math.floor(Math.random() * 1000000);
+                    const datalist = document.createElement('datalist');
+                    datalist.id = datalistId;
+                    suggestions.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s;
+                        datalist.appendChild(option);
+                    });
+                    document.body.appendChild(datalist); // Attach to body or parent
+                    input.setAttribute('list', datalistId);
+                }
+            }
+
             input.oninput = () => {
                 // Real-time validation
                 if (selectedObject && propertyName === 'name') {
@@ -2081,7 +2195,92 @@ export class JSONInspector {
                 this.handleObjectChange(obj);
             };
 
-            el.appendChild(input);
+            // Token Source Support (e.g. Variable Picker)
+            if (obj.tokenSource) {
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.gap = '4px';
+                wrapper.style.flex = '1';
+                wrapper.style.minWidth = '0';
+
+                // Move input into wrapper
+                input.style.flex = '1';
+                wrapper.appendChild(input);
+
+                const picker = document.createElement('button');
+                picker.innerHTML = '{..}';
+                picker.title = 'Variable einfügen';
+                picker.style.padding = '2px 6px';
+                picker.style.backgroundColor = '#444';
+                picker.style.color = '#fff';
+                picker.style.border = '1px solid #555';
+                picker.style.borderRadius = '3px';
+                picker.style.fontSize = '10px';
+                picker.style.cursor = 'pointer';
+
+                picker.onclick = (e) => {
+                    e.preventDefault();
+                    let tokens: string[] = [];
+                    if (obj.tokenSource === 'variables') tokens = projectRegistry.getVariables().map(v => v.name);
+
+                    // Simple context menu for pickers
+                    const rect = picker.getBoundingClientRect();
+                    const menu = document.createElement('div');
+                    menu.style.position = 'fixed';
+                    menu.style.top = `${rect.bottom}px`;
+
+                    // Prevent right edge overflow
+                    const menuWidth = 150;
+                    let left = rect.left;
+                    if (left + menuWidth > window.innerWidth) {
+                        left = window.innerWidth - menuWidth - 10;
+                    }
+                    menu.style.left = `${left}px`;
+                    menu.style.width = `${menuWidth}px`;
+                    menu.style.backgroundColor = '#252526';
+                    menu.style.border = '1px solid #454545';
+                    menu.style.zIndex = '10000';
+                    menu.style.maxHeight = '200px';
+                    menu.style.overflowY = 'auto';
+                    menu.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5)';
+
+                    tokens.forEach(t => {
+                        const item = document.createElement('div');
+                        item.innerText = t;
+                        item.style.padding = '4px 8px';
+                        item.style.cursor = 'pointer';
+                        item.style.fontSize = '12px';
+                        item.onmouseover = () => item.style.backgroundColor = '#094771';
+                        item.onmouseout = () => item.style.backgroundColor = '';
+                        item.onclick = () => {
+                            const start = input.selectionStart || 0;
+                            const end = input.selectionEnd || 0;
+                            const val = input.value;
+                            const insertion = `\${${t}}`;
+                            input.value = val.substring(0, start) + insertion + val.substring(end);
+                            input.focus();
+                            input.setSelectionRange(start + insertion.length, start + insertion.length);
+                            input.onchange!(new Event('change') as any);
+                            document.body.removeChild(menu);
+                        };
+                        menu.appendChild(item);
+                    });
+
+                    const close = (evt: MouseEvent) => {
+                        if (!menu.contains(evt.target as Node)) {
+                            document.body.removeChild(menu);
+                            window.removeEventListener('mousedown', close);
+                        }
+                    };
+                    window.addEventListener('mousedown', close);
+                    document.body.appendChild(menu);
+                };
+
+                wrapper.appendChild(picker);
+                el.appendChild(wrapper);
+            } else {
+                el.appendChild(input);
+            }
         }
         else if (className === 'TNumberInput') {
             const input = document.createElement('input');
@@ -2101,7 +2300,8 @@ export class JSONInspector {
             if (obj.max !== undefined) input.max = obj.max.toString();
             if (obj.step !== undefined) input.step = obj.step.toString();
 
-            input.style.width = '100%';
+            input.style.flex = '1';
+            input.style.minWidth = '0';
             input.style.padding = '6px';
             input.style.backgroundColor = '#333';
             input.style.color = '#fff';
@@ -2181,7 +2381,8 @@ export class JSONInspector {
         }
         else if (className === 'TDropdown') {
             const select = document.createElement('select');
-            select.style.width = '100%';
+            select.style.flex = '1';
+            select.style.minWidth = '0';
             select.style.padding = '6px';
             select.style.backgroundColor = '#333';
             select.style.color = '#fff';
@@ -2207,7 +2408,17 @@ export class JSONInspector {
                 optionsArr = Array.isArray(resolved) ? resolved : [];
             }
 
+            // Add placeholder as first option if present
+            if (obj.placeholder) {
+                const placeholderOpt = document.createElement('option');
+                placeholderOpt.value = '';
+                placeholderOpt.text = obj.placeholder;
+                placeholderOpt.disabled = false; // Allow selecting "None"
+                select.appendChild(placeholderOpt);
+            }
+
             if (Array.isArray(optionsArr)) {
+                console.log('[JSONInspector] TDropdown options resolved:', optionsArr);
                 optionsArr.forEach((opt: any) => {
                     const option = document.createElement('option');
                     const val = (typeof opt === 'object' && opt !== null) ? opt.value : opt;
@@ -2284,7 +2495,8 @@ export class JSONInspector {
                 select.style.flex = obj.style.flex;
                 if (obj.style.minWidth) select.style.minWidth = obj.style.minWidth;
             } else {
-                select.style.width = '100%';
+                select.style.flex = '1';
+                select.style.minWidth = '0';
             }
 
             // Get options from source
@@ -2808,6 +3020,15 @@ export class JSONInspector {
         } else {
             // Simple property - write directly
             selectedObject[propertyName] = value;
+        }
+
+        // If resource or queryProperty changed, we likely need to update UI structure (visibility)
+        // or fetch new metadata (properties)
+        if (propertyName === 'resource' || propertyName === 'queryProperty') {
+            if (propertyName === 'resource') {
+                this.fetchResourceProperties(value);
+            }
+            this.render();
         }
 
         // If name changed, force re-render of the selector and inspector UI to update the name in the dropdown

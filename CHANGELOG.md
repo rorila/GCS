@@ -1,8 +1,45 @@
 # Changelog
 
+## [v2.14.0] - 2026-02-09
+### Hinzugefügt
+- **DataAction Visualisierung & Konfiguration**:
+    - Neue spezialisierte Inspector-Sicht (`inspector_data_action.json`) für `DataAction` Knoten.
+    - Unterstützung für Route, Methode (GET/POST/etc.), Body (JSON) und Ziel-Variable.
+    - **Variable Dropdown**: Scope-bewusste Anzeige von Variablen mit Emojis (🌎, 🎭, 📚) zur besseren Unterscheidung.
+    - **URL Suggestions**: Integrierte Datalist für Server-Routen (Suggestions) in der `DataAction`.
+- **FlowAction Refactoring**:
+    - Umstellung der Inspector-Proxies auf `getActionDefinition()`, um Datenverlust bei verknüpften Aktionen zu verhindern.
+
+### Behoben
+- **JSONInspector Stabilität**:
+    - [x] Behebung einer kritischen Fehlstruktur in der `update()` Methode, die zu zahlreichen Abstürzen führte.
+    - [x] Korrektur der Fallback-Logik: Spezialisierte Templates (DataAction, Task) werden nicht mehr durch die generische `inspector.json` überschrieben.
+    - [x] Unterbindung von Eigenschafts-Duplizierung im Inspector, wenn spezialisierte Templates verwendet werden.
+    - [x] Fix: Variablen-Dropdown in der `DataAction` repariert (Type-Preservation in `ExpressionParser` verhindert Stringifizierung von Arrays).
+    - [x] Layout-Korrektur im Inspector: Fix für Flex-Overflow und fehlerhafte Zeilen-Gruppierung von Info-Labels.
+    - [x] **Inspector-Synchronisation**: Behebung des Problems, dass Suchfelder nach Ressourcen-Wahl nicht erschienen (Triggered Re-render + Naming Standardisierung).
+- **Dynamisches Ressourcen-Management (Phase 2)**:
+    - No-Code Suche: Automatisches Abfragen von Objekt-Eigenschaften via Server-Endpoint.
+    - Intelligente UI: Dynamische Dropdowns und automatische URL-Generierung basierend auf der Feld-Auswahl.
+- **Stage Management**:
+    - Automatische Synchronisation der `activeStageId` im `ProjectRegistry` beim Stage-Wechsel im Editor, was die korrekte Variablen-Auflösung ermöglicht.
+- **TDropdown**:
+    - Korrekte Unterstützung von Placeholdern und leeren Werten ("-- Keine --").
+- **UI Refinement**:
+    - **DataAction Inspector**: Vereinheitlichung der UI. `queryValue` ist nun ein Dropdown mit Variablen-Support.
+    - Überflüssiger Token-Button `{..}` aus dem `urlInput` entfernt.
+
 ## [2.12.0] - 2026-02-08
 ### Behoben
 - **AppendEmoji Action ("calculate")**: Behebung des Fehlers, bei dem Variablen-Komponenten als Objekte (`[object Object]`) statt als Werte in Berechnungen verwendet wurden.
+
+### [v2.13.0] - 2026-02-08
+- **Feat**: Admin Dashboard Erweiterung (Raum-Management).
+  - Implementierung einer dynamischen Raum-Liste mit Filterung nach Admin-Zuständigkeit (`managedRooms`).
+  - Neue UI-Elemente: `TList` für Räume, `TButton` zum Erstellen, `TPanel` für Details.
+  - Automatisierte Kontext-Auflösung via `/api/platform/context/:userId` beim Dashboard-Start.
+  - Server-Anbindung für Raum-Erstellung (`POST /api/platform/rooms`) inklusive automatischer Hierarchie-Aktualisierung.
+- **Tools**: Einführung von Node.js Patch-Skripten (`patch_project.cjs`) zur sicheren Manipulation sehr großer Projekt-JSON-Dateien ohne Match-Fehler.
 
 ### [v2.12.1] - 2026-02-08
 - **Fix**: Reaktivitäts-Fehler bei shadowing Variablen (Global vs. Stage) behoben.
@@ -89,7 +126,7 @@
 
 ### Geändert
 - Variablen-Scoping: Globale Variablen und Service-Objekte werden im Editor visuell nur noch auf Stages vom Typ `blueprint` gerendert.
-- `EditorStageManager` refakturiert: Nutzt nun `ProjectRegistry.getObjects()` als Single Source of Truth für die Objekt-Auflösung.
+- `EditorStageManager` refaktoriert: Nutzt nun `ProjectRegistry.getObjects()` als Single Source of Truth für die Objekt-Auflösung.
 - `ProjectRegistry.getObjects()` angepasst, um das neue Blueprint-Scoping zu unterstützen.
 - `project.json` aktualisiert: Alle Variablen auf spezialisierte Typen umgestellt.
 

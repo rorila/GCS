@@ -1,0 +1,140 @@
+{
+    "objects": [
+        {
+            "name": "NameInput",
+            "className": "TEdit",
+            "label": "Name",
+            "text": "${selectedObject.name || selectedObject.Name}"
+        },
+        {
+            "name": "resourceInput",
+            "className": "TDropdown",
+            "label": "Ressource",
+            "selectedValue": "${selectedObject.resource}",
+            "options": "${availableResources}",
+            "placeholder": "-- Freie URL --",
+            "style": {
+                "marginBottom": "4px"
+            }
+        },
+        {
+            "name": "PropQueryWrapper",
+            "className": "TPanel",
+            "visible": "${selectedObject.resource}",
+            "children": [
+                {
+                    "name": "queryPropertyInput",
+                    "className": "TDropdown",
+                    "label": "Suche in Feld",
+                    "selectedValue": "${selectedObject.queryProperty}",
+                    "options": "${availableResourceProperties}",
+                    "placeholder": "-- Ganze Liste --",
+                    "style": {
+                        "marginBottom": "4px"
+                    }
+                },
+                {
+                    "name": "queryValueInput",
+                    "className": "TDropdown",
+                    "label": "Suchwert",
+                    "selectedValue": "${selectedObject.queryValue}",
+                    "options": "${availableVariablesAsTokens}",
+                    "placeholder": "-- Wert/Variable --",
+                    "visible": "${selectedObject.queryProperty}"
+                }
+            ]
+        },
+        {
+            "name": "urlInput",
+            "className": "TEdit",
+            "label": "Route / URL",
+            "text": "${selectedObject.url}",
+            "placeholder": "/api/data?id=${userId}",
+            "visible": "${!selectedObject.queryProperty}",
+            "suggestions": "${getRouteSuggestions()}"
+        },
+        {
+            "name": "URLHelpWrapper",
+            "className": "TPanel",
+            "children": [
+                {
+                    "name": "URLHelp",
+                    "className": "TLabel",
+                    "text": "Tipp: Nutze ${variable} für dynamische Werte im Pfad.",
+                    "style": {
+                        "fontSize": "10px",
+                        "color": "#aaa",
+                        "fontStyle": "italic",
+                        "marginBottom": "4px"
+                    }
+                }
+            ],
+            "style": {
+                "marginBottom": "8px"
+            }
+        },
+        {
+            "name": "methodInput",
+            "className": "TDropdown",
+            "label": "Methode",
+            "selectedValue": "${selectedObject.method}",
+            "options": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE"
+            ]
+        },
+        {
+            "name": "resultVariableInput",
+            "className": "TDropdown",
+            "label": "Ziel-Variable",
+            "selectedValue": "${selectedObject.resultVariable}",
+            "options": "${availableVariablesWithScope}",
+            "placeholder": "-- Keine --"
+        },
+        {
+            "name": "bodyInput",
+            "className": "TMemo",
+            "label": "Body (JSON)",
+            "text": "${selectedObject.body}",
+            "visible": "${selectedObject.method !== 'GET'}",
+            "style": {
+                "height": "80px",
+                "fontFamily": "monospace"
+            }
+        }
+    ],
+    "footer": [
+        {
+            "name": "DeleteBtn",
+            "className": "TButton",
+            "caption": "Löschen",
+            "action": "delete",
+            "style": {
+                "backgroundColor": "#d11a2a",
+                "flex": "0 1 auto"
+            }
+        },
+        {
+            "name": "CancelBtn",
+            "className": "TButton",
+            "caption": "Abbrechen",
+            "action": "cancel",
+            "style": {
+                "backgroundColor": "#444",
+                "flex": "0 1 auto"
+            }
+        },
+        {
+            "name": "SaveBtn",
+            "className": "TButton",
+            "caption": "Speichern",
+            "action": "save",
+            "style": {
+                "backgroundColor": "#0e639c",
+                "flex": "1"
+            }
+        }
+    ]
+}

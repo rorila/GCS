@@ -3,7 +3,7 @@ import { GameProject, ProjectVariable, GameTask, GameAction } from '../model/typ
 import { libraryService } from './LibraryService';
 import { TWindow } from '../components/TWindow';
 
-export type ScopedVariable = ProjectVariable & { uiScope?: 'global' | 'stage' | 'local', usageCount?: number };
+export type ScopedVariable = ProjectVariable & { uiScope?: 'global' | 'stage' | 'local', uiEmoji?: string, usageCount?: number };
 export type ScopedTask = GameTask & { uiScope?: 'global' | 'stage' | 'library', usageCount?: number };
 export type ScopedAction = GameAction & { uiScope?: 'global' | 'stage' | 'library', usageCount?: number };
 export type ScopedObject = TWindow & { uiScope?: 'global' | 'stage', usageCount?: number };
@@ -50,19 +50,19 @@ export class ProjectRegistry {
         // 1. Global variables
         visibleVars = this.project.variables
             .filter(v => !v.scope || String(v.scope).toLowerCase() === 'global')
-            .map(v => ({ ...v, uiScope: 'global' as const }));
+            .map(v => ({ ...v, uiScope: 'global' as const, uiEmoji: '🌎' }));
 
         // 2. Stage variables (from active stage)
         if (this.activeStageId && this.project.stages) {
             const activeStage = this.project.stages.find(s => s.id === this.activeStageId);
             if (activeStage && activeStage.variables) {
-                const stageVars = activeStage.variables.map(v => ({ ...v, uiScope: 'stage' as const }));
+                const stageVars = activeStage.variables.map(v => ({ ...v, uiScope: 'stage' as const, uiEmoji: '🎭' }));
                 visibleVars = [...visibleVars, ...stageVars];
             }
 
             const scopedProjectVars = this.project.variables
                 .filter(v => v.scope === this.activeStageId)
-                .map(v => ({ ...v, uiScope: 'stage' as const }));
+                .map(v => ({ ...v, uiScope: 'stage' as const, uiEmoji: '🎭' }));
             visibleVars = [...visibleVars, ...scopedProjectVars];
         }
 
@@ -70,7 +70,7 @@ export class ProjectRegistry {
         if (context?.taskName) {
             const taskVars = this.project.variables
                 .filter(v => v.scope === context.taskName || v.scope === `task:${context.taskName}`)
-                .map(v => ({ ...v, uiScope: 'local' as const }));
+                .map(v => ({ ...v, uiScope: 'local' as const, uiEmoji: '🎭' }));
             visibleVars = [...visibleVars, ...taskVars];
         }
 
@@ -78,7 +78,7 @@ export class ProjectRegistry {
         if (context?.actionId) {
             const actionVars = this.project.variables
                 .filter(v => v.scope === `action:${context.actionId}`)
-                .map(v => ({ ...v, uiScope: 'local' as const }));
+                .map(v => ({ ...v, uiScope: 'local' as const, uiEmoji: '🎭' }));
             visibleVars = [...visibleVars, ...actionVars];
         }
 

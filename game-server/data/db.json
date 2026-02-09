@@ -1,146 +1,107 @@
 {
     "users": [
         {
-            "id": "u_super",
-            "name": "Superadmin",
-            "avatar": "👑",
+            "id": "u_admin",
+            "name": "Admin",
+            "avatar": "🚀",
             "role": "superadmin",
             "authCode": [
                 "🚀",
-                "⭐",
-                "👑"
+                "⭐"
             ],
-            "parentId": null
+            "managedRooms": [
+                "room_kids",
+                "room_tv",
+                "room_common"
+            ]
         },
         {
-            "id": "u_city_1",
-            "name": "Bürgermeister von Entenhausen",
-            "avatar": "🦆",
-            "role": "cityadmin",
+            "id": "u_rolf",
+            "name": "Rolf",
+            "avatar": "🍎",
+            "role": "admin",
             "authCode": [
-                "🏙️",
-                "🔑",
-                "🛡️"
+                "🍎",
+                "🍌"
             ],
-            "parentId": "city1"
+            "managedRooms": [
+                "room_kids",
+                "room_tv",
+                "room_common"
+            ]
         },
         {
-            "id": "u_city_2",
-            "name": "Bürgermeister von Gotham",
-            "avatar": "🦇",
-            "role": "cityadmin",
-            "authCode": [
-                "🏙️",
-                "🦇",
-                "🌑"
-            ],
-            "parentId": "city2"
-        },
-        {
-            "id": "u_house_1",
-            "name": "Hausmeister Wunschhaus",
-            "avatar": "🔨",
-            "role": "houseadmin",
-            "authCode": [
-                "🏠",
-                "🔑",
-                "🔨"
-            ],
-            "parentId": "house1"
-        },
-        {
-            "id": "u_room_1",
-            "name": "Raum-Admin Blau",
-            "avatar": "🛋️",
-            "role": "roomadmin",
-            "authCode": [
-                "🛋️",
-                "🔑",
-                "🎨"
-            ],
-            "parentId": "room1"
-        },
-        {
-            "id": "u_player_1",
+            "id": "u_max",
             "name": "Max",
             "avatar": "👨‍🚀",
             "role": "player",
             "authCode": [
-                "🦄",
-                "🍕",
-                "🚀"
+                "🌈",
+                "🎮"
             ],
-            "parentId": "room1"
+            "assignedRoomIds": [
+                "room_kids",
+                "room_common"
+            ]
         },
         {
-            "id": "u_player_2",
+            "id": "u_sarah",
             "name": "Sarah",
             "avatar": "👩‍🎨",
             "role": "player",
             "authCode": [
                 "🎨",
-                "🌟",
-                "🎈"
+                "🌟"
             ],
-            "parentId": "room2"
+            "assignedRoomIds": [
+                "room_kids",
+                "room_tv",
+                "room_common"
+            ]
         }
     ],
     "hierarchy": {
         "cities": [
             {
                 "id": "city1",
-                "name": "Entenhausen",
+                "name": "Wunschstadt",
                 "logo": "city_1.png"
-            },
-            {
-                "id": "city2",
-                "name": "Gotham City",
-                "logo": "city_2.png"
             }
         ],
         "houses": [
             {
                 "id": "house1",
                 "cityId": "city1",
-                "name": "Haus der Wünsche",
+                "name": "Haus der Abenteuer",
                 "logo": "house_1.png"
-            },
-            {
-                "id": "house2",
-                "cityId": "city1",
-                "name": "Villa Kunterbunt",
-                "logo": "house_2.png"
-            },
-            {
-                "id": "house3",
-                "cityId": "city2",
-                "name": "Wayne Manor",
-                "logo": "house_3.png"
             }
         ],
         "rooms": [
             {
-                "id": "room1",
+                "id": "room_kids",
                 "houseId": "house1",
-                "name": "Blauer Salon",
+                "adminId": "u_rolf",
+                "name": "Kinderzimmer",
                 "config": {
-                    "theme": "ocean"
+                    "theme": "toys"
                 }
             },
             {
-                "id": "room2",
+                "id": "room_tv",
                 "houseId": "house1",
-                "name": "Rote Kammer",
+                "adminId": "u_rolf",
+                "name": "Fernsehzimmer",
                 "config": {
-                    "theme": "fire"
+                    "theme": "cinema"
                 }
             },
             {
-                "id": "room3",
-                "houseId": "house3",
-                "name": "Batcave",
+                "id": "room_common",
+                "houseId": "house1",
+                "adminId": "u_rolf",
+                "name": "Gemeinschaftszimmer",
                 "config": {
-                    "theme": "dark"
+                    "theme": "garden"
                 }
             }
         ]

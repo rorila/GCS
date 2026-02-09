@@ -59,7 +59,7 @@ export class FlowAction extends FlowElement {
     /**
      * Helper to get the underlying action definition
      */
-    private getActionDefinition(): any | null {
+    protected getActionDefinition(): any | null {
         // 1. Linked Mode: Get from project/stage (Single Source of Truth)
         if (this.data?.isLinked && this.projectRef && this.Name) {
             // Priority: Global Actions

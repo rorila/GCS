@@ -117,6 +117,7 @@ export class EditorStageManager {
         });
 
         p.activeStageId = p.stages[0].id;
+        ProjectRegistry.getInstance().setActiveStageId(p.activeStageId);
         console.log('[EditorStageManager] Migrated legacy project to stages');
     }
 
@@ -134,6 +135,7 @@ export class EditorStageManager {
         this.project.stages = this.project.stages || [];
         this.project.stages.push(newStage);
         this.project.activeStageId = id;
+        ProjectRegistry.getInstance().setActiveStageId(id);
         this.onRefresh();
         return newStage;
     }
@@ -149,6 +151,7 @@ export class EditorStageManager {
 
     public switchStage(id: string): void {
         this.project.activeStageId = id;
+        ProjectRegistry.getInstance().setActiveStageId(id);
         this.onRefresh();
     }
 

@@ -13,6 +13,7 @@ import { FlowRangeVariable } from '../flow/FlowRangeVariable';
 import { FlowListVariable } from '../flow/FlowListVariable';
 import { FlowRandomVariable } from '../flow/FlowRandomVariable';
 import { FlowConnection } from '../flow/FlowConnection';
+import { FlowDataAction } from '../flow/FlowDataAction';
 
 export interface FlowSyncHost {
     project: any;
@@ -198,32 +199,42 @@ export class FlowSyncManager {
                 }
                 const nextConn = connections.find(c => c.startTargetId === nodeId);
                 if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet);
-            } else if (node.type === 'Condition') {
-                const condition: any = { type: 'condition', condition: node.properties?.text || '', body: [], elseBody: [] };
-                targetSeq.push(condition);
+            } else if (node.type === 'Condition' || node.type === 'DataAction') {
+                const isData = node.type === 'DataAction';
+                const branchType = isData ? 'data_action' : 'condition';
+                const branchItem: any = {
+                    type: branchType,
+                    ...(isData ? node.data : { condition: node.properties?.text || '' }),
+                    [isData ? 'successBody' : 'body']: [],
+                    [isData ? 'errorBody' : 'elseBody']: []
+                };
+                targetSeq.push(branchItem);
 
-                const thenConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'true');
-                const elseConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'false');
+                const trueAnchor = isData ? 'success' : 'true';
+                const falseAnchor = isData ? 'error' : 'false';
+
+                const trueConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === trueAnchor);
+                const falseConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === falseAnchor);
 
                 const mergePoints = new Set<string>();
-                const thenVisited = new Set<string>();
-                const elseVisited = new Set<string>();
+                const trueVisited = new Set<string>();
+                const falseVisited = new Set<string>();
 
                 const findReachable = (id: string, v: Set<string>) => {
                     if (v.has(id)) return; v.add(id);
                     connections.filter(c => c.startTargetId === id).forEach(c => findReachable(c.endTargetId, v));
                 };
 
-                if (thenConn) findReachable(thenConn.endTargetId, thenVisited);
-                if (elseConn) findReachable(elseConn.endTargetId, elseVisited);
-                thenVisited.forEach(id => { if (elseVisited.has(id)) mergePoints.add(id); });
+                if (trueConn) findReachable(trueConn.endTargetId, trueVisited);
+                if (falseConn) findReachable(falseConn.endTargetId, falseVisited);
+                trueVisited.forEach(id => { if (falseVisited.has(id)) mergePoints.add(id); });
 
-                if (thenConn) buildSequence(thenConn.endTargetId, condition.body, mergePoints);
-                if (elseConn) buildSequence(elseConn.endTargetId, condition.elseBody, mergePoints);
+                if (trueConn) buildSequence(trueConn.endTargetId, branchItem[isData ? 'successBody' : 'body'], mergePoints);
+                if (falseConn) buildSequence(falseConn.endTargetId, branchItem[isData ? 'errorBody' : 'elseBody'], mergePoints);
 
                 const firstMerge = Array.from(mergePoints).filter(id => {
                     const incoming = connections.filter(c => c.endTargetId === id);
-                    return incoming.every(c => thenVisited.has(c.startTargetId) || elseVisited.has(c.startTargetId));
+                    return incoming.every(c => trueVisited.has(c.startTargetId) || falseVisited.has(c.startTargetId));
                 })[0];
 
                 if (firstMerge) {
@@ -443,6 +454,9 @@ export class FlowSyncManager {
                 break;
             case 'Action':
                 node = new FlowAction(data.id, data.x, data.y, canvas, cellSize);
+                break;
+            case 'DataAction':
+                node = new FlowDataAction(data.id, data.x, data.y, canvas, cellSize);
                 break;
             case 'Condition':
                 node = new FlowCondition(data.id, data.x, data.y, canvas, cellSize);

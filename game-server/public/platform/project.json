@@ -104,6 +104,22 @@
             },
             "defaultValue": [],
             "scope": "global"
+        },
+        {
+            "id": "var_userContext",
+            "name": "userContext",
+            "className": "TObjectVariable",
+            "isVariable": true,
+            "x": 0,
+            "y": 12,
+            "width": 6,
+            "height": 2,
+            "style": {
+                "color": "#000000",
+                "backgroundColor": "#d1c4e9"
+            },
+            "defaultValue": null,
+            "scope": "global"
         }
     ],
     "objects": [
@@ -1253,7 +1269,7 @@
                 "backgroundColor": "#263238"
             },
             "Tasks": {
-                "onRuntimeStart": "CheckAuth"
+                "onRuntimeStart": "DashboardInit"
             },
             "objects": [
                 {
@@ -1284,6 +1300,101 @@
                         "fontSize": 28,
                         "fontWeight": "bold"
                     }
+                },
+                {
+                    "id": "admin_room_list",
+                    "name": "RoomList",
+                    "className": "TList",
+                    "x": 8,
+                    "y": 12,
+                    "width": 20,
+                    "height": 20,
+                    "style": {
+                        "backgroundColor": "rgba(255, 255, 255, 0.05)",
+                        "borderRadius": "8px"
+                    },
+                    "items": [],
+                    "Tasks": {
+                        "onSelect": "SelectRoom"
+                    }
+                },
+                {
+                    "id": "add_room_btn",
+                    "name": "AddRoomButton",
+                    "className": "TButton",
+                    "x": 8,
+                    "y": 33,
+                    "width": 10,
+                    "height": 3,
+                    "text": "+ Raum",
+                    "style": {
+                        "backgroundColor": "#4caf50",
+                        "color": "white"
+                    },
+                    "Tasks": {
+                        "onClick": "AddRoom"
+                    }
+                },
+                {
+                    "id": "new_room_name_edit",
+                    "name": "RoomNameEdit",
+                    "className": "TEdit",
+                    "x": 19,
+                    "y": 33,
+                    "width": 10,
+                    "height": 3,
+                    "text": "Neuer Raum",
+                    "style": {
+                        "backgroundColor": "rgba(255, 255, 255, 0.1)",
+                        "color": "white",
+                        "borderRadius": "4px"
+                    }
+                },
+                {
+                    "id": "room_details_panel",
+                    "name": "RoomDetails",
+                    "className": "TPanel",
+                    "x": 30,
+                    "y": 9,
+                    "width": 25,
+                    "height": 23,
+                    "style": {
+                        "backgroundColor": "rgba(0, 0, 0, 0.2)",
+                        "borderRadius": "12px",
+                        "border": "1px solid rgba(255, 255, 255, 0.1)"
+                    },
+                    "visible": false
+                },
+                {
+                    "id": "room_details_title",
+                    "name": "DetailsTitle",
+                    "className": "TLabel",
+                    "x": 32,
+                    "y": 11,
+                    "width": 20,
+                    "height": 2,
+                    "text": "${selectedRoom.name}",
+                    "style": {
+                        "color": "#ffffff",
+                        "fontSize": 20,
+                        "fontWeight": "bold"
+                    },
+                    "visible": false
+                },
+                {
+                    "id": "player_list_label",
+                    "name": "PlayerListLabel",
+                    "className": "TLabel",
+                    "x": 32,
+                    "y": 14,
+                    "width": 20,
+                    "height": 2,
+                    "text": "Zugewiesene Spieler:",
+                    "style": {
+                        "color": "#b0bec5",
+                        "fontSize": 16
+                    },
+                    "visible": false
                 }
             ],
             "variables": [
@@ -1352,15 +1463,134 @@
                             "stageId": "${$params.stageId}"
                         }
                     ]
+                },
+                {
+                    "name": "InitDashboard",
+                    "description": "Initialisiert das Admin Dashboard",
+                    "parameters": [],
+                    "body": [
+                        {
+                            "type": "action",
+                            "name": "CheckAuthToken"
+                        },
+                        {
+                            "type": "http",
+                            "url": "http://localhost:8080/api/platform/context/${currentUser.id}",
+                            "method": "GET",
+                            "resultVariable": "userContext"
+                        },
+                        {
+                            "type": "action",
+                            "name": "LoadManagedRooms"
+                        }
+                    ]
+                },
+                {
+                    "name": "LoadManagedRooms",
+                    "description": "Lädt die Räume des aktuellen Admins",
+                    "parameters": [],
+                    "body": [
+                        {
+                            "type": "calculate",
+                            "formula": "db.hierarchy.rooms.filter(r => r.adminId == currentUser.id)",
+                            "resultVariable": "managedRooms"
+                        },
+                        {
+                            "type": "set_property",
+                            "target": "RoomList",
+                            "property": "items",
+                            "value": "${managedRooms.map(r => r.name)}"
+                        }
+                    ]
+                },
+                {
+                    "name": "AddRoom",
+                    "description": "Fügt einen neuen Raum hinzu",
+                    "parameters": [],
+                    "body": [
+                        {
+                            "type": "http",
+                            "url": "http://localhost:8080/api/platform/rooms",
+                            "method": "POST",
+                            "body": {
+                                "name": "${RoomNameEdit.text}",
+                                "houseId": "${userContext.house.id}",
+                                "adminId": "${currentUser.id}"
+                            },
+                            "resultVariable": "newRoomResult"
+                        },
+                        {
+                            "type": "action",
+                            "name": "LoadManagedRooms"
+                        },
+                        {
+                            "type": "show_toast",
+                            "message": "Raum '${newRoomResult.name}' wurde erstellt!",
+                            "toastType": "success"
+                        }
+                    ]
+                },
+                {
+                    "name": "SelectRoom",
+                    "description": "Wählt einen Raum aus und zeigt Details",
+                    "parameters": [
+                        "index"
+                    ],
+                    "body": [
+                        {
+                            "type": "calculate",
+                            "formula": "managedRooms[$params.index]",
+                            "resultVariable": "selectedRoom"
+                        },
+                        {
+                            "type": "set_property",
+                            "target": "RoomDetails",
+                            "property": "visible",
+                            "value": true
+                        },
+                        {
+                            "type": "set_property",
+                            "target": "DetailsTitle",
+                            "property": "visible",
+                            "value": true
+                        },
+                        {
+                            "type": "set_property",
+                            "target": "PlayerListLabel",
+                            "property": "visible",
+                            "value": true
+                        }
+                    ]
                 }
             ],
             "tasks": [
                 {
-                    "name": "CheckAuth",
+                    "name": "DashboardInit",
                     "actionSequence": [
                         {
                             "type": "action",
-                            "name": "CheckAuthToken"
+                            "name": "InitDashboard"
+                        }
+                    ]
+                },
+                {
+                    "name": "SelectRoom",
+                    "actionSequence": [
+                        {
+                            "type": "action",
+                            "name": "SelectRoom",
+                            "params": {
+                                "index": "$eventData.index"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "AddRoom",
+                    "actionSequence": [
+                        {
+                            "type": "action",
+                            "name": "AddRoom"
                         }
                     ]
                 },
