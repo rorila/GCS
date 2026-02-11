@@ -166,10 +166,19 @@ export class RefactoringManager {
             if (v.scope === oldName) v.scope = newName;
         });
 
-        // 5. Update flowChart key if task was renamed
+        // 5. Update flowChart key if task was renamed (Global)
         if (project.flowCharts && project.flowCharts[oldName]) {
             project.flowCharts[newName] = project.flowCharts[oldName];
             delete project.flowCharts[oldName];
+        }
+        // 5b. Update flowChart key in all stages
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.flowCharts && s.flowCharts[oldName]) {
+                    s.flowCharts[newName] = s.flowCharts[oldName];
+                    delete s.flowCharts[oldName];
+                }
+            });
         }
 
         // 6. Update Task nodes within all flowCharts that might refer to this task

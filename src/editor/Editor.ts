@@ -2284,8 +2284,7 @@ export class Editor implements IViewHost {
         this.jsonInspector.setEditor(this);
 
         this.jsonInspector.onObjectUpdate = () => {
-            this.render();
-            this.autoSaveToLocalStorage();
+            this.refreshAllViews('inspector');
             mediatorService.notifyDataChanged({ object: null, property: 'all', type: 'update' }, 'inspector');
         };
 

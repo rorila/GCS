@@ -1,5 +1,37 @@
 # Changelog
 
+## v2.16.1 (2026-02-11)
+- Bugfix: "Ghost-Einträge" (alte Namen) im Task-Dropdown nach Umbenennung behoben (RefactoringManager fix).
+- Bugfix: Kontexterhalt im Flow Editor nach Umbenennung (localStorage Sync in JSONInspector).
+- Mediator-Integration im Flow Editor zur reaktiven UI-Aktualisierung hinzugefügt.
+- Trinity-Sync in Editor.ts optimiert (refreshAllViews bei Inspector-Updates).
+
+## [v2.16.0] - 2026-02-11
+### Entfernt
+- Alle Tasks, Actions und FlowCharts der Login-Stage auf Benutzerwunsch gelöscht.
+- Task-Referenzen in Login-UI-Objekten (LoginButton, PinPicker) entfernt.
+
+## [v2.15.0] - 2026-02-11
+### Hinzugefügt
+- **Modularer Login-Workflow (Refined)**:
+    - Explizite Definition der Variablen `loginResult` (Ergebnis-Speicher) und `currentPIN` (Eingabequelle).
+    - Einführung von `loginError` zur sauberen Fehlerbehandlung ("Schlechtfall").
+    - Benennung der Verbindungen im Flow-Editor ("GUT-FALL" / "SCHLECHT-FALL").
+    - Reduzierung der `SubmitLogin` Action auf den reinen API-Call zur Vermeidung von Redundanz.
+- **Rollen-basiertes Routing & Multi-Role Support**:
+    - Neue Stage `stage_role_select` für Benutzer mit mehreren Rollen.
+    - Dynamische Befüllung der Rollenliste (`PopulateRoles`) basierend auf den Server-Daten.
+    - Automatisches Dispatching (`AutoDispatch`) für Single-Role Benutzer zu ihren Dashboards (SuperAdmin, Admin, Player).
+- **Session-Management im Flow**:
+    - Task `ProcessSession` zur zentralen Speicherung von `authToken`, `currentUser` und Login-Status.
+- **Visualisierung im Flow-Editor**:
+    - Task-Knoten-Referenzen innerhalb von Diagrammen zur Verknüpfung modularer Workflows (z.B. `LoginFlow` -> `ProcessSession`).
+
+### Behoben
+- **JSON-Integrität**:
+    - Fix von Syntaxfehlern (Klammersetzung) am Ende der `project.json`.
+    - Entfernung von Dubletten und Konsolidierung der `flowCharts` Speicherstruktur.
+
 ## [v2.14.0] - 2026-02-09
 ### Hinzugefügt
 - **DataAction Visualisierung & Konfiguration**:

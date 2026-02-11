@@ -19,7 +19,7 @@ import { FlowLoop } from './flow/FlowLoop';
 import { FlowStateManager } from './flow/FlowStateManager';
 import { TFlowStage } from '../components/TFlowStage';
 import { serviceRegistry } from '../services/ServiceRegistry';
-import { mediatorService } from '../services/MediatorService';
+import { mediatorService, MediatorEvents } from '../services/MediatorService';
 import { TaskEditor } from './TaskEditor';
 import { ContextMenu } from './ui/ContextMenu';
 import { RefactoringManager } from './RefactoringManager';
@@ -319,6 +319,8 @@ export class FlowEditor implements FlowMapHost {
                 }
             }
         });
+
+        this.initMediator();
     }
 
     /**
@@ -359,10 +361,11 @@ export class FlowEditor implements FlowMapHost {
         this.flowStage.style.backgroundColor = this.project.flow.stage?.backgroundColor || '#1e1e1e';
 
         const savedContext = localStorage.getItem('gcs_last_flow_context');
-        const isValidTask = this.project.tasks.some(t => t.name === savedContext);
+        const isValidGlobalTask = this.project.tasks.some(t => t.name === savedContext);
+        const isValidStageTask = this.getActiveStage()?.tasks?.some(t => t.name === savedContext);
         const isStaticContext = savedContext === 'global';
 
-        if (savedContext && (isStaticContext || isValidTask)) {
+        if (savedContext && (isStaticContext || isValidGlobalTask || isValidStageTask)) {
             this.currentFlowContext = savedContext;
         } else {
             this.currentFlowContext = 'global';
@@ -2497,5 +2500,43 @@ export class FlowEditor implements FlowMapHost {
 
         world.style.width = maxX + 'px';
         world.style.height = maxY + 'px';
+    }
+
+    private initMediator() {
+        mediatorService.on(MediatorEvents.DATA_CHANGED, (data: any, originator?: string) => {
+            if (originator !== 'flow-editor' && this.project) {
+                console.log(`[FlowEditor] Data changed via ${originator}. Refreshing selector and checking context...`);
+
+                // 1. Update the dropdown list (important for renaming/adding tasks)
+                this.updateFlowSelector();
+
+                // 2. If a name change occurred and it affects our current context
+                // Note: JSONInspector sends { object, property, value }
+                if (data && (data.property === 'Name' || data.property === 'name')) {
+                    // Check if the renamed object is the one we are currently viewing
+                    // For tasks, the name in project data might have changed.
+                    // If we find our old context name is no longer valid, we might need to sync.
+
+                    // The RefactoringManager already updated the names in the project.
+                    // We just need to make sure our internal currentFlowContext matches the new name.
+                    const isValidTask = this.project.tasks.some(t => t.name === this.currentFlowContext);
+                    const isValidStageTask = this.getActiveStage()?.tasks?.some(t => t.name === this.currentFlowContext);
+
+                    if (!isValidTask && !isValidStageTask && this.currentFlowContext !== 'global') {
+                        // Our current context seems to be gone or renamed.
+                        // Ideally the 'data' tells us the rename details.
+                        if (data.oldValue === this.currentFlowContext && data.value) {
+                            console.log(`[FlowEditor] Context rename detected: ${data.oldValue} -> ${data.value}`);
+                            this.currentFlowContext = data.value;
+                            this.flowSelect.value = data.value;
+                            localStorage.setItem('gcs_last_flow_context', data.value);
+                        } else {
+                            // Fallback: If we can't find it, stay calm or go to global?
+                            // For now, updateFlowSelector handles the UI part.
+                        }
+                    }
+                }
+            }
+        });
     }
 }

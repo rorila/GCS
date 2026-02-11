@@ -3033,6 +3033,15 @@ export class JSONInspector {
 
         // If name changed, force re-render of the selector and inspector UI to update the name in the dropdown
         if (isNameChange) {
+            // SYNC: If this was the currently active flow context, update the pointer in localStorage
+            // so that FlowEditor.setProject() can pick it up immediately during the refresh.
+            if (isActionOrTask) {
+                const lastContext = localStorage.getItem('gcs_last_flow_context');
+                if (lastContext === previousValue) {
+                    console.log(`[JSONInspector] Updating gcs_last_flow_context in localStorage: ${previousValue} -> ${value}`);
+                    localStorage.setItem('gcs_last_flow_context', value);
+                }
+            }
             this.render();
         }
 
@@ -3089,7 +3098,8 @@ export class JSONInspector {
         MediatorService.getInstance().notifyDataChanged({
             object: selectedObject,
             property: propertyName,
-            value: value
+            value: value,
+            oldValue: oldValue || previousValue
         });
     }
 

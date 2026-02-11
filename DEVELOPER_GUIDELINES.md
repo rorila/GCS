@@ -118,6 +118,13 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **UI-Sperre**: Wenn ein Flow existiert, muss die Listen-Ansicht (`TaskEditor.ts`) schreibgeschützt sein. Verwende das `isReadOnly`-Flag in `createSequenceItemElement`.
 - **Synchronisation**: Rufe vor allen Persistenz-Operationen `flowEditor.syncAllTasksFromFlow(project)` auf, um Datenkonsistenz zu garantieren.
 
+### Mediator-gesteuerte Synchronisation (Trinity-Sync v2.16.1)
+- **Problem**: Änderungen im Inspector (z.B. Umbenennung eines Tasks) müssen sofort in allen Editoren (Flow, JSON, Pascal) reflektiert werden.
+- **Lösung**: Der `MediatorService` dient als zentrales Benachrichtigungssystem via `DATA_CHANGED`.
+- **Abonnement**: Komponenten wie `FlowEditor` hören auf dieses Event und aktualisieren ihre UI (z.B. `updateFlowSelector()`).
+- **Context-Preservation**: Bei Umbenennung des aktuell angezeigten Kontexts wird der `oldValue` aus dem Event genutzt, um den internen Status (`currentFlowContext`) nahtlos zu aktualisieren, ohne dass der Benutzer die Ansicht verliert.
+- **Orchestrierung**: `Editor.ts` koordiniert die Ansichten und ruft bei Inspector-Updates `refreshAllViews()` auf, um Konsistenz über alle Tabs hinweg zu erzwingen.
+
 ## Synchronisation & Persistenz
 - **Pascal -> Flow Sync**: Änderungen im Pascal-Code müssen explizit in den Flow-Editor synchronisiert werden. Nutze dazu `flowEditor.syncActionsFromProject()`. Dies ist besonders wichtig, da Flow-Knoten ihre Daten (`node.data`) teilweise redundant halten, um die UI-Performance zu verbessern.
 - **Local Storage Authority**: Der einzige gültige Schlüssel für die automatische Speicherung im Local Storage ist `gcs_last_project`. Verwende den `ProjectPersistenceService.autoSaveToLocalStorage()`, anstatt `localStorage` direkt anzusprechen.
@@ -647,3 +654,23 @@ Bei sehr großen `project.json` Dateien (über 1500 Zeilen) können Standard-Edi
 - **Kontext-Endpoint**: Nutze `/api/platform/context/:userId`, um beim Start eines Dashboards die gesamte Hierarchie (City -> House -> Room) des Benutzers in einer einzigen Anfrage aufzulösen.
 - **Speicherung**: Context-Daten im Dashboard sollten in einer globalen oder Stage-lokalen Variable `userContext` vorgehalten werden, um Referenzen in Formeln (z.B. `userContext.house.id`) zu ermöglichen.
 - **API-First**: Das Erstellen von Ressourcen (Räume, User) sollte IMMER über den `TAPIServer` (POST-Request) erfolgen, um die Backend-Validierung und Hierarchie-Logik (z.B. automatisches Zuweisen des Admins zum Raum) zu nutzen.
+
+## Modularer Login & Session-Flow (v2.15.0)
+Zur Verbesserung der Übersichtlichkeit wurde der Login-Prozess in drei funktionale Einheiten unterteilt, die sowohl im Code als auch im Flow-Editor modular abgebildet werden:
+
+1. **LoginFlow (Eingabe & API)**:
+    - **Quelle**: Die Variable `currentPIN` (Stage-Scope) sammelt die Emojis des Benutzers.
+    - **Aktion**: `SubmitLogin` führt den HTTP-POST aus und speichert das Ergebnis in `loginResult` (Erfolg) oder `loginError` (Fehler).
+    - **Visuelle Verzweigung**: Im Diagramm werden die Verbindungen explizit als **GUT-FALL** (führt zu `ProcessSession`) und **SCHLECHT-FALL** (zeigt Toast-Fehler) benannt.
+2. **ProcessSession (Datenhaltung & Weiche)**:
+    - Extrahiert `token` und `user` aus `loginResult`.
+    - Entscheidet basierend auf der Rollen-Anzahl:
+        - `roles.length > 1` -> Navigation zu `stage_role_select`.
+        - `else` -> Aufruf des `AutoDispatch` Tasks.
+3. **AutoDispatch (Routing)**:
+    - Prüft die primäre Rolle (`currentUser.roles[0]`).
+    - Navigiert zur entsprechenden Ziel-Stage (`stage_super_dashboard`, `stage_admin_dashboard`, `stage_player_lobby`).
+
+### Best Practices für Multi-Stage Navigation
+- **Dynamische Listen**: Komponenten wie `TList` (z.B. `RoleList`) sollten beim Stage-Start (`onRuntimeStart`) via Task befüllt werden, indem die Daten aus dem globalen Kontext (`currentUser`) in die `items` Property der Komponente geschrieben werden.
+- **Task-Referenzen**: Komplexe Diagramme sollten durch den Aufruf von Unter-Tasks (`type: task`) modularisiert werden, statt alle Logik in ein einziges Diagramm zu packen. Dies erhöht die visuelle Scannbarkeit im Flow-Editor.
