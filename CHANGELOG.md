@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.16.11
+- Verbesserung (Debug-Log): Tooltips für lange Zeilen hinzugefügt und manuelle Text-Kürzungen entfernt.
+
 ## v2.16.10
 - Fix (Aktions-Editor): Robusterer String-Vergleich im `TDropdown` Renderer stellt sicher, dass geladene Quell-Objekte (Source) korrekt vorselektiert werden.
 

@@ -507,13 +507,11 @@ export class TDebugLog {
                 const params = data.params ? (Array.isArray(data.params) ? data.params.join(', ') : data.params) : '';
                 detailText = `(${data.target || '?'}.${data.method || '?'}(${params}))`;
             } else if (data.type === 'http') {
-                const bodyStr = data.body ? (typeof data.body === 'object' ? JSON.stringify(data.body) : String(data.body)) : '';
-                const shortBody = bodyStr.length > 50 ? bodyStr.substring(0, 50) + '...' : bodyStr;
-                detailText = `${data.method || 'GET'} ${data.url || '?'}${shortBody ? ' - Body: ' + shortBody : ''}`;
+                const bodyStr = data.body ? (typeof data.body === 'object' ? JSON.stringify(data.body, null, 2) : String(data.body)) : '';
+                detailText = `${data.method || 'GET'} ${data.url || '?'}${bodyStr ? ' - Body: ' + bodyStr : ''}`;
             } else if (data.type === 'respond_http') {
-                const dataStr = data.data ? (typeof data.data === 'object' ? JSON.stringify(data.data) : String(data.data)) : '';
-                const shortData = dataStr.length > 50 ? dataStr.substring(0, 50) + '...' : dataStr;
-                detailText = `Status: ${data.status || 200} - Data: ${shortData}`;
+                const dataStr = data.data ? (typeof data.data === 'object' ? JSON.stringify(data.data, null, 2) : String(data.data)) : '';
+                detailText = `Status: ${data.status || 200} - Data: ${dataStr}`;
             } else if (data.type === 'condition') {
                 detailText = `Bedingung: ${data.condition || '?'}`;
             }
@@ -528,9 +526,12 @@ export class TDebugLog {
 
         const details = (detailText && detailsVisible) ? `<div style="color: #888; font-size: 9px; margin-top: 1px; padding-left: 12px; opacity: 0.7;">${detailText}</div>` : '';
 
+        const cleanMessage = entry.message.replace(/<[^>]*>?/gm, ''); // Strip potential HTML tags for tooltip
+        const fullTooltip = `${entry.type}: ${cleanMessage}${detailText ? '\n' + detailText : ''}`;
+
         row.innerHTML = `
             <span style="color: #888; width: 10px; font-size: 8px; margin-top: 4px;">${icon}</span>
-            <div style="flex: 1; overflow: hidden;">
+            <div style="flex: 1; overflow: hidden;" title="${fullTooltip.replace(/"/g, '&quot;')}">
                 <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     ${typeLabel} ${entry.message}
                 </div>
