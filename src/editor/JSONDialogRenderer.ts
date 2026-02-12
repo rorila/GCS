@@ -24,6 +24,7 @@ export class JSONDialogRenderer {
     private dialogDef: any;
     private onResult: (result: { action: string; data: any }) => void;
     private dialogManager?: IActionEditorDialogManager;
+    private isCollectingData: boolean = false; // Guard to prevent re-renders during form collection
     private enrichedProject: GameProject;  // Project with stage objects for expressions
 
     constructor(
@@ -556,7 +557,7 @@ export class JSONDialogRenderer {
 
                     let items: any[] = [];
                     if (param.source === 'objects') items = projectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }));
-                    else if (param.source === 'variables') items = projectRegistry.getVariables().map(v => ({ value: v.name, label: v.name }));
+                    else if (param.source === 'variables') items = (this.enrichedProject.variables || []).map(v => ({ value: v.name, label: v.name }));
                     else if (param.source === 'stages') items = (this.project.stages || []).map((s: any) => ({ value: s.id, label: s.name || s.id }));
                     else if (param.source === 'services') items = serviceRegistry.listServices().map(s => ({ value: s, label: s }));
                     else if (param.source === 'easing-functions') items = ['linear', 'easeIn', 'easeOut', 'easeInOut'].map(e => ({ value: e, label: e }));
@@ -799,7 +800,17 @@ export class JSONDialogRenderer {
         return [{ name: 'params', type: 'string', label: 'Parameter (Nachricht)', isGeneric: true }];
     }
 
-    private handleAction(action: string, actionData?: any) {
+    private evaluateActionData(data: any): any {
+        if (!data || typeof data !== 'object') return data;
+        const result: any = Array.isArray(data) ? [] : {};
+        for (const [key, value] of Object.entries(data)) {
+            result[key] = typeof value === 'string' ? this.evaluateExpression(value) : value;
+        }
+        return result;
+    }
+
+    private handleAction(action: string, rawActionData?: any) {
+        const actionData = this.evaluateActionData(rawActionData);
         console.log('[JSONDialogRenderer] Action:', action, actionData);
 
         switch (action) {
@@ -841,7 +852,11 @@ export class JSONDialogRenderer {
                 break;
 
             case 'changeActionType':
-                this.reloadTypeDefaults();
+                // Sync type from dropdown first
+                const typeVal = this.getInputValue('ActionTypeSelect');
+                if (typeVal) {
+                    this.updateModelValue('ActionTypeSelect', typeVal);
+                }
                 this.render();
                 break;
 
@@ -864,8 +879,18 @@ export class JSONDialogRenderer {
 
             case 'updateValue':
                 if (actionData && actionData.field && actionData.input) {
-                    this.dialogData[actionData.field] = this.getInputValue(actionData.input);
+                    this.updateModelValue(actionData.field, this.getInputValue(actionData.input));
                     this.render();
+                }
+                break;
+
+            case 'insertVariableToField':
+                if (actionData && actionData.field) {
+                    const sourceElement = actionData.input || 'VariableNameSelect';
+                    const varName = this.getInputValue(sourceElement);
+                    if (varName && !varName.includes('wählen')) {
+                        this.insertVariableToField(actionData.field, varName);
+                    }
                 }
                 break;
 
@@ -1018,17 +1043,61 @@ export class JSONDialogRenderer {
         this.render();
     }
 
+    private cleanupActionFields(type: string) {
+        if (!this.dialogData) return;
+        // We allow cleanup even during collecting data because we call it explicitly there.
+        // But we guard against nested recursive calls if needed.
+
+        console.log(`[JSONDialogRenderer] Cleaning up fields for type: "${type}"`);
+
+        // Fields that should be KEPT for all types 
+        const baseFields = ['type', 'name', 'showDetails', 'details', 'description', 'taskParams', 'actionName', 'taskName'];
+
+        // Map types to their allowed specialized fields
+        const allowedFieldsMap: Record<string, string[]> = {
+            'property': ['target', 'changes'],
+            'increment': ['variableName', 'amount'],
+            'negate': ['variableName'],
+            'call_method': ['target', 'method', 'params'],
+            'variable': ['variableName', 'source', 'sourceProperty'],
+            'set_variable': ['variable', 'source', 'sourceProperty'], // 'variable' is the target here in some implementations
+            'service': ['serviceName', 'serviceMethod', 'serviceParams', 'resultVariable'],
+            'broadcast': ['eventName', 'eventData'],
+            'navigate_stage': ['stageId', 'params'],
+            'calculate': ['resultVariable', 'calcSteps', 'formula']
+        };
+
+        const allowed = [...baseFields, ...(allowedFieldsMap[type] || [])];
+
+        // Clean up
+        Object.keys(this.dialogData).forEach(key => {
+            // Keep base fields, allowed fields and internal helpers (starting with _)
+            if (!allowed.includes(key) && !key.startsWith('_')) {
+                console.log(`[JSONDialogRenderer] -> Removing incompatible field: "${key}"`);
+                delete this.dialogData[key];
+            }
+        });
+    }
+
     private reloadTypeDefaults() {
+        // We allow reload even during isCollectingData if it's called explicitly (but usually it's from UI)
+        const type = this.dialogData.type;
+        this.cleanupActionFields(type);
+
         // Reset/init fields based on type
-        if (this.dialogData.type === 'variable') {
+        if (type === 'variable') {
             this.dialogData.variableName = this.dialogData.variableName || '';
             this.dialogData.source = this.dialogData.source || (projectRegistry.getObjects()[0]?.name || '');
             this.dialogData.sourceProperty = this.dialogData.sourceProperty || 'text';
-        } else if (this.dialogData.type === 'call_method') {
+        } else if (type === 'set_variable') {
+            this.dialogData.variable = this.dialogData.variable || '';
+            this.dialogData.source = this.dialogData.source || (projectRegistry.getObjects()[0]?.name || '');
+            this.dialogData.sourceProperty = this.dialogData.sourceProperty || 'text';
+        } else if (type === 'call_method') {
             this.dialogData.target = this.dialogData.target || (projectRegistry.getObjects()[0]?.name || '');
             this.dialogData.method = this.dialogData.method || '';
             this.dialogData.params = this.dialogData.params || [];
-        } else if (this.dialogData.type === 'calculate') {
+        } else if (type === 'calculate') {
             this.dialogData.resultVariable = this.dialogData.resultVariable || '';
             this.dialogData.calcSteps = this.dialogData.calcSteps || [];
 
@@ -1036,14 +1105,13 @@ export class JSONDialogRenderer {
             if (!this.dialogData.formula && this.dialogData.calcSteps.length > 0) {
                 this.dialogData.formula = this.stringifyCalcSteps(this.dialogData.calcSteps);
             }
-        } else {
+        } else if (type === 'property' || type === 'increment' || type === 'negate') {
             this.dialogData.target = this.dialogData.target || (projectRegistry.getObjects()[0]?.name || '');
-            this.dialogData.changes = this.dialogData.changes || {};
-        }
-
-        // Default sync to true if not specified
-        if (this.dialogData.sync === undefined) {
-            this.dialogData.sync = true;
+            if (type === 'property') {
+                this.dialogData.changes = this.dialogData.changes || {};
+            } else {
+                this.dialogData.variableName = this.dialogData.variableName || '';
+            }
         }
     }
 
@@ -1095,40 +1163,107 @@ export class JSONDialogRenderer {
     private insertVariable() {
         const varName = this.getInputValue('VariablePickerSelect');
         if (varName && varName !== '📦 Var') {
-            // Find inputs to insert into
+            // NEW: More robust approach for insertVariable
+            // 1. Check if a target actionData index/name is provided or use default
+            const targetInputName = 'PropertyValueInput';
+            const input = this.dialogWindow.querySelector(`[data-name="${targetInputName}"]`) as HTMLInputElement;
 
-            // Try to find PropertyValueInput specifically, or just use the focused one if possible
-            // Simpler approach: update PropertyValueInput directly since we know context
-
-            // Just update the internal value map for next render or handle DOM directly
-            // For now, simpler to assume it targets PropertyValueInput
-            const input = this.dialogWindow.querySelector('input[placeholder="Value or ${varName}"]') as HTMLInputElement;
             if (input) {
-                input.value = `\${${varName}}`;
-                // Trigger input event to update model if bound
-                input.dispatchEvent(new Event('input'));
+                const currentVal = input.value || '';
+                input.value = currentVal + `\${${varName}}`;
+                // Sync to model
+                this.updateModelValue(targetInputName, input.value);
             }
 
             // Reset picker
-            const picker = this.dialogWindow.querySelectorAll('select')[2] as HTMLSelectElement; // Hacky index, better use name
+            const picker = this.dialogWindow.querySelector('[data-name="VariablePickerSelect"]') as HTMLSelectElement;
             if (picker) picker.selectedIndex = 0;
         }
     }
 
+    private insertVariableToField(fieldName: string, value: string) {
+        if (!fieldName || !value) return;
+
+        // Clean value (remove emojis if present)
+        const cleanValue = value.replace('📦 ', '').replace('🌎 ', '').replace('🎭 ', '').replace('📚 ', '');
+
+        this.updateModelValue(fieldName, cleanValue);
+        this.render();
+    }
+
+    private generateActionDetails(action: any): string {
+        if (!action) return '(nicht definiert)';
+
+        if (action.type === 'property') {
+            const changes = action.changes || {};
+            const entries = Object.entries(changes);
+            if (entries.length === 0) {
+                return action.target ? `${action.target} (keine Änderungen)` : '(property - keine Details)';
+            }
+            return entries.map(([prop, value]) => `${action.target}.${prop} := ${value} `).join('; ');
+        }
+
+        if (action.type === 'variable') {
+            return `${action.variableName} := ${action.source}.${action.sourceProperty} `;
+        }
+
+        if (action.type === 'set_variable') {
+            return `${action.variable} := ${action.source}.${action.sourceProperty} `;
+        }
+
+        if (action.type === 'service') {
+            const result = action.resultVariable ? `${action.resultVariable} := ` : '';
+            return `${result}${action.serviceName}.${action.serviceMethod} ()`;
+        }
+
+        if (action.type === 'calculate') {
+            const result = action.resultVariable ? `${action.resultVariable} := ` : '';
+            return `${result} (Berechnung)`;
+        }
+
+        if (action.type === 'call_method') {
+            const params = action.params ? (Array.isArray(action.params) ? action.params.join(', ') : action.params) : '';
+            return `${action.target}.${action.method} (${params})`;
+        }
+
+        if (action.type === 'increment') {
+            const amount = action.changes?.value !== undefined ? action.changes.value : '1';
+            return `${action.target}.value += ${amount}`;
+        }
+
+        if (action.type === 'negate') {
+            return `${action.target}.value := !${action.target}.value`;
+        }
+
+        return `(${action.type})`;
+    }
+
     private collectFormData() {
-        const namedElements = this.dialogWindow.querySelectorAll('[data-name]');
-        namedElements.forEach(el => {
-            const name = el.getAttribute('data-name');
-            let value: any = (el as HTMLInputElement | HTMLSelectElement).value;
+        this.isCollectingData = true;
+        try {
+            const namedElements = this.dialogWindow.querySelectorAll('[data-name]');
+            namedElements.forEach(el => {
+                const name = el.getAttribute('data-name');
+                let value: any = (el as HTMLInputElement | HTMLSelectElement).value;
 
-            if (el instanceof HTMLInputElement && (el as HTMLInputElement).type === 'checkbox') {
-                value = (el as HTMLInputElement).checked;
-            }
+                if (el instanceof HTMLInputElement && (el as HTMLInputElement).type === 'checkbox') {
+                    value = (el as HTMLInputElement).checked;
+                }
 
-            if (name) {
-                this.updateModelValue(name, value);
-            }
-        });
+                if (name) {
+                    this.updateModelValue(name, value);
+                }
+            });
+
+            // Re-run cleanup to ensure saved data is clean
+            this.cleanupActionFields(this.dialogData.type);
+
+            // Regenerate details for visibility in FlowEditor
+            this.dialogData.details = this.generateActionDetails(this.dialogData);
+
+        } finally {
+            this.isCollectingData = false;
+        }
 
         // Strip internal form values before returning to keep project clean
         delete this.dialogData._formValues;
@@ -1203,35 +1338,39 @@ export class JSONDialogRenderer {
         }
 
         if (name === 'ActionTypeSelect') {
+            console.log(`[JSONDialogRenderer] ActionTypeSelect changing. Raw value: "${value}"`);
             const types: Record<string, string> = {
                 '📝 Property Change (Set)': 'property',
-                '🔧 Eigenschaft setzen': 'property', // Legacy fallback
-                '📞 Call Method': 'call_method',
-                'Plus Increment (Add)': 'increment', // Fallback
-                '➕ Increment (Add)': 'increment',
-                '➕ Wert erhöhen': 'increment', // Legacy
-                '➖ Wert verringern': 'decrement',
-                '↔️ Negate (Invert)': 'negate',
-                '🔄 Wert invertieren': 'negate', // Legacy
+                '➕ Increment (+1)': 'increment',
+                '✖️ Negate (Bool/Num)': 'negate',
+                '⚡ Call Method': 'call_method',
+                '📂 Read Variable': 'variable',
                 '📦 Read Variable': 'variable',
-                '📱 Variable setzen': 'variable', // Legacy
-                '💾 Set Variable (Assign)': 'set_variable', // New Set Variable
-                '☁️ Service Call (RPC)': 'service',
-                '🧮 Calculate': 'calculate',
-                '🧮 Berechnen': 'calculate' // Legacy
+                '📱 Variable setzen': 'variable',
+                '💾 Set Variable (Assign)': 'set_variable',
+                '🌐 Server-Aktion': 'service',
+                '📣 Broadcast Event': 'broadcast',
+                '🚀 Stage wechseln': 'navigate_stage'
             };
-            const newType = types[value] || 'property';
+
+            // If value is already a known internal type (including set_variable), use it directly.
+            const knownTypes = ['property', 'increment', 'negate', 'call_method', 'variable', 'set_variable', 'service', 'broadcast', 'navigate_stage'];
+            const newType = knownTypes.includes(value) ? value : (types[value] || 'property');
+
+            console.log(`[JSONDialogRenderer] Mapped type: "${newType}" (Original was: "${this.dialogData.type}")`);
+
             if (this.dialogData.type !== newType) {
                 this.dialogData.type = newType;
                 this.reloadTypeDefaults();
-                this.render();
+                if (!this.isCollectingData) this.render();
             }
         }
 
-        if (name === 'TargetObjectSelect' || name === 'CallMethodTargetSelect') {
+        if (name === 'TargetObjectSelect' || name === 'CallMethodTargetSelect' || name === 'TargetObjectTitle') {
+            // Also handle 'TargetObjectTitle' if it was accidentally used as field in JSON
             this.dialogData.target = value;
             this.dialogData.method = ''; // Reset method on target change
-            this.render();
+            if (!this.isCollectingData) this.render();
         }
 
         // Special handler for simplified variable increment
@@ -1255,7 +1394,7 @@ export class JSONDialogRenderer {
 
         if (name === 'SourceObjectSelect') {
             this.dialogData.source = value;
-            this.render();
+            if (!this.isCollectingData) this.render();
         }
 
         if (name === 'SourcePropertySelect') this.dialogData.sourceProperty = value;
@@ -1263,6 +1402,10 @@ export class JSONDialogRenderer {
         if (name === 'TaskNameInput') this.dialogData.taskName = value;
         if (name === 'CalcResultVariable') this.dialogData.resultVariable = value;
         if (name === 'CalcFormulaInput') this.dialogData.formula = value;
+
+        if (name === 'sync') {
+            this.dialogData.sync = value;
+        }
 
         if (name === 'DescriptionInput') this.dialogData.description = value;
         if (name === 'SetValueInput') this.dialogData.value = value;

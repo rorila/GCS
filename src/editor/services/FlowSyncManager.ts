@@ -105,7 +105,17 @@ export class FlowSyncManager {
             if (node.getType() === 'Action' && node.data && !node.data.isEmbeddedInternal) {
                 const actionName = node.Name || node.data.name || node.data.actionName;
                 if (actionName) {
-                    this.updateGlobalActionDefinition({ details: (node as any).Details, ...node.data, name: actionName });
+                    // Critical: if it is a linked action, we ONLY sync the basic node metadata (name, positions)
+                    // We must NOT call updateGlobalActionDefinition with node.data if it is sparse/linked,
+                    // as that would overwrite the full global definition with minimal data.
+                    if (node.data.isLinked) {
+                        // Just ensure the global action exists, don't update its core logic from the sparse node
+                        // However, we might want to sync 'details' if it's the only thing that changed visually?
+                        // No, 'details' should be derived from global action.
+                        // Let's just skip updating the logic part.
+                    } else {
+                        this.updateGlobalActionDefinition({ details: (node as any).Details, ...node.data, name: actionName });
+                    }
                 }
             }
 
@@ -565,8 +575,8 @@ export class FlowSyncManager {
         const name = actionData.name || actionData.actionName;
         if (!name) return;
 
-        const canBeParsed = actionData.details && this.parseDetailsToCommand(actionData.details);
-        const isMinimalLink = actionData.isLinked && !actionData.type && !actionData.target && !actionData.service && !canBeParsed;
+        // SKIP parsing/merging if this is just a minimal link from a canvas node
+        const isMinimalLink = actionData.isLinked && !actionData.type && !actionData.target && !actionData.service;
         if (isMinimalLink) return;
 
         if (!this.host.project.actions) this.host.project.actions = [];
@@ -575,6 +585,8 @@ export class FlowSyncManager {
         taskFields.forEach(field => delete cleanedData[field]);
 
         const newAction = { ...cleanedData, name };
+
+        // Only parse if we strictly have only details and nothing else (legacy support)
         if (newAction.details && !newAction.type && !newAction.target && !newAction.service && !newAction.calcSteps) {
             const parsed = this.parseDetailsToCommand(newAction.details);
             if (parsed) Object.assign(newAction, parsed);
@@ -583,8 +595,18 @@ export class FlowSyncManager {
         if (newAction.actionName) delete newAction.actionName;
         const targetCollection = (this.host as any).editor ? (this.host as any).editor.getTargetActionCollection(name) : (this.host.project.actions || []);
         const idx = targetCollection.findIndex((a: any) => a.name === name);
-        if (idx !== -1) targetCollection[idx] = { ...targetCollection[idx], ...newAction };
-        else targetCollection.push(newAction);
+
+        if (idx !== -1) {
+            // FIX: If types differ, we REPLACE instead of merge to get rid of incompatible fields
+            if (targetCollection[idx].type !== newAction.type && newAction.type) {
+                console.log(`[FlowSyncManager] Type changed for ${name}. Replacing definition to clean fields.`);
+                targetCollection[idx] = newAction;
+            } else {
+                targetCollection[idx] = { ...targetCollection[idx], ...newAction };
+            }
+        } else {
+            targetCollection.push(newAction);
+        }
     }
 
     public registerActionsFromTask(task: any) {

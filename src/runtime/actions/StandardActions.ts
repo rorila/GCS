@@ -50,22 +50,76 @@ export function registerStandardActions(objects: any[]) {
         ]
     });
 
-    // 2. Variable setzen
+    // 2. Variable lesen / setzen (Read Variable)
     actionRegistry.register('variable', (action, context) => {
-        const srcObj = resolveTarget(action.source, objects, context.vars, context.contextVars);
-        if (srcObj && action.variableName && action.sourceProperty) {
-            const val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
-            context.vars[action.variableName] = val;
-            context.contextVars[action.variableName] = val;
+        let val: any = undefined;
+        const sourceName = action.source;
+        const variableName = action.variableName;
+
+        // 1. Quelle auflösen (Objekt oder Variable)
+        const srcObj = resolveTarget(sourceName, objects, context.vars, context.contextVars);
+
+        if (srcObj) {
+            // Falls Objekt gefunden, Eigenschaft lesen
+            if (action.sourceProperty) {
+                val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
+            } else {
+                val = srcObj;
+            }
         }
+
+        // 2. Falls kein Objekt gefunden oder Wert noch undefined, in Variablen suchen
+        if (val === undefined) {
+            const varVal = context.vars[sourceName] !== undefined ? context.vars[sourceName] : context.contextVars[sourceName];
+            if (varVal !== undefined) {
+                if (action.sourceProperty && typeof varVal === 'object' && varVal !== null) {
+                    val = PropertyHelper.getPropertyValue(varVal, action.sourceProperty);
+                } else {
+                    val = varVal;
+                }
+            }
+        }
+
+        // 3. Fallback: Interpolation (falls Quelle z.B. "${andereVar}")
+        if (val === undefined && sourceName && String(sourceName).includes('${')) {
+            val = PropertyHelper.interpolate(String(sourceName), { ...context.contextVars, ...context.vars }, objects);
+        }
+
+        // Zuweisung
+        if (val !== undefined && variableName) {
+            context.vars[variableName] = val;
+            context.contextVars[variableName] = val;
+
+            DebugLogService.getInstance().log('Variable', `Variable "${variableName}" auf "${val}" gesetzt (Quelle: ${sourceName}${action.sourceProperty ? '.' + action.sourceProperty : ''})`, {
+                data: { value: val, source: sourceName, property: action.sourceProperty }
+            });
+        } else {
+            console.warn(`[Action:variable] Fehler: Quelle "${sourceName}" konnte nicht aufgelöst werden oder variableName fehlt.`);
+            DebugLogService.getInstance().log('Action', `⚠️ Variable konnte nicht gelesen werden. Quelle: ${sourceName}`, {
+                data: action
+            });
+        }
+
     }, {
         type: 'variable',
-        label: 'Variable setzen',
-        description: 'Kopiert den Wert einer Objekteigenschaft in eine Variable.',
+        label: 'Variable lesen / setzen',
+        description: 'Liest einen Wert aus einer Quelle (Objekt-Eigenschaft oder andere Variable) und speichert ihn in einer Ziel-Variable.',
         parameters: [
-            { name: 'variableName', label: 'Variablen-Name', type: 'variable', source: 'variables' },
-            { name: 'source', label: 'Quell-Objekt', type: 'object', source: 'objects' },
-            { name: 'sourceProperty', label: 'Quell-Eigenschaft', type: 'string', placeholder: 'z.B. x' }
+            { name: 'variableName', label: 'Ziel-Variable', type: 'variable', source: 'variables' },
+            { name: 'source', label: 'Quell-Objekt / Variable', type: 'object', source: 'objects' },
+            { name: 'sourceProperty', label: 'Eigenschaft (optional)', type: 'string', placeholder: 'z.B. text oder value' }
+        ]
+    });
+
+    // 2b. Alias für Variable setzen (für UI-Unterscheidung)
+    actionRegistry.register('set_variable', actionRegistry.getHandler('variable')!, {
+        type: 'set_variable',
+        label: 'Variable setzen (Zuweisung)',
+        description: 'Liest einen Wert aus einer Quelle und speichert ihn in einer Ziel-Variable.',
+        parameters: [
+            { name: 'variableName', label: 'Ziel-Variable', type: 'variable', source: 'variables' },
+            { name: 'source', label: 'Quell-Objekt / Variable', type: 'object', source: 'objects' },
+            { name: 'sourceProperty', label: 'Eigenschaft (optional)', type: 'string', placeholder: 'z.B. text oder value' }
         ]
     });
 

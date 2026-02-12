@@ -110,6 +110,18 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
   - **ActionExecutor & Proxies**: Wenn sich eine Stage ändert (`GameRuntime.handleStageChange`), muss der `ActionExecutor` explizit mit der Liste der neuen Proxies (`reactiveRuntime.getObjects()`) aktualisiert werden, damit Aktionen direkt auf den reaktiven Instanzen operieren.
   - **valueOf() Support**: Alle Komponenten erben `valueOf()` von `TComponent`, was bei Variablen automatisch `.value` zurückgibt – ein Sicherheitsnetz für direkte JS-Interaktionen.
 
+- **Read Variable Aktion (v2.16.4 / v2.16.5)**:
+    - Die Aktion `variable` (Label: "Read Variable") ist nun hochflexibel.
+    - **Quellen**: Sie unterstützt sowohl Komponenten-Instanzen (via `sourceProperty`) als auch direkte Variablen-Namen.
+    - **Auflösung**: Wenn ein Objekt-Name angegeben ist, wird dessen Eigenschaft gelesen. Falls kein Objekt gefunden wird, sucht das System in `context.vars` (Local/Global) nach einer gleichnamigen Variable.
+    - **UI-Unterscheidung (v2.16.5)**: Für die visuelle Trennung zwischen "Lesen" und "Setzen" im Editor wurde der Alias `set_variable` eingeführt. In `StandardActions.ts` nutzen beide denselben Handler.
+    - **Editor**: Im `JSONDialogRenderer` wird beim Öffnen des Aktions-Editors der Kontext (`taskName`, `actionId`) an die `ProjectRegistry` übergeben, damit auch lokale Variablen in den Dropdowns zur Auswahl stehen.
+
+> [!IMPORTANT]
+> **Stage-Synchronisation (v2.16.5)**:
+> Beim Wechsel der Stage (`editor.switchStage`) muss zwingend `this.stage.isBlueprint` auf den korrekten Typ der neuen Stage gesetzt werden. Ohne diesen Sync werden Variablen auf Standard-Stages im Editor-Modus ausgeblendet.
+
+
 ## Editor -> Runtime Transition
 - **Data Sync**: Vor dem Start der Runtime (`new GameRuntime`) müssen die aktuellen Editor-Objekte explizit in das Projekt-JSON serialisiert werden (`syncStageObjectsToProject`), damit Änderungen (z.B. neue Bilder) übernommen werden.
 - **View Restore**: Beim Beenden des Run-Modes muss sichergestellt werden, dass die Editor-Ansicht sauber neu geladen wird (z.B. via `switchStage`), um Runtime-Proxies zu entfernen und den Editor-Status wiederherzustellen.
@@ -294,7 +306,12 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 
 - **Dropdown Verhalten**: Alle Dropdowns im Action Editor sollten einen Platzhalter ("--- bitte wählen ---") verwenden, wenn noch kein Wert ausgewählt ist. Dies stellt sicher, dass jede Auswahl (auch die erste) ein `onchange` Event auslöst.
 - **Dependency Resets**: Beim Ändern eines Primär-Feldes (z.B. Target Object oder Action Type) müssen abhängige Felder (z.B. Method Name) explizit gelöscht werden, um inkonsistente Zustände in der UI zu vermeiden.
-- **Re-rendering**: Jede Änderung an einem zentralen `dialogData` Feld, die die Sichtbarkeit anderer Felder beeinflusst, erfordert einen expliziten Aufruf von `this.render()`.
+- **Re-rendering**: Jede Änderung an einem zentralen `dialogData` Feld, die die Sichtbarkeit anderer Felder beeinflusst, erfordert einen explizit Aufruf von `this.render()`.
+- **Rendering-Guard (isCollectingData)**: Nutze dieses Flag im `JSONDialogRenderer`, um Re-Renders während der Formular-Datensammlung zu verhindern. Dies schützt vor Datenverlust durch DOM-Manipulationen während der Serialisierung.
+- **SSoT-Synchronisation (FlowSyncManager)**: Bei der grafischen Synchronisierung von canvas-nodes (`isLinked: true`) dürfen globale Definitionen nur dann aktualisiert werden, wenn der Knoten vollständige Logik-Daten enthält. Sparse Metadata-Updates (nur Name/Position) müssen von Logik-Updates getrennt bleiben, um ein Überschreiben der vollen Aktionsdefinition durch Minimaldaten zu verhindern.
+- **Typwechsel-Logik**: Beim Wechsel von Aktionstypen im Dialog sollte die Definition ersetzt statt gemergt werden, um inkompatible Felder (z.B. alte Variablenreferenzen) restlos zu entfernen.
+    - Während dieses Flag aktiv ist, müssen alle `render()`-Aufrufe (z.B. ausgelöst durch `updateModelValue`) unterdrückt werden.
+    - Dies verhindert, dass das DOM während der Iteration über die Eingabefelder geleert und neu aufgebaut wird, was zu unvollständigen Datensätzen im Projekt-JSON führt.
 - **Method Mapping**: Beim Hinzufügen neuer Komponenten-Klassen muss deren Methoden-Liste in `JSONDialogRenderer.getMethodsForObject` ergänzt werden, damit sie im Action Editor auftaucht.
 
 ## Variablen als Logik-Objekte (OOP)
@@ -443,6 +460,10 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
   - Die UI für Parameter wird automatisch aus dem `parameters`-Array der Metadaten generiert.
   - Verwende `source: 'variables' | 'objects' | 'stages' | 'services' | 'easing-functions'`, um Dropdowns automatisch zu befüllen.
   - Komplexere Aktionen (wie `animate`) können so ohne Änderungen an JSON-Dateien oder Dialog-Renderern hinzugefügt werden.
+
+> [!TIP]
+> **Robuste Typ-Auswahl (v2.16.5)**:
+> Nutze in `TDropdown` oder `TSelect` für Aktions-Typen immer Objekte mit `value` und `label` statt einfacher Strings. Dies schützt vor Fehlern bei Emoji-Änderungen oder Übersetzungen, da intern nur der stabile `value` (z.B. `property`, `set_variable`) verarbeitet wird.
 - **Dialog-Expressions**:
   - Im `JSONDialogRenderer` müssen Variablen in Properties wie `source` zwingend mit `${...}` umschlossen werden (z.B. `"source": "${dialogData.images}"`), damit sie als Expression ausgewertet werden. Ohne `${}` wird der Wert als String-Literal behandelt.
 

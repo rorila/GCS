@@ -1,5 +1,25 @@
 # Changelog
 
+## v2.16.8 (2026-02-12)
+- **Fix (Aktions-Editor)**: Fehlerbehebung bei der Typ-Synchronisation. Der Aktionstyp wird nun korrekt beim Wechsel im Dropdown aktualisiert.
+- **Fix (Aktions-Editor)**: Automatische Aktualisierung des `details`-Feldes beim Speichern, für eine konsistente Anzeige im Flow-Editor.
+- **Fix (Aktions-Editor)**: Korrekte Verarbeitung des `sync`-Flags in der Projekt-JSON.
+
+## v2.16.7 (2026-02-12)
+- **Refactoring**: Syntax-Bereinigung und Wiederherstellung von Member-Methoden im `JSONDialogRenderer.ts`.
+
+## v2.16.5 (2026-02-12)
+- **Fix (Editor)**: Variablen werden nun korrekt auf allen Stages angezeigt. Der `isBlueprint`-Status der Stage wird jetzt beim Wechsel (switchStage) synchronisiert.
+- **Fix (Komponente)**: `TVariable` ist nicht mehr auf Blueprints beschränkt (`isBlueprintOnly = false`), um die Sichtbarkeit im Editor zu gewährleisten.
+- **Fix (Aktions-Editor)**: Auswahl des Aktions-Typs in `dialog_action_editor.json` auf Objekt-Basis umgestellt (value/label), um fragile String-Vergleiche mit Emojis zu vermeiden.
+- **Fix (Runtime)**: `set_variable` als Alias für `variable` in `StandardActions.ts` registriert, um UI-Konsistenz bei gleichbleibender Funktionalität zu erhalten.
+
+## v2.16.4 (2026-02-12)
+- **Fix (Read Variable)**: Die Aktion "Read Variable" (intern `variable`) unterstützt nun auch Variablen als Quelle. 
+- **Fix (Editor)**: Variablen-Listen im Flow-Editor (JSONDialogRenderer) sind nun kontextsensitiv und zeigen auch lokale Task-Variablen an.
+- **Fix (Aktions-Editor)**: Das Eingabefeld für die Ziel-Variable in `dialog_action_editor.json` wurde repariert (fehlende `className`) und durch ein Auswahl-Dropdown ergänzt.
+- **Logik**: Der `variable`-Handler löst Quellen nun robuster auf (Objekt -> Variable -> Interpolation) und bietet detailliertes Logging im Debug-Log.
+
 ## v2.16.3 (2026-02-12)
 - **Fix (Variable Events)**: Automatische Triggerung von Variablen-Events unterbunden. Events wie `onValueChanged` lösen nur noch aus, wenn sie im Flow-Editor explizit verknüpft wurden.
 - **Fix (StandardActions)**: Doppelte Zuweisung in der `calculate`-Aktion entfernt, um redundante Proxy-Trigger zu vermeiden.

@@ -18,7 +18,7 @@ export class TVariable extends TWindow {
 
         // Visibility & Scoping Meta-Flags
         this.isHiddenInRun = true;
-        this.isBlueprintOnly = true;
+        this.isBlueprintOnly = false;
     }
 
     public getInspectorProperties(): TPropertyDef[] {

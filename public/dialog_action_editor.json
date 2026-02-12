@@ -61,16 +61,44 @@
             "className": "TDropdown",
             "name": "ActionTypeSelect",
             "options": [
-                "📝 Property Change (Set)",
-                "➕ Increment (Add)",
-                "📦 Read Variable",
-                "💾 Set Variable (Assign)",
-                "☁️ Service Call (RPC)",
-                "↔️ Negate (Invert)",
-                "📞 Call Method",
-                "🧮 Calculate"
+                {
+                    "value": "property",
+                    "label": "📝 Property Change (Set)"
+                },
+                {
+                    "value": "increment",
+                    "label": "➕ Increment (+1)"
+                },
+                {
+                    "value": "negate",
+                    "label": "✖️ Negate (Bool/Num)"
+                },
+                {
+                    "value": "call_method",
+                    "label": "⚡ Call Method"
+                },
+                {
+                    "value": "variable",
+                    "label": "📂 Read Variable"
+                },
+                {
+                    "value": "set_variable",
+                    "label": "💾 Set Variable (Assign)"
+                },
+                {
+                    "value": "service",
+                    "label": "🌐 Server-Aktion"
+                },
+                {
+                    "value": "broadcast",
+                    "label": "📣 Broadcast Event"
+                },
+                {
+                    "value": "navigate_stage",
+                    "label": "🚀 Stage wechseln"
+                }
             ],
-            "selectedIndex": "${dialogData.type === 'property' ? 0 : dialogData.type === 'increment' ? 1 : dialogData.type === 'variable' ? 2 : dialogData.type === 'set_variable' ? 3 : dialogData.type === 'service' ? 4 : dialogData.type === 'negate' ? 5 : dialogData.type === 'call_method' ? 6 : dialogData.type === 'calculate' ? 7 : 0}",
+            "selectedIndex": "${dialogData.type === 'property' ? 0 : dialogData.type === 'increment' ? 1 : dialogData.type === 'negate' ? 2 : dialogData.type === 'call_method' ? 3 : dialogData.type === 'variable' ? 4 : dialogData.type === 'set_variable' ? 5 : dialogData.type === 'service' ? 6 : dialogData.type === 'broadcast' ? 7 : dialogData.type === 'navigate_stage' ? 8 : 0}",
             "action": "changeActionType",
             "style": {
                 "marginBottom": 16
@@ -88,7 +116,7 @@
         {
             "className": "TLabel",
             "name": "VariableNameTitle",
-            "text": "Variable Name",
+            "text": "Ziel-Variable",
             "visible": "${dialogData.type === 'variable' || dialogData.type === 'set_variable'}",
             "style": {
                 "fontSize": 12,
@@ -98,9 +126,10 @@
             }
         },
         {
+            "className": "TEdit",
             "name": "VariableNameInput",
             "text": "${(dialogData.type === 'set_variable' ? dialogData.variable : dialogData.variableName) || ''}",
-            "placeholder": "z.B. userName",
+            "placeholder": "z.B. punkteStand",
             "visible": "${dialogData.type === 'variable' || dialogData.type === 'set_variable'}",
             "action": "updateValue",
             "actionData": {
@@ -113,9 +142,26 @@
             }
         },
         {
+            "className": "TDropdown",
+            "name": "VariableNameSelect",
+            "options": "${['📦 Variable wählen...'].concat((dialogData.taskParams || []).map(p => p.name)).concat(project.variables ? project.variables.map(v => v.name) : [])}",
+            "selectedIndex": 0,
+            "action": "insertVariableToField",
+            "actionData": {
+                "field": "VariableNameInput"
+            },
+            "visible": "${(dialogData.type === 'variable' || dialogData.type === 'set_variable') && ((project.variables && project.variables.length > 0) || (dialogData.taskParams && dialogData.taskParams.length > 0))}",
+            "style": {
+                "marginTop": -10,
+                "marginBottom": 12,
+                "backgroundColor": "#2e7d32",
+                "fontSize": 11
+            }
+        },
+        {
             "className": "TLabel",
             "name": "SourceObjectTitle",
-            "text": "Source Object",
+            "text": "Quelle (Objekt oder Variable)",
             "visible": "${dialogData.type === 'variable'}",
             "style": {
                 "fontSize": 12,
@@ -127,7 +173,7 @@
         {
             "className": "TDropdown",
             "name": "SourceObjectSelect",
-            "options": "${project.objects.map(o => o.name)}",
+            "options": "${['--- wählen ---'].concat(project.variables ? project.variables.map(v => v.name) : []).concat(project.objects.map(o => o.name))}",
             "selectedValue": "${dialogData.source || ''}",
             "visible": "${dialogData.type === 'variable'}",
             "style": {

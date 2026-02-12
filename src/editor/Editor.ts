@@ -915,6 +915,7 @@ export class Editor implements IViewHost {
         // Aktive Stage setzen
         this.project.activeStageId = stageId;
         projectRegistry.setActiveStageId(stageId);
+        this.stage.isBlueprint = stage.type === 'blueprint';
 
         // Update flow editor dropdown to reflect new stage context
         if (this.flowEditor) {
@@ -1351,8 +1352,10 @@ export class Editor implements IViewHost {
         const activeStage = this.project.stages?.find(s => s.id === this.project.activeStageId);
         if (activeStage && activeStage.grid) {
             this.stage.grid = activeStage.grid;
+            this.stage.isBlueprint = activeStage.type === 'blueprint';
         } else {
             this.stage.grid = this.project.stage.grid;
+            this.stage.isBlueprint = false;
         }
 
         if (this.flowEditor) this.flowEditor.setProject(this.project);
