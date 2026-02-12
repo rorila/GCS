@@ -1,6 +1,10 @@
 # Changelog
 
-## v2.16.8 (2026-02-12)
+## v2.16.9
+- Fix (Aktions-Editor): Korrekte Anzeige des Aktionstyps beim Öffnen des Dialogs (Fix der `TDropdown` `selectedIndex` Evaluierung).
+
+## v2.16.8
+ (2026-02-12)
 - **Fix (Aktions-Editor)**: Fehlerbehebung bei der Typ-Synchronisation. Der Aktionstyp wird nun korrekt beim Wechsel im Dropdown aktualisiert.
 - **Fix (Aktions-Editor)**: Automatische Aktualisierung des `details`-Feldes beim Speichern, für eine konsistente Anzeige im Flow-Editor.
 - **Fix (Aktions-Editor)**: Korrekte Verarbeitung des `sync`-Flags in der Projekt-JSON.

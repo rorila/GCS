@@ -347,10 +347,15 @@ export class JSONDialogRenderer {
                     // Prioritize current form value during session
                     const currentSelection = this.dialogData._formValues?.[obj.name];
                     const selectedValue = currentSelection !== undefined ? currentSelection : this.evaluateExpression(obj.selectedValue);
-                    const selectedIndex = currentSelection !== undefined ? undefined : this.evaluateExpression(obj.selectedIndex);
+                    let selectedIndex = currentSelection !== undefined ? undefined : this.evaluateExpression(obj.selectedIndex);
+
+                    // Convert to number if it came from an expression string
+                    if (selectedIndex !== undefined && typeof selectedIndex !== 'number') {
+                        selectedIndex = parseInt(selectedIndex as any);
+                    }
 
                     // Add placeholder if requested or if no valid selection exists
-                    if (!selectedValue && !selectedIndex) {
+                    if (!selectedValue && (selectedIndex === undefined || isNaN(selectedIndex))) {
                         const placeholder = document.createElement('option');
                         placeholder.value = '';
                         placeholder.text = '--- bitte wählen ---';
@@ -364,16 +369,14 @@ export class JSONDialogRenderer {
                         if (typeof opt === 'object' && opt !== null) {
                             option.value = opt.value;
                             option.text = opt.label || opt.name || opt.value;
-                            if (selectedValue === opt.value) option.selected = true;
+                            if (selectedValue === opt.value || selectedIndex === idx) {
+                                option.selected = true;
+                            }
                         } else {
                             option.value = opt;
                             option.text = opt;
-                            if (selectedValue === opt) option.selected = true;
-                            else if (selectedIndex === idx) {
-                                // Only auto-select if we don't have a placeholder selected
-                                if (!select.querySelector('option[selected]')) {
-                                    option.selected = true;
-                                }
+                            if (selectedValue === opt || selectedIndex === idx) {
+                                option.selected = true;
                             }
                         }
                         select.appendChild(option);
