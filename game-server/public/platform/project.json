@@ -63,7 +63,111 @@
   "splashDuration": 3000,
   "splashAutoHide": true,
   "actions": [],
-  "tasks": [],
+  "tasks": [
+    {
+      "name": "GetCurrentPIN",
+      "actionSequence": [
+        {
+          "name": "addEmojiToCurrentPIN",
+          "type": "action"
+        },
+        {
+          "name": "Action2",
+          "showDetails": false,
+          "details": "(undefined)",
+          "type": "action"
+        }
+      ],
+      "params": [],
+      "flowChart": {
+        "elements": [
+          {
+            "id": "node-1770831289578",
+            "type": "Task",
+            "x": 60,
+            "y": 80,
+            "width": 160,
+            "height": 60,
+            "properties": {
+              "name": "GetCurrentPIN",
+              "details": "",
+              "description": "",
+              "text": "GetCurrentPIN"
+            },
+            "data": {
+              "name": "ANewTask",
+              "taskName": "GetCurrentPIN",
+              "showDetails": false
+            }
+          },
+          {
+            "id": "node-1770832206812",
+            "type": "Action",
+            "x": 300,
+            "y": 80,
+            "width": 220,
+            "height": 60,
+            "properties": {
+              "name": "addEmojiToCurrentPIN",
+              "details": "",
+              "description": ""
+            },
+            "data": {
+              "name": "addEmojiToCurrentPIN",
+              "isLinked": true
+            }
+          },
+          {
+            "id": "node-1770832700168",
+            "type": "Action",
+            "x": 700,
+            "y": 80,
+            "width": 140,
+            "height": 60,
+            "properties": {
+              "name": "Action2",
+              "details": "(undefined)",
+              "description": ""
+            },
+            "data": {
+              "name": "Action2",
+              "showDetails": false,
+              "details": "(undefined)"
+            }
+          }
+        ],
+        "connections": [
+          {
+            "startTargetId": "node-1770831289578",
+            "endTargetId": "node-1770832206812",
+            "startX": 220,
+            "startY": 110,
+            "endX": 300,
+            "endY": 110,
+            "data": {
+              "startAnchorType": "output",
+              "isEmbeddedInternal": false,
+              "endAnchorType": "input"
+            }
+          },
+          {
+            "startTargetId": "node-1770832206812",
+            "endTargetId": "node-1770832700168",
+            "startX": 522.328125,
+            "startY": 111,
+            "endX": 700,
+            "endY": 110,
+            "data": {
+              "startAnchorType": "output",
+              "originalStartAnchorType": "output",
+              "isEmbeddedInternal": false,
+              "endAnchorType": "input"
+            }
+          }
+        ]
+      }
+    }
+  ],
   "variables": [
     {
       "className": "TStringVariable",
@@ -492,6 +596,32 @@
           "details": "(undefined)",
           "name": "Action1",
           "showDetails": false
+        },
+        {
+          "details": "currentPIN :=  (Berechnung)",
+          "name": "addEmojiToCurrentPIN",
+          "showDetails": true,
+          "type": "calculate",
+          "target": "",
+          "changes": {},
+          "taskParams": [],
+          "method": "",
+          "description": "",
+          "resultVariable": "currentPIN",
+          "calcSteps": [
+            {
+              "operandType": "variable",
+              "constant": 0,
+              "variable": "(Berechnung)"
+            }
+          ],
+          "sync": true,
+          "formula": "currentPIN + PinPicker.selectedEmoji"
+        },
+        {
+          "details": "(undefined)",
+          "name": "Action2",
+          "showDetails": false
         }
       ],
       "objects": [
@@ -565,6 +695,9 @@
           "isService": false,
           "isHiddenInRun": false,
           "isBlueprintOnly": false,
+          "Tasks": {
+            "onSelect": "GetCurrentPIN"
+          },
           "name": "PinPicker",
           "scope": "stage",
           "draggable": false,
@@ -899,8 +1032,126 @@
           "hashPasswords": true
         }
       ],
-      "tasks": [],
-      "flowCharts": {}
+      "tasks": [
+        {
+          "name": "GetCurrentPIN",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowChart": {
+            "elements": [
+              {
+                "id": "node-1770831289578",
+                "type": "Task",
+                "x": 400,
+                "y": 200,
+                "width": 160,
+                "height": 60,
+                "properties": {
+                  "name": "ANewTask",
+                  "details": "",
+                  "description": "",
+                  "text": "ANewTask"
+                },
+                "data": {
+                  "name": "ANewTask"
+                }
+              }
+            ],
+            "connections": []
+          }
+        }
+      ],
+      "flowCharts": {
+        "GetCurrentPIN": {
+          "elements": [
+            {
+              "id": "node-1770831289578",
+              "type": "Task",
+              "x": 60,
+              "y": 80,
+              "width": 160,
+              "height": 60,
+              "properties": {
+                "name": "GetCurrentPIN",
+                "details": "",
+                "description": "",
+                "text": "GetCurrentPIN"
+              },
+              "data": {
+                "name": "ANewTask",
+                "taskName": "GetCurrentPIN",
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1770832206812",
+              "type": "Action",
+              "x": 300,
+              "y": 80,
+              "width": 220,
+              "height": 60,
+              "properties": {
+                "name": "addEmojiToCurrentPIN",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "addEmojiToCurrentPIN",
+                "isLinked": true
+              }
+            },
+            {
+              "id": "node-1770832700168",
+              "type": "Action",
+              "x": 700,
+              "y": 80,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "Action2",
+                "details": "(undefined)",
+                "description": ""
+              },
+              "data": {
+                "name": "Action2",
+                "showDetails": false,
+                "details": "(undefined)"
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1770831289578",
+              "endTargetId": "node-1770832206812",
+              "startX": 220,
+              "startY": 110,
+              "endX": 300,
+              "endY": 110,
+              "data": {
+                "startAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "startTargetId": "node-1770832206812",
+              "endTargetId": "node-1770832700168",
+              "startX": 522.328125,
+              "startY": 111,
+              "endX": 700,
+              "endY": 110,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        }
+      }
     },
     {
       "id": "stage_main",

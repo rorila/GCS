@@ -157,33 +157,38 @@ export class TaskExecutor {
             objectName: contextObj?.name
         });
 
-        // Bestimme Ausführungsquelle: Bevorzuge FlowChart (Source of Truth im Editor)
-        const flowChart = this.flowCharts?.[taskName];
-        const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
-        const actionSequence = task.actionSequence || [];
+        DebugLogService.getInstance().pushContext(taskLogId);
+        try {
+            // Bestimme Ausführungsquelle: Bevorzuge FlowChart (Source of Truth im Editor)
+            const flowChart = this.flowCharts?.[taskName];
+            const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
+            const actionSequence = task.actionSequence || [];
 
-        if (hasFlowChart) {
-            console.log(`[TaskExecutor] Nutze Flussdiagramm für "${taskName}" (Elemente: ${flowChart!.elements.length})`);
-            await this.executeFlowChart(taskName, flowChart!, vars, globalVars, contextObj, depth, taskLogId);
-        } else {
-            if (actionSequence.length === 0) {
-                console.log(`[TaskExecutor] Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
-            }
+            if (hasFlowChart) {
+                console.log(`[TaskExecutor] Nutze Flussdiagramm für "${taskName}" (Elemente: ${flowChart!.elements.length})`);
+                await this.executeFlowChart(taskName, flowChart!, vars, globalVars, contextObj, depth, taskLogId);
+            } else {
+                if (actionSequence.length === 0) {
+                    console.log(`[TaskExecutor] Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
+                }
 
-            for (const seqItem of actionSequence) {
-                try {
-                    await this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
-                } catch (err) {
-                    console.error(`[TaskExecutor] Error in item of task ${taskName}: `, err);
-                    DebugLogService.getInstance().log('Event', `ERROR executing task ${taskName}: ${err}`, { parentId: taskLogId });
+                for (const seqItem of actionSequence) {
+                    try {
+                        await this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
+                    } catch (err) {
+                        console.error(`[TaskExecutor] Error in item of task ${taskName}: `, err);
+                        DebugLogService.getInstance().log('Event', `ERROR executing task ${taskName}: ${err}`, { parentId: taskLogId });
+                    }
                 }
             }
-        }
 
-        // local-sync: After execution, sync to other player
-        if (isMultiplayer && triggerMode === 'local-sync' && !isRemoteExecution) {
-            console.log(`[TaskExecutor] Syncing task "${taskName}" to other player`);
-            this.multiplayerManager!.sendSyncTask(taskName, params);
+            // local-sync: After execution, sync to other player
+            if (isMultiplayer && triggerMode === 'local-sync' && !isRemoteExecution) {
+                console.log(`[TaskExecutor] Syncing task "${taskName}" to other player`);
+                this.multiplayerManager!.sendSyncTask(taskName, params);
+            }
+        } finally {
+            DebugLogService.getInstance().popContext();
         }
     }
 

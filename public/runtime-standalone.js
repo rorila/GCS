@@ -398,11 +398,7 @@
       if (trimmedText.startsWith("${") && trimmedText.endsWith("}") && !trimmedText.includes("${", 2)) {
         const expression = trimmedText.slice(2, -1).trim();
         try {
-          const value = this.evaluate(expression, context);
-          if (value !== null && typeof value === "object") {
-            return this.valueToString(value);
-          }
-          return value;
+          return this.evaluate(expression, context);
         } catch (error) {
           return result;
         }
@@ -1277,7 +1273,17 @@
     });
     actionRegistry.register("calculate", (action, context) => {
       if (action.formula) {
-        const result = ExpressionParser.evaluate(action.formula, { ...context.contextVars, ...context.vars });
+        const objectMap = objects.reduce((acc, obj) => {
+          if (obj.id) acc[obj.id] = obj;
+          if (obj.name) acc[obj.name] = obj;
+          return acc;
+        }, {});
+        const result = ExpressionParser.evaluate(action.formula, {
+          ...context.contextVars,
+          ...context.vars,
+          ...objectMap,
+          $eventData: context.eventData
+        });
         if (action.resultVariable) {
           context.vars[action.resultVariable] = result;
           context.contextVars[action.resultVariable] = result;
@@ -1757,14 +1763,13 @@
       console.log(`%c[Action] Executing: type="${action.type}"`, "color: #4caf50", action);
       const handler = actionRegistry.getHandler(action.type);
       if (handler) {
-        await handler(action, {
+        return await handler(action, {
           vars,
           contextVars: globalVars,
           eventData: contextObj,
           multiplayerManager: this.multiplayerManager,
           onNavigate: this.onNavigate
         });
-        return;
       }
       if (!handler) {
         console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
@@ -1946,7 +1951,7 @@
         }
       }
       if (!task) {
-        const optionalEvents = ["onStart", "onStop", "onValueChanged", "onLoad", "onUnload", "onFocus", "onBlur"];
+        const optionalEvents = ["onStart", "onStop", "onValueChanged", "onLoad", "onUnload", "onFocus", "onBlur", "onEnter", "onLeave"];
         const isOptionalEvent = optionalEvents.some((evt) => taskName.endsWith(`.${evt}`));
         if (!isOptionalEvent) {
           console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
@@ -2133,6 +2138,9 @@
       switch (item.type) {
         case "condition":
           await this.handleCondition(item, vars, globalVars, contextObj, depth, parentId);
+          break;
+        case "data_action":
+          await this.handleDataAction(item, vars, globalVars, contextObj, depth, parentId);
           break;
         case "task":
           await this.execute(item.name, vars, globalVars, contextObj, depth + 1, parentId, item.params);
@@ -2405,6 +2413,24 @@
         idx++;
       }
       console.log(`[TaskExecutor] FOREACH loop completed after ${idx} iterations`);
+    }
+    /**
+     * Executes a data action and branches based on the result
+     */
+    async handleDataAction(item, vars, globalVars, contextObj, depth, parentId) {
+      const action = this.resolveAction(item);
+      if (!action) {
+        console.warn(`[TaskExecutor] DataAction definition not found: ${item.name || item.type}`);
+        return;
+      }
+      console.log(`[TaskExecutor] Executing DataAction: ${action.name || action.type}`);
+      const result = await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+      const isSuccess = result !== false;
+      console.log(`[TaskExecutor] DataAction "${action.name || action.type}" finished. Success: ${isSuccess}`);
+      const body = isSuccess ? item.successBody : item.errorBody;
+      if (body && Array.isArray(body)) {
+        await this.executeBody(body, vars, globalVars, contextObj, depth, parentId);
+      }
     }
   };
   __publicField(_TaskExecutor, "MAX_DEPTH", 10);
@@ -8620,7 +8646,8 @@
         ...props,
         { name: "columns", label: "Spalten", type: "number", group: "PICKER", defaultValue: 5 },
         { name: "itemSize", label: "Emoji-Gr\xF6\xDFe (Cells)", type: "number", group: "PICKER", defaultValue: 2 },
-        { name: "emojis", label: "Emoji-Liste (JSON)", type: "json", group: "PICKER" }
+        { name: "emojis", label: "Emoji-Liste (JSON)", type: "json", group: "PICKER" },
+        { name: "selectedEmoji", label: "Selektiertes Emoji", type: "string", group: "PICKER", readonly: true }
       ];
     }
     toJSON() {
@@ -9854,6 +9881,13 @@
       }
     }
     handleStageChange(_oldStageId, newStageId) {
+      if (this.stage && this.taskExecutor) {
+        const onLeaveTask = this.stage.Tasks?.onLeave;
+        if (onLeaveTask) {
+          console.log(`[GameRuntime] Triggering onLeave for stage: ${this.stage.id} (Task: ${onLeaveTask})`);
+          this.taskExecutor.execute(onLeaveTask, { sender: this.stage }, this.contextVars, this.stage);
+        }
+      }
       this.stage = this.project.stages?.find((s) => s.id === newStageId);
       if (!this.stage) return;
       const merged = this.stageManager.getMergedStageData(newStageId);
@@ -9884,6 +9918,18 @@
       this.actionExecutor.setObjects(this.objects);
       this.initStageController();
       this.start();
+      if (this.stage && this.taskExecutor) {
+        const onEnterTask = this.stage.Tasks?.onEnter;
+        if (onEnterTask) {
+          console.log(`[GameRuntime] Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
+          this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage);
+        }
+        const onRuntimeStartTask = this.stage.Tasks?.onRuntimeStart;
+        if (onRuntimeStartTask) {
+          console.log(`[GameRuntime] Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
+          this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage);
+        }
+      }
       if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
     }
     legacyStageSwitch() {
@@ -9943,6 +9989,10 @@
         eventName,
         data
       });
+      if (obj.className === "TEmojiPicker" && eventName === "onSelect" && typeof data === "string") {
+        console.log(`[GameRuntime] Syncing selectedEmoji for ${obj.name}: ${data}`);
+        obj.selectedEmoji = data;
+      }
       if (obj.onEvent) {
         const actions = obj.onEvent[eventName];
         if (actions) {

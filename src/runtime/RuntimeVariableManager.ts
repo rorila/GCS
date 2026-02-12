@@ -121,20 +121,32 @@ export class RuntimeVariableManager {
                     (o.name === prop && o.isVariable)
                 );
 
+                let componentUpdated = false;
                 if (component) {
                     if (component.items !== undefined && Array.isArray(value)) {
                         if (JSON.stringify(component.items) !== JSON.stringify(value)) {
                             component.items = value;
+                            componentUpdated = true;
                         }
                     } else if (component.value !== value) {
                         component.value = value;
+                        componentUpdated = true;
+                    } else if (component.value === value) {
+                        // Even if value is same, we might have just initialized it
+                        // but if proxy didn't trigger a change, we don't count it as 'log already done'
                     }
                 }
 
+                // Only log here if no component already logged the change via its reactive proxy
+                if (!componentUpdated) {
+                    this.logVariableChange(prop, finalValue, oldValue);
+                }
                 this.host.reactiveRuntime.setVariable(prop, finalValue);
 
                 if (this.host.taskExecutor) {
                     if (varDef) {
+                        // We don't await here because Proxy set is synchronous,
+                        // but processVariableEvents itself should be async for cleaner task chains
                         this.processVariableEvents(prop, finalValue, oldValue, varDef);
                     }
                 }
@@ -157,31 +169,31 @@ export class RuntimeVariableManager {
         });
     }
 
-    public processVariableEvents(prop: string, value: any, oldValue: any, varDef: any) {
+    public async processVariableEvents(prop: string, value: any, oldValue: any, varDef: any) {
         const executor = this.host.taskExecutor;
         if (!executor) return;
 
         // a) onValueChanged
         if (oldValue !== value) {
-            this.executeVariableEvent(varDef, 'onValueChanged');
+            await this.executeVariableEvent(varDef, 'onValueChanged');
         }
 
         // b) onValueEmpty
         if ((value === "" || value === null || value === undefined)) {
-            this.executeVariableEvent(varDef, 'onValueEmpty');
+            await this.executeVariableEvent(varDef, 'onValueEmpty');
         }
 
         // c) Thresholds
         if (typeof value === 'number' && typeof oldValue === 'number' && typeof varDef.threshold === 'number') {
             const t = varDef.threshold;
             if (oldValue < t && value >= t) {
-                this.executeVariableEvent(varDef, 'onThresholdReached');
+                await this.executeVariableEvent(varDef, 'onThresholdReached');
             }
             if (oldValue >= t && value < t) {
-                this.executeVariableEvent(varDef, 'onThresholdLeft');
+                await this.executeVariableEvent(varDef, 'onThresholdLeft');
             }
             if (oldValue <= t && value > t) {
-                this.executeVariableEvent(varDef, 'onThresholdExceeded');
+                await this.executeVariableEvent(varDef, 'onThresholdExceeded');
             }
         }
 
@@ -192,10 +204,10 @@ export class RuntimeVariableManager {
             const wasTrigger = oldValue == varDef.triggerValue;
 
             if (isTrigger && !wasTrigger) {
-                this.executeVariableEvent(varDef, 'onTriggerEnter');
+                await this.executeVariableEvent(varDef, 'onTriggerEnter');
             }
             if (!isTrigger && wasTrigger) {
-                this.executeVariableEvent(varDef, 'onTriggerExit');
+                await this.executeVariableEvent(varDef, 'onTriggerExit');
             }
         }
 
@@ -204,29 +216,29 @@ export class RuntimeVariableManager {
             const min = Number(varDef.min);
             const max = Number(varDef.max);
             if (value <= min && (oldValue > min || oldValue === undefined)) {
-                this.executeVariableEvent(varDef, 'onMinReached');
+                await this.executeVariableEvent(varDef, 'onMinReached');
             }
             if (value >= max && (oldValue < max || oldValue === undefined)) {
-                this.executeVariableEvent(varDef, 'onMaxReached');
+                await this.executeVariableEvent(varDef, 'onMaxReached');
             }
             const isInside = value > min && value < max;
             const wasInside = oldValue > min && oldValue < max;
             if (isInside && !wasInside) {
-                this.executeVariableEvent(varDef, 'onInside');
+                await this.executeVariableEvent(varDef, 'onInside');
             }
             if (!isInside && wasInside) {
-                this.executeVariableEvent(varDef, 'onOutside');
+                await this.executeVariableEvent(varDef, 'onOutside');
             }
         }
 
         // f) Random Logic
         if (varDef.isRandom && oldValue !== value) {
-            this.executeVariableEvent(varDef, 'onGenerated');
+            await this.executeVariableEvent(varDef, 'onGenerated');
         }
 
         // g) List Logic
         if (varDef.type === 'list' && value !== oldValue) {
-            this.processListEvents(value, oldValue, varDef);
+            await this.processListEvents(value, oldValue, varDef);
         }
 
         // h) Timer Logic
@@ -239,9 +251,16 @@ export class RuntimeVariableManager {
      * Helper to execute a variable event. 
      * Delegated to TaskExecutor using ComponentName.EventName notation.
      */
-    private executeVariableEvent(varDef: any, eventName: string): void {
+    private async executeVariableEvent(varDef: any, eventName: string): Promise<void> {
         const executor = this.host.taskExecutor;
         if (!executor) return;
+
+        // CRITICAL FIX: Only trigger if the event is explicitly mapped in the variable definition
+        // This prevents automatic triggering of events just because a task with that name exists.
+        const hasExplicitHandler = varDef.Tasks && varDef.Tasks[eventName];
+        if (!hasExplicitHandler) {
+            return;
+        }
 
         // Log to DebugLogService
         const eventLogId = DebugLogService.getInstance().log('Event', `Triggered: ${varDef.name}.${eventName}`, {
@@ -251,10 +270,17 @@ export class RuntimeVariableManager {
 
         // The TaskExecutor now handles the lookup (direct, onEvent map, or named task)
         const taskName = `${varDef.name}.${eventName}`;
-        executor.execute(taskName, { sender: varDef }, this.contextVars, undefined, 0, eventLogId);
+        await executor.execute(taskName, { sender: varDef }, this.contextVars, undefined, 0, eventLogId);
     }
 
-    private processListEvents(value: any, oldValue: any, varDef: any) {
+    private logVariableChange(name: string, value: any, oldValue: any) {
+        if (value === oldValue) return;
+        DebugLogService.getInstance().log('Variable', `${name}${name.includes('.') ? '' : '.value'} changed: ${oldValue !== undefined ? oldValue : ''} -> ${value}`, {
+            objectName: name
+        });
+    }
+
+    private async processListEvents(value: any, oldValue: any, varDef: any) {
         const executor = this.host.taskExecutor;
         if (!executor) return;
         try {
@@ -262,20 +288,20 @@ export class RuntimeVariableManager {
             const oldList = Array.isArray(oldValue) ? oldValue : (oldValue ? JSON.parse(oldValue) : []);
 
             if (list.length > oldList.length) {
-                this.executeVariableEvent(varDef, 'onItemAdded');
+                await this.executeVariableEvent(varDef, 'onItemAdded');
             }
             if (list.length < oldList.length) {
-                this.executeVariableEvent(varDef, 'onItemRemoved');
+                await this.executeVariableEvent(varDef, 'onItemRemoved');
             }
 
             if (varDef.searchValue) {
                 const contains = list.includes(varDef.searchValue);
                 const wasContains = oldList.includes(varDef.searchValue);
                 if (contains && !wasContains) {
-                    this.executeVariableEvent(varDef, 'onContains');
+                    await this.executeVariableEvent(varDef, 'onContains');
                 }
                 if (!contains && wasContains) {
-                    this.executeVariableEvent(varDef, 'onNotContains');
+                    await this.executeVariableEvent(varDef, 'onNotContains');
                 }
             }
         } catch (e) {

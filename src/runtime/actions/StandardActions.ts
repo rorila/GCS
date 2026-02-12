@@ -72,9 +72,21 @@ export function registerStandardActions(objects: any[]) {
     // 3. Berechnung
     actionRegistry.register('calculate', (action, context) => {
         if (action.formula) {
-            const result = ExpressionParser.evaluate(action.formula, { ...context.contextVars, ...context.vars });
+            // Add objects to context to allow access to component properties (e.g. PinPicker.selectedEmoji)
+            const objectMap = objects.reduce((acc: Record<string, any>, obj: any) => {
+                if (obj.id) acc[obj.id] = obj;
+                if (obj.name) acc[obj.name] = obj;
+                return acc;
+            }, {});
+
+            const result = ExpressionParser.evaluate(action.formula, {
+                ...context.contextVars,
+                ...context.vars,
+                ...objectMap,
+                $eventData: context.eventData
+            });
+
             if (action.resultVariable) {
-                context.vars[action.resultVariable] = result;
                 context.contextVars[action.resultVariable] = result;
             }
         }

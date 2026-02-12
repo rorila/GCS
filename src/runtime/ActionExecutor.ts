@@ -29,28 +29,33 @@ export class ActionExecutor {
         if (!action || !action.type) return;
 
         const actionName = action.name || this.getDescriptiveName(action);
-        DebugLogService.getInstance().log('Action', actionName, {
+        const logId = DebugLogService.getInstance().log('Action', actionName, {
             parentId,
             data: action
         });
 
         console.log(`%c[Action] Executing: type="${action.type}"`, 'color: #4caf50', action);
 
-        // 1. Check Registry first
-        const handler = actionRegistry.getHandler(action.type);
-        if (handler) {
-            return await handler(action, {
-                vars,
-                contextVars: globalVars,
-                eventData: contextObj,
-                multiplayerManager: this.multiplayerManager,
-                onNavigate: this.onNavigate
-            });
-        }
+        DebugLogService.getInstance().pushContext(logId);
+        try {
+            // 1. Check Registry first
+            const handler = actionRegistry.getHandler(action.type);
+            if (handler) {
+                return await handler(action, {
+                    vars,
+                    contextVars: globalVars,
+                    eventData: contextObj,
+                    multiplayerManager: this.multiplayerManager,
+                    onNavigate: this.onNavigate
+                });
+            }
 
-        // 2. Legacy Fallback (only for anything not yet in Registry)
-        if (!handler) {
-            console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
+            // 2. Legacy Fallback
+            if (!handler) {
+                console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
+            }
+        } finally {
+            DebugLogService.getInstance().popContext();
         }
     }
 

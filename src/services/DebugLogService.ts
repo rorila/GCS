@@ -21,9 +21,18 @@ export class DebugLogService {
     private listeners: LogListener[] = [];
     private maxLogs = 1000;
     private counter = 0;
+    private contextStack: string[] = [];
     private enabled = false;
 
     private constructor() { }
+
+    public pushContext(id: string) {
+        if (id) this.contextStack.push(id);
+    }
+
+    public popContext() {
+        this.contextStack.pop();
+    }
 
     public setEnabled(enabled: boolean) {
         console.log(`[DebugLogService] setEnabled(${enabled})`);
@@ -49,13 +58,16 @@ export class DebugLogService {
     } = {}): string {
         if (!this.enabled) return '';
 
+        // AUTO-PARENT: If no parentId provided, check if we are in a scoped context (Task/Action)
+        const parentId = options.parentId || (this.contextStack.length > 0 ? this.contextStack[this.contextStack.length - 1] : undefined);
+
         const id = `log-${Date.now()}-${this.counter++}`;
         const entry: LogEntry = {
             id,
             type,
             message,
             timestamp: Date.now(),
-            parentId: options.parentId,
+            parentId: parentId,
             children: [],
             isExpanded: true,
             data: options.data,
@@ -63,8 +75,8 @@ export class DebugLogService {
             eventName: options.eventName
         };
 
-        if (options.parentId) {
-            const parent = this.findEntry(this.logs, options.parentId);
+        if (parentId) {
+            const parent = this.findEntry(this.logs, parentId);
             if (parent) {
                 parent.children.push(entry);
                 this.notify();

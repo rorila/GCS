@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.16.3 (2026-02-12)
+- **Fix (Variable Events)**: Automatische Triggerung von Variablen-Events unterbunden. Events wie `onValueChanged` lösen nur noch aus, wenn sie im Flow-Editor explizit verknüpft wurden.
+- **Fix (StandardActions)**: Doppelte Zuweisung in der `calculate`-Aktion entfernt, um redundante Proxy-Trigger zu vermeiden.
+- **Runtime**: `onValueChanged`-Ketten werden nun asynchron (`await`) ausgeführt, um Race-Conditions zu verhindern.
+- **Debug Log**: Einführung eines Kontext-Stacks, damit Variablenänderungen im Protokoll nun korrekt unter der auslösenden Aktion verschachtelt werden (behebt unsaubere Reihenfolge).
+- **Dokumentation**: `DEVELOPER_GUIDELINES.md` bezüglich der neuen Event-Trigger-Logik aktualisiert.
+
 ## v2.16.1 (2026-02-11)
 - Bugfix: "Ghost-Einträge" (alte Namen) im Task-Dropdown nach Umbenennung behoben (RefactoringManager fix).
 - Bugfix: Kontexterhalt im Flow Editor nach Umbenennung (localStorage Sync in JSONInspector).
@@ -305,6 +312,10 @@
 - **EditorCommandManager**: Neue Komponente für Objekt-Manipulation und Befehlsausführung (Undo/Redo Support).
 - **EditorRunManager**: Neue Komponente für die Verwaltung der Game-Runtime und des Game-Loops.
 - **EditorStageManager**: Neue Komponente für Stage-spezifische Operationen und Objekt-Synchronisation.
+- **UI-Verbesserung**: `selectedEmoji` ist nun im Inspector der `TEmojiPicker`-Komponente sichtbar (schreibgeschützt).
+- **Bugfix (Critical)**: `TEmojiPicker` synchronisiert nun `selectedEmoji` auch bei globalen Tasks korrekt mit der Runtime.
+- **Runtime-Erweiterung**: `StandardActions` (calculate) hat nun Zugriff auf alle Komponenten (`objectMap`) und Event-Daten (`$eventData`).
+- **Trinity-Sync v2.16.1**: Fix für Task-Umbenennungssynchronisierung und Kontexterhalt.
 - **Trinity-Sync**: Konsolidierung der Synchronisation zwischen Stage-Editor, JSON-Code und Pascal-Sicht.
 - **Build & Typ-Sicherheit**:
   - Sämtliche TypeScript-Fehler (8 Fehler in 6 Dateien) behoben.

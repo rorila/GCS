@@ -53,6 +53,11 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **RuntimeVariableManager.ts**: Verwaltung des Variablen-Kontexts, Scoping-Präzedenz (Local > Global) und reaktive Trigger-Logik.
 - **GameRuntime implements IVariableHost**: Ermöglicht dem VariableManager den Zugriff auf Timer und Event-Execution ohne zirkuläre Abhängigkeiten.
 
+- **Explizite Event-Triggerung (v2.16.3)**: 
+    - Variablen-Events (`onValueChanged`, `onThresholdReached`, etc.) werden nur noch dann ausgelöst, wenn sie im Flow-Editor explizit einem Task zugeordnet wurden (Eintrag im `Tasks`-Objekt der Variable).
+    - Dies verhindert, dass das System automatisch nach Tasks mit dem Namen `Variable.Event` sucht und diese ausführt, was zu unerwünschten Seiteneffekten führen konnte.
+    - Die `onValueChanged`-Kette läuft nun asynchron via `await`, um Race-Conditions bei aufeinanderfolgenden Aktionen zu minimieren.
+
 ## Rendering & Game Loop
 - **GameLoopManager (Singleton)**: Verwende den `GameLoopManager.getInstance()` für alle Spielobjekt-Updates und Kollisionsprüfungen. Er ist KEIN Stage-Objekt und umgeht somit Proxy-Binding-Probleme.
 - **GameRuntime Authority**: Die `GameRuntime` ist die "Source of Truth" für den Spielzustand im Run-Modus.
@@ -62,8 +67,18 @@ Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
 - **Stage-Diagnostics**: Bei leeren Bildschirmen im Run-Mode ist die erste Prüfung die Kalkulation der Stage-Größe. `Stage.ts` loggt `Game Stage Size` beim Update. Eine Größe von 0x0px deutet auf CSS-Layout-Probleme im Host-Container hin.
 - **Interaktions-Garantie**: `TButton` Komponenten sollten im Run-Modus immer als klickbar (`cursor: pointer`) markiert werden, auch ohne explizite Task-Zuweisung, um generische Events für die `GameRuntime` abfangbar zu machen.
 - **Render-Callback**: Übergib den Render-Callback (`onRender`) direkt an den `GameRuntime`-Konstruktor (`options.onRender`).
-- **Proxy-Verwendung**: Verwende immer die Objekte aus `runtime.getObjects()` für das Rendering, da diese die reaktiven Proxies enthalten.
-- **Migration**: Das Root-Level `objects` Array in Projektdateien ist veraltet. Objekte sollten ausschließlich innerhalb des `stages`-Arrays gespeichert werden. Nutze Migrationsscripte, um Redundanzen zu entfernen.
+- **Komponenten-Status-Synchronisation (v2.16.2)**:
+  - **Problem**: Bei Events, die Daten übergeben (z.B. `TEmojiPicker.onSelect`), kann es zu Race Conditions kommen, wenn die Runtime-Instanz der Komponente noch nicht aktualisiert wurde, bevor Actions ausgeführt werden.
+  - **Lösung**: In `GameRuntime.handleEvent` muss der Status der Runtime-Komponente explizit mit den Event-Daten synchronisiert werden, *bevor* `actionExecutor` oder `taskExecutor` aufgerufen werden.
+  - **Pattern**:
+    ```typescript
+    // In GameRuntime.handleEvent
+    if (obj.className === 'MyComponent' && eventName === 'onDataChange') {
+        obj.value = data; // Expliziter Sync VOR Action-Ausführung
+    }
+    // ... danach erst Action-Execution
+    ```
+
 - **Hybrides Variablen-System (v2.7.0)**: 
     Die Komponente `TVariable` (und abgeleitete Klassen wie `TTimer`, `TGameLoop`) werden im Editor als visuelle Objekte behandelt, aber im JSON getrennt im `variables`-Array gespeichert.
     - **Visualisierung**: Damit Variablen auf der Stage gerendert werden können, müssen sie in der `variables`-Sektion folgende Eigenschaften besitzen: `x`, `y`, `width`, `height`, `isVariable: true` und `className: "TVariable"`.

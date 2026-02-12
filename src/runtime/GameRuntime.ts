@@ -323,28 +323,41 @@ export class GameRuntime implements IVariableHost {
             data: data
         });
 
-        if (obj.onEvent) {
-            const actions = obj.onEvent[eventName];
-            if (actions) {
-                // Actions can be a single object or an array
-                const actionList = Array.isArray(actions) ? actions : [actions];
-                for (const action of actionList) {
-                    this.actionExecutor.execute(action, {
-                        vars: this.contextVars,
-                        contextVars: this.contextVars,
-                        eventData: data
-                    }, {}, undefined, eventLogId);
+        DebugLogService.getInstance().pushContext(eventLogId);
+        try {
+            // SPECIAL HANDLING: TEmojiPicker state sync (Global & Local)
+            // The view (Stage) triggers onSelect with the emoji as data.
+            // We must update the runtime object's state BEFORE executing ANY actions or tasks.
+            if (obj.className === 'TEmojiPicker' && eventName === 'onSelect' && typeof data === 'string') {
+                console.log(`[GameRuntime] Syncing selectedEmoji for ${obj.name}: ${data}`);
+                obj.selectedEmoji = data;
+            }
+
+            if (obj.onEvent) {
+                const actions = obj.onEvent[eventName];
+                if (actions) {
+                    // Actions can be a single object or an array
+                    const actionList = Array.isArray(actions) ? actions : [actions];
+                    for (const action of actionList) {
+                        this.actionExecutor.execute(action, {
+                            vars: this.contextVars,
+                            contextVars: this.contextVars,
+                            eventData: data
+                        }, {}, undefined, eventLogId);
+                    }
                 }
             }
-        }
 
-        if (this.taskExecutor) {
-            const taskName = `${obj.name}.${eventName}`;
-            // Ensure eventData is available in vars even when 'data' is not an object (e.g., a string like an emoji)
-            const eventVars = typeof data === 'object' && data !== null
-                ? { ...data, eventData: data, sender: obj }
-                : { eventData: data, sender: obj };
-            this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
+            if (this.taskExecutor) {
+                const taskName = `${obj.name}.${eventName}`;
+                // Ensure eventData is available in vars even when 'data' is not an object (e.g., a string like an emoji)
+                const eventVars = typeof data === 'object' && data !== null
+                    ? { ...data, eventData: data, sender: obj }
+                    : { eventData: data, sender: obj };
+                this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
+            }
+        } finally {
+            DebugLogService.getInstance().popContext();
         }
     }
 

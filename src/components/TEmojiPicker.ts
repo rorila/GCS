@@ -37,7 +37,8 @@ export class TEmojiPicker extends TPanel {
             ...props,
             { name: 'columns', label: 'Spalten', type: 'number', group: 'PICKER', defaultValue: 5 },
             { name: 'itemSize', label: 'Emoji-Größe (Cells)', type: 'number', group: 'PICKER', defaultValue: 2 },
-            { name: 'emojis', label: 'Emoji-Liste (JSON)', type: 'json', group: 'PICKER' }
+            { name: 'emojis', label: 'Emoji-Liste (JSON)', type: 'json', group: 'PICKER' },
+            { name: 'selectedEmoji', label: 'Selektiertes Emoji', type: 'string', group: 'PICKER', readonly: true }
         ];
     }
 
