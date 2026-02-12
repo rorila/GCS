@@ -355,7 +355,9 @@ export class JSONDialogRenderer {
                     }
 
                     // Add placeholder if requested or if no valid selection exists
-                    if (!selectedValue && (selectedIndex === undefined || isNaN(selectedIndex))) {
+                    const hasValidSelection = (selectedValue !== undefined && selectedValue !== '') || (selectedIndex !== undefined && !isNaN(selectedIndex));
+
+                    if (!hasValidSelection) {
                         const placeholder = document.createElement('option');
                         placeholder.value = '';
                         placeholder.text = '--- bitte wählen ---';
@@ -366,19 +368,20 @@ export class JSONDialogRenderer {
 
                     optionsArr.forEach((opt: any, idx: number) => {
                         const option = document.createElement('option');
-                        if (typeof opt === 'object' && opt !== null) {
-                            option.value = opt.value;
-                            option.text = opt.label || opt.name || opt.value;
-                            if (selectedValue === opt.value || selectedIndex === idx) {
-                                option.selected = true;
-                            }
-                        } else {
-                            option.value = opt;
-                            option.text = opt;
-                            if (selectedValue === opt || selectedIndex === idx) {
-                                option.selected = true;
-                            }
+                        const optVal = (typeof opt === 'object' && opt !== null) ? opt.value : opt;
+                        const optLabel = (typeof opt === 'object' && opt !== null) ? (opt.label || opt.name || opt.value) : opt;
+
+                        option.value = optVal;
+                        option.text = optLabel;
+
+                        // Robust comparison: convert both to string and trim
+                        const sVal = selectedValue !== undefined && selectedValue !== null ? String(selectedValue).trim() : undefined;
+                        const oVal = optVal !== undefined && optVal !== null ? String(optVal).trim() : undefined;
+
+                        if ((sVal !== undefined && sVal !== '' && sVal === oVal) || selectedIndex === idx) {
+                            option.selected = true;
                         }
+
                         select.appendChild(option);
                     });
 

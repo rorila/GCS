@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.16.10
+- Fix (Aktions-Editor): Robusterer String-Vergleich im `TDropdown` Renderer stellt sicher, dass geladene Quell-Objekte (Source) korrekt vorselektiert werden.
+
 ## v2.16.9
 - Fix (Aktions-Editor): Korrekte Anzeige des Aktionstyps beim Öffnen des Dialogs (Fix der `TDropdown` `selectedIndex` Evaluierung).
 
