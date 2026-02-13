@@ -31,7 +31,64 @@
   "splashObjects": [],
   "splashDuration": 3000,
   "splashAutoHide": true,
-  "actions": [],
+  "actions": [
+    {
+      "name": "SendApiResponse",
+      "type": "handle_api_request"
+    },
+    {
+      "type": "data_action",
+      "name": "DataAction1",
+      "resource": "users",
+      "url": "/api/data/users?authCode=${currentPIN}",
+      "showDetails": false,
+      "queryProperty": "authCode",
+      "queryValue": "${currentPIN}",
+      "resultVariable": "apiLoginResult",
+      "successBody": [
+        {
+          "type": "variable",
+          "variableName": "currentUser",
+          "source": "apiLoginResult.user"
+        },
+        {
+          "type": "variable",
+          "variableName": "authToken",
+          "source": "apiLoginResult.token"
+        },
+        {
+          "type": "store_token",
+          "token": "${apiLoginResult.token}",
+          "tokenKey": "auth_token"
+        },
+        {
+          "type": "property",
+          "target": "LoginPanel",
+          "changes": {
+            "visible": false
+          }
+        },
+        {
+          "type": "navigate_stage",
+          "stageId": "stage_dashboard"
+        }
+      ],
+      "errorBody": [
+        {
+          "type": "variable",
+          "variableName": "loginError",
+          "source": "Login fehlgeschlagen. Bitte PIN prüfen."
+        },
+        {
+          "type": "property",
+          "target": "ErrorMsg",
+          "changes": {
+            "text": "${loginError}"
+          }
+        }
+      ]
+    }
+  ],
   "tasks": [],
   "variables": [],
   "stages": [
@@ -756,55 +813,7 @@
           "actionSequence": [
             {
               "type": "data_action",
-              "name": "DataAction1",
-              "resource": "users",
-              "url": "/api/data/users?authCode=${currentPIN}",
-              "showDetails": false,
-              "queryProperty": "authCode",
-              "queryValue": "${currentPIN}",
-              "resultVariable": "apiLoginResult",
-              "successBody": [
-                {
-                  "type": "variable",
-                  "variableName": "currentUser",
-                  "source": "apiLoginResult.user"
-                },
-                {
-                  "type": "variable",
-                  "variableName": "authToken",
-                  "source": "apiLoginResult.token"
-                },
-                {
-                  "type": "store_token",
-                  "token": "${apiLoginResult.token}",
-                  "tokenKey": "auth_token"
-                },
-                {
-                  "type": "property",
-                  "target": "LoginPanel",
-                  "changes": {
-                    "visible": false
-                  }
-                },
-                {
-                  "type": "navigate_stage",
-                  "stageId": "stage_dashboard"
-                }
-              ],
-              "errorBody": [
-                {
-                  "type": "variable",
-                  "variableName": "loginError",
-                  "source": "Login fehlgeschlagen. Bitte PIN prüfen."
-                },
-                {
-                  "type": "property",
-                  "target": "ErrorMsg",
-                  "changes": {
-                    "text": "${loginError}"
-                  }
-                }
-              ]
+              "name": "DataAction1"
             }
           ],
           "triggerMode": "local-sync",
@@ -1455,7 +1464,7 @@
           "isService": true,
           "isHiddenInRun": true,
           "isBlueprintOnly": true,
-          "name": "LocalStore",
+          "name": "UserData",
           "scope": "stage",
           "draggable": false,
           "dragMode": "move",
@@ -1476,27 +1485,12 @@
           },
           "gridStyle": "lines",
           "caption": "🗄️ Database",
-          "storagePath": "users.json",
+          "storagePath": "db.json",
           "defaultCollection": "users"
         }
       ],
       "tasks": [],
-      "actions": [
-        {
-          "name": "SendApiResponse",
-          "type": "respond_http",
-          "status": 200,
-          "data": {
-            "user": {
-              "id": "u1",
-              "name": "Admin User",
-              "role": "admin",
-              "avatar": "👤"
-            },
-            "token": "mock-token-123"
-          }
-        }
-      ],
+      "actions": [],
       "flowCharts": {}
     },
     {

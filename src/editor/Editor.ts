@@ -196,26 +196,36 @@ export class Editor implements IViewHost {
                 return new Promise((resolve) => {
                     const requestId = 'sim-' + Math.floor(Math.random() * 1000000);
 
-                    // Parse URL to extract path
+                    // Parse URL to extract path & query
                     let path = url;
+                    let query: Record<string, string> = {};
+
                     try {
-                        const urlObj = new URL(url);
+                        // Use a dummy base for relative URLs
+                        const urlObj = new URL(url, 'http://localhost');
                         path = urlObj.pathname;
+
+                        // Extract query params
+                        urlObj.searchParams.forEach((value, key) => {
+                            query[key] = value;
+                        });
                     } catch (e) {
-                        // URL is already a path
+                        console.warn('[ApiSimulator] URL parsing failed:', e);
+                        // URL is potentially just a path without params
                     }
 
-                    console.log(`[ApiSimulator] Simulating: ${method} ${path}`, body);
+                    console.log(`[ApiSimulator] Simulating: ${method} ${path}`, { body, query });
 
                     // Store resolver for when respond is called
                     (window as any).__pendingApiResponses.set(requestId, (response: any) => {
                         console.log(`[ApiSimulator] Response received for ${requestId}:`, response);
-                        resolve(response.data);
+                        // Ensure we resolve with the full response object structure expected by standard actions
+                        resolve(response);
                     });
 
                     // Find TAPIServer and trigger onRequest event
                     const allObjects = projectRegistry.getObjects();
-                    const server = allObjects.find(o => (o as any).className === 'TAPIServer') as any;
+                    const server = allObjects.find((o: any) => o.className === 'TAPIServer');
 
                     if (server && this.runManager && this.runManager.runtime) {
                         const runtime = this.runManager.runtime;
@@ -223,6 +233,7 @@ export class Editor implements IViewHost {
                             method,
                             path,
                             body,
+                            query, // Pass parsed query params
                             requestId,
                             isSimulation: true
                         });

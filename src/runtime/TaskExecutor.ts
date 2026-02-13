@@ -530,8 +530,11 @@ export class TaskExecutor {
         if (typeof item === 'string') {
             return this.actions.find(a => a.name === item);
         }
-        if (item.type === 'action' && item.name) {
-            return this.actions.find(a => a.name === item.name);
+        // Fix: resolve generalized to look up by name if present, 
+        // to support 'data_action' and other types being loaded from registry.
+        if (item && item.name) {
+            const found = this.actions.find(a => a.name === item.name);
+            if (found) return found;
         }
         return item;
     }

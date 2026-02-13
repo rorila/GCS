@@ -4,6 +4,7 @@ import { ExpressionParser } from '../ExpressionParser';
 import { AnimationManager } from '../AnimationManager';
 import { serviceRegistry } from '../../services/ServiceRegistry';
 import { DebugLogService } from '../../services/DebugLogService';
+import { ActionApiHandler } from '../../components/actions/ActionApiHandler';
 
 /**
  * Hilfsfunktion zum Auflösen von Targets
@@ -525,5 +526,45 @@ export function registerStandardActions(objects: any[]) {
         label: 'Data Action',
         description: 'Führt eine Daten-Aktion aus (HTTP, SQL, etc.).',
         parameters: [] // Dynamic based on sub-type
+    });
+
+    // 20. API Handler Action (Simulates DB interaction)
+    actionRegistry.register('handle_api_request', async (action, context) => {
+        // Fix: ActionExecutor passes contextObj as context.eventData.
+        // The real event payload is in vars.eventData (populated by GameRuntime/TaskExecutor).
+        const eventData = context.vars?.eventData || context.eventData;
+
+        if (!eventData || !eventData.requestId) {
+            console.warn('[Action: handle_api_request] Missing requestId in eventData. Is this triggered by onRequest?');
+            return false;
+        }
+
+        const logicResponse = await ActionApiHandler.handle(action, {
+            path: eventData.path,
+            method: eventData.method,
+            body: eventData.body,
+            query: eventData.query
+        }, objects);
+
+        // Send response back via ApiSimulator mechanism
+        // We use the global map established in Editor.ts
+        const pendingMap = (window as any).__pendingApiResponses;
+        if (pendingMap) {
+            const resolver = pendingMap.get(eventData.requestId);
+            if (resolver) {
+                resolver(logicResponse);
+                pendingMap.delete(eventData.requestId);
+                console.log(`[Action: handle_api_request] Sent response for ${eventData.requestId}`, logicResponse);
+                return true;
+            }
+        }
+
+        console.warn(`[Action: handle_api_request] Could not find pending response resolver for ${eventData.requestId}`);
+        return false;
+    }, {
+        type: 'handle_api_request',
+        label: 'API Request verarbeiten',
+        description: 'Verarbeitet einen API-Request mit Datenbank-Logik und sendet die Antwort.',
+        parameters: []
     });
 }

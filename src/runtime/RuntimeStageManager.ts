@@ -31,8 +31,9 @@ export class RuntimeStageManager {
         const stageChain = this.resolveInheritanceChain(stageId);
 
         let mergedObjects: any[] = [];
-        let mergedTasks: any[] = [];
-        let mergedActions: any[] = [];
+        // Initialize with global project tasks/actions if available
+        let mergedTasks: any[] = [...(this.project.tasks || [])];
+        let mergedActions: any[] = [...(this.project.actions || [])];
         let mergedFlowCharts: any = { ...(this.project.flowCharts || {}) };
 
         // 1. Process Blueprint Stages first (Global Baseline)

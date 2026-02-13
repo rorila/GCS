@@ -4,6 +4,10 @@
 ### Fixed
 - Sofortige JSON-Synchronisation: `Editor.ts` aktualisiert nun bei Mediator-Events (`DATA_CHANGED`) alle Sichten (`refreshAllViews`), was unmittelbare Sichtbarkeit im JSON-Editor nach Änderungen im Flow-Editor gewährleistet.
 - **Inline-Action Fix**: Die `DataAction1` im Task `AttemptLogin` wurde von einer Inline-Action in eine verlinkte Action umgewandelt und modularisiert, um die korrekte Darstellung im Flow-Editor sicherzustellen.
+- **API Simulation Fix**: `StandardActions.ts` liest nun `requestId` korrekt aus `vars.eventData`.
+- **DataAction URL Fix**: `DataAction1` globalisiert, damit URL-Parameter korrekt aufgelöst werden.
+- **ActionApiHandler Robustness**: Fallback-Logik implementiert, die Query-Parameter (`code`, `pin`, `authCode`) direkt aus dem Pfad parst, falls das `query`-Objekt fehlt. Dies behebt Login-Probleme bei fehlender Editor-Unterstützung für URL-Parsing.
+- **TaskExecutor Resolve Fix**: Actions werden nun auch korrekt aufgelöst, wenn sie nicht vom Typ `action` sind (z.B. `data_action`), indem primär auf den Namen geprüft wird.
 
 ## [v2.16.22] - 2026-02-13
 ### Fixed
