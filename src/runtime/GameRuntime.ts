@@ -114,6 +114,23 @@ export class GameRuntime implements IVariableHost {
         if (activeStage && options.onStageSwitch) options.onStageSwitch(activeStage.id);
     }
 
+    /**
+     * Aktualisiert die Projektdaten zur Laufzeit (Live Sync)
+     */
+    public updateRuntimeData(project: any) {
+        this.project = project;
+        if (this.taskExecutor) {
+            console.log('[GameRuntime] Updating runtime data (FlowCharts, Actions, Tasks)');
+            // Erneut zusammengeführte Daten für die aktuelle Stage holen
+            const stageId = this.stage?.id || this.project.activeStageId;
+            const merged = this.stageManager.getMergedStageData(stageId);
+
+            this.taskExecutor.setFlowCharts(merged.flowCharts);
+            this.taskExecutor.setActions(merged.actions);
+            this.taskExecutor.setTasks(merged.tasks || []);
+        }
+    }
+
     public stop() {
         if (this.splashTimerId) { clearTimeout(this.splashTimerId); this.splashTimerId = null; }
         this.objects.forEach(obj => obj.onRuntimeStop?.());

@@ -36,7 +36,43 @@ export class FlowAction extends FlowElement {
         this.content.style.alignItems = 'center';
         this.content.style.justifyContent = 'center';
 
+        // Helper to create visual ports (will be functionalized in FlowEditor)
+        if (this.actionType === 'data_action') {
+            this.createDataActionPorts();
+        }
     }
+
+    private createDataActionPorts() {
+        // Remove existing custom ports if any
+        this.element.querySelectorAll('.flow-anchor.custom-port').forEach(el => el.remove());
+
+        // Success Port (Green, Bottom Rightish)
+        const successPort = document.createElement('div');
+        successPort.className = 'flow-anchor output custom-port success-port';
+        successPort.title = 'On Success';
+        successPort.dataset.branch = 'success';
+        successPort.style.cssText = `
+            right: 20px;
+            bottom: -6px;
+            background-color: #4caf50;
+            border-color: #2e7d32;
+        `;
+        this.element.appendChild(successPort);
+
+        // Error Port (Red, Bottom Leftish)
+        const errorPort = document.createElement('div');
+        errorPort.className = 'flow-anchor output custom-port error-port';
+        errorPort.title = 'On Error';
+        errorPort.dataset.branch = 'error';
+        errorPort.style.cssText = `
+            right: 60px;
+            bottom: -6px;
+            background-color: #f44336;
+            border-color: #c62828;
+        `;
+        this.element.appendChild(errorPort);
+    }
+
 
     public setText(text: string) {
         super.setText(text);
@@ -44,7 +80,7 @@ export class FlowAction extends FlowElement {
     }
 
     // Reference to project for action lookups
-    private projectRef: GameProject | null = null;
+    protected projectRef: GameProject | null = null;
 
     public setProjectRef(project: GameProject | null) {
         if (this.projectRef === project) return; // Guard against infinite recursion

@@ -348,6 +348,48 @@ export class TaskExecutor {
                 return;
             }
 
+            if (nodeType === 'DataAction' || nodeType === 'data_action') {
+                // Execute DataAction
+                const action = this.resolveAction({ type: 'data_action', name: name }) || node.data;
+
+                if (action) {
+                    console.log(`[TaskExecutor] FlowChart: Executing DataAction "${name}"`);
+                    const result = await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+                    const isSuccess = result !== false;
+
+                    console.log(`[TaskExecutor] DataAction "${name}" finished. Success: ${isSuccess}`);
+
+                    // Find the appropriate branch connection
+                    const successConn = connections.find((c: any) =>
+                        c.startTargetId === node.id &&
+                        (c.data?.startAnchorType === 'success' || c.data?.anchorType === 'success' || c.data?.startAnchorType === 'true')
+                    );
+                    const errorConn = connections.find((c: any) =>
+                        c.startTargetId === node.id &&
+                        (c.data?.startAnchorType === 'error' || c.data?.anchorType === 'error' || c.data?.startAnchorType === 'false')
+                    );
+
+                    if (isSuccess && successConn) {
+                        const successNode = elements.find((e: any) => e.id === successConn.endTargetId);
+                        if (successNode) await executeNode(successNode);
+                    } else if (!isSuccess && errorConn) {
+                        const errorNode = elements.find((e: any) => e.id === errorConn.endTargetId);
+                        if (errorNode) await executeNode(errorNode);
+                    } else {
+                        // Fallback: regular outgoing connection
+                        const outgoing = connections.find((c: any) =>
+                            c.startTargetId === node.id &&
+                            !['success', 'error', 'true', 'false'].includes(c.data?.startAnchorType || c.data?.anchorType || '')
+                        );
+                        if (outgoing) {
+                            const nextNode = elements.find((e: any) => e.id === outgoing.endTargetId);
+                            if (nextNode) await executeNode(nextNode);
+                        }
+                    }
+                }
+                return;
+            }
+
             if (nodeType === 'Condition' || nodeType === 'condition') {
                 const condition = node.data?.condition;
                 if (!condition) {
@@ -753,11 +795,11 @@ export class TaskExecutor {
     /**
      * Executes a data action and branches based on the result
      */
-    private async handleDataAction(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
+    private async handleDataAction(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<boolean> {
         const action = this.resolveAction(item);
         if (!action) {
             console.warn(`[TaskExecutor] DataAction definition not found: ${item.name || item.type}`);
-            return;
+            return false;
         }
 
         console.log(`[TaskExecutor] Executing DataAction: ${action.name || action.type}`);
@@ -773,5 +815,7 @@ export class TaskExecutor {
         if (body && Array.isArray(body)) {
             await this.executeBody(body, vars, globalVars, contextObj, depth, parentId);
         }
+
+        return isSuccess;
     }
 }

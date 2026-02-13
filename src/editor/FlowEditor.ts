@@ -864,7 +864,11 @@ export class FlowEditor implements FlowMapHost {
     }
 
     public syncToProject() {
-        if (this.isLoading) return;
+        if (this.isLoading) {
+            console.log("[FlowEditor] Skipping syncToProject: isLoading is true");
+            return;
+        }
+        console.log(`[FlowEditor] syncToProject triggered for context: ${this.currentFlowContext}`);
         this.syncManager.syncToProject(this.currentFlowContext);
     }
 
@@ -1143,6 +1147,7 @@ export class FlowEditor implements FlowMapHost {
     }
 
     public createNode(type: string, x: number, y: number, initialName?: string): FlowElement | null {
+        console.log(`[FlowEditor] createNode: type=${type}, x=${x}, y=${y}, initialName=${initialName}`);
         let node: FlowElement;
         const id = 'node-' + Date.now();
         const baseType = type.includes(':') ? type.split(':')[0] : type;
@@ -1268,6 +1273,7 @@ export class FlowEditor implements FlowMapHost {
         this.setupNodeListeners(node);
         if (this.onNodesChanged) this.onNodesChanged(this.nodes);
         this.selectNode(node); // Auto-select new node
+        console.log(`[FlowEditor] Node created: ${node.Name} (ID: ${node.id}), nodes count: ${this.nodes.length}`);
         this.syncToProject();   // Ensure new node is persisted
         return node;
     }
@@ -1324,13 +1330,16 @@ export class FlowEditor implements FlowMapHost {
             this.syncToProject();
 
             // --- SMART DELETE: Check if this was the last reference of an action ---
-            if (nodeType === 'Action' && nodeName && nodeName !== 'Aktion' && nodeName !== 'Action') {
+            if ((nodeType === 'Action' || nodeType === 'DataAction') && nodeName &&
+                nodeName !== 'Aktion' && nodeName !== 'Action' && nodeName !== 'DataAction') {
                 // Wait a tick for syncToProject to finish potential project state changes
                 setTimeout(() => {
                     const refs = projectRegistry.findReferences(nodeName);
 
                     if (refs.length === 0) {
-                        const isGenericName = /^Action\d*$/.test(nodeName) || /^Aktion\d*$/.test(nodeName) || nodeName === 'Aufruf';
+                        const isGenericName = /^Action\d*$/.test(nodeName) || /^Aktion\d*$/.test(nodeName) ||
+                            /^DataAction\d*$/.test(nodeName) || /^HttpAction\d*$/.test(nodeName) ||
+                            nodeName === 'Aufruf';
 
                         // Auto-Delete generic actions, ask for named ones
                         if (isGenericName) {
@@ -1598,6 +1607,16 @@ export class FlowEditor implements FlowMapHost {
         } else {
             setupAnchor(node.getOutputAnchor(), true);
         }
+
+        // Dynamic Ports (e.g. DataAction Success/Error)
+        const customPorts = node.getElement().querySelectorAll('.flow-anchor.custom-port');
+        customPorts.forEach(port => {
+            const branch = (port as HTMLElement).dataset.branch;
+            if (branch === 'success' || branch === 'error') {
+                setupAnchor(port as HTMLElement, true, branch as any);
+            }
+        });
+
 
         // Top anchor = INPUT (can't start from here, but can connect TO here)
         // Bottom anchor = OUTPUT (can start from here)
@@ -1904,11 +1923,107 @@ export class FlowEditor implements FlowMapHost {
             this.removeNode(targetNode.name);
         }
 
-        // 8. PERSISTENCE & REFRESH: Sync immediately so expansion is saved in project
+        // 8. DATA ACTION VISUALIZATION EXPANSION
+        // If any of the imported nodes is a DataAction, we must expand its internal flows too!
+        newNodes.forEach(node => {
+            if (node.getType() === 'Action' && (node as FlowAction).actionType === 'data_action') {
+                this.expandDataActionFlow(node as FlowAction);
+            }
+        });
+
+        // 9. PERSISTENCE & REFRESH: Sync immediately so expansion is saved in project
         this.syncToProject();
         if (this.onNodesChanged) this.onNodesChanged(this.nodes);
 
         return newNodes;
+    }
+
+    /**
+     * Expands a DataAction's internal success/error bodies into visual ghost nodes.
+     */
+    public expandDataActionFlow(dataActionNode: FlowAction) {
+        if (!dataActionNode.data) return;
+
+        // Helper to create a chain of nodes from an action list
+        const createChain = (actions: any[], branchType: 'success' | 'error', startOffsetY: number) => {
+            if (!actions || actions.length === 0) return;
+
+            let previousNode: FlowElement = dataActionNode;
+            let currentX = dataActionNode.X + 250; // Start to the right
+            let currentY = dataActionNode.Y + startOffsetY;
+
+            actions.forEach((actionData, index) => {
+                // Generate a unique ID for this ghost node
+                // We use a deterministic ID based on the parent ID and index to avoid duplicates on re-render
+                // BUT: FlowSyncManager.restoreNode expects unique IDs in the system.
+                // Let's rely on a prefixed ID.
+                const ghostId = `${dataActionNode.id}-${branchType}-${index}`;
+
+                // Check if already exists (prevent duplicates)
+                if (this.nodes.some(n => n.id === ghostId)) return;
+
+                const nodeData = {
+                    ...actionData,
+                    id: ghostId,
+                    x: currentX,
+                    y: currentY,
+                    // Mark as ghost/embedded
+                    isEmbeddedInternal: true,
+                    parentProxyId: dataActionNode.id, // The DataAction is the "proxy" for these
+                    isLinked: true
+                };
+
+                const newNode = this.syncManager.restoreNode(nodeData);
+                if (newNode) {
+                    // visual adjustments
+                    newNode.setLinked(true);
+                    this.nodes.push(newNode);
+
+                    // Create Connection
+                    const conn = new FlowConnection(this.canvas, 0, 0, 0, 0);
+
+                    // If first node, connect to DataAction's special port
+                    if (previousNode === dataActionNode) {
+                        conn.attachStart(dataActionNode);
+                        conn.attachEnd(newNode);
+                        // Set specific anchor types for the first connection
+                        conn.data = {
+                            startAnchorType: branchType, // 'success' or 'error'
+                            endAnchorType: 'input',
+                            isEmbeddedInternal: true,
+                            parentProxyId: dataActionNode.id
+                        };
+                    } else {
+                        // Standard chain connection
+                        conn.attachStart(previousNode);
+                        conn.attachEnd(newNode);
+                        conn.data = {
+                            startAnchorType: 'output',
+                            endAnchorType: 'input',
+                            isEmbeddedInternal: true,
+                            parentProxyId: dataActionNode.id
+                        };
+                    }
+
+                    conn.updatePosition();
+                    this.connections.push(conn);
+                    this.setupConnectionListeners(conn); // make interactive
+
+                    previousNode = newNode;
+                    currentX += 200; // Move right for next node
+                }
+            });
+        };
+
+        // Expand Success Path
+        if (dataActionNode.data.successBody) {
+            createChain(dataActionNode.data.successBody, 'success', 0);
+        }
+
+        // Expand Error Path
+        if (dataActionNode.data.errorBody) {
+            createChain(dataActionNode.data.errorBody, 'error', 120); // Bit lower
+        }
     }
 
     private handleNodeContextMenu(e: MouseEvent, node: FlowElement) {

@@ -62,3 +62,30 @@ Die Synchronisation wird durch zwei Hauptkomponenten realisiert:
 
 ## Zielzustand
 Nach dem Löschen einer Action im Editor darf diese nirgendwo mehr im `project.json` auftauchen – weder als Definition noch als Aufruf innerhalb eines Tasks.
+
+## Erkenntnisse & Edge Cases (Stand v2.16.20)
+
+### 1. Rekursion ist Pflicht (`DataAction`)
+Primitive Actions (`type: "action"`) sind flach. Komplexe Actions wie `DataAction`, `Condition` oder `Loop` haben jedoch verschachtelte Sequenzen (`successBody`, `errorBody`, `elseBody`, etc.).
+**Wichtig:** Ein simpler `filter()` auf der Hauptsequenz reicht nicht. Der `RefactoringManager` muss rekursiv in diese Unter-Sequenzen absteigen, um alle Referenzen zu finden und zu löschen.
+Besonders kritisch bei `SubmitLogin` (DataAction), da diese oft Logik im `successBody` enthält.
+
+### 2. Explizit vs. Implizit ("Force Delete")
+Es gibt zwei Arten der Löschung, die im `FlowEditor` unterschieden werden müssen:
+-   **Explizit (User-Trigger):** Der User klickt "Löschen" im Kontextmenü oder Overview. 
+    -   -> `force = true`.
+    -   Die Action wird *immer* gelöscht, auch wenn sie noch verwendet wird (Cleanup erfolgt dann).
+-   **Implizit (Smart Cleanup):** Der User löscht einen Node aus einem Task.
+    -   -> `force = false`.
+    -   Die Action wird nur global gelöscht, wenn sie ein "Orphan" ist (Usage Count <= 1, also nur diese eine gelöschte Instanz).
+    -   Wird sie noch in einem *anderen* Task verwendet, bleibt die globale Definition erhalten.
+
+### 3. Typ-Sicherheit beim Filtern
+Beim Prüfen von Sequenzen (`filterSequenceItems`) muss strikt unterschieden werden:
+-   `type === 'action' && item.name === target`
+-   `type === 'data_action' && item.action === target` (Referenz auf Service-Action)
+-   `type === 'data_action' && item.name === target` (Eigener Name)
+Ein "Loose Check" führt dazu, dass DataActions übersehen werden und als Geister-Einträge verbleiben.
+
+### 4. Knotentyp-Validierung im FlowEditor (v2.16.23)
+Der `FlowEditor.deleteNode` Mechanismus wurde erweitert, um explizit auf `node.getType() === 'DataAction'` zu prüfen. Zuvor wurden nur Knoten vom Typ `'Action'` für das intelligente Löschen (Smart-Delete) berücksichtigt. Ohne diese Prüfung wurden verwaiste DataActions nicht automatisch aus der globalen Liste entfernt, selbst wenn die letzte Referenz im Diagramm gelöscht wurde.

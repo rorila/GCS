@@ -1,3 +1,21 @@
+## [v2.16.23] - 2026-02-13
+### Added
+- Detaillierte Trace-Logs für den Flow-Synchronisationsprozess in `FlowEditor.ts`, `FlowSyncManager.ts` und `Editor.ts`.
+### Fixed
+- Sofortige JSON-Synchronisation: `Editor.ts` aktualisiert nun bei Mediator-Events (`DATA_CHANGED`) alle Sichten (`refreshAllViews`), was unmittelbare Sichtbarkeit im JSON-Editor nach Änderungen im Flow-Editor gewährleistet.
+- **Inline-Action Fix**: Die `DataAction1` im Task `AttemptLogin` wurde von einer Inline-Action in eine verlinkte Action umgewandelt und modularisiert, um die korrekte Darstellung im Flow-Editor sicherzustellen.
+
+## [v2.16.22] - 2026-02-13
+### Fixed
+- **FlowSyncManager Persistence Critical Fix**:
+  - Behebung eines kritischen Fehlers in `syncAllTasksFromFlow`, bei dem die Map-Struktur der FlowCharts falsch adressiert wurde, was zum Leeren der `actionSequence` führte.
+  - **Metadata Merging**: Verlinkte `DataAction`-Knoten laden nun beim Synchronisieren ihre vollständigen Metadaten (URL, Method etc.) aus dem Projektmodell in das Sequenz-Item.
+- **FlowDataAction.ts Logic**:
+  - Bereinigung von Syntax-Fehlern und Konsolidierung der `getActionDefinition` Methode.
+  - Safeguards hinzugefügt, um sicherzustellen, dass `data_action` Typen im Modell korrekt gesetzt bleiben.
+
+
+
 ## [v2.16.20] - 2026-02-13
 ### Fixed
 - **Flow Editor Synchronization Fix**:

@@ -31,7 +31,7 @@ export interface GameObject {
 // ─────────────────────────────────────────────
 // Action: Atomic operation on a component
 // ─────────────────────────────────────────────
-export type ActionType = 'property' | 'variable' | 'increment' | 'negate' | 'animate' | 'audio' | 'navigate' | 'navigate_stage' | 'smooth_sync' | 'send_multiplayer_sync' | 'engine_control' | 'server_connect' | 'server_create_room' | 'server_join_room' | 'server_ready' | 'service' | 'calculate' | 'call_method' | 'set_variable' | 'broadcast';
+export type ActionType = 'property' | 'variable' | 'increment' | 'negate' | 'animate' | 'audio' | 'navigate' | 'navigate_stage' | 'smooth_sync' | 'send_multiplayer_sync' | 'engine_control' | 'server_connect' | 'server_create_room' | 'server_join_room' | 'server_ready' | 'service' | 'calculate' | 'call_method' | 'set_variable' | 'broadcast' | 'data_action' | 'http';
 
 // For type: 'calculate' - expression building
 export type CalcOperator = '+' | '-' | '*' | '/' | '%';
@@ -124,13 +124,24 @@ export interface BroadcastAction extends BaseAction {
     params?: Record<string, any>;
 }
 
+export interface HttpAction extends BaseAction {
+    type: 'data_action' | 'http'; // Compat
+    url: string;
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    resource?: string;
+    queryProperty?: string;
+    queryValue?: string;
+    body?: any;
+    resultVariable?: string;
+}
+
 // Union Type für alle Aktionen
-export type GameAction = PropertyAction | VariableAction | ServiceAction | CalculateAction | MethodAction | NavigateAction | BroadcastAction | any;
+export type GameAction = PropertyAction | VariableAction | ServiceAction | CalculateAction | MethodAction | NavigateAction | BroadcastAction | HttpAction | any;
 
 // ─────────────────────────────────────────────
 // Task: Sequence of actions and task calls
 // ─────────────────────────────────────────────
-export type SequenceItemType = 'action' | 'task' | 'condition' | 'while' | 'for' | 'foreach';
+export type SequenceItemType = 'action' | 'data_action' | 'task' | 'condition' | 'while' | 'for' | 'foreach';
 
 export type ConditionOperator = '==' | '!=' | '>' | '<' | '>=' | '<=';
 

@@ -5,3 +5,4 @@ UseCase Index
 - FlowEditorDetailAnzeige: Wie Aktionen im Flow-Editor visualisiert werden und woher die Detail-Strings kommen.
 - ActionVisualisierungsSynchronisation: Konsistente Anzeige von Action-Details durch Nutzung des JSON-Feldes 'details' als Single Source of Truth.
 - SynchronisationLoeschenFlowEditor: Sicherstellung, dass beim Löschen einer Action im Editor alle Referenzen im Projekt (Tasks, Stages) entfernt werden.
+- SofortigeJSONSynchronisation: Mechanismus für unmittelbare Sichtbarkeit von Änderungen (Trinity-Sync). Dokumentiert zudem strukturelle Unterschiede (Branching vs. Linear) und das Smart-Delete-Verfahren für verwaiste Aktions-Definitionen.

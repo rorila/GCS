@@ -11,6 +11,14 @@
     - `formula`: Berechnungsformel für `calculate` Actions
     - `variableName`: Name einer zu lesenden/schreibenden Variable (statt `variable`)
 
+## Inspector & Refactoring (v2.16.21)
+- **Inspector JSON-Konfiguration**: Für Flow-Elemente mit spezifischem Layout (wie `DataAction`) ist die Verwendung einer dedizierten JSON-Datei (z.B. `public/inspector_data_action.json`) der Standard.
+    - **Two-Way-Binding**: Um Felder editierbar zu machen, muss das Binding direkt auf das Property zeigen (z.B. `${selectedObject.Name}` statt `${selectedObject.name || ...}`).
+    - **Vermeidung von Komplexität**: Komplexe Ausdrücke im `text`-Property verhindern das Rückschreiben von Werten.
+- **DataAction Renaming**:
+    - `DataActions` sind vollwertige Actions und müssen im `RefactoringManager` explizit behandelt werden (`item.type === 'data_action'`).
+    - Das Umbenennen im Inspector ändert die ID (`Name`), was sicher ist, solange der Reset des RefactoringManagers greift.
+
 ## UseCase-Index-System
 Zur besseren Wartbarkeit und schnelleren Orientierung im Code pflegen wir ein UseCase-System in `docs/use_cases/`.
 - **Zweck**: Dokumentation technischer Abläufe über Dateigrenzen hinweg.
@@ -20,6 +28,7 @@ Zur besseren Wartbarkeit und schnelleren Orientierung im Code pflegen wir ein Us
     - **Beteiligte Dateien & Methoden**: Immer spezifische Methodennamen und aktuelle Zeilenbereiche (z.B. L123-145) angeben. Dies dient als Anker für die schnelle Suche.
     - **Datenfluss** (Input/Output).
     - **Zustandsänderungen** (globaler/lokaler State).
+- **Struktur-Besonderheiten**: (z.B. Branching Actions wie DataAction).
 - **Pflicht**: Neue komplexe Features oder Refactorings müssen dort dokumentiert werden. Nutze `UseCaseTemplate.md` als Basis.
 
 ## Modulare Architektur (Monolithen-Aufteilung)
@@ -52,6 +61,8 @@ Die Klasse `FlowEditor.ts` wurde modularisiert, um die Komplexität zu reduziere
     - Dieses Feld wird vom `JSONDialogRenderer.generateActionDetails` beim Speichern im Action-Editor befüllt.
     - `FlowAction.getActionDetails` priorisiert dieses Feld und nutzt eine interne Logik nur noch als Fallback (z.B. für manuelle Pascal-Edits).
     - Dies stellt sicher, dass Änderungen im Dialog sofort und konsistent im Diagramm sichtbar sind.
+- **Typ-Vollständigkeit im Sync (v2.16.23)**:
+    - Der `FlowSyncManager.syncToProject` muss jeden Knotentyp (z.B. `'Action'`, `'DataAction'`) explizit in seiner Registrierungsschleife unterstützen. Neue Knotentypen müssen dort nachgetragen werden, damit sie beim Erstellen sofort im Projektmodell angemeldet werden.
 - **Persistenz & Scoping (v2.10.1)**:
     - FlowChart-Daten (`elements`, `connections`) müssen IMMER unter dem Namen des Tasks als Key in der `flowCharts` Collection gespeichert werden (z.B. `targetCharts[taskName] = chartData`).
     - Ein direktes Speichern auf dem Collection-Objekt führt dazu, dass sich Diagramme verschiedener Tasks gegenseitig überschreiben.
@@ -209,12 +220,12 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **UI-Sperre**: Wenn ein Flow existiert, muss die Listen-Ansicht (`TaskEditor.ts`) schreibgeschützt sein. Verwende das `isReadOnly`-Flag in `createSequenceItemElement`.
 - **Synchronisation**: Rufe vor allen Persistenz-Operationen `flowEditor.syncAllTasksFromFlow(project)` auf, um Datenkonsistenz zu garantieren.
 
-### Mediator-gesteuerte Synchronisation (Trinity-Sync v2.16.1)
-- **Problem**: Änderungen im Inspector (z.B. Umbenennung eines Tasks) müssen sofort in allen Editoren (Flow, JSON, Pascal) reflektiert werden.
+### Mediator-gesteuerte Synchronisation (Trinity-Sync v2.16.1 / v2.16.23)
+- **Problem**: Änderungen im Inspector oder Flow-Editor müssen sofort in allen Editoren (Flow, JSON, Pascal) reflektiert werden.
 - **Lösung**: Der `MediatorService` dient als zentrales Benachrichtigungssystem via `DATA_CHANGED`.
-- **Abonnement**: Komponenten wie `FlowEditor` hören auf dieses Event und aktualisieren ihre UI (z.B. `updateFlowSelector()`).
+- **Abonnement**: Komponenten wie `FlowEditor` hören auf dieses Event und aktualisieren ihre UI.
+- **Sofortige JSON-Sichtbarkeit (v2.16.23)**: `Editor.ts` reagiert auf `DATA_CHANGED` Events vom `flow-editor` nun mit einem vollständigen `refreshAllViews()`. Dies garantiert, dass der JSON-Tree und der Pascal-Code unmittelbar aktualisiert werden, sobald ein Knoten im Flow-Canvas erstellt oder verschoben wird.
 - **Context-Preservation**: Bei Umbenennung des aktuell angezeigten Kontexts wird der `oldValue` aus dem Event genutzt, um den internen Status (`currentFlowContext`) nahtlos zu aktualisieren, ohne dass der Benutzer die Ansicht verliert.
-- **Orchestrierung**: `Editor.ts` koordiniert die Ansichten und ruft bei Inspector-Updates `refreshAllViews()` auf, um Konsistenz über alle Tabs hinweg zu erzwingen.
 
 ## Synchronisation & Persistenz
 - **Pascal -> Flow Sync**: Änderungen im Pascal-Code müssen explizit in den Flow-Editor synchronisiert werden. Nutze dazu `flowEditor.syncActionsFromProject()`. Dies ist besonders wichtig, da Flow-Knoten ihre Daten (`node.data`) teilweise redundant halten, um die UI-Performance zu verbessern.
@@ -778,6 +789,33 @@ Zur Verbesserung der Übersichtlichkeit wurde der Login-Prozess in drei funktion
 3. **AutoDispatch (Routing)**:
     - Prüft die primäre Rolle (`currentUser.roles[0]`).
     - Navigiert zur entsprechenden Ziel-Stage (`stage_super_dashboard`, `stage_admin_dashboard`, `stage_player_lobby`).
+### [Action-Speicherung & Sequenz-Struktur](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/services/FlowSyncManager.ts) (v2.16.23)
+Es gibt zwei grundlegend verschiedene Arten, wie Aktionen in der `actionSequence` eines Tasks im JSON gespeichert werden:
+
+1. **Lineare Aktionen (Standard)**:
+   - **Typ**: `action`
+   - **Struktur**: `{ "type": "action", "name": "ActionName", "params": { ... } }`
+   - **Verhalten**: Sie sind einfache Referenzen auf eine globale oder lokale Aktions-Definition. Sie haben keinen eigenen "Body".
+   
+2. **Branching Actions (DataAction / Condition)**:
+   - **Typ**: `data_action` oder `condition`
+   - **Struktur**: 
+     ```json
+     { 
+       "type": "data_action", 
+       "name": "MyDataAction",
+       "successBody": [ ... Sequenz für Erfolg ... ],
+       "errorBody": [ ... Sequenz für Fehler ... ],
+       "resource": "...", 
+       "method": "...",
+       ... (weitere Datenfelder)
+     }
+     ```
+   - **Verhalten**: Sie sind "Container-Aktionen". Sie enthalten ihre Logik-Zweige (`successBody`/`errorBody`) direkt in der Sequenz des Tasks. 
+   - **Wichtig**: Bei `DataAction` wird im Flow-Sync (`syncTaskFromFlow`) die Definition (URL, Method, etc.) aus der Bibliothek in das Sequenz-Item kopiert, falls der Knoten verlinkt ist (`isLinked`), während der `successBody` exklusiv aus dem Diagramm-Pfad generiert wird.
+
+> [!IMPORTANT]
+> Beim Erstellen von Tools oder Refactorings muss beachtet werden, dass `DataActions` nicht nur in `project.actions` leben, sondern ihre verzweigte Struktur innerhalb der `actionSequence` der Tasks persistiert wird. Ein Umbenennen einer DataAction muss daher sowohl die globale Definition als auch das `name`-Feld im Sequenz-Item aktualisieren.
 
 ### Best Practices für Multi-Stage Navigation
 - **Dynamische Listen**: Komponenten wie `TList` (z.B. `RoleList`) sollten beim Stage-Start (`onRuntimeStart`) via Task befüllt werden, indem die Daten aus dem globalen Kontext (`currentUser`) in die `items` Property der Komponente geschrieben werden.

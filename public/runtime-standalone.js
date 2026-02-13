@@ -527,7 +527,14 @@
       __publicField(this, "listeners", []);
       __publicField(this, "maxLogs", 1e3);
       __publicField(this, "counter", 0);
+      __publicField(this, "contextStack", []);
       __publicField(this, "enabled", false);
+    }
+    pushContext(id) {
+      if (id) this.contextStack.push(id);
+    }
+    popContext() {
+      this.contextStack.pop();
     }
     setEnabled(enabled) {
       console.log(`[DebugLogService] setEnabled(${enabled})`);
@@ -544,21 +551,22 @@
     }
     log(type, message, options = {}) {
       if (!this.enabled) return "";
+      const parentId = options.parentId || (this.contextStack.length > 0 ? this.contextStack[this.contextStack.length - 1] : void 0);
       const id = `log-${Date.now()}-${this.counter++}`;
       const entry = {
         id,
         type,
         message,
         timestamp: Date.now(),
-        parentId: options.parentId,
+        parentId,
         children: [],
         isExpanded: true,
         data: options.data,
         objectName: options.objectName,
         eventName: options.eventName
       };
-      if (options.parentId) {
-        const parent = this.findEntry(this.logs, options.parentId);
+      if (parentId) {
+        const parent = this.findEntry(this.logs, parentId);
         if (parent) {
           parent.children.push(entry);
           this.notify();
@@ -1221,18 +1229,14 @@
   console.log(`[ServiceRegistry] Singleton bound to window. ID: ${serviceRegistry.id}`);
 
   // src/runtime/actions/StandardActions.ts
-  function resolveTarget(targetName, objects, vars, contextObj) {
+  function resolveTarget(targetName, objects, vars, _contextObj) {
     if (!targetName) return null;
-    if ((targetName === "$eventSource" || targetName === "self" || targetName === "$self") && contextObj) return contextObj;
-    if ((targetName === "other" || targetName === "$other") && vars.otherSprite) return vars.otherSprite;
     let actualName = targetName;
     if (targetName.startsWith("${") && targetName.endsWith("}")) {
       const varName = targetName.substring(2, targetName.length - 1);
-      const varVal = vars[varName];
-      if (varVal && typeof varVal === "object" && varVal.id) return varVal;
-      if (varVal) actualName = String(varVal);
+      actualName = String(vars[varName] || targetName);
     }
-    return objects.find((o) => o.name === actualName || o.id === actualName || o.name?.toLowerCase() === actualName.toLowerCase());
+    return objects.find((o) => o.name === actualName || o.id === actualName);
   }
   function registerStandardActions(objects) {
     actionRegistry.register("property", (action, context) => {
@@ -1255,20 +1259,60 @@
       ]
     });
     actionRegistry.register("variable", (action, context) => {
-      const srcObj = resolveTarget(action.source, objects, context.vars, context.contextVars);
-      if (srcObj && action.variableName && action.sourceProperty) {
-        const val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
-        context.vars[action.variableName] = val;
-        context.contextVars[action.variableName] = val;
+      let val = void 0;
+      const sourceName = action.source;
+      const variableName = action.variableName;
+      const srcObj = resolveTarget(sourceName, objects, context.vars, context.contextVars);
+      if (srcObj) {
+        if (action.sourceProperty) {
+          val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
+        } else {
+          val = srcObj;
+        }
+      }
+      if (val === void 0) {
+        const varVal = context.vars[sourceName] !== void 0 ? context.vars[sourceName] : context.contextVars[sourceName];
+        if (varVal !== void 0) {
+          if (action.sourceProperty && typeof varVal === "object" && varVal !== null) {
+            val = PropertyHelper.getPropertyValue(varVal, action.sourceProperty);
+          } else {
+            val = varVal;
+          }
+        }
+      }
+      if (val === void 0 && sourceName && String(sourceName).includes("${")) {
+        val = PropertyHelper.interpolate(String(sourceName), { ...context.contextVars, ...context.vars }, objects);
+      }
+      if (val !== void 0 && variableName) {
+        context.vars[variableName] = val;
+        context.contextVars[variableName] = val;
+        DebugLogService.getInstance().log("Variable", `Variable "${variableName}" auf "${val}" gesetzt (Quelle: ${sourceName}${action.sourceProperty ? "." + action.sourceProperty : ""})`, {
+          data: { value: val, source: sourceName, property: action.sourceProperty }
+        });
+      } else {
+        console.warn(`[Action:variable] Fehler: Quelle "${sourceName}" konnte nicht aufgel\xF6st werden oder variableName fehlt.`);
+        DebugLogService.getInstance().log("Action", `\u26A0\uFE0F Variable konnte nicht gelesen werden. Quelle: ${sourceName}`, {
+          data: action
+        });
       }
     }, {
       type: "variable",
-      label: "Variable setzen",
-      description: "Kopiert den Wert einer Objekteigenschaft in eine Variable.",
+      label: "Variable lesen / setzen",
+      description: "Liest einen Wert aus einer Quelle (Objekt-Eigenschaft oder andere Variable) und speichert ihn in einer Ziel-Variable.",
       parameters: [
-        { name: "variableName", label: "Variablen-Name", type: "variable", source: "variables" },
-        { name: "source", label: "Quell-Objekt", type: "object", source: "objects" },
-        { name: "sourceProperty", label: "Quell-Eigenschaft", type: "string", placeholder: "z.B. x" }
+        { name: "variableName", label: "Ziel-Variable", type: "variable", source: "variables" },
+        { name: "source", label: "Quell-Objekt / Variable", type: "object", source: "objects" },
+        { name: "sourceProperty", label: "Eigenschaft (optional)", type: "string", placeholder: "z.B. text oder value" }
+      ]
+    });
+    actionRegistry.register("set_variable", actionRegistry.getHandler("variable"), {
+      type: "set_variable",
+      label: "Variable setzen (Zuweisung)",
+      description: "Liest einen Wert aus einer Quelle und speichert ihn in einer Ziel-Variable.",
+      parameters: [
+        { name: "variableName", label: "Ziel-Variable", type: "variable", source: "variables" },
+        { name: "source", label: "Quell-Objekt / Variable", type: "object", source: "objects" },
+        { name: "sourceProperty", label: "Eigenschaft (optional)", type: "string", placeholder: "z.B. text oder value" }
       ]
     });
     actionRegistry.register("calculate", (action, context) => {
@@ -1285,7 +1329,6 @@
           $eventData: context.eventData
         });
         if (action.resultVariable) {
-          context.vars[action.resultVariable] = result;
           context.contextVars[action.resultVariable] = result;
         }
       }
@@ -1357,7 +1400,7 @@
       ]
     });
     actionRegistry.register("navigate_stage", (action, context) => {
-      const stageId = action.params?.stageId || action.stageId;
+      const stageId = action.stageId;
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (stageId && context.onNavigate) {
         const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, objects);
@@ -1373,7 +1416,7 @@
     });
     actionRegistry.register("service", async (action, context) => {
       if (action.service && action.method && serviceRegistry.has(action.service)) {
-        const params = Object.values(action.serviceParams || {}).map(
+        const params = (Array.isArray(action.serviceParams) ? action.serviceParams : []).map(
           (v) => PropertyHelper.interpolate(String(v), { ...context.contextVars, ...context.vars }, objects)
         );
         const result = await serviceRegistry.call(action.service, action.method, params);
@@ -1389,7 +1432,7 @@
       parameters: [
         { name: "service", label: "Service", type: "select", source: "services" },
         { name: "method", label: "Methode", type: "string" },
-        { name: "serviceParams", label: "Parameter (JSON)", type: "json" },
+        { name: "serviceParams", label: "Parameter-Liste", type: "json" },
         { name: "resultVariable", label: "Ergebnis speichern in", type: "variable", source: "variables" }
       ]
     });
@@ -1531,12 +1574,20 @@
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       const requestId = PropertyHelper.interpolate(String(action.requestId || ""), combinedContext, objects);
       const status = Number(PropertyHelper.interpolate(String(action.status || 200), combinedContext, objects));
-      const dataStr = typeof action.data === "object" ? JSON.stringify(action.data) : String(action.data || "{}");
-      const data = JSON.parse(PropertyHelper.interpolate(dataStr, combinedContext, objects));
-      if (requestId && serviceRegistry.has("HttpServer")) {
+      const dataStr = PropertyHelper.interpolate(String(action.data || "{}"), combinedContext, objects);
+      let data = dataStr;
+      try {
+        if (dataStr.trim().startsWith("{") || dataStr.trim().startsWith("[")) {
+          data = JSON.parse(dataStr);
+        }
+      } catch (e) {
+        console.warn("[Action: respond_http] Could not parse data as JSON, sending as string:", e);
+      }
+      console.log(`[Action: respond_http] Sending response for ${requestId}:`, { status, data });
+      if (serviceRegistry.has("HttpServer")) {
         await serviceRegistry.call("HttpServer", "respond", [requestId, status, data]);
       } else {
-        console.warn("[Action: respond_http] Konnte Antwort nicht senden. requestId fehlt oder HttpServer nicht registriert.");
+        console.warn("[Action: respond_http] No HttpServer service registered!");
       }
     }, {
       type: "respond_http",
@@ -1548,193 +1599,38 @@
         { name: "data", label: "Antwort-Daten (JSON)", type: "string", hint: "Das Objekt, das als JSON gesendet wird." }
       ]
     });
-    actionRegistry.register("db_save", async (action, context) => {
-      const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-      const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || "data.json", combinedContext, objects);
-      const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || "items", combinedContext, objects);
-      const dataStr = typeof action.data === "object" ? JSON.stringify(action.data) : String(action.data || "{}");
-      const data = JSON.parse(PropertyHelper.interpolate(dataStr, combinedContext, objects));
-      const result = await serviceRegistry.call("Data", "saveItem", [storagePath, collection, data]);
-      DebugLogService.getInstance().log("Variable", `Data saved in ${storagePath}::${collection}`, {
-        data: { type: "db_save", storagePath, collection, result }
-      });
-      if (action.resultVariable) {
-        context.vars[action.resultVariable] = result;
-        context.contextVars[action.resultVariable] = result;
+    actionRegistry.register("execute_login_request", async (action, context) => {
+      const pin = context.vars["currentPIN"] || context.contextVars["currentPIN"];
+      console.log("[Action: execute_login_request] Attempting login with PIN:", pin);
+      if (!pin) {
+        console.warn("[Action: execute_login_request] No PIN provided!");
+        return false;
       }
-      if (target && typeof target.triggerEvent === "function") {
-        target.triggerEvent("onDataChanged", { collection, operation: "save", item: result });
-        target.triggerEvent("onSave", { collection, item: result });
-      }
-    }, {
-      type: "db_save",
-      label: "DB: Speichern",
-      description: "Speichert oder aktualisiert ein Objekt in der Datenbank.",
-      parameters: [
-        { name: "target", label: "DataStore Objekt", type: "object", source: "objects" },
-        { name: "collection", label: "Collection", type: "string", placeholder: "z.B. users" },
-        { name: "data", label: "Daten (JSON)", type: "string" },
-        { name: "resultVariable", label: "Ergebnis (mit ID) speichern in", type: "variable", source: "variables" }
-      ]
-    });
-    actionRegistry.register("db_find", async (action, context) => {
-      const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-      const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || "data.json", combinedContext, objects);
-      const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || "items", combinedContext, objects);
-      console.log(`[Action: db_find] Target: ${target ? target.name : "null"}, Storage: ${storagePath}, Collection: ${collection}`);
-      if (target) {
-        console.log(`[Action: db_find] Target Properties: storagePath=${target.storagePath}, defaultCollection=${target.defaultCollection}`);
-      } else {
-        console.warn(`[Action: db_find] Target '${action.target}' NOT FOUND. Available objects:`, objects.map((o) => o.name).join(", "));
-      }
-      const queryStr = typeof action.query === "object" ? JSON.stringify(action.query) : String(action.query || "{}");
-      const query = JSON.parse(PropertyHelper.interpolate(queryStr, combinedContext, objects));
-      console.log(`[Action: db_find] Searching in ${storagePath}::${collection} with Query:`, JSON.stringify(query));
-      const results = await serviceRegistry.call("Data", "findItems", [storagePath, collection, query]);
-      console.log(`[Action: db_find] Found ${results.length} items.`);
-      DebugLogService.getInstance().log("Variable", `Found ${results.length} items in ${storagePath}::${collection}`, {
-        data: { type: "db_find", storagePath, collection, query, resultsCount: results.length }
-      });
-      if (action.resultVariable) {
-        context.vars[action.resultVariable] = results;
-        context.contextVars[action.resultVariable] = results;
-      }
-    }, {
-      type: "db_find",
-      label: "DB: Suchen",
-      description: "Sucht Objekte in der Datenbank anhand von Filtern.",
-      parameters: [
-        { name: "target", label: "DataStore Objekt", type: "object", source: "objects" },
-        { name: "collection", label: "Collection", type: "string", placeholder: "z.B. users" },
-        { name: "query", label: "Filter (JSON)", type: "string", hint: 'Beispiel: { "name": "Rolf" }' },
-        { name: "resultVariable", label: "Ergebnisse speichern in", type: "variable", source: "variables" }
-      ]
-    });
-    actionRegistry.register("db_delete", async (action, context) => {
-      const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-      const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || "data.json", combinedContext, objects);
-      const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || "items", combinedContext, objects);
-      const id = PropertyHelper.interpolate(String(action.id || ""), combinedContext, objects);
-      const success = await serviceRegistry.call("Data", "deleteItem", [storagePath, collection, id]);
-      DebugLogService.getInstance().log("Variable", `Deleted from ${storagePath}::${collection}: ${success}`, {
-        data: { type: "db_delete", storagePath, collection, id, success }
-      });
-      if (action.resultVariable) {
-        context.vars[action.resultVariable] = success;
-        context.contextVars[action.resultVariable] = success;
-      }
-      if (success && target && typeof target.triggerEvent === "function") {
-        target.triggerEvent("onDataChanged", { collection, operation: "delete", id });
-        target.triggerEvent("onDelete", { collection, id });
-      }
-    }, {
-      type: "db_delete",
-      label: "DB: L\xF6schen",
-      description: "L\xF6scht ein Objekt aus der Datenbank.",
-      parameters: [
-        { name: "target", label: "DataStore Objekt", type: "object", source: "objects" },
-        { name: "collection", label: "Collection", type: "string", placeholder: "z.B. users" },
-        { name: "id", label: "ID des Objekts", type: "string" },
-        { name: "resultVariable", label: "Erfolg (true/false) speichern in", type: "variable", source: "variables" }
-      ]
-    });
-    actionRegistry.register("condition", async (action, context) => {
-      if (!action.condition) {
-        console.warn("[Action: condition] No condition specified");
-        return;
-      }
-      const evalContext = { ...context.contextVars, ...context.vars };
-      let result = false;
       try {
-        result = ExpressionParser.evaluate(action.condition, evalContext);
-      } catch (e) {
-        console.error(`[Action: condition] Error evaluating condition "${action.condition}":`, e);
-      }
-      console.log(`[Action: condition] "${action.condition}" => ${result}`);
-      DebugLogService.getInstance().log("Condition", `${action.condition} => ${result}`, {
-        data: { type: "condition", condition: action.condition, result }
-      });
-      if (result && action.body && Array.isArray(action.body)) {
-        for (const bodyAction of action.body) {
-          const handler = actionRegistry.getHandler(bodyAction.type);
-          if (handler) {
-            await handler(bodyAction, context);
-          } else {
-            console.warn(`[Action: condition] Unknown action type in body: ${bodyAction.type}`);
-          }
+        const response = await fetch("http://localhost:8080/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin })
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log("[Action: execute_login_request] Login success:", data);
+          context.contextVars["loginResult"] = data;
+          context.vars["loginResult"] = data;
+          return true;
+        } else {
+          console.warn("[Action: execute_login_request] Login failed:", response.status);
+          return false;
         }
-      } else if (!result && action.elseBody && Array.isArray(action.elseBody)) {
-        for (const elseAction of action.elseBody) {
-          const handler = actionRegistry.getHandler(elseAction.type);
-          if (handler) {
-            await handler(elseAction, context);
-          } else {
-            console.warn(`[Action: condition] Unknown action type in elseBody: ${elseAction.type}`);
-          }
-        }
+      } catch (error) {
+        console.error("[Action: execute_login_request] Network error:", error);
+        return false;
       }
     }, {
-      type: "condition",
-      label: "Bedingung",
-      description: "F\xFChrt Aktionen basierend auf einer Bedingung aus (If/Else).",
-      parameters: [
-        { name: "condition", label: "Bedingung (JS)", type: "string", placeholder: "z.B. user.score > 10" },
-        { name: "body", label: "Dann (Aktionen)", type: "json" },
-        { name: "elseBody", label: "Sonst (Aktionen)", type: "json" }
-      ]
-    });
-    actionRegistry.register("respond_http", async (action, context) => {
-      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-      const requestId = PropertyHelper.interpolate(action.requestId || "", combinedContext, objects);
-      const status = parseInt(PropertyHelper.interpolate(String(action.status || 200), combinedContext, objects));
-      let data = action.data;
-      if (typeof data === "string" && data.includes("${")) {
-        data = PropertyHelper.interpolate(data, combinedContext, objects);
-        try {
-          data = JSON.parse(data);
-        } catch (e) {
-        }
-      } else if (typeof data === "object" && data !== null) {
-        data = JSON.parse(JSON.stringify(data));
-        const interpolateDeep = (obj) => {
-          for (const key in obj) {
-            const val = obj[key];
-            if (typeof val === "string" && val.startsWith("${") && val.endsWith("}")) {
-              const expression = val.slice(2, -1).trim();
-              const isSimpleExpression = !val.includes("${", 2);
-              if (isSimpleExpression) {
-                try {
-                  obj[key] = ExpressionParser.evaluate(expression, combinedContext);
-                } catch (e) {
-                  console.warn(`[Action: respond_http] Failed to evaluate: ${expression}`, e);
-                  obj[key] = val;
-                }
-              } else {
-                obj[key] = PropertyHelper.interpolate(val, combinedContext, objects);
-              }
-            } else if (typeof val === "string") {
-              obj[key] = PropertyHelper.interpolate(val, combinedContext, objects);
-            } else if (typeof val === "object" && val !== null) {
-              interpolateDeep(val);
-            }
-          }
-        };
-        interpolateDeep(data);
-      }
-      console.log(`[Action: respond_http] Responding to ${requestId} with status ${status}`);
-      serviceRegistry.call("HttpServer", "respond", [requestId, status, data]);
-    }, {
-      type: "respond_http",
-      label: "HTTP: Antworten",
-      description: "Sendet eine Antwort auf einen simulierten HTTP-Request.",
-      parameters: [
-        { name: "requestId", label: "Request ID", type: "string" },
-        { name: "status", label: "Status Code", type: "number", defaultValue: 200 },
-        { name: "data", label: "Antwort-Daten (JSON)", type: "string" }
-      ]
+      type: "execute_login_request",
+      label: "Login Request ausf\xFChren",
+      description: "F\xFChrt den Login-Request gegen das Backend aus.",
+      parameters: []
     });
   }
 
@@ -1756,23 +1652,28 @@
     async execute(action, vars, globalVars = {}, contextObj, parentId) {
       if (!action || !action.type) return;
       const actionName = action.name || this.getDescriptiveName(action);
-      DebugLogService.getInstance().log("Action", actionName, {
+      const logId = DebugLogService.getInstance().log("Action", actionName, {
         parentId,
         data: action
       });
       console.log(`%c[Action] Executing: type="${action.type}"`, "color: #4caf50", action);
-      const handler = actionRegistry.getHandler(action.type);
-      if (handler) {
-        return await handler(action, {
-          vars,
-          contextVars: globalVars,
-          eventData: contextObj,
-          multiplayerManager: this.multiplayerManager,
-          onNavigate: this.onNavigate
-        });
-      }
-      if (!handler) {
-        console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
+      DebugLogService.getInstance().pushContext(logId);
+      try {
+        const handler = actionRegistry.getHandler(action.type);
+        if (handler) {
+          return await handler(action, {
+            vars,
+            contextVars: globalVars,
+            eventData: contextObj,
+            multiplayerManager: this.multiplayerManager,
+            onNavigate: this.onNavigate
+          });
+        }
+        if (!handler) {
+          console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
+        }
+      } finally {
+        DebugLogService.getInstance().popContext();
       }
     }
     getDescriptiveName(action) {
@@ -1903,7 +1804,7 @@
     }
     async execute(taskName, vars, globalVars, contextObj, depth = 0, parentId, params, isRemoteExecution = false) {
       if (depth >= _TaskExecutor.MAX_DEPTH) {
-        console.error(`[TaskExecutor] Max recursion depth exceeded: ${taskName} `);
+        console.error(`[TaskExecutor] Max recursion depth exceeded: ${taskName}`);
         return;
       }
       if (params) {
@@ -1916,46 +1817,85 @@
       if (!task && taskName.includes(".")) {
         const [objName, evtName] = taskName.split(".");
         let foundTaskName = "";
-        const findDeep = (objs) => {
-          for (const o of objs) {
-            if (o.name === objName || o.id === objName) return o;
-            if (o.children && o.children.length > 0) {
-              const found = findDeep(o.children);
-              if (found) return found;
+        let objectFound = false;
+        if (contextObj && (contextObj.name === objName || contextObj.id === objName)) {
+          objectFound = true;
+          const evts = contextObj.events || contextObj.Tasks;
+          if (evts && evts[evtName]) {
+            foundTaskName = evts[evtName];
+            console.log(`[TaskExecutor] Resolved "${taskName}" via direct contextObj match: "${foundTaskName}"`);
+          }
+        }
+        if (!foundTaskName) {
+          const findDeep = (objs) => {
+            for (const o of objs) {
+              if (o.name === objName || o.id === objName) return o;
+              if (o.children && o.children.length > 0) {
+                const found = findDeep(o.children);
+                if (found) return found;
+              }
+            }
+            return null;
+          };
+          this.project.stages?.forEach((s) => {
+            if (foundTaskName) return;
+            const obj = findDeep(s.objects || []);
+            if (obj) {
+              objectFound = true;
+              if ((obj.events || obj.Tasks) && (obj.events || obj.Tasks)[evtName]) {
+                foundTaskName = (obj.events || obj.Tasks)[evtName];
+              }
+            }
+            if (!foundTaskName && s.variables) {
+              const v = s.variables.find((v2) => v2.name === objName);
+              if (v) {
+                objectFound = true;
+                if (v.events && v.events[evtName]) {
+                  foundTaskName = v.events[evtName];
+                } else if (v.Tasks && v.Tasks[evtName]) {
+                  foundTaskName = v.Tasks[evtName];
+                }
+              }
+            }
+          });
+          if (!foundTaskName && this.project.variables) {
+            const v = this.project.variables.find((v2) => v2.name === objName);
+            if (v) {
+              objectFound = true;
+              if (v.events && v.events[evtName]) {
+                foundTaskName = v.events[evtName];
+              } else if (v.Tasks && v.Tasks[evtName]) {
+                foundTaskName = v.Tasks[evtName];
+              }
             }
           }
-          return null;
-        };
-        this.project.stages?.forEach((s) => {
-          if (foundTaskName) return;
-          const obj = findDeep(s.objects || []);
-          if (obj && obj.Tasks && obj.Tasks[evtName]) {
-            foundTaskName = obj.Tasks[evtName];
-          }
-          if (!foundTaskName && s.variables) {
-            const v = s.variables.find((v2) => v2.name === objName);
-            if (v && v.Tasks && v.Tasks[evtName]) {
-              foundTaskName = v.Tasks[evtName];
+          if (!foundTaskName && this.project.objects) {
+            const obj = findDeep(this.project.objects);
+            if (obj) {
+              objectFound = true;
+              if ((obj.events || obj.Tasks) && (obj.events || obj.Tasks)[evtName]) {
+                foundTaskName = (obj.events || obj.Tasks)[evtName];
+              }
             }
-          }
-        });
-        if (!foundTaskName && this.project.variables) {
-          const v = this.project.variables.find((v2) => v2.name === objName);
-          if (v && v.Tasks && v.Tasks[evtName]) {
-            foundTaskName = v.Tasks[evtName];
           }
         }
         if (foundTaskName) {
-          console.log(`[TaskExecutor] Resolved "${taskName}" to assigned task: "${foundTaskName}"`);
+          console.log(`[TaskExecutor] Final resolution for "${taskName}": "${foundTaskName}"`);
           return this.execute(foundTaskName, vars, globalVars, contextObj, depth + 1, parentId, params, isRemoteExecution);
         }
+        const optionalEvents = ["onStart", "onStop", "onValueChanged", "onLoad", "onUnload", "onFocus", "onBlur", "onEnter", "onLeave"];
+        const isOptionalEvent = optionalEvents.includes(evtName);
+        if (!isOptionalEvent) {
+          if (objectFound) {
+            console.warn(`[TaskExecutor] Object "${objName}" found, but no task mapping for event "${evtName}".`);
+          } else {
+            console.warn(`[TaskExecutor] Could not resolve dot-notation "${taskName}". Object "${objName}" not found in current project.`);
+          }
+        }
+        return;
       }
       if (!task) {
-        const optionalEvents = ["onStart", "onStop", "onValueChanged", "onLoad", "onUnload", "onFocus", "onBlur", "onEnter", "onLeave"];
-        const isOptionalEvent = optionalEvents.some((evt) => taskName.endsWith(`.${evt}`));
-        if (!isOptionalEvent) {
-          console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
-        }
+        console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
         return;
       }
       const triggerMode = task.triggerMode || "local-sync";
@@ -1986,32 +1926,37 @@
           vars = { ...vars, ...paramDefaults };
         }
       }
-      const taskLogId = DebugLogService.getInstance().log("Task", `START: ${taskName} `, {
+      const taskLogId = DebugLogService.getInstance().log("Task", `START: ${taskName}`, {
         parentId,
         objectName: contextObj?.name
       });
-      const flowChart = this.flowCharts?.[taskName];
-      const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
-      const actionSequence = task.actionSequence || [];
-      if (hasFlowChart) {
-        console.log(`[TaskExecutor] Nutze Flussdiagramm f\xFCr "${taskName}" (Elemente: ${flowChart.elements.length})`);
-        await this.executeFlowChart(taskName, flowChart, vars, globalVars, contextObj, depth, taskLogId);
-      } else {
-        if (actionSequence.length === 0) {
-          console.log(`[TaskExecutor] Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
-        }
-        for (const seqItem of actionSequence) {
-          try {
-            await this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
-          } catch (err2) {
-            console.error(`[TaskExecutor] Error in item of task ${taskName}: `, err2);
-            DebugLogService.getInstance().log("Event", `ERROR executing task ${taskName}: ${err2}`, { parentId: taskLogId });
+      DebugLogService.getInstance().pushContext(taskLogId);
+      try {
+        const flowChart = this.flowCharts?.[taskName];
+        const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
+        const actionSequence = task.actionSequence || [];
+        if (hasFlowChart) {
+          console.log(`[TaskExecutor] Nutze Flussdiagramm f\xFCr "${taskName}" (Elemente: ${flowChart.elements.length})`);
+          await this.executeFlowChart(taskName, flowChart, vars, globalVars, contextObj, depth, taskLogId);
+        } else {
+          if (actionSequence.length === 0) {
+            console.log(`[TaskExecutor] Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
+          }
+          for (const seqItem of actionSequence) {
+            try {
+              await this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
+            } catch (err2) {
+              console.error(`[TaskExecutor] Error in item of task ${taskName}: `, err2);
+              DebugLogService.getInstance().log("Event", `ERROR executing task ${taskName}: ${err2}`, { parentId: taskLogId });
+            }
           }
         }
-      }
-      if (isMultiplayer && triggerMode === "local-sync" && !isRemoteExecution) {
-        console.log(`[TaskExecutor] Syncing task "${taskName}" to other player`);
-        this.multiplayerManager.sendSyncTask(taskName, params);
+        if (isMultiplayer && triggerMode === "local-sync" && !isRemoteExecution) {
+          console.log(`[TaskExecutor] Syncing task "${taskName}" to other player`);
+          this.multiplayerManager.sendSyncTask(taskName, params);
+        }
+      } finally {
+        DebugLogService.getInstance().popContext();
       }
     }
     /**
@@ -2092,6 +2037,37 @@
           if (outgoing) {
             const nextNode = elements.find((e) => e.id === outgoing.endTargetId);
             if (nextNode) await executeNode(nextNode);
+          }
+          return;
+        }
+        if (nodeType === "DataAction" || nodeType === "data_action") {
+          const action = this.resolveAction({ type: "data_action", name }) || node.data;
+          if (action) {
+            console.log(`[TaskExecutor] FlowChart: Executing DataAction "${name}"`);
+            const result = await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
+            const isSuccess = result !== false;
+            console.log(`[TaskExecutor] DataAction "${name}" finished. Success: ${isSuccess}`);
+            const successConn = connections.find(
+              (c) => c.startTargetId === node.id && (c.data?.startAnchorType === "success" || c.data?.anchorType === "success" || c.data?.startAnchorType === "true")
+            );
+            const errorConn = connections.find(
+              (c) => c.startTargetId === node.id && (c.data?.startAnchorType === "error" || c.data?.anchorType === "error" || c.data?.startAnchorType === "false")
+            );
+            if (isSuccess && successConn) {
+              const successNode = elements.find((e) => e.id === successConn.endTargetId);
+              if (successNode) await executeNode(successNode);
+            } else if (!isSuccess && errorConn) {
+              const errorNode = elements.find((e) => e.id === errorConn.endTargetId);
+              if (errorNode) await executeNode(errorNode);
+            } else {
+              const outgoing = connections.find(
+                (c) => c.startTargetId === node.id && !["success", "error", "true", "false"].includes(c.data?.startAnchorType || c.data?.anchorType || "")
+              );
+              if (outgoing) {
+                const nextNode = elements.find((e) => e.id === outgoing.endTargetId);
+                if (nextNode) await executeNode(nextNode);
+              }
+            }
           }
           return;
         }
@@ -2421,7 +2397,7 @@
       const action = this.resolveAction(item);
       if (!action) {
         console.warn(`[TaskExecutor] DataAction definition not found: ${item.name || item.type}`);
-        return;
+        return false;
       }
       console.log(`[TaskExecutor] Executing DataAction: ${action.name || action.type}`);
       const result = await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
@@ -2431,6 +2407,7 @@
       if (body && Array.isArray(body)) {
         await this.executeBody(body, vars, globalVars, contextObj, depth, parentId);
       }
+      return isSuccess;
     }
   };
   __publicField(_TaskExecutor, "MAX_DEPTH", 10);
@@ -2827,14 +2804,21 @@
           const component = this.host.objects?.find(
             (o) => varDef && o.id === varDef.id || o.name === prop && o.isVariable
           );
+          let componentUpdated = false;
           if (component) {
             if (component.items !== void 0 && Array.isArray(value)) {
               if (JSON.stringify(component.items) !== JSON.stringify(value)) {
                 component.items = value;
+                componentUpdated = true;
               }
             } else if (component.value !== value) {
               component.value = value;
+              componentUpdated = true;
+            } else if (component.value === value) {
             }
+          }
+          if (!componentUpdated) {
+            this.logVariableChange(prop, finalValue, oldValue);
           }
           this.host.reactiveRuntime.setVariable(prop, finalValue);
           if (this.host.taskExecutor) {
@@ -2860,60 +2844,60 @@
         }
       });
     }
-    processVariableEvents(prop, value, oldValue, varDef) {
+    async processVariableEvents(prop, value, oldValue, varDef) {
       const executor = this.host.taskExecutor;
       if (!executor) return;
       if (oldValue !== value) {
-        this.executeVariableEvent(varDef, "onValueChanged");
+        await this.executeVariableEvent(varDef, "onValueChanged");
       }
       if (value === "" || value === null || value === void 0) {
-        this.executeVariableEvent(varDef, "onValueEmpty");
+        await this.executeVariableEvent(varDef, "onValueEmpty");
       }
       if (typeof value === "number" && typeof oldValue === "number" && typeof varDef.threshold === "number") {
         const t = varDef.threshold;
         if (oldValue < t && value >= t) {
-          this.executeVariableEvent(varDef, "onThresholdReached");
+          await this.executeVariableEvent(varDef, "onThresholdReached");
         }
         if (oldValue >= t && value < t) {
-          this.executeVariableEvent(varDef, "onThresholdLeft");
+          await this.executeVariableEvent(varDef, "onThresholdLeft");
         }
         if (oldValue <= t && value > t) {
-          this.executeVariableEvent(varDef, "onThresholdExceeded");
+          await this.executeVariableEvent(varDef, "onThresholdExceeded");
         }
       }
       if (varDef.triggerValue !== void 0 && varDef.triggerValue !== "" && varDef.triggerValue !== null) {
         const isTrigger = value == varDef.triggerValue;
         const wasTrigger = oldValue == varDef.triggerValue;
         if (isTrigger && !wasTrigger) {
-          this.executeVariableEvent(varDef, "onTriggerEnter");
+          await this.executeVariableEvent(varDef, "onTriggerEnter");
         }
         if (!isTrigger && wasTrigger) {
-          this.executeVariableEvent(varDef, "onTriggerExit");
+          await this.executeVariableEvent(varDef, "onTriggerExit");
         }
       }
       if (typeof value === "number" && varDef.min !== void 0 && varDef.max !== void 0) {
         const min = Number(varDef.min);
         const max2 = Number(varDef.max);
         if (value <= min && (oldValue > min || oldValue === void 0)) {
-          this.executeVariableEvent(varDef, "onMinReached");
+          await this.executeVariableEvent(varDef, "onMinReached");
         }
         if (value >= max2 && (oldValue < max2 || oldValue === void 0)) {
-          this.executeVariableEvent(varDef, "onMaxReached");
+          await this.executeVariableEvent(varDef, "onMaxReached");
         }
         const isInside = value > min && value < max2;
         const wasInside = oldValue > min && oldValue < max2;
         if (isInside && !wasInside) {
-          this.executeVariableEvent(varDef, "onInside");
+          await this.executeVariableEvent(varDef, "onInside");
         }
         if (!isInside && wasInside) {
-          this.executeVariableEvent(varDef, "onOutside");
+          await this.executeVariableEvent(varDef, "onOutside");
         }
       }
       if (varDef.isRandom && oldValue !== value) {
-        this.executeVariableEvent(varDef, "onGenerated");
+        await this.executeVariableEvent(varDef, "onGenerated");
       }
       if (varDef.type === "list" && value !== oldValue) {
-        this.processListEvents(value, oldValue, varDef);
+        await this.processListEvents(value, oldValue, varDef);
       }
       if (varDef.type === "timer" && typeof value === "number" && value > 0 && (oldValue === 0 || oldValue === void 0)) {
         this.host.startTimer(prop, varDef, value);
@@ -2923,36 +2907,46 @@
      * Helper to execute a variable event. 
      * Delegated to TaskExecutor using ComponentName.EventName notation.
      */
-    executeVariableEvent(varDef, eventName) {
+    async executeVariableEvent(varDef, eventName) {
       const executor = this.host.taskExecutor;
       if (!executor) return;
+      const hasExplicitHandler = varDef.Tasks && varDef.Tasks[eventName];
+      if (!hasExplicitHandler) {
+        return;
+      }
       const eventLogId = DebugLogService.getInstance().log("Event", `Triggered: ${varDef.name}.${eventName}`, {
         objectName: varDef.name,
         eventName
       });
       const taskName = `${varDef.name}.${eventName}`;
-      executor.execute(taskName, { sender: varDef }, this.contextVars, void 0, 0, eventLogId);
+      await executor.execute(taskName, { sender: varDef }, this.contextVars, void 0, 0, eventLogId);
     }
-    processListEvents(value, oldValue, varDef) {
+    logVariableChange(name, value, oldValue) {
+      if (value === oldValue) return;
+      DebugLogService.getInstance().log("Variable", `${name}${name.includes(".") ? "" : ".value"} changed: ${oldValue !== void 0 ? oldValue : ""} -> ${value}`, {
+        objectName: name
+      });
+    }
+    async processListEvents(value, oldValue, varDef) {
       const executor = this.host.taskExecutor;
       if (!executor) return;
       try {
         const list = Array.isArray(value) ? value : JSON.parse(value);
         const oldList = Array.isArray(oldValue) ? oldValue : oldValue ? JSON.parse(oldValue) : [];
         if (list.length > oldList.length) {
-          this.executeVariableEvent(varDef, "onItemAdded");
+          await this.executeVariableEvent(varDef, "onItemAdded");
         }
         if (list.length < oldList.length) {
-          this.executeVariableEvent(varDef, "onItemRemoved");
+          await this.executeVariableEvent(varDef, "onItemRemoved");
         }
         if (varDef.searchValue) {
           const contains = list.includes(varDef.searchValue);
           const wasContains = oldList.includes(varDef.searchValue);
           if (contains && !wasContains) {
-            this.executeVariableEvent(varDef, "onContains");
+            await this.executeVariableEvent(varDef, "onContains");
           }
           if (!contains && wasContains) {
-            this.executeVariableEvent(varDef, "onNotContains");
+            await this.executeVariableEvent(varDef, "onNotContains");
           }
         }
       } catch (e) {
@@ -2969,7 +2963,7 @@
       // Explicit className for production builds
       __publicField(this, "parent", null);
       __publicField(this, "children", []);
-      __publicField(this, "Tasks");
+      __publicField(this, "events");
       // EventName -> TaskName
       __publicField(this, "scope", "stage");
       // Visibility scope
@@ -2991,7 +2985,7 @@
       this.id = `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       this.name = name;
       this.className = this.constructor.name;
-      this.Tasks = {};
+      this.events = {};
     }
     getBaseProperties() {
       return [
@@ -3016,8 +3010,8 @@
         isHiddenInRun: this.isHiddenInRun,
         isBlueprintOnly: this.isBlueprintOnly
       };
-      if (this.Tasks && Object.keys(this.Tasks).length > 0) {
-        json.Tasks = this.Tasks;
+      if (this.events && Object.keys(this.events).length > 0) {
+        json.events = this.events;
       }
       const props = this.getInspectorProperties();
       props.forEach((p) => {
@@ -8113,7 +8107,7 @@
       this.style.borderWidth = 1;
       this.style.color = "#000000";
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
+      this.isBlueprintOnly = false;
     }
     getInspectorProperties() {
       const props = super.getInspectorProperties();
@@ -9620,9 +9614,7 @@
           Object.assign(targetStyle, objData.style);
           newObj.style = targetStyle;
         }
-        if (objData.Tasks) {
-          newObj.Tasks = objData.Tasks;
-        }
+        newObj.events = objData.events || objData.Tasks || {};
         if (objData.children && Array.isArray(objData.children) && objData.children.length > 0) {
           const hydratedChildren = hydrateObjects(objData.children);
           hydratedChildren.forEach((child) => {
@@ -9813,6 +9805,20 @@
     get stageVariables() {
       return this.variableManager.stageVariables;
     }
+    /**
+     * Aktualisiert die Projektdaten zur Laufzeit (Live Sync)
+     */
+    updateRuntimeData(project) {
+      this.project = project;
+      if (this.taskExecutor) {
+        console.log("[GameRuntime] Updating runtime data (FlowCharts, Actions, Tasks)");
+        const stageId = this.stage?.id || this.project.activeStageId;
+        const merged = this.stageManager.getMergedStageData(stageId);
+        this.taskExecutor.setFlowCharts(merged.flowCharts);
+        this.taskExecutor.setActions(merged.actions);
+        this.taskExecutor.setTasks(merged.tasks || []);
+      }
+    }
     stop() {
       if (this.splashTimerId) {
         clearTimeout(this.splashTimerId);
@@ -9882,7 +9888,7 @@
     }
     handleStageChange(_oldStageId, newStageId) {
       if (this.stage && this.taskExecutor) {
-        const onLeaveTask = this.stage.Tasks?.onLeave;
+        const onLeaveTask = (this.stage.events || this.stage.Tasks)?.onLeave;
         if (onLeaveTask) {
           console.log(`[GameRuntime] Triggering onLeave for stage: ${this.stage.id} (Task: ${onLeaveTask})`);
           this.taskExecutor.execute(onLeaveTask, { sender: this.stage }, this.contextVars, this.stage);
@@ -9919,12 +9925,12 @@
       this.initStageController();
       this.start();
       if (this.stage && this.taskExecutor) {
-        const onEnterTask = this.stage.Tasks?.onEnter;
+        const onEnterTask = (this.stage.events || this.stage.Tasks)?.onEnter;
         if (onEnterTask) {
           console.log(`[GameRuntime] Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
           this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage);
         }
-        const onRuntimeStartTask = this.stage.Tasks?.onRuntimeStart;
+        const onRuntimeStartTask = (this.stage.events || this.stage.Tasks)?.onRuntimeStart;
         if (onRuntimeStartTask) {
           console.log(`[GameRuntime] Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
           this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage);
@@ -9989,27 +9995,32 @@
         eventName,
         data
       });
-      if (obj.className === "TEmojiPicker" && eventName === "onSelect" && typeof data === "string") {
-        console.log(`[GameRuntime] Syncing selectedEmoji for ${obj.name}: ${data}`);
-        obj.selectedEmoji = data;
-      }
-      if (obj.onEvent) {
-        const actions = obj.onEvent[eventName];
-        if (actions) {
-          const actionList = Array.isArray(actions) ? actions : [actions];
-          for (const action of actionList) {
-            this.actionExecutor.execute(action, {
-              vars: this.contextVars,
-              contextVars: this.contextVars,
-              eventData: data
-            }, {}, void 0, eventLogId);
+      DebugLogService.getInstance().pushContext(eventLogId);
+      try {
+        if (obj.className === "TEmojiPicker" && eventName === "onSelect" && typeof data === "string") {
+          console.log(`[GameRuntime] Syncing selectedEmoji for ${obj.name}: ${data}`);
+          obj.selectedEmoji = data;
+        }
+        if (obj.onEvent) {
+          const actions = obj.onEvent[eventName];
+          if (actions) {
+            const actionList = Array.isArray(actions) ? actions : [actions];
+            for (const action of actionList) {
+              this.actionExecutor.execute(action, {
+                vars: this.contextVars,
+                contextVars: this.contextVars,
+                eventData: data
+              }, {}, void 0, eventLogId);
+            }
           }
         }
-      }
-      if (this.taskExecutor) {
-        const taskName = `${obj.name}.${eventName}`;
-        const eventVars = typeof data === "object" && data !== null ? { ...data, eventData: data, sender: obj } : { eventData: data, sender: obj };
-        this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
+        if (this.taskExecutor) {
+          const taskName = `${obj.name}.${eventName}`;
+          const eventVars = typeof data === "object" && data !== null ? { ...data, eventData: data, sender: obj } : { eventData: data, sender: obj };
+          this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
+        }
+      } finally {
+        DebugLogService.getInstance().popContext();
       }
     }
     updateRemoteState(objectIdOrName, state) {
@@ -10230,7 +10241,7 @@
           if (typeof val === "string" && val.includes("${")) {
             console.log(`%c[GameRuntime] Creating reactive binding: ${obj.name}.${propPath} \u2190 ${val}`, "color: #4caf50; font-weight: bold");
             this.reactiveRuntime.bindComponent(obj, propPath, val);
-          } else if (val && typeof val === "object" && !Array.isArray(val) && (key === "style" || key === "Tasks")) {
+          } else if (val && typeof val === "object" && !Array.isArray(val) && (key === "style" || key === "events" || key === "Tasks")) {
             bindProps(val, propPath);
           }
         });

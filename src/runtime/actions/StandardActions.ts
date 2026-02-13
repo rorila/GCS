@@ -412,7 +412,27 @@ export function registerStandardActions(objects: any[]) {
 
     // 17. HTTP Response (für TAPIServer / HttpServer)
     actionRegistry.register('respond_http', async (action, context) => {
-        // ... (existing code) ...
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        const requestId = PropertyHelper.interpolate(String(action.requestId || ''), combinedContext, objects);
+        const status = Number(PropertyHelper.interpolate(String(action.status || 200), combinedContext, objects));
+        const dataStr = PropertyHelper.interpolate(String(action.data || '{}'), combinedContext, objects);
+
+        let data = dataStr;
+        try {
+            if (dataStr.trim().startsWith('{') || dataStr.trim().startsWith('[')) {
+                data = JSON.parse(dataStr);
+            }
+        } catch (e) {
+            console.warn('[Action: respond_http] Could not parse data as JSON, sending as string:', e);
+        }
+
+        console.log(`[Action: respond_http] Sending response for ${requestId}:`, { status, data });
+
+        if (serviceRegistry.has('HttpServer')) {
+            await serviceRegistry.call('HttpServer', 'respond', [requestId, status, data]);
+        } else {
+            console.warn('[Action: respond_http] No HttpServer service registered!');
+        }
     }, {
         type: 'respond_http',
         label: 'HTTP Antwort senden',
@@ -472,5 +492,38 @@ export function registerStandardActions(objects: any[]) {
         label: 'Login Request ausführen',
         description: 'Führt den Login-Request gegen das Backend aus.',
         parameters: []
+    });
+
+    // 19. Generic DataAction Handler (Delegates to specific types like http, sql)
+    actionRegistry.register('data_action', async (action, context) => {
+        // DataActions have an internal type, e.g. { type: 'data_action', data: { type: 'http', ... } }
+        // OR sometimes attributes are directly on the action: { type: 'data_action', resource: '...', url: '...' }
+        // We need to determine the effective sub-type.
+
+        // Strategy 1: Check if it wraps another action in 'data' prop (common in some editor mappings)
+        // (Strategy 1 removed as effectiveAction is unused and caused lint errors)
+
+
+        // Strategy 2: Look for 'type' property inside the data_action definition that maps to a known handler
+        // The Project JSON shows: "type": "data_action", "data": { "type": "http", ... }
+        // So we should look at action.data.type
+        const subType = action.data?.type || action.subType || 'http'; // Default to http if ambiguous?
+
+        console.log(`[Action: data_action] Delegating to ${subType}`);
+
+        const handler = actionRegistry.getHandler(subType);
+        if (handler) {
+            // Merge properties: 'data' properties should be top-level for the handler
+            const mergedAction = { ...action.data, ...action, type: subType };
+            return await handler(mergedAction, context);
+        } else {
+            console.warn(`[Action: data_action] No handler found for sub-type "${subType}"`);
+            return false;
+        }
+    }, {
+        type: 'data_action',
+        label: 'Data Action',
+        description: 'Führt eine Daten-Aktion aus (HTTP, SQL, etc.).',
+        parameters: [] // Dynamic based on sub-type
     });
 }

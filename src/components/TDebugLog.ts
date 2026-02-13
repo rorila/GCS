@@ -461,7 +461,7 @@ export class TDebugLog {
         row.style.cssText = `
             padding: 2px 6px;
             margin-left: ${(level * 16) + (isVariable ? 12 : 0)}px;
-            border-left: 1px solid #333;
+            border-left: ${level > 0 ? '1px solid rgba(255,255,255,0.1)' : '1px solid #333'};
             cursor: pointer;
             display: flex;
             align-items: flex-start;
@@ -470,7 +470,14 @@ export class TDebugLog {
             margin-top: 1px;
             transition: background 0.2s;
             font-size: 10px;
+            position: relative;
         `;
+
+        // Add a subtle guide line for nested items
+        if (level > 0) {
+            row.style.setProperty('--guide-color', 'rgba(255,255,255,0.05)');
+        }
+
 
         row.onmouseover = () => row.style.background = 'rgba(255,255,255,0.05)';
         row.onmouseout = () => row.style.background = 'transparent';

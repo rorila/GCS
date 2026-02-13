@@ -346,6 +346,27 @@ export class PascalGenerator {
                         lines[lines.length - 1] += ';';
                     }
                 }
+            } else if (item.type === 'data_action') {
+                const action = item as any;
+                const method = action.method || 'GET';
+                const url = action.url || '';
+                const result = action.resultVariable ? `${this.span(action.resultVariable, '#9cdcfe', asHtml)} := ` : '';
+
+                lines.push(`${space}${this.span('IF', '#c586c0', asHtml)} ${result}${this.span('API', '#4ec9b0', asHtml)}.${this.span('DataAction', '#dcdcaa', asHtml)}('${method}', '${url}') ${this.span('THEN', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
+
+                if (action.successBody) {
+                    this.renderSequenceToPascal(project, action.successBody, lines, indent + 2, asHtml, activeStage);
+                }
+
+                lines.push(`${space}${this.span('END', '#c586c0', asHtml)}`);
+
+                if (action.errorBody && action.errorBody.length > 0) {
+                    lines.push(`${space}${this.span('ELSE', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
+                    this.renderSequenceToPascal(project, action.errorBody, lines, indent + 2, asHtml, activeStage);
+                    lines.push(`${space}${this.span('END', '#c586c0', asHtml)};`);
+                } else {
+                    lines[lines.length - 1] += ';';
+                }
             } else if (item.type === 'while') {
                 const cond = item.condition;
                 if (cond) {
@@ -450,6 +471,11 @@ export class PascalGenerator {
             code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(action.method, '#dcdcaa', asHtml)} (); `;
         } else if (action.type === 'navigate_stage') {
             code = `${this.span('Application', '#4ec9b0', asHtml)}.${this.span('GoToStage', '#dcdcaa', asHtml)} (${this.span("'" + (action.params?.stageId || action.target || '?') + "'", '#ce9178', asHtml)}); `;
+        } else if (action.type === 'data_action') {
+            const method = action.method || 'GET';
+            const url = action.url || '';
+            const resultVar = action.resultVariable ? `${this.span(action.resultVariable, '#9cdcfe', asHtml)} := ` : '';
+            code = `${resultVar}${this.span('API', '#4ec9b0', asHtml)}.${this.span('DataAction', '#dcdcaa', asHtml)}('${method}', '${url}'); `;
         } else {
             // Generic fallback for any other type
             const typeLabel = action.type ? ` { ${action.type} } ` : '';
@@ -692,34 +718,77 @@ export class PascalGenerator {
                     i++; // consume THEN
 
                     const oldItem = oldSubSeq[itemIndex];
-                    const item: SequenceItem = {
-                        type: 'condition',
-                        name: oldItem && oldItem.type === 'condition' ? oldItem.name : `if_${actionCounter.count++} `,
-                        condition: this.parseCondition(conditionStr.trim())
-                    };
+                    let item: SequenceItem;
 
-                    if (tokens[i]?.trim().toUpperCase() === 'BEGIN') {
-                        i++; // consume BEGIN
-                        item.body = parseBlock(oldItem && oldItem.body ? oldItem.body : []);
-                    } else {
-                        // Single line then? Support only simple calls for now in single line IF
-                        const nextLine = consumeUntil(';');
-                        i++; // consume ;
-                        const callName = nextLine.trim().replace('();', '');
-                        if (callName) {
-                            item.thenAction = callName;
-                        }
-                    }
+                    // CHECK FOR DataAction in Condition
+                    const dataActionMatch = conditionStr.match(/(?:([a-zA-Z0-9_]+)\s*:=\s*)?API\.DataAction\('([^']+)',\s*'([^']+)'\)/i);
+                    if (dataActionMatch) {
+                        const resultVar = dataActionMatch[1];
+                        const method = dataActionMatch[2];
+                        const url = dataActionMatch[3];
 
-                    // Check for ELSE
-                    if (tokens[i]?.trim().toUpperCase() === 'ELSE') {
-                        i++; // consume ELSE
+                        item = {
+                            type: 'data_action',
+                            name: oldItem && oldItem.type === 'data_action' ? oldItem.name : `data_${actionCounter.count++}`,
+                            method,
+                            url,
+                            resultVariable: resultVar || undefined
+                        } as any;
+
                         if (tokens[i]?.trim().toUpperCase() === 'BEGIN') {
                             i++; // consume BEGIN
-                            const elseBody = parseBlock((oldItem as any)?.elseBody || []);
-                            // In our model, condition usually has thenAction, thenTask, elseAction, elseTask, body.
-                            // We use 'body' for the 'then' branch if it's a block.
-                            (item as any).elseBody = elseBody;
+                            (item as any).successBody = parseBlock((oldItem as any)?.successBody || []);
+                        } else {
+                            // Single line then
+                            const nextLine = consumeUntil(';');
+                            i++; // consume ;
+                            const callName = nextLine.trim().replace('();', '');
+                            if (callName) (item as any).thenAction = callName;
+                        }
+
+                        // Check for ELSE
+                        if (tokens[i]?.trim().toUpperCase() === 'ELSE') {
+                            i++; // consume ELSE
+                            if (tokens[i]?.trim().toUpperCase() === 'BEGIN') {
+                                i++; // consume BEGIN
+                                (item as any).errorBody = parseBlock((oldItem as any)?.errorBody || []);
+                            } else {
+                                const nextLine = consumeUntil(';');
+                                i++; // consume ;
+                                const callName = nextLine.trim().replace('();', '');
+                                if (callName) (item as any).elseAction = callName;
+                            }
+                        }
+                    } else {
+                        item = {
+                            type: 'condition',
+                            name: oldItem && oldItem.type === 'condition' ? oldItem.name : `if_${actionCounter.count++} `,
+                            condition: this.parseCondition(conditionStr.trim())
+                        };
+
+                        if (tokens[i]?.trim().toUpperCase() === 'BEGIN') {
+                            i++; // consume BEGIN
+                            item.body = parseBlock(oldItem && oldItem.body ? oldItem.body : []);
+                        } else {
+                            // Single line then? Support only simple calls for now in single line IF
+                            const nextLine = consumeUntil(';');
+                            i++; // consume ;
+                            const callName = nextLine.trim().replace('();', '');
+                            if (callName) {
+                                item.thenAction = callName;
+                            }
+                        }
+
+                        // Check for ELSE
+                        if (tokens[i]?.trim().toUpperCase() === 'ELSE') {
+                            i++; // consume ELSE
+                            if (tokens[i]?.trim().toUpperCase() === 'BEGIN') {
+                                i++; // consume BEGIN
+                                const elseBody = parseBlock((oldItem as any)?.elseBody || []);
+                                // In our model, condition usually has thenAction, thenTask, elseAction, elseTask, body.
+                                // We use 'body' for the 'then' branch if it's a block.
+                                (item as any).elseBody = elseBody;
+                            }
                         }
                     }
 
@@ -782,6 +851,7 @@ export class PascalGenerator {
                     const cleanStatement = statement.trim();
                     if (cleanStatement) {
                         const oldItem = oldSubSeq[itemIndex];
+
                         const parsed = this.parseSimpleStatement(project, taskName, cleanStatement, actionCounter.count++, oldItem, targetStage);
                         if (parsed) {
                             blockSequence.push(parsed);

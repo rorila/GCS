@@ -626,6 +626,9 @@
           "baseUrl": "/api",
           "cors": true,
           "active": true,
+          "Tasks": {
+            "onRequest": "HandleApiRequest"
+          },
           "testMethod": "GET",
           "testPath": "/",
           "testBody": "{}",
@@ -665,6 +668,23 @@
       ],
       "tasks": [
         {
+          "name": "HandleApiRequest",
+          "triggerMode": "local-sync",
+          "params": [
+            {
+              "name": "eventData",
+              "type": "object"
+            }
+          ],
+          "description": "Simuliert die API-Antwort",
+          "actionSequence": [
+            {
+              "name": "SendApiResponse",
+              "type": "action"
+            }
+          ]
+        },
+        {
           "name": "createAnEmojiPin",
           "actionSequence": [
             {
@@ -700,11 +720,11 @@
                 "type": "Action",
                 "x": 340,
                 "y": 80,
-                "width": 140,
-                "height": 60,
+                "width": 400,
+                "height": 80,
                 "properties": {
                   "name": "Action1",
-                  "details": "",
+                  "details": "currentPIN := currentPIN +PinPicker.selectedEmoji",
                   "description": ""
                 },
                 "data": {
@@ -730,6 +750,170 @@
               }
             ]
           }
+        },
+        {
+          "name": "AttemptLogin",
+          "actionSequence": [
+            {
+              "type": "data_action",
+              "name": "DataAction1",
+              "resource": "users",
+              "url": "/api/data/users?authCode=${currentPIN}",
+              "showDetails": false,
+              "queryProperty": "authCode",
+              "queryValue": "${currentPIN}",
+              "resultVariable": "apiLoginResult",
+              "successBody": [
+                {
+                  "type": "variable",
+                  "variableName": "currentUser",
+                  "source": "apiLoginResult.user"
+                },
+                {
+                  "type": "variable",
+                  "variableName": "authToken",
+                  "source": "apiLoginResult.token"
+                },
+                {
+                  "type": "store_token",
+                  "token": "${apiLoginResult.token}",
+                  "tokenKey": "auth_token"
+                },
+                {
+                  "type": "property",
+                  "target": "LoginPanel",
+                  "changes": {
+                    "visible": false
+                  }
+                },
+                {
+                  "type": "navigate_stage",
+                  "stageId": "stage_dashboard"
+                }
+              ],
+              "errorBody": [
+                {
+                  "type": "variable",
+                  "variableName": "loginError",
+                  "source": "Login fehlgeschlagen. Bitte PIN prüfen."
+                },
+                {
+                  "type": "property",
+                  "target": "ErrorMsg",
+                  "changes": {
+                    "text": "${loginError}"
+                  }
+                }
+              ]
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
+          "flowChart": {
+            "elements": [
+              {
+                "id": "node-1770989123182",
+                "type": "Task",
+                "x": 20,
+                "y": 60,
+                "width": 160,
+                "height": 60,
+                "properties": {
+                  "name": "AttemptLogin",
+                  "details": "",
+                  "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
+                  "text": "AttemptLogin"
+                },
+                "data": {
+                  "name": "AttemptLogin",
+                  "showDetails": false,
+                  "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
+                }
+              },
+              {
+                "id": "node-1770989195203",
+                "type": "DataAction",
+                "x": 280,
+                "y": 60,
+                "width": 140,
+                "height": 60,
+                "properties": {
+                  "name": "DataAction1",
+                  "details": "",
+                  "description": ""
+                },
+                "data": {
+                  "type": "data_action",
+                  "name": "DataAction1",
+                  "resource": "users",
+                  "url": "/api/data/users?authCode=${currentPIN}",
+                  "showDetails": false,
+                  "queryProperty": "authCode",
+                  "queryValue": "${currentPIN}",
+                  "resultVariable": "apiLoginResult",
+                  "successBody": [
+                    {
+                      "type": "variable",
+                      "variableName": "currentUser",
+                      "source": "apiLoginResult.user"
+                    },
+                    {
+                      "type": "variable",
+                      "variableName": "authToken",
+                      "source": "apiLoginResult.token"
+                    },
+                    {
+                      "type": "store_token",
+                      "token": "${apiLoginResult.token}",
+                      "tokenKey": "auth_token"
+                    },
+                    {
+                      "type": "property",
+                      "target": "LoginPanel",
+                      "changes": {
+                        "visible": false
+                      }
+                    },
+                    {
+                      "type": "navigate_stage",
+                      "stageId": "stage_dashboard"
+                    }
+                  ],
+                  "errorBody": [
+                    {
+                      "type": "variable",
+                      "variableName": "loginError",
+                      "source": "Login fehlgeschlagen. Bitte PIN prüfen."
+                    },
+                    {
+                      "type": "property",
+                      "target": "ErrorMsg",
+                      "changes": {
+                        "text": "${loginError}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "connections": [
+              {
+                "startTargetId": "node-1770989123182",
+                "endTargetId": "node-1770989195203",
+                "startX": 178.328125,
+                "startY": 90,
+                "endX": 280,
+                "endY": 90,
+                "data": {
+                  "startAnchorType": "output",
+                  "originalStartAnchorType": "output",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "input"
+                }
+              }
+            ]
+          }
         }
       ],
       "actions": [
@@ -743,6 +927,17 @@
           "formula": "currentPIN +PinPicker.selectedEmoji",
           "description": "",
           "sync": true
+        },
+        {
+          "details": "",
+          "type": "data_action",
+          "name": "DataAction1",
+          "resource": "users",
+          "url": "/api/data/users?authCode=${currentPIN}",
+          "showDetails": false,
+          "queryProperty": "authCode",
+          "queryValue": "${currentPIN}",
+          "resultVariable": "currentUser"
         }
       ],
       "flowCharts": {
@@ -771,11 +966,11 @@
               "type": "Action",
               "x": 340,
               "y": 80,
-              "width": 140,
-              "height": 60,
+              "width": 400,
+              "height": 80,
               "properties": {
                 "name": "Action1",
-                "details": "",
+                "details": "currentPIN := currentPIN +PinPicker.selectedEmoji",
                 "description": ""
               },
               "data": {
@@ -792,6 +987,68 @@
               "startY": 109,
               "endX": 340,
               "endY": 120,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        },
+        "AttemptLogin": {
+          "elements": [
+            {
+              "id": "node-1770989123182",
+              "type": "Task",
+              "x": 20,
+              "y": 60,
+              "width": 160,
+              "height": 60,
+              "properties": {
+                "name": "AttemptLogin",
+                "details": "",
+                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
+                "text": "AttemptLogin"
+              },
+              "data": {
+                "name": "AttemptLogin",
+                "showDetails": false,
+                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
+              }
+            },
+            {
+              "id": "node-1770989195203",
+              "type": "DataAction",
+              "x": 280,
+              "y": 60,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "DataAction1",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "type": "data_action",
+                "name": "DataAction1",
+                "resource": "users",
+                "url": "/api/data/users?authCode=${currentPIN}",
+                "showDetails": false,
+                "queryProperty": "authCode",
+                "queryValue": "${currentPIN}",
+                "resultVariable": "currentUser"
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1770989123182",
+              "endTargetId": "node-1770989195203",
+              "startX": 178.328125,
+              "startY": 90,
+              "endX": 280,
+              "endY": 90,
               "data": {
                 "startAnchorType": "output",
                 "originalStartAnchorType": "output",
@@ -1224,7 +1481,22 @@
         }
       ],
       "tasks": [],
-      "actions": [],
+      "actions": [
+        {
+          "name": "SendApiResponse",
+          "type": "respond_http",
+          "status": 200,
+          "data": {
+            "user": {
+              "id": "u1",
+              "name": "Admin User",
+              "role": "admin",
+              "avatar": "👤"
+            },
+            "token": "mock-token-123"
+          }
+        }
+      ],
       "flowCharts": {}
     },
     {
@@ -1411,9 +1683,119 @@
           },
           "badgeType": "success",
           "pill": true
+        },
+        {
+          "className": "TAPIServer",
+          "id": "api_server_1",
+          "name": "🖥️ API Server",
+          "scope": "stage",
+          "x": 40,
+          "y": 2,
+          "width": 10,
+          "height": 4,
+          "visible": true,
+          "caption": "🖥️ API Server",
+          "port": 3000,
+          "baseUrl": "/api",
+          "cors": true,
+          "Tasks": {
+            "onRequest": "HandleApiRequest"
+          }
         }
       ],
-      "tasks": [],
+      "tasks": [
+        {
+          "className": "TTask",
+          "id": "task_handle_api",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "isBlueprintOnly": false,
+          "name": "HandleApiRequest",
+          "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "HandleApiRequest",
+          "visible": true,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "triggerMode": "local-sync",
+          "params": [
+            {
+              "name": "eventData",
+              "type": "object"
+            }
+          ],
+          "description": "Simuliert die API-Antwort",
+          "flowChart": {
+            "elements": [
+              {
+                "id": "node-api-start",
+                "type": "Task",
+                "x": 20,
+                "y": 20,
+                "width": 160,
+                "height": 60,
+                "properties": {
+                  "name": "HandleApiRequest",
+                  "text": "HandleApiRequest"
+                },
+                "data": {
+                  "name": "HandleApiRequest"
+                }
+              },
+              {
+                "id": "node-api-respond",
+                "type": "Action",
+                "x": 250,
+                "y": 20,
+                "width": 140,
+                "height": 60,
+                "properties": {
+                  "name": "SendResponse",
+                  "text": "SendResponse",
+                  "details": "Respond 200 OK"
+                },
+                "data": {
+                  "name": "SendResponse",
+                  "type": "respond_http",
+                  "status": 200,
+                  "data": {
+                    "user": {
+                      "id": "u1",
+                      "name": "Admin User",
+                      "role": "admin",
+                      "avatar": "👤"
+                    },
+                    "token": "mock-token-123"
+                  }
+                }
+              }
+            ],
+            "connections": [
+              {
+                "id": "conn-api-1",
+                "start": "node-api-start",
+                "end": "node-api-respond",
+                "data": {
+                  "startAnchorType": "output",
+                  "endAnchorType": "input"
+                }
+              }
+            ]
+          }
+        }
+      ],
       "actions": [],
       "flowCharts": {}
     },

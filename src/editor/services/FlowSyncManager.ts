@@ -44,9 +44,12 @@ export class FlowSyncManager {
         const processCollection = (tasks: any[]) => {
             if (!tasks) return;
             tasks.forEach(task => {
-                const targetFlow = this.host.getTargetFlowCharts(task.name);
-                if (targetFlow?.elements) {
-                    this.syncTaskFromFlow(task, targetFlow.elements, targetFlow.connections || []);
+                const collection = this.host.getTargetFlowCharts(task.name);
+                // The collection is a map of taskName -> chart
+                const chart = collection[task.name];
+
+                if (chart && chart.elements) {
+                    this.syncTaskFromFlow(task, chart.elements, chart.connections || []);
                 }
             });
         };
@@ -73,7 +76,11 @@ export class FlowSyncManager {
 
     public syncToProject(currentContext: string) {
         if (!this.host.project) return;
-        if (currentContext === 'event-map' || currentContext === 'element-overview') return;
+        console.log(`[FlowSyncManager] syncToProject start for context: ${currentContext}`);
+        if (currentContext === 'event-map' || currentContext === 'element-overview') {
+            console.log(`[FlowSyncManager] syncToProject skipped for special context: ${currentContext}`);
+            return;
+        }
 
         // Ghost node handling
         const proxyNodes = this.host.nodes.filter(n => n.data?.isExpanded);
@@ -102,7 +109,8 @@ export class FlowSyncManager {
         const connections = persistentConnections.map(c => c.toJSON());
 
         this.host.nodes.forEach(node => {
-            if (node.getType() === 'Action' && node.data && !node.data.isEmbeddedInternal) {
+            const nodeType = node.getType();
+            if ((nodeType === 'Action' || nodeType === 'DataAction') && node.data && !node.data.isEmbeddedInternal) {
                 const actionName = node.Name || node.data.name || node.data.actionName;
                 if (actionName) {
                     // Critical: if it is a linked action, we ONLY sync the basic node metadata (name, positions)
@@ -154,6 +162,7 @@ export class FlowSyncManager {
 
         if (this.host.onProjectChange) this.host.onProjectChange();
         this.host.updateFlowSelector();
+        console.log(`[FlowSyncManager] syncToProject completed. Notifying mediator with project.`);
         mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
     }
 
@@ -182,7 +191,10 @@ export class FlowSyncManager {
         }
 
         const startNode = elements.find(e => e.type === 'Task' || (e.type === 'Start' && e.properties?.text?.toLowerCase() === 'start'));
-        if (!startNode) return;
+        if (!startNode) {
+            console.log(`[FlowSyncManager] No start node found for task ${task.name}. Skipping sequence sync.`);
+            return;
+        }
 
         const sequence: any[] = [];
         const visited = new Set<string>();
@@ -212,9 +224,27 @@ export class FlowSyncManager {
             } else if (node.type === 'Condition' || node.type === 'DataAction') {
                 const isData = node.type === 'DataAction';
                 const branchType = isData ? 'data_action' : 'condition';
+
+                // --- DATA ACTION ENHANCEMENT: Get full definition for linked nodes ---
+                let nodeData = { ...node.data };
+                if (isData && nodeData.isLinked) {
+                    const actionName = node.Name;
+                    // Find definition in global or current stage
+                    let def = (this.host.project.actions || []).find((a: any) => a.name === actionName);
+                    if (!def) {
+                        const stage = this.host.getActiveStage();
+                        if (stage?.actions) {
+                            def = stage.actions.find((a: any) => a.name === actionName);
+                        }
+                    }
+                    if (def) {
+                        nodeData = { ...def, ...nodeData, type: 'data_action' };
+                    }
+                }
+
                 const branchItem: any = {
-                    type: branchType,
-                    ...(isData ? node.data : { condition: node.properties?.text || '' }),
+                    ...(isData ? nodeData : { condition: node.properties?.text || '' }),
+                    type: branchType, // Ensure correct type, overwrite if data.type was wrong
                     [isData ? 'successBody' : 'body']: [],
                     [isData ? 'errorBody' : 'elseBody']: []
                 };
@@ -577,6 +607,7 @@ export class FlowSyncManager {
     public updateGlobalActionDefinition(actionData: any) {
         if (!this.host.project) return;
         const name = actionData.name || actionData.actionName;
+        console.log(`[FlowSyncManager] updateGlobalActionDefinition: name=${name}, type=${actionData.type}`);
         if (!name) return;
 
         // SKIP parsing/merging if this is just a minimal link from a canvas node

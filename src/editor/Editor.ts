@@ -1872,7 +1872,7 @@ export class Editor implements IViewHost {
     }
 
     public refreshAllViews(originator?: string): void {
-        console.log('[Editor] Refreshing all views (Trinity-Sync)...');
+        console.log(`[Editor] Refreshing all views (originator: ${originator || 'unknown'})...`);
         this.render();
         this.updateAvailableActions();
         this.refreshJSONView();
@@ -2338,7 +2338,11 @@ export class Editor implements IViewHost {
 
     private initMediator() {
         mediatorService.on(MediatorEvents.DATA_CHANGED, (_data: any, originator?: string) => {
-            if (originator !== 'editor' && originator !== 'inspector' && this.project) {
+            if (originator !== 'editor' && originator !== 'inspector' && originator !== 'pascal-editor' && this.project) {
+                console.log(`[Editor] Mediator DATA_CHANGED received from ${originator || 'unknown'}. Refreshing all views.`);
+                this.refreshAllViews(originator);
+            } else if (this.project && originator !== 'inspector') {
+                // If it came from editor or etc, we still might need a simple render to show visual updates
                 this.render();
             }
         });

@@ -478,7 +478,7 @@ export class RefactoringManager {
         // 3. Update task sequences (Global + all Stages)
         project.tasks.forEach(task => {
             this.processSequenceItems(task.actionSequence, (item) => {
-                if (item.type === 'action' && item.name === oldName) {
+                if ((item.type === 'action' || item.type === 'data_action') && item.name === oldName) {
                     item.name = newName;
                 }
             });
@@ -489,7 +489,7 @@ export class RefactoringManager {
                 if (stage.tasks) {
                     stage.tasks.forEach(task => {
                         this.processSequenceItems(task.actionSequence, (item) => {
-                            if (item.type === 'action' && item.name === oldName) {
+                            if ((item.type === 'action' || item.type === 'data_action') && item.name === oldName) {
                                 item.name = newName;
                             }
                         });
@@ -520,16 +520,24 @@ export class RefactoringManager {
                     let nodeChanged = false;
 
                     // Specific Handling for Action Type Nodes
-                    if (el.type === 'Action') {
+                    if (el.type === 'Action' || el.type === 'DataAction') {
                         // Update Check 1: properties.name
                         if (el.properties && el.properties.name === oldName) {
                             el.properties.name = newName;
+                            nodeChanged = true;
+                        }
+                        if (el.properties && el.properties.text === oldName) {
+                            el.properties.text = newName;
                             nodeChanged = true;
                         }
                         // Update Check 2: data properties explicitly
                         if (el.data) {
                             if (el.data.name === oldName) { el.data.name = newName; nodeChanged = true; }
                             if (el.data.actionName === oldName) { el.data.actionName = newName; nodeChanged = true; }
+                            // For DataAction branching
+                            if (el.data.url) {
+                                // If it contains references to global variables, they are caught by recursive
+                            }
                         }
                     } else if (el.type === 'Condition') {
                         if (el.data) {

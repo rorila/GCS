@@ -12,8 +12,8 @@ export class FlowDataAction extends FlowAction {
         this.element.classList.add('glass-node-data'); // Add special styling for data nodes
 
         // Ensure it has a default action type if newly created
-        if (!this.data.type || this.data.type === 'property') {
-            this.data.type = 'http';
+        if (!this.data.type || this.data.type === 'property' || this.data.type === 'http') {
+            this.data.type = 'data_action';
         }
     }
 
@@ -40,6 +40,7 @@ export class FlowDataAction extends FlowAction {
         return fullUrl;
     }
     public set url(v: string) {
+        console.log(`[FlowDataAction] Setter URL: ${v}`);
         const action = this.getActionDefinition();
         if (action) {
             const res = action.resource;
@@ -48,21 +49,63 @@ export class FlowDataAction extends FlowAction {
             // we might want to clear the queryProperty to avoid conflicting UI states.
             if (v && !v.startsWith('?') && !v.includes('=')) {
                 action.queryProperty = '';
+                action.queryValue = '';
             }
 
-            // If we have a resource and the user provides a suffix (doesn't start with / or http),
-            // we prepend the resource base path.
-            if (res && v && !v.startsWith('http') && !v.startsWith('/')) {
-                // Check if it's a query param or a subpath
-                const separator = v.startsWith('?') ? '' : '/';
+            // Logic to decide if we prepend the resource path
+            // We ONLY prepend if:
+            // 1. We have a resource
+            // 2. The input DOES NOT look like an absolute URL (http/https)
+            // 3. The input DOES NOT already start with /api/data/
+            const isAbsolute = v.startsWith('http://') || v.startsWith('https://');
+            const isPrefixed = v.startsWith('/api/data/');
+
+            if (res && !isAbsolute && !isPrefixed) {
+                // Prepend resource path
+                const separator = (v.startsWith('?') || v.startsWith('/')) ? '' : '/';
                 action.url = `/api/data/${res}${separator}${v}`;
-            } else if (res && v.startsWith('/')) {
-                // Leading slash means direct subpath
-                action.url = `/api/data/${res}${v}`;
             } else {
+                // Direct assignment
                 action.url = v;
             }
+            console.log(`[FlowDataAction] Resulting URL in model: ${action.url}`);
         }
+    }
+
+    protected getActionDefinition(): any | null {
+        if (!this.projectRef) return this.data;
+
+        // 1. Linked Mode: Get from project/stage (Single Source of Truth)
+        if (this.data?.isLinked && this.Name) {
+            let action = (this.projectRef.actions || []).find((a: any) => a.name === this.Name);
+
+            // Search in stages if not found in global
+            if (!action && this.projectRef.stages) {
+                for (const s of this.projectRef.stages) {
+                    if (s.actions) {
+                        action = s.actions.find((a: any) => a.name === this.Name);
+                        if (action) break;
+                    }
+                }
+            }
+
+            if (action) {
+                // Ensure it has correct type if it was a legacy/corrupt action
+                if (!action.type || action.type === 'property' || action.type === 'http') {
+                    action.type = 'data_action';
+                }
+                return action;
+            }
+            console.warn(`[FlowDataAction] Linked action ${this.Name} NOT FOUND in project / stage!`);
+        }
+
+        // 2. Embedded/Local Mode: Use local data copy
+        if (this.data) {
+            if (!this.data.type || this.data.type === 'property' || this.data.type === 'http') {
+                this.data.type = 'data_action';
+            }
+        }
+        return this.data;
     }
 
     public get queryProperty(): string {
@@ -70,6 +113,7 @@ export class FlowDataAction extends FlowAction {
         return action?.queryProperty || '';
     }
     public set queryProperty(v: string) {
+        console.log(`[FlowDataAction] Setter queryProperty: ${v} `);
         const action = this.getActionDefinition();
         if (action) {
             action.queryProperty = v;
@@ -82,6 +126,7 @@ export class FlowDataAction extends FlowAction {
         return action?.queryValue || '';
     }
     public set queryValue(v: string) {
+        console.log(`[FlowDataAction] Setter queryValue: ${v} `);
         const action = this.getActionDefinition();
         if (action) {
             action.queryValue = v;
@@ -92,7 +137,7 @@ export class FlowDataAction extends FlowAction {
     private updateAutoUrl() {
         const action = this.getActionDefinition();
         if (action && action.resource && action.queryProperty) {
-            action.url = `/api/data/${action.resource}?${action.queryProperty}=${action.queryValue || ''}`;
+            action.url = `/ api / data / ${action.resource}?${action.queryProperty}=${action.queryValue || ''} `;
         }
     }
 
@@ -101,13 +146,15 @@ export class FlowDataAction extends FlowAction {
         return action?.resource || '';
     }
     public set resource(v: string) {
+        console.log(`[FlowDataAction] Setter resource: ${v} `);
         const action = this.getActionDefinition();
         if (action) {
             action.resource = v;
             if (v) {
                 // Initial URL when resource is selected
-                action.url = `/api/data/${v}`;
+                action.url = `/ api / data / ${v} `;
             }
+            console.log(`[FlowDataAction] Updated action resource to ${v}, URL to ${action.url} `);
         }
     }
 
@@ -116,6 +163,7 @@ export class FlowDataAction extends FlowAction {
         return action?.method || 'GET';
     }
     public set method(v: string) {
+        console.log(`[FlowDataAction] Setter method: ${v} `);
         const action = this.getActionDefinition();
         if (action) action.method = v;
     }
@@ -127,6 +175,7 @@ export class FlowDataAction extends FlowAction {
         return typeof bodyValue === 'object' ? JSON.stringify(bodyValue, null, 2) : (bodyValue || '');
     }
     public set body(v: string) {
+        console.log(`[FlowDataAction] Setter body: ${v.substring(0, 50)}...`);
         const action = this.getActionDefinition();
         if (action) {
             try {
@@ -142,6 +191,7 @@ export class FlowDataAction extends FlowAction {
         return action?.resultVariable || '';
     }
     public set resultVariable(v: string) {
+        console.log(`[FlowDataAction] Setter resultVariable: ${v} `);
         const action = this.getActionDefinition();
         if (action) action.resultVariable = v;
     }
@@ -208,15 +258,15 @@ export class FlowDataAction extends FlowAction {
             // Update details to show data-specific info
             const method = this.method;
             const url = this.url;
-            const result = this.resultVariable ? ` -> ${this.resultVariable}` : '';
+            const result = this.resultVariable ? ` -> ${this.resultVariable} ` : '';
 
             // We can manually update the content for better data visualization
             const detailsEl = this.content.querySelector('div > div:nth-child(2)');
             if (detailsEl) {
                 detailsEl.innerHTML = `
-                    <div style="color:#ffcc00">${this.resource ? '📦 ' + this.resource : method}</div>
-                    <div title="${url}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px">${url}</div>
-                    <div style="color:#00ff00; font-size:9px">${result}</div>
+    < div style = "color:#ffcc00" > ${this.resource ? '📦 ' + this.resource : method} </div>
+        < div title = "${url}" style = "white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px" > ${url} </div>
+            < div style = "color:#00ff00; font-size:9px" > ${result} </div>
                 `;
             }
         }

@@ -7,6 +7,7 @@ import { TInputController } from '../../components/TInputController';
 import { TTimer } from '../../components/TTimer';
 import { TGameServer } from '../../components/TGameServer';
 import { TWindow } from '../../components/TWindow';
+import { mediatorService } from '../../services/MediatorService';
 
 export class EditorRunManager {
     public runtime: GameRuntime | null = null;
@@ -17,7 +18,17 @@ export class EditorRunManager {
     public activeGameServers: TGameServer[] = [];
     private animationTickerId: number | null = null;
 
-    constructor(private editor: Editor) { }
+    constructor(private editor: Editor) {
+        // Listen for data changes to update runtime
+        mediatorService.on('DATA_CHANGED', (payload: any) => {
+            if (this.runtime && payload && payload.originator !== 'Runtime') {
+                // Nur aktualisieren, wenn Änderung NICHT von der Runtime selbst kam (z.B. Variable gesetzt)
+                // Um Endlos-Schleifen zu vermeiden.
+                // Änderungen im Editor (FlowEditor, Inspector) sollen in die Runtime fließen.
+                this.runtime.updateRuntimeData(this.editor.project);
+            }
+        });
+    }
 
     public setRunMode(running: boolean) {
         this.editor.stage.runMode = running;

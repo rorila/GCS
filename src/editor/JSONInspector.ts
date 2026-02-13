@@ -2900,6 +2900,7 @@ export class JSONInspector {
      */
     private handleObjectChange(obj: any) {
         console.log('[JSONInspector] Object changed:', obj.name, obj);
+        console.log(`[JSONInspector] handleObjectChange for: ${obj.name || 'unnamed'}, value:`, (obj.selectedValue !== undefined ? obj.selectedValue : obj.text));
 
         // Get selectedObject
         const selectedObject = this.runtime.getVariable('selectedObject');
@@ -2998,7 +2999,7 @@ export class JSONInspector {
             const flowType = isFlowElement ? (selectedObject as any).getType() : null;
 
             // DUPLICATE CHECK for Actions
-            if (flowType === 'Action') {
+            if (flowType === 'Action' || flowType === 'DataAction') {
                 const existingAction = this.project.actions.find(a => a.name === value && a !== selectedObject);
                 if (existingAction) {
                     // Name already exists! Block and revert
@@ -3199,6 +3200,7 @@ export class JSONInspector {
      * Handles button actions (e.g., opening dialogs)
      */
     private async handleButtonAction(buttonDef: any) {
+        console.log(`[JSONInspector] handleButtonAction trigger: ${buttonDef.action} for button: ${buttonDef.name}`);
         if (!this.dialogManager) {
             console.error('[JSONInspector] DialogManager not set');
             return;
@@ -3207,6 +3209,13 @@ export class JSONInspector {
         const selectedObject = this.runtime.getVariable('selectedObject');
 
         switch (buttonDef.action) {
+            case 'save': {
+                console.log('[JSONInspector] Save action triggered');
+                if (this.onProjectUpdate) {
+                    this.onProjectUpdate();
+                }
+                break;
+            }
             case 'browseImage': {
                 const propName = buttonDef.actionData?.property;
 
