@@ -12,7 +12,10 @@
     "clean:build": "if exist dist rmdir /s /q dist",
     "clean:runtime": "if exist public\\runtime-standalone.js del /f /q public\\runtime-standalone.js",
     "build": "npm run bundle:runtime && tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "npx tsx scripts/test_runner.ts",
+    "test:seed": "npx tsx scripts/seed_test_data.ts",
+    "test:logic": "npx tsx scripts/test_login_logic.ts"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

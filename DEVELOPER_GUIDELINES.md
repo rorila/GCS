@@ -1,5 +1,8 @@
 # Developer Guidelines
 
+> [!CAUTION]
+> **MANDATORY AI AGENT RULE**: Every code modification MUST be followed by executing `npm run test`. Verification of the `docs/QA_Report.md` is required for the "Definition of Done". Do NOT notify the user before running tests.
+
 ## Action System (Standardisierung / OOP)
 - Jede neue Action muss ein entsprechendes Interface in `src/model/types.ts` erhalten, das von `BaseAction` erbt.
 - Property-Namen im Modell müssen exakt den Feldnamen (`name` oder `actionData.field`) in der `dialog_action_editor.json` entsprechen.
@@ -48,6 +51,28 @@ Die Klasse `FlowEditor.ts` wurde modularisiert, um die Komplexität zu reduziere
 - **FlowContextMenuProvider.ts**: (v2.6.0) Zentralisiert die gesamte Logik für Kontextmenüs (Knoten, Verbindungen, Canvas). Ermöglicht das schnelle Erstellen von Elementen via Rechtsklick.
 - **Node-Labels (v2.6.3)**:
     - Um den Kontext einer Aktion im Diagramm sofort erkennbar zu machen, folgen die Node-Labels dem Schema `Taskname ---- Actionname`.
+
+## API & DataAction Robustness (v2.16.23)
+- **Global Actions**:
+    - `DataActions` (oder komplexe Action-Typen) sollten idealerweise **global oder auf Stage-Ebene** im `actions`-Array registriert sein.
+    - **Problem**: Inline-Actions (direkt in der `actionSequence` eines Tasks) werden vom `TaskExecutor` oft nur mit ihren Rumpfdaten (`name`, `type`) geladen. Metadaten wie `url` oder `resource` fehlen dann.
+    - **Lösung**: Verschiebe die Action in die Registry und referenziere sie nur im Task.
+- **TaskExecutor Resolution**:
+    - Der `TaskExecutor` muss in `resolveAction` so robust sein, dass er Actions **unabhängig vom Typ** anhand des Namens in der Registry findet (nicht nur `type === 'action'`).
+- **Robustes Parameter-Parsing**:
+    - **ApiSimulator (Editor)**: Relatives URL-Parsing (`pathname`, `searchParams`) erfordert eine Dummy-Base (`new URL(url, 'http://localhost')`), da der Browser sonst bei `/api/...` wirft.
+    - **ActionApiHandler (Server)**: Implementiere **Fallback-Parsing**! Verlasse dich nicht darauf, dass der Aufrufer (Editor/Runtime) `query` bereits perfekt geparst hat. Parse Parameter im Zweifel selbst aus dem `path`.
+
+## Quality Assurance & Regression-Prävention (v2.17.0)
+Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab sofort:
+1.  **Impact-Analyse**: Vor jeder Änderung muss ich (die KI) folgende Fragen beantworten:
+    - Welche anderen Komponenten nutzen diese Funktion/Datei?
+    - Gibt es einen Regression-Test (z.B. in `scripts/`), der diesen Bereich abdeckt?
+2.  **Test-Pflicht**: Nach jeder Änderung an der Kernlogik (Sync, Executor, API) **muss** `npm run test` ausgeführt werden.
+3.  **Test-Daten**: Nutze für Tests ausschließlich die in `db.json` via `npm run test:seed` erstellten Test-User (`TestAdmin`, `TestUser`).
+4.  **Kein "Frickeln"**: Wenn eine Änderung mehrere Fallback-Layer erfordert, ist oft die Architektur das Problem. Refactoring der Kern-Methode ist dem "Dran-Patchen" vorzuziehen.
+
+
     - Bei Untertasks oder Map-Events wird das Präfix automatisch aus den Metadaten des Knotens (`taskName` oder `sourceTaskName`) generiert.
 - **Flow Cleanup Logic**:
     - Der `FlowSyncManager` verfügt über eine `cleanCorruptTaskData` Methode. Diese entfernt automatisch fehlerhafte Einträge (wie `"elements"` oder `"connections"`), die durch fehlerhafte Speichervorgänge fälschlicherweise in der Task-Liste gelandet sind.

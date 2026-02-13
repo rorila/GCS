@@ -6,3 +6,5 @@ UseCase Index
 - ActionVisualisierungsSynchronisation: Konsistente Anzeige von Action-Details durch Nutzung des JSON-Feldes 'details' als Single Source of Truth.
 - SynchronisationLoeschenFlowEditor: Sicherstellung, dass beim Löschen einer Action im Editor alle Referenzen im Projekt (Tasks, Stages) entfernt werden.
 - SofortigeJSONSynchronisation: Mechanismus für unmittelbare Sichtbarkeit von Änderungen (Trinity-Sync). Dokumentiert zudem strukturelle Unterschiede (Branching vs. Linear) und das Smart-Delete-Verfahren für verwaiste Aktions-Definitionen.
+- LoginFlow: Detaillierter technischer Ablauf des Logins (Client -> API-Sim -> Server -> DB -> Client) mit Referenzen zu allen beteiligten Methoden und Stack-Trace.
+- QA_Report: Automatisierter Test-Bericht (Dashboard) mit Mermaid-Visualisierung der aktuellen Regression-Suite (Gut- und Schlecht-Tests).

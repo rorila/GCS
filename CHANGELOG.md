@@ -1,3 +1,16 @@
+## [v2.17.0] - 2026-02-13
+### Added
+- **Automatisierte Regression-Suite (🛡️ Quality Offensive)**:
+    - Einführung von `npm run test` zur automatisierten Validierung kritischer Pfade (Login, API).
+    - Zentrale Test-Infrastruktur (`scripts/test_runner.ts`, `scripts/test_login_logic.ts`).
+    - **Visuelles QA-Dashboard**: Generierung von `docs/QA_Report.md` mit Mermaid-Statusdiagrammen und detaillierter Gut/Schlecht-Test-Übersicht.
+    - **AI Mission Control**: Neue `README-AI.md` und verschärfte `DEVELOPER_GUIDELINES.md` zur Durchsetzung von Test-Standards bei allen KI-Modellen.
+- **Seeding-Logik v2**: `scripts/seed_test_data.ts` nutzt nun `db.json` als Single-Source-of-Truth und unterstützt das neue `authCode` (Emoji-Array) Schema.
+
+### Fixed
+- **Daten-Integrität**: Erroneous `users.json` gelöscht; alle Test-User werden nun in der zentralen `db.json` verwaltet.
+- **API Simulation**: Fix des URL-Parsings im Editor (`Editor.ts`) und Server (`ActionApiHandler.ts`) für robustere Parameter-Extrahierung.
+
 ## [v2.16.23] - 2026-02-13
 ### Added
 - Detaillierte Trace-Logs für den Flow-Synchronisationsprozess in `FlowEditor.ts`, `FlowSyncManager.ts` und `Editor.ts`.

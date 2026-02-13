@@ -58,6 +58,41 @@
                 "room_tv",
                 "room_common"
             ]
+        },
+        {
+            "id": "test-admin",
+            "name": "TestAdmin",
+            "avatar": "🧞‍♂️",
+            "role": "superadmin",
+            "authCode": [
+                "🚀",
+                "⭐"
+            ],
+            "managedRooms": [
+                "room_test"
+            ]
+        },
+        {
+            "id": "test-user",
+            "name": "TestUser",
+            "avatar": "🧪",
+            "role": "user",
+            "authCode": [
+                "🍎",
+                "🍌"
+            ],
+            "managedRooms": []
+        },
+        {
+            "id": "test-bug",
+            "name": "TestBug",
+            "avatar": "�",
+            "role": "player",
+            "authCode": [
+                "🐛",
+                "💣"
+            ],
+            "assignedRoomIds": []
         }
     ],
     "hierarchy": {
