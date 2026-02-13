@@ -96,9 +96,13 @@
                 {
                     "value": "navigate_stage",
                     "label": "🚀 Stage wechseln"
+                },
+                {
+                    "value": "calculate",
+                    "label": "🧮 Calculate"
                 }
             ],
-            "selectedIndex": "${dialogData.type === 'property' ? 0 : dialogData.type === 'increment' ? 1 : dialogData.type === 'negate' ? 2 : dialogData.type === 'call_method' ? 3 : dialogData.type === 'variable' ? 4 : dialogData.type === 'set_variable' ? 5 : dialogData.type === 'service' ? 6 : dialogData.type === 'broadcast' ? 7 : dialogData.type === 'navigate_stage' ? 8 : 0}",
+            "selectedIndex": "${dialogData.type === 'property' ? 0 : dialogData.type === 'increment' ? 1 : dialogData.type === 'negate' ? 2 : dialogData.type === 'call_method' ? 3 : dialogData.type === 'variable' ? 4 : dialogData.type === 'set_variable' ? 5 : dialogData.type === 'service' ? 6 : dialogData.type === 'broadcast' ? 7 : dialogData.type === 'navigate_stage' ? 8 : dialogData.type === 'calculate' ? 9 : 0}",
             "action": "changeActionType",
             "style": {
                 "marginBottom": 16
@@ -128,12 +132,12 @@
         {
             "className": "TEdit",
             "name": "VariableNameInput",
-            "text": "${(dialogData.type === 'set_variable' ? dialogData.variable : dialogData.variableName) || ''}",
+            "text": "${dialogData.variableName || ''}",
             "placeholder": "z.B. punkteStand",
             "visible": "${dialogData.type === 'variable' || dialogData.type === 'set_variable'}",
             "action": "updateValue",
             "actionData": {
-                "field": "${dialogData.type === 'set_variable' ? 'variable' : 'variableName'}",
+                "field": "variableName",
                 "input": "VariableNameInput"
             },
             "style": {
@@ -148,7 +152,8 @@
             "selectedIndex": 0,
             "action": "insertVariableToField",
             "actionData": {
-                "field": "VariableNameInput"
+                "field": "VariableNameInput",
+                "input": "VariableNameSelect"
             },
             "visible": "${(dialogData.type === 'variable' || dialogData.type === 'set_variable') && ((project.variables && project.variables.length > 0) || (dialogData.taskParams && dialogData.taskParams.length > 0))}",
             "style": {
@@ -381,6 +386,11 @@
             "text": "${dialogData.resultVariable || ''}",
             "placeholder": "z.B. myVar",
             "visible": "${dialogData.type === 'calculate'}",
+            "action": "updateValue",
+            "actionData": {
+                "field": "resultVariable",
+                "input": "CalcResultVariable"
+            },
             "style": {
                 "marginTop": 4,
                 "marginBottom": 12
@@ -393,7 +403,8 @@
             "selectedIndex": 0,
             "action": "insertVariableToField",
             "actionData": {
-                "field": "CalcResultVariable"
+                "field": "resultVariable",
+                "input": "CalcResultVariableSelect"
             },
             "visible": "${dialogData.type === 'calculate' && ((project.variables && project.variables.length > 0) || (dialogData.taskParams && dialogData.taskParams.length > 0))}",
             "style": {
@@ -449,6 +460,11 @@
             "text": "${dialogData.formula || ''}",
             "placeholder": "z.B. paddleY + paddleHalfH",
             "visible": "${dialogData.type === 'calculate'}",
+            "action": "updateValue",
+            "actionData": {
+                "field": "formula",
+                "input": "CalcFormulaInput"
+            },
             "style": {
                 "marginTop": 4,
                 "marginBottom": 12
@@ -515,11 +531,11 @@
             "className": "TDropdown",
             "name": "ServiceSelect",
             "options": "${serviceRegistry.listServices()}",
-            "selectedValue": "${dialogData.serviceName || ''}",
+            "selectedValue": "${dialogData.service || ''}",
             "visible": "${dialogData.type === 'service'}",
             "action": "updateValue",
             "actionData": {
-                "field": "serviceName",
+                "field": "service",
                 "input": "ServiceSelect"
             },
             "style": {
@@ -542,12 +558,12 @@
         {
             "className": "TDropdown",
             "name": "MethodSelect",
-            "options": "${dialogData.serviceName ? serviceRegistry.listMethods(dialogData.serviceName).map(m => m.name) : []}",
-            "selectedValue": "${dialogData.serviceMethod || ''}",
+            "options": "${dialogData.service ? serviceRegistry.listMethods(dialogData.service).map(m => m.name) : []}",
+            "selectedValue": "${dialogData.method || ''}",
             "visible": "${dialogData.type === 'service'}",
             "action": "updateValue",
             "actionData": {
-                "field": "serviceMethod",
+                "field": "method",
                 "input": "MethodSelect"
             },
             "style": {

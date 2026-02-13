@@ -276,6 +276,7 @@ export class FlowSyncManager {
         }
 
         if (sequence.length > 0) {
+            console.log(`[FlowSyncManager] Generated sequence for task ${task.name} with ${sequence.length} items.`);
             // --- MODIFIED: Preserve extra data from node.data to prevent loss of 'params', 'resultVariable', etc. ---
             task.actionSequence = sequence.map(item => {
                 // If we have an original id, try to find the original item data to preserve fields
@@ -284,6 +285,9 @@ export class FlowSyncManager {
                 // We just need to ensure node.data isn't just {type, name}.
                 return item;
             });
+        } else {
+            console.log(`[FlowSyncManager] Generated EMPTY sequence for task ${task.name}.`);
+            task.actionSequence = [];
         }
 
         // --- NEW: Sync Parameters and their values ---

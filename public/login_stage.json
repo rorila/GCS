@@ -305,7 +305,7 @@
             "strokeColor": "#4fc3f7",
             "strokeWidth": 2,
             "droppable": true,
-            "Tasks": {
+            "events": {
                 "onDrop": "HandleDrop1"
             }
         },
@@ -322,7 +322,7 @@
             "strokeColor": "#4fc3f7",
             "strokeWidth": 2,
             "droppable": true,
-            "Tasks": {
+            "events": {
                 "onDrop": "HandleDrop2"
             }
         },
@@ -339,7 +339,7 @@
             "strokeColor": "#4fc3f7",
             "strokeWidth": 2,
             "droppable": true,
-            "Tasks": {
+            "events": {
                 "onDrop": "HandleDrop3"
             }
         },
@@ -356,7 +356,7 @@
             "strokeColor": "#4fc3f7",
             "strokeWidth": 2,
             "droppable": true,
-            "Tasks": {
+            "events": {
                 "onDrop": "HandleDrop4"
             }
         }

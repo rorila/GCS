@@ -323,9 +323,6 @@
           "isService": false,
           "isHiddenInRun": false,
           "isBlueprintOnly": false,
-          "events": {
-            "onSelect": "createAnEmojiPin"
-          },
           "name": "PinPicker",
           "scope": "stage",
           "draggable": false,
@@ -402,9 +399,6 @@
           "isService": false,
           "isHiddenInRun": false,
           "isBlueprintOnly": false,
-          "events": {
-            "onClick": "AttemptLogin"
-          },
           "name": "LoginButton",
           "scope": "stage",
           "draggable": false,
@@ -736,13 +730,12 @@
         {
           "name": "Action1",
           "showDetails": true,
-          "details": "currentPIN := currentPIN +PinPicker.selectedEmoji",
+          "details": " (Berechnung)",
           "type": "calculate",
-          "resultVariable": "currentPIN",
+          "resultVariable": "",
           "calcSteps": [],
           "formula": "currentPIN +PinPicker.selectedEmoji",
-          "description": "",
-          "sync": true
+          "description": ""
         }
       ],
       "flowCharts": {

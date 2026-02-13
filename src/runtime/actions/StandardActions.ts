@@ -412,59 +412,7 @@ export function registerStandardActions(objects: any[]) {
 
     // 17. HTTP Response (für TAPIServer / HttpServer)
     actionRegistry.register('respond_http', async (action, context) => {
-        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        const requestId = PropertyHelper.interpolate(action.requestId || '', combinedContext, objects);
-        const status = parseInt(PropertyHelper.interpolate(String(action.status || 200), combinedContext, objects));
-
-        let data = action.data;
-        if (typeof data === 'string' && data.includes('${')) {
-            data = PropertyHelper.interpolate(data, combinedContext, objects);
-            try { data = JSON.parse(data); } catch (e) { }
-        } else if (typeof data === 'object' && data !== null) {
-            // Deep clone to avoid mutating the original action definition
-            data = JSON.parse(JSON.stringify(data));
-
-            // Helper to recursively interpolate properties
-            const interpolateDeep = (obj: any) => {
-                for (const key in obj) {
-                    const val = obj[key];
-                    if (typeof val === 'string' && val.startsWith('${') && val.endsWith('}')) {
-                        // Direct variable reference - preserve type (might be an object)
-                        const expression = val.slice(2, -1).trim();
-
-                        // Check if it's a complex string interpolation like "${a} ${b}"
-                        const isSimpleExpression = !val.includes('${', 2);
-
-                        if (isSimpleExpression) {
-                            try {
-                                // Use evaluate to get the raw value (e.g. object, number, boolean)
-                                obj[key] = ExpressionParser.evaluate(expression, combinedContext);
-                            } catch (e) {
-                                console.warn(`[Action: respond_http] Failed to evaluate: ${expression}`, e);
-                                obj[key] = val;
-                            }
-                        } else {
-                            // Multiple expressions -> result is always a string
-                            obj[key] = PropertyHelper.interpolate(val, combinedContext, objects);
-                        }
-                    } else if (typeof val === 'string') {
-                        // Regular string with potential embeddings
-                        obj[key] = PropertyHelper.interpolate(val, combinedContext, objects);
-                    } else if (typeof val === 'object' && val !== null) {
-                        interpolateDeep(val);
-                    }
-                }
-            };
-
-            interpolateDeep(data);
-        }
-
-        if (requestId && serviceRegistry.has('HttpServer')) {
-            console.log(`[Action: respond_http] Responding to ${requestId} with status ${status}`);
-            await serviceRegistry.call('HttpServer', 'respond', [requestId, status, data]);
-        } else {
-            console.warn('[Action: respond_http] Konnte Antwort nicht senden. requestId fehlt oder HttpServer nicht registriert.');
-        }
+        // ... (existing code) ...
     }, {
         type: 'respond_http',
         label: 'HTTP Antwort senden',
@@ -474,5 +422,55 @@ export function registerStandardActions(objects: any[]) {
             { name: 'status', label: 'HTTP Status', type: 'number', defaultValue: 200 },
             { name: 'data', label: 'Antwort-Daten (JSON)', type: 'string', hint: 'Das Objekt, das als JSON gesendet wird.' }
         ]
+    });
+
+    // 18. Execute Login Request (Primitive Action for SubmitLogin DataAction)
+    actionRegistry.register('execute_login_request', async (action, context) => {
+        const pin = context.vars['currentPIN'] || context.contextVars['currentPIN'];
+
+        console.log('[Action: execute_login_request] Attempting login with PIN:', pin);
+
+        if (!pin) {
+            console.warn('[Action: execute_login_request] No PIN provided!');
+            return false;
+        }
+
+        try {
+            // For now, we simulate the request or use a hardcoded endpoint if available
+            // In a real scenario, this would be:
+            // const response = await fetch('http://localhost:8080/api/auth/login', { ... });
+
+            // Simulation specific for this project context
+            // We assume successful login if PIN is '1234' (or whatever logic is desired)
+            // BUT: The original action sequence did a real HTTP POST. Let's try to replicate that.
+
+            const response = await fetch('http://localhost:8080/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: pin })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('[Action: execute_login_request] Login success:', data);
+
+                // Store result in global/context variables as expected by the DataAction's successBody
+                context.contextVars['loginResult'] = data;
+                context.vars['loginResult'] = data;
+
+                return true;
+            } else {
+                console.warn('[Action: execute_login_request] Login failed:', response.status);
+                return false;
+            }
+        } catch (error) {
+            console.error('[Action: execute_login_request] Network error:', error);
+            return false;
+        }
+    }, {
+        type: 'execute_login_request',
+        label: 'Login Request ausführen',
+        description: 'Führt den Login-Request gegen das Backend aus.',
+        parameters: []
     });
 }

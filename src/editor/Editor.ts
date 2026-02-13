@@ -1820,6 +1820,12 @@ export class Editor implements IViewHost {
         current[parts[parts.length - 1]] = value;
     }
 
+    public restoreStageEventHandler() {
+        if (this.stage) {
+            this.stage.onEvent = (id, eventName, data) => this.handleEvent(id, eventName, data);
+        }
+    }
+
     private handleEvent(id: string, eventName: string, data?: any) {
         // Handle delete event specially
         if (eventName === 'delete') {

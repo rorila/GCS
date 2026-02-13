@@ -32,7 +32,7 @@
                     "className": "TSelect",
                     "name": "EventInput_${key}",
                     "source": "tasks",
-                    "selectedValue": "${selectedObject.Tasks.${key}}",
+                    "selectedValue": "${selectedObject.events.${key}}",
                     "allowEmpty": true,
                     "emptyLabel": "-- Select Task --",
                     "style": {

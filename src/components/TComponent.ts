@@ -39,7 +39,7 @@ export abstract class TComponent {
     public className: string; // Explicit className for production builds
     public parent: TComponent | null = null;
     public children: TComponent[] = [];
-    public Tasks?: Record<string, string>; // EventName -> TaskName
+    public events?: Record<string, string>; // EventName -> TaskName
     public scope: 'global' | 'stage' | string = 'stage'; // Visibility scope
     public isVariable: boolean = false; // Flag for variable-like components
     public isTransient: boolean = false; // If true, this component is not persisted in project files
@@ -58,7 +58,7 @@ export abstract class TComponent {
         this.id = `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         this.name = name;
         this.className = this.constructor.name; // Set default from constructor
-        this.Tasks = {}; // Initialize empty tasks object to avoid undefined errors in Inspector
+        this.events = {}; // Initialize empty events object to avoid undefined errors in Inspector
     }
 
     public abstract getInspectorProperties(): TPropertyDef[];
@@ -88,9 +88,9 @@ export abstract class TComponent {
             isBlueprintOnly: this.isBlueprintOnly
         };
 
-        // Tasks separat behandeln
-        if (this.Tasks && Object.keys(this.Tasks).length > 0) {
-            json.Tasks = this.Tasks;
+        // Events separat behandeln
+        if (this.events && Object.keys(this.events).length > 0) {
+            json.events = this.events;
         }
 
         // Alle Properties aus dem Inspector durchgehen

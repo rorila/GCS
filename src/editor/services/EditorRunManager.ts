@@ -23,6 +23,21 @@ export class EditorRunManager {
         this.editor.stage.runMode = running;
         this.editor.stage.updateBorder();
 
+        // EARLY event handler assignment to prevent "missing handler" errors during first render
+        if (running) {
+            this.editor.stage.onEvent = (objectId: string, eventName: string, data?: any) => {
+                if (this.runtime) {
+                    this.runtime.handleEvent(objectId, eventName, data);
+                } else {
+                    // Fallback to editor handler if runtime not yet ready
+                    (this.editor as any).handleEvent(objectId, eventName, data);
+                }
+            };
+        } else {
+            // Restore editor handler immediately
+            this.editor.restoreStageEventHandler();
+        }
+
         if (running) {
             this.editor.selectObject(null);
             console.log("[RunManager] Starting Game Mode...");
@@ -66,11 +81,7 @@ export class EditorRunManager {
                 this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as TGameLoop) || null;
             }
 
-            if (this.editor.stage) {
-                this.editor.stage.onEvent = (objectId: string, eventName: string, data?: any) => {
-                    if (this.runtime) this.runtime.handleEvent(objectId, eventName, data);
-                };
-            }
+            // Event handler already set above
 
             if (!this.activeGameLoop) {
                 this.startAnimationTicker();
@@ -151,7 +162,7 @@ export class EditorRunManager {
             this.runtime = null;
         }
 
-        if (this.editor.stage) this.editor.stage.onEvent = null;
+        this.editor.restoreStageEventHandler();
 
         if (this.activeGameLoop && typeof (this.activeGameLoop as any).stop === 'function') {
             (this.activeGameLoop as any).stop();

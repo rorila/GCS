@@ -1,3 +1,11 @@
+## [v2.16.20] - 2026-02-13
+### Fixed
+- **Flow Editor Synchronization Fix**:
+  - `DataAction` (z.B. `SubmitLogin`) werden nun korrekt aus Sequenzen gelöscht.
+  - `RefactoringManager` durchsucht nun rekursiv `successBody`, `errorBody` und `elseBody`.
+  - Unterscheidung zwischen "Force Delete" (User-Aktion) und "Smart Cleanup" (Automatisch) im `FlowEditor` geschärft.
+  - Logging für Synchronisations-Prozesse erweitert (`[FlowEditor]`, `[RefactoringManager]`).
+
 ## [v2.16.19] - 2026-02-13
 ### Fixed
 - **Action Visualisierungs-Synchronisation**: Vollständige Umsetzung der "Geraden Linie" zwischen Action-Editor und Flow-Editor.
@@ -361,6 +369,9 @@
 - **Wiederherstellung von Overviews**:
     - **Modularisierte Restauration**: "Landkarte" und "Elementenübersicht" wurden in `FlowMapManager.ts` wiederhergestellt und modularisiert.
     - **Action-Check**: Die visuelle Überprüfung auf ungenutzte Elemente (Actions/Tasks) ist wieder verfügbar.
+    - **Action Visualization:** Fixed synchronization issue where deleting global actions in the Flow Editor did not correctly update project data.
+- **Refactoring:** Converted `SubmitLogin` to a `DataAction` structure with `successBody` and `errorBody` for better flow visualization.
+- **New Action:** Added `execute_login_request` as a primitive action for Login DataAction.-Steuerung.
     - **Integration**: Nahtlose Einbindung der neuen Manager in die `FlowEditor` Toolbar und Kontext-Steuerung.
 
 

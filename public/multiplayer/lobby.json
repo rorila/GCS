@@ -54,7 +54,7 @@
             "width": 20,
             "height": 4,
             "caption": "🎾 NewTennis spielen",
-            "Tasks": {
+            "events": {
                 "onClick": "PlayTennis"
             },
             "style": {
@@ -107,7 +107,7 @@
             "width": 5,
             "height": 3,
             "caption": "JOIN",
-            "Tasks": {
+            "events": {
                 "onClick": "JoinRoom"
             },
             "style": {

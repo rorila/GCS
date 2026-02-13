@@ -1305,7 +1305,7 @@ export class FlowEditor implements FlowMapHost {
                 : '';
 
             if (confirm(`Möchtest du das Element "${node.Name}" wirklich UNWIDERRUFLICH aus dem Projekt löschen?${refWarning}`)) {
-                this.deleteElementFromProject(node.data.type, node.Name, node.data.originalIndex);
+                this.deleteElementFromProject(node.data.type, node.Name, node.data.originalIndex, true); // FORCE DELETE
 
                 // IMPORTANT: since syncToProject() exits early in overview mode,
                 // we MUST trigger the save/change notification manually here.
@@ -1335,11 +1335,11 @@ export class FlowEditor implements FlowMapHost {
                         // Auto-Delete generic actions, ask for named ones
                         if (isGenericName) {
                             console.log(`[FlowEditor] Auto-Deleting orphaned generic action: ${nodeName}`);
-                            this.deleteElementFromProject('Action', nodeName);
+                            this.deleteElementFromProject('Action', nodeName, undefined, false); // Implicit Cleanup
                             if (this.onProjectChange) this.onProjectChange();
                         } else {
                             if (confirm(`Die Aktion "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch aus der globalen Aktions-Liste gelöscht werden?`)) {
-                                this.deleteElementFromProject('Action', nodeName);
+                                this.deleteElementFromProject('Action', nodeName, undefined, true); // User confirmed -> FORCE DELETE (or should this be safe delete? No, user explicitly said YES to global delete here)
                                 if (this.onProjectChange) this.onProjectChange();
                             }
                         }
@@ -1351,11 +1351,27 @@ export class FlowEditor implements FlowMapHost {
         }
     }
 
-    private deleteElementFromProject(type: 'Action' | 'Task', name: string, index?: number) {
+    private deleteElementFromProject(type: 'Action' | 'Task', name: string, index?: number, force: boolean = false) {
         if (!this.project) return;
+
+        console.log(`[FlowEditor] deleteElementFromProject: Anforderung zum Löschen von ${type} "${name}" (Force: ${force})`);
+
+        let deletedGlobal = false;
+
         if (type === 'Action') {
+            // NEU: Zuerst prüfen, ob die Action noch woanders verwendet wird.
+            const usageCount = RefactoringManager.getActionUsageCount(this.project, name);
+            console.log(`[FlowEditor] Action "${name}" usage count: ${usageCount}`);
+
+            if (!force && usageCount > 0) {
+                console.log(`[FlowEditor] SAFETY ABORT: Action "${name}" usage count is ${usageCount}. Global deletion prevented.`);
+                return;
+            }
+
+            // Wenn wir hier sind, ist es ein Orphan (Usage == 0) ODER Force Delete (Overview).
+            console.log(`[FlowEditor] PROCEEDING: Action "${name}" deletion. Usage: ${usageCount}, Force: ${force}.`);
+
             // 1. Precise deletion from global array (handles duplicates)
-            let deletedGlobal = false;
             if (index !== undefined && index >= 0 && index < this.project.actions.length) {
                 this.project.actions.splice(index, 1);
                 console.log(`[FlowEditor] Deleted Action instance at index ${index}: ${name}`);
@@ -1387,13 +1403,19 @@ export class FlowEditor implements FlowMapHost {
             console.log(`[FlowEditor] Deletion Verification for "${name}": Global=${deletedGlobal}, Stage=${deletedStage}`);
 
             // 2. Project-wide reference cleanup (Flowcharts, Sequences)
-            // If we deleted it from everywhere, we should definitely clean up references
-            if (deletedGlobal || deletedStage) {
-                RefactoringManager.deleteAction(this.project, name);
-            }
+            // WICHTIG: Wenn wir FORCIEREN, müssen wir aufräumen.
+            // Wenn es ein automatischer Cleanup war (Force=false), und wir hier sind, ist Usage=0.
+            // Also ja, RefactoringManager aufrufen ist sicher.
+            RefactoringManager.deleteAction(this.project, name);
+
+            // 3. Explizit: Notify über Änderungen
+            if (this.onProjectChange) this.onProjectChange();
+
         } else if (type === 'Task') {
             RefactoringManager.deleteTask(this.project, name);
             console.log(`[FlowEditor] Deleted Task project-wide: ${name}`);
+
+            if (this.onProjectChange) this.onProjectChange();
         }
     }
 

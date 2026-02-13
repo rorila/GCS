@@ -573,6 +573,57 @@ export class RefactoringManager {
     }
 
     /**
+     * Checks how many times an action is used across all tasks and stages.
+     */
+    public static getActionUsageCount(project: GameProject, actionName: string): number {
+        let count = 0;
+
+        const allTasks = [...(project.tasks || [])];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks) allTasks.push(...s.tasks);
+            });
+        }
+
+        allTasks.forEach(task => {
+            // 1. Check in ActionSequence
+            if (task.actionSequence) {
+                this.processSequenceItems(task.actionSequence, (item) => {
+                    const anyItem = item as any;
+                    // Debug logging for usage check
+                    // console.log(`[RefactoringManager] Checking usage in ${task.name}: ${anyItem.name} (${anyItem.type}) vs ${actionName}`);
+
+                    if (item.type === 'action' && item.name === actionName) {
+                        console.log(`[RefactoringManager] Found usage (Action) in ${task.name}: ${actionName}`);
+                        count++;
+                    } else if (anyItem.type === 'data_action' && anyItem.action === actionName) {
+                        console.log(`[RefactoringManager] Found usage (DataAction.action) in ${task.name}: ${actionName}`);
+                        count++;
+                    }
+                    else if (anyItem.type === 'data_action' && anyItem.name === actionName) {
+                        console.log(`[RefactoringManager] Found usage (DataAction.name) in ${task.name}: ${actionName}`);
+                        count++;
+                    }
+                });
+            }
+
+            // 2. Check in FlowChart (Visual nodes)
+            // Note: FlowChart nodes usually map to sequence items, but we check to be thorough
+            // However, counting both might double-count.
+            // Strategy: We count Logical Usages (Sequence). 
+            // If FlowCharts are purely visual representations of Sequence, sequence check is enough.
+            // BUT: In current architecture, FlowCharts might exist independently or as Source of Truth.
+
+            // Let's rely on Sequence as the primary logic container for now, as that's what the runtime executes.
+            // If the user deletes a node in Flow Editor, they are effectively removing it from the FlowChart.
+            // If we only check Sequence, we might miss "unconnected" nodes?
+            // "ActionVisualisierungsSynchronisation" implies Sequence is Truth.
+        });
+
+        return count;
+    }
+
+    /**
      * Deletes an action project-wide (references in flows and sequences)
      */
     public static deleteAction(project: GameProject, actionName: string): void {
@@ -683,10 +734,32 @@ export class RefactoringManager {
             if (!item) return false;
             if (typeof item === 'string') return item !== name; // Very old legacy support
             const seqItem = item as any;
-            if (seqItem.type === type && seqItem.name === name) return false;
+
+            // CHECK 1: Match 'action' OR 'data_action' if filtering for actions
+            const isMatch = (seqItem.type === type) || (type === 'action' && seqItem.type === 'data_action');
+            if (isMatch && seqItem.name === name) {
+                console.log(`[RefactoringManager] Filtering out item: ${seqItem.name} (Type: ${seqItem.type})`);
+                return false;
+            }
+
+            // Recurse into standard body
             if (seqItem.body) {
                 seqItem.body = this.filterSequenceItems(seqItem.body, name, type);
             }
+            // Recurse into DataAction bodies
+            if (seqItem.successBody) {
+                console.log(`[RefactoringManager] Recursing into successBody of ${seqItem.name}`);
+                seqItem.successBody = this.filterSequenceItems(seqItem.successBody, name, type);
+            }
+            if (seqItem.errorBody) {
+                console.log(`[RefactoringManager] Recursing into errorBody of ${seqItem.name}`);
+                seqItem.errorBody = this.filterSequenceItems(seqItem.errorBody, name, type);
+            }
+            // Recurse into Condition elseBody
+            if (seqItem.elseBody) {
+                seqItem.elseBody = this.filterSequenceItems(seqItem.elseBody, name, type);
+            }
+
             return true;
         });
     }
@@ -706,8 +779,18 @@ export class RefactoringManager {
         if (!sequence) return;
         sequence.forEach(item => {
             callback(item);
-            if (item.body) {
-                this.processSequenceItems(item.body, callback);
+            const anyItem = item as any;
+            if (anyItem.body) {
+                this.processSequenceItems(anyItem.body, callback);
+            }
+            if (anyItem.successBody) {
+                this.processSequenceItems(anyItem.successBody, callback);
+            }
+            if (anyItem.errorBody) {
+                this.processSequenceItems(anyItem.errorBody, callback);
+            }
+            if (anyItem.elseBody) {
+                this.processSequenceItems(anyItem.elseBody, callback);
             }
         });
     }
