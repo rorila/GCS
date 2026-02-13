@@ -1,0 +1,6 @@
+UseCase Index
+-------------
+- ActionParameterStandardisierung: Umstellung auf OOP-Struktur und 1:1 Mapping von UI zu Modell.
+- SaveAction: (Teil von ActionParameterStandardisierung) Der Prozess der Werterfassung und Bereinigung vor dem Speichern.
+- FlowEditorDetailAnzeige: Wie Aktionen im Flow-Editor visualisiert werden und woher die Detail-Strings kommen.
+- ActionVisualisierungsSynchronisation: Konsistente Anzeige von Action-Details durch Nutzung des JSON-Feldes 'details' als Single Source of Truth.

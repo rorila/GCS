@@ -135,7 +135,6 @@ export class Editor implements IViewHost {
 
         // Ensure ProjectRegistry knows about the initial project
         projectRegistry.setProject(this.project);
-        projectRegistry.setActiveStageId(null);
 
         // Register DialogService in ServiceRegistry
         dialogService.setDialogManager(this.dialogManager);

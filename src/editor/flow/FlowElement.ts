@@ -1,4 +1,5 @@
 import { GameProject } from '../../model/types';
+import { RefactoringManager } from '../RefactoringManager';
 
 export abstract class FlowElement {
     public abstract getType(): string;
@@ -481,15 +482,9 @@ export abstract class FlowElement {
             const type = (this as any).getType();
             // Use imported RefactoringManager (needs import)
             if (type === 'Task') {
-                const { RefactoringManager } = require('../RefactoringManager');
-                if (RefactoringManager) {
-                    RefactoringManager.renameTask((this as any).projectRef, oldName, v);
-                }
+                RefactoringManager.renameTask((this as any).projectRef, oldName, v);
             } else if (type === 'Action') {
-                const { RefactoringManager } = require('../RefactoringManager');
-                if (RefactoringManager) {
-                    RefactoringManager.renameAction((this as any).projectRef, oldName, v);
-                }
+                RefactoringManager.renameAction((this as any).projectRef, oldName, v);
             }
         }
     }

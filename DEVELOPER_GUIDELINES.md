@@ -1,5 +1,27 @@
 # Developer Guidelines
 
+## Action System (Standardisierung / OOP)
+- Jede neue Action muss ein entsprechendes Interface in `src/model/types.ts` erhalten, das von `BaseAction` erbt.
+- Property-Namen im Modell müssen exakt den Feldnamen (`name` oder `actionData.field`) in der `dialog_action_editor.json` entsprechen.
+- Vermeide Ad-hoc Mappings im `JSONDialogRenderer.ts`. Der "Gerade Weg" (Straight Path) ist die bevorzugte Methode: UI-Element-Name == Model-Property.
+- Standard-Namen für Parameter:
+    - `service`: Name des Services (statt `serviceName`)
+    - `method`: Name der Methode (statt `serviceMethod` oder `serviceAction`)
+    - `resultVariable`: Zielvariable für Ergebnisse (konsistent über alle Typen)
+    - `formula`: Berechnungsformel für `calculate` Actions
+    - `variableName`: Name einer zu lesenden/schreibenden Variable (statt `variable`)
+
+## UseCase-Index-System
+Zur besseren Wartbarkeit und schnelleren Orientierung im Code pflegen wir ein UseCase-System in `docs/use_cases/`.
+- **Zweck**: Dokumentation technischer Abläufe über Dateigrenzen hinweg.
+- **Index**: Die Datei `UseCaseIndex.txt` gibt eine Übersicht über alle UseCases. Das ist die erste Anlaufstelle für die Suche.
+- **Details**: Jede `.md` Datei in diesem Ordner dokumentiert einen UseCase mit:
+    - **Ablaufdiagramm** (Mermaid) zur Visualisierung der Interaktionen.
+    - **Beteiligte Dateien & Methoden**: Immer spezifische Methodennamen und aktuelle Zeilenbereiche (z.B. L123-145) angeben. Dies dient als Anker für die schnelle Suche.
+    - **Datenfluss** (Input/Output).
+    - **Zustandsänderungen** (globaler/lokaler State).
+- **Pflicht**: Neue komplexe Features oder Refactorings müssen dort dokumentiert werden. Nutze `UseCaseTemplate.md` als Basis.
+
 ## Modulare Architektur (Monolithen-Aufteilung)
 Um die Wartbarkeit zu verbessern und Token-Limit-Fehler zu vermeiden, wurden die Hauptklassen modularisiert:
 
@@ -24,10 +46,26 @@ Die Klasse `FlowEditor.ts` wurde modularisiert, um die Komplexität zu reduziere
 - **Koordinaten-Ausrichtung (v2.10.1)**:
     - Der Flow-Editor nutzt ein Grid-System. Historisch gewachsene Offsets (z.B. -80px auf der X-Achse) wurden entfernt, um eine konsistente Ausrichtung zwischen Knoten und Verbindungen zu gewährleisten.
     - Achte darauf, dass beim Generieren neuer Diagramme keine künstlichen Offsets in `FlowSyncManager.generateFlowFromActionSequence` eingeführt werden.
+- **Action-Anzeige & Synchronisation (v2.16.19)**:
+    - Die visuelle Beschreibung einer Action im Flow-Editor (z.B. `a := b + c`) wird NICHT mehr vom Flow-Editor selbst berechnet.
+    - **Single Source of Truth**: Die Quelle ist das Feld `details` im Action-Objekt des JSON-Modells.
+    - Dieses Feld wird vom `JSONDialogRenderer.generateActionDetails` beim Speichern im Action-Editor befüllt.
+    - `FlowAction.getActionDetails` priorisiert dieses Feld und nutzt eine interne Logik nur noch als Fallback (z.B. für manuelle Pascal-Edits).
+    - Dies stellt sicher, dass Änderungen im Dialog sofort und konsistent im Diagramm sichtbar sind.
 - **Persistenz & Scoping (v2.10.1)**:
     - FlowChart-Daten (`elements`, `connections`) müssen IMMER unter dem Namen des Tasks als Key in der `flowCharts` Collection gespeichert werden (z.B. `targetCharts[taskName] = chartData`).
     - Ein direktes Speichern auf dem Collection-Objekt führt dazu, dass sich Diagramme verschiedener Tasks gegenseitig überschreiben.
     - Verwende das `isLoading` Flag im `FlowEditor`, um zu verhindern, dass während des Ladevorgangs unvollständige Daten zurück in das Projekt synchronisiert werden.
+- **Task-Suche (v2.16.14)**:
+    - ⚠️ **NIEMALS nur `project.tasks` durchsuchen!** Tasks leben primär in `stage.tasks` (pro Stage), nicht im Root-Array.
+    - Korrekte Suchreihenfolge: **Aktive Stage → Alle Stages → Root** (`project.tasks`).
+    - Verwende `TaskEditor.findTaskAndContainer()` als Referenz-Implementierung.
+    - Beim Erstellen neuer Tasks: bevorzugt in die aktive Stage einfügen, nicht ins Root-Array.
+- Task-Umbenennung & Sync (v2.16.15):
+    - Nutze in Flow-Knoten (`FlowElement.ts`) statische Importe für den `RefactoringManager`, um projektweite Umbenennungen zu garantieren.
+    - Synchronisiere bei Namensänderungen im Inspector immer den `localStorage` (`gcs_last_flow_context`) und aktualisiere den `FlowEditor` Pointer, um Kontext-Verluste zu vermeiden.
+- Projekt-Hygiene (v2.16.15): `RefactoringManager.sanitizeProject` bereinigt nun automatisch Duplikate zwischen Root und Stages. Globale Tasks, die bereits in einer Stage existieren, werden aus `project.tasks` entfernt.
+
 - **Logik-Standardisierung (v2.7.0)**:
     - **Inline-Actions**: Das Verwenden von Inline-Aktionen innerhalb der `actionSequence` eines Tasks ist veraltet. Aktionen sollten IMMER im `actions`-Array der Stage (oder global) als benannte Entitäten definiert werden.
     - **Referenzierung**: In Tasks erfolgt der Aufruf ausschließlich via `{ "action": "Name", "params": { ... } }`.
@@ -46,6 +84,32 @@ Die Klasse `FlowEditor.ts` wurde modularisiert, um die Komplexität zu reduziere
 - **Code-Generierung**: Bei der Generierung von Code (z.B. `PascalGenerator`) muss immer projektweit gesucht werden (Global + alle Stages), da Tasks und Aktionen in verschiedenen Scopes liegen können.
 - **Refactoring**: Operationen wie Löschen (`deleteTask`, `deleteAction`) oder Bereinigen (`cleanActionSequences`) müssen zwingend alle Stages iterieren, um verwaiste Referenzen oder Datenleichen in nicht-aktiven Stages zu vermeiden.
 - **Primat der Stages**: Da der Editor zunehmend stage-basiert arbeitet, sollten neue Funktionen standardmäßig stage-übergreifend implementiert werden.
+
+### Datenmodell: Events vs Tasks vs Actions (v2.16.17)
+- **Events** (`"events": Record<string, string>`): Mappings auf Objekten und Stages. Verknüpfen UI-Trigger mit Tasks.
+    - **WICHTIG**: Historisch wurde hierfür teilweise der Key `Tasks` verwendet. Das System wurde auf `events` vereinheitlicht, bietet aber Fallback-Support für `Tasks`.
+    - Auf Objekten: `"events": { "onClick": "DoLogin", "onSelect": "HandleChoice" }`
+    - Auf Stages: `"events": { "onRuntimeStart": "InitStage" }`
+- **Tasks** (`"tasks": GameTask[]`): Workflow-Definitionen mit `actionSequence`. Ein Task referenziert Actions.
+  - `"tasks": [{ "name": "DoLogin", "actionSequence": [{ "type": "action", "name": "ValidateInput" }] }]`
+- **Actions** (`"actions": GameAction[]`): Einzelne Logik-Schritte (calculate, navigate_stage, http, etc.).
+  - `"actions": [{ "name": "ValidateInput", "type": "condition", "body": [...] }]`
+
+### Punkt-Notation zur Task-Auflösung (v2.16.17)
+- **Konzept**: Die Notation `ObjektName.EventName` (z.B. `PinPicker.onSelect`) wird vom `TaskExecutor` rekursiv aufgelöst.
+- **Auflösungs-Strategien**:
+    1. **Direct Resolution**: Falls das auslösende Objekt (`contextObj`) namentlich passt, wird direkt in dessen `events`-Map nachgeschlagen (Performanteste Methode).
+    2. **Deep Search (Fallback)**: Rekursiver Scan über:
+        - Alle Stages (Objekte & Variablen)
+        - Globale Projekt-Variablen
+        - Root Projekt-Objekte
+- **Optionale Events**: Lifecycle-Events wie `onStart`, `onLoad` etc. lösen keine Warnungen aus, wenn sie nicht im Projekt definiert sind.
+
+### Hosting-Regeln für globale Daten (v2.16.13)
+- **Globale Variablen**: Werden ausschließlich in `stage_blueprint.variables` mit `scope: "global"` gehostet. NICHT in `project.variables` (Root bleibt `[]`).
+- **Globale Objekte/Services**: Werden ausschließlich in `stage_blueprint.objects` gehostet. NICHT in `project.objects` (Root bleibt `[]`).
+- **`ProjectRegistry.getVariables()`**: Lädt Globals aus der Blueprint-Stage (type === 'blueprint'). Bei aktiver Blueprint-Ansicht werden diese Variablen als `uiScope: 'global'` behandelt, NICHT als Stage-Variablen.
+- **`ProjectRegistry.getObjects()`**: Lädt globale Objekte aus allen Stages (inkl. Blueprint) via Dedup-Logik.
 
 ### Runtime-Architektur
 Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:
@@ -337,6 +401,9 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Methoden-Registrierung**:
   - Neue Methoden für Komponenten MÜSSEN in der `MethodRegistry.ts` (Parameter-Definitionen) UND im `methodMap` von `JSONDialogRenderer.getMethodsForObject` (Sichtbarkeit im Dropdown) eingetragen werden.
   - Visuelle Standard-Methoden wie `moveTo` sollten für alle von `TWindow` erbenden Komponenten im `methodMap` freigeschaltet sein.
+- **Dialog-Binding (v2.16.18)**:
+    - Damit Eingabefelder in JSON-Dialogen (`dialog_action_editor.json`) ihren Wert ins Modell (`dialogData`) zurückschreiben, MÜSSEN sie das Binding `"action": "updateValue"` besitzen.
+    - Ohne dieses Binding wird zwar der Text angezeigt, aber Änderungen (Eingaben) werden nicht im Modell gespeichert und gehen beim Klick auf "Speichern" verloren.
 ### [Refactoring & Umbenennung](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/RefactoringManager.ts)
 - **Multi-Stage Awareness**: Referenzen (Tasks, Objekte, Variablen) müssen in allen Stages aktualisiert werden (`project.stages`).
 - **Cross-Refactoring (v2.0)**: 
@@ -660,6 +727,11 @@ In Projekten vom Typ "Server" (Stage-lose Applikationen) wird die Stage als **Sy
 - **Zustand**: Verwende reaktive Properties (z.B. `selectedEmoji`), um den Zustand der Komponente zu halten, sodass der `JSONInspector` und andere Komponenten darauf reagieren können.
 - **Events**: Löse fachliche Events (wie `onSelect`) immer über den `onEvent`-Callback der Stage aus, um die Anbindung an den Flow-Editor zu gewährleisten.
 
+### Event-Persistenz & Mapping (v2.16.17)
+- **Standardisierung**: Event-Mappings werden ausschließlich im `events`-Property des Objekts gespeichert (`"events": { "onSelect": "TaskName" }`).
+- **Legacy-Support**: Das veraltete `Tasks`-Property wird von der Runtime noch lesend unterstützt, aber vom Editor beim Speichern automatisch nach `events` migriert.
+- **Inspector**: Der `JSONInspector` visualisiert und schreibt Events nun direkt in `events`.
+- **Best Practice**: Vermeide manuelle Eingriffe in `project.json`, die `Tasks` verwenden. Nutze den Editor oder migriere manuell zu `events`.
 
 ## Object Interpolation & Data Integrity (v2.11.0)
 - **Object vs String**: `PropertyHelper.interpolate` gibt bei komplexen Ausdrücken (`${user} ${role}`) immer einen String zurück. Dies zerstört die Objektreferenz.

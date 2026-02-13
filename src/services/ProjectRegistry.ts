@@ -28,6 +28,9 @@ export class ProjectRegistry {
 
     public setProject(project: GameProject) {
         this.project = project;
+        if (project.activeStageId) {
+            this.activeStageId = project.activeStageId;
+        }
     }
 
     public getProject(): GameProject | null {
@@ -47,17 +50,48 @@ export class ProjectRegistry {
 
         let visibleVars: ScopedVariable[] = [];
 
-        // 1. Global variables
-        visibleVars = this.project.variables
+        // 1. Global variables (aus project.variables UND stage_blueprint)
+        const rootGlobals = (this.project.variables || [])
             .filter(v => !v.scope || String(v.scope).toLowerCase() === 'global')
             .map(v => ({ ...v, uiScope: 'global' as const, uiEmoji: '🌎' }));
 
-        // 2. Stage variables (from active stage)
+        // Globals aus der Blueprint-Stage laden (primäre Quelle)
+        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+        const bpGlobals = (blueprintStage?.variables || [])
+            .filter(v => String(v.scope || '').toLowerCase() === 'global')
+            .map(v => ({ ...v, uiScope: 'global' as const, uiEmoji: '🌎' }));
+
+        // Zusammenführen mit Dedup (Blueprint hat Vorrang über Root)
+        visibleVars = [...rootGlobals];
+        bpGlobals.forEach(bv => {
+            const idx = visibleVars.findIndex(v => v.id === bv.id);
+            if (idx !== -1) {
+                visibleVars[idx] = bv; // Blueprint-Version hat Vorrang
+            } else {
+                visibleVars.push(bv);
+            }
+        });
+
+        // 2. Stage variables (from active stage, aber NICHT Blueprint-Globals die schon in Schritt 1 geladen wurden)
         if (this.activeStageId && this.project.stages) {
             const activeStage = this.project.stages.find(s => s.id === this.activeStageId);
             if (activeStage && activeStage.variables) {
-                const stageVars = activeStage.variables.map(v => ({ ...v, uiScope: 'stage' as const, uiEmoji: '🎭' }));
-                visibleVars = [...visibleVars, ...stageVars];
+                // Bei Blueprint-Stage: Nur nicht-globale Variablen als Stage-Variablen hinzufügen
+                // (Globals wurden bereits in Schritt 1 geladen)
+                const isBlueprint = activeStage.type === 'blueprint';
+                const stageVars = activeStage.variables
+                    .filter(v => !isBlueprint || String(v.scope || '').toLowerCase() !== 'global')
+                    .map(v => ({ ...v, uiScope: 'stage' as const, uiEmoji: '🎭' }));
+
+                // Deduping: Add stage variables, overriding globals if IDs match (shadowing or visual precedence)
+                stageVars.forEach(sv => {
+                    const existingIndex = visibleVars.findIndex(ev => ev.id === sv.id);
+                    if (existingIndex !== -1) {
+                        visibleVars[existingIndex] = sv; // Replace global with stage version
+                    } else {
+                        visibleVars.push(sv);
+                    }
+                });
             }
 
             const scopedProjectVars = this.project.variables
@@ -240,20 +274,7 @@ export class ProjectRegistry {
         const activeStage = this.activeStageId ? this.project.stages?.find((s: any) => s.id === this.activeStageId) : null;
         const isBlueprint = activeStage?.type === 'blueprint';
 
-        // 1. Resolve Global Objects/Variables from Root Project Level
-        if (isBlueprint) {
-            const rootGlobals = [
-                ...(this.project.objects || []).filter(obj => (obj as any).scope === 'global'),
-                ...(this.project.variables || []).filter(v => (v as any).scope === 'global') as unknown as TWindow[]
-            ];
-            rootGlobals.forEach(gObj => {
-                if (!objectIds.has(gObj.id)) {
-                    allObjects.push(gObj);
-                    objectIds.add(gObj.id);
-                }
-            });
-        }
-
+        // 1. First, load objects from the Active Stage (Priority: Stage Layout)
         if (this.project.stages && this.project.stages.length > 0) {
             if (activeStage) {
                 // Include Stage Objects and Stage Variables
@@ -293,16 +314,33 @@ export class ProjectRegistry {
                     ...(activeStage?.variables || []) as unknown as TWindow[]
                 ];
             }
-
-            return allObjects;
         }
 
-        // Legacy Fallback
-        const legacyItems = [
-            ...(this.project.objects || []),
-            ...(this.project.variables || []) as unknown as TWindow[]
-        ];
-        return legacyItems;
+        // 3. Resolve Global Objects/Variables from Root Project Level (Fallback / Supplement)
+        // Only add if not already present (e.g. from Stage Blueprint)
+        if (isBlueprint) {
+            const rootGlobals = [
+                ...(this.project.objects || []).filter(obj => (obj as any).scope === 'global'),
+                ...(this.project.variables || []).filter(v => (v as any).scope === 'global') as unknown as TWindow[]
+            ];
+            rootGlobals.forEach(gObj => {
+                if (!objectIds.has(gObj.id)) {
+                    allObjects.push(gObj);
+                    objectIds.add(gObj.id);
+                }
+            });
+        }
+
+        // Legacy Fallback if no stages
+        if (allObjects.length === 0 && (!this.project.stages || this.project.stages.length === 0)) {
+            const legacyItems = [
+                ...(this.project.objects || []),
+                ...(this.project.variables || []) as unknown as TWindow[]
+            ];
+            return legacyItems;
+        }
+
+        return allObjects;
     }
 
     public getFlowObjects(): any[] {
@@ -506,6 +544,7 @@ export class ProjectRegistry {
         const refs: string[] = [];
         if (!this.project) return refs;
 
+        // 1. Scan Logical Usage (Action Sequences)
         this.getTasks('all', false).forEach(task => {
             const scanSeq = (seq: any[]) => {
                 if (!seq || !Array.isArray(seq)) return;
@@ -519,7 +558,38 @@ export class ProjectRegistry {
             scanSeq(task.actionSequence);
         });
 
-        return refs;
+        // 2. Scan Visual Usage (Flow Charts)
+        const scanFlow = (flow: any, sourceName: string) => {
+            if (!flow || !flow.elements || !Array.isArray(flow.elements)) return;
+            flow.elements.forEach((el: any) => {
+                if (el.type === 'Action') {
+                    // Check various name properties to be safe
+                    const elName = el.Name || el.data?.name || el.data?.actionName || el.properties?.name || el.properties?.text;
+                    if (elName === name) {
+                        refs.push(`🎨 Visuell verwendet im Flow: "${sourceName}"`);
+                    }
+                }
+            });
+        };
+
+        // Scan Global Project Flow
+        if (this.project.flow) scanFlow(this.project.flow, 'Global Flow');
+
+        // Scan Global FlowCharts Map
+        if (this.project.flowCharts) {
+            Object.entries(this.project.flowCharts).forEach(([key, flow]) => {
+                scanFlow(flow, `Flow: ${key}`);
+            });
+        }
+
+        // Scan Task Flows (Global & Stage)
+        // Note: Some tasks might store their flow in 'flowChart' property
+        this.getTasks('all', false).forEach(task => {
+            if (task.flowChart) scanFlow(task.flowChart, `Task Flow: "${task.name}"`);
+        });
+
+        // Deduplicate refs
+        return [...new Set(refs)];
     }
 
     public getVariableUsage(name: string): string[] {

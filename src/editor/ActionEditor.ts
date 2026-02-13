@@ -997,8 +997,9 @@ export class ActionEditor {
             row.appendChild(varSelect);
         } else {
             const constInput = document.createElement('input');
-            constInput.type = 'number';
-            constInput.value = String(step.constant ?? 0);
+            constInput.type = 'text'; // Changed to support emojis
+            constInput.value = String(step.constant ?? '');
+            constInput.placeholder = 'Wert (Zahl oder Text)';
             constInput.style.padding = '4px';
             constInput.style.background = '#333';
             constInput.style.color = 'white';
@@ -1007,7 +1008,12 @@ export class ActionEditor {
             constInput.style.width = '80px';
 
             constInput.oninput = () => {
-                step.constant = parseFloat(constInput.value) || 0;
+                const val = constInput.value;
+                if (val !== '' && !isNaN(Number(val))) {
+                    step.constant = Number(val);
+                } else {
+                    step.constant = val;
+                }
                 this.updateCalcPreview(previewDiv);
             };
             row.appendChild(constInput);
@@ -1034,12 +1040,20 @@ export class ActionEditor {
     }
 
     private updateCalcPreview(previewDiv: HTMLElement) {
-        // Build expression string
+        // Build expression string for preview and eventually for formula
         let exprParts: string[] = [];
         this.currentCalcSteps.forEach((step, index) => {
-            const operand = step.operandType === 'variable'
-                ? (step.variable || '?')
-                : String(step.constant ?? 0);
+            let operand = '';
+            if (step.operandType === 'variable') {
+                operand = step.variable || '?';
+            } else {
+                const val = step.constant;
+                if (typeof val === 'string') {
+                    operand = `"${val}"`;
+                } else {
+                    operand = String(val ?? 0);
+                }
+            }
 
             if (index === 0) {
                 exprParts.push(operand);
@@ -1053,7 +1067,7 @@ export class ActionEditor {
         const resultVar = this.currentCalcResultVariable || '?';
 
         previewDiv.innerHTML = `
-            <div style="color: #888; font-size: 11px; margin-bottom: 4px;">Generated Expression:</div>
+            <div style="color: #888; font-size: 11px; margin-bottom: 4px;">Vorschau (Generierte Formel):</div>
             <div style="color: #9cdcfe; font-family: monospace; font-size: 14px; margin-bottom: 8px;" translate="no">
                 ${resultVar} = ${expression}
             </div>
@@ -1136,13 +1150,37 @@ export class ActionEditor {
             updatedAction.resultVariable = this.currentCalcResultVariable;
             updatedAction.calcSteps = JSON.parse(JSON.stringify(this.currentCalcSteps));
 
+            // GENERATE FORMULA for Runtime (StandardActions.ts expects 'formula')
+            let formula = '';
+            this.currentCalcSteps.forEach((step, index) => {
+                let operand = '';
+                if (step.operandType === 'variable') {
+                    operand = step.variable || '0';
+                } else {
+                    const val = step.constant;
+                    if (typeof val === 'string') {
+                        // Escape quotes in strings for the formula
+                        operand = `"${val.replace(/"/g, '\\"')}"`;
+                    } else {
+                        operand = String(val ?? 0);
+                    }
+                }
+
+                if (index === 0) {
+                    formula = operand;
+                } else {
+                    formula += ` ${step.operator || '+'} ${operand}`;
+                }
+            });
+            updatedAction.formula = formula;
+
             // Auto-register result variable if not exists
             if (this.currentCalcResultVariable && !projectRegistry.getVariables().some(v => v.name === this.currentCalcResultVariable)) {
                 this.project.variables.push({
                     name: this.currentCalcResultVariable,
-                    type: 'real',  // Calculations usually result in numbers
+                    type: 'string', // Use string by default to be safe for emoji concatenation
                     scope: this.currentScope === 'global' ? 'global' : (this.project.activeStageId || 'global'),
-                    defaultValue: 0
+                    defaultValue: ''
                 });
             }
         } else {

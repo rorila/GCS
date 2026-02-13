@@ -426,11 +426,22 @@ export class PascalGenerator {
             code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := -${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)}; `;
         } else if (action.type === 'calculate' && action.resultVariable) {
             let expr = '';
-            if (action.calcSteps && action.calcSteps.length > 0) {
+            if (action.formula) {
+                // Use the generated formula if available (it represents the runtime logic)
+                expr = this.span(action.formula, '#ce9178', asHtml);
+            } else if (action.calcSteps && action.calcSteps.length > 0) {
                 expr = action.calcSteps.map((s: any, i: number) => {
-                    const val = s.operandType === 'variable'
-                        ? `${this.span(s.variable || '?', '#9cdcfe', asHtml)} `
-                        : `${this.span((s.constant ?? 0).toString(), '#b5cea8', asHtml)} `;
+                    let val = '';
+                    if (s.operandType === 'variable') {
+                        val = `${this.span(s.variable || '?', '#9cdcfe', asHtml)} `;
+                    } else {
+                        const constVal = s.constant;
+                        if (typeof constVal === 'string') {
+                            val = `${this.span("'" + constVal + "'", '#ce9178', asHtml)} `;
+                        } else {
+                            val = `${this.span((constVal ?? 0).toString(), '#b5cea8', asHtml)} `;
+                        }
+                    }
                     return (i === 0 || !s.operator) ? val : `${this.span(s.operator, '#d4d4d4', asHtml)} ${val} `;
                 }).join(' ');
             }
@@ -936,15 +947,52 @@ export class PascalGenerator {
                 }
 
                 const actionName = action ? action.name : `${taskName}_action_${index}`;
-                const isNumeric = /^\d+(\.\d+)?$/.test(source);
-                const calcStep: any = {
-                    operandType: isNumeric ? 'constant' : 'variable',
-                    constant: isNumeric ? parseFloat(source) : 0,
-                    variable: isNumeric ? undefined : source
-                };
+
+                // Try to parse basic expression (A + B + C)
+                // We support +, -, *, /, % for calcSteps
+                const parts = source.split(/(\+|-|\*|\/|%)/);
+                const calcSteps: any[] = [];
+                let formula = '';
+
+                for (let j = 0; j < parts.length; j++) {
+                    const part = parts[j].trim();
+                    if (!part) continue;
+
+                    if (['+', '-', '*', '/', '%'].includes(part)) {
+                        if (calcSteps.length > 0) {
+                            calcSteps[calcSteps.length - 1].nextOperator = part; // Temp storage if needed, but our model uses operator on the NEXT step
+                        }
+                        formula += ` ${part} `;
+                    } else {
+                        const isNumeric = /^\d+(\.\d+)?$/.test(part);
+                        const isQuoted = (part.startsWith("'") && part.endsWith("'")) || (part.startsWith('"') && part.endsWith('"'));
+                        let val: any = part;
+                        if (isQuoted) val = part.slice(1, -1);
+                        else if (isNumeric) val = parseFloat(part);
+
+                        const step: any = {
+                            operandType: isNumeric || isQuoted ? 'constant' : 'variable',
+                            constant: isNumeric || isQuoted ? val : undefined,
+                            variable: isNumeric || isQuoted ? undefined : val
+                        };
+
+                        // If NOT the first step, we need the operator from the previous loop iteration
+                        if (calcSteps.length > 0) {
+                            const prevOp = parts[j - 1]?.trim();
+                            if (['+', '-', '*', '/', '%'].includes(prevOp)) {
+                                step.operator = prevOp;
+                            } else {
+                                step.operator = '+'; // Fallback
+                            }
+                        }
+
+                        calcSteps.push(step);
+                        formula += isQuoted ? `"${val}"` : (isNumeric ? val : val);
+                    }
+                }
 
                 if (!action) {
-                    action = { name: actionName, type: 'calculate', resultVariable: target, calcSteps: [calcStep] };
+                    action = { name: actionName, type: 'calculate', resultVariable: target, calcSteps: calcSteps, formula: formula };
                     if (targetStage) {
                         if (!targetStage.actions) targetStage.actions = [];
                         targetStage.actions.push(action);
@@ -954,7 +1002,8 @@ export class PascalGenerator {
                 } else {
                     action.type = 'calculate';
                     action.resultVariable = target;
-                    action.calcSteps = [calcStep];
+                    action.calcSteps = calcSteps;
+                    action.formula = formula;
                 }
                 return { type: 'action', name: actionName };
             }

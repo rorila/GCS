@@ -31,7 +31,7 @@ export interface GameObject {
 // ─────────────────────────────────────────────
 // Action: Atomic operation on a component
 // ─────────────────────────────────────────────
-export type ActionType = 'property' | 'variable' | 'increment' | 'negate' | 'animate' | 'audio' | 'navigate' | 'navigate_stage' | 'smooth_sync' | 'send_multiplayer_sync' | 'engine_control' | 'server_connect' | 'server_create_room' | 'server_join_room' | 'server_ready' | 'service' | 'calculate' | 'call_method';
+export type ActionType = 'property' | 'variable' | 'increment' | 'negate' | 'animate' | 'audio' | 'navigate' | 'navigate_stage' | 'smooth_sync' | 'send_multiplayer_sync' | 'engine_control' | 'server_connect' | 'server_create_room' | 'server_join_room' | 'server_ready' | 'service' | 'calculate' | 'call_method' | 'set_variable' | 'broadcast';
 
 // For type: 'calculate' - expression building
 export type CalcOperator = '+' | '-' | '*' | '/' | '%';
@@ -41,35 +41,91 @@ export interface CalcStep {
     operator?: CalcOperator;      // Undefined for first step (start value)
     operandType: CalcOperandType;
     variable?: string;            // If operandType === 'variable'
-    constant?: number;            // If operandType === 'constant'
+    constant?: any;               // If operandType === 'constant' (number or emoji string)
 }
 
-export interface GameAction {
+/**
+ * BaseAction - Die Wurzel aller Aktionen (RootAction)
+ */
+export interface BaseAction {
     name: string;
-    description?: string;
     type: ActionType;
-
-    // For type: 'property' - sets properties on target object
-    target?: string;              // Component name
-    changes?: Record<string, any>;  // Property -> Value (can contain ${varName})
-
-    // For type: 'variable' - reads a value into a variable
-    variableName?: string;        // e.g. "userName"
-    source?: string;              // Source component name, e.g. "Edit_1"
-    sourceProperty?: string;      // Property to read, e.g. "text"
-
-    // For type: 'service' - calls a service method
-    service?: string;             // Service name, e.g. "RemoteGameManager"
-    method?: string;              // Method name, e.g. "createRoom"
-    serviceParams?: Record<string, string>;  // Parameters with variable support, e.g. { gameName: "${meta.name}" }
-    resultVariable?: string;      // Variable to store result, e.g. "roomResult"
-
-    // For type: 'calculate' - expression calculation
-    calcSteps?: CalcStep[];       // Steps in the calculation expression
-
-    params?: Record<string, any>;   // For other types (animate, audio, etc.)
+    description?: string;
+    sync?: boolean;               // Synchronisation über Netzwerk
     scope?: VariableScope;         // Visibility: global (Project) or local (Stage)
 }
+
+/**
+ * PropertyAction - Ändert Eigenschaften von Objekten
+ * (Wird auch für increment/negate genutzt)
+ */
+export interface PropertyAction extends BaseAction {
+    type: 'property' | 'increment' | 'negate';
+    target: string;               // Component name
+    changes: Record<string, any>;  // Property -> Value
+}
+
+/**
+ * VariableAction - Liest oder schreibt Variablen
+ */
+export interface VariableAction extends BaseAction {
+    type: 'variable' | 'set_variable';
+    variableName: string;
+    source?: string;              // Für 'variable': Quell-Objekt
+    sourceProperty?: string;      // Für 'variable': Eigenschaft
+    value?: any;                  // Für 'set_variable': Festwert
+}
+
+/**
+ * ServiceAction - Ruft einen System-Service auf
+ */
+export interface ServiceAction extends BaseAction {
+    type: 'service';
+    service: string;
+    method: string;
+    serviceParams?: any[];        // Parameter-Liste
+    resultVariable?: string;      // Optionaler Speicherort für Rückgabewert
+}
+
+/**
+ * CalculateAction - Mathematische Berechnungen
+ */
+export interface CalculateAction extends BaseAction {
+    type: 'calculate';
+    resultVariable: string;
+    formula: string;
+    calcSteps?: CalcStep[];
+}
+
+/**
+ * MethodAction - Ruft eine Methode an einem Objekt auf
+ */
+export interface MethodAction extends BaseAction {
+    type: 'call_method';
+    target: string;
+    method: string;
+    params?: any[];
+}
+
+/**
+ * NavigateAction - Wechselt die Stage
+ */
+export interface NavigateAction extends BaseAction {
+    type: 'navigate_stage';
+    stageId: string;
+}
+
+/**
+ * BroadcastAction - Sendet ein globales Event
+ */
+export interface BroadcastAction extends BaseAction {
+    type: 'broadcast';
+    event: string;
+    params?: Record<string, any>;
+}
+
+// Union Type für alle Aktionen
+export type GameAction = PropertyAction | VariableAction | ServiceAction | CalculateAction | MethodAction | NavigateAction | BroadcastAction | any;
 
 // ─────────────────────────────────────────────
 // Task: Sequence of actions and task calls
@@ -276,6 +332,7 @@ export interface StageDefinition {
     actions?: GameAction[];
     variables?: ProjectVariable[];
     input?: InputConfig;       // Stage-lokale Input-Konfiguration
+    events?: Record<string, string>; // Event-Handler (z.B. onRuntimeStart -> TaskName)
 }
 
 // ─────────────────────────────────────────────

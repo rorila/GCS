@@ -190,7 +190,7 @@ export class GameRuntime implements IVariableHost {
         // 1. BEFORE Stage Change: Trigger onLeave on the OLD stage
         // We use the current this.stage as it still represents the old stage
         if (this.stage && this.taskExecutor) {
-            const onLeaveTask = this.stage.Tasks?.onLeave;
+            const onLeaveTask = (this.stage.events || this.stage.Tasks)?.onLeave;
             if (onLeaveTask) {
                 console.log(`[GameRuntime] Triggering onLeave for stage: ${this.stage.id} (Task: ${onLeaveTask})`);
                 this.taskExecutor.execute(onLeaveTask, { sender: this.stage }, this.contextVars, this.stage);
@@ -241,13 +241,13 @@ export class GameRuntime implements IVariableHost {
 
         // 2. AFTER Stage Change: Trigger onEnter and onRuntimeStart on the NEW stage
         if (this.stage && this.taskExecutor) {
-            const onEnterTask = this.stage.Tasks?.onEnter;
+            const onEnterTask = (this.stage.events || this.stage.Tasks)?.onEnter;
             if (onEnterTask) {
                 console.log(`[GameRuntime] Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
                 this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage);
             }
 
-            const onRuntimeStartTask = this.stage.Tasks?.onRuntimeStart;
+            const onRuntimeStartTask = (this.stage.events || this.stage.Tasks)?.onRuntimeStart;
             if (onRuntimeStartTask) {
                 console.log(`[GameRuntime] Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
                 this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage);
@@ -595,8 +595,8 @@ export class GameRuntime implements IVariableHost {
                 if (typeof val === 'string' && val.includes('${')) {
                     console.log(`%c[GameRuntime] Creating reactive binding: ${obj.name}.${propPath} ← ${val}`, 'color: #4caf50; font-weight: bold');
                     this.reactiveRuntime.bindComponent(obj, propPath, val);
-                } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'Tasks')) {
-                    // Recursive binding for nested objects like style
+                } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'events' || key === 'Tasks')) {
+                    // Recursive binding for nested objects like style or events
                     bindProps(val, propPath);
                 }
             });

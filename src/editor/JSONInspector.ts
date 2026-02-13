@@ -11,6 +11,7 @@ import { actionRegistry } from '../runtime/ActionRegistry';
 import { changeRecorder } from '../services/ChangeRecorder';
 import { componentRegistry } from '../services/ComponentRegistry';
 import { MediatorService } from '../services/MediatorService';
+import { registerStandardActions } from '../runtime/actions/StandardActions';
 // import { MediatorEvents } from '../services/MediatorService';
 
 type InspectorTab = 'properties' | 'events';
@@ -49,6 +50,9 @@ export class JSONInspector {
         this.container = container;
         this.runtime = new ReactiveRuntime();
 
+        // Ensure standard actions are registered for the registry
+        registerStandardActions([]);
+
 
         // Load custom layout configuration
         this.loadLayoutConfig();
@@ -80,15 +84,14 @@ export class JSONInspector {
         this.flowElements = [];
 
         // Register available tasks as variable
-        const taskNames = project.tasks?.map(t => t.name) || [];
-        this.runtime.registerVariable('availableTasks', taskNames);
+        this.runtime.registerVariable('availableTasks', projectRegistry.getTasks('active').map(t => t.name));
 
         // Register available variables (Global + Stage + Local)
         const varNames = projectRegistry.getVariables().map(v => v.name);
         this.runtime.registerVariable('availableVariables', varNames);
 
         // Register available actions
-        this.runtime.registerVariable('availableActions', project.actions?.map(a => a.name) || []);
+        this.runtime.registerVariable('availableActions', projectRegistry.getActions('active').map(a => a.name));
 
         this.runtime.registerVariable('getVariableSuggestions', () => {
             return projectRegistry.getVariables().map(v => `\${${v.name}}`);
@@ -101,7 +104,17 @@ export class JSONInspector {
         });
 
         this.runtime.registerVariable('getAllActionTypes', () => {
-            return actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
+            const registered = actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
+            if (registered.length > 0) return registered;
+
+            // Fallback if registry is not yet populated
+            return [
+                { value: 'property', label: '📝 Property Change (Set)' },
+                { value: 'increment', label: '➕ Increment (Add)' },
+                { value: 'variable', label: '📦 Read Variable' },
+                { value: 'service', label: '🔌 Call Service' },
+                { value: 'calculate', label: '🧮 Calculate' }
+            ];
         });
 
 
@@ -245,11 +258,24 @@ export class JSONInspector {
         // CRITICAL: Clear previous bindings and objects to prevent memory leaks and log floods
         this.runtime.clear();
 
+        // MIGRATION: Auto-migrate legacy 'Tasks' to 'events' for Inspector view
+        if (object && object.Tasks && !object.events) {
+            console.log('[JSONInspector] Migrating legacy Tasks to events for inspector view');
+            object.events = { ...object.Tasks };
+        } else if (object && object.Tasks && object.events) {
+            // Merge missing tasks
+            Object.keys(object.Tasks).forEach(key => {
+                if (!object.events[key]) {
+                    object.events[key] = object.Tasks[key];
+                }
+            });
+        }
+
         // Re-register required base variables after clear
         if (this.project) {
             this.runtime.registerVariable('project', this.project);
-            this.runtime.registerVariable('availableTasks', this.project.tasks?.map(t => t.name) || []);
-            this.runtime.registerVariable('availableActions', this.project.actions?.map(a => a.name) || []);
+            this.runtime.registerVariable('availableTasks', projectRegistry.getTasks('active').map(t => t.name));
+            this.runtime.registerVariable('availableActions', projectRegistry.getActions('active').map(a => a.name));
             console.log('[JSONInspector] Registry State:', {
                 projectSet: !!projectRegistry.getProject(),
                 activeStageId: (projectRegistry as any).activeStageId,
@@ -261,7 +287,16 @@ export class JSONInspector {
             this.runtime.registerVariable('availableVariablesWithScope', variables.map(v => ({ value: v.name, label: `${v.uiEmoji || ''} ${v.name}` })));
             this.runtime.registerVariable('availableVariablesAsTokens', variables.map(v => ({ value: `\${${v.name}}`, label: `${v.uiEmoji || ''} ${v.name}` })));
             this.runtime.registerVariable('getAllActionTypes', () => {
-                return actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
+                const registered = actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
+                if (registered.length > 0) return registered;
+
+                return [
+                    { value: 'property', label: '📝 Property Change (Set)' },
+                    { value: 'increment', label: '➕ Increment (Add)' },
+                    { value: 'variable', label: '📦 Read Variable' },
+                    { value: 'service', label: '🔌 Call Service' },
+                    { value: 'calculate', label: '🧮 Calculate' }
+                ];
             });
             const activeStage = this.project.stages?.find(s => s.id === this.project?.activeStageId);
             this.runtime.registerVariable('activeStage', activeStage || null);
@@ -3009,13 +3044,38 @@ export class JSONInspector {
                 target = target[parts[i]];
             }
 
-            // Special handling for Tasks: Delete empty event mappings instead of setting to empty string
+            // Special handling for events: Delete empty event mappings instead of setting to empty string
             const lastPart = parts[parts.length - 1];
-            if (parts[0] === 'Tasks' && (!value || value === '')) {
+            const isEvent = parts[0] === 'events' || parts[0] === 'Tasks';
+
+            // MIGRATION: Redirect 'Tasks' to 'events'
+            if (parts[0] === 'Tasks') {
+                console.warn('[JSONInspector] Redirecting legacy "Tasks" mapping to "events"');
+                // Ensure events object exists
+                if (!selectedObject.events) selectedObject.events = {};
+                target = selectedObject.events;
+                // No need to traverse path for Tasks anymore, we switch to events route
+            }
+
+            if (isEvent && (!value || value === '')) {
+                // If we redirected to events, target is already selectedObject.events
+                // If parts[0] was 'events', target is also correct (traversed in loop)
                 delete target[lastPart];
-                console.log(`[JSONInspector] Removed empty event mapping: Tasks.${lastPart}`);
+                console.log(`[JSONInspector] Removed empty event mapping: events.${lastPart}`);
+
+                // Also cleanup legacy Tasks if present
+                if (selectedObject.Tasks && selectedObject.Tasks[lastPart]) {
+                    delete selectedObject.Tasks[lastPart];
+                }
             } else {
+                // Set value
                 target[lastPart] = value;
+
+                // Consistency: If writing to events, ensure legacy Tasks is cleared/synced if needed? 
+                // Better to just clear legacy to avoid confusion
+                if (parts[0] === 'events' && selectedObject.Tasks && selectedObject.Tasks[lastPart]) {
+                    delete selectedObject.Tasks[lastPart];
+                }
             }
         } else {
             // Simple property - write directly
@@ -3036,10 +3096,21 @@ export class JSONInspector {
             // SYNC: If this was the currently active flow context, update the pointer in localStorage
             // so that FlowEditor.setProject() can pick it up immediately during the refresh.
             if (isActionOrTask) {
+                // Determine the correct context name to update
+                // For Tasks, it's the name itself. For FlowElements (Nodes), they represent a context if they are a FlowTask.
                 const lastContext = localStorage.getItem('gcs_last_flow_context');
-                if (lastContext === previousValue) {
-                    console.log(`[JSONInspector] Updating gcs_last_flow_context in localStorage: ${previousValue} -> ${value}`);
+
+                // If it was the current context being renamed
+                if (lastContext === previousValue || (selectedObject as any).id === lastContext) {
+                    console.log(`[JSONInspector] Updating gcs_last_flow_context in localStorage: ${lastContext} -> ${value}`);
                     localStorage.setItem('gcs_last_flow_context', value);
+
+                    // Force FlowEditor to update its internal context pointer if it exists
+                    if (this.editor && this.editor.flowEditor && this.editor.currentView === 'flow') {
+                        if (this.editor.flowEditor.currentFlowContext === previousValue) {
+                            this.editor.flowEditor.currentFlowContext = value;
+                        }
+                    }
                 }
             }
             this.render();

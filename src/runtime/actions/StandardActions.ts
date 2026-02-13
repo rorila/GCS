@@ -6,22 +6,16 @@ import { serviceRegistry } from '../../services/ServiceRegistry';
 import { DebugLogService } from '../../services/DebugLogService';
 
 /**
- * Hilfsfunktion zum Auflösen von Targets (aus ActionExecutor kopiert/angepasst)
+ * Hilfsfunktion zum Auflösen von Targets
  */
-function resolveTarget(targetName: string, objects: any[], vars: Record<string, any>, contextObj?: any): any {
+function resolveTarget(targetName: string, objects: any[], vars: Record<string, any>, _contextObj?: any): any {
     if (!targetName) return null;
-    if ((targetName === '$eventSource' || targetName === 'self' || targetName === '$self') && contextObj) return contextObj;
-    if ((targetName === 'other' || targetName === '$other') && vars.otherSprite) return vars.otherSprite;
-
     let actualName = targetName;
     if (targetName.startsWith('${') && targetName.endsWith('}')) {
         const varName = targetName.substring(2, targetName.length - 1);
-        const varVal = vars[varName];
-        if (varVal && typeof varVal === 'object' && varVal.id) return varVal;
-        if (varVal) actualName = String(varVal);
+        actualName = String(vars[varName] || targetName);
     }
-
-    return objects.find(o => o.name === actualName || o.id === actualName || o.name?.toLowerCase() === actualName.toLowerCase());
+    return objects.find(o => o.name === actualName || o.id === actualName);
 }
 
 /**
@@ -219,7 +213,7 @@ export function registerStandardActions(objects: any[]) {
     });
 
     actionRegistry.register('navigate_stage', (action, context) => {
-        const stageId = action.params?.stageId || action.stageId;
+        const stageId = action.stageId;
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (stageId && context.onNavigate) {
             const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, objects);
@@ -237,7 +231,7 @@ export function registerStandardActions(objects: any[]) {
     // 7. Service Calls
     actionRegistry.register('service', async (action, context) => {
         if (action.service && action.method && serviceRegistry.has(action.service)) {
-            const params = Object.values(action.serviceParams || {}).map(v =>
+            const params = (Array.isArray(action.serviceParams) ? action.serviceParams : []).map((v: any) =>
                 PropertyHelper.interpolate(String(v), { ...context.contextVars, ...context.vars }, objects)
             );
             const result = await serviceRegistry.call(action.service, action.method, params);
@@ -253,7 +247,7 @@ export function registerStandardActions(objects: any[]) {
         parameters: [
             { name: 'service', label: 'Service', type: 'select', source: 'services' },
             { name: 'method', label: 'Methode', type: 'string' },
-            { name: 'serviceParams', label: 'Parameter (JSON)', type: 'json' },
+            { name: 'serviceParams', label: 'Parameter-Liste', type: 'json' },
             { name: 'resultVariable', label: 'Ergebnis speichern in', type: 'variable', source: 'variables' }
         ]
     });
@@ -416,207 +410,7 @@ export function registerStandardActions(objects: any[]) {
         ]
     });
 
-    // 12. HTTP Response (Antwort für HeadlessServer)
-    actionRegistry.register('respond_http', async (action, context) => {
-        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        const requestId = PropertyHelper.interpolate(String(action.requestId || ''), combinedContext, objects);
-        const status = Number(PropertyHelper.interpolate(String(action.status || 200), combinedContext, objects));
-        const dataStr = typeof action.data === 'object' ? JSON.stringify(action.data) : String(action.data || '{}');
-        const data = JSON.parse(PropertyHelper.interpolate(dataStr, combinedContext, objects));
-
-        if (requestId && serviceRegistry.has('HttpServer')) {
-            await serviceRegistry.call('HttpServer', 'respond', [requestId, status, data]);
-        } else {
-            console.warn('[Action: respond_http] Konnte Antwort nicht senden. requestId fehlt oder HttpServer nicht registriert.');
-        }
-    }, {
-        type: 'respond_http',
-        label: 'HTTP Antwort senden',
-        description: 'Sendet eine Antwort auf einen eingehenden HTTP-Request (nur im Server-Modus).',
-        parameters: [
-            { name: 'requestId', label: 'Request ID', type: 'string', hint: 'Wird automatisch vom onRequest-Event bereitgestellt.' },
-            { name: 'status', label: 'HTTP Status', type: 'number', defaultValue: 200 },
-            { name: 'data', label: 'Antwort-Daten (JSON)', type: 'string', hint: 'Das Objekt, das als JSON gesendet wird.' }
-        ]
-    });
-
-    // 13. Datenbank Speichern (UPSERT)
-    actionRegistry.register('db_save', async (action, context) => {
-        const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', combinedContext, objects);
-        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', combinedContext, objects);
-
-        const dataStr = typeof action.data === 'object' ? JSON.stringify(action.data) : String(action.data || '{}');
-        const data = JSON.parse(PropertyHelper.interpolate(dataStr, combinedContext, objects));
-
-        const result = await serviceRegistry.call('Data', 'saveItem', [storagePath, collection, data]);
-
-        // Detail-Logging für Debug-Log-Viewer
-        DebugLogService.getInstance().log('Variable', `Data saved in ${storagePath}::${collection}`, {
-            data: { type: 'db_save', storagePath, collection, result }
-        });
-
-        if (action.resultVariable) {
-            context.vars[action.resultVariable] = result;
-            context.contextVars[action.resultVariable] = result;
-        }
-
-        if (target && typeof (target as any).triggerEvent === 'function') {
-            (target as any).triggerEvent('onDataChanged', { collection, operation: 'save', item: result });
-            (target as any).triggerEvent('onSave', { collection, item: result });
-        }
-    }, {
-        type: 'db_save',
-        label: 'DB: Speichern',
-        description: 'Speichert oder aktualisiert ein Objekt in der Datenbank.',
-        parameters: [
-            { name: 'target', label: 'DataStore Objekt', type: 'object', source: 'objects' },
-            { name: 'collection', label: 'Collection', type: 'string', placeholder: 'z.B. users' },
-            { name: 'data', label: 'Daten (JSON)', type: 'string' },
-            { name: 'resultVariable', label: 'Ergebnis (mit ID) speichern in', type: 'variable', source: 'variables' }
-        ]
-    });
-
-    // 14. Datenbank Finden
-    actionRegistry.register('db_find', async (action, context) => {
-        const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-
-        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', combinedContext, objects);
-        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', combinedContext, objects);
-
-        console.log(`[Action: db_find] Target: ${target ? target.name : 'null'}, Storage: ${storagePath}, Collection: ${collection}`);
-        if (target) {
-            console.log(`[Action: db_find] Target Properties: storagePath=${target.storagePath}, defaultCollection=${target.defaultCollection}`);
-        } else {
-            // Debug: List all available objects if target not found
-            console.warn(`[Action: db_find] Target '${action.target}' NOT FOUND. Available objects:`, objects.map(o => o.name).join(', '));
-        }
-
-        const queryStr = typeof action.query === 'object' ? JSON.stringify(action.query) : String(action.query || '{}');
-        const query = JSON.parse(PropertyHelper.interpolate(queryStr, combinedContext, objects));
-
-        // Detail-Logging für Debug-Log-Viewer & Konsole (Transparency)
-        console.log(`[Action: db_find] Searching in ${storagePath}::${collection} with Query:`, JSON.stringify(query));
-
-        const results = await serviceRegistry.call('Data', 'findItems', [storagePath, collection, query]);
-
-        console.log(`[Action: db_find] Found ${results.length} items.`);
-
-        DebugLogService.getInstance().log('Variable', `Found ${results.length} items in ${storagePath}::${collection}`, {
-            data: { type: 'db_find', storagePath, collection, query, resultsCount: results.length }
-        });
-
-        if (action.resultVariable) {
-            context.vars[action.resultVariable] = results;
-            context.contextVars[action.resultVariable] = results;
-        }
-    }, {
-        type: 'db_find',
-        label: 'DB: Suchen',
-        description: 'Sucht Objekte in der Datenbank anhand von Filtern.',
-        parameters: [
-            { name: 'target', label: 'DataStore Objekt', type: 'object', source: 'objects' },
-            { name: 'collection', label: 'Collection', type: 'string', placeholder: 'z.B. users' },
-            { name: 'query', label: 'Filter (JSON)', type: 'string', hint: 'Beispiel: { "name": "Rolf" }' },
-            { name: 'resultVariable', label: 'Ergebnisse speichern in', type: 'variable', source: 'variables' }
-        ]
-    });
-
-    // 15. Datenbank Löschen
-    actionRegistry.register('db_delete', async (action, context) => {
-        const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
-        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        const storagePath = PropertyHelper.interpolate(target?.storagePath || action.storagePath || 'data.json', combinedContext, objects);
-        const collection = PropertyHelper.interpolate(action.collection || target?.defaultCollection || 'items', combinedContext, objects);
-        const id = PropertyHelper.interpolate(String(action.id || ''), combinedContext, objects);
-
-        const success = await serviceRegistry.call('Data', 'deleteItem', [storagePath, collection, id]);
-
-        // Detail-Logging für Debug-Log-Viewer
-        DebugLogService.getInstance().log('Variable', `Deleted from ${storagePath}::${collection}: ${success}`, {
-            data: { type: 'db_delete', storagePath, collection, id, success }
-        });
-
-        if (action.resultVariable) {
-            context.vars[action.resultVariable] = success;
-            context.contextVars[action.resultVariable] = success;
-        }
-
-        if (success && target && typeof (target as any).triggerEvent === 'function') {
-            (target as any).triggerEvent('onDataChanged', { collection, operation: 'delete', id });
-            (target as any).triggerEvent('onDelete', { collection, id });
-        }
-    }, {
-        type: 'db_delete',
-        label: 'DB: Löschen',
-        description: 'Löscht ein Objekt aus der Datenbank.',
-        parameters: [
-            { name: 'target', label: 'DataStore Objekt', type: 'object', source: 'objects' },
-            { name: 'collection', label: 'Collection', type: 'string', placeholder: 'z.B. users' },
-            { name: 'id', label: 'ID des Objekts', type: 'string' },
-            { name: 'resultVariable', label: 'Erfolg (true/false) speichern in', type: 'variable', source: 'variables' }
-        ]
-    });
-
-    // 16. Bedingung (if/else)
-    actionRegistry.register('condition', async (action, context) => {
-        if (!action.condition) {
-            console.warn('[Action: condition] No condition specified');
-            return;
-        }
-
-        // Evaluate the condition
-        const evalContext = { ...context.contextVars, ...context.vars };
-        let result = false;
-        try {
-            result = ExpressionParser.evaluate(action.condition, evalContext);
-        } catch (e) {
-            console.error(`[Action: condition] Error evaluating condition "${action.condition}":`, e);
-        }
-
-        console.log(`[Action: condition] "${action.condition}" => ${result}`);
-
-        // Log result for DebugLogViewer
-        DebugLogService.getInstance().log('Condition', `${action.condition} => ${result}`, {
-            data: { type: 'condition', condition: action.condition, result }
-        });
-
-        // Execute body or elseBody based on result
-        if (result && action.body && Array.isArray(action.body)) {
-            // Execute each action in body
-            for (const bodyAction of action.body) {
-                const handler = actionRegistry.getHandler(bodyAction.type);
-                if (handler) {
-                    await handler(bodyAction, context);
-                } else {
-                    console.warn(`[Action: condition] Unknown action type in body: ${bodyAction.type}`);
-                }
-            }
-        } else if (!result && action.elseBody && Array.isArray(action.elseBody)) {
-            // Execute each action in elseBody
-            for (const elseAction of action.elseBody) {
-                const handler = actionRegistry.getHandler(elseAction.type);
-                if (handler) {
-                    await handler(elseAction, context);
-                } else {
-                    console.warn(`[Action: condition] Unknown action type in elseBody: ${elseAction.type}`);
-                }
-            }
-        }
-    }, {
-        type: 'condition',
-        label: 'Bedingung',
-        description: 'Führt Aktionen basierend auf einer Bedingung aus (If/Else).',
-        parameters: [
-            { name: 'condition', label: 'Bedingung (JS)', type: 'string', placeholder: 'z.B. user.score > 10' },
-            { name: 'body', label: 'Dann (Aktionen)', type: 'json' },
-            { name: 'elseBody', label: 'Sonst (Aktionen)', type: 'json' }
-        ]
-    });
-
-    // 17. HTTP Response (für TAPIServer Simulation)
+    // 17. HTTP Response (für TAPIServer / HttpServer)
     actionRegistry.register('respond_http', async (action, context) => {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         const requestId = PropertyHelper.interpolate(action.requestId || '', combinedContext, objects);
@@ -665,16 +459,20 @@ export function registerStandardActions(objects: any[]) {
             interpolateDeep(data);
         }
 
-        console.log(`[Action: respond_http] Responding to ${requestId} with status ${status}`);
-        serviceRegistry.call('HttpServer', 'respond', [requestId, status, data]);
+        if (requestId && serviceRegistry.has('HttpServer')) {
+            console.log(`[Action: respond_http] Responding to ${requestId} with status ${status}`);
+            await serviceRegistry.call('HttpServer', 'respond', [requestId, status, data]);
+        } else {
+            console.warn('[Action: respond_http] Konnte Antwort nicht senden. requestId fehlt oder HttpServer nicht registriert.');
+        }
     }, {
         type: 'respond_http',
-        label: 'HTTP: Antworten',
-        description: 'Sendet eine Antwort auf einen simulierten HTTP-Request.',
+        label: 'HTTP Antwort senden',
+        description: 'Sendet eine Antwort auf einen eingehenden HTTP-Request (nur im Server-Modus).',
         parameters: [
-            { name: 'requestId', label: 'Request ID', type: 'string' },
-            { name: 'status', label: 'Status Code', type: 'number', defaultValue: 200 },
-            { name: 'data', label: 'Antwort-Daten (JSON)', type: 'string' }
+            { name: 'requestId', label: 'Request ID', type: 'string', hint: 'Wird automatisch vom onRequest-Event bereitgestellt.' },
+            { name: 'status', label: 'HTTP Status', type: 'number', defaultValue: 200 },
+            { name: 'data', label: 'Antwort-Daten (JSON)', type: 'string', hint: 'Das Objekt, das als JSON gesendet wird.' }
         ]
     });
 }

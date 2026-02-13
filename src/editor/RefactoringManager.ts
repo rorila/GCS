@@ -152,10 +152,11 @@ export class RefactoringManager {
 
         // 3. Update object event bindings
         project.objects.forEach(obj => {
-            if (obj.Tasks) {
-                for (const event in obj.Tasks) {
-                    if (obj.Tasks[event] === oldName) {
-                        obj.Tasks[event] = newName;
+            const evts = (obj as any).events || (obj as any).Tasks;
+            if (evts) {
+                for (const event in evts) {
+                    if (evts[event] === oldName) {
+                        evts[event] = newName;
                     }
                 }
             }
@@ -207,10 +208,11 @@ export class RefactoringManager {
             project.stages.forEach(stage => {
                 if (stage.objects) {
                     stage.objects.forEach(obj => {
-                        if (obj.Tasks) {
-                            for (const event in obj.Tasks) {
-                                if (obj.Tasks[event] === oldName) {
-                                    obj.Tasks[event] = newName;
+                        const evts = (obj as any).events || (obj as any).Tasks;
+                        if (evts) {
+                            for (const event in evts) {
+                                if (evts[event] === oldName) {
+                                    evts[event] = newName;
                                 }
                             }
                         }
@@ -770,13 +772,24 @@ export class RefactoringManager {
         const report: string[] = [];
         if (!project) return report;
 
-        // 1. Clean up orphaned flow charts (Project + Stages)
-        const taskNames = new Set(project.tasks.map(t => t.name));
+        const taskNames = new Set<string>();
         if (project.stages) {
             project.stages.forEach(s => {
                 if (s.tasks) s.tasks.forEach(t => taskNames.add(t.name));
             });
         }
+
+        // Safety: Remove tasks from root project.tasks if they already exist in a stage
+        // This fixes the "Double Entry" bug in the Flow Editor dropdown
+        const rootTaskCountBefore = project.tasks.length;
+        project.tasks = project.tasks.filter(t => !taskNames.has(t.name));
+        if (project.tasks.length < rootTaskCountBefore) {
+            const diffSize = rootTaskCountBefore - project.tasks.length;
+            report.push(`${diffSize} doppelte globale Tasks wurden entfernt (bereits in Stages vorhanden).`);
+        }
+
+        // Now collect all names for flowChart cleanup (including the remaining root tasks)
+        project.tasks.forEach(t => taskNames.add(t.name));
         const cleanFlowCharts = (charts: Record<string, any> | undefined, label: string) => {
             if (!charts) return;
             Object.keys(charts).forEach(key => {

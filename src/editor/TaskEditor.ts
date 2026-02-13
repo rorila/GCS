@@ -22,14 +22,23 @@ export class TaskEditor {
         this.onSave = onSave;
 
         // Initialize from existing task or create new
-        let task = this.project.tasks.find(t => t.name === taskName);
+        // Search in active stage first, then all stages, then root (project.tasks)
+        const { task: foundTask } = this.findTaskAndContainer(taskName);
+        let task = foundTask;
         if (!task) {
+            // New task: create in active stage (not root)
+            const activeStage = this.project.stages?.find(s => s.id === this.project.activeStageId);
             task = { name: taskName, actionSequence: [] };
-            this.project.tasks.push(task);
+            if (activeStage) {
+                if (!activeStage.tasks) activeStage.tasks = [];
+                activeStage.tasks.push(task);
+            } else {
+                this.project.tasks.push(task);
+            }
         }
 
         // Migration: Convert old string[] to SequenceItem[] if needed
-        this.currentActionSequence = task.actionSequence.map(item => {
+        this.currentActionSequence = task.actionSequence.map((item: any) => {
             if (typeof item === 'string') {
                 // Old format: just action name string
                 return { type: 'action' as const, name: item };
@@ -1098,19 +1107,60 @@ export class TaskEditor {
     }
 
     private save() {
-        const taskIndex = this.project.tasks.findIndex(t => t.name === this.taskName);
+        // Search in active stage first, then all stages, then root
+        const { task } = this.findTaskAndContainer(this.taskName);
 
-        if (taskIndex !== -1) {
-            this.project.tasks[taskIndex].actionSequence = this.currentActionSequence;
+        if (task) {
+            task.actionSequence = this.currentActionSequence;
         } else {
-            this.project.tasks.push({
+            // New task: save to active stage
+            const activeStage = this.project.stages?.find(s => s.id === this.project.activeStageId);
+            const newTask = {
                 name: this.taskName,
                 actionSequence: this.currentActionSequence
-            });
+            };
+            if (activeStage) {
+                if (!activeStage.tasks) activeStage.tasks = [];
+                activeStage.tasks.push(newTask);
+            } else {
+                this.project.tasks.push(newTask);
+            }
         }
 
         this.onSave();
         this.close();
+    }
+
+    /**
+     * Searches for a task by name across active stage, all stages, and project root.
+     * Returns the task and its containing array.
+     */
+    private findTaskAndContainer(taskName: string): { task: any | null, container: any[] | null } {
+        // 1. Active stage (highest priority)
+        if (this.project.stages && this.project.activeStageId) {
+            const activeStage = this.project.stages.find(s => s.id === this.project.activeStageId);
+            if (activeStage?.tasks) {
+                const task = activeStage.tasks.find(t => t.name === taskName);
+                if (task) return { task, container: activeStage.tasks };
+            }
+        }
+
+        // 2. All other stages
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                if (stage.id === this.project.activeStageId) continue; // already checked
+                if (stage.tasks) {
+                    const task = stage.tasks.find(t => t.name === taskName);
+                    if (task) return { task, container: stage.tasks };
+                }
+            }
+        }
+
+        // 3. Root project.tasks (fallback)
+        const rootTask = this.project.tasks.find(t => t.name === taskName);
+        if (rootTask) return { task: rootTask, container: this.project.tasks };
+
+        return { task: null, container: null };
     }
 
     // ─────────────────────────────────────────────

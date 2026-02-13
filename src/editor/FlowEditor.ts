@@ -539,12 +539,14 @@ export class FlowEditor implements FlowMapHost {
             globalGroup.label = 'Global / Projekt (Infrastruktur)';
 
             const globalTasksFound = new Set<string>();
-            const stageTaskKeys = activeStage?.flowCharts ? Object.keys(activeStage.flowCharts) : [];
+            const stageTaskKeys = new Set<string>();
+            if (activeStage?.flowCharts) Object.keys(activeStage.flowCharts).forEach(k => stageTaskKeys.add(k));
+            if (activeStage?.tasks) activeStage.tasks.forEach(t => stageTaskKeys.add(t.name));
 
             // 1. Global tasks with flowchart
             if (this.project.flowCharts) {
                 Object.keys(this.project.flowCharts).forEach(key => {
-                    if (key !== 'global' && !stageTaskKeys.includes(key)) {
+                    if (key !== 'global' && !stageTaskKeys.has(key)) {
                         const opt = document.createElement('option');
                         opt.value = key;
                         opt.text = `Task: ${key}`;
@@ -557,7 +559,7 @@ export class FlowEditor implements FlowMapHost {
             // 2. Global tasks without flowchart
             if (this.project.tasks) {
                 this.project.tasks.forEach(task => {
-                    if (!globalTasksFound.has(task.name) && !stageTaskKeys.includes(task.name)) {
+                    if (!globalTasksFound.has(task.name) && !stageTaskKeys.has(task.name)) {
                         const opt = document.createElement('option');
                         opt.value = task.name;
                         opt.text = `Task: ${task.name}`;
@@ -1326,18 +1328,25 @@ export class FlowEditor implements FlowMapHost {
                 // Wait a tick for syncToProject to finish potential project state changes
                 setTimeout(() => {
                     const refs = projectRegistry.findReferences(nodeName);
-                    // Filter out references from the current overview/global list itself? 
-                    // No, findReferences is quite accurate. 
-                    // If 0 references remain, we ask.
+
                     if (refs.length === 0) {
-                        if (confirm(`Die Aktion "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch aus der globalen Aktions-Liste gelöscht werden?`)) {
+                        const isGenericName = /^Action\d*$/.test(nodeName) || /^Aktion\d*$/.test(nodeName) || nodeName === 'Aufruf';
+
+                        // Auto-Delete generic actions, ask for named ones
+                        if (isGenericName) {
+                            console.log(`[FlowEditor] Auto-Deleting orphaned generic action: ${nodeName}`);
                             this.deleteElementFromProject('Action', nodeName);
                             if (this.onProjectChange) this.onProjectChange();
+                        } else {
+                            if (confirm(`Die Aktion "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch aus der globalen Aktions-Liste gelöscht werden?`)) {
+                                this.deleteElementFromProject('Action', nodeName);
+                                if (this.onProjectChange) this.onProjectChange();
+                            }
                         }
                     } else {
                         console.log(`[FlowEditor] Action "${nodeName}" still has ${refs.length} references, keeping global definition.`);
                     }
-                }, 100);
+                }, 200);
             }
         }
     }

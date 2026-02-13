@@ -1,4 +1,63 @@
-# Changelog
+## [v2.16.19] - 2026-02-13
+### Fixed
+- **Action Visualisierungs-Synchronisation**: Vollständige Umsetzung der "Geraden Linie" zwischen Action-Editor und Flow-Editor.
+    - Der Flow-Editor nutzt nun primär das `details`-Feld aus dem JSON-Modell (`Single Source of Truth`).
+    - `JSONDialogRenderer.ts` generiert beim Speichern fachliche Beschreibungen (Pascal-Syntax).
+    - `FlowAction.ts` zeigt diese 1:1 an, was absolute Konsistenz garantiert.
+    - Synchronisation von Berechnungs-Aktionen (`calculate`) verbessert: Anzeige der Formel statt nur "(Berechnung)".
+    - Konsolidierung der Variablen-Anzeige (`variable`, `set_variable`).
+
+## [v2.16.18] - 2026-02-13
+### Fixed
+- **Calculate Action Save Fix**: Behebung des Datenverlusts von `resultVariable` und `formula` bei 'calculate' Actions.
+  - Ergänzung der `action: "updateValue"` Bindings für `CalcResultVariable` und `CalcFormulaInput` in `dialog_action_editor.json`.
+  - Erweiterung des `JSONDialogRenderer.ts` (`updateModelValue`), um auch `ResultVariableInput` (Service-Aktionen) korrekt auf `dialogData.resultVariable` zu mappen.
+  - Dies stellt sicher, dass manuelle Eingaben und Variablen-Picker-Einfügungen sofort im Modell persistiert werden.
+
+## [v2.16.17] - 2026-02-12
+### Fixed
+- Systemweite Vereinheitlichung der Event-Task-Zuordnung von `Tasks` auf `events`.
+- Behebung von Ladefehlern bei Stage-Events (onEnter, onLeave).
+- Korrektur der Speicherlogik im JSON-Inspektor für Event-Mappings (Schreiben in `events` statt `Tasks`).
+- Migration der Event-Anzeige im Inspector auf das `events`-Property.
+- Wiederherstellung fehlender Event-Mappings (PinPicker, LoginButton) und Tasks (AttemptLogin) in `project.json`.
+- Fallback-Support für Altdaten im `Tasks`-Feld in der Serialisierungs- und Auflösungslogik.
+- **Task Resolution Fix**: Implementierung einer robusten Auflösungslogik für punkt-separierte Task-Namen (z.B. `PinPicker.onSelect`).
+    - Unterstützung für Direct Resolution via `contextObj`.
+    - Vollständiger Fallback-Scan über alle Stages, Variablen und Legacy-Objekte.
+    - Optimiertes Warning-Handling: Unterdrückung von Warnungen für optionale Lifecycle-Events (`onStart`, `onLoad`, etc.).
+
+## v2.16.16 (2026-02-12)
+- **Calculate Action Fix**: Wiederherstellung und Erweiterung des `calculate` Typs.
+- **Formula Generation**: Der `ActionEditor` generiert nun automatisch eine JavaScript-konforme `formula` aus den visuellen Schritten.
+- **String/Emoji Support**: Operanden in Berechnungen unterstützen nun Text und Emojis (automatische Anführung in der Formel).
+- **Visibility Fix**: Der Typ 'calculate' ist nun zuverlässig in allen Action-Dropdowns (Inspector & Dialoge) sichtbar. Korrektur der hartcodierten Mapping-Logik in `JSONDialogRenderer.ts` und Ergänzung in `dialog_action_editor.json`.
+- **Method Mapping**: Beim Hinzufügen neuer Komponenten-Klassen muss deren Methoden-Liste in `JSONDialogRenderer.getMethodsForObject` ergänzt werden, damit sie im Action Editor auftaucht.
+- **Pascal Sync**: Der Pascal-Generator und -Parser wurden erweitert, um komplexe Berechnungen (`Var := A + B`) zu unterstützen und Bidirektionalität zu gewährleisten.
+- **Typen-Update**: `GameAction` unterstützt nun das Feld `formula` für die Runtime-Ausführung.
+
+## v2.16.15 (2026-02-12)
+- **Task-Sync Fix**: Korrektur der Task-Synchronisation nach Umbenennung im Inspector.
+- **Refactoring Fix**: Statischer Import des `RefactoringManager` in `FlowElement.ts` für zuverlässigere projektweite Umbenennungen.
+- **Hygiene**: Automatische Bereinigung von Task-Duplikaten (Root vs. Stage) in `RefactoringManager.sanitizeProject`.
+- **UI**: Verbessertes Filtering im Flow-Editor Dropdown zur Vermeidung von redundanten Einträgen.
+
+## v2.16.14 (2026-02-12)
+
+## v2.16.13 (2026-02-12)
+- **Bereinigung (project.json)**: Vollständiger Neustart – alle Tasks, Actions und FlowCharts entfernt. JSON-Schlüssel korrigiert (`events`-Arrays → korrekt `tasks`).
+- **Variablen-Hosting**: Globale Variablen werden jetzt ausschließlich in `stage_blueprint` gehostet (keine Duplikate mehr in `project.variables`).
+- **Objekte-Hosting**: Globale Objekte werden jetzt ausschließlich in `stage_blueprint` gehostet (`project.objects` geleert). Doppelter Toaster entfernt.
+- **Code**: `ProjectRegistry.getVariables()` lädt globale Variablen nun aus der Blueprint-Stage (primäre Quelle) und dedupliziert korrekt bei aktiver Blueprint-Ansicht.
+
+## v2.16.12 (2026-02-12)
+- **Fix (Flow-Editor)**: Löschen von Aktionen im Flow-Diagramm entfernt nun auch verwaiste Aktions-Definitionen aus dem Projekt-JSON (Smart Delete).
+    - Generische Aktionen (z.B. `Action1`, `Aufruf`) werden automatisch bereinigt.
+    - Bei benannten Aktionen erfolgt eine Sicherheitsabfrage.
+- **Fix (Projekt-Daten)**: Bereinigung duplizierter globaler Variablen in `stage_login`, die fälschlicherweise als lokale Kopien gespeichert wurden.
+- **Refactoring (ProjectRegistry)**: `getActionUsage` berücksichtigt nun auch visuelle Referenzen in FlowCharts, um versehentliches Löschen verwendeter Aktionen zu verhindern.
+- **Fix (Blueprint)**: Wiederherstellung der visuellen Variablen in `stage_blueprint` und Implementierung einer Deduplizierungslogik in `ProjectRegistry` (Stage > Global).
+- **Refactoring (JSON)**: Umbenennung des Legacy-Keys `Tasks` (Events) zu `events` in `project.json`, `GameRuntime.ts` und Templates, um Namenskonflikte mit dem `tasks`-Array (Logik) zu beheben.
 
 ## v2.16.11
 - Verbesserung (Debug-Log): Tooltips für lange Zeilen hinzugefügt und manuelle Text-Kürzungen entfernt.

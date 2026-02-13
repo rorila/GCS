@@ -36,7 +36,7 @@ export class TaskExecutor {
 
     async execute(taskName: string, vars: Record<string, any>, globalVars: Record<string, any>, contextObj?: any, depth: number = 0, parentId?: string, params?: Record<string, any>, isRemoteExecution: boolean = false): Promise<void> {
         if (depth >= TaskExecutor.MAX_DEPTH) {
-            console.error(`[TaskExecutor] Max recursion depth exceeded: ${taskName} `);
+            console.error(`[TaskExecutor] Max recursion depth exceeded: ${taskName}`);
             return;
         }
 
@@ -57,58 +57,104 @@ export class TaskExecutor {
         if (!task && taskName.includes('.')) {
             const [objName, evtName] = taskName.split('.');
             let foundTaskName = '';
+            let objectFound = false;
 
-            const findDeep = (objs: any[]): any => {
-                for (const o of objs) {
-                    if (o.name === objName || o.id === objName) return o;
-                    if (o.children && o.children.length > 0) {
-                        const found = findDeep(o.children);
-                        if (found) return found;
+            // STRATEGY 1: Check Context Object directly (Robust & Fast)
+            if (contextObj && (contextObj.name === objName || contextObj.id === objName)) {
+                objectFound = true;
+                const evts = (contextObj as any).events || (contextObj as any).Tasks;
+                if (evts && evts[evtName]) {
+                    foundTaskName = evts[evtName];
+                    console.log(`[TaskExecutor] Resolved "${taskName}" via direct contextObj match: "${foundTaskName}"`);
+                }
+            }
+
+            if (!foundTaskName) {
+                const findDeep = (objs: any[]): any => {
+                    for (const o of objs) {
+                        if (o.name === objName || o.id === objName) return o;
+                        if (o.children && o.children.length > 0) {
+                            const found = findDeep(o.children);
+                            if (found) return found;
+                        }
+                    }
+                    return null;
+                };
+
+                // STRATEGY 2: Search in all stages (Standard)
+                this.project.stages?.forEach(s => {
+                    if (foundTaskName) return;
+
+                    // Search in objects
+                    const obj = findDeep(s.objects || []);
+                    if (obj) {
+                        objectFound = true;
+                        if ((obj.events || obj.Tasks) && (obj.events || obj.Tasks)[evtName]) {
+                            foundTaskName = (obj.events || obj.Tasks)[evtName];
+                        }
+                    }
+
+                    // Search in stage variables
+                    if (!foundTaskName && s.variables) {
+                        const v = s.variables.find((v: any) => v.name === objName);
+                        if (v) {
+                            objectFound = true;
+                            if ((v as any).events && (v as any).events[evtName]) {
+                                foundTaskName = (v as any).events[evtName];
+                            } else if ((v as any).Tasks && (v as any).Tasks[evtName]) {
+                                foundTaskName = (v as any).Tasks[evtName];
+                            }
+                        }
+                    }
+                });
+
+                // STRATEGY 3: Search in global project variables
+                if (!foundTaskName && this.project.variables) {
+                    const v = this.project.variables.find((v: any) => v.name === objName);
+                    if (v) {
+                        objectFound = true;
+                        if ((v as any).events && (v as any).events[evtName]) {
+                            foundTaskName = (v as any).events[evtName];
+                        } else if ((v as any).Tasks && (v as any).Tasks[evtName]) {
+                            foundTaskName = (v as any).Tasks[evtName];
+                        }
                     }
                 }
-                return null;
-            };
 
-            // Search in objects (recursive) and variables of all stages
-            this.project.stages?.forEach(s => {
-                if (foundTaskName) return;
-
-                // Search in objects
-                const obj = findDeep(s.objects || []);
-                if (obj && obj.Tasks && obj.Tasks[evtName]) {
-                    foundTaskName = obj.Tasks[evtName];
-                }
-
-                // Search in stage variables
-                if (!foundTaskName && s.variables) {
-                    const v = s.variables.find((v: any) => v.name === objName);
-                    if (v && (v as any).Tasks && (v as any).Tasks[evtName]) {
-                        foundTaskName = (v as any).Tasks[evtName];
+                // STRATEGY 4: Search in legacy project objects
+                if (!foundTaskName && this.project.objects) {
+                    const obj = findDeep(this.project.objects);
+                    if (obj) {
+                        objectFound = true;
+                        if ((obj.events || obj.Tasks) && (obj.events || obj.Tasks)[evtName]) {
+                            foundTaskName = (obj.events || obj.Tasks)[evtName];
+                        }
                     }
-                }
-            });
-
-            // Search in global project variables
-            if (!foundTaskName && this.project.variables) {
-                const v = this.project.variables.find((v: any) => v.name === objName);
-                if (v && (v as any).Tasks && (v as any).Tasks[evtName]) {
-                    foundTaskName = (v as any).Tasks[evtName];
                 }
             }
 
             if (foundTaskName) {
-                console.log(`[TaskExecutor] Resolved "${taskName}" to assigned task: "${foundTaskName}"`);
+                console.log(`[TaskExecutor] Final resolution for "${taskName}": "${foundTaskName}"`);
                 return this.execute(foundTaskName, vars, globalVars, contextObj, depth + 1, parentId, params, isRemoteExecution);
             }
+
+            // Only warn if it's NOT an optional event and NOT found
+            const optionalEvents = ['onStart', 'onStop', 'onValueChanged', 'onLoad', 'onUnload', 'onFocus', 'onBlur', 'onEnter', 'onLeave'];
+            const isOptionalEvent = optionalEvents.includes(evtName);
+
+            if (!isOptionalEvent) {
+                if (objectFound) {
+                    console.warn(`[TaskExecutor] Object "${objName}" found, but no task mapping for event "${evtName}".`);
+                } else {
+                    console.warn(`[TaskExecutor] Could not resolve dot-notation "${taskName}". Object "${objName}" not found in current project.`);
+                }
+            }
+            return;
         }
 
         if (!task) {
-            // Only warn for task names that look intentional (not just lifecycle events without handlers)
-            const optionalEvents = ['onStart', 'onStop', 'onValueChanged', 'onLoad', 'onUnload', 'onFocus', 'onBlur', 'onEnter', 'onLeave'];
-            const isOptionalEvent = optionalEvents.some(evt => taskName.endsWith(`.${evt}`));
-            if (!isOptionalEvent) {
-                console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
-            }
+            // This is for direct task calls (not dot-notation)
+            console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
             return;
         }
 
@@ -152,7 +198,7 @@ export class TaskExecutor {
             }
         }
 
-        const taskLogId = DebugLogService.getInstance().log('Task', `START: ${taskName} `, {
+        const taskLogId = DebugLogService.getInstance().log('Task', `START: ${taskName}`, {
             parentId,
             objectName: contextObj?.name
         });

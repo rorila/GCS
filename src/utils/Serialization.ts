@@ -484,12 +484,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 (newObj as any).style = targetStyle;
             }
 
-            // Restore Tasks (Explicit handling)
+            // Restore events (with fallback for 'Tasks')
+            newObj.events = objData.events || objData.Tasks || {};
 
-            // Restore Tasks
-            if (objData.Tasks) {
-                newObj.Tasks = objData.Tasks;
-            }
 
             // Restore children for container components (TDialogRoot, TPanel)
             if (objData.children && Array.isArray(objData.children) && objData.children.length > 0) {

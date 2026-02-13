@@ -306,20 +306,22 @@ export class FlowAction extends FlowElement {
     private getActionDetails(action: GameAction | undefined): string {
         if (!action) return '(nicht definiert)';
 
-        // If this node has parent parameters (e.g. it is part of an expanded library task),
-        // we interpolate the action logic visually to show concrete values.
+        // 1. Interpolation für "Ghost Nodes" (Library Tasks)
+        // Falls dieser Knoten Parameter vom Parent hat, interpolieren wir die Werte für die Anzeige.
         let displayAction = action;
         if (this.data?.parentParams) {
             try {
-                // Create a clone for display interpolation to avoid mutating the original
                 const clonedAction = JSON.parse(JSON.stringify(action));
 
-                // Interpolate target
-                if (clonedAction.target) {
-                    clonedAction.target = ExpressionParser.interpolate(clonedAction.target, this.data.parentParams);
+                // Interpolate details template if exists
+                if (clonedAction.details) {
+                    clonedAction.details = ExpressionParser.interpolate(clonedAction.details, this.data.parentParams);
                 }
 
-                // Interpolate changes
+                // Interpolate other fields for fallback generation
+                if (clonedAction.target) clonedAction.target = ExpressionParser.interpolate(clonedAction.target, this.data.parentParams);
+                if (clonedAction.formula) clonedAction.formula = ExpressionParser.interpolate(clonedAction.formula, this.data.parentParams);
+
                 const changes = clonedAction.changes || (clonedAction as any).propertyChanges;
                 if (changes) {
                     Object.keys(changes).forEach(prop => {
@@ -333,50 +335,43 @@ export class FlowAction extends FlowElement {
             }
         }
 
-        if (!displayAction) {
-            return '(Keine Action-Definition gefunden)';
+        // 2. Single Source of Truth: Priorisiere das generierte 'details' Feld aus dem JSON
+        if ((displayAction as any).details) {
+            return (displayAction as any).details;
         }
 
-        console.log('[FlowAction] getActionDetails - action:', JSON.stringify(displayAction, null, 2));
-
+        // 3. Fallback: Manuelle Generierung (falls details im JSON fehlt)
         if (displayAction.type === 'property') {
-            // Try multiple possible locations for changes
             const changes = displayAction.changes || (displayAction as any).propertyChanges || {};
             const entries = Object.entries(changes);
-            console.log('[FlowAction] property changes:', changes, 'entries:', entries);
-
             if (entries.length === 0) {
-                // Show target if available, otherwise show what we have
-                if (displayAction.target) {
-                    return `${displayAction.target} (keine Änderungen)`;
-                }
-                return '(property - keine Details)';
+                return displayAction.target ? `${displayAction.target} (keine Änderungen)` : '(property)';
             }
-
-            return entries
-                .map(([prop, value]) => `${displayAction.target}.${prop} := ${value} `)
-                .join('; ');
+            return entries.map(([prop, value]) => `${displayAction.target}.${prop} := ${value}`).join('; ');
         }
 
-        if (displayAction.type === 'variable') {
-            return `${displayAction.variableName} := ${displayAction.source}.${displayAction.sourceProperty} `;
+        if (displayAction.type === 'variable' || displayAction.type === 'set_variable') {
+            const varName = (displayAction as any).variableName || (displayAction as any).variable || '???';
+            if (displayAction.source) {
+                return `${varName} := ${displayAction.source}.${displayAction.sourceProperty}`;
+            }
+            return `${varName} := ${displayAction.value}`;
         }
 
         if (displayAction.type === 'service') {
-            const result = displayAction.resultVariable ? `${displayAction.resultVariable} := ` : '';
-            return `${result}${displayAction.service}.${displayAction.method} ()`;
+            const result = (displayAction as any).resultVariable ? `${(displayAction as any).resultVariable} := ` : '';
+            return `${result}${displayAction.service}.${displayAction.method}()`;
         }
 
         if (displayAction.type === 'calculate') {
-            const result = displayAction.resultVariable ? `${displayAction.resultVariable} := ` : '';
-            return `${result} (Berechnung)`;
+            const result = (displayAction as any).resultVariable ? `${(displayAction as any).resultVariable} := ` : '';
+            return `${result}${(displayAction as any).formula || '(Berechnung)'}`;
         }
 
         if (displayAction.type === 'call_method') {
-            // Cast to access properties that might be missing in strict type (until generic params are fully typed)
             const da = displayAction as any;
             const params = da.params ? (Array.isArray(da.params) ? da.params.join(', ') : da.params) : '';
-            return `${da.target}.${da.method} (${params})`;
+            return `${da.target}.${da.method}(${params})`;
         }
 
         return `(${displayAction.type})`;
