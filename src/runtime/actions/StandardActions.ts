@@ -313,7 +313,23 @@ export function registerStandardActions(objects: any[]) {
         if (serviceRegistry.has('ApiSimulator')) {
             console.log(`[Action: http] Using API Simulation for: ${method} ${url}`);
             try {
-                const result = await serviceRegistry.call('ApiSimulator', 'request', [method, url, parsedBody]);
+                let result = await serviceRegistry.call('ApiSimulator', 'request', [method, url, parsedBody]);
+
+                // Smart-Mapping: Extract path if specified
+                if (action.resultPath && result) {
+                    const parts = action.resultPath.split('.');
+                    let current = result;
+                    for (const part of parts) {
+                        if (current && current[part] !== undefined) {
+                            current = current[part];
+                        } else {
+                            current = undefined;
+                            break;
+                        }
+                    }
+                    result = current;
+                }
+
                 if (action.resultVariable) {
                     context.vars[action.resultVariable] = result;
                     context.contextVars[action.resultVariable] = result;
@@ -337,7 +353,22 @@ export function registerStandardActions(objects: any[]) {
             if (body) options.body = body;
 
             const response = await fetch(url, options);
-            const data = await response.json();
+            let data = await response.json();
+
+            // Smart-Mapping: Extract path if specified
+            if (action.resultPath && data) {
+                const parts = action.resultPath.split('.');
+                let current = data;
+                for (const part of parts) {
+                    if (current && current[part] !== undefined) {
+                        current = current[part];
+                    } else {
+                        current = undefined;
+                        break;
+                    }
+                }
+                data = current;
+            }
 
             if (action.resultVariable) {
                 context.vars[action.resultVariable] = data;
@@ -358,7 +389,8 @@ export function registerStandardActions(objects: any[]) {
             { name: 'url', label: 'URL', type: 'string' },
             { name: 'method', label: 'Methode', type: 'select', options: ['GET', 'POST', 'PUT', 'DELETE'], defaultValue: 'GET' },
             { name: 'body', label: 'Body (JSON-String oder Objekt)', type: 'string' },
-            { name: 'resultVariable', label: 'Ergebnis speichern in', type: 'variable', source: 'variables' }
+            { name: 'resultVariable', label: 'Ergebnis speichern in', type: 'variable', source: 'variables' },
+            { name: 'resultPath', label: 'Daten-Pfad (Selektor)', type: 'string', hint: 'Optional: Pfad zum Objekt in der Response (z.B. "user")' }
         ]
     });
 
@@ -446,7 +478,7 @@ export function registerStandardActions(objects: any[]) {
     });
 
     // 18. Execute Login Request (Primitive Action for SubmitLogin DataAction)
-    actionRegistry.register('execute_login_request', async (action, context) => {
+    actionRegistry.register('execute_login_request', async (_action, context) => {
         const pin = context.vars['currentPIN'] || context.contextVars['currentPIN'];
 
         console.log('[Action: execute_login_request] Attempting login with PIN:', pin);

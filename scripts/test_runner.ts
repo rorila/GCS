@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { runLoginTests, TestResult } from './test_login_logic.js'; // Note the .js extension for ESM imports
+import { runSmartMappingTests } from './test_smart_mapping.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,8 +39,9 @@ function generateReport(results: TestResult[]) {
     markdown += `| :--- | :--- | :--- | :--- | :--- | :--- |\n`;
 
     results.forEach(r => {
-        const gutSchlecht = r.type === 'Happy Path' ? '✅ **Gut-Test**' : '🛡️ **Schlecht-Test**';
-        markdown += `| ${r.name} | ${r.type} | ${gutSchlecht} | ${r.expectedSuccess ? 'Login OK' : 'Abgelehnt'} | ${r.actualSuccess ? 'Login OK' : 'Abgelehnt'} | ${r.passed ? '✅' : '❌'} |\n`;
+        const gutSchlecht = (r.type === 'Happy Path' || r.type === 'Smart Mapping' || r.type === 'Discovery') ? '✅ **Gut-Test**' : '🛡️ **Schlecht-Test**';
+        const detailInfo = r.details ? `<br><small>${r.details}</small>` : '';
+        markdown += `| ${r.name}${detailInfo} | ${r.type} | ${gutSchlecht} | ${r.expectedSuccess ? 'OK/Erwartet' : 'Abgelehnt'} | ${r.actualSuccess ? 'OK/Erhalten' : 'Abgelehnt'} | ${r.passed ? '✅' : '❌'} |\n`;
     });
 
     markdown += `\n---\n*Hinweis: Dieser Bericht wurde automatisch vom GCS Regression Test Runner erstellt.*`;
@@ -59,13 +61,19 @@ async function main() {
 
     try {
         // 1. Logic Tests
-        console.log('🏃 Starte Logik-Tests...');
-        const results = await runLoginTests();
+        console.log('🏃 Starte Logik-Tests (Login)...');
+        const loginResults = await runLoginTests();
 
-        // 2. Report Generation
-        generateReport(results);
+        // 2. Smart Mapping & Discovery Tests
+        console.log('🏃 Starte Smart Mapping & Discovery Tests...');
+        const smartResults = await runSmartMappingTests();
 
-        if (results.every(r => r.passed)) {
+        const allResults = [...loginResults, ...smartResults];
+
+        // 3. Report Generation
+        generateReport(allResults);
+
+        if (allResults.every(r => r.passed)) {
             console.log('\n✅ ALLE KRITISCHEN PFADE VERIFIZIERT');
             process.exit(0);
         } else {

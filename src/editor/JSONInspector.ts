@@ -12,6 +12,7 @@ import { changeRecorder } from '../services/ChangeRecorder';
 import { componentRegistry } from '../services/ComponentRegistry';
 import { MediatorService } from '../services/MediatorService';
 import { registerStandardActions } from '../runtime/actions/StandardActions';
+import { dataService } from '../services/DataService';
 // import { MediatorEvents } from '../services/MediatorService';
 
 type InspectorTab = 'properties' | 'events';
@@ -286,6 +287,22 @@ export class JSONInspector {
             this.runtime.registerVariable('availableVariables', variables.map(v => v.name));
             this.runtime.registerVariable('availableVariablesWithScope', variables.map(v => ({ value: v.name, label: `${v.uiEmoji || ''} ${v.name}` })));
             this.runtime.registerVariable('availableVariablesAsTokens', variables.map(v => ({ value: `\${${v.name}}`, label: `${v.uiEmoji || ''} ${v.name}` })));
+
+            // Available Database Models for Discovery
+            const storagePath = object.storagePath || 'data.json';
+            let models = await dataService.getModels(storagePath);
+
+            // Fallback: If no models found and we are dev/localhost, try to seed once
+            if (models.length === 0 && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+                console.warn(`[JSONInspector] No models found in '${storagePath}'. Attempting auto-seed from server...`);
+                await dataService.seedFromUrl(storagePath, '/api/dev/data/db.json');
+                models = await dataService.getModels(storagePath);
+                console.log(`[JSONInspector] Post-seed models: ${models.join(', ')}`);
+            }
+
+            this.runtime.registerVariable('availableModels', models);
+            console.log(`[JSONInspector] availableModels registered for ${storagePath}:`, models);
+
             this.runtime.registerVariable('getAllActionTypes', () => {
                 const registered = actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
                 if (registered.length > 0) return registered;
@@ -1013,8 +1030,7 @@ export class JSONInspector {
                     // Dynamic Source from ProjectRegistry
                     if (prop.source) {
                         if (prop.source === 'variables') {
-                            const vars = projectRegistry.getVariables();
-                            options = vars.map(v => v.name);
+                            options = projectRegistry.getVariables().map(v => v.name);
                         } else if (prop.source === 'tasks') {
                             options = projectRegistry.getTasks().map(t => t.name);
                         } else if (prop.source === 'objects') {
@@ -1024,14 +1040,22 @@ export class JSONInspector {
                         } else if (prop.source === 'availableActions') {
                             // Use the filtered list from Editor.ts
                             options = this.runtime.getVariable('availableActions') || [];
+                        } else if (prop.source === 'availableModels') {
+                            options = this.runtime.getVariable('availableModels') || [];
+                            console.log(`[JSONInspector] Populating ${prop.name} from availableModels:`, options);
                         }
+                    }
+
+
+                    if (prop.name === 'type') {
+                        console.log(`[JSONInspector] Creating TDropdown config for 'type'. Binding: ${binding}`);
                     }
 
                     uiObjects.push({
                         className: 'TDropdown',
                         name: inputName,
                         options: options,
-                        selectedValue: binding
+                        selectedValue: prop.selectedValue !== undefined ? prop.selectedValue : binding
                     });
                 } else if (prop.type === 'image_picker') {
                     // Image picker: Text input + Browse button
@@ -1507,6 +1531,9 @@ export class JSONInspector {
     private renderPropertiesTab(wrapper: HTMLElement) {
         // Group label+input pairs for inline rendering
         const groupedObjects: any[] = [];
+        // debug: trace objects list
+        // console.log(`[JSONInspector] renderPropertiesTab objects count: ${this.inspectorObjects.length}`);
+
         for (let i = 0; i < this.inspectorObjects.length; i++) {
             const obj = this.inspectorObjects[i];
             const nextObj = this.inspectorObjects[i + 1];
@@ -1526,10 +1553,18 @@ export class JSONInspector {
             if (obj.className === 'TLabel' && isNextInput) {
                 // Group them together
                 groupedObjects.push({ label: obj, input: nextObj, type: 'inline' });
+
+                if (nextObj.name === 'typeInput' || nextObj.name === 'type') {
+                    console.log(`[JSONInspector] Grouped 'type' input via inline row. Input Class: ${nextObj.className}`);
+                }
+
                 i++; // Skip next object
             } else {
                 // Standalone object
                 groupedObjects.push({ object: obj, type: 'standalone' });
+                if (obj.name === 'typeInput' || obj.name === 'type') {
+                    console.log(`[JSONInspector] 'type' input is STANDALONE (not grouped). Class: ${obj.className}`);
+                }
             }
         }
 
@@ -1589,6 +1624,10 @@ export class JSONInspector {
         // Determine if property is currently bound
         const currentVal = input.checked ?? input.value ?? input.text ?? input.selectedValue ?? input.color ?? '';
         let isBound = typeof currentVal === 'string' && currentVal.startsWith('${');
+
+        if (input.name === 'typeInput' || input.name === 'type') {
+            // console.log(`[JSONInspector] renderInlineRow for 'type'. Class: ${input.className}, isBound: ${isBound}, currentVal: ${currentVal}`);
+        }
 
         // Store original type to allow switching back
         if (!input._originalClassName) {
@@ -1734,6 +1773,7 @@ export class JSONInspector {
      * Renders just the input element (without wrapper)
      */
     private renderInput(obj: any): HTMLElement | null {
+        // console.log(`[JSONInspector] renderInput called for: ${obj.name} (${obj.className})`);
         const className = obj.className;
 
         if (className === 'TEdit') {
@@ -1873,6 +1913,9 @@ export class JSONInspector {
             select.style.fontSize = '11px';
             select.style.cursor = 'pointer';
 
+            // debug: TDropdown value resolution
+            // console.log(`[JSONInspector] Rendering TDropdown for ${obj.name}. selectedValue: ${obj.selectedValue}`);
+
             // Resolve selectedValue binding for initial render
             let selectedVal = obj.selectedValue || '';
             let bindingExpression: string | null = null;
@@ -1880,6 +1923,11 @@ export class JSONInspector {
                 const expr: string = selectedVal;
                 bindingExpression = expr;
                 const resolved = this.runtime.evaluate(expr);
+
+                if (obj.name === 'typeInput' || obj.name === 'type') {
+                    console.log(`[JSONInspector] TDropdown 'type' binding resolution:`, { expr, resolved });
+                }
+
                 selectedVal = resolved !== undefined && resolved !== null ? String(resolved) : '';
             }
 
@@ -1892,6 +1940,11 @@ export class JSONInspector {
                 option.value = val;
                 option.text = label;
                 option.selected = String(val) === String(selectedVal);
+
+                if ((obj.name === 'typeInput' || obj.name === 'type') && option.selected) {
+                    console.log(`[JSONInspector] TDropdown 'type' SELECTED option:`, val);
+                }
+
                 select.appendChild(option);
             });
 
@@ -2899,8 +2952,7 @@ export class JSONInspector {
      * Handles object changes (input, etc.)
      */
     private handleObjectChange(obj: any) {
-        console.log('[JSONInspector] Object changed:', obj.name, obj);
-        console.log(`[JSONInspector] handleObjectChange for: ${obj.name || 'unnamed'}, value:`, (obj.selectedValue !== undefined ? obj.selectedValue : obj.text));
+        console.log(`%c[JSONInspector] handleObjectChange for: ${obj.name || 'unnamed'}, value: ${obj.selectedValue !== undefined ? obj.selectedValue : obj.value}`, 'color: #ff9800; font-weight: bold');
 
         // Get selectedObject
         const selectedObject = this.runtime.getVariable('selectedObject');
@@ -3080,15 +3132,27 @@ export class JSONInspector {
             }
         } else {
             // Simple property - write directly
+            console.log(`[JSONInspector] Property update: ${propertyName} = ${value} (Object: ${selectedObject.name}, Class: ${selectedObject.constructor.name})`);
+
+            // ARC-CLEAN: If it's a variable type change, skip direct assignment and trigger morph
+            if ((propertyName === 'type' || propertyName === 'variableType') && selectedObject.isVariable && this.editor) {
+                console.log(`%c[JSONInspector] MORPH TRIGGERED for ${selectedObject.name} -> ${value}`, 'color: #ff9800; font-weight: bold; font-size: 14px;');
+                this.editor.morphVariable(selectedObject, value);
+                return; // Morph handles re-selection and rendering
+            }
+
             selectedObject[propertyName] = value;
         }
 
-        // If resource or queryProperty changed, we likely need to update UI structure (visibility)
+        // If resource, queryProperty or type/variableType changed, we likely need to update UI structure (visibility)
         // or fetch new metadata (properties)
         if (propertyName === 'resource' || propertyName === 'queryProperty') {
+            console.log(`[JSONInspector] Structural property change: ${propertyName}.`);
             if (propertyName === 'resource') {
                 this.fetchResourceProperties(value);
             }
+
+            console.log(`[JSONInspector] Re-rendering due to property: ${propertyName}`);
             this.render();
         }
 

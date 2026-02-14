@@ -1,5 +1,5 @@
 import { Stage } from './Stage';
-import { GameProject, StageType, StageDefinition, GameAction, GameTask, ProjectVariable } from '../model/types';
+import { GameProject, StageType, StageDefinition, GameAction, GameTask, ProjectVariable, VariableType } from '../model/types';
 import { TWindow } from '../components/TWindow';
 import { TGameLoop } from '../components/TGameLoop';
 import { TDebugLog } from '../components/TDebugLog';
@@ -37,6 +37,8 @@ import { projectPersistenceService } from '../services/ProjectPersistenceService
 import { EditorCommandManager } from './services/EditorCommandManager';
 import { EditorRunManager } from './services/EditorRunManager';
 import { dataService } from '../services/DataService';
+import { componentRegistry } from '../services/ComponentRegistry';
+import { TVariable } from '../components/TVariable';
 
 export class Editor implements IViewHost {
     public stage: Stage;
@@ -159,7 +161,8 @@ export class Editor implements IViewHost {
 
         // Auto-seed important data from server for the Editor simulator (Dev Mode)
         if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-            dataService.seedFromUrl('users.json', '/api/dev/data/users.json');
+            // Seed initial data if available (ignoring 404 errors for optional data)
+            dataService.seedFromUrl('data.json', '/api/dev/data/db.json');
         }
 
         // Register Mock HttpServer for API Simulation in Editor
@@ -407,6 +410,10 @@ export class Editor implements IViewHost {
 
     public autoSaveToLocalStorage() {
         this.updateProjectJSON();
+
+        const globalVarCount = (this.project.variables || []).length;
+        const totalStageVarCount = (this.project.stages || []).reduce((acc, s) => acc + (s.variables?.length || 0), 0);
+        console.log(`%c[Editor] autoSaveToLocalStorage triggered (Global Vars: ${globalVarCount}, Stage Vars: ${totalStageVarCount})`, 'color: #9c27b0; font-weight: bold;');
     }
 
 
@@ -2216,6 +2223,19 @@ export class Editor implements IViewHost {
             case 'save-as-template':
                 this.saveStageAsTemplate();
                 break;
+            case 'seed-data':
+                if (confirm('Achtung: Dies überschreibt lokale Test-Daten (gcs_db_data.json) mit den Server-Daten. Fortfahren?')) {
+                    Promise.all([
+                        dataService.seedFromUrl('users.json', '/api/dev/data/users.json'),
+                        dataService.seedFromUrl('data.json', '/api/dev/data/db.json')
+                    ]).then(() => {
+                        alert('Daten erfolgreich geladen. Die Seite wird neu geladen.');
+                        window.location.reload();
+                    }).catch(err => {
+                        alert('Fehler beim Seeden: ' + err.message);
+                    });
+                }
+                break;
             default:
                 // Prüfe ob es eine Stage-Switch-Aktion ist
                 // Robustere Prüfung für Leerzeichen (z.B. "switch-stage - main")
@@ -2372,6 +2392,131 @@ export class Editor implements IViewHost {
         }
     }
 
+    /**
+     * Morphs a variable from one type to another by replacing its instance.
+     */
+    public morphVariable(variable: TVariable, newType: VariableType) {
+        console.log(`%c[Editor] MORPH START: "${variable.name}" (${variable.type} -> ${newType})`, 'color: #00bcd4; font-weight: bold; font-size: 14px;');
+        console.log(`[Editor] Current variable instance:`, variable);
+
+        // 1. Determine new class name
+        const classNameMap: Record<string, string> = {
+            'integer': 'TIntegerVariable',
+            'real': 'TRealVariable',
+            'string': 'TStringVariable',
+            'boolean': 'TBooleanVariable',
+            'object': 'TObjectVariable',
+            'object_list': 'TObjectList',
+            'list': 'TListVariable',
+            'timer': 'TTimer',
+            'threshold': 'TThresholdVariable',
+            'trigger': 'TTriggerVariable',
+            'random': 'TRandomVariable',
+            'range': 'TRangeVariable',
+            'keystore': 'TKeyStore'
+        };
+        const newClassName = classNameMap[newType] || 'TVariable';
+
+        // 2. Create new instance
+        const newInstance = componentRegistry.createInstance({
+            className: newClassName,
+            name: variable.name,
+            x: (variable as any).x || 0,
+            y: (variable as any).y || 0
+        }) as TVariable;
+
+        if (!newInstance) {
+            console.error(`[Editor] Failed to create instance for morphing to ${newClassName}`);
+            return;
+        }
+        console.log(`[Editor] SUCCESS: Created new ${newClassName} instance. ID: ${newInstance.id}, Class: ${newInstance.constructor.name}`);
+        console.log(`[Editor] DEBUG: Instance Type Check: Type=${(newInstance as any).type}, value is object?: ${typeof (newInstance as any).value === 'object'}`);
+
+        // 3. Copy State
+        newInstance.id = variable.id; // CRITICAL: Keep ID
+        newInstance.scope = variable.scope;
+        if (variable.events) {
+            newInstance.events = { ...variable.events };
+        }
+
+        // Data conversion
+        if (newType === 'object') {
+            newInstance.value = (typeof variable.value === 'object' && variable.value !== null) ? variable.value : {};
+        } else {
+            // Try to keep value if same basic type? Or rely on constructor defaults?
+            // For now, let's try to preserve it
+            newInstance.value = variable.value;
+        }
+
+        // 4. Replace in Project/Stage
+        // CRITICAL: Ensure we replace in ALL possible locations to prevent stale duplicates
+        let replacedCount = 0;
+
+        // Global list
+        const gIdx = this.project.variables.findIndex(v => v.id === variable.id);
+        if (gIdx !== -1) {
+            this.project.variables[gIdx] = newInstance;
+            replacedCount++;
+            console.log(`[Editor] Replaced in project.variables[${gIdx}]`);
+        }
+
+        // Stage lists
+        this.project.stages?.forEach(stage => {
+            if (stage.variables) {
+                const sIdx = stage.variables.findIndex((v: any) => v.id === variable.id);
+                if (sIdx !== -1) {
+                    if (variable.scope === 'global' && stage.type !== 'blueprint') {
+                        // REMOVE duplicate from regular stage if it's supposed to be global
+                        stage.variables.splice(sIdx, 1);
+                        console.log(`[Editor] Removed global duplicate from stage "${stage.id}"`);
+                    } else {
+                        // Replace instance
+                        stage.variables[sIdx] = newInstance as any;
+                        replacedCount++;
+                        console.log(`[Editor] Replaced in stage "${stage.id}".variables[${sIdx}]`);
+                    }
+                }
+            }
+        });
+
+        if (replacedCount === 0 && variable.scope === 'global') {
+            console.log(`[Editor] Global variable not found in project.variables, adding it now.`);
+            this.project.variables.push(newInstance);
+        }
+
+        // 4.1 VERY IMPORTANT: Replace in currentObjects (Live Engine)
+        const allObjs = this.currentObjects;
+        const stageObjIdx = allObjs.findIndex((o: any) => o.id === variable.id);
+        if (stageObjIdx !== -1) {
+            allObjs[stageObjIdx] = newInstance as any;
+            this.currentObjects = allObjs; // Trigger setter
+            console.log(`[Editor] SUCCESS: Replaced in currentObjects[${stageObjIdx}] (LIVE ENGINE). New Type: ${(newInstance as any).type}, IsObjectVariable=${newInstance.constructor.name === 'TObjectVariable'}`);
+        } else {
+            // Fallback: If not found by ID (shouldn't happen if we just clicked it), try to find by reference or name?
+            // But variable.id IS the key.
+            console.warn(`[Editor] Could not find original object in currentObjects to replace.`);
+        }
+
+        // 5. Update UI
+        if (this.currentSelectedId === variable.id) {
+            console.log(`[Editor] RE-SELECTING morphed variable ${newInstance.id} (Old ID was: ${variable.id})`);
+
+            // Sync registry immediately to ensure getObject returns the new instance
+            // But we already updated project.variables and stage.variables
+
+            // Force re-selection with the SAME ID (since we kept it)
+            // But we need to ensure the runtime/inspector sees the new instance
+
+            this.selectObject(null); // Deselect first
+            setTimeout(() => {
+                this.selectObject(newInstance.id); // Select new instance
+            }, 50);
+        } else {
+            console.log(`[Editor] Selection mismatch: current=${this.currentSelectedId}, variable=${variable.id}`);
+        }
+
+        projectRegistry.setProject(this.project);
+    }
     public updateProjectJSON() {
         if (this.project) {
             projectPersistenceService.autoSaveToLocalStorage(this.project);
@@ -2400,15 +2545,22 @@ export class Editor implements IViewHost {
             const allObjs = this.currentObjects;
 
             // STRICT SEPARATION: Filter objects and variables
-            // WICHTIG: Transiente Objekte (Manager-Listen) herausfiltern!
-            projectStage.objects = allObjs.filter(o => !o.isVariable && !o.isTransient);
-            (projectStage as any).variables = allObjs.filter(o => o.isVariable && !o.isTransient);
+            // Ensure we only sync objects that belong to THIS stage (or have no specific scope yet).
+            // Prevent duplication of GLOBAL objects/variables in the stage definition.
+            projectStage.objects = allObjs.filter(o =>
+                !o.isVariable && !o.isTransient &&
+                (o.scope === activeStage.id || !o.scope || o.scope === 'stage')
+            );
+            (projectStage as any).variables = allObjs.filter(o =>
+                o.isVariable && !o.isTransient &&
+                (o.scope === activeStage.id || o.scope === 'stage')
+            );
 
-            const varCount = (projectStage.variables || []).length;
-            console.log(`[Editor] Synced ${projectStage.objects.length} objects and ${varCount} variables (Instances preserved).`);
+            const stageVarCount = (projectStage.variables || []).length;
+            const globalVarCount = (this.project.variables || []).length;
+            console.log(`[Editor] Synced ${projectStage.objects.length} objects and ${stageVarCount} variables to stage "${projectStage.id}". (Global vars in project.json: ${globalVarCount})`);
         } else {
             console.warn(`[Editor] Could not find stage "${activeStage.id}" in project to sync objects.`);
         }
     }
 }
-

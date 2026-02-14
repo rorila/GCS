@@ -5,7 +5,7 @@ export class TObjectVariable extends TVariable {
 
     constructor(name: string, x: number, y: number) {
         super(name, x, y);
-        this.variableType = 'object';
+        this.type = 'object';
         this.defaultValue = {};
         this.value = {};
         this.caption = `📦 ${name}`;

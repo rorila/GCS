@@ -1,4 +1,30 @@
-## [v2.17.0] - 2026-02-13
+## [v2.18.3] - 2026-02-14
+### Fixed
+- **Variable Morphing Persistence**: Kritischer Bugfix beim Typwechsel (z.B. Integer -> Object).
+  - **ID Preservation**: `Editor.ts` überträgt nun garantiert die ursprüngliche ID auf die neue Instanz, um Referenzen (Bindings, Skripte) zu erhalten.
+  - **Inspector Display**: `JSONInspector.ts` priorisiert nun `prop.selectedValue` über Bindings, was das visuelle "Zurückspringen" des Typs (Anzeige-Bug) behebt.
+  - **Type Property**: Explizites `selectedValue: 'object'` in `TVariable.ts` hinzugefügt, um den korrekten Status im UI zu erzwingen.
+- **Data Initialization Robustness**:
+  - **Seeding Fallback**: Implementierung einer Fallback-Logik im `JSONInspector`, die fehlende Entitäten (`users`, `cities` etc.) durch ein erzwungenes Re-Seeding vom Server (`/api/dev/data/db.json`) wiederherstellt.
+  - **Diagnose-Logging**: Erweitertes Error-Tracing in `DataService.ts`.
+- **Quality Assurance**:
+  - Neuer Regressionstest `scripts/test_variable_morphing_robustness.ts` zur Absicherung der Morphing-Logik.
+  - Technische Dokumentation `docs/use_cases/VariableMorphing.md` erstellt.
+
+
+### Fixed
+- **ROOT CAUSE: Variable Type Serialization**: `JSON.stringify` ignorierte den Prototype-Getter `type` in `TVariable`. Dadurch wurde `_type` nie korrekt serialisiert – der Typ ging bei jedem Neuladen verloren.
+  - **Fix 1**: `TVariable.toJSON()` implementiert, die `type` explizit als JSON-Key exportiert statt des privaten `_type`.
+  - **Fix 2**: `Serialization.ts` – `_type` zu reservedKeys hinzugefügt. Stattdessen wird `type` explizit via Setter restauriert.
+- **Deep Sanitization**: `RefactoringManager.sanitizeProject` entfernt globale Variablen-Duplikate aus allen Stages.
+- **Forced Auto-Save**: Morphing-Vorgänge triggern sofort eine Persistierung.
+
+## [v2.18.1] - 2026-02-14
+### Fixed
+- **Variable Duplication & Persistence**: Der Fehler, bei dem globale Variablen in Stages dupliziert wurden und so den Morph-Vorgang sabotierten, wurde behoben.
+- **Sync-Logik**: `syncStageObjectsToProject` filtert nun strikt nach Scope, um Redundanzen im Projekt-JSON zu vermeiden.
+- **Self-Healing Morph**: `morphVariable` bereinigt nun automatisch veraltete Duplikate in allen Stages, um korrupte Projektdaten zu heilen.
+
 ### Added
 - **Automatisierte Regression-Suite (🛡️ Quality Offensive)**:
     - Einführung von `npm run test` zur automatisierten Validierung kritischer Pfade (Login, API).
@@ -21,6 +47,22 @@
 - **DataAction URL Fix**: `DataAction1` globalisiert, damit URL-Parameter korrekt aufgelöst werden.
 - **ActionApiHandler Robustness**: Fallback-Logik implementiert, die Query-Parameter (`code`, `pin`, `authCode`) direkt aus dem Pfad parst, falls das `query`-Objekt fehlt. Dies behebt Login-Probleme bei fehlender Editor-Unterstützung für URL-Parsing.
 - **TaskExecutor Resolve Fix**: Actions werden nun auch korrekt aufgelöst, wenn sie nicht vom Typ `action` sind (z.B. `data_action`), indem primär auf den Namen geprüft wird.
+
+## [v2.17.1] - 2026-02-14
+### Hinzugefügt
+- **Variable Morphing Architecture**: Implementierung eines sauberen "Morphing"-Ansatzes beim Ändern des Variablentyps. Statt nur das Property zu mutieren, wird die gesamte Instanz gegen die korrekte Unterklasse (z.B. `TObjectVariable`) ausgetauscht. Dies garantiert volle Persistenz und korrektes Klassenverhalten.
+- **Editor.morphVariable**: Zentrale Methode in `Editor.ts` zur Steuerung des Instanz-Austauschs unter Beibehaltung von ID, Name und Verbindungen.
+
+### Behoben
+- **Variable Type Persistence**: Vollständige Behebung des Bugs, bei dem der Typ `object` sofort auf `integer` zurückfiel. Durch den Instanz-Tausch im `JSONInspector` via `morphVariable` wird die Single Source of Truth im Projektmodell nun korrekt und stabil aktualisiert.
+
+## [v2.17.0] - 2026-02-14
+### Hinzugefügt
+- **Smart Mapping**: Neuer `resultPath` Parameter für `http` und `data_action`. Ermöglicht das Extrahieren tiefer Datenstrukturen in flache Variablen.
+- **Dynamic Modeling**: Unterstützung für explizite Modell-Typisierung von Objekten (`objectModel`).
+- **Entity Discovery**: Automatische Erkennung von Datenbank-Entitäten aus `db.json` zur Auswahl im Editor.
+- **VariableType Fix**: Korrektur der Persistenz-Sperre für das `type`-Property (reservedKeys) und systemweite Unifizierung von `variableType` auf `type`. Behebung des Revert-Bugs im Inspector durch erzwungenes Re-Rendering bei Typ-Änderung und Anpassung der Serialisierung bleiben gewählte Typen (wie `object`) nun beim Speichern und Laden dauerhaft erhalten.
+- **TPropertyDef**: Unterstützung für dynamische Dropdown-Quellen (`source`).
 
 ## [v2.16.22] - 2026-02-13
 ### Fixed
@@ -52,6 +94,9 @@
 
 ## [v2.16.18] - 2026-02-13
 ### Fixed
+- **Fix**: Tiefgreifende Behebung des Variablentyp-Resets durch Synchronisation von `type` und `className` in `TVariable.ts`.
+- **Fix**: Robustere Hydrierung in `Serialization.ts` (Priorisierung von `type` vor legacy Aliassen).
+- **Fix**: UI-Re-rendering im `JSONInspector.ts` bei Typänderungen sichergestellt.
 - **Calculate Action Save Fix**: Behebung des Datenverlusts von `resultVariable` und `formula` bei 'calculate' Actions.
   - Ergänzung der `action: "updateValue"` Bindings für `CalcResultVariable` und `CalcFormulaInput` in `dialog_action_editor.json`.
   - Erweiterung des `JSONDialogRenderer.ts` (`updateModelValue`), um auch `ResultVariableInput` (Service-Aktionen) korrekt auf `dialogData.resultVariable` zu mappen.
@@ -398,6 +443,11 @@
     - **NaN Safety & cellSize Fix**: Behebung eines kritischen Fehlers, bei dem fehlende `cellSize`-Informationen beim Laden zu `NaN`-Koordinaten führten. Automatische Reparatur betroffener Knoten implementiert.
     - **Filter-Priorität**: Korrektur der Filter-Logik in der Elementübersicht; Filter werden nun vor den lokalen/globalen Ausnahmeregeln geprüft.
     - **Inspector Log Fix**: Eliminierung von `ComponentRegistry`-Warnungen durch Einführung von `getEvents()` für Flow-Knoten und Optimierung der Typerkennung im `JSONInspector`.
+    - **Events**: Definition in `getEvents()`, Ausführung via `triggerEvent()`.
+- **Daten-Typisierung**:
+    - Variablen vom Typ `object` oder `object_list` sollten ein `objectModel` (z.B. 'users') zugewiesen bekommen.
+    - Bei API-Anfragen (`DataAction`) sollte der `resultPath` genutzt werden, um flache Zugriffspfade (`currentUser.name`) zu ermöglichen.
+    - Dynamische Dropdowns im Inspector werden über `source: 'availableModels'` in der `TPropertyDef` realisiert.
     - **Inspector Delete Routing**: Korrektur der Lösch-Funktion im Inspector; Löschbefehle für Flow-Elemente werden nun korrekt an den `FlowEditor` weitergeleitet (inkl. Referenzprüfung).
     - **Scroll-Offset Korrektur**: Behebung von 'dangling' Connections und fehlerhaften Snap-Punkten durch Einbeziehung des Canvas-Scroll-Offsets.
     - **Robustes Dragging**: Bereinigung der Drag-Logik in `FlowEditor.ts`; Nutzung von `node.onMove` zur Synchronisierung von Verbindungen während der Bewegung.

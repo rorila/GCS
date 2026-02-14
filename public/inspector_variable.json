@@ -57,7 +57,7 @@
         },
         {
             "className": "TDropdown",
-            "name": "variableType",
+            "name": "type",
             "options": [
                 "integer",
                 "real",
@@ -69,11 +69,33 @@
                 "trigger",
                 "random",
                 "range",
+                "object",
                 "object_list"
             ],
-            "selectedValue": "${selectedObject.variableType}",
+            "selectedValue": "${selectedObject.type}",
             "width": 30,
             "height": 2,
+            "style": {
+                "marginBottom": 8
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "ModelLabel",
+            "text": "Objekt-Modell (Schema):",
+            "visible": "${selectedObject.type === 'object' || selectedObject.type === 'object_list'}",
+            "style": {
+                "fontSize": 12,
+                "color": "#aaa"
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "objectModel",
+            "options": "${availableModels}",
+            "selectedValue": "${selectedObject.objectModel}",
+            "visible": "${selectedObject.type === 'object' || selectedObject.type === 'object_list'}",
+            "placeholder": "-- Entität wählen --",
             "style": {
                 "marginBottom": 8
             }
@@ -113,7 +135,7 @@
             "className": "TLabel",
             "name": "DefaultValueLabel",
             "text": "Standardwert (Reset):",
-            "visible": "${selectedObject.variableType !== 'timer' && selectedObject.variableType !== 'random' && selectedObject.variableType !== 'range'}",
+            "visible": "${selectedObject.type !== 'timer' && selectedObject.type !== 'random' && selectedObject.type !== 'range'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -123,7 +145,7 @@
             "className": "TEdit",
             "name": "defaultValue",
             "text": "${selectedObject.defaultValue}",
-            "visible": "${selectedObject.variableType !== 'timer' && selectedObject.variableType !== 'random' && selectedObject.variableType !== 'range'}",
+            "visible": "${selectedObject.type !== 'timer' && selectedObject.type !== 'random' && selectedObject.type !== 'range'}",
             "width": 30,
             "height": 2,
             "style": {
@@ -134,7 +156,7 @@
             "className": "TLabel",
             "name": "ThresholdLabel",
             "text": "Schwellenwert (Threshold):",
-            "visible": "${selectedObject.variableType === 'threshold'}",
+            "visible": "${selectedObject.type === 'threshold'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -144,7 +166,7 @@
             "className": "TNumberInput",
             "name": "threshold",
             "value": "${selectedObject.threshold}",
-            "visible": "${selectedObject.variableType === 'threshold'}",
+            "visible": "${selectedObject.type === 'threshold'}",
             "width": 30,
             "height": 2,
             "style": {
@@ -155,7 +177,7 @@
             "className": "TLabel",
             "name": "TriggerLabel",
             "text": "Trigger-Wert:",
-            "visible": "${selectedObject.variableType === 'trigger'}",
+            "visible": "${selectedObject.type === 'trigger'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -165,7 +187,7 @@
             "className": "TEdit",
             "name": "triggerValue",
             "text": "${selectedObject.triggerValue}",
-            "visible": "${selectedObject.variableType === 'trigger'}",
+            "visible": "${selectedObject.type === 'trigger'}",
             "width": 30,
             "height": 2,
             "style": {
@@ -176,7 +198,7 @@
             "className": "TLabel",
             "name": "MaxIntervalLabel",
             "text": "Intervall (ms):",
-            "visible": "${selectedObject.variableType === 'timer'}",
+            "visible": "${selectedObject.type === 'timer'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -186,7 +208,7 @@
             "className": "TNumberInput",
             "name": "maxInterval",
             "value": "${selectedObject.maxInterval}",
-            "visible": "${selectedObject.variableType === 'timer'}",
+            "visible": "${selectedObject.type === 'timer'}",
             "width": 30,
             "height": 2,
             "style": {
@@ -198,7 +220,7 @@
             "name": "enabled",
             "checked": "${selectedObject.enabled}",
             "label": "Aktiviert (Timer)",
-            "visible": "${selectedObject.variableType === 'timer'}",
+            "visible": "${selectedObject.type === 'timer'}",
             "style": {
                 "marginBottom": 8
             }
@@ -208,7 +230,7 @@
             "name": "isInteger",
             "checked": "${selectedObject.isInteger}",
             "label": "Ganzzahlen (Integer)",
-            "visible": "${selectedObject.variableType === 'range' || selectedObject.variableType === 'random'}",
+            "visible": "${selectedObject.type === 'range' || selectedObject.type === 'random'}",
             "style": {
                 "marginBottom": 8
             }
@@ -217,7 +239,7 @@
             "className": "TLabel",
             "name": "MinLabel",
             "text": "Minimum:",
-            "visible": "${selectedObject.variableType === 'range' || selectedObject.variableType === 'random'}",
+            "visible": "${selectedObject.type === 'range' || selectedObject.type === 'random'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -227,7 +249,7 @@
             "className": "TNumberInput",
             "name": "min",
             "value": "${selectedObject.min}",
-            "visible": "${selectedObject.variableType === 'range' || selectedObject.variableType === 'random'}",
+            "visible": "${selectedObject.type === 'range' || selectedObject.type === 'random'}",
             "width": 30,
             "height": 2,
             "style": {
@@ -238,7 +260,7 @@
             "className": "TLabel",
             "name": "MaxLabel",
             "text": "Maximum:",
-            "visible": "${selectedObject.variableType === 'range' || selectedObject.variableType === 'random'}",
+            "visible": "${selectedObject.type === 'range' || selectedObject.type === 'random'}",
             "style": {
                 "fontSize": 12,
                 "color": "#aaa"
@@ -248,7 +270,7 @@
             "className": "TNumberInput",
             "name": "max",
             "value": "${selectedObject.max}",
-            "visible": "${selectedObject.variableType === 'range' || selectedObject.variableType === 'random'}",
+            "visible": "${selectedObject.type === 'range' || selectedObject.type === 'random'}",
             "width": 30,
             "height": 2,
             "style": {

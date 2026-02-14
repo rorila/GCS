@@ -6,7 +6,23 @@ export class TVariable extends TWindow {
     public className: string = 'TVariable';
     public value: any = undefined;
     public defaultValue: any = undefined;
-    public variableType: VariableType = 'integer';
+    private _type: VariableType = 'integer';
+    public objectModel: string = '';
+
+    public get type(): VariableType { return this._type; }
+    public set type(v: VariableType) {
+        if (this._type !== v) {
+            console.log(`%c[TVariable] type update: ${this._type} -> ${v} (Object: ${this.name}, ID: ${this.id})`, 'color: #e91e63; font-weight: bold');
+            console.trace('[TVariable] Trace for type update');
+            this._type = v;
+        } else {
+            console.log(`[TVariable] type setter called with SAME value: ${v} (Object: ${this.name})`);
+        }
+    }
+
+    // Alias for backward compatibility
+    public get variableType(): VariableType { return this.type; }
+    public set variableType(v: VariableType) { this.type = v; }
 
     constructor(name: string, x: number, y: number) {
         super(name, x, y, 6, 2);
@@ -23,11 +39,34 @@ export class TVariable extends TWindow {
 
     public getInspectorProperties(): TPropertyDef[] {
         const props = super.getInspectorProperties();
-        return [
-            ...props,
-            { name: 'variableType', label: 'Typ', type: 'select', group: 'Variable', options: ['integer', 'real', 'string', 'boolean'] },
+        const variableProps: TPropertyDef[] = [
+            {
+                name: 'type',
+                label: 'Typ',
+                type: 'select',
+                group: 'Variable',
+                options: ['integer', 'real', 'string', 'boolean', 'timer', 'random', 'list', 'object', 'object_list', 'threshold', 'trigger', 'range', 'keystore'],
+                selectedValue: this.type, // Explicitly bind current value
+                defaultValue: 'integer'
+            },
             { name: 'defaultValue', label: 'Standardwert', type: 'string', group: 'Variable' },
             { name: 'value', label: 'Aktueller Wert', type: 'string', group: 'Variable' }
+        ];
+
+        // Add object model selection if type is object or object_list
+        if (this.type === 'object' || this.type === 'object_list') {
+            variableProps.splice(1, 0, {
+                name: 'objectModel',
+                label: 'Modell (Entität)',
+                type: 'select',
+                group: 'Variable',
+                source: 'availableModels' // Will be populated by Discovery in JSONInspector
+            });
+        }
+
+        return [
+            ...props,
+            ...variableProps
         ];
     }
 
@@ -36,5 +75,29 @@ export class TVariable extends TWindow {
             ...super.getEvents(),
             'onValueChanged'
         ];
+    }
+
+    /**
+     * Custom toJSON to ensure the 'type' getter is serialized as 'type'
+     * instead of the private '_type' field. Without this, JSON.stringify
+     * does not call prototype getters, causing type loss on reload.
+     */
+    public toJSON(): any {
+        const json: any = {};
+        // Copy all own enumerable properties
+        for (const key of Object.keys(this)) {
+            if (key === '_type') continue; // Skip private backing field
+            json[key] = (this as any)[key];
+        }
+        // Expose getter value as 'type'
+        json.type = this.type;
+
+        console.log(`[TVariable] Serializing "${this.name}" (ID: ${this.id}):`, {
+            className: this.className,
+            type: json.type,
+            scope: this.scope
+        });
+
+        return json;
     }
 }

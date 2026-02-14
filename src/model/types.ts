@@ -133,6 +133,7 @@ export interface HttpAction extends BaseAction {
     queryValue?: string;
     body?: any;
     resultVariable?: string;
+    resultPath?: string; // Path to extract from response (e.g. 'user')
 }
 
 // Union Type für alle Aktionen
@@ -226,6 +227,7 @@ export interface ProjectVariable {
     value?: any;               // Current runtime value (optional)
     scope: VariableScope;      // Visibility: global (Project) or local (Stage)
     isPublic?: boolean;        // If local, is it accessible from other stages?
+    objectModel?: string;      // Assigned schema/model name (e.g. 'User')
     description?: string;      // Optional documentation
 
     // Reactive Properties

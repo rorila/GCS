@@ -77,6 +77,13 @@ export class ProjectPersistenceService {
         try {
             const json = JSON.stringify(targetProject);
             localStorage.setItem('gcs_last_project', json);
+
+            // Debug-Log for variable persistence
+            const projectData = JSON.parse(json);
+            const currentUserVar = (projectData.variables || []).find((v: any) => v.name === 'currentUser') ||
+                (projectData.stages || []).flatMap((s: any) => s.variables || []).find((v: any) => v.name === 'currentUser');
+
+            console.log(`[Persistence] Auto-save. Size: ${(json.length / 1024).toFixed(2)} KB. Sample variable "currentUser":`, currentUserVar);
         } catch (err) {
             console.error('[Persistence] Auto-save to localStorage failed:', err);
         }

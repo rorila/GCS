@@ -8,3 +8,7 @@ UseCase Index
 - SofortigeJSONSynchronisation: Mechanismus für unmittelbare Sichtbarkeit von Änderungen (Trinity-Sync). Dokumentiert zudem strukturelle Unterschiede (Branching vs. Linear) und das Smart-Delete-Verfahren für verwaiste Aktions-Definitionen.
 - LoginFlow: Detaillierter technischer Ablauf des Logins (Client -> API-Sim -> Server -> DB -> Client) mit Referenzen zu allen beteiligten Methoden und Stack-Trace.
 - QA_Report: Automatisierter Test-Bericht (Dashboard) mit Mermaid-Visualisierung der aktuellen Regression-Suite (Gut- und Schlecht-Tests).
+- DataModels: Definition der JSON-Strukturen (User, Rollen) für konsistente Verarbeitung und Typ-Klarheit.
+- SmartMapping: Entpacken verschachtelter API-Antworten (Result Selector) und dynamische Entdeckung von Datenbank-Modellen im Editor.
+- VariablentypPersistenz: Lösung des Persistenz-Problems durch Unifizierung auf 'type' und Korrektur der Serialisierung (reservedKeys).
+- VariableMorphing: Detaillierte technische Dokumentation des Morphing-Prozesses (Integer -> Object), inklusive ID-Persistenz und Inspector-Fix.

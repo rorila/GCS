@@ -40,7 +40,7 @@ export class TDataStore extends TPanel implements IRuntimeComponent {
     set caption(v: string) {
         console.log(`[TDataStore] set caption("${v}") - Current name: ${this.name}`);
         this._caption = v;
-        if (this.name !== 'UserData' && this.name !== 'DataStore') {
+        if (this.name !== 'UserData' && this.name !== 'DataStore' && this.name !== 'LocalStore') {
             console.warn(`[TDataStore] Warning: name has changed to ${this.name}!`);
         }
     }

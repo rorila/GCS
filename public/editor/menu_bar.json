@@ -5,6 +5,24 @@
             "label": "Datei",
             "items": [
                 {
+                    "id": "new-project",
+                    "label": "Neues Projekt",
+                    "action": "new-project",
+                    "icon": "📄"
+                },
+                {
+                    "id": "seed-data",
+                    "label": "Seed Test Data (Dev)",
+                    "action": "seed-data",
+                    "icon": "🌱"
+                },
+                {
+                    "id": "open-project",
+                    "label": "Projekt öffnen...",
+                    "action": "open-project",
+                    "icon": "📂"
+                },
+                {
                     "id": "save",
                     "label": "Projekt Speichern",
                     "action": "save",

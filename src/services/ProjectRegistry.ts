@@ -53,20 +53,31 @@ export class ProjectRegistry {
         // 1. Global variables (aus project.variables UND stage_blueprint)
         const rootGlobals = (this.project.variables || [])
             .filter(v => !v.scope || String(v.scope).toLowerCase() === 'global')
-            .map(v => ({ ...v, uiScope: 'global' as const, uiEmoji: '🌎' }));
+            .map(v => {
+                const sv = v as ScopedVariable;
+                sv.uiScope = 'global';
+                sv.uiEmoji = '🌎';
+                return sv;
+            });
 
         // Globals aus der Blueprint-Stage laden (primäre Quelle)
         const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
         const bpGlobals = (blueprintStage?.variables || [])
             .filter(v => String(v.scope || '').toLowerCase() === 'global')
-            .map(v => ({ ...v, uiScope: 'global' as const, uiEmoji: '🌎' }));
+            .map(v => {
+                const sv = v as ScopedVariable;
+                sv.uiScope = 'global';
+                sv.uiEmoji = '🌎';
+                return sv;
+            });
 
         // Zusammenführen mit Dedup (Blueprint hat Vorrang über Root)
         visibleVars = [...rootGlobals];
         bpGlobals.forEach(bv => {
             const idx = visibleVars.findIndex(v => v.id === bv.id);
             if (idx !== -1) {
-                visibleVars[idx] = bv; // Blueprint-Version hat Vorrang
+                // Nur ersetzen, wenn es wirklich eine andere Instanz ist (sollte eigentlich gleich sein, aber sicher ist sicher)
+                visibleVars[idx] = bv;
             } else {
                 visibleVars.push(bv);
             }
@@ -81,22 +92,36 @@ export class ProjectRegistry {
                 const isBlueprint = activeStage.type === 'blueprint';
                 const stageVars = activeStage.variables
                     .filter(v => !isBlueprint || String(v.scope || '').toLowerCase() !== 'global')
-                    .map(v => ({ ...v, uiScope: 'stage' as const, uiEmoji: '🎭' }));
+                    .map(v => {
+                        const sv = v as ScopedVariable;
+                        sv.uiScope = 'stage';
+                        sv.uiEmoji = '🎭';
+                        return sv;
+                    });
 
-                // Deduping: Add stage variables, overriding globals if IDs match (shadowing or visual precedence)
+                // Deduping: Add stage variables, but ONLY if they don't shadow a global with the same ID
+                // Unless the stage version IS the intended one. 
+                // CRITICAL FIX: If ID matches a global, it's likely a duplicate. We keep the global version!
                 stageVars.forEach(sv => {
-                    const existingIndex = visibleVars.findIndex(ev => ev.id === sv.id);
-                    if (existingIndex !== -1) {
-                        visibleVars[existingIndex] = sv; // Replace global with stage version
-                    } else {
+                    const existingGlobalIndex = visibleVars.findIndex(ev => ev.id === sv.id && ev.uiScope === 'global');
+                    if (existingGlobalIndex === -1) {
+                        // No global with same ID, safe to add
                         visibleVars.push(sv);
+                    } else {
+                        console.warn(`[ProjectRegistry] Suppressing stage-local duplicate of global variable: ${sv.name} (${sv.id})`);
+                        // We don't push the stage duplicate
                     }
                 });
             }
 
             const scopedProjectVars = this.project.variables
                 .filter(v => v.scope === this.activeStageId)
-                .map(v => ({ ...v, uiScope: 'stage' as const, uiEmoji: '🎭' }));
+                .map(v => {
+                    const sv = v as ScopedVariable;
+                    sv.uiScope = 'stage';
+                    sv.uiEmoji = '🎭';
+                    return sv;
+                });
             visibleVars = [...visibleVars, ...scopedProjectVars];
         }
 
@@ -104,7 +129,12 @@ export class ProjectRegistry {
         if (context?.taskName) {
             const taskVars = this.project.variables
                 .filter(v => v.scope === context.taskName || v.scope === `task:${context.taskName}`)
-                .map(v => ({ ...v, uiScope: 'local' as const, uiEmoji: '🎭' }));
+                .map(v => {
+                    const sv = v as ScopedVariable;
+                    sv.uiScope = 'local';
+                    sv.uiEmoji = '🎭';
+                    return sv;
+                });
             visibleVars = [...visibleVars, ...taskVars];
         }
 
@@ -112,7 +142,12 @@ export class ProjectRegistry {
         if (context?.actionId) {
             const actionVars = this.project.variables
                 .filter(v => v.scope === `action:${context.actionId}`)
-                .map(v => ({ ...v, uiScope: 'local' as const, uiEmoji: '🎭' }));
+                .map(v => {
+                    const sv = v as ScopedVariable;
+                    sv.uiScope = 'local';
+                    sv.uiEmoji = '🎭';
+                    return sv;
+                });
             visibleVars = [...visibleVars, ...actionVars];
         }
 
@@ -125,11 +160,11 @@ export class ProjectRegistry {
         // Optimization: Return without usage calculation if not requested
         if (!resolveUsage) return visibleVars as ScopedVariable[];
 
-        const vars = visibleVars.map(v => ({
-            ...v,
-            usageCount: this.getVariableUsage(v.name).length
-        }));
-        return vars as ScopedVariable[];
+        visibleVars.forEach(v => {
+            v.usageCount = this.getVariableUsage(v.name).length;
+        });
+
+        return visibleVars;
     }
 
     public validateVariableName(name: string, context?: VariableScopeContext): { valid: boolean; error?: string } {

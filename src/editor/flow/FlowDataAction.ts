@@ -191,9 +191,19 @@ export class FlowDataAction extends FlowAction {
         return action?.resultVariable || '';
     }
     public set resultVariable(v: string) {
-        console.log(`[FlowDataAction] Setter resultVariable: ${v} `);
+        console.log(`[FlowDataAction] Setter resultVariable: ${v}`);
         const action = this.getActionDefinition();
         if (action) action.resultVariable = v;
+    }
+
+    public get resultPath(): string {
+        const action = this.getActionDefinition();
+        return action?.resultPath || '';
+    }
+    public set resultPath(v: string) {
+        console.log(`[FlowDataAction] Setter resultPath: ${v}`);
+        const action = this.getActionDefinition();
+        if (action) action.resultPath = v;
     }
 
     protected createRoot(): HTMLElement {

@@ -9,6 +9,8 @@ export interface TPropertyDef {
     defaultValue?: any;     // Standardwert
     step?: string;     // for number inputs
     options?: string[]; // for select type - available options
+    selectedValue?: any; // Explicitly set value (overrides binding)
+    source?: string;    // for select type - dynamic source name (e.g. 'availableModels')
     hint?: string;      // Tooltip or hint text
     placeholder?: string; // Input placeholder
     action?: string;   // For button type: internal action name

@@ -23,13 +23,22 @@ export class DataService {
         try {
             console.log(`[DataService] Seeding '${storagePath}' from ${url}...`);
             const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) {
+                console.error(`[DataService] Seeding failed: HTTP ${response.status} ${response.statusText} from ${url}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
             const data = await response.json();
+
+            // Validate data structure if it's db.json
+            if (storagePath === 'data.json') {
+                console.log(`[DataService] Validating seed data. Keys: ${Object.keys(data).join(', ')}`);
+            }
+
             await this.writeDb(storagePath, data);
-            console.log(`[DataService] Seeding successful for '${storagePath}'`);
+            console.log(`[DataService] Seeding successful for '${storagePath}'. Saved to localStorage as gcs_db_${storagePath}`);
         } catch (e) {
-            console.error(`[DataService] Seeding failed for '${storagePath}':`, e);
+            console.error(`[DataService] Seeding CRITICAL FAILURE for '${storagePath}':`, e);
         }
     }
 
@@ -101,6 +110,14 @@ export class DataService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Liefert eine Liste aller verfügbaren Collections (Modelle) in der Datenbank.
+     */
+    public async getModels(storagePath: string): Promise<string[]> {
+        const db = await this.readDb(storagePath);
+        return Object.keys(db).filter(key => Array.isArray(db[key]));
     }
 
     /**

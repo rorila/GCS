@@ -1,10 +1,18 @@
 "use strict";
 (() => {
+  var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __getProtoOf = Object.getPrototypeOf;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
   var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+    get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+  }) : x)(function(x) {
+    if (typeof require !== "undefined") return require.apply(this, arguments);
+    throw Error('Dynamic require of "' + x + '" is not supported');
+  });
   var __esm = (fn, res) => function __init() {
     return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
   };
@@ -20,6 +28,14 @@
     }
     return to;
   };
+  var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+    // If the importer is in node compatibility mode or this is not an ESM
+    // file that has been converted to a CommonJS file using a Babel-
+    // compatible transform (i.e. "__esModule" has not been set), then set
+    // "default" to the CommonJS "module.exports" for node compatibility.
+    isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+    mod
+  ));
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
@@ -1228,6 +1244,218 @@
   globalScope2._globalServiceRegistry = serviceRegistry;
   console.log(`[ServiceRegistry] Singleton bound to window. ID: ${serviceRegistry.id}`);
 
+  // src/services/DataService.ts
+  var _DataService = class _DataService {
+    constructor() {
+    }
+    static getInstance() {
+      if (!_DataService.instance) {
+        _DataService.instance = new _DataService();
+      }
+      return _DataService.instance;
+    }
+    /**
+     * Lädt Daten von einer URL und speichert sie im localStorage (Seeding).
+     */
+    async seedFromUrl(storagePath, url) {
+      if (typeof window === "undefined") return;
+      try {
+        console.log(`[DataService] Seeding '${storagePath}' from ${url}...`);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        await this.writeDb(storagePath, data);
+        console.log(`[DataService] Seeding successful for '${storagePath}'`);
+      } catch (e) {
+        console.error(`[DataService] Seeding failed for '${storagePath}':`, e);
+      }
+    }
+    /**
+     * Speichert oder aktualisiert ein Objekt in einer Collection.
+     */
+    async saveItem(storagePath, collection, item) {
+      if (!item.id) item.id = "id_" + Math.random().toString(36).substr(2, 9);
+      const db = await this.readDb(storagePath);
+      if (!db[collection]) db[collection] = [];
+      const index = db[collection].findIndex((i) => i.id === item.id);
+      if (index !== -1) {
+        db[collection][index] = { ...db[collection][index], ...item };
+      } else {
+        db[collection].push(item);
+      }
+      await this.writeDb(storagePath, db);
+      return item;
+    }
+    /**
+     * Findet Objekte in einer Collection basierend auf Filtern.
+     */
+    async findItems(storagePath, collection, query = {}) {
+      console.log(`[DataService] findItems in '${storagePath}' -> '${collection}' with query:`, JSON.stringify(query));
+      const db = await this.readDb(storagePath);
+      if (!db[collection]) {
+        console.warn(`[DataService] Collection '${collection}' not found in '${storagePath}'`);
+        return [];
+      }
+      const list = db[collection] || [];
+      console.log(`[DataService] Searching in ${list.length} items...`);
+      const results = list.filter((item) => {
+        for (const key in query) {
+          if (item[key] != query[key]) {
+            return false;
+          }
+        }
+        return true;
+      });
+      console.log(`[DataService] Found ${results.length} matches.`);
+      if (results.length === 0 && list.length > 0) {
+        console.log("[DataService] No matches found. Dump first item for debug:", list[0]);
+      }
+      return results;
+    }
+    /**
+     * Löscht ein Objekt anhand seiner ID.
+     */
+    async deleteItem(storagePath, collection, id) {
+      const db = await this.readDb(storagePath);
+      if (!db[collection]) return false;
+      const initialLength = db[collection].length;
+      db[collection] = db[collection].filter((item) => item.id !== id);
+      if (db[collection].length !== initialLength) {
+        await this.writeDb(storagePath, db);
+        return true;
+      }
+      return false;
+    }
+    /**
+     * Liefert eine Liste aller verfügbaren Collections (Modelle) in der Datenbank.
+     */
+    async getModels(storagePath) {
+      const db = await this.readDb(storagePath);
+      return Object.keys(db).filter((key) => Array.isArray(db[key]));
+    }
+    /**
+     * Interne Methode zum Lesen der gesamten DB-Struktur
+     */
+    async readDb(storagePath) {
+      if (typeof window !== "undefined") {
+        const key = `gcs_db_${storagePath}`;
+        const content = localStorage.getItem(key);
+        console.log(`[DataService] Reading from localStorage: ${key} (${content ? "found" : "not found"})`);
+        try {
+          return content ? JSON.parse(content) : {};
+        } catch (e) {
+          return {};
+        }
+      } else {
+        try {
+          const fs = await import("fs/promises");
+          const path = await import("path");
+          const fullPath = path.join(process.cwd(), "data", storagePath);
+          console.log(`[DataService] Reading from file: ${fullPath}`);
+          const content = await fs.readFile(fullPath, "utf-8");
+          return JSON.parse(content);
+        } catch (e) {
+          return {};
+        }
+      }
+    }
+    /**
+     * Interne Methode zum Schreiben der gesamten DB-Struktur
+     */
+    async writeDb(storagePath, db) {
+      if (typeof window !== "undefined") {
+        const key = `gcs_db_${storagePath}`;
+        localStorage.setItem(key, JSON.stringify(db));
+      } else {
+        try {
+          const fs = await import("fs/promises");
+          const path = await import("path");
+          const dir = path.join(process.cwd(), "data");
+          const fullPath = path.join(dir, storagePath);
+          try {
+            await fs.mkdir(dir, { recursive: true });
+          } catch (e) {
+          }
+          await fs.writeFile(fullPath, JSON.stringify(db, null, 2));
+        } catch (e) {
+          console.error("[DataService] Fehler beim Schreiben der Datei:", e);
+        }
+      }
+    }
+  };
+  __publicField(_DataService, "instance");
+  var DataService = _DataService;
+  var dataService = DataService.getInstance();
+
+  // src/components/actions/ActionApiHandler.ts
+  var ActionApiHandler = class {
+    static async handle(_action, params, globalObjects) {
+      console.log("[ActionApiHandler] Handling API Request:", params);
+      const path = params.path || "";
+      const method = params.method || "GET";
+      if (path.includes("/users") && method === "GET") {
+        return this.handleUserSearch(params, globalObjects);
+      }
+      return {
+        status: 404,
+        data: { error: `Resource not found: ${path}` }
+      };
+    }
+    static async handleUserSearch(params, globalObjects) {
+      const userDataStore = globalObjects.find((obj) => obj.name === "UserData" && obj.className === "TDataStore");
+      const storagePath = userDataStore?.storagePath || "users.json";
+      const collection = userDataStore?.defaultCollection || "users";
+      let query = params.query || {};
+      if (!params.query && params.path && params.path.includes("?")) {
+        try {
+          const urlObj = new URL(params.path, "http://localhost");
+          urlObj.searchParams.forEach((value, key) => {
+            query[key] = value;
+          });
+          console.log("[ActionApiHandler] Parsed query from path:", query);
+        } catch (e) {
+          console.warn("[ActionApiHandler] Failed to parse query from path:", e);
+        }
+      }
+      let requestPin = query.code || query.authCode || query.pin;
+      if (!requestPin && params.body?.code) requestPin = params.body.code;
+      if (!requestPin && params.body?.pin) requestPin = params.body.pin;
+      console.log(`[ActionApiHandler] Searching in ${storagePath}/${collection} for PIN: "${requestPin}"`);
+      if (!requestPin) {
+        return { status: 400, data: { error: "Missing 'code', 'pin' or 'authCode' parameter" } };
+      }
+      const allItems = await DataService.getInstance().findItems(storagePath, collection, {});
+      console.log(`[ActionApiHandler] Found ${allItems.length} candidates in DB.`);
+      const foundUser = allItems.find((user) => {
+        let userPin = "";
+        if (Array.isArray(user.authCode)) {
+          userPin = user.authCode.join("");
+        } else if (user.authCode) {
+          userPin = user.authCode;
+        } else if (user.pin) {
+          userPin = user.pin;
+        }
+        const isMatch = userPin === requestPin;
+        console.log(`[ActionApiHandler] Checking user ${user.id} (${user.name}): DB_PIN="${userPin}" vs REQ_PIN="${requestPin}" => Match? ${isMatch}`);
+        return isMatch;
+      });
+      if (foundUser) {
+        console.log("[ActionApiHandler] User found:", foundUser.name);
+        const token = `sim-token-${Date.now()}-${Math.random().toString(36).substr(2)}`;
+        return {
+          status: 200,
+          data: {
+            user: foundUser,
+            token
+          }
+        };
+      } else {
+        console.warn("[ActionApiHandler] User not found or PIN incomplete.");
+        return { status: 401, data: { error: "Invalid credentials" } };
+      }
+    }
+  };
+
   // src/runtime/actions/StandardActions.ts
   function resolveTarget(targetName, objects, vars, _contextObj) {
     if (!targetName) return null;
@@ -1487,7 +1715,20 @@
       if (serviceRegistry.has("ApiSimulator")) {
         console.log(`[Action: http] Using API Simulation for: ${method} ${url}`);
         try {
-          const result = await serviceRegistry.call("ApiSimulator", "request", [method, url, parsedBody]);
+          let result = await serviceRegistry.call("ApiSimulator", "request", [method, url, parsedBody]);
+          if (action.resultPath && result) {
+            const parts = action.resultPath.split(".");
+            let current = result;
+            for (const part of parts) {
+              if (current && current[part] !== void 0) {
+                current = current[part];
+              } else {
+                current = void 0;
+                break;
+              }
+            }
+            result = current;
+          }
           if (action.resultVariable) {
             context.vars[action.resultVariable] = result;
             context.contextVars[action.resultVariable] = result;
@@ -1508,7 +1749,20 @@
         };
         if (body) options.body = body;
         const response = await fetch(url, options);
-        const data = await response.json();
+        let data = await response.json();
+        if (action.resultPath && data) {
+          const parts = action.resultPath.split(".");
+          let current = data;
+          for (const part of parts) {
+            if (current && current[part] !== void 0) {
+              current = current[part];
+            } else {
+              current = void 0;
+              break;
+            }
+          }
+          data = current;
+        }
         if (action.resultVariable) {
           context.vars[action.resultVariable] = data;
           context.contextVars[action.resultVariable] = data;
@@ -1528,7 +1782,8 @@
         { name: "url", label: "URL", type: "string" },
         { name: "method", label: "Methode", type: "select", options: ["GET", "POST", "PUT", "DELETE"], defaultValue: "GET" },
         { name: "body", label: "Body (JSON-String oder Objekt)", type: "string" },
-        { name: "resultVariable", label: "Ergebnis speichern in", type: "variable", source: "variables" }
+        { name: "resultVariable", label: "Ergebnis speichern in", type: "variable", source: "variables" },
+        { name: "resultPath", label: "Daten-Pfad (Selektor)", type: "string", hint: 'Optional: Pfad zum Objekt in der Response (z.B. "user")' }
       ]
     });
     actionRegistry.register("store_token", (action, context) => {
@@ -1599,7 +1854,7 @@
         { name: "data", label: "Antwort-Daten (JSON)", type: "string", hint: "Das Objekt, das als JSON gesendet wird." }
       ]
     });
-    actionRegistry.register("execute_login_request", async (action, context) => {
+    actionRegistry.register("execute_login_request", async (_action, context) => {
       const pin = context.vars["currentPIN"] || context.contextVars["currentPIN"];
       console.log("[Action: execute_login_request] Attempting login with PIN:", pin);
       if (!pin) {
@@ -1630,6 +1885,54 @@
       type: "execute_login_request",
       label: "Login Request ausf\xFChren",
       description: "F\xFChrt den Login-Request gegen das Backend aus.",
+      parameters: []
+    });
+    actionRegistry.register("data_action", async (action, context) => {
+      const subType = action.data?.type || action.subType || "http";
+      console.log(`[Action: data_action] Delegating to ${subType}`);
+      const handler = actionRegistry.getHandler(subType);
+      if (handler) {
+        const mergedAction = { ...action.data, ...action, type: subType };
+        return await handler(mergedAction, context);
+      } else {
+        console.warn(`[Action: data_action] No handler found for sub-type "${subType}"`);
+        return false;
+      }
+    }, {
+      type: "data_action",
+      label: "Data Action",
+      description: "F\xFChrt eine Daten-Aktion aus (HTTP, SQL, etc.).",
+      parameters: []
+      // Dynamic based on sub-type
+    });
+    actionRegistry.register("handle_api_request", async (action, context) => {
+      const eventData = context.vars?.eventData || context.eventData;
+      if (!eventData || !eventData.requestId) {
+        console.warn("[Action: handle_api_request] Missing requestId in eventData. Is this triggered by onRequest?");
+        return false;
+      }
+      const logicResponse = await ActionApiHandler.handle(action, {
+        path: eventData.path,
+        method: eventData.method,
+        body: eventData.body,
+        query: eventData.query
+      }, objects);
+      const pendingMap = window.__pendingApiResponses;
+      if (pendingMap) {
+        const resolver = pendingMap.get(eventData.requestId);
+        if (resolver) {
+          resolver(logicResponse);
+          pendingMap.delete(eventData.requestId);
+          console.log(`[Action: handle_api_request] Sent response for ${eventData.requestId}`, logicResponse);
+          return true;
+        }
+      }
+      console.warn(`[Action: handle_api_request] Could not find pending response resolver for ${eventData.requestId}`);
+      return false;
+    }, {
+      type: "handle_api_request",
+      label: "API Request verarbeiten",
+      description: "Verarbeitet einen API-Request mit Datenbank-Logik und sendet die Antwort.",
       parameters: []
     });
   }
@@ -2181,8 +2484,9 @@
       if (typeof item === "string") {
         return this.actions.find((a) => a.name === item);
       }
-      if (item.type === "action" && item.name) {
-        return this.actions.find((a) => a.name === item.name);
+      if (item && item.name) {
+        const found = this.actions.find((a) => a.name === item.name);
+        if (found) return found;
       }
       return item;
     }
@@ -8100,7 +8404,8 @@
       __publicField(this, "className", "TVariable");
       __publicField(this, "value");
       __publicField(this, "defaultValue");
-      __publicField(this, "variableType", "integer");
+      __publicField(this, "_type", "integer");
+      __publicField(this, "objectModel", "");
       this.isVariable = true;
       this.style.backgroundColor = "#d1c4e9";
       this.style.borderColor = "#9575cd";
@@ -8109,13 +8414,51 @@
       this.isHiddenInRun = true;
       this.isBlueprintOnly = false;
     }
+    get type() {
+      return this._type;
+    }
+    set type(v) {
+      if (this._type !== v) {
+        console.log(`%c[TVariable] type update: ${this._type} -> ${v} (Object: ${this.name}, ID: ${this.id})`, "color: #e91e63; font-weight: bold");
+        console.trace("[TVariable] Trace for type update");
+        this._type = v;
+      } else {
+        console.log(`[TVariable] type setter called with SAME value: ${v} (Object: ${this.name})`);
+      }
+    }
+    // Alias for backward compatibility
+    get variableType() {
+      return this.type;
+    }
+    set variableType(v) {
+      this.type = v;
+    }
     getInspectorProperties() {
       const props = super.getInspectorProperties();
-      return [
-        ...props,
-        { name: "variableType", label: "Typ", type: "select", group: "Variable", options: ["integer", "real", "string", "boolean"] },
+      const variableProps = [
+        {
+          name: "type",
+          label: "Typ",
+          type: "select",
+          group: "Variable",
+          options: ["integer", "real", "string", "boolean", "timer", "random", "list", "object", "object_list", "threshold", "trigger", "range", "keystore"]
+        },
         { name: "defaultValue", label: "Standardwert", type: "string", group: "Variable" },
         { name: "value", label: "Aktueller Wert", type: "string", group: "Variable" }
+      ];
+      if (this.type === "object" || this.type === "object_list") {
+        variableProps.splice(1, 0, {
+          name: "objectModel",
+          label: "Modell (Entit\xE4t)",
+          type: "select",
+          group: "Variable",
+          source: "availableModels"
+          // Will be populated by Discovery in JSONInspector
+        });
+      }
+      return [
+        ...props,
+        ...variableProps
       ];
     }
     getEvents() {
@@ -8708,7 +9051,7 @@
     constructor(name, x, y) {
       super(name, x, y);
       __publicField(this, "className", "TObjectVariable");
-      this.variableType = "object";
+      this.type = "object";
       this.defaultValue = {};
       this.value = {};
       this.caption = `\u{1F4E6} ${name}`;
@@ -8855,7 +9198,7 @@
     set caption(v) {
       console.log(`[TDataStore] set caption("${v}") - Current name: ${this.name}`);
       this._caption = v;
-      if (this.name !== "UserData" && this.name !== "DataStore") {
+      if (this.name !== "UserData" && this.name !== "DataStore" && this.name !== "LocalStore") {
         console.warn(`[TDataStore] Warning: name has changed to ${this.name}!`);
       }
     }
@@ -9483,7 +9826,7 @@
         }
         if (objData.caption !== void 0) {
           if (newObj.constructor.name === "TDataStore") {
-            console.log(`[Serialization] Assigning caption "${objData.caption}" to TDataStore "${newObj.name}"`);
+            console.log(`[Serialization] Assigning caption "${objData.caption}" to TDataStore "${objData.name}"`);
           }
           newObj.caption = objData.caption;
         }
@@ -9584,10 +9927,8 @@
           "Tasks",
           "style",
           // Handled explicitly
-          "shapeType",
+          "shapeType"
           // Often constructor arg, but safe to re-assign if public
-          "type"
-          // Sometimes used for internal typing
         ];
         Object.keys(objData).forEach((key) => {
           if (reservedKeys.includes(key)) return;
@@ -9606,8 +9947,8 @@
             newObj[key] = val;
           }
         });
-        if (newObj.isVariable && objData.value !== void 0) {
-          newObj.value = objData.value;
+        if (newObj.isVariable) {
+          if (objData.value !== void 0) newObj.value = objData.value;
         }
         if (objData.style) {
           const targetStyle = newObj.style || {};
@@ -9649,8 +9990,8 @@
     getMergedStageData(stageId) {
       const stageChain = this.resolveInheritanceChain(stageId);
       let mergedObjects = [];
-      let mergedTasks = [];
-      let mergedActions = [];
+      let mergedTasks = [...this.project.tasks || []];
+      let mergedActions = [...this.project.actions || []];
       let mergedFlowCharts = { ...this.project.flowCharts || {} };
       const objectIdSet = /* @__PURE__ */ new Set();
       const blueprintStages = this.project.stages?.filter((s) => s.type === "blueprint") || [];
@@ -10061,7 +10402,7 @@
     }
     getObjects() {
       const results = [];
-      const process = (objs, parentX = 0, parentY = 0, parentZ = 0) => {
+      const process2 = (objs, parentX = 0, parentY = 0, parentZ = 0) => {
         objs.forEach((obj) => {
           if (obj.visible === false) return;
           const absoluteX = parentX + (obj.x || 0);
@@ -10087,11 +10428,11 @@
           copy.zIndex = absoluteZ;
           results.push(copy);
           if (obj.children && obj.children.length > 0) {
-            process(obj.children, absoluteX, absoluteY, absoluteZ);
+            process2(obj.children, absoluteX, absoluteY, absoluteZ);
           }
         });
       };
-      process(this.objects);
+      process2(this.objects);
       return results;
     }
     createPhantom(original) {
@@ -10200,15 +10541,15 @@
      * Traverses all objects and registers reactive bindings for properties containing ${...}
      */
     initializeReactiveBindings() {
-      const process = (objs) => {
+      const process2 = (objs) => {
         objs.forEach((obj) => {
           this.bindObjectProperties(obj);
           if (obj.children && obj.children.length > 0) {
-            process(obj.children);
+            process2(obj.children);
           }
         });
       };
-      process(this.objects);
+      process2(this.objects);
       const variableComponents = this.objects.filter((obj) => obj.isVariable || obj.className?.includes("Variable"));
       variableComponents.forEach((obj) => {
         this.reactiveRuntime.getWatcher().watch(obj, "value", (newValue, oldValue) => {

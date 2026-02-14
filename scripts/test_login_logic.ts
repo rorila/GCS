@@ -10,22 +10,23 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 export interface TestResult {
     name: string;
-    type: 'Happy Path' | 'Security' | 'Edge Case';
-    pin: string;
+    type: 'Happy Path' | 'Security' | 'Edge Case' | 'Smart Mapping' | 'Discovery';
+    pin?: string;
     expectedSuccess: boolean;
     actualSuccess: boolean;
     foundUserId?: string;
     passed: boolean;
+    details?: string;
 }
 
 // Mock params simulating a request
-const TEST_CASES = [
+const TEST_CASES: ReadonlyArray<{ name: string, type: 'Happy Path' | 'Security' | 'Edge Case', pin: string, expectedIds: string[], expectedSuccess: boolean }> = [
     { name: 'TestUser Login', type: 'Happy Path', pin: '🍎🍌', expectedIds: ['test-user', 'u_rolf'], expectedSuccess: true },
     { name: 'Admin Login', type: 'Happy Path', pin: '🚀⭐', expectedIds: ['test-admin', 'u_admin'], expectedSuccess: true },
     { name: 'Bug User Login', type: 'Edge Case', pin: '🐛💣', expectedIds: ['test-bug'], expectedSuccess: true },
     { name: 'Ungültiger PIN', type: 'Security', pin: '❌❌', expectedIds: [], expectedSuccess: false },
     { name: 'Teil-Eingabe (Prefix)', type: 'Security', pin: '🍎', expectedIds: [], expectedSuccess: false }
-] as const;
+];
 
 export async function runLoginTests(): Promise<TestResult[]> {
     const results: TestResult[] = [];

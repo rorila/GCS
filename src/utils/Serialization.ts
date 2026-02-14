@@ -303,7 +303,7 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             // Restore specific properties if available
             if (objData.caption !== undefined) {
                 if (newObj.constructor.name === 'TDataStore') {
-                    console.log(`[Serialization] Assigning caption "${objData.caption}" to TDataStore "${(newObj as any).name}"`);
+                    console.log(`[Serialization] Assigning caption "${objData.caption}" to TDataStore "${objData.name}"`);
                 }
                 (newObj as any).caption = objData.caption;
             }
@@ -442,7 +442,7 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             const reservedKeys = [
                 'className', 'id', 'children', 'Tasks', 'style', // Handled explicitly
                 'shapeType', // Often constructor arg, but safe to re-assign if public
-                'type' // Sometimes used for internal typing
+                '_type' // Private backing field - must go through 'type' setter instead
             ];
 
             // 1. Generic assignment for all primitive properties
@@ -465,14 +465,22 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 } else {
                     // Direct assignment
                     (newObj as any)[key] = val;
+                    if ((newObj as any).isVariable && key === 'type') {
+                        console.log(`[Serialization] SETTING type via generic loop for "${newObj.name}":`, val);
+                    }
                 }
             });
 
             // 2. Variable Special Case: Force 'value' restoration if it exists
-            // (Some variables might not have 'value' in their interface explicitly defined as public field 
-            // but act as containers, so we ensure it's set)
-            if ((newObj as any).isVariable && objData.value !== undefined) {
-                (newObj as any).value = objData.value;
+            if ((newObj as any).isVariable) {
+                if (objData.value !== undefined) (newObj as any).value = objData.value;
+                // CRITICAL: Restore 'type' via setter (not _type) for correct morphing
+                if (objData.type !== undefined) {
+                    console.log(`[Serialization] RESTORING type via explicit setter for "${newObj.name}":`, objData.type);
+                    (newObj as any).type = objData.type;
+                } else {
+                    console.log(`[Serialization] WARNING: No type found in JSON for variable "${newObj.name}", falling back to constructor default:`, (newObj as any).type);
+                }
             }
 
             // 3. Style Merging (Explicit handling)

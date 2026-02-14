@@ -192,6 +192,11 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
   - `TBooleanVariable` (Emojis: `⚖️`)
   - `TRealVariable` (Emojis: `📏`)
   - `TObjectVariable` (Emojis: `📦`)
+- **Persistenz & Core Identity (v2.17.0)**:
+  - Bei Komponenten mit spezialisierten Unterklassen (wie `TVariable`), muss sichergestellt werden, dass Änderungen an Typ-Eigenschaften (z.B. `type`) sofort den `className` des Objekts aktualisieren.
+  - **Morphing Pattern (v2.17.1)**: Wenn eine Typs-Änderung eine fundamentale Klassen-Änderung zur Folge hat (z.B. `TIntegerVariable` zu `TObjectVariable`), muss die gesamte Instanz im Projektmodell ausgetauscht werden.
+  - Nutze dazu `editor.morphVariable(obj, newType)` in `Editor.ts`. Diese Methode erstellt eine neue Klassen-Instanz, kopiert ID, Name und Metadaten und ersetzt das alte Objekt in allen relevanten Listen (Global/Stage).
+  - Dies verhindert Race-Conditions und Inkonsistenzen zwischen Prototype/Methoden und den gespeicherten Daten.
 - **Visualisierung & Scoping**:
   - Globale Variablen (`scope: "global"`) und Service-Komponenten werden visuell nur noch auf Stages vom Typ `blueprint` (z.B. `stage_blueprint`) gerendert.
   - Auf Standard-Stages sind nur noch Stage-lokale Variablen (`scope: "stage"`) visuell präsent.
