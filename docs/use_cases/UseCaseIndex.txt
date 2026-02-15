@@ -12,3 +12,4 @@ UseCase Index
 - SmartMapping: Entpacken verschachtelter API-Antworten (Result Selector) und dynamische Entdeckung von Datenbank-Modellen im Editor.
 - VariablentypPersistenz: Lösung des Persistenz-Problems durch Unifizierung auf 'type' und Korrektur der Serialisierung (reservedKeys).
 - VariableMorphing: Detaillierte technische Dokumentation des Morphing-Prozesses (Integer -> Object), inklusive ID-Persistenz und Inspector-Fix.
+- executeCalculateVariable: Detaillierter Ablauf der Variablen-Berechnung, Proxy-Robuste Evaluierung und Vermeidung von 'undefined' in Strings.

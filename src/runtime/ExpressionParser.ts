@@ -123,27 +123,61 @@ export class ExpressionParser {
         try {
             // Create a function with context variables as parameters
             const validIdentifierRegex = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
-            const contextKeys = Object.keys(context).filter(key => validIdentifierRegex.test(key));
+
+            // NEW: Use dependencies from the expression instead of Object.keys(context)
+            // This is critical when context is a Proxy that doesn't reveal all keys (e.g. contextVars)
+            const deps = this.extractDependencies(expression);
+
+            // Filter only for top-level identifiers (no nested properties)
+            const contextKeys = deps.filter(key => {
+                if (!validIdentifierRegex.test(key)) return false;
+                // Only use as top-level key if it's actually in context or if it's a potential root variable
+                // (Nested properties like 'selectedEmoji' in 'PinPicker.selectedEmoji' should NOT be keys)
+                return (key in context) || !expression.includes(`.${key}`);
+            });
 
             // Resolve all values to their primitive/actual values before evaluation
-            const contextValues = contextKeys.map(key => PropertyHelper.resolveValue(context[key]));
+            const contextValues = contextKeys.map((key: string) => {
+                const val = context[key];
+                try {
+                    const resolved = PropertyHelper.resolveValue(val);
+                    // CRITICAL: Treat undefined/null as empty string to prevent "undefined" appearing in UI strings
+                    return (resolved === undefined || resolved === null) ? "" : resolved;
+                } catch (e) {
+                    return "";
+                }
+            });
 
             // Create function that evaluates the expression
             const func = new Function(...contextKeys, `return ${expression}`);
 
-            return func(...contextValues);
+            const result = func(...contextValues);
+
+            // Console Tracing for debugging (only if result is suspect or in debug mode)
+            if (result === undefined || (result !== result && typeof result === 'number')) { // NaN check
+                console.log(`%c[ExpressionParser] Suspicious result for "${expression}":`, 'color: #ff9800', {
+                    result,
+                    contextKeys,
+                    contextValues: contextValues.map((v: any) => typeof v === 'object' ? (v?.name || v?.className || 'Object') : v)
+                });
+            }
+
+            return result;
         } catch (error: any) {
-            // Suppress common "undefined" errors during initialization/object selection
             const msg = error?.message || '';
             const name = error?.name || '';
+
+            // VERY IMPORTANT: Log ReferenceErrors clearly as they indicate missing variables
+            if (name === 'ReferenceError' || error instanceof ReferenceError) {
+                console.warn(`%c[ExpressionParser] ReferenceError in "${expression}": ${msg}`, 'color: #f44336; font-weight: bold');
+                return undefined;
+            }
 
             if ((name === 'TypeError' || error instanceof TypeError) &&
                 (msg.includes('undefined') || msg.includes('null'))) {
                 return undefined;
             }
-            if (name === 'ReferenceError' || error instanceof ReferenceError) {
-                return undefined;
-            }
+
             console.warn(`[ExpressionParser] Evaluation error for "${expression}":`, error);
             return undefined;
         }
@@ -202,13 +236,24 @@ export class ExpressionParser {
      * @returns Array of variable names used
      */
     static extractDependencies(expression: string): string[] {
-        // Match all word sequences (variable names)
-        const matches = expression.match(/\b[a-zA-Z_]\w*\b/g) || [];
+        // Match identifiers, and check if they are preceded by a dot
+        const regex = /(\.)?([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
+        const deps = new Set<string>();
+        let match;
+
+        while ((match = regex.exec(expression)) !== null) {
+            const dot = match[1];
+            const name = match[2];
+            // If it has NO dot prefix, it's a potential root variable/context key
+            if (!dot) {
+                deps.add(name);
+            }
+        }
 
         // Filter out JavaScript keywords
-        const keywords = new Set(['true', 'false', 'null', 'undefined', 'typeof', 'instanceof']);
+        const keywords = new Set(['true', 'false', 'null', 'undefined', 'typeof', 'instanceof', 'new', 'return', 'if', 'else', 'for', 'while']);
 
-        return [...new Set(matches.filter(m => !keywords.has(m)))];
+        return Array.from(deps).filter(m => !keywords.has(m));
     }
 
     /**

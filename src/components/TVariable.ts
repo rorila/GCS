@@ -83,19 +83,16 @@ export class TVariable extends TWindow {
      * does not call prototype getters, causing type loss on reload.
      */
     public toJSON(): any {
-        const json: any = {};
-        // Copy all own enumerable properties
-        for (const key of Object.keys(this)) {
-            if (key === '_type') continue; // Skip private backing field
-            json[key] = (this as any)[key];
-        }
-        // Expose getter value as 'type'
+        const json = super.toJSON();
+
+        // Ensure the 'type' getter value is serialized correctly
         json.type = this.type;
 
         console.log(`[TVariable] Serializing "${this.name}" (ID: ${this.id}):`, {
             className: this.className,
             type: json.type,
-            scope: this.scope
+            scope: this.scope,
+            events: !!json.events
         });
 
         return json;

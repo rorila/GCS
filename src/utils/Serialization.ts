@@ -280,7 +280,7 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             // IMPORTANT: Explicitly set className for production builds where constructor.name is minified
             (newObj as any).className = objData.className;
             newObj.scope = objData.scope || 'stage';
-            newObj.isVariable = objData.isVariable || false;
+            if (objData.isVariable !== undefined) newObj.isVariable = objData.isVariable;
 
             // Restore width/height (may have been overwritten by constructor defaults)
             if (objData.width !== undefined) newObj.width = objData.width;

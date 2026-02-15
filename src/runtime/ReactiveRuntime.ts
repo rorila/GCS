@@ -1,6 +1,7 @@
 import { ExpressionParser } from './ExpressionParser';
 import { PropertyWatcher } from './PropertyWatcher';
 import { makeReactive } from './ReactiveProperty';
+import { DESIGN_VALUES } from '../components/TComponent';
 
 /**
  * ReactiveRuntime - Manages reactive bindings between objects and UI
@@ -94,6 +95,10 @@ export class ReactiveRuntime {
             expression,
             dependencies: deps,
             update: () => {
+                // Pre-update: Store expression as design value to protect it from SSoT loss
+                if (!targetObj[DESIGN_VALUES]) targetObj[DESIGN_VALUES] = {};
+                targetObj[DESIGN_VALUES][targetProp] = expression;
+
                 const context = this.getContext();
                 const newValue = ExpressionParser.interpolate(expression, context);
 

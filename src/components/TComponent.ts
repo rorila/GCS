@@ -13,10 +13,16 @@ export interface TPropertyDef {
     source?: string;    // for select type - dynamic source name (e.g. 'availableModels')
     hint?: string;      // Tooltip or hint text
     placeholder?: string; // Input placeholder
+    style?: any;       // For button type: custom CSS styles
     action?: string;   // For button type: internal action name
     actionData?: any;  // For button type: payload for action
-    style?: any;       // For button type: custom CSS styles
 }
+
+/** 
+ * Symbol to store original formula/expressions (Design Values) 
+ * to prevent them from being lost when overwritten by runtime results.
+ */
+export const DESIGN_VALUES = Symbol('DESIGN_VALUES');
 
 /**
  * Interface für Komponenten, die an der Runtime-Loop teilnehmen
@@ -100,7 +106,12 @@ export abstract class TComponent {
         props.forEach(p => {
             if (p.serializable === false) return; // Nicht speichern
 
-            const value = this.getPropertyValue(p.name);
+            // PREFER DESIGN VALUE (Formula) over current runtime value for persistence
+            const designValues = (this as any)[DESIGN_VALUES];
+            const value = (designValues && designValues[p.name] !== undefined)
+                ? designValues[p.name]
+                : this.getPropertyValue(p.name);
+
             if (value !== undefined) {
                 if (!p.name.includes('.')) {
                     json[p.name] = value;

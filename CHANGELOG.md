@@ -1,3 +1,45 @@
+# Changelog
+
+## [2.18.9] - 2026-02-15
+### Added
+- **Dokumentation**: Neuer UseCase `ExecuteCalculateVariable.md` dokumentiert den detaillierten Ablauf der Variablen-Berechnung.
+- **Testing**: Regressionstest `test_calculate_robustness.ts` zur Absicherung komplexer Expressions (Proxy-Support, Emojis, Undefined-Handling).
+### Changed
+- **ExpressionParser**: `extractDependencies` verbessert, um verschachtelte Properties (z.B. `.selectedEmoji`) von Root-Variablen zu unterscheiden.
+- **Guidelines**: `DEVELOPER_GUIDELINES.md` um Best-Practices für reaktive Expressions erweitert.
+
+## [2.18.8] - 2026-02-15
+### Fixed
+- **ExpressionParser**: "Undefined-Safe" Evaluierung implementiert. `undefined` oder `null` Werte in Variablen werden nun automatisch als leere Strings (`""`) behandelt, um die Anzeige von `"undefined"` in der Benutzeroberfläche (z.B. bei der PIN-Eingabe) zu verhindern.
+
+## [2.18.7] - 2026-02-15
+### Fixed
+- **ExpressionParser**: Refaktorierung von `evaluate()`, um Variablen auch in Proxies (z.B. `contextVars`) zuverlässig zu finden. Nutzt nun statische Analyse der Abhängigkeiten statt `Object.keys()`.
+- **StandardActions**: 'calculate' Aktion unterstützt nun `formula` und `expression` als Aliase.
+- **Variable Sync**: Verbesserte Protokollierung von Variablen-Updates im `RuntimeVariableManager`.
+
+### Added
+- **Aggressives Tracing**: Detaillierte Konsolen-Logs für Aktions-Kontexte und Berechnungs-Ergebnisse zur Fehlerdiagnose.
+
+## [2.18.6] - 2026-02-15
+### Fixed
+- **Action Execution**: Kritischer Bugfix in `GameRuntime.ts`. Parameter-Slot für `contextVars` korrigiert, wodurch Berechnungs-Ergebnisse wieder korrekt in Variablen gespeichert werden.
+- **SSoT Integrity**: Einführung von `DESIGN_VALUES` Symbol in `TComponent` und `ReactiveRuntime`.
+- **Binding Protection**: Bindungen (Formeln) werden nun vor dem Überschreiben durch Laufzeit-Werte geschützt und im Editor korrekt als Formeln angezeigt.
+- **JSON Serialization**: `toJSON` nutzt nun bevorzugt Design-Werte, um Datenverlust bei Bindungen zu verhindern.
+
+## [2.18.5] - 2026-02-15
+### Changed
+- **Action System Refactoring**: Entfernung von Closure-basierten Objekt-Bindungen in `StandardActions.ts`. Alle Handler nutzen nun dynamisch `context.objects`.
+- **Serialization Integrity**: Korrektur von `TVariable.toJSON()` (Aufruf von `super.toJSON()`) zur Beibehaltung von Basis-Metadaten.
+
+## [v2.18.4] - 2026-02-15
+### Fixed
+- **Emoji PIN Task Fix**: Vollständige Korrektur der kumulativen PIN-Erstellung.
+  - **Serialization Robustness**: Fix in `Serialization.ts` zur korrekten Beibehaltung der `isVariable`-Eigenschaft bei der Projekthydrierung.
+  - **Variable Sync Fix**: `RuntimeVariableManager` erkennt Variablen nun zuverlässiger (auch über den Klassennamen), was die visuelle und logische Synchronisation sicherstellt.
+  - **Expression Context Priority**: In `StandardActions.ts` (calculate) haben Variablen-Werte aus dem Proxy nun Vorrang vor den Komponenten-Objekten. Dies verhindert, dass in Formeln wie `currentPIN + emoji` das veraltete Objekt den aktuellen Wert überschreibt.
+
 ## [v2.18.3] - 2026-02-14
 ### Fixed
 - **Variable Morphing Persistence**: Kritischer Bugfix beim Typwechsel (z.B. Integer -> Object).

@@ -13,13 +13,11 @@ export class ActionExecutor {
         private onNavigate?: (target: string, params?: any) => void
     ) {
         // Registriere Standard-Aktionen
-        registerStandardActions(this.objects);
+        registerStandardActions();
     }
 
     public setObjects(objects: any[]) {
         this.objects = objects;
-        // Re-register with new objects if necessary
-        registerStandardActions(this.objects);
     }
 
     /**
@@ -34,7 +32,12 @@ export class ActionExecutor {
             data: action
         });
 
-        console.log(`%c[Action] Executing: type="${action.type}"`, 'color: #4caf50', action);
+        console.log(`%c[Action] Executing: type="${action.type}"`, 'color: #4caf50', {
+            action,
+            localVars: vars,
+            globalVars,
+            eventData: contextObj
+        });
 
         DebugLogService.getInstance().pushContext(logId);
         try {
@@ -44,6 +47,7 @@ export class ActionExecutor {
                 return await handler(action, {
                     vars,
                     contextVars: globalVars,
+                    objects: this.objects,
                     eventData: contextObj,
                     multiplayerManager: this.multiplayerManager,
                     onNavigate: this.onNavigate

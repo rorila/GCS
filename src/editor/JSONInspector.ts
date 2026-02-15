@@ -11,8 +11,8 @@ import { actionRegistry } from '../runtime/ActionRegistry';
 import { changeRecorder } from '../services/ChangeRecorder';
 import { componentRegistry } from '../services/ComponentRegistry';
 import { MediatorService } from '../services/MediatorService';
-import { registerStandardActions } from '../runtime/actions/StandardActions';
 import { dataService } from '../services/DataService';
+import { DESIGN_VALUES } from '../components/TComponent';
 // import { MediatorEvents } from '../services/MediatorService';
 
 type InspectorTab = 'properties' | 'events';
@@ -50,10 +50,6 @@ export class JSONInspector {
         }
         this.container = container;
         this.runtime = new ReactiveRuntime();
-
-        // Ensure standard actions are registered for the registry
-        registerStandardActions([]);
-
 
         // Load custom layout configuration
         this.loadLayoutConfig();
@@ -3243,6 +3239,12 @@ export class JSONInspector {
      * Liest eine verschachtelte Eigenschaft (z.B. "style.backgroundColor")
      */
     private getNestedProperty(obj: any, path: string): any {
+        // PREFER DESIGN VALUE (Formula) if available for this specific property
+        const designValues = obj[DESIGN_VALUES];
+        if (designValues && designValues[path] !== undefined) {
+            return designValues[path];
+        }
+
         if (!path.includes('.')) return obj[path];
 
         const parts = path.split('.');

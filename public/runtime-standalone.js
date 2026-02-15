@@ -459,17 +459,38 @@
       }
       try {
         const validIdentifierRegex = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
-        const contextKeys = Object.keys(context).filter((key) => validIdentifierRegex.test(key));
-        const contextValues = contextKeys.map((key) => PropertyHelper.resolveValue(context[key]));
+        const deps = this.extractDependencies(expression);
+        const contextKeys = deps.filter((key) => {
+          if (!validIdentifierRegex.test(key)) return false;
+          return key in context || !expression.includes(`.${key}`);
+        });
+        const contextValues = contextKeys.map((key) => {
+          const val = context[key];
+          try {
+            const resolved = PropertyHelper.resolveValue(val);
+            return resolved === void 0 || resolved === null ? "" : resolved;
+          } catch (e) {
+            return "";
+          }
+        });
         const func = new Function(...contextKeys, `return ${expression}`);
-        return func(...contextValues);
+        const result = func(...contextValues);
+        if (result === void 0 || result !== result && typeof result === "number") {
+          console.log(`%c[ExpressionParser] Suspicious result for "${expression}":`, "color: #ff9800", {
+            result,
+            contextKeys,
+            contextValues: contextValues.map((v) => typeof v === "object" ? v?.name || v?.className || "Object" : v)
+          });
+        }
+        return result;
       } catch (error) {
         const msg = error?.message || "";
         const name = error?.name || "";
-        if ((name === "TypeError" || error instanceof TypeError) && (msg.includes("undefined") || msg.includes("null"))) {
+        if (name === "ReferenceError" || error instanceof ReferenceError) {
+          console.warn(`%c[ExpressionParser] ReferenceError in "${expression}": ${msg}`, "color: #f44336; font-weight: bold");
           return void 0;
         }
-        if (name === "ReferenceError" || error instanceof ReferenceError) {
+        if ((name === "TypeError" || error instanceof TypeError) && (msg.includes("undefined") || msg.includes("null"))) {
           return void 0;
         }
         console.warn(`[ExpressionParser] Evaluation error for "${expression}":`, error);
@@ -521,9 +542,18 @@
      * @returns Array of variable names used
      */
     static extractDependencies(expression) {
-      const matches = expression.match(/\b[a-zA-Z_]\w*\b/g) || [];
-      const keywords = /* @__PURE__ */ new Set(["true", "false", "null", "undefined", "typeof", "instanceof"]);
-      return [...new Set(matches.filter((m) => !keywords.has(m)))];
+      const regex = /(\.)?([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
+      const deps = /* @__PURE__ */ new Set();
+      let match;
+      while ((match = regex.exec(expression)) !== null) {
+        const dot = match[1];
+        const name = match[2];
+        if (!dot) {
+          deps.add(name);
+        }
+      }
+      const keywords = /* @__PURE__ */ new Set(["true", "false", "null", "undefined", "typeof", "instanceof", "new", "return", "if", "else", "for", "while"]);
+      return Array.from(deps).filter((m) => !keywords.has(m));
     }
     /**
      * Evaluates an expression and returns the raw value (preserving type)
@@ -878,6 +908,140 @@
     });
   }
 
+  // src/components/TComponent.ts
+  var DESIGN_VALUES = Symbol("DESIGN_VALUES");
+  var TComponent = class {
+    constructor(name) {
+      __publicField(this, "id");
+      __publicField(this, "name");
+      __publicField(this, "className");
+      // Explicit className for production builds
+      __publicField(this, "parent", null);
+      __publicField(this, "children", []);
+      __publicField(this, "events");
+      // EventName -> TaskName
+      __publicField(this, "scope", "stage");
+      // Visibility scope
+      __publicField(this, "isVariable", false);
+      // Flag for variable-like components
+      __publicField(this, "isTransient", false);
+      // If true, this component is not persisted in project files
+      // Visibility & Scoping Meta-Flags
+      __publicField(this, "isService", false);
+      // If true, component is merged globally across stages
+      __publicField(this, "isHiddenInRun", false);
+      // If true, component is hidden in run mode
+      __publicField(this, "isBlueprintOnly", false);
+      // If true, component is only visible on blueprint stages in editor
+      // Drag & Drop Properties
+      __publicField(this, "draggable", false);
+      __publicField(this, "dragMode", "move");
+      __publicField(this, "droppable", false);
+      this.id = `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      this.name = name;
+      this.className = this.constructor.name;
+      this.events = {};
+    }
+    getBaseProperties() {
+      return [
+        { name: "name", label: "Name", type: "string", group: "IDENTIT\xC4T" },
+        { name: "id", label: "ID", type: "string", group: "IDENTIT\xC4T", readonly: true },
+        { name: "scope", label: "Scope", type: "select", group: "IDENTIT\xC4T", options: ["global", "stage"] },
+        { name: "draggable", label: "Draggable", type: "boolean", group: "INTERAKTION", editorOnly: true },
+        { name: "dragMode", label: "Drag Mode", type: "select", group: "INTERAKTION", options: ["move", "copy"], editorOnly: true },
+        { name: "droppable", label: "Droppable", type: "boolean", group: "INTERAKTION", editorOnly: true }
+      ];
+    }
+    /**
+     * Generisches toJSON, das die Metadaten aus getInspectorProperties nutzt.
+     * Unterstützt verschachtelte Property-Pfade (z.B. 'style.backgroundColor').
+     */
+    toJSON() {
+      const json = {
+        className: this.className || this.constructor.name,
+        id: this.id,
+        isVariable: this.isVariable,
+        isService: this.isService,
+        isHiddenInRun: this.isHiddenInRun,
+        isBlueprintOnly: this.isBlueprintOnly
+      };
+      if (this.events && Object.keys(this.events).length > 0) {
+        json.events = this.events;
+      }
+      const props = this.getInspectorProperties();
+      props.forEach((p) => {
+        if (p.serializable === false) return;
+        const designValues = this[DESIGN_VALUES];
+        const value = designValues && designValues[p.name] !== void 0 ? designValues[p.name] : this.getPropertyValue(p.name);
+        if (value !== void 0) {
+          if (!p.name.includes(".")) {
+            json[p.name] = value;
+          } else {
+            const parts = p.name.split(".");
+            let current = json;
+            for (let i = 0; i < parts.length - 1; i++) {
+              const part = parts[i];
+              if (!current[part]) current[part] = {};
+              current = current[part];
+            }
+            current[parts[parts.length - 1]] = value;
+          }
+        }
+      });
+      if (this.children.length > 0) {
+        json.children = this.children.map((child) => child.toJSON());
+      }
+      return json;
+    }
+    /**
+     * Hilfsmethode um Property-Werte (auch verschachtelte) zu lesen
+     */
+    getPropertyValue(path) {
+      if (!path.includes(".")) return this[path];
+      const parts = path.split(".");
+      let current = this;
+      for (const part of parts) {
+        if (current === void 0 || current === null) return void 0;
+        current = current[part];
+      }
+      return current;
+    }
+    addChild(child) {
+      if (child.parent) {
+        child.parent.removeChild(child);
+      }
+      child.parent = this;
+      this.children.push(child);
+    }
+    removeChild(child) {
+      const index = this.children.indexOf(child);
+      if (index !== -1) {
+        this.children.splice(index, 1);
+        child.parent = null;
+      }
+    }
+    findChild(name) {
+      return this.children.find((c) => c.name === name) || null;
+    }
+    /**
+     * JS-Integration: Erlaubt es Komponenten, in Ausdrücken (z.B. currentPIN + '2')
+     * direkt ihren Wert zu verwenden.
+     */
+    valueOf() {
+      if (this.isVariable) {
+        if (this.value !== void 0) return this.value;
+        if (this.items !== void 0) return this.items;
+      }
+      return this;
+    }
+    toString() {
+      const val = this.valueOf();
+      if (val === this) return `[${this.className || this.constructor.name}: ${this.name}]`;
+      if (Array.isArray(val)) return val.join(", ");
+      return String(val ?? "");
+    }
+  };
+
   // src/runtime/ReactiveRuntime.ts
   var ReactiveRuntime = class {
     constructor() {
@@ -947,6 +1111,8 @@
         expression,
         dependencies: deps,
         update: () => {
+          if (!targetObj[DESIGN_VALUES]) targetObj[DESIGN_VALUES] = {};
+          targetObj[DESIGN_VALUES][targetProp] = expression;
           const context = this.getContext();
           const newValue = ExpressionParser.interpolate(expression, context);
           if (targetProp.includes(".")) {
@@ -1262,12 +1428,18 @@
       try {
         console.log(`[DataService] Seeding '${storagePath}' from ${url}...`);
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+          console.error(`[DataService] Seeding failed: HTTP ${response.status} ${response.statusText} from ${url}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
+        if (storagePath === "data.json") {
+          console.log(`[DataService] Validating seed data. Keys: ${Object.keys(data).join(", ")}`);
+        }
         await this.writeDb(storagePath, data);
-        console.log(`[DataService] Seeding successful for '${storagePath}'`);
+        console.log(`[DataService] Seeding successful for '${storagePath}'. Saved to localStorage as gcs_db_${storagePath}`);
       } catch (e) {
-        console.error(`[DataService] Seeding failed for '${storagePath}':`, e);
+        console.error(`[DataService] Seeding CRITICAL FAILURE for '${storagePath}':`, e);
       }
     }
     /**
@@ -1466,14 +1638,14 @@
     }
     return objects.find((o) => o.name === actualName || o.id === actualName);
   }
-  function registerStandardActions(objects) {
+  function registerStandardActions() {
     actionRegistry.register("property", (action, context) => {
-      const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+      const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (target && action.changes) {
         Object.keys(action.changes).forEach((prop) => {
           const rawValue = action.changes[prop];
-          const value = PropertyHelper.interpolate(String(rawValue), combinedContext, objects);
+          const value = PropertyHelper.interpolate(String(rawValue), combinedContext, context.objects);
           PropertyHelper.setPropertyValue(target, prop, PropertyHelper.autoConvert(value));
         });
       }
@@ -1490,7 +1662,7 @@
       let val = void 0;
       const sourceName = action.source;
       const variableName = action.variableName;
-      const srcObj = resolveTarget(sourceName, objects, context.vars, context.contextVars);
+      const srcObj = resolveTarget(sourceName, context.objects, context.vars, context.contextVars);
       if (srcObj) {
         if (action.sourceProperty) {
           val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
@@ -1509,7 +1681,7 @@
         }
       }
       if (val === void 0 && sourceName && String(sourceName).includes("${")) {
-        val = PropertyHelper.interpolate(String(sourceName), { ...context.contextVars, ...context.vars }, objects);
+        val = PropertyHelper.interpolate(String(sourceName), { ...context.contextVars, ...context.vars }, context.objects);
       }
       if (val !== void 0 && variableName) {
         context.vars[variableName] = val;
@@ -1544,21 +1716,33 @@
       ]
     });
     actionRegistry.register("calculate", (action, context) => {
-      if (action.formula) {
-        const objectMap = objects.reduce((acc, obj) => {
+      const formula = action.formula || action.expression;
+      if (formula) {
+        const objectMap = context.objects.reduce((acc, obj) => {
           if (obj.id) acc[obj.id] = obj;
           if (obj.name) acc[obj.name] = obj;
           return acc;
         }, {});
-        const result = ExpressionParser.evaluate(action.formula, {
+        const evalContext = {
+          ...objectMap,
           ...context.contextVars,
           ...context.vars,
-          ...objectMap,
           $eventData: context.eventData
-        });
-        if (action.resultVariable) {
-          context.contextVars[action.resultVariable] = result;
+        };
+        try {
+          const result = ExpressionParser.evaluate(formula, evalContext);
+          console.log(`%c[Action:calculate] Result of "${formula}" -> ${JSON.stringify(result)} (Target: ${action.resultVariable})`, "color: #2196f3");
+          if (action.resultVariable) {
+            context.contextVars[action.resultVariable] = result;
+            if (context.vars) {
+              context.vars[action.resultVariable] = result;
+            }
+          }
+        } catch (err2) {
+          console.error(`[Action:calculate] Error evaluating "${formula}":`, err2);
         }
+      } else {
+        console.warn("[Action:calculate] No formula/expression provided in action:", action);
       }
     }, {
       type: "calculate",
@@ -1570,10 +1754,10 @@
       ]
     });
     actionRegistry.register("animate", (action, context) => {
-      const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+      const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (target) {
-        const toValue = Number(PropertyHelper.interpolate(String(action.to), combinedContext, objects));
+        const toValue = Number(PropertyHelper.interpolate(String(action.to), combinedContext, context.objects));
         AnimationManager.getInstance().addTween(target, action.property || "x", toValue, action.duration || 500, action.easing || "easeOut");
       }
     }, {
@@ -1589,11 +1773,11 @@
       ]
     });
     actionRegistry.register("move_to", (action, context) => {
-      const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+      const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (target) {
-        const toX = Number(PropertyHelper.interpolate(String(action.x), combinedContext, objects));
-        const toY = Number(PropertyHelper.interpolate(String(action.y), combinedContext, objects));
+        const toX = Number(PropertyHelper.interpolate(String(action.x), combinedContext, context.objects));
+        const toY = Number(PropertyHelper.interpolate(String(action.y), combinedContext, context.objects));
         if (typeof target.moveTo === "function") {
           target.moveTo(toX, toY, action.duration || 500, action.easing || "easeOut");
         } else {
@@ -1615,7 +1799,7 @@
     });
     actionRegistry.register("navigate", (action, context) => {
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-      let targetGame = PropertyHelper.interpolate(action.target, combinedContext, objects);
+      let targetGame = PropertyHelper.interpolate(action.target, combinedContext, context.objects);
       if (targetGame && context.onNavigate) {
         context.onNavigate(targetGame, action.params);
       }
@@ -1631,7 +1815,7 @@
       const stageId = action.stageId;
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (stageId && context.onNavigate) {
-        const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, objects);
+        const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, context.objects);
         context.onNavigate(`stage:${resolved}`, action.params);
       }
     }, {
@@ -1645,7 +1829,7 @@
     actionRegistry.register("service", async (action, context) => {
       if (action.service && action.method && serviceRegistry.has(action.service)) {
         const params = (Array.isArray(action.serviceParams) ? action.serviceParams : []).map(
-          (v) => PropertyHelper.interpolate(String(v), { ...context.contextVars, ...context.vars }, objects)
+          (v) => PropertyHelper.interpolate(String(v), { ...context.contextVars, ...context.vars }, context.objects)
         );
         const result = await serviceRegistry.call(action.service, action.method, params);
         if (action.resultVariable) {
@@ -1667,7 +1851,7 @@
     actionRegistry.register("create_room", (action, context) => {
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (context.multiplayerManager) {
-        let gameName = PropertyHelper.interpolate(action.game, combinedContext, objects);
+        let gameName = PropertyHelper.interpolate(action.game, combinedContext, context.objects);
         context.multiplayerManager.createRoom(gameName);
       }
     }, {
@@ -1681,7 +1865,7 @@
     actionRegistry.register("join_room", (action, context) => {
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (context.multiplayerManager) {
-        let code = action.params?.code ? PropertyHelper.interpolate(String(action.params.code), combinedContext, objects) : "";
+        let code = action.params?.code ? PropertyHelper.interpolate(String(action.params.code), combinedContext, context.objects) : "";
         if (code.length >= 4) {
           context.multiplayerManager.joinRoom(code);
         }
@@ -1696,13 +1880,13 @@
     });
     actionRegistry.register("http", async (action, context) => {
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-      const url = PropertyHelper.interpolate(String(action.url || ""), combinedContext, objects);
+      const url = PropertyHelper.interpolate(String(action.url || ""), combinedContext, context.objects);
       const method = action.method || "GET";
       let body = null;
       let parsedBody = {};
       if (method !== "GET" && action.body) {
         const bodyStr = typeof action.body === "object" ? JSON.stringify(action.body) : String(action.body);
-        body = PropertyHelper.interpolate(bodyStr, combinedContext, objects);
+        body = PropertyHelper.interpolate(bodyStr, combinedContext, context.objects);
         try {
           parsedBody = JSON.parse(body);
         } catch (e) {
@@ -1793,7 +1977,7 @@
         localStorage.removeItem(key);
       } else {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        const token = PropertyHelper.interpolate(String(action.token || ""), combinedContext, objects);
+        const token = PropertyHelper.interpolate(String(action.token || ""), combinedContext, context.objects);
         localStorage.setItem(key, token);
       }
     }, {
@@ -1808,9 +1992,9 @@
     });
     actionRegistry.register("show_toast", (action, context) => {
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-      const message = PropertyHelper.interpolate(String(action.message || ""), combinedContext, objects);
+      const message = PropertyHelper.interpolate(String(action.message || ""), combinedContext, context.objects);
       const toastType = action.toastType || "info";
-      const toaster = objects.find((o) => o.className === "TToast" || o.constructor?.name === "TToast");
+      const toaster = context.objects.find((o) => o.className === "TToast" || o.constructor?.name === "TToast");
       if (toaster && typeof toaster.show === "function") {
         toaster.show(message, toastType);
       } else {
@@ -1827,9 +2011,9 @@
     });
     actionRegistry.register("respond_http", async (action, context) => {
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-      const requestId = PropertyHelper.interpolate(String(action.requestId || ""), combinedContext, objects);
-      const status = Number(PropertyHelper.interpolate(String(action.status || 200), combinedContext, objects));
-      const dataStr = PropertyHelper.interpolate(String(action.data || "{}"), combinedContext, objects);
+      const requestId = PropertyHelper.interpolate(String(action.requestId || ""), combinedContext, context.objects);
+      const status = Number(PropertyHelper.interpolate(String(action.status || 200), combinedContext, context.objects));
+      const dataStr = PropertyHelper.interpolate(String(action.data || "{}"), combinedContext, context.objects);
       let data = dataStr;
       try {
         if (dataStr.trim().startsWith("{") || dataStr.trim().startsWith("[")) {
@@ -1916,7 +2100,7 @@
         method: eventData.method,
         body: eventData.body,
         query: eventData.query
-      }, objects);
+      }, context.objects);
       const pendingMap = window.__pendingApiResponses;
       if (pendingMap) {
         const resolver = pendingMap.get(eventData.requestId);
@@ -1943,11 +2127,10 @@
       this.objects = objects;
       this.multiplayerManager = multiplayerManager;
       this.onNavigate = onNavigate;
-      registerStandardActions(this.objects);
+      registerStandardActions();
     }
     setObjects(objects) {
       this.objects = objects;
-      registerStandardActions(this.objects);
     }
     /**
      * Executes a single action
@@ -1959,7 +2142,12 @@
         parentId,
         data: action
       });
-      console.log(`%c[Action] Executing: type="${action.type}"`, "color: #4caf50", action);
+      console.log(`%c[Action] Executing: type="${action.type}"`, "color: #4caf50", {
+        action,
+        localVars: vars,
+        globalVars,
+        eventData: contextObj
+      });
       DebugLogService.getInstance().pushContext(logId);
       try {
         const handler = actionRegistry.getHandler(action.type);
@@ -1967,6 +2155,7 @@
           return await handler(action, {
             vars,
             contextVars: globalVars,
+            objects: this.objects,
             eventData: contextObj,
             multiplayerManager: this.multiplayerManager,
             onNavigate: this.onNavigate
@@ -3106,7 +3295,7 @@
             this.stageVariables[prop] = finalValue;
           }
           const component = this.host.objects?.find(
-            (o) => varDef && o.id === varDef.id || o.name === prop && o.isVariable
+            (o) => varDef && o.id === varDef.id || o.name === prop && (o.isVariable || o.className?.includes("Variable"))
           );
           let componentUpdated = false;
           if (component) {
@@ -3124,6 +3313,7 @@
           if (!componentUpdated) {
             this.logVariableChange(prop, finalValue, oldValue);
           }
+          console.log(`%c[VariableContext:Set] ${prop} = ${JSON.stringify(finalValue)} (Old: ${JSON.stringify(oldValue)})`, "color: #e91e63");
           this.host.reactiveRuntime.setVariable(prop, finalValue);
           if (this.host.taskExecutor) {
             if (varDef) {
@@ -3255,138 +3445,6 @@
         }
       } catch (e) {
       }
-    }
-  };
-
-  // src/components/TComponent.ts
-  var TComponent = class {
-    constructor(name) {
-      __publicField(this, "id");
-      __publicField(this, "name");
-      __publicField(this, "className");
-      // Explicit className for production builds
-      __publicField(this, "parent", null);
-      __publicField(this, "children", []);
-      __publicField(this, "events");
-      // EventName -> TaskName
-      __publicField(this, "scope", "stage");
-      // Visibility scope
-      __publicField(this, "isVariable", false);
-      // Flag for variable-like components
-      __publicField(this, "isTransient", false);
-      // If true, this component is not persisted in project files
-      // Visibility & Scoping Meta-Flags
-      __publicField(this, "isService", false);
-      // If true, component is merged globally across stages
-      __publicField(this, "isHiddenInRun", false);
-      // If true, component is hidden in run mode
-      __publicField(this, "isBlueprintOnly", false);
-      // If true, component is only visible on blueprint stages in editor
-      // Drag & Drop Properties
-      __publicField(this, "draggable", false);
-      __publicField(this, "dragMode", "move");
-      __publicField(this, "droppable", false);
-      this.id = `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      this.name = name;
-      this.className = this.constructor.name;
-      this.events = {};
-    }
-    getBaseProperties() {
-      return [
-        { name: "name", label: "Name", type: "string", group: "IDENTIT\xC4T" },
-        { name: "id", label: "ID", type: "string", group: "IDENTIT\xC4T", readonly: true },
-        { name: "scope", label: "Scope", type: "select", group: "IDENTIT\xC4T", options: ["global", "stage"] },
-        { name: "draggable", label: "Draggable", type: "boolean", group: "INTERAKTION", editorOnly: true },
-        { name: "dragMode", label: "Drag Mode", type: "select", group: "INTERAKTION", options: ["move", "copy"], editorOnly: true },
-        { name: "droppable", label: "Droppable", type: "boolean", group: "INTERAKTION", editorOnly: true }
-      ];
-    }
-    /**
-     * Generisches toJSON, das die Metadaten aus getInspectorProperties nutzt.
-     * Unterstützt verschachtelte Property-Pfade (z.B. 'style.backgroundColor').
-     */
-    toJSON() {
-      const json = {
-        className: this.className || this.constructor.name,
-        id: this.id,
-        isVariable: this.isVariable,
-        isService: this.isService,
-        isHiddenInRun: this.isHiddenInRun,
-        isBlueprintOnly: this.isBlueprintOnly
-      };
-      if (this.events && Object.keys(this.events).length > 0) {
-        json.events = this.events;
-      }
-      const props = this.getInspectorProperties();
-      props.forEach((p) => {
-        if (p.serializable === false) return;
-        const value = this.getPropertyValue(p.name);
-        if (value !== void 0) {
-          if (!p.name.includes(".")) {
-            json[p.name] = value;
-          } else {
-            const parts = p.name.split(".");
-            let current = json;
-            for (let i = 0; i < parts.length - 1; i++) {
-              const part = parts[i];
-              if (!current[part]) current[part] = {};
-              current = current[part];
-            }
-            current[parts[parts.length - 1]] = value;
-          }
-        }
-      });
-      if (this.children.length > 0) {
-        json.children = this.children.map((child) => child.toJSON());
-      }
-      return json;
-    }
-    /**
-     * Hilfsmethode um Property-Werte (auch verschachtelte) zu lesen
-     */
-    getPropertyValue(path) {
-      if (!path.includes(".")) return this[path];
-      const parts = path.split(".");
-      let current = this;
-      for (const part of parts) {
-        if (current === void 0 || current === null) return void 0;
-        current = current[part];
-      }
-      return current;
-    }
-    addChild(child) {
-      if (child.parent) {
-        child.parent.removeChild(child);
-      }
-      child.parent = this;
-      this.children.push(child);
-    }
-    removeChild(child) {
-      const index = this.children.indexOf(child);
-      if (index !== -1) {
-        this.children.splice(index, 1);
-        child.parent = null;
-      }
-    }
-    findChild(name) {
-      return this.children.find((c) => c.name === name) || null;
-    }
-    /**
-     * JS-Integration: Erlaubt es Komponenten, in Ausdrücken (z.B. currentPIN + '2')
-     * direkt ihren Wert zu verwenden.
-     */
-    valueOf() {
-      if (this.isVariable) {
-        if (this.value !== void 0) return this.value;
-        if (this.items !== void 0) return this.items;
-      }
-      return this;
-    }
-    toString() {
-      const val = this.valueOf();
-      if (val === this) return `[${this.className || this.constructor.name}: ${this.name}]`;
-      if (Array.isArray(val)) return val.join(", ");
-      return String(val ?? "");
     }
   };
 
@@ -8441,7 +8499,10 @@
           label: "Typ",
           type: "select",
           group: "Variable",
-          options: ["integer", "real", "string", "boolean", "timer", "random", "list", "object", "object_list", "threshold", "trigger", "range", "keystore"]
+          options: ["integer", "real", "string", "boolean", "timer", "random", "list", "object", "object_list", "threshold", "trigger", "range", "keystore"],
+          selectedValue: this.type,
+          // Explicitly bind current value
+          defaultValue: "integer"
         },
         { name: "defaultValue", label: "Standardwert", type: "string", group: "Variable" },
         { name: "value", label: "Aktueller Wert", type: "string", group: "Variable" }
@@ -8466,6 +8527,22 @@
         ...super.getEvents(),
         "onValueChanged"
       ];
+    }
+    /**
+     * Custom toJSON to ensure the 'type' getter is serialized as 'type'
+     * instead of the private '_type' field. Without this, JSON.stringify
+     * does not call prototype getters, causing type loss on reload.
+     */
+    toJSON() {
+      const json = super.toJSON();
+      json.type = this.type;
+      console.log(`[TVariable] Serializing "${this.name}" (ID: ${this.id}):`, {
+        className: this.className,
+        type: json.type,
+        scope: this.scope,
+        events: !!json.events
+      });
+      return json;
     }
   };
 
@@ -9811,7 +9888,7 @@
         newObj.id = objData.id;
         newObj.className = objData.className;
         newObj.scope = objData.scope || "stage";
-        newObj.isVariable = objData.isVariable || false;
+        if (objData.isVariable !== void 0) newObj.isVariable = objData.isVariable;
         if (objData.width !== void 0) newObj.width = objData.width;
         if (objData.height !== void 0) newObj.height = objData.height;
         if (objData.x !== void 0) newObj.x = objData.x;
@@ -9927,8 +10004,10 @@
           "Tasks",
           "style",
           // Handled explicitly
-          "shapeType"
+          "shapeType",
           // Often constructor arg, but safe to re-assign if public
+          "_type"
+          // Private backing field - must go through 'type' setter instead
         ];
         Object.keys(objData).forEach((key) => {
           if (reservedKeys.includes(key)) return;
@@ -9945,10 +10024,19 @@
             target[parts[parts.length - 1]] = val;
           } else {
             newObj[key] = val;
+            if (newObj.isVariable && key === "type") {
+              console.log(`[Serialization] SETTING type via generic loop for "${newObj.name}":`, val);
+            }
           }
         });
         if (newObj.isVariable) {
           if (objData.value !== void 0) newObj.value = objData.value;
+          if (objData.type !== void 0) {
+            console.log(`[Serialization] RESTORING type via explicit setter for "${newObj.name}":`, objData.type);
+            newObj.type = objData.type;
+          } else {
+            console.log(`[Serialization] WARNING: No type found in JSON for variable "${newObj.name}", falling back to constructor default:`, newObj.type);
+          }
         }
         if (objData.style) {
           const targetStyle = newObj.style || {};
@@ -10347,11 +10435,7 @@
           if (actions) {
             const actionList = Array.isArray(actions) ? actions : [actions];
             for (const action of actionList) {
-              this.actionExecutor.execute(action, {
-                vars: this.contextVars,
-                contextVars: this.contextVars,
-                eventData: data
-              }, {}, void 0, eventLogId);
+              this.actionExecutor.execute(action, {}, this.contextVars, data, eventLogId);
             }
           }
         }

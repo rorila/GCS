@@ -118,7 +118,7 @@ export class RuntimeVariableManager {
                 // PREFER ID SYNC if we have a varDef, otherwise fallback to name
                 const component = (this.host as any).objects?.find((o: any) =>
                     (varDef && o.id === varDef.id) ||
-                    (o.name === prop && o.isVariable)
+                    (o.name === prop && (o.isVariable || o.className?.includes('Variable')))
                 );
 
                 let componentUpdated = false;
@@ -141,6 +141,9 @@ export class RuntimeVariableManager {
                 if (!componentUpdated) {
                     this.logVariableChange(prop, finalValue, oldValue);
                 }
+
+                console.log(`%c[VariableContext:Set] ${prop} = ${JSON.stringify(finalValue)} (Old: ${JSON.stringify(oldValue)})`, 'color: #e91e63');
+
                 this.host.reactiveRuntime.setVariable(prop, finalValue);
 
                 if (this.host.taskExecutor) {

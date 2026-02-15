@@ -1,6 +1,7 @@
 export interface ActionContext {
     vars: Record<string, any>;
     contextVars: any;
+    objects: any[]; // New: objects list passed dynamically per execution
     eventData?: any;
     multiplayerManager?: any;
     onNavigate?: (target: string, params?: any) => void;

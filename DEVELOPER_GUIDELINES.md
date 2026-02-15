@@ -197,6 +197,17 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
   - **Morphing Pattern (v2.17.1)**: Wenn eine Typs-Änderung eine fundamentale Klassen-Änderung zur Folge hat (z.B. `TIntegerVariable` zu `TObjectVariable`), muss die gesamte Instanz im Projektmodell ausgetauscht werden.
   - Nutze dazu `editor.morphVariable(obj, newType)` in `Editor.ts`. Diese Methode erstellt eine neue Klassen-Instanz, kopiert ID, Name und Metadaten und ersetzt das alte Objekt in allen relevanten Listen (Global/Stage).
   - Dies verhindert Race-Conditions und Inkonsistenzen zwischen Prototype/Methoden und den gespeicherten Daten.
+- **Expression Context Priority** (v2.18.4): In Berechnungen haben Variablen-Proxy-Werte Vorrang vor Komponenten-Objekten.
+- **Action System Closure-Free** (v2.18.5): Aktionen dürfen keine Spiel-Objekte per Closure binden. Stattdessen MUSS `context.objects` verwendet werden, um sicherzustellen, dass immer die aktuelle Objektliste der ausführenden Komponente (Runtime/Editor) genutzt wird.
+- **Serialization Integrity** (v2.18.5): Bei der Erweiterung der Serialisierung in Unterklassen (z.B. `TVariable`) muss IMMER `super.toJSON()` aufgerufen werden, um den Verlust von Basis-Eigenschaften zu vermeiden.
+- **SSoT-Schutz & Design-Values** (v2.18.6):
+  - **Erhaltung von Formeln**: Bindungen (Formeln wie `${...}`) werden im `DESIGN_VALUES` Symbol der Instanz gespeichert.
+  - **Persistenz**: `toJSON` priorisiert `DESIGN_VALUES` vor den aktuellen (evaluierten) Property-Werten.
+  - **Inspector-Anzeige**: Der `JSONInspector` liest bevorzugt aus `DESIGN_VALUES`, um dem Benutzer die Formel zur Bearbeitung anzuzeigen, während die Stage den Laufzeit-Wert rendert.
+  - **Action-Context**: Beim Aufruf von `actionExecutor.execute` muss die Variablen-Liste im 3. Parameter (`globalContext`) übergeben werden, damit die `contextVars` der Runtime aktualisiert werden.
+- **Serialization Robustness (v2.18.4)**:
+  - Bei der Hydrierung von Objekten in `Serialization.ts` muss die `isVariable`-Eigenschaft explizit geschützt werden. 
+  - Sie darf nur dann überschrieben werden, wenn sie im JSON-Datensatz explizit vorhanden ist, um zu verhindern, dass sie fälschlicherweise auf `false` (Default-Zuweisung) zurückfällt und so die Variablen-Synchronisation unterbricht.
 - **Visualisierung & Scoping**:
   - Globale Variablen (`scope: "global"`) und Service-Komponenten werden visuell nur noch auf Stages vom Typ `blueprint` (z.B. `stage_blueprint`) gerendert.
   - Auf Standard-Stages sind nur noch Stage-lokale Variablen (`scope: "stage"`) visuell präsent.
@@ -214,6 +225,22 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
   - **Synchronisations-Reihenfolge**: Im `RuntimeVariableManager` muss die visuelle Komponente (`component.value = ...`) ZUERST aktualisiert werden, bevor `reactiveRuntime.setVariable` aufgerufen wird. Dies verhindert, dass Bindings bei einer Benachrichtigung noch den alten Wert im Kontext vorfinden.
   - **ActionExecutor & Proxies**: Wenn sich eine Stage ändert (`GameRuntime.handleStageChange`), muss der `ActionExecutor` explizit mit der Liste der neuen Proxies (`reactiveRuntime.getObjects()`) aktualisiert werden, damit Aktionen direkt auf den reaktiven Instanzen operieren.
   - **valueOf() Support**: Alle Komponenten erben `valueOf()` von `TComponent`, was bei Variablen automatisch `.value` zurückgibt – ein Sicherheitsnetz für direkte JS-Interaktionen.
+  - **Proxy-Aware Expression Parsing (v2.18.7)**: Der `ExpressionParser` nutzt statische Analyse (`extractDependencies`), um Variablen in Expressions zu finden. Dies ist notwendig, da Proxies (wie `contextVars`) oft ihre Keys nicht proaktiv via `Object.keys()` preisgeben. Der Parser filtert dabei geschickt Property-Accesses (z.B. `.selectedEmoji`) aus den Root-Abhängigkeiten heraus.
+  - **Undefined-Safe Strings (v2.18.8)**: Um die Anzeige von `"undefined"` in der UI zu verhindern (z.B. bei String-Konkatenation `currentPIN + emoji`), werden `undefined` oder `null` Werte im Evaluierungs-Kontext automatisch durch leere Strings (`""`) ersetzt.
+217: 
+- **Expression Context Priority (v2.18.4)**: 
+    - In Berechnungs-Ausdrücken (z.B. `calculate` Aktionen) ist die Reihenfolge beim Mergen des Variablen-Kontexts entscheidend. 
+    - **Regel**: Die `objectMap` (Komponenten-Instanzen) muss ZUERST gespreadet werden, gefolgt von den tatsächlichen Variablen-Contexts (`contextVars`, `vars`).
+    - Dies stellt sicher, dass wenn ein Name sowohl als Komponente als auch als primitiver Variablen-Wert existiert, der aktuelle Wert aus dem Proxy Vorrang hat und nicht durch das initiale Komponenten-Objekt überschrieben wird.
+    - Implementierung in `StandardActions.ts`:
+      ```typescript
+      const result = ExpressionParser.evaluate(action.formula, {
+          ...objectMap,        // Komponenten (Fallback)
+          ...contextVars,      // Variablen-Werte (Priorität)
+          ...vars,
+          $eventData: eventData
+      });
+      ```
 
 - **Read Variable Aktion (v2.16.4 / v2.16.5)**:
     - Die Aktion `variable` (Label: "Read Variable") ist nun hochflexibel.

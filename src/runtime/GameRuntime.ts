@@ -356,11 +356,7 @@ export class GameRuntime implements IVariableHost {
                     // Actions can be a single object or an array
                     const actionList = Array.isArray(actions) ? actions : [actions];
                     for (const action of actionList) {
-                        this.actionExecutor.execute(action, {
-                            vars: this.contextVars,
-                            contextVars: this.contextVars,
-                            eventData: data
-                        }, {}, undefined, eventLogId);
+                        this.actionExecutor.execute(action, {}, this.contextVars, data, eventLogId);
                     }
                 }
             }

@@ -22,16 +22,16 @@ function resolveTarget(targetName: string, objects: any[], vars: Record<string, 
 /**
  * REGISTRIERUNG ALLER STANDARD-AKTIONEN
  */
-export function registerStandardActions(objects: any[]) {
+export function registerStandardActions() {
 
     // 1. Property ändern
     actionRegistry.register('property', (action, context) => {
-        const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+        const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (target && action.changes) {
             Object.keys(action.changes).forEach(prop => {
                 const rawValue = action.changes[prop];
-                const value = PropertyHelper.interpolate(String(rawValue), combinedContext, objects);
+                const value = PropertyHelper.interpolate(String(rawValue), combinedContext, context.objects);
                 PropertyHelper.setPropertyValue(target, prop, PropertyHelper.autoConvert(value));
             });
         }
@@ -52,7 +52,7 @@ export function registerStandardActions(objects: any[]) {
         const variableName = action.variableName;
 
         // 1. Quelle auflösen (Objekt oder Variable)
-        const srcObj = resolveTarget(sourceName, objects, context.vars, context.contextVars);
+        const srcObj = resolveTarget(sourceName, context.objects, context.vars, context.contextVars);
 
         if (srcObj) {
             // Falls Objekt gefunden, Eigenschaft lesen
@@ -77,7 +77,7 @@ export function registerStandardActions(objects: any[]) {
 
         // 3. Fallback: Interpolation (falls Quelle z.B. "${andereVar}")
         if (val === undefined && sourceName && String(sourceName).includes('${')) {
-            val = PropertyHelper.interpolate(String(sourceName), { ...context.contextVars, ...context.vars }, objects);
+            val = PropertyHelper.interpolate(String(sourceName), { ...context.contextVars, ...context.vars }, context.objects);
         }
 
         // Zuweisung
@@ -120,24 +120,39 @@ export function registerStandardActions(objects: any[]) {
 
     // 3. Berechnung
     actionRegistry.register('calculate', (action, context) => {
-        if (action.formula) {
+        const formula = action.formula || action.expression;
+        if (formula) {
             // Add objects to context to allow access to component properties (e.g. PinPicker.selectedEmoji)
-            const objectMap = objects.reduce((acc: Record<string, any>, obj: any) => {
+            const objectMap = context.objects.reduce((acc: Record<string, any>, obj: any) => {
                 if (obj.id) acc[obj.id] = obj;
                 if (obj.name) acc[obj.name] = obj;
                 return acc;
             }, {});
 
-            const result = ExpressionParser.evaluate(action.formula, {
+            const evalContext = {
+                ...objectMap,
                 ...context.contextVars,
                 ...context.vars,
-                ...objectMap,
                 $eventData: context.eventData
-            });
+            };
 
-            if (action.resultVariable) {
-                context.contextVars[action.resultVariable] = result;
+            try {
+                const result = ExpressionParser.evaluate(formula, evalContext);
+
+                console.log(`%c[Action:calculate] Result of "${formula}" -> ${JSON.stringify(result)} (Target: ${action.resultVariable})`, 'color: #2196f3');
+
+                if (action.resultVariable) {
+                    context.contextVars[action.resultVariable] = result;
+                    // Also update local vars to ensure visibility in the same task chain
+                    if (context.vars) {
+                        context.vars[action.resultVariable] = result;
+                    }
+                }
+            } catch (err) {
+                console.error(`[Action:calculate] Error evaluating "${formula}":`, err);
             }
+        } else {
+            console.warn('[Action:calculate] No formula/expression provided in action:', action);
         }
     }, {
         type: 'calculate',
@@ -151,10 +166,10 @@ export function registerStandardActions(objects: any[]) {
 
     // 4. Animation
     actionRegistry.register('animate', (action, context) => {
-        const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+        const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (target) {
-            const toValue = Number(PropertyHelper.interpolate(String(action.to), combinedContext, objects));
+            const toValue = Number(PropertyHelper.interpolate(String(action.to), combinedContext, context.objects));
             AnimationManager.getInstance().addTween(target, action.property || 'x', toValue, action.duration || 500, action.easing || 'easeOut');
         }
     }, {
@@ -172,11 +187,11 @@ export function registerStandardActions(objects: any[]) {
 
     // 5. Bewegen zu
     actionRegistry.register('move_to', (action, context) => {
-        const target = resolveTarget(action.target, objects, context.vars, context.contextVars);
+        const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (target) {
-            const toX = Number(PropertyHelper.interpolate(String(action.x), combinedContext, objects));
-            const toY = Number(PropertyHelper.interpolate(String(action.y), combinedContext, objects));
+            const toX = Number(PropertyHelper.interpolate(String(action.x), combinedContext, context.objects));
+            const toY = Number(PropertyHelper.interpolate(String(action.y), combinedContext, context.objects));
             if (typeof target.moveTo === 'function') {
                 target.moveTo(toX, toY, action.duration || 500, action.easing || 'easeOut');
             } else {
@@ -200,7 +215,7 @@ export function registerStandardActions(objects: any[]) {
     // 6. Navigation
     actionRegistry.register('navigate', (action, context) => {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        let targetGame = PropertyHelper.interpolate(action.target, combinedContext, objects);
+        let targetGame = PropertyHelper.interpolate(action.target, combinedContext, context.objects);
         if (targetGame && context.onNavigate) {
             context.onNavigate(targetGame, action.params);
         }
@@ -217,7 +232,7 @@ export function registerStandardActions(objects: any[]) {
         const stageId = action.stageId;
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (stageId && context.onNavigate) {
-            const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, objects);
+            const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, context.objects);
             context.onNavigate(`stage:${resolved}`, action.params);
         }
     }, {
@@ -233,7 +248,7 @@ export function registerStandardActions(objects: any[]) {
     actionRegistry.register('service', async (action, context) => {
         if (action.service && action.method && serviceRegistry.has(action.service)) {
             const params = (Array.isArray(action.serviceParams) ? action.serviceParams : []).map((v: any) =>
-                PropertyHelper.interpolate(String(v), { ...context.contextVars, ...context.vars }, objects)
+                PropertyHelper.interpolate(String(v), { ...context.contextVars, ...context.vars }, context.objects)
             );
             const result = await serviceRegistry.call(action.service, action.method, params);
             if (action.resultVariable) {
@@ -257,7 +272,7 @@ export function registerStandardActions(objects: any[]) {
     actionRegistry.register('create_room', (action, context) => {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (context.multiplayerManager) {
-            let gameName = PropertyHelper.interpolate(action.game, combinedContext, objects);
+            let gameName = PropertyHelper.interpolate(action.game, combinedContext, context.objects);
             context.multiplayerManager.createRoom(gameName);
         }
     }, {
@@ -272,7 +287,7 @@ export function registerStandardActions(objects: any[]) {
     actionRegistry.register('join_room', (action, context) => {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (context.multiplayerManager) {
-            let code = action.params?.code ? PropertyHelper.interpolate(String(action.params.code), combinedContext, objects) : '';
+            let code = action.params?.code ? PropertyHelper.interpolate(String(action.params.code), combinedContext, context.objects) : '';
             if (code.length >= 4) {
                 context.multiplayerManager.joinRoom(code);
             }
@@ -289,14 +304,14 @@ export function registerStandardActions(objects: any[]) {
     // 9. HTTP Request (API Call)
     actionRegistry.register('http', async (action, context) => {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        const url = PropertyHelper.interpolate(String(action.url || ''), combinedContext, objects);
+        const url = PropertyHelper.interpolate(String(action.url || ''), combinedContext, context.objects);
         const method = action.method || 'GET';
         let body = null;
         let parsedBody = {};
 
         if (method !== 'GET' && action.body) {
             const bodyStr = typeof action.body === 'object' ? JSON.stringify(action.body) : String(action.body);
-            body = PropertyHelper.interpolate(bodyStr, combinedContext, objects);
+            body = PropertyHelper.interpolate(bodyStr, combinedContext, context.objects);
             try {
                 parsedBody = JSON.parse(body);
             } catch (e) {
@@ -403,7 +418,7 @@ export function registerStandardActions(objects: any[]) {
             localStorage.removeItem(key);
         } else {
             const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-            const token = PropertyHelper.interpolate(String(action.token || ''), combinedContext, objects);
+            const token = PropertyHelper.interpolate(String(action.token || ''), combinedContext, context.objects);
             localStorage.setItem(key, token);
         }
     }, {
@@ -420,11 +435,11 @@ export function registerStandardActions(objects: any[]) {
     // 11. Toast Benachrichtigung
     actionRegistry.register('show_toast', (action, context) => {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        const message = PropertyHelper.interpolate(String(action.message || ''), combinedContext, objects);
+        const message = PropertyHelper.interpolate(String(action.message || ''), combinedContext, context.objects);
         const toastType = action.toastType || 'info';
 
         // Suche nach einer TToast-Komponente im Projekt
-        const toaster = objects.find(o => o.className === 'TToast' || o.constructor?.name === 'TToast');
+        const toaster = context.objects.find(o => o.className === 'TToast' || o.constructor?.name === 'TToast');
 
         if (toaster && typeof (toaster as any).show === 'function') {
             (toaster as any).show(message, toastType);
@@ -446,9 +461,9 @@ export function registerStandardActions(objects: any[]) {
     // 17. HTTP Response (für TAPIServer / HttpServer)
     actionRegistry.register('respond_http', async (action, context) => {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        const requestId = PropertyHelper.interpolate(String(action.requestId || ''), combinedContext, objects);
-        const status = Number(PropertyHelper.interpolate(String(action.status || 200), combinedContext, objects));
-        const dataStr = PropertyHelper.interpolate(String(action.data || '{}'), combinedContext, objects);
+        const requestId = PropertyHelper.interpolate(String(action.requestId || ''), combinedContext, context.objects);
+        const status = Number(PropertyHelper.interpolate(String(action.status || 200), combinedContext, context.objects));
+        const dataStr = PropertyHelper.interpolate(String(action.data || '{}'), combinedContext, context.objects);
 
         let data = dataStr;
         try {
@@ -576,7 +591,7 @@ export function registerStandardActions(objects: any[]) {
             method: eventData.method,
             body: eventData.body,
             query: eventData.query
-        }, objects);
+        }, context.objects);
 
         // Send response back via ApiSimulator mechanism
         // We use the global map established in Editor.ts
