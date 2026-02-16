@@ -399,7 +399,10 @@
           "actionSequence": [
             {
               "name": "DataAction1",
-              "type": "data_action"
+              "isLinked": true,
+              "type": "data_action",
+              "successBody": [],
+              "errorBody": []
             }
           ],
           "triggerMode": "local-sync",
@@ -479,14 +482,15 @@
           "details": "",
           "type": "data_action",
           "name": "DataAction1",
-          "resource": "users",
           "url": "/api/data/users?authCode=${currentPIN}",
           "showDetails": false,
           "queryProperty": "authCode",
           "queryValue": "${currentPIN}",
           "resultVariable": "currentUser",
           "successBody": [],
-          "errorBody": []
+          "errorBody": [],
+          "dataStore": "UserData",
+          "isLinked": true
         }
       ],
       "flowCharts": {
@@ -575,54 +579,6 @@
               "height": 60,
               "properties": {
                 "name": "DataAction1",
-                "dataStore": "UserData",
-                "operation": "find",
-                "query": {
-                  "authCode": "${currentPIN}"
-                },
-                "resultVariable": "currentUser",
-                "successBody": [
-                  {
-                    "type": "variable",
-                    "variableName": "currentUser",
-                    "source": "apiLoginResult.user"
-                  },
-                  {
-                    "type": "variable",
-                    "variableName": "authToken",
-                    "source": "apiLoginResult.token"
-                  },
-                  {
-                    "type": "store_token",
-                    "token": "${apiLoginResult.token}",
-                    "tokenKey": "auth_token"
-                  },
-                  {
-                    "type": "property",
-                    "target": "LoginPanel",
-                    "changes": {
-                      "visible": false
-                    }
-                  },
-                  {
-                    "type": "navigate_stage",
-                    "stageId": "stage_dashboard"
-                  }
-                ],
-                "errorBody": [
-                  {
-                    "type": "variable",
-                    "variableName": "loginError",
-                    "source": "Login fehlgeschlagen. Bitte PIN prüfen."
-                  },
-                  {
-                    "type": "property",
-                    "target": "ErrorMsg",
-                    "changes": {
-                      "text": "${loginError}"
-                    }
-                  }
-                ],
                 "details": "",
                 "description": ""
               },
@@ -702,7 +658,8 @@
             }
           ]
         }
-      }
+      },
+      "_showGlobalPreview": false
     },
     {
       "id": "stage_main",
@@ -1403,6 +1360,7 @@
             "borderRadius": 5
           },
           "type": "string",
+          "defaultValue": "",
           "value": ""
         },
         {
@@ -1431,6 +1389,8 @@
             "borderRadius": 5
           },
           "type": "object",
+          "objectModel": "",
+          "defaultValue": {},
           "value": null
         }
       ],
@@ -1600,7 +1560,64 @@
       ],
       "tasks": [],
       "actions": [],
-      "flowCharts": {}
+      "flowCharts": {
+        "AttemptLogin": {
+          "elements": [
+            {
+              "id": "node-1770989123182",
+              "type": "Task",
+              "x": 20,
+              "y": 60,
+              "width": 160,
+              "height": 60,
+              "properties": {
+                "name": "AttemptLogin",
+                "details": "",
+                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
+                "text": "AttemptLogin"
+              },
+              "data": {
+                "name": "AttemptLogin",
+                "showDetails": false,
+                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
+              }
+            },
+            {
+              "id": "node-1770989195203",
+              "type": "DataAction",
+              "x": 280,
+              "y": 60,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "DataAction1",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "DataAction1",
+                "isLinked": true
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1770989123182",
+              "endTargetId": "node-1770989195203",
+              "startX": 178.328125,
+              "startY": 90,
+              "endX": 280,
+              "endY": 90,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        }
+      }
     },
     {
       "id": "stage_player_lobby",
@@ -2481,10 +2498,11 @@
             }
           ]
         }
-      }
+      },
+      "_showGlobalPreview": false
     }
   ],
-  "activeStageId": "stage_role_select",
+  "activeStageId": "stage_login",
   "flowCharts": {
     "global": {
       "elements": [],

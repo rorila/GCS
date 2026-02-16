@@ -13,7 +13,17 @@ export class PropertyHelper {
         let current = obj;
 
         for (const part of parts) {
+            // Resolve current value if it's a variable component
+            current = this.resolveValue(current);
+
             if (current === undefined || current === null) return undefined;
+
+            // SMART-ACCESS: If current value is an array of length 1, and the requested part 
+            // is NOT a native array property (like 'length'), automatically unwrap it.
+            if (Array.isArray(current) && current.length === 1 && (current as any)[part] === undefined && part !== 'length') {
+                current = current[0];
+            }
+
             current = current[part];
         }
 

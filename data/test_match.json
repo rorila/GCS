@@ -1,0 +1,20 @@
+{
+  "users": [
+    {
+      "id": "u1",
+      "name": "Rolf",
+      "authCode": [
+        "🍎",
+        "🍌"
+      ]
+    },
+    {
+      "id": "u2",
+      "name": "Admin",
+      "authCode": [
+        "🚀",
+        "⭐"
+      ]
+    }
+  ]
+}

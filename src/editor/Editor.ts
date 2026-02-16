@@ -196,7 +196,7 @@ export class Editor implements IViewHost {
         // Register ApiSimulator service for intercepting http action requests in Editor
         (window as any).__pendingApiResponses = new Map();
         serviceRegistry.register('ApiSimulator', {
-            request: async (method: string, url: string, body: any): Promise<any> => {
+            request: async (method: string, url: string, body: any, storageFile: string = 'db.json'): Promise<any> => {
                 const requestId = 'sim-' + Math.floor(Math.random() * 1000000);
 
                 // Parse URL to extract path & query
@@ -216,7 +216,7 @@ export class Editor implements IViewHost {
                     console.warn('[ApiSimulator] URL parsing failed:', e);
                 }
 
-                console.log(`[ApiSimulator] Simulating: ${method} ${path}`, { body, query });
+                console.log(`[ApiSimulator] Simulating (${storageFile}): ${method} ${path}`, { body, query });
 
                 // --- AUTOMATIC RESOURCE ROUTING (Keep it simple) ---
                 // Mirroring server.ts behavior for /api/data/:resource
@@ -226,15 +226,13 @@ export class Editor implements IViewHost {
 
                     if (resource) {
                         try {
-                            // Determine storage file - default to db.json and hierarchy if not found
-                            // For simplicity in editor, we use 'db.json' as the SSOT key (matches dataService seeding)
-                            const storageFile = 'db.json';
+                            // Determine storage file - default to db.json if not provided
+                            const targetFile = storageFile || 'db.json';
 
                             if (method === 'GET') {
                                 console.log(`[ApiSimulator] Auto-GET for resource: ${resource}`);
-                                // Fix: DB stores ["🍎", "🍌"], Query is "🍎🍌"
-                                // dataService.findItems is strict. Here we use custom logic to match arrays.
-                                const allItems = await dataService.findItems(storageFile, resource, {});
+                                // Fix: Pass query to dataService.findItems to enable filtering
+                                const allItems = await dataService.findItems(targetFile, resource, query);
                                 const results = allItems.filter((item: any) => {
                                     for (const key in query) {
                                         const queryVal = query[key];
@@ -253,7 +251,7 @@ export class Editor implements IViewHost {
                                 return results;
                             } else if (method === 'POST') {
                                 console.log(`[ApiSimulator] Auto-POST for resource: ${resource}`);
-                                const newItem = await dataService.saveItem(storageFile, resource, body);
+                                const newItem = await dataService.saveItem(targetFile, resource, body);
                                 return { success: true, item: newItem };
                             }
                         } catch (err) {

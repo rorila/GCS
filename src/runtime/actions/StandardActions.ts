@@ -307,11 +307,22 @@ export function registerStandardActions() {
 
         // Auto-URL Construction if 'resource' is present (DataAction support)
         let effectiveUrl = String(action.url || '');
-        if (!effectiveUrl && action.resource) {
-            effectiveUrl = `/api/data/${action.resource}`;
-            if (action.queryProperty && action.queryValue) {
-                const interpValue = PropertyHelper.interpolate(String(action.queryValue), combinedContext, context.objects);
-                effectiveUrl += `?${action.queryProperty}=${encodeURIComponent(interpValue)}`;
+        if (!effectiveUrl) {
+            let res = action.resource;
+
+            // If resource is missing, try to resolve from DataStore
+            if (!res && action.dataStore) {
+                const dsName = action.dataStore;
+                const dsComponent = context.objects.find(o => o.name === dsName || o.id === dsName);
+                res = (dsComponent as any)?.defaultCollection;
+            }
+
+            if (res) {
+                effectiveUrl = `/api/data/${res}`;
+                if (action.queryProperty && action.queryValue) {
+                    const interpValue = PropertyHelper.interpolate(String(action.queryValue), combinedContext, context.objects);
+                    effectiveUrl += `?${action.queryProperty}=${encodeURIComponent(interpValue)}`;
+                }
             }
         }
 
@@ -339,21 +350,22 @@ export function registerStandardActions() {
         if (serviceRegistry.has('ApiSimulator')) {
             console.log(`[Action: http] Using API Simulation for: ${method} ${url}`);
             try {
-                let result = await serviceRegistry.call('ApiSimulator', 'request', [method, url, parsedBody]);
+                // Resolve storagePath from dataStore component if present
+                const dsName = action.dataStore;
+                const dsComponent = context.objects.find(o => o.name === dsName || o.id === dsName);
+                const storageFile = (dsComponent as any)?.storagePath || 'db.json';
+
+                let result = await serviceRegistry.call('ApiSimulator', 'request', [method, url, parsedBody, storageFile]);
 
                 // Smart-Mapping: Extract path if specified
                 if (action.resultPath && result) {
-                    const parts = action.resultPath.split('.');
-                    let current = result;
-                    for (const part of parts) {
-                        if (current && current[part] !== undefined) {
-                            current = current[part];
-                        } else {
-                            current = undefined;
-                            break;
-                        }
-                    }
-                    result = current;
+                    result = PropertyHelper.getPropertyValue(result, action.resultPath);
+                }
+
+                // Final Smart-Unwrap: If result is an array with 1 item, unwrap it (e.g. API query result)
+                if (Array.isArray(result) && result.length === 1) {
+                    console.log(`[Action: http] Auto-Unwrapping single-item array result for ${action.resultVariable}`);
+                    result = result[0];
                 }
 
                 if (action.resultVariable) {
@@ -383,17 +395,13 @@ export function registerStandardActions() {
 
             // Smart-Mapping: Extract path if specified
             if (action.resultPath && data) {
-                const parts = action.resultPath.split('.');
-                let current = data;
-                for (const part of parts) {
-                    if (current && current[part] !== undefined) {
-                        current = current[part];
-                    } else {
-                        current = undefined;
-                        break;
-                    }
-                }
-                data = current;
+                data = PropertyHelper.getPropertyValue(data, action.resultPath);
+            }
+
+            // Final Smart-Unwrap: If result is an array with 1 item, unwrap it (e.g. API query result)
+            if (Array.isArray(data) && data.length === 1) {
+                console.log(`[Action: http] Auto-Unwrapping single-item array result for ${action.resultVariable}`);
+                data = data[0];
             }
 
             if (action.resultVariable) {

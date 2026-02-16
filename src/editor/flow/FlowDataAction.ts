@@ -22,51 +22,42 @@ export class FlowDataAction extends FlowAction {
     public get url(): string {
         const action = this.getActionDefinition();
         const fullUrl = action?.url || '';
-        const res = action?.resource;
+        const res = action?.resource || this.getAutoResource();
         const qProp = action?.queryProperty;
         const qVal = action?.queryValue;
 
         // If we have a resource and a defined query property, we manage the URL
         if (res && qProp) {
-            return `?${qProp}=${qVal || ''}`;
+            return `/api/data/${res}?${qProp}=${qVal || ''}`;
         }
 
-        // Fallback: If we have a resource and the URL starts with the resource base,
-        // we only return the suffix for the inspector.
-        const base = `/api/data/${res}`;
-        if (res && fullUrl.startsWith(base)) {
-            return fullUrl.substring(base.length);
+        // If no full URL but resource, show standard path
+        if (!fullUrl && res) {
+            return `/api/data/${res}`;
         }
+
         return fullUrl;
     }
     public set url(v: string) {
         console.log(`[FlowDataAction] Setter URL: ${v}`);
         const action = this.getActionDefinition();
         if (action) {
-            const res = action.resource;
-
-            // If user manually types a URL suffix that doesn't look like a simple query,
-            // we might want to clear the queryProperty to avoid conflicting UI states.
-            if (v && !v.startsWith('?') && !v.includes('=')) {
-                action.queryProperty = '';
-                action.queryValue = '';
-            }
-
-            // Logic to decide if we prepend the resource path
-            // We ONLY prepend if:
-            // 1. We have a resource
-            // 2. The input DOES NOT look like an absolute URL (http/https)
-            // 3. The input DOES NOT already start with /api/data/
+            // Decouple from resource/queryProperty if user sets a manual absolute URL
             const isAbsolute = v.startsWith('http://') || v.startsWith('https://');
             const isPrefixed = v.startsWith('/api/data/');
 
-            if (res && !isAbsolute && !isPrefixed) {
-                // Prepend resource path
-                const separator = (v.startsWith('?') || v.startsWith('/')) ? '' : '/';
-                action.url = `/api/data/${res}${separator}${v}`;
-            } else {
-                // Direct assignment
+            if (isAbsolute || isPrefixed) {
                 action.url = v;
+                // Optional: clear resource/queryProperty if you want absolute to be independent
+            } else {
+                // Determine resource
+                const res = action.resource || this.getAutoResource();
+                if (res) {
+                    const separator = (v.startsWith('?') || v.startsWith('/')) ? '' : '/';
+                    action.url = `/api/data/${res}${separator}${v}`;
+                } else {
+                    action.url = v;
+                }
             }
             console.log(`[FlowDataAction] Resulting URL in model: ${action.url}`);
         }
@@ -96,7 +87,6 @@ export class FlowDataAction extends FlowAction {
                 }
                 return action;
             }
-            console.warn(`[FlowDataAction] Linked action ${this.Name} NOT FOUND in project / stage!`);
         }
 
         // 2. Embedded/Local Mode: Use local data copy
@@ -113,7 +103,7 @@ export class FlowDataAction extends FlowAction {
         return action?.queryProperty || '';
     }
     public set queryProperty(v: string) {
-        console.log(`[FlowDataAction] Setter queryProperty: ${v} `);
+        console.log(`[FlowDataAction] Setter queryProperty: ${v}`);
         const action = this.getActionDefinition();
         if (action) {
             action.queryProperty = v;
@@ -126,7 +116,7 @@ export class FlowDataAction extends FlowAction {
         return action?.queryValue || '';
     }
     public set queryValue(v: string) {
-        console.log(`[FlowDataAction] Setter queryValue: ${v} `);
+        console.log(`[FlowDataAction] Setter queryValue: ${v}`);
         const action = this.getActionDefinition();
         if (action) {
             action.queryValue = v;
@@ -136,25 +126,63 @@ export class FlowDataAction extends FlowAction {
 
     private updateAutoUrl() {
         const action = this.getActionDefinition();
-        if (action && action.resource && action.queryProperty) {
-            action.url = `/ api / data / ${action.resource}?${action.queryProperty}=${action.queryValue || ''} `;
+        if (action) {
+            const res = action.resource || this.getAutoResource();
+            if (res && action.queryProperty) {
+                action.url = `/api/data/${res}?${action.queryProperty}=${action.queryValue || ''}`;
+            }
         }
+    }
+
+    public get dataStore(): string {
+        const action = this.getActionDefinition();
+        return action?.dataStore || '';
+    }
+    public set dataStore(v: string) {
+        console.log(`[FlowDataAction] Setter dataStore: ${v}`);
+        const action = this.getActionDefinition();
+        if (action) {
+            action.dataStore = v;
+            // Clean-up redundant resource field (we derive it from dataStore now)
+            if (action.resource) {
+                console.log(`[FlowDataAction] Removing redundant resource field: ${action.resource}`);
+                delete action.resource;
+            }
+            this.updateAutoUrl();
+        }
+    }
+
+    private getAutoResource(): string {
+        const action = this.getActionDefinition();
+        const dsName = action?.dataStore;
+        if (!dsName || !this.projectRef) return '';
+
+        // Find DataStore component to get its default collection
+        let dsObj: any = null;
+        if (this.projectRef.stages) {
+            for (const stage of this.projectRef.stages) {
+                dsObj = stage.objects?.find((o: any) => o.name === dsName || o.id === dsName);
+                if (dsObj) break;
+            }
+        }
+
+        // Return default collection or name (as fallback)
+        return dsObj?.defaultCollection || (dsObj ? 'items' : '');
     }
 
     public get resource(): string {
         const action = this.getActionDefinition();
-        return action?.resource || '';
+        return action?.resource || this.getAutoResource();
     }
     public set resource(v: string) {
-        console.log(`[FlowDataAction] Setter resource: ${v} `);
+        console.log(`[FlowDataAction] Setter resource: ${v}`);
         const action = this.getActionDefinition();
         if (action) {
             action.resource = v;
             if (v) {
-                // Initial URL when resource is selected
-                action.url = `/ api / data / ${v} `;
+                // Initial URL when resource is manually selected (unusual now but supported)
+                action.url = `/api/data/${v}`;
             }
-            console.log(`[FlowDataAction] Updated action resource to ${v}, URL to ${action.url} `);
         }
     }
 
@@ -163,7 +191,7 @@ export class FlowDataAction extends FlowAction {
         return action?.method || 'GET';
     }
     public set method(v: string) {
-        console.log(`[FlowDataAction] Setter method: ${v} `);
+        console.log(`[FlowDataAction] Setter method: ${v}`);
         const action = this.getActionDefinition();
         if (action) action.method = v;
     }
@@ -203,7 +231,9 @@ export class FlowDataAction extends FlowAction {
     public set resultPath(v: string) {
         console.log(`[FlowDataAction] Setter resultPath: ${v}`);
         const action = this.getActionDefinition();
-        if (action) action.resultPath = v;
+        if (action) {
+            action.resultPath = v;
+        }
     }
 
     protected createRoot(): HTMLElement {

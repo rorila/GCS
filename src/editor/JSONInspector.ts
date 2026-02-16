@@ -90,16 +90,6 @@ export class JSONInspector {
         // Register available actions
         this.runtime.registerVariable('availableActions', projectRegistry.getActions('active').map(a => a.name));
 
-        this.runtime.registerVariable('getVariableSuggestions', () => {
-            return projectRegistry.getVariables().map(v => `\${${v.name}}`);
-        });
-
-        this.runtime.registerVariable('getRouteSuggestions', () => {
-            const staticPatterns = ["/api/login", "/api/rooms", "/api/users", "/api/data"];
-            const vars = varNames.map(v => `/api/data?id=\${${v}}`);
-            return [...staticPatterns, ...vars];
-        });
-
         this.runtime.registerVariable('getAllActionTypes', () => {
             const registered = actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
             if (registered.length > 0) return registered;
@@ -142,6 +132,35 @@ export class JSONInspector {
         this.runtime.setVariable('availableActions', actions);
     }
 
+    /**
+     * Resolves the resource name for a given object, either from the explicit property
+     * or via the linked TDataStore component.
+     */
+    private resolveResource(object: any): string {
+        if (!object) return '';
+
+        // 1. Explicit resource property (legacy/manual)
+        if (object.resource) return object.resource;
+
+        // 2. Resolve via DataStore
+        const dsName = object.dataStore;
+        if (dsName && this.project) {
+            // Find DataStore component in project to get its default collection
+            let dsObj: any = null;
+            if (this.project.stages) {
+                for (const stage of this.project.stages) {
+                    dsObj = stage.objects?.find((o: any) => o.name === dsName || o.id === dsName);
+                    if (dsObj) break;
+                }
+            }
+            if (dsObj && dsObj.defaultCollection) {
+                return dsObj.defaultCollection;
+            }
+        }
+
+        return '';
+    }
+
     // Fetches properties for a specific resource
     private async fetchResourceProperties(resource: string) {
         if (!resource) {
@@ -152,8 +171,13 @@ export class JSONInspector {
             const response = await fetch(`/api/platform/resources/${resource}/properties`);
             if (response.ok) {
                 const props = await response.json();
-                this.runtime.setVariable('availableResourceProperties', props);
-                console.log(`[JSONInspector] Properties for ${resource}:`, props);
+                // Add "Whole Data" option at the beginning
+                const options = [
+                    { value: '', label: '(Gesamte Daten / Ganzes Objekt)' },
+                    ...props.map((p: string) => ({ value: p, label: p }))
+                ];
+                this.runtime.setVariable('availableResourceProperties', options);
+                console.log(`[JSONInspector] Properties for ${resource}:`, options);
 
                 // Force re-render if we are looking at this resource
                 const selected = this.runtime.getVariable('selectedObject');
@@ -289,6 +313,23 @@ export class JSONInspector {
             this.runtime.registerVariable('availableVariablesWithScope', variables.map(v => ({ value: v.name, label: `${v.uiEmoji || ''} ${v.name}` })));
             this.runtime.registerVariable('availableVariablesAsTokens', variables.map(v => ({ value: `\${${v.name}}`, label: `${v.uiEmoji || ''} ${v.name}` })));
 
+            // Register global helpers (must be re-registered after clear)
+            this.runtime.registerVariable('getVariableSuggestions', () => {
+                return projectRegistry.getVariables().map(v => `\${${v.name}}`);
+            });
+
+            this.runtime.registerVariable('getRouteSuggestions', () => {
+                const staticPatterns = ["/api/login", "/api/rooms", "/api/users", "/api/data"];
+                const varNames = projectRegistry.getVariables().map(v => v.name);
+                const vars = varNames.map(v => `/api/data?id=\${${v}}`);
+                return [...staticPatterns, ...vars];
+            });
+
+            // Register available DataStores
+            const dataStores = projectRegistry.getObjects().filter(o => o.className === 'TDataStore').map(o => o.name);
+            this.runtime.registerVariable('availableDataStores', dataStores);
+            console.log('[JSONInspector] availableDataStores:', dataStores);
+
             // Available Database Models for Discovery
             const storagePath = object.storagePath || 'data.json';
             let models = await dataService.getModels(storagePath);
@@ -330,6 +371,14 @@ export class JSONInspector {
             } catch (e) {
                 console.error('[JSONInspector] Failed to fetch availableResources:', e);
                 this.runtime.registerVariable('availableResources', []);
+            }
+
+            // AUTO-FETCH: If the selected object is a DataAction or has a resource/dataStore,
+            // pre-fetch the properties so dropdowns are populated immediately.
+            const targetResource = this.resolveResource(object);
+            if (targetResource) {
+                console.log(`[JSONInspector] DataAction/Resource detected (${targetResource}). Fetching properties...`);
+                await this.fetchResourceProperties(targetResource);
             }
         }
 
@@ -1455,6 +1504,18 @@ export class JSONInspector {
 
         // isProjectSelected already defined above
         const isProject = isProjectSelected;
+
+        // FEATURE: Show Class Name header
+        const classNameDisplay = document.createElement('div');
+        classNameDisplay.style.cssText = 'padding: 0 12px 0px 12px; font-size: 9px; color: #555; font-family: monospace; text-align: right; margin-top: -6px; margin-bottom: 6px; user-select: text; cursor: default;';
+
+        const objClassName = selectedObject.className || (selectedObject.getType ? selectedObject.getType() : (isProjectSelected ? 'GameProject' : 'Object'));
+        const objIdSnippet = selectedObject.id ? ` #${selectedObject.id}` : '';
+
+        classNameDisplay.innerHTML = `<span style="color:#4fc3f7">${objClassName}</span><span style="color:#444">${objIdSnippet}</span>`;
+        if (isProjectSelected) classNameDisplay.innerHTML = `<span style="color:#4fc3f7">GameProject</span>`;
+
+        this.container.appendChild(classNameDisplay);
 
         // Render Tabs
         if (true) { // Enabled for all objects including Stage/Project
@@ -3008,7 +3069,14 @@ export class JSONInspector {
 
         // EXCEPTION: Allow dynamic parameters (param_ prefix) even for embedded elements
         const isParameter = propertyName.startsWith('param_');
-        const isActionOrTask = selectedObject.data?.type === 'Action' || (selectedObject.constructor.name === 'FlowTask');
+        const dataType = selectedObject.data?.type;
+        const getType = (typeof selectedObject.getType === 'function') ? selectedObject.getType() : null;
+        const constructorName = selectedObject.constructor.name;
+        const isActionOrTask = ['Action', 'DataAction', 'Condition', 'While', 'For', 'Repeat'].includes(dataType) ||
+            ['Action', 'DataAction', 'Condition', 'While', 'For', 'Repeat'].includes(getType) ||
+            (constructorName === 'FlowTask');
+
+        console.log(`[JSONInspector] Diagnose: dataType=${dataType}, getType=${getType}, constructor=${constructorName}, isEmbedded=${isEmbeddedElement}, isActionOrTask=${isActionOrTask}`);
 
         if (isEmbeddedElement && !isParameter && !isActionOrTask) {
             console.warn('[JSONInspector] Cannot modify embedded element - it is read-only');
@@ -3167,12 +3235,15 @@ export class JSONInspector {
             selectedObject[propertyName] = value;
         }
 
-        // If resource, queryProperty or type/variableType changed, we likely need to update UI structure (visibility)
+        // If resource, dataStore, queryProperty or type/variableType changed, we likely need to update UI structure (visibility)
         // or fetch new metadata (properties)
-        if (propertyName === 'resource' || propertyName === 'queryProperty') {
+        if (propertyName === 'resource' || propertyName === 'dataStore' || propertyName === 'queryProperty') {
             console.log(`[JSONInspector] Structural property change: ${propertyName}.`);
-            if (propertyName === 'resource') {
-                this.fetchResourceProperties(value);
+            if (propertyName === 'resource' || propertyName === 'dataStore') {
+                const resToFetch = this.resolveResource(selectedObject);
+                if (resToFetch) {
+                    this.fetchResourceProperties(resToFetch);
+                }
             }
 
             console.log(`[JSONInspector] Re-rendering due to property: ${propertyName}`);
@@ -3219,12 +3290,17 @@ export class JSONInspector {
             console.log(`[JSONInspector] Smart-Sync for linked element: ${name} (Scope: ${scope})`);
 
             if (this.editor) {
-                if (selectedObject.data.type === 'Action') {
+                const type = selectedObject.data.type || (selectedObject.getType ? selectedObject.getType() : '');
+                if (type === 'Action' || type === 'DataAction') {
                     const targetCollection = this.editor.getTargetActionCollection(name, selectedObject.data);
                     const index = targetCollection.findIndex((a: any) => a.name === name);
                     if (index !== -1) {
+                        // For linked actions, the proxy getters/setters already updated the original object
+                        // but we sync any metadata from the node back just in case (like coordinates if needed?)
+                        // IMPORTANT: For linked nodes, selectedObject.data is sparse. 
+                        // We merge it carefully to not lose the rich properties of the original action.
                         targetCollection[index] = { ...targetCollection[index], ...selectedObject.data };
-                        console.log(`[JSONInspector] Updated original action definition in ${scope} scope`);
+                        console.log(`[JSONInspector] Updated original action definition (${type}) in ${scope} scope`);
                     }
                 } else {
                     const targetCollection = this.editor.getTargetTaskCollection(name, selectedObject.data);

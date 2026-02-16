@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.18.12] - 2026-02-16
+### Added
+- **Inspector**: Anzeige von Klasse und ID des selektierten Objekts im Header (hilft bei Identifikation von `TLabel` vs `TStringVariable` etc.).
+### Changed
+- **Architecture**: `DataAction` integriert nun vollständig mit `TDataStore`. Direkte Dateipfad-Referenzen wurden durch Komponenten-Referenzen (`UserData`) ersetzt.
+- **API Simulator**: Der Simulator in `Editor.ts` unterstützt nun flexible Datenquellen via `storageFile`-Parameter, der aus der `dataStore`-Komponente aufgelöst wird.
+- **Persistence**: Implementierung von OOP-Gettern/Settern in `FlowDataAction.ts` und Optimierung der `Smart-Sync`-Logik im `JSONInspector.ts` zur Vermeidung von Datenverlust bei verlinkten Elementen.
+- **API Handler**: `ActionApiHandler` löst nun `dataStore`-Referenzen auf und nutzt deren Konfiguration (`storagePath`, `collection`).
+- **API**: Implementierung einer rekursiven Pfad-Ermittlung (`getDeepPaths`) im Backend zur Unterstützung tiefer JSON-Sektoren.
+- **UI Refinement**: `DataAction`-Inspector bereinigt. Redundantes `resource`-Feld entfernt, URL/Route schreibgeschützt (Auto-Update), und `resultPath` (Daten-Pfad) als Dropdown mit "Deep-Scan" Support und "Gesamte Daten"-Option implementiert.
+- **Persistence Fix**: Behebung von Diskrepanzen zwischen Flow-Diagramm und Projektmodell durch proaktive Bereinigung redundanter Felder in `project.json`.
+- **Bugfix**: Korrektur der Dropdown-Initialisierung im Inspector; Ressourceneigenschaften werden nun beim Auswählen einer `DataAction` sofort geladen.
+- **Universal Smart-Unwrap (v2.18.12.2)**: `StandardActions.ts` entpackt Single-Item API-Resultate nun direkt an der Quelle. `ExpressionParser.ts` wurde vereinheitlicht und nutzt nun den `PropertyHelper` für robustes Traversal.
+- **Smart-Access**: Implementierung von "Smart-Access" in `PropertyHelper.ts`. Erlaubt direkten Zugriff auf Properties von Arrays mit einem Element (z.B. `${currentUser.name}`).
+- **API Simulation Fix (v2.18.12.1)**: `DataService.ts` erlernt "Smart Match" für Arrays. Ermöglicht den Vergleich von String-Queries gegen Emoji-Arrays (z.B. Login mit PIN).
+- **API Simulation Fix**: `ApiSimulator` in `Editor.ts` korrigiert; Query-Parameter werden nun korrekt an den `DataService` weitergeleitet, was präzise Filterung ermöglicht.
+
 ## [2.18.11] - 2026-02-15
 ### Changed
 - **Refactoring & Cleanup**: Das redundante Feld `isBlueprintOnly` wurde vollständig aus der Codebasis (`TComponent.ts` etc.) und der `project.json` entfernt. Die Sichtbarkeit von Komponenten wird nun ausschließlich über `scope` ('global' vs 'stage') und die Editor-Logik gesteuert.

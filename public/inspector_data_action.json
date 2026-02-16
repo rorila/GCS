@@ -7,20 +7,21 @@
             "text": "${selectedObject.Name}"
         },
         {
-            "name": "resourceInput",
+            "name": "dataStoreInput",
             "className": "TDropdown",
-            "label": "Ressource",
-            "selectedValue": "${selectedObject.resource}",
-            "options": "${availableResources}",
-            "placeholder": "-- Freie URL --",
+            "label": "Data Store (Komponente)",
+            "selectedValue": "${selectedObject.dataStore}",
+            "options": "${availableDataStores}",
+            "placeholder": "-- Component Store --",
             "style": {
-                "marginBottom": "4px"
+                "marginBottom": "4px",
+                "borderLeft": "3px solid #4fc3f7"
             }
         },
         {
             "name": "PropQueryWrapper",
             "className": "TPanel",
-            "visible": "${selectedObject.resource}",
+            "visible": "${selectedObject.dataStore}",
             "children": [
                 {
                     "name": "queryPropertyInput",
@@ -49,9 +50,11 @@
             "className": "TEdit",
             "label": "Route / URL",
             "text": "${selectedObject.url}",
-            "placeholder": "/api/data?id=${userId}",
-            "visible": "${!selectedObject.queryProperty}",
-            "suggestions": "${getRouteSuggestions()}"
+            "enabled": false,
+            "style": {
+                "opacity": "0.7",
+                "backgroundColor": "#222"
+            }
         },
         {
             "name": "URLHelpWrapper",
@@ -60,7 +63,7 @@
                 {
                     "name": "URLHelp",
                     "className": "TLabel",
-                    "text": "Tipp: Nutze ${variable} für dynamische Werte im Pfad.",
+                    "text": "Tipp: Die Route wird automatisch generiert.",
                     "style": {
                         "fontSize": "10px",
                         "color": "#aaa",
@@ -95,9 +98,10 @@
         },
         {
             "name": "resultPathInput",
-            "className": "TEdit",
+            "className": "TDropdown",
             "label": "Daten-Pfad (Selektor)",
-            "text": "${selectedObject.resultPath}",
+            "selectedValue": "${selectedObject.resultPath}",
+            "options": "${availableResourceProperties}",
             "placeholder": "z.B. user oder data.item",
             "hint": "Pfad zum Objekt in der Server-Antwort"
         },

@@ -79,11 +79,20 @@ export class DataService {
 
         const results = list.filter((item: any) => {
             for (const key in query) {
-                // Fuzzy check for loose type matching (e.g. number vs string)
-                if (item[key] != query[key]) {
-                    // console.log(`[DataService] Mismatch: item.${key}=${item[key]} != query.${key}=${query[key]}`);
-                    return false;
+                const itemValue = item[key];
+                const queryValue = query[key];
+
+                // Case 1: Loose equality (covering string/number/null)
+                if (itemValue == queryValue) continue;
+
+                // Case 2: Smart-Match for Arrays (e.g. Emoji-PIN Array ["🍎","🍌"] vs String "🍎🍌")
+                if (Array.isArray(itemValue) && typeof queryValue === 'string') {
+                    if (itemValue.join('') === queryValue) continue;
+                    if (itemValue.toString() === queryValue) continue; // fallback to comma-separated
                 }
+
+                // If no match found for this key
+                return false;
             }
             return true;
         });

@@ -190,23 +190,7 @@ export class ExpressionParser {
      * @returns Property value or undefined
      */
     static getNestedProperty(path: string, context: Record<string, any>): any {
-        const parts = path.split('.');
-        const rootKey = parts[0];
-        let current: any = PropertyHelper.resolveValue(context[rootKey]);
-
-        if (parts.length > 1) {
-            for (let i = 1; i < parts.length; i++) {
-                if (current === null || current === undefined) {
-                    return undefined;
-                }
-                current = current[parts[i]];
-
-                // If nested property is also a variable, resolve it
-                current = PropertyHelper.resolveValue(current);
-            }
-        }
-
-        return current;
+        return PropertyHelper.getPropertyValue(context, path);
     }
 
     /**

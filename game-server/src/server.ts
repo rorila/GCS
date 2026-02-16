@@ -306,6 +306,25 @@ app.get('/api/platform/resources', (req, res) => {
 });
 
 /**
+ * Helper: Recursively gets all paths in an object
+ */
+function getDeepPaths(obj: any, prefix: string = ''): string[] {
+    let paths: string[] = [];
+    if (!obj || typeof obj !== 'object') return paths;
+
+    Object.keys(obj).forEach(key => {
+        const path = prefix ? `${prefix}.${key}` : key;
+        paths.push(path);
+
+        const val = obj[key];
+        if (val && typeof val === 'object' && !Array.isArray(val)) {
+            paths = paths.concat(getDeepPaths(val, path));
+        }
+    });
+    return paths;
+}
+
+/**
  * GET /api/platform/resources/:resource/properties - List properties of a resource
  */
 app.get('/api/platform/resources/:resource/properties', (req, res) => {
@@ -316,9 +335,9 @@ app.get('/api/platform/resources/:resource/properties', (req, res) => {
     }
 
     if (data && Array.isArray(data) && data.length > 0) {
-        // Sample first item to get properties
+        // Scan first item to get all deep paths
         const firstItem = data[0];
-        const properties = Object.keys(firstItem).sort();
+        const properties = getDeepPaths(firstItem).sort();
         res.json(properties);
     } else {
         res.json([]); // Return empty list if no data or not found

@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { runLoginTests, TestResult } from './test_login_logic.js'; // Note the .js extension for ESM imports
 import { runSmartMappingTests } from './test_smart_mapping.js';
+import { runUnificationTests } from './test_unification_regression.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,7 +69,11 @@ async function main() {
         console.log('🏃 Starte Smart Mapping & Discovery Tests...');
         const smartResults = await runSmartMappingTests();
 
-        const allResults = [...loginResults, ...smartResults];
+        // 3. Unification & Auto-Unwrap Tests (v2.18.12.2)
+        console.log('🏃 Starte Unification & Auto-Unwrap Tests...');
+        const unificationResults = await runUnificationTests();
+
+        const allResults = [...loginResults, ...smartResults, ...unificationResults];
 
         // 3. Report Generation
         generateReport(allResults);

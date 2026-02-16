@@ -156,6 +156,9 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
     - Nutze `resource` (z.B. `users`), `queryProperty` (z.B. `authCode`) und `queryValue` (z.B. `${pin}`), um Abfragen strukturiert zu definieren.
     - Die `http` Aktion konstruiert daraus automatisch die korrekte Route.
 - **Ergebnis-Mapping**: Nutze `resultVariable` für das Ziel und optional `resultPath` (z.B. `0` für das erste Element eines Arrays), um die Antwort zu extrahieren.
+- **Smart-Access & Universal-Unwrapping (v2.18.12.2)**: Dank der Logik in `PropertyHelper.ts` (L18-24) und `StandardActions.ts` (L367/L407) werden API-Resultat-Arrays mit nur einem Element jetzt automatisch "an der Quelle" entpackt. 
+    - **Vorteil**: `${currentUser.name}` kann direkt verwendet werden, da `currentUser` als sauberes Objekt gespeichert wird.
+    - **Vereinheitlichung**: Der `ExpressionParser.ts` (L192-195) nutzt nun konsistent den `PropertyHelper` für alle Pfad-Auflösungen.
 - **Keep it Simple**: Bevorzuge immer die automatisierte Simulation für Standard-CRUD-Operationen. Nur für komplexe Spezial-Logik sollten manuelle API-Event-Tasks (`onRequest`) verwendet werden.
 
 ### Variablen-Scoping & Inspector (v2.16.12)
@@ -461,6 +464,14 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Typwechsel-Logik**: Beim Wechsel von Aktionstypen im Dialog sollte die Definition ersetzt statt gemergt werden, um inkompatible Felder (z.B. alte Variablenreferenzen) restlos zu entfernen.
     - Während dieses Flag aktiv ist, müssen alle `render()`-Aufrufe (z.B. ausgelöst durch `updateModelValue`) unterdrückt werden.
     - Dies verhindert, dass das DOM während der Iteration über die Eingabefelder geleert und neu aufgebaut wird, was zu unvollständigen Datensätzen im Projekt-JSON führt.
+- **Smart-Sync für linked Actions (v2.18.12)**:
+    - Verlinkte Flow-Knoten (`isLinked: true`) halten im `node.data` nur Minimal-Informationen (Name).
+    - **Problem**: Ein naiver Sync überschreibt die reichhaltige Aktions-Definition im Projekt-Registry mit diesen Minimaldaten.
+    - **Lösung**: Der `JSONInspector.ts` nutzt eine typsensible Merge-Logik. Bei `Action` oder `DataAction` werden die Daten des Knotens vorsichtig mit der Original-Definition gemergt (`{ ...original, ...nodeData }`), anstatt sie zu ersetzen. Dies schützt Felder wie `url`, `dataStore` oder `body`.
+- **ApiSimulator Persistence (v2.18.12)**:
+    - Der `ApiSimulator` in `Editor.ts` akzeptiert nun einen optionalen `storageFile`-Parameter.
+    - Damit können `DataAction`s gezielt auf verschiedene Datenquellen (z.B. `users.json`) zugreifen, indem sie eine `TDataStore`-Komponente referenzieren.
+    - Der `http`-Handler in `StandardActions.ts` löst den `storagePath` der Komponente zur Laufzeit auf.
 - **Method Mapping**: Beim Hinzufügen neuer Komponenten-Klassen muss deren Methoden-Liste in `JSONDialogRenderer.getMethodsForObject` ergänzt werden, damit sie im Action Editor auftaucht.
 
 ## Variablen als Logik-Objekte (OOP)
@@ -602,6 +613,7 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Inspector Template Priority (v2.14.0)**:
   - Bei der Auswahl eines Templates (`inspectorFile`) hat die fachliche Spezialisierung Vorrang vor der dynamischen Generierung.
   - Der `JSONInspector` überspringt die dynamische Generierung (`generateUIFromProperties`), wenn ein spezialisiertes Template wie `inspector_data_action.json` oder `inspector_task.json` geladen wurde. Dies verhindert die Duplizierung von Eingabefeldern.
+  - **Trap**: Wenn du in `StandardActions.ts` neue Parameter hinzufügst (z.B. `dataStore`), musst du ZWINGEND auch die entsprechende JSON-Datei (`public/inspector_data_action.json`) erweitern! Andernfalls ist der Parameter im Code vorhanden, aber im UI unsichtbar.
 
 - **DataAction Pattern (v2.14.0)**:
   - `DataAction` ist ein spezialisierter Knoten für asynchrone Server-Operationen mit visueller Branching-Logik (Success/Error).
