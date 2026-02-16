@@ -34,59 +34,8 @@
   "actions": [
     {
       "name": "SendApiResponse",
-      "type": "handle_api_request"
-    },
-    {
-      "type": "data_action",
-      "name": "DataAction1",
-      "resource": "users",
-      "url": "/api/data/users?authCode=${currentPIN}",
-      "showDetails": false,
-      "queryProperty": "authCode",
-      "queryValue": "${currentPIN}",
-      "resultVariable": "apiLoginResult",
-      "successBody": [
-        {
-          "type": "variable",
-          "variableName": "currentUser",
-          "source": "apiLoginResult.user"
-        },
-        {
-          "type": "variable",
-          "variableName": "authToken",
-          "source": "apiLoginResult.token"
-        },
-        {
-          "type": "store_token",
-          "token": "${apiLoginResult.token}",
-          "tokenKey": "auth_token"
-        },
-        {
-          "type": "property",
-          "target": "LoginPanel",
-          "changes": {
-            "visible": false
-          }
-        },
-        {
-          "type": "navigate_stage",
-          "stageId": "stage_dashboard"
-        }
-      ],
-      "errorBody": [
-        {
-          "type": "variable",
-          "variableName": "loginError",
-          "source": "Login fehlgeschlagen. Bitte PIN prüfen."
-        },
-        {
-          "type": "property",
-          "target": "ErrorMsg",
-          "changes": {
-            "text": "${loginError}"
-          }
-        }
-      ]
+      "type": "handle_api_request",
+      "showDetails": false
     }
   ],
   "tasks": [],
@@ -103,212 +52,7 @@
         "backgroundColor": "#1a1a2e"
       },
       "events": {},
-      "variables": [
-        {
-          "className": "TStringVariable",
-          "id": "var_currentPIN",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "currentPIN",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 0,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "📝 currentPIN",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "variableType": "string",
-          "defaultValue": "",
-          "value": ""
-        },
-        {
-          "className": "TStringVariable",
-          "id": "var_authToken",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "authToken",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 2,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "📝 authToken",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "variableType": "string",
-          "defaultValue": "",
-          "value": ""
-        },
-        {
-          "className": "TObjectVariable",
-          "id": "var_currentUser",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "currentUser",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 4,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "📦 currentUser",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "variableType": "object",
-          "defaultValue": {
-            "name": "Gast",
-            "role": "none"
-          },
-          "value": {}
-        },
-        {
-          "className": "TStringVariable",
-          "id": "var_loginError",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "loginError",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 6,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "📝 loginError",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "variableType": "string",
-          "defaultValue": "",
-          "value": ""
-        },
-        {
-          "className": "TBooleanVariable",
-          "id": "var_isLoggedIn",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "isLoggedIn",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 8,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "⚖️ isLoggedIn",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "variableType": "boolean",
-          "defaultValue": false,
-          "value": false
-        },
-        {
-          "className": "TListVariable",
-          "id": "var_availableRoles",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": false,
-          "isBlueprintOnly": false,
-          "name": "availableRoles",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#7b1fa2",
-            "borderWidth": 2
-          },
-          "items": []
-        },
-        {
-          "className": "TObjectVariable",
-          "id": "var_userContext",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "userContext",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 12,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "📦 userContext",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "variableType": "object",
-          "defaultValue": null,
-          "value": {}
-        }
-      ],
+      "variables": [],
       "objects": [
         {
           "className": "TPanel",
@@ -316,7 +60,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "LoginPanel",
           "scope": "stage",
           "draggable": false,
@@ -347,7 +90,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "Title",
           "scope": "stage",
           "draggable": false,
@@ -379,7 +121,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "events": {
             "onSelect": "createAnEmojiPin"
           },
@@ -426,7 +167,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "PinDisplay",
           "scope": "stage",
           "draggable": false,
@@ -458,7 +198,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "events": {
             "onClick": "AttemptLogin"
           },
@@ -495,7 +234,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "ErrorMsg",
           "scope": "stage",
           "draggable": false,
@@ -520,226 +258,74 @@
             "fontFamily": "Arial",
             "color": "#ff5252"
           }
-        },
-        {
-          "className": "TToast",
-          "id": "toaster",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "Toaster",
-          "scope": "stage",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 0,
-          "width": 1,
-          "height": 1,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "",
-          "visible": false,
-          "style": {
-            "visible": true,
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "animation": "slide-left",
-          "position": "bottom-left",
-          "duration": 3000,
-          "maxVisible": 3,
-          "infoColor": "#2196F3",
-          "successColor": "#4CAF50",
-          "warningColor": "#FF9800",
-          "errorColor": "#F44336",
-          "textColor": "#ffffff",
-          "fontSize": 14,
-          "borderRadius": 8,
-          "padding": 12
-        },
-        {
-          "className": "TDataStore",
-          "id": "datastore",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "LocalStore",
-          "scope": "stage",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 0,
-          "width": 1,
-          "height": 1,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#2c3e50",
-            "borderColor": "#bdc3c7",
-            "borderWidth": 2,
-            "borderRadius": 8
-          },
-          "gridStyle": "lines",
-          "caption": "🗄️ Database",
-          "storagePath": "users.json",
-          "defaultCollection": "users"
-        },
-        {
-          "className": "TAuthService",
-          "id": "global_auth",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "isBlueprintOnly": false,
-          "name": "Auth",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "secret": "gcs-super-secret",
-          "tokenExpiration": 3600
-        },
-        {
-          "className": "TUserManager",
-          "id": "global_usermgr",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "isBlueprintOnly": false,
-          "name": "UserMgr",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "userCollection": "users",
-          "hashPasswords": true
-        },
-        {
-          "className": "TAuthService",
-          "id": "bp_auth_service",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "isBlueprintOnly": false,
-          "name": "AuthService",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "secret": "gcs-super-secret",
-          "tokenExpiration": 3600
-        },
-        {
-          "className": "TUserManager",
-          "id": "bp_user_mgr",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "isBlueprintOnly": false,
-          "name": "UserManager",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "userCollection": "users",
-          "hashPasswords": true
-        },
-        {
-          "className": "TAPIServer",
-          "id": "obj_apiServer",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "🖥️ API Server",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 35,
-          "y": 5,
-          "width": 10,
-          "height": 8,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#1a1a2e",
-            "borderColor": "#4fc3f7",
-            "borderWidth": 2,
-            "borderRadius": 8
-          },
-          "gridStyle": "lines",
-          "caption": "🖥️ API Server",
-          "port": 3000,
-          "baseUrl": "/api",
-          "cors": true,
-          "active": true,
-          "Tasks": {
-            "onRequest": "HandleApiRequest"
-          },
-          "testMethod": "GET",
-          "testPath": "/",
-          "testBody": "{}",
-          "testResponse": ""
-        },
-        {
-          "className": "TDataStore",
-          "id": "obj_userData",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "UserData",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 50,
-          "y": 5,
-          "width": 8,
-          "height": 6,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#2c3e50",
-            "borderColor": "#bdc3c7",
-            "borderWidth": 2,
-            "borderRadius": 8
-          },
-          "gridStyle": "lines",
-          "caption": "🗄️ Benutzer-DB",
-          "storagePath": "users.json",
-          "defaultCollection": "users"
         }
       ],
       "tasks": [
         {
           "name": "HandleApiRequest",
           "triggerMode": "local-sync",
-          "params": [
-            {
-              "name": "eventData",
-              "type": "object"
-            }
-          ],
+          "params": [],
           "description": "Simuliert die API-Antwort",
           "actionSequence": [
             {
               "name": "SendApiResponse",
               "type": "action"
             }
-          ]
+          ],
+          "flowChart": {
+            "elements": [
+              {
+                "id": "root_task_1771149304790",
+                "type": "Task",
+                "x": 40,
+                "y": 80,
+                "width": 200,
+                "height": 60,
+                "properties": {
+                  "name": "HandleApiRequest",
+                  "details": "",
+                  "description": "Simuliert die API-Antwort",
+                  "text": "HandleApiRequest"
+                },
+                "data": {
+                  "taskName": "HandleApiRequest",
+                  "showDetails": false
+                }
+              },
+              {
+                "id": "auto_action_0_1771149304790",
+                "type": "Action",
+                "x": 320,
+                "y": 80,
+                "width": 180,
+                "height": 60,
+                "properties": {
+                  "name": "SendApiResponse",
+                  "details": "",
+                  "description": ""
+                },
+                "data": {
+                  "name": "SendApiResponse",
+                  "type": "handle_api_request",
+                  "showDetails": false
+                }
+              }
+            ],
+            "connections": [
+              {
+                "startTargetId": "root_task_1771149304790",
+                "endTargetId": "auto_action_0_1771149304790",
+                "startX": 0,
+                "startY": 0,
+                "endX": 0,
+                "endY": 0,
+                "data": {
+                  "startAnchorType": "output",
+                  "endAnchorType": "input"
+                }
+              }
+            ]
+          }
         },
         {
           "name": "createAnEmojiPin",
@@ -812,8 +398,8 @@
           "name": "AttemptLogin",
           "actionSequence": [
             {
-              "type": "data_action",
-              "name": "DataAction1"
+              "name": "DataAction1",
+              "type": "data_action"
             }
           ],
           "triggerMode": "local-sync",
@@ -853,56 +439,8 @@
                   "description": ""
                 },
                 "data": {
-                  "type": "data_action",
                   "name": "DataAction1",
-                  "resource": "users",
-                  "url": "/api/data/users?authCode=${currentPIN}",
-                  "showDetails": false,
-                  "queryProperty": "authCode",
-                  "queryValue": "${currentPIN}",
-                  "resultVariable": "apiLoginResult",
-                  "successBody": [
-                    {
-                      "type": "variable",
-                      "variableName": "currentUser",
-                      "source": "apiLoginResult.user"
-                    },
-                    {
-                      "type": "variable",
-                      "variableName": "authToken",
-                      "source": "apiLoginResult.token"
-                    },
-                    {
-                      "type": "store_token",
-                      "token": "${apiLoginResult.token}",
-                      "tokenKey": "auth_token"
-                    },
-                    {
-                      "type": "property",
-                      "target": "LoginPanel",
-                      "changes": {
-                        "visible": false
-                      }
-                    },
-                    {
-                      "type": "navigate_stage",
-                      "stageId": "stage_dashboard"
-                    }
-                  ],
-                  "errorBody": [
-                    {
-                      "type": "variable",
-                      "variableName": "loginError",
-                      "source": "Login fehlgeschlagen. Bitte PIN prüfen."
-                    },
-                    {
-                      "type": "property",
-                      "target": "ErrorMsg",
-                      "changes": {
-                        "text": "${loginError}"
-                      }
-                    }
-                  ]
+                  "isLinked": true
                 }
               }
             ],
@@ -946,7 +484,9 @@
           "showDetails": false,
           "queryProperty": "authCode",
           "queryValue": "${currentPIN}",
-          "resultVariable": "currentUser"
+          "resultVariable": "currentUser",
+          "successBody": [],
+          "errorBody": []
         }
       ],
       "flowCharts": {
@@ -1039,14 +579,8 @@
                 "description": ""
               },
               "data": {
-                "type": "data_action",
                 "name": "DataAction1",
-                "resource": "users",
-                "url": "/api/data/users?authCode=${currentPIN}",
-                "showDetails": false,
-                "queryProperty": "authCode",
-                "queryValue": "${currentPIN}",
-                "resultVariable": "currentUser"
+                "isLinked": true
               }
             }
           ],
@@ -1062,6 +596,59 @@
                 "startAnchorType": "output",
                 "originalStartAnchorType": "output",
                 "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        },
+        "HandleApiRequest": {
+          "elements": [
+            {
+              "id": "root_task_1771149304790",
+              "type": "Task",
+              "x": 40,
+              "y": 80,
+              "width": 200,
+              "height": 60,
+              "properties": {
+                "name": "HandleApiRequest",
+                "details": "",
+                "description": "Simuliert die API-Antwort",
+                "text": "HandleApiRequest"
+              },
+              "data": {
+                "taskName": "HandleApiRequest",
+                "showDetails": false
+              }
+            },
+            {
+              "id": "auto_action_0_1771149304790",
+              "type": "Action",
+              "x": 320,
+              "y": 80,
+              "width": 180,
+              "height": 60,
+              "properties": {
+                "name": "SendApiResponse",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "SendApiResponse",
+                "isLinked": true
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "root_task_1771149304790",
+              "endTargetId": "auto_action_0_1771149304790",
+              "startX": 0,
+              "startY": 0,
+              "endX": 0,
+              "endY": 0,
+              "data": {
+                "startAnchorType": "output",
                 "endAnchorType": "input"
               }
             }
@@ -1087,7 +674,6 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "selectedMenuItem",
           "scope": "stage",
           "draggable": false,
@@ -1106,7 +692,7 @@
             "borderColor": "#9575cd",
             "borderWidth": 1
           },
-          "variableType": "string",
+          "type": "string",
           "defaultValue": "dashboard",
           "value": ""
         }
@@ -1118,7 +704,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "Sidebar",
           "scope": "stage",
           "draggable": false,
@@ -1169,7 +754,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "WelcomeLabel",
           "scope": "stage",
           "draggable": false,
@@ -1218,7 +802,6 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "foundUsers",
           "scope": "stage",
           "draggable": false,
@@ -1247,7 +830,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "Sidebar",
           "scope": "stage",
           "draggable": false,
@@ -1298,7 +880,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "UserCard",
           "scope": "stage",
           "draggable": false,
@@ -1331,7 +912,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "UserList",
           "scope": "stage",
           "draggable": false,
@@ -1362,7 +942,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "EditName",
           "scope": "stage",
           "draggable": false,
@@ -1396,7 +975,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "EditPin",
           "scope": "stage",
           "draggable": false,
@@ -1430,7 +1008,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "SaveUserBtn",
           "scope": "stage",
           "draggable": false,
@@ -1456,37 +1033,6 @@
             "color": "#ffffff"
           },
           "icon": ""
-        },
-        {
-          "className": "TDataStore",
-          "id": "datastore",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "UserData",
-          "scope": "stage",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 0,
-          "width": 1,
-          "height": 1,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#2c3e50",
-            "borderColor": "#bdc3c7",
-            "borderWidth": 2,
-            "borderRadius": 8
-          },
-          "gridStyle": "lines",
-          "caption": "🗄️ Database",
-          "storagePath": "db.json",
-          "defaultCollection": "users"
         }
       ],
       "tasks": [],
@@ -1511,7 +1057,6 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "userCount",
           "scope": "stage",
           "draggable": false,
@@ -1530,7 +1075,7 @@
             "borderColor": "#9575cd",
             "borderWidth": 1
           },
-          "variableType": "integer",
+          "type": "integer",
           "defaultValue": 0,
           "value": 0
         },
@@ -1540,7 +1085,6 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "activeRooms",
           "scope": "stage",
           "draggable": false,
@@ -1559,7 +1103,7 @@
             "borderColor": "#9575cd",
             "borderWidth": 1
           },
-          "variableType": "integer",
+          "type": "integer",
           "defaultValue": 0,
           "value": 0
         }
@@ -1571,7 +1115,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "Sidebar",
           "scope": "stage",
           "draggable": false,
@@ -1622,7 +1165,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "StatCardUsers",
           "scope": "stage",
           "draggable": false,
@@ -1655,7 +1197,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "UserCountBadge",
           "scope": "stage",
           "draggable": false,
@@ -1677,24 +1218,6 @@
           },
           "badgeType": "success",
           "pill": true
-        },
-        {
-          "className": "TAPIServer",
-          "id": "api_server_1",
-          "name": "🖥️ API Server",
-          "scope": "stage",
-          "x": 40,
-          "y": 2,
-          "width": 10,
-          "height": 4,
-          "visible": true,
-          "caption": "🖥️ API Server",
-          "port": 3000,
-          "baseUrl": "/api",
-          "cors": true,
-          "Tasks": {
-            "onRequest": "HandleApiRequest"
-          }
         }
       ],
       "tasks": [
@@ -1704,7 +1227,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "HandleApiRequest",
           "scope": "stage",
           "draggable": false,
@@ -1724,12 +1246,7 @@
             "borderWidth": 0
           },
           "triggerMode": "local-sync",
-          "params": [
-            {
-              "name": "eventData",
-              "type": "object"
-            }
-          ],
+          "params": [],
           "description": "Simuliert die API-Antwort",
           "flowChart": {
             "elements": [
@@ -1787,7 +1304,13 @@
                 }
               }
             ]
-          }
+          },
+          "actionSequence": [
+            {
+              "name": "SendApiResponse",
+              "type": "action"
+            }
+          ]
         }
       ],
       "actions": [],
@@ -1812,56 +1335,26 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "currentPIN",
           "scope": "global",
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
-          "x": 0,
-          "y": 0,
+          "x": 2,
+          "y": 14,
           "width": 6,
           "height": 2,
           "zIndex": 0,
           "align": "NONE",
-          "text": "📝 currentPIN",
+          "text": "currentPIN",
           "visible": true,
           "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
+            "backgroundColor": "#2c3e50",
+            "borderColor": "#bdc3c7",
+            "borderWidth": 1,
+            "borderRadius": 5
           },
-          "variableType": "string",
-          "defaultValue": "",
-          "value": ""
-        },
-        {
-          "className": "TStringVariable",
-          "id": "var_authToken",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "authToken",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 2,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "📝 authToken",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "variableType": "string",
-          "defaultValue": "",
+          "type": "string",
           "value": ""
         },
         {
@@ -1870,145 +1363,27 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "currentUser",
           "scope": "global",
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
-          "x": 0,
-          "y": 4,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "📦 currentUser",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "variableType": "object",
-          "defaultValue": {
-            "name": "Gast",
-            "role": "none"
-          },
-          "value": {}
-        },
-        {
-          "className": "TStringVariable",
-          "id": "var_loginError",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "loginError",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 6,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "📝 loginError",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "variableType": "string",
-          "defaultValue": "",
-          "value": ""
-        },
-        {
-          "className": "TBooleanVariable",
-          "id": "var_isLoggedIn",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "isLoggedIn",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 8,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "⚖️ isLoggedIn",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
-          },
-          "variableType": "boolean",
-          "defaultValue": false,
-          "value": false
-        },
-        {
-          "className": "TListVariable",
-          "id": "var_availableRoles",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": false,
-          "isBlueprintOnly": false,
-          "name": "availableRoles",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "text": "",
-          "visible": true,
-          "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#7b1fa2",
-            "borderWidth": 2
-          },
-          "items": []
-        },
-        {
-          "className": "TObjectVariable",
-          "id": "var_userContext",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
-          "isBlueprintOnly": true,
-          "name": "userContext",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "x": 0,
+          "x": 8,
           "y": 12,
           "width": 6,
           "height": 2,
           "zIndex": 0,
           "align": "NONE",
-          "text": "📦 userContext",
+          "text": "currentUser",
           "visible": true,
           "style": {
-            "backgroundColor": "#d1c4e9",
-            "borderColor": "#9575cd",
-            "borderWidth": 1
+            "backgroundColor": "#2c3e50",
+            "borderColor": "#bdc3c7",
+            "borderWidth": 1,
+            "borderRadius": 5
           },
-          "variableType": "object",
-          "defaultValue": null,
-          "value": {}
+          "type": "object",
+          "value": null
         }
       ],
       "objects": [
@@ -2018,7 +1393,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "Auth",
           "scope": "global",
           "draggable": false,
@@ -2033,38 +1407,7 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "UserMgr",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "userCollection": "users",
-          "hashPasswords": true
-        },
-        {
-          "className": "TAuthService",
-          "id": "bp_auth_service",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "isBlueprintOnly": false,
-          "name": "AuthService",
-          "scope": "global",
-          "draggable": false,
-          "dragMode": "move",
-          "droppable": false,
-          "secret": "gcs-super-secret",
-          "tokenExpiration": 3600
-        },
-        {
-          "className": "TUserManager",
-          "id": "bp_user_mgr",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "isBlueprintOnly": false,
-          "name": "UserManager",
           "scope": "global",
           "draggable": false,
           "dragMode": "move",
@@ -2078,7 +1421,6 @@
           "isVariable": false,
           "isService": true,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "🖥️ API Server",
           "scope": "global",
           "draggable": false,
@@ -2115,7 +1457,6 @@
           "isVariable": false,
           "isService": true,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "UserData",
           "scope": "global",
           "draggable": false,
@@ -2137,7 +1478,7 @@
           },
           "gridStyle": "lines",
           "caption": "🗄️ Benutzer-DB",
-          "storagePath": "users.json",
+          "storagePath": "db.json",
           "defaultCollection": "users"
         },
         {
@@ -2146,16 +1487,15 @@
           "isVariable": false,
           "isService": true,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "Toaster",
-          "scope": "stage",
+          "scope": "global",
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
-          "x": 0,
-          "y": 0,
-          "width": 1,
-          "height": 1,
+          "x": 1,
+          "y": 3,
+          "width": 5,
+          "height": 3,
           "zIndex": 0,
           "align": "NONE",
           "text": "",
@@ -2185,16 +1525,15 @@
           "isVariable": false,
           "isService": true,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "LocalStore",
-          "scope": "stage",
+          "scope": "global",
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
-          "x": 0,
-          "y": 0,
-          "width": 1,
-          "height": 1,
+          "x": 1,
+          "y": 8,
+          "width": 5,
+          "height": 4,
           "zIndex": 0,
           "align": "NONE",
           "text": "",
@@ -2207,7 +1546,7 @@
           },
           "gridStyle": "lines",
           "caption": "🗄️ Database",
-          "storagePath": "users.json",
+          "storagePath": "db.json",
           "defaultCollection": "users"
         }
       ],
@@ -2233,7 +1572,6 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "lobbyStatus",
           "scope": "stage",
           "draggable": false,
@@ -2252,7 +1590,7 @@
             "borderColor": "#9575cd",
             "borderWidth": 1
           },
-          "variableType": "string",
+          "type": "string",
           "defaultValue": "waiting",
           "value": ""
         }
@@ -2264,7 +1602,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "Sidebar",
           "scope": "stage",
           "draggable": false,
@@ -2315,7 +1652,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "WelcomeLabel",
           "scope": "stage",
           "draggable": false,
@@ -2364,7 +1700,6 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "managedRooms",
           "scope": "stage",
           "draggable": false,
@@ -2391,7 +1726,6 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "selectedRoom",
           "scope": "stage",
           "draggable": false,
@@ -2410,7 +1744,8 @@
             "borderColor": "#9575cd",
             "borderWidth": 1
           },
-          "variableType": "object",
+          "type": "object",
+          "objectModel": "",
           "defaultValue": null,
           "value": {}
         }
@@ -2422,7 +1757,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "Sidebar",
           "scope": "stage",
           "draggable": false,
@@ -2473,7 +1807,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "Title",
           "scope": "stage",
           "draggable": false,
@@ -2505,7 +1838,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "RoomList",
           "scope": "stage",
           "draggable": false,
@@ -2536,7 +1868,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "AddRoomButton",
           "scope": "stage",
           "draggable": false,
@@ -2569,7 +1900,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "RoomNameEdit",
           "scope": "stage",
           "draggable": false,
@@ -2604,7 +1934,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "RoomDetails",
           "scope": "stage",
           "draggable": false,
@@ -2635,7 +1964,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "DetailsTitle",
           "scope": "stage",
           "draggable": false,
@@ -2667,7 +1995,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "PlayerListLabel",
           "scope": "stage",
           "draggable": false,
@@ -2716,7 +2043,6 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "systemStats",
           "scope": "stage",
           "draggable": false,
@@ -2735,7 +2061,8 @@
             "borderColor": "#9575cd",
             "borderWidth": 1
           },
-          "variableType": "object",
+          "type": "object",
+          "objectModel": "",
           "defaultValue": {},
           "value": {}
         },
@@ -2745,7 +2072,6 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "allUsers",
           "scope": "stage",
           "draggable": false,
@@ -2772,7 +2098,6 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "allRooms",
           "scope": "stage",
           "draggable": false,
@@ -2801,7 +2126,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "Sidebar",
           "scope": "stage",
           "draggable": false,
@@ -2852,7 +2176,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "Title",
           "scope": "stage",
           "draggable": false,
@@ -2884,7 +2207,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "SuperBadge",
           "scope": "stage",
           "draggable": false,
@@ -2930,7 +2252,6 @@
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": true,
-          "isBlueprintOnly": true,
           "name": "selectedRole",
           "scope": "stage",
           "draggable": false,
@@ -2949,7 +2270,7 @@
             "borderColor": "#9575cd",
             "borderWidth": 1
           },
-          "variableType": "string",
+          "type": "string",
           "defaultValue": "",
           "value": ""
         }
@@ -2961,7 +2282,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "RolePanel",
           "scope": "stage",
           "draggable": false,
@@ -2992,7 +2312,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "Title",
           "scope": "stage",
           "draggable": false,
@@ -3024,7 +2343,6 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "isBlueprintOnly": false,
           "name": "RoleList",
           "scope": "stage",
           "draggable": false,
@@ -3052,10 +2370,73 @@
       ],
       "tasks": [],
       "actions": [],
-      "flowCharts": {}
+      "flowCharts": {
+        "AttemptLogin": {
+          "elements": [
+            {
+              "id": "node-1770989123182",
+              "type": "Task",
+              "x": 20,
+              "y": 60,
+              "width": 160,
+              "height": 60,
+              "properties": {
+                "name": "AttemptLogin",
+                "details": "",
+                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
+                "text": "AttemptLogin"
+              },
+              "data": {
+                "name": "AttemptLogin",
+                "showDetails": false,
+                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
+              }
+            },
+            {
+              "id": "node-1770989195203",
+              "type": "DataAction",
+              "x": 280,
+              "y": 60,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "DataAction1",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "type": "data_action",
+                "name": "DataAction1",
+                "resource": "users",
+                "url": "/api/data/users?authCode=${currentPIN}",
+                "showDetails": false,
+                "queryProperty": "authCode",
+                "queryValue": "${currentPIN}",
+                "resultVariable": "currentUser"
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1770989123182",
+              "endTargetId": "node-1770989195203",
+              "startX": 178.328125,
+              "startY": 90,
+              "endX": 280,
+              "endY": 90,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
-  "activeStageId": "stage_login",
+  "activeStageId": "stage_role_select",
   "flowCharts": {
     "global": {
       "elements": [],

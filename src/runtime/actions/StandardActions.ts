@@ -304,7 +304,18 @@ export function registerStandardActions() {
     // 9. HTTP Request (API Call)
     actionRegistry.register('http', async (action, context) => {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        const url = PropertyHelper.interpolate(String(action.url || ''), combinedContext, context.objects);
+
+        // Auto-URL Construction if 'resource' is present (DataAction support)
+        let effectiveUrl = String(action.url || '');
+        if (!effectiveUrl && action.resource) {
+            effectiveUrl = `/api/data/${action.resource}`;
+            if (action.queryProperty && action.queryValue) {
+                const interpValue = PropertyHelper.interpolate(String(action.queryValue), combinedContext, context.objects);
+                effectiveUrl += `?${action.queryProperty}=${encodeURIComponent(interpValue)}`;
+            }
+        }
+
+        const url = PropertyHelper.interpolate(effectiveUrl, combinedContext, context.objects);
         const method = action.method || 'GET';
         let body = null;
         let parsedBody = {};

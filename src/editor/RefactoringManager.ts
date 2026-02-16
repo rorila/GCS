@@ -907,12 +907,14 @@ export class RefactoringManager {
                 if (stage.variables) {
                     const originalCount = stage.variables.length;
                     // Remove variables that are either:
-                    // 1. Explicitly scoped as 'global'
+                    // 1. Explicitly scoped as 'global' AND NOT on the Blueprint Stage (which is the source of truth for globals)
                     // 2. Already present in the root global variables list (by name)
-                    stage.variables = stage.variables.filter((v: any) => {
-                        const isGlobal = v.scope === 'global' || globalVarNames.has(v.name);
-                        return !isGlobal;
-                    });
+                    if (stage.id !== 'stage_blueprint') {
+                        stage.variables = stage.variables.filter((v: any) => {
+                            const isGlobal = v.scope === 'global' || globalVarNames.has(v.name);
+                            return !isGlobal;
+                        });
+                    }
 
                     if (stage.variables.length < originalCount) {
                         report.push(`${originalCount - stage.variables.length} doppelte Variablen in Stage "${stage.name}" entfernt (Global Conflict Cleanup).`);

@@ -975,11 +975,26 @@ export class Stage {
                 return !!val;
             };
 
-            const isVisible = checkVisible(obj.visible) && checkVisible(obj.style?.visible);
+            let isVisible = checkVisible(obj.visible) && checkVisible(obj.style?.visible);
+
+            // SPECIAL FIX: Hide blueprint-only services on regular stages
+            // (e.g. Toaster, DataStore from blueprint or as local duplicates should not be visible in Editor)
+            const isInherited = !!obj.isInherited;
+            const isFromBlueprint = !!obj.isFromBlueprint;
+            const isBlueprintOnly = !!obj.isBlueprintOnly;
+            const isService = !!obj.isService;
+
+            if (!this._isBlueprint) {
+                if (isInherited && isFromBlueprint) {
+                    isVisible = false;
+                } else if (isBlueprintOnly && isService) {
+                    isVisible = false;
+                }
+            }
+
             el.style.display = isVisible ? 'flex' : 'none';
 
             // Inherited/Ghosted State
-            const isInherited = !!obj.isInherited;
             if (isInherited) {
                 el.classList.add('inherited-object');
                 el.style.pointerEvents = 'none'; // Disable direct interaction in child stage
@@ -1329,10 +1344,91 @@ export class Stage {
                     el.onmousedown = () => el.style.transform = 'scale(0.98)';
                     el.onmouseup = () => el.style.transform = 'none';
                 }
+            } else if (className === 'TEmojiPicker') {
+                // Clear content
+                el.innerHTML = '';
+
+                // Grid Layout
+                el.style.display = 'grid';
+                const cols = obj.columns || 5;
+                el.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                el.style.gap = '4px';
+                el.style.padding = '8px';
+                el.style.alignItems = 'center';
+                el.style.justifyItems = 'center';
+                el.style.overflowY = 'auto'; // Allow scrolling if too many emojis
+
+                // Render Emojis
+                const emojis = obj.emojis || ['😀', '😎', '🚀', '⭐', '🌈', '🍕', '🎮', '🦄', '🎈', '🎨'];
+                emojis.forEach((emoji: string) => {
+                    const btn = document.createElement('div');
+                    btn.innerText = emoji;
+                    btn.style.fontSize = '24px'; // Base size
+                    btn.style.cursor = this.runMode ? 'pointer' : 'default';
+                    btn.style.width = '100%';
+                    btn.style.height = '100%';
+                    btn.style.display = 'flex';
+                    btn.style.alignItems = 'center';
+                    btn.style.justifyContent = 'center';
+                    btn.style.borderRadius = '8px';
+                    btn.style.transition = 'background 0.2s, transform 0.1s';
+                    btn.style.userSelect = 'none';
+
+                    // Selection State
+                    if (obj.selectedEmoji === emoji) {
+                        btn.style.background = 'rgba(255, 255, 255, 0.3)';
+                        btn.style.border = '1px solid rgba(255, 255, 255, 0.5)';
+                    } else {
+                        btn.style.border = '1px solid transparent';
+                    }
+
+                    if (this.runMode) {
+                        btn.onmouseenter = () => {
+                            if (obj.selectedEmoji !== emoji) btn.style.background = 'rgba(255, 255, 255, 0.1)';
+                            btn.style.transform = 'scale(1.1)';
+                        };
+                        btn.onmouseleave = () => {
+                            if (obj.selectedEmoji !== emoji) btn.style.background = 'transparent';
+                            btn.style.transform = 'scale(1)';
+                        };
+                        btn.onclick = (e) => {
+                            e.stopPropagation();
+                            obj.selectedEmoji = emoji;
+                            console.log(`[Stage] TEmojiPicker selected: ${emoji}`);
+
+                            // Trigger Event
+                            if (this.onEvent) {
+                                this.onEvent(obj.id, 'onSelect', emoji);
+                            }
+
+                            // Trigger property change for Editor
+                            if (this.onEvent) {
+                                this.onEvent(obj.id, 'propertyChange', { property: 'selectedEmoji', value: emoji });
+                            }
+
+                            // Re-render to showing selection state
+                            this.renderObjects(this.lastRenderedObjects);
+                        };
+                    }
+
+                    el.appendChild(btn);
+                });
+
             } else if (className === 'TTable' || className === 'TObjectList') {
                 Stage.renderTable(el, obj);
-            } else if (className === 'TEmojiPicker') {
-                Stage.renderEmojiPicker(el, obj, this.gridConfig.cellSize, this.onEvent || undefined);
+            } else if (className === 'TStringVariable' || className === 'TObjectVariable' || className === 'TIntegerVariable' || className === 'TBooleanVariable' || className === 'TListVariable') {
+                // Force render for Variables
+                el.style.display = 'flex';
+                if (!this.runMode) {
+                    el.style.backgroundColor = obj.style?.backgroundColor || '#673ab7';
+                    el.style.border = '1px solid #ffffff';
+                    el.style.color = '#ffffff';
+                    el.style.fontSize = '12px';
+                    el.innerText = obj.name || 'Variable';
+                    el.setAttribute('title', `${className}: ${obj.name}`);
+                } else {
+                    el.style.display = 'none'; // Variables are hidden in run mode usually
+                }
             } else if (obj.isVariable || obj.isService) {
                 // Determine visibility based on flags
                 let effectivelyVisible = true;
@@ -1341,7 +1437,9 @@ export class Stage {
                     if (obj.isHiddenInRun || obj.isVariable) effectivelyVisible = false;
                 } else {
                     // Editor Mode: Hide if it's blueprint-only and we are NOT on a blueprint stage
-                    if (obj.isBlueprintOnly && !this.isBlueprint) effectivelyVisible = false;
+                    // BUT: Only hide if inherited (to hide blueprint-globals on normal stages), 
+                    // allow direct placements to be visible.
+                    if (obj.isBlueprintOnly && !this.isBlueprint && obj.isInherited) effectivelyVisible = false;
                 }
 
                 if (!effectivelyVisible) {
@@ -1556,6 +1654,27 @@ export class Stage {
 
                     el.appendChild(preview);
                 }
+            } else if (className === 'TEmojiPicker') {
+                // Render Emoji Picker
+                el.style.display = 'grid';
+                el.style.gridTemplateColumns = `repeat(${obj.columns || 5}, 1fr)`;
+                el.style.gap = '4px';
+                el.style.padding = '8px';
+                el.style.justifyItems = 'center';
+                el.style.alignItems = 'center';
+                el.style.overflow = 'hidden';
+
+                // Check if we need to re-render content
+                if (el.childElementCount !== (obj.emojis?.length || 0)) {
+                    el.innerHTML = '';
+                    const emojis = obj.emojis || [];
+                    emojis.forEach((emoji: string) => {
+                        const btn = document.createElement('div');
+                        btn.style.cssText = 'font-size:20px; cursor:default;';
+                        btn.innerText = emoji;
+                        el.appendChild(btn);
+                    });
+                }
             } else if (className === 'TDialogRoot') {
                 // Render TDialogRoot as a dialog container
                 el.style.borderRadius = '12px';
@@ -1766,6 +1885,43 @@ export class Stage {
             min-width: 120px;
             overflow: hidden;
         `;
+
+        // Check object status
+        const obj = this.lastRenderedObjects.find(o => o.id === objectId);
+        if (obj) {
+            // Option A: Pin Ghost (Preview -> Visible)
+            if ((obj as any).isGhost) {
+                const pinItem = document.createElement('div');
+                pinItem.className = 'context-menu-item';
+                pinItem.innerHTML = '📌 In Stage anzeigen';
+                pinItem.style.cssText = `padding: 8px 12px; cursor: pointer; color: #4fc3f7; font-size: 13px; transition: background 0.15s; border-bottom: 1px solid #444;`;
+                pinItem.onmouseenter = () => pinItem.style.background = '#3d3d3d';
+                pinItem.onmouseleave = () => pinItem.style.background = 'transparent';
+                pinItem.onclick = (e) => {
+                    e.stopPropagation();
+                    if (this.onEvent) this.onEvent(objectId, 'pinGlobal');
+                    this.hideContextMenu();
+                };
+                this.contextMenuEl.appendChild(pinItem);
+            }
+            // Option B: Unpin Global (Visible -> Local Hidden)
+            // It is pinned if it is global scope BUT NOT a ghost (so it's "real" on this stage)
+            // And we are NOT on the blueprint stage itself (where globals are native)
+            else if ((obj as any).scope === 'global' && !this.isBlueprint) {
+                const unpinItem = document.createElement('div');
+                unpinItem.className = 'context-menu-item';
+                unpinItem.innerHTML = '🚫 Aus Stage entfernen';
+                unpinItem.style.cssText = `padding: 8px 12px; cursor: pointer; color: #ffab91; font-size: 13px; transition: background 0.15s; border-bottom: 1px solid #444;`;
+                unpinItem.onmouseenter = () => unpinItem.style.background = '#3d3d3d';
+                unpinItem.onmouseleave = () => unpinItem.style.background = 'transparent';
+                unpinItem.onclick = (e) => {
+                    e.stopPropagation();
+                    if (this.onEvent) this.onEvent(objectId, 'unpinGlobal');
+                    this.hideContextMenu();
+                };
+                this.contextMenuEl.appendChild(unpinItem);
+            }
+        }
 
         // Copy option
         const copyItem = document.createElement('div');

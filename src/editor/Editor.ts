@@ -162,7 +162,8 @@ export class Editor implements IViewHost {
         // Auto-seed important data from server for the Editor simulator (Dev Mode)
         if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
             // Seed initial data if available (ignoring 404 errors for optional data)
-            dataService.seedFromUrl('data.json', '/api/dev/data/db.json');
+            // Consistency Fix: Seed db.json to db.json (SSOT)
+            dataService.seedFromUrl('db.json', '/api/dev/data/db.json');
         }
 
         // Register Mock HttpServer for API Simulation in Editor
@@ -196,33 +197,77 @@ export class Editor implements IViewHost {
         (window as any).__pendingApiResponses = new Map();
         serviceRegistry.register('ApiSimulator', {
             request: async (method: string, url: string, body: any): Promise<any> => {
-                return new Promise((resolve) => {
-                    const requestId = 'sim-' + Math.floor(Math.random() * 1000000);
+                const requestId = 'sim-' + Math.floor(Math.random() * 1000000);
 
-                    // Parse URL to extract path & query
-                    let path = url;
-                    let query: Record<string, string> = {};
+                // Parse URL to extract path & query
+                let path = url;
+                let query: Record<string, string> = {};
 
-                    try {
-                        // Use a dummy base for relative URLs
-                        const urlObj = new URL(url, 'http://localhost');
-                        path = urlObj.pathname;
+                try {
+                    // Use a dummy base for relative URLs
+                    const urlObj = new URL(url, 'http://localhost');
+                    path = urlObj.pathname;
 
-                        // Extract query params
-                        urlObj.searchParams.forEach((value, key) => {
-                            query[key] = value;
-                        });
-                    } catch (e) {
-                        console.warn('[ApiSimulator] URL parsing failed:', e);
-                        // URL is potentially just a path without params
+                    // Extract query params
+                    urlObj.searchParams.forEach((value, key) => {
+                        query[key] = value;
+                    });
+                } catch (e) {
+                    console.warn('[ApiSimulator] URL parsing failed:', e);
+                }
+
+                console.log(`[ApiSimulator] Simulating: ${method} ${path}`, { body, query });
+
+                // --- AUTOMATIC RESOURCE ROUTING (Keep it simple) ---
+                // Mirroring server.ts behavior for /api/data/:resource
+                if (path.startsWith('/api/data/')) {
+                    const parts = path.split('/');
+                    const resource = parts[3]; // /api/data/users -> ["", "api", "data", "users"]
+
+                    if (resource) {
+                        try {
+                            // Determine storage file - default to db.json and hierarchy if not found
+                            // For simplicity in editor, we use 'db.json' as the SSOT key (matches dataService seeding)
+                            const storageFile = 'db.json';
+
+                            if (method === 'GET') {
+                                console.log(`[ApiSimulator] Auto-GET for resource: ${resource}`);
+                                // Fix: DB stores ["🍎", "🍌"], Query is "🍎🍌"
+                                // dataService.findItems is strict. Here we use custom logic to match arrays.
+                                const allItems = await dataService.findItems(storageFile, resource, {});
+                                const results = allItems.filter((item: any) => {
+                                    for (const key in query) {
+                                        const queryVal = query[key];
+                                        let itemVal = item[key];
+
+                                        // Special handling for authCode/pin arrays
+                                        if (Array.isArray(itemVal) && typeof queryVal === 'string') {
+                                            itemVal = itemVal.join('');
+                                        }
+
+                                        // Loose comparison for compatibility
+                                        if (itemVal != queryVal) return false;
+                                    }
+                                    return true;
+                                });
+                                return results;
+                            } else if (method === 'POST') {
+                                console.log(`[ApiSimulator] Auto-POST for resource: ${resource}`);
+                                const newItem = await dataService.saveItem(storageFile, resource, body);
+                                return { success: true, item: newItem };
+                            }
+                        } catch (err) {
+                            console.error(`[ApiSimulator] Auto-Routing Error for ${resource}:`, err);
+                            return { error: String(err), status: 500 };
+                        }
                     }
+                }
 
-                    console.log(`[ApiSimulator] Simulating: ${method} ${path}`, { body, query });
-
+                // --- LEGACY / CUSTOM EVENT ROUTING ---
+                return new Promise((resolve) => {
                     // Store resolver for when respond is called
                     (window as any).__pendingApiResponses.set(requestId, (response: any) => {
                         console.log(`[ApiSimulator] Response received for ${requestId}:`, response);
-                        // Ensure we resolve with the full response object structure expected by standard actions
                         resolve(response);
                     });
 
@@ -236,14 +281,13 @@ export class Editor implements IViewHost {
                             method,
                             path,
                             body,
-                            query, // Pass parsed query params
+                            query,
                             requestId,
                             isSimulation: true
                         });
                     } else {
-                        // No TAPIServer found, return mock error
-                        console.warn('[ApiSimulator] No TAPIServer found. Returning mock error.');
-                        resolve({ error: 'No API Server configured', status: 503 });
+                        console.warn('[ApiSimulator] No TAPIServer found for manual routing. Returning mock error.');
+                        resolve({ error: 'No API Server configured and no auto-route matched', status: 503 });
                     }
 
                     // Timeout after 5 seconds
@@ -356,6 +400,15 @@ export class Editor implements IViewHost {
 
             // CRITICAL: Always get fresh objects from runtime if available
             let objectsToRender = this.runtime ? this.runtime.getObjects() : (this.runtimeObjects || this.getResolvedInheritanceObjects());
+
+            // FIX: Ensure variables are rendered on Blueprint Stage even if inheritance logic missed them
+            if (!this.runtime && this.stage.isBlueprint && activeStage && activeStage.variables) {
+                const alreadyIncluded = new Set(objectsToRender.map(o => o.id));
+                const missingVars = activeStage.variables.filter(v => !alreadyIncluded.has(v.id));
+                if (missingVars.length > 0) {
+                    objectsToRender = [...objectsToRender, ...missingVars];
+                }
+            }
 
             // Resolve preview (bindings, etc) for non-run mode
             if (!this.runtime) {
@@ -999,14 +1052,58 @@ export class Editor implements IViewHost {
         const activeStage = this.getActiveStage();
         const mergedMap = new Map<string, any>();
 
-        // 1. Start with Project Level Globals (References!)
+        // 1. Process Blueprint Stages first (Global Baseline, like in RuntimeStageManager)
+        const blueprintStages = this.project.stages?.filter(s => s.type === 'blueprint') || [];
+        const targetIsBlueprint = activeStage?.type === 'blueprint';
+
+        // 1. Project Level Globals (References!)
         const rootGlobals = [
             ...(this.project.objects || []).filter(obj => (obj as any).scope === 'global'),
             ...(this.project.variables || []).filter(v => (v as any).scope === 'global') as unknown as any[]
         ];
 
+        blueprintStages.forEach(bs => {
+            const isBlueprintStage = activeStage?.type === 'blueprint';
+            const showPreview = (activeStage as any)?._showGlobalPreview === true;
+            const visibleGlobals: string[] = (activeStage as any)?.visibleGlobalIds || [];
+
+            // 2. If we are ON the blueprint stage, show everything normal
+            if (isBlueprintStage) {
+                const objectsToInclude = [...(bs.objects || []), ...(bs.variables || [])];
+                objectsToInclude.forEach((obj: any) => {
+                    mergedMap.set(obj.id || obj.name, obj);
+                });
+                return;
+            }
+
+            // 3. If we are on a normal stage, check for Selective Visibility
+            const objectsToInclude = [...(bs.objects || [])]; // Variables only on blueprint
+
+            objectsToInclude.forEach((obj: any) => {
+                // Technical services never show up on other stages (unless explicitly pinned?)
+                // For now: keep them hidden to avoid clutter.
+                if (obj.isService) return;
+
+                const isExplicitlyVisible = visibleGlobals.includes(obj.id);
+
+                if (isExplicitlyVisible) {
+                    // Case A: Pinned/Imported -> Show as normal (Reference)
+                    mergedMap.set(obj.id || obj.name, obj);
+                } else if (showPreview) {
+                    // Case B: Preview Mode -> Show as Ghost
+                    const copy = JSON.parse(JSON.stringify(obj));
+                    (copy as any).isInherited = true; // Ghost styling
+                    (copy as any).isGhost = true; // Marker for Context Menu
+                    mergedMap.set(obj.id || obj.name, copy);
+                }
+            });
+        });
+
+        // 4. Root Globals (Project Level) - Same Logic
         rootGlobals.forEach(obj => {
-            mergedMap.set(obj.id || obj.name, obj);
+            if (targetIsBlueprint) {
+                mergedMap.set(obj.id || obj.name, obj);
+            }
         });
 
         if (!activeStage) return Array.from(mergedMap.values());
@@ -1035,18 +1132,21 @@ export class Editor implements IViewHost {
             ];
 
             combined.forEach(obj => {
+                const key = obj.id || obj.name;
                 if (isTopLevel) {
                     // Current Stage objects: Use Reference
-                    mergedMap.set(obj.id || obj.name, obj);
+                    mergedMap.set(key, obj);
                 } else {
                     // Inherited objects: Clone and mark as ghost
                     const copy = JSON.parse(JSON.stringify(obj));
                     (copy as any).isInherited = true;
-                    mergedMap.set(obj.id || obj.name, copy);
+                    mergedMap.set(key, copy);
                 }
             });
         }
-        return Array.from(mergedMap.values());
+
+        const finalResults = Array.from(mergedMap.values());
+        return finalResults;
     }
 
     private updateStagesMenu(): void {
@@ -1872,6 +1972,38 @@ export class Editor implements IViewHost {
             return;
         }
 
+        // FEATURE: Selective Global Visibility - Pin/Unpin
+        if (eventName === 'pinGlobal') {
+            const activeStage = this.getActiveStage();
+            if (activeStage && activeStage.type === 'standard') {
+                if (!(activeStage as any).visibleGlobalIds) (activeStage as any).visibleGlobalIds = [];
+                if (!(activeStage as any).visibleGlobalIds.includes(id)) {
+                    (activeStage as any).visibleGlobalIds.push(id);
+                    console.log(`[Editor] Pinned global object ${id} to stage ${activeStage.name}`);
+                    this.render();
+                    this.autoSaveToLocalStorage();
+                    // Optional: Select the newly pinned object
+                    this.selectObject(id);
+                }
+            }
+            return;
+        }
+
+        if (eventName === 'unpinGlobal') {
+            const activeStage = this.getActiveStage();
+            if (activeStage && (activeStage as any).visibleGlobalIds) {
+                const idx = (activeStage as any).visibleGlobalIds.indexOf(id);
+                if (idx !== -1) {
+                    (activeStage as any).visibleGlobalIds.splice(idx, 1);
+                    console.log(`[Editor] Unpinned global object ${id} from stage ${activeStage.name}`);
+                    this.render();
+                    this.autoSaveToLocalStorage();
+                    this.selectObject(null);
+                }
+            }
+            return;
+        }
+
         if (!this.runtime) {
             // In editor mode, some events should trigger an immediate save
             if (eventName === 'move' || eventName === 'resize' || eventName === 'propertyChange') {
@@ -2227,7 +2359,8 @@ export class Editor implements IViewHost {
                 if (confirm('Achtung: Dies überschreibt lokale Test-Daten (gcs_db_data.json) mit den Server-Daten. Fortfahren?')) {
                     Promise.all([
                         dataService.seedFromUrl('users.json', '/api/dev/data/users.json'),
-                        dataService.seedFromUrl('data.json', '/api/dev/data/db.json')
+                        // Consistency Fix: Seed db.json
+                        dataService.seedFromUrl('db.json', '/api/dev/data/db.json')
                     ]).then(() => {
                         alert('Daten erfolgreich geladen. Die Seite wird neu geladen.');
                         window.location.reload();
@@ -2553,7 +2686,11 @@ export class Editor implements IViewHost {
             );
             (projectStage as any).variables = allObjs.filter(o =>
                 o.isVariable && !o.isTransient &&
-                (o.scope === activeStage.id || o.scope === 'stage')
+                (
+                    o.scope === activeStage.id ||
+                    o.scope === 'stage' ||
+                    (activeStage.type === 'blueprint' && o.scope === 'global') // Allow global variables on Blueprint Stage
+                )
             );
 
             const stageVarCount = (projectStage.variables || []).length;

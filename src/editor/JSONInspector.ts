@@ -278,8 +278,13 @@ export class JSONInspector {
                 activeStageId: (projectRegistry as any).activeStageId,
                 globalVarCount: this.project.variables?.length || 0
             });
-            const variables = projectRegistry.getVariables();
-            console.log('[JSONInspector] availableVariables total count:', variables.length);
+            const currentFlowContext = localStorage.getItem('gcs_last_flow_context');
+            const variableContext = (currentFlowContext && currentFlowContext !== 'global' && currentFlowContext !== 'event-map' && currentFlowContext !== 'element-overview')
+                ? { taskName: currentFlowContext }
+                : undefined;
+
+            const variables = projectRegistry.getVariables(variableContext);
+            console.log(`[JSONInspector] variableContext: ${JSON.stringify(variableContext)}, availableVariables count: ${variables.length}`);
             this.runtime.registerVariable('availableVariables', variables.map(v => v.name));
             this.runtime.registerVariable('availableVariablesWithScope', variables.map(v => ({ value: v.name, label: `${v.uiEmoji || ''} ${v.name}` })));
             this.runtime.registerVariable('availableVariablesAsTokens', variables.map(v => ({ value: `\${${v.name}}`, label: `${v.uiEmoji || ''} ${v.name}` })));
@@ -364,6 +369,28 @@ export class JSONInspector {
 
                 // Clear and reload inspector objects with TForEach expansion
                 this.inspectorObjects = this.expandForEach(inspectorJSON.objects, object);
+
+                // FEATURE: Selective Global Visibility
+                // Inject 'Show Global Layer' toggle if we have an active standard stage
+                const activeStage = this.project?.stages?.find((s: any) => s.id === this.project?.activeStageId);
+                if (activeStage && activeStage.type === 'standard' && this.activeTab === 'properties') {
+                    // Ensure _showGlobalPreview exists (runtime flag)
+                    if (typeof (activeStage as any)._showGlobalPreview === 'undefined') {
+                        (activeStage as any)._showGlobalPreview = false;
+                    }
+
+                    this.inspectorObjects.unshift({
+                        name: 'ShowGlobalLayer',
+                        type: 'TCheckbox',
+                        label: '👁️ Global Layer (Preview)',
+                        variable: 'activeStage._showGlobalPreview',
+                        style: { color: '#4fc3f7', fontWeight: 'bold' },
+                        onChange: () => {
+                            // Force Editor Re-render
+                            if (this.onObjectUpdate) this.onObjectUpdate();
+                        }
+                    });
+                }
 
                 // Re-register all inspector objects
                 this.inspectorObjects.forEach(obj => {

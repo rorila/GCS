@@ -146,6 +146,23 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
 - **Globale Objekte/Services**: Werden ausschließlich in `stage_blueprint.objects` gehostet. NICHT in `project.objects` (Root bleibt `[]`).
 - **`ProjectRegistry.getVariables()`**: Lädt Globals aus der Blueprint-Stage (type === 'blueprint'). Bei aktiver Blueprint-Ansicht werden diese Variablen als `uiScope: 'global'` behandelt, NICHT als Stage-Variablen.
 - **`ProjectRegistry.getObjects()`**: Lädt globale Objekte aus allen Stages (inkl. Blueprint) via Dedup-Logik.
+- **Sichtbarkeit (v2.16.12)**: Vererbte Blueprint-Objekte werden auf normalen Stages im Editor ausgeblendet (`isFromBlueprint`), um die UI sauber zu halten. Sie bleiben im Hintergrund (Runtime) voll funktionsfähig.
+
+### DataActions & Auto-Magic Simulation (v2.16.10)
+- **Konzept**: `DataActions` (typ: `data_action` oder `http`) unterstützen eine automatisierte Ressourcen-Simulation, die den echten Server spiegelt.
+- **Auto-Routing**: Wenn eine URL mit `/api/data/` beginnt, verarbeitet der `ApiSimulator` im Editor die Anfrage automatisch gegen die `db.json` via `DataService`. 
+    - **WICHTIG**: In diesem Fall ist KEIN manueller `HandleApiRequest` Task im Flow-Editor erforderlich.
+- **Konfiguration**:
+    - Nutze `resource` (z.B. `users`), `queryProperty` (z.B. `authCode`) und `queryValue` (z.B. `${pin}`), um Abfragen strukturiert zu definieren.
+    - Die `http` Aktion konstruiert daraus automatisch die korrekte Route.
+- **Ergebnis-Mapping**: Nutze `resultVariable` für das Ziel und optional `resultPath` (z.B. `0` für das erste Element eines Arrays), um die Antwort zu extrahieren.
+- **Keep it Simple**: Bevorzuge immer die automatisierte Simulation für Standard-CRUD-Operationen. Nur für komplexe Spezial-Logik sollten manuelle API-Event-Tasks (`onRequest`) verwendet werden.
+
+### Variablen-Scoping & Inspector (v2.16.12)
+- **Kontext-Synchronisation**: Der Inspector im Flow-Editor benötigt den korrekten Stage-Kontext (`activeStageId` in `ProjectRegistry`), um stagelokale Variablen anzuzeigen.
+- **Automatisches Umschalten**: Beim Wechsel des Tasks im Flow-Editor (`switchActionFlow`) wird die Stage automatisch via `projectRegistry.getTaskContainer` ermittelt und gesetzt.
+- **Lokale Parameter**: Für task-lokale Variablen muss der Task-Name als Context an `getVariables()` übergeben werden. Der Inspector nutzt dafür den `localStorage` Key `gcs_last_flow_context`.
+- **Best Practice**: Greife immer über `projectRegistry.getVariables(context)` auf Variablen zu, um die volle Vererbungshierarchie (Global > Stage > Local) abzubilden.
 
 ### Runtime-Architektur
 Die Klasse `GameRuntime.ts` delegiert ihre Kernaufgaben an:

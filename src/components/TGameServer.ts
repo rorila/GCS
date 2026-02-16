@@ -33,7 +33,6 @@ export class TGameServer extends TWindow implements IRuntimeComponent {
         // Visibility & Scoping Meta-Flags
         this.isService = true;
         this.isHiddenInRun = true;
-        this.isBlueprintOnly = true;
     }
 
     // Getters for runtime state

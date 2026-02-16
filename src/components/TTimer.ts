@@ -22,7 +22,6 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         // Visibility & Scoping Meta-Flags
         this.isService = true;
         this.isHiddenInRun = true;
-        this.isBlueprintOnly = true;
     }
 
     public getInspectorProperties(): TPropertyDef[] {

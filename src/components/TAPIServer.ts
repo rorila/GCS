@@ -35,7 +35,6 @@ export class TAPIServer extends TPanel implements IRuntimeComponent {
         // Visibility & Scoping Meta-Flags
         this.isService = true;
         this.isHiddenInRun = true;
-        this.isBlueprintOnly = true;
     }
 
     /**

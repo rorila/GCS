@@ -82,7 +82,30 @@ export class RuntimeStageManager {
         };
 
         // First merge all blueprints
-        blueprintStages.forEach(processStage);
+        // IMPORTANT: Mark blueprint objects as inherited if the target stage is NOT a blueprint!
+        // This prevents them from being duplicated visually on normal stages while keeping them available in runtime.
+        const targetIsBlueprint = this.project.stages?.find((s: any) => s.id === stageId)?.type === 'blueprint';
+
+        blueprintStages.forEach((bs: any) => {
+
+            // We reuse processStage but inject the isInherited flag manually into mergedObjects afterwards
+            // OR we modify processStage to accept an override flag. 
+            // EASIER: Iterate mergedObjects AFTER processing blueprint and mark new ones.
+            const preCount = mergedObjects.length;
+            processStage(bs);
+            const postCount = mergedObjects.length;
+
+            if (!targetIsBlueprint) {
+                // Mark newly added objects from blueprint as inherited
+                for (let i = preCount; i < postCount; i++) {
+                    if (mergedObjects[i]) {
+                        mergedObjects[i].isInherited = true;
+                        // Mark as coming from blueprint for Editor visibility filtering
+                        (mergedObjects[i] as any).isFromBlueprint = true;
+                    }
+                }
+            }
+        });
 
         // Then merge the actual stage chain (overriding blueprints if necessary)
         stageChain.forEach(s => {

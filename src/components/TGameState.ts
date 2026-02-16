@@ -18,7 +18,6 @@ export class TGameState extends TWindow {
         // Visibility & Scoping Meta-Flags
         this.isService = true;
         this.isHiddenInRun = true;
-        this.isBlueprintOnly = true;
     }
 
     public getInspectorProperties(): TPropertyDef[] {

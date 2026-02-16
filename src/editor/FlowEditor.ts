@@ -606,6 +606,18 @@ export class FlowEditor implements FlowMapHost {
         this.currentFlowContext = context;
         localStorage.setItem('gcs_last_flow_context', context);
 
+        // --- NEW: Sync activeStageId based on Task location ---
+        if (context !== 'global' && context !== 'event-map' && context !== 'element-overview') {
+            const container = projectRegistry.getTaskContainer(context);
+            if (container.type === 'stage' && container.stageId) {
+                console.log(`[FlowEditor] Auto-switching projectRegistry.activeStageId to ${container.stageId} for task ${context}`);
+                projectRegistry.setActiveStageId(container.stageId);
+            } else if (container.type === 'global') {
+                console.log(`[FlowEditor] Auto-switching projectRegistry.activeStageId to null (global) for task ${context}`);
+                projectRegistry.setActiveStageId(null);
+            }
+        }
+
         // 5. Load new state
         this.loadFromProject();
 

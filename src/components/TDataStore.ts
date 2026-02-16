@@ -30,7 +30,6 @@ export class TDataStore extends TPanel implements IRuntimeComponent {
         // Visibility & Scoping Meta-Flags
         this.isService = true;
         this.isHiddenInRun = true;
-        this.isBlueprintOnly = true;
     }
 
     get caption(): string {

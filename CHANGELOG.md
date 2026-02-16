@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.18.11] - 2026-02-15
+### Changed
+- **Refactoring & Cleanup**: Das redundante Feld `isBlueprintOnly` wurde vollständig aus der Codebasis (`TComponent.ts` etc.) und der `project.json` entfernt. Die Sichtbarkeit von Komponenten wird nun ausschließlich über `scope` ('global' vs 'stage') und die Editor-Logik gesteuert.
+- **Project Structure**: Alle globalen Variablen wurden in der `project.json` zentralisiert und befinden sich nun korrekt unter `stage_blueprint`.
+
+## [2.18.10] - 2026-02-15
+### Fixed
+- **Variable Visibility**: Variablen mit `isBlueprintOnly: true` (wie globale Variablen) werden nun auf Standard-Stages im Editor korrekt angezeigt, sofern sie direkt auf der Stage platziert wurden. Die Ausblend-Logik wurde so verfeinert, dass nur noch geerbte Blueprint-Objekte unterdrückt werden.
+
 ## [2.18.9] - 2026-02-15
 ### Added
 - **Dokumentation**: Neuer UseCase `ExecuteCalculateVariable.md` dokumentiert den detaillierten Ablauf der Variablen-Berechnung.
@@ -189,11 +198,22 @@
 - **Fix (Blueprint)**: Wiederherstellung der visuellen Variablen in `stage_blueprint` und Implementierung einer Deduplizierungslogik in `ProjectRegistry` (Stage > Global).
 - **Refactoring (JSON)**: Umbenennung des Legacy-Keys `Tasks` (Events) zu `events` in `project.json`, `GameRuntime.ts` und Templates, um Namenskonflikte mit dem `tasks`-Array (Logik) zu beheben.
 
+## v2.16.12 (2026-02-15)
+- **Fix (Sichtbarkeit)**: Blueprint-Services (Toaster, DataStore etc.) werden nun auch dann im Editor ausgeblendet, wenn sie als Duplikate in Stages existieren (via `isBlueprintOnly` & `isService` Flags).
+- **Bereinigung (project.json)**: Korrektur der Scopes für globale Services (Toaster, LocalStore, API Server, UserData) in der `stage_blueprint` auf `global`.
+- **Refactoring (Editor)**: Synchronisation der Vererbungs-Baseline zwischen Editor und Runtime. Globale Blueprint-Objekte werden nun konsistent beim Projektstart geladen.
+- **Fix (Inspector)**: Vollständige Variablenliste im Flow-Editor wiederhergestellt. Der Inspector erkennt nun zuverlässig globale, stagelokale und task-lokale Variablen (Parameter).
+- **Refactoring (FlowEditor)**: Automatische Synchronisation der `activeStageId` in der `ProjectRegistry` beim Wechsel des Flow-Kontextes.
+- **Service (ProjectRegistry)**: Neue Methode `getTaskContainer` ermöglicht die Lokalisierung von Tasks über Stage-Grenzen hinweg.
+
 ## v2.16.11
 - Verbesserung (Debug-Log): Tooltips für lange Zeilen hinzugefügt und manuelle Text-Kürzungen entfernt.
 
-## v2.16.10
-- Fix (Aktions-Editor): Robusterer String-Vergleich im `TDropdown` Renderer stellt sicher, dass geladene Quell-Objekte (Source) korrekt vorselektiert werden.
+## v2.16.10 (2026-02-15)
+- **Architektur-Refactoring (DataActions)**: Automatische Ressourcen-Simulation ("Auto-Magic") im `ApiSimulator` für `/api/data/*` Anfragen. Ermöglicht Datenabfragen ohne manuelle Simulationstasks.
+- **Fix (Aktion)**: `http` Aktion unterstützt nun native Ressourcen-Eigenschaften (`resource`, `queryProperty`, `queryValue`).
+- **Fix (Aktions-Editor)**: Robusterer String-Vergleich im `TDropdown` Renderer stellt sicher, dass geladene Quell-Objekte (Source) korrekt vorselektiert werden.
+- **Clean-up**: Entfernung redundanter Daten-Handler-Tasks zugunsten der automatischen Simulation.
 
 ## v2.16.9
 - Fix (Aktions-Editor): Korrekte Anzeige des Aktionstyps beim Öffnen des Dialogs (Fix der `TDropdown` `selectedIndex` Evaluierung).
@@ -208,6 +228,9 @@
 - **Refactoring**: Syntax-Bereinigung und Wiederherstellung von Member-Methoden im `JSONDialogRenderer.ts`.
 
 ## v2.16.5 (2026-02-12)
+- Fix: Blueprint-Objekte (Toaster, LocalStore) werden nun korrekt vererbt und auf normalen Stages ausgeblendet.
+- Fix: Wiederherstellung der HTTP-Abfrage-Funktionalität durch Korrektur der `UserData`-Referenzen.
+- Refactor: Methodenerkennung in `ServiceRegistry` für plain Objekte verbessert.
 - **Fix (Editor)**: Variablen werden nun korrekt auf allen Stages angezeigt. Der `isBlueprint`-Status der Stage wird jetzt beim Wechsel (switchStage) synchronisiert.
 - **Fix (Komponente)**: `TVariable` ist nicht mehr auf Blueprints beschränkt (`isBlueprintOnly = false`), um die Sichtbarkeit im Editor zu gewährleisten.
 - **Fix (Aktions-Editor)**: Auswahl des Aktions-Typs in `dialog_action_editor.json` auf Objekt-Basis umgestellt (value/label), um fragile String-Vergleiche mit Emojis zu vermeiden.

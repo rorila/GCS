@@ -37,7 +37,15 @@ export class ServiceRegistryClass {
         // Auto-discover methods from the instance
         const methods: ServiceMethod[] = [];
 
-        // Get all method names from the instance's prototype chain
+        // Get all method names from the instance itself (for plain objects)
+        const instanceMethods = Object.getOwnPropertyNames(instance)
+            .filter(prop => typeof instance[prop] === 'function');
+
+        for (const methodName of instanceMethods) {
+            methods.push({ name: methodName });
+        }
+
+        // Get all method names from the instance's prototype chain (for classes)
         let proto = Object.getPrototypeOf(instance);
         while (proto && proto !== Object.prototype) {
             const methodNames = Object.getOwnPropertyNames(proto)

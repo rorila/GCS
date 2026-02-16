@@ -55,7 +55,6 @@ export abstract class TComponent {
     // Visibility & Scoping Meta-Flags
     public isService: boolean = false;       // If true, component is merged globally across stages
     public isHiddenInRun: boolean = false;    // If true, component is hidden in run mode
-    public isBlueprintOnly: boolean = false;  // If true, component is only visible on blueprint stages in editor
 
     // Drag & Drop Properties
     public draggable: boolean = false;
@@ -92,8 +91,7 @@ export abstract class TComponent {
             id: this.id,
             isVariable: this.isVariable,
             isService: this.isService,
-            isHiddenInRun: this.isHiddenInRun,
-            isBlueprintOnly: this.isBlueprintOnly
+            isHiddenInRun: this.isHiddenInRun
         };
 
         // Events separat behandeln

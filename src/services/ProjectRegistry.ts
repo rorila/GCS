@@ -223,6 +223,30 @@ export class ProjectRegistry {
         return [...globalTasks, ...libTasks].map(t => ({ ...t, usageCount: resolveUsage ? this.getTaskUsage(t.name).length : 0 }));
     }
 
+    /**
+     * Findet den Container (Stage oder Global), dem ein Task angehört.
+     */
+    public getTaskContainer(taskName: string): { type: 'global' | 'stage' | 'none', stageId?: string } {
+        if (!this.project) return { type: 'none' };
+
+        // 1. In globalen Tasks suchen
+        if (this.project.tasks && this.project.tasks.some(t => t.name === taskName)) {
+            return { type: 'global' };
+        }
+
+        // 2. In Stages suchen
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                if (stage.tasks && stage.tasks.some(t => t.name === taskName)) {
+                    return { type: 'stage', stageId: stage.id };
+                }
+            }
+        }
+
+        return { type: 'none' };
+    }
+
+
     public validateTaskName(name: string): { valid: boolean; error?: string } {
         // Rule: PascalCase (start with uppercase)
         if (!/^[A-Z][a-zA-Z0-9]*$/.test(name)) {
