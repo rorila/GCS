@@ -130,6 +130,27 @@ export class DataService {
     }
 
     /**
+     * Liefert die Felder (Keys) des ersten Eintrags eines Modells.
+     * Dient als "Schema-Erkennung" für IntelliSense.
+     */
+    public async getModelFields(storagePath: string, modelName: string): Promise<string[]> {
+        const db = await this.readDb(storagePath);
+        const collection = db[modelName];
+
+        if (!Array.isArray(collection) || collection.length === 0) {
+            return [];
+        }
+
+        // Deep scan of the first item to find all keys
+        const firstItem = collection[0];
+        if (typeof firstItem === 'object' && firstItem !== null) {
+            return Object.keys(firstItem);
+        }
+
+        return [];
+    }
+
+    /**
      * Interne Methode zum Lesen der gesamten DB-Struktur
      */
     private async readDb(storagePath: string): Promise<any> {

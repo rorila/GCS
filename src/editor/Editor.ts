@@ -2678,10 +2678,21 @@ export class Editor implements IViewHost {
             // STRICT SEPARATION: Filter objects and variables
             // Ensure we only sync objects that belong to THIS stage (or have no specific scope yet).
             // Prevent duplication of GLOBAL objects/variables in the stage definition.
-            projectStage.objects = allObjs.filter(o =>
+            const newStageObjects = allObjs.filter(o =>
                 !o.isVariable && !o.isTransient &&
                 (o.scope === activeStage.id || !o.scope || o.scope === 'stage')
             );
+
+            // SAFETY CHECK: Blueprint Protection
+            // If we are syncing the Blueprint stage, and the new object list is empty,
+            // but the existing project.json has objects -> ABORT object sync to prevent data loss.
+            if (activeStage.type === 'blueprint' && newStageObjects.length === 0 && (projectStage.objects && projectStage.objects.length > 0)) {
+                console.error(`[Editor] CRITICAL SAFETY BLOCK: Attempted to overwrite Blueprint objects with empty list! Keeping existing ${projectStage.objects.length} objects.`);
+                // Do NOT update projectStage.objects
+            } else {
+                projectStage.objects = newStageObjects;
+            }
+
             (projectStage as any).variables = allObjs.filter(o =>
                 o.isVariable && !o.isTransient &&
                 (

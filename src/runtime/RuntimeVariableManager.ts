@@ -21,16 +21,26 @@ export class RuntimeVariableManager {
     }
 
     public initializeVariables(project: any) {
-        // 1. Project Global Variables
-        if (project.variables) {
-            this.importVariables(project.variables);
+        // 1. Blueprint Stage Variables (PRIMARY SOURCE for Globals)
+        if (project.stages) {
+            const blueprintStage = project.stages.find((s: any) => s.type === 'blueprint');
+            if (blueprintStage && blueprintStage.variables) {
+                console.log(`[RuntimeVariableManager] Loading ${blueprintStage.variables.length} global variables from Blueprint Stage.`);
+                this.importVariables(blueprintStage.variables);
+            }
         }
 
-        // 2. Main Stage Variables (treated as Global)
+        // 2. Project Variables (LEGACY FALLBACK)
+        if (project.variables) {
+            // Only add if not already present (Blueprint wins)
+            this.importVariables(project.variables, true);
+        }
+
+        // 3. Main Stage Variables (Legacy Compat - treated as Global)
         if (project.stages) {
             const mainStage = project.stages.find((s: any) => s.type === 'main');
             if (mainStage && mainStage.variables) {
-                this.importVariables(mainStage.variables);
+                this.importVariables(mainStage.variables, true);
             }
         }
     }
@@ -41,7 +51,7 @@ export class RuntimeVariableManager {
         }
     }
 
-    private importVariables(vars: any[]) {
+    private importVariables(vars: any[], isFallback: boolean = false) {
         vars.forEach((v: any) => {
             const isGlobal = !v.scope || v.scope === 'global';
             // PRIORITIZATION: 
@@ -51,6 +61,9 @@ export class RuntimeVariableManager {
 
             if (isGlobal) {
                 if (this.projectVariables[v.name] === undefined) {
+                    this.projectVariables[v.name] = initialValue !== undefined ? initialValue : 0;
+                } else if (!isFallback) {
+                    // If we are NOT in fallback mode, we overwrite (should not happen with current order, but for safety)
                     this.projectVariables[v.name] = initialValue !== undefined ? initialValue : 0;
                 }
             } else {

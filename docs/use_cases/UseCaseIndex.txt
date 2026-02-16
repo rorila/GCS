@@ -20,3 +20,6 @@ UseCase Index
 - SmartAccess: Automatisches Unwrapping von Ein-Element-Arrays in `PropertyHelper.ts` (L18-24) für bequemen Datenzugriff (z.B. `${currentUser.name}`) sowie präzise Query-Filterung im `ApiSimulator` (Editor.ts, L234-237).
 - UniversalSmartUnwrap: Umstellung auf Unwrapping an der Datenquelle (`StandardActions.ts`, L367/L407) für konsistente Speicherung als Objekt. Vereinheitlichung der Pfad-Auflösung via `PropertyHelper` in `ExpressionParser.ts` (L192-195).
 - DataServiceSmartMatch: Erweiterung der Filter-Logik im `DataService.ts` (L80-92) zum Vergleich von String-Queries gegen Array-Daten (Emoji-PINs).
+- MagicVariablePicker: Automatisches Dropdown (📦) für `TEdit` Komponenten (`JSONInspector.ts`), befüllt aus `availableVariablesAsTokens`. Kapselung in `renderEditWithVariablePicker`.
+- BlueprintPersistenceSafety: Implementierung eines Safety-Checks in `Editor.ts` (syncStageObjectsToProject, L2680-2690), der das Überschreiben der Blueprint-Stage mit leeren Objekt-Listen durch "Race Conditions" beim Speichern verhindert.
+- BlueprintVariableResolution: Aktualisierung des `RuntimeVariableManager` (initializeVariables), um Variablen aus `stage_blueprint` als primäre Quelle für globale Variablen zu laden. `project.variables` wurde als Legacy-Fallback eingestuft.

@@ -59,7 +59,8 @@ export class TVariable extends TWindow {
                 label: 'Modell (Entität)',
                 type: 'select',
                 group: 'Variable',
-                source: 'availableModels' // Will be populated by Discovery in JSONInspector
+                source: 'availableModels', // Will be populated by Discovery in JSONInspector
+                placeholder: 'Modell wählen...'
             });
         }
 
@@ -86,6 +87,7 @@ export class TVariable extends TWindow {
 
         // Ensure the 'type' getter value is serialized correctly
         json.type = this.type;
+        json.objectModel = this.objectModel;
 
         console.log(`[TVariable] Serializing "${this.name}" (ID: ${this.id}):`, {
             className: this.className,

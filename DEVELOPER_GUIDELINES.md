@@ -159,6 +159,9 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
 - **Smart-Access & Universal-Unwrapping (v2.18.12.2)**: Dank der Logik in `PropertyHelper.ts` (L18-24) und `StandardActions.ts` (L367/L407) werden API-Resultat-Arrays mit nur einem Element jetzt automatisch "an der Quelle" entpackt. 
     - **Vorteil**: `${currentUser.name}` kann direkt verwendet werden, da `currentUser` als sauberes Objekt gespeichert wird.
     - **Vereinheitlichung**: Der `ExpressionParser.ts` (L192-195) nutzt nun konsistent den `PropertyHelper` für alle Pfad-Auflösungen.
+- **Beginner-Safe Variable Picker (v2.18.12.4)**: Alle `TEdit`-Felder im Inspector verfügen über ein automatisches Variablen-Dropdown (📦). 
+    - **Funktion**: Erlaubt das Einfügen von Variablen per Klick an der aktuellen Cursor-Position, ohne `${}` tippen zu müssen.
+    - **Implementierung**: Geregelt über `renderEditWithVariablePicker` (JSONInspector.ts).
 - **Keep it Simple**: Bevorzuge immer die automatisierte Simulation für Standard-CRUD-Operationen. Nur für komplexe Spezial-Logik sollten manuelle API-Event-Tasks (`onRequest`) verwendet werden.
 
 ### Variablen-Scoping & Inspector (v2.16.12)

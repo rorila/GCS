@@ -258,6 +258,37 @@
             "fontFamily": "Arial",
             "color": "#ff5252"
           }
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1771261471574_6fw6jomhz",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "Label_15",
+          "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 25,
+          "y": 35,
+          "width": 29,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "Hallo mein Freund: ${currentUser.name}",
+          "visible": true,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 36,
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "fontFamily": "Arial",
+            "color": "#dcd6d6"
+          }
         }
       ],
       "tasks": [
@@ -699,7 +730,8 @@
           },
           "type": "string",
           "defaultValue": "dashboard",
-          "value": ""
+          "value": "",
+          "objectModel": ""
         }
       ],
       "objects": [
@@ -1082,7 +1114,8 @@
           },
           "type": "integer",
           "defaultValue": 0,
-          "value": 0
+          "value": 0,
+          "objectModel": ""
         },
         {
           "className": "TIntegerVariable",
@@ -1110,7 +1143,8 @@
           },
           "type": "integer",
           "defaultValue": 0,
-          "value": 0
+          "value": 0,
+          "objectModel": ""
         }
       ],
       "objects": [
@@ -1361,7 +1395,8 @@
           },
           "type": "string",
           "defaultValue": "",
-          "value": ""
+          "value": "",
+          "objectModel": ""
         },
         {
           "className": "TObjectVariable",
@@ -1389,7 +1424,7 @@
             "borderRadius": 5
           },
           "type": "object",
-          "objectModel": "",
+          "objectModel": "users",
           "defaultValue": {},
           "value": null
         }
@@ -1657,7 +1692,8 @@
           },
           "type": "string",
           "defaultValue": "waiting",
-          "value": ""
+          "value": "",
+          "objectModel": ""
         }
       ],
       "objects": [
@@ -2337,7 +2373,8 @@
           },
           "type": "string",
           "defaultValue": "",
-          "value": ""
+          "value": "",
+          "objectModel": ""
         }
       ],
       "objects": [
@@ -2503,12 +2540,6 @@
     }
   ],
   "activeStageId": "stage_login",
-  "flowCharts": {
-    "global": {
-      "elements": [],
-      "connections": []
-    }
-  },
   "_supportedEvents": [
     {
       "key": "onEnter"
@@ -2519,5 +2550,11 @@
     {
       "key": "onRuntimeStart"
     }
-  ]
+  ],
+  "flowCharts": {
+    "global": {
+      "elements": [],
+      "connections": []
+    }
+  }
 }

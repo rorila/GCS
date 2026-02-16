@@ -311,7 +311,31 @@ export class JSONInspector {
             console.log(`[JSONInspector] variableContext: ${JSON.stringify(variableContext)}, availableVariables count: ${variables.length}`);
             this.runtime.registerVariable('availableVariables', variables.map(v => v.name));
             this.runtime.registerVariable('availableVariablesWithScope', variables.map(v => ({ value: v.name, label: `${v.uiEmoji || ''} ${v.name}` })));
-            this.runtime.registerVariable('availableVariablesAsTokens', variables.map(v => ({ value: `\${${v.name}}`, label: `${v.uiEmoji || ''} ${v.name}` })));
+            // Initialize token list with base variables
+            const baseTokens = variables.map(v => ({ value: `\${${v.name}}`, label: `${v.uiEmoji || ''} ${v.name}` }));
+            const extendedTokens = [...baseTokens];
+
+            // INTELLISENSE: Scan for variables with object models
+            for (const v of variables) {
+                if (v.objectModel && v.type === 'object') {
+                    try {
+                        // Start discovery for this model
+                        const fields = await dataService.getModelFields(object.storagePath || 'data.json', v.objectModel);
+                        if (fields && fields.length > 0) {
+                            fields.forEach(field => {
+                                extendedTokens.push({
+                                    value: `\${${v.name}.${field}}`,
+                                    label: `   ↳ ${field}` // Indented property
+                                });
+                            });
+                        }
+                    } catch (e) {
+                        console.warn(`[JSONInspector] Auto-Discovery failed for variable ${v.name} (Model: ${v.objectModel})`, e);
+                    }
+                }
+            }
+
+            this.runtime.registerVariable('availableVariablesAsTokens', extendedTokens);
 
             // Register global helpers (must be re-registered after clear)
             this.runtime.registerVariable('getVariableSuggestions', () => {
@@ -342,7 +366,7 @@ export class JSONInspector {
                 console.log(`[JSONInspector] Post-seed models: ${models.join(', ')}`);
             }
 
-            this.runtime.registerVariable('availableModels', models);
+            this.runtime.registerVariable('availableModels', models.sort());
             console.log(`[JSONInspector] availableModels registered for ${storagePath}:`, models);
 
             this.runtime.registerVariable('getAllActionTypes', () => {
@@ -1877,6 +1901,7 @@ export class JSONInspector {
             input.style.border = '1px solid #555';
             input.style.borderRadius = '3px';
             input.style.fontSize = '11px';
+            input.style.minWidth = '0'; // Allow shrinking
 
             input.onchange = () => {
                 obj.text = input.value;
@@ -1887,9 +1912,11 @@ export class JSONInspector {
                 input.disabled = true;
                 input.style.opacity = '0.6';
                 input.style.cursor = 'not-allowed';
+                return input;
             }
 
-            return input;
+            // MAGIC DROPDOWN: Wrap in picker
+            return this.renderEditWithVariablePicker(obj, input);
         }
         else if (className === 'TNumberInput') {
             const input = document.createElement('input');
@@ -2221,6 +2248,74 @@ export class JSONInspector {
     }
 
     /**
+     * Renders a TEdit with an integrated magic variable picker dropdown.
+     */
+    private renderEditWithVariablePicker(obj: any, input: HTMLInputElement): HTMLElement {
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.gap = '2px';
+        wrapper.style.flex = '1';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.minWidth = '0';
+
+        // Add Input
+        input.style.flex = '1';
+        wrapper.appendChild(input);
+
+        // Add "Magic" Dropdown
+        const picker = document.createElement('select');
+        picker.style.width = '24px';
+        picker.style.height = '24px';
+        picker.style.padding = '0';
+        picker.style.backgroundColor = '#444';
+        picker.style.color = '#fff';
+        picker.style.border = '1px solid #555';
+        picker.style.borderRadius = '3px';
+        picker.style.fontSize = '12px';
+        picker.style.cursor = 'pointer';
+        picker.style.textAlign = 'center';
+        picker.title = 'Variable einfügen';
+
+        // Placeholder Option (Box emoji)
+        const emptyOpt = document.createElement('option');
+        emptyOpt.value = '';
+        emptyOpt.text = '📦';
+        picker.appendChild(emptyOpt);
+
+        // Fetch variables from runtime
+        const vars = this.runtime.getVariable('availableVariablesAsTokens') || [];
+        vars.forEach((v: any) => {
+            const opt = document.createElement('option');
+            opt.value = v.value;
+            opt.text = v.label;
+            picker.appendChild(opt);
+        });
+
+        picker.onchange = () => {
+            if (!picker.value) return;
+
+            const start = input.selectionStart || 0;
+            const end = input.selectionEnd || 0;
+            const val = input.value;
+            const insertion = picker.value;
+
+            input.value = val.substring(0, start) + insertion + val.substring(end);
+
+            // Trigger update
+            obj.text = input.value;
+            this.handleObjectChange(obj);
+
+            // Refocus & reset picker
+            input.focus();
+            input.setSelectionRange(start + insertion.length, start + insertion.length);
+            picker.value = '';
+        };
+
+        wrapper.appendChild(picker);
+        return wrapper;
+    }
+
+    /**
      * Renders a single inspector object
      */
     private renderObject(obj: any): HTMLElement | null {
@@ -2450,6 +2545,9 @@ export class JSONInspector {
 
                 wrapper.appendChild(picker);
                 el.appendChild(wrapper);
+            } else if (!obj.readOnly) {
+                // MAGIC DROPDOWN: Default for all non-readonly TEdits
+                el.appendChild(this.renderEditWithVariablePicker(obj, input));
             } else {
                 el.appendChild(input);
             }
@@ -3223,6 +3321,9 @@ export class JSONInspector {
             }
         } else {
             // Simple property - write directly
+            if (propertyName === 'objectModel') {
+                console.log(`%c[JSONInspector] Explicitly setting objectModel for ${selectedObject.name} to: "${value}"`, 'color: #e91e63; font-weight: bold');
+            }
             console.log(`[JSONInspector] Property update: ${propertyName} = ${value} (Object: ${selectedObject.name}, Class: ${selectedObject.constructor.name})`);
 
             // ARC-CLEAN: If it's a variable type change, skip direct assignment and trigger morph

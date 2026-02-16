@@ -13,9 +13,15 @@
 - **Persistence Fix**: Behebung von Diskrepanzen zwischen Flow-Diagramm und Projektmodell durch proaktive Bereinigung redundanter Felder in `project.json`.
 - **Bugfix**: Korrektur der Dropdown-Initialisierung im Inspector; Ressourceneigenschaften werden nun beim Auswählen einer `DataAction` sofort geladen.
 - **Universal Smart-Unwrap (v2.18.12.2)**: `StandardActions.ts` entpackt Single-Item API-Resultate nun direkt an der Quelle. `ExpressionParser.ts` wurde vereinheitlicht und nutzt nun den `PropertyHelper` für robustes Traversal.
+- **Beginner-Safe Variable Picker (v2.18.12.4)**: Einführung des "Magic Dropdown" (📦) im Inspector. Erlaubt das einfache Einfügen von Variablen per Mausklick an der aktuellen Cursor-Position in allen Textfeldern.
+- **Variable IntelliSense (v2.18.12.5)**: Erweiterung des Magic Dropdowns (📦). Verknüpfte Objekt-Variablen (`objectModel`) bieten nun automatisch ihre Felder (z.B. `${currentUser.name}`) basierend auf der `db.json` an.
 - **Smart-Access**: Implementierung von "Smart-Access" in `PropertyHelper.ts`. Erlaubt direkten Zugriff auf Properties von Arrays mit einem Element (z.B. `${currentUser.name}`).
 - **API Simulation Fix (v2.18.12.1)**: `DataService.ts` erlernt "Smart Match" für Arrays. Ermöglicht den Vergleich von String-Queries gegen Emoji-Arrays (z.B. Login mit PIN).
 - **API Simulation Fix**: `ApiSimulator` in `Editor.ts` korrigiert; Query-Parameter werden nun korrekt an den `DataService` weitergeleitet, was präzise Filterung ermöglicht.
+- **Persistence**: `Object-Model` Dropdown im Inspector sortiert nun Entitäten alphabetisch und erzwingt eine explizite Auswahl (`Modell wählen...`), um versehentliche Falsch-Zuweisungen ("Games" statt "Users") zu verhindern. Zusätzliches Logging für Transparenz.
+- **Wiederherstellung (Blueprint)**: Kritischer Datenverlust der Blueprint-Services (Server, DB, Auth) durch Wiederherstellung aus der Git-Historie behoben.
+- **Safety Check**: `Editor.ts` verhindert nun aktiv das Speichern einer leeren Blueprint-Stage, um Zerstörung der globalen Dienste durch Race-Conditions zu unterbinden.
+- **Blueprint-Globals Resolution**: `RuntimeVariableManager` priorisiert nun Variablen aus der `blueprint` Stage als globale Variablen. Behebt das Problem, dass `currentUser` nach der Wiederherstellung nicht aufgelöst wurde. `project.variables` dient nur noch als Legacy-Fallback.
 
 ## [2.18.11] - 2026-02-15
 ### Changed
