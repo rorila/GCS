@@ -13,7 +13,30 @@ export class ActionApiHandler {
 
         // --- ROUTING LOGIC ---
 
-        // A) Login / User Search
+        // NEW: DataStore-based Routing (Preferred)
+        if (_action.dataStore) {
+            const storeName = _action.dataStore;
+            const dataStore = globalObjects.find(obj => obj.name === storeName && obj.className === 'TDataStore');
+
+            if (dataStore) {
+                console.log(`[ActionApiHandler] Using TDataStore: ${storeName}`);
+                // Extract query from params
+                // Note: The caller (StandardActions.ts) passes a combined object covering path/query/body.
+                // We need to support 'operation' from action definition or infer it.
+
+                const storagePath = dataStore.storagePath || 'db.json';
+                const collection = dataStore.defaultCollection || 'items';
+                const query = params.query || _action.query || {};
+
+                return this.performDataQuery(storagePath, collection, query, params);
+
+            } else {
+                console.warn(`[ActionApiHandler] DataStore not found: ${storeName}`);
+                return { status: 500, data: { error: `DataStore component not found: ${storeName}` } };
+            }
+        }
+
+        // FALLBACK: Legacy URL-based Routing (e.g. /api/data/users)
         // Path: /api/data/users
         if (path.includes('/users') && method === 'GET') {
             return this.handleUserSearch(params, globalObjects);
@@ -22,80 +45,50 @@ export class ActionApiHandler {
         // Default: 404
         return {
             status: 404,
-            data: { error: `Resource not found: ${path}` }
+            data: { error: `Resource not found: ${path} (and no dataStore configured)` }
         };
     }
 
-    private static async handleUserSearch(params: any, globalObjects: any[]): Promise<any> {
-        // 1. Find UserData component to get storage settings
-        const userDataStore = globalObjects.find(obj => obj.name === 'UserData' && obj.className === 'TDataStore');
-        const storagePath = userDataStore?.storagePath || 'users.json';
-        const collection = userDataStore?.defaultCollection || 'users';
-
-        // 2. Extract Query (Pin/AuthCode)
-        let query = params.query || {};
-
-        // Robustness: Parse query from path if missing in params
-        if (!params.query && params.path && params.path.includes('?')) {
-            try {
-                const urlObj = new URL(params.path, 'http://localhost');
-                urlObj.searchParams.forEach((value, key) => {
-                    query[key] = value;
-                });
-                console.log('[ActionApiHandler] Parsed query from path:', query);
-            } catch (e) {
-                console.warn('[ActionApiHandler] Failed to parse query from path:', e);
-            }
-        }
-
+    private static async performDataQuery(storagePath: string, collection: string, query: any, params: any): Promise<any> {
+        // Query logic similar to handleUserSearch but generic
+        // 1. Resolve AuthCode/PIN from query or params
         let requestPin = query.code || query.authCode || query.pin;
-
-        // Fallback: Check body if POST
         if (!requestPin && params.body?.code) requestPin = params.body.code;
         if (!requestPin && params.body?.pin) requestPin = params.body.pin;
 
-        console.log(`[ActionApiHandler] Searching in ${storagePath}/${collection} for PIN: "${requestPin}"`);
+        console.log(`[ActionApiHandler] Querying ${storagePath}/${collection}. Query:`, query);
 
-        if (!requestPin) {
-            return { status: 400, data: { error: "Missing 'code', 'pin' or 'authCode' parameter" } };
-        }
-
-        // 3. Query DataService
-        // Need to match array or string, so fetch all users first
         const allItems = await DataService.getInstance().findItems(storagePath, collection, {});
-        console.log(`[ActionApiHandler] Found ${allItems.length} candidates in DB.`);
 
-        const foundUser = allItems.find((user: any) => {
-            let userPin = '';
-            // Check 'authCode' (Array)
-            if (Array.isArray(user.authCode)) {
-                userPin = user.authCode.join('');
-            } else if (user.authCode) {
-                userPin = user.authCode;
+        // If specific PIN query is present, use robust matching (Array vs String)
+        if (requestPin) {
+            const found = allItems.find((item: any) => {
+                let itemPin = '';
+                if (Array.isArray(item.authCode)) itemPin = item.authCode.join('');
+                else if (item.authCode) itemPin = item.authCode;
+                else if (item.pin) itemPin = item.pin;
+
+                return itemPin === requestPin;
+            });
+
+            if (found) {
+                return { status: 200, data: { user: found, token: 'sim-new-token' } }; // Matching expected structure for login
+            } else {
+                return { status: 401, data: { error: "Not found" } };
             }
-            // Check 'pin' (String legacy)
-            else if (user.pin) {
-                userPin = user.pin;
-            }
-
-            const isMatch = userPin === requestPin;
-            console.log(`[ActionApiHandler] Checking user ${user.id} (${user.name}): DB_PIN="${userPin}" vs REQ_PIN="${requestPin}" => Match? ${isMatch}`);
-            return isMatch;
-        });
-
-        if (foundUser) {
-            console.log('[ActionApiHandler] User found:', foundUser.name);
-            const token = `sim-token-${Date.now()}-${Math.random().toString(36).substr(2)}`;
-            return {
-                status: 200,
-                data: {
-                    user: foundUser,
-                    token: token
-                }
-            };
-        } else {
-            console.warn('[ActionApiHandler] User not found or PIN incomplete.');
-            return { status: 401, data: { error: "Invalid credentials" } };
         }
+
+        // Default: Return all items (if no specific query logic applies)
+        return { status: 200, data: allItems };
+    }
+
+    private static async handleUserSearch(params: any, globalObjects: any[]): Promise<any> {
+        // Deprecated / Fallback
+        const userDataStore = globalObjects.find(obj => obj.name === 'UserData' && obj.className === 'TDataStore');
+        const storagePath = userDataStore?.storagePath || 'db.json';
+        const collection = userDataStore?.defaultCollection || 'users';
+
+        // ... reuse logic or forward
+        return this.performDataQuery(storagePath, collection, params.query, params);
     }
 }

@@ -583,7 +583,9 @@ export function registerStandardActions() {
         type: 'data_action',
         label: 'Data Action',
         description: 'Führt eine Daten-Aktion aus (HTTP, SQL, etc.).',
-        parameters: [] // Dynamic based on sub-type
+        parameters: [
+            { name: 'dataStore', label: 'Data Store (Komponente)', type: 'select', source: 'components', hint: 'Wähle eine TDataStore-Komponente (z.B. UserData)' }
+        ] // Dynamic based on sub-type
     });
 
     // 20. API Handler Action (Simulates DB interaction)
