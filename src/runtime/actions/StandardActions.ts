@@ -388,6 +388,13 @@ export function registerStandardActions() {
                 method,
                 headers: { 'Content-Type': 'application/json', ...(action.headers || {}) }
             };
+
+            // Auto-Inject JWT Token if available
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                (options.headers as any)['Authorization'] = `Bearer ${token}`;
+            }
+
             if (body) options.body = body;
 
             const response = await fetch(url, options);

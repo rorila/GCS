@@ -495,6 +495,77 @@
               }
             ]
           }
+        },
+        {
+          "name": "ANewTask",
+          "actionSequence": [
+            {
+              "name": "Action:http",
+              "type": "action",
+              "showDetails": false,
+              "method": "POST"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowChart": {
+            "elements": [
+              {
+                "id": "node-1771322011951",
+                "type": "Task",
+                "x": 100,
+                "y": 140,
+                "width": 140,
+                "height": 60,
+                "properties": {
+                  "name": "ANewTask",
+                  "details": "",
+                  "description": "",
+                  "text": "ANewTask"
+                },
+                "data": {
+                  "name": "ANewTask",
+                  "showDetails": false
+                }
+              },
+              {
+                "id": "node-1771323604772",
+                "type": "Action",
+                "x": 340,
+                "y": 140,
+                "width": 140,
+                "height": 60,
+                "properties": {
+                  "name": "Action:http",
+                  "details": "",
+                  "description": ""
+                },
+                "data": {
+                  "name": "Action:http",
+                  "type": "http",
+                  "showDetails": false,
+                  "method": "POST"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "startTargetId": "node-1771322011951",
+                "endTargetId": "node-1771323604772",
+                "startX": 233.1640625,
+                "startY": 164.015625,
+                "endX": 400,
+                "endY": 210,
+                "data": {
+                  "startAnchorType": "output",
+                  "originalStartAnchorType": "output",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "input"
+                }
+              }
+            ]
+          }
         }
       ],
       "actions": [
@@ -522,6 +593,12 @@
           "errorBody": [],
           "dataStore": "UserData",
           "isLinked": true
+        },
+        {
+          "name": "Action:http",
+          "type": "http",
+          "showDetails": false,
+          "method": "POST"
         }
       ],
       "flowCharts": {
@@ -684,6 +761,63 @@
               "endY": 0,
               "data": {
                 "startAnchorType": "output",
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        },
+        "ANewTask": {
+          "elements": [
+            {
+              "id": "node-1771322011951",
+              "type": "Task",
+              "x": 100,
+              "y": 140,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "ANewTask",
+                "details": "",
+                "description": "",
+                "text": "ANewTask"
+              },
+              "data": {
+                "name": "ANewTask",
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1771323604772",
+              "type": "Action",
+              "x": 340,
+              "y": 140,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "Action:http",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "Action:http",
+                "type": "http",
+                "showDetails": false,
+                "method": "POST"
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1771322011951",
+              "endTargetId": "node-1771323604772",
+              "startX": 233.1640625,
+              "startY": 164.015625,
+              "endX": 400,
+              "endY": 210,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
                 "endAnchorType": "input"
               }
             }
@@ -1427,6 +1561,35 @@
           "objectModel": "users",
           "defaultValue": {},
           "value": null
+        },
+        {
+          "className": "TStringVariable",
+          "id": "obj_1771323725132_a5zy5o5tu",
+          "isVariable": true,
+          "isService": false,
+          "isHiddenInRun": true,
+          "name": "serverURL",
+          "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 8,
+          "y": 3,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "📝 serverURL",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "defaultValue": "",
+          "value": "http://localhost:8080",
+          "objectModel": ""
         }
       ],
       "objects": [
@@ -1594,7 +1757,13 @@
         }
       ],
       "tasks": [],
-      "actions": [],
+      "actions": [
+        {
+          "name": "Action:http",
+          "type": "http",
+          "showDetails": false
+        }
+      ],
       "flowCharts": {
         "AttemptLogin": {
           "elements": [
@@ -1643,6 +1812,62 @@
               "startY": 90,
               "endX": 280,
               "endY": 90,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        },
+        "ANewTask": {
+          "elements": [
+            {
+              "id": "node-1771322011951",
+              "type": "Task",
+              "x": 100,
+              "y": 140,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "ANewTask",
+                "details": "",
+                "description": "",
+                "text": "ANewTask"
+              },
+              "data": {
+                "name": "ANewTask",
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1771323604772",
+              "type": "Action",
+              "x": 340,
+              "y": 140,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "Action:http",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "Action:http",
+                "type": "http",
+                "showDetails": false
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1771322011951",
+              "endTargetId": "node-1771323604772",
+              "startX": 233.1640625,
+              "startY": 164.015625,
+              "endX": 400,
+              "endY": 210,
               "data": {
                 "startAnchorType": "output",
                 "originalStartAnchorType": "output",
@@ -2540,6 +2765,12 @@
     }
   ],
   "activeStageId": "stage_login",
+  "flowCharts": {
+    "global": {
+      "elements": [],
+      "connections": []
+    }
+  },
   "_supportedEvents": [
     {
       "key": "onEnter"
@@ -2550,11 +2781,5 @@
     {
       "key": "onRuntimeStart"
     }
-  ],
-  "flowCharts": {
-    "global": {
-      "elements": [],
-      "connections": []
-    }
-  }
+  ]
 }

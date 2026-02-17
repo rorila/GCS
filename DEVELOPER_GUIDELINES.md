@@ -159,6 +159,11 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
 - **Smart-Access & Universal-Unwrapping (v2.18.12.2)**: Dank der Logik in `PropertyHelper.ts` (L18-24) und `StandardActions.ts` (L367/L407) werden API-Resultat-Arrays mit nur einem Element jetzt automatisch "an der Quelle" entpackt. 
     - **Vorteil**: `${currentUser.name}` kann direkt verwendet werden, da `currentUser` als sauberes Objekt gespeichert wird.
     - **Vereinheitlichung**: Der `ExpressionParser.ts` (L192-195) nutzt nun konsistent den `PropertyHelper` für alle Pfad-Auflösungen.
+- **Reaktive Pfad-Auflösung (Transparency vs. Metadata Fallback) (v2.18.12.5)**: 
+    - Um Variablen-Komponenten (`TVariable`) gleichzeitig als Daten-Container (Spiellogik) und als editierbare Komponenten (Inspector) zu unterstützen, nutzt `PropertyHelper.getPropertyValue` eine Fallback-Logik.
+    - **Regel**: Der Helper versucht zuerst, die Eigenschaft im **Inhalt** (resolved value) der Variable zu finden (Transparenz).
+    - **Fallback**: Wird die Eigenschaft im Inhalt nicht gefunden (z.B. `.value` oder `.defaultValue` bei einem String-Inhalt), wird automatisch auf die Eigenschaften der **Variablen-Komponente selbst** zurückgegriffen.
+    - Dies erlaubt Ausdrücke wie `${currentUser.name}` (Datenzugriff) und gleichzeitig `${selectedObject.value}` (Inspector-Binding/Metadaten) ohne gegenseitige Störung.
 - **Beginner-Safe Variable Picker (v2.18.12.4)**: Alle `TEdit`-Felder im Inspector verfügen über ein automatisches Variablen-Dropdown (📦). 
     - **Funktion**: Erlaubt das Einfügen von Variablen per Klick an der aktuellen Cursor-Position, ohne `${}` tippen zu müssen.
     - **Implementierung**: Geregelt über `renderEditWithVariablePicker` (JSONInspector.ts).
@@ -622,6 +627,8 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
   - `DataAction` ist ein spezialisierter Knoten für asynchrone Server-Operationen mit visueller Branching-Logik (Success/Error).
   - Konfiguration erfolgt über `inspector_data_action.json`.
   - Variablen-Auswahl: Nutze `${availableVariablesWithScope}`, um dem Benutzer via Emojis den Scope (🌎 Global, 🎭 Stage) anzuzeigen.
+- **Action Persistence**: Für jede neue Action-Property muss ein Getter/Setter-Proxy in `FlowAction.ts` existieren.
+- **Variablen-Typen**: Nutze `json` oder `any` für API-Ergebnisse, um Modell-Zwang zu umgehen.
 - **Dynamische Action-Parameter (TActionParams)**:
   - Jede neue Aktion muss in der `ActionRegistry.ts` (und optional in `StandardActions.ts`) registriert werden.
   - Die UI für Parameter wird automatisch aus dem `parameters`-Array der Metadaten generiert.
@@ -909,3 +916,13 @@ Es gibt zwei grundlegend verschiedene Arten, wie Aktionen in der `actionSequence
 ### Best Practices für Multi-Stage Navigation
 - **Dynamische Listen**: Komponenten wie `TList` (z.B. `RoleList`) sollten beim Stage-Start (`onRuntimeStart`) via Task befüllt werden, indem die Daten aus dem globalen Kontext (`currentUser`) in die `items` Property der Komponente geschrieben werden.
 - **Task-Referenzen**: Komplexe Diagramme sollten durch den Aufruf von Unter-Tasks (`type: task`) modularisiert werden, statt alle Logik in ein einziges Diagramm zu packen. Dies erhöht die visuelle Scannbarkeit im Flow-Editor.
+
+### [Dynamische Action-UI](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/JSONInspector.ts) (v2.16.24)
+- **Problem**: Spezialisierte Actions (wie `http`, `store_token`) benötigen unterschiedliche Eingabefelder im Inspector, wurden aber bisher pauschal auf das statische `inspector_action.json` Template gezwungen.
+- **Lösung**:
+    - Der `FlowEditor` speichert den Subtype (z.B. `http`) in `node.data.type`.
+    - Der `JSONInspector` prüft auf spezielle Action-Typen und wechselt bei Bedarf auf den generischen `inspector_header.json` (plus dynamische Properties aus `getInspectorProperties`), statt das Action-Template zu nutzen.
+- **Implementierung**: Wenn eine neue Action mit spezieller UI eingeführt wird:
+    1. Sicherstellen, dass der Typ im Toolbox-Item als `Action:my_type` definiert ist.
+    2. In der `FlowAction`-Klasse (oder Subklasse) muss `getInspectorProperties` die passenden Felder liefern.
+    3. Der `JSONInspector` erkennt den Typ automatisch und rendert die dynamischen Felder.

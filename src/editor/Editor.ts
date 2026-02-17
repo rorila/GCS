@@ -2561,6 +2561,10 @@ export class Editor implements IViewHost {
             return;
         }
         console.log(`[Editor] SUCCESS: Created new ${newClassName} instance. ID: ${newInstance.id}, Class: ${newInstance.constructor.name}`);
+
+        // ARC-FIX: Explicitly set the target type, otherwise it defaults to 'integer' from TVariable constructor
+        newInstance.variableType = newType;
+
         console.log(`[Editor] DEBUG: Instance Type Check: Type=${(newInstance as any).type}, value is object?: ${typeof (newInstance as any).value === 'object'}`);
 
         // 3. Copy State

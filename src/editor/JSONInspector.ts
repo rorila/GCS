@@ -526,9 +526,28 @@ export class JSONInspector {
                     // BUT: Keep Specific Templates (Task/Action/DataAction) if they were already selected!
                     if (typeof object.getInspectorProperties === 'function') {
                         if (inspectorFile !== './inspector_task.json' &&
-                            inspectorFile !== './inspector_action.json' &&
                             inspectorFile !== './inspector_data_action.json') {
-                            inspectorFile = './inspector_header.json';
+
+                            // SPECIAL CASE: For 'Action', if it has dynamic properties (like http/token),
+                            // we want to MIX the static header with dynamic props.
+                            // So we switch to inspector_header.json to avoid the rigid structure of inspector_action.json
+                            // UNLESS it is a standard property action.
+                            if (inspectorFile === './inspector_action.json') {
+                                const subtype = (object.data && object.data.type);
+                                const actionType = object.actionType || subtype;
+
+                                // Specific check for types that NEED dynamic UI
+                                const needsDynamic = subtype === 'http' ||
+                                    subtype === 'store_token' ||
+                                    (actionType && actionType !== 'property' && actionType !== 'variable' && actionType !== 'navigate');
+
+                                if (needsDynamic) {
+                                    console.log(`[JSONInspector] Action subtype/type '${subtype || actionType}' requires dynamic UI. Switching to header.`);
+                                    inspectorFile = './inspector_header.json';
+                                }
+                            } else {
+                                inspectorFile = './inspector_header.json';
+                            }
                         }
                     }
                 }
@@ -576,7 +595,7 @@ export class JSONInspector {
                 // FALLBACK: If we used the minimal header but dynamic generation yielded nothing,
                 // fallback to the full inspector.json to ensure the user sees SOMETHING.
                 if (!useDynamic && this.activeTab === 'properties' && inspectorFile === './inspector_header.json') {
-                    console.warn('[JSONInspector] Dynamic generation failed/empty. Falling back to inspector.json');
+                    console.warn(`[JSONInspector] Dynamic generation failed/empty for ${object.className || 'Object'}. Falling back to inspector.json. Dynamic length: ${dynamicObjects.length}, hasDynamicProps: ${hasDynamicProps}`);
                     try {
                         const fbRes = await fetch(`./inspector.json?v=${Date.now()}`);
                         const fbJson = await fbRes.json();

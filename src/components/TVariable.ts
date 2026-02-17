@@ -44,7 +44,7 @@ export class TVariable extends TWindow {
                 label: 'Typ',
                 type: 'select',
                 group: 'Variable',
-                options: ['integer', 'real', 'string', 'boolean', 'timer', 'random', 'list', 'object', 'object_list', 'threshold', 'trigger', 'range', 'keystore'],
+                options: ['integer', 'real', 'string', 'boolean', 'timer', 'random', 'list', 'object', 'object_list', 'threshold', 'trigger', 'range', 'keystore', 'any', 'json'],
                 selectedValue: this.type, // Explicitly bind current value
                 defaultValue: 'integer'
             },

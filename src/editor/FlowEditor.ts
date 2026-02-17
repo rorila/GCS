@@ -1165,6 +1165,9 @@ export class FlowEditor implements FlowMapHost {
         const baseType = type.includes(':') ? type.split(':')[0] : type;
         switch (baseType) {
             case 'Action':
+                // Check if we have a subtype (e.g. Action:http)
+                const actionSubtype = type.includes(':') ? type.split(':')[1] : null;
+
                 node = new FlowAction(id, x, y, this.canvas, this.flowStage.cellSize);
                 // Generate unique name if not provided or if it's a generic default name
                 if (initialName && initialName !== 'Action' && initialName !== 'Aktion') {
@@ -1172,6 +1175,14 @@ export class FlowEditor implements FlowMapHost {
                 } else {
                     node.Name = this.generateUniqueActionName(initialName || 'Action');
                 }
+
+                // Set the specific action type in data if available
+                if (actionSubtype) {
+                    node.data = node.data || {};
+                    node.data.type = actionSubtype;
+                    console.log(`[FlowEditor] Created Action with subtype: ${actionSubtype}`);
+                }
+
                 // Apply current detail mode
                 if (this.showDetails) {
                     (node as FlowAction).setShowDetails(true, this.project);

@@ -1,3 +1,4 @@
+
 /**
  * PropertyHelper provides centralized logic for path-based property access,
  * modification, and variable interpolation.
@@ -13,18 +14,30 @@ export class PropertyHelper {
         let current = obj;
 
         for (const part of parts) {
-            // Resolve current value if it's a variable component
-            current = this.resolveValue(current);
-
             if (current === undefined || current === null) return undefined;
 
-            // SMART-ACCESS: If current value is an array of length 1, and the requested part 
-            // is NOT a native array property (like 'length'), automatically unwrap it.
-            if (Array.isArray(current) && current.length === 1 && (current as any)[part] === undefined && part !== 'length') {
-                current = current[0];
+            // Resolve target for this step (Transparency vs Metadata)
+            let target = current;
+            if (current.isVariable === true || (current.className && current.className.includes('Variable'))) {
+                target = this.resolveValue(current);
             }
 
-            current = current[part];
+            // SMART-ACCESS: Automatically unwrap single-element arrays
+            if (Array.isArray(target) && target.length === 1 && (target as any)[part] === undefined && part !== 'length') {
+                target = target[0];
+            }
+
+            // Access property (Priority 1: Content / Priority 2: Component)
+            const hasInContent = (target !== null && typeof target === 'object' && (part in target)) ||
+                (target !== undefined && target !== null && (target as any)[part] !== undefined);
+
+            if (hasInContent) {
+                current = target[part];
+            } else {
+                current = current[part];
+            }
+
+            if (current === undefined || current === null) return undefined;
         }
 
         return this.resolveValue(current);

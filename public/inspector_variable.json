@@ -69,8 +69,11 @@
                 "trigger",
                 "random",
                 "range",
+                "keystore",
                 "object",
-                "object_list"
+                "object_list",
+                "any",
+                "json"
             ],
             "selectedValue": "${selectedObject.type}",
             "width": 30,

@@ -1,11 +1,30 @@
 # Changelog
 
+## [2.18.14] - 2026-02-17
+### Added
+- **Checkpoint**: "Vor Inspector Umbau" - Vorbereitung für das Major-Refactoring des `JSONInspector`.
+
+## [2.18.13.1] - 2026-02-17
+### Fixed
+- **Variable Persistence**: Fehler behoben, bei dem String-Variablen-Werte im Inspector gelöscht wurden (PropertyHelper Fallback-Logik).
+- **Type Stability**: Morphing-Logik für `any` und `json` Typen korrigiert.
+- **Task Renaming Investigation**: Root-Cause für fehlerhaftes Task-Renaming identifiziert (Whitelist & Raw-Object-Check).
+
+## [2.18.13] - 2026-02-16
+### Fixed
+- **Ghost Run Fix**: Das Laden eines Projekts erzwingt nun ein sofortiges `autoSaveToLocalStorage`.
+  - Dies verhindert, dass ein Page-Reload (`Ctrl+F5`) direkt nach dem Laden zu einem leeren Default-Projekt führt (Ghost Run).
+  - Der Browser-Speicher spiegelt nun immer exakt das zuletzt geladene Projekt wider.
+
 ## [2.18.12] - 2026-02-16
 ### Added
 - **Inspector**: Anzeige von Klasse und ID des selektierten Objekts im Header (hilft bei Identifikation von `TLabel` vs `TStringVariable` etc.).
 ### Changed
 - **Architecture**: `DataAction` integriert nun vollständig mit `TDataStore`. Direkte Dateipfad-Referenzen wurden durch Komponenten-Referenzen (`UserData`) ersetzt.
 - **API Simulator**: Der Simulator in `Editor.ts` unterstützt nun flexible Datenquellen via `storageFile`-Parameter, der aus der `dataStore`-Komponente aufgelöst wird.
+- **GCS Core**: Unterstützung für generische Variablentypen (`any`, `json`) hinzugefügt, um komplexe API-Antworten ohne festes Datenmodell zu speichern.
+- **Action Persistence**: Fix für die Persistenz von `http` Aktionen durch Getter/Setter-Proxys in `FlowAction`.
+- **Flow Editor**: Korrektur der Node-Details Anzeige (keine `undefined` Werte mehr).
 - **Persistence**: Implementierung von OOP-Gettern/Settern in `FlowDataAction.ts` und Optimierung der `Smart-Sync`-Logik im `JSONInspector.ts` zur Vermeidung von Datenverlust bei verlinkten Elementen.
 - **API Handler**: `ActionApiHandler` löst nun `dataStore`-Referenzen auf und nutzt deren Konfiguration (`storagePath`, `collection`).
 - **API**: Implementierung einer rekursiven Pfad-Ermittlung (`getDeepPaths`) im Backend zur Unterstützung tiefer JSON-Sektoren.
@@ -610,9 +629,15 @@
 - **Robuste Serialisierung**: Zentralisierte `toJSON`-Logik in `TComponent` unterstützt nun verschachtelte Objekt-Pfade (z.B. `style.visible`) und automatische Kind-Serialisierung.
 
 ### Behoben
+- **Variablenwert-Löschung**: Fix für das sofortige Löschen von eingegebenen Werten in Variablen durch Korrektur der Auflösungs-Logik in `PropertyHelper.ts`.
+- **Variablentyp-Persistenz**: Fix für das Zurückspringen von Typen (z.B. `any`, `json`) auf `integer` beim Morphing im `Editor.ts`.
 - **Stage-Bereinigung**: Korrektur der Rendering-Logik; Manager-Tabellen werden nicht mehr auf der Stage angezeigt.
 - **Sanitizer-Härtung**: Automatische Entfernung transienter Management-Objekte aus Projektdaten.
 - **Button-Rendering**: Zusätzliche Texte auf Buttons ("(0 Einträge)") wurden entfernt.
 - **TObjectList Refactoring**: Erbt nun von `TTable`, um tabellarische Eigenschaften direkt zu nutzen.
 - **Image-Sichtbarkeit**: Behebung eines Fehlers, bei dem Bilder nach Pascal-Änderungen ihre Sichtbarkeitseinstellungen verloren haben.
 - **Tool-Sync Stabilität**: Flow-Editor wird nicht mehr bei eigenen Änderungen neu initialisiert.
+
+### Action-System & UI (v2.16.24)
+- **Dynamische Action-UI**: Der `JSONInspector` unterstützt nun `actionType`-spezifische Layouts (z.B. für `http` oder `store_token`), indem er auf `inspector_header.json` zurückfällt und die dynamischen Properties der Action anzeigt, statt das statische `inspector_action.json` zu erzwingen.
+- **Subtype-Parsing**: `FlowEditor.createNode` extrahiert nun Action-Subtypes (z.B. `Action:http` -> `http`) und speichert sie in `node.data.type`, was die korrekte UI-Generierung ermöglicht.

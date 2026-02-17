@@ -245,6 +245,109 @@ export class FlowAction extends FlowElement {
         if (action) action.resultVariable = v;
     }
 
+    // --- HTTP / API Actions ---
+
+    public get url(): string {
+        const action = this.getActionDefinition();
+        return action?.url || '';
+    }
+    public set url(v: string) {
+        const action = this.getActionDefinition();
+        if (action) {
+            action.url = v;
+            this.updateNodeDetails();
+        }
+    }
+
+    public get body(): string {
+        const action = this.getActionDefinition();
+        return action?.body || '';
+    }
+    public set body(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.body = v;
+    }
+
+    public get resultPath(): string {
+        const action = this.getActionDefinition();
+        return action?.resultPath || '';
+    }
+    public set resultPath(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.resultPath = v;
+    }
+
+    public get headersJSON(): string {
+        const action = this.getActionDefinition();
+        return JSON.stringify(action?.headers || {}, null, 2);
+    }
+    public set headersJSON(v: string) {
+        const action = this.getActionDefinition();
+        if (action) {
+            try {
+                action.headers = JSON.parse(v);
+            } catch (e) {
+                console.warn('Invalid JSON for headers:', e);
+            }
+        }
+    }
+
+    public get dataStore(): string {
+        const action = this.getActionDefinition();
+        return action?.dataStore || '';
+    }
+    public set dataStore(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.dataStore = v;
+    }
+
+    public get resource(): string {
+        const action = this.getActionDefinition();
+        return action?.resource || '';
+    }
+    public set resource(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.resource = v;
+    }
+
+    public get queryProperty(): string {
+        const action = this.getActionDefinition();
+        return action?.queryProperty || '';
+    }
+    public set queryProperty(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.queryProperty = v;
+    }
+
+    public get queryValue(): string {
+        const action = this.getActionDefinition();
+        return action?.queryValue || '';
+    }
+    public set queryValue(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.queryValue = v;
+    }
+
+    // --- JWT / Token Actions ---
+
+    public get token(): string {
+        const action = this.getActionDefinition();
+        return action?.token || '';
+    }
+    public set token(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.token = v;
+    }
+
+    public get tokenKey(): string {
+        const action = this.getActionDefinition();
+        return action?.tokenKey || '';
+    }
+    public set tokenKey(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.tokenKey = v;
+    }
+
     public get calcStepsJSON(): string {
         const action = this.getActionDefinition();
         return JSON.stringify(action?.calcSteps || [], null, 2);
@@ -260,6 +363,12 @@ export class FlowAction extends FlowElement {
         }
     }
 
+    private updateNodeDetails() {
+        if (this.showDetails) {
+            this.setShowDetails(true, this.projectRef);
+        }
+    }
+
     // Remove getInspectorProperties so JSON takes precedence
     // We only return geometry if we call super, but JSON inspector merges.
     // Actually, if we remove it, the JSON inspector logic 'typeof object.getInspectorProperties === "function"' might fail 
@@ -270,7 +379,89 @@ export class FlowAction extends FlowElement {
     // So if I return [] here, I get JSON only. 
     // If I return super(), I get geometry + JSON. This is good!
     public getInspectorProperties(): any[] {
-        return super.getInspectorProperties();
+        // 1. Get Base Geometry (hidden usually, but provides X/Y if needed)
+        // We'll skip super call if we want to BE ONLY ACTION PROPS
+        const props: any[] = [];
+
+        // 2. Identify Action Type
+        const type = this.data?.type || 'property';
+
+        // 2b. Add Base Action Properties
+        props.push({ name: 'Name', label: 'Name', type: 'string', variable: 'Name', group: 'Allgemeine Info' });
+        props.push({
+            name: 'actionType',
+            label: 'Aktions-Typ',
+            type: 'select',
+            variable: 'actionType',
+            group: 'Allgemeine Info',
+            options: [
+                { value: 'property', label: 'Property Change (Set)' },
+                { value: 'variable', label: 'Read Variable' },
+                { value: 'calculate', label: 'Calculate' },
+                { value: 'service', label: 'Call Service' },
+                { value: 'http', label: 'HTTP Request' },
+                { value: 'store_token', label: 'Store Token' }
+            ]
+        });
+
+        // 3. Fetch Metadata from Registry
+        try {
+            const registry = (window as any).actionRegistry || (window as any).ActionRegistry;
+            const meta = registry?.getMetadata(type);
+
+            if (meta && meta.parameters) {
+                meta.parameters.forEach((param: any) => {
+                    const field: any = {
+                        name: param.name,
+                        label: param.label,
+                        variable: param.name,
+                        type: this.mapParameterTypeToInspector(param.type),
+                        hint: param.hint,
+                        group: `Eigenschaften: ${meta.label}`
+                    };
+
+                    if (param.options) {
+                        field.options = param.options.map((o: string) => ({ value: o, label: o }));
+                    } else if (param.source) {
+                        field.source = param.source;
+                    }
+
+                    props.push(field);
+                });
+            } else {
+                // Fallback for known types if registry fetch fails
+                if (type === 'http') {
+                    const g = 'HTTP Request';
+                    props.push({ name: 'url', label: 'URL', type: 'string', variable: 'url', group: g });
+                    props.push({ name: 'method', label: 'Method', type: 'select', variable: 'method', group: g, options: [{ value: 'GET', label: 'GET' }, { value: 'POST', label: 'POST' }, { value: 'PUT', label: 'PUT' }, { value: 'DELETE', label: 'DELETE' }] });
+                    props.push({ name: 'body', label: 'Body (JSON)', type: 'string', variable: 'body', group: g });
+                    props.push({ name: 'resultVariable', label: 'Result Variable', type: 'select', variable: 'resultVariable', group: g, source: 'variables' });
+                } else if (type === 'store_token') {
+                    const g = 'Store Token';
+                    props.push({ name: 'operation', label: 'Operation', type: 'select', variable: 'operation', group: g, options: [{ value: 'set', label: 'Save' }, { value: 'delete', label: 'Delete' }] });
+                    props.push({ name: 'token', label: 'Token Value', type: 'string', variable: 'token', group: g });
+                    props.push({ name: 'tokenKey', label: 'Storage Key', type: 'string', variable: 'tokenKey', group: g, hint: 'Default: auth_token' });
+                }
+            }
+        } catch (e) {
+            console.error('[FlowAction] getInspectorProperties failed:', e);
+        }
+
+        return props;
+    }
+
+    private mapParameterTypeToInspector(paramType: string): string {
+        switch (paramType) {
+            case 'string': return 'text';
+            case 'number': return 'number';
+            case 'boolean': return 'checkbox';
+            case 'json': return 'textarea';
+            case 'select': return 'select';
+            case 'variable': return 'TVariableSelect';
+            case 'object': return 'TObjectSelect'; // Assumed inspector type
+            case 'stage': return 'select'; // Needs stage source
+            default: return 'text';
+        }
     }
 
     /**
@@ -408,6 +599,19 @@ export class FlowAction extends FlowElement {
             const da = displayAction as any;
             const params = da.params ? (Array.isArray(da.params) ? da.params.join(', ') : da.params) : '';
             return `${da.target}.${da.method}(${params})`;
+        }
+
+        if (displayAction.type === 'http') {
+            const url = displayAction.url ? this.formatValue(displayAction.url) : '';
+            const method = displayAction.method || 'GET';
+            const result = (displayAction as any).resultVariable ? `${(displayAction as any).resultVariable} := ` : '';
+            return `${result}HTTP ${method} ${url}`;
+        }
+
+        if (displayAction.type === 'store_token') {
+            const op = displayAction.operation === 'delete' ? 'Delete' : 'Store';
+            const key = (displayAction as any).tokenKey || 'auth_token';
+            return `${op} Token [${key}]`;
         }
 
         return `(${displayAction.type})`;

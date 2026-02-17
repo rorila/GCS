@@ -19,6 +19,9 @@ export class FlowToolbox {
             { label: 'Variable', icon: '📦', type: 'VariableDecl' }, // Stays task-local
             { label: 'Task', icon: '⚡', type: 'Task' },
             { label: 'Action', icon: '🎬', type: 'Action' },
+            { label: 'HTTP Request', icon: '🌐', type: 'Action:http' },
+            { label: 'Store Token', icon: '🔑', type: 'Action:store_token' },
+            { label: 'Variable Set', icon: '📦', type: 'Action:variable' },
             { label: 'If Condition', icon: '❓', type: 'Condition' },
             { label: 'For Loop', icon: '🔄', type: 'For' },
             { label: 'While Loop', icon: '💫', type: 'While' },

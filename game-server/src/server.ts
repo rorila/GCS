@@ -7,6 +7,7 @@ import fs from 'fs';
 import zlib from 'zlib';
 import { Room } from './Room';
 import { parse, serialize, ClientMessage } from './Protocol';
+import jwt from 'jsonwebtoken';
 
 /**
  * Multiplayer Game Server
@@ -22,6 +23,7 @@ const PUBLIC_DIR = path.join(__dirname, '../public');
 
 // Builder URL for fetching runtime versions (only used when runtime is missing)
 const BUILDER_URL = process.env.BUILDER_URL || 'http://localhost:5173';
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-prod';
 
 const rooms = new Map<string, Room>();
 const playerRooms = new Map<WebSocket, Room>();
@@ -119,6 +121,22 @@ function getAvailableRoles(role: string): string[] {
 }
 
 // ─────────────────────────────────────────────
+// Middleware: Authenticate Token
+// ─────────────────────────────────────────────
+const authenticateToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+    if (!token) return res.sendStatus(401);
+
+    jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+        if (err) return res.sendStatus(403);
+        (req as any).user = user;
+        next();
+    });
+};
+
+// ─────────────────────────────────────────────
 // Platform API Endpoints
 // ─────────────────────────────────────────────
 
@@ -143,8 +161,13 @@ app.post('/api/platform/login', (req, res) => {
 
     if (user) {
         console.log(`[Platform] User logged in: ${user.name} (${user.role})`);
+
+        // Generate JWT
+        const token = jwt.sign({ id: user.id, role: user.role, name: user.name }, JWT_SECRET);
+
         res.json({
             success: true,
+            token, // Send token to client
             user: {
                 id: user.id,
                 name: user.name,
@@ -230,7 +253,11 @@ app.get('/api/platform/children', (req, res) => {
 /**
  * POST /api/platform/rooms - Create a new room
  */
-app.post('/api/platform/rooms', (req, res) => {
+/**
+ * POST /api/platform/rooms - Create a new room
+ * PROTECTED: Requires valid JWT
+ */
+app.post('/api/platform/rooms', authenticateToken, (req, res) => {
     const { name, houseId, adminId } = req.body;
 
     if (!name || !houseId || !adminId) {
