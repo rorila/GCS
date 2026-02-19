@@ -1,11 +1,8 @@
 /**
- * build_login_flow.ts
+ * build_login_flow.ts (V2 - Jetzt mit FlowChart-Generierung!)
  * ============================================================
- * Erster REALER Use-Case über die AgentController API!
- * 
- * Lädt die echte project.json vom Server, erweitert den bestehenden
- * AttemptLogin-Task um einen Branch (Gutfall/Schlechtfall), und
- * schreibt das Ergebnis zurück.
+ * Erzeugt den Login-Flow und das zugehörige Flow-Diagramm.
+ * Platziert Actions direkt in der Blueprint-Stage.
  * 
  * Verwendung: npx tsx scripts/build_login_flow.ts
  * ============================================================
@@ -32,10 +29,9 @@ if (!fs.existsSync(projectPath)) {
 
 const project: GameProject = JSON.parse(fs.readFileSync(projectPath, 'utf-8'));
 agentController.setProject(project);
-console.log(`✅ Projekt geladen: "${project.meta?.name}" (${project.stages?.length || 0} Stages)`);
 
 // ============================================================
-// 2. BESTANDSAUFNAHME
+// 2. SETUP STAGE & ACTIONS
 // ============================================================
 const blueprint = project.stages?.find(s => s.id === 'stage_blueprint');
 if (!blueprint) {
@@ -43,169 +39,185 @@ if (!blueprint) {
     process.exit(1);
 }
 
-const existingTask = blueprint.tasks?.find(t => t.name === 'AttemptLogin');
-if (!existingTask) {
-    console.error('❌ AttemptLogin Task nicht gefunden!');
-    process.exit(1);
-}
-
-console.log(`✅ AttemptLogin gefunden – aktuelle actionSequence: ${existingTask.actionSequence.length} Items`);
-console.log(`   Actions: ${existingTask.actionSequence.map(a => a.name || a.type).join(' → ')}`);
-
-const existingAuth = blueprint.actions?.find(a => a.name === 'doTheAuthenfification');
-if (!existingAuth) {
-    console.error('❌ Action doTheAuthenfification nicht gefunden!');
-    process.exit(1);
-}
-console.log(`✅ doTheAuthenfification gefunden (type: ${existingAuth.type}, requestJWT: ${(existingAuth as any).requestJWT})`);
-
-// Prüfe ob Branch bereits existiert
-const hasBranch = existingTask.actionSequence.some(item => item.type === 'condition');
-if (hasBranch) {
-    console.log('⚠️  Branch existiert bereits – überspringe Erstellung.');
-    console.log('   Bestehende Sequenz:');
-    console.log(JSON.stringify(existingTask.actionSequence, null, 2));
-    process.exit(0);
-}
-
-// ============================================================
-// 3. BRANCH HINZUFÜGEN via AgentController API
-// ============================================================
-console.log('\n🔀 Füge Login-Branch hinzu...');
-
-agentController.addBranch(
-    'AttemptLogin',
-    // Bedingung: currentUser.role ist NICHT leer (Login erfolgreich)
-    'currentUser.role',
-    '!=',
-    '',
-    // ================================
-    // THEN (Gutfall: Login erfolgreich)
-    // ================================
-    (then: BranchBuilder) => {
-        // Navigation zum Dashboard
-        then.addNewAction('navigate_stage', 'GotoDashboard', {
-            stageId: 'stage_dashboard'
-        });
-    },
-    // ================================
-    // ELSE (Schlechtfall: Login fehlgeschlagen)
-    // ================================
-    (els: BranchBuilder) => {
-        // Fehlermeldung via Toaster
-        els.addNewAction('call_method', 'ShowLoginError', {
-            target: 'Toaster',
-            method: 'show',
-            params: ['Login fehlgeschlagen – bitte erneut versuchen', 'error']
-        });
-
-        // PIN zurücksetzen
-        els.addNewAction('set_variable', 'ClearPIN', {
-            variableName: 'currentPIN',
-            value: ''
-        });
-    }
-);
-
-// ============================================================
-// 4. VALIDIERUNG
-// ============================================================
-console.log('\n=== VALIDIERUNG ===');
-let errors = 0;
-
-// 4.1: actionSequence hat jetzt 2 Items (doAuth + Branch)
-const task = blueprint.tasks?.find(t => t.name === 'AttemptLogin')!;
-if (task.actionSequence.length !== 2) {
-    console.error(`❌ Erwartete 2 Sequenz-Items, bekommen: ${task.actionSequence.length}`);
-    errors++;
-} else {
-    console.log('✅ actionSequence hat 2 Items (doAuth + Branch)');
-}
-
-// 4.2: Erstes Item ist doTheAuthenfification
-const firstItem = task.actionSequence[0];
-if (firstItem.name !== 'doTheAuthenfification') {
-    console.error(`❌ Erstes Item ist '${firstItem.name}', erwartet 'doTheAuthenfification'`);
-    errors++;
-} else {
-    console.log('✅ Erstes Item: doTheAuthenfification (data_action)');
-}
-
-// 4.3: Zweites Item ist condition
-const branchItem = task.actionSequence[1];
-if (branchItem.type !== 'condition') {
-    console.error(`❌ Zweites Item hat Typ '${branchItem.type}', erwartet 'condition'`);
-    errors++;
-} else {
-    console.log('✅ Zweites Item: condition (Branch)');
-}
-
-// 4.4: Condition prüfen
-if (branchItem.condition?.variable !== 'currentUser.role' || branchItem.condition?.operator !== '!=') {
-    console.error('❌ Condition ist falsch!', branchItem.condition);
-    errors++;
-} else {
-    console.log(`✅ Condition: currentUser.role != '' (Login-Check)`);
-}
-
-// 4.5: Then-Branch hat 1 Action (GotoDashboard)
-if (!branchItem.then || branchItem.then.length !== 1) {
-    console.error(`❌ Then-Branch: Erwarte 1 Action, bekommen: ${branchItem.then?.length}`);
-    errors++;
-} else {
-    console.log(`✅ Then-Branch: ${branchItem.then.map((i: any) => i.name).join(' → ')}`);
-}
-
-// 4.6: Else-Branch hat 2 Actions (ShowLoginError → ClearPIN)
-if (!branchItem.else || branchItem.else.length !== 2) {
-    console.error(`❌ Else-Branch: Erwarte 2 Actions, bekommen: ${branchItem.else?.length}`);
-    errors++;
-} else {
-    console.log(`✅ Else-Branch: ${branchItem.else.map((i: any) => i.name).join(' → ')}`);
-}
-
-// 4.7: Alle neuen Actions global definiert
-const expectedNewActions = ['GotoDashboard', 'ShowLoginError', 'ClearPIN'];
-for (const name of expectedNewActions) {
-    const allActions = [
-        ...(project.actions || []),
-        ...(blueprint.actions || [])
-    ];
-    const found = allActions.find(a => a.name === name);
-    if (!found) {
-        console.error(`❌ Global Action '${name}' fehlt!`);
-        errors++;
+// Actions in der Blueprint Stage definieren (statt Global)
+const ensureStageAction = (action: any) => {
+    if (!blueprint.actions) blueprint.actions = [];
+    const idx = blueprint.actions.findIndex(a => a.name === action.name);
+    if (idx >= 0) {
+        blueprint.actions[idx] = action;
     } else {
-        console.log(`✅ Action '${name}' global definiert (type: ${found.type})`);
+        blueprint.actions.push(action);
     }
-}
+    // Aus Global entfernen falls dort vorhanden (Bereinigung)
+    project.actions = project.actions?.filter(a => a.name !== action.name);
+};
 
-// 4.8: FlowChart wurde invalidiert
-const flowCharts = blueprint.flowCharts || (project.flowCharts as any) || {};
-if (flowCharts['AttemptLogin']) {
-    console.error('❌ FlowChart existiert noch – sollte invalidiert sein!');
-    errors++;
-} else {
-    console.log('✅ FlowChart wurde invalidiert (wird beim Öffnen neu generiert)');
-}
+console.log('📦 Definiere Actions in stage_blueprint...');
+ensureStageAction({
+    name: 'GotoDashboard',
+    type: 'navigate_stage',
+    stageId: 'stage_dashboard'
+});
+ensureStageAction({
+    name: 'ShowLoginError',
+    type: 'call_method',
+    target: 'Toaster',
+    method: 'show',
+    params: ['Login fehlgeschlagen – bitte erneut versuchen', 'error']
+});
+ensureStageAction({
+    name: 'ClearPIN',
+    type: 'set_variable',
+    variableName: 'currentPIN',
+    value: ''
+});
 
 // ============================================================
-// 5. ERGEBNIS AUSGEBEN
+// 3. TASK STRUKTUR GEWÄHRLEISTEN
 // ============================================================
-console.log('\n=== RESULTIERENDE actionSequence ===');
-console.log(JSON.stringify(task.actionSequence, null, 2));
-
-if (errors === 0) {
-    console.log('\n🎉 ALLE VALIDIERUNGEN BESTANDEN!');
-
-    // ============================================================
-    // 6. PROJEKT SPEICHERN
-    // ============================================================
-    console.log('\n💾 Speichere project.json...');
-    fs.writeFileSync(projectPath, JSON.stringify(project, null, 2), 'utf-8');
-    console.log('✅ project.json gespeichert!');
-    console.log('\n📋 Nächster Schritt: Editor öffnen → AttemptLogin Task → Flow-Diagramm prüfen');
-} else {
-    console.error(`\n❌ ${errors} FEHLER – Projekt wird NICHT gespeichert!`);
+console.log('📋 Erneuere AttemptLogin actionSequence...');
+const task = blueprint.tasks?.find(t => t.name === 'AttemptLogin');
+if (!task) {
+    console.error('❌ Task AttemptLogin nicht gefunden!');
     process.exit(1);
 }
+
+// Reset der Sequenz für sauberen Aufbau
+task.actionSequence = [
+    { name: 'doTheAuthenfification', type: 'action' },
+    {
+        type: 'condition',
+        name: 'Login Check',
+        condition: {
+            variable: 'currentUser.role',
+            operator: '!=',
+            value: ''
+        },
+        then: [
+            { type: 'action', name: 'GotoDashboard' }
+        ],
+        else: [
+            { type: 'action', name: 'ShowLoginError' },
+            { type: 'action', name: 'ClearPIN' }
+        ]
+    }
+];
+
+// ============================================================
+// 4. FLOWCHART GENERIERUNG (Der "Manual-Healing" Part)
+// ====================s=======================================
+console.log('🎨 Generiere FlowChart Diagramm...');
+
+function generateManualFlow(task: any) {
+    const elements: any[] = [];
+    const connections: any[] = [];
+    let nextId = 1;
+    const getId = (type: string) => `node-${Date.now()}-${nextId++}`;
+
+    // Root Node
+    const rootId = getId('task');
+    elements.push({
+        id: rootId,
+        type: 'Task',
+        x: 400, y: 50,
+        properties: { name: task.name, text: task.name, description: task.description },
+        data: { name: task.name }
+    });
+
+    let currentY = 180;
+    let lastId = rootId;
+
+    task.actionSequence.forEach((item: any) => {
+        const id = getId(item.type);
+
+        if (item.type === 'condition') {
+            // Condition Diamond
+            elements.push({
+                id, type: 'Condition',
+                x: 400, y: currentY,
+                properties: { text: `${item.condition.variable} ${item.condition.operator} ${item.condition.value}` }
+            });
+            connections.push({
+                startTargetId: lastId, endTargetId: id,
+                data: { startAnchorType: 'output', endAnchorType: 'input' }
+            });
+
+            // Branches
+            const branchY = currentY + 130;
+
+            // THEN Branch
+            if (item.then?.[0]) {
+                const thenId = getId('action');
+                elements.push({
+                    id: thenId, type: 'Action',
+                    x: 150, y: branchY,
+                    properties: { name: item.then[0].name, text: item.then[0].name },
+                    data: { name: item.then[0].name, isLinked: true }
+                });
+                connections.push({
+                    startTargetId: id, endTargetId: thenId,
+                    data: { startAnchorType: 'true', endAnchorType: 'input' }
+                });
+            }
+
+            // ELSE Branch
+            if (item.else?.[0]) {
+                const elseId = getId('action');
+                elements.push({
+                    id: elseId, type: 'Action',
+                    x: 650, y: branchY,
+                    properties: { name: item.else[0].name, text: item.else[0].name },
+                    data: { name: item.else[0].name, isLinked: true }
+                });
+                connections.push({
+                    startTargetId: id, endTargetId: elseId,
+                    data: { startAnchorType: 'false', endAnchorType: 'input' }
+                });
+
+                // Zweite Action im Else (ClearPIN)
+                if (item.else?.[1]) {
+                    const else2Id = getId('action');
+                    elements.push({
+                        id: else2Id, type: 'Action',
+                        x: 650, y: branchY + 120,
+                        properties: { name: item.else[1].name, text: item.else[1].name },
+                        data: { name: item.else[1].name, isLinked: true }
+                    });
+                    connections.push({
+                        startTargetId: elseId, endTargetId: else2Id,
+                        data: { startAnchorType: 'output', endAnchorType: 'input' }
+                    });
+                }
+            }
+
+            currentY = branchY + 250;
+            lastId = id; // Für Folge-Actions (hier keine)
+        } else {
+            // Normale Action
+            elements.push({
+                id, type: 'Action',
+                x: 400, y: currentY,
+                properties: { name: item.name, text: item.name },
+                data: { name: item.name, isLinked: true }
+            });
+            connections.push({
+                startTargetId: lastId, endTargetId: id,
+                data: { startAnchorType: 'output', endAnchorType: 'input' }
+            });
+            lastId = id;
+            currentY += 130;
+        }
+    });
+
+    return { elements, connections };
+}
+
+if (!blueprint.flowCharts) blueprint.flowCharts = {};
+blueprint.flowCharts['AttemptLogin'] = generateManualFlow(task);
+
+// ============================================================
+// 5. SPEICHERN
+// ============================================================
+console.log('💾 Speichere project.json...');
+fs.writeFileSync(projectPath, JSON.stringify(project, null, 2), 'utf-8');
+console.log('✅ Fertig! Bitte lade den Editor jetzt neu.');
