@@ -536,14 +536,41 @@ export class FlowEditor implements FlowMapHost {
         // Nur anzeigen, wenn wir in der Blueprint-Stage oder Root (Legacy) sind.
         if (!activeStage || isBlueprint) {
             const globalGroup = document.createElement('optgroup');
-            globalGroup.label = 'Global / Projekt (Infrastruktur)';
+            globalGroup.label = isBlueprint ? '🔷 Blueprint / Global' : 'Global / Projekt (Infrastruktur)';
 
             const globalTasksFound = new Set<string>();
-            const stageTaskKeys = new Set<string>();
-            if (activeStage?.flowCharts) Object.keys(activeStage.flowCharts).forEach(k => stageTaskKeys.add(k));
-            if (activeStage?.tasks) activeStage.tasks.forEach(t => stageTaskKeys.add(t.name));
 
-            // 1. Global tasks with flowchart
+            // 0. Blueprint-Stage-eigene FlowCharts (SSoT für globale Tasks)
+            if (activeStage?.flowCharts) {
+                Object.keys(activeStage.flowCharts).forEach(key => {
+                    if (key !== 'global') {
+                        const opt = document.createElement('option');
+                        opt.value = key;
+                        opt.text = `Task: ${key}`;
+                        opt.selected = this.currentFlowContext === key;
+                        globalGroup.appendChild(opt);
+                        globalTasksFound.add(key);
+                    }
+                });
+            }
+
+            // 0b. Blueprint-Stage-eigene Tasks ohne FlowChart
+            if (activeStage?.tasks) {
+                activeStage.tasks.forEach(task => {
+                    if (!globalTasksFound.has(task.name)) {
+                        const opt = document.createElement('option');
+                        opt.value = task.name;
+                        opt.text = `Task: ${task.name}`;
+                        opt.selected = this.currentFlowContext === task.name;
+                        globalGroup.appendChild(opt);
+                        globalTasksFound.add(task.name);
+                    }
+                });
+            }
+
+            const stageTaskKeys = new Set<string>(globalTasksFound);
+
+            // 1. Global tasks with flowchart (projekt-root, Legacy)
             if (this.project.flowCharts) {
                 Object.keys(this.project.flowCharts).forEach(key => {
                     if (key !== 'global' && !stageTaskKeys.has(key)) {
@@ -556,7 +583,7 @@ export class FlowEditor implements FlowMapHost {
                 });
             }
 
-            // 2. Global tasks without flowchart
+            // 2. Global tasks without flowchart (projekt-root, Legacy)
             if (this.project.tasks) {
                 this.project.tasks.forEach(task => {
                     if (!globalTasksFound.has(task.name) && !stageTaskKeys.has(task.name)) {

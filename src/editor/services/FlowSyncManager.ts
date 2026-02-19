@@ -209,8 +209,18 @@ export class FlowSyncManager {
             if (node.type === 'Action') {
                 const actionName = node.data?.name || node.data?.actionName || node.properties?.name || node.properties?.text;
                 if (actionName) {
-                    // --- MODIFIED: Use node.data to preserve ALL properties (params, etc.) ---
-                    const actionItem = { ...node.data, type: 'action', name: actionName };
+                    // FIX (v3.3.15): Echten Typ der verlinkten Action nachschlagen
+                    // Falls isLinked, könnte die globale Def type:'data_action' haben
+                    let realType = 'action';
+                    if (node.data?.isLinked) {
+                        const stage = this.host.getActiveStage();
+                        const globalDef = (this.host.project.actions || []).find((a: any) => a.name === actionName)
+                            || (stage?.actions || []).find((a: any) => a.name === actionName);
+                        if (globalDef?.type === 'data_action') realType = 'data_action';
+                    } else if (node.data?.type === 'data_action') {
+                        realType = 'data_action';
+                    }
+                    const actionItem = { ...node.data, type: realType, name: actionName };
                     // Remove UI-only internal data
                     delete (actionItem as any).isLinked;
                     delete (actionItem as any).parentProxyId;
@@ -433,10 +443,13 @@ export class FlowSyncManager {
                     lastId = id; lastAnchor = 'bottom'; currentY = bodyRes.endY + 100;
                 } else {
                     const isTask = item.type === 'execute_task' || item.type === 'task';
+                    // FIX (v3.3.15): data_action Items als 'DataAction'-Knoten rendern
+                    const isDataAction = item.type === 'data_action';
                     const itemName = item.name || item.taskName || item.action || item.type || 'Aktion';
+                    const nodeType = isTask ? 'Task' : (isDataAction ? 'DataAction' : 'Action');
 
                     elements.push({
-                        id, type: isTask ? 'Task' : 'Action',
+                        id, type: nodeType,
                         x: startX, y: currentY,
                         properties: {
                             name: itemName,
@@ -550,6 +563,7 @@ export class FlowSyncManager {
             node.data = data.data || {};
 
             // SINGLE SOURCE OF TRUTH: For Action nodes, load data from project.actions
+            // FIX (v3.3.15): Wenn die globale Def type:'data_action' ist, Knoten auf FlowDataAction upgraden
             if (data.type === 'Action' && this.host.project) {
                 const actionName = data.properties?.name || data.data?.name;
                 const stage = this.host.getActiveStage();
@@ -558,6 +572,22 @@ export class FlowSyncManager {
 
                 if (projectAction) {
                     node.data = { ...node.data, ...projectAction };
+
+                    // UPGRADE: Falls die Action in Wirklichkeit eine DataAction ist,
+                    // wird der Knoten durch einen FlowDataAction-Knoten ersetzt.
+                    if (projectAction.type === 'data_action' && !(node instanceof FlowDataAction)) {
+                        const upgraded = new FlowDataAction(data.id, node.X, node.Y, canvas, cellSize);
+                        upgraded.setGridConfig(cellSize, snap);
+                        upgraded.Width = node.Width;
+                        upgraded.Height = node.Height;
+                        upgraded.Name = node.Name;
+                        upgraded.Details = node.Details;
+                        upgraded.Description = node.Description;
+                        if (this.host.project) (upgraded as any).setProjectRef?.(this.host.project);
+                        upgraded.data = { ...node.data, ...projectAction };
+                        this.host.setupNodeListeners(upgraded);
+                        return upgraded;
+                    }
                 }
             }
 

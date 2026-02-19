@@ -1,3 +1,20 @@
+### [3.3.16] - 2026-02-19
+- **Refactor (AttemptLogin Flow)**: Redundante Condition-Raute `Login Check` entfernt. `doTheAuthenfification` (DataAction) ist jetzt direkt mit `GotoDashboard` (via `success`-Anker) und `ShowLoginError` → `ClearPIN` (via `error`-Anker) verbunden. Die DataAction-eigenen Ausgänge ersetzen die Raute vollständig.
+  - `platform/project.json`: FlowChart-Elemente und -Verbindungen angepasst.
+  - `actionSequence`: DataAction enthält jetzt korrekte `successBody`/`errorBody`.
+
+### [3.3.15] - 2026-02-19
+- **Fix (FlowSyncManager)**: `doTheAuthenfification` (und alle weiteren DataActions mit `isLinked: true`) werden im Flow-Diagramm jetzt korrekt als **DataAction-Knoten** (blau, mit Success/Error-Ankern) dargestellt.
+  - **Bug 1 – `restoreNode()`**: Lädt ForChart-Element mit `type:'Action'`, erkennt aber jetzt über die globale Def `type:'data_action'` und tauscht den instanziierten `FlowAction`-Knoten atomisch gegen `FlowDataAction` aus.
+  - **Bug 2 – `generateFlowFromActionSequence()`**: `data_action`-Items in der `actionSequence` erzeugen jetzt `type:'DataAction'` statt `type:'Action'` im generierten FlowChart.
+  - **Bug 3 – `syncTaskFromFlow()`**: Beim Zurückschreiben der Sequenz aus dem Canvas wird der echte Typ der verlinkten globalen Action nachgeschlagen (`data_action` statt pauschales `action`).
+  - **Data-Patch**: `platform/project.json` FlowChart-Element und `actionSequence` des `AttemptLogin`-Tasks wurden direkt korrigiert (via Node-Script).
+
+### [3.3.14] - 2026-02-19
+- **Fix (FlowEditor)**: Blueprint-Stage Tasks (z.B. `AttemptLogin`) erscheinen jetzt im Flow-Dropdown.
+  - `FlowEditor.ts` `updateFlowSelector()`: Im Blueprint-Zweig werden nun zuerst `activeStage.flowCharts` und `activeStage.tasks` (stage_blueprint) aufgelistet, bevor Legacy `project.flowCharts`/`project.tasks` folgen.
+  - Blueprint-Gruppe im Dropdown heißt jetzt `🔷 Blueprint / Global`.
+
 ### [3.3.13] - 2026-02-19
 - **Fix (Editor)**: Blueprint-Stage Flow-Tab zeigt nun den **normalen interaktiven FlowEditor** statt eines statischen Mermaid-Diagramms.
   - Entfernung des `blueprintContainer`-Blocks und `renderFlowDiagram()`-Aufrufs aus `Editor.ts` (`render()`, L458-471).

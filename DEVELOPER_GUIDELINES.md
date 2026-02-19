@@ -31,18 +31,34 @@
 - **Fallback**: Wenn kein `TStageController` vorhanden, wird `onNavigate('stage:...')` genutzt (Editor-only).
 - **DO NOT**: Navigiere NIEMALS direkt über `onNavigate` ohne Fallback – der Standalone-Player unterstützt nur `game:`, `host:`, `lobby`, `room:` und `stage:` Prefixes.
 
-## Blueprint Flow Visualisierung (v3.3.8)
-- **Konzept**: Die Blueprint-Stage dient primär der Visualisierung globaler Logik. Da hier keine Spielobjekte gerendert werden, wird der Viewport durch ein Mermaid-Flow-Diagramm ersetzt.
-- **Implementierung**: In `Editor.ts` wird bei aktiver Blueprint-Stage der `#blueprint-viewer` Container eingeblendet und via `renderFlowDiagram()` befüllt. Der Standard `stage-wrapper` wird dabei ausgeblendet.
-- **Aesthetics**: Das Diagramm wird in einem dunklen Panel mit Scroll-Optimierung (Custom CSS) gerendert.
-- **SSoT**: Das Diagramm basiert 1:1 auf den Projektdaten (Tasks/Actions) und wird bei jeder Änderung (Mediator Event `DATA_CHANGED`) neu gezeichnet.
+## Blueprint Flow Visualisierung (v3.3.8 → v3.3.14)
 
-## Blueprint View Separation (v3.3.11)
-- **Trennung**: Die Blueprint-Stage vefügt nun über zwei dedizierte Modi:
-  1. **Stage View**: Standard-Grafik-Editor (für globale Objekte wie Services). Hier ist das Mermaid-Diagramm ausgeblendet (`display: none`).
-  2. **Flow View**: Dedizierter Flow-Editor-Tab. Hier wird das Mermaid-Diagramm gerendert und der Grafik-Editor ausgeblendet.
-- **Implementierung**: `Editor.render()` prüft `viewManager.currentView === 'flow'`, bevor `renderFlowDiagram` aufgerufen wird. Dies verhindert Überlagerungen und Performance-Probleme beim normalen Editieren.
-- **Visibility-Fix**: Globale Elemente (Services) sind auf normalen Stages (`type: 'standard'`) nun strikt unsichtbar, es sei denn, sie werden explizit importiert. Die `isService`-Ausnahme wurde entfernt, um SSoT-Konformität zu erzwingen.
+> [!CAUTION]
+> **VERALTET (v3.3.8–v3.3.12)**: Der alte Ansatz nutzte ein statisches Mermaid-Diagramm (`#blueprint-viewer`, `renderFlowDiagram()`). Dieser wurde in **v3.3.13 vollständig entfernt**.
+
+- **Aktuelles Konzept (v3.3.13+)**: Die Blueprint-Stage nutzt im Flow-Tab denselben **interaktiven FlowEditor** (`#flow-viewer`) wie alle anderen Stages. Keine Sonderbehandlung in `Editor.ts`.
+- **`blueprintContainer` entfernt**: Das Feld, der Initialisierungsblock und alle Render-Aufrufe wurden aus `Editor.ts` entfernt.
+- **Stage View**: Zeigt globale Objekte (Services, Variablen) auf dem Stage-Canvas.
+- **Flow View**: Zeigt interaktives Flow-Diagramm mit allen Blueprint-Tasks im Dropdown.
+
+## Blueprint View Separation (v3.3.11–v3.3.14)
+- **Stage-Tab vs. Flow-Tab**: `Editor.render()` nutzt den `isStageOrRunView`-Guard, damit `stage-wrapper` nur bei `currentView === 'stage'` oder `'run'` eingeblendet wird.
+- **Visibility-Fix**: Globale Elemente (Services) sind auf normalen Stages (`type: 'standard'`) strikt unsichtbar, es sei denn, sie werden explizit importiert.
+
+## Blueprint Flow-System (v3.3.14)
+- **SSoT für globale Tasks**: Alle globalen Tasks und FlowCharts liegen in `stage_blueprint.tasks[]` und `stage_blueprint.flowCharts{}`.
+  - Root-Level (`project.tasks`, `project.flowCharts`) = nur Legacy-Fallback.
+- **Dropdown-Aufbau** (`FlowEditor.updateFlowSelector()`, L535–605):
+  1. **Block 0**: `activeStage.flowCharts` scannen (Tasks MIT Flow-Diagramm).
+  2. **Block 0b**: `activeStage.tasks` scannen (Tasks OHNE Flow-Diagramm).
+  3. Deduplication via `stageTaskKeys`.
+  4. Legacy: `project.flowCharts` → `project.tasks` (Fallback).
+- **Gruppe heißt**: `🔷 Blueprint / Global` (statt "Global / Projekt (Infrastruktur)").
+- **Self-Healing**: Wenn ein Blueprint-Task noch kein FlowChart hat, generiert `generateFlowFromActionSequence` beim Öffnen ein sauberes Diagramm.
+- **AgentController-Integration**: `AgentController.createTask('blueprint', name)` legt neue Tasks korrekt in `stage_blueprint.tasks[]` ab → erscheinen sofort im Dropdown.
+- **DO NOT**: Niemals nur `project.tasks` für Blueprint-Tasks scannen. Immer `activeStage.tasks` priorisieren.
+- **UseCase-Dokument**: `docs/use_cases/BlueprintFlowDropdown.md`
+- **Agenten-Workflow**: `/blueprint-flow-dropdown`
 
 ## Inspector & Refactoring (v2.16.21)
 - **Inspector JSON-Konfiguration**: Für Flow-Elemente mit spezifischem Layout (wie `DataAction`) ist die Verwendung einer dedizierten JSON-Datei (z.B. `public/inspector_data_action.json`) der Standard.
