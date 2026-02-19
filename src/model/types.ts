@@ -156,12 +156,16 @@ export interface SequenceItem {
     type: SequenceItemType;
     name: string;
 
-    // For type: 'condition' - conditional execution
+    // For type: 'condition' - conditional execution (single action shortcuts)
     condition?: ConditionExpression;
     thenAction?: string;            // Action name to execute if condition is true
     thenTask?: string;              // Task name to execute if condition is true
     elseAction?: string;            // Action name to execute if condition is false
     elseTask?: string;              // Task name to execute if condition is false
+
+    // For type: 'condition' - multi-step branches (used by FlowSyncManager: item.then / item.else)
+    then?: SequenceItem[];          // Sequence to execute if condition is true
+    else?: SequenceItem[];          // Sequence to execute if condition is false
 
     // For type: 'while' | 'for' | 'foreach' - loop body
     body?: SequenceItem[];
