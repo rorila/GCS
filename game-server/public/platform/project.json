@@ -36,6 +36,27 @@
       "name": "SendApiResponse",
       "type": "handle_api_request",
       "showDetails": false
+    },
+    {
+      "name": "GotoDashboard",
+      "type": "navigate_stage",
+      "stageId": "stage_dashboard"
+    },
+    {
+      "name": "ShowLoginError",
+      "type": "call_method",
+      "target": "Toaster",
+      "method": "show",
+      "params": [
+        "Login fehlgeschlagen – bitte erneut versuchen",
+        "error"
+      ]
+    },
+    {
+      "name": "ClearPIN",
+      "type": "set_variable",
+      "variableName": "currentPIN",
+      "value": ""
     }
   ],
   "tasks": [],
@@ -1492,6 +1513,31 @@
             {
               "name": "doTheAuthenfification",
               "type": "action"
+            },
+            {
+              "type": "condition",
+              "name": "Branch: currentUser.role != ",
+              "condition": {
+                "variable": "currentUser.role",
+                "operator": "!=",
+                "value": ""
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "GotoDashboard"
+                }
+              ],
+              "else": [
+                {
+                  "type": "action",
+                  "name": "ShowLoginError"
+                },
+                {
+                  "type": "action",
+                  "name": "ClearPIN"
+                }
+              ]
             }
           ],
           "triggerMode": "local-sync",
@@ -1519,64 +1565,7 @@
           "resultVariable": "var_currentUser"
         }
       ],
-      "flowCharts": {
-        "AttemptLogin": {
-          "elements": [
-            {
-              "id": "node-1770989123182",
-              "type": "Task",
-              "x": 20,
-              "y": 60,
-              "width": 160,
-              "height": 60,
-              "properties": {
-                "name": "AttemptLogin",
-                "details": "",
-                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
-                "text": "AttemptLogin"
-              },
-              "data": {
-                "name": "AttemptLogin",
-                "showDetails": false,
-                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
-              }
-            },
-            {
-              "id": "node-1771433375605",
-              "type": "DataAction",
-              "x": 300,
-              "y": 60,
-              "width": 220,
-              "height": 60,
-              "properties": {
-                "name": "doTheAuthenfification",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "doTheAuthenfification",
-                "isLinked": true
-              }
-            }
-          ],
-          "connections": [
-            {
-              "startTargetId": "node-1770989123182",
-              "endTargetId": "node-1771433375605",
-              "startX": 177.6458282470703,
-              "startY": 86.69096374511719,
-              "endX": 300,
-              "endY": 90,
-              "data": {
-                "startAnchorType": "output",
-                "originalStartAnchorType": "output",
-                "isEmbeddedInternal": false,
-                "endAnchorType": "input"
-              }
-            }
-          ]
-        }
-      }
+      "flowCharts": {}
     },
     {
       "id": "stage_player_lobby",

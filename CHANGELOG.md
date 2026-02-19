@@ -3,6 +3,10 @@
     - `navigate_stage` nutzt jetzt primär `TStageController.goToStage()` direkt (host-unabhängig).
     - `UniversalPlayer.handleNavigation()` um `stage:`-Behandlung erweitert (Fallback).
     - Standalone-Player kann jetzt Stage-Wechsel korrekt durchführen.
+- **Feature**: Erster UseCase via AgentController API (`build_login_flow.ts`).
+    - `AttemptLogin` Task um Login-Branch erweitert (Gutfall/Schlechtfall).
+    - Actions `GotoDashboard`, `ShowLoginError`, `ClearPIN` programmatisch erstellt.
+    - Flow-Diagramm wird beim Öffnen automatisch regeneriert (Self-Healing).
 
 ### [3.3.6] - 2026-02-19
 - **Feature**: AI Agent Controller API (`AgentController.ts`) eingeführt.
