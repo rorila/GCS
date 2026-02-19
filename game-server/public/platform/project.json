@@ -15,10 +15,6 @@
       "backgroundColor": "#ffffff"
     }
   },
-  "flow": {
-    "elements": [],
-    "connections": []
-  },
   "input": {
     "player1Controls": "arrows",
     "player1Target": "",
@@ -27,40 +23,9 @@
     "player2Target": "",
     "player2Speed": 0.2
   },
-  "objects": [],
   "splashObjects": [],
   "splashDuration": 3000,
   "splashAutoHide": true,
-  "actions": [
-    {
-      "name": "SendApiResponse",
-      "type": "handle_api_request",
-      "showDetails": false
-    },
-    {
-      "name": "GotoDashboard",
-      "type": "navigate_stage",
-      "stageId": "stage_dashboard"
-    },
-    {
-      "name": "ShowLoginError",
-      "type": "call_method",
-      "target": "Toaster",
-      "method": "show",
-      "params": [
-        "Login fehlgeschlagen – bitte erneut versuchen",
-        "error"
-      ]
-    },
-    {
-      "name": "ClearPIN",
-      "type": "set_variable",
-      "variableName": "currentPIN",
-      "value": ""
-    }
-  ],
-  "tasks": [],
-  "variables": [],
   "stages": [
     {
       "id": "stage_login",
@@ -2535,11 +2500,5 @@
       "_showGlobalPreview": false
     }
   ],
-  "activeStageId": "stage_login",
-  "flowCharts": {
-    "global": {
-      "elements": [],
-      "connections": []
-    }
-  }
+  "activeStageId": "stage_login"
 }

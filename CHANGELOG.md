@@ -1,3 +1,44 @@
+### [3.3.13] - 2026-02-19
+- **Fix (Editor)**: Blueprint-Stage Flow-Tab zeigt nun den **normalen interaktiven FlowEditor** statt eines statischen Mermaid-Diagramms.
+  - Entfernung des `blueprintContainer`-Blocks und `renderFlowDiagram()`-Aufrufs aus `Editor.ts` (`render()`, L458-471).
+  - Entfernung der `#blueprint-viewer` DOM-Element-Initialisierung (L1789-1797) und des `blueprintContainer`-Feldes.
+  - Blueprint-Stage und alle anderen Stages verhalten sich im Flow-Tab nun identisch.
+
+### [3.3.12] - 2026-02-19
+- **Fix (Editor)**: Stage/Flow-Tab Trennung vollständig wiederhergestellt.
+  - `Editor.ts` (`render()`, L465-470): `stage-wrapper` wird jetzt nur noch bei `currentView === 'stage'` oder `'run'` eingeblendet.
+  - Bisher wurde `stage-wrapper` im `else`-Zweig bedingungslos auf `flex` gesetzt, was dazu führte, dass Stage-Elemente (z.B. Login-UI) auch im Flow-, JSON-, Pascal- und Manager-Tab sichtbar waren.
+  - **Alle** Stage-Typen (Blueprint, Login, Dashboard etc.) sind nun korrekt: Stage-Tab zeigt Grafik/Variablen, Flow-Tab zeigt ausschließlich den Flow-Editor.
+
+### [3.3.11] - 2026-02-19
+- **Fix (Editor)**: Blueprint-View-Trennung implementiert. Mermaid-Diagramme erscheinen nur noch im Flow-Tab, Stage-Tab ist grafisch bearbeitbar.
+- **Fix (Sichtbarkeit)**: Globale Elemente (Services, Variablen) sind auf normalen Stages nun strikt unsichtbar (Regression des `isService`-Checks behoben).
+- **Fix (Mermaid)**: Syntax-Error durch Leerzeichen in IDs behoben (`querySelector` failure).
+- **Fix (Runtime)**: `switchStage` Logik korrigiert, um Rendering veralteter Runtime-Objekte beim Stage-Wechsel zu verhindern.
+- **Cleanup**: HTML-Overlays aus Mermaid-Diagrammen entfernt für saubere Darstellung.
+
+### [3.3.10] - 2026-02-19
+- **Fix (FlowDiagramGenerator)**: Unterstützung für das `events` Property (neben `Tasks`) implementiert.
+- **Fix (FlowDiagramGenerator)**: Der Generator durchsucht nun alle Stages nach Objekten, Tasks und Aktionen, um vollständige Diagramme im Blueprint zu gewährleisten.
+- **Fix (Editor)**: Sichtbarkeit von Elementen auf der Blueprint-Stage wiederhergestellt (Layering-Fix für `stage-wrapper`).
+- **Deduplizierung**: Flow-Diagramme werden nun pro Objekt+Event eindeutig identifiziert.
+
+### [3.3.9] - 2026-02-19
+### Architektur-Anpassung: Blueprint-as-SSoT
+- **Core**: Die `blueprint`-Stage ist nun die "Single Source of Truth" (SSoT) für alle globalen Elemente (Tasks, Aktionen, Variablen, Dienste).
+- **Registry**: `ProjectRegistry` angepasst, um globale Elemente dynamisch aus der Blueprint-Stage aufzulösen, auch wenn keine Wurzel-Arrays im JSON vorhanden sind.
+- **Sichtbarkeit**: Globale Dienste (wie API-Server) werden nun auf allen Stages als Referenz-Objekte ("Ghosts") angezeigt.
+- **Visualisierung**: `FlowDiagramGenerator` korrigiert, um Diagramme basierend auf der Blueprint-Logik stage-übergreifend zu generieren.
+- **Automation**: `AgentController` aktualisiert, damit neue globale Logik direkt in der Blueprint-Stage angelegt wird.
+
+## [3.3.8] - 2026-02-19
+- **Feature**: Blueprint-Flow-Visualisierung implementiert.
+    - Automatisches Rendering aller Task-Flows via Mermaid beim Betreten der Blueprint-Stage.
+    - Dedizierter `#blueprint-viewer` Container und CSS-Optimierung.
+- **Fix**: Datenbereinigung in `project.json`.
+    - Redundante globale Actions (`GotoDashboard`, `ShowLoginError`, `ClearPIN`) entfernt.
+    - Single Source of Truth: Diese Aktionen werden nun korrekt aus der Blueprint-Stage geladen.
+
 ### [3.3.7] - 2026-02-19
 - **Fix**: Robuste Stage-Navigation implementiert.
     - `navigate_stage` nutzt jetzt primär `TStageController.goToStage()` direkt (host-unabhängig).
@@ -149,7 +190,7 @@
 - **GCS Core**: Unterstützung für generische Variablentypen (`any`, `json`) hinzugefügt, um komplexe API-Antworten ohne festes Datenmodell zu speichern.
 - **Action Persistence**: Fix für die Persistenz von `http` Aktionen durch Getter/Setter-Proxys in `FlowAction`.
 - **Flow Editor**: Korrektur der Node-Details Anzeige (keine `undefined` Werte mehr).
-- **Persistence**: Implementierung von OOP-Gettern/Settern in `FlowDataAction.ts` und Optimierung der `Smart-Sync`-Logik im `JSONInspector.ts` zur Vermeidung von Datenverlust bei verlinkten Elementen.
+- **Persistence**: Implementierung von OOP-Gettern/Settern in `FlowDataAction.ts` und Optimierung der `Smart-Sync`-Logik im `InspectorHost.ts` zur Vermeidung von Datenverlust bei verlinkten Elementen.
 - **API Handler**: `ActionApiHandler` löst nun `dataStore`-Referenzen auf und nutzt deren Konfiguration (`storagePath`, `collection`).
 - **API**: Implementierung einer rekursiven Pfad-Ermittlung (`getDeepPaths`) im Backend zur Unterstützung tiefer JSON-Sektoren.
 - **UI Refinement**: `DataAction`-Inspector bereinigt. Redundantes `resource`-Feld entfernt, URL/Route schreibgeschützt (Auto-Update), und `resultPath` (Daten-Pfad) als Dropdown mit "Deep-Scan" Support und "Gesamte Daten"-Option implementiert.
@@ -219,7 +260,7 @@
 ### Fixed
 - **Variable Morphing Persistence**: Kritischer Bugfix beim Typwechsel (z.B. Integer -> Object).
   - **ID Preservation**: `Editor.ts` überträgt nun garantiert die ursprüngliche ID auf die neue Instanz, um Referenzen (Bindings, Skripte) zu erhalten.
-  - **Inspector Display**: `JSONInspector.ts` priorisiert nun `prop.selectedValue` über Bindings, was das visuelle "Zurückspringen" des Typs (Anzeige-Bug) behebt.
+  - **Inspector Display**: `InspectorHost.ts` priorisiert nun `prop.selectedValue` über Bindings, was das visuelle "Zurückspringen" des Typs (Anzeige-Bug) behebt.
   - **Type Property**: Explizites `selectedValue: 'object'` in `TVariable.ts` hinzugefügt, um den korrekten Status im UI zu erzwingen.
 - **Data Initialization Robustness**:
   - **Seeding Fallback**: Implementierung einer Fallback-Logik im `JSONInspector`, die fehlende Entitäten (`users`, `cities` etc.) durch ein erzwungenes Re-Seeding vom Server (`/api/dev/data/db.json`) wiederherstellt.
@@ -313,7 +354,7 @@
 ### Fixed
 - **Fix**: Tiefgreifende Behebung des Variablentyp-Resets durch Synchronisation von `type` und `className` in `TVariable.ts`.
 - **Fix**: Robustere Hydrierung in `Serialization.ts` (Priorisierung von `type` vor legacy Aliassen).
-- **Fix**: UI-Re-rendering im `JSONInspector.ts` bei Typänderungen sichergestellt.
+- **Fix**: UI-Re-rendering im `InspectorHost.ts` bei Typänderungen sichergestellt.
 - **Calculate Action Save Fix**: Behebung des Datenverlusts von `resultVariable` und `formula` bei 'calculate' Actions.
   - Ergänzung der `action: "updateValue"` Bindings für `CalcResultVariable` und `CalcFormulaInput` in `dialog_action_editor.json`.
   - Erweiterung des `JSONDialogRenderer.ts` (`updateModelValue`), um auch `ResultVariableInput` (Service-Aktionen) korrekt auf `dialogData.resultVariable` zu mappen.

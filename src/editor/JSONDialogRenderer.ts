@@ -13,7 +13,7 @@ export interface IActionEditorDialogManager {
 
 /**
  * JSONDialogRenderer - Renders dialogs from JSON definitions
- * Similar to JSONInspector but for modal dialogs
+ * Similar to InspectorHost but for modal dialogs
  */
 export class JSONDialogRenderer {
     private runtime: ReactiveRuntime;
@@ -1307,7 +1307,7 @@ export class JSONDialogRenderer {
     }
 
     private setupBindings() {
-        // TODO: Implement reactive bindings similar to JSONInspector. 
+        // TODO: Implement reactive bindings similar to InspectorHost. 
         // Currently we rely on manual re-renders via this.render() calls in actions.
     }
 

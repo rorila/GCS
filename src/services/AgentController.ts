@@ -99,21 +99,22 @@ export class AgentController {
         };
 
         // 3. Register Globally (Data) & Locally (Stage)
-        if (!this.project!.tasks) this.project!.tasks = [];
-        this.project!.tasks.push(newTask);
+        const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
+        if (blueprintStage) {
+            if (!blueprintStage.tasks) blueprintStage.tasks = [];
+            blueprintStage.tasks.push(newTask);
+            console.log(`[AgentController] Task '${taskName}' created in Blueprint Stage.`);
+        } else {
+            if (!this.project!.tasks) this.project!.tasks = [];
+            this.project!.tasks.push(newTask);
+            console.log(`[AgentController] Task '${taskName}' created globally (fallback).`);
+        }
 
-        if (stageId) {
+        if (stageId && stageId !== 'blueprint') {
             const stage = this.project!.stages?.find(s => s.id === stageId || s.name === stageId);
-            if (stage) {
+            if (stage && stage.type !== 'blueprint') {
                 if (!stage.tasks) stage.tasks = [];
-                // We reference the SAME object to keep sync, or copy? 
-                // GCS Architecture typically puts tasks EITHER in global OR in stage.
-                // "Dual Booking" is risky for duplicates. 
-                // Plan said: "Eintrag in project.tasks UND stage.tasks" -> let's be careful.
-                // Better: Put it where requested. If stageId is provided, put it in Stage.
                 stage.tasks.push(newTask);
-            } else {
-                console.warn(`[AgentController] Stage '${stageId}' not found. Task '${taskName}' created globally only.`);
             }
         }
 
@@ -152,14 +153,22 @@ export class AgentController {
             // Update params?
             Object.assign(actionDef, params);
         } else {
-            // Create New Global Definition
+            // Create New Global Definition in Blueprint
             actionDef = {
                 name: actionName,
                 type: actionType,
                 ...params
             };
-            if (!this.project!.actions) this.project!.actions = [];
-            this.project!.actions.push(actionDef);
+
+            const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
+            if (blueprintStage) {
+                if (!blueprintStage.actions) blueprintStage.actions = [];
+                blueprintStage.actions.push(actionDef);
+                console.log(`[AgentController] Action '${actionName}' created in Blueprint Stage.`);
+            } else {
+                if (!this.project!.actions) this.project!.actions = [];
+                this.project!.actions.push(actionDef);
+            }
         }
 
         // 3. Add to Task Sequence (Reference Only)
@@ -320,10 +329,17 @@ export class AgentController {
                 }
             }
 
-            // Fallback: Global
-            if (!this.project!.actions) this.project!.actions = [];
-            this.project!.actions.push(actionDef);
-            console.log(`[AgentController] Created new GLOBAL action: ${actionName}`);
+            // Fallback: Global (Blueprint stage preferred)
+            const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
+            if (blueprintStage) {
+                if (!blueprintStage.actions) blueprintStage.actions = [];
+                blueprintStage.actions.push(actionDef);
+                console.log(`[AgentController] Created new action in BLUEPRINT: ${actionName}`);
+            } else {
+                if (!this.project!.actions) this.project!.actions = [];
+                this.project!.actions.push(actionDef);
+                console.log(`[AgentController] Created new GLOBAL action (fallback): ${actionName}`);
+            }
         }
     }
 
@@ -345,7 +361,18 @@ export class AgentController {
     }
 
     private getActionByName(name: string): BaseAction | undefined {
-        return this.project!.actions?.find(a => a.name === name);
+        // Search Global
+        let action = this.project!.actions?.find(a => a.name === name);
+        if (action) return action;
+
+        // Search Blueprint Stage
+        const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
+        if (blueprintStage?.actions) {
+            action = blueprintStage.actions.find(a => a.name === name);
+            if (action) return action;
+        }
+
+        return undefined;
     }
 
     /**

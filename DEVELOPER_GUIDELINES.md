@@ -31,6 +31,19 @@
 - **Fallback**: Wenn kein `TStageController` vorhanden, wird `onNavigate('stage:...')` genutzt (Editor-only).
 - **DO NOT**: Navigiere NIEMALS direkt über `onNavigate` ohne Fallback – der Standalone-Player unterstützt nur `game:`, `host:`, `lobby`, `room:` und `stage:` Prefixes.
 
+## Blueprint Flow Visualisierung (v3.3.8)
+- **Konzept**: Die Blueprint-Stage dient primär der Visualisierung globaler Logik. Da hier keine Spielobjekte gerendert werden, wird der Viewport durch ein Mermaid-Flow-Diagramm ersetzt.
+- **Implementierung**: In `Editor.ts` wird bei aktiver Blueprint-Stage der `#blueprint-viewer` Container eingeblendet und via `renderFlowDiagram()` befüllt. Der Standard `stage-wrapper` wird dabei ausgeblendet.
+- **Aesthetics**: Das Diagramm wird in einem dunklen Panel mit Scroll-Optimierung (Custom CSS) gerendert.
+- **SSoT**: Das Diagramm basiert 1:1 auf den Projektdaten (Tasks/Actions) und wird bei jeder Änderung (Mediator Event `DATA_CHANGED`) neu gezeichnet.
+
+## Blueprint View Separation (v3.3.11)
+- **Trennung**: Die Blueprint-Stage vefügt nun über zwei dedizierte Modi:
+  1. **Stage View**: Standard-Grafik-Editor (für globale Objekte wie Services). Hier ist das Mermaid-Diagramm ausgeblendet (`display: none`).
+  2. **Flow View**: Dedizierter Flow-Editor-Tab. Hier wird das Mermaid-Diagramm gerendert und der Grafik-Editor ausgeblendet.
+- **Implementierung**: `Editor.render()` prüft `viewManager.currentView === 'flow'`, bevor `renderFlowDiagram` aufgerufen wird. Dies verhindert Überlagerungen und Performance-Probleme beim normalen Editieren.
+- **Visibility-Fix**: Globale Elemente (Services) sind auf normalen Stages (`type: 'standard'`) nun strikt unsichtbar, es sei denn, sie werden explizit importiert. Die `isService`-Ausnahme wurde entfernt, um SSoT-Konformität zu erzwingen.
+
 ## Inspector & Refactoring (v2.16.21)
 - **Inspector JSON-Konfiguration**: Für Flow-Elemente mit spezifischem Layout (wie `DataAction`) ist die Verwendung einer dedizierten JSON-Datei (z.B. `public/inspector_data_action.json`) der Standard.
     - **Two-Way-Binding**: Um Felder editierbar zu machen, muss das Binding direkt auf das Property zeigen (z.B. `${selectedObject.Name}` statt `${selectedObject.name || ...}`).
@@ -674,7 +687,7 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 
 ## Inspector Configuration
 - **Deklarative Templates**: Der Inspector wird primär durch JSON-Dateien (`inspector.json`, `inspector_task.json`, `inspector_action.json`) konfiguriert. Diese definieren das Layout, die Felder und die Bindings (`${variableName}`).
-- **Kontext-Sensitivität**: `JSONInspector.ts` lädt automatisch das passende Template basierend auf dem Typ des selektierten Objekts (`selectedObject.getType()`: 'Task', 'Action' oder className).
+- **Kontext-Sensitivität**: `InspectorHost.ts` lädt automatisch das passende Template basierend auf dem Typ des selektierten Objekts (`selectedObject.getType()`: 'Task', 'Action' oder className).
 - **Hybrid-Modus**: Für Flow-Elemente (`Task`, `Action`) unterstützt der Inspector einen Hybrid-Modus:
   - **Statische Eigenschaften**: Werden aus der JSON geladen (z.B. Header, Name, Typ).
   - **Dynamische Eigenschaften**: Werden (falls implementiert) über `getInspectorProperties()` generiert (z.B. variable Parameter-Listen bei Tasks).
@@ -982,7 +995,7 @@ Es gibt zwei grundlegend verschiedene Arten, wie Aktionen in der `actionSequence
 - **Dynamische Listen**: Komponenten wie `TList` (z.B. `RoleList`) sollten beim Stage-Start (`onRuntimeStart`) via Task befüllt werden, indem die Daten aus dem globalen Kontext (`currentUser`) in die `items` Property der Komponente geschrieben werden.
 - **Task-Referenzen**: Komplexe Diagramme sollten durch den Aufruf von Unter-Tasks (`type: task`) modularisiert werden, statt alle Logik in ein einziges Diagramm zu packen. Dies erhöht die visuelle Scannbarkeit im Flow-Editor.
 
-### [Dynamische Action-UI](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/JSONInspector.ts) (v2.16.24)
+### [Dynamische Action-UI](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/inspector/InspectorHost.ts) (v2.16.24)
 - **Problem**: Spezialisierte Actions (wie `http`, `store_token`) benötigen unterschiedliche Eingabefelder im Inspector, wurden aber bisher pauschal auf das statische `inspector_action.json` Template gezwungen.
 - **Lösung**:
     - Der `FlowEditor` speichert den Subtype (z.B. `http`) in `node.data.type`.

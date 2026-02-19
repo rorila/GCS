@@ -37,7 +37,7 @@ export class InspectorTemplateLoader {
                         delete cloned.forEach;
 
                         // We will replace template variables like ${item.name} later 
-                        // or during rendering. JSONInspector used replaceTemplateVars recursively.
+                        // or during rendering. InspectorHost uses replaceTemplateVars recursively.
                         this.replaceTemplateVars(cloned, item, index);
                         result.push(cloned);
                     });

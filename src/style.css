@@ -234,6 +234,29 @@ body {
   height: auto;
 }
 
+#blueprint-viewer {
+  flex: 1;
+  padding: 2rem;
+  background-color: #1a1a1a;
+  overflow: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+#blueprint-viewer svg {
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
+}
+
+.blueprint-panel {
+  scrollbar-width: thin;
+  scrollbar-color: #444 #1a1a1a;
+}
+
 .management-panel {
   flex: 1;
   display: flex;

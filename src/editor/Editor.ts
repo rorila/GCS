@@ -453,6 +453,13 @@ export class Editor implements IViewHost {
             }
 
             this.stage.renderObjects(objectsToRender);
+
+            // Stage-Wrapper nur im Stage- oder Run-Tab einblenden
+            const stageWrapper = document.getElementById('stage-wrapper');
+            if (stageWrapper) {
+                const isStageOrRunView = this.viewManager.currentView === 'stage' || this.viewManager.currentView === 'run';
+                stageWrapper.style.display = isStageOrRunView ? 'flex' : 'none';
+            }
         } catch (err) {
             console.error("[Editor] Render error:", err);
         }
@@ -514,7 +521,11 @@ export class Editor implements IViewHost {
         const activeStage = this.getActiveStage();
 
         // 1. Explicit Scope Check
-        if (action?.scope === 'global') return this.project.actions || (this.project.actions = []);
+        if (action?.scope === 'global') {
+            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+            if (blueprintStage) return blueprintStage.actions || (blueprintStage.actions = []);
+            return this.project.actions || (this.project.actions = []);
+        }
         if (action?.scope === 'stage' && activeStage) return activeStage.actions || (activeStage.actions = []);
 
         if (!activeStage) return this.project.actions || (this.project.actions = []);
@@ -523,6 +534,11 @@ export class Editor implements IViewHost {
         // ... rest of the logic ...
         if (activeStage.actions && activeStage.actions.find(a => a.name === actionName)) {
             return activeStage.actions;
+        }
+
+        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+        if (blueprintStage?.actions && blueprintStage.actions.find(a => a.name === actionName)) {
+            return blueprintStage.actions;
         }
 
         if (this.project.actions && this.project.actions.find(a => a.name === actionName)) {
@@ -541,13 +557,22 @@ export class Editor implements IViewHost {
         const activeStage = this.getActiveStage();
 
         // 1. Explicit Scope Check
-        if (task?.scope === 'global') return this.project.tasks || (this.project.tasks = []);
+        if (task?.scope === 'global') {
+            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+            if (blueprintStage) return blueprintStage.tasks || (blueprintStage.tasks = []);
+            return this.project.tasks || (this.project.tasks = []);
+        }
         if (task?.scope === 'stage' && activeStage) return activeStage.tasks || (activeStage.tasks = []);
 
         if (!activeStage) return this.project.tasks || (this.project.tasks = []);
 
         if (activeStage.tasks && activeStage.tasks.find(t => t.name === taskName)) {
             return activeStage.tasks;
+        }
+
+        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+        if (blueprintStage?.tasks && blueprintStage.tasks.find(t => t.name === taskName)) {
+            return blueprintStage.tasks;
         }
 
         if (this.project.tasks && this.project.tasks.find(t => t.name === taskName)) {
@@ -1036,13 +1061,15 @@ export class Editor implements IViewHost {
 
         // Deselect current
         this.selectObject(null);
+
+        // Zur visuellen Stage-Bearbeitung wechseln (Stops runtime if active)
+        this.switchView('stage');
+
+        // Render NOW (after runtime stopped and view switched)
         this.render();
 
         // Menü aktualisieren
         this.updateStagesMenu();
-
-        // Zur visuellen Stage-Bearbeitung wechseln
-        this.switchView('stage');
 
         console.log(`[Editor] Gewechselt zu Stage: ${stage.name} (${stage.type})`);
         this.autoSaveToLocalStorage();
@@ -1113,13 +1140,9 @@ export class Editor implements IViewHost {
             }
 
             // 3. If we are on a normal stage, check for Selective Visibility
-            const objectsToInclude = [...(bs.objects || [])]; // Variables only on blueprint
+            const objectsToInclude = [...(bs.objects || []), ...(bs.variables || [])];
 
             objectsToInclude.forEach((obj: any) => {
-                // Technical services never show up on other stages (unless explicitly pinned?)
-                // For now: keep them hidden to avoid clutter.
-                if (obj.isService) return;
-
                 const isExplicitlyVisible = visibleGlobals.includes(obj.id);
 
                 if (isExplicitlyVisible) {
@@ -1306,52 +1329,20 @@ export class Editor implements IViewHost {
             section.style.borderRadius = '8px';
             section.style.border = '1px solid #3a3a3a';
 
-            // Actor/Trigger info (above diagram)
-            const actorInfo = document.createElement('div');
-            actorInfo.style.marginBottom = '1rem';
-            actorInfo.style.padding = '0.75rem';
-            actorInfo.style.backgroundColor = '#1e1e1e';
-            actorInfo.style.borderRadius = '4px';
-            actorInfo.style.borderLeft = '3px solid #4fc3f7';
-            actorInfo.innerHTML = `
-    < div style = "font-size: 0.85rem; color: #888;" > Auslöser </div>
-        < div style = "font-size: 1.1rem; color: #fff; font-weight: bold;" >
-            <span style="color: #81c784;" > ${flow.actorType} </span>: ${flow.actorName}
-                < span style = "color: #4fc3f7; margin-left: 0.5rem;" >→ ${flow.eventName} </span>
-                    </div>
-                        `;
-            section.appendChild(actorInfo);
-
             // Render diagram
             const diagramDiv = document.createElement('div');
             diagramDiv.style.overflowX = 'auto';
             diagramDiv.style.padding = '1rem 0';
             try {
-                const { svg } = await mermaid.render(`flow - diagram - ${i} `, flow.mermaidSyntax);
+                // FIXED: Replace spaces in ID to prevent querySelector SyntaxError
+                const id = `flow-diagram-${i}`;
+                const { svg } = await mermaid.render(id, flow.mermaidSyntax);
                 diagramDiv.innerHTML = svg;
             } catch (error) {
-                console.error(`Error rendering ${flow.eventName}: `, error);
-                diagramDiv.innerHTML = `< pre style = "color: red;" > Error: ${error} \n\n${flow.mermaidSyntax} </pre>`;
+                console.error(`Error rendering ${flow.eventName}:`, error);
+                diagramDiv.innerHTML = `<pre style="color: red;">Error: ${error}\n\n${flow.mermaidSyntax}</pre>`;
             }
             section.appendChild(diagramDiv);
-
-            // Description (below diagram)
-            const descDiv = document.createElement('div');
-            descDiv.style.marginTop = '1rem';
-            descDiv.style.padding = '0.75rem';
-            descDiv.style.backgroundColor = '#1e1e1e';
-            descDiv.style.borderRadius = '4px';
-            descDiv.style.color = '#aaa';
-            descDiv.style.fontSize = '0.9rem';
-            descDiv.style.lineHeight = '1.5';
-            descDiv.innerHTML = `
-                <div style="margin-bottom: 0.5rem;">${flow.description}</div>
-                <div style="font-size: 0.8rem; color: #666;">
-                    <span style="color: #888;">Beteiligte Objekte:</span> 
-                    ${flow.involvedObjects.map(o => `<span style="color: #ffb74d; background: #3a3a3a; padding: 2px 6px; border-radius: 3px; margin-left: 4px;">${o}</span>`).join('')}
-                </div>
-            `;
-            section.appendChild(descDiv);
 
             container.appendChild(section);
         }
@@ -1773,7 +1764,7 @@ export class Editor implements IViewHost {
             return newObj.id;
         };
 
-        // JSONInspector handles updates via callbacks passed during initialization
+        // InspectorHost handles updates via callbacks passed during initialization
 
         this.render();
         // Select project by default
@@ -1785,6 +1776,8 @@ export class Editor implements IViewHost {
         // Initialize Playback UI (hidden by default)
         this.playbackControls = new PlaybackControls(document.body);
         this.playbackOverlay = new PlaybackOverlay(document.getElementById('stage-container') || document.body);
+
+        // Blueprint-Viewer wurde entfernt – Blueprint-Stage nutzt nun den normalen FlowEditor
     }
 
     /**
@@ -2097,7 +2090,7 @@ export class Editor implements IViewHost {
 
 
     /**
-     * Updates the 'availableActions' variable in JSONInspector based on the active stage.
+     * Updates the 'availableActions' variable in InspectorHost based on the active stage.
      * Filters out actions that belong to objects in other stages, keeping only:
      * 1. Actions for objects in the current stage.
      * 2. Global service actions (not belonging to any stage object).

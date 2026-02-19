@@ -59,7 +59,7 @@ export class TVariable extends TWindow {
                 label: 'Modell (Entität)',
                 type: 'select',
                 group: 'Variable',
-                source: 'availableModels', // Will be populated by Discovery in JSONInspector
+                source: 'availableModels', // Will be populated by Discovery in InspectorHost
                 placeholder: 'Modell wählen...'
             });
         }

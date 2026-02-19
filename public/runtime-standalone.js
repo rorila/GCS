@@ -1303,8 +1303,9 @@
       __publicField(this, "id", Math.random().toString(36).substr(2, 9));
       __publicField(this, "services", /* @__PURE__ */ new Map());
       console.log(`%c[ServiceRegistry] INSTANCE CREATED: ${this.id}`, "background: #000; color: #fff; font-size: 14px; padding: 4px;");
-      window._serviceRegistryInstances = window._serviceRegistryInstances || [];
-      window._serviceRegistryInstances.push(this.id);
+      const globalScope4 = typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : {};
+      globalScope4._serviceRegistryInstances = globalScope4._serviceRegistryInstances || [];
+      globalScope4._serviceRegistryInstances.push(this.id);
     }
     /**
      * Register a service with the registry
@@ -1832,8 +1833,18 @@
     actionRegistry.register("navigate_stage", (action, context) => {
       const stageId = action.stageId;
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-      if (stageId && context.onNavigate) {
-        const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, context.objects);
+      if (!stageId) return;
+      const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, context.objects);
+      const stageController = context.objects.find(
+        (o) => o.className === "TStageController" || o.constructor?.name === "TStageController"
+      );
+      if (stageController && typeof stageController.goToStage === "function") {
+        console.log(`[Action: navigate_stage] Via TStageController \u2192 ${resolved}`);
+        stageController.goToStage(resolved);
+        return;
+      }
+      if (context.onNavigate) {
+        console.log(`[Action: navigate_stage] Via onNavigate fallback \u2192 stage:${resolved}`);
         context.onNavigate(`stage:${resolved}`, action.params);
       }
     }, {
@@ -1966,6 +1977,14 @@
           let result = await serviceRegistry.call("ApiSimulator", "request", [method, url, parsedBody, storageFile]);
           if (action.requestJWT) {
             console.log(`[Action: http] JWT Simulation Result:`, result);
+            if (result && result.token) {
+              localStorage.setItem("auth_token", result.token);
+              console.log('[Action: http] Auto-saved JWT token to localStorage "auth_token"');
+            }
+            if (result && result.user) {
+              result = result.user;
+              console.log("[Action: http] Auto-unwrapped user object from JWT response");
+            }
           }
           if (action.resultPath && result) {
             result = PropertyHelper.getPropertyValue(result, action.resultPath);
@@ -1979,7 +1998,9 @@
             context.vars[resVar] = result;
             context.contextVars[resVar] = result;
             if (action.requestJWT) {
-              console.log(`[Action: http] Variable ${resVar} gesetzt auf:`, result);
+              const varName = context.objects.find((o) => o.id === resVar)?.name || resVar;
+              const displayValue = typeof result === "object" && result !== null ? JSON.stringify(result) : String(result);
+              console.log(`[Action: http] Variable "${varName}" gesetzt auf:`, displayValue);
             }
           }
           if (result && (result.error || result.status >= 400)) {
@@ -2013,6 +2034,14 @@
         let data = await response.json();
         if (action.requestJWT) {
           console.log(`[Action: http] JWT Real Response:`, data);
+          if (data && data.token) {
+            localStorage.setItem("auth_token", data.token);
+            console.log('[Action: http] Auto-saved JWT token to localStorage "auth_token"');
+          }
+          if (data && data.user) {
+            data = data.user;
+            console.log("[Action: http] Auto-unwrapped user object from JWT response");
+          }
         }
         if (action.resultPath && data) {
           data = PropertyHelper.getPropertyValue(data, action.resultPath);
@@ -2025,7 +2054,9 @@
           context.vars[action.resultVariable] = data;
           context.contextVars[action.resultVariable] = data;
           if (action.requestJWT) {
-            console.log(`[Action: http] Produktion: Variable ${action.resultVariable} gesetzt auf:`, data);
+            const varName = context.objects.find((o) => o.id === action.resultVariable)?.name || action.resultVariable;
+            const displayValue = typeof data === "object" && data !== null ? JSON.stringify(data) : String(data);
+            console.log(`[Action: http] Produktion: Variable "${varName}" gesetzt auf:`, displayValue);
           }
         }
         if (!response.ok) {
@@ -3301,25 +3332,34 @@
       __publicField(this, "projectVariables", {});
       __publicField(this, "stageVariables", {});
       __publicField(this, "contextVars");
+      // Registry for ALL global variables from all stages (Key: Name AND Key: ID)
+      __publicField(this, "globalDefinitions", /* @__PURE__ */ new Map());
       this.projectVariables = { ...initialGlobalVars };
       this.contextVars = this.createVariableContext();
     }
     initializeVariables(project) {
       if (project.stages) {
-        const blueprintStage = project.stages.find((s) => s.type === "blueprint");
-        if (blueprintStage && blueprintStage.variables) {
-          console.log(`[RuntimeVariableManager] Loading ${blueprintStage.variables.length} global variables from Blueprint Stage.`);
-          this.importVariables(blueprintStage.variables);
-        }
+        project.stages.forEach((stage) => {
+          if (stage.variables) {
+            stage.variables.forEach((v) => {
+              if (!v.scope || v.scope === "global") {
+                this.globalDefinitions.set(v.name, v);
+                if (v.id) this.globalDefinitions.set(v.id, v);
+                const initialValue = v.defaultValue !== void 0 ? v.defaultValue : v.value;
+                if (this.projectVariables[v.name] === void 0) {
+                  this.projectVariables[v.name] = initialValue !== void 0 ? initialValue : 0;
+                }
+              }
+            });
+          }
+        });
       }
       if (project.variables) {
-        this.importVariables(project.variables, true);
-      }
-      if (project.stages) {
-        const mainStage = project.stages.find((s) => s.type === "main");
-        if (mainStage && mainStage.variables) {
-          this.importVariables(mainStage.variables, true);
-        }
+        project.variables.forEach((v) => {
+          this.globalDefinitions.set(v.name, v);
+          if (v.id) this.globalDefinitions.set(v.id, v);
+          this.importVariables([v], true);
+        });
       }
     }
     initializeStageVariables(stage) {
@@ -3373,20 +3413,28 @@
         },
         set: (_target, prop, value) => {
           const oldValue = this.stageVariables[prop] !== void 0 ? this.stageVariables[prop] : this.projectVariables[prop];
-          let varDef = this.host.stage?.variables?.find((v) => v.name === prop);
-          if (!varDef && this.host.project.variables) {
-            varDef = this.host.project.variables.find((v) => v.name === prop);
+          let varDef = this.host.stage?.variables?.find((v) => v.name === prop || v.id === prop);
+          if (!varDef) {
+            varDef = this.globalDefinitions.get(prop);
+          }
+          if (!varDef && prop.startsWith("var_")) {
+            const cleanName = prop.substring(4);
+            varDef = this.host.stage?.variables?.find((v) => v.name === cleanName);
+            if (!varDef) {
+              varDef = this.globalDefinitions.get(cleanName);
+            }
           }
           let finalValue = value;
           if (varDef && varDef.isInteger && typeof value === "number") {
             finalValue = Math.floor(value);
           }
-          if (prop in this.stageVariables) {
-            this.stageVariables[prop] = finalValue;
-          } else if (prop in this.projectVariables) {
-            this.projectVariables[prop] = finalValue;
+          const actualProp = varDef ? varDef.name : prop;
+          if (actualProp in this.stageVariables) {
+            this.stageVariables[actualProp] = finalValue;
+          } else if (actualProp in this.projectVariables) {
+            this.projectVariables[actualProp] = finalValue;
           } else {
-            this.stageVariables[prop] = finalValue;
+            this.stageVariables[actualProp] = finalValue;
           }
           const component = this.host.objects?.find(
             (o) => varDef && o.id === varDef.id || o.name === prop && (o.isVariable || o.className?.includes("Variable"))
@@ -3401,17 +3449,16 @@
             } else if (component.value !== value) {
               component.value = value;
               componentUpdated = true;
-            } else if (component.value === value) {
             }
           }
           if (!componentUpdated) {
-            this.logVariableChange(prop, finalValue, oldValue);
+            this.logVariableChange(prop, finalValue, oldValue, varDef);
           }
           console.log(`%c[VariableContext:Set] ${prop} = ${JSON.stringify(finalValue)} (Old: ${JSON.stringify(oldValue)})`, "color: #e91e63");
-          this.host.reactiveRuntime.setVariable(prop, finalValue);
+          this.host.reactiveRuntime.setVariable(actualProp, finalValue);
           if (this.host.taskExecutor) {
             if (varDef) {
-              this.processVariableEvents(prop, finalValue, oldValue, varDef);
+              this.processVariableEvents(actualProp, finalValue, oldValue, varDef);
             }
           }
           return true;
@@ -3509,10 +3556,17 @@
       const taskName = `${varDef.name}.${eventName}`;
       await executor.execute(taskName, { sender: varDef }, this.contextVars, void 0, 0, eventLogId);
     }
-    logVariableChange(name, value, oldValue) {
+    logVariableChange(id, value, oldValue, varDef) {
       if (value === oldValue) return;
-      DebugLogService.getInstance().log("Variable", `${name}${name.includes(".") ? "" : ".value"} changed: ${oldValue !== void 0 ? oldValue : ""} -> ${value}`, {
-        objectName: name
+      const displayName = varDef ? varDef.name : id;
+      const displayValue = typeof value === "object" && value !== null ? JSON.stringify(value) : String(value);
+      DebugLogService.getInstance().log("Variable", `${displayName} := ${displayValue}`, {
+        objectName: displayName,
+        data: {
+          type: "variable",
+          variableName: displayName,
+          value
+        }
       });
     }
     async processListEvents(value, oldValue, varDef) {
@@ -8597,7 +8651,7 @@
           type: "select",
           group: "Variable",
           source: "availableModels",
-          // Will be populated by Discovery in JSONInspector
+          // Will be populated by Discovery in InspectorHost
           placeholder: "Modell w\xE4hlen..."
         });
       }
@@ -11375,7 +11429,10 @@
     }
     handleNavigation(target) {
       console.log(`[UniversalPlayer] Navigating to: ${target}`);
-      if (target.startsWith("game:")) {
+      if (target.startsWith("stage:")) {
+        const stageId = target.substring(6);
+        this.handleStageNavigation(stageId);
+      } else if (target.startsWith("game:")) {
         const gameFile = target.replace("game:", "");
         const baseUrl = network.getHttpUrl();
         this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`);
@@ -11392,6 +11449,35 @@
         const code = target.replace("room:", "");
         network.joinRoom(code);
         this.showOverlay("Beitritt zum Raum...", code);
+      }
+    }
+    /**
+     * Robuste Stage-Navigation für Standalone/Server-Umfeld.
+     * Nutzt TStageController wenn vorhanden, sonst direkten Runtime-Aufruf.
+     */
+    handleStageNavigation(stageId) {
+      if (!this.runtime || !this.currentProject) {
+        console.warn(`[UniversalPlayer] Cannot navigate to stage '${stageId}': no active runtime.`);
+        return;
+      }
+      const stageExists = this.currentProject.stages?.some((s) => s.id === stageId);
+      if (!stageExists) {
+        console.warn(`[UniversalPlayer] Stage '${stageId}' not found in project.stages.`);
+        return;
+      }
+      const objects = this.runtime.getObjects();
+      const stageController = objects.find(
+        (o) => o.className === "TStageController" || o.constructor?.name === "TStageController"
+      );
+      if (stageController && typeof stageController.goToStage === "function") {
+        console.log(`[UniversalPlayer] Stage navigation via TStageController \u2192 ${stageId}`);
+        stageController.goToStage(stageId);
+      } else {
+        console.log(`[UniversalPlayer] Stage navigation via direct runtime call \u2192 ${stageId}`);
+        this.runtime.handleStageChange(
+          this.runtime.stage?.id || "",
+          stageId
+        );
       }
     }
     setupScaling() {

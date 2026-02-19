@@ -373,9 +373,7 @@ export class FlowAction extends FlowElement {
     // We only return geometry if we call super, but JSON inspector merges.
     // Actually, if we remove it, the JSON inspector logic 'typeof object.getInspectorProperties === "function"' might fail 
     // if I check strictly.
-    // BUT I updated JSONInspector to check getType() === 'Action' first.
-    // So I can keep super.getInspectorProperties() if I want geometry? 
-    // My JSONInspector update merges static + dynamic. 
+    // InspectorHost handles type checks and merging.
     // So if I return [] here, I get JSON only. 
     // If I return super(), I get geometry + JSON. This is good!
     public getInspectorProperties(): any[] {

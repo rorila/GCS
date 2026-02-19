@@ -193,8 +193,20 @@ export class ProjectRegistry {
     public getTasks(stageId: string | 'all' | 'active' = 'active', resolveUsage: boolean = true): ScopedTask[] {
         if (!this.project) return [];
 
-        // 1. Global tasks
-        const globalTasks = (this.project.tasks || []).map(t => ({ ...t, uiScope: 'global' as const }));
+        // 1. Global tasks (Root + Blueprint)
+        const rootTasks = (this.project.tasks || []).map(t => ({ ...t, uiScope: 'global' as const }));
+
+        // Globals aus der Blueprint-Stage laden (primär)
+        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+        const bpTasks = (blueprintStage?.tasks || []).map(t => ({ ...t, uiScope: 'global' as const }));
+
+        // Merge (Blueprint hat Vorrang)
+        let globalTasks = [...rootTasks];
+        bpTasks.forEach(bt => {
+            const idx = globalTasks.findIndex(t => t.name === bt.name);
+            if (idx === -1) globalTasks.push(bt);
+            else globalTasks[idx] = bt;
+        });
 
         // 2. Library tasks
         const libTasks = libraryService.getTasks().map(t => ({ ...t, uiScope: 'library' as const }));
@@ -203,6 +215,8 @@ export class ProjectRegistry {
             let allTasks = [...globalTasks, ...libTasks];
             if (this.project.stages) {
                 this.project.stages.forEach(stage => {
+                    // Blueprint Tasks wurden schon als global geladen
+                    if (stage.type === 'blueprint') return;
                     if (stage.tasks) {
                         allTasks = [...allTasks, ...stage.tasks.map(t => ({ ...t, uiScope: 'stage' as const }))];
                     }
@@ -214,7 +228,7 @@ export class ProjectRegistry {
         const targetStageId = stageId === 'active' ? this.activeStageId : stageId;
         if (targetStageId && this.project.stages) {
             const stage = this.project.stages.find(s => s.id === targetStageId);
-            if (stage && stage.tasks) {
+            if (stage && stage.type !== 'blueprint' && stage.tasks) {
                 const stageTasks = stage.tasks.map(t => ({ ...t, uiScope: 'stage' as const }));
                 return [...globalTasks, ...stageTasks, ...libTasks].map(t => ({ ...t, usageCount: resolveUsage ? this.getTaskUsage(t.name).length : 0 }));
             }
@@ -271,13 +285,27 @@ export class ProjectRegistry {
     public getActions(stageId: string | 'all' | 'active' = 'active', resolveUsage: boolean = true): ScopedAction[] {
         if (!this.project) return [];
 
-        // 1. Global actions
-        const globalActions: ScopedAction[] = (this.project.actions || []).map(a => ({ ...a, uiScope: 'global' as const }));
+        // 1. Global actions (Root + Blueprint)
+        const rootActions = (this.project.actions || []).map(a => ({ ...a, uiScope: 'global' as const }));
+
+        // Globals aus der Blueprint-Stage laden (primär)
+        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+        const bpActions = (blueprintStage?.actions || []).map(a => ({ ...a, uiScope: 'global' as const }));
+
+        // Merge (Blueprint hat Vorrang)
+        let globalActions: ScopedAction[] = [...rootActions];
+        bpActions.forEach(ba => {
+            const idx = globalActions.findIndex(a => a.name === ba.name);
+            if (idx === -1) globalActions.push(ba);
+            else globalActions[idx] = ba;
+        });
 
         if (stageId === 'all') {
             let allActions = [...globalActions];
             if (this.project.stages) {
                 this.project.stages.forEach(stage => {
+                    // Blueprint Aktionen wurden schon als global geladen
+                    if (stage.type === 'blueprint') return;
                     if (stage.actions) {
                         allActions = [...allActions, ...stage.actions.map(a => ({ ...a, uiScope: 'stage' as const }))];
                     }
@@ -289,7 +317,7 @@ export class ProjectRegistry {
         const targetStageId = stageId === 'active' ? this.activeStageId : stageId;
         if (targetStageId && this.project.stages) {
             const stage = this.project.stages.find(s => s.id === targetStageId);
-            if (stage && stage.actions) {
+            if (stage && stage.type !== 'blueprint' && stage.actions) {
                 const stageActions: ScopedAction[] = stage.actions.map(a => ({ ...a, uiScope: 'stage' as const }));
                 return [...globalActions, ...stageActions].map(a => ({ ...a, usageCount: resolveUsage ? this.getActionUsage(a.name).length : 0 }));
             }

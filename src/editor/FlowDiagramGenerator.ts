@@ -29,17 +29,26 @@ export class FlowDiagramGenerator {
         const flows: EventFlow[] = [];
         const processedEvents = new Set<string>();
 
-        if (!this.project?.objects) return flows;
+        // Sammle alle relevanten Objekte aus ALLEN Stages + Root
+        const allObjects = [
+            ...(this.project?.objects || []),
+            ...(this.project?.stages || []).flatMap(s => s.objects || [])
+        ];
+
+        if (allObjects.length === 0) return flows;
 
         // Find all unique events with their source objects
-        for (const obj of this.project.objects) {
-            if ((obj as any).Tasks) {
-                for (const [eventName, taskName] of Object.entries((obj as any).Tasks)) {
+        for (const obj of allObjects) {
+            const taskMap = (obj as any).Tasks || (obj as any).events;
+            if (taskMap) {
+                for (const [eventName, taskName] of Object.entries(taskMap)) {
                     // Skip empty task mappings (disconnected events)
                     if (!taskName || taskName === '') continue;
 
-                    if (!processedEvents.has(eventName)) {
-                        processedEvents.add(eventName);
+                    // Unique key: object ID + event name to ensure we see all triggers
+                    const flowKey = `${obj.id || obj.name}_${eventName}`;
+                    if (!processedEvents.has(flowKey)) {
+                        processedEvents.add(flowKey);
                         const flowData = this.buildSingleDiagram(eventName, taskName as string, obj);
                         flows.push(flowData);
                     }
@@ -74,10 +83,19 @@ export class FlowDiagramGenerator {
 
         // Track objects affected by actions
         const trackAction = (actionName: string) => {
-            const action: any = this.project?.actions?.find(a => a.name === actionName);
+            const allActions = [
+                ...(this.project?.actions || []),
+                ...(this.project?.stages || []).flatMap(s => s.actions || [])
+            ];
+            const action: any = allActions.find(a => a.name === actionName);
+
             // Actions can have 'target' property pointing to object name
             if (action?.target) {
-                const targetObj = this.project?.objects?.find((o: any) => o.name === action.target || o.id === action.target);
+                const allObjects = [
+                    ...(this.project?.objects || []),
+                    ...(this.project?.stages || []).flatMap(s => s.objects || [])
+                ];
+                const targetObj = allObjects.find((o: any) => o.name === action.target || o.id === action.target);
                 if (targetObj?.name) {
                     involvedObjects.add(targetObj.name);
                 }
@@ -86,11 +104,16 @@ export class FlowDiagramGenerator {
 
         // Get formatted action label with optional details
         const getActionLabel = (actionName: string): string => {
+            const allActions = [
+                ...(this.project?.actions || []),
+                ...(this.project?.stages || []).flatMap(s => s.actions || [])
+            ];
+
             if (!FlowDiagramGenerator.showActionDetails) {
                 return `(["${actionName}"])`;
             }
 
-            const action: any = this.project?.actions?.find(a => a.name === actionName);
+            const action: any = allActions.find(a => a.name === actionName);
             if (!action) {
                 return `(["${actionName}"])`;
             }
@@ -132,7 +155,11 @@ export class FlowDiagramGenerator {
             if (expandedTasks.has(taskNameArg)) return;
             expandedTasks.add(taskNameArg);
 
-            const task = this.project?.tasks?.find(t => t.name === taskNameArg);
+            const allTasks = [
+                ...(this.project?.tasks || []),
+                ...(this.project?.stages || []).flatMap(s => s.tasks || [])
+            ];
+            const task = allTasks.find(t => t.name === taskNameArg);
             if (!task?.actionSequence) return;
 
             for (const item of task.actionSequence) {
