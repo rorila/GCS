@@ -10,11 +10,13 @@ import { serviceRegistry } from './ServiceRegistry';
  * Wird als Callback-Parameter an `AgentController.addBranch()` übergeben.
  */
 export class BranchBuilder {
-    private items: SequenceItem[] = [];
     private controller: AgentController;
+    private items: SequenceItem[] = [];
+    private stageId: string | undefined;
 
-    constructor(controller: AgentController) {
+    constructor(controller: AgentController, stageId?: string) {
         this.controller = controller;
+        this.stageId = stageId;
     }
 
     /** Referenziert eine existierende, global definierte Action. */
@@ -23,10 +25,10 @@ export class BranchBuilder {
         return this;
     }
 
-    /** Definiert eine NEUE Action global und referenziert sie im Branch. */
+    /** Definiert eine NEUE Action (global oder stage-spezifisch) und referenziert sie im Branch. */
     addNewAction(actionType: ActionType, actionName: string, params: Record<string, any> = {}): BranchBuilder {
-        // Delegate global creation to AgentController
-        this.controller.ensureActionDefined(actionType, actionName, params);
+        // Delegate creation to AgentController with stage context
+        this.controller.ensureActionDefined(actionType, actionName, params, this.stageId);
         this.items.push({ type: 'action', name: actionName });
         return this;
     }
@@ -209,13 +211,16 @@ export class AgentController {
         const task = this.getTaskByName(taskName);
         if (!task) throw new Error(`Task '${taskName}' not found.`);
 
-        // 2. Build Branches
-        const thenBranch = new BranchBuilder(this);
+        // 2. Build Branches with stage context from Task
+        const taskOwner = projectRegistry.getTaskContainer(taskName);
+        const stageId = taskOwner.type === 'stage' ? taskOwner.stageId : undefined;
+
+        const thenBranch = new BranchBuilder(this, stageId);
         thenBuilder(thenBranch);
 
         let elseBranch: BranchBuilder | undefined;
         if (elseBuilder) {
-            elseBranch = new BranchBuilder(this);
+            elseBranch = new BranchBuilder(this, stageId);
             elseBuilder(elseBranch);
         }
 
@@ -274,23 +279,51 @@ export class AgentController {
     // ─────────────────────────────────────────────
 
     /**
-     * Definiert eine Action global, ohne sie an einen Task anzuhängen.
+     * Definiert eine Action (global oder in einer Stage), ohne sie an einen Task anzuhängen.
      * Wird intern vom BranchBuilder genutzt.
      */
-    public ensureActionDefined(actionType: ActionType, actionName: string, params: Record<string, any> = {}) {
+    public ensureActionDefined(actionType: ActionType, actionName: string, params: Record<string, any> = {}, stageId?: string) {
         this.validateProjectLoaded();
+
+        // 1. Suche bestehende Action (global oder in der Ziel-Stage)
         let actionDef = this.getActionByName(actionName);
+
+        // 2. Falls stageId angegeben, prüfe ob sie dort existiert
+        if (stageId) {
+            const stage = this.project!.stages?.find(s => s.id === stageId);
+            if (stage) {
+                if (!stage.actions) stage.actions = [];
+                const stageAction = stage.actions.find(a => a.name === actionName);
+                if (stageAction) actionDef = stageAction;
+            }
+        }
+
         if (actionDef) {
-            // Already exists – update params if needed
+            // Bereits existent – Parameter aktualisieren
             Object.assign(actionDef, params);
+            console.log(`[AgentController] Updated existing action: ${actionName}`);
         } else {
+            // Neu erstellen
             actionDef = {
                 name: actionName,
                 type: actionType,
                 ...params
             };
+
+            if (stageId) {
+                const stage = this.project!.stages?.find(s => s.id === stageId);
+                if (stage) {
+                    if (!stage.actions) stage.actions = [];
+                    stage.actions.push(actionDef);
+                    console.log(`[AgentController] Created new STAGE action: ${actionName} in ${stageId}`);
+                    return;
+                }
+            }
+
+            // Fallback: Global
             if (!this.project!.actions) this.project!.actions = [];
             this.project!.actions.push(actionDef);
+            console.log(`[AgentController] Created new GLOBAL action: ${actionName}`);
         }
     }
 
@@ -315,8 +348,113 @@ export class AgentController {
         return this.project!.actions?.find(a => a.name === name);
     }
 
+    /**
+     * Generiert ein visuelles FlowChart Diagramm aus der actionSequence des Tasks.
+     * Dies garantiert, dass der Task im Editor sofort mit richtigem Layout erscheint.
+     */
+    public generateTaskFlow(taskName: string) {
+        this.validateProjectLoaded();
+        const task = this.getTaskByName(taskName);
+        if (!task) throw new Error(`Task '${taskName}' not found.`);
+
+        const elements: any[] = [];
+        const connections: any[] = [];
+        let nextId = 1;
+        const getId = (type: string) => `node-${Date.now()}-${nextId++}`;
+
+        // Root Node
+        const rootId = getId('task');
+        elements.push({
+            id: rootId,
+            type: 'Task',
+            x: 400, y: 50,
+            properties: { name: task.name, text: task.name, description: task.description },
+            data: { name: task.name }
+        });
+
+        let currentY = 180;
+        let lastId = rootId;
+
+        const processItems = (sequence: any[], startId: string, startY: number, startX: number = 400) => {
+            let y = startY;
+            let prevId = startId;
+
+            sequence.forEach((item: any) => {
+                const id = getId(item.type || 'action');
+
+                if (item.type === 'condition') {
+                    elements.push({
+                        id, type: 'Condition',
+                        x: startX, y: y,
+                        properties: { text: item.name || `${item.condition.variable} ${item.condition.operator} ${item.condition.value}` }
+                    });
+                    connections.push({
+                        startTargetId: prevId, endTargetId: id,
+                        data: { startAnchorType: 'output', endAnchorType: 'input' }
+                    });
+
+                    const branchY = y + 130;
+
+                    // THEN Branch
+                    if (item.then?.[0]) {
+                        processItems(item.then, id, branchY, startX - 250);
+                        // Verbinde Condition mit erstem Item im Then
+                        connections.push({
+                            startTargetId: id, endTargetId: elements[elements.length - item.then.length].id,
+                            data: { startAnchorType: 'true', endAnchorType: 'input' }
+                        });
+                    }
+
+                    // ELSE Branch
+                    if (item.else?.[0]) {
+                        processItems(item.else, id, branchY, startX + 250);
+                        // Verbinde Condition mit erstem Item im Else
+                        connections.push({
+                            startTargetId: id, endTargetId: elements[elements.length - item.else.length].id,
+                            data: { startAnchorType: 'false', endAnchorType: 'input' }
+                        });
+                    }
+
+                    y = branchY + (Math.max(item.then?.length || 0, item.else?.length || 0) * 130) + 50;
+                    prevId = id;
+                } else {
+                    elements.push({
+                        id, type: item.type === 'task' ? 'Task' : 'Action',
+                        x: startX, y: y,
+                        properties: { name: item.name, text: item.name },
+                        data: { name: item.name, isLinked: true }
+                    });
+                    connections.push({
+                        startTargetId: prevId, endTargetId: id,
+                        data: { startAnchorType: 'output', endAnchorType: 'input' }
+                    });
+                    prevId = id;
+                    y += 130;
+                }
+            });
+            return { lastId: prevId, lastY: y };
+        };
+
+        processItems(task.actionSequence, rootId, currentY);
+
+        // Speichere in der entsprechenden Stage
+        const container = projectRegistry.getTaskContainer(taskName);
+        if (container.type === 'stage' && container.stageId) {
+            const stage = this.project!.stages?.find(s => s.id === container.stageId);
+            if (stage) {
+                if (!stage.flowCharts) stage.flowCharts = {};
+                stage.flowCharts[taskName] = { elements, connections };
+                console.log(`[AgentController] Generated FlowChart for '${taskName}' in stage '${container.stageId}'`);
+            }
+        } else {
+            if (!this.project!.flowCharts) this.project!.flowCharts = {};
+            this.project!.flowCharts[taskName] = { elements, connections };
+            console.log(`[AgentController] Generated GLOBAL FlowChart for '${taskName}'`);
+        }
+    }
+
     private invalidateTaskFlow(taskName: string) {
-        // Remove flowChart data to force re-generation by FlowEditor from actionSequence
+        // ... same as before ...
         if (this.project!.flowCharts && this.project!.flowCharts[taskName]) {
             delete this.project!.flowCharts[taskName];
         }
@@ -331,7 +469,6 @@ export class AgentController {
 
     private validateProjectLoaded() {
         if (!this.project) {
-            // Try to fetch from registry if not set
             this.project = projectRegistry.getProject();
             if (!this.project) throw new Error("AgentController: No project loaded.");
         }

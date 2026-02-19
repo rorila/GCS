@@ -36,6 +36,27 @@
       "name": "SendApiResponse",
       "type": "handle_api_request",
       "showDetails": false
+    },
+    {
+      "name": "GotoDashboard",
+      "type": "navigate_stage",
+      "stageId": "stage_dashboard"
+    },
+    {
+      "name": "ShowLoginError",
+      "type": "call_method",
+      "target": "Toaster",
+      "method": "show",
+      "params": [
+        "Login fehlgeschlagen – bitte erneut versuchen",
+        "error"
+      ]
+    },
+    {
+      "name": "ClearPIN",
+      "type": "set_variable",
+      "variableName": "currentPIN",
+      "value": ""
     }
   ],
   "tasks": [],
@@ -1517,6 +1538,31 @@
                   "name": "ClearPIN"
                 }
               ]
+            },
+            {
+              "type": "condition",
+              "name": "Branch: currentUser.role != ",
+              "condition": {
+                "variable": "currentUser.role",
+                "operator": "!=",
+                "value": ""
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "GotoDashboard"
+                }
+              ],
+              "else": [
+                {
+                  "type": "action",
+                  "name": "ShowLoginError"
+                },
+                {
+                  "type": "action",
+                  "name": "ClearPIN"
+                }
+              ]
             }
           ],
           "triggerMode": "local-sync",
@@ -1565,133 +1611,7 @@
           "value": ""
         }
       ],
-      "flowCharts": {
-        "AttemptLogin": {
-          "elements": [
-            {
-              "id": "node-1771512791433-1",
-              "type": "Task",
-              "x": 400,
-              "y": 50,
-              "properties": {
-                "name": "AttemptLogin",
-                "text": "AttemptLogin",
-                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
-              },
-              "data": {
-                "name": "AttemptLogin"
-              }
-            },
-            {
-              "id": "node-1771512791434-2",
-              "type": "Action",
-              "x": 400,
-              "y": 180,
-              "properties": {
-                "name": "doTheAuthenfification",
-                "text": "doTheAuthenfification"
-              },
-              "data": {
-                "name": "doTheAuthenfification",
-                "isLinked": true
-              }
-            },
-            {
-              "id": "node-1771512791434-3",
-              "type": "Condition",
-              "x": 400,
-              "y": 310,
-              "properties": {
-                "text": "currentUser.role != "
-              }
-            },
-            {
-              "id": "node-1771512791434-4",
-              "type": "Action",
-              "x": 150,
-              "y": 440,
-              "properties": {
-                "name": "GotoDashboard",
-                "text": "GotoDashboard"
-              },
-              "data": {
-                "name": "GotoDashboard",
-                "isLinked": true
-              }
-            },
-            {
-              "id": "node-1771512791434-5",
-              "type": "Action",
-              "x": 650,
-              "y": 440,
-              "properties": {
-                "name": "ShowLoginError",
-                "text": "ShowLoginError"
-              },
-              "data": {
-                "name": "ShowLoginError",
-                "isLinked": true
-              }
-            },
-            {
-              "id": "node-1771512791434-6",
-              "type": "Action",
-              "x": 650,
-              "y": 560,
-              "properties": {
-                "name": "ClearPIN",
-                "text": "ClearPIN"
-              },
-              "data": {
-                "name": "ClearPIN",
-                "isLinked": true
-              }
-            }
-          ],
-          "connections": [
-            {
-              "startTargetId": "node-1771512791433-1",
-              "endTargetId": "node-1771512791434-2",
-              "data": {
-                "startAnchorType": "output",
-                "endAnchorType": "input"
-              }
-            },
-            {
-              "startTargetId": "node-1771512791434-2",
-              "endTargetId": "node-1771512791434-3",
-              "data": {
-                "startAnchorType": "output",
-                "endAnchorType": "input"
-              }
-            },
-            {
-              "startTargetId": "node-1771512791434-3",
-              "endTargetId": "node-1771512791434-4",
-              "data": {
-                "startAnchorType": "true",
-                "endAnchorType": "input"
-              }
-            },
-            {
-              "startTargetId": "node-1771512791434-3",
-              "endTargetId": "node-1771512791434-5",
-              "data": {
-                "startAnchorType": "false",
-                "endAnchorType": "input"
-              }
-            },
-            {
-              "startTargetId": "node-1771512791434-5",
-              "endTargetId": "node-1771512791434-6",
-              "data": {
-                "startAnchorType": "output",
-                "endAnchorType": "input"
-              }
-            }
-          ]
-        }
-      }
+      "flowCharts": {}
     },
     {
       "id": "stage_player_lobby",
@@ -2520,6 +2440,246 @@
     "global": {
       "elements": [],
       "connections": []
+    },
+    "AttemptLogin": {
+      "elements": [
+        {
+          "id": "node-1771513021504-1",
+          "type": "Task",
+          "x": 400,
+          "y": 50,
+          "properties": {
+            "name": "AttemptLogin",
+            "text": "AttemptLogin",
+            "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
+          },
+          "data": {
+            "name": "AttemptLogin"
+          }
+        },
+        {
+          "id": "node-1771513021504-2",
+          "type": "Action",
+          "x": 400,
+          "y": 180,
+          "properties": {
+            "name": "doTheAuthenfification",
+            "text": "doTheAuthenfification"
+          },
+          "data": {
+            "name": "doTheAuthenfification",
+            "isLinked": true
+          }
+        },
+        {
+          "id": "node-1771513021504-3",
+          "type": "Condition",
+          "x": 400,
+          "y": 310,
+          "properties": {
+            "text": "Login Check"
+          }
+        },
+        {
+          "id": "node-1771513021504-4",
+          "type": "Action",
+          "x": 150,
+          "y": 440,
+          "properties": {
+            "name": "GotoDashboard",
+            "text": "GotoDashboard"
+          },
+          "data": {
+            "name": "GotoDashboard",
+            "isLinked": true
+          }
+        },
+        {
+          "id": "node-1771513021504-5",
+          "type": "Action",
+          "x": 650,
+          "y": 440,
+          "properties": {
+            "name": "ShowLoginError",
+            "text": "ShowLoginError"
+          },
+          "data": {
+            "name": "ShowLoginError",
+            "isLinked": true
+          }
+        },
+        {
+          "id": "node-1771513021504-6",
+          "type": "Action",
+          "x": 650,
+          "y": 570,
+          "properties": {
+            "name": "ClearPIN",
+            "text": "ClearPIN"
+          },
+          "data": {
+            "name": "ClearPIN",
+            "isLinked": true
+          }
+        },
+        {
+          "id": "node-1771513021504-7",
+          "type": "Condition",
+          "x": 400,
+          "y": 750,
+          "properties": {
+            "text": "Branch: currentUser.role != "
+          }
+        },
+        {
+          "id": "node-1771513021504-8",
+          "type": "Action",
+          "x": 150,
+          "y": 880,
+          "properties": {
+            "name": "GotoDashboard",
+            "text": "GotoDashboard"
+          },
+          "data": {
+            "name": "GotoDashboard",
+            "isLinked": true
+          }
+        },
+        {
+          "id": "node-1771513021504-9",
+          "type": "Action",
+          "x": 650,
+          "y": 880,
+          "properties": {
+            "name": "ShowLoginError",
+            "text": "ShowLoginError"
+          },
+          "data": {
+            "name": "ShowLoginError",
+            "isLinked": true
+          }
+        },
+        {
+          "id": "node-1771513021504-10",
+          "type": "Action",
+          "x": 650,
+          "y": 1010,
+          "properties": {
+            "name": "ClearPIN",
+            "text": "ClearPIN"
+          },
+          "data": {
+            "name": "ClearPIN",
+            "isLinked": true
+          }
+        }
+      ],
+      "connections": [
+        {
+          "startTargetId": "node-1771513021504-1",
+          "endTargetId": "node-1771513021504-2",
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-2",
+          "endTargetId": "node-1771513021504-3",
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-3",
+          "endTargetId": "node-1771513021504-4",
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-3",
+          "endTargetId": "node-1771513021504-4",
+          "data": {
+            "startAnchorType": "true",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-3",
+          "endTargetId": "node-1771513021504-5",
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-5",
+          "endTargetId": "node-1771513021504-6",
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-3",
+          "endTargetId": "node-1771513021504-5",
+          "data": {
+            "startAnchorType": "false",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-3",
+          "endTargetId": "node-1771513021504-7",
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-7",
+          "endTargetId": "node-1771513021504-8",
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-7",
+          "endTargetId": "node-1771513021504-8",
+          "data": {
+            "startAnchorType": "true",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-7",
+          "endTargetId": "node-1771513021504-9",
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-9",
+          "endTargetId": "node-1771513021504-10",
+          "data": {
+            "startAnchorType": "output",
+            "endAnchorType": "input"
+          }
+        },
+        {
+          "startTargetId": "node-1771513021504-7",
+          "endTargetId": "node-1771513021504-9",
+          "data": {
+            "startAnchorType": "false",
+            "endAnchorType": "input"
+          }
+        }
+      ]
     }
   }
 }
