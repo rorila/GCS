@@ -5,11 +5,13 @@ import { GameProject } from '../src/model/types';
 
 // Mock Project
 const mockProject: GameProject = {
-    metadata: {
+    meta: {
         name: "TestProject",
         version: "1.0.0",
         author: "Tester"
-    },
+    } as any,
+    stage: { grid: { width: 800, height: 600 } } as any,
+    objects: [],
     tasks: [],
     stages: [
         {
@@ -19,7 +21,7 @@ const mockProject: GameProject = {
             variables: [],
             elements: [],
             background: '#000000'
-        }
+        } as any
     ],
     actions: [],
     variables: [],
@@ -51,11 +53,11 @@ if (globalTask && stageTask) {
 // Test 2: Add Action
 console.log("\n3. Testing Add Action...");
 try {
-    agentController.addAction(taskName, 'log', 'LogStart', { message: 'Hello Agent' });
+    agentController.addAction(taskName, 'service', 'LogStart', { message: 'Hello Agent' });
 
     // Verify Action Global Definition
     const actionDef = mockProject.actions?.find(a => a.name === 'LogStart');
-    if (!actionDef || actionDef.type !== 'log') {
+    if (!actionDef || actionDef.type !== 'service') {
         console.error("❌ Action global definition missing or wrong type!");
         process.exit(1);
     }
@@ -87,7 +89,7 @@ mockProject.tasks!.push({ name: 'ExistingTask', actionSequence: [] });
 // (Simulate existing flow chart above in mockProject definition)
 
 console.log("   Updating 'ExistingTask'...");
-agentController.addAction('ExistingTask', 'wait', 'Wait1s');
+agentController.addAction('ExistingTask', 'property', 'Wait1s');
 
 if (mockProject.flowCharts && mockProject.flowCharts['ExistingTask']) {
     console.error("❌ FlowChart should have been DELETED after update!");

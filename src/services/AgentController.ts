@@ -1,4 +1,4 @@
-import { GameProject, BaseAction, GameTask } from '../model/types';
+import { GameProject, BaseAction, GameTask, ActionType } from '../model/types';
 import { projectRegistry } from './ProjectRegistry';
 import { mediatorService } from './MediatorService';
 import { serviceRegistry } from './ServiceRegistry';
@@ -94,7 +94,7 @@ export class AgentController {
      * - Keine Inline-Actions (nur Referenzen).
      * - Action muss global definiert sein.
      */
-    public addAction(taskName: string, actionType: string, actionName: string, params: Record<string, any> = {}) {
+    public addAction(taskName: string, actionType: ActionType, actionName: string, params: Record<string, any> = {}) {
         this.validateProjectLoaded();
 
         // 1. Get Task
