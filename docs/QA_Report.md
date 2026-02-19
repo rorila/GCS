@@ -1,6 +1,6 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 19.2.2026, 12:55:09
+**Generiert am**: 19.2.2026, 14:24:45
 **Status**: ✅ ALLE TESTS BESTANDEN
 
 ## 📊 Visuelle Übersicht
@@ -29,6 +29,7 @@ pie title Test-Status (Gesamt: 16)
 | Unification: ExpressionParser Interpolation<br><small>Result: Hello Rolf</small> | Smart Mapping | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Unification: Source-Level Unwrapping (Sim)<br><small>Type: object, IsArray: false</small> | Smart Mapping | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Unification: Deep Path Auto-Unwrap<br><small>Version: 123</small> | Smart Mapping | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| AgentController: Core API<br><small>CreateTask, AddAction, FlowInvalidation</small> | Integration | ✅ **Gut-Test** | Flow Regenerated | OK/Erhalten | ✅ |
 
 ---
 *Hinweis: Dieser Bericht wurde automatisch vom GCS Regression Test Runner erstellt.*

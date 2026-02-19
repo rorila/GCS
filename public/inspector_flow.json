@@ -1,0 +1,45 @@
+{
+    "meta": {
+        "name": "Flow Inspector",
+        "version": "1.0.0",
+        "description": "Minimal Inspector for Flow Actions and Tasks"
+    },
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "TitleLabel",
+            "text": "${selectedObject.name || selectedObject.meta?.name || 'No Selection'}",
+            "style": {
+                "fontSize": 14,
+                "fontWeight": "bold",
+                "color": "#00ffff",
+                "marginBottom": 12
+            }
+        },
+        {
+            "className": "TLabel",
+            "name": "NameLabel",
+            "text": "Name:",
+            "style": {
+                "fontSize": 11,
+                "color": "#888"
+            }
+        },
+        {
+            "className": "TEdit",
+            "name": "Name",
+            "text": "${selectedObject.Name}",
+            "width": 100
+        },
+        {
+            "className": "TButton",
+            "name": "DeleteButton",
+            "caption": "🗑️ Delete Object",
+            "style": {
+                "backgroundColor": "#c82333",
+                "color": "#fff",
+                "marginTop": 20
+            }
+        }
+    ]
+}

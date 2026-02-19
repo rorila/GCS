@@ -1,5 +1,6 @@
 UseCase Index
 -------------
+- AIAgentController: Technische Schnittstelle (API) für AI-Agenten (`AgentController.ts`) zur sicheren Manipulation des Projekts. Erzwingt Validierungsregeln (keine Inline-Actions), korrekte Task-Registrierung (Global/Stage) und implementiert die "Scorched Earth" Strategie zur Flow-Regeneration (`invalidateTaskFlow`).
 - ActionParameterStandardisierung: Umstellung auf OOP-Struktur und 1:1 Mapping von UI zu Modell.
 - SaveAction: (Teil von ActionParameterStandardisierung) Der Prozess der Werterfassung und Bereinigung vor dem Speichern.
 - FlowEditorDetailAnzeige: Wie Aktionen im Flow-Editor visualisiert werden und woher die Detail-Strings kommen.

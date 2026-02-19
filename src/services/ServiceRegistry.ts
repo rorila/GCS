@@ -23,8 +23,9 @@ export class ServiceRegistryClass {
 
     constructor() {
         console.log(`%c[ServiceRegistry] INSTANCE CREATED: ${this.id}`, 'background: #000; color: #fff; font-size: 14px; padding: 4px;');
-        (window as any)._serviceRegistryInstances = (window as any)._serviceRegistryInstances || [];
-        (window as any)._serviceRegistryInstances.push(this.id);
+        const globalScope = typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : {} as any);
+        globalScope._serviceRegistryInstances = globalScope._serviceRegistryInstances || [];
+        globalScope._serviceRegistryInstances.push(this.id);
     }
 
     /**

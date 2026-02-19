@@ -1,3 +1,9 @@
+### [3.3.6] - 2026-02-19
+- **Feature**: AI Agent Controller API (`AgentController.ts`) eingeführt.
+    - Bietet eine typsichere "High-Level" API für AI-Agenten zur Projekt-Manipulation.
+    - **Architektur-Schutz**: Verhindert aktiv die Erstellung von Inline-Actions (erzwingt globale Definition + Referenz) und stellt konsistente Task-Registrierung (Global + Stage) sicher.
+    - **Flow-Konsistenz**: Implementierung der "Scorched Earth" Strategie für FlowCharts – bei logischen Änderungen am Task wird das Diagramm gelöscht, um eine saubere Neu-Generierung durch den `FlowEditor` zu erzwingen.
+
 ### [3.3.5] - 2026-02-19
 - **Bugfix**: `RuntimeVariableManager` loggte Variablen-Änderungen als `[object Object]`.
     - Behoben durch explizite `JSON.stringify` Konvertierung von Objekten im Logging.

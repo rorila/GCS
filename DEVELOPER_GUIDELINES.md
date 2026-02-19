@@ -14,6 +14,18 @@
     - `formula`: Berechnungsformel für `calculate` Actions
     - `variableName`: Name einer zu lesenden/schreibenden Variable (statt `variable`)
 
+    - `variableName`: Name einer zu lesenden/schreibenden Variable (statt `variable`)
+
+## AI Agent API & Flow Safety (v3.3.6)
+- **AgentController**: Alle programmatischen Änderungen am Projekt (durch Scripts/AI) MÜSSEN über den `AgentController` laufen. Direkte Manipulation von `project.json` ist verboten, um Inkonsistenzen zu vermeiden.
+- **Scorched Earth Strategy (Flow)**:
+    - Wenn Logik (Tasks/Actions) programmatisch geändert wird, muss das zugehörige `flowChart` gelöscht werden (`invalidateTaskFlow`).
+    - Der `FlowEditor` besitzt eine automatische **Self-Healing-Funktion** (`generateFlowFromActionSequence`), die beim Öffnen aus der Logik ein perfektes Diagramm regeneriert.
+    - Versuche NIEMALS, Flow-Diagramme (Nodes/Edges) manuell via Skript zu patchen. Das führt zu Desynchronisation. Löschen und Regenerieren lassen ist sicherer.
+- **Inline-Action Verbot**:
+    - Programmatisch erstellte Tasks dürfen KEINE kompletten Action-Objekte in `actionSequence` enthalten.
+    - **Korrekter Weg**: Action global definieren (`project.actions.push({...})`) -> Im Task nur Referenz speichern (`{ type: 'action', name: '...' }`).
+
 ## Inspector & Refactoring (v2.16.21)
 - **Inspector JSON-Konfiguration**: Für Flow-Elemente mit spezifischem Layout (wie `DataAction`) ist die Verwendung einer dedizierten JSON-Datei (z.B. `public/inspector_data_action.json`) der Standard.
     - **Two-Way-Binding**: Um Felder editierbar zu machen, muss das Binding direkt auf das Property zeigen (z.B. `${selectedObject.Name}` statt `${selectedObject.name || ...}`).
