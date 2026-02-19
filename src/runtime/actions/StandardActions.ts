@@ -80,12 +80,19 @@ export function registerStandardActions() {
             val = PropertyHelper.interpolate(String(sourceName), { ...context.contextVars, ...context.vars }, context.objects);
         }
 
+        // 4. FIX (v3.3.17): Direkt definierten Literal-Wert verwenden (z.B. set_variable mit value:"")
+        //    Wichtig: leerer String "" ist ein valider Wert, daher explizite Prüfung auf undefined
+        if (val === undefined && action.value !== undefined) {
+            const combinedCtx = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+            val = PropertyHelper.interpolate(String(action.value), combinedCtx, context.objects);
+        }
+
         // Zuweisung
         if (val !== undefined && variableName) {
             context.vars[variableName] = val;
             context.contextVars[variableName] = val;
 
-            DebugLogService.getInstance().log('Variable', `Variable "${variableName}" auf "${val}" gesetzt (Quelle: ${sourceName}${action.sourceProperty ? '.' + action.sourceProperty : ''})`, {
+            DebugLogService.getInstance().log('Variable', `Variable "${variableName}" auf "${val}" gesetzt (Quelle: ${sourceName || action.value})${action.sourceProperty ? '.' + action.sourceProperty : ''}`, {
                 data: { value: val, source: sourceName, property: action.sourceProperty }
             });
         } else {
@@ -587,6 +594,68 @@ export function registerStandardActions() {
         parameters: [
             { name: 'message', label: 'Nachricht', type: 'string' },
             { name: 'toastType', label: 'Typ', type: 'select', options: ['info', 'success', 'warning', 'error'], defaultValue: 'info' }
+        ]
+    });
+
+    // 12. Methoden-Aufruf auf Objekt oder Service (call_method)
+    //     Unterstützt: { type:'call_method', target:'Toaster', method:'show', params:['msg','error'] }
+    actionRegistry.register('call_method', async (action, context) => {
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        const targetName = action.target;
+        const methodName = action.method;
+        const rawParams: any[] = Array.isArray(action.params) ? action.params : [];
+        const resolvedParams = rawParams.map(p =>
+            PropertyHelper.interpolate(String(p), combinedContext, context.objects)
+        );
+
+        // 1. Ziel-Objekt im Projekt suchen
+        const targetObj = resolveTarget(targetName, context.objects, context.vars, context.contextVars);
+        if (targetObj && typeof (targetObj as any)[methodName] === 'function') {
+            const result = await (targetObj as any)[methodName](...resolvedParams);
+            if (action.resultVariable) {
+                context.vars[action.resultVariable] = result;
+                context.contextVars[action.resultVariable] = result;
+            }
+            console.log(`[Action: call_method] ${targetName}.${methodName}(${resolvedParams.join(', ')}) aufgerufen.`);
+            return;
+        }
+
+        // 2. Service Registry prüfen
+        if (serviceRegistry.has(targetName)) {
+            const result = await serviceRegistry.call(targetName, methodName, resolvedParams);
+            if (action.resultVariable) {
+                context.vars[action.resultVariable] = result;
+                context.contextVars[action.resultVariable] = result;
+            }
+            console.log(`[Action: call_method] Service ${targetName}.${methodName}(${resolvedParams.join(', ')}) aufgerufen.`);
+            return;
+        }
+
+        // 3. Spezialfall: Toaster ohne TToast-Objekt → show_toast als Fallback
+        if (targetName === 'Toaster' && methodName === 'show') {
+            const message = resolvedParams[0] || '';
+            const toastType = resolvedParams[1] || 'info';
+            const toaster = context.objects.find(o =>
+                (o as any).className === 'TToast' || (o as any).constructor?.name === 'TToast'
+            );
+            if (toaster && typeof (toaster as any).show === 'function') {
+                (toaster as any).show(message, toastType);
+            } else {
+                console.log(`[TOAST: ${toastType.toUpperCase()}] ${message}`);
+            }
+            return;
+        }
+
+        console.warn(`[Action: call_method] Ziel "${targetName}" nicht gefunden oder Methode "${methodName}" nicht vorhanden.`);
+    }, {
+        type: 'call_method',
+        label: 'Methode aufrufen',
+        description: 'Ruft eine Methode auf einem Objekt oder registrierten Service auf.',
+        parameters: [
+            { name: 'target', label: 'Ziel (Objekt oder Service)', type: 'string' },
+            { name: 'method', label: 'Methode', type: 'string' },
+            { name: 'params', label: 'Parameter (Array)', type: 'json', hint: '["param1", "param2"]' },
+            { name: 'resultVariable', label: 'Ergebnis speichern in', type: 'variable', source: 'variables' }
         ]
     });
 
