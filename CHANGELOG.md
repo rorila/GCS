@@ -1,3 +1,7 @@
+### [3.3.17] - 2026-02-19
+- **Fix (StandardActions)**: `call_method` als neuer Action-Handler registriert. Löst `ShowLoginError` (Toaster.show) im Error-Pfad der DataAction korrekt auf. Reihenfolge: Projekt-Objekt → Service-Registry → Spezialfall Toaster.show.
+- **Fix (StandardActions)**: `variable`/`set_variable`-Handler: `action.value` als direkter Literal-Fallback wenn `source` fehlt. Löst `ClearPIN` mit `{variableName: 'currentPIN', value: ''}` korrekt auf (leerer String = valider Wert).
+
 ### [3.3.16] - 2026-02-19
 - **Refactor (AttemptLogin Flow)**: Redundante Condition-Raute `Login Check` entfernt. `doTheAuthenfification` (DataAction) ist jetzt direkt mit `GotoDashboard` (via `success`-Anker) und `ShowLoginError` → `ClearPIN` (via `error`-Anker) verbunden. Die DataAction-eigenen Ausgänge ersetzen die Raute vollständig.
   - `platform/project.json`: FlowChart-Elemente und -Verbindungen angepasst.
