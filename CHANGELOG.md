@@ -1,4 +1,112 @@
-# Changelog
+### [3.3.5] - 2026-02-19
+- **Bugfix**: `RuntimeVariableManager` loggte Variablen-Änderungen als `[object Object]`.
+    - Behoben durch explizite `JSON.stringify` Konvertierung von Objekten im Logging.
+    - Zudem wurde der Variablen-Lookup verbessert, sodass `currentUser` auch gefunden wird, wenn der Zugriff über die ID `var_currentUser` erfolgt.
+- **Bugfix**: `RuntimeVariableManager` speicherte Variablen unter ihrer ID (`var_...`), wenn diese so gesetzt wurden.
+    - Behoben: Variablen werden nun *immer* unter ihrem Namen (`currentUser`) gespeichert, selbst wenn der Setter die ID verwendet.
+    - **Fuzzy-Lookup**: Falls der exakte Match fehlschlägt, wird versucht, das Präfix `var_` zu ignorieren, um die Variable zu finden.
+- **Refactoring (Global Variables)**: `RuntimeVariableManager` baut nun beim Start einen Index aller globalen Variablen aus *allen* Stages auf.
+    - Damit werden Variablen wie `currentUser` (definiert in `Blueprint`, genutzt in `Login`) korrekt gefunden und aufgelöst.
+    - Das behebt alle Probleme mit Cross-Stage-Bindings und Variable-Settern.
+- **Bugfix (Reactive Binding)**: Bindings wie `${currentUser.name}` funktionierten nicht, weil `ReactiveRuntime` Updates unter der ID (`var_currentUser`) erhielt, aber Bindings auf den Namen (`currentUser`) warteten.
+    - Behoben: `RuntimeVariableManager` aktualisiert nun `ReactiveRuntime` immer unter dem Variablennamen (`actualProp`).
+    - **Ergebnis**: Variablen-Werte haben nun korrekt Vorrang vor Komponenten-Objekten gleichen Namens. `${score}` liefert den Wert, nicht das Objekt.
+
+### [3.3.4] - 2026-02-19
+- **Tweak**: Verbesserte Debug-Ausgaben in `StandardActions.ts` (http/JWT).
+    - **Namen statt IDs**: Das Log zeigt nun den sprechenden Variablennamen (z.B. "currentUser") anstelle der internen ID ("var_currentUser"), sofern auflösbar.
+    - **Objekt-Darstellung**: JSON-Objekte werden explizit als String (`JSON.stringify`) geloggt, um `[object Object]`-Anzeigen im Log (insb. DebugLogViewer) zu vermeiden.
+
+### [3.3.3] - 2026-02-19
+- **Feature**: Automatische JWT-Verarbeitung in `StandardActions.ts` (Action: `http`).
+    - **Token**: Wird bei erfolgreichem Login (`requestJWT: true`) automatisch in `localStorage` (`auth_token`) gespeichert.
+    - **User-Unwrapping**: Falls die Antwort ein `user`-Objekt enthält, wird dieses nun direkt in die `resultVariable` geschrieben (anstatt der vollen Response), um den Zugriff (z.B. `${currentUser.name}`) zu vereinfachen.
+- **Doku**: Aktualisierung der `DEVELOPER_GUIDELINES.md` bezüglich der neuen "Magic"-Logik.
+
+### [3.3.2] - 2026-02-19
+- **Refactoring**: Entfernung aller verbleibenden Referenzen auf `JSONInspector.ts` in der Dokumentation (`DEVELOPER_GUIDELINES.md`, `UseCaseIndex.txt`, etc.). Das System nutzt nun vollständig die modulare `InspectorHost`-Architektur.
+- **Refactoring**: Konsistente Umbenennung von `jsonInspector` zu `inspector` im gesamten Codebase (`Editor.ts`, `EditorCommandManager.ts`).
+- **Fix**: Behebung diverser TypeScript-Fehler (unused parameters, potentially undefined objects) während des Refactorings.
+
+### [3.3.1] - 2026-02-19
+- **Fixed**: Vite-Proxy für `/platform` hinzugefügt (behebt JSON-Parsing-Fehler beim Force Reload).
+- **Changed**: Menü-Struktur bereinigt (Redundanzen entfernt, neue Kategorien "Plattform" und "Werkzeuge").
+- **Fixed**: AuthCode/currentPIN Interpolationsfehler in `project.json` behoben.
+
+### [3.3.0] - 2026-02-19
+- **Force Reload**: Implementierung einer "Vom Server neu laden" Funktion im Editor (`Editor.ts`, `PPersistenceService.ts`), um den LocalStorage gezielt zu überschreiben.
+- **Login AuthCode Fix**: Behebung des "Missing authCode" Fehlers durch Korrektur der Variablen-Referenz (`global.currentPIN` -> `currentPIN`) in der `project.json`.
+- **Architecture**: Umzug der Login-Tasks/Actions in die globale `stage_blueprint`.
+- **Inline-Action Cleanup**: Vollständige Entfernung redundanter Inline-Aktionen aus `stage_login` und `stage_role_select`.
+- **Lint**: Behebung eines Trailing-Comma Fehlers in der `project.json`.
+
+- **JWT Runtime Safety**: Automatische URL- und Method-Absicherung in `StandardActions.ts` für `requestJWT` Anfragen.
+- **DataAction Persistence Fix**: Robuste Eigenschafts-Synchronisation in `FlowDataAction.ts` (Mirroring) und Legacy-Fallbacks (`resource`, `property`, `variable`) in Editor und Runtime zur Sicherstellung der Datenkonsistenz.
+
+### [0.9.4] - 2026-02-18
+### Added
+- **Smart Variable Inspector**: Kontextsensitive Anzeige von Feldern (Min/Max, Intervalle, Trigger) basierend auf dem gewählten Variablentyp via `visible`-Property in JSON-Templates.
+- **Threshold Events**: Neue Events für Schwellwerte (`onThresholdReached`, `onThresholdLeft`, `onThresholdExceeded`) im Inspector hinzugefügt.
+- **Variable Scope**: Auswahl des Geltungsbereichs (🌎 Global vs 🎭 Stage) im Inspector wiederhergestellt.
+- **Event-Templates**: Unterstützung für spezialisierte Event-Templates in Handlern (`getEventsTemplate`) und Implementierung von `inspector_variable_events.json` für typspezifische Events.
+- **InspectorContextBuilder**: Erweitert um `availableModels` zur Auswahl von Daten-Schemata bei Objekt-Variablen.
+- **InspectorHost**: Implementierung der `visible`-Evaluierung für UI-Elemente und dynamisches Rendering des "Events"-Reiters.
+
+### Fixed
+- **Inspector Tab-Switch Fix**: Behebung des Fehlers "Kein Objekt ausgewählt" beim Umschalten zwischen Eigenschaften und Events durch interne Selektions-Persistenz im `InspectorHost`.
+
+### [0.9.3] - 2026-02-17
+### Added
+- **Inspector**: Support for specialized, minimal templates for Flow nodes and Variables.
+- **Inspector**: Added `inspector_flow.json` and `inspector_variable.json` to reduce UI clutter.
+- **Inspector**: Fixed name editing in Flow nodes by binding to the `Name` property.
+- **Inspector**: Removed geometry and parameter clutter from Task Inspector.
+- **Inspector**: Added support for rendering klickable buttons in dynamic property lists.
+- **Refactoring**: Fixed a crash in `RefactoringManager` during Task renaming when encountering malformed action sequences.
+- **Refactoring**: Enabled reliable Task renaming via the Inspector.
+### Fixed
+- **Inspector**: Dropdowns für Tasks und Actions werden nun dynamisch via `ProjectRegistry` befüllt (`source: 'tasks'`), was "Geister-Einträge" nach dem Löschen verhindert.
+- **Flow Editor:** Fix für die Synchronisation des Task-Dropdowns bei Umbenennungen.
+- **Inspector**: Automatisches Labeling für JSON-Templates via `label` Property implementiert.
+- **Inspector**: `InspectorContextBuilder` eingeführt, um Dropdown-Listen (`availableDataStores`, `availableVariablesAsTokens`, etc.) dynamisch zu befüllen.
+- **Inspector**: Refinement der Dropdowns (Namen statt IDs, benutzerfreundliche Variablen-Tokens, Feldvorschläge angepasst an `db.json`).
+- **Inspector**: Verhindert doppelte Anzeige von Standard-Eigenschaften, wenn ein spezialisiertes Template aktiv ist.
+- **Inspector**: Unterstützung für Platzhalter (`placeholder`) in Dropdowns hinzugefügt.
+- **Runtime:** Verbesserung der `http` Action; unterstützt nun explizite `false` Rückgabewerte bei 401/Simulationsfehlern zur Triggerung von Flow-Verzweigungen.
+- **Doku:** Neuer Umsetzungsplan für JWT-Authentifizierung via `DataAction` (blau) Nodes.
+- **FlowEditor**: Optimierung: Verhindert unnötiges Neuladen des Diagramms (`setProject` im `Editor` für Inspector-Events deaktiviert) und erzwingt die Auswahl des neuen Namens (Auto-Recovery).
+- [x] Korrekte Verwendung von `Name` (Setter) vs. `name` (Getter) bei Flow-Elementen sichergestellt.
+- [x] Flow-Editor: Unterscheidung zwischen `Action` (orange/linear) und `DataAction` (blau/verzweigend). Nur `DataAction` unterstützt grafische Success/Error-Abzweigungen.
+- **Dialogs**: Auch Action-Dialoge nutzen nun die dynamische `ProjectRegistry`-Quelle für Parameter-Dropdowns.
+### Changed
+- **Inspector**: Extended `IInspectorHandler` interface to allow handlers to define custom templates.
+
+## [0.9.2] - 2026-02-17
+### Fixed
+- **Inspector**: Fixes flickering issue in Flow Editor where Inspector data disappeared after selection.
+- **Editor**: Synchronized selection state between `FlowEditor` and `Editor`.
+- **Selection**: Extended `EditorCommandManager.findObjectById` to correctly resolve `FlowElement` nodes.
+
+## [0.9.1] - 2026-02-17
+- **Fix:** Inspector-Initialisierung durch `designRuntime` entkoppelt (funktioniert nun auch im Design-Mode).
+- **Fix:** Unterstützung für `TNumberInput`, `TCheckbox` und `TPanel` im neuen Inspector.
+- **Fix:** Expression-Resolution im Inspector via `ExpressionParser` (unterstützt komplexe Bindings & selectedObject).
+
+### [0.9.0] - 2026-02-17
+### Added
+- **Major Architecture Upgrade: Modular OO-Inspector**: 
+  - Umstellung des `JSONInspector` auf eine objektorientierte Architektur (`InspectorHost`, `InspectorRenderer`, `InspectorEventHandler`, `InspectorRegistry`).
+  - Modularisierung der Logik in spezialisierte Handler (`VariableHandler`, `FlowNodeHandler`, `InspectorActionHandler`).
+  - Behebung von technischer Schuld: Eliminierung des 1600+ Zeilen Monolithen durch modernstes Clean-Code Design.
+  - Implementierung einer Legacy-Kompatibilitätsschicht für stabilen Editor-Betrieb.
+
+## [3.0.0] - 2026-02-17
+### Added
+- **Major Architecture Upgrade: Modular OO-Inspector**: 
+  - Umstellung des `JSONInspector` auf eine objektorientierte Architektur (`InspectorHost`, `InspectorRenderer`, `InspectorEventHandler`, `InspectorRegistry`).
+  - Modularisierung der Logik in spezialisierte Handler (`VariableHandler`, `FlowNodeHandler`, `InspectorActionHandler`).
+  - Behebung von technischer Schuld: Eliminierung des 1600+ Zeilen Monolithen durch modernstes Clean-Code Design.
+  - Implementierung einer Legacy-Kompatibilitätsschicht für stabilen Editor-Betrieb.
 
 ## [2.18.14] - 2026-02-17
 ### Added
@@ -154,7 +262,7 @@
 - **Smart Mapping**: Neuer `resultPath` Parameter für `http` und `data_action`. Ermöglicht das Extrahieren tiefer Datenstrukturen in flache Variablen.
 - **Dynamic Modeling**: Unterstützung für explizite Modell-Typisierung von Objekten (`objectModel`).
 - **Entity Discovery**: Automatische Erkennung von Datenbank-Entitäten aus `db.json` zur Auswahl im Editor.
-- **VariableType Fix**: Korrektur der Persistenz-Sperre für das `type`-Property (reservedKeys) und systemweite Unifizierung von `variableType` auf `type`. Behebung des Revert-Bugs im Inspector durch erzwungenes Re-Rendering bei Typ-Änderung und Anpassung der Serialisierung bleiben gewählte Typen (wie `object`) nun beim Speichern und Laden dauerhaft erhalten.
+- **VariableType Fix**: Korrektur der Persistenz-Sperre für das `type`-Property (reservedKeys) und systemweite Unifizierung von `variableType` auf `type`. Behebung des Revert-Bug im Inspector durch erzwungenes Re-Rendering bei Typ-Änderung und Anpassung der Serialisierung bleiben gewählte Typen (wie `object`) nun beim Speichern und Laden dauerhaft erhalten.
 - **TPropertyDef**: Unterstützung für dynamische Dropdown-Quellen (`source`).
 
 ## [v2.16.22] - 2026-02-13
@@ -193,7 +301,10 @@
 - **Calculate Action Save Fix**: Behebung des Datenverlusts von `resultVariable` und `formula` bei 'calculate' Actions.
   - Ergänzung der `action: "updateValue"` Bindings für `CalcResultVariable` und `CalcFormulaInput` in `dialog_action_editor.json`.
   - Erweiterung des `JSONDialogRenderer.ts` (`updateModelValue`), um auch `ResultVariableInput` (Service-Aktionen) korrekt auf `dialogData.resultVariable` zu mappen.
-  - Dies stellt sicher, dass manuelle Eingaben und Variablen-Picker-Einfügungen sofort im Modell persistiert werden.
+    - Dies stellt sicher, dass Dropdowns immer den aktuellen Projektzustand widerspiegeln (keine Stale Data nach Löschung).
+- **Getter/Setter auf Flow-Elementen**:
+    - Achtung bei `FlowElement.ts`: `name` (kleingeschrieben) ist ein read-only Getter (ID).
+    - `Name` (Großgeschrieben) ist der Setter für den Anzeigenamen. Im Inspector-Handler muss zwingend `object.Name = newValue` verwendet werden, um TypeErrors zu vermeiden.
 
 ## [v2.16.17] - 2026-02-12
 ### Fixed

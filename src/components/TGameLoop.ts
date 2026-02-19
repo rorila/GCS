@@ -53,7 +53,7 @@ export class TGameLoop extends TWindow implements IRuntimeComponent {
         // Visibility & Scoping Meta-Flags
         this.isService = true;
         this.isHiddenInRun = true;
-        this.isBlueprintOnly = true;
+        (this as any).isBlueprintOnly = true;
     }
 
     // Getter for bounds - derived from gridConfig

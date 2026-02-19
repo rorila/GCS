@@ -10,7 +10,8 @@ import { jsonLobby } from '../multiplayer/JSONMultiplayerLobby';
 import { FlowDiagramGenerator } from './FlowDiagramGenerator';
 import mermaid from 'mermaid';
 import { ExpressionParser } from '../runtime/ExpressionParser';
-import { JSONInspector } from './JSONInspector';
+import { ReactiveRuntime } from '../runtime/ReactiveRuntime';
+import { InspectorHost } from './inspector/InspectorHost';
 import { JSONToolbox } from './JSONToolbox';
 import { JSONComponentPalette } from './JSONComponentPalette';
 import { DialogManager } from './DialogManager';
@@ -42,7 +43,7 @@ import { TVariable } from '../components/TVariable';
 
 export class Editor implements IViewHost {
     public stage: Stage;
-    public jsonInspector: JSONInspector | null = null;
+    public inspector: InspectorHost | null = null;
     private jsonToolbox: JSONToolbox | null = null;
     public flowEditor: FlowEditor | null = null;
     public flowToolbox: FlowToolbox | null = null;
@@ -57,6 +58,7 @@ export class Editor implements IViewHost {
     public runManager: EditorRunManager;
     public project: GameProject;
     public debugLog: TDebugLog | null = null;
+    public designRuntime: ReactiveRuntime;
     public currentSelectedId: string | null = null;
     private useHorizontalToolbox: boolean = false;
 
@@ -64,6 +66,7 @@ export class Editor implements IViewHost {
     public set workingProjectData(v: any) { this.viewManager.workingProjectData = v; }
 
     constructor() {
+        this.designRuntime = new ReactiveRuntime();
         // Initialize Default Project
         this.project = {
             meta: {
@@ -177,8 +180,8 @@ export class Editor implements IViewHost {
                     if (server) {
                         (server as any).testResponse = `Status: ${status}\n\n${JSON.stringify(data, null, 2)}`;
                         // Update Inspector falls dieses Objekt ausgewählt ist
-                        if (this.jsonInspector && this.jsonInspector.getSelectedObject() === server) {
-                            this.jsonInspector.update(server);
+                        if (this.inspector && this.inspector.getSelectedObject() === server) {
+                            this.inspector.update(server);
                         }
                     }
                 }
@@ -217,6 +220,41 @@ export class Editor implements IViewHost {
                 }
 
                 console.log(`[ApiSimulator] Simulating (${storageFile}): ${method} ${path}`, { body, query });
+
+                // --- SPECIAL PLATFORM ROUTING ---
+                if (path === '/api/platform/login' && method === 'POST') {
+                    console.log(`[ApiSimulator] Simulating Platform Login`, body);
+                    const authCode = body?.authCode;
+                    if (!authCode) {
+                        console.warn(`[ApiSimulator] Login Error: Missing authCode in body`);
+                        return { error: 'Missing authCode', status: 400 };
+                    }
+
+                    const targetFile = storageFile || 'db.json';
+                    const users = await dataService.findItems(targetFile, 'users', {});
+                    const user = users.find((u: any) => {
+                        const userAuth = Array.isArray(u.authCode) ? u.authCode.join('') : String(u.authCode);
+                        const targetAuth = Array.isArray(authCode) ? authCode.join('') : String(authCode);
+                        return userAuth === targetAuth;
+                    });
+
+                    if (user) {
+                        console.log(`[ApiSimulator] Login SUCCESS for: ${user.name} (ID: ${user.id})`);
+                        return {
+                            success: true,
+                            token: 'sim-jwt-token-' + user.id,
+                            user: {
+                                id: user.id,
+                                name: user.name,
+                                role: user.role,
+                                avatar: user.avatar
+                            }
+                        };
+                    } else {
+                        console.warn(`[ApiSimulator] Login FAILED: authCode "${authCode}" not found in ${targetFile}`);
+                        return { error: 'Invalid authCode', status: 401 };
+                    }
+                }
 
                 // --- AUTOMATIC RESOURCE ROUTING (Keep it simple) ---
                 // Mirroring server.ts behavior for /api/data/:resource
@@ -302,7 +340,7 @@ export class Editor implements IViewHost {
 
         // Initialize JSON-based UI components
         this.debugLog = new TDebugLog();
-        this.initJSONInspector();
+        this.initInspector();
         this.initJSONToolbox();
         this.initComponentPalette();
         this.initFlowEditor();
@@ -689,10 +727,10 @@ export class Editor implements IViewHost {
                 }
             });
             // Re-render inspector if a TSystemInfo is currently selected
-            if (this.jsonInspector && this.currentSelectedId) {
+            if (this.inspector && this.currentSelectedId) {
                 const selectedObj = this.findObjectById(this.currentSelectedId);
                 if (selectedObj) {
-                    this.jsonInspector.update(selectedObj);
+                    this.inspector.update(selectedObj);
                 }
             }
         };
@@ -1460,7 +1498,7 @@ export class Editor implements IViewHost {
         }
 
         // Sync UI
-        if (this.jsonInspector) this.jsonInspector.setProject(this.project);
+        if (this.inspector) this.inspector.setProject(this.project);
         if (this.dialogManager) this.dialogManager.setProject(this.project);
 
         // Stage-spezifisches Grid anwenden
@@ -1554,7 +1592,7 @@ export class Editor implements IViewHost {
                     obj.x = newX;
                     obj.y = newY;
                 }
-                if (this.jsonInspector) this.jsonInspector.update(obj);
+                if (this.inspector) this.inspector.update(obj);
                 this.render();
                 this.autoSaveToLocalStorage();
 
@@ -1568,7 +1606,7 @@ export class Editor implements IViewHost {
             if (obj) {
                 obj.width = newWidth;
                 obj.height = newHeight;
-                if (this.jsonInspector) this.jsonInspector.update(obj);
+                if (this.inspector) this.inspector.update(obj);
                 this.render();
                 this.autoSaveToLocalStorage();
 
@@ -1878,8 +1916,8 @@ export class Editor implements IViewHost {
         const obj = this.findObjectById(action.objectId);
         if (obj) {
             this.setNestedProperty(obj, action.property, value);
-            if (this.jsonInspector) {
-                this.jsonInspector.update(obj);
+            if (this.inspector) {
+                this.inspector.update(obj);
             }
             return;
         }
@@ -1901,8 +1939,8 @@ export class Editor implements IViewHost {
         if (obj) {
             obj.x = position.x;
             obj.y = position.y;
-            if (this.jsonInspector) {
-                this.jsonInspector.update(obj);
+            if (this.inspector) {
+                this.inspector.update(obj);
             }
         }
     }
@@ -2025,14 +2063,14 @@ export class Editor implements IViewHost {
         this.updateAvailableActions();
         this.refreshJSONView();
 
-        if (this.flowEditor && this.currentView === 'flow' && originator !== 'flow-editor') {
+        if (this.flowEditor && this.currentView === 'flow' && originator !== 'flow-editor' && originator !== 'inspector') {
             this.flowEditor.setProject(this.project);
             this.flowEditor.show();
         }
 
-        if (this.jsonInspector && this.currentSelectedId) {
+        if (this.inspector && this.currentSelectedId) {
             const obj = this.findObjectById(this.currentSelectedId);
-            this.jsonInspector.update(obj || this.project);
+            this.inspector.update(obj || this.project);
         }
 
         this.autoSaveToLocalStorage();
@@ -2065,7 +2103,7 @@ export class Editor implements IViewHost {
      * 2. Global service actions (not belonging to any stage object).
      */
     private updateAvailableActions(): void {
-        if (!this.jsonInspector || !this.project || !this.project.actions) return;
+        if (!this.inspector || !this.project || !this.project.actions) return;
 
         const activeStage = this.getActiveStage();
         const activeStageId = activeStage ? activeStage.id : null;
@@ -2125,7 +2163,7 @@ export class Editor implements IViewHost {
 
         // Update the inspector variable
         const visibleActionNames = filteredActions.map(a => a.name);
-        this.jsonInspector.updateAvailableActions(visibleActionNames);
+        this.inspector.updateAvailableActions(visibleActionNames);
         console.log(`[Editor] Context-Aware Actions: Showing ${visibleActionNames.length} of ${allActions.length} actions for stage '${activeStage?.name}'`);
     }
 
@@ -2226,13 +2264,20 @@ export class Editor implements IViewHost {
 
             // Connect Selection to Inspector
             this.flowEditor.onObjectSelect = (obj) => {
-                if (this.jsonInspector) {
+                // SYNC: Ensure Editor knows which ID is selected in Flow
+                if (obj && (obj as any).id) {
+                    this.currentSelectedId = (obj as any).id;
+                } else {
+                    this.currentSelectedId = null;
+                }
+
+                if (this.inspector) {
                     if (obj) {
-                        this.jsonInspector.update(obj);
+                        this.inspector.update(obj);
                     } else {
                         // Revert to project inspector if nothing selected in flow
                         if (this.project) {
-                            this.jsonInspector.update(this.project);
+                            this.inspector.update(this.project);
                         }
                     }
                 }
@@ -2240,8 +2285,8 @@ export class Editor implements IViewHost {
 
             // Update Inspector's flow context when nodes change
             this.flowEditor.onNodesChanged = (nodes) => {
-                if (this.jsonInspector && this.currentView === 'flow') {
-                    this.jsonInspector.setFlowContext(nodes);
+                if (this.inspector && this.currentView === 'flow') {
+                    this.inspector.setFlowContext(nodes);
                 }
             };
 
@@ -2353,6 +2398,9 @@ export class Editor implements IViewHost {
             case 'save-as-template':
                 this.saveStageAsTemplate();
                 break;
+            case 'force-reload':
+                this.loadFromServer();
+                break;
             case 'seed-data':
                 if (confirm('Achtung: Dies überschreibt lokale Test-Daten (gcs_db_data.json) mit den Server-Daten. Fortfahren?')) {
                     Promise.all([
@@ -2448,23 +2496,25 @@ export class Editor implements IViewHost {
         }
     }
 
-    private initJSONInspector() {
-        this.jsonInspector = new JSONInspector('json-inspector-content');
-        this.jsonInspector.setProject(this.project);
-        this.jsonInspector.setEditor(this);
+    private initInspector() {
+        this.inspector = new InspectorHost(this.designRuntime, this.project);
+        this.inspector.setContainer(document.getElementById('json-inspector-content')!);
 
-        this.jsonInspector.onObjectUpdate = () => {
+        this.inspector.onObjectUpdate = (event?: any) => {
             this.refreshAllViews('inspector');
-            mediatorService.notifyDataChanged({ object: null, property: 'all', type: 'update' }, 'inspector');
+            // Prevent double-firing: If a specific event was passed, InspectorHost already notified mediator.
+            if (!event) {
+                mediatorService.notifyDataChanged({ object: null, property: 'all', type: 'update' }, 'inspector');
+            }
         };
 
-        this.jsonInspector.onProjectUpdate = () => {
+        this.inspector.onProjectUpdate = () => {
             this.render();
             this.autoSaveToLocalStorage();
             this.refreshAllViews('inspector');
         };
 
-        this.jsonInspector.onObjectDelete = (obj: any) => {
+        this.inspector.onObjectDelete = (obj: any) => {
             // Check if this is a Flow Element delegated to FlowEditor
             if (this.currentView === 'flow' && this.flowEditor) {
                 // Try to find the node in FlowEditor
@@ -2480,7 +2530,7 @@ export class Editor implements IViewHost {
             }
         };
 
-        this.jsonInspector.onObjectSelect = (id: string | null) => {
+        this.inspector.onObjectSelect = (id: string | null) => {
             this.selectObject(id);
         };
     }
@@ -2711,6 +2761,29 @@ export class Editor implements IViewHost {
             console.log(`[Editor] Synced ${projectStage.objects.length} objects and ${stageVarCount} variables to stage "${projectStage.id}". (Global vars in project.json: ${globalVarCount})`);
         } else {
             console.warn(`[Editor] Could not find stage "${activeStage.id}" in project to sync objects.`);
+        }
+    }
+
+    /**
+     * Forces a fresh load of the project from the server, bypassing and overwriting LocalStorage.
+     */
+    public async loadFromServer() {
+        if (!confirm('Möchten Sie das Projekt wirklich vom Server neu laden? Alle nicht gespeicherten lokalen Änderungen gehen verloren.')) {
+            return;
+        }
+
+        try {
+            console.log('[Editor] Force Reload: Fetching project from server...');
+            const projectData = await projectPersistenceService.fetchProjectFromServer();
+
+            // Overwrite LocalStorage
+            localStorage.setItem('gcs_last_project', JSON.stringify(projectData));
+
+            console.log('[Editor] Force Reload successful. Reloading page...');
+            window.location.reload();
+        } catch (err: any) {
+            console.error('[Editor] Force Reload failed:', err);
+            alert('Fehler beim Laden vom Server: ' + err.message);
         }
     }
 }

@@ -1,382 +1,197 @@
 {
     "meta": {
-        "name": "Variable Inspector",
-        "version": "1.3.0"
+        "name": "Smart Variable Inspector",
+        "version": "1.1.0",
+        "description": "Context-aware Inspector for Variables"
     },
     "objects": [
         {
             "className": "TLabel",
             "name": "TitleLabel",
-            "text": "📦 Variable: ${selectedObject.name}",
+            "text": "${selectedObject.name} (Variable)",
             "style": {
-                "fontSize": 16,
+                "fontSize": 14,
                 "fontWeight": "bold",
-                "color": "#9cdcfe",
-                "marginBottom": 16
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "HeaderGeneral",
-            "text": "📋 STAMMDATEN",
-            "style": {
-                "fontSize": 10,
-                "fontWeight": "bold",
-                "color": "#888",
-                "marginTop": 12,
-                "marginBottom": 6
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "NameLabel",
-            "text": "Name:",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TEdit",
-            "name": "name",
-            "text": "${selectedObject.name}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "TypeLabel",
-            "text": "Datentyp:",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TDropdown",
-            "name": "type",
-            "options": [
-                "integer",
-                "real",
-                "string",
-                "boolean",
-                "list",
-                "timer",
-                "threshold",
-                "trigger",
-                "random",
-                "range",
-                "keystore",
-                "object",
-                "object_list",
-                "any",
-                "json"
-            ],
-            "selectedValue": "${selectedObject.type}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "ModelLabel",
-            "text": "Objekt-Modell (Schema):",
-            "visible": "${selectedObject.type === 'object' || selectedObject.type === 'object_list'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TDropdown",
-            "name": "objectModel",
-            "options": "${availableModels}",
-            "selectedValue": "${selectedObject.objectModel}",
-            "visible": "${selectedObject.type === 'object' || selectedObject.type === 'object_list'}",
-            "placeholder": "-- Entität wählen --",
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "HeaderValues",
-            "text": "💎 DATEN & WERTE",
-            "style": {
-                "fontSize": 10,
-                "fontWeight": "bold",
-                "color": "#888",
-                "marginTop": 12,
-                "marginBottom": 6
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "ValueLabel",
-            "text": "Aktueller Wert:",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TEdit",
-            "name": "value",
-            "text": "${selectedObject.value}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "DefaultValueLabel",
-            "text": "Standardwert (Reset):",
-            "visible": "${selectedObject.type !== 'timer' && selectedObject.type !== 'random' && selectedObject.type !== 'range'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TEdit",
-            "name": "defaultValue",
-            "text": "${selectedObject.defaultValue}",
-            "visible": "${selectedObject.type !== 'timer' && selectedObject.type !== 'random' && selectedObject.type !== 'range'}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "ThresholdLabel",
-            "text": "Schwellenwert (Threshold):",
-            "visible": "${selectedObject.type === 'threshold'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TNumberInput",
-            "name": "threshold",
-            "value": "${selectedObject.threshold}",
-            "visible": "${selectedObject.type === 'threshold'}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "TriggerLabel",
-            "text": "Trigger-Wert:",
-            "visible": "${selectedObject.type === 'trigger'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TEdit",
-            "name": "triggerValue",
-            "text": "${selectedObject.triggerValue}",
-            "visible": "${selectedObject.type === 'trigger'}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "MaxIntervalLabel",
-            "text": "Intervall (ms):",
-            "visible": "${selectedObject.type === 'timer'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TNumberInput",
-            "name": "maxInterval",
-            "value": "${selectedObject.maxInterval}",
-            "visible": "${selectedObject.type === 'timer'}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TCheckbox",
-            "name": "enabled",
-            "checked": "${selectedObject.enabled}",
-            "label": "Aktiviert (Timer)",
-            "visible": "${selectedObject.type === 'timer'}",
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TCheckbox",
-            "name": "isInteger",
-            "checked": "${selectedObject.isInteger}",
-            "label": "Ganzzahlen (Integer)",
-            "visible": "${selectedObject.type === 'range' || selectedObject.type === 'random'}",
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "MinLabel",
-            "text": "Minimum:",
-            "visible": "${selectedObject.type === 'range' || selectedObject.type === 'random'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TNumberInput",
-            "name": "min",
-            "value": "${selectedObject.min}",
-            "visible": "${selectedObject.type === 'range' || selectedObject.type === 'random'}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "MaxLabel",
-            "text": "Maximum:",
-            "visible": "${selectedObject.type === 'range' || selectedObject.type === 'random'}",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
-            }
-        },
-        {
-            "className": "TNumberInput",
-            "name": "max",
-            "value": "${selectedObject.max}",
-            "visible": "${selectedObject.type === 'range' || selectedObject.type === 'random'}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "HeaderScope",
-            "text": "🌍 GÜLTIGKEIT & SICHTBARKEIT",
-            "style": {
-                "fontSize": 10,
-                "fontWeight": "bold",
-                "color": "#888",
-                "marginTop": 12,
-                "marginBottom": 6
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "ScopeLabel",
-            "text": "Scope:",
-            "style": {
-                "fontSize": 12,
-                "color": "#aaa"
+                "color": "#ffcc00",
+                "marginBottom": 12
             }
         },
         {
             "className": "TDropdown",
             "name": "scope",
+            "label": "Geltungsbereich (Scope)",
             "options": [
-                "global",
-                "stage"
-            ],
-            "selectedValue": "${selectedObject.scope}",
-            "width": 30,
-            "height": 2,
-            "style": {
-                "marginBottom": 8
-            }
-        },
-        {
-            "className": "TLabel",
-            "name": "HeaderEvents",
-            "text": "⚡ EVENTS",
-            "style": {
-                "fontSize": 10,
-                "fontWeight": "bold",
-                "color": "#888",
-                "marginTop": 12,
-                "marginBottom": 6
-            }
-        },
-        {
-            "className": "TForEach",
-            "name": "EventsList",
-            "source": "selectedObject._supportedEvents",
-            "rowLayout": true,
-            "template": [
                 {
-                    "className": "TLabel",
-                    "name": "EventLabel_${index}",
-                    "text": "${key}",
-                    "style": {
-                        "fontSize": 10,
-                        "color": "#dcdcaa",
-                        "minWidth": "110px",
-                        "flex": "0 0 110px",
-                        "marginTop": 4
-                    }
+                    "value": "global",
+                    "label": "🌎 Global (Projektweit)"
                 },
                 {
-                    "className": "TSelect",
-                    "name": "EventInput_${index}",
-                    "source": "tasks",
-                    "selectedValue": "${selectedObject.${key}}",
-                    "binding": "${selectedObject.${key}}",
-                    "allowEmpty": true,
-                    "emptyLabel": "--",
-                    "style": {
-                        "flex": "1",
-                        "minWidth": "60px",
-                        "fontSize": "10px",
-                        "height": 22
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "name": "EventEditButton_${index}",
-                    "caption": "✏️",
-                    "action": "openTaskEditor",
-                    "eventKey": "${key}",
-                    "style": {
-                        "flex": "0 0 24px",
-                        "minWidth": "24px",
-                        "padding": "0",
-                        "display": "flex",
-                        "alignItems": "center",
-                        "justifyContent": "center",
-                        "height": 22
-                    }
+                    "value": "stage",
+                    "label": "🎭 Stage (Lokal)"
                 }
-            ]
+            ],
+            "selectedValue": "${selectedObject.scope}"
+        },
+        {
+            "className": "TEdit",
+            "name": "name",
+            "label": "Name",
+            "text": "${selectedObject.name}"
+        },
+        {
+            "className": "TDropdown",
+            "name": "type",
+            "label": "Datentyp",
+            "options": [
+                {
+                    "value": "integer",
+                    "label": "Integer"
+                },
+                {
+                    "value": "real",
+                    "label": "Real"
+                },
+                {
+                    "value": "string",
+                    "label": "String"
+                },
+                {
+                    "value": "boolean",
+                    "label": "Boolean"
+                },
+                {
+                    "value": "timer",
+                    "label": "Timer (Zeitgeber)"
+                },
+                {
+                    "value": "random",
+                    "label": "Zufallszahl"
+                },
+                {
+                    "value": "threshold",
+                    "label": "Schwellenwert"
+                },
+                {
+                    "value": "trigger",
+                    "label": "Trigger (Auslöser)"
+                },
+                {
+                    "value": "range",
+                    "label": "Wertebereich"
+                },
+                {
+                    "value": "object",
+                    "label": "Objekt (Modell)"
+                },
+                {
+                    "value": "object_list",
+                    "label": "Objekt-Liste"
+                },
+                {
+                    "value": "list",
+                    "label": "Liste (Einfach)"
+                },
+                {
+                    "value": "keystore",
+                    "label": "KeyStore"
+                },
+                {
+                    "value": "json",
+                    "label": "JSON Daten"
+                },
+                {
+                    "value": "any",
+                    "label": "Beliebig (Any)"
+                }
+            ],
+            "selectedValue": "${selectedObject.type}"
+        },
+        {
+            "className": "TDropdown",
+            "name": "objectModel",
+            "label": "Datenmodell (Schema)",
+            "visible": "${selectedObject.type === 'object' || selectedObject.type === 'object_list'}",
+            "source": "availableModels",
+            "placeholder": "Modell wählen...",
+            "selectedValue": "${selectedObject.objectModel}"
+        },
+        {
+            "className": "TNumberInput",
+            "name": "interval",
+            "label": "Intervall (ms)",
+            "visible": "${selectedObject.type === 'timer'}",
+            "value": "${selectedObject.interval}"
+        },
+        {
+            "className": "TCheckbox",
+            "name": "enabled",
+            "label": "Aktiviert",
+            "visible": "${selectedObject.type === 'timer'}",
+            "checked": "${selectedObject.enabled}"
+        },
+        {
+            "className": "TNumberInput",
+            "name": "maxInterval",
+            "label": "Max Wiederholungen (0=∞)",
+            "visible": "${selectedObject.type === 'timer'}",
+            "value": "${selectedObject.maxInterval}"
+        },
+        {
+            "className": "TNumberInput",
+            "name": "min",
+            "label": "Minimum",
+            "visible": "${selectedObject.type === 'random' || selectedObject.type === 'range'}",
+            "value": "${selectedObject.min}"
+        },
+        {
+            "className": "TNumberInput",
+            "name": "max",
+            "label": "Maximum",
+            "visible": "${selectedObject.type === 'random' || selectedObject.type === 'range'}",
+            "value": "${selectedObject.max}"
+        },
+        {
+            "className": "TCheckbox",
+            "name": "isInteger",
+            "label": "Nur Ganzzahlen",
+            "visible": "${selectedObject.type === 'random'}",
+            "checked": "${selectedObject.isInteger}"
+        },
+        {
+            "className": "TNumberInput",
+            "name": "threshold",
+            "label": "Schwellenwert",
+            "visible": "${selectedObject.type === 'threshold'}",
+            "value": "${selectedObject.threshold}"
+        },
+        {
+            "className": "TEdit",
+            "name": "triggerValue",
+            "label": "Auslöser-Wert",
+            "visible": "${selectedObject.type === 'trigger'}",
+            "text": "${selectedObject.triggerValue}"
+        },
+        {
+            "className": "TEdit",
+            "name": "defaultValue",
+            "label": "Standardwert",
+            "text": "${selectedObject.defaultValue}"
+        },
+        {
+            "className": "TEdit",
+            "name": "value",
+            "label": "Aktueller Wert",
+            "text": "${selectedObject.value}"
+        },
+        {
+            "className": "TButton",
+            "name": "DeleteButton",
+            "caption": "🗑️ Variable löschen",
+            "style": {
+                "backgroundColor": "#c82333",
+                "color": "#fff",
+                "marginTop": 20
+            }
         }
     ]
 }

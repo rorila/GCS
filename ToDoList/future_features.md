@@ -41,7 +41,7 @@
 - **EditorSyncOrchestrator**: Zentralisierung der Trinity-Sync Steuerung (Pascal <-> JSON <-> Flow).
 - **EditorSelectionManager**: Management des Selektions-Status und der Highlights auf der Stage.
 
-### [ ] JSONInspector.ts (Ziel: < 500 Zeilen)
+### [ ] InspectorHost.ts (ehemals JSONInspector)
 - **InspectorUIBuilder**: Trennung der DOM-Erzeugung von der Logik.
 - **InspectorFieldRegistry**: Zentralisierung der spezialisierten Editoren (Farbe, Checkbox, Select).
 - **InspectorDataBinding**: Reines Management der reaktiven Bindungen an das Projekt-Objekt.

@@ -1,5 +1,5 @@
 import { GameProject, StageDefinition } from '../model/types';
-import { JSONInspector } from './JSONInspector';
+import { InspectorHost } from './inspector/InspectorHost';
 import { FlowEditor } from './FlowEditor';
 import { FlowToolbox } from './FlowToolbox';
 import { TDebugLog } from '../components/TDebugLog';
@@ -15,7 +15,7 @@ export interface IViewHost {
     project: GameProject;
     flowEditor: FlowEditor | null;
     flowToolbox: FlowToolbox | null;
-    jsonInspector: JSONInspector | null;
+    inspector: InspectorHost | null;
     debugLog: TDebugLog | null;
     setRunMode(active: boolean): void;
     refreshJSONView(): void;
@@ -119,8 +119,8 @@ export class EditorViewManager {
             // Debug Log button hidden in stage view
             if (toolboxFooter) toolboxFooter.style.display = 'none';
 
-            if (h.jsonInspector) {
-                h.jsonInspector.setFlowContext(null);
+            if (h.inspector) {
+                h.inspector.setFlowContext(null);
             }
         } else if (view === 'run') {
             h.setRunMode(true);
@@ -158,8 +158,8 @@ export class EditorViewManager {
             if (h.flowEditor) {
                 h.flowEditor.show();
                 h.flowEditor.setProject(h.project);
-                if (h.jsonInspector) {
-                    h.jsonInspector.setFlowContext(h.flowEditor.getNodes());
+                if (h.inspector) {
+                    h.inspector.setFlowContext(h.flowEditor.getNodes());
                 }
             }
             if (h.flowToolbox) h.flowToolbox.show();
@@ -358,9 +358,9 @@ export class EditorViewManager {
                     h.flowEditor.syncActionsFromProject();
                 }
 
-                if (h.jsonInspector) {
+                if (h.inspector) {
                     const obj = h.currentSelectedId ? h.findObjectById(h.currentSelectedId) : null;
-                    h.jsonInspector.update(obj || h.project);
+                    h.inspector.update(obj || h.project);
                 }
                 h.autoSaveToLocalStorage();
             } catch (err) {

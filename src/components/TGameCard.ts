@@ -46,7 +46,7 @@ export class TGameCard extends TWindow {
             hostName: this.hostName,
             hostAvatar: this.hostAvatar,
             roomCode: this.roomCode,
-            Tasks: this.Tasks
+            Tasks: (this as any).Tasks
         };
     }
 }

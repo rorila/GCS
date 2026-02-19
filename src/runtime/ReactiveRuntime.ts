@@ -192,6 +192,7 @@ export class ReactiveRuntime {
         });
 
         // console.debug('[ReactiveRuntime] Context generated:', Object.keys(context));
+
         return context;
     }
 

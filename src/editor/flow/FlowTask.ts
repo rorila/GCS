@@ -109,89 +109,13 @@ export class FlowTask extends FlowElement {
     }
 
     public getInspectorProperties(): any[] {
-        // Filter out properties handled by JSON Inspector (Name, Details)
-        // We keep geometry (Col, Row, Width, Height)
-        const props = super.getInspectorProperties().filter(p => !['Name', 'Details', 'description'].includes(p.name));
-
-        // Get task definition for param metadata
-        const taskDef = this.getTaskDefinition();
-        console.log(`[FlowTask] getInspectorProperties for ${this.Name}`);
-        console.log(`[FlowTask]   taskDef found: ${!!taskDef}`, taskDef);
-
-        // Debug: Source information
-        if (taskDef) {
-            const hasLocalParams = !!(this.projectRef?.tasks?.find(t => t.name === (this.data?.taskName || this.Name))?.params);
-            console.log(`[FlowTask]   Source Info: hasLocalParams=${hasLocalParams}`);
-        }
-
-        // Initialize paramValues if not present
-        if (!this.data) this.data = {};
-        if (!this.data.paramValues) this.data.paramValues = {};
-
-        // Case 1: Task has params array (from library.json or project task definition)
-        if (taskDef?.params && Array.isArray(taskDef.params)) {
-            console.log(`[FlowTask]   Found ${taskDef.params.length} parameters in definition`);
-            taskDef.params.forEach((paramDef: any) => {
-                const key = paramDef.name;
-                const defaultValue = paramDef.default ?? '';
-                const paramType = paramDef.type || 'string';
-
-                // Determine inspector type
-                let inspectorType = 'string';
-                if (paramType === 'number') inspectorType = 'number';
-                else if (paramType === 'boolean') inspectorType = 'boolean';
-                else if (paramType === 'sprite' || paramType === 'object') inspectorType = 'string'; // Object references as string
-
-                props.push({
-                    name: `param_${key}`,
-                    type: inspectorType,
-                    label: paramDef.label || `Param: ${key}`,
-                    hint: `${paramType} (Default: ${defaultValue}) - Kann auch ${'{'}${'$'}{variableName}{'}'} sein`
-                });
-
-                // Define dynamic getter/setter on this instance
-                if (!Object.getOwnPropertyDescriptor(this, `param_${key}`)) {
-                    Object.defineProperty(this, `param_${key}`, {
-                        get: () => this.data.paramValues[key] ?? defaultValue,
-                        set: (v) => {
-                            this.data.paramValues[key] = v;
-                            // Refresh node content to show new value immediately
-                            this.setShowDetails(this.showDetails, this.projectRef);
-                        },
-                        configurable: true,
-                        enumerable: true
-                    });
-                }
-            });
-        }
-        // Case 2: Legacy - params is an object (backward compatibility)
-        else if (this.data?.params && typeof this.data.params === 'object' && !Array.isArray(this.data.params)) {
-            Object.keys(this.data.params).forEach(key => {
-                const val = this.data.params[key];
-                const type = typeof val === 'number' ? 'number' : 'string';
-
-                props.push({
-                    name: `param_${key}`,
-                    type: type,
-                    label: `Param: ${key}`
-                });
-
-                // Define dynamic getter/setter on this instance if not already present
-                if (!Object.getOwnPropertyDescriptor(this, `param_${key}`)) {
-                    Object.defineProperty(this, `param_${key}`, {
-                        get: () => this.data.params[key],
-                        set: (v) => {
-                            this.data.params[key] = v;
-                            this.setShowDetails(this.showDetails, this.projectRef);
-                        },
-                        configurable: true,
-                        enumerable: true
-                    });
-                }
-            });
-        }
-
-        // REMOVED: triggerMode (now in inspector_task.json)
+        // We only want basic info and the export button for Tasks.
+        // Geometry and dynamic parameters are excluded as they belong in Actions.
+        const props: any[] = [
+            { name: 'Type', type: 'string', label: 'Object Type', readOnly: true },
+            { name: 'Name', type: 'string', label: 'Name' },
+            { name: 'Description', type: 'string', label: 'Beschreibung' }
+        ];
 
         // Add Export to Library button at the end
         props.push({

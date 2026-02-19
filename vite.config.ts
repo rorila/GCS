@@ -8,6 +8,7 @@ export default defineConfig({
         proxy: {
             '/games': 'http://localhost:8080',
             '/rooms': 'http://localhost:8080',
+            '/platform': 'http://localhost:8080',
             '/api': 'http://localhost:8080'
         }
     },

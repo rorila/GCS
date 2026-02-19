@@ -50,7 +50,7 @@ Das System erkennt automatisch verfügbare "Modelle" (Entitäten), indem es die 
 | **Property-System** | Meta-Daten | `TComponent.ts` | 12 | `TPropertyDef.source` |
 | **Data Logic** | Discovery | `DataService.ts` | 105 | `getModels()` |
 | **Runtime** | Extraktion | `StandardActions.ts` | 320, 345 | `http` (Mapping Logik) |
-| **Editor** | UI-Anbindung | `JSONInspector.ts` | 288, 1026 | `update()`, Dropdown Gen. |
+| **Editor** | UI-Anbindung | `InspectorHost.ts` | 288, 1026 | `update()`, Dropdown Gen. |
 | **Flow-Editor** | Proxy-Properties| `FlowDataAction.ts` | 200 | `resultPath` (Getter/Setter) |
 | **Variable** | UI-Properties | `TVariable.ts` | 20 | `type`, `variableType` (Alias) |
 | **Persistenz**| Ladelogik | `Serialization.ts` | 443 | `reservedKeys` (type erlaubt) |

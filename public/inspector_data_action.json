@@ -42,6 +42,16 @@
                     "options": "${availableVariablesAsTokens}",
                     "placeholder": "-- Wert/Variable --",
                     "visible": "${selectedObject.queryProperty}"
+                },
+                {
+                    "name": "requestJWTInput",
+                    "className": "TCheckbox",
+                    "label": "JWT Token generieren",
+                    "checked": "${selectedObject.requestJWT}",
+                    "style": {
+                        "marginTop": "8px",
+                        "color": "#fff"
+                    }
                 }
             ]
         },

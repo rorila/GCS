@@ -128,16 +128,17 @@ export class EditorCommandManager {
         if (id) {
             const obj = this.editor.findObjectById(id);
             this.editor.stage.selectedObject = obj || null;
-            if (this.editor.jsonInspector) this.editor.jsonInspector.update(obj || null);
+            if (this.editor.inspector) this.editor.inspector.update(obj || null);
             if (focus && obj) this.editor.stage.focusObject(id);
         } else {
             this.editor.stage.selectedObject = null;
-            if (this.editor.jsonInspector) this.editor.jsonInspector.update(this.editor.project);
+            if (this.editor.inspector) this.editor.inspector.update(this.editor.project);
         }
         this.editor.render();
     }
 
     public findObjectById(id: string): any | null {
+        // 1. Search in Stage Objects
         const objects = (this.editor as any).getResolvedInheritanceObjects();
         for (const obj of objects) {
             if (obj.id === id) return obj;
@@ -147,6 +148,13 @@ export class EditorCommandManager {
                 }
             }
         }
+
+        // 2. Search in Flow Nodes
+        if (this.editor.flowEditor && this.editor.flowEditor.nodes) {
+            const flowNode = this.editor.flowEditor.nodes.find((n: any) => n.id === id);
+            if (flowNode) return flowNode;
+        }
+
         return null;
     }
 

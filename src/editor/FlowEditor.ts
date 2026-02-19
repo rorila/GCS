@@ -575,6 +575,33 @@ export class FlowEditor implements FlowMapHost {
             }
         }
 
+        // --- SAFETY CHECK: Ensure current context is in the list ---
+        if (this.currentFlowContext && this.currentFlowContext !== 'global' && this.currentFlowContext !== 'event-map' && this.currentFlowContext !== 'element-overview') {
+            let found = false;
+            // Check if value exists in options (recursively through optgroups)
+            for (let i = 0; i < this.flowSelect.options.length; i++) {
+                if (this.flowSelect.options[i].value === this.currentFlowContext) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                console.warn(`[FlowEditor] Current context "${this.currentFlowContext}" missing from dropdown options. Force-adding it.`, { activeStage: activeStage?.id });
+
+                // Try to determine where it belongs
+                const isInGlobal = this.project.tasks?.find(t => t.name === this.currentFlowContext);
+                const isInStage = activeStage?.tasks?.find(t => t.name === this.currentFlowContext);
+
+                const opt = document.createElement('option');
+                opt.value = this.currentFlowContext;
+                opt.text = `Task: ${this.currentFlowContext} ${isInGlobal ? '(Global)' : ''} ${isInStage ? '(Stage)' : ''}`;
+
+                // Append to the end (safe default)
+                this.flowSelect.appendChild(opt);
+            }
+        }
+
         // Set value
         this.flowSelect.value = this.currentFlowContext;
     }
@@ -886,8 +913,13 @@ export class FlowEditor implements FlowMapHost {
 
     // syncTaskParameters, syncTaskParamValues, syncVariablesFromFlow, syncTaskFromFlow sind nun im SyncManager.
 
-    private loadFromProject() {
+    public loadFromProject(contextName?: string) {
         if (!this.project) return;
+
+        if (contextName) {
+            this.currentFlowContext = contextName;
+        }
+
         this.isLoading = true;
 
         this.clearFlowCanvas();
@@ -2674,37 +2706,29 @@ export class FlowEditor implements FlowMapHost {
     private initMediator() {
         mediatorService.on(MediatorEvents.DATA_CHANGED, (data: any, originator?: string) => {
             if (originator !== 'flow-editor' && this.project) {
-                console.log(`[FlowEditor] Data changed via ${originator}. Refreshing selector and checking context...`);
+                console.log(`[FlowEditor] Data changed via ${originator}. Checking context... Data:`, data);
 
-                // 1. Update the dropdown list (important for renaming/adding tasks)
-                this.updateFlowSelector();
-
-                // 2. If a name change occurred and it affects our current context
-                // Note: JSONInspector sends { object, property, value }
+                // 1. Check if the renamed object is our current context
                 if (data && (data.property === 'Name' || data.property === 'name')) {
-                    // Check if the renamed object is the one we are currently viewing
-                    // For tasks, the name in project data might have changed.
-                    // If we find our old context name is no longer valid, we might need to sync.
+                    if (data.oldValue === this.currentFlowContext && data.value) {
+                        console.log(`[FlowEditor] Context rename detected: ${data.oldValue} -> ${data.value}`);
+                        this.currentFlowContext = data.value;
+                        localStorage.setItem('gcs_last_flow_context', data.value);
 
-                    // The RefactoringManager already updated the names in the project.
-                    // We just need to make sure our internal currentFlowContext matches the new name.
-                    const isValidTask = this.project.tasks.some(t => t.name === this.currentFlowContext);
-                    const isValidStageTask = this.getActiveStage()?.tasks?.some(t => t.name === this.currentFlowContext);
-
-                    if (!isValidTask && !isValidStageTask && this.currentFlowContext !== 'global') {
-                        // Our current context seems to be gone or renamed.
-                        // Ideally the 'data' tells us the rename details.
-                        if (data.oldValue === this.currentFlowContext && data.value) {
-                            console.log(`[FlowEditor] Context rename detected: ${data.oldValue} -> ${data.value}`);
-                            this.currentFlowContext = data.value;
-                            this.flowSelect.value = data.value;
-                            localStorage.setItem('gcs_last_flow_context', data.value);
-                        } else {
-                            // Fallback: If we can't find it, stay calm or go to global?
-                            // For now, updateFlowSelector handles the UI part.
+                        // Force reload of the diagram to reflect renamed nodes
+                        if (this.project) {
+                            console.log('[FlowEditor] Reloading diagram for new context:', data.value);
+                            this.loadFromProject(data.value);
                         }
+                    } else if (data.oldValue === this.currentFlowContext) {
+                        console.warn(`[FlowEditor] Context rename detected but no new value?`, data);
                     }
                 }
+
+                // 2. Update the dropdown list
+                console.log(`[FlowEditor] Updating selector. Current Context: ${this.currentFlowContext}`);
+                this.updateFlowSelector();
+                console.log(`[FlowEditor] Selector updated. Value is now: ${this.flowSelect.value}`);
             }
         });
     }

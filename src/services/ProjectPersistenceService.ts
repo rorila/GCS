@@ -11,6 +11,17 @@ export class ProjectPersistenceService {
 
     private constructor() { }
 
+    /**
+     * Fetches the current project.json from the server.
+     */
+    public async fetchProjectFromServer(): Promise<GameProject> {
+        const response = await fetch('./platform/project.json?t=' + Date.now());
+        if (!response.ok) {
+            throw new Error(`Failed to fetch project from server: ${response.statusText}`);
+        }
+        return await response.json();
+    }
+
     public static getInstance(): ProjectPersistenceService {
         if (!ProjectPersistenceService.instance) {
             ProjectPersistenceService.instance = new ProjectPersistenceService();

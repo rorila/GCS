@@ -64,7 +64,7 @@ export class EditorRunManager {
             (this.editor as any).syncStageObjectsToProject();
 
             this.runtime = new GameRuntime(this.editor.project, undefined, {
-                onNavigate: (target: string, params?: any) => {
+                onNavigate: (target: string, _params?: any) => {
                     // target format: "stage:stageId" or just "stageId"
                     let stageId = target;
                     if (target.startsWith('stage:')) {

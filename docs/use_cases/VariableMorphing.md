@@ -6,13 +6,13 @@ Variable Morphing beschreibt den Prozess, bei dem eine Variable ihren Typ zur La
 ## Kern-Workflow & Methoden
 
 ### 1. Auslöser (Trigger)
-Der Prozess startet im `JSONInspector`, wenn der Benutzer den Typ im Dropdown ändert.
+Der Prozess startet im `InspectorHost`, wenn der Benutzer den Typ im Dropdown ändert.
 
-- **Datei**: `src/editor/JSONInspector.ts`
+- **Datei**: `src/editor/inspector/InspectorHost.ts`
 - **Methode**: `handleObjectChange`
 - **Logik**: Erkennt Änderung an `type` Property und ruft `editor.morphVariable` auf.
 ```typescript
-// JSONInspector.ts (~Line 3130)
+// InspectorHost.ts (~Line 3130)
 if (propKey === 'type' && (obj instanceof TVariable || ...)) {
     this.editor.morphVariable(obj, newValue);
     return; // Stop standard update
@@ -53,7 +53,7 @@ Damit der Inspector den neuen Typ korrekt anzeigt (und nicht "zurückspringt"), 
 }
 ```
 
-- **Datei**: `src/editor/JSONInspector.ts`
+- **Datei**: `src/editor/inspector/InspectorRenderer.ts`
 - **Methode**: `renderInput` / `createDropdown`
 - **Fix**: Priorisierung von `prop.selectedValue` über `binding`.
 
@@ -67,7 +67,7 @@ Falls der Fehler "Typ springt zurück" oder "Modell verschwindet" wieder auftrit
 
 2.  **Check UI Binding**:
     - Zeigt der Inspector "Integer" trotz `TObjectVariable`? -> Prüfe `TVariable.ts` Setup.
-    - Prüfe `JSONInspector` Logs: `Creating TDropdown config for 'type'. Binding: ...`.
+    - Prüfe `InspectorRenderer` Logs: `Creating TDropdown config for 'type'. Binding: ...`.
 
 3.  **Check Instanz-Typ**:
     - Gib `projectRegistry.getVariables()` in der Konsole aus.

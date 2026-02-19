@@ -31,7 +31,7 @@ export class RefactoringManager {
 
             // Calculation steps
             if (action.calcSteps) {
-                action.calcSteps.forEach(step => {
+                action.calcSteps.forEach((step: any) => {
                     if (step.operandType === 'variable' && step.variable === oldName) {
                         step.variable = newName;
                     }
@@ -784,7 +784,7 @@ export class RefactoringManager {
      * Helper to recursively scan sequence items
      */
     private static processSequenceItems(sequence: SequenceItem[], callback: (item: SequenceItem) => void): void {
-        if (!sequence) return;
+        if (!Array.isArray(sequence)) return;
         sequence.forEach(item => {
             callback(item);
             const anyItem = item as any;

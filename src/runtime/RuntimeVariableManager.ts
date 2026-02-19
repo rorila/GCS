@@ -15,33 +15,43 @@ export class RuntimeVariableManager {
     public stageVariables: Record<string, any> = {};
     public contextVars: Record<string, any>;
 
+    // Registry for ALL global variables from all stages (Key: Name AND Key: ID)
+    private globalDefinitions = new Map<string, any>();
+
     constructor(private host: IVariableHost, initialGlobalVars: Record<string, any> = {}) {
         this.projectVariables = { ...initialGlobalVars };
         this.contextVars = this.createVariableContext();
     }
 
     public initializeVariables(project: any) {
-        // 1. Blueprint Stage Variables (PRIMARY SOURCE for Globals)
+        // 1. Scan ALL stages for global variables and register them
         if (project.stages) {
-            const blueprintStage = project.stages.find((s: any) => s.type === 'blueprint');
-            if (blueprintStage && blueprintStage.variables) {
-                console.log(`[RuntimeVariableManager] Loading ${blueprintStage.variables.length} global variables from Blueprint Stage.`);
-                this.importVariables(blueprintStage.variables);
-            }
+            project.stages.forEach((stage: any) => {
+                if (stage.variables) {
+                    stage.variables.forEach((v: any) => {
+                        if (!v.scope || v.scope === 'global') {
+                            // Register definition by Name AND ID
+                            this.globalDefinitions.set(v.name, v);
+                            if (v.id) this.globalDefinitions.set(v.id, v);
+
+                            // Initialize value if not present
+                            const initialValue = v.defaultValue !== undefined ? v.defaultValue : v.value;
+                            if (this.projectVariables[v.name] === undefined) {
+                                this.projectVariables[v.name] = initialValue !== undefined ? initialValue : 0;
+                            }
+                        }
+                    });
+                }
+            });
         }
 
-        // 2. Project Variables (LEGACY FALLBACK)
+        // 2. Project Variables (Legacy)
         if (project.variables) {
-            // Only add if not already present (Blueprint wins)
-            this.importVariables(project.variables, true);
-        }
-
-        // 3. Main Stage Variables (Legacy Compat - treated as Global)
-        if (project.stages) {
-            const mainStage = project.stages.find((s: any) => s.type === 'main');
-            if (mainStage && mainStage.variables) {
-                this.importVariables(mainStage.variables, true);
-            }
+            project.variables.forEach((v: any) => {
+                this.globalDefinitions.set(v.name, v);
+                if (v.id) this.globalDefinitions.set(v.id, v);
+                this.importVariables([v], true);
+            });
         }
     }
 
@@ -108,9 +118,24 @@ export class RuntimeVariableManager {
                     ? this.stageVariables[prop]
                     : this.projectVariables[prop];
 
-                let varDef: any = this.host.stage?.variables?.find((v: any) => v.name === prop);
-                if (!varDef && this.host.project.variables) {
-                    varDef = this.host.project.variables.find((v: any) => v.name === prop);
+                // REFACTORED LOOKUP STRATEGY (Global Map)
+                // 1. Check Local Stage Variables (exact match)
+                let varDef: any = this.host.stage?.variables?.find((v: any) => v.name === prop || v.id === prop);
+
+                // 2. Check Global Registry (contains globals from ALL stages + Blueprint)
+                if (!varDef) {
+                    varDef = this.globalDefinitions.get(prop);
+                }
+
+                // 3. Last Resort: "var_" Prefix Fuzzy Matching
+                if (!varDef && prop.startsWith('var_')) {
+                    const cleanName = prop.substring(4);
+                    // Check Local
+                    varDef = this.host.stage?.variables?.find((v: any) => v.name === cleanName);
+                    // Check Global
+                    if (!varDef) {
+                        varDef = this.globalDefinitions.get(cleanName);
+                    }
                 }
 
                 let finalValue = value;
@@ -118,17 +143,19 @@ export class RuntimeVariableManager {
                     finalValue = Math.floor(value);
                 }
 
-                if (prop in this.stageVariables) {
-                    this.stageVariables[prop] = finalValue;
-                } else if (prop in this.projectVariables) {
-                    this.projectVariables[prop] = finalValue;
+                // ALWAYS use the normalized Name for storage
+                const actualProp = varDef ? varDef.name : prop;
+
+                if (actualProp in this.stageVariables) {
+                    this.stageVariables[actualProp] = finalValue;
+                } else if (actualProp in this.projectVariables) {
+                    this.projectVariables[actualProp] = finalValue;
                 } else {
-                    this.stageVariables[prop] = finalValue;
+                    // Default to stage variables if not found
+                    this.stageVariables[actualProp] = finalValue;
                 }
 
                 // Sync to Stage Component if exists (for reactivity and visual consistency)
-                // Sync to Stage Component if exists (for reactivity and visual consistency)
-                // PREFER ID SYNC if we have a varDef, otherwise fallback to name
                 const component = (this.host as any).objects?.find((o: any) =>
                     (varDef && o.id === varDef.id) ||
                     (o.name === prop && (o.isVariable || o.className?.includes('Variable')))
@@ -144,26 +171,23 @@ export class RuntimeVariableManager {
                     } else if (component.value !== value) {
                         component.value = value;
                         componentUpdated = true;
-                    } else if (component.value === value) {
-                        // Even if value is same, we might have just initialized it
-                        // but if proxy didn't trigger a change, we don't count it as 'log already done'
                     }
                 }
 
                 // Only log here if no component already logged the change via its reactive proxy
                 if (!componentUpdated) {
-                    this.logVariableChange(prop, finalValue, oldValue);
+                    this.logVariableChange(prop, finalValue, oldValue, varDef);
                 }
 
                 console.log(`%c[VariableContext:Set] ${prop} = ${JSON.stringify(finalValue)} (Old: ${JSON.stringify(oldValue)})`, 'color: #e91e63');
 
-                this.host.reactiveRuntime.setVariable(prop, finalValue);
+                this.host.reactiveRuntime.setVariable(actualProp, finalValue);
 
                 if (this.host.taskExecutor) {
                     if (varDef) {
                         // We don't await here because Proxy set is synchronous,
                         // but processVariableEvents itself should be async for cleaner task chains
-                        this.processVariableEvents(prop, finalValue, oldValue, varDef);
+                        this.processVariableEvents(actualProp, finalValue, oldValue, varDef);
                     }
                 }
                 return true;
@@ -289,10 +313,20 @@ export class RuntimeVariableManager {
         await executor.execute(taskName, { sender: varDef }, this.contextVars, undefined, 0, eventLogId);
     }
 
-    private logVariableChange(name: string, value: any, oldValue: any) {
+    private logVariableChange(id: string, value: any, oldValue: any, varDef?: any) {
         if (value === oldValue) return;
-        DebugLogService.getInstance().log('Variable', `${name}${name.includes('.') ? '' : '.value'} changed: ${oldValue !== undefined ? oldValue : ''} -> ${value}`, {
-            objectName: name
+
+        const displayName = varDef ? varDef.name : id;
+        const displayValue = (typeof value === 'object' && value !== null) ? JSON.stringify(value) : String(value);
+
+        // User requests format: currentUser := {"name":"Rolf"....}
+        DebugLogService.getInstance().log('Variable', `${displayName} := ${displayValue}`, {
+            objectName: displayName,
+            data: {
+                type: 'variable',
+                variableName: displayName,
+                value: value,
+            }
         });
     }
 

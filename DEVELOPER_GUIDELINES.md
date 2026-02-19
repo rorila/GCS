@@ -18,9 +18,23 @@
 - **Inspector JSON-Konfiguration**: Für Flow-Elemente mit spezifischem Layout (wie `DataAction`) ist die Verwendung einer dedizierten JSON-Datei (z.B. `public/inspector_data_action.json`) der Standard.
     - **Two-Way-Binding**: Um Felder editierbar zu machen, muss das Binding direkt auf das Property zeigen (z.B. `${selectedObject.Name}` statt `${selectedObject.name || ...}`).
     - **Vermeidung von Komplexität**: Komplexe Ausdrücke im `text`-Property verhindern das Rückschreiben von Werten.
+- **Automatische Labels & Filterung (v3.1.0)**:
+    - Wenn ein Template ein `label` Feld enthält, wird dieses automatisch als `TLabel` über dem Control gerendert.
+    - Spezialisierte Templates (alles außer `inspector.json`) unterdrücken nun automatisch die Anzeige der generischen "Allgemeine Info"-Felder am Ende der Liste.
+    - Nutze `placeholder` in `TDropdown` Definitionen für leere Startzustände.
 - **DataAction Renaming**:
     - `DataActions` sind vollwertige Actions und müssen im `RefactoringManager` explizit behandelt werden (`item.type === 'data_action'`).
     - Das Umbenennen im Inspector ändert die ID (`Name`), was sicher ist, solange der Reset des RefactoringManagers greift.
+- **Getter/Setter auf Flow-Elementen**:
+    - Achtung bei `FlowElement.ts`: `name` (kleingeschrieben) ist ein read-only Getter (ID).
+    - `Name` (Großgeschrieben) ist der Setter für den Anzeigenamen. Im Inspector-Handler muss zwingend `object.Name = newValue` verwendet werden, um TypeErrors zu vermeiden.
+- **Dynamische Dropdowns**:
+    - Verwende wann immer möglich `source: 'tasks'`, `source: 'actions'` etc. in `TPropertyDef` statt statischer `options`.
+    - Dies stellt sicher, dass Dropdowns immer den aktuellen Projektzustand widerspiegeln (keine Stale Data nach Löschung).
+- **Smart Variable Inspector (v3.2.0)**:
+    - **Sichtbarkeits-Logik (`visible`)**: Nutze die `visible`-Eigenschaft in JSON-Templates (`inspector_variable.json`), um Felder basierend auf regulären Expressions (z.B. `${selectedObject.type === 'timer'}`) ein- oder auszublenden. Die Evaluierung erfolgt im `InspectorHost.ts` via `resolveRawValue`.
+    - **Event-Templates**: Handler können spezialisierte Event-Templates via `getEventsTemplate(obj)` bereitstellen. Für Variablen wird `inspector_variable_events.json` verwendet, das typspezifische Events (wie `onTimer` oder `onGenerated`) anbietet.
+    - **Scope-Selection**: Das `scope`-Feld in der `inspector_variable.json` ermöglicht die Auswahl zwischen `global` (🌎) und `stage` (🎭) Scopes.
 
 ## UseCase-Index-System
 Zur besseren Wartbarkeit und schnelleren Orientierung im Code pflegen wir ein UseCase-System in `docs/use_cases/`.
@@ -34,8 +48,28 @@ Zur besseren Wartbarkeit und schnelleren Orientierung im Code pflegen wir ein Us
 - **Struktur-Besonderheiten**: (z.B. Branching Actions wie DataAction).
 - **Pflicht**: Neue komplexe Features oder Refactorings müssen dort dokumentiert werden. Nutze `UseCaseTemplate.md` als Basis.
 
+## Reactive Bindings & Variablen
+- **Namens-Konsistenz**:
+    - `RuntimeVariableManager` muss Variablen immer unter ihrem **Namen** (z.B. `currentUser`) speichern, auch wenn Actions sie via ID (`var_currentUser`) ansprechen.
+    - Dies ist kritisch für `ReactiveRuntime`, da Bindings (`${currentUser.name}`) auf den Namen warten.
+- **Priorität im Context**:
+    - Im `ExpressionParser`-Context haben Variablen-Werte (`this.variables`) Vorrang vor Komponenten-Objekten (`this.objectsByName`).
+    - Wenn eine Variable und eine Komponente denselben Namen haben, wird der Variablen-Wert verwendet (unwrap).
+- **Global Definitions**:
+    - Der `RuntimeVariableManager` baut beim Start einen globalen Index (`globalDefinitions`) aus allen Stages auf. Dies ermöglicht Cross-Stage-Zugriffe.
+
 ## Modulare Architektur (Monolithen-Aufteilung)
 Um die Wartbarkeit zu verbessern und Token-Limit-Fehler zu vermeiden, wurden die Hauptklassen modularisiert:
+
+### Inspector-Architektur (v3.0.0 / OO-Refactoring)
+Der monolithische Inspector (ehemals JSONInspector.ts) wurde durch ein modulares, objektorientiertes System ersetzt:
+- **InspectorHost.ts**: Das Herzstück. Orchestiert das Laden von Templates, das Rendering und die Event-Verarbeitung.
+- **InspectorRenderer.ts**: Kapselt die Logik für visuelle Komponenten. Unterstützt nun auch `TNumberInput`, `TCheckbox` und rekursive `TPanel`-Strukturen für komplexe Layouts.
+- **InspectorRegistry.ts**: Mappt Objekt-Klassen auf die passenden JSON-Templates.
+- **InspectorEventHandler.ts**: Zentraler Hub für alle UI-Events. Delegiert komplexe Logik an spezialisierte Handler.
+- **Handler-Pattern**: Neue Fachlogik sollte in spezialisierten Handlern (z.B. `VariableHandler.ts`, `FlowNodeHandler.ts`) implementiert werden.
+- **Design-Time Runtime (v3.1.0)**: Der Inspector benötigt eine `ReactiveRuntime` zur Evaluation von Bindings (`${...}`). Für den Editor-Betrieb ohne aktives Spiel wird eine `designRuntime` in `Editor.ts` verwendet, um konsistentes Rendering zu garantieren.
+- **Expression Evaluation**: Der Inspector nutzt den `ExpressionParser`, um Bindings robust aufzulösen. Dabei wird das `selectedObject` automatisch in den Kontext injiziert.
 
 ### Editor-Architektur
 Die Klasse `Editor.ts` fungiert nur noch als Orchestrator. Die Fachlogik liegt in:
@@ -112,7 +146,7 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
     - `FlowSyncManager.restoreNode` enthält redundante `isNaN`-Prüfungen als Sicherheitsnetz für beschädigte Projektdaten.
 
 ### Inspector Integration for Flow Elements
-- **Events**: Flow elements (running in the Editor context) must implement `public getEvents(): string[]` (returning `[]` if none) to bypass the `ComponentRegistry` lookup. The `JSONInspector` prefers this method over the registry to avoid warnings for non-GameObjects.
+- **Events**: Flow elements (running in the Editor context) must implement `public getEvents(): string[]` (returning `[]` if none) to bypass the `ComponentRegistry` lookup. The `InspectorHost` prefers this method over the registry to avoid warnings for non-GameObjects.
 - **Deletion**: Deleting elements via the Inspector requires explicit routing in `Editor.ts`. If the `FlowEditor` is active (`currentView === 'flow'`), delete requests for Flow nodes must be delegated to `FlowEditor.deleteNode()` to handle reference checks and specific cleanup logic.
 
 
@@ -166,11 +200,11 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
     - Dies erlaubt Ausdrücke wie `${currentUser.name}` (Datenzugriff) und gleichzeitig `${selectedObject.value}` (Inspector-Binding/Metadaten) ohne gegenseitige Störung.
 - **Beginner-Safe Variable Picker (v2.18.12.4)**: Alle `TEdit`-Felder im Inspector verfügen über ein automatisches Variablen-Dropdown (📦). 
     - **Funktion**: Erlaubt das Einfügen von Variablen per Klick an der aktuellen Cursor-Position, ohne `${}` tippen zu müssen.
-    - **Implementierung**: Geregelt über `renderEditWithVariablePicker` (JSONInspector.ts).
+    - **Implementierung**: Geregelt über `renderEditWithVariablePicker` (InspectorRenderer.ts).
 - **Keep it Simple**: Bevorzuge immer die automatisierte Simulation für Standard-CRUD-Operationen. Nur für komplexe Spezial-Logik sollten manuelle API-Event-Tasks (`onRequest`) verwendet werden.
 
 ### Variablen-Scoping & Inspector (v2.16.12)
-- **Kontext-Synchronisation**: Der Inspector im Flow-Editor benötigt den korrekten Stage-Kontext (`activeStageId` in `ProjectRegistry`), um stagelokale Variablen anzuzeigen.
+- **Kontext-Synchronisation**: Der InspectorHost im Flow-Editor benötigt den korrekten Stage-Kontext (`activeStageId` in `ProjectRegistry`), um stagelokale Variablen anzuzeigen.
 - **Automatisches Umschalten**: Beim Wechsel des Tasks im Flow-Editor (`switchActionFlow`) wird die Stage automatisch via `projectRegistry.getTaskContainer` ermittelt und gesetzt.
 - **Lokale Parameter**: Für task-lokale Variablen muss der Task-Name als Context an `getVariables()` übergeben werden. Der Inspector nutzt dafür den `localStorage` Key `gcs_last_flow_context`.
 - **Best Practice**: Greife immer über `projectRegistry.getVariables(context)` auf Variablen zu, um die volle Vererbungshierarchie (Global > Stage > Local) abzubilden.
@@ -231,7 +265,7 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **SSoT-Schutz & Design-Values** (v2.18.6):
   - **Erhaltung von Formeln**: Bindungen (Formeln wie `${...}`) werden im `DESIGN_VALUES` Symbol der Instanz gespeichert.
   - **Persistenz**: `toJSON` priorisiert `DESIGN_VALUES` vor den aktuellen (evaluierten) Property-Werten.
-  - **Inspector-Anzeige**: Der `JSONInspector` liest bevorzugt aus `DESIGN_VALUES`, um dem Benutzer die Formel zur Bearbeitung anzuzeigen, während die Stage den Laufzeit-Wert rendert.
+  - **Inspector-Anzeige**: Der `InspectorHost` liest bevorzugt aus `DESIGN_VALUES`, um dem Benutzer die Formel zur Bearbeitung anzuzeigen, während die Stage den Laufzeit-Wert rendert.
   - **Action-Context**: Beim Aufruf von `actionExecutor.execute` muss die Variablen-Liste im 3. Parameter (`globalContext`) übergeben werden, damit die `contextVars` der Runtime aktualisiert werden.
 - **Serialization Robustness (v2.18.4)**:
   - Bei der Hydrierung von Objekten in `Serialization.ts` muss die `isVariable`-Eigenschaft explizit geschützt werden. 
@@ -283,8 +317,9 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 
 
 ## Editor -> Runtime Transition
-- **Data Sync**: Vor dem Start der Runtime (`new GameRuntime`) müssen die aktuellen Editor-Objekte explizit in das Projekt-JSON serialisiert werden (`syncStageObjectsToProject`), damit Änderungen (z.B. neue Bilder) übernommen werden.
-- **View Restore**: Beim Beenden des Run-Modes muss sichergestellt werden, dass die Editor-Ansicht sauber neu geladen wird (z.B. via `switchStage`), um Runtime-Proxies zu entfernen und den Editor-Status wiederherzustellen.
+- **Data Sync**: Vor dem Start der Runtime (`new GameRuntime`) müssen die aktuellen Editor-Objekte explizit in das Projekt-JSON serialisiert werden (`syncStageObjectsToProject`), damit Änderungen (z.B. neue Bilder)- [x] Korrekte Verwendung von `Name` (Setter) vs. `name` (Getter) bei Flow-Elementen sichergestellt.
+- [x] **Flow-Editor:** Für Operationen mit logischen Verzweigungen (z.B. HTTP Requests) muss die **DataAction** (blau) verwendet werden, da nur diese über Success/Error-Anker verfügt.
+ werden, dass die Editor-Ansicht sauber neu geladen wird (z.B. via `switchStage`), um Runtime-Proxies zu entfernen und den Editor-Status wiederherzustellen.
 - **Z-Index Strategy**: Um Sichtbarkeitsprobleme bei Overlays zu vermeiden, aggregiert die `GameRuntime` z-Indices rekursiv (`effectiveZ = parentZ + currentZ`). Container wie `TSplashScreen` (`z=1000`) müssen ihre Inhalte als echte `children` speichern, damit dieses Stacking funktioniert. `TPanel` und `TWindow` Subklassen müssen daher `children` serialisieren.
 - **Loop Termination**: Fallback-Animations-Loops im Editor müssen robust gestoppt werden, wenn der Run-Modus endet oder eine echte `GameLoop` übernimmt.
 
@@ -293,6 +328,10 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Automatische Migration**: Beim Laden in `restoreNode` (FlowEditor.ts) werden Legacy-Daten automatisch als Links markiert, falls sie in `project.actions` existieren.
 - **Speichern**: `FlowAction.toJSON()` stellt sicher, dass verlinkte Assets nur mit Name und Flag gespeichert werden.
 - **Schutzmechanismus**: `updateGlobalActionDefinition` verhindert, dass valide globale Definitionen durch minimale Link-Daten (nur Name) überschrieben werden.
+- **Local Mirroring (v3.2.1)**: 
+    - Bei verlinkten Flow-Knoten (`isLinked: true`) müssen die Eigenschaften IMMER sowohl in der globalen Definition als auch lokal in `this.data` gespeichert werden.
+    - **Warum**: Dies stellt sicher, dass die Daten auch dann im `flowChart` Teil des JSON sichtbar und persistent sind, wenn die globale Referenz temporär nicht aufgelöst werden kann oder nur der Task-Flow serialisiert wird.
+    - **Implementierung**: Alle Setter in spezialisierten `FlowAction`-Klassen (wie `FlowDataAction.ts`) müssen beide Ziele (`this.data` und `getActionDefinition()`) aktualisieren.
 - **Copy vs Link**: Kopien (`Embed Action (Copy)`) erstellen neue, unabhängige Archive in `project.actions` mit eindeutigen Namen.
 
 ## Task-Logik (Primat der FlowCharts)
@@ -311,6 +350,14 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Abonnement**: Komponenten wie `FlowEditor` hören auf dieses Event und aktualisieren ihre UI.
 - **Sofortige JSON-Sichtbarkeit (v2.16.23)**: `Editor.ts` reagiert auf `DATA_CHANGED` Events vom `flow-editor` nun mit einem vollständigen `refreshAllViews()`. Dies garantiert, dass der JSON-Tree und der Pascal-Code unmittelbar aktualisiert werden, sobald ein Knoten im Flow-Canvas erstellt oder verschoben wird.
 - **Context-Preservation**: Bei Umbenennung des aktuell angezeigten Kontexts wird der `oldValue` aus dem Event genutzt, um den internen Status (`currentFlowContext`) nahtlos zu aktualisieren, ohne dass der Benutzer die Ansicht verliert.
+
+### Force Reload & LocalStorage Bypass (v3.3.0)
+- **Problem**: Der Editor lädt Projektdaten bevorzugt aus dem `localStorage`. Manuelle Änderungen an der `project.json` auf dem Server werden dadurch ignoriert, solange der Browser-Cache aktiv ist.
+- **Lösung**: Implementierung einer Force-Reload-Funktion (`Editor.loadFromServer`).
+    - Nutze `ProjectPersistenceService.fetchProjectFromServer()`, um die JSON direkt vom Server abzurufen.
+    - Überschreibe explizit den Schlüssel `gcs_last_project` im `localStorage`.
+    - Nutze `window.location.reload()`, um den Editor mit den neuen Daten neu zu initialisieren.
+- **Best Practice**: Biete diese Funktion immer an, wenn Versionierungs- oder Synchronisationsprobleme zwischen Client und Server auftreten können.
 
 ## Synchronisation & Persistenz
 - **Pascal -> Flow Sync**: Änderungen im Pascal-Code müssen explizit in den Flow-Editor synchronisiert werden. Nutze dazu `flowEditor.syncActionsFromProject()`. Dies ist besonders wichtig, da Flow-Knoten ihre Daten (`node.data`) teilweise redundant halten, um die UI-Performance zu verbessern.
@@ -406,7 +453,7 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
   - **Kontextsensitiver Inspector**: 
     - Der Stage-Inspector nutzt die reaktive Variable `activeStage`, um Eigenschaften der aktuell gewählten Stage anzuzeigen.
     - Bindings in `inspector_stage.json` sollten bevorzugt auf `activeStage.*` verweisen, mit Fallback auf `selectedObject.stage.*` (global).
-    - **Sichtbarkeit**: Die `visible`-Eigenschaft in der JSON steuert das Ausblenden. Bei gruppierten Feldern (Label + Input) muss dies in `renderInlineRow` im `JSONInspector.ts` explizit geprüft werden.
+    - **Sichtbarkeit**: Die `visible`-Eigenschaft in der JSON steuert das Ausblenden. Bei gruppierten Feldern (Label + Input) muss dies in `renderInlineRow` im `InspectorRenderer.ts` explizit geprüft werden.
     - **Caching**: Um sicherzustellen, dass Änderungen an der JSON-Konfiguration sofort sichtbar sind, werden fetch-Aufrufe mit einem Cache-Buster (`?v=Date.now()`) versehen.
     - **Metadaten (Main Stage)**: Globale Spiel-Metadaten (Name, Autor) werden bevorzugt in der Haupt-Stage (`type: 'main'`) gespeichert (`gameName`, `author`). Der Inspector bindet diese via `activeStage.*`. Generatoren und Exporter müssen dies berücksichtigen und die Haupt-Stage-Werte gegenüber `project.meta` priorisieren.
 - **Sichtbarkeit von Komponenten**:
@@ -446,7 +493,7 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Hierarchische Auflösung**: Der `Editor` nutzt `getTargetActionCollection()` und `getTargetTaskCollection()`, um basierend auf dem Namen und dem gesetzten Scope das richtige Register (global vs. lokal) für Schreibvorgänge zu identifizieren.
 - **Smart-Sync im Inspector**: 
   - Verlinkte Elemente (Actions/Tasks) sind im `JSONInspector` editierbar.
-  - Beim Speichern (`handleObjectChange`) erkennt der Inspector verlinkte Elemente und schreibt Änderungen via `editor.getTarget...` direkt in die Original-Definition zurück.
+  - Beim Speichern (`handleAutoSave`) erkennt der Inspector verlinkte Elemente und schreibt Änderungen via `editor.getTarget...` direkt in die Original-Definition zurück.
   - Dies stellt sicher, dass Änderungen an einer globalen Action an allen Verwendungsstellen sofort wirksam werden (Single Source of Truth).
 - **Visuelle Indikatoren**: Verwende Emojis (🌎 `global`, 🎭 `stage`) in UI-Listen und im Inspector-Header, um den Scope einer Ressource zu verdeutlichen.
 
@@ -475,7 +522,7 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Smart-Sync für linked Actions (v2.18.12)**:
     - Verlinkte Flow-Knoten (`isLinked: true`) halten im `node.data` nur Minimal-Informationen (Name).
     - **Problem**: Ein naiver Sync überschreibt die reichhaltige Aktions-Definition im Projekt-Registry mit diesen Minimaldaten.
-    - **Lösung**: Der `JSONInspector.ts` nutzt eine typsensible Merge-Logik. Bei `Action` oder `DataAction` werden die Daten des Knotens vorsichtig mit der Original-Definition gemergt (`{ ...original, ...nodeData }`), anstatt sie zu ersetzen. Dies schützt Felder wie `url`, `dataStore` oder `body`.
+    - **Lösung**: Der `InspectorActionHandler.ts` nutzt eine typsensible Merge-Logik. Bei `Action` oder `DataAction` werden die Daten des Knotens vorsichtig mit der Original-Definition gemergt (`{ ...original, ...nodeData }`), anstatt sie zu ersetzen. Dies schützt Felder wie `url`, `dataStore` oder `body`.
 - **ApiSimulator Persistence (v2.18.12)**:
     - Der `ApiSimulator` in `Editor.ts` akzeptiert nun einen optionalen `storageFile`-Parameter.
     - Damit können `DataAction`s gezielt auf verschiedene Datenquellen (z.B. `users.json`) zugreifen, indem sie eine `TDataStore`-Komponente referenzieren.
@@ -618,10 +665,11 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Action-Properties**: `FlowAction` fungiert als Proxy für die globale `project.actions` Definition. Getters/Setters wie `actionType`, `target`, `changesJSON` wandeln die internen Strukturen für den Inspector in Strings oder primitive Werte um.
   - **WICHTIG (v2.14.0)**: Nutze innerhalb der Proxies immer `this.getActionDefinition()`, um sicherzustellen, dass sowohl eigenständige als auch verlinkte Aktionen korrekt gelesen/geschrieben werden.
 
-- **Inspector Template Priority (v2.14.0)**:
-  - Bei der Auswahl eines Templates (`inspectorFile`) hat die fachliche Spezialisierung Vorrang vor der dynamischen Generierung.
-  - Der `JSONInspector` überspringt die dynamische Generierung (`generateUIFromProperties`), wenn ein spezialisiertes Template wie `inspector_data_action.json` oder `inspector_task.json` geladen wurde. Dies verhindert die Duplizierung von Eingabefeldern.
-  - **Trap**: Wenn du in `StandardActions.ts` neue Parameter hinzufügst (z.B. `dataStore`), musst du ZWINGEND auch die entsprechende JSON-Datei (`public/inspector_data_action.json`) erweitern! Andernfalls ist der Parameter im Code vorhanden, aber im UI unsichtbar.
+- **JWT-Automatisierung (v3.3.3)**:
+  - Wenn `requestJWT: true` gesetzt ist, führt die `http` Action (und somit auch `DataAction`) zwei automatische Schritte bei erfolgreicher Antwort durch:
+    1.  **Token-Speicherung**: Prüft auf `response.token` und speichert es automatisch im `localStorage` unter `auth_token`. Dies macht separate `store_token` Actions oft überflüssig.
+    2.  **User-Unwrapping**: Prüft auf `response.user`. Wenn vorhanden, wird *nur* das User-Objekt in die `resultVariable` geschrieben, anstatt der gesamten Response. Dies erleichtert den direkten Zugriff auf User-Daten (z.B. `${currentUser.name}`).
+  - **Sicherheit**: Dies geschieht sowohl in der Simulation (`ApiSimulator`) als auch im echten Request (`fetch`).
 
 - **DataAction Pattern (v2.14.0)**:
   - `DataAction` ist ein spezialisierter Knoten für asynchrone Server-Operationen mit visueller Branching-Logik (Success/Error).
@@ -641,11 +689,11 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Dialog-Expressions**:
   - Im `JSONDialogRenderer` müssen Variablen in Properties wie `source` zwingend mit `${...}` umschlossen werden (z.B. `"source": "${dialogData.images}"`), damit sie als Expression ausgewertet werden. Ohne `${}` wird der Wert als String-Literal behandelt.
 
-### [Inspector-Property-Sync (v2.14.0)](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/JSONInspector.ts)
-- **Namenskonvention**: Damit der `JSONInspector` Änderungen automatisch in das Fachmodell (`selectedObject`) zurückschreiben kann, müssen die Namen (`name`) der Inspector-Objekte dem Schema `<propertyName>Input` folgen (z.B. `resourceInput` für die Eigenschaft `resource`).
-- **Suffix-Handling**: Der `JSONInspector` entfernt beim Speichern (`handleObjectChange`) automatisch den Suffix `Input`, um den Ziel-Property-Namen zu ermitteln.
-- **Re-rendering**: Wenn eine Änderung an einer Eigenschaft die Sichtbarkeit anderer Felder beeinflusst (z.B. `resource` oder `queryProperty`), muss in `handleObjectChange` explizit `this.render()` aufgerufen werden, um die UI-Struktur zu aktualisieren.
-- **Daten-Abruf**: Nutze `fetchResourceProperties` in `JSONInspector`, um beim Wechsel einer Ressource automatisch deren Metadaten (Properties) abzufragen und als reaktive Variable `availableResourceProperties` zur Verfügung zu stellen.
+### [Inspector-Property-Sync (v2.14.0)](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/inspector/InspectorHost.ts)
+- **Namenskonvention**: Damit der `InspectorHost` Änderungen automatisch in das Fachmodell (`selectedObject`) zurückschreiben kann, müssen die Namen (`name`) der Inspector-Objekte dem Schema `<propertyName>Input` folgen (z.B. `resourceInput` für die Eigenschaft `resource`).
+- **Suffix-Handling**: Der `InspectorHost` entfernt beim Speichern (`handleAutoSave`) automatisch den Suffix `Input`, um den Ziel-Property-Namen zu ermitteln.
+- **Re-rendering**: Wenn eine Änderung an einer Eigenschaft die Sichtbarkeit anderer Felder beeinflusst (z.B. `resource` oder `queryProperty`), muss in `handleAutoSave` explizit `this.render()` aufgerufen werden, um die UI-Struktur zu aktualisieren.
+- **Daten-Abruf**: Nutze `fetchResourceProperties` in `InspectorHost`, um beim Wechsel einer Ressource automatisch deren Metadaten (Properties) abzufragen und als reaktive Variable `availableResourceProperties` zur Verfügung zu stellen.
 
 ## Namensgebung & Eindeutigkeit
 - **Eindeutigkeit**: Namen für Variablen, Actions und Tasks müssen projektweit eindeutig sein.
@@ -926,3 +974,10 @@ Es gibt zwei grundlegend verschiedene Arten, wie Aktionen in der `actionSequence
     1. Sicherstellen, dass der Typ im Toolbox-Item als `Action:my_type` definiert ist.
     2. In der `FlowAction`-Klasse (oder Subklasse) muss `getInspectorProperties` die passenden Felder liefern.
     3. Der `JSONInspector` erkennt den Typ automatisch und rendert die dynamischen Felder.
+
+## [Lern-Schleife & Anti-Patterns] (v3.0.1)
+
+### DO NOT: Globale Präfixe in Expressions
+In der `project.json` sollten globale Variablen (aus der `stage_blueprint`) DIREKT ohne das Präfix `global.` referenziert werden (z.B. `${currentPIN}`). 
+- **Problem**: Der `ExpressionParser` sucht bereits in der globalen Map; ein zusätzliches `global.` führt zu einer misslungenen Auflösung (Empty String).
+- **Fix**: Immer `${Variable}` statt `${global.Variable}` verwenden.

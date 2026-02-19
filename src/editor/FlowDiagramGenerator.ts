@@ -33,14 +33,14 @@ export class FlowDiagramGenerator {
 
         // Find all unique events with their source objects
         for (const obj of this.project.objects) {
-            if (obj.Tasks) {
-                for (const [eventName, taskName] of Object.entries(obj.Tasks)) {
+            if ((obj as any).Tasks) {
+                for (const [eventName, taskName] of Object.entries((obj as any).Tasks)) {
                     // Skip empty task mappings (disconnected events)
                     if (!taskName || taskName === '') continue;
 
                     if (!processedEvents.has(eventName)) {
                         processedEvents.add(eventName);
-                        const flowData = this.buildSingleDiagram(eventName, taskName, obj);
+                        const flowData = this.buildSingleDiagram(eventName, taskName as string, obj);
                         flows.push(flowData);
                     }
                 }

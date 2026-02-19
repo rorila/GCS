@@ -11,15 +11,9 @@
                     "icon": "📄"
                 },
                 {
-                    "id": "seed-data",
-                    "label": "Seed Test Data (Dev)",
-                    "action": "seed-data",
-                    "icon": "🌱"
-                },
-                {
-                    "id": "open-project",
+                    "id": "load",
                     "label": "Projekt öffnen...",
-                    "action": "open-project",
+                    "action": "load",
                     "icon": "📂"
                 },
                 {
@@ -29,29 +23,23 @@
                     "icon": "💾"
                 },
                 {
-                    "id": "load",
-                    "label": "Projekt Laden",
-                    "action": "load",
-                    "icon": "📂"
+                    "id": "force-reload",
+                    "label": "Vom Server neu laden (Force)",
+                    "action": "force-reload",
+                    "icon": "🔄"
                 }
             ]
         },
         {
-            "id": "multiplayer",
-            "label": "Multiplayer",
+            "id": "platform",
+            "label": "Plattform",
             "items": [
                 {
-                    "id": "lobby",
+                    "id": "multiplayer",
                     "label": "Plattform-Lobby",
                     "action": "multiplayer",
                     "icon": "🌐"
-                }
-            ]
-        },
-        {
-            "id": "export",
-            "label": "Export",
-            "items": [
+                },
                 {
                     "id": "export-html",
                     "label": "Export als HTML",
@@ -59,28 +47,10 @@
                     "icon": "🌐"
                 },
                 {
-                    "id": "export-html-gzip",
-                    "label": "Export als HTML (gZip)",
-                    "action": "export-html-gzip",
-                    "icon": "📦"
-                },
-                {
                     "id": "export-json",
                     "label": "Export als JSON",
                     "action": "export-json",
                     "icon": "📄"
-                },
-                {
-                    "id": "export-json-gzip",
-                    "label": "Export als JSON (gZip)",
-                    "action": "export-json-gzip",
-                    "icon": "📦"
-                },
-                {
-                    "id": "export-exe",
-                    "label": "Export als Exe (Demnächst...)",
-                    "action": "export-exe",
-                    "icon": "🖥️"
                 }
             ]
         },
@@ -109,38 +79,20 @@
             ]
         },
         {
-            "id": "recording",
-            "label": "Recording",
+            "id": "tools",
+            "label": "Werkzeuge",
             "items": [
                 {
-                    "id": "record-start",
-                    "label": "Aufnahme starten",
-                    "action": "record-start",
-                    "icon": "🔴"
-                },
-                {
-                    "id": "record-stop",
-                    "label": "Aufnahme stoppen",
-                    "action": "record-stop",
-                    "icon": "⏹️"
-                },
-                {
                     "id": "playback-show",
-                    "label": "Playback-Steuerung",
+                    "label": "Recording-Aktionen",
                     "action": "playback-show",
                     "icon": "🎬"
                 },
                 {
-                    "id": "recording-export",
-                    "label": "Recording exportieren",
-                    "action": "recording-export",
-                    "icon": "📤"
-                },
-                {
-                    "id": "recording-import",
-                    "label": "Recording importieren",
-                    "action": "recording-import",
-                    "icon": "📥"
+                    "id": "seed-data",
+                    "label": "Seed Test Data (Dev)",
+                    "action": "seed-data",
+                    "icon": "🌱"
                 }
             ]
         }

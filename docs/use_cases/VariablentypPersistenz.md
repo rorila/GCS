@@ -28,7 +28,7 @@ In `public/inspector_variable.json` wurden alle Bindings von `variableType` auf 
 - `selectedValue: "${selectedObject.type}"`
 - `visible: "${selectedObject.type === 'object' ...}"`
 
-### 4. JSONInspector.ts (UI Re-Rendering)
+### 4. InspectorHost.ts (UI Re-Rendering)
 Damit der Inspector neue Felder (wie `objectModel`) sofort anzeigt, wurde ein erzwungenes Re-Rendering bei Änderungen am `type`-Feld implementiert:
 
 ```typescript
@@ -43,7 +43,7 @@ if (propertyName === 'type' || propertyName === 'variableType') {
 | :--- | :--- | :--- | :--- |
 | **Variable** | Datenmodell | `TVariable.ts` | `type`, `variableType` (Alias) |
 | **Serialisierung** | Ladelogik | `Serialization.ts` | `hydrateObjects` (reservedKeys) |
-| **Inspector-UI** | Rendering | `JSONInspector.ts` | `handleObjectChange` (Re-render) |
+| **Inspector-UI** | Rendering | `InspectorHost.ts` | `handleAutoSave` (Re-render) |
 | **Inspector-Layout** | UI Layout | `inspector_variable.json` | `TDropdown`, `visible` Checks |
 | **Subklassen** | Spezialtypen | `TObjectVariable.ts` | `this.type = 'object'` |
 

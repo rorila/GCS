@@ -282,7 +282,20 @@
       let current = obj;
       for (const part of parts) {
         if (current === void 0 || current === null) return void 0;
-        current = current[part];
+        let target = current;
+        if (current.isVariable === true || current.className && current.className.includes("Variable")) {
+          target = this.resolveValue(current);
+        }
+        if (Array.isArray(target) && target.length === 1 && target[part] === void 0 && part !== "length") {
+          target = target[0];
+        }
+        const hasInContent = target !== null && typeof target === "object" && part in target || target !== void 0 && target !== null && target[part] !== void 0;
+        if (hasInContent) {
+          current = target[part];
+        } else {
+          current = current[part];
+        }
+        if (current === void 0 || current === null) return void 0;
       }
       return this.resolveValue(current);
     }
@@ -325,6 +338,7 @@
       }
       return template.replace(/\$\{([^}]+)\}/g, (_, path) => {
         const trimmedPath = path.trim();
+        console.log(`[PropertyHelper] Starting interpolation for path: "${trimmedPath}"`);
         if (trimmedPath === "true") return "true";
         if (trimmedPath === "false") return "false";
         if (!isNaN(Number(trimmedPath))) return trimmedPath;
@@ -335,12 +349,14 @@
             const obj = objects.find((o) => o.name === objName || o.id === objName);
             if (obj) {
               const val2 = this.getPropertyValue(obj, propPath);
+              console.log(`[PropertyHelper] Interpolate "${trimmedPath}" matched Object "${objName}". Prop: "${propPath}", Value: "${val2}"`);
               if (val2 !== void 0) return String(val2);
             }
           } else {
             const obj = objects.find((o) => o.name === trimmedPath || o.id === trimmedPath);
             if (obj) {
               const resolved = this.resolveValue(obj);
+              console.log(`[PropertyHelper] Interpolate "${trimmedPath}" found Object. ID: ${obj.id}, Name: ${obj.name}, Value: "${resolved}"`);
               if (resolved !== obj) return String(resolved ?? "");
               return obj.name || obj.id || String(obj);
             }
@@ -354,8 +370,11 @@
           }
         }
         if (val !== void 0) {
-          return String(this.resolveValue(val));
+          const resolvedVal = this.resolveValue(val);
+          console.log(`[PropertyHelper] Interpolate "${trimmedPath}" found in vars. Value: "${resolvedVal}"`);
+          return String(resolvedVal);
         }
+        console.warn(`[PropertyHelper] Interpolation failed for path: "${trimmedPath}". Variable not found.`);
         return "";
       });
     }
@@ -504,19 +523,7 @@
      * @returns Property value or undefined
      */
     static getNestedProperty(path, context) {
-      const parts = path.split(".");
-      const rootKey = parts[0];
-      let current = PropertyHelper.resolveValue(context[rootKey]);
-      if (parts.length > 1) {
-        for (let i = 1; i < parts.length; i++) {
-          if (current === null || current === void 0) {
-            return void 0;
-          }
-          current = current[parts[i]];
-          current = PropertyHelper.resolveValue(current);
-        }
-      }
-      return current;
+      return PropertyHelper.getPropertyValue(context, path);
     }
     /**
      * Sets a nested property value (e.g., "player.score.total")
@@ -931,8 +938,6 @@
       // If true, component is merged globally across stages
       __publicField(this, "isHiddenInRun", false);
       // If true, component is hidden in run mode
-      __publicField(this, "isBlueprintOnly", false);
-      // If true, component is only visible on blueprint stages in editor
       // Drag & Drop Properties
       __publicField(this, "draggable", false);
       __publicField(this, "dragMode", "move");
@@ -962,8 +967,7 @@
         id: this.id,
         isVariable: this.isVariable,
         isService: this.isService,
-        isHiddenInRun: this.isHiddenInRun,
-        isBlueprintOnly: this.isBlueprintOnly
+        isHiddenInRun: this.isHiddenInRun
       };
       if (this.events && Object.keys(this.events).length > 0) {
         json.events = this.events;
@@ -1310,6 +1314,10 @@
      */
     register(name, instance, description) {
       const methods = [];
+      const instanceMethods = Object.getOwnPropertyNames(instance).filter((prop) => typeof instance[prop] === "function");
+      for (const methodName of instanceMethods) {
+        methods.push({ name: methodName });
+      }
       let proto = Object.getPrototypeOf(instance);
       while (proto && proto !== Object.prototype) {
         const methodNames = Object.getOwnPropertyNames(proto).filter((prop) => {
@@ -1472,9 +1480,14 @@
       console.log(`[DataService] Searching in ${list.length} items...`);
       const results = list.filter((item) => {
         for (const key in query) {
-          if (item[key] != query[key]) {
-            return false;
+          const itemValue = item[key];
+          const queryValue = query[key];
+          if (itemValue == queryValue) continue;
+          if (Array.isArray(itemValue) && typeof queryValue === "string") {
+            if (itemValue.join("") === queryValue) continue;
+            if (itemValue.toString() === queryValue) continue;
           }
+          return false;
         }
         return true;
       });
@@ -1504,6 +1517,22 @@
     async getModels(storagePath) {
       const db = await this.readDb(storagePath);
       return Object.keys(db).filter((key) => Array.isArray(db[key]));
+    }
+    /**
+     * Liefert die Felder (Keys) des ersten Eintrags eines Modells.
+     * Dient als "Schema-Erkennung" für IntelliSense.
+     */
+    async getModelFields(storagePath, modelName) {
+      const db = await this.readDb(storagePath);
+      const collection = db[modelName];
+      if (!Array.isArray(collection) || collection.length === 0) {
+        return [];
+      }
+      const firstItem = collection[0];
+      if (typeof firstItem === "object" && firstItem !== null) {
+        return Object.keys(firstItem);
+      }
+      return [];
     }
     /**
      * Interne Methode zum Lesen der gesamten DB-Struktur
@@ -1565,66 +1594,55 @@
       console.log("[ActionApiHandler] Handling API Request:", params);
       const path = params.path || "";
       const method = params.method || "GET";
+      if (_action.dataStore) {
+        const storeName = _action.dataStore;
+        const dataStore = globalObjects.find((obj) => obj.name === storeName && obj.className === "TDataStore");
+        if (dataStore) {
+          console.log(`[ActionApiHandler] Using TDataStore: ${storeName}`);
+          const storagePath = dataStore.storagePath || "db.json";
+          const collection = dataStore.defaultCollection || "items";
+          const query = params.query || _action.query || {};
+          return this.performDataQuery(storagePath, collection, query, params);
+        } else {
+          console.warn(`[ActionApiHandler] DataStore not found: ${storeName}`);
+          return { status: 500, data: { error: `DataStore component not found: ${storeName}` } };
+        }
+      }
       if (path.includes("/users") && method === "GET") {
         return this.handleUserSearch(params, globalObjects);
       }
       return {
         status: 404,
-        data: { error: `Resource not found: ${path}` }
+        data: { error: `Resource not found: ${path} (and no dataStore configured)` }
       };
     }
-    static async handleUserSearch(params, globalObjects) {
-      const userDataStore = globalObjects.find((obj) => obj.name === "UserData" && obj.className === "TDataStore");
-      const storagePath = userDataStore?.storagePath || "users.json";
-      const collection = userDataStore?.defaultCollection || "users";
-      let query = params.query || {};
-      if (!params.query && params.path && params.path.includes("?")) {
-        try {
-          const urlObj = new URL(params.path, "http://localhost");
-          urlObj.searchParams.forEach((value, key) => {
-            query[key] = value;
-          });
-          console.log("[ActionApiHandler] Parsed query from path:", query);
-        } catch (e) {
-          console.warn("[ActionApiHandler] Failed to parse query from path:", e);
-        }
-      }
+    static async performDataQuery(storagePath, collection, query, params) {
       let requestPin = query.code || query.authCode || query.pin;
       if (!requestPin && params.body?.code) requestPin = params.body.code;
       if (!requestPin && params.body?.pin) requestPin = params.body.pin;
-      console.log(`[ActionApiHandler] Searching in ${storagePath}/${collection} for PIN: "${requestPin}"`);
-      if (!requestPin) {
-        return { status: 400, data: { error: "Missing 'code', 'pin' or 'authCode' parameter" } };
-      }
+      console.log(`[ActionApiHandler] Querying ${storagePath}/${collection}. Query:`, query);
       const allItems = await DataService.getInstance().findItems(storagePath, collection, {});
-      console.log(`[ActionApiHandler] Found ${allItems.length} candidates in DB.`);
-      const foundUser = allItems.find((user) => {
-        let userPin = "";
-        if (Array.isArray(user.authCode)) {
-          userPin = user.authCode.join("");
-        } else if (user.authCode) {
-          userPin = user.authCode;
-        } else if (user.pin) {
-          userPin = user.pin;
+      if (requestPin) {
+        const found = allItems.find((item) => {
+          let itemPin = "";
+          if (Array.isArray(item.authCode)) itemPin = item.authCode.join("");
+          else if (item.authCode) itemPin = item.authCode;
+          else if (item.pin) itemPin = item.pin;
+          return itemPin === requestPin;
+        });
+        if (found) {
+          return { status: 200, data: { user: found, token: "sim-new-token" } };
+        } else {
+          return { status: 401, data: { error: "Not found" } };
         }
-        const isMatch = userPin === requestPin;
-        console.log(`[ActionApiHandler] Checking user ${user.id} (${user.name}): DB_PIN="${userPin}" vs REQ_PIN="${requestPin}" => Match? ${isMatch}`);
-        return isMatch;
-      });
-      if (foundUser) {
-        console.log("[ActionApiHandler] User found:", foundUser.name);
-        const token = `sim-token-${Date.now()}-${Math.random().toString(36).substr(2)}`;
-        return {
-          status: 200,
-          data: {
-            user: foundUser,
-            token
-          }
-        };
-      } else {
-        console.warn("[ActionApiHandler] User not found or PIN incomplete.");
-        return { status: 401, data: { error: "Invalid credentials" } };
       }
+      return { status: 200, data: allItems };
+    }
+    static async handleUserSearch(params, globalObjects) {
+      const userDataStore = globalObjects.find((obj) => obj.name === "UserData" && obj.className === "TDataStore");
+      const storagePath = userDataStore?.storagePath || "db.json";
+      const collection = userDataStore?.defaultCollection || "users";
+      return this.performDataQuery(storagePath, collection, params.query, params);
     }
   };
 
@@ -1880,8 +1898,36 @@
     });
     actionRegistry.register("http", async (action, context) => {
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-      const url = PropertyHelper.interpolate(String(action.url || ""), combinedContext, context.objects);
-      const method = action.method || "GET";
+      let effectiveUrl = String(action.url || "");
+      if (!effectiveUrl) {
+        let res = action.resource;
+        if (!res && action.dataStore) {
+          const dsName = action.dataStore;
+          const dsComponent = context.objects.find((o) => o.name === dsName || o.id === dsName);
+          res = dsComponent?.defaultCollection;
+        }
+        if (res) {
+          effectiveUrl = `/api/data/${res}`;
+          const qProp = action.queryProperty || action.property;
+          const qVal = action.queryValue || action.value;
+          if (qProp && qVal) {
+            const interpValue = PropertyHelper.interpolate(String(qVal), combinedContext, context.objects);
+            effectiveUrl += `?${qProp}=${encodeURIComponent(interpValue)}`;
+          }
+        }
+      }
+      let url = PropertyHelper.interpolate(effectiveUrl, combinedContext, context.objects);
+      let method = action.method || "GET";
+      if (action.requestJWT) {
+        if (!url || url === "/" || url.startsWith("/api/data/")) {
+          console.log(`[Action: http] Auto-fixing URL for JWT request: ${url} -> /api/platform/login`);
+          url = "/api/platform/login";
+        }
+        if (method === "GET") {
+          console.log(`[Action: http] Auto-fixing METHOD for JWT request: GET -> POST`);
+          method = "POST";
+        }
+      }
       let body = null;
       let parsedBody = {};
       if (method !== "GET" && action.body) {
@@ -1893,36 +1939,60 @@
           parsedBody = body;
         }
       }
+      if (action.requestJWT && !action.body) {
+        const qProp = action.queryProperty || action.property;
+        const qVal = action.queryValue || action.value;
+        if (qProp && qVal) {
+          console.log(`[Action: http] Interpolating qVal "${qVal}" for qProp "${qProp}"`);
+          const interpValue = PropertyHelper.interpolate(String(qVal), combinedContext, context.objects);
+          console.log(`[Action: http] Interpolated Value: "${interpValue}"`);
+          parsedBody = { [qProp]: interpValue };
+          body = JSON.stringify(parsedBody);
+          console.log(`[Action: http] Auto-constructed Login Body (JWT):`, parsedBody);
+        }
+      }
       DebugLogService.getInstance().log("Action", `HTTP: ${method} ${url}`, {
         data: { type: "http", method, url, body: parsedBody }
       });
       if (serviceRegistry.has("ApiSimulator")) {
         console.log(`[Action: http] Using API Simulation for: ${method} ${url}`);
         try {
-          let result = await serviceRegistry.call("ApiSimulator", "request", [method, url, parsedBody]);
-          if (action.resultPath && result) {
-            const parts = action.resultPath.split(".");
-            let current = result;
-            for (const part of parts) {
-              if (current && current[part] !== void 0) {
-                current = current[part];
-              } else {
-                current = void 0;
-                break;
-              }
-            }
-            result = current;
+          const dsName = action.dataStore;
+          const dsComponent = context.objects.find((o) => o.name === dsName || o.id === dsName);
+          const storageFile = dsComponent?.storagePath || "db.json";
+          if (action.requestJWT) {
+            console.log(`[Action: http] JWT Simulation Request: ${method} ${url}`, parsedBody);
           }
-          if (action.resultVariable) {
-            context.vars[action.resultVariable] = result;
-            context.contextVars[action.resultVariable] = result;
+          let result = await serviceRegistry.call("ApiSimulator", "request", [method, url, parsedBody, storageFile]);
+          if (action.requestJWT) {
+            console.log(`[Action: http] JWT Simulation Result:`, result);
+          }
+          if (action.resultPath && result) {
+            result = PropertyHelper.getPropertyValue(result, action.resultPath);
+          }
+          if (Array.isArray(result) && result.length === 1) {
+            console.log(`[Action: http] Auto-Unwrapping single-item array result for ${action.resultVariable}`);
+            result = result[0];
+          }
+          const resVar = action.resultVariable || action.variable;
+          if (resVar) {
+            context.vars[resVar] = result;
+            context.contextVars[resVar] = result;
+            if (action.requestJWT) {
+              console.log(`[Action: http] Variable ${resVar} gesetzt auf:`, result);
+            }
+          }
+          if (result && (result.error || result.status >= 400)) {
+            return false;
           }
         } catch (err2) {
           console.error("[Action: http] Simulation Error:", err2);
           if (action.resultVariable) {
-            context.vars[action.resultVariable] = { error: String(err2) };
-            context.contextVars[action.resultVariable] = { error: String(err2) };
+            const errorObj = { error: String(err2), status: 500 };
+            context.vars[action.resultVariable] = errorObj;
+            context.contextVars[action.resultVariable] = errorObj;
           }
+          return false;
         }
         return;
       }
@@ -1931,32 +2001,44 @@
           method,
           headers: { "Content-Type": "application/json", ...action.headers || {} }
         };
+        const token = localStorage.getItem("auth_token");
+        if (token) {
+          options.headers["Authorization"] = `Bearer ${token}`;
+        }
         if (body) options.body = body;
+        if (action.requestJWT) {
+          console.log(`[Action: http] JWT Real Request: ${method} ${url}`, { headers: options.headers, body: parsedBody });
+        }
         const response = await fetch(url, options);
         let data = await response.json();
+        if (action.requestJWT) {
+          console.log(`[Action: http] JWT Real Response:`, data);
+        }
         if (action.resultPath && data) {
-          const parts = action.resultPath.split(".");
-          let current = data;
-          for (const part of parts) {
-            if (current && current[part] !== void 0) {
-              current = current[part];
-            } else {
-              current = void 0;
-              break;
-            }
-          }
-          data = current;
+          data = PropertyHelper.getPropertyValue(data, action.resultPath);
+        }
+        if (Array.isArray(data) && data.length === 1) {
+          console.log(`[Action: http] Auto-Unwrapping single-item array result for ${action.resultVariable}`);
+          data = data[0];
         }
         if (action.resultVariable) {
           context.vars[action.resultVariable] = data;
           context.contextVars[action.resultVariable] = data;
+          if (action.requestJWT) {
+            console.log(`[Action: http] Produktion: Variable ${action.resultVariable} gesetzt auf:`, data);
+          }
+        }
+        if (!response.ok) {
+          return false;
         }
       } catch (err2) {
         console.error("[Action: http] Error:", err2);
         if (action.resultVariable) {
-          context.vars[action.resultVariable] = { error: String(err2) };
-          context.contextVars[action.resultVariable] = { error: String(err2) };
+          const errorObj = { error: String(err2) };
+          context.vars[action.resultVariable] = errorObj;
+          context.contextVars[action.resultVariable] = errorObj;
         }
+        return false;
       }
     }, {
       type: "http",
@@ -1978,6 +2060,7 @@
       } else {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         const token = PropertyHelper.interpolate(String(action.token || ""), combinedContext, context.objects);
+        console.log(`[Action: store_token] Speichere Token "${key}":`, token ? token.substring(0, 15) + "..." : "null");
         localStorage.setItem(key, token);
       }
     }, {
@@ -2086,7 +2169,9 @@
       type: "data_action",
       label: "Data Action",
       description: "F\xFChrt eine Daten-Aktion aus (HTTP, SQL, etc.).",
-      parameters: []
+      parameters: [
+        { name: "dataStore", label: "Data Store (Komponente)", type: "select", source: "components", hint: "W\xE4hle eine TDataStore-Komponente (z.B. UserData)" }
+      ]
       // Dynamic based on sub-type
     });
     actionRegistry.register("handle_api_request", async (action, context) => {
@@ -3220,13 +3305,20 @@
       this.contextVars = this.createVariableContext();
     }
     initializeVariables(project) {
+      if (project.stages) {
+        const blueprintStage = project.stages.find((s) => s.type === "blueprint");
+        if (blueprintStage && blueprintStage.variables) {
+          console.log(`[RuntimeVariableManager] Loading ${blueprintStage.variables.length} global variables from Blueprint Stage.`);
+          this.importVariables(blueprintStage.variables);
+        }
+      }
       if (project.variables) {
-        this.importVariables(project.variables);
+        this.importVariables(project.variables, true);
       }
       if (project.stages) {
         const mainStage = project.stages.find((s) => s.type === "main");
         if (mainStage && mainStage.variables) {
-          this.importVariables(mainStage.variables);
+          this.importVariables(mainStage.variables, true);
         }
       }
     }
@@ -3235,12 +3327,14 @@
         this.importVariables(stage.variables);
       }
     }
-    importVariables(vars) {
+    importVariables(vars, isFallback = false) {
       vars.forEach((v) => {
         const isGlobal = !v.scope || v.scope === "global";
         const initialValue = v.defaultValue !== void 0 ? v.defaultValue : v.value;
         if (isGlobal) {
           if (this.projectVariables[v.name] === void 0) {
+            this.projectVariables[v.name] = initialValue !== void 0 ? initialValue : 0;
+          } else if (!isFallback) {
             this.projectVariables[v.name] = initialValue !== void 0 ? initialValue : 0;
           }
         } else {
@@ -4423,7 +4517,6 @@
       this.handleKeyUp = this.onKeyUp.bind(this);
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       return [
@@ -4573,7 +4666,6 @@
       this.style.borderWidth = 2;
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       return [
@@ -4694,7 +4786,6 @@
       this.style.borderWidth = 2;
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       const props = super.getInspectorProperties();
@@ -5469,7 +5560,6 @@
       this.style.color = "#ffffff";
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     // Getters for runtime state
     get connected() {
@@ -6663,7 +6753,6 @@
       this.style.visible = true;
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     /**
      * Show a toast notification
@@ -6999,7 +7088,6 @@
       ];
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     /**
      * Set or update a section
@@ -7220,7 +7308,6 @@
       this.style.visible = true;
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       return [
@@ -7256,7 +7343,6 @@
       this.style.borderWidth = 2;
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       const props = super.getInspectorProperties();
@@ -7373,7 +7459,6 @@
       this.style.borderWidth = 2;
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     getInspectorProperties() {
       const props = super.getInspectorProperties();
@@ -8089,7 +8174,6 @@
       this.visible = true;
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     // ─────────────────────────────────────────────
     // Properties (Nur-Lesen im Inspector)
@@ -8470,7 +8554,6 @@
       this.style.borderWidth = 1;
       this.style.color = "#000000";
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = false;
     }
     get type() {
       return this._type;
@@ -8499,7 +8582,7 @@
           label: "Typ",
           type: "select",
           group: "Variable",
-          options: ["integer", "real", "string", "boolean", "timer", "random", "list", "object", "object_list", "threshold", "trigger", "range", "keystore"],
+          options: ["integer", "real", "string", "boolean", "timer", "random", "list", "object", "object_list", "threshold", "trigger", "range", "keystore", "any", "json"],
           selectedValue: this.type,
           // Explicitly bind current value
           defaultValue: "integer"
@@ -8513,8 +8596,9 @@
           label: "Modell (Entit\xE4t)",
           type: "select",
           group: "Variable",
-          source: "availableModels"
+          source: "availableModels",
           // Will be populated by Discovery in JSONInspector
+          placeholder: "Modell w\xE4hlen..."
         });
       }
       return [
@@ -8536,6 +8620,7 @@
     toJSON() {
       const json = super.toJSON();
       json.type = this.type;
+      json.objectModel = this.objectModel;
       console.log(`[TVariable] Serializing "${this.name}" (ID: ${this.id}):`, {
         className: this.className,
         type: json.type,
@@ -9267,7 +9352,6 @@
       this.style.borderRadius = 8;
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     get caption() {
       return this._caption;
@@ -9594,7 +9678,6 @@
       this.caption = "\u{1F5A5}\uFE0F API Server";
       this.isService = true;
       this.isHiddenInRun = true;
-      this.isBlueprintOnly = true;
     }
     /**
      * Verfügbare Events für den Server
@@ -10114,7 +10197,20 @@
           });
         }
       };
-      blueprintStages.forEach(processStage);
+      const targetIsBlueprint = this.project.stages?.find((s) => s.id === stageId)?.type === "blueprint";
+      blueprintStages.forEach((bs) => {
+        const preCount = mergedObjects.length;
+        processStage(bs);
+        const postCount = mergedObjects.length;
+        if (!targetIsBlueprint) {
+          for (let i = preCount; i < postCount; i++) {
+            if (mergedObjects[i]) {
+              mergedObjects[i].isInherited = true;
+              mergedObjects[i].isFromBlueprint = true;
+            }
+          }
+        }
+      });
       stageChain.forEach((s) => {
         if (s.type !== "blueprint") processStage(s);
       });

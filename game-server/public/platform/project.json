@@ -426,146 +426,10 @@
           }
         },
         {
-          "name": "AttemptLogin",
-          "actionSequence": [
-            {
-              "name": "DataAction1",
-              "isLinked": true,
-              "type": "data_action",
-              "successBody": [],
-              "errorBody": []
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
-          "flowChart": {
-            "elements": [
-              {
-                "id": "node-1770989123182",
-                "type": "Task",
-                "x": 20,
-                "y": 60,
-                "width": 160,
-                "height": 60,
-                "properties": {
-                  "name": "AttemptLogin",
-                  "details": "",
-                  "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
-                  "text": "AttemptLogin"
-                },
-                "data": {
-                  "name": "AttemptLogin",
-                  "showDetails": false,
-                  "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
-                }
-              },
-              {
-                "id": "node-1770989195203",
-                "type": "DataAction",
-                "x": 280,
-                "y": 60,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "DataAction1",
-                  "details": "",
-                  "description": ""
-                },
-                "data": {
-                  "name": "DataAction1",
-                  "isLinked": true
-                }
-              }
-            ],
-            "connections": [
-              {
-                "startTargetId": "node-1770989123182",
-                "endTargetId": "node-1770989195203",
-                "startX": 178.328125,
-                "startY": 90,
-                "endX": 280,
-                "endY": 90,
-                "data": {
-                  "startAnchorType": "output",
-                  "originalStartAnchorType": "output",
-                  "isEmbeddedInternal": false,
-                  "endAnchorType": "input"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "name": "ANewTask",
-          "actionSequence": [
-            {
-              "name": "Action:http",
-              "type": "action",
-              "showDetails": false,
-              "method": "POST"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
+          "name": "TryLoginOnceMore",
           "description": "",
-          "flowChart": {
-            "elements": [
-              {
-                "id": "node-1771322011951",
-                "type": "Task",
-                "x": 100,
-                "y": 140,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "ANewTask",
-                  "details": "",
-                  "description": "",
-                  "text": "ANewTask"
-                },
-                "data": {
-                  "name": "ANewTask",
-                  "showDetails": false
-                }
-              },
-              {
-                "id": "node-1771323604772",
-                "type": "Action",
-                "x": 340,
-                "y": 140,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Action:http",
-                  "details": "",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Action:http",
-                  "type": "http",
-                  "showDetails": false,
-                  "method": "POST"
-                }
-              }
-            ],
-            "connections": [
-              {
-                "startTargetId": "node-1771322011951",
-                "endTargetId": "node-1771323604772",
-                "startX": 233.1640625,
-                "startY": 164.015625,
-                "endX": 400,
-                "endY": 210,
-                "data": {
-                  "startAnchorType": "output",
-                  "originalStartAnchorType": "output",
-                  "isEmbeddedInternal": false,
-                  "endAnchorType": "input"
-                }
-              }
-            ]
-          }
+          "params": [],
+          "actionSequence": []
         }
       ],
       "actions": [
@@ -579,26 +443,6 @@
           "formula": "currentPIN +PinPicker.selectedEmoji",
           "description": "",
           "sync": true
-        },
-        {
-          "details": "",
-          "type": "data_action",
-          "name": "DataAction1",
-          "url": "/api/data/users?authCode=${currentPIN}",
-          "showDetails": false,
-          "queryProperty": "authCode",
-          "queryValue": "${currentPIN}",
-          "resultVariable": "currentUser",
-          "successBody": [],
-          "errorBody": [],
-          "dataStore": "UserData",
-          "isLinked": true
-        },
-        {
-          "name": "Action:http",
-          "type": "http",
-          "showDetails": false,
-          "method": "POST"
         }
       ],
       "flowCharts": {
@@ -657,62 +501,6 @@
             }
           ]
         },
-        "AttemptLogin": {
-          "elements": [
-            {
-              "id": "node-1770989123182",
-              "type": "Task",
-              "x": 20,
-              "y": 60,
-              "width": 160,
-              "height": 60,
-              "properties": {
-                "name": "AttemptLogin",
-                "details": "",
-                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
-                "text": "AttemptLogin"
-              },
-              "data": {
-                "name": "AttemptLogin",
-                "showDetails": false,
-                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
-              }
-            },
-            {
-              "id": "node-1770989195203",
-              "type": "DataAction",
-              "x": 280,
-              "y": 60,
-              "width": 140,
-              "height": 60,
-              "properties": {
-                "name": "DataAction1",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "DataAction1",
-                "isLinked": true
-              }
-            }
-          ],
-          "connections": [
-            {
-              "startTargetId": "node-1770989123182",
-              "endTargetId": "node-1770989195203",
-              "startX": 178.328125,
-              "startY": 90,
-              "endX": 280,
-              "endY": 90,
-              "data": {
-                "startAnchorType": "output",
-                "originalStartAnchorType": "output",
-                "isEmbeddedInternal": false,
-                "endAnchorType": "input"
-              }
-            }
-          ]
-        },
         "HandleApiRequest": {
           "elements": [
             {
@@ -761,63 +549,6 @@
               "endY": 0,
               "data": {
                 "startAnchorType": "output",
-                "endAnchorType": "input"
-              }
-            }
-          ]
-        },
-        "ANewTask": {
-          "elements": [
-            {
-              "id": "node-1771322011951",
-              "type": "Task",
-              "x": 100,
-              "y": 140,
-              "width": 140,
-              "height": 60,
-              "properties": {
-                "name": "ANewTask",
-                "details": "",
-                "description": "",
-                "text": "ANewTask"
-              },
-              "data": {
-                "name": "ANewTask",
-                "showDetails": false
-              }
-            },
-            {
-              "id": "node-1771323604772",
-              "type": "Action",
-              "x": 340,
-              "y": 140,
-              "width": 140,
-              "height": 60,
-              "properties": {
-                "name": "Action:http",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "Action:http",
-                "type": "http",
-                "showDetails": false,
-                "method": "POST"
-              }
-            }
-          ],
-          "connections": [
-            {
-              "startTargetId": "node-1771322011951",
-              "endTargetId": "node-1771323604772",
-              "startX": 233.1640625,
-              "startY": 164.015625,
-              "endX": 400,
-              "endY": 210,
-              "data": {
-                "startAnchorType": "output",
-                "originalStartAnchorType": "output",
-                "isEmbeddedInternal": false,
                 "endAnchorType": "input"
               }
             }
@@ -1563,32 +1294,30 @@
           "value": null
         },
         {
-          "className": "TStringVariable",
-          "id": "obj_1771323725132_a5zy5o5tu",
+          "className": "TVariable",
+          "id": "obj_1771427067538_0lttxifps",
           "isVariable": true,
           "isService": false,
           "isHiddenInRun": true,
-          "name": "serverURL",
-          "scope": "stage",
+          "name": "loginResult",
+          "scope": "global",
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
-          "x": 8,
-          "y": 3,
+          "x": 10,
+          "y": 4,
           "width": 6,
           "height": 2,
           "zIndex": 0,
           "align": "NONE",
-          "text": "📝 serverURL",
+          "text": "",
           "visible": true,
           "style": {
             "backgroundColor": "#d1c4e9",
             "borderColor": "#9575cd",
             "borderWidth": 1
           },
-          "type": "string",
-          "defaultValue": "",
-          "value": "http://localhost:8080",
+          "type": "json",
           "objectModel": ""
         }
       ],
@@ -1756,12 +1485,38 @@
           "defaultCollection": "users"
         }
       ],
-      "tasks": [],
+      "tasks": [
+        {
+          "name": "AttemptLogin",
+          "actionSequence": [
+            {
+              "name": "doTheAuthenfification",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
+        }
+      ],
       "actions": [
         {
-          "name": "Action:http",
+          "name": "httpLogin",
           "type": "http",
           "showDetails": false
+        },
+        {
+          "details": "",
+          "type": "data_action",
+          "name": "doTheAuthenfification",
+          "showDetails": false,
+          "dataStore": "UserData",
+          "queryProperty": "authCode",
+          "url": "/api/platform/login",
+          "queryValue": "${currentPIN}",
+          "requestJWT": true,
+          "method": "POST",
+          "resultVariable": "var_currentUser"
         }
       ],
       "flowCharts": {
@@ -1787,19 +1542,19 @@
               }
             },
             {
-              "id": "node-1770989195203",
+              "id": "node-1771433375605",
               "type": "DataAction",
-              "x": 280,
+              "x": 300,
               "y": 60,
-              "width": 140,
+              "width": 220,
               "height": 60,
               "properties": {
-                "name": "DataAction1",
+                "name": "doTheAuthenfification",
                 "details": "",
                 "description": ""
               },
               "data": {
-                "name": "DataAction1",
+                "name": "doTheAuthenfification",
                 "isLinked": true
               }
             }
@@ -1807,67 +1562,11 @@
           "connections": [
             {
               "startTargetId": "node-1770989123182",
-              "endTargetId": "node-1770989195203",
-              "startX": 178.328125,
-              "startY": 90,
-              "endX": 280,
+              "endTargetId": "node-1771433375605",
+              "startX": 177.6458282470703,
+              "startY": 86.69096374511719,
+              "endX": 300,
               "endY": 90,
-              "data": {
-                "startAnchorType": "output",
-                "originalStartAnchorType": "output",
-                "isEmbeddedInternal": false,
-                "endAnchorType": "input"
-              }
-            }
-          ]
-        },
-        "ANewTask": {
-          "elements": [
-            {
-              "id": "node-1771322011951",
-              "type": "Task",
-              "x": 100,
-              "y": 140,
-              "width": 140,
-              "height": 60,
-              "properties": {
-                "name": "ANewTask",
-                "details": "",
-                "description": "",
-                "text": "ANewTask"
-              },
-              "data": {
-                "name": "ANewTask",
-                "showDetails": false
-              }
-            },
-            {
-              "id": "node-1771323604772",
-              "type": "Action",
-              "x": 340,
-              "y": 140,
-              "width": 140,
-              "height": 60,
-              "properties": {
-                "name": "Action:http",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "Action:http",
-                "type": "http",
-                "showDetails": false
-              }
-            }
-          ],
-          "connections": [
-            {
-              "startTargetId": "node-1771322011951",
-              "endTargetId": "node-1771323604772",
-              "startX": 233.1640625,
-              "startY": 164.015625,
-              "endX": 400,
-              "endY": 210,
               "data": {
                 "startAnchorType": "output",
                 "originalStartAnchorType": "output",
@@ -2697,70 +2396,7 @@
       ],
       "tasks": [],
       "actions": [],
-      "flowCharts": {
-        "AttemptLogin": {
-          "elements": [
-            {
-              "id": "node-1770989123182",
-              "type": "Task",
-              "x": 20,
-              "y": 60,
-              "width": 160,
-              "height": 60,
-              "properties": {
-                "name": "AttemptLogin",
-                "details": "",
-                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
-                "text": "AttemptLogin"
-              },
-              "data": {
-                "name": "AttemptLogin",
-                "showDetails": false,
-                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
-              }
-            },
-            {
-              "id": "node-1770989195203",
-              "type": "DataAction",
-              "x": 280,
-              "y": 60,
-              "width": 140,
-              "height": 60,
-              "properties": {
-                "name": "DataAction1",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "type": "data_action",
-                "name": "DataAction1",
-                "resource": "users",
-                "url": "/api/data/users?authCode=${currentPIN}",
-                "showDetails": false,
-                "queryProperty": "authCode",
-                "queryValue": "${currentPIN}",
-                "resultVariable": "currentUser"
-              }
-            }
-          ],
-          "connections": [
-            {
-              "startTargetId": "node-1770989123182",
-              "endTargetId": "node-1770989195203",
-              "startX": 178.328125,
-              "startY": 90,
-              "endX": 280,
-              "endY": 90,
-              "data": {
-                "startAnchorType": "output",
-                "originalStartAnchorType": "output",
-                "isEmbeddedInternal": false,
-                "endAnchorType": "input"
-              }
-            }
-          ]
-        }
-      },
+      "flowCharts": {},
       "_showGlobalPreview": false
     }
   ],
@@ -2770,16 +2406,5 @@
       "elements": [],
       "connections": []
     }
-  },
-  "_supportedEvents": [
-    {
-      "key": "onEnter"
-    },
-    {
-      "key": "onLeave"
-    },
-    {
-      "key": "onRuntimeStart"
-    }
-  ]
+  }
 }

@@ -319,15 +319,29 @@ export function registerStandardActions() {
 
             if (res) {
                 effectiveUrl = `/api/data/${res}`;
-                if (action.queryProperty && action.queryValue) {
-                    const interpValue = PropertyHelper.interpolate(String(action.queryValue), combinedContext, context.objects);
-                    effectiveUrl += `?${action.queryProperty}=${encodeURIComponent(interpValue)}`;
+                const qProp = action.queryProperty || action.property;
+                const qVal = action.queryValue || action.value;
+                if (qProp && qVal) {
+                    const interpValue = PropertyHelper.interpolate(String(qVal), combinedContext, context.objects);
+                    effectiveUrl += `?${qProp}=${encodeURIComponent(interpValue)}`;
                 }
             }
         }
 
-        const url = PropertyHelper.interpolate(effectiveUrl, combinedContext, context.objects);
-        const method = action.method || 'GET';
+        let url = PropertyHelper.interpolate(effectiveUrl, combinedContext, context.objects);
+        let method = action.method || 'GET';
+
+        // Runtime Safety: If requestJWT is true, we enforce the platform login route and POST method
+        if (action.requestJWT) {
+            if (!url || url === '/' || url.startsWith('/api/data/')) {
+                console.log(`[Action: http] Auto-fixing URL for JWT request: ${url} -> /api/platform/login`);
+                url = '/api/platform/login';
+            }
+            if (method === 'GET') {
+                console.log(`[Action: http] Auto-fixing METHOD for JWT request: GET -> POST`);
+                method = 'POST';
+            }
+        }
         let body = null;
         let parsedBody = {};
 
@@ -338,6 +352,20 @@ export function registerStandardActions() {
                 parsedBody = JSON.parse(body);
             } catch (e) {
                 parsedBody = body;
+            }
+        }
+
+        // Special: Auto-Body for JWT Login if nothing else is specified
+        if (action.requestJWT && !action.body) {
+            const qProp = action.queryProperty || action.property;
+            const qVal = action.queryValue || action.value;
+            if (qProp && qVal) {
+                console.log(`[Action: http] Interpolating qVal "${qVal}" for qProp "${qProp}"`);
+                const interpValue = PropertyHelper.interpolate(String(qVal), combinedContext, context.objects);
+                console.log(`[Action: http] Interpolated Value: "${interpValue}"`);
+                parsedBody = { [qProp]: interpValue };
+                body = JSON.stringify(parsedBody);
+                console.log(`[Action: http] Auto-constructed Login Body (JWT):`, parsedBody);
             }
         }
 
@@ -355,7 +383,23 @@ export function registerStandardActions() {
                 const dsComponent = context.objects.find(o => o.name === dsName || o.id === dsName);
                 const storageFile = (dsComponent as any)?.storagePath || 'db.json';
 
+                if (action.requestJWT) {
+                    console.log(`[Action: http] JWT Simulation Request: ${method} ${url}`, parsedBody);
+                }
                 let result = await serviceRegistry.call('ApiSimulator', 'request', [method, url, parsedBody, storageFile]);
+
+                if (action.requestJWT) {
+                    console.log(`[Action: http] JWT Simulation Result:`, result);
+                    // Standard JWT handling: Save token & return User object
+                    if (result && result.token) {
+                        localStorage.setItem('auth_token', result.token);
+                        console.log('[Action: http] Auto-saved JWT token to localStorage "auth_token"');
+                    }
+                    if (result && result.user) {
+                        result = result.user;
+                        console.log('[Action: http] Auto-unwrapped user object from JWT response');
+                    }
+                }
 
                 // Smart-Mapping: Extract path if specified
                 if (action.resultPath && result) {
@@ -368,16 +412,31 @@ export function registerStandardActions() {
                     result = result[0];
                 }
 
-                if (action.resultVariable) {
-                    context.vars[action.resultVariable] = result;
-                    context.contextVars[action.resultVariable] = result;
+                const resVar = action.resultVariable || action.variable;
+                if (resVar) {
+                    context.vars[resVar] = result;
+                    context.contextVars[resVar] = result;
+                    if (action.requestJWT) {
+                        const varName = context.objects.find(o => o.id === resVar)?.name || resVar;
+                        const displayValue = (typeof result === 'object' && result !== null)
+                            ? JSON.stringify(result)
+                            : String(result);
+                        console.log(`[Action: http] Variable "${varName}" gesetzt auf:`, displayValue);
+                    }
+                }
+
+                // If result contains an error, return false to trigger the Error branch in Flow Editor
+                if (result && (result.error || result.status >= 400)) {
+                    return false;
                 }
             } catch (err) {
                 console.error('[Action: http] Simulation Error:', err);
                 if (action.resultVariable) {
-                    context.vars[action.resultVariable] = { error: String(err) };
-                    context.contextVars[action.resultVariable] = { error: String(err) };
+                    const errorObj = { error: String(err), status: 500 };
+                    context.vars[action.resultVariable] = errorObj;
+                    context.contextVars[action.resultVariable] = errorObj;
                 }
+                return false;
             }
             return;
         }
@@ -397,8 +456,25 @@ export function registerStandardActions() {
 
             if (body) options.body = body;
 
+            if (action.requestJWT) {
+                console.log(`[Action: http] JWT Real Request: ${method} ${url}`, { headers: options.headers, body: parsedBody });
+            }
+
             const response = await fetch(url, options);
             let data = await response.json();
+
+            if (action.requestJWT) {
+                console.log(`[Action: http] JWT Real Response:`, data);
+                // Standard JWT handling: Save token & return User object
+                if (data && data.token) {
+                    localStorage.setItem('auth_token', data.token);
+                    console.log('[Action: http] Auto-saved JWT token to localStorage "auth_token"');
+                }
+                if (data && data.user) {
+                    data = data.user;
+                    console.log('[Action: http] Auto-unwrapped user object from JWT response');
+                }
+            }
 
             // Smart-Mapping: Extract path if specified
             if (action.resultPath && data) {
@@ -414,13 +490,27 @@ export function registerStandardActions() {
             if (action.resultVariable) {
                 context.vars[action.resultVariable] = data;
                 context.contextVars[action.resultVariable] = data;
+                if (action.requestJWT) {
+                    const varName = context.objects.find(o => o.id === action.resultVariable)?.name || action.resultVariable;
+                    const displayValue = (typeof data === 'object' && data !== null)
+                        ? JSON.stringify(data)
+                        : String(data);
+                    console.log(`[Action: http] Produktion: Variable "${varName}" gesetzt auf:`, displayValue);
+                }
+            }
+
+            // Return false if status code indicates failure (triggers Error branch)
+            if (!response.ok) {
+                return false;
             }
         } catch (err) {
             console.error('[Action: http] Error:', err);
             if (action.resultVariable) {
-                context.vars[action.resultVariable] = { error: String(err) };
-                context.contextVars[action.resultVariable] = { error: String(err) };
+                const errorObj = { error: String(err) };
+                context.vars[action.resultVariable] = errorObj;
+                context.contextVars[action.resultVariable] = errorObj;
             }
+            return false;
         }
     }, {
         type: 'http',
@@ -445,6 +535,7 @@ export function registerStandardActions() {
         } else {
             const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
             const token = PropertyHelper.interpolate(String(action.token || ''), combinedContext, context.objects);
+            console.log(`[Action: store_token] Speichere Token "${key}":`, token ? (token.substring(0, 15) + '...') : 'null');
             localStorage.setItem(key, token);
         }
     }, {

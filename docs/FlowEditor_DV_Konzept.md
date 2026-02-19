@@ -278,7 +278,7 @@ npm run dev      # Applikation startet
 
 ### 6.1 Bekannte Abhängigkeiten
 - `Editor.ts` nutzt `flowEditor.setProject()`, `flowEditor.syncToProject()`, `flowEditor.getNodes()`
-- `JSONInspector.ts` nutzt `flowEditor.getNodes()` für Flow-Context
+- `InspectorHost.ts` nutzt `flowEditor.getNodes()` für Flow-Context
 - `FlowToolbox.ts` nutzt Canvas-Drop über Standard-Events
 
 ### 6.2 Risiken und Mitigationen

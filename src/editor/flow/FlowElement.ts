@@ -3,6 +3,7 @@ import { RefactoringManager } from '../RefactoringManager';
 
 export abstract class FlowElement {
     public abstract getType(): string;
+    public readonly isFlowNode: boolean = true;
 
     public id: string;
     protected x: number;
@@ -515,12 +516,8 @@ export abstract class FlowElement {
     public getInspectorProperties(): any[] {
         return [
             { name: 'Type', type: 'string', label: 'Object Type', readOnly: true },
-            { name: 'Col', type: 'number', label: 'Column' },
-            { name: 'Row', type: 'number', label: 'Row' },
-            { name: 'WidthCols', type: 'number', label: 'Width (Cols)' },
-            { name: 'HeightRows', type: 'number', label: 'Height (Rows)' },
             { name: 'Name', type: 'string', label: 'Name' },
-            { name: 'Details', type: 'string', label: 'Details' }
+            { name: 'Description', type: 'string', label: 'Beschreibung' }
         ];
     }
 

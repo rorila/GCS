@@ -575,6 +575,8 @@ export class JSONDialogRenderer {
                     else if (param.source === 'variables') items = (this.enrichedProject.variables || []).map(v => ({ value: v.name, label: v.name }));
                     else if (param.source === 'stages') items = (this.project.stages || []).map((s: any) => ({ value: s.id, label: s.name || s.id }));
                     else if (param.source === 'services') items = serviceRegistry.listServices().map(s => ({ value: s, label: s }));
+                    else if (param.source === 'tasks') items = projectRegistry.getTasks().map(t => ({ value: t.name, label: t.name }));
+                    else if (param.source === 'actions') items = projectRegistry.getActions().map(a => ({ value: a.name, label: a.name }));
                     else if (param.source === 'easing-functions') items = ['linear', 'easeIn', 'easeOut', 'easeInOut'].map(e => ({ value: e, label: e }));
 
                     // Add empty option

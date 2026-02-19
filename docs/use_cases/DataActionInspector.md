@@ -14,13 +14,13 @@ Der Inspector für `DataAction` (Typ: `data_action`) weicht vom Standard-Verhalt
     - Hier müssen neue Felder manuell hinzugefügt werden (z.B. `dataStoreInput`).
     - Bindings nutzten die Syntax `${selectedObject.fieldName}`.
 
-3.  **`src/editor/JSONInspector.ts`** (Controller)
+3.  **`src/editor/inspector/InspectorHost.ts`** (Controller)
     - Methode `update()`: Bereitet dynamische Daten für Dropdowns vor.
     - Variable `availableDataStores`: Wird hier durch Filterung der `ProjectRegistry` (alle Objekte mit `className === 'TDataStore'`) erzeugt.
 
 ## Datenfluss (DataStore Auswahl)
 
-1.  `JSONInspector.ts` iteriert über alle Objekte, findet `TDataStore` Instanzen (z.B. "UserData") und registriert sie als Variable `availableDataStores`.
+1.  `InspectorHost.ts` iteriert über alle Objekte, findet `TDataStore` Instanzen (z.B. "UserData") und registriert sie als Variable `availableDataStores`.
 2.  `inspector_data_action.json` definiert ein `TDropdown` mit `options: "${availableDataStores}"`.
 3.  Der Benutzer wählt einen Store. Der Wert wird in `selectedObject.dataStore` gespeichert.
 4.  `ActionApiHandler.ts` (Runtime) liest `action.dataStore`, löst die Komponente auf und nutzt deren `storagePath`.

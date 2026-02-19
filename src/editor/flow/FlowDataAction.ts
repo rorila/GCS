@@ -22,6 +22,12 @@ export class FlowDataAction extends FlowAction {
     public get url(): string {
         const action = this.getActionDefinition();
         const fullUrl = action?.url || '';
+
+        // If it's a JWT request, we point to the platform login
+        if (action?.requestJWT) {
+            return `/api/platform/login`;
+        }
+
         const res = action?.resource || this.getAutoResource();
         const qProp = action?.queryProperty;
         const qVal = action?.queryValue;
@@ -40,27 +46,32 @@ export class FlowDataAction extends FlowAction {
     }
     public set url(v: string) {
         console.log(`[FlowDataAction] Setter URL: ${v}`);
-        const action = this.getActionDefinition();
-        if (action) {
+
+        const updateObj = (obj: any) => {
+            if (!obj) return;
             // Decouple from resource/queryProperty if user sets a manual absolute URL
             const isAbsolute = v.startsWith('http://') || v.startsWith('https://');
             const isPrefixed = v.startsWith('/api/data/');
 
             if (isAbsolute || isPrefixed) {
-                action.url = v;
-                // Optional: clear resource/queryProperty if you want absolute to be independent
+                obj.url = v;
             } else {
-                // Determine resource
-                const res = action.resource || this.getAutoResource();
+                const res = obj.resource || obj.dataStore || this.getAutoResource();
                 if (res) {
                     const separator = (v.startsWith('?') || v.startsWith('/')) ? '' : '/';
-                    action.url = `/api/data/${res}${separator}${v}`;
+                    obj.url = `/api/data/${res}${separator}${v}`;
                 } else {
-                    action.url = v;
+                    obj.url = v;
                 }
             }
-            console.log(`[FlowDataAction] Resulting URL in model: ${action.url}`);
+        };
+
+        updateObj(this.data); // Local mirror
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) {
+            updateObj(action); // Global definition
         }
+        console.log(`[FlowDataAction] Resulting URL in model: ${action?.url || this.data.url}`);
     }
 
     protected getActionDefinition(): any | null {
@@ -100,15 +111,16 @@ export class FlowDataAction extends FlowAction {
 
     public get queryProperty(): string {
         const action = this.getActionDefinition();
-        return action?.queryProperty || '';
+        return action?.queryProperty || action?.property || '';
     }
     public set queryProperty(v: string) {
         console.log(`[FlowDataAction] Setter queryProperty: ${v}`);
+        if (this.data) this.data.queryProperty = v;
         const action = this.getActionDefinition();
-        if (action) {
+        if (action && action !== this.data) {
             action.queryProperty = v;
-            this.updateAutoUrl();
         }
+        this.updateAutoUrl();
     }
 
     public get queryValue(): string {
@@ -117,16 +129,21 @@ export class FlowDataAction extends FlowAction {
     }
     public set queryValue(v: string) {
         console.log(`[FlowDataAction] Setter queryValue: ${v}`);
+        if (this.data) this.data.queryValue = v;
         const action = this.getActionDefinition();
-        if (action) {
+        if (action && action !== this.data) {
             action.queryValue = v;
-            this.updateAutoUrl();
         }
+        this.updateAutoUrl();
     }
 
     private updateAutoUrl() {
         const action = this.getActionDefinition();
         if (action) {
+            if (action.requestJWT) {
+                action.url = `/api/platform/login`;
+                return;
+            }
             const res = action.resource || this.getAutoResource();
             if (res && action.queryProperty) {
                 action.url = `/api/data/${res}?${action.queryProperty}=${action.queryValue || ''}`;
@@ -136,17 +153,56 @@ export class FlowDataAction extends FlowAction {
 
     public get dataStore(): string {
         const action = this.getActionDefinition();
-        return action?.dataStore || '';
+        if (action?.dataStore) return action.dataStore;
+
+        // Fallback: If we have a resource but no dataStore, attempt to find the component name
+        if (action?.resource && this.projectRef) {
+            // This is a bit of a reverse lookup, might be imperfect but better than empty
+            for (const stage of this.projectRef.stages || []) {
+                const ds = stage.objects?.find((o: any) => o.defaultCollection === action.resource);
+                if (ds) return ds.name;
+            }
+            return action.resource; // Use resource name as a guess for component name
+        }
+        return '';
     }
     public set dataStore(v: string) {
         console.log(`[FlowDataAction] Setter dataStore: ${v}`);
+
+        const updateObj = (obj: any) => {
+            if (!obj) return;
+            obj.dataStore = v;
+            if (obj.resource) delete obj.resource;
+        };
+
+        updateObj(this.data);
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) {
+            updateObj(action);
+        }
+        this.updateAutoUrl();
+    }
+
+    public get requestJWT(): boolean {
+        const action = this.getActionDefinition();
+        return !!action?.requestJWT;
+    }
+    public set requestJWT(v: boolean) {
+        console.log(`[FlowDataAction] Setter requestJWT: ${v}`);
+
+        // Always update local data as a fallback for the actionSequence in project.json
+        if (this.data) {
+            this.data.requestJWT = v;
+            if (v) this.data.method = 'POST';
+        }
+
         const action = this.getActionDefinition();
         if (action) {
-            action.dataStore = v;
-            // Clean-up redundant resource field (we derive it from dataStore now)
-            if (action.resource) {
-                console.log(`[FlowDataAction] Removing redundant resource field: ${action.resource}`);
-                delete action.resource;
+            action.requestJWT = v;
+            if (v) {
+                action.method = 'POST'; // JWT requests are always POST
+            } else {
+                action.method = 'GET';
             }
             this.updateAutoUrl();
         }
@@ -176,13 +232,14 @@ export class FlowDataAction extends FlowAction {
     }
     public set resource(v: string) {
         console.log(`[FlowDataAction] Setter resource: ${v}`);
+        if (this.data) {
+            this.data.resource = v;
+            if (v) this.data.url = `/api/data/${v}`;
+        }
         const action = this.getActionDefinition();
-        if (action) {
+        if (action && action !== this.data) {
             action.resource = v;
-            if (v) {
-                // Initial URL when resource is manually selected (unusual now but supported)
-                action.url = `/api/data/${v}`;
-            }
+            if (v) action.url = `/api/data/${v}`;
         }
     }
 
@@ -192,8 +249,9 @@ export class FlowDataAction extends FlowAction {
     }
     public set method(v: string) {
         console.log(`[FlowDataAction] Setter method: ${v}`);
+        if (this.data) this.data.method = v;
         const action = this.getActionDefinition();
-        if (action) action.method = v;
+        if (action && action !== this.data) action.method = v;
     }
 
     public get body(): string {
@@ -204,14 +262,16 @@ export class FlowDataAction extends FlowAction {
     }
     public set body(v: string) {
         console.log(`[FlowDataAction] Setter body: ${v.substring(0, 50)}...`);
-        const action = this.getActionDefinition();
-        if (action) {
-            try {
-                action.body = JSON.parse(v);
-            } catch (e) {
-                action.body = v;
-            }
+        let val: any;
+        try {
+            val = JSON.parse(v);
+        } catch (e) {
+            val = v;
         }
+
+        if (this.data) this.data.body = val;
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) action.body = val;
     }
 
     public get resultVariable(): string {
@@ -220,8 +280,9 @@ export class FlowDataAction extends FlowAction {
     }
     public set resultVariable(v: string) {
         console.log(`[FlowDataAction] Setter resultVariable: ${v}`);
+        if (this.data) this.data.resultVariable = v;
         const action = this.getActionDefinition();
-        if (action) action.resultVariable = v;
+        if (action && action !== this.data) action.resultVariable = v;
     }
 
     public get resultPath(): string {
@@ -230,10 +291,9 @@ export class FlowDataAction extends FlowAction {
     }
     public set resultPath(v: string) {
         console.log(`[FlowDataAction] Setter resultPath: ${v}`);
+        if (this.data) this.data.resultPath = v;
         const action = this.getActionDefinition();
-        if (action) {
-            action.resultPath = v;
-        }
+        if (action && action !== this.data) action.resultPath = v;
     }
 
     protected createRoot(): HTMLElement {
