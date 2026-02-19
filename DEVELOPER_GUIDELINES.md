@@ -26,6 +26,11 @@
     - Programmatisch erstellte Tasks dürfen KEINE kompletten Action-Objekte in `actionSequence` enthalten.
     - **Korrekter Weg**: Action global definieren (`project.actions.push({...})`) -> Im Task nur Referenz speichern (`{ type: 'action', name: '...' }`).
 
+## Stage-Navigation – Robuster Dispatch (v3.3.7)
+- **Primärer Pfad**: `navigate_stage` nutzt `TStageController.goToStage()` direkt (funktioniert in Editor, Standalone-Player, Embedded).
+- **Fallback**: Wenn kein `TStageController` vorhanden, wird `onNavigate('stage:...')` genutzt (Editor-only).
+- **DO NOT**: Navigiere NIEMALS direkt über `onNavigate` ohne Fallback – der Standalone-Player unterstützt nur `game:`, `host:`, `lobby`, `room:` und `stage:` Prefixes.
+
 ## Inspector & Refactoring (v2.16.21)
 - **Inspector JSON-Konfiguration**: Für Flow-Elemente mit spezifischem Layout (wie `DataAction`) ist die Verwendung einer dedizierten JSON-Datei (z.B. `public/inspector_data_action.json`) der Standard.
     - **Two-Way-Binding**: Um Felder editierbar zu machen, muss das Binding direkt auf das Property zeigen (z.B. `${selectedObject.Name}` statt `${selectedObject.name || ...}`).

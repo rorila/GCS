@@ -231,8 +231,23 @@ export function registerStandardActions() {
     actionRegistry.register('navigate_stage', (action, context) => {
         const stageId = action.stageId;
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
-        if (stageId && context.onNavigate) {
-            const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, context.objects);
+        if (!stageId) return;
+
+        const resolved = PropertyHelper.interpolate(String(stageId), combinedContext, context.objects);
+
+        // Robust: Direkt über TStageController navigieren (funktioniert in JEDEM Host)
+        const stageController = context.objects.find(
+            (o: any) => o.className === 'TStageController' || o.constructor?.name === 'TStageController'
+        );
+        if (stageController && typeof (stageController as any).goToStage === 'function') {
+            console.log(`[Action: navigate_stage] Via TStageController → ${resolved}`);
+            (stageController as any).goToStage(resolved);
+            return;
+        }
+
+        // Fallback: über onNavigate-Callback (Editor-Modus)
+        if (context.onNavigate) {
+            console.log(`[Action: navigate_stage] Via onNavigate fallback → stage:${resolved}`);
             context.onNavigate(`stage:${resolved}`, action.params);
         }
     }, {

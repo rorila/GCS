@@ -281,7 +281,11 @@ class UniversalPlayer {
 
     private handleNavigation(target: string) {
         console.log(`[UniversalPlayer] Navigating to: ${target}`);
-        if (target.startsWith('game:')) {
+        if (target.startsWith('stage:')) {
+            // Stage-Navigation: Interner Stage-Wechsel
+            const stageId = target.substring(6);
+            this.handleStageNavigation(stageId);
+        } else if (target.startsWith('game:')) {
             const gameFile = target.replace('game:', '');
             const baseUrl = network.getHttpUrl();
             this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`);
@@ -298,6 +302,42 @@ class UniversalPlayer {
             const code = target.replace('room:', '');
             network.joinRoom(code);
             this.showOverlay('Beitritt zum Raum...', code);
+        }
+    }
+
+    /**
+     * Robuste Stage-Navigation für Standalone/Server-Umfeld.
+     * Nutzt TStageController wenn vorhanden, sonst direkten Runtime-Aufruf.
+     */
+    private handleStageNavigation(stageId: string) {
+        if (!this.runtime || !this.currentProject) {
+            console.warn(`[UniversalPlayer] Cannot navigate to stage '${stageId}': no active runtime.`);
+            return;
+        }
+
+        // Prüfe ob Stage existiert
+        const stageExists = this.currentProject.stages?.some((s: any) => s.id === stageId);
+        if (!stageExists) {
+            console.warn(`[UniversalPlayer] Stage '${stageId}' not found in project.stages.`);
+            return;
+        }
+
+        // Versuche TStageController zu nutzen
+        const objects = this.runtime.getObjects();
+        const stageController = objects.find((o: any) =>
+            o.className === 'TStageController' || o.constructor?.name === 'TStageController'
+        );
+
+        if (stageController && typeof (stageController as any).goToStage === 'function') {
+            console.log(`[UniversalPlayer] Stage navigation via TStageController → ${stageId}`);
+            (stageController as any).goToStage(stageId);
+        } else {
+            // Fallback: Direkter Runtime-Aufruf
+            console.log(`[UniversalPlayer] Stage navigation via direct runtime call → ${stageId}`);
+            (this.runtime as any).handleStageChange(
+                (this.runtime as any).stage?.id || '',
+                stageId
+            );
         }
     }
 

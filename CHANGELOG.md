@@ -1,3 +1,9 @@
+### [3.3.7] - 2026-02-19
+- **Fix**: Robuste Stage-Navigation implementiert.
+    - `navigate_stage` nutzt jetzt primär `TStageController.goToStage()` direkt (host-unabhängig).
+    - `UniversalPlayer.handleNavigation()` um `stage:`-Behandlung erweitert (Fallback).
+    - Standalone-Player kann jetzt Stage-Wechsel korrekt durchführen.
+
 ### [3.3.6] - 2026-02-19
 - **Feature**: AI Agent Controller API (`AgentController.ts`) eingeführt.
     - Bietet eine typsichere "High-Level" API für AI-Agenten zur Projekt-Manipulation.
