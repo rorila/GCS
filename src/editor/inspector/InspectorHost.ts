@@ -315,7 +315,10 @@ export class InspectorHost {
                     this.update(obj); // Refesh UI
                     if (this.onObjectUpdate) this.onObjectUpdate({ object: obj, propertyName: prop, newValue: val, oldValue: oldVal });
                 };
-                return this.renderer.renderActionParams(def, obj, onUpdate);
+                const onAction = (actionDef: any) => {
+                    this.actionHandler.handleAction(actionDef, obj);
+                };
+                return this.renderer.renderActionParams(def, obj, onUpdate, onAction);
             }
             case 'TPanel': {
                 const panel = this.renderer.renderPanel(def.style);

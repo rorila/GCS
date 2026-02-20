@@ -170,6 +170,8 @@ export class ExpressionParser {
             // VERY IMPORTANT: Log ReferenceErrors clearly as they indicate missing variables
             if (name === 'ReferenceError' || error instanceof ReferenceError) {
                 console.warn(`%c[ExpressionParser] ReferenceError in "${expression}": ${msg}`, 'color: #f44336; font-weight: bold');
+                const deps = this.extractDependencies(expression);
+                console.log(`[ExpressionParser] Available context keys:`, deps.filter((k: string) => k in context));
                 return undefined;
             }
 

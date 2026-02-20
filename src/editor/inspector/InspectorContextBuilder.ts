@@ -25,7 +25,8 @@ export class InspectorContextBuilder {
             obj.className === 'TDataStore' || (obj as any).constructor?.name === 'TDataStore'
         );
 
-        return {
+        // 3. Variablen in den Kontext einfügen (für Auflösung von ${varName} im Inspector)
+        const context: Record<string, any> = {
             selectedObject,
             activeStageId,
 
@@ -74,5 +75,23 @@ export class InspectorContextBuilder {
                 'Hierarchy'
             ]
         };
+
+        // Variablen-Werte hinzufügen (für Live-Preview im Inspector)
+        allVars.forEach(v => {
+            // Wir nutzen defaultValue oder den aktuellen Wert (falls vorhanden)
+            // Im Editor-Kontext ist defaultValue oft sicherer für die Anzeige
+            const value = (v as any).value !== undefined && (v as any).value !== null ? (v as any).value : v.defaultValue;
+
+            // Zugriff via Name: ${varName}
+            context[v.name] = value;
+
+            // Zugriff via Scope-Präfix: ${global.varName} oder ${stage.varName}
+            if (v.uiScope) {
+                if (!context[v.uiScope]) context[v.uiScope] = {};
+                context[v.uiScope][v.name] = value;
+            }
+        });
+
+        return context;
     }
 }

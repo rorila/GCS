@@ -203,7 +203,7 @@ export class InspectorRenderer {
     /**
      * Renders dynamic action parameters based on action type metadata.
      */
-    public renderActionParams(_obj: any, selectedObject: any, onUpdate: (prop: string, val: any) => void): HTMLElement | null {
+    public renderActionParams(_obj: any, selectedObject: any, onUpdate: (prop: string, val: any) => void, onAction?: (actionDef: any) => void): HTMLElement | null {
         const type = selectedObject.actionType || selectedObject.type;
         const meta = actionRegistry.getMetadata(type);
         if (!meta) return null;
@@ -272,7 +272,26 @@ export class InspectorRenderer {
                             if (sigParam.type === 'number') p[idx] = Number(ed.value);
                             onUpdate('params', p);
                         };
-                        sigInput = ed;
+                        ed.style.flex = '1';
+
+                        const container = document.createElement('div');
+                        container.style.display = 'flex';
+                        container.style.gap = '4px';
+                        container.appendChild(ed);
+
+                        if (onAction && sigParam.type !== 'number') {
+                            const btn = document.createElement('button');
+                            btn.innerText = 'V';
+                            btn.style.cssText = 'width: 32px; padding: 4px; background-color: #444; color: white; border: none; border-radius: 3px; cursor: pointer;';
+                            btn.onclick = () => {
+                                onAction({
+                                    action: 'pickVariable',
+                                    actionData: { property: 'params', index: idx } // index is needed for array update
+                                });
+                            };
+                            container.appendChild(btn);
+                        }
+                        sigInput = container;
                     }
                     sigRow.appendChild(sigInput);
                     paramContainer.appendChild(sigRow);
@@ -294,7 +313,27 @@ export class InspectorRenderer {
                     default: {
                         const edit = this.renderEdit(currentValue, param.placeholder || '');
                         edit.onchange = () => onUpdate(param.name, edit.value);
-                        input = edit;
+                        edit.style.flex = '1';
+
+                        const container = document.createElement('div');
+                        container.style.display = 'flex';
+                        container.style.gap = '4px';
+                        container.style.width = '100%';
+                        container.appendChild(edit);
+
+                        if (onAction && param.type !== 'number' && param.type !== 'boolean') {
+                            const btn = document.createElement('button');
+                            btn.innerText = 'V';
+                            btn.style.cssText = 'width: 32px; padding: 4px; background-color: #444; color: white; border: none; border-radius: 3px; cursor: pointer;';
+                            btn.onclick = () => {
+                                onAction({
+                                    action: 'pickVariable',
+                                    actionData: { property: param.name }
+                                });
+                            };
+                            container.appendChild(btn);
+                        }
+                        input = container;
                         break;
                     }
                 }
@@ -363,9 +402,25 @@ export class InspectorRenderer {
                     });
                 } else if (prop.type === 'string') {
                     uiObjects.push({
-                        className: 'TEdit',
-                        name: inputName,
-                        text: binding
+                        className: 'TPanel',
+                        name: `${prop.name}Wrapper`,
+                        style: { display: 'flex', gap: '4px', marginBottom: '8px', padding: '0' },
+                        children: [
+                            {
+                                className: 'TEdit',
+                                name: inputName,
+                                text: binding,
+                                style: { flex: 1, marginBottom: '0' }
+                            },
+                            {
+                                className: 'TButton',
+                                name: `${prop.name}PickVarBtn`,
+                                caption: 'V',
+                                action: 'pickVariable',
+                                actionData: { property: prop.name, inputName: inputName },
+                                style: { width: '32px', padding: '4px', marginTop: '0', backgroundColor: '#444' }
+                            }
+                        ]
                     });
                 } else if (prop.type === 'boolean') {
                     uiObjects.push({

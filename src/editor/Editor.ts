@@ -1032,8 +1032,8 @@ export class Editor implements IViewHost {
     /**
      * Wechselt zur angegebenen Stage
      */
-    private switchStage(stageId: string): void {
-        if (!this.project.stages) {
+    public switchStage(stageId: string, keepView?: boolean): void {
+        if (!this.project || !this.project.stages) {
             this.migrateToStages();
         }
 
@@ -1063,7 +1063,9 @@ export class Editor implements IViewHost {
         this.selectObject(null);
 
         // Zur visuellen Stage-Bearbeitung wechseln (Stops runtime if active)
-        this.switchView('stage');
+        if (!keepView) {
+            this.switchView('stage');
+        }
 
         // Render NOW (after runtime stopped and view switched)
         this.render();
@@ -1456,10 +1458,20 @@ export class Editor implements IViewHost {
         // Restore Stages (New System)
         if (data.stages && data.stages.length > 0) {
             const hydratedStages = data.stages.map((s: any) => {
+                // FIX: Clean up accidentally saved global variables from non-blueprint stages
+                let variables = s.variables || [];
+                if (s.type !== 'blueprint') {
+                    const originalLen = variables.length;
+                    variables = variables.filter((v: any) => v.scope !== 'global');
+                    if (variables.length < originalLen) {
+                        console.log(`[Editor] Cleaned up ${originalLen - variables.length} erroneous global variables from stage "${s.id}" upon load.`);
+                    }
+                }
+
                 return {
                     ...s,
                     objects: hydrateObjects(s.objects || []),
-                    variables: hydrateObjects(s.variables || []) as any
+                    variables: hydrateObjects(variables) as any
                 };
             });
             this.project.stages = hydratedStages;
@@ -2708,6 +2720,12 @@ export class Editor implements IViewHost {
      * the state of the last load/save, missing recent edits.
      */
     private syncStageObjectsToProject() {
+        // NEVER save runtime state back to the design project.
+        if (this.stage && this.stage.runMode) {
+            console.log(`[Editor] SKIPPING syncStageObjectsToProject because we are in RunMode.`);
+            return;
+        }
+
         // Use getActiveStage() to get the current stage context
         const activeStage = this.getActiveStage();
         if (!this.stage || !activeStage) return;

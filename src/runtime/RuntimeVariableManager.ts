@@ -24,17 +24,15 @@ export class RuntimeVariableManager {
     }
 
     public initializeVariables(project: any) {
-        // 1. Scan ALL stages for global variables and register them
+        // ... previous code ...
         if (project.stages) {
             project.stages.forEach((stage: any) => {
                 if (stage.variables) {
                     stage.variables.forEach((v: any) => {
                         if (!v.scope || v.scope === 'global') {
-                            // Register definition by Name AND ID
                             this.globalDefinitions.set(v.name, v);
                             if (v.id) this.globalDefinitions.set(v.id, v);
 
-                            // Initialize value if not present
                             const initialValue = v.defaultValue !== undefined ? v.defaultValue : v.value;
                             if (this.projectVariables[v.name] === undefined) {
                                 this.projectVariables[v.name] = initialValue !== undefined ? initialValue : 0;
@@ -45,7 +43,6 @@ export class RuntimeVariableManager {
             });
         }
 
-        // 2. Project Variables (Legacy)
         if (project.variables) {
             project.variables.forEach((v: any) => {
                 this.globalDefinitions.set(v.name, v);
@@ -53,11 +50,23 @@ export class RuntimeVariableManager {
                 this.importVariables([v], true);
             });
         }
+
+        this.syncAllToReactive();
+    }
+
+    public syncAllToReactive() {
+        Object.keys(this.projectVariables).forEach(name => {
+            this.host.reactiveRuntime.setVariable(name, this.projectVariables[name]);
+        });
+        Object.keys(this.stageVariables).forEach(name => {
+            this.host.reactiveRuntime.setVariable(name, this.stageVariables[name]);
+        });
     }
 
     public initializeStageVariables(stage: any) {
         if (stage && stage.variables) {
             this.importVariables(stage.variables);
+            this.syncAllToReactive();
         }
     }
 

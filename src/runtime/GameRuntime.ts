@@ -203,6 +203,13 @@ export class GameRuntime implements IVariableHost {
         }
     }
 
+    public switchToStage(stageId: string): void {
+        const currentId = this.stage ? this.stage.id : '';
+        if (currentId !== stageId) {
+            this.handleStageChange(currentId, stageId);
+        }
+    }
+
     private handleStageChange(_oldStageId: string, newStageId: string): void {
         // 1. BEFORE Stage Change: Trigger onLeave on the OLD stage
         // We use the current this.stage as it still represents the old stage
@@ -226,11 +233,17 @@ export class GameRuntime implements IVariableHost {
             this.taskExecutor.setActions(merged.actions);
         }
 
+        console.log(`[GameRuntime] --- STAGE CHANGE: ${newStageId} ---`);
+        console.log(`[GameRuntime] Global Vars BEFORE reactive clear:`, this.reactiveRuntime.getContext());
+
         // IMPORTANT: Update ActionExecutor with new objects!
         if (this.options.makeReactive) {
-            this.reactiveRuntime.clear();
+            this.reactiveRuntime.clear(false); // DO NOT CLEAR VARIABLES! Keep the data state.
             this.clearAllTimers();
             AnimationManager.getInstance().clear();
+
+            console.log(`[GameRuntime] Global Vars AFTER reactive clear:`, this.reactiveRuntime.getContext());
+
             this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
             this.reactiveRuntime.setVariable('isSplashActive', false);
 
@@ -241,6 +254,8 @@ export class GameRuntime implements IVariableHost {
 
             this.objects = this.reactiveRuntime.getObjects();
             this.initializeReactiveBindings();
+
+            console.log(`[GameRuntime] Global Vars AFTER initializeReactiveBindings:`, this.reactiveRuntime.getContext());
         }
 
         // IMPORTANT: Update ActionExecutor with new objects (Proxies if reactive)
@@ -585,10 +600,15 @@ export class GameRuntime implements IVariableHost {
 
             // INITIAL SYNC: Map initial component values back to VariableManager
             // This ensures contextVars correctly reflect stage-specific variable values from the start.
-            if (obj.value !== undefined) {
-                this.contextVars[obj.name] = obj.value;
-            } else if (Array.isArray((obj as any).items)) {
-                this.contextVars[obj.name] = (obj as any).items;
+            // FIX: DO NOT overwrite global variables that have been preserved across stages!
+            const isGlobalVar = obj.name && (obj.name in this.variableManager.projectVariables);
+
+            if (!isGlobalVar) {
+                if (obj.value !== undefined) {
+                    this.contextVars[obj.name] = obj.value;
+                } else if (Array.isArray((obj as any).items)) {
+                    this.contextVars[obj.name] = (obj as any).items;
+                }
             }
         });
     }

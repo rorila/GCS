@@ -31,6 +31,10 @@ export class EditorRunManager {
     }
 
     public setRunMode(running: boolean) {
+        if (this.editor.stage.runMode === running) {
+            return;
+        }
+
         this.editor.stage.runMode = running;
         this.editor.stage.updateBorder();
 
@@ -73,12 +77,18 @@ export class EditorRunManager {
 
                     if (stageId && this.editor.project.stages?.some(s => s.id === stageId)) {
                         console.log(`[RunManager] Navigating to stage: ${stageId}`);
-                        // Update Editor State (UI)
-                        (this.editor as any).switchStage(stageId);
-                        // Runtime update is handled via onStageSwitch callback which calls handleStageSwitch
+                        // Update Editor State (UI) without exiting run mode
+                        (this.editor as any).switchStage(stageId, true);
+
+                        // Explicitly tell the run time to switch
+                        if (this.runtime && typeof (this.runtime as any).switchToStage === 'function') {
+                            (this.runtime as any).switchToStage(stageId);
+                        } else if (this.runtime && typeof (this.runtime as any).handleStageChange === 'function') {
+                            (this.runtime as any).handleStageChange(this.editor.project.activeStageId, stageId);
+                        }
                     }
 
-                    this.editor.switchView('run');
+                    this.editor.switchView('run'); // Only brings the tab to front
                 },
                 makeReactive: true,
                 multiplayerManager: mpManager,

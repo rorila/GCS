@@ -251,12 +251,15 @@ export class ReactiveRuntime {
 
     /**
      * Clears all bindings and watchers
+     * @param clearVariables Whether to also clear the variables map (default: true)
      */
-    clear(): void {
+    clear(clearVariables: boolean = true): void {
         this.bindings.clear();
         this.objectsById.clear();
         this.objectsByName.clear();
-        this.variables.clear();
+        if (clearVariables) {
+            this.variables.clear();
+        }
         this.watcher.clear();
     }
 
