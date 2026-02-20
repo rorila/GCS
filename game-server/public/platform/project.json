@@ -1849,21 +1849,9 @@
               "endX": 650,
               "endY": 400,
               "data": {
-                "startAnchorType": "bottom",
+                "startAnchorType": "output",
                 "endAnchorType": "top",
                 "isEmbeddedInternal": false
-              }
-            },
-            {
-              "startTargetId": "node-1771513021504-1",
-              "endTargetId": "node-1771513021504-2",
-              "startX": 0,
-              "startY": 0,
-              "endX": 0,
-              "endY": 0,
-              "data": {
-                "startAnchorType": "output",
-                "endAnchorType": "input"
               }
             },
             {
