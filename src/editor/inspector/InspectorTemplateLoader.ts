@@ -13,7 +13,8 @@ export class InspectorTemplateLoader {
             if (!response.ok) return [];
 
             const json = await response.json();
-            return this.expandForEach(json.objects || [], _context);
+            const objects = Array.isArray(json) ? json : (json.objects || []);
+            return this.expandForEach(objects, _context);
         } catch (error) {
             console.error(`[InspectorTemplateLoader] Failed to load template ${url}:`, error);
             return [];

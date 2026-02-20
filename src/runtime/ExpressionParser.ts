@@ -249,6 +249,10 @@ export class ExpressionParser {
         if (expression.startsWith('${') && expression.endsWith('}')) {
             expression = expression.slice(2, -1).trim();
         }
-        return this.evaluate(expression, context);
+        const result = this.evaluate(expression, context);
+        if (expression.includes('BaseVar') || expression.includes('availableVariableFields')) {
+            console.log(`[ExpressionParser] evaluateRaw("${expression}") ->`, result);
+        }
+        return result;
     }
 }

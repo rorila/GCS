@@ -3,6 +3,7 @@ import { DebugLogService } from '../services/DebugLogService';
 import { FlowCharts, GameProject, GameTask } from '../model/types';
 import { libraryService } from '../services/LibraryService';
 import { MultiplayerManager } from './MultiplayerManager';
+import { PropertyHelper } from './PropertyHelper';
 
 export class TaskExecutor {
     private static readonly MAX_DEPTH = 10;
@@ -399,7 +400,9 @@ export class TaskExecutor {
 
                 // Evaluate the condition
                 const result = this.evaluateCondition(condition, vars, globalVars);
-                console.log(`[TaskExecutor] Condition ${condition.variable} ${condition.operator || '=='} ${condition.value} => ${result} `);
+                const left = condition.leftValue || condition.variable || '?';
+                const right = condition.rightValue || condition.value || '?';
+                console.log(`[TaskExecutor] Condition ${left} ${condition.operator || '=='} ${right} => ${result} `);
 
                 // Find the appropriate branch connection
                 const trueConn = connections.find((c: any) =>
@@ -565,11 +568,28 @@ export class TaskExecutor {
             }
         } else {
             // Object style condition
-            const varName = condition.variable;
-            conditionStr = `${varName} ${condition.operator || '=='} ${condition.value}`;
-            leftValue = this.resolveValue(varName, vars, globalVars);
-            rightValue = condition.value; // Value in object style is usually a literal
+            // Support both old {variable, value} and new {leftType, leftValue, rightType, rightValue} formats
+            const leftType = condition.leftType || 'variable';
+            const rightType = condition.rightType || 'literal';
+            const leftValRaw = condition.leftValue || condition.variable;
+            const rightValRaw = condition.rightValue || condition.value;
             operator = condition.operator || '==';
+
+            // Resolve Left Operand
+            if (leftType === 'variable' || leftType === 'property') {
+                leftValue = this.resolveValue(leftValRaw, vars, globalVars);
+            } else {
+                leftValue = leftValRaw; // Literal
+            }
+
+            // Resolve Right Operand
+            if (rightType === 'variable' || rightType === 'property') {
+                rightValue = this.resolveValue(rightValRaw, vars, globalVars);
+            } else {
+                rightValue = rightValRaw; // Literal
+            }
+
+            conditionStr = `${leftValRaw} (${leftType}) ${operator} ${rightValRaw} (${rightType})`;
         }
 
         // Debug Log
@@ -614,47 +634,23 @@ export class TaskExecutor {
     }
 
     private resolveVarPath(path: string, vars: Record<string, any>, globalVars: Record<string, any>): any {
-        // Handle $ prefix (strip it if it refers to a variable scope, but keep it if the key in vars actually has it)
-        // Usually vars keys do NOT have $, but usage like $eventData often map to keys like 'eventData' or '$eventData'
+        let root = vars;
+        let lookup = path;
 
-        let lookupPath = path;
-        if (path.startsWith('$')) {
-            // Try explicit lookup first (e.g. vars['$eventData'])
-            if (vars[path] !== undefined) return vars[path];
-
-            // If not found, stripping $ might help if the system stores 'eventData' but user writes '$eventData'
-            // BUT: Dot notation handling checks the root object first.
+        // Strip ${ } if present
+        if (lookup.startsWith('${') && lookup.endsWith('}')) {
+            lookup = lookup.slice(2, -1);
         }
 
-        // Helper to safely get nested property
-        const getDeep = (obj: any, p: string) => {
-            const parts = p.split('.');
-            let current = obj;
+        if (lookup.startsWith('global.')) {
+            root = globalVars;
+            lookup = lookup.substring(7);
+        } else if (lookup.startsWith('stage.')) {
+            root = vars;
+            lookup = lookup.substring(6);
+        }
 
-            // Special handling: if first part starts with $, try both with and without $
-            if (parts[0].startsWith('$') && current[parts[0]] === undefined && current[parts[0].substring(1)] !== undefined) {
-                parts[0] = parts[0].substring(1);
-            }
-
-            for (const part of parts) {
-                if (current === undefined || current === null) return undefined;
-                current = current[part];
-            }
-            return current;
-        };
-
-        // 1. Try Local Params/Vars first (PropertyHelper logic style)
-        let val = getDeep(vars, lookupPath);
-        if (val !== undefined) return val;
-
-        // 2. Try Global Vars
-        val = getDeep(globalVars, lookupPath);
-        if (val !== undefined) return val;
-
-        // 3. Fallback: If it's a number string, return number
-        if (!isNaN(Number(path))) return Number(path);
-
-        return undefined;
+        return PropertyHelper.getPropertyValue(root, lookup);
     }
 
     private async handleCondition(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {

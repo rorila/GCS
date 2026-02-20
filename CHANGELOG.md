@@ -1,4 +1,14 @@
-### [3.4.0] - 2026-02-20
+- **Fix (JSON Workflow Consistency)**: Vollständige Abbildung des Workflows im JSON-Modell.
+  - **FlowSyncManager Fix**: `DataAction`-Knoten unterstützen nun den generischen `output`-Anker als Fallback für `success`, was das korrekte Verfolgen von Verzweigungen in der `actionSequence` sicherstellt.
+  - **Recursive Registration**: Unter-Aktionen in `successBody`, `errorBody` und `elseBody` werden nun zuverlässig in die globale `actions`-Liste des Projekts aufgenommen.
+  - **Single Source of Truth**: `getTargetFlowCharts` in `FlowEditor.ts` korrigiert, um redundante Speicherung von Task-Diagrammen in Stages zu verhindern. Globale Tasks werden nun primär in `project.flowCharts` gespeichert.
+  - **Data Patch**: `project.json` bereinigt und `AttemptLogin` als globalen Task mit vollständiger logischer Sequenz (inkl. `Condition`) etabliert.
+- **Feature (FlowCondition Inspector Editor)**: Vollumfängliche Konfiguration von Bedingungen im Flow-Editor.
+  - Unterstützung für modulare Operanden (Variable, Literal, Element-Eigenschaft).
+  - Kontextsensitives UI-Template (`inspector_condition.json`) mit dynamischen Dropdowns für Objekt-Eigenschaften.
+  - Runtime-Support im `TaskExecutor` für komplexere Vergleiche (z.B. `Label1.text == 'Login'`) und verschachtelte Variablenpfade (z.B. `${global.currentUser.role}`).
+  - Fix: `InspectorTemplateLoader` unterstützt jetzt sowohl Array- als auch Objekt-Wrapper-Strukturen in JSON-Templates.
+  - Abwärtskompatibilität für bestehende einfache `variable`/`value`-Bedingungen gewährleistet.
 - **Feature (Universal Actions)**: Universell konfigurierbare Aktionen im UI.
   - Einführung der `TActionParams`-Komponente für dynamische Parameter-Rendering in Inspector und Action-Dialog.
   - Dynamische Methodenparameter: `call_method` Aktionen laden nun Parameter-Signaturen direkt aus der `MethodRegistry.ts`.

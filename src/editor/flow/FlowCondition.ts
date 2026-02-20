@@ -103,19 +103,130 @@ export class FlowCondition extends FlowElement {
     public getInspectorProperties(): any[] {
         return [
             ...super.getInspectorProperties(),
-            { name: 'VariableName', type: 'string', label: 'Variable' },
-            { name: 'Operator', type: 'select', label: 'Operator', options: ['==', '!=', '>', '<', '>=', '<='] },
-            { name: 'Value', type: 'string', label: 'Value' }
+            { group: 'Condition', name: 'LeftOperandType', type: 'select', label: 'Links Typ', options: ['variable', 'literal', 'property'] },
+            { group: 'Condition', name: 'LeftOperandValue', type: 'string', label: 'Links Wert' },
+            { group: 'Condition', name: 'Operator', type: 'select', label: 'Operator', options: ['==', '!=', '>', '<', '>=', '<='] },
+            { group: 'Condition', name: 'RightOperandType', type: 'select', label: 'Rechts Typ', options: ['variable', 'literal', 'property'] },
+            { group: 'Condition', name: 'RightOperandValue', type: 'string', label: 'Rechts Wert' }
         ];
     }
 
     // Property Accessors
-    public get VariableName(): string { return this.data.condition?.variable || ''; }
-    public set VariableName(v: string) {
+    public get LeftOperandType(): string { return this.data.condition?.leftType || 'variable'; }
+    public set LeftOperandType(v: string) {
         if (!this.data.condition) this.data.condition = {};
-        this.data.condition.variable = v;
+        this.data.condition.leftType = v;
         this.updateText();
     }
+
+    public get LeftOperandValue(): string {
+        const v = this.data.condition?.leftValue || this.data.condition?.variable || '';
+        console.log(`[FlowCondition] get LeftOperandValue: "${v}"`);
+        return v;
+    }
+    public set LeftOperandValue(v: string) {
+        console.log(`[FlowCondition] set LeftOperandValue: "${v}"`);
+        if (!this.data.condition) this.data.condition = {};
+        this.data.condition.leftValue = v;
+        this.updateText();
+    }
+
+    // --- Helper for Sub-Properties ---
+    public get LeftOperandBaseVar(): string {
+        const full = this.LeftOperandValue;
+        if (!full.includes('${')) return full;
+
+        const parts = full.split('.');
+        let result = full;
+        if (parts.length >= 2) {
+            // Reconstruct ${scope.var}
+            const base = parts[0] + '.' + parts[1];
+            result = base.includes('}') ? base : base + '}';
+        }
+        console.log(`[FlowCondition] get LeftOperandBaseVar for "${full}" -> "${result}"`);
+        return result;
+    }
+    public set LeftOperandBaseVar(v: string) {
+        console.log(`[FlowCondition] set LeftOperandBaseVar: "${v}"`);
+        this.LeftOperandValue = v; // Resets sub-prop when base changes
+    }
+
+    public get LeftOperandSubProp(): string {
+        const full = this.LeftOperandValue;
+        if (!full.includes('${')) return '';
+
+        const parts = full.split('.');
+        if (parts.length >= 3) {
+            // Extract 'prop' from ${scope.var.prop}
+            return parts[2].replace('}', '').trim();
+        }
+        return '';
+    }
+    public set LeftOperandSubProp(v: string) {
+        console.log(`[FlowCondition] set LeftOperandSubProp: "${v}"`);
+        if (!v) {
+            this.LeftOperandValue = this.LeftOperandBaseVar;
+            return;
+        }
+        const base = this.LeftOperandBaseVar.replace('}', '');
+        this.LeftOperandValue = `${base}.${v}}`;
+    }
+
+    public get RightOperandType(): string { return this.data.condition?.rightType || 'literal'; }
+    public set RightOperandType(v: string) {
+        if (!this.data.condition) this.data.condition = {};
+        this.data.condition.rightType = v;
+        this.updateText();
+    }
+
+    public get RightOperandValue(): string {
+        const v = this.data.condition?.rightValue || this.data.condition?.value || '';
+        // console.log(`[FlowCondition] get RightOperandValue: "${v}"`);
+        return v;
+    }
+    public set RightOperandValue(v: string) {
+        if (!this.data.condition) this.data.condition = {};
+        this.data.condition.rightValue = v;
+        this.updateText();
+    }
+
+    public get RightOperandBaseVar(): string {
+        const full = this.RightOperandValue;
+        if (!full.includes('${')) return full;
+
+        const parts = full.split('.');
+        if (parts.length >= 2) {
+            const base = parts[0] + '.' + parts[1];
+            return base.includes('}') ? base : base + '}';
+        }
+        return full;
+    }
+    public set RightOperandBaseVar(v: string) {
+        this.RightOperandValue = v;
+    }
+
+    public get RightOperandSubProp(): string {
+        const full = this.RightOperandValue;
+        if (!full.includes('${')) return '';
+
+        const parts = full.split('.');
+        if (parts.length >= 3) {
+            return parts[2].replace('}', '').trim();
+        }
+        return '';
+    }
+    public set RightOperandSubProp(v: string) {
+        if (!v) {
+            this.RightOperandValue = this.RightOperandBaseVar;
+            return;
+        }
+        const base = this.RightOperandBaseVar.replace('}', '');
+        this.RightOperandValue = `${base}.${v}}`;
+    }
+
+    // Legacy Support (maps to LeftOperandValue)
+    public get VariableName(): string { return this.LeftOperandValue; }
+    public set VariableName(v: string) { this.LeftOperandValue = v; }
 
     public get Operator(): string { return this.data.condition?.operator || '=='; }
     public set Operator(v: string) {
@@ -124,17 +235,16 @@ export class FlowCondition extends FlowElement {
         this.updateText();
     }
 
-    public get Value(): string { return this.data.condition?.value || ''; }
-    public set Value(v: string) {
-        if (!this.data.condition) this.data.condition = {};
-        this.data.condition.value = v;
-        this.updateText();
-    }
+    public get Value(): string { return this.RightOperandValue; }
+    public set Value(v: string) { this.RightOperandValue = v; }
 
     private updateText() {
         const cond = this.data.condition;
-        if (cond && cond.variable) {
-            this.setText(`${cond.variable} ${cond.operator} ${cond.value}`, true);
+        if (cond) {
+            const left = cond.leftValue || cond.variable || '?';
+            const right = cond.rightValue || cond.value || '?';
+            const op = cond.operator || '==';
+            this.setText(`${left} ${op} ${right}`, true);
         } else {
             this.setText("Bedingung", true);
         }

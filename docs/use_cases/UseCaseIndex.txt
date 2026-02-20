@@ -1,5 +1,6 @@
 UseCase Index
 -------------
+- FlowConditionEditor: Flexibler Editor für Bedingungen im Flow-Editor. Unterstützt Operanden-Auswahl (Variable, Literal, Eigenschaft) via `inspector_condition.json` und spezialisierten `FlowConditionHandler.ts`. NEU: Support für Untereigenschaften von Objekt-Variablen (z.B. currentUser.name). Runtime-Evaluierung in `TaskExecutor.ts` (L402, L636-651) via `PropertyHelper`. Fix: Flexibler `InspectorTemplateLoader` für verschiedene JSON-Strukturen.
 - AIAgentController: Technische Schnittstelle (API) für AI-Agenten (`AgentController.ts`) zur sicheren Manipulation des Projekts. Erzwingt Validierungsregeln (keine Inline-Actions), korrekte Task-Registrierung (Global/Stage) und implementiert die "Scorched Earth" Strategie zur Flow-Regeneration (`invalidateTaskFlow`).
 - ActionParameterStandardisierung: Umstellung auf OOP-Struktur und 1:1 Mapping von UI zu Modell.
 - SaveAction: (Teil von ActionParameterStandardisierung) Der Prozess der Werterfassung und Bereinigung vor dem Speichern.

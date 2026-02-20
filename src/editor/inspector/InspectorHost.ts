@@ -6,6 +6,7 @@ import { InspectorRegistry } from './InspectorRegistry';
 import { InspectorTemplateLoader } from './InspectorTemplateLoader';
 import { InspectorActionHandler } from './InspectorActionHandler';
 import { GameObjectHandler } from './handlers/GameObjectHandler';
+import { FlowConditionHandler } from './handlers/FlowConditionHandler';
 import { FlowNodeHandler } from './handlers/FlowNodeHandler';
 import { VariableHandler } from './handlers/VariableHandler';
 import { ExpressionParser } from '../../runtime/ExpressionParser';
@@ -38,6 +39,7 @@ export class InspectorHost {
         // Initialize Default Handlers
         InspectorRegistry.registerHandler(new GameObjectHandler());
         InspectorRegistry.registerHandler(new FlowNodeHandler());
+        InspectorRegistry.registerHandler(new FlowConditionHandler());
         InspectorRegistry.registerHandler(new VariableHandler());
     }
 
@@ -255,6 +257,7 @@ export class InspectorHost {
                 const options = (typeof rawOptions === 'string') ? this.resolveValue(rawOptions, obj) : rawOptions;
                 const select = this.renderer.renderSelect(Array.isArray(options) ? options : [], value, def.placeholder);
                 select.onchange = () => {
+                    console.log(`[InspectorHost] TDropdown onchange: Control="${def.name}", NewValue="${select.value}"`);
                     const event = this.eventHandler.handleControlChange(def.name, select.value, obj, def);
 
                     if (event) {
@@ -338,19 +341,27 @@ export class InspectorHost {
     private resolveValue(expr: any, obj: any): any {
         if (typeof expr !== 'string' || !expr.includes('${')) return expr;
 
-        // Use InspectorContextBuilder to get enriched context (availableDataStores, etc.)
         const context = InspectorContextBuilder.build(obj);
+        const result = ExpressionParser.interpolate(expr, context);
 
-        return ExpressionParser.interpolate(expr, context);
+        if (expr.includes('BaseVar') || expr.includes('availableVariableFields')) {
+            console.log(`[InspectorHost] resolveValue("${expr}") -> "${result}"`);
+        }
+
+        return result;
     }
 
     private resolveRawValue(expr: any, obj: any): any {
         if (typeof expr !== 'string' || !expr.includes('${')) return expr;
 
-        // Use InspectorContextBuilder to get enriched context (availableDataStores, etc.)
         const context = InspectorContextBuilder.build(obj);
+        const result = ExpressionParser.evaluateRaw(expr, context);
 
-        return ExpressionParser.evaluateRaw(expr, context);
+        if (expr.includes('BaseVar') || expr.includes('availableVariableFields')) {
+            console.log(`[InspectorHost] resolveRawValue("${expr}") ->`, result);
+        }
+
+        return result;
     }
 
     private async renderEventsContent(obj: any, parent: HTMLElement): Promise<void> {
@@ -393,7 +404,7 @@ export class InspectorHost {
     public clear(): void {
         if (this.container) this.container.innerHTML = '';
         this.selectedObject = null;
-        InspectorRegistry.clear();
+        // InspectorRegistry.clear(); // Removing this as it wipes handlers globally for all instances!
     }
 
     // --- COMPATIBILITY METHODS FOR LEGACY INTEGRATION ---

@@ -90,16 +90,30 @@ export class InspectorRenderer {
             select.appendChild(opt);
         }
 
+        if (selectedValue === undefined || selectedValue === null) {
+            // Trace if suspicious
+        }
+
         options.forEach(opt => {
             const option = document.createElement('option');
+            let val: string;
+            let text: string;
+
             if (typeof opt === 'string') {
-                option.value = opt;
-                option.text = opt;
+                val = opt;
+                text = opt;
             } else {
-                option.value = opt.value;
-                option.text = opt.label || opt.text || opt.name || opt.value;
+                val = opt.value;
+                text = opt.label || opt.text || opt.name || opt.value;
             }
-            if (option.value === selectedValue) option.selected = true;
+
+            option.value = val;
+            option.text = text;
+
+            if (val === selectedValue) {
+                option.selected = true;
+                // console.log(`[InspectorRenderer] Select "${text}" as active (Value: ${val})`);
+            }
             select.appendChild(option);
         });
 

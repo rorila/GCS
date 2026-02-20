@@ -23,6 +23,14 @@ export class InspectorEventHandler {
 
         // 1. Resolve property path from control name (e.g. "NameInput" -> "Name", "ActionTypeSelect" -> "type")
         let propertyPath = controlName;
+
+        // NEW: Strip specific suffixes used for differentiation (e.g. "LeftOperandValue_VarInput" -> "LeftOperandValueInput")
+        if (propertyPath.includes('_')) {
+            const parts = propertyPath.split('_');
+            const suffix = (propertyPath.endsWith('Input') ? 'Input' : (propertyPath.endsWith('Select') ? 'Select' : ''));
+            propertyPath = parts[0] + suffix;
+        }
+
         if (propertyPath.endsWith('Input')) {
             propertyPath = propertyPath.slice(0, -5);
         } else if (propertyPath.endsWith('Select')) {

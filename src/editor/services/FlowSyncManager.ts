@@ -263,7 +263,12 @@ export class FlowSyncManager {
                 const trueAnchor = isData ? 'success' : 'true';
                 const falseAnchor = isData ? 'error' : 'false';
 
-                const trueConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === trueAnchor);
+                let trueConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === trueAnchor);
+                // Fallback for DataAction nodes that might still use the generic 'output' anchor
+                if (isData && !trueConn) {
+                    trueConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === 'output' || !c.data?.startAnchorType));
+                }
+
                 const falseConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === falseAnchor);
 
                 const mergePoints = new Set<string>();
@@ -684,6 +689,9 @@ export class FlowSyncManager {
                 if (item.body) processSequence(item.body);
                 if (item.then) processSequence(item.then);
                 if (item.else) processSequence(item.else);
+                if (item.elseBody) processSequence(item.elseBody);
+                if (item.successBody) processSequence(item.successBody);
+                if (item.errorBody) processSequence(item.errorBody);
             });
         };
         processSequence(task.actionSequence);

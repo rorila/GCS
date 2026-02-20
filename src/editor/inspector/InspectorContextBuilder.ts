@@ -52,6 +52,44 @@ export class InspectorContextBuilder {
                 value: v.id
             })),
 
+            // Neue Hilfsfunktion für Variablen-Felder
+            availableVariableFields: allVars.reduce((acc, v: any) => {
+                const prefix = v.uiScope === 'global' ? 'global' : 'stage';
+                const token = `\${${prefix}.${v.name}}`;
+
+                // Felder basierend auf dem Typ/Modell ermitteln
+                let fields: string[] = [];
+                const type = v.type as string;
+                const className = v.className as string;
+
+                // Check multiple ways a variable might be identified as complex
+                if (type === 'object' || type === 'object_list' || type === 'json' || type === 'any' ||
+                    className === 'TObjectVariable' || className === 'TVariable') {
+
+                    const model = (v.objectModel || '').toLowerCase();
+                    if (model === 'user' || model === 'users') {
+                        fields = ['id', 'name', 'role', 'authCode', 'avatar', 'status'];
+                    } else if (model === 'project' || model === 'projects') {
+                        fields = ['id', 'name', 'description', 'version'];
+                    } else if (model === 'stage' || model === 'stages') {
+                        fields = ['id', 'name', 'type'];
+                    } else if (model === 'variable' || model === 'variables') {
+                        fields = ['id', 'name', 'type', 'value'];
+                    } else if (model.includes('resource')) {
+                        fields = ['id', 'name', 'role', 'authCode', 'status'];
+                    } else {
+                        // Generische Felder für Objekte
+                        fields = ['id', 'name', 'text', 'value'];
+                    }
+                }
+
+                if (fields.length > 0) {
+                    console.log(`[InspectorContextBuilder] Registering fields for ${token} (Model: ${v.objectModel}):`, fields);
+                    acc[token] = fields;
+                }
+                return acc;
+            }, {} as Record<string, string[]>),
+
             // Standard-Felder für Data-Queries (angepasst an db.json / UserData)
             availableResourceProperties: [
                 'id',
@@ -73,6 +111,25 @@ export class InspectorContextBuilder {
                 'Action',
                 'Resource',
                 'Hierarchy'
+            ],
+
+            // Liste aller Sichtbaren Objekte (für Eigenschafts-Vergleich)
+            availableObjects: allObjects.map(obj => obj.name || obj.id),
+
+            // Häufige Eigenschaften von Komponenten
+            availableObjectProperties: [
+                'text',
+                'value',
+                'caption',
+                'width',
+                'height',
+                'top',
+                'left',
+                'visible',
+                'checked',
+                'progress',
+                'enabled',
+                'src'
             ]
         };
 

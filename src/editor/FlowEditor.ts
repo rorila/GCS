@@ -426,19 +426,26 @@ export class FlowEditor implements FlowMapHost {
     public getTargetFlowCharts(taskName?: string): any {
         if (!this.project) return {};
         const activeStage = this.getActiveStage();
+
+        // Check if task exists globally
+        const isGlobalTask = this.project.tasks?.some((t: any) => t.name === taskName);
+        if (isGlobalTask) {
+            return this.project.flowCharts || (this.project.flowCharts = {});
+        }
+
         if (!activeStage) return this.project.flowCharts || (this.project.flowCharts = {});
 
-        // Wenn der Chart bereits in der Stage existiert
-        if (activeStage.flowCharts && activeStage.flowCharts[taskName || '']) {
-            return activeStage.flowCharts;
+        // If task exists in active stage
+        const isStageTask = activeStage.tasks?.some((t: any) => t.name === taskName);
+        if (isStageTask) {
+            return activeStage.flowCharts || (activeStage.flowCharts = {});
         }
 
-        // Wenn er global existiert
-        if (this.project.flowCharts && this.project.flowCharts[taskName || '']) {
-            return this.project.flowCharts;
-        }
+        // Fallback: If it already exists somewhere, use that
+        if (activeStage.flowCharts && activeStage.flowCharts[taskName || '']) return activeStage.flowCharts;
+        if (this.project.flowCharts && this.project.flowCharts[taskName || '']) return this.project.flowCharts;
 
-        // Neue Charts in der aktiven Stage anlegen
+        // Default to active stage for new local tasks
         if (!activeStage.flowCharts) activeStage.flowCharts = {};
         return activeStage.flowCharts;
     }

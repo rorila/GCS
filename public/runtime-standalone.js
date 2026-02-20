@@ -292,6 +292,8 @@
         const hasInContent = target !== null && typeof target === "object" && part in target || target !== void 0 && target !== null && target[part] !== void 0;
         if (hasInContent) {
           current = target[part];
+        } else if (target && target.isFlowNode === true && target.data && target.data[part] !== void 0) {
+          current = target.data[part];
         } else {
           current = current[part];
         }
@@ -316,7 +318,12 @@
       if (!obj || !propPath) return;
       const parts = propPath.split(".");
       if (parts.length === 1) {
-        obj[parts[0]] = value;
+        const part = parts[0];
+        if (obj.isFlowNode === true && obj.data && !(part in obj) && Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), part)?.set === void 0) {
+          obj.data[part] = value;
+        } else {
+          obj[part] = value;
+        }
       } else {
         let current = obj;
         for (let i = 0; i < parts.length - 1; i++) {
@@ -507,6 +514,8 @@
         const name = error?.name || "";
         if (name === "ReferenceError" || error instanceof ReferenceError) {
           console.warn(`%c[ExpressionParser] ReferenceError in "${expression}": ${msg}`, "color: #f44336; font-weight: bold");
+          const deps = this.extractDependencies(expression);
+          console.log(`[ExpressionParser] Available context keys:`, deps.filter((k) => k in context));
           return void 0;
         }
         if ((name === "TypeError" || error instanceof TypeError) && (msg.includes("undefined") || msg.includes("null"))) {
@@ -1226,12 +1235,15 @@
     }
     /**
      * Clears all bindings and watchers
+     * @param clearVariables Whether to also clear the variables map (default: true)
      */
-    clear() {
+    clear(clearVariables = true) {
       this.bindings.clear();
       this.objectsById.clear();
       this.objectsByName.clear();
-      this.variables.clear();
+      if (clearVariables) {
+        this.variables.clear();
+      }
       this.watcher.clear();
     }
     /**
@@ -1702,10 +1714,14 @@
       if (val === void 0 && sourceName && String(sourceName).includes("${")) {
         val = PropertyHelper.interpolate(String(sourceName), { ...context.contextVars, ...context.vars }, context.objects);
       }
+      if (val === void 0 && action.value !== void 0) {
+        const combinedCtx = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        val = PropertyHelper.interpolate(String(action.value), combinedCtx, context.objects);
+      }
       if (val !== void 0 && variableName) {
         context.vars[variableName] = val;
         context.contextVars[variableName] = val;
-        DebugLogService.getInstance().log("Variable", `Variable "${variableName}" auf "${val}" gesetzt (Quelle: ${sourceName}${action.sourceProperty ? "." + action.sourceProperty : ""})`, {
+        DebugLogService.getInstance().log("Variable", `Variable "${variableName}" auf "${val}" gesetzt (Quelle: ${sourceName || action.value})${action.sourceProperty ? "." + action.sourceProperty : ""}`, {
           data: { value: val, source: sourceName, property: action.sourceProperty }
         });
       } else {
@@ -1786,7 +1802,7 @@
       parameters: [
         { name: "target", label: "Ziel-Objekt", type: "object", source: "objects" },
         { name: "property", label: "Eigenschaft", type: "string", defaultValue: "x" },
-        { name: "to", label: "Ziel-Wert", type: "number" },
+        { name: "to", label: "Ziel-Wert", type: "string" },
         { name: "duration", label: "Dauer (ms)", type: "number", defaultValue: 500 },
         { name: "easing", label: "Easing", type: "select", source: "easing-functions", defaultValue: "easeOut" }
       ]
@@ -1852,7 +1868,7 @@
       label: "Stage wechseln",
       description: "Wechselt zu einer anderen Stage innerhalb des Projekts.",
       parameters: [
-        { name: "stageId", label: "Ziel-Stage", type: "stage", source: "stages" }
+        { name: "stageId", label: "Ziel-Stage", type: "select", source: "stages" }
       ]
     });
     actionRegistry.register("service", async (action, context) => {
@@ -2121,6 +2137,58 @@
       parameters: [
         { name: "message", label: "Nachricht", type: "string" },
         { name: "toastType", label: "Typ", type: "select", options: ["info", "success", "warning", "error"], defaultValue: "info" }
+      ]
+    });
+    actionRegistry.register("call_method", async (action, context) => {
+      const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+      const targetName = action.target;
+      const methodName = action.method;
+      const rawParams = Array.isArray(action.params) ? action.params : [];
+      const resolvedParams = rawParams.map(
+        (p) => PropertyHelper.interpolate(String(p), combinedContext, context.objects)
+      );
+      const targetObj = resolveTarget(targetName, context.objects, context.vars, context.contextVars);
+      if (targetObj && typeof targetObj[methodName] === "function") {
+        const result = await targetObj[methodName](...resolvedParams);
+        if (action.resultVariable) {
+          context.vars[action.resultVariable] = result;
+          context.contextVars[action.resultVariable] = result;
+        }
+        console.log(`[Action: call_method] ${targetName}.${methodName}(${resolvedParams.join(", ")}) aufgerufen.`);
+        return;
+      }
+      if (serviceRegistry.has(targetName)) {
+        const result = await serviceRegistry.call(targetName, methodName, resolvedParams);
+        if (action.resultVariable) {
+          context.vars[action.resultVariable] = result;
+          context.contextVars[action.resultVariable] = result;
+        }
+        console.log(`[Action: call_method] Service ${targetName}.${methodName}(${resolvedParams.join(", ")}) aufgerufen.`);
+        return;
+      }
+      if (targetName === "Toaster" && methodName === "show") {
+        const message = resolvedParams[0] || "";
+        const toastType = resolvedParams[1] || "info";
+        const toaster = context.objects.find(
+          (o) => o.className === "TToast" || o.constructor?.name === "TToast"
+        );
+        if (toaster && typeof toaster.show === "function") {
+          toaster.show(message, toastType);
+        } else {
+          console.log(`[TOAST: ${toastType.toUpperCase()}] ${message}`);
+        }
+        return;
+      }
+      console.warn(`[Action: call_method] Ziel "${targetName}" nicht gefunden oder Methode "${methodName}" nicht vorhanden.`);
+    }, {
+      type: "call_method",
+      label: "Methode aufrufen",
+      description: "Ruft eine Methode auf einem Objekt oder registrierten Service auf.",
+      parameters: [
+        { name: "target", label: "Ziel (Objekt oder Service)", type: "string" },
+        { name: "method", label: "Methode", type: "string" },
+        { name: "params", label: "Parameter (Array)", type: "json", hint: '["param1", "param2"]' },
+        { name: "resultVariable", label: "Ergebnis speichern in", type: "variable", source: "variables" }
       ]
     });
     actionRegistry.register("respond_http", async (action, context) => {
@@ -2814,11 +2882,22 @@
           return !!this.resolveValue(condition, vars, globalVars);
         }
       } else {
-        const varName = condition.variable;
-        conditionStr = `${varName} ${condition.operator || "=="} ${condition.value}`;
-        leftValue = this.resolveValue(varName, vars, globalVars);
-        rightValue = condition.value;
+        const leftType = condition.leftType || "variable";
+        const rightType = condition.rightType || "literal";
+        const leftValRaw = condition.leftValue || condition.variable;
+        const rightValRaw = condition.rightValue || condition.value;
         operator = condition.operator || "==";
+        if (leftType === "variable" || leftType === "property") {
+          leftValue = this.resolveValue(leftValRaw, vars, globalVars);
+        } else {
+          leftValue = leftValRaw;
+        }
+        if (rightType === "variable" || rightType === "property") {
+          rightValue = this.resolveValue(rightValRaw, vars, globalVars);
+        } else {
+          rightValue = rightValRaw;
+        }
+        conditionStr = `${leftValRaw} (${leftType}) ${operator} ${rightValRaw} (${rightType})`;
       }
       console.log(`[TaskExecutor] Evaluating Condition: "${conditionStr}"`);
       console.log(`               Left:  "${leftValue}" (type: ${typeof leftValue})`);
@@ -3361,10 +3440,20 @@
           this.importVariables([v], true);
         });
       }
+      this.syncAllToReactive();
+    }
+    syncAllToReactive() {
+      Object.keys(this.projectVariables).forEach((name) => {
+        this.host.reactiveRuntime.setVariable(name, this.projectVariables[name]);
+      });
+      Object.keys(this.stageVariables).forEach((name) => {
+        this.host.reactiveRuntime.setVariable(name, this.stageVariables[name]);
+      });
     }
     initializeStageVariables(stage) {
       if (stage && stage.variables) {
         this.importVariables(stage.variables);
+        this.syncAllToReactive();
       }
     }
     importVariables(vars, isFallback = false) {
@@ -10465,6 +10554,12 @@
         this.stageController.setOnStageChangeCallback((oldId, newId) => this.handleStageChange(oldId, newId));
       }
     }
+    switchToStage(stageId) {
+      const currentId = this.stage ? this.stage.id : "";
+      if (currentId !== stageId) {
+        this.handleStageChange(currentId, stageId);
+      }
+    }
     handleStageChange(_oldStageId, newStageId) {
       if (this.stage && this.taskExecutor) {
         const onLeaveTask = (this.stage.events || this.stage.Tasks)?.onLeave;
@@ -10482,10 +10577,13 @@
         this.taskExecutor.setTasks(merged.tasks);
         this.taskExecutor.setActions(merged.actions);
       }
+      console.log(`[GameRuntime] --- STAGE CHANGE: ${newStageId} ---`);
+      console.log(`[GameRuntime] Global Vars BEFORE reactive clear:`, this.reactiveRuntime.getContext());
       if (this.options.makeReactive) {
-        this.reactiveRuntime.clear();
+        this.reactiveRuntime.clear(false);
         this.clearAllTimers();
         AnimationManager.getInstance().clear();
+        console.log(`[GameRuntime] Global Vars AFTER reactive clear:`, this.reactiveRuntime.getContext());
         this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
         this.reactiveRuntime.setVariable("isSplashActive", false);
         if (this.options.onRender) {
@@ -10493,6 +10591,7 @@
         }
         this.objects = this.reactiveRuntime.getObjects();
         this.initializeReactiveBindings();
+        console.log(`[GameRuntime] Global Vars AFTER initializeReactiveBindings:`, this.reactiveRuntime.getContext());
       }
       if (this.actionExecutor) {
         this.actionExecutor.setObjects(this.objects);
@@ -10798,10 +10897,13 @@
             this.variableManager.processVariableEvents(obj.name, newValue, oldValue, varDef);
           }
         });
-        if (obj.value !== void 0) {
-          this.contextVars[obj.name] = obj.value;
-        } else if (Array.isArray(obj.items)) {
-          this.contextVars[obj.name] = obj.items;
+        const isGlobalVar = obj.name && obj.name in this.variableManager.projectVariables;
+        if (!isGlobalVar) {
+          if (obj.value !== void 0) {
+            this.contextVars[obj.name] = obj.value;
+          } else if (Array.isArray(obj.items)) {
+            this.contextVars[obj.name] = obj.items;
+          }
         }
       });
     }

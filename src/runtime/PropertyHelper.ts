@@ -34,10 +34,17 @@ export class PropertyHelper {
             if (hasInContent) {
                 current = target[part];
             } else if (target && target.isFlowNode === true && target.data && target.data[part] !== undefined) {
-                // FALLBACK for FlowNodes: Look into the encapsulated data object if property not found directly
                 current = target.data[part];
             } else {
                 current = current[part];
+            }
+
+            if (propPath.includes('LeftOperand') || propPath.includes('BaseVar')) {
+                console.log(`[PropertyHelper] getPropertyValue("${propPath}") member "${part}":`, {
+                    targetType: (target as any).constructor?.name || typeof target,
+                    hasInContent,
+                    result: (typeof current === 'string' ? `"${current}"` : (current === undefined ? "undefined" : "object/val"))
+                });
             }
 
             if (current === undefined || current === null) return undefined;
