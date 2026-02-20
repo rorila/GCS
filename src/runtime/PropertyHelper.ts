@@ -27,12 +27,15 @@ export class PropertyHelper {
                 target = target[0];
             }
 
-            // Access property (Priority 1: Content / Priority 2: Component)
+            // Access property (Priority 1: Content / Priority 2: Component / Priority 3: FlowNode Data)
             const hasInContent = (target !== null && typeof target === 'object' && (part in target)) ||
                 (target !== undefined && target !== null && (target as any)[part] !== undefined);
 
             if (hasInContent) {
                 current = target[part];
+            } else if (target && target.isFlowNode === true && target.data && target.data[part] !== undefined) {
+                // FALLBACK for FlowNodes: Look into the encapsulated data object if property not found directly
+                current = target.data[part];
             } else {
                 current = current[part];
             }
@@ -62,7 +65,14 @@ export class PropertyHelper {
 
         const parts = propPath.split('.');
         if (parts.length === 1) {
-            obj[parts[0]] = value;
+            const part = parts[0];
+            // If it's a FlowNode and doesn't have a setter for this property, put it into data
+            if (obj.isFlowNode === true && obj.data && !(part in obj) &&
+                Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), part)?.set === undefined) {
+                obj.data[part] = value;
+            } else {
+                obj[part] = value;
+            }
         } else {
             let current: any = obj;
             for (let i = 0; i < parts.length - 1; i++) {

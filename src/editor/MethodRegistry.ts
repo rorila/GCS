@@ -19,7 +19,10 @@ export const MethodRegistry: Record<string, MethodParamDef[]> = {
     'setSrc': [
         { name: 'src', type: 'string', label: 'Image Source' }
     ],
-    'show': [],
+    'show': [
+        { name: 'message', type: 'string', label: 'Nachricht' },
+        { name: 'type', type: 'select', label: 'Typ', options: ['info', 'success', 'warning', 'error'], default: 'info' }
+    ],
     'hide': [],
     'toggle': [],
     'enable': [],

@@ -3,6 +3,7 @@ import { ReactiveRuntime } from '../../runtime/ReactiveRuntime';
 import { GameProject } from '../../model/types';
 import { InspectorRegistry } from './InspectorRegistry';
 import { PropertyChangeEvent } from './types';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
 
 export class InspectorEventHandler {
     constructor(
@@ -20,16 +21,22 @@ export class InspectorEventHandler {
     public handleControlChange(controlName: string, newValue: any, selectedObject: any, inspectorDef?: any): PropertyChangeEvent | null {
         if (!selectedObject) return null;
 
-        // 1. Resolve property path from control name (e.g. "NameInput" -> "Name")
+        // 1. Resolve property path from control name (e.g. "NameInput" -> "Name", "ActionTypeSelect" -> "type")
         let propertyPath = controlName;
         if (propertyPath.endsWith('Input')) {
             propertyPath = propertyPath.slice(0, -5);
+        } else if (propertyPath.endsWith('Select')) {
+            propertyPath = propertyPath.slice(0, -6);
         } else if (propertyPath.endsWith('Label')) {
             propertyPath = propertyPath.slice(0, -5);
         }
 
+        // --- NEW: Specialized mappings ---
+        if (propertyPath === 'ActionType') propertyPath = 'actionType';
+        if (propertyPath === 'Aktions-Typ') propertyPath = 'actionType';
+
         // 2. Capture old value safely
-        const oldValue = selectedObject[propertyPath];
+        const oldValue = PropertyHelper.getPropertyValue(selectedObject, propertyPath);
 
         // 3. Create event object
         const event: PropertyChangeEvent = {
@@ -53,7 +60,7 @@ export class InspectorEventHandler {
         // 5. Default behavior if not handled by specialized logic
         if (!wasHandled) {
             if (oldValue !== newValue) {
-                selectedObject[propertyPath] = newValue;
+                PropertyHelper.setPropertyValue(selectedObject, propertyPath, newValue);
                 console.log(`[InspectorEventHandler] Applied default update to ${propertyPath}`);
             }
         }

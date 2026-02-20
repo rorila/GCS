@@ -1,7 +1,9 @@
-
 import { ReactiveRuntime } from '../../runtime/ReactiveRuntime';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { serviceRegistry } from '../../services/ServiceRegistry';
+import { actionRegistry } from '../../runtime/ActionRegistry';
+import { MethodRegistry } from '../MethodRegistry';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
 
 /**
  * InspectorRenderer - Handles the visual generation of Inspector UI components.
@@ -199,6 +201,113 @@ export class InspectorRenderer {
     }
 
     /**
+     * Renders dynamic action parameters based on action type metadata.
+     */
+    public renderActionParams(_obj: any, selectedObject: any, onUpdate: (prop: string, val: any) => void): HTMLElement | null {
+        const type = selectedObject.actionType || selectedObject.type;
+        const meta = actionRegistry.getMetadata(type);
+        if (!meta) return null;
+
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.gap = '8px';
+        container.style.marginTop = '4px';
+
+        meta.parameters.forEach((param: any) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.flexDirection = 'column';
+            row.style.gap = '2px';
+
+            const label = this.renderLabel(param.label);
+            row.appendChild(label);
+
+            let input: HTMLElement | null = null;
+            const currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name) ?? (param.defaultValue || '');
+
+            // --- SPECIAL: Dynamic Method Parameters for call_method ---
+            if (type === 'call_method' && param.name === 'params') {
+                const methodName = selectedObject.method;
+                const signature = (MethodRegistry as any)[methodName] || [{ name: 'params', type: 'string', label: 'Parameter' }];
+
+                const paramContainer = document.createElement('div');
+                paramContainer.style.display = 'flex';
+                paramContainer.style.flexDirection = 'column';
+                paramContainer.style.gap = '6px';
+                paramContainer.style.paddingLeft = '10px';
+                paramContainer.style.borderLeft = '2px solid #444';
+                paramContainer.style.marginTop = '4px';
+
+                signature.forEach((sigParam: any, idx: number) => {
+                    const sigRow = document.createElement('div');
+                    sigRow.style.display = 'flex';
+                    sigRow.style.flexDirection = 'column';
+                    sigRow.style.gap = '2px';
+
+                    const sigLabel = document.createElement('label');
+                    sigLabel.innerText = `${sigParam.label || sigParam.name} (${sigParam.type})`;
+                    sigLabel.style.fontSize = '10px';
+                    sigLabel.style.color = '#888';
+                    sigRow.appendChild(sigLabel);
+
+                    const params = PropertyHelper.getPropertyValue(selectedObject, 'params') || [];
+                    const currentParamValue = (Array.isArray(params) ? params[idx] : '') || '';
+
+                    let sigInput: HTMLElement;
+                    if (sigParam.type === 'select' || sigParam.type === 'stage' || sigParam.type === 'variable') {
+                        const opts = this.getOptionsFromSource(sigParam);
+                        const sel = this.renderSelect(opts, currentParamValue, '--- wählen ---');
+                        sel.onchange = () => {
+                            const p = Array.isArray(params) ? [...params] : [];
+                            p[idx] = sel.value;
+                            onUpdate('params', p);
+                        };
+                        sigInput = sel;
+                    } else {
+                        const ed = this.renderEdit(currentParamValue);
+                        ed.onchange = () => {
+                            const p = Array.isArray(params) ? [...params] : [];
+                            p[idx] = ed.value;
+                            if (sigParam.type === 'number') p[idx] = Number(ed.value);
+                            onUpdate('params', p);
+                        };
+                        sigInput = ed;
+                    }
+                    sigRow.appendChild(sigInput);
+                    paramContainer.appendChild(sigRow);
+                });
+                input = paramContainer;
+            } else {
+                switch (param.type) {
+                    case 'object':
+                    case 'variable':
+                    case 'stage':
+                    case 'select':
+                    case 'method': {
+                        const options = this.getOptionsFromSource(param);
+                        const sel = this.renderSelect(options, currentValue, '--- wählen ---');
+                        sel.onchange = () => onUpdate(param.name, sel.value);
+                        input = sel;
+                        break;
+                    }
+                    default: {
+                        const edit = this.renderEdit(currentValue, param.placeholder || '');
+                        edit.onchange = () => onUpdate(param.name, edit.value);
+                        input = edit;
+                        break;
+                    }
+                }
+            }
+
+            if (input) row.appendChild(input);
+            container.appendChild(row);
+        });
+
+        return container;
+    }
+
+    /**
      * Generates a UI object array from component property definitions.
      */
     public generateUIFromProperties(object: any, _isMerging: boolean = false): any[] {
@@ -330,6 +439,12 @@ export class InspectorRenderer {
         }
         if (prop.source === 'services') {
             return serviceRegistry.listServices().map(s => ({ value: s, label: s }));
+        }
+        if (prop.source === 'stages') {
+            return projectRegistry.getStages().map((s: any) => ({ value: s.id, label: s.name || s.id }));
+        }
+        if (prop.source === 'easing-functions') {
+            return ['linear', 'easeIn', 'easeOut', 'easeInOut'].map(e => ({ value: e, label: e }));
         }
         return [];
     }

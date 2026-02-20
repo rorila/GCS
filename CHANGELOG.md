@@ -1,3 +1,12 @@
+### [3.4.0] - 2026-02-20
+- **Feature (Universal Actions)**: Universell konfigurierbare Aktionen im UI.
+  - Einführung der `TActionParams`-Komponente für dynamische Parameter-Rendering in Inspector und Action-Dialog.
+  - Dynamische Methodenparameter: `call_method` Aktionen laden nun Parameter-Signaturen direkt aus der `MethodRegistry.ts`.
+  - Inspector-Erweiterung: `ActionTypeSelect` erlaubt den Typwechsel direkt im Inspector mit sofortigem UI-Update.
+  - Bereinigung: `dialog_action_editor.json` wurde auf das neue generische System (TActionParams) umgestellt, was Redundanzen eliminiert.
+  - Fixes: `navigate_stage` und `call_method` sind nun vollständig über das UI konfigurierbar.
+  - **Fix (Data Binding)**: Intelligentes Daten-Binding via `PropertyHelper` implementiert. Erlaubt automatischen Zugriff auf verschachtelte `.data`-Objekte von FlowNodes, wodurch Aktions-Parameter nun konsistent im Inspector angezeigt und gespeichert werden.
+
 ### [3.3.17] - 2026-02-19
 - **Fix (StandardActions)**: `call_method` als neuer Action-Handler registriert. Löst `ShowLoginError` (Toaster.show) im Error-Pfad der DataAction korrekt auf. Reihenfolge: Projekt-Objekt → Service-Registry → Spezialfall Toaster.show.
 - **Fix (StandardActions)**: `variable`/`set_variable`-Handler: `action.value` als direkter Literal-Fallback wenn `source` fehlt. Löst `ClearPIN` mit `{variableName: 'currentPIN', value: ''}` korrekt auf (leerer String = valider Wert).

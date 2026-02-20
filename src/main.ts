@@ -86,6 +86,10 @@ document.addEventListener('mouseup', () => {
 });
 
 import { Editor } from './editor/Editor';
+import { registerStandardActions } from './runtime/actions/StandardActions';
+
+// Globale Registrierung der Aktionen (für Editor & Runtime)
+registerStandardActions();
 
 new Editor();
 

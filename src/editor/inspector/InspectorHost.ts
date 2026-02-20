@@ -11,6 +11,7 @@ import { VariableHandler } from './handlers/VariableHandler';
 import { ExpressionParser } from '../../runtime/ExpressionParser';
 import { mediatorService } from '../../services/MediatorService';
 import { InspectorContextBuilder } from './InspectorContextBuilder';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
 
 /**
  * InspectorHost - The main entry point for the new modular Inspector.
@@ -191,7 +192,7 @@ export class InspectorHost {
         }
 
         // --- NEW: Wrap in a labeled container if 'label' property is present ---
-        if (def.label && def.className !== 'TLabel' && def.className !== 'TCheckbox') {
+        if (def.label && def.className !== 'TLabel' && def.className !== 'TCheckbox' && def.className !== 'TActionParams') {
             const container = document.createElement('div');
             container.style.marginBottom = '8px';
 
@@ -264,6 +265,12 @@ export class InspectorHost {
                             object: event.object
                         }, 'inspector');
                     }
+
+                    // --- NEW: Handle optional action trigger ---
+                    if (def.action) {
+                        this.actionHandler.handleAction(def, obj);
+                    }
+
                     this.update(obj); // Immediate re-render
                     if (this.onObjectUpdate) this.onObjectUpdate(event);
                 };
@@ -293,6 +300,22 @@ export class InspectorHost {
                 return this.renderer.renderButton(def.caption || def.name, () => {
                     this.actionHandler.handleAction(def, obj);
                 });
+            }
+            case 'TActionParams': {
+                const onUpdate = (prop: string, val: any) => {
+                    const oldVal = PropertyHelper.getPropertyValue(obj, prop);
+                    if (oldVal === val) return;
+                    PropertyHelper.setPropertyValue(obj, prop, val);
+                    mediatorService.notifyDataChanged({
+                        property: prop,
+                        value: val,
+                        oldValue: oldVal,
+                        object: obj
+                    }, 'inspector');
+                    this.update(obj); // Refesh UI
+                    if (this.onObjectUpdate) this.onObjectUpdate({ object: obj, propertyName: prop, newValue: val, oldValue: oldVal });
+                };
+                return this.renderer.renderActionParams(def, obj, onUpdate);
             }
             case 'TPanel': {
                 const panel = this.renderer.renderPanel(def.style);

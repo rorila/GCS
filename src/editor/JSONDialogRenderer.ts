@@ -604,40 +604,123 @@ export class JSONDialogRenderer {
                 case 'string':
                 case 'number':
                 default: {
-                    const edit = document.createElement('input');
-                    edit.type = 'text';
-                    edit.setAttribute('data-name', param.name);
-                    edit.value = this.dialogData[param.name] !== undefined ? (typeof this.dialogData[param.name] === 'object' ? JSON.stringify(this.dialogData[param.name]) : this.dialogData[param.name]) : (param.defaultValue || '');
-                    edit.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
+                    // --- SPECIAL: Dynamic Method Parameters for call_method ---
+                    if (type === 'call_method' && param.name === 'params') {
+                        const methodName = this.dialogData.method;
+                        const signature = this.getMethodSignature(this.dialogData.target, methodName);
 
-                    edit.onchange = () => {
-                        let val: any = edit.value;
-                        if (param.type === 'number') val = Number(val);
-                        if (param.type === 'json') {
-                            try {
-                                val = JSON.parse(val);
-                            } catch (e) {
-                                // Support "prop=val" syntax for convenience (as requested by user)
-                                if (typeof val === 'string' && val.includes('=') && !val.trim().startsWith('{')) {
-                                    const parts = val.split('=').map(s => s.trim());
-                                    if (parts.length === 2) {
-                                        const [k, v] = parts;
-                                        // Auto-convert numbers if possible
-                                        const numV = Number(v);
-                                        val = { [k]: !isNaN(numV) && v !== '' ? numV : v };
-                                        console.log(`[JSONDialogRenderer] Auto-converted "${edit.value}" to JSON:`, val);
+                        const paramContainer = document.createElement('div');
+                        paramContainer.style.display = 'flex';
+                        paramContainer.style.flexDirection = 'column';
+                        paramContainer.style.gap = '8px';
+                        paramContainer.style.paddingLeft = '10px';
+                        paramContainer.style.borderLeft = '2px solid #555';
+                        paramContainer.style.marginTop = '4px';
+
+                        signature.forEach((sigParam: any, idx: number) => {
+                            const sigRow = document.createElement('div');
+                            sigRow.style.display = 'flex';
+                            sigRow.style.flexDirection = 'column';
+                            sigRow.style.gap = '2px';
+
+                            const sigLabel = document.createElement('label');
+                            sigLabel.innerText = `${sigParam.label || sigParam.name} (${sigParam.type})`;
+                            sigLabel.style.fontSize = '11px';
+                            sigLabel.style.color = '#888';
+                            sigRow.appendChild(sigLabel);
+
+                            const currentParamValue = (Array.isArray(this.dialogData.params) ? this.dialogData.params[idx] : '') || '';
+
+                            let sigInput: HTMLElement;
+                            if (sigParam.type === 'select' || sigParam.type === 'stage' || sigParam.type === 'variable') {
+                                // Reuse evaluation context for options
+                                const opts = sigParam.options || [];
+                                const evaluatedOpts = (typeof opts === 'string') ? this.evaluateExpression(opts) : opts;
+
+                                // Specific sources for stage/variable if string source is used
+                                let items = evaluatedOpts;
+                                if (sigParam.source === 'stages') items = (this.enrichedProject.stages || []).map((s: any) => ({ value: s.id, label: s.name || s.id }));
+                                else if (sigParam.source === 'variables') items = (this.enrichedProject.variables || []).map(v => ({ value: v.name, label: v.name }));
+
+                                const sel = document.createElement('select');
+                                sel.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
+
+                                // Add empty option
+                                const empty = document.createElement('option');
+                                empty.value = '';
+                                empty.text = '--- wählen ---';
+                                sel.appendChild(empty);
+
+                                items.forEach((it: any) => {
+                                    const opt = document.createElement('option');
+                                    opt.value = it.value || it;
+                                    opt.text = it.label || it.name || it;
+                                    if (currentParamValue === opt.value) opt.selected = true;
+                                    sel.appendChild(opt);
+                                });
+
+                                sel.onchange = () => {
+                                    const p = Array.isArray(this.dialogData.params) ? [...this.dialogData.params] : [];
+                                    p[idx] = sel.value;
+                                    this.dialogData.params = p;
+                                    this.render();
+                                };
+                                sigInput = sel;
+                            } else {
+                                const ed = document.createElement('input');
+                                ed.type = 'text';
+                                ed.value = currentParamValue;
+                                ed.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
+                                ed.onchange = () => {
+                                    const p = Array.isArray(this.dialogData.params) ? [...this.dialogData.params] : [];
+                                    p[idx] = ed.value;
+                                    if (sigParam.type === 'number') p[idx] = Number(ed.value);
+                                    this.dialogData.params = p;
+                                    // Normally we don't need re-render for simple text edit in array, 
+                                    // but if it's the last step we might.
+                                };
+                                sigInput = ed;
+                            }
+                            sigRow.appendChild(sigInput);
+                            paramContainer.appendChild(sigRow);
+                        });
+                        input = paramContainer;
+                    } else {
+                        const edit = document.createElement('input');
+                        edit.type = 'text';
+                        edit.setAttribute('data-name', param.name);
+                        edit.value = this.dialogData[param.name] !== undefined ? (typeof this.dialogData[param.name] === 'object' ? JSON.stringify(this.dialogData[param.name]) : this.dialogData[param.name]) : (param.defaultValue || '');
+                        edit.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
+
+                        edit.onchange = () => {
+                            let val: any = edit.value;
+                            if (param.type === 'number') val = Number(val);
+                            if (param.type === 'json') {
+                                try {
+                                    val = JSON.parse(val);
+                                } catch (e) {
+                                    // Support "prop=val" syntax for convenience (as requested by user)
+                                    if (typeof val === 'string' && val.includes('=') && !val.trim().startsWith('{')) {
+                                        const parts = val.split('=').map(s => s.trim());
+                                        if (parts.length === 2) {
+                                            const [k, v] = parts;
+                                            // Auto-convert numbers if possible
+                                            const numV = Number(v);
+                                            val = { [k]: !isNaN(numV) && v !== '' ? numV : v };
+                                            console.log(`[JSONDialogRenderer] Auto-converted "${edit.value}" to JSON:`, val);
+                                        }
+                                    } else {
+                                        console.error('Invalid JSON in param', param.name, val);
                                     }
-                                } else {
-                                    console.error('Invalid JSON in param', param.name, val);
                                 }
                             }
-                        }
-                        this.dialogData[param.name] = val;
-                        if (param.name === 'target' || param.name === 'service' || param.name === 'method') {
-                            this.render();
-                        }
-                    };
-                    input = edit;
+                            this.dialogData[param.name] = val;
+                            if (param.name === 'target' || param.name === 'service' || param.name === 'method') {
+                                this.render();
+                            }
+                        };
+                        input = edit;
+                    }
                     break;
                 }
             }
@@ -814,7 +897,7 @@ export class JSONDialogRenderer {
         }
 
         // Default generic param if unknown
-        return [{ name: 'params', type: 'string', label: 'Parameter (Nachricht)', isGeneric: true }];
+        return [{ name: 'params', type: 'string', label: 'Parameter', isGeneric: true }];
     }
 
     private evaluateActionData(data: any): any {

@@ -220,19 +220,24 @@ export class FlowAction extends FlowElement {
         if (action) action.method = v;
     }
 
-    public get paramsJSON(): string {
+    public get params(): any[] {
         const action = this.getActionDefinition();
-        const params = action?.params || [];
+        return action?.params || [];
+    }
+    public set params(v: any[]) {
+        const action = this.getActionDefinition();
+        if (action) action.params = v;
+    }
+
+    public get paramsJSON(): string {
+        const params = this.params;
         return JSON.stringify(params, null, 2);
     }
     public set paramsJSON(v: string) {
-        const action = this.getActionDefinition();
-        if (action) {
-            try {
-                action.params = JSON.parse(v);
-            } catch (e) {
-                console.warn('Invalid JSON for params:', e);
-            }
+        try {
+            this.params = JSON.parse(v);
+        } catch (e) {
+            console.warn('Invalid JSON for params:', e);
         }
     }
 

@@ -186,7 +186,7 @@ export function registerStandardActions() {
         parameters: [
             { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects' },
             { name: 'property', label: 'Eigenschaft', type: 'string', defaultValue: 'x' },
-            { name: 'to', label: 'Ziel-Wert', type: 'number' },
+            { name: 'to', label: 'Ziel-Wert', type: 'string' },
             { name: 'duration', label: 'Dauer (ms)', type: 'number', defaultValue: 500 },
             { name: 'easing', label: 'Easing', type: 'select', source: 'easing-functions', defaultValue: 'easeOut' }
         ]
@@ -262,7 +262,7 @@ export function registerStandardActions() {
         label: 'Stage wechseln',
         description: 'Wechselt zu einer anderen Stage innerhalb des Projekts.',
         parameters: [
-            { name: 'stageId', label: 'Ziel-Stage', type: 'stage', source: 'stages' }
+            { name: 'stageId', label: 'Ziel-Stage', type: 'select', source: 'stages' }
         ]
     });
 

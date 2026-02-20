@@ -52,6 +52,13 @@ export class FlowNodeHandler implements IInspectorHandler {
             }
         }
 
+        // For other properties, we also want to trigger a visual refresh of the node
+        // if it's a FlowAction or similar that has visual detail mapping.
+        if (typeof object.setShowDetails === 'function') {
+            // Re-render the node on canvas to reflect changes (e.g. new stage target)
+            object.setShowDetails(object.showDetails || true, project);
+        }
+
         // Return false to allow default property assignment for other properties
         return false;
     }
