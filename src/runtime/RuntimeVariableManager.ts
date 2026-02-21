@@ -118,6 +118,10 @@ export class RuntimeVariableManager {
     public createVariableContext(): Record<string, any> {
         return new Proxy({}, {
             get: (_target, prop: string) => {
+                // Scoped access support for ${global.var} and ${stage.var}
+                if (prop === 'global') return this.projectVariables;
+                if (prop === 'stage') return this.stageVariables;
+
                 if (prop in this.stageVariables) return this.stageVariables[prop];
                 if (prop in this.projectVariables) return this.projectVariables[prop];
                 return undefined;
@@ -172,7 +176,14 @@ export class RuntimeVariableManager {
 
                 let componentUpdated = false;
                 if (component) {
-                    if (component.items !== undefined && Array.isArray(value)) {
+                    if (component.data !== undefined && Array.isArray(value)) {
+                        // TObjectList uses .data for its array content
+                        if (JSON.stringify(component.data) !== JSON.stringify(value)) {
+                            component.data = value;
+                            componentUpdated = true;
+                            console.log(`%c[VariableContext:Sync] ${prop} → component.data (${value.length} items)`, 'color: #00bcd4');
+                        }
+                    } else if (component.items !== undefined && Array.isArray(value)) {
                         if (JSON.stringify(component.items) !== JSON.stringify(value)) {
                             component.items = value;
                             componentUpdated = true;
@@ -188,7 +199,10 @@ export class RuntimeVariableManager {
                     this.logVariableChange(prop, finalValue, oldValue, varDef);
                 }
 
-                console.log(`%c[VariableContext:Set] ${prop} = ${JSON.stringify(finalValue)} (Old: ${JSON.stringify(oldValue)})`, 'color: #e91e63');
+                const displayName = varDef ? varDef.name : prop;
+                const finalStr = finalValue !== undefined ? JSON.stringify(finalValue)?.substring(0, 200) || String(finalValue) : 'undefined';
+                const oldStr = oldValue !== undefined ? JSON.stringify(oldValue)?.substring(0, 100) || String(oldValue) : 'undefined';
+                console.log(`%c[VariableContext:Set] ${displayName} = ${finalStr} (Old: ${oldStr})`, 'color: #e91e63');
 
                 this.host.reactiveRuntime.setVariable(actualProp, finalValue);
 
@@ -202,14 +216,22 @@ export class RuntimeVariableManager {
                 return true;
             },
             ownKeys: () => {
-                const keys = new Set([...Object.keys(this.projectVariables), ...Object.keys(this.stageVariables)]);
+                const keys = new Set([
+                    'global', 'stage',
+                    ...Object.keys(this.projectVariables),
+                    ...Object.keys(this.stageVariables)
+                ]);
                 return Array.from(keys);
             },
             has: (_target, prop: string) => {
-                return (prop in this.stageVariables) || (prop in this.projectVariables);
+                return (prop === 'global' || prop === 'stage' || prop in this.stageVariables) || (prop in this.projectVariables);
             },
             getOwnPropertyDescriptor: (_target, prop: string) => {
-                const val = this.stageVariables[prop] !== undefined ? this.stageVariables[prop] : this.projectVariables[prop];
+                let val: any;
+                if (prop === 'global') val = this.projectVariables;
+                else if (prop === 'stage') val = this.stageVariables;
+                else val = this.stageVariables[prop] !== undefined ? this.stageVariables[prop] : this.projectVariables[prop];
+
                 if (val !== undefined) {
                     return { configurable: true, enumerable: true, value: val };
                 }

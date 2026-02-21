@@ -1,3 +1,36 @@
+### [3.3.18] - 2026-02-21
+### Hinzugefügt
+- **Stage Events Support**: Unterstützung für `onEnter`, `onLeave` und `onRuntimeStart` Events für Stages. Konfiguration direkt über den Inspector ermöglicht.
+- **Toolbox Erweiterung**: Neue Kategorie "Daten & Auth" mit `TDataStore`, `TAuthService` und `TUserManager`.
+- **Intelligente Stage-Selektion**: Der Editor wählt nun automatisch die Stage-Eigenschaften im Inspector aus, wenn kein Objekt selektiert ist oder über das Menü "Stage-Einstellungen".
+- **Variablen-Dropdown Upgrade**: Unterstützung für Untereigenschaften (z.B. `currentUser.id`) in Dropdown-Listen für eine präzisere Datenkonfiguration.
+- **Scoped Variable Resolution**: Korrektur der Laufzeit-Auflösung für Variablen mit `global.` und `stage.` Präfix, um Konsistenz zwischen Inspector-Anzeige und Runtime-Execution zu gewährleisten.
+
+### Gefixt
+- **Debug-Log-Viewer Spam & Zuverlässigkeit (v3.4.2)**: 
+  - `GameRuntime` loggt keine "leeren" `onStart`-Events mehr für Komponenten ohne Flow-Logik.
+  - Interne Property-Änderungen (z.B. `eventCallback`) werden im `PropertyWatcher` maskiert.
+  - Zuweisungen von HTTP-Ergebnissen (`DataAction`) an Variablen werden nun prominent im Log angezeigt.
+  - Stage-Lifecycle-Events (`onEnter`, `onRuntimeStart`) werden nun korrekt im Logbuch protokolliert.
+  - RuntimeVariableManager nutzt nun lesbare Variablennamen statt IDs in der Console.
+  - **Behoben**: Heimlicher Absturz beim Loggen von unsauberen Objekten durch `JSON.stringify`.
+  - **Behoben**: Debug-Log brach nach JEDEM erfolgreichen Stage-Wechsel (z. B. durch `navigate_stage` -> Dashboard) aufgrund eines Fehlers in `EditorViewManager.switchView()` vorzeitig ab.
+- **RuntimeStageManager Caching**: 
+  - Globale Variablen und Objekte (aus `blueprint` und `main` Stages) werden nun im Speicher gecacht anstatt bei jedem Stage-Wechsel neu aus dem JSON instanziiert zu werden. Dies verhindert den "Gedächtnisverlust" von globalen Variablen während Stage-Übergängen im Play-Modus.
+- **MockTaskExecutor**: Fehlende Methoden für Unit-Tests ergänzt (`setActions`, `setFlowCharts`, etc.).
+- **Global Variable Cleanup**: Bereinigung von fälschlicherweise in normalen Stages gespeicherten globalen Variablen beim Laden.
+- **Fix (Stage Events)**: Exponierung von Stage-Events (`onEnter`, `onLeave`, `onRuntimeStart`) im Inspector.
+  - Dediziertes `inspector_stage_events.json` Template und `StageHandler.ts` für die spezialisierte Behandlung von Stages im Inspector.
+  - **Fix: Dynamische Ressourcen-Eigenschaften**: Der Inspector zeigt nun basierend auf dem gewählten `DataStore` (z.B. Rooms vs. Users) automatisch die korrekten Felder für die Suche an. Umgesetzt in `InspectorContextBuilder.ts`.
+  - **Fix: Inspector Regressionen**: Behebung leerer Dropdowns durch korrekte Auflösung von Ausdruck-Optionen (`${...}`) in `InspectorHost.ts` und `InspectorRenderer.ts`.
+  - **Fix: Property Mapping**: Verbessertes Mapping für `FlowNodes` in `PropertyHelper.ts`, um Daten konsistent aus der `project.json` in den Inspector zu laden.
+  - **Fix: Room Data Fetch**: Fehlerbehebung beim Laden von Raumdaten durch Flachklopfen der `db.json` Struktur, Korrektur der `queryProperty` (`adminId`) und URLs in `project.json` sowie Bereinigung von Task-Inkonsistenzen.
+  - **Fix: Room Data Synchronisation**: `RuntimeVariableManager.ts` synchronisiert nun `.data`-Properties für `TObjectList`-Komponenten. Auto-Unwrapping von Single-Element-Arrays in `StandardActions.ts` auf JWT-Login-Responses eingeschränkt. Spalten von `currentRooms` auf Room-Felder (`name`, `houseId`, `adminId`) korrigiert.
+  - Menü-Integration: Neuer Punkt "Stage-Einstellungen" im Stages-Menü zur schnellen Konfiguration der aktuellen Stage.
+  - UI-Refinement: Automatisches Selektieren der aktiven Stage im Inspector beim Klicken auf den Bühnenhintergrund (Deselektion von Objekten).
+  - Unterstützung für das Fetch-Pattern: Ermöglicht den automatischen Datenabruf via JWT beim Eintritt in eine Stage (`onEnter`).
+  - Verifizierung: Neuer Regressionstest `tests/stage_events.test.ts` zur Absicherung der Event-Trigger in der `GameRuntime`.
+
 - **Fix (JSON Workflow Consistency)**: Vollständige Abbildung des Workflows im JSON-Modell.
   - **FlowSyncManager Fix**: `DataAction`-Knoten unterstützen nun den generischen `output`-Anker als Fallback für `success`, was das korrekte Verfolgen von Verzweigungen in der `actionSequence` sicherstellt.
   - **Recursive Registration**: Unter-Aktionen in `successBody`, `errorBody` und `elseBody` werden nun zuverlässig in die globale `actions`-Liste des Projekts aufgenommen.

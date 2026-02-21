@@ -547,6 +547,68 @@
               }
             }
           ]
+        },
+        "GetAdminRooms": {
+          "elements": [
+            {
+              "id": "node-1771667385439",
+              "type": "Task",
+              "x": 40,
+              "y": 80,
+              "width": 180,
+              "height": 60,
+              "properties": {
+                "name": "GetAdminRooms",
+                "details": "",
+                "description": "Die Räume des Admins werden von der Dabenbank geholt",
+                "text": "GetAdminRooms"
+              },
+              "data": {
+                "name": "GetAdminRooms",
+                "showDetails": false,
+                "description": "Die Räume des Admins werden von der Dabenbank geholt"
+              }
+            },
+            {
+              "id": "node-1771667448402",
+              "type": "DataAction",
+              "x": 320,
+              "y": 80,
+              "width": 180,
+              "height": 80,
+              "properties": {
+                "name": "GetTheAdminRooms",
+                "details": "(data_action)",
+                "description": ""
+              },
+              "data": {
+                "type": "data_action",
+                "name": "GetTheAdminRooms",
+                "showDetails": true,
+                "dataStore": "RoomData",
+                "queryProperty": "adminId",
+                "url": "/api/data/rooms?adminId=${global.currentUser.id}",
+                "queryValue": "${global.currentUser.id}",
+                "resultVariable": "obj_1771667640672_pnwqxyca3"
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1771667385439",
+              "endTargetId": "node-1771667448402",
+              "startX": 216.6458282470703,
+              "startY": 107.69096374511719,
+              "endX": 320,
+              "endY": 110,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
         }
       },
       "_showGlobalPreview": false
@@ -945,7 +1007,9 @@
         "cellSize": 20,
         "backgroundColor": "#0f3460"
       },
-      "events": {},
+      "events": {
+        "onEnter": "GetAdminRooms"
+      },
       "variables": [
         {
           "className": "TIntegerVariable",
@@ -1420,7 +1484,72 @@
               }
             }
           ]
+        },
+        "GetAdminRooms": {
+          "elements": [
+            {
+              "id": "node-1771667385439",
+              "type": "Task",
+              "x": 40,
+              "y": 80,
+              "width": 180,
+              "height": 60,
+              "properties": {
+                "name": "GetAdminRooms",
+                "details": "",
+                "description": "Die Räume des Admins werden von der Dabenbank geholt",
+                "text": "GetAdminRooms"
+              },
+              "data": {
+                "name": "GetAdminRooms",
+                "showDetails": false,
+                "description": "Die Räume des Admins werden von der Dabenbank geholt"
+              }
+            },
+            {
+              "id": "node-1771667448402",
+              "type": "DataAction",
+              "x": 320,
+              "y": 80,
+              "width": 180,
+              "height": 80,
+              "properties": {
+                "name": "GetTheAdminRooms",
+                "details": "(data_action)",
+                "description": ""
+              },
+              "data": {
+                "type": "data_action",
+                "name": "GetTheAdminRooms",
+                "showDetails": true,
+                "dataStore": "RoomData",
+                "queryProperty": "adminId",
+                "url": "/api/data/rooms?adminId=${global.currentUser.id}",
+                "queryValue": "${global.currentUser.id}",
+                "resultVariable": "obj_1771667640672_pnwqxyca3"
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1771667385439",
+              "endTargetId": "node-1771667448402",
+              "startX": 216.6458282470703,
+              "startY": 107.69096374511719,
+              "endX": 320,
+              "endY": 110,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
         }
+      },
+      "Tasks": {
+        "onEnter": "GetAdminRooms"
       }
     },
     {
@@ -1477,8 +1606,8 @@
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
-          "x": 8,
-          "y": 12,
+          "x": 2,
+          "y": 16,
           "width": 6,
           "height": 2,
           "zIndex": 0,
@@ -1522,6 +1651,55 @@
           },
           "type": "json",
           "objectModel": ""
+        },
+        {
+          "className": "TObjectList",
+          "id": "obj_1771667640672_pnwqxyca3",
+          "isVariable": true,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "currentRooms",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 2,
+          "y": 19,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2
+          },
+          "rowHeight": 28,
+          "showHeader": true,
+          "searchValue": "",
+          "searchProperty": "name",
+          "data": [],
+          "columns": [
+            {
+              "property": "name",
+              "label": "Raumname",
+              "width": "1fr"
+            },
+            {
+              "property": "houseId",
+              "label": "Haus",
+              "width": "80px"
+            },
+            {
+              "property": "adminId",
+              "label": "Admin",
+              "width": "80px"
+            }
+          ],
+          "selectedIndex": -1,
+          "items": []
         }
       ],
       "objects": [
@@ -1600,10 +1778,10 @@
           "draggable": false,
           "dragMode": "move",
           "droppable": false,
-          "x": 50,
-          "y": 5,
+          "x": 49,
+          "y": 2,
           "width": 8,
-          "height": 6,
+          "height": 4,
           "zIndex": 0,
           "align": "NONE",
           "text": "",
@@ -1686,6 +1864,36 @@
           "caption": "🗄️ Database",
           "storagePath": "db.json",
           "defaultCollection": "users"
+        },
+        {
+          "className": "TDataStore",
+          "id": "obj_roomData",
+          "isVariable": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "RoomData",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 49,
+          "y": 7,
+          "width": 8,
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#2c3e50",
+            "borderColor": "#bdc3c7",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "gridStyle": "lines",
+          "caption": "🗄️ Database",
+          "storagePath": "db.json",
+          "defaultCollection": "rooms"
         }
       ],
       "tasks": [
@@ -1701,8 +1909,8 @@
               "type": "data_action",
               "successBody": [
                 {
+                  "condition": "${global.currentUser.role} == admin",
                   "type": "condition",
-                  "condition": "${global.currentUser.role} == 'admin'",
                   "body": [
                     {
                       "name": "GotoDashboard",
@@ -1719,7 +1927,403 @@
                 }
               ]
             }
-          ]
+          ],
+          "flowChart": {
+            "elements": [
+              {
+                "id": "node-1771513021504-1",
+                "type": "Task",
+                "x": 20,
+                "y": 60,
+                "width": 160,
+                "height": 60,
+                "properties": {
+                  "name": "AttemptLogin",
+                  "details": "",
+                  "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
+                  "text": "AttemptLogin"
+                },
+                "data": {
+                  "name": "AttemptLogin",
+                  "showDetails": false
+                }
+              },
+              {
+                "id": "node-1771513021504-2",
+                "type": "DataAction",
+                "x": 300,
+                "y": 60,
+                "width": 220,
+                "height": 60,
+                "properties": {
+                  "name": "doTheAuthenfification",
+                  "details": "(data_action)",
+                  "description": ""
+                },
+                "data": {
+                  "name": "doTheAuthenfification",
+                  "isLinked": true
+                }
+              },
+              {
+                "id": "node-1771513021504-4",
+                "type": "Action",
+                "x": 920,
+                "y": 60,
+                "width": 160,
+                "height": 60,
+                "properties": {
+                  "name": "GotoDashboard",
+                  "details": "(navigate_stage)",
+                  "description": ""
+                },
+                "data": {
+                  "name": "GotoDashboard",
+                  "isLinked": true
+                }
+              },
+              {
+                "id": "node-1771513021504-5",
+                "type": "Action",
+                "x": 300,
+                "y": 180,
+                "width": 160,
+                "height": 60,
+                "properties": {
+                  "name": "ShowLoginError",
+                  "details": "Toaster.show(Login fehlgeschlagen – bitte erneut versuchen, error)",
+                  "description": ""
+                },
+                "data": {
+                  "name": "ShowLoginError",
+                  "isLinked": true
+                }
+              },
+              {
+                "id": "node-1771513021504-6",
+                "type": "Action",
+                "x": 300,
+                "y": 300,
+                "width": 140,
+                "height": 60,
+                "properties": {
+                  "name": "ClearPIN",
+                  "details": "currentPIN := ",
+                  "description": ""
+                },
+                "data": {
+                  "name": "ClearPIN",
+                  "isLinked": true
+                }
+              },
+              {
+                "id": "node-1771598849941",
+                "type": "Condition",
+                "x": 580,
+                "y": 60,
+                "width": 280,
+                "height": 60,
+                "properties": {
+                  "name": "Condition",
+                  "details": "",
+                  "description": "",
+                  "text": "Condition"
+                },
+                "data": {
+                  "name": "Condition",
+                  "condition": {
+                    "leftValue": "${global.currentUser.role}",
+                    "rightValue": "admin"
+                  },
+                  "showDetails": false
+                }
+              },
+              {
+                "id": "node-1771601548907",
+                "type": "Condition",
+                "x": 580,
+                "y": 180,
+                "width": 280,
+                "height": 60,
+                "properties": {
+                  "name": "Condition",
+                  "details": "",
+                  "description": "",
+                  "text": "Condition"
+                },
+                "data": {
+                  "name": "Condition",
+                  "condition": {
+                    "leftValue": "${global.currentUser.role}",
+                    "rightValue": "superadmin"
+                  },
+                  "showDetails": false
+                }
+              },
+              {
+                "id": "node-1771601877421",
+                "type": "Action",
+                "x": 920,
+                "y": 180,
+                "width": 260,
+                "height": 60,
+                "properties": {
+                  "name": "GoToSuperAdminDashboard",
+                  "details": "(navigate_stage)",
+                  "description": ""
+                },
+                "data": {
+                  "name": "GoToSuperAdminDashboard",
+                  "showDetails": false,
+                  "type": "navigate_stage",
+                  "stageId": "stage_super_dashboard",
+                  "details": "(navigate_stage)"
+                }
+              },
+              {
+                "id": "node-1771601955025",
+                "type": "Condition",
+                "x": 580,
+                "y": 300,
+                "width": 280,
+                "height": 60,
+                "properties": {
+                  "name": "Condition",
+                  "details": "",
+                  "description": "",
+                  "text": "Condition"
+                },
+                "data": {
+                  "name": "Condition",
+                  "condition": {
+                    "leftValue": "${global.currentUser.role}",
+                    "rightValue": "player"
+                  },
+                  "showDetails": false
+                }
+              },
+              {
+                "id": "node-1771602103557",
+                "type": "Action",
+                "x": 920,
+                "y": 300,
+                "width": 180,
+                "height": 60,
+                "properties": {
+                  "name": "GoToPlayerLobby",
+                  "details": "(navigate_stage)",
+                  "description": ""
+                },
+                "data": {
+                  "name": "GoToPlayerLobby",
+                  "showDetails": false,
+                  "type": "navigate_stage",
+                  "stageId": "stage_player_lobby",
+                  "details": "(navigate_stage)"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "startTargetId": "node-1771513021504-1",
+                "endTargetId": "node-1771513021504-2",
+                "startX": 0,
+                "startY": 0,
+                "endX": 0,
+                "endY": 0,
+                "data": {
+                  "startAnchorType": "output",
+                  "endAnchorType": "input"
+                }
+              },
+              {
+                "startTargetId": "node-1771513021504-5",
+                "endTargetId": "node-1771513021504-6",
+                "startX": 410,
+                "startY": 240,
+                "endX": 650,
+                "endY": 400,
+                "data": {
+                  "startAnchorType": "bottom",
+                  "endAnchorType": "top",
+                  "isEmbeddedInternal": false
+                }
+              },
+              {
+                "startTargetId": "node-1771598849941",
+                "endTargetId": "node-1771513021504-4",
+                "startX": 720,
+                "startY": 170,
+                "endX": 0,
+                "endY": 0,
+                "data": {
+                  "startAnchorType": "true",
+                  "endAnchorType": "input",
+                  "isEmbeddedInternal": false
+                }
+              },
+              {
+                "startTargetId": "node-1771513021504-2",
+                "endTargetId": "node-1771513021504-5",
+                "startX": 0,
+                "startY": 0,
+                "endX": 380,
+                "endY": 220,
+                "data": {
+                  "startAnchorType": "error",
+                  "endAnchorType": "top",
+                  "isEmbeddedInternal": false
+                }
+              },
+              {
+                "startTargetId": "node-1771513021504-2",
+                "endTargetId": "node-1771598849941",
+                "startX": 520,
+                "startY": 90,
+                "endX": 620,
+                "endY": 90,
+                "data": {
+                  "startAnchorType": "success",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "input"
+                }
+              },
+              {
+                "startTargetId": "node-1771598849941",
+                "endTargetId": "node-1771601548907",
+                "startX": 720,
+                "startY": 120,
+                "endX": 730,
+                "endY": 240,
+                "data": {
+                  "startAnchorType": "false",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "top"
+                }
+              },
+              {
+                "startTargetId": "node-1771601548907",
+                "endTargetId": "node-1771601877421",
+                "startX": 860,
+                "startY": 230,
+                "endX": 980,
+                "endY": 240,
+                "data": {
+                  "startAnchorType": "true",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "input"
+                }
+              },
+              {
+                "startTargetId": "node-1771601548907",
+                "endTargetId": "node-1771601955025",
+                "startX": 720,
+                "startY": 260,
+                "endX": 700,
+                "endY": 360,
+                "data": {
+                  "startAnchorType": "false",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "top"
+                }
+              },
+              {
+                "startTargetId": "node-1771601955025",
+                "endTargetId": "node-1771602103557",
+                "startX": 860,
+                "startY": 370,
+                "endX": 940,
+                "endY": 380,
+                "data": {
+                  "startAnchorType": "true",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "input"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "GetAdminRooms",
+          "actionSequence": [
+            {
+              "type": "data_action",
+              "name": "GetTheAdminRooms",
+              "showDetails": true,
+              "dataStore": "RoomData",
+              "queryProperty": "adminId",
+              "url": "/api/data/rooms?adminId=${global.currentUser.id}",
+              "queryValue": "${global.currentUser.id}",
+              "resultVariable": "obj_1771667640672_pnwqxyca3",
+              "successBody": [],
+              "errorBody": []
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "Die Räume des Admins werden von der Dabenbank geholt",
+          "flowChart": {
+            "elements": [
+              {
+                "id": "node-1771667385439",
+                "type": "Task",
+                "x": 40,
+                "y": 80,
+                "width": 180,
+                "height": 60,
+                "properties": {
+                  "name": "GetAdminRooms",
+                  "details": "",
+                  "description": "Die Räume des Admins werden von der Dabenbank geholt",
+                  "text": "GetAdminRooms"
+                },
+                "data": {
+                  "name": "GetAdminRooms",
+                  "showDetails": false,
+                  "description": "Die Räume des Admins werden von der Dabenbank geholt"
+                }
+              },
+              {
+                "id": "node-1771667448402",
+                "type": "DataAction",
+                "x": 320,
+                "y": 80,
+                "width": 180,
+                "height": 80,
+                "properties": {
+                  "name": "GetTheAdminRooms",
+                  "details": "(data_action)",
+                  "description": ""
+                },
+                "data": {
+                  "type": "data_action",
+                  "name": "GetTheAdminRooms",
+                  "showDetails": true,
+                  "dataStore": "RoomData",
+                  "queryProperty": "adminId",
+                  "url": "/api/data/rooms?adminId=${global.currentUser.id}",
+                  "queryValue": "${global.currentUser.id}",
+                  "resultVariable": "obj_1771667640672_pnwqxyca3"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "startTargetId": "node-1771667385439",
+                "endTargetId": "node-1771667448402",
+                "startX": 216.6458282470703,
+                "startY": 107.69096374511719,
+                "endX": 320,
+                "endY": 110,
+                "data": {
+                  "startAnchorType": "output",
+                  "originalStartAnchorType": "output",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "input"
+                }
+              }
+            ]
+          }
         }
       ],
       "actions": [
@@ -1761,6 +2365,37 @@
           "type": "set_variable",
           "variableName": "currentPIN",
           "value": ""
+        },
+        {
+          "details": "(navigate_stage)",
+          "name": "GoToSuperAdminDashboard",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage_super_dashboard"
+        },
+        {
+          "details": "(navigate_stage)",
+          "name": "GoToPlayerLobby",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage_player_lobby"
+        },
+        {
+          "details": "(data_action)",
+          "type": "data_action",
+          "name": "DataAction1",
+          "showDetails": false
+        },
+        {
+          "details": "(data_action)",
+          "type": "data_action",
+          "name": "GetTheAdminRooms",
+          "showDetails": true,
+          "dataStore": "RoomData",
+          "queryProperty": "adminId",
+          "url": "/api/data/rooms?adminId=${global.currentUser.id}",
+          "queryValue": "${global.currentUser.id}",
+          "resultVariable": "obj_1771667640672_pnwqxyca3"
         }
       ],
       "flowCharts": {
@@ -1822,7 +2457,7 @@
               "id": "node-1771513021504-5",
               "type": "Action",
               "x": 300,
-              "y": 220,
+              "y": 180,
               "width": 160,
               "height": 60,
               "properties": {
@@ -1839,7 +2474,7 @@
               "id": "node-1771513021504-6",
               "type": "Action",
               "x": 300,
-              "y": 340,
+              "y": 300,
               "width": 140,
               "height": 60,
               "properties": {
@@ -1855,7 +2490,7 @@
             {
               "id": "node-1771598849941",
               "type": "Condition",
-              "x": 620,
+              "x": 580,
               "y": 60,
               "width": 280,
               "height": 60,
@@ -1863,14 +2498,99 @@
                 "name": "Condition",
                 "details": "",
                 "description": "",
-                "text": "${global.currentUser.role} == admin"
+                "text": "Condition"
               },
               "data": {
                 "name": "Condition",
                 "condition": {
                   "leftValue": "${global.currentUser.role}",
                   "rightValue": "admin"
-                }
+                },
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1771601548907",
+              "type": "Condition",
+              "x": 580,
+              "y": 180,
+              "width": 280,
+              "height": 60,
+              "properties": {
+                "name": "Condition",
+                "details": "",
+                "description": "",
+                "text": "Condition"
+              },
+              "data": {
+                "name": "Condition",
+                "condition": {
+                  "leftValue": "${global.currentUser.role}",
+                  "rightValue": "superadmin"
+                },
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1771601877421",
+              "type": "Action",
+              "x": 920,
+              "y": 180,
+              "width": 260,
+              "height": 60,
+              "properties": {
+                "name": "GoToSuperAdminDashboard",
+                "details": "(navigate_stage)",
+                "description": ""
+              },
+              "data": {
+                "name": "GoToSuperAdminDashboard",
+                "showDetails": false,
+                "type": "navigate_stage",
+                "stageId": "stage_super_dashboard",
+                "details": "(navigate_stage)"
+              }
+            },
+            {
+              "id": "node-1771601955025",
+              "type": "Condition",
+              "x": 580,
+              "y": 300,
+              "width": 280,
+              "height": 60,
+              "properties": {
+                "name": "Condition",
+                "details": "",
+                "description": "",
+                "text": "Condition"
+              },
+              "data": {
+                "name": "Condition",
+                "condition": {
+                  "leftValue": "${global.currentUser.role}",
+                  "rightValue": "player"
+                },
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1771602103557",
+              "type": "Action",
+              "x": 920,
+              "y": 300,
+              "width": 180,
+              "height": 60,
+              "properties": {
+                "name": "GoToPlayerLobby",
+                "details": "(navigate_stage)",
+                "description": ""
+              },
+              "data": {
+                "name": "GoToPlayerLobby",
+                "showDetails": false,
+                "type": "navigate_stage",
+                "stageId": "stage_player_lobby",
+                "details": "(navigate_stage)"
               }
             }
           ],
@@ -1888,14 +2608,14 @@
               }
             },
             {
-              "startTargetId": null,
+              "startTargetId": "node-1771513021504-5",
               "endTargetId": "node-1771513021504-6",
-              "startX": 380,
-              "startY": 280,
+              "startX": 410,
+              "startY": 240,
               "endX": 650,
               "endY": 400,
               "data": {
-                "startAnchorType": "output",
+                "startAnchorType": "bottom",
                 "endAnchorType": "top",
                 "isEmbeddedInternal": false
               }
@@ -1935,6 +2655,120 @@
               "endY": 90,
               "data": {
                 "startAnchorType": "success",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "startTargetId": "node-1771598849941",
+              "endTargetId": "node-1771601548907",
+              "startX": 720,
+              "startY": 120,
+              "endX": 730,
+              "endY": 240,
+              "data": {
+                "startAnchorType": "false",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "top"
+              }
+            },
+            {
+              "startTargetId": "node-1771601548907",
+              "endTargetId": "node-1771601877421",
+              "startX": 860,
+              "startY": 230,
+              "endX": 980,
+              "endY": 240,
+              "data": {
+                "startAnchorType": "true",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "startTargetId": "node-1771601548907",
+              "endTargetId": "node-1771601955025",
+              "startX": 720,
+              "startY": 260,
+              "endX": 700,
+              "endY": 360,
+              "data": {
+                "startAnchorType": "false",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "top"
+              }
+            },
+            {
+              "startTargetId": "node-1771601955025",
+              "endTargetId": "node-1771602103557",
+              "startX": 860,
+              "startY": 370,
+              "endX": 940,
+              "endY": 380,
+              "data": {
+                "startAnchorType": "true",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        },
+        "GetAdminRooms": {
+          "elements": [
+            {
+              "id": "node-1771667385439",
+              "type": "Task",
+              "x": 40,
+              "y": 80,
+              "width": 180,
+              "height": 60,
+              "properties": {
+                "name": "GetAdminRooms",
+                "details": "",
+                "description": "Die Räume des Admins werden von der Dabenbank geholt",
+                "text": "GetAdminRooms"
+              },
+              "data": {
+                "name": "GetAdminRooms",
+                "showDetails": false,
+                "description": "Die Räume des Admins werden von der Dabenbank geholt"
+              }
+            },
+            {
+              "id": "node-1771667448402",
+              "type": "DataAction",
+              "x": 320,
+              "y": 80,
+              "width": 180,
+              "height": 80,
+              "properties": {
+                "name": "GetTheAdminRooms",
+                "details": "(data_action)",
+                "description": ""
+              },
+              "data": {
+                "type": "data_action",
+                "name": "GetTheAdminRooms",
+                "showDetails": true,
+                "dataStore": "RoomData",
+                "queryProperty": "adminId",
+                "url": "/api/data/rooms?adminId=${global.currentUser.id}",
+                "queryValue": "${global.currentUser.id}",
+                "resultVariable": "obj_1771667640672_pnwqxyca3"
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1771667385439",
+              "endTargetId": "node-1771667448402",
+              "startX": 216.6458282470703,
+              "startY": 107.69096374511719,
+              "endX": 320,
+              "endY": 110,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
                 "isEmbeddedInternal": false,
                 "endAnchorType": "input"
               }
@@ -2224,7 +3058,9 @@
         "cellSize": 20,
         "backgroundColor": "#263238"
       },
-      "events": {},
+      "events": {
+        "onEnter": "GetAdminRooms"
+      },
       "variables": [
         {
           "className": "TListVariable",
@@ -2555,7 +3391,10 @@
       ],
       "tasks": [],
       "actions": [],
-      "flowCharts": {}
+      "flowCharts": {},
+      "Tasks": {
+        "onEnter": "GetAdminRooms"
+      }
     },
     {
       "id": "stage_super_dashboard",
@@ -3050,5 +3889,10 @@
     }
   ],
   "activeStageId": "stage_dashboard",
-  "flowCharts": {}
+  "flowCharts": {
+    "global": {
+      "elements": [],
+      "connections": []
+    }
+  }
 }

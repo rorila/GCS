@@ -8,7 +8,7 @@
         {
             "className": "TLabel",
             "name": "TitleLabel",
-            "text": "${selectedObject.name || selectedObject.meta?.name || 'No Selection'}",
+            "text": "${selectedObject.Name || selectedObject.meta?.name || 'No Selection'}",
             "style": {
                 "fontSize": 14,
                 "fontWeight": "bold",

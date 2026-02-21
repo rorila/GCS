@@ -33,6 +33,8 @@ export class PropertyHelper {
 
             if (hasInContent) {
                 current = target[part];
+            } else if (current && current.isFlowNode === true && current.data && current.data[part] !== undefined) {
+                current = current.data[part];
             } else if (target && target.isFlowNode === true && target.data && target.data[part] !== undefined) {
                 current = target.data[part];
             } else {

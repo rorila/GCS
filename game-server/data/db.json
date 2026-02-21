@@ -6,8 +6,8 @@
             "avatar": "🚀",
             "role": "superadmin",
             "authCode": [
-                "🚀",
-                "⭐"
+                "🍌",
+                "🍎"
             ],
             "managedRooms": [
                 "room_kids",
@@ -95,52 +95,50 @@
             "assignedRoomIds": []
         }
     ],
-    "hierarchy": {
-        "cities": [
-            {
-                "id": "city1",
-                "name": "Wunschstadt",
-                "logo": "city_1.png"
+    "cities": [
+        {
+            "id": "city1",
+            "name": "Wunschstadt",
+            "logo": "city_1.png"
+        }
+    ],
+    "houses": [
+        {
+            "id": "house1",
+            "cityId": "city1",
+            "name": "Haus der Abenteuer",
+            "logo": "house_1.png"
+        }
+    ],
+    "rooms": [
+        {
+            "id": "room_kids",
+            "houseId": "house1",
+            "adminId": "u_rolf",
+            "name": "Kinderzimmer",
+            "config": {
+                "theme": "toys"
             }
-        ],
-        "houses": [
-            {
-                "id": "house1",
-                "cityId": "city1",
-                "name": "Haus der Abenteuer",
-                "logo": "house_1.png"
+        },
+        {
+            "id": "room_tv",
+            "houseId": "house1",
+            "adminId": "u_rolf",
+            "name": "Fernsehzimmer",
+            "config": {
+                "theme": "cinema"
             }
-        ],
-        "rooms": [
-            {
-                "id": "room_kids",
-                "houseId": "house1",
-                "adminId": "u_rolf",
-                "name": "Kinderzimmer",
-                "config": {
-                    "theme": "toys"
-                }
-            },
-            {
-                "id": "room_tv",
-                "houseId": "house1",
-                "adminId": "u_rolf",
-                "name": "Fernsehzimmer",
-                "config": {
-                    "theme": "cinema"
-                }
-            },
-            {
-                "id": "room_common",
-                "houseId": "house1",
-                "adminId": "u_rolf",
-                "name": "Gemeinschaftszimmer",
-                "config": {
-                    "theme": "garden"
-                }
+        },
+        {
+            "id": "room_common",
+            "houseId": "house1",
+            "adminId": "u_rolf",
+            "name": "Gemeinschaftszimmer",
+            "config": {
+                "theme": "garden"
             }
-        ]
-    },
+        }
+    ],
     "games": [],
     "instances": []
 }

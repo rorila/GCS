@@ -9,6 +9,7 @@ import { GameObjectHandler } from './handlers/GameObjectHandler';
 import { FlowConditionHandler } from './handlers/FlowConditionHandler';
 import { FlowNodeHandler } from './handlers/FlowNodeHandler';
 import { VariableHandler } from './handlers/VariableHandler';
+import { StageHandler } from './handlers/StageHandler';
 import { ExpressionParser } from '../../runtime/ExpressionParser';
 import { mediatorService } from '../../services/MediatorService';
 import { InspectorContextBuilder } from './InspectorContextBuilder';
@@ -41,6 +42,7 @@ export class InspectorHost {
         InspectorRegistry.registerHandler(new FlowNodeHandler());
         InspectorRegistry.registerHandler(new FlowConditionHandler());
         InspectorRegistry.registerHandler(new VariableHandler());
+        InspectorRegistry.registerHandler(new StageHandler());
     }
 
     /**
@@ -251,13 +253,26 @@ export class InspectorHost {
                 };
                 return input;
             }
+            case 'TSelect':
             case 'TDropdown': {
                 const value = this.resolveValue(def.selectedValue, obj);
-                const rawOptions = def.options || [];
-                const options = (typeof rawOptions === 'string') ? this.resolveValue(rawOptions, obj) : rawOptions;
+
+                // --- NEW: Resolve Options from source OR expression ---
+                let options = def.options;
+
+                // If options is a string expression (like "${availableDataStores}"), resolve it first
+                if (typeof options === 'string' && options.includes('${')) {
+                    options = this.resolveValue(options, obj);
+                }
+
+                // If we still don't have an array, try to get from source
+                if (!Array.isArray(options)) {
+                    options = this.renderer.getOptionsFromSource(def);
+                }
+
                 const select = this.renderer.renderSelect(Array.isArray(options) ? options : [], value, def.placeholder);
                 select.onchange = () => {
-                    console.log(`[InspectorHost] TDropdown onchange: Control="${def.name}", NewValue="${select.value}"`);
+                    console.log(`[InspectorHost] ${def.className} onchange: Control="${def.name}", NewValue="${select.value}"`);
                     const event = this.eventHandler.handleControlChange(def.name, select.value, obj, def);
 
                     if (event) {

@@ -276,13 +276,21 @@ export class GameRuntime implements IVariableHost {
             const onEnterTask = (this.stage.events || this.stage.Tasks)?.onEnter;
             if (onEnterTask) {
                 console.log(`[GameRuntime] Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
-                this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage);
+                const enterLogId = DebugLogService.getInstance().log('Event', `Triggered: ${this.stage.name || this.stage.id}.onEnter`, {
+                    objectName: this.stage.name || this.stage.id,
+                    eventName: 'onEnter'
+                });
+                this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage, 0, enterLogId);
             }
 
             const onRuntimeStartTask = (this.stage.events || this.stage.Tasks)?.onRuntimeStart;
             if (onRuntimeStartTask) {
                 console.log(`[GameRuntime] Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
-                this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage);
+                const startLogId = DebugLogService.getInstance().log('Event', `Triggered: ${this.stage.name || this.stage.id}.onRuntimeStart`, {
+                    objectName: this.stage.name || this.stage.id,
+                    eventName: 'onRuntimeStart'
+                });
+                this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage, 0, startLogId);
             }
         }
 
@@ -348,14 +356,21 @@ export class GameRuntime implements IVariableHost {
         const obj = this.objects.find(o => o.id === objectId);
         if (!obj) return;
 
-        // Log to DebugLogService
-        const eventLogId = DebugLogService.getInstance().log('Event', `Triggered: ${obj.name}.${eventName}`, {
-            objectName: obj.name,
-            eventName: eventName,
-            data: data
-        });
+        const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
+        const hasTaskMap = (obj.events && obj.events[eventName]) || ((obj as any).Tasks && (obj as any).Tasks[eventName]);
 
-        DebugLogService.getInstance().pushContext(eventLogId);
+        let eventLogId: string | undefined = undefined;
+
+        if (hasOnEventMap || hasTaskMap) {
+            // Log to DebugLogService only if there's an actual mapping 
+            eventLogId = DebugLogService.getInstance().log('Event', `Triggered: ${obj.name}.${eventName}`, {
+                objectName: obj.name,
+                eventName: eventName,
+                data: data
+            });
+            DebugLogService.getInstance().pushContext(eventLogId);
+        }
+
         try {
             // SPECIAL HANDLING: TEmojiPicker state sync (Global & Local)
             // The view (Stage) triggers onSelect with the emoji as data.
@@ -376,7 +391,7 @@ export class GameRuntime implements IVariableHost {
                 }
             }
 
-            if (this.taskExecutor) {
+            if (this.taskExecutor && hasTaskMap) {
                 const taskName = `${obj.name}.${eventName}`;
                 // Ensure eventData is available in vars even when 'data' is not an object (e.g., a string like an emoji)
                 const eventVars = typeof data === 'object' && data !== null
@@ -385,7 +400,9 @@ export class GameRuntime implements IVariableHost {
                 this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
             }
         } finally {
-            DebugLogService.getInstance().popContext();
+            if (eventLogId) {
+                DebugLogService.getInstance().popContext();
+            }
         }
     }
 

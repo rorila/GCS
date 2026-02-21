@@ -103,6 +103,10 @@ Zur besseren Wartbarkeit und schnelleren Orientierung im Code pflegen wir ein Us
     - Wenn eine Variable und eine Komponente denselben Namen haben, wird der Variablen-Wert verwendet (unwrap).
 - **Global Definitions**:
     - Der `RuntimeVariableManager` baut beim Start einen globalen Index (`globalDefinitions`) aus allen Stages auf. Dies ermöglicht Cross-Stage-Zugriffe.
+- **Komponenten-Synchronisation (v3.3.18)**:
+    - Wenn ein Array-Wert in eine Komponenten-Variable geschrieben wird, muss der `RuntimeVariableManager` prüfen: `.data` (TObjectList) → `.items` (TListVariable) → `.value` (Fallback).
+    - **DO NOT**: Vergiss nicht `.data` zu synchronisieren! `TObjectList` nutzt `.data`, nicht `.items`, für seine Datenanzeige.
+- **DO NOT**: Verwende KEIN generisches Auto-Unwrapping von Single-Element-Arrays in `StandardActions.ts`. Dies zerstört Listen-Variablen. Unwrapping ist NUR für JWT-Login-Responses erlaubt (wo ein einzelnes User-Objekt erwartet wird).
 
 ## Modulare Architektur (Monolithen-Aufteilung)
 Um die Wartbarkeit zu verbessern und Token-Limit-Fehler zu vermeiden, wurden die Hauptklassen modularisiert:
@@ -152,6 +156,8 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
 3.  **Test-Daten**: Nutze für Tests ausschließlich die in `db.json` via `npm run test:seed` erstellten Test-User (`TestAdmin`, `TestUser`).
 4.  **Kein "Frickeln"**: Wenn eine Änderung mehrere Fallback-Layer erfordert, ist oft die Architektur das Problem. Refactoring der Kern-Methode ist dem "Dran-Patchen" vorzuziehen.
 
+## Logging & Services (v3.4.2)
+- **DO NOT** pauschal Services in UI-Routinen deaktivieren. Das harte Deaktivieren des Debug-Log-Viewers bei JEDEM `EditorViewManager.switchView()`-Call hat das Loggen über Stage-Grenzen hinweg (z. B. bei `navigate_stage`) blockiert. Prüfe immer, ob der fachliche Kontext (z.B. Bleiben im 'run' Modus) ein Aufrechterhalten des Services erfordert.
 
     - Bei Untertasks oder Map-Events wird das Präfix automatisch aus den Metadaten des Knotens (`taskName` oder `sourceTaskName`) generiert.
 - **Flow Cleanup Logic**:
@@ -432,6 +438,10 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
         - `TaskExecutor / ActionExecutor`: Protokollierung der Logik-Ausführung (`Task`, `Action`, `Condition`).
     - **Hierarchie**: Übergebe beim Start einer Kette (z.B. in `handleEvent`) die resultierende `logId` als `parentId` an nachfolgende Aufrufe. Dies ermöglicht die eingerückte Darstellung im Panel.
     - **Filter**: Das Panel filtert nach Typ, Objekt und Event. Die Filter sind unabhängig voneinander.
+    - **Spam-Vermeidung (v3.4.2)**: 
+        - `GameRuntime.handleEvent` loggt nur Events (z.B. `onStart`), wenn diese effektiv durch einen Task oder eine Action verarbeitet werden (Prüfung via `obj.onEvent` oder `obj.events`).
+        - `PropertyWatcher` nutzt eine interne Blacklist (`eventCallback`, `onEvent`, `Tasks`, `id`, `className`), um irrelevante System-Zustandsänderungen im Log auszublenden.
+        - HTTP-Ergebnisse (`DataAction` / `http`) protokollieren explizit ihre Ablage in der Ziel-Variablen (`DebugLogService.log('Variable', ...)`), um den Datenfluss für den User transparent zu machen.
 
 ## Internationalisierung (i18n)
 - **Browser-Übersetzung kontrollieren**: Code-Bereiche (Pascal, JSON, Flow-Details, Expressions) müssen mit `translate="no"` markiert werden, um Browser-Übersetzungen (Google Translate etc.) zu verhindern.
@@ -445,8 +455,9 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Client-Verbindung**: `NetworkManager` und `TGameServer` nutzen `ws://localhost:8080` als Default-WebSocket-URL.
 - **Deployment**: In `Dockerfile` und `fly.toml` muss Port 8080 exposed bzw. als `internal_port` konfiguriert sein.
 
-## Daten-Persistenz & Synchronisierung (v2.11.0)
+- **Daten-Persistenz & Synchronisierung (v2.11.0)**:
 - **Dual-Storage**: Der `DataService` abstrahiert den Zugriff auf Daten. Im Browser (Editor/Player) wird `localStorage` verwendet, im Server-Modus (Node.js) das Dateisystem (`fs`).
+- **Flat-File-Regel (v3.4.1)**: Der `DataService` erwartet Collections (wie `users`, `rooms`) direkt auf der obersten Ebene des JSON-Objekts. Vermeide verschachtelte Strukturen (wie `hierarchy.rooms`), da diese die Filter-Logik (`findItems`) im Simulator erschweren.
 - **Editor-Simulator**: Im Editor läuft das Spiel im Browser-Kontext. Um auf Server-Daten (z.B. `users.json`) zuzugreifen, nutzen wir "Seeding".
 - **Seeding**: Beim Start des Editors werden kritische Daten (wie Benutzerkonten) automatisch vom lokalen Dev-Server (`/api/dev/data/:file`) abgerufen und in den `localStorage` des Simulators kopiert. Dies ermöglicht realistische Login-Tests ohne manuelle Datenpflege.
 - **Debugging**: Datenbank-Aktionen (`db_find`, `db_save`) loggen nun im Debug Log Viewer detaillierte Informationen über Abfragen und Ergebnismengen ("Found X items...").

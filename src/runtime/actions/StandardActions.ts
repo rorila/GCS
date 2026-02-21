@@ -428,9 +428,9 @@ export function registerStandardActions() {
                     result = PropertyHelper.getPropertyValue(result, action.resultPath);
                 }
 
-                // Final Smart-Unwrap: If result is an array with 1 item, unwrap it (e.g. API query result)
-                if (Array.isArray(result) && result.length === 1) {
-                    console.log(`[Action: http] Auto-Unwrapping single-item array result for ${action.resultVariable}`);
+                // Smart-Unwrap: Only for JWT login responses (single user object expected)
+                if (action.requestJWT && Array.isArray(result) && result.length === 1) {
+                    console.log(`[Action: http] Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
                     result = result[0];
                 }
 
@@ -438,11 +438,18 @@ export function registerStandardActions() {
                 if (resVar) {
                     context.vars[resVar] = result;
                     context.contextVars[resVar] = result;
+
+                    const varName = context.objects?.find(o => o.id === resVar)?.name || resVar;
+                    const displayValue = Array.isArray(result)
+                        ? `[${result.length} Einträge]`
+                        : (typeof result === 'object' && result !== null ? JSON.stringify(result)?.substring(0, 80) : String(result));
+
+                    DebugLogService.getInstance().log('Variable', `${varName} ← HTTP-Ergebnis: ${displayValue}`, {
+                        objectName: varName,
+                        data: result
+                    });
+
                     if (action.requestJWT) {
-                        const varName = context.objects.find(o => o.id === resVar)?.name || resVar;
-                        const displayValue = (typeof result === 'object' && result !== null)
-                            ? JSON.stringify(result)
-                            : String(result);
                         console.log(`[Action: http] Variable "${varName}" gesetzt auf:`, displayValue);
                     }
                 }
@@ -503,20 +510,27 @@ export function registerStandardActions() {
                 data = PropertyHelper.getPropertyValue(data, action.resultPath);
             }
 
-            // Final Smart-Unwrap: If result is an array with 1 item, unwrap it (e.g. API query result)
-            if (Array.isArray(data) && data.length === 1) {
-                console.log(`[Action: http] Auto-Unwrapping single-item array result for ${action.resultVariable}`);
+            // Smart-Unwrap: Only for JWT login responses (single user object expected)
+            if (action.requestJWT && Array.isArray(data) && data.length === 1) {
+                console.log(`[Action: http] Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
                 data = data[0];
             }
 
             if (action.resultVariable) {
                 context.vars[action.resultVariable] = data;
                 context.contextVars[action.resultVariable] = data;
+
+                const varName = context.objects?.find(o => o.id === action.resultVariable)?.name || action.resultVariable;
+                const displayValue = Array.isArray(data)
+                    ? `[${data.length} Einträge]`
+                    : (typeof data === 'object' && data !== null ? JSON.stringify(data).substring(0, 80) : String(data));
+
+                DebugLogService.getInstance().log('Variable', `${varName} ← HTTP-Ergebnis: ${displayValue}`, {
+                    objectName: varName,
+                    data: data
+                });
+
                 if (action.requestJWT) {
-                    const varName = context.objects.find(o => o.id === action.resultVariable)?.name || action.resultVariable;
-                    const displayValue = (typeof data === 'object' && data !== null)
-                        ? JSON.stringify(data)
-                        : String(data);
                     console.log(`[Action: http] Produktion: Variable "${varName}" gesetzt auf:`, displayValue);
                 }
             }

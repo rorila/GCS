@@ -122,10 +122,15 @@ export class PropertyWatcher {
         const objectWatchers = this.watchers.get(target);
         const objName = target.name || target.id || 'Unknown';
 
+        // List of internal properties that are not relevant for the user workflow
+        const INTERNAL_PROPERTIES = new Set(['eventCallback', 'onEvent', 'events', 'Tasks', 'id', 'className']);
+
         // Log to DebugLogService
         if (DebugLogService.getInstance().isEnabled()) {
-            const displayNew = typeof newValue === 'object' ? JSON.stringify(newValue).substring(0, 50) : newValue;
-            const displayOld = typeof oldValue === 'object' ? JSON.stringify(oldValue).substring(0, 50) : oldValue;
+            if (INTERNAL_PROPERTIES.has(propertyPath)) return; // Skip noise
+
+            const displayNew = typeof newValue === 'object' ? JSON.stringify(newValue)?.substring(0, 50) : newValue;
+            const displayOld = typeof oldValue === 'object' ? JSON.stringify(oldValue)?.substring(0, 50) : oldValue;
 
             DebugLogService.getInstance().log('Variable',
                 `${objName}.${propertyPath} changed: ${displayOld} -> ${displayNew}`,

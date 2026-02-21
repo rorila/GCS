@@ -4,7 +4,7 @@
             "name": "NameInput",
             "className": "TEdit",
             "label": "Name",
-            "text": "${selectedObject.name || selectedObject.Name}"
+            "text": "${selectedObject.Name}"
         },
         {
             "name": "ActionTypeSelect",

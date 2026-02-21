@@ -8,7 +8,13 @@ export interface MergedStageData {
 }
 
 export class RuntimeStageManager {
-    constructor(private project: any) { }
+    // Cache für globale Objekte, damit deren State bei Stage-Wechseln erhalten bleibt
+    private cachedGlobalObjects: any[] | null = null;
+    private project: any;
+
+    constructor(project: any) {
+        this.project = project;
+    }
 
     public resolveInheritanceChain(stageId: string, visited: Set<string> = new Set()): any[] {
         if (visited.has(stageId)) {
@@ -31,23 +37,47 @@ export class RuntimeStageManager {
         const stageChain = this.resolveInheritanceChain(stageId);
 
         let mergedObjects: any[] = [];
-        // Initialize with global project tasks/actions if available
         let mergedTasks: any[] = [...(this.project.tasks || [])];
         let mergedActions: any[] = [...(this.project.actions || [])];
         let mergedFlowCharts: any = { ...(this.project.flowCharts || {}) };
 
-        // 1. Process Blueprint Stages first (Global Baseline)
         const objectIdSet = new Set<string>();
-        const blueprintStages = this.project.stages?.filter((s: any) => s.type === 'blueprint') || [];
-        const processStage = (stage: any) => {
-            // Objects
-            const stageObjects = hydrateObjects(stage.objects || []);
-            stageObjects.forEach(obj => {
-                // ID-based collision: Child replaces Parent
-                mergedObjects = mergedObjects.filter(o => o.id !== obj.id);
-                mergedObjects.push(obj);
-                objectIdSet.add(obj.id);
-            });
+        const processStage = (stage: any, useCache: boolean = false) => {
+            // Objects and Variables (Blueprint/Main caching)
+            if (useCache) {
+                if (!this.cachedGlobalObjects) {
+                    this.cachedGlobalObjects = [];
+                    const sObjects = hydrateObjects(stage.objects || []);
+                    const sVars = hydrateObjects(stage.variables || []);
+                    sVars.forEach((v: any) => v.isVariable = true);
+                    this.cachedGlobalObjects.push(...sObjects, ...sVars);
+                }
+
+                // Nutze die gecachten, unangetasteten Referenzen!
+                this.cachedGlobalObjects.forEach(obj => {
+                    mergedObjects = mergedObjects.filter(o => o.id !== obj.id);
+                    mergedObjects.push(obj);
+                    objectIdSet.add(obj.id);
+                });
+            } else {
+                // Lokale Stage -> normales Hydriern
+                const stageObjects = hydrateObjects(stage.objects || []);
+                stageObjects.forEach(obj => {
+                    mergedObjects = mergedObjects.filter(o => o.id !== obj.id);
+                    mergedObjects.push(obj);
+                    objectIdSet.add(obj.id);
+                });
+
+                if (stage.variables) {
+                    const hydratedVars = hydrateObjects(stage.variables);
+                    hydratedVars.forEach((vObj: any) => {
+                        vObj.isVariable = true;
+                        mergedObjects = mergedObjects.filter(o => o.id !== vObj.id);
+                        mergedObjects.push(vObj);
+                        objectIdSet.add(vObj.id);
+                    });
+                }
+            }
 
             // Tasks
             if (stage.tasks) {
@@ -56,7 +86,6 @@ export class RuntimeStageManager {
                     mergedTasks.push(t);
                 });
             }
-
             // Actions
             if (stage.actions) {
                 stage.actions.forEach((a: any) => {
@@ -64,81 +93,45 @@ export class RuntimeStageManager {
                     mergedActions.push(a);
                 });
             }
-
             // FlowCharts
             if (stage.flowCharts) {
                 Object.assign(mergedFlowCharts, stage.flowCharts);
             }
-
-            // Variables (Local to Stage) - Hydrate as objects for UI/Render
-            if (stage.variables) {
-                const hydratedVars = hydrateObjects(stage.variables);
-                hydratedVars.forEach(vObj => {
-                    mergedObjects = mergedObjects.filter(o => o.id !== vObj.id);
-                    mergedObjects.push(vObj);
-                    objectIdSet.add(vObj.id);
-                });
-            }
         };
 
-        // First merge all blueprints
-        // IMPORTANT: Mark blueprint objects as inherited if the target stage is NOT a blueprint!
-        // This prevents them from being duplicated visually on normal stages while keeping them available in runtime.
         const targetIsBlueprint = this.project.stages?.find((s: any) => s.id === stageId)?.type === 'blueprint';
+        const blueprintStages = this.project.stages?.filter((s: any) => s.type === 'blueprint') || [];
 
         blueprintStages.forEach((bs: any) => {
-
-            // We reuse processStage but inject the isInherited flag manually into mergedObjects afterwards
-            // OR we modify processStage to accept an override flag. 
-            // EASIER: Iterate mergedObjects AFTER processing blueprint and mark new ones.
             const preCount = mergedObjects.length;
-            processStage(bs);
+
+            // Blueprint IMMER cachen, damit Instanzen unangetastet bleiben
+            processStage(bs, true);
+
             const postCount = mergedObjects.length;
 
             if (!targetIsBlueprint) {
-                // Mark newly added objects from blueprint as inherited
                 for (let i = preCount; i < postCount; i++) {
                     if (mergedObjects[i]) {
                         mergedObjects[i].isInherited = true;
-                        // Mark as coming from blueprint for Editor visibility filtering
                         (mergedObjects[i] as any).isFromBlueprint = true;
                     }
                 }
             }
         });
 
-        // Then merge the actual stage chain (overriding blueprints if necessary)
+        // Echte Sub-Stages (Lokale Objekte, NICHT gecacht)
         stageChain.forEach(s => {
-            if (s.type !== 'blueprint') processStage(s);
+            if (s.type !== 'blueprint') processStage(s, false);
         });
 
-        // 3. Special Inheritance: Global Objects from 'Main' (baseline for all sub-stages)
+        // Fallback-Logik für alte 'main'-Stages
         const activeStage = stageChain[stageChain.length - 1];
         if (activeStage && activeStage.type !== 'splash' && activeStage.type !== 'main') {
             const mainStage = this.project.stages?.find((s: any) => s.type === 'main');
-            if (mainStage && mainStage.objects) {
-                const globalObjects = hydrateObjects(mainStage.objects);
-
-                // Also hydrate main stage variables as global objects if they are public
-                const globalVariables = hydrateObjects(mainStage.variables || []);
-
-                [...globalObjects, ...globalVariables].forEach(gObj => {
-                    const isGlobal = gObj.scope === 'global' || (gObj as any).isVariable;
-                    // System objects are always considered global for stage baseline
-                    const systemClasses = [
-                        'TGameLoop', 'TStageController', 'TGameState',
-                        'THandshake', 'THeartbeat', 'TGameServer',
-                        'TInputController', 'TDebugLog'
-                    ];
-                    const isSystem = systemClasses.includes(gObj.className);
-
-                    if ((isGlobal || isSystem) && !objectIdSet.has(gObj.id)) {
-                        const nameCollision = mergedObjects.find(l => l.name === gObj.name);
-                        if (!nameCollision) {
-                            mergedObjects.push(gObj);
-                        }
-                    }
-                });
+            if (mainStage) {
+                // Auch die Main-Stage wird gecacht, damit ihre globalen Objekte intakt bleiben
+                processStage(mainStage, true);
             }
         }
 

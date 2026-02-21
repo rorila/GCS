@@ -222,6 +222,27 @@
             ]
         },
         {
+            "name": "Daten & Auth",
+            "expanded": true,
+            "items": [
+                {
+                    "type": "DataStore",
+                    "icon": "🗄️",
+                    "label": "Database"
+                },
+                {
+                    "type": "AuthService",
+                    "icon": "🔐",
+                    "label": "Auth Service"
+                },
+                {
+                    "type": "UserManager",
+                    "icon": "👥",
+                    "label": "User Manager"
+                }
+            ]
+        },
+        {
             "name": "Dialogs",
             "expanded": false,
             "items": [

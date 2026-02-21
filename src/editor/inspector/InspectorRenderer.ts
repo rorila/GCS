@@ -490,8 +490,8 @@ export class InspectorRenderer {
         return uiObjects;
     }
 
-    private getOptionsFromSource(prop: any): any[] {
-        if (prop.options) return prop.options;
+    public getOptionsFromSource(prop: any): any[] {
+        if (Array.isArray(prop.options)) return prop.options;
         if (!prop.source) return [];
 
         if (prop.source === 'tasks') {

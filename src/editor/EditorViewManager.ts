@@ -105,8 +105,8 @@ export class EditorViewManager {
         if (jsonInspector) jsonInspector.style.display = 'none';
         if (toolboxFooter) toolboxFooter.style.display = 'none';
 
-        // Stop debug logging when switching views (focus loss)
-        if (h.debugLog) {
+        // Stop debug logging when switching views (focus loss), unless we are staying in 'run' view
+        if (h.debugLog && view !== 'run') {
             h.debugLog.setRecordingActive(false);
         }
 

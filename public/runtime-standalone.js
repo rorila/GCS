@@ -297,6 +297,13 @@
         } else {
           current = current[part];
         }
+        if (propPath.includes("LeftOperand") || propPath.includes("BaseVar")) {
+          console.log(`[PropertyHelper] getPropertyValue("${propPath}") member "${part}":`, {
+            targetType: target.constructor?.name || typeof target,
+            hasInContent,
+            result: typeof current === "string" ? `"${current}"` : current === void 0 ? "undefined" : "object/val"
+          });
+        }
         if (current === void 0 || current === null) return void 0;
       }
       return this.resolveValue(current);
@@ -578,7 +585,11 @@
       if (expression.startsWith("${") && expression.endsWith("}")) {
         expression = expression.slice(2, -1).trim();
       }
-      return this.evaluate(expression, context);
+      const result = this.evaluate(expression, context);
+      if (expression.includes("BaseVar") || expression.includes("availableVariableFields")) {
+        console.log(`[ExpressionParser] evaluateRaw("${expression}") ->`, result);
+      }
+      return result;
     }
   };
 
@@ -2754,7 +2765,9 @@
             return;
           }
           const result = this.evaluateCondition(condition, vars, globalVars);
-          console.log(`[TaskExecutor] Condition ${condition.variable} ${condition.operator || "=="} ${condition.value} => ${result} `);
+          const left = condition.leftValue || condition.variable || "?";
+          const right = condition.rightValue || condition.value || "?";
+          console.log(`[TaskExecutor] Condition ${left} ${condition.operator || "=="} ${right} => ${result} `);
           const trueConn = connections.find(
             (c) => c.startTargetId === node.id && (c.data?.startAnchorType === "true" || c.data?.anchorType === "true")
           );
@@ -2937,28 +2950,19 @@
       return value;
     }
     resolveVarPath(path, vars, globalVars) {
-      let lookupPath = path;
-      if (path.startsWith("$")) {
-        if (vars[path] !== void 0) return vars[path];
+      let root = vars;
+      let lookup = path;
+      if (lookup.startsWith("${") && lookup.endsWith("}")) {
+        lookup = lookup.slice(2, -1);
       }
-      const getDeep = (obj, p) => {
-        const parts = p.split(".");
-        let current = obj;
-        if (parts[0].startsWith("$") && current[parts[0]] === void 0 && current[parts[0].substring(1)] !== void 0) {
-          parts[0] = parts[0].substring(1);
-        }
-        for (const part of parts) {
-          if (current === void 0 || current === null) return void 0;
-          current = current[part];
-        }
-        return current;
-      };
-      let val = getDeep(vars, lookupPath);
-      if (val !== void 0) return val;
-      val = getDeep(globalVars, lookupPath);
-      if (val !== void 0) return val;
-      if (!isNaN(Number(path))) return Number(path);
-      return void 0;
+      if (lookup.startsWith("global.")) {
+        root = globalVars;
+        lookup = lookup.substring(7);
+      } else if (lookup.startsWith("stage.")) {
+        root = vars;
+        lookup = lookup.substring(6);
+      }
+      return PropertyHelper.getPropertyValue(root, lookup);
     }
     async handleCondition(item, vars, globalVars, contextObj, depth, parentId) {
       if (!item.condition) return;

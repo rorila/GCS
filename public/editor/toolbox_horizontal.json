@@ -197,6 +197,26 @@
             ]
         },
         {
+            "name": "Daten & Auth",
+            "items": [
+                {
+                    "type": "DataStore",
+                    "icon": "🗄️",
+                    "label": "DataStore"
+                },
+                {
+                    "type": "AuthService",
+                    "icon": "🔐",
+                    "label": "AuthService"
+                },
+                {
+                    "type": "UserManager",
+                    "icon": "👥",
+                    "label": "UserManager"
+                }
+            ]
+        },
+        {
             "name": "Dialogs",
             "items": [
                 {

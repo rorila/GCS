@@ -1247,6 +1247,12 @@ export class Editor implements IViewHost {
                 icon: '💾'
             },
             {
+                id: 'stage-settings',
+                label: 'Stage-Einstellungen',
+                action: 'stage-settings',
+                icon: '⚙️'
+            },
+            {
                 id: 'separator',
                 label: '----------------',
                 action: 'separator'
@@ -2402,6 +2408,16 @@ export class Editor implements IViewHost {
                 break;
             case 'save-as-template':
                 this.saveStageAsTemplate();
+                break;
+            case 'stage-settings':
+                this.selectObject(null); // Deselect any object
+                if (this.inspector) {
+                    const activeStage = this.getActiveStage();
+                    if (activeStage) {
+                        console.log('[Editor] Selecting active stage for settings:', activeStage.name);
+                        this.inspector.update(activeStage);
+                    }
+                }
                 break;
             case 'force-reload':
                 this.loadFromServer();

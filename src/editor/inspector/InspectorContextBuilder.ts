@@ -36,33 +36,22 @@ export class InspectorContextBuilder {
             // Liste der DataStore Namen (priorisiert) für Dropdowns
             availableDataStores: dataStores.map(ds => ds.name || ds.id),
 
-            // Liste der Variablen: Anzeige Name, Wert ist Token
-            availableVariablesAsTokens: allVars.map(v => {
+            // Neue kombinierte Liste der Variablen inkl. Untereigenschaften für Dropdowns
+            availableVariablesAsTokens: allVars.reduce((acc: any[], v: any) => {
                 const prefix = v.uiScope === 'global' ? 'global' : 'stage';
-                const token = `\${${prefix}.${v.name}}`;
-                return {
+                const baseToken = `\${${prefix}.${v.name}}`;
+
+                // 1. Basis-Variable hinzufügen
+                acc.push({
                     text: v.name,
-                    value: token
-                };
-            }),
+                    value: baseToken
+                });
 
-            // Liste der Variablen mit Scope-Emoji für Dropdowns
-            availableVariablesWithScope: allVars.map(v => ({
-                text: `${v.uiEmoji || ''} ${v.name}`,
-                value: v.id
-            })),
-
-            // Neue Hilfsfunktion für Variablen-Felder
-            availableVariableFields: allVars.reduce((acc, v: any) => {
-                const prefix = v.uiScope === 'global' ? 'global' : 'stage';
-                const token = `\${${prefix}.${v.name}}`;
-
-                // Felder basierend auf dem Typ/Modell ermitteln
+                // 2. Felder ermitteln (Derselbe Check wie unten bei availableVariableFields)
                 let fields: string[] = [];
                 const type = v.type as string;
                 const className = v.className as string;
 
-                // Check multiple ways a variable might be identified as complex
                 if (type === 'object' || type === 'object_list' || type === 'json' || type === 'any' ||
                     className === 'TObjectVariable' || className === 'TVariable') {
 
@@ -78,28 +67,82 @@ export class InspectorContextBuilder {
                     } else if (model.includes('resource')) {
                         fields = ['id', 'name', 'role', 'authCode', 'status'];
                     } else {
-                        // Generische Felder für Objekte
+                        fields = ['id', 'name', 'text', 'value'];
+                    }
+                }
+
+                // 3. Felder als Token hinzufügen (mit Einrückung für visuelle Hierarchie)
+                fields.forEach(field => {
+                    acc.push({
+                        text: `  ${v.name}.${field}`,
+                        value: `\${${prefix}.${v.name}.${field}}`
+                    });
+                });
+
+                return acc;
+            }, []),
+
+            // Liste der Variablen mit Scope-Emoji für Dropdowns (für Ziel-Variablen)
+            availableVariablesWithScope: allVars.map(v => ({
+                text: `${v.uiEmoji || ''} ${v.name}`,
+                value: v.id
+            })),
+
+            // Beibehalten der Struktur für andere Komponenten, die nur die Feldliste benötigen
+            availableVariableFields: allVars.reduce((acc, v: any) => {
+                const prefix = v.uiScope === 'global' ? 'global' : 'stage';
+                const token = `\${${prefix}.${v.name}}`;
+
+                let fields: string[] = [];
+                const type = v.type as string;
+                const className = v.className as string;
+
+                if (type === 'object' || type === 'object_list' || type === 'json' || type === 'any' ||
+                    className === 'TObjectVariable' || className === 'TVariable') {
+
+                    const model = (v.objectModel || '').toLowerCase();
+                    if (model === 'user' || model === 'users') {
+                        fields = ['id', 'name', 'role', 'authCode', 'avatar', 'status'];
+                    } else if (model === 'project' || model === 'projects') {
+                        fields = ['id', 'name', 'description', 'version'];
+                    } else if (model === 'stage' || model === 'stages') {
+                        fields = ['id', 'name', 'type'];
+                    } else if (model === 'variable' || model === 'variables') {
+                        fields = ['id', 'name', 'type', 'value'];
+                    } else if (model.includes('resource')) {
+                        fields = ['id', 'name', 'role', 'authCode', 'status'];
+                    } else {
                         fields = ['id', 'name', 'text', 'value'];
                     }
                 }
 
                 if (fields.length > 0) {
-                    console.log(`[InspectorContextBuilder] Registering fields for ${token} (Model: ${v.objectModel}):`, fields);
                     acc[token] = fields;
                 }
                 return acc;
             }, {} as Record<string, string[]>),
 
-            // Standard-Felder für Data-Queries (angepasst an db.json / UserData)
-            availableResourceProperties: [
-                'id',
-                'name',
-                'role',
-                'authCode',
-                'avatar',
-                'managedRooms',
-                'status'
-            ],
+            // Standard-Felder für Data-Queries (Dynamisch basierend auf dem gewählten DataStore)
+            availableResourceProperties: (() => {
+                const dsName = selectedObject?.dataStore;
+                if (!dsName) return ['id', 'name', 'text', 'value'];
+
+                // Finde den DataStore in der Stage
+                const dsObj = allObjects.find(o => o.name === dsName || o.id === dsName);
+                const collection = (dsObj as any)?.defaultCollection || '';
+
+                if (collection === 'users') {
+                    return ['id', 'name', 'role', 'authCode', 'avatar', 'managedRooms', 'status'];
+                } else if (collection === 'rooms') {
+                    return ['id', 'name', 'houseId', 'adminId', 'config'];
+                } else if (collection === 'cities') {
+                    return ['id', 'name', 'logo'];
+                } else if (collection === 'houses') {
+                    return ['id', 'cityId', 'name', 'logo'];
+                }
+
+                return ['id', 'name', 'text', 'value'];
+            })(),
 
             // Verfügbare Datenmodelle (für object/object_list Variablen)
             availableModels: [

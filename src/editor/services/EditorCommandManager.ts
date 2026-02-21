@@ -132,7 +132,10 @@ export class EditorCommandManager {
             if (focus && obj) this.editor.stage.focusObject(id);
         } else {
             this.editor.stage.selectedObject = null;
-            if (this.editor.inspector) this.editor.inspector.update(this.editor.project);
+            if (this.editor.inspector) {
+                const activeStage = this.editor.getActiveStage();
+                this.editor.inspector.update(activeStage || this.editor.project);
+            }
         }
         this.editor.render();
     }

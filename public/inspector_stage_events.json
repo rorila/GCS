@@ -1,0 +1,45 @@
+{
+    "meta": {
+        "name": "Stage Events Inspector",
+        "version": "1.0.0",
+        "description": "Event Inspector for Stages"
+    },
+    "objects": [
+        {
+            "className": "TLabel",
+            "name": "GeneralHeader",
+            "text": "STAGE EVENTS",
+            "style": {
+                "fontSize": 10,
+                "fontWeight": "bold",
+                "color": "#888",
+                "marginTop": 12,
+                "marginBottom": 6
+            }
+        },
+        {
+            "className": "TDropdown",
+            "name": "onEnter",
+            "label": "Beim Betreten (onEnter)",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events && selectedObject.events.onEnter || (selectedObject.Tasks && selectedObject.Tasks.onEnter)}"
+        },
+        {
+            "className": "TDropdown",
+            "name": "onLeave",
+            "label": "Beim Verlassen (onLeave)",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events && selectedObject.events.onLeave || (selectedObject.Tasks && selectedObject.Tasks.onLeave)}"
+        },
+        {
+            "className": "TDropdown",
+            "name": "onRuntimeStart",
+            "label": "Bei Runtime-Start",
+            "source": "tasks",
+            "placeholder": "Task wählen...",
+            "selectedValue": "${selectedObject.events && selectedObject.events.onRuntimeStart || (selectedObject.Tasks && selectedObject.Tasks.onRuntimeStart)}"
+        }
+    ]
+}
