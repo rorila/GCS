@@ -68,8 +68,10 @@ export class InspectorEventHandler {
         // 5. Default behavior if not handled by specialized logic
         if (!wasHandled) {
             if (oldValue !== newValue) {
-                PropertyHelper.setPropertyValue(selectedObject, propertyPath, newValue);
-                console.log(`[InspectorEventHandler] Applied default update to ${propertyPath}`);
+                // NEW: Use autoConvert to handle JSON, numbers, booleans from UI inputs
+                const convertedValue = PropertyHelper.autoConvert(newValue);
+                PropertyHelper.setPropertyValue(selectedObject, propertyPath, convertedValue);
+                console.log(`[InspectorEventHandler] Applied update to ${propertyPath}:`, convertedValue);
             }
         }
 

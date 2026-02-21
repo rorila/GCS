@@ -37,8 +37,13 @@ export class PropertyHelper {
                 current = current.data[part];
             } else if (target && target.isFlowNode === true && target.data && target.data[part] !== undefined) {
                 current = target.data[part];
-            } else {
+            } else if (target === current) {
+                // Only fallback to component properties if we are NOT operating on a resolved variable value
                 current = current[part];
+            } else {
+                // If we resolved to a variable value (target) but property wasn't found,
+                // don't fallback to the component's metadata (like .name)
+                current = undefined;
             }
 
             if (propPath.includes('LeftOperand') || propPath.includes('BaseVar')) {
@@ -60,8 +65,12 @@ export class PropertyHelper {
      */
     static resolveValue(val: any): any {
         if (val && typeof val === 'object' && (val.isVariable === true || val.className?.includes('Variable'))) {
-            if (val.value !== undefined) return val.value;
+            // Priority 1: Collection Data (for TObjectList, TTable, TList)
+            if (Array.isArray(val.data)) return val.data;
             if (Array.isArray(val.items)) return val.items;
+
+            // Priority 2: Simple Value
+            if (val.value !== undefined) return val.value;
         }
         return val;
     }
@@ -163,6 +172,17 @@ export class PropertyHelper {
     static autoConvert(value: any): any {
         if (typeof value !== 'string') return value;
         if (value === '') return value;
+
+        const trimmed = value.trim();
+
+        // Try JSON (Simple heuristic: starts and ends with brackets)
+        if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+            try {
+                return JSON.parse(trimmed);
+            } catch (e) {
+                // Not valid JSON, fall through
+            }
+        }
 
         // Try number
         const num = Number(value);

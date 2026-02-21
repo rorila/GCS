@@ -83,6 +83,11 @@
                     "type": "TabControl",
                     "icon": "📑",
                     "label": "TabControl"
+                },
+                {
+                    "type": "Table",
+                    "icon": "📊",
+                    "label": "Table"
                 }
             ]
         },
@@ -148,11 +153,6 @@
                     "type": "List",
                     "icon": "📋",
                     "label": "List"
-                },
-                {
-                    "type": "Table",
-                    "icon": "📊",
-                    "label": "Table"
                 },
                 {
                     "type": "Random",

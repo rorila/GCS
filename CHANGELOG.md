@@ -1,4 +1,11 @@
 ### [3.3.18] - 2026-02-21
+### [2026-02-21] - TTable & Binding Fixes (Runtime Optimization)
+- **ReactiveRuntime**: Umstellung auf Proxy-basierte Namespace-Auflösung (`global.`, `stage.`) im `getContext`. Gewährleistet zuverlässiges Binding von globalen Komponenten und Variablen.
+- **PropertyHelper**: Fix für Property-Shadowing. Verhindert, dass Komponenten-Metadaten (z. B. `.name`) Variablen-Inhalte überschreiben, wenn diese noch leer sind (behebt "currentUser" Anzeige-Bug).
+- **TTable**: Smart-Unwrapping für `TObjectList`-Datenquellen und automatisches Column-Inheritance implementiert.
+- **ReactiveRuntime**: Deep-Watching für `.data` und `.items` Properties zur automatischen UI-Aktualisierung bei Listen-Änderungen.
+- **Tracing**: Spezielle Diagnose-Logs für die Registrierung und Auflösung von `currentRooms` in der Runtime hinzugefügt.
+
 ### Hinzugefügt
 - **Stage Events Support**: Unterstützung für `onEnter`, `onLeave` und `onRuntimeStart` Events für Stages. Konfiguration direkt über den Inspector ermöglicht.
 - **Toolbox Erweiterung**: Neue Kategorie "Daten & Auth" mit `TDataStore`, `TAuthService` und `TUserManager`.

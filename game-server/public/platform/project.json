@@ -1211,6 +1211,38 @@
             "fontFamily": "Arial",
             "color": "#000000"
           }
+        },
+        {
+          "className": "TTable",
+          "id": "obj_1771702976425_5yfyggv6c",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "Table_18",
+          "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 9,
+          "y": 11,
+          "width": 49,
+          "height": 16,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bdc3c7",
+            "borderWidth": 1,
+            "borderRadius": 4
+          },
+          "data": "${global.currentRooms}",
+          "columns": [],
+          "rowHeight": 30,
+          "showHeader": true,
+          "striped": true,
+          "selectedIndex": -1
         }
       ],
       "tasks": [
@@ -1674,12 +1706,9 @@
           "style": {
             "backgroundColor": "#009688",
             "borderColor": "#00796b",
-            "borderWidth": 2
+            "borderWidth": 2,
+            "borderRadius": 4
           },
-          "rowHeight": 28,
-          "showHeader": true,
-          "searchValue": "",
-          "searchProperty": "name",
           "data": [],
           "columns": [
             {
@@ -1698,6 +1727,11 @@
               "width": "80px"
             }
           ],
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "searchValue": "",
+          "searchProperty": "name",
           "selectedIndex": -1,
           "items": []
         }

@@ -47,6 +47,10 @@ export class TTable extends TWindow {
         ];
     }
 
+    public getInspectorFile(): string {
+        return './inspector_table.json';
+    }
+
     public toJSON(): any {
         return {
             ...super.toJSON(),

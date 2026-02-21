@@ -479,7 +479,13 @@ export class Editor implements IViewHost {
             Object.keys(target).forEach(key => {
                 const val = target[key];
                 if (typeof val === 'string' && val.includes('${')) {
-                    try { target[key] = ExpressionParser.interpolate(val, context); } catch (e) { }
+                    try {
+                        const resolved = ExpressionParser.interpolate(val, context);
+                        console.log(`[Editor.resolveObjectPreview] Resolved binding "${val}" ->`, resolved);
+                        target[key] = resolved;
+                    } catch (e) {
+                        console.warn(`[Editor.resolveObjectPreview] Failed to resolve "${val}":`, e);
+                    }
                 } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'grid')) {
                     target[key] = { ...val };
                     resolveProps(target[key]);
@@ -498,9 +504,27 @@ export class Editor implements IViewHost {
         const context: Record<string, any> = {
             project: this.project,
             isMultiplayer: this._isMultiplayer,
-            playerNumber: this._localPlayerNumber
+            playerNumber: this._localPlayerNumber,
+            global: {},
+            stage: {}
         };
-        projectRegistry.getVariables().forEach(v => { context[v.name] = v.defaultValue; });
+
+        // 1. Add all Variables (Default Values)
+        projectRegistry.getVariables().forEach(v => {
+            const val = v.defaultValue;
+            context[v.name] = val;
+            if (v.scope === 'global') context.global[v.name] = val;
+            else context.stage[v.name] = val;
+        });
+
+        // 2. Add all Objects (Components) - These have priority for Bindings!
+        projectRegistry.getObjects().forEach(obj => {
+            context[obj.name] = obj;
+            if (obj.scope === 'global') context.global[obj.name] = obj;
+            else context.stage[obj.name] = obj;
+        });
+
+        console.log(`[Editor.getVariableContext] Context keys:`, Object.keys(context), `Global keys:`, Object.keys(context.global));
         return context;
     }
 

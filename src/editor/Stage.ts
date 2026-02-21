@@ -2216,6 +2216,7 @@ export class Stage {
      * Unterstützt Auto-Columns, JSON-Konfigurationen und Stage-Events.
      */
     public static renderTable(el: HTMLElement, obj: any, onEvent?: (id: string, event: string, data?: any) => void): void {
+        console.log(`[Stage.renderTable] Rendering ${obj.name} (${obj.id})`, { data: obj.data, columns: obj.columns });
         el.style.flexDirection = 'column';
         el.style.overflow = 'hidden';
         el.style.display = 'flex';
@@ -2223,10 +2224,23 @@ export class Stage {
         el.style.color = obj.style?.color || '#333333';
         el.style.backgroundColor = obj.style?.backgroundColor || '#ffffff';
 
-        const rawData = Array.isArray(obj.data) ? obj.data : [];
+        // 1. Data Unwrapping (Smart-Detection for components like TObjectList)
+        let rawData = obj.data;
+        let sourceObj = null;
+
+        if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
+            sourceObj = rawData; // Merken für Spalten-Vererbung
+            if (Array.isArray(sourceObj.data)) {
+                rawData = sourceObj.data;
+            } else if (Array.isArray(sourceObj.items)) {
+                rawData = sourceObj.items;
+            }
+        }
+        if (!Array.isArray(rawData)) rawData = [];
+
         let cols: any[] = [];
 
-        // 1. Resolve Columns (Custom Array vs JSON String vs Auto)
+        // 2. Resolve Columns (Custom Array vs JSON String vs Auto)
         if (Array.isArray(obj.columns) && obj.columns.length > 0) {
             cols = obj.columns;
         } else if (typeof obj.columns === 'string' && obj.columns.trim().startsWith('[')) {
@@ -2235,6 +2249,11 @@ export class Stage {
             } catch (e) {
                 console.warn('[Stage.renderTable] Invalid JSON columns for:', obj.name);
             }
+        }
+
+        // 3. Column Inheritance (Use columns from source component if available and TTable has none)
+        if (cols.length === 0 && sourceObj && Array.isArray(sourceObj.columns) && sourceObj.columns.length > 0) {
+            cols = sourceObj.columns;
         }
 
         // Auto-Column Fallback

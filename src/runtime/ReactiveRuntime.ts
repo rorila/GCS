@@ -38,6 +38,15 @@ export class ReactiveRuntime {
         const id = obj.id || name;
         this.objectsById.set(id, reactiveObj);
         this.objectsByName.set(name, reactiveObj);
+
+        if (name === 'currentRooms' || obj.name === 'currentRooms') {
+            console.log(`%c[ReactiveRuntime] Registered currentRooms:`, 'color: #4caf50; font-weight: bold', {
+                scope: obj.scope,
+                isVariable: obj.isVariable,
+                className: obj.className
+            });
+        }
+
         return reactiveObj;
     }
 
@@ -114,24 +123,33 @@ export class ReactiveRuntime {
         // Watch all dependencies
         deps.forEach(dep => {
             const parts = dep.split('.');
-            const objName = parts[0];
-            const propPath = parts.slice(1).join('.');
+            let objName = parts[0];
+            let propPath = parts.slice(1).join('.');
+
+            // NEW: Handle namespace prefixes (global., stage.)
+            if ((objName === 'global' || objName === 'stage') && parts.length > 1) {
+                objName = parts[1];
+                propPath = parts.slice(2).join('.');
+            }
 
             const sourceObj = this.objectsByName.get(objName) || this.variables;
 
             if (sourceObj) {
                 // Initial watch
-                this.watcher.watch(sourceObj, propPath || objName, () => {
+                const watchPath = propPath || objName;
+                this.watcher.watch(sourceObj, watchPath, () => {
                     binding.update();
                 });
 
                 // SPECIAL CASE: If we depend on a Variable Component (objName) 
                 // but didn't specify a property (like .value), automatically watch .value
                 // because we intelligently stringify variables by their value.
-                if (!propPath && sourceObj.isVariable === true) {
-                    console.log(`[ReactiveRuntime] Deep watch enabled for variable: ${objName}.value`);
-                    this.watcher.watch(sourceObj, 'value', () => binding.update());
-                    this.watcher.watch(sourceObj, 'items', () => binding.update());
+                if (!propPath) {
+                    if ((sourceObj as any).isVariable === true) {
+                        this.watcher.watch(sourceObj, 'value', () => binding.update());
+                        this.watcher.watch(sourceObj, 'items', () => binding.update());
+                        this.watcher.watch(sourceObj, 'data', () => binding.update());
+                    }
                 }
             }
         });
@@ -172,26 +190,70 @@ export class ReactiveRuntime {
      * Gets the evaluation context (all objects + variables)
      */
     public getContext(): Record<string, any> {
-        const context: Record<string, any> = {};
+        const self = this;
 
-        // 1. Add all variables (Data) first as baseline
-        this.variables.forEach((value, name) => {
-            context[name] = value;
-        });
+        // Root context Proxy
+        const context = new Proxy({}, {
+            get: (_target, prop: string) => {
+                // SPECIAL: Namespaces
+                if (prop === 'global' || prop === 'stage') {
+                    return new Proxy({}, {
+                        get: (_target, subProp: string) => {
+                            // Priority 1: Object (Component)
+                            const obj = self.objectsByName.get(subProp);
+                            const matchesScope = obj && (prop === 'global' ? obj.scope === 'global' : obj.scope === 'stage');
 
-        // 2. Add all registered objects (Proxies/Components) - they only overwrite if no variable exists
-        this.objectsByName.forEach((obj, name) => {
-            if (context[name] === undefined) {
-                context[name] = obj;
+                            if (subProp === 'currentRooms') {
+                                console.log(`[ReactiveRuntime] Resolving ${prop}.${subProp}:`, {
+                                    foundObj: !!obj,
+                                    objScope: obj?.scope,
+                                    matchesScope,
+                                    variableValue: self.variables.get(subProp)
+                                });
+                            }
+
+                            if (matchesScope) {
+                                return obj;
+                            }
+                            // Priority 2: Variable Value
+                            return self.variables.get(subProp);
+                        },
+                        has: (_target, subProp: string) => {
+                            return self.objectsByName.has(subProp) || self.variables.has(subProp);
+                        },
+                        ownKeys: () => {
+                            const keys = new Set([...self.objectsByName.keys(), ...self.variables.keys()]);
+                            return Array.from(keys);
+                        },
+                        getOwnPropertyDescriptor: (_target, _subProp: string) => {
+                            return { enumerable: true, configurable: true };
+                        }
+                    });
+                }
+
+                // Normal access (Root)
+                // Priority 1: Registered Object (Proxy/Component)
+                const obj = self.objectsByName.get(prop);
+                if (obj !== undefined) return obj;
+
+                // Priority 2: Variable Value
+                const variable = self.variables.get(prop);
+                if (variable !== undefined) return variable;
+
+                // Priority 3: ID lookup
+                return self.objectsById.get(prop);
+            },
+            has: (_target, prop: string) => {
+                return prop === 'global' || prop === 'stage' || self.objectsByName.has(prop) || self.variables.has(prop) || self.objectsById.has(prop);
+            },
+            ownKeys: () => {
+                const keys = new Set(['global', 'stage', ...self.objectsByName.keys(), ...self.variables.keys(), ...self.objectsById.keys()]);
+                return Array.from(keys);
+            },
+            getOwnPropertyDescriptor: (_target, _unused) => {
+                return { enumerable: true, configurable: true };
             }
         });
-
-        // 3. Add by ID
-        this.objectsById.forEach((obj, id) => {
-            if (!context[id]) context[id] = obj;
-        });
-
-        // console.debug('[ReactiveRuntime] Context generated:', Object.keys(context));
 
         return context;
     }
