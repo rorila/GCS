@@ -1415,7 +1415,7 @@ export class Stage {
                 });
 
             } else if (className === 'TTable' || className === 'TObjectList') {
-                Stage.renderTable(el, obj);
+                Stage.renderTable(el, obj, this.onEvent?.bind(this));
             } else if (className === 'TStringVariable' || className === 'TObjectVariable' || className === 'TIntegerVariable' || className === 'TBooleanVariable' || className === 'TListVariable') {
                 // Force render for Variables
                 el.style.display = 'flex';
@@ -2213,34 +2213,65 @@ export class Stage {
 
     /**
      * Rendert eine TTable-Komponente in ein HTML-Element.
-     * Kann statisch aufgerufen werden (z.B. für den Management-View).
+     * Unterstützt Auto-Columns, JSON-Konfigurationen und Stage-Events.
      */
-    public static renderTable(el: HTMLElement, obj: any): void {
-        if (!obj.columns) return; // Sicherheitscheck: Nur rendern wenn Spalten definiert sind
-
+    public static renderTable(el: HTMLElement, obj: any, onEvent?: (id: string, event: string, data?: any) => void): void {
         el.style.flexDirection = 'column';
         el.style.overflow = 'hidden';
         el.style.display = 'flex';
         el.style.fontSize = '12px';
+        el.style.color = obj.style?.color || '#333333';
+        el.style.backgroundColor = obj.style?.backgroundColor || '#ffffff';
+
+        const rawData = Array.isArray(obj.data) ? obj.data : [];
+        let cols: any[] = [];
+
+        // 1. Resolve Columns (Custom Array vs JSON String vs Auto)
+        if (Array.isArray(obj.columns) && obj.columns.length > 0) {
+            cols = obj.columns;
+        } else if (typeof obj.columns === 'string' && obj.columns.trim().startsWith('[')) {
+            try {
+                cols = JSON.parse(obj.columns);
+            } catch (e) {
+                console.warn('[Stage.renderTable] Invalid JSON columns for:', obj.name);
+            }
+        }
+
+        // Auto-Column Fallback
+        if (cols.length === 0 && rawData.length > 0) {
+            const firstItem = rawData[0];
+            if (typeof firstItem === 'object' && firstItem !== null) {
+                cols = Object.keys(firstItem).map(key => ({
+                    field: key,
+                    label: key.charAt(0).toUpperCase() + key.slice(1)
+                }));
+            } else {
+                cols = [{ field: '_value', label: 'Wert' }];
+            }
+        }
 
         // Container-Struktur sicherstellen
         let scrollArea = el.querySelector('.table-scroll-area') as HTMLElement;
         if (!scrollArea) {
             el.innerHTML = '';
-            const titleBar = document.createElement('div');
-            titleBar.className = 'table-title-bar';
-            titleBar.style.cssText = 'padding:6px 12px; font-weight:bold; background:rgba(0,0,0,0.3); border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center; color:#fff; font-size: 13px;';
-            el.appendChild(titleBar);
+
+            // Editor Only: Title Bar for context if the component is bound
+            if (!document.getElementById('game-container')) {
+                const titleBar = document.createElement('div');
+                titleBar.className = 'table-title-bar';
+                titleBar.style.cssText = 'padding:6px 12px; font-weight:bold; background:rgba(0,0,0,0.05); border-bottom:1px solid rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; font-size: 13px;';
+                el.appendChild(titleBar);
+            }
 
             scrollArea = document.createElement('div');
             scrollArea.className = 'table-scroll-area';
-            scrollArea.style.cssText = 'flex:1; overflow-y:auto; overflow-x:hidden;';
+            scrollArea.style.cssText = 'flex:1; overflow-y:auto; overflow-x:auto;';
             el.appendChild(scrollArea);
         }
 
         const titleBar = el.querySelector('.table-title-bar') as HTMLElement;
         if (titleBar) {
-            titleBar.innerHTML = `<span>${obj.name}</span> <span style="font-weight:normal; opacity:0.6; font-size:11px;">(${obj.data?.length || 0} Einträge)</span>`;
+            titleBar.innerHTML = `<span>${obj.name}</span> <span style="font-weight:normal; opacity:0.6; font-size:11px;">(${rawData.length} Items)</span>`;
         }
 
         // Render Table Headers & Rows
@@ -2248,17 +2279,21 @@ export class Stage {
             scrollArea.innerHTML = '';
 
             const table = document.createElement('table');
-            table.style.cssText = 'width:100%; border-collapse:collapse; color:inherit; table-layout:fixed;';
+            table.style.cssText = 'width:100%; border-collapse:collapse; color:inherit; text-align:left;';
 
             // Header
-            if (obj.showHeader !== false && obj.columns) {
+            if (obj.showHeader !== false && cols.length > 0) {
                 const thead = document.createElement('thead');
                 const hRow = document.createElement('tr');
-                hRow.style.cssText = 'text-align:left; background:rgba(255,255,255,0.05);';
-                obj.columns.forEach((col: any) => {
+                hRow.style.cssText = 'background:rgba(0,0,0,0.05); position:sticky; top:0; z-index:1;';
+                cols.forEach((col: any) => {
                     const th = document.createElement('th');
-                    th.style.cssText = `padding:4px 8px; border-bottom:1px solid rgba(255,255,255,0.1); width:${col.width || 'auto'}; font-size:10px; opacity:0.7;`;
-                    th.innerText = col.label;
+                    // GCS-Compatibility: Older TObjectList uses "property", TTable uses "field"
+                    const fieldName = col.field || col.property;
+                    const labelName = col.label || fieldName;
+
+                    th.style.cssText = `padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.1); width:${col.width || 'auto'}; font-weight:600;`;
+                    th.innerText = labelName;
                     hRow.appendChild(th);
                 });
                 thead.appendChild(hRow);
@@ -2267,40 +2302,75 @@ export class Stage {
 
             // Body
             const tbody = document.createElement('tbody');
-            const data = obj.data || [];
-            data.forEach((row: any, idx: number) => {
+            if (rawData.length === 0) {
                 const tr = document.createElement('tr');
-                tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; height:${obj.rowHeight || 28}px;`;
-                if (idx === obj.selectedIndex) tr.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                const td = document.createElement('td');
+                td.colSpan = Math.max(1, cols.length);
+                td.innerText = "Keine Daten vorhanden.";
+                td.style.cssText = 'padding:12px; text-align:center; opacity:0.6; font-style:italic;';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            } else {
+                rawData.forEach((row: any, idx: number) => {
+                    const tr = document.createElement('tr');
+                    const rowHeight = obj.rowHeight || 30;
+                    tr.style.cssText = `border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer; height:${rowHeight}px;`;
 
-                tr.onmouseenter = () => tr.style.backgroundColor = 'rgba(255,255,255,0.15)';
-                tr.onmouseleave = () => tr.style.backgroundColor = (idx === obj.selectedIndex) ? 'rgba(255,255,255,0.1)' : 'transparent';
-                tr.onclick = (e) => {
-                    e.stopPropagation();
-                    obj.selectedIndex = idx;
-                    if (typeof obj.onRowClick === 'function') {
-                        obj.onRowClick(row, idx);
-                    }
-                    Stage.renderTable(el, obj); // Re-render to show selection
-                };
+                    const isSelected = idx === obj.selectedIndex;
+                    const isStriped = obj.striped !== false && (idx % 2 === 1);
 
-                if (obj.columns) {
-                    obj.columns.forEach((col: any) => {
-                        const td = document.createElement('td');
-                        td.style.cssText = 'padding:4px 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
-                        let val = row[col.property] ?? '';
+                    // Initial bg
+                    tr.style.backgroundColor = isSelected ? 'rgba(0,0,0,0.1)' : (isStriped ? 'rgba(0,0,0,0.02)' : 'transparent');
 
-                        // Emoji support for scope
-                        if (col.property === 'uiScope') {
-                            val = val === 'global' ? '🌎' : (val === 'stage' ? '🎭' : (val === 'library' ? '📚' : '📍'));
+                    tr.onmouseenter = () => tr.style.backgroundColor = 'rgba(0,0,0,0.08)';
+                    tr.onmouseleave = () => tr.style.backgroundColor = isSelected ? 'rgba(0,0,0,0.1)' : (isStriped ? 'rgba(0,0,0,0.02)' : 'transparent');
+
+                    tr.onclick = (e) => {
+                        e.stopPropagation();
+                        obj.selectedIndex = idx;
+
+                        // Legacy hook Support (TObjectList)
+                        if (typeof obj.onRowClick === 'function') {
+                            obj.onRowClick(row, idx);
                         }
 
-                        td.innerText = String(val);
-                        tr.appendChild(td);
-                    });
-                }
-                tbody.appendChild(tr);
-            });
+                        // New Stage-Event hook
+                        if (onEvent) {
+                            onEvent(obj.id, 'onSelect', row);
+                            // Optionally trigger selection index change
+                            onEvent(obj.id, 'propertyChange', { property: 'selectedIndex', value: idx });
+                        }
+
+                        Stage.renderTable(el, obj, onEvent); // Re-render to show selection
+                    };
+
+                    if (cols.length > 0) {
+                        cols.forEach((col: any) => {
+                            const td = document.createElement('td');
+                            td.style.cssText = 'padding:8px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+                            if (col.width) td.style.maxWidth = col.width;
+
+                            const fieldName = col.field || col.property;
+                            let val = '';
+
+                            if (row && typeof row === 'object') {
+                                val = fieldName === '_value' ? String(row) : (row[fieldName] ?? '');
+                            } else {
+                                val = String(row ?? '');
+                            }
+
+                            // Legacy Emoji support for Developer Scope View
+                            if (fieldName === 'uiScope') {
+                                val = val === 'global' ? '🌎' : (val === 'stage' ? '🎭' : (val === 'library' ? '📚' : '📍'));
+                            }
+
+                            td.innerText = String(val);
+                            tr.appendChild(td);
+                        });
+                    }
+                    tbody.appendChild(tr);
+                });
+            }
             table.appendChild(tbody);
             scrollArea.appendChild(table);
         }

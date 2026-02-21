@@ -1,0 +1,93 @@
+{
+    "type": "TInspectorTemplate",
+    "name": "inspector_table",
+    "width": "100%",
+    "height": "100%",
+    "items": [
+        {
+            "type": "TGroup",
+            "name": "grpProperties",
+            "label": "Eigenschaften",
+            "expanded": true,
+            "items": [
+                {
+                    "type": "TEdit",
+                    "name": "name",
+                    "label": "Name",
+                    "binding": "name"
+                },
+                {
+                    "type": "TEdit",
+                    "name": "dataContainer",
+                    "label": "Datenbasis",
+                    "binding": "data",
+                    "showVariablePicker": true,
+                    "hint": "Datenquelle (z.B. ${currentRooms.data}). Zur Laufzeit wird Array hierhinein geladen."
+                },
+                {
+                    "type": "TEdit",
+                    "name": "columns",
+                    "label": "Spalten (JSON)",
+                    "binding": "columns",
+                    "hint": "[{\"field\":\"name\", \"label\":\"Name\"}]. Leer lassen für Auto-Columns."
+                }
+            ]
+        },
+        {
+            "type": "TGroup",
+            "name": "grpLayout",
+            "label": "Layout & Darstellung",
+            "expanded": false,
+            "items": [
+                {
+                    "type": "TStyleEditor",
+                    "name": "styleEditor",
+                    "binding": "style"
+                },
+                {
+                    "type": "TLayoutEditor",
+                    "name": "layoutEditor",
+                    "binding": "align"
+                },
+                {
+                    "type": "TEdit",
+                    "name": "rowHeight",
+                    "label": "Zeilenhöhe (px)",
+                    "binding": "rowHeight"
+                },
+                {
+                    "type": "TCheckbox",
+                    "name": "showHeader",
+                    "label": "Kopfzeile zeigen",
+                    "binding": "showHeader"
+                },
+                {
+                    "type": "TCheckbox",
+                    "name": "striped",
+                    "label": "Zebra-Tabelle",
+                    "binding": "striped"
+                },
+                {
+                    "type": "TEdit",
+                    "name": "tabIndex",
+                    "label": "Tab Order",
+                    "binding": "tabIndex",
+                    "hint": "Focus Reihenfolge (0 = Auto)"
+                }
+            ]
+        },
+        {
+            "type": "TGroup",
+            "name": "grpEvents",
+            "label": "Events",
+            "expanded": false,
+            "items": [
+                {
+                    "type": "TEventMap",
+                    "name": "eventMap",
+                    "binding": "eventMap"
+                }
+            ]
+        }
+    ]
+}

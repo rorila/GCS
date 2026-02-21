@@ -197,6 +197,7 @@ export class ComponentRegistry {
         this.typeMapping.set('Trigger', 'TTriggerVariable');
         this.typeMapping.set('Range', 'TRangeVariable');
         this.typeMapping.set('List', 'TListVariable');
+        this.typeMapping.set('Table', 'TTable');
         this.typeMapping.set('Random', 'TRandomVariable');
         this.typeMapping.set('StringVariable', 'TStringVariable');
         this.typeMapping.set('IntegerVariable', 'TIntegerVariable');

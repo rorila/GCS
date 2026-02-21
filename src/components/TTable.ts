@@ -2,45 +2,48 @@ import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
 export interface TColumnDef {
-    property: string;
+    field: string;
     label: string;
-    width?: string; // e.g. '100px' or '1fr'
-    type?: 'text' | 'image' | 'button' | 'icon' | 'status';
+    width?: string;
 }
 
 /**
- * TTable - Eine generische Tabellen-Komponente.
- * Kann beliebige Daten (Arrays von Objekten) visualisieren.
+ * TTable - Eine dynamische Tabellen-Komponente.
+ * Visualisiert Arrays von Objekten (z.B. aus APIs oder Variablen).
+ * Besitzt Auto-Column-Generierung als Fallback in Stage.ts.
  */
 export class TTable extends TWindow {
     public className: string = 'TTable';
-    public data: any[] = [];
-    public columns: TColumnDef[] = [];
+    public data: any[] = [];         // Daten-Basis (gebunden via RuntimeVariableManager)
+    public columns: any = [];        // JSON-Konfiguration (TColumnDef[])
     public selectedIndex: number = -1;
     public rowHeight: number = 30;
     public showHeader: boolean = true;
-    public onRowClick?: (row: any, index: number) => void;
+    public striped: boolean = true;
 
-    constructor(name: string, x: number, y: number, width: number = 8, height: number = 6) {
+    constructor(name: string = 'Table', x: number = 0, y: number = 0, width: number = 10, height: number = 8) {
         super(name, x, y, width, height);
-        this.style.backgroundColor = '#2c3e50';
-        this.style.color = '#ecf0f1';
-        this.style.borderColor = 'rgba(255,255,255,0.1)';
+        this.style.backgroundColor = '#ffffff';
+        this.style.color = '#333333';
+        this.style.borderColor = '#bdc3c7';
         this.style.borderWidth = 1;
+        this.style.borderRadius = 4;
+        this.style.fontSize = 14;
+    }
 
-        // Standard-Spalten (Beispiel)
-        this.columns = [
-            { property: 'name', label: 'Name', width: '1fr' },
-            { property: 'type', label: 'Typ', width: '80px' }
-        ];
+    public getEvents(): string[] {
+        return ['onSelect', 'onDoubleClick', ...super.getEvents()];
     }
 
     public getInspectorProperties(): TPropertyDef[] {
         const props = super.getInspectorProperties();
         return [
             ...props,
-            { name: 'rowHeight', label: 'Zeilenhöhe', type: 'number', group: 'Table' },
-            { name: 'showHeader', label: 'Header anzeigen', type: 'boolean', group: 'Table' }
+            { name: 'data', label: 'Daten-Basis (JSON)', type: 'json', group: 'Tabelle', hint: 'Wird oft zur Laufzeit überschrieben' },
+            { name: 'columns', label: 'Spalten (JSON)', type: 'json', group: 'Tabelle', hint: '[{"field":"id", "label":"ID"}] - Leer lassen für Auto-Columns' },
+            { name: 'rowHeight', label: 'Zeilenhöhe (px)', type: 'number', group: 'Tabelle' },
+            { name: 'showHeader', label: 'Kopfzeile zeigen', type: 'boolean', group: 'Tabelle' },
+            { name: 'striped', label: 'Zebra-Streifen', type: 'boolean', group: 'Tabelle' }
         ];
     }
 
@@ -51,7 +54,8 @@ export class TTable extends TWindow {
             columns: this.columns,
             selectedIndex: this.selectedIndex,
             rowHeight: this.rowHeight,
-            showHeader: this.showHeader
+            showHeader: this.showHeader,
+            striped: this.striped
         };
     }
 }

@@ -17,6 +17,11 @@
   - **Behoben**: Debug-Log brach nach JEDEM erfolgreichen Stage-Wechsel (z. B. durch `navigate_stage` -> Dashboard) aufgrund eines Fehlers in `EditorViewManager.switchView()` vorzeitig ab.
 - **RuntimeStageManager Caching**: 
   - Globale Variablen und Objekte (aus `blueprint` und `main` Stages) werden nun im Speicher gecacht anstatt bei jedem Stage-Wechsel neu aus dem JSON instanziiert zu werden. Dies verhindert den "Gedächtnisverlust" von globalen Variablen während Stage-Übergängen im Play-Modus.
+- **TTable Komponente (Dynamische Tabelle)**:
+  - Vollwertige `TTable` Komponente hinzugefügt und in `ComponentRegistry` sowie Toolboxen eingebunden.
+  - Das HTML-Rendering in `Stage.ts` (Methode `renderTable`) greift direkt auf die gebundenen Runtime-Daten (z.B. `currentRooms.data`) zu.
+  - Erlaubt Konfiguration individueller Spalten über die Eigenschaft `columns` (als JSON formatiert via `inspector_table.json`).
+  - **Auto-Columns**: Ist keine Konfiguration hinterlegt, werden die Eigenschaften (Keys) des ersten Daten-Elements automatisch als Spalten generiert!
 - **MockTaskExecutor**: Fehlende Methoden für Unit-Tests ergänzt (`setActions`, `setFlowCharts`, etc.).
 - **Global Variable Cleanup**: Bereinigung von fälschlicherweise in normalen Stages gespeicherten globalen Variablen beim Laden.
 - **Fix (Stage Events)**: Exponierung von Stage-Events (`onEnter`, `onLeave`, `onRuntimeStart`) im Inspector.

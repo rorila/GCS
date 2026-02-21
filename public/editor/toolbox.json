@@ -159,6 +159,11 @@
                     "label": "List"
                 },
                 {
+                    "type": "Table",
+                    "icon": "📊",
+                    "label": "Table"
+                },
+                {
                     "type": "Random",
                     "icon": "🎲",
                     "label": "Random"
