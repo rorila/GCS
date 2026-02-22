@@ -31,32 +31,30 @@
             ]
         },
         {
-            "id": "u_max",
-            "name": "Max",
-            "avatar": "👨‍🚀",
-            "role": "player",
+            "id": "u_admin_north",
+            "name": "Admin Nord",
+            "avatar": "❄️",
+            "role": "admin",
             "authCode": [
-                "🌈",
-                "🎮"
+                "❄️",
+                "🏠"
             ],
-            "assignedRoomIds": [
-                "room_kids",
-                "room_common"
+            "managedRooms": [
+                "room_north_1",
+                "room_north_2"
             ]
         },
         {
-            "id": "u_sarah",
-            "name": "Sarah",
-            "avatar": "👩‍🎨",
-            "role": "player",
+            "id": "u_admin_south",
+            "name": "Admin Süd",
+            "avatar": "☀️",
+            "role": "admin",
             "authCode": [
-                "🎨",
-                "🌟"
+                "☀️",
+                "🏠"
             ],
-            "assignedRoomIds": [
-                "room_kids",
-                "room_tv",
-                "room_common"
+            "managedRooms": [
+                "room_south_1"
             ]
         },
         {
@@ -79,20 +77,95 @@
             "role": "user",
             "authCode": [
                 "🍎",
-                "⭐"
+                "🍌"
             ],
             "managedRooms": []
         },
         {
             "id": "test-bug",
             "name": "TestBug",
-            "avatar": "�",
+            "avatar": "🐛",
             "role": "player",
             "authCode": [
                 "🐛",
                 "💣"
             ],
             "assignedRoomIds": []
+        },
+        {
+            "id": "u_max",
+            "name": "Max",
+            "avatar": "👨‍🚀",
+            "role": "player",
+            "authCode": [
+                "🌈",
+                "🎮"
+            ],
+            "assignedRoomIds": [
+                "room_kids",
+                "room_common",
+                "room_north_1"
+            ],
+            "houseId": "house1"
+        },
+        {
+            "id": "u_sarah",
+            "name": "Sarah",
+            "avatar": "👩‍🎨",
+            "role": "player",
+            "authCode": [
+                "🎨",
+                "🌟"
+            ],
+            "assignedRoomIds": [
+                "room_kids",
+                "room_tv",
+                "room_common"
+            ],
+            "houseId": "house1"
+        },
+        {
+            "id": "u_tom",
+            "name": "Tom",
+            "avatar": "👦",
+            "role": "player",
+            "authCode": [
+                "⚽",
+                "🚗"
+            ],
+            "assignedRoomIds": [
+                "room_north_1",
+                "room_north_2"
+            ],
+            "houseId": "house_north"
+        },
+        {
+            "id": "u_linda",
+            "name": "Linda",
+            "avatar": "👧",
+            "role": "player",
+            "authCode": [
+                "🦄",
+                "🌈"
+            ],
+            "assignedRoomIds": [
+                "room_south_1"
+            ],
+            "houseId": "house_south"
+        },
+        {
+            "id": "u_bob",
+            "name": "Bob",
+            "avatar": "🔨",
+            "role": "player",
+            "authCode": [
+                "🏗️",
+                "📐"
+            ],
+            "assignedRoomIds": [
+                "room_north_2"
+            ],
+            "houseId": "house_north"
         }
     ],
     "cities": [
@@ -106,8 +179,23 @@
         {
             "id": "house1",
             "cityId": "city1",
+            "adminId": "u_rolf",
             "name": "Haus der Abenteuer",
             "logo": "house_1.png"
+        },
+        {
+            "id": "house_north",
+            "cityId": "city1",
+            "adminId": "u_admin_north",
+            "name": "Nord-Residenz",
+            "logo": "house_north.png"
+        },
+        {
+            "id": "house_south",
+            "cityId": "city1",
+            "adminId": "u_admin_south",
+            "name": "Villa Sonnenschein",
+            "logo": "house_south.png"
         }
     ],
     "rooms": [
@@ -118,7 +206,10 @@
             "name": "Kinderzimmer",
             "config": {
                 "theme": "toys"
-            }
+            },
+            "games": [
+                "game_tictactoe"
+            ]
         },
         {
             "id": "room_tv",
@@ -127,7 +218,10 @@
             "name": "Fernsehzimmer",
             "config": {
                 "theme": "cinema"
-            }
+            },
+            "games": [
+                "game_pong"
+            ]
         },
         {
             "id": "room_common",
@@ -136,9 +230,62 @@
             "name": "Gemeinschaftszimmer",
             "config": {
                 "theme": "garden"
-            }
+            },
+            "games": []
+        },
+        {
+            "id": "room_north_1",
+            "houseId": "house_north",
+            "adminId": "u_admin_north",
+            "name": "Eishalle",
+            "config": {
+                "theme": "arctic"
+            },
+            "games": [
+                "game_pong"
+            ]
+        },
+        {
+            "id": "room_north_2",
+            "houseId": "house_north",
+            "adminId": "u_admin_north",
+            "name": "Werkstatt",
+            "config": {
+                "theme": "industrial"
+            },
+            "games": [
+                "game_breakout"
+            ]
+        },
+        {
+            "id": "room_south_1",
+            "houseId": "house_south",
+            "adminId": "u_admin_south",
+            "name": "Strandbar",
+            "config": {
+                "theme": "beach"
+            },
+            "games": [
+                "game_tictactoe"
+            ]
         }
     ],
-    "games": [],
+    "games": [
+        {
+            "id": "game_tictactoe",
+            "name": "Tic Tac Toe",
+            "type": "board"
+        },
+        {
+            "id": "game_pong",
+            "name": "Retro Pong",
+            "type": "arcade"
+        },
+        {
+            "id": "game_breakout",
+            "name": "Super Breakout",
+            "type": "action"
+        }
+    ],
     "instances": []
 }
