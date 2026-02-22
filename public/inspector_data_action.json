@@ -36,7 +36,7 @@
                     "value": "${selectedObject.selectFields}"
                 },
                 {
-                    "name": "selectFieldsInput",
+                    "name": "AddFieldDropdown",
                     "className": "TDropdown",
                     "selectedValue": "",
                     "options": "${availableResourceProperties}",
