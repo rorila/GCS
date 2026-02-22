@@ -428,20 +428,30 @@ export function registerStandardActions() {
                     result = PropertyHelper.getPropertyValue(result, action.resultPath);
                 }
 
-                // SQL Projection (SELECT name, role)
+                // SQL Projection (SELECT name, role, count(*))
                 if (action.selectFields && action.selectFields !== '*' && result) {
                     const fields = action.selectFields.split(',').map((f: string) => f.trim()).filter((f: string) => f);
-                    const project = (obj: any) => {
-                        if (typeof obj !== 'object' || obj === null) return obj;
-                        const partial: any = {};
-                        fields.forEach((f: string) => {
-                            if (f in obj) partial[f] = obj[f];
-                            // Also support nested paths if common, but for v1 top-level is fine
-                        });
-                        return partial;
-                    };
-                    result = Array.isArray(result) ? result.map(project) : project(result);
-                    console.log(`[Action: http] Applied SQL Projection (${action.selectFields}):`, result);
+                    const isCountOnly = fields.length === 1 && fields[0] === 'count(*)';
+
+                    if (isCountOnly && Array.isArray(result)) {
+                        result = result.length;
+                        console.log(`[Action: http] Applied SQL COUNT Projection: ${result}`);
+                    } else {
+                        const project = (obj: any) => {
+                            if (typeof obj !== 'object' || obj === null) return obj;
+                            const partial: any = {};
+                            fields.forEach((f: string) => {
+                                if (f === 'count(*)' || f === 'count') {
+                                    partial['count'] = 1;
+                                } else if (f in obj) {
+                                    partial[f] = obj[f];
+                                }
+                            });
+                            return partial;
+                        };
+                        result = Array.isArray(result) ? result.map(project) : project(result);
+                        console.log(`[Action: http] Applied SQL Projection (${action.selectFields}):`, result);
+                    }
                 }
 
                 // Smart-Unwrap: Only for JWT login responses (single user object expected)

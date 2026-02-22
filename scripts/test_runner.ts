@@ -5,6 +5,7 @@ import { runLoginTests, TestResult } from './test_login_logic.js'; // Note the .
 import { runSmartMappingTests } from './test_smart_mapping.js';
 import { runUnificationTests } from './test_unification_regression.js';
 import { runTableUnwrapTests } from '../tests/table_unwrapping.test.js';
+import { runSelectCountTests } from '../tests/select_count.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -78,7 +79,11 @@ async function main() {
         console.log('🏃 Starte TTable Smart-Unwrap Tests...');
         const tableResults = await runTableUnwrapTests();
 
-        const allResults = [...loginResults, ...smartResults, ...unificationResults, ...tableResults];
+        // 5. SELECT COUNT(*) Tests
+        console.log('🏃 Starte SELECT COUNT(*) Tests...');
+        const countResults = await runSelectCountTests();
+
+        const allResults = [...loginResults, ...smartResults, ...unificationResults, ...tableResults, ...countResults];
 
         // 3. Report Generation
         generateReport(allResults);

@@ -257,7 +257,7 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
     - **Logik**: Der Inspector folgt der SQL-Struktur: `SELECT` (Felder) -> `FROM` (DataStore) -> `WHERE` (Suchfeld == Suchwert) -> `INTO` (Zielvariable).
     - **Multi-Select (TChips)**: Die Komponente `TChips` stellt gewählte Felder visuell dar. Über den "Feld hinzufügen" Dropdown können weitere Spalten ergänzt werden.
     - **WHERE Flexibilität**: Der Suchwert unterstützt nun Variablen (`${Var}`), Element-Props (`${Sprite.x}`) via Variablen-Picker (📦).
-    - **Projektion**: Unterstützt `selectFields` zur Teilmengen-Filterung.
+    - **Aggregation (count(*))**: Wenn `count(*)` ausgewählt ist, gibt die Action bei Arrays die Anzahl der Datensätze zurück.
     - **Layout**: Jedes SQL-Segment ist durch eine farbige Border-Left Markierung (Gelb, Blau, Grün, Pink) visuell abgegrenzt.
 - **Keep it Simple**: Bevorzuge immer die automatisierte Simulation für Standard-CRUD-Operationen. Nur für komplexe Spezial-Logik sollten manuelle API-Event-Tasks (`onRequest`) verwendet werden.
 

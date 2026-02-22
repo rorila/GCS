@@ -145,7 +145,7 @@ export class InspectorContextBuilder {
                     return ['id', 'name', 'text', 'value'];
                 })();
 
-                return ['*', ...baseFields];
+                return ['*', 'count(*)', ...baseFields];
             })(),
 
             // Verfügbare Datenmodelle (für object/object_list Variablen)
