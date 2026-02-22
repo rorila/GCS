@@ -124,24 +124,28 @@ export class InspectorContextBuilder {
 
             // Standard-Felder für Data-Queries (Dynamisch basierend auf dem gewählten DataStore)
             availableResourceProperties: (() => {
-                const dsName = selectedObject?.dataStore;
-                if (!dsName) return ['id', 'name', 'text', 'value'];
+                const baseFields = (() => {
+                    const dsName = selectedObject?.dataStore;
+                    if (!dsName) return ['id', 'name', 'text', 'value'];
 
-                // Finde den DataStore in der Stage
-                const dsObj = allObjects.find(o => o.name === dsName || o.id === dsName);
-                const collection = (dsObj as any)?.defaultCollection || '';
+                    // Finde den DataStore in der Stage
+                    const dsObj = allObjects.find(o => o.name === dsName || o.id === dsName);
+                    const collection = (dsObj as any)?.defaultCollection || '';
 
-                if (collection === 'users') {
-                    return ['id', 'name', 'role', 'authCode', 'avatar', 'managedRooms', 'status'];
-                } else if (collection === 'rooms') {
-                    return ['id', 'name', 'houseId', 'adminId', 'config'];
-                } else if (collection === 'cities') {
-                    return ['id', 'name', 'logo'];
-                } else if (collection === 'houses') {
-                    return ['id', 'cityId', 'name', 'logo'];
-                }
+                    if (collection === 'users') {
+                        return ['id', 'name', 'role', 'authCode', 'avatar', 'managedRooms', 'status'];
+                    } else if (collection === 'rooms') {
+                        return ['id', 'name', 'houseId', 'adminId', 'config'];
+                    } else if (collection === 'cities') {
+                        return ['id', 'name', 'logo'];
+                    } else if (collection === 'houses') {
+                        return ['id', 'cityId', 'name', 'logo'];
+                    }
 
-                return ['id', 'name', 'text', 'value'];
+                    return ['id', 'name', 'text', 'value'];
+                })();
+
+                return ['*', ...baseFields];
             })(),
 
             // Verfügbare Datenmodelle (für object/object_list Variablen)

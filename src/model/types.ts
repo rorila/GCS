@@ -131,6 +131,7 @@ export interface HttpAction extends BaseAction {
     resource?: string;
     queryProperty?: string;
     queryValue?: string;
+    selectFields?: string; // Comma-separated list of fields to return (SQL SELECT)
     body?: any;
     resultVariable?: string;
     resultPath?: string; // Path to extract from response (e.g. 'user')

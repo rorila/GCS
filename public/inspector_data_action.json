@@ -3,13 +3,30 @@
         {
             "name": "NameInput",
             "className": "TEdit",
-            "label": "Name",
-            "text": "${selectedObject.Name}"
+            "label": "Action Name",
+            "text": "${selectedObject.name}",
+            "style": {
+                "marginBottom": "12px",
+                "fontSize": "11px",
+                "opacity": "0.6"
+            }
+        },
+        {
+            "name": "selectFieldsInput",
+            "className": "TDropdown",
+            "label": "SELECT (Felder)",
+            "selectedValue": "${selectedObject.selectFields}",
+            "options": "${availableResourceProperties}",
+            "placeholder": "* (Alle Felder)",
+            "style": {
+                "marginBottom": "4px",
+                "borderLeft": "3px solid #ffca28"
+            }
         },
         {
             "name": "dataStoreInput",
             "className": "TDropdown",
-            "label": "Data Store (Komponente)",
+            "label": "FROM (Data Store)",
             "selectedValue": "${selectedObject.dataStore}",
             "options": "${availableDataStores}",
             "placeholder": "-- Component Store --",
@@ -22,11 +39,27 @@
             "name": "PropQueryWrapper",
             "className": "TPanel",
             "visible": "${selectedObject.dataStore}",
+            "style": {
+                "borderLeft": "3px solid #66bb6a",
+                "paddingLeft": "8px",
+                "marginBottom": "8px"
+            },
             "children": [
+                {
+                    "name": "queryLabel",
+                    "className": "TLabel",
+                    "text": "WHERE",
+                    "style": {
+                        "fontSize": "10px",
+                        "fontWeight": "bold",
+                        "color": "#81c784",
+                        "marginBottom": "2px"
+                    }
+                },
                 {
                     "name": "queryPropertyInput",
                     "className": "TDropdown",
-                    "label": "Suche in Feld",
+                    "label": "Suchfeld",
                     "selectedValue": "${selectedObject.queryProperty}",
                     "options": "${availableResourceProperties}",
                     "placeholder": "-- Ganze Liste --",
@@ -37,94 +70,59 @@
                 {
                     "name": "queryValueInput",
                     "className": "TDropdown",
-                    "label": "Suchwert",
+                    "label": "==",
                     "selectedValue": "${selectedObject.queryValue}",
                     "options": "${availableVariablesAsTokens}",
                     "placeholder": "-- Wert/Variable --",
                     "visible": "${selectedObject.queryProperty}"
-                },
-                {
-                    "name": "requestJWTInput",
-                    "className": "TCheckbox",
-                    "label": "JWT Token generieren",
-                    "checked": "${selectedObject.requestJWT}",
-                    "style": {
-                        "marginTop": "8px",
-                        "color": "#fff"
-                    }
                 }
-            ]
-        },
-        {
-            "name": "urlInput",
-            "className": "TEdit",
-            "label": "Route / URL",
-            "text": "${selectedObject.url}",
-            "enabled": false,
-            "style": {
-                "opacity": "0.7",
-                "backgroundColor": "#222"
-            }
-        },
-        {
-            "name": "URLHelpWrapper",
-            "className": "TPanel",
-            "children": [
-                {
-                    "name": "URLHelp",
-                    "className": "TLabel",
-                    "text": "Tipp: Die Route wird automatisch generiert.",
-                    "style": {
-                        "fontSize": "10px",
-                        "color": "#aaa",
-                        "fontStyle": "italic",
-                        "marginBottom": "4px"
-                    }
-                }
-            ],
-            "style": {
-                "marginBottom": "8px"
-            }
-        },
-        {
-            "name": "methodInput",
-            "className": "TDropdown",
-            "label": "Methode",
-            "selectedValue": "${selectedObject.method}",
-            "options": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
             ]
         },
         {
             "name": "resultVariableInput",
             "className": "TDropdown",
-            "label": "Ziel-Variable",
+            "label": "INTO (Ziel-Variable)",
             "selectedValue": "${selectedObject.resultVariable}",
             "options": "${availableVariablesWithScope}",
-            "placeholder": "-- Keine --"
-        },
-        {
-            "name": "resultPathInput",
-            "className": "TDropdown",
-            "label": "Daten-Pfad (Selektor)",
-            "selectedValue": "${selectedObject.resultPath}",
-            "options": "${availableResourceProperties}",
-            "placeholder": "z.B. user oder data.item",
-            "hint": "Pfad zum Objekt in der Server-Antwort"
-        },
-        {
-            "name": "bodyInput",
-            "className": "TMemo",
-            "label": "Body (JSON)",
-            "text": "${selectedObject.body}",
-            "visible": "${selectedObject.method !== 'GET'}",
+            "placeholder": "-- Keine --",
             "style": {
-                "height": "80px",
-                "fontFamily": "monospace"
+                "marginTop": "8px",
+                "borderLeft": "3px solid #ec407a"
             }
+        },
+        {
+            "name": "AdvancedPanel",
+            "className": "TPanel",
+            "label": "Erweitert",
+            "style": {
+                "marginTop": "12px",
+                "borderTop": "1px solid #444",
+                "paddingTop": "8px"
+            },
+            "children": [
+                {
+                    "name": "urlInput",
+                    "className": "TEdit",
+                    "label": "Interne Route",
+                    "text": "${selectedObject.url}",
+                    "enabled": false,
+                    "style": {
+                        "opacity": "0.5",
+                        "fontSize": "10px"
+                    }
+                },
+                {
+                    "name": "requestJWTInput",
+                    "className": "TCheckbox",
+                    "label": "JWT / Login Modus",
+                    "checked": "${selectedObject.requestJWT}",
+                    "style": {
+                        "marginTop": "4px",
+                        "color": "#aaa",
+                        "fontSize": "11px"
+                    }
+                }
+            ]
         }
     ],
     "footer": [

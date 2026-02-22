@@ -428,6 +428,22 @@ export function registerStandardActions() {
                     result = PropertyHelper.getPropertyValue(result, action.resultPath);
                 }
 
+                // SQL Projection (SELECT name, role)
+                if (action.selectFields && action.selectFields !== '*' && result) {
+                    const fields = action.selectFields.split(',').map((f: string) => f.trim()).filter((f: string) => f);
+                    const project = (obj: any) => {
+                        if (typeof obj !== 'object' || obj === null) return obj;
+                        const partial: any = {};
+                        fields.forEach((f: string) => {
+                            if (f in obj) partial[f] = obj[f];
+                            // Also support nested paths if common, but for v1 top-level is fine
+                        });
+                        return partial;
+                    };
+                    result = Array.isArray(result) ? result.map(project) : project(result);
+                    console.log(`[Action: http] Applied SQL Projection (${action.selectFields}):`, result);
+                }
+
                 // Smart-Unwrap: Only for JWT login responses (single user object expected)
                 if (action.requestJWT && Array.isArray(result) && result.length === 1) {
                     console.log(`[Action: http] Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);

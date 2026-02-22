@@ -1,3 +1,11 @@
+# Changelog
+
+## [3.3.19] - 2026-02-22
+### Added
+- **TDataAction SQL-Style**: Umstrukturierung des Inspectors nach SQL-Logik (SELECT, FROM, WHERE, INTO).
+- **Property Projection**: Unterstützung für `selectFields` in der `TDataAction` zur Filterung von Ergebnis-Objekten.
+- **Auto-Schema-Detection**: '*' Support für SELECT-Felder im Inspector-Dropdown.
+
 ### [3.3.18] - 2026-02-21
 ### [2026-02-21] - TTable & Binding Fixes (Runtime Optimization)
 - **ReactiveRuntime**: Umstellung auf Proxy-basierte Namespace-Auflösung (`global.`, `stage.`) im `getContext`. Gewährleistet zuverlässiges Binding von globalen Komponenten und Variablen.
