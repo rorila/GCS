@@ -269,24 +269,14 @@ export class Editor implements IViewHost {
 
                             if (method === 'GET') {
                                 console.log(`[ApiSimulator] Auto-GET for resource: ${resource}`);
-                                // Fix: Pass query to dataService.findItems to enable filtering
-                                const allItems = await dataService.findItems(targetFile, resource, query);
-                                const results = allItems.filter((item: any) => {
-                                    for (const key in query) {
-                                        const queryVal = query[key];
-                                        let itemVal = item[key];
+                                // Extract operator if present in query
+                                const operator = query.operator || '==';
+                                const cleanQuery = { ...query };
+                                delete cleanQuery.operator;
 
-                                        // Special handling for authCode/pin arrays
-                                        if (Array.isArray(itemVal) && typeof queryVal === 'string') {
-                                            itemVal = itemVal.join('');
-                                        }
-
-                                        // Loose comparison for compatibility
-                                        if (itemVal != queryVal) return false;
-                                    }
-                                    return true;
-                                });
-                                return results;
+                                // Pass operator to dataService.findItems
+                                const allItems = await dataService.findItems(targetFile, resource, cleanQuery, operator);
+                                return allItems; // No need to filter here anymore, DataService does it!
                             } else if (method === 'POST') {
                                 console.log(`[ApiSimulator] Auto-POST for resource: ${resource}`);
                                 const newItem = await dataService.saveItem(targetFile, resource, body);

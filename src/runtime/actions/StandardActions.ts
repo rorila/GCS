@@ -343,9 +343,11 @@ export function registerStandardActions() {
                 effectiveUrl = `/api/data/${res}`;
                 const qProp = action.queryProperty || action.property;
                 const qVal = action.queryValue || action.value;
+                const qOp = action.queryOperator || '==';
+
                 if (qProp && qVal) {
                     const interpValue = PropertyHelper.interpolate(String(qVal), combinedContext, context.objects);
-                    effectiveUrl += `?${qProp}=${encodeURIComponent(interpValue)}`;
+                    effectiveUrl += `?${qProp}=${encodeURIComponent(interpValue)}&operator=${qOp}`;
                 }
             }
         }

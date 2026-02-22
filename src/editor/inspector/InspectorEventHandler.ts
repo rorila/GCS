@@ -28,7 +28,14 @@ export class InspectorEventHandler {
         if (propertyPath.includes('_')) {
             const parts = propertyPath.split('_');
             const suffix = (propertyPath.endsWith('Input') ? 'Input' : (propertyPath.endsWith('Select') ? 'Select' : ''));
-            propertyPath = parts[0] + suffix;
+
+            // Handle event_ prefix specifically
+            if (propertyPath.startsWith('event_')) {
+                const eventName = parts[1].replace('Select', '').replace('Input', '');
+                propertyPath = `events.${eventName}`;
+            } else {
+                propertyPath = parts[0] + suffix;
+            }
         }
 
         if (propertyPath.endsWith('Input')) {

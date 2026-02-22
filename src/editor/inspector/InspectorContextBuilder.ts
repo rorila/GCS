@@ -133,9 +133,9 @@ export class InspectorContextBuilder {
                     const collection = (dsObj as any)?.defaultCollection || '';
 
                     if (collection === 'users') {
-                        return ['id', 'name', 'role', 'authCode', 'avatar', 'managedRooms', 'status'];
+                        return ['id', 'name', 'role', 'authCode', 'avatar', 'managedRooms', 'assignedRoomIds', 'houseId', 'status'];
                     } else if (collection === 'rooms') {
-                        return ['id', 'name', 'houseId', 'adminId', 'config'];
+                        return ['id', 'name', 'houseId', 'adminId', 'config', 'games'];
                     } else if (collection === 'cities') {
                         return ['id', 'name', 'logo'];
                     } else if (collection === 'houses') {
@@ -177,7 +177,13 @@ export class InspectorContextBuilder {
                 'progress',
                 'enabled',
                 'src'
-            ]
+            ],
+
+            // Liste der verfügbaren Tasks (Global + Aktive Stage)
+            availableTasks: registry.getTasks('active').map(t => ({
+                value: t.name,
+                label: `${t.uiEmoji || '📍'} ${t.name}`
+            }))
         };
 
         // Variablen-Werte hinzufügen (für Live-Preview im Inspector)

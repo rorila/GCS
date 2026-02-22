@@ -1,6 +1,50 @@
 {
     "objects": [
         {
+            "name": "generalGroup",
+            "className": "TPanel",
+            "style": {
+                "borderLeft": "3px solid #64b5f6",
+                "paddingLeft": "10px",
+                "marginBottom": "15px"
+            },
+            "children": [
+                {
+                    "name": "nameLabel",
+                    "className": "TLabel",
+                    "text": "Name",
+                    "style": {
+                        "color": "#64b5f6",
+                        "fontWeight": "bold",
+                        "marginBottom": "4px"
+                    }
+                },
+                {
+                    "name": "NameInput",
+                    "className": "TEdit",
+                    "text": "${selectedObject.Name}",
+                    "placeholder": "Action Name..."
+                },
+                {
+                    "name": "descriptionLabel",
+                    "className": "TLabel",
+                    "text": "Beschreibung",
+                    "style": {
+                        "color": "#777",
+                        "fontSize": "11px",
+                        "marginTop": "8px",
+                        "marginBottom": "4px"
+                    }
+                },
+                {
+                    "name": "DescriptionInput",
+                    "className": "TEdit",
+                    "text": "${selectedObject.Description}",
+                    "placeholder": "Optionale Beschreibung..."
+                }
+            ]
+        },
+        {
             "name": "sqlTitle",
             "className": "TLabel",
             "text": "SQL Abfrage Konfiguration",
@@ -115,12 +159,41 @@
                             }
                         },
                         {
-                            "name": "operatorLabel",
-                            "className": "TLabel",
-                            "text": "==",
+                            "name": "queryOperatorInput",
+                            "className": "TDropdown",
+                            "selectedValue": "${selectedObject.queryOperator}",
+                            "options": [
+                                {
+                                    "value": "==",
+                                    "label": "=="
+                                },
+                                {
+                                    "value": "CONTAINS",
+                                    "label": "CONTAINS (Enthält)"
+                                },
+                                {
+                                    "value": "IN",
+                                    "label": "IN (Einer von)"
+                                },
+                                {
+                                    "value": ">",
+                                    "label": ">"
+                                },
+                                {
+                                    "value": ">=",
+                                    "label": ">="
+                                },
+                                {
+                                    "value": "<",
+                                    "label": "<"
+                                },
+                                {
+                                    "value": "<=",
+                                    "label": "<="
+                                }
+                            ],
                             "style": {
-                                "width": "20px",
-                                "textAlign": "center"
+                                "width": "60px"
                             }
                         },
                         {

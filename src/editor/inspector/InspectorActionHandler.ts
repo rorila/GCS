@@ -44,6 +44,9 @@ export class InspectorActionHandler {
             case 'appendField':
                 this.handleAppendField(buttonDef, selectedObject, value);
                 break;
+            case 'map_event':
+                this.handleMapEvent(buttonDef, selectedObject, value);
+                break;
             default:
                 console.warn(`[InspectorActionHandler] Unknown action: ${action}`);
         }
@@ -204,6 +207,23 @@ export class InspectorActionHandler {
         if (newValue !== currentVal) {
             PropertyHelper.setPropertyValue(obj, propName, newValue);
             this.notifyChange(obj, propName, newValue, currentVal);
+            this.host.update(obj);
+        }
+    }
+
+    private handleMapEvent(def: any, obj: any, value: string): void {
+        const controlName = def.name || '';
+        if (!controlName.startsWith('event_')) return;
+
+        const eventName = controlName.substring(6).replace('Select', '').replace('Input', '');
+        console.log(`[InspectorActionHandler] Mapping event ${eventName} to task: ${value}`);
+
+        if (!obj.events) obj.events = {};
+        const oldVal = obj.events[eventName];
+        obj.events[eventName] = value;
+
+        if (oldVal !== value) {
+            this.notifyChange(obj, `events.${eventName}`, value, oldVal);
             this.host.update(obj);
         }
     }

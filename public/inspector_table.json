@@ -32,22 +32,44 @@
             "hint": "[{\"field\":\"id\", \"label\":\"ID\"}] - Leer lassen für Auto-Spalten."
         },
         {
+            "className": "TDropdown",
+            "name": "displayMode",
+            "label": "Anzeige-Modus",
+            "selectedValue": "${selectedObject.displayMode}",
+            "options": [
+                "table",
+                "cards"
+            ],
+            "hint": "Wähle zwischen klassischer Tabelle oder moderner Karten-Galerie."
+        },
+        {
+            "className": "TEdit",
+            "name": "cardConfig",
+            "label": "Karten-Design (JSON)",
+            "text": "${selectedObject.cardConfig}",
+            "visible": "${selectedObject.displayMode == 'cards'}",
+            "hint": "Konfiguriere das Karten-Layout (Abstände, Hintergrund, etc.)."
+        },
+        {
             "className": "TNumberInput",
             "name": "rowHeight",
             "label": "Zeilenhöhe (px)",
-            "value": "${selectedObject.rowHeight}"
+            "value": "${selectedObject.rowHeight}",
+            "visible": "${selectedObject.displayMode == 'table'}"
         },
         {
             "className": "TCheckbox",
             "name": "showHeader",
             "label": "Kopfzeile zeigen",
-            "checked": "${selectedObject.showHeader}"
+            "checked": "${selectedObject.showHeader}",
+            "visible": "${selectedObject.displayMode == 'table'}"
         },
         {
             "className": "TCheckbox",
             "name": "striped",
             "label": "Zebra-Tabelle",
-            "checked": "${selectedObject.striped}"
+            "checked": "${selectedObject.striped}",
+            "visible": "${selectedObject.displayMode == 'table'}"
         }
     ]
 }

@@ -1,8 +1,8 @@
-
-import { ReactiveRuntime } from '../../runtime/ReactiveRuntime';
+import { ExpressionParser } from '../../runtime/ExpressionParser';
+import { InspectorContextBuilder } from './InspectorContextBuilder';
 
 export class InspectorTemplateLoader {
-    constructor(private runtime: ReactiveRuntime) { }
+    constructor() { }
 
     /**
      * Loads a JSON template and expands any for-each loops
@@ -30,7 +30,10 @@ export class InspectorTemplateLoader {
         for (const obj of objects) {
             if (obj.forEach) {
                 const listExpr = obj.forEach;
-                const items = this.runtime.evaluate(listExpr);
+
+                // NEW: Use proper context-aware evaluation via ExpressionParser
+                const context = InspectorContextBuilder.build(_context);
+                const items = ExpressionParser.evaluateRaw(listExpr, context);
 
                 if (Array.isArray(items)) {
                     items.forEach((item, index) => {

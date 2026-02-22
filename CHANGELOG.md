@@ -1,5 +1,33 @@
 # Changelog
 
+
+## [3.3.22] - 2026-02-22
+### Fixed
+- **Inspector**: Fehlende Events für Flow-Elements (DataActions) behoben. Durch die Einführung einer dynamischen Event-Ermittlung in `InspectorHost.ts` werden `onSuccess` und `onError` nun korrekt angezeigt.
+- **Inspector**: Absturz bei der Verwendung von String-Styles in JSON-Templates (`CSSStyleDeclaration` Fehler) behoben durch robustere `applyStyle`-Logik in `InspectorRenderer.ts`.
+- **Inspector**: Fehlerbehebung bei der Anzeige von Event-Labels ("undefined") und der Task-Auswahl durch Korrektur der Kontext-Auflösung in `InspectorTemplateLoader.ts`.
+- **Inspector**: Persistenz-Fix für Event-Mappings: Auswahl bleibt nun erhalten durch korrektes Pfad-Mapping (`event_` -> `events.`) in `InspectorEventHandler.ts`.
+- **Inspector**: Integration von `availableTasks` in den Datenkontext (`InspectorContextBuilder.ts`) und Implementierung der `map_event`-Aktion.
+
+## [3.3.21] - 2026-02-22
+### Fixed
+- **Variable Inspector**: Behebung eines Fehlers in `PropertyHelper.ts`, durch den Metadaten (wie `type` oder `defaultValue`) im Inspector nicht mehr angezeigt wurden, sobald eine Variable einen Wert enthielt.
+- **DataAction Inspector**: Hinzufügen von Feldern für `Name` und `Beschreibung` im spezialisierten DataAction-Inspector.
+- **Property Resolution**: Implementierung eines Fallbacks in `getPropertyValue`, der bei fehlerhafter Inhalts-Auflösung auf die Eigenschaften der Ursprungskomponente zurückgreift.
+- **Testing**: Neuer Regressionstest `tests/variable_inspector.test.ts` zur Absicherung der Eigenschafts-Auflösung.
+
+## [3.3.20] - 2026-02-22
+### Added
+- **Dynamic Card Gallery**: Erhebliche Erweiterung der `TTable` Komponente um eine Gallerie-Ansicht (`displayMode: 'cards'`).
+- **Absolute Positioning**: Unterstützung für `x`, `y`, `width` und `height` innerhalb von Karten, was ein stage-ähnliches Layout ermöglicht.
+- **Card-Slot-Types**: Neue Slot-Typen `image`, `header`, `badge` und `meta` für standardisiertes Kartendesign.
+- **Dynamic Data Binding**: Vollständige Integration mit Stage-Variablen (`TListVariable`) und reaktivem Unwrapping.
+- **Inspector Upgrade**: Konditionale Sichtbarkeit für Karten- vs. Tabellen-Konfiguration in `inspector_table.json`.
+
+### Changed
+- **Stage Migration**: Die `stage_room_management` wurde vollständig von statischen Mockups auf dynamische `TObjectList`-Komponenten umgestellt.
+- **Capacity Tracking**: Die Kapazitätsanzeige reagiert nun dynamisch auf die Anzahl der geladenen Spieler.
+
 ## [3.3.19] - 2026-02-22
 ### Added
 - **TDataAction SQL-Style**: Umstrukturierung des Inspectors nach SQL-Logik (SELECT, FROM, WHERE, INTO).

@@ -1,61 +1,41 @@
-{
-    "objects": [
-        {
-            "className": "TLabel",
-            "name": "EventsTitle",
-            "text": "Events",
-            "style": {
-                "fontSize": 14,
-                "fontWeight": "bold",
-                "color": "#fff",
-                "marginBottom": 12
+[
+    {
+        "className": "TPanel",
+        "style": "display: flex; flex-direction: column; gap: 8px;",
+        "children": [
+            {
+                "className": "TPanel",
+                "forEach": "selectedObject._supportedEvents",
+                "style": {
+                    "padding": "8px",
+                    "background": "rgba(255,255,255,0.05)",
+                    "borderRadius": "4px",
+                    "border": "1px solid rgba(255,255,255,0.1)",
+                    "marginBottom": "8px"
+                },
+                "children": [
+                    {
+                        "className": "TLabel",
+                        "text": "${value}",
+                        "style": {
+                            "fontWeight": "bold",
+                            "marginBottom": "4px",
+                            "display": "block",
+                            "color": "#aaa",
+                            "fontSize": "11px"
+                        }
+                    },
+                    {
+                        "className": "TSelect",
+                        "name": "event_${value}",
+                        "label": "",
+                        "placeholder": "Task auswählen...",
+                        "options": "${availableTasks}",
+                        "selectedValue": "${selectedObject.events.${value} || ''}",
+                        "action": "map_event"
+                    }
+                ]
             }
-        },
-        {
-            "className": "TForEach",
-            "name": "EventsList",
-            "source": "selectedObject._supportedEvents",
-            "rowLayout": true,
-            "template": [
-                {
-                    "className": "TLabel",
-                    "name": "EventLabel_${key}",
-                    "text": "${key}",
-                    "style": {
-                        "fontSize": 10,
-                        "color": "#9cdcfe",
-                        "minWidth": "130px",
-                        "flex": "0 0 130px"
-                    }
-                },
-                {
-                    "className": "TSelect",
-                    "name": "EventInput_${key}",
-                    "source": "tasks",
-                    "selectedValue": "${selectedObject.events.${key}}",
-                    "allowEmpty": true,
-                    "emptyLabel": "-- Select Task --",
-                    "style": {
-                        "flex": "1",
-                        "minWidth": "60px"
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "name": "EventEditButton_${key}",
-                    "caption": "✏️",
-                    "action": "openTaskEditor",
-                    "eventKey": "${key}",
-                    "style": {
-                        "flex": "0 0 24px",
-                        "minWidth": "24px",
-                        "padding": "0",
-                        "display": "flex",
-                        "alignItems": "center",
-                        "justifyContent": "center"
-                    }
-                }
-            ]
-        }
-    ]
-}
+        ]
+    }
+]

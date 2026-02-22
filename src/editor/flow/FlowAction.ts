@@ -6,6 +6,10 @@ import { ExpressionParser } from '../../runtime/ExpressionParser';
 export class FlowAction extends FlowElement {
     public getType(): string { return 'Action'; }
 
+    public getEvents(): string[] {
+        return []; // Standardaktionen haben keine Standard-Events
+    }
+
     // originalText removed, using this.Name instead
 
     constructor(id: string, x: number, y: number, container: HTMLElement, gridSize: number) {

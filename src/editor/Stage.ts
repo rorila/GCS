@@ -2297,101 +2297,168 @@ export class Stage {
         if (scrollArea) {
             scrollArea.innerHTML = '';
 
-            const table = document.createElement('table');
-            table.style.cssText = 'width:100%; border-collapse:collapse; color:inherit; text-align:left;';
+            if (obj.displayMode === 'cards') {
+                // GALLERY MODE (Cards)
+                const config = obj.cardConfig || {};
+                const gap = config.gap ?? 15;
+                const cardWidth = config.width ?? 280;
+                const cardHeight = config.height ?? 110;
 
-            // Header
-            if (obj.showHeader !== false && cols.length > 0) {
-                const thead = document.createElement('thead');
-                const hRow = document.createElement('tr');
-                hRow.style.cssText = 'background:rgba(0,0,0,0.05); position:sticky; top:0; z-index:1;';
-                cols.forEach((col: any) => {
-                    const th = document.createElement('th');
-                    // GCS-Compatibility: Older TObjectList uses "property", TTable uses "field"
-                    const fieldName = col.field || col.property;
-                    const labelName = col.label || fieldName;
+                scrollArea.style.display = 'flex';
+                scrollArea.style.flexWrap = 'wrap';
+                scrollArea.style.gap = `${gap}px`;
+                scrollArea.style.padding = `${gap}px`;
+                scrollArea.style.alignContent = 'flex-start';
 
-                    th.style.cssText = `padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.1); width:${col.width || 'auto'}; font-weight:600;`;
-                    th.innerText = labelName;
-                    hRow.appendChild(th);
-                });
-                thead.appendChild(hRow);
-                table.appendChild(thead);
-            }
-
-            // Body
-            const tbody = document.createElement('tbody');
-            if (rawData.length === 0) {
-                const tr = document.createElement('tr');
-                const td = document.createElement('td');
-                td.colSpan = Math.max(1, cols.length);
-                td.innerText = "Keine Daten vorhanden.";
-                td.style.cssText = 'padding:12px; text-align:center; opacity:0.6; font-style:italic;';
-                tr.appendChild(td);
-                tbody.appendChild(tr);
-            } else {
                 rawData.forEach((row: any, idx: number) => {
-                    const tr = document.createElement('tr');
-                    const rowHeight = obj.rowHeight || 30;
-                    tr.style.cssText = `border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer; height:${rowHeight}px;`;
+                    const card = document.createElement('div');
+                    card.className = 'gcs-card-item';
+                    card.style.cssText = `
+                        position: relative;
+                        width: ${cardWidth}px;
+                        height: ${cardHeight}px;
+                        background: ${config.backgroundColor || 'rgba(255, 255, 255, 0.05)'};
+                        border: ${config.borderWidth || 1}px solid ${config.borderColor || 'rgba(255, 255, 255, 0.1)'};
+                        border-radius: ${config.borderRadius || 12}px;
+                        padding: ${config.padding || 12}px;
+                        cursor: pointer;
+                        overflow: hidden;
+                        transition: transform 0.2s, background 0.2s;
+                        box-sizing: border-box;
+                    `;
 
-                    const isSelected = idx === obj.selectedIndex;
-                    const isStriped = obj.striped !== false && (idx % 2 === 1);
+                    if (idx === obj.selectedIndex) {
+                        card.style.background = 'rgba(255, 255, 255, 0.15)';
+                        card.style.borderColor = '#0ed7b5'; // Brand highlight
+                    }
 
-                    // Initial bg
-                    tr.style.backgroundColor = isSelected ? 'rgba(0,0,0,0.1)' : (isStriped ? 'rgba(0,0,0,0.02)' : 'transparent');
-
-                    tr.onmouseenter = () => tr.style.backgroundColor = 'rgba(0,0,0,0.08)';
-                    tr.onmouseleave = () => tr.style.backgroundColor = isSelected ? 'rgba(0,0,0,0.1)' : (isStriped ? 'rgba(0,0,0,0.02)' : 'transparent');
-
-                    tr.onclick = (e) => {
+                    card.onmouseenter = () => card.style.transform = 'translateY(-2px)';
+                    card.onmouseleave = () => card.style.transform = 'none';
+                    card.onclick = (e) => {
                         e.stopPropagation();
                         obj.selectedIndex = idx;
-
-                        // Legacy hook Support (TObjectList)
-                        if (typeof obj.onRowClick === 'function') {
-                            obj.onRowClick(row, idx);
-                        }
-
-                        // New Stage-Event hook
-                        if (onEvent) {
-                            onEvent(obj.id, 'onSelect', row);
-                            // Optionally trigger selection index change
-                            onEvent(obj.id, 'propertyChange', { property: 'selectedIndex', value: idx });
-                        }
-
-                        Stage.renderTable(el, obj, onEvent); // Re-render to show selection
+                        if (onEvent) onEvent(obj.id, 'onSelect', { index: idx, data: row });
+                        Stage.renderTable(el, obj, onEvent); // Re-render for selection
                     };
 
-                    if (cols.length > 0) {
+                    // Elements inside card (based on Columns)
+                    cols.forEach((col: any) => {
+                        const fieldName = col.field || col.property;
+                        const value = row[fieldName] ?? '';
+                        const type = col.type || 'text';
+                        const colStyle = col.style || {};
+
+                        const itemEl = document.createElement('div');
+                        itemEl.style.position = 'absolute';
+                        const cellSize = 10; // Simple grid inside card
+                        if (col.x !== undefined) itemEl.style.left = `${col.x * cellSize}px`;
+                        if (col.y !== undefined) itemEl.style.top = `${col.y * cellSize}px`;
+                        if (col.width !== undefined) itemEl.style.width = `${col.width * cellSize}px`;
+                        if (col.height !== undefined) itemEl.style.height = `${col.height * cellSize}px`;
+
+                        // Font / Style mapping
+                        if (colStyle.fontSize) itemEl.style.fontSize = typeof colStyle.fontSize === 'number' ? `${colStyle.fontSize}px` : colStyle.fontSize;
+                        if (colStyle.color) itemEl.style.color = colStyle.color;
+                        if (colStyle.fontWeight) itemEl.style.fontWeight = colStyle.fontWeight;
+                        if (colStyle.fontStyle) itemEl.style.fontStyle = colStyle.fontStyle;
+
+                        if (type === 'image') {
+                            itemEl.style.borderRadius = '50%';
+                            itemEl.style.backgroundImage = `url(${value})`;
+                            itemEl.style.backgroundSize = 'cover';
+                            itemEl.style.backgroundPosition = 'center';
+                            if (!col.width) itemEl.style.width = '40px';
+                            if (!col.height) itemEl.style.height = '40px';
+                        } else if (type === 'badge') {
+                            itemEl.innerText = String(value).toUpperCase();
+                            itemEl.style.padding = '2px 8px';
+                            itemEl.style.borderRadius = '100px';
+                            itemEl.style.fontSize = '9px';
+                            itemEl.style.fontWeight = 'bold';
+                            itemEl.style.border = '1px solid currentColor';
+                            itemEl.style.backgroundColor = 'rgba(0,0,0,0.2)';
+                            itemEl.style.display = 'inline-flex';
+                            itemEl.style.alignItems = 'center';
+                            itemEl.style.justifyContent = 'center';
+                        } else {
+                            itemEl.innerText = String(value);
+                            if (type === 'header') {
+                                itemEl.style.fontWeight = 'bold';
+                                itemEl.style.fontSize = '14px';
+                            } else if (type === 'meta') {
+                                itemEl.style.opacity = '0.6';
+                                itemEl.style.fontSize = '11px';
+                            }
+                        }
+                        card.appendChild(itemEl);
+                    });
+                    scrollArea.appendChild(card);
+                });
+            } else {
+                // STANDARD TABLE MODE
+                const table = document.createElement('table');
+                table.style.cssText = 'width:100%; border-collapse:collapse; color:inherit; text-align:left;';
+
+                // Header
+                if (obj.showHeader !== false && cols.length > 0) {
+                    const thead = document.createElement('thead');
+                    const hRow = document.createElement('tr');
+                    hRow.style.cssText = 'background:rgba(0,0,0,0.05); position:sticky; top:0; z-index:1;';
+                    cols.forEach((col: any) => {
+                        const th = document.createElement('th');
+                        const fieldName = col.field || col.property;
+                        const labelName = col.label || fieldName;
+                        th.style.cssText = `padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.1); width:${col.width || 'auto'}; font-weight:600;`;
+                        th.innerText = labelName;
+                        hRow.appendChild(th);
+                    });
+                    thead.appendChild(hRow);
+                    table.appendChild(thead);
+                }
+
+                // Body
+                const tbody = document.createElement('tbody');
+                if (rawData.length === 0) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = Math.max(1, cols.length);
+                    td.innerText = "Keine Daten vorhanden.";
+                    td.style.cssText = 'padding:12px; text-align:center; opacity:0.6; font-style:italic;';
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+                } else {
+                    rawData.forEach((row: any, idx: number) => {
+                        const tr = document.createElement('tr');
+                        const rowHeight = obj.rowHeight || 30;
+                        tr.style.cssText = `border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer; height:${rowHeight}px;`;
+
+                        const isSelected = idx === obj.selectedIndex;
+                        const isStriped = obj.striped !== false && (idx % 2 === 1);
+
+                        tr.style.backgroundColor = isSelected ? 'rgba(0,0,0,0.1)' : (isStriped ? 'rgba(0,0,0,0.02)' : 'transparent');
+                        tr.onmouseenter = () => tr.style.backgroundColor = 'rgba(0,0,0,0.08)';
+                        tr.onmouseleave = () => tr.style.backgroundColor = isSelected ? 'rgba(0,0,0,0.1)' : (isStriped ? 'rgba(0,0,0,0.02)' : 'transparent');
+
+                        tr.onclick = (e) => {
+                            e.stopPropagation();
+                            obj.selectedIndex = idx;
+                            if (onEvent) onEvent(obj.id, 'onSelect', { index: idx, data: row });
+                            Stage.renderTable(el, obj, onEvent);
+                        };
+
                         cols.forEach((col: any) => {
                             const td = document.createElement('td');
-                            td.style.cssText = 'padding:8px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
-                            if (col.width) td.style.maxWidth = col.width;
-
                             const fieldName = col.field || col.property;
-                            let val = '';
-
-                            if (row && typeof row === 'object') {
-                                val = fieldName === '_value' ? String(row) : (row[fieldName] ?? '');
-                            } else {
-                                val = String(row ?? '');
-                            }
-
-                            // Legacy Emoji support for Developer Scope View
-                            if (fieldName === 'uiScope') {
-                                val = val === 'global' ? '🌎' : (val === 'stage' ? '🎭' : (val === 'library' ? '📚' : '📍'));
-                            }
-
-                            td.innerText = String(val);
+                            td.style.cssText = 'padding:6px 12px;';
+                            td.innerText = String(row[fieldName] ?? '');
                             tr.appendChild(td);
                         });
-                    }
-                    tbody.appendChild(tr);
-                });
+                        tbody.appendChild(tr);
+                    });
+                }
+                table.appendChild(tbody);
+                scrollArea.appendChild(table);
             }
-            table.appendChild(tbody);
-            scrollArea.appendChild(table);
         }
     }
 

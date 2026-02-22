@@ -599,6 +599,12 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Implizite Erkennung**: Beim Laden (`restoreNode` in `FlowEditor.ts`) werden spezialisierte Klassen automatisch anhand ihrer Datenfelder (z.B. Vorhandensein von `threshold` oder `duration`) instanziiert.
 - **Action-Target**: Variablen sind im `ActionEditor` als Ziele ("Targets") für Property-Änderungen (`property`-Action) verfügbar. Dabei werden kontextsensitiv variablenspezifische Properties wie `value`, `threshold` oder `min/max` zur Auswahl angeboten.
 
+- **Dynamische UI-Generierung (`forEach`)**:
+    - Das `forEach`-Attribut (z.B. `"forEach": "selectedObject._supportedEvents"`) erlaubt es, ein UI-Element (und seine Kinder) für jedes Element einer Liste zu duplizieren.
+    - Innerhalb der Kinder kann via `${value}` auf das aktuelle Element zugegriffen werden.
+    - Dies ist der bevorzugte Weg für dynamische Listen (z.B. Event-Mappings), anstatt veralteter Tags wie `TForEach`.
+    - Die Auswertung erfolgt im `InspectorTemplateLoader.ts`.
+
 ## Pascal-Generierung & Metadaten
 - **Metadaten in Kommentaren**: Der `PascalGenerator` fügt spezialisierte Eigenschaften (Threshold, Duration, etc.) als Kommentar hinter die Variablendeklaration ein, um die Logik-Konfiguration im Code-Viewer lesbar zu machen.
 - **Generische Event-Entdeckung**: Variablen-Events werden im Pascal-Generator dynamisch erkannt (Pattern: `on...`). Da Variablen von `TComponent` erben, prüft der Generator sowohl die Top-Level-Properties der Variable als auch das `Tasks`-Unterobjekt (Wiring), um sicherzustellen, dass Events für alle Typen (Trigger, Range, etc.) korrekt in Pascal-Prozeduren übersetzt werden.
@@ -1057,3 +1063,17 @@ Es gibt zwei grundlegend verschiedene Arten, wie Aktionen in der `actionSequence
 In der `project.json` sollten globale Variablen (aus der `stage_blueprint`) DIREKT ohne das Präfix `global.` referenziert werden (z.B. `${currentPIN}`). 
 - **Problem**: Der `ExpressionParser` sucht bereits in der globalen Map; ein zusätzliches `global.` führt zu einer misslungenen Auflösung (Empty String).
 - **Fix**: Immer `${Variable}` statt `${global.Variable}` verwenden.
+
+## Dynamic Card Gallery (v2.0)
+- **Komponente**: `TTable` und `TObjectList` unterstützen nun einen `displayMode`.
+    - `table`: Klassische tabellarische Ansicht.
+    - `cards`: Moderne Gallerie-Ansicht (Karten-Layout).
+- **Konfiguration**:
+    - **`cardConfig`**: Globales Styling der Karten (Width, Height, Gap, Padding, BG, Border).
+    - **`columns` (Erweitert)**: Bestimmen den Inhalt und das Layout *innerhalb* einer Karte.
+        - `type`: `image` (Avatar/Icon), `header` (Fett), `badge` (Status-Pille), `meta` (Subtext/Grau).
+        - `x` / `y`: Absolute Positionierung innerhalb der Karte (multipliziert mit `cellSize=10`).
+        - `style`: Individuelle CSS-Overrides pro Slot (fontSize, color, etc.).
+- **Interaktion**: `selectedIndex` und `onSelect` werden auch im Karten-Modus unterstützt und visuell hervorgehoben.
+- **Daten-Binding**: Nutze `${Variable}` im `data` Feld, um die Liste reaktiv zu halten.
+- **Best Practice**: Die `stage_room_management` dient als Referenz für die Migration von statischen Mockups zu dynamischen Karten.

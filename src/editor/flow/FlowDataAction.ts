@@ -4,6 +4,10 @@ import { GameProject } from '../../model/types';
 export class FlowDataAction extends FlowAction {
     public getType(): string { return 'DataAction'; }
 
+    public getEvents(): string[] {
+        return ['onSuccess', 'onError'];
+    }
+
     public successAnchor!: HTMLElement;
     public errorAnchor!: HTMLElement;
 
@@ -137,6 +141,20 @@ export class FlowDataAction extends FlowAction {
         this.updateAutoUrl();
     }
 
+    public get queryOperator(): string {
+        const action = this.getActionDefinition();
+        return action?.queryOperator || '==';
+    }
+    public set queryOperator(v: string) {
+        console.log(`[FlowDataAction] Setter queryOperator: ${v}`);
+        if (this.data) this.data.queryOperator = v;
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) {
+            action.queryOperator = v;
+        }
+        this.updateAutoUrl();
+    }
+
     private updateAutoUrl() {
         const action = this.getActionDefinition();
         if (action) {
@@ -146,7 +164,8 @@ export class FlowDataAction extends FlowAction {
             }
             const res = action.resource || this.getAutoResource();
             if (res && action.queryProperty) {
-                action.url = `/api/data/${res}?${action.queryProperty}=${action.queryValue || ''}`;
+                const op = action.queryOperator || '==';
+                action.url = `/api/data/${res}?${action.queryProperty}=${action.queryValue || ''}&operator=${op}`;
             }
         }
     }

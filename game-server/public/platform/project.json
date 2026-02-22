@@ -565,25 +565,25 @@
             }
           ]
         },
-        "GetAdminRooms": {
+        "GetRoomAdminData": {
           "elements": [
             {
               "id": "node-1771667385439",
               "type": "Task",
               "x": 40,
               "y": 80,
-              "width": 180,
+              "width": 200,
               "height": 60,
               "properties": {
-                "name": "GetAdminRooms",
+                "name": "GetRoomAdminData",
                 "details": "",
-                "description": "Die Räume des Admins werden von der Dabenbank geholt",
-                "text": "GetAdminRooms"
+                "description": "Hole sämtliche Daten die der RoomAdmin admistrieren kann",
+                "text": "GetRoomAdminData"
               },
               "data": {
-                "name": "GetAdminRooms",
-                "showDetails": false,
-                "description": "Die Räume des Admins werden von der Dabenbank geholt"
+                "name": "GetRoomAdminData",
+                "showDetails": true,
+                "description": "Hole sämtliche Daten die der RoomAdmin admistrieren kann"
               }
             },
             {
@@ -591,8 +591,8 @@
               "type": "DataAction",
               "x": 320,
               "y": 80,
-              "width": 180,
-              "height": 80,
+              "width": 200,
+              "height": 60,
               "properties": {
                 "name": "GetTheAdminRooms",
                 "details": "(data_action)",
@@ -601,7 +601,7 @@
               "data": {
                 "type": "data_action",
                 "name": "GetTheAdminRooms",
-                "showDetails": true,
+                "showDetails": false,
                 "dataStore": "RoomData",
                 "queryProperty": "adminId",
                 "url": "/api/data/rooms?adminId=${global.currentUser.id}",
@@ -1256,6 +1256,17 @@
           },
           "data": "${global.currentRooms}",
           "columns": [],
+          "displayMode": "table",
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
           "rowHeight": 30,
           "showHeader": true,
           "striped": true,
@@ -1534,7 +1545,7 @@
             }
           ]
         },
-        "GetAdminRooms": {
+        "GetRoomAdminData": {
           "elements": [
             {
               "id": "node-1771667385439",
@@ -1714,7 +1725,7 @@
           "droppable": false,
           "x": 2,
           "y": 19,
-          "width": 8,
+          "width": 10,
           "height": 4,
           "zIndex": 0,
           "align": "NONE",
@@ -1744,6 +1755,17 @@
               "width": "80px"
             }
           ],
+          "displayMode": "table",
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
           "rowHeight": 28,
           "showHeader": true,
           "striped": true,
@@ -1751,6 +1773,96 @@
           "searchProperty": "name",
           "selectedIndex": -1,
           "items": []
+        },
+        {
+          "className": "TObjectList",
+          "id": "obj_1771774059173_tfsxgvj5r",
+          "isVariable": true,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "currentRoomPlayers",
+          "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 13,
+          "y": 19,
+          "width": 11,
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#009688",
+            "borderColor": "#00796b",
+            "borderWidth": 2,
+            "borderRadius": 4
+          },
+          "data": [],
+          "columns": [
+            {
+              "property": "name",
+              "label": "Name",
+              "width": "1fr"
+            },
+            {
+              "property": "uiScope",
+              "label": "Scope",
+              "width": "60px"
+            },
+            {
+              "property": "usageCount",
+              "label": "Links",
+              "width": "50px"
+            }
+          ],
+          "displayMode": "table",
+          "cardConfig": {
+            "width": 250,
+            "height": 100,
+            "gap": 10,
+            "padding": 10,
+            "borderRadius": 12,
+            "backgroundColor": "rgba(255, 255, 255, 0.05)",
+            "borderColor": "rgba(255, 255, 255, 0.1)",
+            "borderWidth": 1
+          },
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1,
+          "items": []
+        },
+        {
+          "className": "TVariable",
+          "id": "obj_1771774558001_ezvnyhcrs",
+          "isVariable": true,
+          "isService": false,
+          "isHiddenInRun": true,
+          "name": "currentRoom",
+          "scope": "global",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 19,
+          "y": 4,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "string",
+          "value": "room_kids",
+          "objectModel": ""
         }
       ],
       "objects": [
@@ -1960,7 +2072,7 @@
               "type": "data_action",
               "successBody": [
                 {
-                  "condition": "${global.currentUser.role} == admin",
+                  "condition": "Condition",
                   "type": "condition",
                   "body": [
                     {
@@ -1968,12 +2080,46 @@
                       "type": "action"
                     }
                   ],
-                  "elseBody": []
+                  "elseBody": [
+                    {
+                      "condition": "Condition",
+                      "type": "condition",
+                      "body": [
+                        {
+                          "name": "GoToSuperAdminDashboard",
+                          "showDetails": false,
+                          "type": "action",
+                          "stageId": "stage_super_dashboard",
+                          "details": "(navigate_stage)"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "condition": "Condition",
+                          "type": "condition",
+                          "body": [
+                            {
+                              "name": "GoToPlayerLobby",
+                              "showDetails": false,
+                              "type": "action",
+                              "stageId": "stage_player_lobby",
+                              "details": "(navigate_stage)"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ]
+                    }
+                  ]
                 }
               ],
               "errorBody": [
                 {
                   "name": "ShowLoginError",
+                  "type": "action"
+                },
+                {
+                  "name": "ClearPIN",
                   "type": "action"
                 }
               ]
@@ -2295,12 +2441,12 @@
           }
         },
         {
-          "name": "GetAdminRooms",
+          "name": "GetRoomAdminData",
           "actionSequence": [
             {
               "type": "data_action",
               "name": "GetTheAdminRooms",
-              "showDetails": true,
+              "showDetails": false,
               "dataStore": "RoomData",
               "queryProperty": "adminId",
               "url": "/api/data/rooms?adminId=${global.currentUser.id}",
@@ -2312,7 +2458,7 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "description": "Die Räume des Admins werden von der Dabenbank geholt",
+          "description": "Hole sämtliche Daten die der RoomAdmin admistrieren kann",
           "flowChart": {
             "elements": [
               {
@@ -2320,18 +2466,18 @@
                 "type": "Task",
                 "x": 40,
                 "y": 80,
-                "width": 180,
+                "width": 200,
                 "height": 60,
                 "properties": {
-                  "name": "GetAdminRooms",
+                  "name": "GetRoomAdminData",
                   "details": "",
-                  "description": "Die Räume des Admins werden von der Dabenbank geholt",
-                  "text": "GetAdminRooms"
+                  "description": "Hole sämtliche Daten die der RoomAdmin admistrieren kann",
+                  "text": "GetRoomAdminData"
                 },
                 "data": {
-                  "name": "GetAdminRooms",
-                  "showDetails": false,
-                  "description": "Die Räume des Admins werden von der Dabenbank geholt"
+                  "name": "GetRoomAdminData",
+                  "showDetails": true,
+                  "description": "Hole sämtliche Daten die der RoomAdmin admistrieren kann"
                 }
               },
               {
@@ -2339,8 +2485,8 @@
                 "type": "DataAction",
                 "x": 320,
                 "y": 80,
-                "width": 180,
-                "height": 80,
+                "width": 200,
+                "height": 60,
                 "properties": {
                   "name": "GetTheAdminRooms",
                   "details": "(data_action)",
@@ -2349,7 +2495,7 @@
                 "data": {
                   "type": "data_action",
                   "name": "GetTheAdminRooms",
-                  "showDetails": true,
+                  "showDetails": false,
                   "dataStore": "RoomData",
                   "queryProperty": "adminId",
                   "url": "/api/data/rooms?adminId=${global.currentUser.id}",
@@ -2441,12 +2587,32 @@
           "details": "(data_action)",
           "type": "data_action",
           "name": "GetTheAdminRooms",
-          "showDetails": true,
+          "showDetails": false,
           "dataStore": "RoomData",
           "queryProperty": "adminId",
           "url": "/api/data/rooms?adminId=${global.currentUser.id}",
           "queryValue": "${global.currentUser.id}",
           "resultVariable": "obj_1771667640672_pnwqxyca3"
+        },
+        {
+          "details": "",
+          "type": "data_action",
+          "name": "DataAction2",
+          "showDetails": false
+        },
+        {
+          "details": "(data_action)",
+          "type": "data_action",
+          "name": "GetTheRoomPlayers",
+          "showDetails": false,
+          "dataStore": "UserData",
+          "AddFieldDropdown": "avatar",
+          "selectFields": "name, avatar",
+          "resultVariable": "currentRoomPlayers",
+          "queryProperty": "assignedRoomIds",
+          "url": "/api/data/users?assignedRoomIds=${currentRoom}&operator=CONTAINS",
+          "queryOperator": "CONTAINS",
+          "queryValue": "${currentRoom}"
         }
       ],
       "flowCharts": {
@@ -2764,25 +2930,25 @@
             }
           ]
         },
-        "GetAdminRooms": {
+        "GetRoomAdminData": {
           "elements": [
             {
               "id": "node-1771667385439",
               "type": "Task",
               "x": 40,
               "y": 80,
-              "width": 180,
+              "width": 200,
               "height": 60,
               "properties": {
-                "name": "GetAdminRooms",
+                "name": "GetRoomAdminData",
                 "details": "",
-                "description": "Die Räume des Admins werden von der Dabenbank geholt",
-                "text": "GetAdminRooms"
+                "description": "Hole sämtliche Daten die der RoomAdmin admistrieren kann",
+                "text": "GetRoomAdminData"
               },
               "data": {
-                "name": "GetAdminRooms",
-                "showDetails": false,
-                "description": "Die Räume des Admins werden von der Dabenbank geholt"
+                "name": "GetRoomAdminData",
+                "showDetails": true,
+                "description": "Hole sämtliche Daten die der RoomAdmin admistrieren kann"
               }
             },
             {
@@ -2790,8 +2956,8 @@
               "type": "DataAction",
               "x": 320,
               "y": 80,
-              "width": 180,
-              "height": 80,
+              "width": 200,
+              "height": 60,
               "properties": {
                 "name": "GetTheAdminRooms",
                 "details": "(data_action)",
@@ -2800,7 +2966,7 @@
               "data": {
                 "type": "data_action",
                 "name": "GetTheAdminRooms",
-                "showDetails": true,
+                "showDetails": false,
                 "dataStore": "RoomData",
                 "queryProperty": "adminId",
                 "url": "/api/data/rooms?adminId=${global.currentUser.id}",
@@ -3948,6 +4114,86 @@
         "cellSize": 20,
         "backgroundColor": "#0a0a0a"
       },
+      "variables": [
+        {
+          "className": "TListVariable",
+          "id": "var_roomPlayers",
+          "isVariable": true,
+          "isService": false,
+          "isHiddenInRun": true,
+          "name": "roomPlayers",
+          "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 0,
+          "y": 0,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "items": [
+            {
+              "name": "Ghost_Spectre",
+              "statusText": "Vor 12m beigetreten",
+              "status": "AKTIV",
+              "avatar": "images/avatar1.png"
+            },
+            {
+              "name": "NeonPanda_99",
+              "statusText": "Vor 45m beigetreten",
+              "status": "ABWESEND",
+              "avatar": "images/avatar2.png"
+            }
+          ]
+        },
+        {
+          "className": "TListVariable",
+          "id": "var_assignedGames",
+          "isVariable": true,
+          "isService": false,
+          "isHiddenInRun": true,
+          "name": "assignedGames",
+          "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
+          "x": 0,
+          "y": 3,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
+          "style": {
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "items": [
+            {
+              "name": "NEON VELOCITY",
+              "info": "v3.2.0 STABLE",
+              "status": "AKTIV",
+              "icon": "images/game1.png"
+            },
+            {
+              "name": "CYBER STRIKE: NEO",
+              "info": "Start in 2h 15m",
+              "status": "GEPLANT",
+              "icon": "images/game2.png"
+            }
+          ]
+        }
+      ],
       "objects": [
         {
           "className": "TNavBar",
@@ -3957,18 +4203,25 @@
           "isHiddenInRun": false,
           "name": "Sidebar",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 0,
           "y": 0,
           "width": 3,
           "height": 40,
           "zIndex": 10,
           "align": "LEFT",
+          "text": "",
+          "visible": true,
           "style": {
             "backgroundColor": "#111111",
             "borderColor": "#222222",
             "borderWidth": 1,
             "borderRadius": 0
           },
+          "caption": "Sidebar",
+          "showGrid": false,
           "navItems": [
             {
               "id": "home",
@@ -4012,18 +4265,29 @@
           "isHiddenInRun": false,
           "name": "BackButton",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 5,
           "y": 1,
           "width": 10,
           "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
           "text": "← ZURÜCK",
+          "visible": true,
           "style": {
             "backgroundColor": "transparent",
             "borderColor": "transparent",
-            "color": "#888888",
+            "borderWidth": 1,
             "fontSize": 12,
-            "textAlign": "left"
-          }
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "fontFamily": "Arial",
+            "color": "#888888"
+          },
+          "icon": ""
         },
         {
           "className": "TLabel",
@@ -4033,14 +4297,26 @@
           "isHiddenInRun": false,
           "name": "RoomTitle",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 16,
           "y": 1,
           "width": 10,
           "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
           "text": "RAUM SIGMA",
+          "visible": true,
           "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
             "fontSize": 24,
             "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "fontFamily": "Arial",
             "color": "#ffffff"
           }
         },
@@ -4052,19 +4328,28 @@
           "isHiddenInRun": false,
           "name": "StatusBadge",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 27,
           "y": 1,
           "width": 4,
           "height": 1.5,
+          "zIndex": 0,
+          "align": "NONE",
           "text": "ONLINE",
+          "visible": true,
           "style": {
             "backgroundColor": "rgba(14, 215, 181, 0.2)",
             "borderColor": "#0ed7b5",
             "borderWidth": 1,
             "borderRadius": 4,
             "fontSize": 10,
-            "color": "#0ed7b5",
-            "textAlign": "center"
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial",
+            "color": "#0ed7b5"
           }
         },
         {
@@ -4075,13 +4360,26 @@
           "isHiddenInRun": false,
           "name": "CapacityLabel",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 16,
           "y": 4,
           "width": 8,
           "height": 1.5,
-          "text": "KAPAZITÄT: 18 / 50",
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "KAPAZITÄT: ${roomPlayers.length} / 50",
+          "visible": true,
           "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
             "fontSize": 11,
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "fontFamily": "Arial",
             "color": "#0ed7b5"
           }
         },
@@ -4093,19 +4391,28 @@
           "isHiddenInRun": false,
           "name": "RegionBadge",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 50,
           "y": 2,
           "width": 8,
           "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
           "text": "📶 EU-WEST-1",
+          "visible": true,
           "style": {
             "backgroundColor": "rgba(255, 255, 255, 0.05)",
             "borderColor": "rgba(255, 255, 255, 0.1)",
             "borderWidth": 1,
             "borderRadius": 20,
             "fontSize": 11,
-            "color": "#ffffff",
-            "textAlign": "center"
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial",
+            "color": "#ffffff"
           }
         },
         {
@@ -4114,19 +4421,29 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "PlayersPanel",
+          "name": "ZUGEWIESENE SPIELER (18)",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 5,
           "y": 7,
           "width": 26,
           "height": 20,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
           "style": {
             "backgroundColor": "rgba(255, 255, 255, 0.02)",
             "borderColor": "rgba(255, 255, 255, 0.05)",
             "borderWidth": 1,
             "borderRadius": 12
           },
-          "caption": "ZUGEWIESENE SPIELER (18)"
+          "caption": "ZUGEWIESENE SPIELER (18)",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
         },
         {
           "className": "TPanel",
@@ -4134,19 +4451,29 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "GamesPanel",
+          "name": "ZUGEWIESENE SPIELE",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 32,
           "y": 7,
           "width": 26,
           "height": 20,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
           "style": {
             "backgroundColor": "rgba(255, 255, 255, 0.02)",
             "borderColor": "rgba(255, 255, 255, 0.05)",
             "borderWidth": 1,
             "borderRadius": 12
           },
-          "caption": "ZUGEWIESENE SPIELE"
+          "caption": "ZUGEWIESENE SPIELE",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
         },
         {
           "className": "TPanel",
@@ -4154,20 +4481,29 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "StatLatency",
+          "name": "AVG LATENCY",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 5,
           "y": 29,
           "width": 12,
           "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "24 MS",
+          "visible": true,
           "style": {
             "backgroundColor": "rgba(255, 255, 255, 0.03)",
             "borderColor": "rgba(255, 255, 255, 0.1)",
             "borderWidth": 1,
             "borderRadius": 12
           },
-          "text": "24 MS",
-          "caption": "AVG LATENCY"
+          "caption": "AVG LATENCY",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
         },
         {
           "className": "TPanel",
@@ -4175,20 +4511,29 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "StatLoss",
+          "name": "PAKETVERLUST",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 19,
           "y": 29,
           "width": 12,
           "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "0.02 %",
+          "visible": true,
           "style": {
             "backgroundColor": "rgba(255, 255, 255, 0.03)",
             "borderColor": "rgba(255, 255, 255, 0.1)",
             "borderWidth": 1,
             "borderRadius": 12
           },
-          "text": "0.02 %",
-          "caption": "PAKETVERLUST"
+          "caption": "PAKETVERLUST",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
         },
         {
           "className": "TPanel",
@@ -4196,20 +4541,29 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "StatDuration",
+          "name": "SITZUNGSDAUER",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 33,
           "y": 29,
           "width": 12,
           "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "4h 12m",
+          "visible": true,
           "style": {
             "backgroundColor": "rgba(255, 255, 255, 0.03)",
             "borderColor": "rgba(255, 255, 255, 0.1)",
             "borderWidth": 1,
             "borderRadius": 12
           },
-          "text": "4h 12m",
-          "caption": "SITZUNGSDAUER"
+          "caption": "SITZUNGSDAUER",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
         },
         {
           "className": "TPanel",
@@ -4217,20 +4571,29 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "StatLoad",
+          "name": "NETZWERKLAST",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 47,
           "y": 29,
           "width": 11,
           "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "14.8 GBPS",
+          "visible": true,
           "style": {
             "backgroundColor": "rgba(255, 255, 255, 0.03)",
             "borderColor": "rgba(255, 255, 255, 0.1)",
             "borderWidth": 1,
             "borderRadius": 12
           },
-          "text": "14.8 GBPS",
-          "caption": "NETZWERKLAST"
+          "caption": "NETZWERKLAST",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
         },
         {
           "className": "TButton",
@@ -4240,20 +4603,30 @@
           "isHiddenInRun": false,
           "name": "ManagePlayersBtn",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 21,
-          "y": 7.5,
+          "y": 8,
           "width": 9,
           "height": 1.5,
+          "zIndex": 0,
+          "align": "NONE",
           "text": "👤 SPIELER VERWALTEN",
+          "visible": true,
           "style": {
             "backgroundColor": "#222222",
             "borderColor": "#333333",
             "borderWidth": 1,
             "borderRadius": 4,
             "fontSize": 9,
-            "color": "#ffffff",
-            "textAlign": "center"
-          }
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial",
+            "color": "#ffffff"
+          },
+          "icon": ""
         },
         {
           "className": "TButton",
@@ -4263,104 +4636,176 @@
           "isHiddenInRun": false,
           "name": "SwapGameBtn",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 48,
           "y": 7.5,
           "width": 9,
           "height": 1.5,
+          "zIndex": 0,
+          "align": "NONE",
           "text": "🔄 SPIEL WECHSELN",
+          "visible": true,
           "style": {
             "backgroundColor": "rgba(14, 215, 181, 0.2)",
             "borderColor": "#0ed7b5",
             "borderWidth": 1,
             "borderRadius": 4,
             "fontSize": 9,
-            "color": "#0ed7b5",
-            "textAlign": "center"
-          }
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial",
+            "color": "#0ed7b5"
+          },
+          "icon": ""
         },
         {
-          "className": "TPanel",
-          "id": "rm_player_1",
-          "isVariable": false,
+          "className": "TObjectList",
+          "id": "rm_players_list",
+          "isVariable": true,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "PlayerCard1",
+          "name": "PlayersList",
           "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 6,
           "y": 10,
           "width": 24,
-          "height": 3.5,
+          "height": 16,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
           "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "borderRadius": 4
+          },
+          "data": "${roomPlayers}",
+          "columns": [
+            {
+              "type": "image",
+              "field": "avatar",
+              "x": 1,
+              "y": 1,
+              "width": 5,
+              "height": 5
+            },
+            {
+              "type": "header",
+              "field": "name",
+              "x": 7,
+              "y": 1.5
+            },
+            {
+              "type": "meta",
+              "field": "statusText",
+              "x": 7,
+              "y": 4
+            },
+            {
+              "type": "badge",
+              "field": "status",
+              "x": 38,
+              "y": 1.5
+            }
+          ],
+          "displayMode": "cards",
+          "cardConfig": {
+            "width": 480,
+            "height": 70,
+            "gap": 10,
             "backgroundColor": "rgba(255, 255, 255, 0.05)",
             "borderColor": "rgba(255, 255, 255, 0.1)",
             "borderWidth": 1,
-            "borderRadius": 8
+            "borderRadius": 12,
+            "padding": 12
           },
-          "text": "👤 Ghost_Spectre  |  Vor 12m beigetreten",
-          "caption": "AKTIV"
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1,
+          "items": []
         },
         {
-          "className": "TPanel",
-          "id": "rm_player_2",
-          "isVariable": false,
+          "className": "TObjectList",
+          "id": "rm_games_list",
+          "isVariable": true,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "PlayerCard2",
+          "name": "GamesList",
           "scope": "stage",
-          "x": 6,
-          "y": 14,
-          "width": 24,
-          "height": 3.5,
-          "style": {
-            "backgroundColor": "rgba(255, 255, 255, 0.05)",
-            "borderColor": "rgba(255, 255, 255, 0.1)",
-            "borderWidth": 1,
-            "borderRadius": 8
-          },
-          "text": "👤 NeonPanda_99  |  Vor 45m beigetreten",
-          "caption": "ABWESEND"
-        },
-        {
-          "className": "TPanel",
-          "id": "rm_game_1",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "name": "GameCard1",
-          "scope": "stage",
+          "draggable": false,
+          "dragMode": "move",
+          "droppable": false,
           "x": 33,
           "y": 10,
           "width": 24,
-          "height": 4,
+          "height": 16,
+          "zIndex": 0,
+          "align": "NONE",
+          "text": "",
+          "visible": true,
           "style": {
-            "backgroundColor": "rgba(14, 215, 181, 0.1)",
-            "borderColor": "#0ed7b5",
-            "borderWidth": 1,
-            "borderRadius": 8
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "borderRadius": 4
           },
-          "text": "🎮 NEON VELOCITY  |  v3.2.0 STABLE",
-          "caption": "AKTIV"
-        },
-        {
-          "className": "TPanel",
-          "id": "rm_game_2",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "name": "GameCard2",
-          "scope": "stage",
-          "x": 33,
-          "y": 15,
-          "width": 24,
-          "height": 4,
-          "style": {
+          "data": "${assignedGames}",
+          "columns": [
+            {
+              "type": "image",
+              "field": "icon",
+              "x": 1,
+              "y": 1,
+              "width": 6,
+              "height": 6
+            },
+            {
+              "type": "header",
+              "field": "name",
+              "x": 8,
+              "y": 1.5
+            },
+            {
+              "type": "meta",
+              "field": "info",
+              "x": 8,
+              "y": 4.5
+            },
+            {
+              "type": "badge",
+              "field": "status",
+              "x": 38,
+              "y": 1.5
+            }
+          ],
+          "displayMode": "cards",
+          "cardConfig": {
+            "width": 480,
+            "height": 80,
+            "gap": 15,
             "backgroundColor": "rgba(255, 255, 255, 0.05)",
             "borderColor": "rgba(255, 255, 255, 0.1)",
             "borderWidth": 1,
-            "borderRadius": 8
+            "borderRadius": 12,
+            "padding": 15
           },
-          "text": "🎮 CYBER STRIKE: NEO  |  Start in 2h 15m",
-          "caption": "GEPLANT"
+          "rowHeight": 28,
+          "showHeader": true,
+          "striped": true,
+          "searchValue": "",
+          "searchProperty": "name",
+          "selectedIndex": -1,
+          "items": []
         }
       ],
       "tasks": [],
@@ -4369,7 +4814,7 @@
       "_showGlobalPreview": false
     }
   ],
-  "activeStageId": "stage_room_management",
+  "activeStageId": "stage_login",
   "flowCharts": {
     "global": {
       "elements": [],

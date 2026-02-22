@@ -37,6 +37,10 @@ export class PropertyHelper {
                 current = current.data[part];
             } else if (target && target.isFlowNode === true && target.data && target.data[part] !== undefined) {
                 current = target.data[part];
+            } else if (current !== target && (current[part] !== undefined || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(current), part)?.get !== undefined)) {
+                // FALLBACK: If we resolved to a content (target) but didn't find the prop there,
+                // check if the original component (current) has it (e.g. metadata like .type or .defaultValue)
+                current = current[part];
             } else if (target === current) {
                 // Only fallback to component properties if we are NOT operating on a resolved variable value
                 current = current[part];

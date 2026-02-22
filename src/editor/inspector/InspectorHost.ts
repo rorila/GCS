@@ -12,6 +12,7 @@ import { VariableHandler } from './handlers/VariableHandler';
 import { StageHandler } from './handlers/StageHandler';
 import { ExpressionParser } from '../../runtime/ExpressionParser';
 import { mediatorService } from '../../services/MediatorService';
+import { componentRegistry } from '../../services/ComponentRegistry';
 import { InspectorContextBuilder } from './InspectorContextBuilder';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 
@@ -413,6 +414,19 @@ export class InspectorHost {
         } else if (obj.isVariable) {
             // Fallback for variables until handler is updated
             eventsFile = './inspector_variable_events.json';
+        }
+
+        // Dynamically populate _supportedEvents for the inspector
+        if (!obj._supportedEvents || obj._supportedEvents.length === 0) {
+            if (typeof obj.getEvents === 'function') {
+                obj._supportedEvents = obj.getEvents();
+            } else {
+                try {
+                    obj._supportedEvents = componentRegistry.getEvents(obj);
+                } catch (e) {
+                    console.warn('[InspectorHost] Could not determine events for object:', obj);
+                }
+            }
         }
 
         try {

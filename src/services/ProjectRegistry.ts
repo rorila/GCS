@@ -4,8 +4,8 @@ import { libraryService } from './LibraryService';
 import { TWindow } from '../components/TWindow';
 
 export type ScopedVariable = ProjectVariable & { uiScope?: 'global' | 'stage' | 'local', uiEmoji?: string, usageCount?: number };
-export type ScopedTask = GameTask & { uiScope?: 'global' | 'stage' | 'library', usageCount?: number };
-export type ScopedAction = GameAction & { uiScope?: 'global' | 'stage' | 'library', usageCount?: number };
+export type ScopedTask = GameTask & { uiScope?: 'global' | 'stage' | 'library', uiEmoji?: string, usageCount?: number };
+export type ScopedAction = GameAction & { uiScope?: 'global' | 'stage' | 'library', uiEmoji?: string, usageCount?: number };
 export type ScopedObject = TWindow & { uiScope?: 'global' | 'stage', usageCount?: number };
 
 export type VariableScopeContext = {

@@ -19,9 +19,22 @@ export class InspectorRenderer {
         const el = document.createElement('div');
         el.className = 'inspector-label';
         el.innerText = text;
-        el.style.fontSize = style?.fontSize ? `${style.fontSize}px` : '11px';
-        el.style.color = style?.color || '#ccc';
+
+        // Base styles
+        el.style.fontSize = '11px';
+        el.style.color = '#ccc';
         el.style.marginBottom = '4px';
+
+        // Apply custom style
+        if (style) {
+            if (typeof style === 'object') {
+                if (style.fontSize) el.style.fontSize = typeof style.fontSize === 'number' ? `${style.fontSize}px` : style.fontSize;
+                if (style.color) el.style.color = style.color;
+                this.applyStyle(el, style);
+            } else {
+                this.applyStyle(el, style);
+            }
+        }
         return el;
     }
 
@@ -47,7 +60,7 @@ export class InspectorRenderer {
         input.className = 'inspector-input';
 
         // Base styling (could be moved to a CSS file)
-        Object.assign(input.style, {
+        this.applyStyle(input, {
             width: '100%',
             backgroundColor: '#222',
             color: '#fff',
@@ -69,7 +82,7 @@ export class InspectorRenderer {
         const select = document.createElement('select');
         select.className = 'inspector-select';
 
-        Object.assign(select.style, {
+        this.applyStyle(select, {
             width: '100%',
             backgroundColor: '#222',
             color: '#fff',
@@ -128,7 +141,7 @@ export class InspectorRenderer {
         btn.innerText = text;
         btn.className = 'inspector-button';
 
-        Object.assign(btn.style, {
+        this.applyStyle(btn, {
             width: '100%',
             backgroundColor: '#444',
             color: '#fff',
@@ -159,7 +172,8 @@ export class InspectorRenderer {
         if (step !== undefined) input.step = String(step);
         input.className = 'inspector-number-input';
 
-        Object.assign(input.style, {
+        // Base styling (could be moved to a CSS file)
+        this.applyStyle(input, {
             width: '100%',
             backgroundColor: '#222',
             color: '#fff',
@@ -209,7 +223,7 @@ export class InspectorRenderer {
         const el = document.createElement('div');
         el.className = 'inspector-panel';
         if (style) {
-            Object.assign(el.style, style);
+            this.applyStyle(el, style);
         }
         return el;
     }
@@ -220,7 +234,7 @@ export class InspectorRenderer {
     public renderChips(value: string, onRemove: (chip: string) => void): HTMLElement {
         const container = document.createElement('div');
         container.className = 'inspector-chips-container';
-        Object.assign(container.style, {
+        this.applyStyle(container, {
             display: 'flex',
             flexWrap: 'wrap',
             gap: '4px',
@@ -236,7 +250,7 @@ export class InspectorRenderer {
         chips.forEach(chip => {
             const el = document.createElement('div');
             el.className = 'inspector-chip';
-            Object.assign(el.style, {
+            this.applyStyle(el, {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
@@ -255,7 +269,7 @@ export class InspectorRenderer {
 
             const removeBtn = document.createElement('span');
             removeBtn.innerText = '×';
-            Object.assign(removeBtn.style, {
+            this.applyStyle(removeBtn, {
                 cursor: 'pointer',
                 fontWeight: 'bold',
                 color: '#f44336',
@@ -572,5 +586,18 @@ export class InspectorRenderer {
             return ['linear', 'easeIn', 'easeOut', 'easeInOut'].map(e => ({ value: e, label: e }));
         }
         return [];
+    }
+
+    /**
+     * Safely applies styles to an element, supporting both objects and strings.
+     */
+    private applyStyle(el: HTMLElement, style: any): void {
+        if (!style) return;
+        if (typeof style === 'string') {
+            // Apply as cssText (merge with existing if possible or replace safe)
+            el.style.cssText += ';' + style;
+        } else if (typeof style === 'object') {
+            Object.assign(el.style, style);
+        }
     }
 }

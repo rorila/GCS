@@ -65,8 +65,8 @@ export class DataService {
     /**
      * Findet Objekte in einer Collection basierend auf Filtern.
      */
-    public async findItems(storagePath: string, collection: string, query: any = {}): Promise<any[]> {
-        console.log(`[DataService] findItems in '${storagePath}' -> '${collection}' with query:`, JSON.stringify(query));
+    public async findItems(storagePath: string, collection: string, query: any = {}, operator: string = '=='): Promise<any[]> {
+        console.log(`[DataService] findItems in '${storagePath}' -> '${collection}' with query:`, JSON.stringify(query), `Operator: ${operator}`);
 
         const db = await this.readDb(storagePath);
         if (!db[collection]) {
@@ -82,17 +82,48 @@ export class DataService {
                 const itemValue = item[key];
                 const queryValue = query[key];
 
-                // Case 1: Loose equality (covering string/number/null)
-                if (itemValue == queryValue) continue;
+                // --- Operator-Logik ---
+                switch (operator) {
+                    case '>':
+                        if (!(Number(itemValue) > Number(queryValue))) return false;
+                        break;
+                    case '>=':
+                        if (!(Number(itemValue) >= Number(queryValue))) return false;
+                        break;
+                    case '<':
+                        if (!(Number(itemValue) < Number(queryValue))) return false;
+                        break;
+                    case '<=':
+                        if (!(Number(itemValue) <= Number(queryValue))) return false;
+                        break;
+                    case 'CONTAINS':
+                        // Suche IN Listen oder Teilstrings (Feld enthält Wert)
+                        if (Array.isArray(itemValue)) {
+                            if (!itemValue.includes(queryValue)) return false;
+                        } else if (typeof itemValue === 'string') {
+                            if (!itemValue.includes(String(queryValue))) return false;
+                        } else {
+                            if (itemValue != queryValue) return false;
+                        }
+                        break;
+                    case 'IN':
+                        // Wert-Menge (Wert ist einer von...)
+                        const set = String(queryValue).split(',').map(s => s.trim());
+                        if (!set.includes(String(itemValue))) return false;
+                        break;
+                    case '==':
+                    default:
+                        // Case 1: Loose equality (covering string/number/null)
+                        if (itemValue == queryValue) continue;
 
-                // Case 2: Smart-Match for Arrays (e.g. Emoji-PIN Array ["🍎","🍌"] vs String "🍎🍌")
-                if (Array.isArray(itemValue) && typeof queryValue === 'string') {
-                    if (itemValue.join('') === queryValue) continue;
-                    if (itemValue.toString() === queryValue) continue; // fallback to comma-separated
+                        // Case 2: Smart-Match for Arrays (e.g. Emoji-PIN Array ["🍎","🍌"] vs String "🍎🍌")
+                        if (Array.isArray(itemValue) && typeof queryValue === 'string') {
+                            if (itemValue.join('') === queryValue) continue;
+                            if (itemValue.toString() === queryValue) return false; // explicitly fail if no match
+                        } else {
+                            return false;
+                        }
                 }
-
-                // If no match found for this key
-                return false;
             }
             return true;
         });
@@ -141,13 +172,15 @@ export class DataService {
             return [];
         }
 
-        // Deep scan of the first item to find all keys
-        const firstItem = collection[0];
-        if (typeof firstItem === 'object' && firstItem !== null) {
-            return Object.keys(firstItem);
-        }
+        // Union scan of ALL items to find all available keys
+        const allKeys = new Set<string>();
+        collection.forEach((item: any) => {
+            if (typeof item === 'object' && item !== null) {
+                Object.keys(item).forEach(key => allKeys.add(key));
+            }
+        });
 
-        return [];
+        return Array.from(allKeys);
     }
 
     /**
