@@ -1689,7 +1689,7 @@
           "id": "obj_1771667640672_pnwqxyca3",
           "isVariable": true,
           "isService": false,
-          "isHiddenInRun": false,
+          "isHiddenInRun": true,
           "name": "currentRooms",
           "scope": "global",
           "draggable": false,
