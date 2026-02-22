@@ -286,7 +286,7 @@ export class InspectorHost {
 
                     // --- NEW: Handle optional action trigger ---
                     if (def.action) {
-                        this.actionHandler.handleAction(def, obj);
+                        (this.actionHandler as any).handleAction(def, obj, select.value);
                     }
 
                     this.update(obj); // Immediate re-render
@@ -313,6 +313,26 @@ export class InspectorHost {
                     this.update(obj); // Immediate re-render
                 };
                 return container;
+            }
+            case 'TChips': {
+                const value = this.resolveValue(def.value, obj);
+                const chips = this.renderer.renderChips(String(value || ''), (chipToRemove) => {
+                    const currentValues = String(value || '').split(',').map(s => s.trim()).filter(s => s);
+                    const newValues = currentValues.filter(v => v !== chipToRemove);
+                    const newValueString = newValues.join(', ');
+
+                    const event = this.eventHandler.handleControlChange(def.name, newValueString, obj, def);
+                    if (event) {
+                        mediatorService.notifyDataChanged({
+                            property: event.propertyName,
+                            value: event.newValue,
+                            oldValue: event.oldValue,
+                            object: event.object
+                        }, 'inspector');
+                        this.update(obj);
+                    }
+                });
+                return chips;
             }
             case 'TButton': {
                 return this.renderer.renderButton(def.caption || def.name, () => {

@@ -253,10 +253,12 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
 - **Beginner-Safe Variable Picker (v2.18.12.4)**: Alle `TEdit`-Felder im Inspector verfügen über ein automatisches Variablen-Dropdown (📦). 
     - **Funktion**: Erlaubt das Einfügen von Variablen per Klick an der aktuellen Cursor-Position, ohne `${}` tippen zu müssen.
     - **Implementierung**: Geregelt über `renderEditWithVariablePicker` (InspectorRenderer.ts).
-- **TDataAction SQL-Style (v3.3.19)**:
+- **TDataAction SQL-Style (v3.3.20)**:
     - **Logik**: Der Inspector folgt der SQL-Struktur: `SELECT` (Felder) -> `FROM` (DataStore) -> `WHERE` (Suchfeld == Suchwert) -> `INTO` (Zielvariable).
-    - **Projektion**: Unterstützt `selectFields` zur Teilmengen-Filterung. `*` ist der Standardwert für "Alle Felder".
-    - **Implementierung**: Logik zentral in `StandardActions.ts`. Dropdown-Schema-Anreicherung in `InspectorContextBuilder.ts`.
+    - **Multi-Select (TChips)**: Die Komponente `TChips` stellt gewählte Felder visuell dar. Über den "Feld hinzufügen" Dropdown können weitere Spalten ergänzt werden.
+    - **WHERE Flexibilität**: Der Suchwert unterstützt nun Variablen (`${Var}`), Element-Props (`${Sprite.x}`) via Variablen-Picker (📦).
+    - **Projektion**: Unterstützt `selectFields` zur Teilmengen-Filterung.
+    - **Layout**: Jedes SQL-Segment ist durch eine farbige Border-Left Markierung (Gelb, Blau, Grün, Pink) visuell abgegrenzt.
 - **Keep it Simple**: Bevorzuge immer die automatisierte Simulation für Standard-CRUD-Operationen. Nur für komplexe Spezial-Logik sollten manuelle API-Event-Tasks (`onRequest`) verwendet werden.
 
 ### Variablen-Scoping & Inspector (v2.16.12)

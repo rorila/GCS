@@ -21,7 +21,7 @@ export class InspectorActionHandler {
     /**
      * Dispatches button actions to specialized methods
      */
-    public async handleAction(buttonDef: any, selectedObject: any): Promise<void> {
+    public async handleAction(buttonDef: any, selectedObject: any, value?: any): Promise<void> {
         const action = buttonDef.action;
         console.log(`[InspectorActionHandler] Executing action: ${action}`);
 
@@ -40,6 +40,9 @@ export class InspectorActionHandler {
                 break;
             case 'pickVariable':
                 await this.handlePickVariable(buttonDef, selectedObject);
+                break;
+            case 'appendField':
+                this.handleAppendField(buttonDef, selectedObject, value);
                 break;
             default:
                 console.warn(`[InspectorActionHandler] Unknown action: ${action}`);
@@ -176,6 +179,32 @@ export class InspectorActionHandler {
             } else {
                 alert(`Basis-Variable "${baseVarName}" wurde nicht gefunden.`);
             }
+        }
+    }
+
+    private handleAppendField(_buttonDef: any, obj: any, value: string): void {
+        if (!value) return;
+
+        const propName = 'selectFields';
+        const currentVal = String(PropertyHelper.getPropertyValue(obj, propName) || '').trim();
+        let newValue = currentVal;
+
+        if (value === '*') {
+            newValue = '*';
+        } else if (currentVal === '*' || !currentVal) {
+            newValue = value;
+        } else {
+            const fields = currentVal.split(',').map(s => s.trim()).filter(s => s);
+            if (!fields.includes(value)) {
+                fields.push(value);
+                newValue = fields.join(', ');
+            }
+        }
+
+        if (newValue !== currentVal) {
+            PropertyHelper.setPropertyValue(obj, propName, newValue);
+            this.notifyChange(obj, propName, newValue, currentVal);
+            this.host.update(obj);
         }
     }
 

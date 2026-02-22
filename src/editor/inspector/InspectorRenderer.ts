@@ -215,6 +215,62 @@ export class InspectorRenderer {
     }
 
     /**
+     * Renders a TChips component (list of tag chips)
+     */
+    public renderChips(value: string, onRemove: (chip: string) => void): HTMLElement {
+        const container = document.createElement('div');
+        container.className = 'inspector-chips-container';
+        Object.assign(container.style, {
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '4px',
+            padding: '4px',
+            backgroundColor: '#222',
+            border: '1px solid #444',
+            borderRadius: '3px',
+            minHeight: '26px'
+        });
+
+        const chips = (value || '').split(',').map(s => s.trim()).filter(s => s);
+
+        chips.forEach(chip => {
+            const el = document.createElement('div');
+            el.className = 'inspector-chip';
+            Object.assign(el.style, {
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 6px',
+                backgroundColor: '#333',
+                color: '#fff',
+                border: '1px solid #555',
+                borderRadius: '12px',
+                fontSize: '11px',
+                whiteSpace: 'nowrap'
+            });
+
+            const text = document.createElement('span');
+            text.innerText = chip;
+            el.appendChild(text);
+
+            const removeBtn = document.createElement('span');
+            removeBtn.innerText = '×';
+            Object.assign(removeBtn.style, {
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                color: '#f44336',
+                marginLeft: '4px'
+            });
+            removeBtn.onclick = () => onRemove(chip);
+            el.appendChild(removeBtn);
+
+            container.appendChild(el);
+        });
+
+        return container;
+    }
+
+    /**
      * Renders dynamic action parameters based on action type metadata.
      */
     public renderActionParams(_obj: any, selectedObject: any, onUpdate: (prop: string, val: any) => void, onAction?: (actionDef: any) => void): HTMLElement | null {
