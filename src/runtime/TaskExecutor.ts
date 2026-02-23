@@ -47,7 +47,19 @@ export class TaskExecutor {
         }
 
         // 1. Resolve Task
-        let task = this.tasks?.find(t => t.name === taskName) || this.project.tasks?.find(t => t.name === taskName);
+        // Search order: Active Stage (this.tasks) -> Blueprint Stage -> Legacy Project Tasks
+        let task = this.tasks?.find(t => t.name === taskName);
+
+        if (!task) {
+            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint');
+            if (blueprintStage) {
+                task = blueprintStage.tasks?.find(t => t.name === taskName);
+            }
+        }
+
+        if (!task) {
+            task = this.project.tasks?.find(t => t.name === taskName);
+        }
 
         if (!task) {
             // Check Library

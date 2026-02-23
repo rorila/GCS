@@ -386,72 +386,95 @@ export class FlowAction extends FlowElement {
     // So if I return [] here, I get JSON only. 
     // If I return super(), I get geometry + JSON. This is good!
     public getInspectorProperties(): any[] {
-        // 1. Get Base Geometry (hidden usually, but provides X/Y if needed)
-        // We'll skip super call if we want to BE ONLY ACTION PROPS
         const props: any[] = [];
-
-        // 2. Identify Action Type
         const type = this.data?.type || 'property';
+        const isInternal = this.data?.isEmbeddedInternal;
 
-        // 2b. Add Base Action Properties
-        props.push({ name: 'Name', label: 'Name', type: 'string', variable: 'Name', group: 'Allgemeine Info' });
-        props.push({
-            name: 'actionType',
-            label: 'Aktions-Typ',
-            type: 'select',
-            variable: 'actionType',
-            group: 'Allgemeine Info',
-            options: [
-                { value: 'property', label: 'Property Change (Set)' },
-                { value: 'variable', label: 'Read Variable' },
-                { value: 'calculate', label: 'Calculate' },
-                { value: 'service', label: 'Call Service' },
-                { value: 'http', label: 'HTTP Request' },
-                { value: 'store_token', label: 'Store Token' }
-            ]
-        });
+        // Base Information Group
+        props.push({ name: 'Name', label: 'Action Name', type: 'string', variable: 'Name', group: 'Allgemein', readonly: isInternal });
 
-        // 3. Fetch Metadata from Registry
-        try {
-            const registry = (window as any).actionRegistry || (window as any).ActionRegistry;
-            const meta = registry?.getMetadata(type);
+        if (!isInternal) {
+            props.push({
+                name: 'actionType',
+                label: 'Aktions-Typ',
+                type: 'select',
+                variable: 'type', // Map to this.data.type
+                group: 'Allgemein',
+                options: [
+                    { value: 'property', label: 'Objekt-Eigenschaft (Property)' },
+                    { value: 'method', label: 'Objekt-Methode (Method)' },
+                    { value: 'event', label: 'Event feuern' },
+                    { value: 'variable', label: 'Variable auslesen' },
+                    { value: 'calculate', label: 'Berechnung (Calculate)' }
+                ]
+            });
+        }
 
-            if (meta && meta.parameters) {
-                meta.parameters.forEach((param: any) => {
-                    const field: any = {
-                        name: param.name,
-                        label: param.label,
-                        variable: param.name,
-                        type: this.mapParameterTypeToInspector(param.type),
-                        hint: param.hint,
-                        group: `Eigenschaften: ${meta.label}`
-                    };
+        const detailsGroup = 'Konfiguration';
 
-                    if (param.options) {
-                        field.options = param.options.map((o: string) => ({ value: o, label: o }));
-                    } else if (param.source) {
-                        field.source = param.source;
-                    }
+        // Target Object Selection (used by most action types)
+        if (['property', 'method'].includes(type) && !isInternal) {
+            props.push({
+                name: 'target',
+                label: 'Ziel-Objekt',
+                type: 'select',
+                variable: 'target',
+                group: detailsGroup,
+                source: 'objects', // Needs InspectorRenderer to resolve 'objects' source
+                hint: 'Das Objekt, dessen Zustand geändert wird.'
+            });
+        }
 
-                    props.push(field);
-                });
-            } else {
-                // Fallback for known types if registry fetch fails
-                if (type === 'http') {
-                    const g = 'HTTP Request';
-                    props.push({ name: 'url', label: 'URL', type: 'string', variable: 'url', group: g });
-                    props.push({ name: 'method', label: 'Method', type: 'select', variable: 'method', group: g, options: [{ value: 'GET', label: 'GET' }, { value: 'POST', label: 'POST' }, { value: 'PUT', label: 'PUT' }, { value: 'DELETE', label: 'DELETE' }] });
-                    props.push({ name: 'body', label: 'Body (JSON)', type: 'string', variable: 'body', group: g });
-                    props.push({ name: 'resultVariable', label: 'Result Variable', type: 'select', variable: 'resultVariable', group: g, source: 'variables' });
-                } else if (type === 'store_token') {
-                    const g = 'Store Token';
-                    props.push({ name: 'operation', label: 'Operation', type: 'select', variable: 'operation', group: g, options: [{ value: 'set', label: 'Save' }, { value: 'delete', label: 'Delete' }] });
-                    props.push({ name: 'token', label: 'Token Value', type: 'string', variable: 'token', group: g });
-                    props.push({ name: 'tokenKey', label: 'Storage Key', type: 'string', variable: 'tokenKey', group: g, hint: 'Default: auth_token' });
+        // Show properties based on type
+        if (type === 'property') {
+            // Property Change specifics
+            props.push({ name: 'property', label: 'Eigenschaft', type: 'string', variable: 'property', group: detailsGroup });
+            props.push({ name: 'changes', label: 'Neuer Wert (changes)', type: 'string', variable: 'changes', group: detailsGroup });
+            // Button to inject variables into 'changes'
+            props.push({
+                name: 'btn_var_changes',
+                label: 'Variable einfügen...',
+                type: 'button',
+                variable: 'btn_var_changes',
+                group: detailsGroup,
+                buttonType: 'secondary',
+                actionData: { property: 'changes' },
+                action: 'pickVariable'
+            });
+        } else if (type === 'method') {
+            // Method Call specifics
+            props.push({ name: 'method', label: 'Methode', type: 'string', variable: 'method', group: detailsGroup });
+            props.push({ name: 'params', label: 'Parameter-Liste (params)', type: 'string', variable: 'params', group: detailsGroup, hint: 'Kommagetrennt' });
+        } else if (type === 'event') {
+            // Event Fire specifics
+            props.push({ name: 'eventName', label: 'Event-Name', type: 'string', variable: 'eventName', group: detailsGroup });
+            props.push({ name: 'eventPayload', label: 'Payload (JSON/Token)', type: 'string', variable: 'eventPayload', group: detailsGroup });
+        } else {
+            // Fallback for registry-based actions (e.g., http, service)
+            try {
+                const registry = (window as any).actionRegistry || (window as any).ActionRegistry;
+                const meta = registry?.getMetadata?.(type);
+
+                if (meta && meta.parameters) {
+                    meta.parameters.forEach((param: any) => {
+                        const field: any = {
+                            name: param.name,
+                            label: param.label,
+                            variable: param.name,
+                            type: this.mapParameterTypeToInspector(param.type),
+                            hint: param.hint,
+                            group: `Erweitert: ${meta.label}`
+                        };
+
+                        if (param.options) field.options = param.options.map((o: string) => ({ value: o, label: o }));
+                        else if (param.source) field.source = param.source;
+
+                        props.push(field);
+                    });
                 }
+            } catch (e) {
+                console.error('[FlowAction] Registry lookup failed:', e);
             }
-        } catch (e) {
-            console.error('[FlowAction] getInspectorProperties failed:', e);
         }
 
         return props;

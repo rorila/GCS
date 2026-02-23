@@ -15,7 +15,8 @@
     "preview": "vite preview",
     "test": "npx tsx scripts/test_runner.ts",
     "test:seed": "npx tsx scripts/seed_test_data.ts",
-    "test:logic": "npx tsx scripts/test_login_logic.ts"
+    "test:logic": "npx tsx scripts/test_login_logic.ts",
+    "validate": "node scripts/validate_project.cjs"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

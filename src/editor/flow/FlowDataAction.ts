@@ -155,6 +155,19 @@ export class FlowDataAction extends FlowAction {
         this.updateAutoUrl();
     }
 
+    public get selectFields(): string {
+        const action = this.getActionDefinition();
+        return action?.selectFields || '';
+    }
+    public set selectFields(v: string) {
+        console.log(`[FlowDataAction] Setter selectFields: ${v}`);
+        if (this.data) this.data.selectFields = v;
+        const action = this.getActionDefinition();
+        if (action && action !== this.data) {
+            action.selectFields = v;
+        }
+    }
+
     private updateAutoUrl() {
         const action = this.getActionDefinition();
         if (action) {
@@ -313,6 +326,74 @@ export class FlowDataAction extends FlowAction {
         if (this.data) this.data.resultPath = v;
         const action = this.getActionDefinition();
         if (action && action !== this.data) action.resultPath = v;
+    }
+
+    public getInspectorProperties(): any[] {
+        const props: any[] = [];
+        const isInternal = this.data?.isEmbeddedInternal;
+
+        props.push({ name: 'Name', label: 'Action Name', type: 'string', variable: 'Name', group: 'Allgemein', readonly: isInternal });
+
+        const reqGroup = 'HTTP / Request';
+        props.push({
+            name: 'requestJWT',
+            label: 'Ist Login/JWT Request?',
+            type: 'boolean',
+            variable: 'requestJWT',
+            group: reqGroup
+        });
+
+        // URL / Resource
+        props.push({ name: 'url', label: 'Absolute URL (optional)', type: 'string', variable: 'url', group: reqGroup });
+        props.push({ name: 'dataStore', label: 'DataStore / Service', type: 'select', variable: 'dataStore', source: 'objects', group: reqGroup });
+        props.push({ name: 'resource', label: 'REST Ressource / Collection', type: 'string', variable: 'resource', group: reqGroup });
+
+        props.push({
+            name: 'method',
+            label: 'HTTP Methode',
+            type: 'select',
+            variable: 'method',
+            group: reqGroup,
+            options: [
+                { value: 'GET', label: 'GET (Lesen)' },
+                { value: 'POST', label: 'POST (Erstellen)' },
+                { value: 'PUT', label: 'PUT (Aktualisieren)' },
+                { value: 'DELETE', label: 'DELETE (Löschen)' }
+            ]
+        });
+
+        const qGroup = 'Query / Filter';
+        props.push({ name: 'queryProperty', label: 'Filter-Feld', type: 'string', variable: 'queryProperty', group: qGroup });
+        props.push({
+            name: 'queryOperator',
+            label: 'Operator',
+            type: 'select',
+            variable: 'queryOperator',
+            group: qGroup,
+            options: [
+                { value: '==', label: 'Gleich (==)' },
+                { value: '!=', label: 'Ungleich (!=)' },
+                { value: '>', label: 'Größer (>)' },
+                { value: '<', label: 'Kleiner (<)' }
+            ]
+        });
+        props.push({ name: 'queryValue', label: 'Filter-Wert', type: 'string', variable: 'queryValue', group: qGroup });
+        props.push({
+            name: 'btn_var_query',
+            label: 'Variable für Wert...',
+            type: 'button',
+            variable: 'btn_var_query',
+            group: qGroup,
+            buttonType: 'secondary',
+            actionData: { property: 'queryValue' },
+            action: 'pickVariable'
+        });
+
+        const rGroup = 'Response / Resultat';
+        props.push({ name: 'resultVariable', label: 'Speichern in Variable', type: 'select', variable: 'resultVariable', source: 'variables', group: rGroup });
+        props.push({ name: 'resultPath', label: 'Pfad im Resultat (z.B. data.user)', type: 'string', variable: 'resultPath', group: rGroup });
+
+        return props;
     }
 
     protected createRoot(): HTMLElement {

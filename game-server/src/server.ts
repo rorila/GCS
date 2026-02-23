@@ -168,16 +168,38 @@ app.post('/api/platform/login', (req, res) => {
         res.json({
             success: true,
             token, // Send token to client
-            user: {
-                id: user.id,
-                name: user.name,
-                role: user.role,
-                avatar: user.avatar,
-                availableRoles: getAvailableRoles(user.role)
-            }
+            user: { name: user.name, role: user.role }
         });
     } else {
-        res.status(401).json({ error: 'Invalid name or emoji code' });
+        res.status(401).json({ message: 'Ungültiger PIN' });
+    }
+});
+
+/**
+ * POST /api/dev/save-project - Speichert die project.json auf Disk
+ * NUR FÜR ENTWICKLUNGSZWECKE (Dev-Mode)
+ */
+app.post('/api/dev/save-project', (req, res) => {
+    try {
+        const projectData = req.body;
+        if (!projectData || typeof projectData !== 'object') {
+            return res.status(400).json({ error: 'Ungültige Projektdaten' });
+        }
+
+        const projectPath = path.join(PUBLIC_DIR, 'platform/project.json');
+
+        // Sicherheits-Check: Verzeichnis sicherstellen
+        const dir = path.dirname(projectPath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        fs.writeFileSync(projectPath, JSON.stringify(projectData, null, 2), 'utf-8');
+        console.log(`[API] Project saved successfully to ${projectPath}`);
+        res.json({ success: true, message: 'Projekt erfolgreich gespeichert' });
+    } catch (err) {
+        console.error('[API] Fehler beim Speichern des Projekts:', err);
+        res.status(500).json({ error: 'Serverfehler beim Speichervorgang', details: (err as any).message });
     }
 });
 

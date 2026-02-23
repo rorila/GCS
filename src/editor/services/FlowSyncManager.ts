@@ -27,6 +27,7 @@ export interface FlowSyncHost {
     updateFlowSelector: () => void;
     getActiveStage: () => any;
     getTargetFlowCharts: (context: string) => any;
+    getTaskDefinitionByName: (name: string) => any;
     setupNodeListeners: (node: FlowElement) => void;
 }
 
@@ -108,6 +109,10 @@ export class FlowSyncManager {
         const persistentConnections = this.host.connections.filter(c => !c.data?.isEmbeddedInternal && !c.data?.parentProxyId);
         const connections = persistentConnections.map(c => c.toJSON());
 
+        console.log(`[FlowSyncManager] syncToProject: Detected ${elements.length} nodes and ${connections.length} connections.`);
+        elements.forEach(el => console.log(`[FlowSyncManager]   - Node: ${el.id} (${el.type}) name=${el.properties?.name}`));
+        connections.forEach(c => console.log(`[FlowSyncManager]   - Conn: ${c.startTargetId} -> ${c.endTargetId} (${c.data?.startAnchorType})`));
+
         this.host.nodes.forEach(node => {
             const nodeType = node.getType();
             if ((nodeType === 'Action' || nodeType === 'DataAction') && node.data && !node.data.isEmbeddedInternal) {
@@ -148,14 +153,23 @@ export class FlowSyncManager {
                 const chartData = { elements, connections };
                 targetCharts[currentContext] = chartData;
 
-                const task = this.host.project.tasks.find((t: any) => t.name === currentContext) ||
-                    this.host.getActiveStage()?.tasks.find((t: any) => t.name === currentContext);
+                // FIX: Use hierarchical search instead of just root/active stage
+                const task = this.host.getTaskDefinitionByName(currentContext);
 
                 if (task) {
+                    const container = (this.host as any).projectRegistry?.getTaskContainer(currentContext);
+                    const containerInfo = container ? `${container.type} ${container.stageId || ''}` : 'unknown';
+
+                    console.log(`[FlowSyncManager] Syncing task logic for "${currentContext}" (Location: ${containerInfo}). Current sequence length: ${task.actionSequence?.length || 0}`);
                     this.syncTaskFromFlow(task, elements, connections);
                     // Single Source of Truth: update the local reference too
                     task.flowChart = chartData;
                     if ((task as any).flowGraph) delete (task as any).flowGraph;
+
+                    // Final check: did the object actually update?
+                    console.log(`[FlowSyncManager] Sync completed for "${currentContext}". New sequence length: ${task.actionSequence?.length || 0}`);
+                    // CLEANUP: Ensure we don't have redundant flowCharts in other stages if this is a global task
+                    this.cleanupRedundantFlowCharts(currentContext, targetCharts);
                 }
             }
         }
@@ -164,6 +178,34 @@ export class FlowSyncManager {
         this.host.updateFlowSelector();
         console.log(`[FlowSyncManager] syncToProject completed. Notifying mediator with project.`);
         mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
+    }
+
+    /**
+     * Removes flowChart entries from other collections if they exist elsewhere.
+     * Prevents split-brain scenarios.
+     */
+    private cleanupRedundantFlowCharts(taskName: string, primaryCollection: any) {
+        if (!this.host.project) return;
+
+        // 1. Check Root
+        if (this.host.project.flowCharts && this.host.project.flowCharts !== primaryCollection) {
+            if (this.host.project.flowCharts[taskName]) {
+                console.log(`[FlowSyncManager] Cleanup: Removed redundant flowChart for ${taskName} from project-root.`);
+                delete this.host.project.flowCharts[taskName];
+            }
+        }
+
+        // 2. Check All Stages
+        if (this.host.project.stages) {
+            this.host.project.stages.forEach((stage: any) => {
+                if (stage.flowCharts && stage.flowCharts !== primaryCollection) {
+                    if (stage.flowCharts[taskName]) {
+                        console.log(`[FlowSyncManager] Cleanup: Removed redundant flowChart for ${taskName} from stage ${stage.name}.`);
+                        delete stage.flowCharts[taskName];
+                    }
+                }
+            });
+        }
     }
 
     public syncVariablesFromFlow() {
@@ -199,12 +241,18 @@ export class FlowSyncManager {
         const sequence: any[] = [];
         const visited = new Set<string>();
 
+        console.log(`[FlowSyncManager] syncTaskFromFlow: elements=${elements.length}, connections=${connections.length}`);
+
         const buildSequence = (nodeId: string, targetSeq: any[], stopSet: Set<string> = new Set()) => {
             if (visited.has(nodeId) || stopSet.has(nodeId)) return;
             visited.add(nodeId);
 
             const node = elements.find(e => e.id === nodeId);
-            if (!node) return;
+            if (!node) {
+                console.log(`[FlowSyncManager] buildSequence: Node ${nodeId} not found in elements.`);
+                return;
+            }
+            console.log(`[FlowSyncManager] buildSequence: processing node ${node.id} (${node.type})`);
 
             if (node.type === 'Action') {
                 const actionName = node.data?.name || node.data?.actionName || node.properties?.name || node.properties?.text;
@@ -229,8 +277,10 @@ export class FlowSyncManager {
 
                     targetSeq.push(actionItem);
                 }
-                const nextConn = connections.find(c => c.startTargetId === nodeId);
-                if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet);
+                const nextConns = connections.filter(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'output');
+                if (nextConns.length > 0) {
+                    nextConns.forEach(nc => buildSequence(nc.endTargetId, targetSeq, stopSet));
+                }
             } else if (node.type === 'Condition' || node.type === 'DataAction') {
                 const isData = node.type === 'DataAction';
                 const branchType = isData ? 'data_action' : 'condition';
@@ -315,13 +365,19 @@ export class FlowSyncManager {
         };
 
         const initialOutgoing = connections.filter(c => c.startTargetId === startNode.id);
+        // Robustness: Sort to keep 'output' anchor first, but process ALL outgoing connections
         initialOutgoing.sort((a) => (a.data?.startAnchorType === 'output' ? -1 : 1));
+
         if (initialOutgoing.length > 0) {
-            buildSequence(initialOutgoing[0].endTargetId, sequence);
+            console.log(`[FlowSyncManager] Following ${initialOutgoing.length} outgoing paths from start node.`);
+            initialOutgoing.forEach(c => {
+                buildSequence(c.endTargetId, sequence);
+            });
         }
 
         if (sequence.length > 0) {
-            console.log(`[FlowSyncManager] Generated sequence for task ${task.name} with ${sequence.length} items.`);
+            console.log(`[FlowSyncManager] Generated sequence for task ${task.name} with ${sequence.length} top-level items.`);
+            console.log(`[FlowSyncManager] Sequence summary:`, JSON.stringify(sequence.map(i => ({ type: i.type, name: i.name || i.condition }))));
             // --- MODIFIED: Preserve extra data from node.data to prevent loss of 'params', 'resultVariable', etc. ---
             task.actionSequence = sequence.map(item => {
                 // If we have an original id, try to find the original item data to preserve fields

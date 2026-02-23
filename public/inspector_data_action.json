@@ -15,15 +15,20 @@
                     "text": "Name",
                     "style": {
                         "color": "#64b5f6",
+                        "fontSize": "11px",
                         "fontWeight": "bold",
                         "marginBottom": "4px"
                     }
                 },
                 {
-                    "name": "NameInput",
+                    "name": "nameInput",
                     "className": "TEdit",
+                    "property": "Name",
                     "text": "${selectedObject.Name}",
-                    "placeholder": "Action Name..."
+                    "style": {
+                        "width": "100%",
+                        "marginBottom": "10px"
+                    }
                 },
                 {
                     "name": "descriptionLabel",
@@ -39,6 +44,7 @@
                 {
                     "name": "DescriptionInput",
                     "className": "TEdit",
+                    "property": "Description",
                     "text": "${selectedObject.Description}",
                     "placeholder": "Optionale Beschreibung..."
                 }
@@ -114,6 +120,7 @@
                 {
                     "name": "dataStoreInput",
                     "className": "TDropdown",
+                    "property": "dataStore",
                     "selectedValue": "${selectedObject.dataStore}",
                     "source": "objects",
                     "placeholder": "Datenquelle wählen..."
@@ -151,6 +158,7 @@
                         {
                             "name": "queryPropertyInput",
                             "className": "TDropdown",
+                            "property": "queryProperty",
                             "selectedValue": "${selectedObject.queryProperty}",
                             "options": "${availableResourceProperties}",
                             "placeholder": "Suchfeld...",
@@ -161,6 +169,7 @@
                         {
                             "name": "queryOperatorInput",
                             "className": "TDropdown",
+                            "property": "queryOperator",
                             "selectedValue": "${selectedObject.queryOperator}",
                             "options": [
                                 {
@@ -199,6 +208,7 @@
                         {
                             "name": "queryValueInput",
                             "className": "TEdit",
+                            "property": "queryValue",
                             "text": "${selectedObject.queryValue}",
                             "placeholder": "Wert oder ${Var}",
                             "style": {
@@ -246,6 +256,7 @@
                 {
                     "name": "resultVariableInput",
                     "className": "TDropdown",
+                    "property": "resultVariable",
                     "selectedValue": "${selectedObject.resultVariable}",
                     "source": "variables",
                     "placeholder": "Variable wählen..."
@@ -275,12 +286,14 @@
                 {
                     "name": "requestJWTInput",
                     "className": "TCheckbox",
+                    "property": "requestJWT",
                     "label": "JWT / Login Modus",
                     "checked": "${selectedObject.requestJWT}"
                 },
                 {
                     "name": "methodInput",
                     "className": "TDropdown",
+                    "property": "method",
                     "selectedValue": "${selectedObject.method}",
                     "options": [
                         {

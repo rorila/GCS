@@ -1,5 +1,41 @@
 # Changelog
 
+## [3.3.24] - 2026-02-23
+### Added
+- **Login Restrukturierung**: Verschiebung der Login-Tasks (`AttemptLogin`, `createAnEmojiPin`) und zugehöriger Aktionen von `stage_blueprint` in die spezialisierte `stage_login` zur besseren Kapselung.
+- **SSoT Enforcement**: Vollständige Bereinigung der `project.json` von redundanten und verwaisten Flow-Diagrammen ("Geister-Diagramme"). Alle globalen Diagramme liegen nun exklusiv in `stage_blueprint.flowCharts`.
+- **Project Validator**: Erfolgreiche Validierung des Projekts auf "Healthy" nach der Umstrukturierung.
+- **Smart Variable Deletion**: Implementierung einer intelligenten Lösch-Synchronisation für Variablen im Flow-Editor. Beinhaltet eine projektweite Nutzungsprüfung (`getVariableUsageCount`) und einen Bestätigungsdialog vor der globalen Löschung.
+- **RefactoringManager**: Neue Methoden `getVariableUsageCount` und `deleteVariable` zur projektweiten Verwaltung von Variablen-Definitionen.
+- **Project Validator**: Implementierung eines automatisierten Integritäts-Checks (`scripts/validate_project.cjs`). Das Script prüft die Konsistenz zwischen Events, Tasks, Actions und Ressourcen-Referenzen in Pascal-Ausdrücken sowie die Synchronität visueller Flow-Diagramme mit der logischen Sequenz.
+- **Workflow-Integration**: Neues npm-Script `npm run validate` zur projektweiten Qualitätssicherung.
+
+### Changed
+- **Action Editor Deprecation**: Der Legacy-Dialog `dialog_action_editor` wurde vollständig zugunsten des modularen `InspectorHost` abgelöst. Aktionen werden nun exklusiv über den Inspector bearbeitet.
+- **InspectorHost Action Renaming**: Die projektweite Umbenennung von Aktionen (`RefactoringManager.renameAction`) wurde nun beim Ändern des Namensfeldes direkt in den `InspectorHost` integriert.
+- **FlowAction & FlowDataAction**: Implementierung von `getInspectorProperties` auf den Flow-Knoten, um Aktionsspezifische Parameter (HTTP, Request, Query, Target etc.) dynamisch im Inspector bereitzustellen.
+
+### Fixed
+- **FlowEditor**: Behebung von massiven Syntaxfehlern in `selectNode` und Reintegration der Klassenstrukturen.
+- **FlowEditor**: Integration der Variablen-Löschung in den `deleteNode`-Workflow (Smart Delete).
+- **RefactoringManager**: Behebung von Typ-Warnungen und Bereinigung von statischen Methoden-Aufrufen (`filterSequenceItems`).
+- **Data Integrity**: Sicherstellung der Konsistenz zwischen visuellen Flow-Knoten (`VariableDecl`) und globalen Projekt-Variablen.
+- **AttemptLogin**: Synchronisierung des Flow-Diagramms durch Ergänzung des fehlenden `httpLogin`-Knotens.
+- **Admin Dashboard**: Korrektur des fehlerhaften `onEnter`-Events in der `stage_admin_dashboard` und Definition der zuvor fehlenden `SendApiResponse`-Aktion.
+- **Blueprint-Stage**: Behebung struktureller JSON-Inkonsistenzen durch Bereinigung doppelter Eigenschafts-Keys.
+- **Data Integrity**: Veraltete eingebettete `flowChart`-Eigenschaften aus Tasks (`AttemptLogin`, `createAnEmojiPin`, `GetRoomAdminData`) entfernt und korrekt in die `flowCharts`-Mappings überführt. Project Validator läuft nun zu 100% sauber durch.
+
+## [3.3.23] - 2026-02-23
+### Fixed
+- **TaskExecutor**: Implementierung einer hierarchischen Task-Auflösung (Aktive Stage -> Blueprint-Stage -> Legacy Root). Behebt das Problem, dass globale Tasks im Blueprint von der Runtime nicht gefunden wurden.
+- **Flow Editor**: Behebung des "Split-Brain" Synchronisationsfehlers bei Tasks (speziell `GetRoomAdminData`).
+- **Flow Engine**: Hierarchische Task-Auflösung (Active Stage -> Blueprint -> Global) implementiert.
+- **Data Integrity**: Bereinigungslogik für redundante FlowCharts im `FlowSyncManager` hinzugefügt.
+- **Rules**: Blueprint-Stage wird nun strikt als Single Source of Truth für globale Elemente bevorzugt.
+- **Projekt-Design (Regel 3)**: Erneute Bereinigung von Inline-Actions in `AttemptLogin` und `GetRoomAdminData`. Alle Aktionen werden nun strikt als Referenzen auf globale Definitionen geführt.
+- **Daten-Integrität**: Behebung von JSON-Syntaxfehlern in der `project.json` (falsche Arrays und Klammern in der Blueprint-Stage).
+- **Entwicklung**: Aktualisierung der `DEVELOPER_GUIDELINES.md` zur Task-Suche und Inline-Actions.
+
 
 ## [3.3.22] - 2026-02-22
 ### Fixed
@@ -7,6 +43,7 @@
 - **Inspector**: Absturz bei der Verwendung von String-Styles in JSON-Templates (`CSSStyleDeclaration` Fehler) behoben durch robustere `applyStyle`-Logik in `InspectorRenderer.ts`.
 - **Inspector**: Fehlerbehebung bei der Anzeige von Event-Labels ("undefined") und der Task-Auswahl durch Korrektur der Kontext-Auflösung in `InspectorTemplateLoader.ts`.
 - **Inspector**: Persistenz-Fix für Event-Mappings: Auswahl bleibt nun erhalten durch korrektes Pfad-Mapping (`event_` -> `events.`) in `InspectorEventHandler.ts`.
+- **Inspector**: Refaktoring der Property-Bindung: Einführung des expliziten `property`-Attributs in JSON-Templates für robustere Datenbindung und Ablösung der namensbasierten Heuristik (inkl. Legacy-Fallback).
 - **Inspector**: Integration von `availableTasks` in den Datenkontext (`InspectorContextBuilder.ts`) und Implementierung der `map_event`-Aktion.
 
 ## [3.3.21] - 2026-02-22
@@ -308,6 +345,14 @@
   - Dies verhindert, dass ein Page-Reload (`Ctrl+F5`) direkt nach dem Laden zu einem leeren Default-Projekt führt (Ghost Run).
   - Der Browser-Speicher spiegelt nun immer exakt das zuletzt geladene Projekt wider.
 
+## [2.18.13] - 2026-02-19
+### Added
+- **API Persistence**: Implementierung des Server-Endpoints `POST /api/dev/save-project` in `server.ts` ermöglicht nun die dauerhafte Speicherung der Plattform-Konfiguration (`project.json`) auf der Festplatte.
+### Changed
+- **SSoT (Zentralisierung)**: Konsolidierung von `GetRoomAdminData` und anderen globalen Tasks. Redundante Definitionen in lokalen Stages (`stage_dashboard`, `stage_player_lobby`) wurden entfernt und durch einheitliche Referenzen auf die `blueprint`-Stage ersetzt.
+- **Editor-Integration**: `Editor.ts` triggert nun bei jeder Änderung (`updateProjectJSON`) den neuen Server-seitigen Speichervorgang, zusätzlich zur lokalen `localStorage`-Sicherung.
+- **JSON Cleanup**: Bereinigung der `project.json` von doppelten `events`-Keys und Syntax-Fragmenten.
+
 ## [2.18.12] - 2026-02-16
 ### Added
 - **Inspector**: Anzeige von Klasse und ID des selektierten Objekts im Header (hilft bei Identifikation von `TLabel` vs `TStringVariable` etc.).
@@ -317,10 +362,14 @@
 - **GCS Core**: Unterstützung für generische Variablentypen (`any`, `json`) hinzugefügt, um komplexe API-Antworten ohne festes Datenmodell zu speichern.
 - **Action Persistence**: Fix für die Persistenz von `http` Aktionen durch Getter/Setter-Proxys in `FlowAction`.
 - **Flow Editor**: Korrektur der Node-Details Anzeige (keine `undefined` Werte mehr).
-- **Persistence**: Implementierung von OOP-Gettern/Settern in `FlowDataAction.ts` und Optimierung der `Smart-Sync`-Logik im `InspectorHost.ts` zur Vermeidung von Datenverlust bei verlinkten Elementen.
+- **Persistence**: Implementierung von OOP-Getters/Settern in `FlowDataAction.ts` und Optimierung der `Smart-Sync`-Logik im `InspectorHost.ts` zur Vermeidung von Datenverlust bei verlinkten Elementen.
 - **API Handler**: `ActionApiHandler` löst nun `dataStore`-Referenzen auf und nutzt deren Konfiguration (`storagePath`, `collection`).
 - **API**: Implementierung einer rekursiven Pfad-Ermittlung (`getDeepPaths`) im Backend zur Unterstützung tiefer JSON-Sektoren.
 - **UI Refinement**: `DataAction`-Inspector bereinigt. Redundantes `resource`-Feld entfernt, URL/Route schreibgeschützt (Auto-Update), und `resultPath` (Daten-Pfad) als Dropdown mit "Deep-Scan" Support und "Gesamte Daten"-Option implementiert.
+- **Fix (FlowSync)**: Einführung einer hierarchischen Task-Auflösung (Blueprint > Global > Local) zur Vermeidung von Split-Brain Zuständen.
+- **SSoT (Blueprint-Stage)**: Konsolidierung aller globalen Tasks und Aktionen in der `stage_blueprint`.
+- **Cleanup (Rule 3)**: Entfernung von Inline-Actions in `GetRoomAdminData` und Bereinigung redundanter Daten-Blobs in Flow-Knoten.
+- **Fix (JSON)**: Fehlerbehebung bei Syntax (Kommas) und ungültigen Task-Referenzen in der Projektdatei.
 - **Persistence Fix**: Behebung von Diskrepanzen zwischen Flow-Diagramm und Projektmodell durch proaktive Bereinigung redundanter Felder in `project.json`.
 - **Bugfix**: Korrektur der Dropdown-Initialisierung im Inspector; Ressourceneigenschaften werden nun beim Auswählen einer `DataAction` sofort geladen.
 - **Universal Smart-Unwrap (v2.18.12.2)**: `StandardActions.ts` entpackt Single-Item API-Resultate nun direkt an der Quelle. `ExpressionParser.ts` wurde vereinheitlicht und nutzt nun den `PropertyHelper` für robustes Traversal.

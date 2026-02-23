@@ -90,7 +90,7 @@ export class InspectorActionHandler {
     }
 
     private async handleBrowseImage(buttonDef: any, obj: any): Promise<void> {
-        const propName = buttonDef.actionData?.property;
+        const propName = buttonDef.property || buttonDef.actionData?.property;
         console.log('[InspectorActionHandler] Opening image browser for:', propName);
 
         // Simple prompt for now, will integrate with DialogManager in next phase
@@ -123,7 +123,7 @@ export class InspectorActionHandler {
     }
 
     private async handlePickVariable(buttonDef: any, obj: any): Promise<void> {
-        const propName = buttonDef.actionData?.property;
+        const propName = buttonDef.property || buttonDef.actionData?.property;
         const index = buttonDef.actionData?.index;
         console.log('[InspectorActionHandler] Opening variable picker for:', propName, index !== undefined ? `at index ${index}` : '');
 
@@ -212,10 +212,7 @@ export class InspectorActionHandler {
     }
 
     private handleMapEvent(def: any, obj: any, value: string): void {
-        const controlName = def.name || '';
-        if (!controlName.startsWith('event_')) return;
-
-        const eventName = controlName.substring(6).replace('Select', '').replace('Input', '');
+        const eventName = def.property ? def.property.replace('events.', '') : (def.name || '').substring(6).replace('Select', '').replace('Input', '');
         console.log(`[InspectorActionHandler] Mapping event ${eventName} to task: ${value}`);
 
         if (!obj.events) obj.events = {};

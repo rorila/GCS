@@ -21,34 +21,44 @@ export class InspectorEventHandler {
     public handleControlChange(controlName: string, newValue: any, selectedObject: any, inspectorDef?: any): PropertyChangeEvent | null {
         if (!selectedObject) return null;
 
-        // 1. Resolve property path from control name (e.g. "NameInput" -> "Name", "ActionTypeSelect" -> "type")
-        let propertyPath = controlName;
+        // 1. Resolve property path
+        let propertyPath = '';
 
-        // NEW: Strip specific suffixes used for differentiation (e.g. "LeftOperandValue_VarInput" -> "LeftOperandValueInput")
-        if (propertyPath.includes('_')) {
-            const parts = propertyPath.split('_');
-            const suffix = (propertyPath.endsWith('Input') ? 'Input' : (propertyPath.endsWith('Select') ? 'Select' : ''));
+        // NEW: Prioritize explicit 'property' from JSON definition
+        if (inspectorDef?.property) {
+            propertyPath = inspectorDef.property;
+            console.log(`[InspectorEventHandler] Using explicit property path: ${propertyPath}`);
+        } else {
+            // LEGACY FALLBACK: Resolve from control name
+            propertyPath = controlName;
+            console.warn(`[InspectorEventHandler] Legacy property resolution for control "${controlName}". Please use "property" attribute in template.`);
 
-            // Handle event_ prefix specifically
-            if (propertyPath.startsWith('event_')) {
-                const eventName = parts[1].replace('Select', '').replace('Input', '');
-                propertyPath = `events.${eventName}`;
-            } else {
-                propertyPath = parts[0] + suffix;
+            // Strip specific suffixes used for differentiation
+            if (propertyPath.includes('_')) {
+                const parts = propertyPath.split('_');
+                const suffix = (propertyPath.endsWith('Input') ? 'Input' : (propertyPath.endsWith('Select') ? 'Select' : ''));
+
+                // Handle event_ prefix specifically
+                if (propertyPath.startsWith('event_')) {
+                    const eventName = parts[1].replace('Select', '').replace('Input', '');
+                    propertyPath = `events.${eventName}`;
+                } else {
+                    propertyPath = parts[0] + suffix;
+                }
             }
-        }
 
-        if (propertyPath.endsWith('Input')) {
-            propertyPath = propertyPath.slice(0, -5);
-        } else if (propertyPath.endsWith('Select')) {
-            propertyPath = propertyPath.slice(0, -6);
-        } else if (propertyPath.endsWith('Label')) {
-            propertyPath = propertyPath.slice(0, -5);
-        }
+            if (propertyPath.endsWith('Input')) {
+                propertyPath = propertyPath.slice(0, -5);
+            } else if (propertyPath.endsWith('Select')) {
+                propertyPath = propertyPath.slice(0, -6);
+            } else if (propertyPath.endsWith('Label')) {
+                propertyPath = propertyPath.slice(0, -5);
+            }
 
-        // --- NEW: Specialized mappings ---
-        if (propertyPath === 'ActionType') propertyPath = 'actionType';
-        if (propertyPath === 'Aktions-Typ') propertyPath = 'actionType';
+            // --- Specialized mappings ---
+            if (propertyPath === 'ActionType') propertyPath = 'actionType';
+            if (propertyPath === 'Aktions-Typ') propertyPath = 'actionType';
+        }
 
         // 2. Capture old value safely
         const oldValue = PropertyHelper.getPropertyValue(selectedObject, propertyPath);

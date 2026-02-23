@@ -585,7 +585,11 @@ export function registerStandardActions() {
             { name: 'method', label: 'Methode', type: 'select', options: ['GET', 'POST', 'PUT', 'DELETE'], defaultValue: 'GET' },
             { name: 'body', label: 'Body (JSON-String oder Objekt)', type: 'string' },
             { name: 'resultVariable', label: 'Ergebnis speichern in', type: 'variable', source: 'variables' },
-            { name: 'resultPath', label: 'Daten-Pfad (Selektor)', type: 'string', hint: 'Optional: Pfad zum Objekt in der Response (z.B. "user")' }
+            { name: 'resultPath', label: 'Daten-Pfad (Selektor)', type: 'string', hint: 'Optional: Pfad zum Objekt in der Response (z.B. "user")' },
+            { name: 'selectFields', label: 'Felder (SELECT)', type: 'string', hint: 'Kommagetrennte Liste der Felder oder count(*)' },
+            { name: 'queryProperty', label: 'Filter-Feld (WHERE)', type: 'string', hint: 'z.B. id oder email' },
+            { name: 'queryOperator', label: 'Operator', type: 'select', options: ['==', '!=', '>', '<', '>=', '<=', 'CONTAINS'], defaultValue: '==' },
+            { name: 'queryValue', label: 'Filter-Wert', type: 'string', hint: 'Wert oder ${variable}' }
         ]
     });
 
@@ -816,7 +820,11 @@ export function registerStandardActions() {
         label: 'Data Action',
         description: 'Führt eine Daten-Aktion aus (HTTP, SQL, etc.).',
         parameters: [
-            { name: 'dataStore', label: 'Data Store (Komponente)', type: 'select', source: 'components', hint: 'Wähle eine TDataStore-Komponente (z.B. UserData)' }
+            { name: 'dataStore', label: 'Data Store (Komponente)', type: 'select', source: 'components', hint: 'Wähle eine TDataStore-Komponente (z.B. UserData)' },
+            { name: 'selectFields', label: 'Felder (SELECT)', type: 'string', hint: 'Kommagetrennte Liste der Felder oder count(*)' },
+            { name: 'queryProperty', label: 'Filter-Feld (WHERE)', type: 'string', hint: 'z.B. id oder email' },
+            { name: 'queryOperator', label: 'Operator', type: 'select', options: ['==', '!=', '>', '<', '>=', '<=', 'CONTAINS'], defaultValue: '==' },
+            { name: 'queryValue', label: 'Filter-Wert', type: 'string', hint: 'Wert oder ${variable}' }
         ] // Dynamic based on sub-type
     });
 

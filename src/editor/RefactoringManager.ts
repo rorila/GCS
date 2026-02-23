@@ -655,7 +655,7 @@ export class RefactoringManager {
 
         allTasks.forEach(task => {
             if (task.actionSequence) {
-                task.actionSequence = this.filterSequenceItems(task.actionSequence, actionName, 'action');
+                task.actionSequence = RefactoringManager.filterSequenceItems(task.actionSequence, actionName, 'action');
             }
         });
 
@@ -686,54 +686,121 @@ export class RefactoringManager {
      * Deletes a task project-wide
      */
     public static deleteTask(project: GameProject, taskName: string): void {
-        if (!taskName) return;
+        console.log(`[Refactoring] Deleting task "${taskName}" project-wide...`);
 
-        // 1. Remove from global list and all stages
-        project.tasks = project.tasks.filter(t => t.name !== taskName);
+        // 1. Remove from global tasks
+        if (project.tasks) {
+            project.tasks = project.tasks.filter(t => t.name !== taskName);
+        }
+
+        // 2. Remove from stage tasks
         if (project.stages) {
-            project.stages.forEach(s => {
-                if (s.tasks) s.tasks = s.tasks.filter(t => t.name !== taskName);
+            project.stages.forEach(stage => {
+                if (stage.tasks) {
+                    stage.tasks = stage.tasks.filter(t => t.name !== taskName);
+                }
             });
         }
 
-        // 2. Remove from object mappings in all stages
-        const allObjects = [...project.objects];
+        // 3. Remove references in event mappings
+        const cleanupEvents = (events: any) => {
+            if (!events) return;
+            Object.keys(events).forEach(key => {
+                if (events[key] === taskName) {
+                    console.log(`[Refactoring] Removing event mapping: ${key} -> ${taskName}`);
+                    delete events[key];
+                }
+            });
+        };
+
+        // Note: project.stage only contains grid. Events are in stages[].events.
         if (project.stages) {
-            project.stages.forEach(s => {
-                if (s.objects) allObjects.push(...s.objects);
+            project.stages.forEach(s => cleanupEvents(s.events));
+        }
+
+        // 4. Remove from sequences
+        if (project.tasks) {
+            project.tasks.forEach(t => {
+                if (t.actionSequence) {
+                    t.actionSequence = RefactoringManager.filterSequenceItems(t.actionSequence, taskName, 'task');
+                }
             });
         }
 
-        allObjects.forEach(obj => {
-            const mappings = (obj as any).Tasks;
-            if (mappings) {
-                Object.keys(mappings).forEach(evt => {
-                    if (mappings[evt] === taskName) delete mappings[evt];
-                });
-            }
-        });
-
-        // 3. Clean up sequence calls (Global + Stages)
-        const allTasksToClean = [...project.tasks];
-        if (project.stages) {
-            project.stages.forEach(s => {
-                if (s.tasks) allTasksToClean.push(...s.tasks);
-            });
-        }
-
-        allTasksToClean.forEach(task => {
-            if (task.actionSequence) {
-                task.actionSequence = this.filterSequenceItems(task.actionSequence, taskName, 'task');
-            }
-        });
-
-        // 4. Remove flow chart (from project and all stages)
+        // 5. Remove flow chart (from project and all stages)
         if (project.flowCharts) delete project.flowCharts[taskName];
         if (project.stages) {
             project.stages.forEach(s => {
                 if (s.flowCharts) delete s.flowCharts[taskName];
             });
         }
+    }
+
+    /**
+     * Checks how many times a variable is used project-wide ($variableName or ${variableName})
+     */
+    public static getVariableUsageCount(project: any, varName: string): number {
+        let count = 0;
+        const searchPattern = new RegExp(`\\$?\{?${varName}\}?`, 'g');
+
+        const scanItem = (obj: any) => {
+            if (!obj) return;
+            const str = JSON.stringify(obj);
+            const matches = str.match(searchPattern);
+            if (matches) {
+                count += matches.length;
+            }
+        };
+
+        // Scan all stages
+        if (project.stages) {
+            project.stages.forEach((s: any) => {
+                scanItem(s.objects);
+                scanItem(s.tasks);
+                scanItem(s.actions);
+                scanItem(s.events);
+            });
+        }
+
+        // Scan global elements
+        scanItem(project.tasks);
+        scanItem(project.actions);
+        if ((project as any).objects) scanItem((project as any).objects);
+
+        return count;
+    }
+
+    /**
+     * Deletes a variable project-wide
+     */
+    public static deleteVariable(project: any, variableNameOrId: string): string[] {
+        const report: string[] = [];
+        let deleted = false;
+
+        const filterVars = (vars: any[]) => {
+            if (!vars) return vars;
+            const initialLen = vars.length;
+            const filtered = vars.filter(v => v.id !== variableNameOrId && v.name !== variableNameOrId);
+            if (filtered.length < initialLen) deleted = true;
+            return filtered;
+        };
+
+        if (project.variables) {
+            project.variables = filterVars(project.variables);
+            if (deleted) report.push(`Globale Variable "${variableNameOrId}" entfernt.`);
+        }
+
+        if (project.stages) {
+            project.stages.forEach((s: any) => {
+                const wasDeleted = deleted;
+                deleted = false;
+                if (s.variables) s.variables = filterVars(s.variables);
+                if (deleted) report.push(`Variable "${variableNameOrId}" aus Stage "${s.name}" entfernt.`);
+                deleted = wasDeleted || deleted;
+            });
+        }
+
+        return report;
     }
 
     private static filterSequenceItems(sequence: SequenceItem[], name: string, type: 'action' | 'task'): SequenceItem[] {
@@ -752,20 +819,20 @@ export class RefactoringManager {
 
             // Recurse into standard body
             if (seqItem.body) {
-                seqItem.body = this.filterSequenceItems(seqItem.body, name, type);
+                seqItem.body = RefactoringManager.filterSequenceItems(seqItem.body, name, type);
             }
             // Recurse into DataAction bodies
             if (seqItem.successBody) {
                 console.log(`[RefactoringManager] Recursing into successBody of ${seqItem.name}`);
-                seqItem.successBody = this.filterSequenceItems(seqItem.successBody, name, type);
+                seqItem.successBody = RefactoringManager.filterSequenceItems(seqItem.successBody, name, type);
             }
             if (seqItem.errorBody) {
                 console.log(`[RefactoringManager] Recursing into errorBody of ${seqItem.name}`);
-                seqItem.errorBody = this.filterSequenceItems(seqItem.errorBody, name, type);
+                seqItem.errorBody = RefactoringManager.filterSequenceItems(seqItem.errorBody, name, type);
             }
             // Recurse into Condition elseBody
             if (seqItem.elseBody) {
-                seqItem.elseBody = this.filterSequenceItems(seqItem.elseBody, name, type);
+                seqItem.elseBody = RefactoringManager.filterSequenceItems(seqItem.elseBody, name, type);
             }
 
             return true;

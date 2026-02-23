@@ -82,6 +82,11 @@
     - **Event-Templates**: Handler können spezialisierte Event-Templates via `getEventsTemplate(obj)` bereitstellen. Für Variablen wird `inspector_variable_events.json` verwendet, das typspezifische Events (wie `onTimer` oder `onGenerated`) anbietet.
     - **Scope-Selection**: Das `scope`-Feld in der `inspector_variable.json` ermöglicht die Auswahl zwischen `global` (🌎) und `stage` (🎭) Scopes.
 
+### 5. SPLIT-BRAIN VERMEIDUNG (SYNCHRONISATION)
+- **Problem**: Ein Task ist in der Blueprint-Stage definiert, aber der Flow-Editor speichert die visuellen Daten fälschlicherweise in der aktiven Stage.
+- **Lösung**: Der `FlowSyncManager` nutzt nun `getTaskDefinitionByName`, um die Stage-Hierarchie zu respektieren.
+- **Regel**: Globale Tasks IMMER in der Blueprint-Stage bearbeiten. Redundante `flowCharts`-Einträge in anderen Stages werden vom System automatisch bereinigt.
+
 ## UseCase-Index-System
 Zur besseren Wartbarkeit und schnelleren Orientierung im Code pflegen wir ein UseCase-System in `docs/use_cases/`.
 - **Zweck**: Dokumentation technischer Abläufe über Dateigrenzen hinweg.
@@ -178,11 +183,11 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
     - FlowChart-Daten (`elements`, `connections`) müssen IMMER unter dem Namen des Tasks als Key in der `flowCharts` Collection gespeichert werden (z.B. `targetCharts[taskName] = chartData`).
     - Ein direktes Speichern auf dem Collection-Objekt führt dazu, dass sich Diagramme verschiedener Tasks gegenseitig überschreiben.
     - Verwende das `isLoading` Flag im `FlowEditor`, um zu verhindern, dass während des Ladevorgangs unvollständige Daten zurück in das Projekt synchronisiert werden.
-- **Task-Suche (v2.16.14)**:
-    - ⚠️ **NIEMALS nur `project.tasks` durchsuchen!** Tasks leben primär in `stage.tasks` (pro Stage), nicht im Root-Array.
-    - Korrekte Suchreihenfolge: **Aktive Stage → Alle Stages → Root** (`project.tasks`).
-    - Verwende `TaskEditor.findTaskAndContainer()` als Referenz-Implementierung.
-    - Beim Erstellen neuer Tasks: bevorzugt in die aktive Stage einfügen, nicht ins Root-Array.
+- **Task-Suche (v3.3.23)**:
+    - ⚠️ **NIEMALS nur `project.tasks` durchsuchen!**
+    - Korrekte Suchreihenfolge im `TaskExecutor`: **Aktive Stage → Blueprint-Stage (`stage_blueprint`) → Legacy Root (`project.tasks`)**.
+    - Dies stellt sicher, dass globale Tasks im Blueprint immer gefunden werden, ohne die aktive Stage zu stören.
+    - Verwende `TaskExecutor.execute()` als Referenz-Implementierung.
 - Task-Umbenennung & Sync (v2.16.15):
     - Nutze in Flow-Knoten (`FlowElement.ts`) statische Importe für den `RefactoringManager`, um projektweite Umbenennungen zu garantieren.
     - Synchronisiere bei Namensänderungen im Inspector immer den `localStorage` (`gcs_last_flow_context`) und aktualisiere den `FlowEditor` Pointer, um Kontext-Verluste zu vermeiden.
@@ -421,6 +426,12 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Pascal -> Flow Sync**: Änderungen im Pascal-Code müssen explizit in den Flow-Editor synchronisiert werden. Nutze dazu `flowEditor.syncActionsFromProject()`. Dies ist besonders wichtig, da Flow-Knoten ihre Daten (`node.data`) teilweise redundant halten, um die UI-Performance zu verbessern.
 - **Local Storage Authority**: Der einzige gültige Schlüssel für die automatische Speicherung im Local Storage ist `gcs_last_project`. Verwende den `ProjectPersistenceService.autoSaveToLocalStorage()`, anstatt `localStorage` direkt anzusprechen.
 - **Save Hooks**: Persistenz-Calls (Auto-Save) sollten immer nach erfolgreichem Parsing (Pascal) oder nach Mediator-Events (Objekt-Manipulation) erfolgen.
+
+- **SSoT & DATEI-PERSISTENZ (v3.4.2)**:
+  - **Problem**: Änderungen im Editor werden oft nur in den Browser-`localStorage` gespeichert und gehen bei einem Server-Neustart oder Dateisystem-Sync verloren.
+  - **Lösung**: Der Server bietet den Endpoint `POST /api/dev/save-project` an.
+  - **Editor-Integration**: `Editor.updateProjectJSON()` triggert diesen Endpoint bei jeder Änderung. Dies sorgt für eine sofortige Persistenz der `project.json` auf der Festplatte.
+  - **Zentralisierung (Blueprint)**: Alle globalen Logik-Elemente (Tasks, Aktionen) MÜSSEN in der `stage_blueprint` gehostet werden. Redundante Definitionen in lokalen Stages führen zu Synchronisationsfehlern und müssen bereinigt werden.
 
 ### Action-Check & Referenzsuche (v2.5.2)
 - **Aufgabe**: Der Action-Check identifiziert unbenutzte Tasks, Aktionen und Variablen projektweit.

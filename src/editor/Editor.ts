@@ -2088,9 +2088,16 @@ export class Editor implements IViewHost {
         this.updateAvailableActions();
         this.refreshJSONView();
 
-        if (this.flowEditor && this.currentView === 'flow' && originator !== 'flow-editor' && originator !== 'inspector') {
-            this.flowEditor.setProject(this.project);
-            this.flowEditor.show();
+        if (this.flowEditor && this.currentView === 'flow') {
+            if (originator !== 'flow-editor' && originator !== 'inspector') {
+                // Full reload (e.g. stage switch)
+                this.flowEditor.setProject(this.project);
+                this.flowEditor.show();
+            } else if (originator === 'inspector' && this.currentSelectedId) {
+                // Smart partial reload: only update visuals of the currently edited node
+                console.log(`[Editor] Triggering smart node visual update for: ${this.currentSelectedId}`);
+                this.flowEditor.syncNodeVisuals(this.currentSelectedId);
+            }
         }
 
         if (this.inspector && this.currentSelectedId) {
@@ -2100,6 +2107,7 @@ export class Editor implements IViewHost {
 
         this.autoSaveToLocalStorage();
     }
+
 
     /**
      * Prompts the user to apply changes and updates the permanent project state
@@ -2740,6 +2748,25 @@ export class Editor implements IViewHost {
     public updateProjectJSON() {
         if (this.project) {
             projectPersistenceService.autoSaveToLocalStorage(this.project);
+
+            // SSoT & DATEI-PERSISTENZ: Speichere Änderungen direkt auf Disk via Server-Endpoint
+            console.log('[Editor] Starte persistente Speicherung auf Disk...');
+            fetch('/api/dev/save-project', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.project)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('[Editor] Projekt wurde erfolgreich auf Disk gespeichert.');
+                    } else {
+                        console.warn('[Editor] Server-seitige Speicherung fehlgeschlagen:', data.error);
+                    }
+                })
+                .catch(err => {
+                    console.error('[Editor] Fehler bei Verbindung zum Speicher-Endpoint:', err);
+                });
         }
     }
 

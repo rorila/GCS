@@ -5,6 +5,7 @@ import { InspectorEventHandler } from './InspectorEventHandler';
 import { InspectorRegistry } from './InspectorRegistry';
 import { InspectorTemplateLoader } from './InspectorTemplateLoader';
 import { InspectorActionHandler } from './InspectorActionHandler';
+import { RefactoringManager } from '../RefactoringManager';
 import { GameObjectHandler } from './handlers/GameObjectHandler';
 import { FlowConditionHandler } from './handlers/FlowConditionHandler';
 import { FlowNodeHandler } from './handlers/FlowNodeHandler';
@@ -35,7 +36,7 @@ export class InspectorHost {
     ) {
         this.renderer = new InspectorRenderer(runtime);
         this.eventHandler = new InspectorEventHandler(runtime, project);
-        this.templateLoader = new InspectorTemplateLoader(runtime);
+        this.templateLoader = new InspectorTemplateLoader(); // Removed runtime
         this.actionHandler = new InspectorActionHandler(runtime, project, this);
 
         // Initialize Default Handlers
@@ -53,7 +54,7 @@ export class InspectorHost {
         this.runtime = runtime;
         this.renderer = new InspectorRenderer(runtime);
         this.eventHandler = new InspectorEventHandler(runtime, this.project);
-        this.templateLoader = new InspectorTemplateLoader(runtime);
+        this.templateLoader = new InspectorTemplateLoader(); // Removed runtime
         this.actionHandler = new InspectorActionHandler(runtime, this.project, this);
     }
 
@@ -225,6 +226,17 @@ export class InspectorHost {
                     const event = this.eventHandler.handleControlChange(def.name, input.value, obj, def);
 
                     if (event) {
+                        // --- START: Refactoring Hooks for Actions ---
+                        if (event.propertyName === 'Name' && (obj.type === 'action' || obj.type === 'data_action' || obj.getType?.() === 'Action' || obj.getType?.() === 'DataAction')) {
+                            const oldName = event.oldValue;
+                            const newName = event.newValue;
+                            if (oldName && newName && oldName !== newName) {
+                                console.log(`[InspectorHost] Renaming action project-wide: "${oldName}" -> "${newName}"`);
+                                RefactoringManager.renameAction(this.project, oldName, newName);
+                            }
+                        }
+                        // --- END: Refactoring Hooks ---
+
                         mediatorService.notifyDataChanged({
                             property: event.propertyName,
                             value: event.newValue,

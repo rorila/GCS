@@ -122,6 +122,40 @@ export class FlowEditor implements FlowMapHost {
         this.syncManager.syncAllTasksFromFlow();
     }
 
+    /**
+     * Updates the visual representation of a single node based on its internal `data`.
+     * This prevents complete canvas re-renders and preserves selection state.
+     */
+    public syncNodeVisuals(nodeId: string): void {
+        const node = this.nodes.find(n => n.id === nodeId);
+        if (!node) return;
+
+        // 1. Sync standard properties from data
+        if (node.data) {
+            if (node.data.name !== undefined) node.Name = node.data.name;
+            else if (node.data.taskName !== undefined) node.Name = node.data.taskName;
+            else if (node.data.actionName !== undefined) node.Name = node.data.actionName;
+
+            if (node.data.details !== undefined) node.Details = node.data.details;
+            if (node.data.description !== undefined) node.Description = node.data.description;
+
+            // For conditions and loops
+            if (node.data.condition !== undefined) node.Name = node.data.condition;
+            if (node.data.count !== undefined) node.Name = String(node.data.count);
+        }
+
+        // 2. Refresh extra visuals (Variables, Details string generation)
+        if (node instanceof FlowVariable || node instanceof FlowLoop) {
+            (node as any).updateVisuals?.();
+        } else if (node instanceof FlowAction || node instanceof FlowDataAction || node instanceof FlowTask) {
+            // Force recalculation of details text
+            (node as any).setShowDetails?.(this.showDetails, this.project);
+        }
+
+        console.log(`[FlowEditor] Successfully synced visuals for node ${nodeId}`);
+    }
+
+
     private set selectedNode(value: FlowElement | null) {
         if (value) {
             this.stateManager.selectNode(value);
@@ -135,7 +169,7 @@ export class FlowEditor implements FlowMapHost {
         return this.project.stages.find(s => s.id === this.project!.activeStageId) || this.project.stages[0] || null;
     }
 
-    private getTaskDefinitionByName(taskName: string): any | null {
+    public getTaskDefinitionByName(taskName: string): any | null {
         if (!this.project) return null;
 
         // 1. Try current stage tasks - PRIORITY for local context!
@@ -145,13 +179,24 @@ export class FlowEditor implements FlowMapHost {
             if (task) return task;
         }
 
-        // 2. Try global tasks
-        let task = this.project.tasks.find(t => t.name === taskName);
+        // 2. Try Blueprint stage - SSoT for global elements
+        if (this.project.stages) {
+            const blueprint = this.project.stages.find(s => s.id === 'stage_blueprint' || s.type === 'blueprint');
+            if (blueprint?.tasks) {
+                const task = blueprint.tasks.find(t => t.name === taskName);
+                if (task) return task;
+            }
+        }
+
+        // 3. Try legacy global tasks (project root)
+        let task = this.project.tasks?.find(t => t.name === taskName);
         if (task) return task;
 
-        // 3. Search all other stages as fallback
+        // 4. Search all other stages as fallback
         if (this.project.stages) {
             for (const s of this.project.stages) {
+                // Skip active and blueprint as they are already checked
+                if (s.id === activeStage?.id || s.id === 'stage_blueprint' || s.type === 'blueprint') continue;
                 if (s.tasks) {
                     task = s.tasks.find(t => t.name === taskName);
                     if (task) return task;
@@ -427,7 +472,16 @@ export class FlowEditor implements FlowMapHost {
         if (!this.project) return {};
         const activeStage = this.getActiveStage();
 
-        // Check if task exists globally
+        // 1. Check if task exists in Blueprint stage (New SSoT for global tasks)
+        const blueprint = this.project.stages?.find(s => s.id === 'stage_blueprint' || s.type === 'blueprint');
+        if (blueprint) {
+            const isBlueprintTask = blueprint.tasks?.some((t: any) => t.name === taskName);
+            if (isBlueprintTask) {
+                return blueprint.flowCharts || (blueprint.flowCharts = {});
+            }
+        }
+
+        // 2. Check if task exists globally (legacy root)
         const isGlobalTask = this.project.tasks?.some((t: any) => t.name === taskName);
         if (isGlobalTask) {
             return this.project.flowCharts || (this.project.flowCharts = {});
@@ -435,7 +489,7 @@ export class FlowEditor implements FlowMapHost {
 
         if (!activeStage) return this.project.flowCharts || (this.project.flowCharts = {});
 
-        // If task exists in active stage
+        // 3. If task exists in active stage
         const isStageTask = activeStage.tasks?.some((t: any) => t.name === taskName);
         if (isStageTask) {
             return activeStage.flowCharts || (activeStage.flowCharts = {});
@@ -443,6 +497,7 @@ export class FlowEditor implements FlowMapHost {
 
         // Fallback: If it already exists somewhere, use that
         if (activeStage.flowCharts && activeStage.flowCharts[taskName || '']) return activeStage.flowCharts;
+        if (blueprint?.flowCharts?.[taskName || '']) return blueprint.flowCharts;
         if (this.project.flowCharts && this.project.flowCharts[taskName || '']) return this.project.flowCharts;
 
         // Default to active stage for new local tasks
@@ -1437,12 +1492,29 @@ export class FlowEditor implements FlowMapHost {
                             if (this.onProjectChange) this.onProjectChange();
                         } else {
                             if (confirm(`Die Aktion "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch aus der globalen Aktions-Liste gelöscht werden?`)) {
-                                this.deleteElementFromProject('Action', nodeName, undefined, true); // User confirmed -> FORCE DELETE (or should this be safe delete? No, user explicitly said YES to global delete here)
+                                this.deleteElementFromProject('Action', nodeName, undefined, true);
                                 if (this.onProjectChange) this.onProjectChange();
                             }
                         }
+                    }
+                }, 200);
+            }
+
+            // --- SMART DELETE: Check if this was a variable ---
+            if (nodeType === 'VariableDecl' && nodeName) {
+                setTimeout(() => {
+                    const usageCount = (RefactoringManager as any).getVariableUsageCount(this.project, nodeName);
+
+                    if (usageCount === 0) {
+                        if (confirm(`Die Variable "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch Global aus dem Projekt gelöscht werden?`)) {
+                            this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
+                            if (this.onProjectChange) this.onProjectChange();
+                        }
                     } else {
-                        console.log(`[FlowEditor] Action "${nodeName}" still has ${refs.length} references, keeping global definition.`);
+                        if (confirm(`Möchtest du die Variable "${nodeName}" auch Global aus dem Projekt löschen?\n(Sie wird noch an ${usageCount} Stellen referenziert!)`)) {
+                            this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
+                            if (this.onProjectChange) this.onProjectChange();
+                        }
                     }
                 }, 200);
             }
@@ -1454,65 +1526,34 @@ export class FlowEditor implements FlowMapHost {
 
         console.log(`[FlowEditor] deleteElementFromProject: Anforderung zum Löschen von ${type} "${name}" (Force: ${force})`);
 
-        let deletedGlobal = false;
-
         if (type === 'Action') {
-            // NEU: Zuerst prüfen, ob die Action noch woanders verwendet wird.
             const usageCount = RefactoringManager.getActionUsageCount(this.project, name);
-            console.log(`[FlowEditor] Action "${name}" usage count: ${usageCount}`);
+            if (!force && usageCount > 0) return;
 
-            if (!force && usageCount > 0) {
-                console.log(`[FlowEditor] SAFETY ABORT: Action "${name}" usage count is ${usageCount}. Global deletion prevented.`);
-                return;
-            }
-
-            // Wenn wir hier sind, ist es ein Orphan (Usage == 0) ODER Force Delete (Overview).
-            console.log(`[FlowEditor] PROCEEDING: Action "${name}" deletion. Usage: ${usageCount}, Force: ${force}.`);
-
-            // 1. Precise deletion from global array (handles duplicates)
             if (index !== undefined && index >= 0 && index < this.project.actions.length) {
                 this.project.actions.splice(index, 1);
-                console.log(`[FlowEditor] Deleted Action instance at index ${index}: ${name}`);
-                deletedGlobal = true;
             } else {
-                const initialLen = this.project.actions.length;
                 this.project.actions = this.project.actions.filter(a => a.name !== name);
-                if (this.project.actions.length < initialLen) {
-                    console.log(`[FlowEditor] Deleted all Global Action instances with name: ${name}`);
-                    deletedGlobal = true;
-                }
             }
 
-            // 1b. Delete from matching Stage lists (Robust multi-scope cleanup)
-            let deletedStage = false;
+            // Stage-level actions cleanup
             if (this.project.stages) {
                 this.project.stages.forEach(stage => {
                     if (stage.actions) {
-                        const sLen = stage.actions.length;
                         stage.actions = stage.actions.filter(a => a.name !== name);
-                        if (stage.actions.length < sLen) {
-                            console.log(`[FlowEditor] Deleted Action "${name}" from Stage "${stage.name || stage.id}"`);
-                            deletedStage = true;
-                        }
                     }
                 });
             }
 
-            console.log(`[FlowEditor] Deletion Verification for "${name}": Global=${deletedGlobal}, Stage=${deletedStage}`);
-
-            // 2. Project-wide reference cleanup (Flowcharts, Sequences)
-            // WICHTIG: Wenn wir FORCIEREN, müssen wir aufräumen.
-            // Wenn es ein automatischer Cleanup war (Force=false), und wir hier sind, ist Usage=0.
-            // Also ja, RefactoringManager aufrufen ist sicher.
             RefactoringManager.deleteAction(this.project, name);
-
-            // 3. Explizit: Notify über Änderungen
             if (this.onProjectChange) this.onProjectChange();
 
         } else if (type === 'Task') {
             RefactoringManager.deleteTask(this.project, name);
-            console.log(`[FlowEditor] Deleted Task project-wide: ${name}`);
-
+            if (this.onProjectChange) this.onProjectChange();
+        } else if ((type as string) === 'Variable') {
+            const report = RefactoringManager.deleteVariable(this.project, name);
+            console.log(`[FlowEditor] Deleted Variable project-wide: ${name}`, report);
             if (this.onProjectChange) this.onProjectChange();
         }
     }
@@ -2179,101 +2220,17 @@ export class FlowEditor implements FlowMapHost {
     }
 
     private openActionEditor(node: FlowElement) {
-        // Construct dialog data from node data
-        const nodeData = node.data || {};
-        // IMPORTANT: node.Name takes priority as user may have renamed it in Inspector
-        const actionName = node.Name || nodeData.name;
+        // DEPRECATION NOTICE: The modal action editor (`dialog_action_editor`) has been completely 
+        // phased out in favor of the modular Inspector (`InspectorHost`).
+        // Double-clicking an action simply ensures it is selected so the Inspector can take over.
 
-        if (!this.project) return;
-        const existingAction = this.project.actions.find(a => a.name === actionName);
+        this.selectedNode = node;
+        console.log(`[FlowEditor] Action edit requested for "${node.Name}". Editing is now handled exclusively via the right-hand Inspector.`);
 
-        // Deep clone everything to prevent reference sharing
-        const dialogData = existingAction
-            ? JSON.parse(JSON.stringify(existingAction))
-            : JSON.parse(JSON.stringify(nodeData));
-
-        // Ensure name and other key fields are correct
-        dialogData.name = actionName;
-        if (!dialogData.type) dialogData.type = nodeData.type || 'property';
-        if (!dialogData.target) dialogData.target = nodeData.target || '';
-        if (!dialogData.changes) dialogData.changes = nodeData.changes || {};
-
-        // Add task context so the dialog can resolve local variables and show task parameters
-        if (this.currentFlowContext && this.currentFlowContext !== 'event-map' && this.currentFlowContext !== 'element-overview') {
-            const task = this.project.tasks.find(t => t.name === this.currentFlowContext);
-            dialogData.taskName = this.currentFlowContext;
-            if (task?.params) {
-                dialogData.taskParams = task.params;
-            }
+        // Visual feedback to guide the user
+        if (this.editor && typeof this.editor.showToast === 'function') {
+            this.editor.showToast('Please use the Inspector panel to edit action properties.', 'info');
         }
-
-        console.log('[FlowEditor] openActionEditor dialogData (cloned):', dialogData);
-
-        serviceRegistry.call('Dialog', 'showDialog', ['dialog_action_editor', true, dialogData])
-            .then((result: any) => {
-                if (result?.action === 'save' && result.data) {
-                    const oldName = actionName;
-                    const newName = result.data.name;
-
-                    // 1. If name changed, perform project-wide refactoring FIRST
-                    if (oldName && newName && oldName !== newName) {
-                        console.log(`[FlowEditor] Renaming action from "${oldName}" to "${newName}"...`);
-                        RefactoringManager.renameAction(this.project!, oldName, newName);
-
-                        // Update all nodes in memory to prevent syncToProject from re-creating old actions
-                        this.renameActionInMemory(oldName, newName);
-                    }
-
-                    // SINGLE SOURCE OF TRUTH: Update the global definition in project.actions
-                    // Note: result.data contains the full action definition from the dialog
-                    this.syncManager.updateGlobalActionDefinition({ ...result.data, name: newName });
-
-                    // Update the node's visual name
-                    node.Name = newName;
-                    node.setText(newName);
-
-                    // Update node data to be a LINK (Single Source of Truth)
-                    // We DON'T store the full definition here anymore
-                    node.data = { name: newName, isLinked: true };
-                    node.setLinked(true);
-
-                    // 3. Sync to project to trigger auto-save and ensure consistency
-                    this.syncToProject();
-
-                    // 4. Update visual status and refresh details
-                    node.setDetailed(true);
-
-                    // For FlowAction, force refresh of details
-                    if (node instanceof FlowAction) {
-                        // Clear cached details now that project is synced
-                        node.Details = '';
-                        node.setShowDetails(this.showDetails, this.project);
-                    }
-                } else if (result?.action === 'delete') {
-                    // Handled within dialog usually, but just in case
-                }
-            });
-    }
-
-    /**
-     * Renames all action references in the currently loaded in-memory nodes.
-     * Crucial to prevent syncToProject from seeing old names and re-creating them.
-     */
-    private renameActionInMemory(oldName: string, newName: string) {
-        this.nodes.forEach(n => {
-            if (n.getType() === 'Action') {
-                if (n.Name === oldName) n.setText(newName);
-                if (n.data) {
-                    if (n.data.name === oldName) n.data.name = newName;
-                    if (n.data.actionName === oldName) n.data.actionName = newName;
-                }
-            } else if (n.getType() === 'Condition') {
-                if (n.data) {
-                    if (n.data.thenAction === oldName) n.data.thenAction = newName;
-                    if (n.data.elseAction === oldName) n.data.elseAction = newName;
-                }
-            }
-        });
     }
 
     private selectNode(node: FlowElement) {
@@ -2289,7 +2246,7 @@ export class FlowEditor implements FlowMapHost {
         }
 
         // Feature: Projekt-Landkarte Object Selection
-        if (this.currentFlowContext === 'event-map' && node.data?.isProxy && node.data?.stageObjectId) {
+        if (this.currentFlowContext === 'event-map' && node && node.data?.isProxy && node.data?.stageObjectId) {
             this.currentSelectedStageObjectId = node.data.stageObjectId;
             // Notify Editor to select this object on stage
             serviceRegistry.call('Editor', 'selectObject', [node.data.stageObjectId]);

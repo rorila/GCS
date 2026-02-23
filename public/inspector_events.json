@@ -29,6 +29,7 @@
                         "className": "TSelect",
                         "name": "event_${value}",
                         "label": "",
+                        "property": "events.${value}",
                         "placeholder": "Task auswählen...",
                         "options": "${availableTasks}",
                         "selectedValue": "${selectedObject.events.${value} || ''}",
