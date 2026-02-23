@@ -1,4 +1,4 @@
-import { GameProject, StageDefinition, GameAction, GameTask, ProjectVariable } from '../model/types';
+import { GameProject, StageDefinition, GameAction, GameTask, ProjectVariable, StageType } from '../model/types';
 import { Stage } from './Stage';
 import { TWindow } from '../components/TWindow';
 import { TObjectList } from '../components/TObjectList';
@@ -72,15 +72,100 @@ export class EditorStageManager {
         return this.project.stages.find(s => s.id === this.project.activeStageId) || this.project.stages[0] || null;
     }
 
-    public getTargetActionCollection(_actionName?: string): GameAction[] {
-        // Logic to decide if global or stage (simple stage-only for now in modular)
-        const stage = this.getActiveStage();
-        return stage?.actions || this.project.actions || [];
+    public getTargetActionCollection(actionName?: string, action?: GameAction): GameAction[] {
+        const activeStage = this.getActiveStage();
+
+        // 1. Explicit Scope Check
+        if (action?.scope === 'global') {
+            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+            if (blueprintStage) return blueprintStage.actions || (blueprintStage.actions = []);
+            return this.project.actions || (this.project.actions = []);
+        }
+        if (action?.scope === 'stage' && activeStage) return activeStage.actions || (activeStage.actions = []);
+
+        if (!activeStage) return this.project.actions || (this.project.actions = []);
+
+        // 2. Existence Check
+        if (activeStage.actions && activeStage.actions.find(a => a.name === actionName)) {
+            return activeStage.actions;
+        }
+
+        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+        if (blueprintStage?.actions && blueprintStage.actions.find(a => a.name === actionName)) {
+            return blueprintStage.actions;
+        }
+
+        if (this.project.actions && this.project.actions.find(a => a.name === actionName)) {
+            return this.project.actions;
+        }
+
+        // Default to stage
+        if (!activeStage.actions) activeStage.actions = [];
+        return activeStage.actions;
     }
 
-    public getTargetTaskCollection(_taskName?: string): GameTask[] {
-        const stage = this.getActiveStage();
-        return stage?.tasks || this.project.tasks || [];
+    public getTargetTaskCollection(taskName?: string, task?: GameTask): GameTask[] {
+        const activeStage = this.getActiveStage();
+
+        // 1. Explicit Scope Check
+        if (task?.scope === 'global') {
+            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+            if (blueprintStage) return blueprintStage.tasks || (blueprintStage.tasks = []);
+            return this.project.tasks || (this.project.tasks = []);
+        }
+        if (task?.scope === 'stage' && activeStage) return activeStage.tasks || (activeStage.tasks = []);
+
+        if (!activeStage) return this.project.tasks || (this.project.tasks = []);
+
+        if (activeStage.tasks && activeStage.tasks.find(t => t.name === taskName)) {
+            return activeStage.tasks;
+        }
+
+        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+        if (blueprintStage?.tasks && blueprintStage.tasks.find(t => t.name === taskName)) {
+            return blueprintStage.tasks;
+        }
+
+        if (this.project.tasks && this.project.tasks.find(t => t.name === taskName)) {
+            return this.project.tasks;
+        }
+
+        if (!activeStage.tasks) activeStage.tasks = [];
+        return activeStage.tasks;
+    }
+
+    public createStage(type: StageType, name?: string): StageDefinition {
+        // Stelle sicher dass stages-Array existiert
+        if (!this.project.stages) {
+            this.migrateToStages();
+        }
+
+        const stageCount = this.project.stages!.filter(s => s.type === type).length;
+        const id = type === 'splash' ? 'splash' : `stage-${Date.now()}`;
+        const finalName = name || (type === 'splash' ? 'Splash' : `Stage ${stageCount + 1}`);
+
+        const newStage: StageDefinition = {
+            id,
+            name: finalName,
+            type,
+            objects: [],
+            actions: [],
+            tasks: [],
+            variables: [],
+            grid: JSON.parse(JSON.stringify(this.project.stage.grid))
+        };
+
+        if (type === 'splash') {
+            newStage.duration = 3000;
+            newStage.autoHide = true;
+            this.project.stages!.unshift(newStage);
+        } else {
+            this.project.stages!.push(newStage);
+        }
+
+        this.switchStage(id);
+        this.onRefresh();
+        return newStage;
     }
 
     /**
@@ -161,4 +246,68 @@ export class EditorStageManager {
     public ensureManagerLists(stageId: string): TObjectList[] {
         return mediatorService.getManagersForStage(stageId);
     }
+
+    public getResolvedInheritanceObjects(): any[] {
+        const activeStage = this.getActiveStage();
+        if (!activeStage) return [];
+
+        let resolvedObjects = [...(activeStage.objects || [])];
+
+        if (activeStage.inheritsFrom && this.project.stages) {
+            const template = this.project.stages.find(s => s.id === activeStage.inheritsFrom);
+            if (template && template.objects) {
+                const templateObjects = template.objects.map(o => ({ ...o, isInherited: true } as any));
+                // Local overrides inherited
+                templateObjects.forEach(tObj => {
+                    if (!resolvedObjects.find(o => o.id === tObj.id)) {
+                        resolvedObjects.push(tObj);
+                    }
+                });
+            }
+        }
+        return resolvedObjects;
+    }
+
+    public deleteCurrentStage(): void {
+        const activeStage = this.getActiveStage();
+        if (!activeStage) return;
+
+        if (activeStage.type === 'main' || activeStage.type === 'blueprint') {
+            alert('Die Main- und Blueprint-Stage können nicht gelöscht werden.');
+            return;
+        }
+
+        if (confirm(`Möchten Sie die Stage "${activeStage.name}" wirklich löschen?`)) {
+            this.removeStage(activeStage.id);
+        }
+    }
+
+    public createStageFromTemplate(): void {
+        const templates = this.project.stages?.filter(s => s.type === 'blueprint' || s.type === 'template') || [];
+        if (templates.length === 0) {
+            alert('Keine Templates vorhanden.');
+            return;
+        }
+
+        const templateNames = templates.map((t, i) => `${i + 1}: ${t.name}`).join('\n');
+        const input = prompt(`Aus welchem Template soll eine Stage erstellt werden?\n${templateNames}`);
+        if (!input) return;
+
+        const idx = parseInt(input) - 1;
+        const template = templates[idx];
+        if (template) {
+            const newStage = this.addNewStage(`${template.name} (Kopie)`);
+            newStage.inheritsFrom = template.id;
+        }
+    }
+
+    public saveStageAsTemplate(): void {
+        const activeStage = this.getActiveStage();
+        if (!activeStage) return;
+
+        activeStage.type = 'blueprint';
+        alert(`Stage "${activeStage.name}" ist nun ein Template / Blueprint.`);
+        this.onRefresh();
+    }
+
 }

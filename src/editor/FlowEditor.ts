@@ -2,53 +2,55 @@ import { GameProject, StageDefinition } from '../model/types';
 
 import { FlowElement } from './flow/FlowElement';
 import { FlowAction } from './flow/FlowAction';
-import { FlowTask } from './flow/FlowTask'; import { FlowStart } from './flow/FlowStart';
-import { FlowCondition } from './flow/FlowCondition';
+import { FlowTask } from './flow/FlowTask';
 import { FlowDataAction } from './flow/FlowDataAction';
-
-
 import { FlowConnection } from './flow/FlowConnection';
 import { FlowVariable } from './flow/FlowVariable';
-import { FlowThresholdVariable } from './flow/FlowThresholdVariable';
-import { FlowTriggerVariable } from './flow/FlowTriggerVariable';
-import { FlowTimerVariable } from './flow/FlowTimerVariable';
-import { FlowRangeVariable } from './flow/FlowRangeVariable';
-import { FlowListVariable } from './flow/FlowListVariable';
-import { FlowRandomVariable } from './flow/FlowRandomVariable';
 import { FlowLoop } from './flow/FlowLoop';
 import { FlowStateManager } from './flow/FlowStateManager';
 import { TFlowStage } from '../components/TFlowStage';
-import { serviceRegistry } from '../services/ServiceRegistry';
-import { mediatorService, MediatorEvents } from '../services/MediatorService';
 import { TaskEditor } from './TaskEditor';
 import { ContextMenu } from './ui/ContextMenu';
-import { RefactoringManager } from './RefactoringManager';
 import { projectRegistry } from '../services/ProjectRegistry';
-import { libraryService } from '../services/LibraryService';
 import { FlowSyncManager } from './services/FlowSyncManager';
 import { FlowNamingService } from './services/FlowNamingService';
 import { FlowMapManager, FlowMapHost } from './services/FlowMapManager';
 import { FlowContextMenuProvider, FlowContextMenuHost } from './services/FlowContextMenuProvider';
+import { FlowSelectionManager } from './services/FlowSelectionManager';
+import { FlowGraphManager, FlowGraphHost } from './services/FlowGraphManager';
+import { FlowInteractionManager, FlowInteractionHost } from './services/FlowInteractionManager';
+import { FlowNavigationManager, FlowNavigationHost } from './services/FlowNavigationManager';
+import { FlowGraphHydrator, FlowGraphHydrationHost } from './services/FlowGraphHydrator';
+import { FlowUIController, FlowUIHost } from './services/FlowUIController';
+import { FlowTaskManager, FlowTaskHost } from './services/FlowTaskManager';
+import { FlowNodeFactory, FlowNodeHost } from './services/FlowNodeFactory';
+import { Editor } from './Editor';
 
 
-export class FlowEditor implements FlowMapHost {
+export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHost, FlowNavigationHost, FlowGraphHydrationHost, FlowUIHost, FlowTaskHost, FlowNodeHost {
     private container: HTMLElement;
     public project: GameProject | null = null;
+    public editor: Editor | null = null;
     public flowStage: TFlowStage; // Initialized in constructor or setProject
 
     // State Manager - Single Source of Truth für Flow-State
     private stateManager: FlowStateManager;
 
     // Sync Manager - Kapselt Synchronisations-Logik
-    private syncManager: FlowSyncManager;
+    public syncManager: FlowSyncManager;
 
-    // Map Manager - Kapselt Landkarte/Übersicht
-    private mapManager: FlowMapManager;
-    private menuProvider: FlowContextMenuProvider;
+    public mapManager: FlowMapManager;
+    public menuProvider: FlowContextMenuProvider;
+    public selectionManager: FlowSelectionManager;
+    public graphManager: FlowGraphManager;
+    public interactionManager: FlowInteractionManager;
+    public uiController!: FlowUIController;
+    public taskManager!: FlowTaskManager;
+    public nodeFactory!: FlowNodeFactory;
     public actionCheckMode: boolean = false;
     public filterText: string = "";
 
-    private flowSelect!: HTMLSelectElement;
+    public flowSelect!: HTMLSelectElement;
     public contextMenu: ContextMenu;
 
     public canvas: HTMLElement;
@@ -57,19 +59,23 @@ export class FlowEditor implements FlowMapHost {
     public onNodesChanged?: (nodes: FlowElement[]) => void;
     public onProjectChange?: () => void; // Callback to trigger auto-save in Editor
 
+    // Navigation and Hydration Managers
+    public navigationManager!: FlowNavigationManager;
+    public hydrationManager!: FlowGraphHydrator;
+
     // Interaction State
-    private isDraggingHandle: boolean = false;
-    private isLoading: boolean = false;
-    private activeHandle: HTMLElement | null = null;
-    private activeConnection: FlowConnection | null = null;
+    public isDraggingHandle: boolean = false;
+    public isLoading: boolean = false;
+    public activeHandle: HTMLElement | null = null;
+    public activeConnection: FlowConnection | null = null;
 
     // UI Elements
-    private detailsToggleBtn!: HTMLButtonElement;
+    public detailsToggleBtn!: HTMLButtonElement;
     public actionCheckBtn!: HTMLButtonElement;
-    private filterInput!: HTMLInputElement;
-    private backButton!: HTMLButtonElement; // Zurück-Button
+    public filterInput!: HTMLInputElement;
+    public backButton!: HTMLButtonElement; // Zurück-Button
     public currentSelectedStageObjectId: string | null = null;
-    private suggestedTaskName: string | null = null; // Für automatische Namensübernahme bei Drop
+    public suggestedTaskName: string | null = null; // Für automatische Namensübernahme bei Drop
 
     // Navigation History
     private contextHistory: string[] = [];
@@ -93,10 +99,10 @@ export class FlowEditor implements FlowMapHost {
     public set connections(value: FlowConnection[]) {
         this.stateManager.setConnections(value);
     }
-    private get selectedConnection(): FlowConnection | null {
+    public get selectedConnection(): FlowConnection | null {
         return this.stateManager.getSelectedConnection();
     }
-    private set selectedConnection(value: FlowConnection | null) {
+    public set selectedConnection(value: FlowConnection | null) {
         this.stateManager.selectConnection(value);
     }
     public get currentFlowContext(): string {
@@ -111,8 +117,11 @@ export class FlowEditor implements FlowMapHost {
     public set showDetails(value: boolean) {
         this.stateManager.setShowDetails(value);
     }
-    private get selectedNode(): FlowElement | null {
+    public get selectedNode(): FlowElement | null {
         return this.stateManager.getSelectedNode();
+    }
+    public set selectedNode(v: FlowElement | null) {
+        this.stateManager.selectNode(v);
     }
 
     public get cellSize(): number {
@@ -157,13 +166,6 @@ export class FlowEditor implements FlowMapHost {
     }
 
 
-    private set selectedNode(value: FlowElement | null) {
-        if (value) {
-            this.stateManager.selectNode(value);
-        } else {
-            this.stateManager.selectNode(null);
-        }
-    }
 
     public getActiveStage(): StageDefinition | null {
         if (!this.project || !this.project.stages) return null;
@@ -228,7 +230,7 @@ export class FlowEditor implements FlowMapHost {
 
 
 
-    private editor: any; // Reference to main Editor for routing logic
+
 
     constructor(containerId: string, editor?: any) {
         this.editor = editor;
@@ -240,6 +242,17 @@ export class FlowEditor implements FlowMapHost {
         this.stateManager = new FlowStateManager();
         this.stateManager.loadShowDetailsFromStorage();
 
+        const thisRef = this;
+        this.selectionManager = new FlowSelectionManager({
+            stateManager: this.stateManager,
+            get project() { return thisRef.project; },
+            get currentFlowContext() { return thisRef.currentFlowContext; },
+            get editor() { return thisRef.editor; },
+            get detailsToggleBtn() { return thisRef.detailsToggleBtn; },
+            syncNodeVisuals: (id) => thisRef.syncNodeVisuals(id),
+            get onObjectSelect() { return thisRef.onObjectSelect; }
+        });
+
         // Initialize Sync Manager
         this.syncManager = new FlowSyncManager(this);
 
@@ -248,6 +261,14 @@ export class FlowEditor implements FlowMapHost {
 
         // Initialize Context Menu Provider
         this.menuProvider = new FlowContextMenuProvider(this as any as FlowContextMenuHost);
+
+        this.graphManager = new FlowGraphManager(this);
+        this.interactionManager = new FlowInteractionManager(this);
+        this.navigationManager = new FlowNavigationManager(this);
+        this.hydrationManager = new FlowGraphHydrator(this);
+        this.uiController = new FlowUIController(this);
+        this.taskManager = new FlowTaskManager(this);
+        this.nodeFactory = new FlowNodeFactory(this);
 
         this.contextMenu = new ContextMenu();
 
@@ -342,15 +363,15 @@ export class FlowEditor implements FlowMapHost {
 
         // Drop Handler
         this.canvas.ondragover = (e) => e.preventDefault();
-        this.canvas.ondrop = (e) => this.handleDrop(e);
-        this.canvas.onmousedown = (e) => this.handleCanvasClick(e);
-        this.canvas.oncontextmenu = (e) => this.handleCanvasContextMenu(e);
+        this.canvas.ondrop = (e) => this.interactionManager.handleDrop(e);
+        this.canvas.onmousedown = (e) => this.interactionManager.handleCanvasClick(e);
+        this.canvas.oncontextmenu = (e) => this.interactionManager.handleCanvasContextMenu(e);
 
         this.container.appendChild(this.canvas);
 
         // Global interaction listener for handle dragging
-        document.addEventListener('mousemove', (e) => this.handleGlobalMove(e));
-        document.addEventListener('mouseup', (e) => this.handleGlobalUp(e));
+        document.addEventListener('mousemove', (e) => this.interactionManager.handleGlobalMove(e));
+        document.addEventListener('mouseup', (e) => this.interactionManager.handleGlobalUp(e));
 
         // Key listener for deletion
         document.addEventListener('keydown', (e) => {
@@ -431,101 +452,18 @@ export class FlowEditor implements FlowMapHost {
     }
 
     private createNewTaskFlow() {
-        if (!this.project) return;
-
-        // 1. Generate unique Name (No more prompt!)
-        const name = this.generateUniqueTaskName("ANewTask");
-
-        // 2. Create Task (Standardmäßig in die aktive Stage via Editor)
-        const targetCollection = this.editor ? this.editor.getTargetTaskCollection(name) : (this.project.tasks || (this.project.tasks = []));
-        targetCollection.push({
-            name: name,
-            actionSequence: []
-        });
-
-        // 3. Initialize flowChart for this task
-        const targetCharts = this.getTargetFlowCharts(name);
-        targetCharts[name] = { elements: [], connections: [] };
-
-        // 4. Update UI
-        this.updateFlowSelector();
-
-        // Notify Mediator that project data has changed
-        if (this.project) {
-            mediatorService.notifyDataChanged(this.project, 'flow-editor');
-        }
-
-        // 5. Switch to new Task (Canvas wird geleert)
-        this.switchActionFlow(name);
-
-        // 6. Automatically insert a task node representing itself
-        // (x=400, y=200 matches the layout start of generateFlowFromActionSequence)
-        // Use a small timeout to ensure the canvas is fully ready after the switch
-        setTimeout(() => {
-            this.createNode('Task', 400, 200, name);
-        }, 100);
+        this.taskManager.createNewTaskFlow();
     }
 
     /**
      * Ermittelt die passende FlowCharts-Collection (Global vs Stage)
      */
     public getTargetFlowCharts(taskName?: string): any {
-        if (!this.project) return {};
-        const activeStage = this.getActiveStage();
-
-        // 1. Check if task exists in Blueprint stage (New SSoT for global tasks)
-        const blueprint = this.project.stages?.find(s => s.id === 'stage_blueprint' || s.type === 'blueprint');
-        if (blueprint) {
-            const isBlueprintTask = blueprint.tasks?.some((t: any) => t.name === taskName);
-            if (isBlueprintTask) {
-                return blueprint.flowCharts || (blueprint.flowCharts = {});
-            }
-        }
-
-        // 2. Check if task exists globally (legacy root)
-        const isGlobalTask = this.project.tasks?.some((t: any) => t.name === taskName);
-        if (isGlobalTask) {
-            return this.project.flowCharts || (this.project.flowCharts = {});
-        }
-
-        if (!activeStage) return this.project.flowCharts || (this.project.flowCharts = {});
-
-        // 3. If task exists in active stage
-        const isStageTask = activeStage.tasks?.some((t: any) => t.name === taskName);
-        if (isStageTask) {
-            return activeStage.flowCharts || (activeStage.flowCharts = {});
-        }
-
-        // Fallback: If it already exists somewhere, use that
-        if (activeStage.flowCharts && activeStage.flowCharts[taskName || '']) return activeStage.flowCharts;
-        if (blueprint?.flowCharts?.[taskName || '']) return blueprint.flowCharts;
-        if (this.project.flowCharts && this.project.flowCharts[taskName || '']) return this.project.flowCharts;
-
-        // Default to active stage for new local tasks
-        if (!activeStage.flowCharts) activeStage.flowCharts = {};
-        return activeStage.flowCharts;
+        return this.taskManager.getTargetFlowCharts(taskName);
     }
 
     private deleteCurrentTaskFlow() {
-        if (!this.project || this.currentFlowContext === 'global') {
-            alert('Cannot delete the Main Flow (Global).');
-            return;
-        }
-
-        if (!confirm(`Are you sure you want to delete Task "${this.currentFlowContext}" and its flow?`)) {
-            return;
-        }
-
-        // Use RefactoringManager for clean project-wide deletion
-        RefactoringManager.deleteTask(this.project, this.currentFlowContext);
-
-        // Switch to Global
-        this.currentFlowContext = 'global';
-        this.updateFlowSelector();
-        this.loadFromProject();
-
-        // Notify Editor to trigger auto-save
-        if (this.onProjectChange) this.onProjectChange();
+        this.taskManager.deleteCurrentTaskFlow();
     }
 
     public updateFlowSelector() {
@@ -781,119 +719,12 @@ export class FlowEditor implements FlowMapHost {
         }
     }
 
-    private rebuildActionRegistry() {
-        if (!this.project) return;
-        // 1. Clear project.actions if we want to rebuild from scratch (optional, but keep for now)
-        this.project.actions = this.project.actions || [];
-
-        const register = (elements: any[]) => {
-            elements.forEach(el => {
-                if (el.type === 'Action') {
-                    // Normalize name and details
-                    const name = el.properties?.name || el.data?.name || el.data?.actionName || el.properties?.text;
-                    const details = el.properties?.details || el.data?.details;
-
-                    const isMeaningful = el.data?.type || el.data?.actionName || el.data?.taskName || (el.properties?.details && el.properties.details.trim() !== '');
-                    if (name && (name !== 'Action' && name !== 'Aktion' || isMeaningful)) {
-                        this.syncManager.updateGlobalActionDefinition({ ...el.data, name, details });
-                    }
-                }
-            });
-        };
-
-        // 1. Scan Global Flow (legacy 'flow' or new 'flowCharts.global')
-        const globalFlowElements = this.project.flowCharts?.global?.elements || this.project.flow?.elements;
-        if (globalFlowElements) {
-            register(globalFlowElements);
-        }
-
-        // 2. Scan Task Flows from global flowCharts
-        if (this.project.flowCharts) {
-            Object.keys(this.project.flowCharts).forEach(key => {
-                if (key !== 'global') {
-                    const flowChart = this.project!.flowCharts![key];
-                    if (flowChart?.elements) {
-                        register(flowChart.elements);
-                    }
-                }
-            });
-        }
-
-        // 3. Scan Stage-local flows
-        if (this.project.stages) {
-            this.project.stages.forEach(stage => {
-                if (stage.flowCharts) {
-                    Object.keys(stage.flowCharts).forEach(key => {
-                        const flowChart = stage.flowCharts![key];
-                        if (flowChart?.elements) {
-                            register(flowChart.elements);
-                        }
-                    });
-                }
-            });
-        }
-
-        const totalActions = (this.project.actions?.length || 0) +
-            (this.project.stages?.reduce((acc, s) => acc + (s.actions?.length || 0), 0) || 0);
-
-        console.log(`[FlowEditor] Registry rebuilt. Total actions found: ${totalActions}`);
+    public rebuildActionRegistry() {
+        this.taskManager.rebuildActionRegistry();
     }
 
-    // parseDetailsToCommand, updateGlobalActionDefinition, ensureTaskExists ... sind nun im SyncManager delegiert oder redundant.
-
-    /**
-     * Ensures a task exists in project.tasks. Creates it if not present.
-     */
     public ensureTaskExists(taskName: string, description?: string) {
-        if (!this.project) return;
-
-        // Ensure tasks array exists
-        if (!this.project.tasks) this.project.tasks = [];
-
-        // Check if task already exists (globally or in stages)
-        // Check if task already exists (globally or in stages)
-        const existingTask = this.getTaskDefinitionByName(taskName);
-        if (existingTask) {
-            console.log(`[FlowEditor] Task "${taskName}" already exists. Updating metadata only.`);
-            // Update description if provided and not already set
-            if (description && !existingTask.description) {
-                existingTask.description = description;
-            }
-            // Backfill defaults if missing
-            if (!existingTask.triggerMode) {
-                existingTask.triggerMode = 'local-sync';
-            }
-            if (!existingTask.params) {
-                existingTask.params = [];
-            }
-            if (existingTask.description === undefined) {
-                existingTask.description = '';
-            }
-            return;
-        }
-
-        // Create new task ONLY if it doesn't exist anywhere
-        console.log(`[FlowEditor] Creating NEW task: ${taskName} (not found in project)`);
-
-        const newTask = {
-            name: taskName,
-            description: description || '',
-            actionSequence: [],
-            triggerMode: 'local-sync' as 'local-sync' | 'local' | 'broadcast',
-            params: []
-        };
-
-        const activeStage = this.getActiveStage();
-        // If we have an active stage (and it's not the main wrapper), save task there to keep it local/clean
-        if (activeStage && activeStage.type !== 'main') {
-            if (!activeStage.tasks) activeStage.tasks = [];
-            activeStage.tasks.push(newTask);
-            console.log(`[FlowEditor] Saved new task "${taskName}" to stage "${activeStage.name}"`);
-        } else {
-            // Fallback to global project tasks
-            this.project.tasks.push(newTask);
-            console.log(`[FlowEditor] Saved new task "${taskName}" to global project tasks`);
-        }
+        this.taskManager.ensureTaskExists(taskName, description);
     }
 
     public syncToProject() {
@@ -908,157 +739,7 @@ export class FlowEditor implements FlowMapHost {
     // syncTaskParameters, syncTaskParamValues, syncVariablesFromFlow, syncTaskFromFlow sind nun im SyncManager.
 
     public loadFromProject(contextName?: string) {
-        if (!this.project) return;
-
-        if (contextName) {
-            this.currentFlowContext = contextName;
-        }
-
-        this.isLoading = true;
-
-        this.clearFlowCanvas();
-
-        // Hide special buttons by default
-        if (this.actionCheckBtn) this.actionCheckBtn.style.display = 'none';
-        if (this.filterInput) this.filterInput.style.display = 'none';
-
-        if (this.currentFlowContext === 'event-map') {
-            if (this.filterInput) this.filterInput.style.display = 'inline-block';
-            this.mapManager.generateEventMap();
-            return;
-        }
-
-        if (this.currentFlowContext === 'element-overview') {
-            if (this.actionCheckBtn) this.actionCheckBtn.style.display = 'inline-block';
-            if (this.filterInput) this.filterInput.style.display = 'inline-block';
-            this.mapManager.generateElementOverview();
-            return;
-        }
-
-        let sourceData: { elements: any[], connections: any[] } | undefined;
-
-        const activeStage = this.getActiveStage();
-
-        if (this.currentFlowContext === 'global') {
-            // Priority: Active Stage Flow -> Project Global Flow -> Legacy Flow
-            const stageFlowIdx = activeStage?.flowCharts?.global;
-            const projectFlowIdx = (this.project.flowCharts?.global) || (this.project as any).flow;
-            sourceData = stageFlowIdx || projectFlowIdx;
-            if (sourceData) console.log(`[FlowEditor] SUCCESS: Loaded GLOBAL flow from ${stageFlowIdx ? 'STAGE' : 'PROJECT'}.`);
-        } else {
-            // Priority: Active Stage Chart -> Global Project Chart -> Task Internal Chart
-            const stageFlowChart = activeStage?.flowCharts?.[this.currentFlowContext];
-            const globalFlowChart = this.project.flowCharts?.[this.currentFlowContext];
-
-            // 3. Fallback: Search in ANY stage (important if activeStage is not the owner of the task)
-            let fallbackStageChart = null;
-            if (!stageFlowChart && !globalFlowChart && this.project.stages) {
-                for (const s of this.project.stages) {
-                    if (s.flowCharts?.[this.currentFlowContext]) {
-                        fallbackStageChart = s.flowCharts[this.currentFlowContext];
-                        console.log(`[FlowEditor] Found flowChart for "${this.currentFlowContext}" in stage "${s.name}" (fallback)`);
-                        break;
-                    }
-                }
-            }
-
-            if (stageFlowChart) {
-                sourceData = stageFlowChart;
-                console.log(`[FlowEditor] SUCCESS: Loaded from ACTIVE STAGE "${activeStage?.name}" charts.`);
-            } else if (globalFlowChart) {
-                sourceData = globalFlowChart;
-                console.log(`[FlowEditor] SUCCESS: Loaded from GLOBAL project charts.`);
-            } else if (fallbackStageChart) {
-                sourceData = fallbackStageChart;
-                console.log(`[FlowEditor] SUCCESS: Loaded from FALLBACK STAGE charts.`);
-            } else {
-                // EXHAUSTIVE DIAGNOSTIC LOGGING
-                console.warn(`[FlowEditor] FAILURE: No visual flow data found for context "${this.currentFlowContext}".`);
-                const globalKeys = Object.keys(this.project.flowCharts || {});
-                console.log(`[FlowEditor] DIAG: Available GLOBAL charts: [${globalKeys.join(', ')}]`);
-
-                if (this.project.stages) {
-                    this.project.stages.forEach(s => {
-                        const stageKeys = Object.keys(s.flowCharts || {});
-                        console.log(`[FlowEditor] DIAG: Stage "${s.name}" charts: [${stageKeys.join(', ')}]`);
-                    });
-                }
-
-                // Check if task exists (in global or stage)
-                let task = this.getTaskDefinitionByName(this.currentFlowContext);
-
-                console.log(`[FlowEditor] DIAG: Task record for "${this.currentFlowContext}" exists: ${!!task}. Internal .flowChart: ${!!task?.flowChart}`);
-
-                if (task?.flowChart) {
-                    sourceData = task.flowChart;
-                    console.log(`[FlowEditor] SUCCESS (LEGACY): Loading from task.flowChart object.`);
-                } else if (task?.flowGraph) {
-                    // Fallback: check for legacy flowGraph in task
-                    sourceData = task.flowGraph;
-                    console.log(`[FlowEditor] SUCCESS (LEGACY): Loading from legacy task.flowGraph.`);
-                    // Migrate to new structure (using helper for correct collection)
-                    const targetCharts = this.getTargetFlowCharts(this.currentFlowContext);
-                    targetCharts[this.currentFlowContext] = task.flowGraph;
-                    delete (task as any).flowGraph;
-                } else if (task) {
-                    // AUTO-RECONSTRUCT: If task has an actionSequence but no flowChart, generate one
-                    console.log(`[FlowEditor] Task "${this.currentFlowContext}" exists but has no visual flow data. Reconstruction needed.`);
-                    sourceData = this.syncManager.generateFlowFromActionSequence(task);
-                } else {
-                    // Initialize new empty flow for this task
-                    console.warn(`[FlowEditor] No flow data found for task "${this.currentFlowContext}"! Initializing empty flow.`);
-                    sourceData = { elements: [], connections: [] };
-
-                    // Auto-Spawn "Start Node" for this Task
-                    setTimeout(() => {
-                        if (this.nodes.length === 0) {
-                            console.log(`[FlowEditor] Auto-spawning Start node for empty task flow: ${this.currentFlowContext}`);
-                            const startNode = new FlowStart('start-' + Date.now(), 50, 50, this.canvas, this.flowStage.cellSize);
-                            startNode.Text = "Start";
-                            this.nodes.push(startNode);
-                        }
-                    }, 100);
-                }
-            }
-        }
-
-        if (!sourceData) return;
-
-        // Restore Elements
-        if (sourceData.elements) {
-            sourceData.elements.forEach((data: any) => {
-                const node = this.syncManager.restoreNode(data);
-                if (node) this.nodes.push(node);
-            });
-        }
-
-        // Restore Connections
-        if (sourceData.connections) {
-            sourceData.connections.forEach((data: any) => {
-                this.restoreConnection(data);
-            });
-        }
-
-        // Automatic expansion of linked tasks on load
-        // Iterate over a copy of the nodes array because refreshEmbeddedTask will modify the collection
-        [...this.nodes].forEach(node => {
-            if (node.data?.isExpanded) {
-                this.refreshEmbeddedTask(node);
-            }
-        });
-
-        // Notify listeners that nodes have changed
-        if (this.onNodesChanged) {
-            this.onNodesChanged(this.nodes);
-        }
-
-        // Update scroll area based on nodes
-        this.updateScrollArea();
-
-        // Ensure current detail mode is applied to all loaded nodes
-        this.updateActionDetails();
-
-        this.isLoading = false;
+        this.hydrationManager.loadFromProject(contextName);
     }
 
     // restoreNode wurde in den FlowSyncManager verschoben.
@@ -1067,1014 +748,75 @@ export class FlowEditor implements FlowMapHost {
      * Re-expands a Proxy node to show its internal ghost nodes
      */
     public refreshEmbeddedTask(proxyNode: FlowElement) {
-        if (!this.project || !proxyNode.data?.isExpanded || !proxyNode.data?.sourceTaskName) return;
-
-        const sourceTaskName = proxyNode.data.sourceTaskName;
-        let sourceTask = this.project.tasks.find(t => t.name === sourceTaskName);
-        let sourceFlowChart = this.project.flowCharts?.[sourceTaskName];
-
-        if (!sourceTask) {
-            // Check Library
-            sourceTask = libraryService.getTask(sourceTaskName);
-            sourceFlowChart = sourceTask?.flowChart;
-        }
-
-        if (!sourceTask || !sourceFlowChart) return;
-
-        // 0. CAPTURE current ghost node positions BEFORE deleting them
-        // This allows manual layout changes to persist across refreshes
-        const existingGhostNodes = this.nodes.filter(n => n.data?.parentProxyId === proxyNode.name);
-        if (existingGhostNodes.length > 0) {
-            if (!proxyNode.data.ghostPositions) proxyNode.data.ghostPositions = {};
-            existingGhostNodes.forEach(n => {
-                // Use originalId if available, otherwise use the node name
-                const originalId = n.data?.originalId || n.name;
-                proxyNode.data.ghostPositions[originalId] = { x: n.X, y: n.Y };
-            });
-            console.log(`[FlowEditor] refreshEmbeddedTask: Saved ${existingGhostNodes.length} ghost positions for proxy "${proxyNode.name}"`);
-        }
-
-        // 1. Remove existing Ghost Nodes for this proxy
-        const toDeleteNodes = this.nodes.filter(n => n.data?.parentProxyId === proxyNode.name);
-        toDeleteNodes.forEach(n => {
-            const el = n.getElement();
-            if (el.parentNode === this.canvas) this.canvas.removeChild(el);
-            const idx = this.nodes.indexOf(n);
-            if (idx !== -1) this.nodes.splice(idx, 1);
-        });
-
-        // 2. Remove existing Ghost Connections for this proxy
-        const toDeleteConns = this.connections.filter(c => c.data?.parentProxyId === proxyNode.name);
-        toDeleteConns.forEach(c => {
-            const el = c.getElement();
-            const sh = c.getStartHandle();
-            const eh = c.getEndHandle();
-            if (el.parentNode === this.canvas) this.canvas.removeChild(el);
-            if (sh.parentNode === this.canvas) this.canvas.removeChild(sh);
-            if (eh.parentNode === this.canvas) this.canvas.removeChild(eh);
-            const idx = this.connections.indexOf(c);
-            if (idx !== -1) this.connections.splice(idx, 1);
-        });
-
-        // 3. Trigger Import as Link (Ghost Import)
-        // This will create new nodes and add them to this.nodes
-        const addedNodes = this.importTaskGraph(proxyNode, sourceTask, true);
-
-        // 4. Recursive expansion for nested proxies
-        if (addedNodes) {
-            addedNodes.forEach(newNode => {
-                if (newNode.data?.isExpanded) {
-                    this.refreshEmbeddedTask(newNode);
-                }
-            });
-        }
+        this.hydrationManager.refreshEmbeddedTask(proxyNode);
     }
 
     // generateFlowFromActionSequence wurde in den FlowSyncManager verschoben.
 
-    private restoreConnection(data: any) {
-        // Find targets
-        const startNode = data.startTargetId ? this.nodes.find(n => n.name === data.startTargetId) : null;
-        const endNode = data.endTargetId ? this.nodes.find(n => n.name === data.endTargetId) : null;
-
-        let x1 = data.startX || 0;
-        let y1 = data.startY || 0;
-        let x2 = data.endX || 0;
-        let y2 = data.endY || 0;
-
-        // Create connection
-        const conn = new FlowConnection(this.canvas, x1, y1, x2, y2);
-        conn.setGridConfig(this.flowStage.cellSize);
-        if (data.data) conn.data = { ...data.data };
-
-        if (startNode) conn.attachStart(startNode);
-        if (endNode) conn.attachEnd(endNode);
-
-        conn.updatePosition();
-
-        this.connections.push(conn);
-
-        // Setup all connection listeners including handle dragging
-        this.setupConnectionListeners(conn);
+    public restoreConnection(data: any) {
+        this.graphManager.restoreConnection(data);
     }
 
-    private handleCanvasClick(e: MouseEvent) {
-        if (e.target === this.canvas) {
-            this.deselectAll(false);
-            // Select Flow Editor (Project Settings) instead of TFlowStage
-            if (this.onObjectSelect) {
-                this.onObjectSelect(this as any);
-            }
-        }
+    public setupConnectionListeners(conn: FlowConnection) {
+        this.interactionManager.setupConnectionListeners(conn);
     }
+
+    // handleCanvasClick wurde in den FlowInteractionManager verschoben.
 
     public deselectAll(emitEvent: boolean = true) {
-        if (this.selectedConnection) {
-            this.selectedConnection.deselect();
-            this.selectedConnection = null;
-        }
-        if (this.selectedNode) {
-            this.selectedNode.getElement().style.outline = 'none';
-            this.selectedNode = null;
-        }
-
-        // Notify null selection
-        if (emitEvent && this.onObjectSelect) {
-            this.onObjectSelect(null);
-        }
+        this.selectionManager.deselectAll(emitEvent);
     }
 
     public createNode(type: string, x: number, y: number, initialName?: string): FlowElement | null {
-        console.log(`[FlowEditor] createNode: type=${type}, x=${x}, y=${y}, initialName=${initialName}`);
-        let node: FlowElement;
-        const id = 'node-' + Date.now();
-        const baseType = type.includes(':') ? type.split(':')[0] : type;
-        switch (baseType) {
-            case 'Action':
-                // Check if we have a subtype (e.g. Action:http)
-                const actionSubtype = type.includes(':') ? type.split(':')[1] : null;
-
-                node = new FlowAction(id, x, y, this.canvas, this.flowStage.cellSize);
-                // Generate unique name if not provided or if it's a generic default name
-                if (initialName && initialName !== 'Action' && initialName !== 'Aktion') {
-                    node.Name = initialName;
-                } else {
-                    node.Name = this.generateUniqueActionName(initialName || 'Action');
-                }
-
-                // Set the specific action type in data if available
-                if (actionSubtype) {
-                    node.data = node.data || {};
-                    node.data.type = actionSubtype;
-                    console.log(`[FlowEditor] Created Action with subtype: ${actionSubtype}`);
-                }
-
-                // Apply current detail mode
-                if (this.showDetails) {
-                    (node as FlowAction).setShowDetails(true, this.project);
-                }
-                break;
-            case 'DataAction':
-                node = new FlowDataAction(id, x, y, this.canvas, this.flowStage.cellSize);
-                // Generate unique name if not provided
-                if (initialName && initialName !== 'DataAction' && initialName !== 'Daten-Aktion') {
-                    node.Name = initialName;
-                } else {
-                    node.Name = this.generateUniqueActionName(initialName || 'DataAction');
-                }
-                if (this.showDetails) {
-                    (node as FlowAction).setShowDetails(true, this.project);
-                }
-                break;
-            case 'Condition':
-                node = new FlowCondition(id, x, y, this.canvas, this.flowStage.cellSize);
-                node.Name = initialName || 'Bedingung';
-                break;
-            case 'Task':
-                let taskName = initialName;
-                if (!taskName) {
-                    taskName = prompt("Name für den neuen Task:", this.generateUniqueTaskName("ANewTask")) || undefined;
-                }
-                if (!taskName) {
-                    console.log("[FlowEditor] Task creation cancelled by user.");
-                    return null;
-                }
-
-                // Only enforce uniqueness if we are creating a fresh task (no initialName provided)
-                // If initialName WAS provided, it means we are referencing an existing task!
-                if (!initialName) {
-                    taskName = this.generateUniqueTaskName(taskName);
-                }
-
-                node = new FlowTask(id, x, y, this.canvas, this.flowStage.cellSize);
-                node.Name = taskName;
-                node.setText(taskName);
-                // Set project reference for parameter lookups
-                if (this.project) {
-                    (node as FlowTask).setProjectRef(this.project);
-                    // Nur sicherstellen wenn es nicht der generische Name "Task" ist
-                    if (taskName !== 'Task') {
-                        this.ensureTaskExists(taskName, "");
-                    }
-                }
-                break;
-            case 'VariableDecl':
-                // Check for kind in type string (e.g. "VariableDecl:threshold")
-                const kind = type.split(':')[1];
-                if (kind === 'threshold') {
-                    node = new FlowThresholdVariable(id, x, y, this.canvas, this.flowStage.cellSize);
-                } else if (kind === 'trigger') {
-                    node = new FlowTriggerVariable(id, x, y, this.canvas, this.flowStage.cellSize);
-                } else if (kind === 'timer') {
-                    node = new FlowTimerVariable(id, x, y, this.canvas, this.flowStage.cellSize);
-                } else if (kind === 'range') {
-                    node = new FlowRangeVariable(id, x, y, this.canvas, this.flowStage.cellSize);
-                } else if (kind === 'list') {
-                    node = new FlowListVariable(id, x, y, this.canvas, this.flowStage.cellSize);
-                } else if (kind === 'random') {
-                    node = new FlowRandomVariable(id, x, y, this.canvas, this.flowStage.cellSize);
-                } else {
-                    node = new FlowVariable(id, x, y, this.canvas, this.flowStage.cellSize);
-                }
-
-                const scope = this.currentFlowContext === 'global' ? 'global' : this.currentFlowContext;
-                const varName = this.generateUniqueVariableName('neueVariabel');
-                node.data = { variable: { name: varName, type: kind || 'integer', initialValue: 0, scope } };
-
-                // Set default values based on kind
-                if (kind === 'threshold') node.data.variable.threshold = 0;
-                if (kind === 'trigger') node.data.variable.triggerValue = '';
-                if (kind === 'timer') node.data.variable.duration = 5000;
-                if (kind === 'range') { node.data.variable.min = 0; node.data.variable.max = 100; }
-                if (kind === 'list') { node.data.variable.type = 'list'; node.data.variable.initialValue = '[]'; }
-                if (kind === 'random') { node.data.variable.min = 0; node.data.variable.max = 100; node.data.variable.isRandom = true; }
-
-                (node as FlowVariable).updateVisuals?.();
-
-                break;
-            case 'While':
-            case 'For':
-            case 'Repeat':
-                node = new FlowLoop(id, x, y, this.canvas, this.flowStage.cellSize, type as any);
-                node.Name = type;
-                (node as FlowLoop).updateVisuals?.();
-                break;
-            case 'Start':
-                node = new FlowStart(id, x, y, this.canvas, this.flowStage.cellSize);
-                node.Name = 'Start';
-                break;
-            case 'Connection':
-                // Logic for visual tool drop (if any)
-                const conn = new FlowConnection(this.canvas, x, y, x + 100, y + 50);
-                conn.setGridConfig(this.flowStage.cellSize);
-                this.connections.push(conn);
-                this.setupConnectionListeners(conn);
-                conn.select();
-                this.selectedConnection = conn;
-                return null; // Connections are not FlowElements
-            default:
-                return null;
-        }
-
-        this.canvas.appendChild(node.getElement());
-        this.nodes.push(node);
-
-        this.setupNodeListeners(node);
-        if (this.onNodesChanged) this.onNodesChanged(this.nodes);
-        this.selectNode(node); // Auto-select new node
-        console.log(`[FlowEditor] Node created: ${node.Name} (ID: ${node.id}), nodes count: ${this.nodes.length}`);
-        this.syncToProject();   // Ensure new node is persisted
-        return node;
+        return this.nodeFactory.createNode(type, x, y, initialName);
     }
 
     public deleteConnection(conn: FlowConnection) {
-        const index = this.connections.indexOf(conn);
-        if (index !== -1) {
-            this.connections.splice(index, 1);
-            conn.getElement().remove();
-            conn.getStartHandle().remove();
-            conn.getEndHandle().remove();
-            if (this.selectedConnection === conn) {
-                this.selectedConnection = null;
-            }
-            this.syncToProject();
-        }
+        this.graphManager.deleteConnection(conn);
     }
 
     public deleteNode(node: FlowElement) {
-        // Embedded elements restriction check
-        if (node.data?.isLinked || node.data?.isEmbeddedInternal) {
-            alert('Eingebettete Tasks können nur im Original editiert oder gelöscht werden.');
-            return;
-        }
-
-        // ELEMENT OVERVIEW DELETE LOGIC
-        if (this.currentFlowContext === 'element-overview' && node.data?.isOverviewLink) {
-            // Referenzen werden angezeigt, blockieren aber nicht mehr das Löschen
-            const elementName = node.Name || node.name;
-            const liveRefs = projectRegistry.findReferences(elementName);
-
-            // Warnung mit Referenzinfo, aber Löschung ist erlaubt
-            const refWarning = liveRefs.length > 0
-                ? `\n\n⚠️ Achtung: Dieses Element wird noch verwendet in:\n${liveRefs.join('\n')}\n\nReferenzen werden ebenfalls entfernt.`
-                : '';
-
-            if (confirm(`Möchtest du das Element "${node.Name}" wirklich UNWIDERRUFLICH aus dem Projekt löschen?${refWarning}`)) {
-                this.deleteElementFromProject(node.data.type, node.Name, node.data.originalIndex, true); // FORCE DELETE
-
-                // IMPORTANT: since syncToProject() exits early in overview mode,
-                // we MUST trigger the save/change notification manually here.
-                if (this.onProjectChange) this.onProjectChange();
-
-                this.loadFromProject(); // Refresh view
-            }
-            return;
-        }
-
-        if (confirm(`Möchtest du den Knoten "${node.Name || node.name}" wirklich löschen?`)) {
-            const nodeName = node.Name || node.name;
-            const nodeType = node.getType();
-
-            this.removeNode(node.name);
-            this.syncToProject();
-
-            // --- SMART DELETE: Check if this was the last reference of an action ---
-            if ((nodeType === 'Action' || nodeType === 'DataAction') && nodeName &&
-                nodeName !== 'Aktion' && nodeName !== 'Action' && nodeName !== 'DataAction') {
-                // Wait a tick for syncToProject to finish potential project state changes
-                setTimeout(() => {
-                    const refs = projectRegistry.findReferences(nodeName);
-
-                    if (refs.length === 0) {
-                        const isGenericName = /^Action\d*$/.test(nodeName) || /^Aktion\d*$/.test(nodeName) ||
-                            /^DataAction\d*$/.test(nodeName) || /^HttpAction\d*$/.test(nodeName) ||
-                            nodeName === 'Aufruf';
-
-                        // Auto-Delete generic actions, ask for named ones
-                        if (isGenericName) {
-                            console.log(`[FlowEditor] Auto-Deleting orphaned generic action: ${nodeName}`);
-                            this.deleteElementFromProject('Action', nodeName, undefined, false); // Implicit Cleanup
-                            if (this.onProjectChange) this.onProjectChange();
-                        } else {
-                            if (confirm(`Die Aktion "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch aus der globalen Aktions-Liste gelöscht werden?`)) {
-                                this.deleteElementFromProject('Action', nodeName, undefined, true);
-                                if (this.onProjectChange) this.onProjectChange();
-                            }
-                        }
-                    }
-                }, 200);
-            }
-
-            // --- SMART DELETE: Check if this was a variable ---
-            if (nodeType === 'VariableDecl' && nodeName) {
-                setTimeout(() => {
-                    const usageCount = (RefactoringManager as any).getVariableUsageCount(this.project, nodeName);
-
-                    if (usageCount === 0) {
-                        if (confirm(`Die Variable "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch Global aus dem Projekt gelöscht werden?`)) {
-                            this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
-                            if (this.onProjectChange) this.onProjectChange();
-                        }
-                    } else {
-                        if (confirm(`Möchtest du die Variable "${nodeName}" auch Global aus dem Projekt löschen?\n(Sie wird noch an ${usageCount} Stellen referenziert!)`)) {
-                            this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
-                            if (this.onProjectChange) this.onProjectChange();
-                        }
-                    }
-                }, 200);
-            }
-        }
+        this.graphManager.deleteNode(node);
     }
 
-    private deleteElementFromProject(type: 'Action' | 'Task', name: string, index?: number, force: boolean = false) {
-        if (!this.project) return;
-
-        console.log(`[FlowEditor] deleteElementFromProject: Anforderung zum Löschen von ${type} "${name}" (Force: ${force})`);
-
-        if (type === 'Action') {
-            const usageCount = RefactoringManager.getActionUsageCount(this.project, name);
-            if (!force && usageCount > 0) return;
-
-            if (index !== undefined && index >= 0 && index < this.project.actions.length) {
-                this.project.actions.splice(index, 1);
-            } else {
-                this.project.actions = this.project.actions.filter(a => a.name !== name);
-            }
-
-            // Stage-level actions cleanup
-            if (this.project.stages) {
-                this.project.stages.forEach(stage => {
-                    if (stage.actions) {
-                        stage.actions = stage.actions.filter(a => a.name !== name);
-                    }
-                });
-            }
-
-            RefactoringManager.deleteAction(this.project, name);
-            if (this.onProjectChange) this.onProjectChange();
-
-        } else if (type === 'Task') {
-            RefactoringManager.deleteTask(this.project, name);
-            if (this.onProjectChange) this.onProjectChange();
-        } else if ((type as string) === 'Variable') {
-            const report = RefactoringManager.deleteVariable(this.project, name);
-            console.log(`[FlowEditor] Deleted Variable project-wide: ${name}`, report);
-            if (this.onProjectChange) this.onProjectChange();
-        }
+    public generateUniqueActionName(base: string): string {
+        return FlowNamingService.generateUniqueActionName(this.project, this.nodes, base);
+    }
+    public generateUniqueTaskName(base: string): string {
+        return FlowNamingService.generateUniqueTaskName(this.project, this.nodes, base);
+    }
+    public generateUniqueVariableName(base: string): string {
+        return FlowNamingService.generateUniqueVariableName(this.project, this.nodes, base);
     }
 
-    private handleDrop(e: DragEvent) {
-        e.preventDefault();
-        const rawData = e.dataTransfer?.getData('application/flow-item');
-        if (!rawData) return;
 
-        let type = rawData;
-        let data: any = null;
-
-        // Try parsing JSON payload for advanced drops (e.g. specific task reference)
-        if (rawData.startsWith('{')) {
-            try {
-                data = JSON.parse(rawData);
-                type = data.type;
-            } catch (err) {
-                console.warn('[FlowEditor] Failed to parse drop data as JSON, using raw string.', err);
-            }
-        }
-
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        let finalX = x;
-        let finalY = y;
-
-        if (this.flowStage.snapToGrid) {
-            const snapped = this.flowStage.snapToGridPosition(x, y);
-            finalX = snapped.x;
-            finalY = snapped.y;
-        }
-
-        // Logic for Task Drops: New vs. Reference
-        if (type === 'Task') {
-            if (data?.name) {
-                console.log(`[FlowEditor] Dropping EXISTING task reference: ${data.name}`);
-                // Pass existing name to createNode - this should link it, not create new
-                this.createNode(type, finalX, finalY, data.name);
-            } else {
-                // Generic drop - create NEW task
-                const initialName = this.suggestedTaskName || 'Task';
-                this.createNode(type, finalX, finalY, initialName);
-            }
-        } else {
-            // Other types (Action, etc.)
-            const initialName = (this.suggestedTaskName || type);
-            this.createNode(type, finalX, finalY, initialName);
-        }
-
-        this.suggestedTaskName = null; // Reset
-    }
+    // handleDrop wurde in den FlowInteractionManager verschoben.
 
     public setupNodeListeners(node: FlowElement) {
-        // Double Click for Detailing Phase
-        node.getElement().addEventListener('dblclick', (e) => {
-            e.stopPropagation();
-            this.handleNodeDoubleClick(node);
-        });
-
-        // Context Menu
-        node.getElement().addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.handleNodeContextMenu(e, node);
-        });
-
-        node.getElement().addEventListener('mousedown', (e) => {
-            e.stopPropagation(); // specific node click logic
-
-            // Embedded elements CAN be dragged for layout purposes
-            // Only editing, deleting, and context menu actions are restricted
-
-            const startX = e.clientX;
-            const startY = e.clientY;
-            const startNodeX = node.X;
-            const startNodeY = node.Y;
-
-            const onMouseMove = (moveEvt: MouseEvent) => {
-                const dx = moveEvt.clientX - startX;
-                const dy = moveEvt.clientY - startY;
-                let newX = startNodeX + dx;
-                let newY = startNodeY + dy;
-
-                if (this.flowStage.snapToGrid) {
-                    const snapped = this.flowStage.snapToGridPosition(newX, newY);
-                    newX = snapped.x;
-                    newY = snapped.y;
-                }
-
-                node.X = newX;
-                node.Y = newY;
-                node.updatePosition();
-                if (node.onMove) node.onMove();
-            };
-
-            const onMouseUp = () => {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                this.syncToProject();
-            };
-
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-
-            // Select Node
-            this.selectNode(node);
-        });
-
-        // Update connections when node moves/resizes
-        node.onMove = () => {
-            this.connections.forEach(c => {
-                if (c.startTarget === node || c.endTarget === node) {
-                    c.updatePosition();
-                }
-            });
-        };
-        node.onResize = () => {
-            this.connections.forEach(c => c.updatePosition());
-        };
-
-        // Connection Creation from Anchors
-        const setupAnchor = (anchor: HTMLElement, isOutput: boolean, branchType?: 'true' | 'false') => {
-            if (!anchor) return;
-            anchor.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-
-                if (!isOutput) return; // Currently we only drag from Output to Input
-
-                const rect = this.canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left + this.canvas.scrollLeft;
-                const y = e.clientY - rect.top + this.canvas.scrollTop;
-
-                // Create new connection
-                const conn = new FlowConnection(this.canvas, x, y, x, y);
-                conn.attachStart(node);
-
-                // If starting from a ghost node, mark the connection as embedded/internal
-                // This prevents it from being saved to the original task
-                const isGhostConnection = node.data?.isEmbeddedInternal || node.data?.parentProxyId;
-
-                if (branchType) {
-                    conn.data = {
-                        ...conn.data,
-                        startAnchorType: branchType,
-                        originalStartAnchorType: branchType, // Set as original too
-                        isEmbeddedInternal: isGhostConnection || false,
-                        parentProxyId: node.data?.parentProxyId
-                    };
-                } else {
-                    conn.data = {
-                        ...conn.data,
-                        startAnchorType: 'output',
-                        originalStartAnchorType: 'output', // Set as original too
-                        isEmbeddedInternal: isGhostConnection || false,
-                        parentProxyId: node.data?.parentProxyId
-                    };
-                }
-
-                this.connections.push(conn);
-                this.setupConnectionListeners(conn);
-
-                // Active dragging global state
-                this.isDraggingHandle = true;
-                this.activeHandle = conn.getEndHandle();
-                this.activeHandle.dataset.isStart = 'false'; // Dragging the END to find an input
-                this.activeConnection = conn;
-
-                this.deselectAll();
-                conn.select();
-                this.selectedConnection = conn;
-            });
-        };
-
-        if (node instanceof FlowCondition) {
-            setupAnchor(node.trueAnchor, true, 'true');
-            setupAnchor(node.falseAnchor, true, 'false');
-        } else {
-            setupAnchor(node.getOutputAnchor(), true);
-        }
-
-        // Dynamic Ports (e.g. DataAction Success/Error)
-        const customPorts = node.getElement().querySelectorAll('.flow-anchor.custom-port');
-        customPorts.forEach(port => {
-            const branch = (port as HTMLElement).dataset.branch;
-            if (branch === 'success' || branch === 'error') {
-                setupAnchor(port as HTMLElement, true, branch as any);
-            }
-        });
-
-
-        // Top anchor = INPUT (can't start from here, but can connect TO here)
-        // Bottom anchor = OUTPUT (can start from here)
-        // Note: topAnchor doesn't need setupAnchor with isOutput=true since it's an input
-        setupAnchor(node.getBottomAnchor(), true, 'bottom' as any);
-
-        // Tooltip Hooks
-        node.onHover = (e, n) => this.showTooltip(e, n);
-        node.onHoverEnd = () => this.hideTooltip();
+        this.interactionManager.setupNodeListeners(node);
     }
 
     // ─────────────────────────────────────────────
     // Tooltip Implementation
     // ─────────────────────────────────────────────
-    private tooltipEl: HTMLElement | null = null;
 
-    private showTooltip(e: MouseEvent, node: FlowElement) {
-        if (!node.Description) return;
-
-        if (!this.tooltipEl) {
-            this.tooltipEl = document.createElement('div');
-            this.tooltipEl.style.cssText = `
-                position: absolute;
-                background: #252526;
-                color: #cccccc;
-                border: 1px solid #ffcc00;
-                padding: 8px 12px;
-                border-radius: 4px;
-                font-family: sans-serif;
-                font-size: 12px;
-                max-width: 250px;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-                pointer-events: none;
-                z-index: 1000;
-                line-height: 1.4;
-            `;
-            document.body.appendChild(this.tooltipEl);
-        }
-
-        this.tooltipEl.innerHTML = `<strong style="color: #fff; display: block; margin-bottom: 4px;">${node.Name}</strong>${node.Description}`;
-        this.tooltipEl.style.display = 'block';
-
-        // Position near cursor
-        this.tooltipEl.style.left = (e.pageX + 15) + 'px';
-        this.tooltipEl.style.top = (e.pageY + 15) + 'px';
-    }
-
-    private hideTooltip() {
-        if (this.tooltipEl) {
-            this.tooltipEl.style.display = 'none';
-        }
-    }
+    // Tooltip Implementation wurde in den FlowInteractionManager verschoben.
 
     public importTaskGraph(targetNode: FlowElement, task: any, isLinked: boolean = false): FlowElement[] {
-        // PREVENT RECURSIVE IMPORT: Do not expand a task into its own flow view!
-        // This is the root cause of the "duplicates" in task-specific views.
-        if (task.name === this.currentFlowContext) {
-            console.warn(`[FlowEditor] importTaskGraph: Recursive import of current context "${task.name}" blocked.`);
-            return [];
-        }
-
-        // FATAL DUPLICATE PROTECTION: Never import if ghosts for this node already exist!
-        const existingGhosts = this.nodes.some(n => n.data?.parentProxyId === targetNode.name);
-        if (existingGhosts) {
-            console.warn(`[FlowEditor] importTaskGraph ABORTED: Node "${targetNode.name}" already has ghost elements.`);
-            return [];
-        }
-
-        // Load flowChart from project or library
-        const projectChart = (this.project as any)?.flowCharts?.[task.name];
-        const taskChart = task.flowChart || task.flowGraph;
-
-        // HEURISTIC: Prefer the "richest" data source. 
-        // If the project chart is just a stub (Start + Identity node = 2 elements), 
-        // but the task-embedded chart has more, use the task-embedded one.
-        let flowChart = projectChart;
-        let source = 'project.flowCharts';
-
-        const projectCount = projectChart?.elements?.length || 0;
-        const taskCount = taskChart?.elements?.length || 0;
-
-        if (!projectChart || (projectCount <= 2 && taskCount > projectCount)) {
-            if (taskChart && taskChart.elements && taskChart.elements.length > 0) {
-                flowChart = taskChart;
-                source = task.flowChart ? 'task.flowChart' : 'task.flowGraph';
-            }
-        }
-
-        console.log(`[FlowEditor] importTaskGraph for "${task.name}": flowChart found: ${!!flowChart}, source: ${source}, elements: ${flowChart?.elements?.length || 0}`);
-
-        if (!flowChart || !flowChart.elements || flowChart.elements.length === 0) {
-            console.warn(`[FlowEditor] Task "${task.name}" has no flow elements to import. (Source: ${source})`);
-            return [];
-        }
-
-
-        // 2. Generate unique group ID for this embedded task
-        const embeddedGroupId = `embedded-${task.name}-${Date.now()}`;
-
-        // 3. Prepare ID Mapping
-        const idMap: Record<string, string> = {};
-        const getNewId = (oldId: string) => {
-            if (!idMap[oldId]) {
-                idMap[oldId] = `imported-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-            }
-            return idMap[oldId];
-        };
-
-        // 4. Calculate Offset - Place imported nodes to the RIGHT of the target/proxy node
-        let minX = Infinity, minY = Infinity;
-        flowChart.elements.forEach((el: any) => {
-            if (el.x < minX) minX = el.x;
-            if (el.y < minY) minY = el.y;
-        });
-
-        const gridGap = this.flowStage.cellSize * 4;
-        const offsetX = targetNode.X + targetNode.Width + gridGap - minX;
-        const offsetY = targetNode.Y - minY;
-
-        // 5. Create New Nodes
-        const newNodes: FlowElement[] = [];
-        let importedStart: FlowElement | null = null;
-
-        console.log(`[FlowEditor] importTaskGraph - elements to process: ${flowChart.elements.length}`);
-
-        flowChart.elements.forEach((data: any) => {
-            // OPTIMIZATION: If this is a link/expansion, skip the "Identity" node of the task if it exists.
-            // Robust check: Skip if it's a Task node with either the current name OR the original library name
-            const isIdentityNode = data.type === 'Task' &&
-                (data.properties?.name === task.name ||
-                    data.properties?.name === task.sourceTaskName ||
-                    data.properties?.name === task.copiedFromLibrary);
-
-            if (isLinked && isIdentityNode) {
-                console.log(`[FlowEditor]   -> Skipping identity node: ${data.properties?.name} (id: ${data.id})`);
-                idMap[data.id] = targetNode.name;
-
-                // IMPORTANT: Mark proxy node with the ID it represents in the original flowchart
-                // This allows connections starting/ending at the proxy to be mapped correctly
-                if (!targetNode.data) targetNode.data = {};
-                targetNode.data.originalId = data.id;
-
-                return;
-            }
-
-            const newData = JSON.parse(JSON.stringify(data));
-            newData.id = getNewId(data.id);
-
-            // POSITION OVERRIDE: Check if proxy has saved positions for this ghost node
-            const savedPos = isLinked && targetNode.data?.ghostPositions?.[data.id];
-            if (savedPos) {
-                // Use saved position (absolute, from manual layout)
-                newData.x = savedPos.x;
-                newData.y = savedPos.y;
-                console.log(`[FlowEditor]   -> Using saved position for ${data.properties?.name || data.type}: ${savedPos.x},${savedPos.y}`);
-            } else {
-                // Use calculated position (relative to proxy + offset)
-                newData.x += offsetX;
-                newData.y += offsetY;
-            }
-
-            console.log(`[FlowEditor]   -> Restoring node: ${newData.properties?.name || newData.type} at ${newData.x},${newData.y}`);
-            const newNode = this.syncManager.restoreNode(newData);
-            if (newNode) {
-                this.nodes.push(newNode);
-                newNodes.push(newNode);
-
-
-                // Apply linked styling
-                if (isLinked) {
-                    newNode.setLinked(true);
-                    newNode.data = {
-                        ...newNode.data,
-                        isLinked: true,
-                        isEmbeddedInternal: true,
-                        parentProxyId: targetNode.name,
-                        embeddedGroupId: embeddedGroupId,
-                        parentParams: targetNode.data?.params,
-                        originalId: data.id  // Store original ID for position mapping
-                    };
-                }
-
-                if (newNode.getType() === 'Start') importedStart = newNode;
-            }
-        });
-
-        console.log(`[FlowEditor] importTaskGraph - Processed ${newNodes.length} visible elements into DOM.`);
-
-        // Use the first new node as a fallback entry point if no explicit Start node was found
-        if (!importedStart && newNodes.length > 0) {
-            importedStart = newNodes[0];
-        }
-
-        // 5. Create New Connections (Internal)
-        if (flowChart.connections) {
-            flowChart.connections.forEach((data: any) => {
-                const startId = idMap[data.startTargetId];
-                const endId = idMap[data.endTargetId];
-
-                if (startId && endId) {
-                    const startNode = this.nodes.find(n => n.name === startId);
-                    const endNode = this.nodes.find(n => n.name === endId);
-
-                    if (startNode && endNode) {
-                        const conn = new FlowConnection(this.canvas, 0, 0, 0, 0);
-                        conn.setGridConfig(this.flowStage.cellSize);
-                        // ANCHOR OVERRIDE: Check if proxy has saved anchor types for this connection
-                        const origStartId = data.startTargetId;
-                        const origEndId = data.endTargetId;
-                        const origStartAnchor = data.data?.startAnchorType || 'output';
-
-                        // Look for a matching connection in saved ghostConnections array
-                        const savedConn = isLinked && targetNode.data?.ghostConnections?.find((gc: any) =>
-                            gc.startOriginalId === origStartId &&
-                            gc.endOriginalId === origEndId &&
-                            gc.originalStartAnchorType === origStartAnchor
-                        );
-
-                        if (savedConn) {
-                            conn.data = {
-                                ...conn.data,
-                                startAnchorType: savedConn.startAnchorType,
-                                endAnchorType: savedConn.endAnchorType
-                            };
-                            console.log(`[FlowEditor]   -> Restored ghost anchors: ${savedConn.startAnchorType}->${savedConn.endAnchorType}`);
-                        } else if (data.data?.startAnchorType) {
-                            // Default from original flowchart
-                            conn.data = { ...conn.data, startAnchorType: data.data.startAnchorType };
-                        } else if (data.data?.branchType) {
-                            // Legacy support
-                            conn.data = { ...conn.data, startAnchorType: data.data.branchType };
-                        }
-
-                        conn.attachStart(startNode);
-                        conn.attachEnd(endNode);
-                        conn.updatePosition();
-                        this.connections.push(conn);
-                        this.setupConnectionListeners(conn);
-
-                        if (isLinked) {
-                            conn.data = {
-                                ...conn.data,
-                                isEmbeddedInternal: true,
-                                parentProxyId: targetNode.name,
-                                originalStartAnchorType: origStartAnchor // Mark for future sync matches
-                            };
-                        }
-                    }
-                }
-            });
-        }
-
-        // 6. Connect Proxy to Imported Start (GCS Chain)
-        // Instead of rewiring incoming connections (which isolated the proxy),
-        // we keep the proxy in the chain and connect it to the internal start.
-        if (isLinked && importedStart) {
-            const conn = new FlowConnection(this.canvas, 0, 0, 0, 0);
-            conn.setGridConfig(this.flowStage.cellSize);
-
-            // ANCHOR OVERRIDE for entry connection
-            const origStartId = targetNode.data.originalId;
-            const origEndId = importedStart.data?.originalId;
-            const origStartAnchor = 'output'; // Standard entry anchor
-
-            const savedConn = targetNode.data?.ghostConnections?.find((gc: any) =>
-                gc.startOriginalId === origStartId &&
-                gc.endOriginalId === origEndId &&
-                gc.originalStartAnchorType === origStartAnchor
-            );
-
-            if (savedConn) {
-                conn.data = {
-                    ...conn.data,
-                    startAnchorType: savedConn.startAnchorType,
-                    endAnchorType: savedConn.endAnchorType
-                };
-                console.log(`[FlowEditor]   -> Restored ghost entry anchors: ${savedConn.startAnchorType}->${savedConn.endAnchorType}`);
-            }
-
-            conn.attachStart(targetNode);
-            conn.attachEnd(importedStart);
-            conn.updatePosition();
-            this.connections.push(conn);
-            this.setupConnectionListeners(conn);
-
-            conn.data = {
-                ...conn.data,
-                isEmbeddedInternal: true,
-                parentProxyId: targetNode.name,
-                originalStartAnchorType: origStartAnchor // Mark for future sync matches
-            };
-        }
-
-        // 7. Handle Proxy State
-        if (isLinked) {
-            targetNode.data.isExpanded = true;
-            targetNode.data.sourceTaskName = task.name;
-            targetNode.Name = task.name;
-            targetNode.Text = task.name;
-            targetNode.setLinked(true); // Visual indicator on proxy too
-            if (task.description) targetNode.Description = task.description;
-        } else {
-            // If it was a deep copy (not linked), we can remove the original
-            this.removeNode(targetNode.name);
-        }
-
-        // 8. DATA ACTION VISUALIZATION EXPANSION
-        // If any of the imported nodes is a DataAction, we must expand its internal flows too!
-        newNodes.forEach(node => {
-            if (node.getType() === 'Action' && (node as FlowAction).actionType === 'data_action') {
-                this.expandDataActionFlow(node as FlowAction);
-            }
-        });
-
-        // 9. PERSISTENCE & REFRESH: Sync immediately so expansion is saved in project
-        this.syncToProject();
-        if (this.onNodesChanged) this.onNodesChanged(this.nodes);
-
-        return newNodes;
+        return this.hydrationManager.importTaskGraph(targetNode, task, isLinked);
     }
 
     /**
      * Expands a DataAction's internal success/error bodies into visual ghost nodes.
      */
     public expandDataActionFlow(dataActionNode: FlowAction) {
-        if (!dataActionNode.data) return;
-
-        // Helper to create a chain of nodes from an action list
-        const createChain = (actions: any[], branchType: 'success' | 'error', startOffsetY: number) => {
-            if (!actions || actions.length === 0) return;
-
-            let previousNode: FlowElement = dataActionNode;
-            let currentX = dataActionNode.X + 250; // Start to the right
-            let currentY = dataActionNode.Y + startOffsetY;
-
-            actions.forEach((actionData, index) => {
-                // Generate a unique ID for this ghost node
-                // We use a deterministic ID based on the parent ID and index to avoid duplicates on re-render
-                // BUT: FlowSyncManager.restoreNode expects unique IDs in the system.
-                // Let's rely on a prefixed ID.
-                const ghostId = `${dataActionNode.id}-${branchType}-${index}`;
-
-                // Check if already exists (prevent duplicates)
-                if (this.nodes.some(n => n.id === ghostId)) return;
-
-                const nodeData = {
-                    ...actionData,
-                    id: ghostId,
-                    x: currentX,
-                    y: currentY,
-                    // Mark as ghost/embedded
-                    isEmbeddedInternal: true,
-                    parentProxyId: dataActionNode.id, // The DataAction is the "proxy" for these
-                    isLinked: true
-                };
-
-                const newNode = this.syncManager.restoreNode(nodeData);
-                if (newNode) {
-                    // visual adjustments
-                    newNode.setLinked(true);
-                    this.nodes.push(newNode);
-
-                    // Create Connection
-                    const conn = new FlowConnection(this.canvas, 0, 0, 0, 0);
-
-                    // If first node, connect to DataAction's special port
-                    if (previousNode === dataActionNode) {
-                        conn.attachStart(dataActionNode);
-                        conn.attachEnd(newNode);
-                        // Set specific anchor types for the first connection
-                        conn.data = {
-                            startAnchorType: branchType, // 'success' or 'error'
-                            endAnchorType: 'input',
-                            isEmbeddedInternal: true,
-                            parentProxyId: dataActionNode.id
-                        };
-                    } else {
-                        // Standard chain connection
-                        conn.attachStart(previousNode);
-                        conn.attachEnd(newNode);
-                        conn.data = {
-                            startAnchorType: 'output',
-                            endAnchorType: 'input',
-                            isEmbeddedInternal: true,
-                            parentProxyId: dataActionNode.id
-                        };
-                    }
-
-                    conn.updatePosition();
-                    this.connections.push(conn);
-                    this.setupConnectionListeners(conn); // make interactive
-
-                    previousNode = newNode;
-                    currentX += 200; // Move right for next node
-                }
-            });
-        };
-
-        // Expand Success Path
-        if (dataActionNode.data.successBody) {
-            createChain(dataActionNode.data.successBody, 'success', 0);
-        }
-
-        // Expand Error Path
-        if (dataActionNode.data.errorBody) {
-            createChain(dataActionNode.data.errorBody, 'error', 120); // Bit lower
-        }
+        this.hydrationManager.expandDataActionFlow(dataActionNode);
     }
 
-    private handleNodeContextMenu(e: MouseEvent, node: FlowElement) {
-        this.menuProvider.handleNodeContextMenu(e, node);
-    }
-
-    private handleCanvasContextMenu(e: MouseEvent) {
-        this.menuProvider.handleCanvasContextMenu(e);
-    }
-
-    private handleConnectionContextMenu(e: MouseEvent, conn: FlowConnection) {
-        this.menuProvider.handleConnectionContextMenu(e, conn);
-    }
+    // Kontextmenü-Handler wurden in den FlowInteractionManager verschoben.
 
 
-    private handleNodeDoubleClick(node: FlowElement) {
+    public handleNodeDoubleClick(node: FlowElement) {
         // DEBUG: Log every double-click
         console.log(`[FlowEditor] === DOUBLE-CLICK on node: ${node.name} ===`);
 
@@ -2133,259 +875,33 @@ export class FlowEditor implements FlowMapHost {
         console.log(`[FlowEditor] Action edit requested for "${node.Name}". Editing is now handled exclusively via the right-hand Inspector.`);
 
         // Visual feedback to guide the user
-        if (this.editor && typeof this.editor.showToast === 'function') {
-            this.editor.showToast('Please use the Inspector panel to edit action properties.', 'info');
+        if (this.editor && typeof (this.editor as any).showToast === 'function') {
+            (this.editor as any).showToast('Please use the Inspector panel to edit action properties.', 'info');
         }
     }
 
-    private selectNode(node: FlowElement) {
-        this.deselectAll(false); // Don't trigger null select, we are about to select something
-        this.selectedNode = node;
-
-        // Visual Feedback
-        node.getElement().style.outline = '2px solid cyan';
-
-        // Ensure project reference is set for Task nodes (needed for Inspector parameters)
-        if (node instanceof FlowTask && this.project) {
-            node.setProjectRef(this.project);
-        }
-
-        // Feature: Projekt-Landkarte Object Selection
-        if (this.currentFlowContext === 'event-map' && node && node.data?.isProxy && node.data?.stageObjectId) {
+    public selectNode(node: FlowElement | null) {
+        if (node && node.data?.isProxy && node.data?.stageObjectId) {
             this.currentSelectedStageObjectId = node.data.stageObjectId;
-            // Notify Editor to select this object on stage
-            serviceRegistry.call('Editor', 'selectObject', [node.data.stageObjectId]);
-
-            // Note: We don't force a full reload here to avoid flickering, 
-            // the outline already provides enough feedback.
         }
-
-        // Notify Inspector
-        if (this.onObjectSelect) {
-            this.onObjectSelect(node);
-        }
+        this.selectionManager.selectNode(node);
     }
 
     /**
      * Selects a node by its ID (name property) - used by Inspector dropdown
      */
     public selectNodeById(nodeId: string | null): void {
-        if (!nodeId) {
-            this.deselectAll(true);
-            return;
-        }
-
-        const node = this.nodes.find(n => n.name === nodeId);
-        if (node) {
-            this.selectNode(node);
-            // Scroll node into view if needed
-            node.getElement().scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-        }
+        this.selectionManager.selectNodeById(nodeId);
     }
 
     /**
      * Re-renders the currently selected node to reflect property changes
      */
     public refreshSelectedNode() {
-        if (!this.selectedNode) return;
-
-        // Clear cached details to force regeneration
-        if (this.selectedNode instanceof FlowAction) {
-            this.selectedNode.Details = '';
-            this.selectedNode.setShowDetails(this.showDetails, this.project);
-        } else {
-            // Task or Start node - simple text refresh
-            this.selectedNode.Text = this.selectedNode.Name;
-        }
+        this.selectionManager.refreshSelectedNode();
     }
 
-    public setupConnectionListeners(conn: FlowConnection) {
-        // Selection
-        conn.getElement().addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-            this.deselectAll();
-            conn.select();
-            this.selectedConnection = conn;
-        });
-
-        // Context Menu for Connection
-        conn.getElement().addEventListener('contextmenu', (e) => {
-            this.handleConnectionContextMenu(e, conn);
-        });
-
-        // Handle Dragging
-        const startH = conn.getStartHandle();
-        const endH = conn.getEndHandle();
-
-        const onHandleDown = (h: HTMLElement, isStart: boolean) => {
-            h.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-
-                // Check if this is an INTERNAL connection (both ends are embedded internal nodes)
-                // Internal connections CAN now be modified because we support persistence for ghost connections.
-                // Connections TO/FROM the container are also allowed.
-
-                this.isDraggingHandle = true;
-                this.activeHandle = h;
-                this.activeConnection = conn;
-                // Store which handle (start or end) for the move logic
-                h.dataset.isStart = isStart.toString();
-            });
-        };
-
-        onHandleDown(startH, true);
-        onHandleDown(endH, false);
-
-        conn.onLabelDoubleClick = () => {
-            if (conn.data && conn.data.isMapLink) {
-                const { objectName, eventName } = conn.data;
-                if (serviceRegistry) {
-                    serviceRegistry.call('Editor', 'jumpToDebug', [objectName, eventName]);
-                }
-            }
-        };
-    }
-
-    private handleGlobalMove(e: MouseEvent) {
-        if (!this.isDraggingHandle || !this.activeConnection || !this.activeHandle) return;
-
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left + this.canvas.scrollLeft;
-        const y = e.clientY - rect.top + this.canvas.scrollTop;
-
-        // Clear previous highlights
-        this.canvas.querySelectorAll('.flow-anchor.snap-target').forEach(a => a.classList.remove('snap-target'));
-
-        const isStart = this.activeHandle.dataset.isStart === 'true';
-
-        // Check for magnetic snap
-        // isStart=true means we're moving the START of the connection -> should snap to OUTPUTs
-        // isStart=false means we're moving the END of the connection -> should snap to INPUTs
-        const snapFilter = isStart ? 'output' : 'input';
-        const snap = this.findClosestAnchor(x, y, 80, snapFilter);
-
-        let targetX = x;
-        let targetY = y;
-
-        if (snap) {
-            targetX = snap.pos.x;
-            targetY = snap.pos.y;
-
-            // Visual feedback: Highlight the targeted anchor
-            const nodeEl = snap.node.getElement();
-            const anchorTypeClass = snap.anchorType === 'input' ? 'input' :
-                snap.anchorType === 'output' ? 'output' :
-                    snap.anchorType === 'top' ? 'top' :
-                        snap.anchorType === 'bottom' ? 'bottom' :
-                            snap.anchorType === 'true' ? 'true-branch' : 'false-branch';
-
-            const anchorEl = nodeEl.querySelector(`.flow-anchor.${anchorTypeClass}`);
-            if (anchorEl) {
-                anchorEl.classList.add('snap-target');
-            }
-        }
-
-        if (isStart) {
-            this.activeConnection.setStartPoint(targetX, targetY);
-        } else {
-            this.activeConnection.setEndPoint(targetX, targetY);
-        }
-    }
-
-    private handleGlobalUp(e: MouseEvent) {
-        if (!this.isDraggingHandle || !this.activeConnection || !this.activeHandle) return;
-
-        const isStart = this.activeHandle.dataset.isStart === 'true';
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left + this.canvas.scrollLeft;
-        const y = e.clientY - rect.top + this.canvas.scrollTop;
-
-        // Final snap check
-        // isStart=true means we're moving the START of the connection -> should snap to OUTPUTs
-        // isStart=false means we're moving the END of the connection -> should snap to INPUTs
-        const snapFilter = isStart ? 'output' : 'input';
-        const snap = this.findClosestAnchor(x, y, 80, snapFilter);
-
-        if (snap) {
-            // Check if the target node is a ghost node
-            const isTargetGhost = snap.node.data?.isEmbeddedInternal || snap.node.data?.parentProxyId;
-
-            if (isStart) {
-                this.activeConnection.attachStart(snap.node);
-                // Update start anchor type and mark as embedded if target is ghost
-                this.activeConnection.data = {
-                    ...this.activeConnection.data,
-                    startAnchorType: snap.anchorType,
-                    isEmbeddedInternal: this.activeConnection.data?.isEmbeddedInternal || isTargetGhost || false,
-                    parentProxyId: this.activeConnection.data?.parentProxyId || snap.node.data?.parentProxyId
-                };
-            } else {
-                this.activeConnection.attachEnd(snap.node);
-                // Update end anchor type and mark as embedded if target is ghost
-                this.activeConnection.data = {
-                    ...this.activeConnection.data,
-                    endAnchorType: snap.anchorType,
-                    isEmbeddedInternal: this.activeConnection.data?.isEmbeddedInternal || isTargetGhost || false,
-                    parentProxyId: this.activeConnection.data?.parentProxyId || snap.node.data?.parentProxyId
-                };
-            }
-        }
-        // If not snapped, it remains detached at the dropped position (set in handleGlobalMove)
-
-        this.isDraggingHandle = false;
-        this.activeHandle = null;
-        this.activeConnection = null;
-
-        // Ensure changes are persisted immediately after connection work
-        this.syncToProject();
-
-        // Final cleanup of highlights
-        this.canvas.querySelectorAll('.flow-anchor.snap-target').forEach(a => a.classList.remove('snap-target'));
-    }
-
-    /**
-     * Finds the closest anchor to the given position.
-     * @param x Canvas-relative X
-     * @param y Canvas-relative Y
-     * @param radius Snap radius in pixels
-     * @param filter 'input' = only input anchors (left, top), 'output' = only output anchors (right, bottom, true, false)
-     */
-    private findClosestAnchor(x: number, y: number, radius: number, filter?: 'input' | 'output'): { node: FlowElement, pos: { x: number, y: number }, dist: number, anchorType: string } | null {
-        let closest: { node: FlowElement, pos: { x: number, y: number }, dist: number, anchorType: string } | null = null;
-
-        // Define which anchors are inputs vs outputs
-        const inputAnchors = ['input', 'top'];  // Left, Top
-        const outputAnchors = ['output', 'bottom', 'true', 'false', 'right'];  // Right, Bottom, Condition branches
-
-        this.nodes.forEach(node => {
-            // Determine which anchors to check based on node type
-            let anchorsToCheck: string[];
-            if (node.getType() === 'Condition') {
-                anchorsToCheck = ['input', 'true', 'false', 'top', 'bottom'];
-            } else {
-                anchorsToCheck = ['input', 'output', 'top', 'bottom'];
-            }
-
-            // Apply filter if specified
-            if (filter === 'input') {
-                anchorsToCheck = anchorsToCheck.filter(a => inputAnchors.includes(a));
-            } else if (filter === 'output') {
-                anchorsToCheck = anchorsToCheck.filter(a => outputAnchors.includes(a));
-            }
-
-            anchorsToCheck.forEach(type => {
-                const pos = (node as any).getAnchorPosition(type);
-                const dist = Math.sqrt((pos.x - x) ** 2 + (pos.y - y) ** 2);
-                if (dist < radius) {
-                    if (!closest || dist < closest.dist) {
-                        closest = { node, pos, dist, anchorType: type };
-                    }
-                }
-            });
-        });
-
-        return closest;
-    }
+    // handleGlobalMove, handleGlobalUp und findClosestAnchor wurden in den FlowInteractionManager verschoben.
 
     public show() {
         this.container.style.display = 'flex';
@@ -2406,89 +922,32 @@ export class FlowEditor implements FlowMapHost {
 
     // Grid Logic
     private updateGrid() {
-        if (!this.flowStage) return;
-
-        const cellSize = this.flowStage.cellSize;
-        const bg = this.flowStage.style.backgroundColor || '#1e1e1e';
-        const snap = this.flowStage.snapToGrid;
-
-        // Propagate grid settings to all nodes
-        this.nodes.forEach(node => {
-            node.setGridConfig(cellSize, snap);
-        });
-
-        // Propagate grid settings to all connections
-        this.connections.forEach(conn => {
-            conn.setGridConfig(cellSize);
-        });
-
-        if (!this.flowStage.showGrid) {
-            this.canvas.style.backgroundImage = 'none';
-            this.canvas.style.backgroundColor = bg;
-        } else {
-            // Logical grid color based on background brightness (simple heuristic)
-            const gridColor = bg === '#ffffff' ? '#ccc' : '#555';
-
-            this.canvas.style.backgroundColor = bg;
-            this.canvas.style.backgroundImage = `radial-gradient(circle at 0px 0px, ${gridColor} 1px, transparent 1px)`;
-            this.canvas.style.backgroundSize = `${cellSize}px ${cellSize}px`;
-        }
+        this.uiController.updateGrid();
     }
 
     // Inspector Properties for Flow Editor (Grid Settings)
     public get name(): string { return 'Flow Grid Settings'; }
 
-    public get GridColumns(): number { return this.flowStage.cols; }
-    public set GridColumns(v: number) {
-        this.flowStage.cols = v;
-        this.updateGrid();
-        this.syncToProject();
-    }
+    public get GridColumns(): number { return this.uiController.getGridColumns(); }
+    public set GridColumns(v: number) { this.uiController.setGridColumns(v); }
 
-    public get GridRows(): number { return this.flowStage.rows; }
-    public set GridRows(v: number) {
-        this.flowStage.rows = v;
-        this.updateGrid();
-        this.syncToProject();
-    }
+    public get GridRows(): number { return this.uiController.getGridRows(); }
+    public set GridRows(v: number) { this.uiController.setGridRows(v); }
 
-    public get CellSize(): number { return this.flowStage.cellSize; }
-    public set CellSize(v: number) {
-        this.flowStage.cellSize = v;
-        this.updateGrid();
-        this.syncToProject();
-    }
+    public get CellSize(): number { return this.uiController.getCellSize(); }
+    public set CellSize(v: number) { this.uiController.setCellSize(v); }
 
-    public get SnapToGrid(): boolean { return this.flowStage.snapToGrid; }
-    public set SnapToGrid(v: boolean) {
-        this.flowStage.snapToGrid = v;
-        this.updateGrid();
-        this.syncToProject();
-    }
+    public get SnapToGrid(): boolean { return this.uiController.getSnapToGrid(); }
+    public set SnapToGrid(v: boolean) { this.uiController.setSnapToGrid(v); }
 
-    public get ShowGrid(): boolean { return this.flowStage.showGrid; }
-    public set ShowGrid(v: boolean) {
-        this.flowStage.showGrid = v;
-        this.updateGrid();
-        this.syncToProject();
-    }
+    public get ShowGrid(): boolean { return this.uiController.getShowGrid(); }
+    public set ShowGrid(v: boolean) { this.uiController.setShowGrid(v); }
 
-    public get BackgroundColor(): string { return this.flowStage.style.backgroundColor || '#1e1e1e'; }
-    public set BackgroundColor(v: string) {
-        this.flowStage.style.backgroundColor = v;
-        this.updateGrid();
-        this.syncToProject();
-    }
+    public get BackgroundColor(): string { return this.uiController.getBackgroundColor(); }
+    public set BackgroundColor(v: string) { this.uiController.setBackgroundColor(v); }
 
     public getInspectorProperties(): any[] {
-        return [
-            { name: 'GridColumns', type: 'number', label: 'Columns', group: 'Grid' },
-            { name: 'GridRows', type: 'number', label: 'Rows', group: 'Grid' },
-            { name: 'CellSize', type: 'number', label: 'Cell Size (px)', group: 'Grid' },
-            { name: 'SnapToGrid', type: 'boolean', label: 'Snap to Grid', group: 'Grid' },
-            { name: 'ShowGrid', type: 'boolean', label: 'Show Grid', group: 'Grid' },
-            { name: 'BackgroundColor', type: 'color', label: 'Background', group: 'Grid' }
-        ];
+        return this.uiController.getInspectorProperties();
     }
 
     public hasNode(id: string): boolean {
@@ -2496,37 +955,7 @@ export class FlowEditor implements FlowMapHost {
     }
 
     public removeNode(id: string) {
-        const nodeIndex = this.nodes.findIndex(n => n.name === id);
-        if (nodeIndex === -1) return;
-
-        const node = this.nodes[nodeIndex];
-
-        // Remove connections attached to this node
-        this.connections = this.connections.filter(c => {
-            const isAttached = c.startTarget === node || c.endTarget === node;
-            if (isAttached) {
-                const el = c.getElement();
-                const sh = c.getStartHandle();
-                const eh = c.getEndHandle();
-                if (el.parentNode) el.parentNode.removeChild(el);
-                if (sh.parentNode) sh.parentNode.removeChild(sh);
-                if (eh.parentNode) eh.parentNode.removeChild(eh);
-            }
-            return !isAttached;
-        });
-
-        // Remove node DOM
-        const el = node.getElement();
-        if (el.parentNode) el.parentNode.removeChild(el);
-
-        // Remove from list
-        this.nodes.splice(nodeIndex, 1);
-
-        // Clear Selection if needed
-        if (this.selectedNode === node) {
-            this.selectedNode = null;
-            if (this.onObjectSelect) this.onObjectSelect(null);
-        }
+        this.graphManager.removeNode(id);
     }
 
     // ─────────────────────────────────────────────
@@ -2537,95 +966,31 @@ export class FlowEditor implements FlowMapHost {
      * Wechselt zwischen Konzept- und Details-Ansicht
      */
     private toggleDetailsView(): void {
-        this.showDetails = !this.showDetails;
-        localStorage.setItem('gcs_flow_show_details', this.showDetails.toString());
-
-        // Button-Text aktualisieren
-        this.detailsToggleBtn.innerText = this.showDetails ? '📝 Details' : '📋 Konzept';
-        this.detailsToggleBtn.style.background = this.showDetails ? '#007acc' : '#444';
-
-        // Alle Action-Knoten aktualisieren
-        this.updateActionDetails();
+        this.selectionManager.toggleDetailsView();
     }
 
     /**
      * Aktualisiert die Anzeige aller Action-Knoten basierend auf showDetails
      */
-    private updateActionDetails(): void {
-        this.nodes.forEach(node => {
-            node.setShowDetails(this.showDetails, this.project);
-        });
+    public updateActionDetails(): void {
+        this.selectionManager.updateActionDetails();
     }
 
     /**
      * Entfernt alle Knoten und Verbindungen vom Canvas
      */
-    private clearFlowCanvas(): void {
-        // Clear existing nodes
-        this.nodes.forEach(n => {
-            if (n.getElement().parentNode === this.canvas) {
-                this.canvas.removeChild(n.getElement());
-            }
-        });
-        this.nodes = [];
-
-        // Clear existing connections (including labels)
-        this.connections.forEach(c => {
-            c.destroy();
-        });
-        this.connections = [];
+    public clearFlowCanvas(): void {
+        this.graphManager.clearFlowCanvas();
     }
-
-
-
 
     /**
      * Updates the internal 'world' size to ensure the canvas is scrollable
      */
     public updateScrollArea(): void {
-        const world = document.getElementById('flow-world');
-        if (!world) return;
-
-        let maxX = 2000;
-        let maxY = 2000;
-
-        this.nodes.forEach(n => {
-            const bounds = { x: (n as any).x + 400, y: (n as any).y + 400 };
-            if (bounds.x > maxX) maxX = bounds.x;
-            if (bounds.y > maxY) maxY = bounds.y;
-        });
-
-        world.style.width = maxX + 'px';
-        world.style.height = maxY + 'px';
+        this.uiController.updateScrollArea();
     }
 
     private initMediator() {
-        mediatorService.on(MediatorEvents.DATA_CHANGED, (data: any, originator?: string) => {
-            if (originator !== 'flow-editor' && this.project) {
-                console.log(`[FlowEditor] Data changed via ${originator}. Checking context... Data:`, data);
-
-                // 1. Check if the renamed object is our current context
-                if (data && (data.property === 'Name' || data.property === 'name')) {
-                    if (data.oldValue === this.currentFlowContext && data.value) {
-                        console.log(`[FlowEditor] Context rename detected: ${data.oldValue} -> ${data.value}`);
-                        this.currentFlowContext = data.value;
-                        localStorage.setItem('gcs_last_flow_context', data.value);
-
-                        // Force reload of the diagram to reflect renamed nodes
-                        if (this.project) {
-                            console.log('[FlowEditor] Reloading diagram for new context:', data.value);
-                            this.loadFromProject(data.value);
-                        }
-                    } else if (data.oldValue === this.currentFlowContext) {
-                        console.warn(`[FlowEditor] Context rename detected but no new value?`, data);
-                    }
-                }
-
-                // 2. Update the dropdown list
-                console.log(`[FlowEditor] Updating selector. Current Context: ${this.currentFlowContext}`);
-                this.updateFlowSelector();
-                console.log(`[FlowEditor] Selector updated. Value is now: ${this.flowSelect.value}`);
-            }
-        });
+        this.uiController.initMediator();
     }
 }

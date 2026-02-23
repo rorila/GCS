@@ -49,8 +49,10 @@ export class EditorRunManager {
                 }
             };
         } else {
-            // Restore editor handler immediately
-            this.editor.restoreStageEventHandler();
+            // Restore editor stage events
+            if (this.editor.stage) {
+                this.editor.stage.onEvent = null;
+            }
         }
 
         if (running) {
@@ -183,7 +185,9 @@ export class EditorRunManager {
             this.runtime = null;
         }
 
-        this.editor.restoreStageEventHandler();
+        if (this.editor.stage) {
+            this.editor.stage.onEvent = null;
+        }
 
         if (this.activeGameLoop && typeof (this.activeGameLoop as any).stop === 'function') {
             (this.activeGameLoop as any).stop();

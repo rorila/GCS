@@ -126,18 +126,40 @@ Der monolithische Inspector (ehemals JSONInspector.ts) wurde durch ein modulares
 - **Design-Time Runtime (v3.1.0)**: Der Inspector benötigt eine `ReactiveRuntime` zur Evaluation von Bindings (`${...}`). Für den Editor-Betrieb ohne aktives Spiel wird eine `designRuntime` in `Editor.ts` verwendet, um konsistentes Rendering zu garantieren.
 - **Expression Evaluation**: Der Inspector nutzt den `ExpressionParser`, um Bindings robust aufzulösen. Dabei wird das `selectedObject` automatisch in den Kontext injiziert.
 
-### Editor-Architektur
-Die Klasse `Editor.ts` fungiert nur noch als Orchestrator. Die Fachlogik liegt in:
-- **EditorStageManager.ts**: Alles rund um das Verwalten von Stages (Neu, Klonen, Löschen, Templates).
-- **EditorViewManager.ts**: Steuerung der Tabs und Ansichten (Stage, Flow, JSON, Pascal).
-- **RefactoringManager.ts**: Projektweite Umbenennungen und Referenz-Updates.
+### Editor-Architektur (v3.5.0 "Ultra-Lean")
+Die Klasse `Editor.ts` fungiert nur noch als reiner Orchestrator. Die Fachlogik liegt in hochgradig spezialisierten Manager-Klassen:
+- **EditorDataManager.ts**: Zentrales Management für Projekt-Daten (Laden, Speichern, Export, Synchronisation).
+- **EditorSimulatorManager.ts**: Verwaltet API-Simulationen und das Mocking von Server-Antworten.
+- **EditorRenderManager.ts**: Orchestrierung des Renderings und Aktualisierung aller Editor-Ansichten.
+- **EditorMenuManager.ts**: Management der Menüleiste und Shortcuts.
+- **EditorKeyboardManager.ts**: Zentrale Registrierung und Verteilung von Tastaturbefehlen.
+- **EditorUndoManager.ts**: Koordination der Undo/Redo/Recording-Logik.
+- **EditorInteractionManager.ts**: Handling von Canvas-Interaktionen (Drop, Resize, Copy/Paste).
+- **EditorStageManager.ts**: Verwaltung von Stages, Templates und der Stage-Migration.
+- **Vorteil**: Jede Teil-Logik ist klar gekapselt, was die `Editor.ts` übersichtlich hält (< 1000 Zeilen Regel) und die Wartbarkeit massiv erhöht.
 
-### FlowEditor-Architektur (v2.5.0)
-Die Klasse `FlowEditor.ts` wurde modularisiert, um die Komplexität zu reduzieren:
-- **FlowSyncManager.ts**: Übernimmt die gesamte Synchronisations-Logik zwischen dem visuellen Diagramm und dem Datenmodell (JSON/Pascal). Beinhaltet Methoden wie `syncVariablesFromFlow`, `syncTaskFromFlow`, `restoreNode` und `generateFlowFromActionSequence`.
-- **FlowStateManager.ts**: Verwaltet den UI-Zustand des Editors (z.B. Detailtiefe der Nodes, Zoom).
-- **FlowMapManager.ts**: (v2.5.1) Kapselt die Generierung der "Landkarte" (Events/Links) und der "Elementenübersicht" sowie die "Action-Check" Logik.
-- **FlowContextMenuProvider.ts**: (v2.6.0) Zentralisiert die gesamte Logik für Kontextmenüs (Knoten, Verbindungen, Canvas). Ermöglicht das schnelle Erstellen von Elementen via Rechtsklick.
+### FlowEditor-Architektur (v2.5.0 → v3.5.0 "Ultra-Lean")
+Die Klasse `FlowEditor.ts` wurde umfassend modularisiert, um die Komplexität zu reduzieren. Der Editor fungiert nur noch als Host und delegiert fast alle Aufgaben an spezialisierte Manager:
+- **FlowGraphManager.ts**: Kern für Graph-Manipulationen (Knoten löschen, Verbindungen verwalten).
+- **FlowUIController.ts**: (v3.5.0) Steuert Grid-Einstellungen, Zoom, Scroll-Bereiche und Mediator-Sync für den Flow-Context.
+- **FlowTaskManager.ts**: (v3.5.0) Zentrale für Task-Operationen (`ensureTaskExists`, `rebuildActionRegistry`).
+- **FlowNodeFactory.ts**: (v3.5.0) Alleinige Instanz für die Erstellung ALLER Flow-Knoten-Typen (Switch-Logik extrahiert).
+- **FlowGraphHydrator.ts**: (v3.5.0) Kapselt die komplexe Hydrierungs-Logik (`importTaskGraph`, `expandDataActionFlow`).
+- **FlowSyncManager.ts**: Übernimmt die Synchronisations-Logik zwischen visuellem Diagramm und Datenmodell (JSON/Pascal).
+- **FlowStateManager.ts**: Verwaltet den UI-Zustand (Detailtiefe, Zoom).
+- **FlowMapManager.ts**: Kapselt Landkarten-Generierung und Action-Checks.
+- **FlowContextMenuProvider.ts**: Zentralisiert die Logik für Kontextmenüs.
+- **FlowNavigationManager.ts**: Verwaltet Flow-Breadcrumbs und Verläufe.
+- **FlowSelectionManager.ts**: Kapselt die Selektions-Logik (Nodes & Connections).
+- **FlowInteractionManager.ts**: Handhabt alle Canvas-Interaktionen (Drag, Zoom, Scroll).
+
+### Stage-Architektur (v3.5.0 "Lean Stage")
+Die Klasse Stage.ts wurde modularisiert, um Rendering und Interaktion zu trennen:
+- **StageRenderer.ts**: Kapselt die gesamte Rendering-Logik (HTML/SVG).
+- **StageInteractionManager.ts**: Handhabt alle Events (Mousedown, Resize, Drag, ContextMenu).
+- **Stage.ts (Host)**: Implementiert StageHost und StageInteractionHost. Erzeugt die Manager in init() und weist sie den entsprechenden Feldern zu.
+- **Vorteil**: Bessere Testbarkeit und Einhaltung des 1000-Zeilen-Limits.
+
 - **Node-Labels (v2.6.3)**:
     - Um den Kontext einer Aktion im Diagramm sofort erkennbar zu machen, folgen die Node-Labels dem Schema `Taskname ---- Actionname`.
 

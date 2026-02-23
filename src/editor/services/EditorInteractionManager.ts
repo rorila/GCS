@@ -1,0 +1,115 @@
+import { GameProject } from '../../model/types';
+import { mediatorService } from '../../services/MediatorService';
+import { componentRegistry } from '../../services/ComponentRegistry';
+
+export interface EditorInteractionHost {
+    project: GameProject;
+    stage: any;
+    runtimeObjects: any[] | null;
+
+    addObject(type: string, x: number, y: number): void;
+    selectObject(id: string | null): void;
+    findObjectById(id: string): any;
+    render(): void;
+    autoSaveToLocalStorage(): void;
+}
+
+export class EditorInteractionManager {
+    private host: EditorInteractionHost;
+
+    constructor(host: EditorInteractionHost) {
+        this.host = host;
+    }
+
+    public initCallbacks() {
+        this.host.stage.onDropCallback = (type: string, gridX: number, gridY: number) => {
+            this.host.addObject(type, gridX, gridY);
+        };
+
+        this.host.stage.onSelectCallback = (ids: string[]) => {
+            if (ids.length > 0) {
+                this.host.selectObject(ids[0]);
+                console.log(`[EditorInteractionManager] Selected ${ids.length} object(s):`, ids);
+            } else {
+                this.host.selectObject(null);
+            }
+
+            const selectedObj = ids.length > 0 ? this.host.findObjectById(ids[0]) : null;
+            mediatorService.notifyObjectSelected(selectedObj);
+        };
+
+        this.host.stage.onObjectMove = (id: string, newX: number, newY: number) => {
+            if (this.host.stage.runMode) {
+                if (this.host.runtimeObjects) {
+                    const runtimeObj = this.host.runtimeObjects.find(ro => ro.id === id);
+                    if (runtimeObj) {
+                        runtimeObj.x = newX;
+                        runtimeObj.y = newY;
+                    }
+                }
+                return;
+            }
+
+            const obj = this.host.findObjectById(id);
+            if (obj) {
+                obj.x = newX;
+                obj.y = newY;
+            }
+        };
+
+        this.host.stage.onObjectResize = (id: string, newWidth: number, newHeight: number) => {
+            const obj = this.host.findObjectById(id);
+            if (obj) {
+                obj.width = newWidth;
+                obj.height = newHeight;
+                this.host.render();
+            }
+        };
+
+        this.host.stage.onCopyCallback = (id: string) => {
+            const obj = this.host.findObjectById(id);
+            if (obj) {
+                return JSON.parse(JSON.stringify(obj));
+            }
+            return null;
+        };
+
+        this.host.stage.onDragStart = (id: string) => {
+            console.log(`[EditorInteractionManager] Drag start: ${id}`);
+        };
+
+        this.host.stage.onObjectCopy = (id: string, x: number, y: number) => {
+            console.log(`[EditorInteractionManager] onObjectCopy called for ${id} at ${x},${y}`);
+            const original = this.host.findObjectById(id);
+            if (!original) return;
+
+            const copyData = JSON.parse(JSON.stringify(original));
+            copyData.id = 'obj_' + Math.random().toString(36).substr(2, 9);
+            copyData.x = x;
+            copyData.y = y;
+
+            const newObj = componentRegistry.createInstance(copyData);
+            if (newObj) {
+                this.host.project.objects.push(newObj as any);
+                this.host.render();
+                this.host.selectObject(newObj.id);
+                this.host.autoSaveToLocalStorage();
+            }
+        };
+
+        this.host.stage.onPasteCallback = (jsonObj: any, x: number, y: number) => {
+            const copyData = JSON.parse(JSON.stringify(jsonObj));
+            copyData.id = 'obj_' + Math.random().toString(36).substr(2, 9);
+            copyData.x = x;
+            copyData.y = y;
+
+            const newObj = componentRegistry.createInstance(copyData);
+            if (newObj) {
+                this.host.project.objects.push(newObj as any);
+                this.host.render();
+                this.host.selectObject(newObj.id);
+                this.host.autoSaveToLocalStorage();
+            }
+        };
+    }
+}

@@ -170,9 +170,22 @@ export class FlowConnection {
         this.updatePosition();
     }
 
+    public updatePath(x1: number, y1: number, x2: number, y2: number) {
+        this.startX = x1;
+        this.startY = y1;
+        this.endX = x2;
+        this.endY = y2;
+        this.updatePosition();
+    }
+
     public getStartHandle(): HTMLElement { return this.startHandle; }
     public getEndHandle(): HTMLElement { return this.endHandle; }
     public getElement(): HTMLElement { return this.element; }
+
+    public get StartX(): number { return this.startX; }
+    public get StartY(): number { return this.startY; }
+    public get EndX(): number { return this.endX; }
+    public get EndY(): number { return this.endY; }
 
     public destroy() {
         if (this.element.parentNode) this.element.parentNode.removeChild(this.element);

@@ -36,6 +36,7 @@ export class JSONComponentPalette {
     private config: PaletteConfig | null = null;
     private activeCategory: string = '';
     private actions = new Map<string, () => void>();
+    public onDrop: ((type: string, x: number, y: number) => void) | null = null;
 
     constructor(toolbarContainerId: string, paletteContainerId: string) {
         const toolbar = document.getElementById(toolbarContainerId);

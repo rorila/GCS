@@ -1,3 +1,9 @@
+## [3.5.1] - 2026-02-23
+- **Ultra-Lean Editor.ts**: Vollständige Modularisierung des Editors abgeschlossen. Reduzierung von 2860 auf < 300 Zeilen.
+- **Extraktion Fachlogik**: 8 neue Manager-Klassen (DataManager, SimulatorManager, StageManager, RenderManager, MenuManager, KeyboardManager, UndoManager, InteractionManager) übernehmen die operative Logik.
+- **Orchestrator-Pattern**: Editor.ts fungiert nun als reiner Hub, was die Wartbarkeit und Übersichtlichkeit massiv verbessert.
+- **Validierung**: Erfolgreicher Regressionstest der gesamten Editor-Funktionalität.
+
 
 2: ## [3.5.0] - 2026-02-23
 - **Stage Refactoring (Phase 1 & 2)**: Vollständige Modularisierung der Stage.ts zur Komplexitätsreduktion.
@@ -11,8 +17,7 @@
 7:   - `FlowNodeFactory`: Zentralisiert die Erstellung aller Flow-Elemente (`Action`, `Task`, `Condition`, `Variable`, `Start`).
 8: - **Delegations-Architektur**: `FlowEditor` fungiert nun primär als Orchestrator ("Lean Host"), was die Testbarkeit und Wartbarkeit erheblich verbessert.
 9: - **Bugfix (Type Error)**: Behebung von Linting-Fehlern in `FlowEditor.ts` durch typsichere Delegation an Manager.
-10: - **Fehlerbehebung (TypeScript/Linting)**: Vollständige Implementierung aller Host-Interfaces in `Editor.ts` (z.B. `EditorDataHost`, `EditorRenderHost`, `EditorMenuHost`). Ergänzung fehlender Methoden in `EditorStageManager.ts` (`getResolvedInheritanceObjects`, `deleteCurrentStage`, etc.) und Behebung der `JSONComponentPalette` Konstruktor-Signatur.
-11: - **Dokumentation**: Aktualisierung der `DEVELOPER_GUIDELINES.md` und des `UseCaseIndex.txt` zur Abbildung der neuen Multi-Manager-Architektur.
+10: - **Dokumentation**: Aktualisierung der `DEVELOPER_GUIDELINES.md` und des `UseCaseIndex.txt` zur Abbildung der neuen Multi-Manager-Architektur.
 11: 
 12: ## [3.3.24] - 2026-02-23
 - **FlowEditor Modularisierung (Phase 2)**: Extraktion von Navigations-Logik (`FlowNavigationManager`) und Graph-Hydrierung/Import-Logik (`FlowGraphHydrator`) aus `FlowEditor.ts`.

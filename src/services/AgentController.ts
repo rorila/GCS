@@ -387,10 +387,10 @@ export class AgentController {
         const elements: any[] = [];
         const connections: any[] = [];
         let nextId = 1;
-        const getId = (type: string) => `node-${Date.now()}-${nextId++}`;
+        const getId = () => `node-${Date.now()}-${nextId++}`;
 
         // Root Node
-        const rootId = getId('task');
+        const rootId = getId();
         elements.push({
             id: rootId,
             type: 'Task',
@@ -400,14 +400,13 @@ export class AgentController {
         });
 
         let currentY = 180;
-        let lastId = rootId;
 
         const processItems = (sequence: any[], startId: string, startY: number, startX: number = 400) => {
             let y = startY;
             let prevId = startId;
 
             sequence.forEach((item: any) => {
-                const id = getId(item.type || 'action');
+                const id = getId();
 
                 if (item.type === 'condition') {
                     elements.push({

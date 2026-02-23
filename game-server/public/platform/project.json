@@ -1809,7 +1809,103 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "description": "Hole sämtliche Daten die der RoomAdmin admistrieren kann"
+          "description": "Hole sämtliche Daten die der RoomAdmin admistrieren kann",
+          "flowChart": {
+            "elements": [
+              {
+                "id": "node-1771667385439",
+                "type": "Task",
+                "x": 40,
+                "y": 80,
+                "width": 200,
+                "height": 60,
+                "properties": {
+                  "name": "GetRoomAdminData",
+                  "details": "",
+                  "description": "Hole sämtliche Daten die der RoomAdmin admistrieren kann",
+                  "text": "GetRoomAdminData"
+                },
+                "data": {
+                  "name": "GetRoomAdminData",
+                  "showDetails": false,
+                  "description": "Hole sämtliche Daten die der RoomAdmin admistrieren kann"
+                }
+              },
+              {
+                "id": "node-1771667448402",
+                "type": "DataAction",
+                "x": 320,
+                "y": 40,
+                "width": 200,
+                "height": 60,
+                "properties": {
+                  "name": "GetTheAdminRooms",
+                  "details": "(data_action)",
+                  "description": ""
+                },
+                "data": {
+                  "name": "GetTheAdminRooms",
+                  "isLinked": true
+                }
+              },
+              {
+                "id": "node-1771844991993",
+                "type": "DataAction",
+                "x": 320,
+                "y": 140,
+                "width": 200,
+                "height": 60,
+                "properties": {
+                  "name": "GetTheRoomPlayers",
+                  "details": "(data_action)",
+                  "description": ""
+                },
+                "data": {
+                  "type": "data_action",
+                  "name": "GetTheRoomPlayers",
+                  "showDetails": false,
+                  "dataStore": "UserData",
+                  "AddFieldDropdown": "name",
+                  "selectFields": "name",
+                  "queryProperty": "assignedRoomIds",
+                  "url": "/api/data/users?assignedRoomIds=${currentRoom}&operator=CONTAINS",
+                  "queryOperator": "CONTAINS",
+                  "queryValue": "${currentRoom}",
+                  "resultVariable": "currentRooms"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "startTargetId": "node-1771667385439",
+                "endTargetId": "node-1771667448402",
+                "startX": 216.6458282470703,
+                "startY": 107.69096374511719,
+                "endX": 320,
+                "endY": 110,
+                "data": {
+                  "startAnchorType": "output",
+                  "originalStartAnchorType": "output",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "input"
+                }
+              },
+              {
+                "startTargetId": "node-1771667385439",
+                "endTargetId": "node-1771844991993",
+                "startX": 237.6458282470703,
+                "startY": 113.69096374511719,
+                "endX": 387.6458282470703,
+                "endY": 220.6909637451172,
+                "data": {
+                  "startAnchorType": "output",
+                  "originalStartAnchorType": "output",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "input"
+                }
+              }
+            ]
+          }
         }
       ],
       "actions": [
@@ -1944,8 +2040,7 @@
               },
               "data": {
                 "name": "GetTheAdminRooms",
-                "isLinked": true,
-                "showDetails": false
+                "isLinked": true
               }
             },
             {
@@ -3604,7 +3699,7 @@
       "_showGlobalPreview": false
     }
   ],
-  "activeStageId": "stage_dashboard",
+  "activeStageId": "stage_room_management",
   "flowCharts": {
     "global": {
       "elements": [],
