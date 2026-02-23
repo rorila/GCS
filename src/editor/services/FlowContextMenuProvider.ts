@@ -5,6 +5,7 @@ import { FlowTask } from '../flow/FlowTask';
 import { ContextMenu, ContextMenuItem } from '../ui/ContextMenu';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { libraryService } from '../../services/LibraryService';
+import { FlowNamingService } from './FlowNamingService';
 
 export interface FlowContextMenuHost {
     project: GameProject | null;
@@ -18,7 +19,6 @@ export interface FlowContextMenuHost {
     syncToProject: () => void;
     handleNodeDoubleClick: (node: FlowElement) => void;
     importTaskGraph: (node: FlowElement, task: any, isLinked?: boolean) => any;
-    generateUniqueActionName: (base: string) => string;
     updateFlowSelector: () => void;
     onProjectChange?: () => void;
     getTargetFlowCharts: (context: string) => any;
@@ -245,7 +245,7 @@ export class FlowContextMenuProvider {
     private copyActionToNode(node: FlowElement, action: any): void {
         if (!this.host.project) return;
         const originalName = action.name;
-        const newName = this.host.generateUniqueActionName(`${originalName}_Copy`);
+        const newName = FlowNamingService.generateUniqueActionName(this.host.project, this.host.nodes, `${originalName}_Copy`);
 
         const actionCopy = JSON.parse(JSON.stringify(action));
         actionCopy.name = newName;

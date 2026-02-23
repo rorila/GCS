@@ -26,6 +26,7 @@ import { RefactoringManager } from './RefactoringManager';
 import { projectRegistry } from '../services/ProjectRegistry';
 import { libraryService } from '../services/LibraryService';
 import { FlowSyncManager } from './services/FlowSyncManager';
+import { FlowNamingService } from './services/FlowNamingService';
 import { FlowMapManager, FlowMapHost } from './services/FlowMapManager';
 import { FlowContextMenuProvider, FlowContextMenuHost } from './services/FlowContextMenuProvider';
 
@@ -839,102 +840,6 @@ export class FlowEditor implements FlowMapHost {
     }
 
     // parseDetailsToCommand, updateGlobalActionDefinition, ensureTaskExists ... sind nun im SyncManager delegiert oder redundant.
-
-    /**
-     * Generates a unique action name with a running number (Action1, Action2, etc.)
-     * Checks both project actions and current flow nodes for uniqueness.
-     */
-    public generateUniqueActionName(baseName: string = 'Action'): string {
-        let counter = 1;
-        let finalName = `${baseName}${counter}`;
-
-        // Collect all existing action names from project and current nodes
-        const existingNames = new Set<string>();
-
-        // From project actions
-        if (this.project?.actions) {
-            this.project.actions.forEach(a => existingNames.add(a.name));
-        }
-
-        // From all stages
-        if (this.project?.stages) {
-            this.project.stages.forEach(s => {
-                if (s.actions) s.actions.forEach(a => existingNames.add(a.name));
-            });
-        }
-
-        // From current flow nodes (including unnamed ones that might not be synced yet)
-        this.nodes.forEach(n => {
-            if (n.getType() === 'Action') {
-                existingNames.add(n.Name || n.name);
-            }
-        });
-
-        // Loop until we find a free number
-        while (existingNames.has(finalName)) {
-            counter++;
-            finalName = `${baseName}${counter}`;
-        }
-
-        return finalName;
-    }
-
-    public generateUniqueVariableName(baseName: string = 'neueVariabel'): string {
-        let counter = 1;
-        let finalName = baseName;
-        const existingNames = new Set<string>();
-
-        if (this.project?.variables) {
-            this.project.variables.forEach(v => existingNames.add(v.name));
-        }
-        if (this.project?.stages) {
-            this.project.stages.forEach(s => {
-                if (s.variables) s.variables.forEach(v => existingNames.add(v.name));
-            });
-        }
-        this.nodes.forEach(n => {
-            if (n.getType() === 'VariableDecl') {
-                const name = n.data?.variable?.name;
-                if (name) existingNames.add(name);
-            }
-        });
-
-        if (existingNames.has(finalName)) {
-            while (existingNames.has(`${baseName}${counter}`)) {
-                counter++;
-            }
-            finalName = `${baseName}${counter}`;
-        }
-        return finalName;
-    }
-
-    public generateUniqueTaskName(baseName: string = 'Task'): string {
-        let counter = 1;
-        let finalName = baseName;
-        const existingNames = new Set<string>();
-
-        if (this.project?.tasks) {
-            this.project.tasks.forEach(t => existingNames.add(t.name));
-        }
-        if (this.project?.stages) {
-            this.project.stages.forEach(s => {
-                if (s.tasks) s.tasks.forEach(t => existingNames.add(t.name));
-            });
-        }
-        this.nodes.forEach(n => {
-            if (n.getType() === 'Task') {
-                existingNames.add(n.Name || n.name);
-            }
-        });
-
-        if (existingNames.has(finalName)) {
-            while (existingNames.has(`${baseName}${counter}`)) {
-                counter++;
-            }
-            finalName = `${baseName}${counter}`;
-        }
-        return finalName;
-    }
 
     /**
      * Ensures a task exists in project.tasks. Creates it if not present.
