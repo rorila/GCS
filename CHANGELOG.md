@@ -1,18 +1,19 @@
 
-2: ## [3.5.0] - 2026-02-23
+## [3.5.0] - 2026-02-23
+- **Hotfix (FlowEditor Container)**: Behebung eines UI-Crashs beim Start des Editors. Die Referenz auf die DOM-Container in `Editor.ts` (`flow-editor-canvas` und `flow-toolbox-content`) wurde durch die korrekten, in `index.html`/`main.ts` existierenden IDs (`flow-viewer` und `toolbox-content`) ersetzt, wodurch der Flow-Editor und JSON-Editor wieder laden.
 - **Stage Refactoring (Phase 1 & 2)**: Vollständige Modularisierung der Stage.ts zur Komplexitätsreduktion.
   - StageRenderer.ts: Übernimmt das gesamte HTML/SVG Rendering der Bühne.
   - StageInteractionManager.ts: Verwaltet alle Benutzerinteraktionen (Drag, Resize, Selection, ContextMenu).
   - Stage.ts: Fungiert nun als schlanker Orchestrator zwischen den Services.
-3: - **Ultra-Lean FlowEditor**: Vollständige Modularisierung von `FlowEditor.ts` abgeschlossen. Die Dateigröße wurde massiv reduziert, indem fast alle Fachlogiken in spezialisierte Manager-Services extrahiert wurden.
-4: - **Neue Manager-Services**:
-5:   - `FlowUIController`: Übernimmt Grid-Management, Zoom, Scroll-Area Updates und die Mediator-Initialisierung.
-6:   - `FlowTaskManager`: Verwaltet Task-Registry-Operationen (`rebuildActionRegistry`, `ensureTaskExists`).
-7:   - `FlowNodeFactory`: Zentralisiert die Erstellung aller Flow-Elemente (`Action`, `Task`, `Condition`, `Variable`, `Start`).
-8: - **Delegations-Architektur**: `FlowEditor` fungiert nun primär als Orchestrator ("Lean Host"), was die Testbarkeit und Wartbarkeit erheblich verbessert.
-9: - **Bugfix (Type Error)**: Behebung von Linting-Fehlern in `FlowEditor.ts` durch typsichere Delegation an Manager.
-10: - **Fehlerbehebung (TypeScript/Linting)**: Vollständige Implementierung aller Host-Interfaces in `Editor.ts` (z.B. `EditorDataHost`, `EditorRenderHost`, `EditorMenuHost`). Ergänzung fehlender Methoden in `EditorStageManager.ts` (`getResolvedInheritanceObjects`, `deleteCurrentStage`, etc.) und Behebung der `JSONComponentPalette` Konstruktor-Signatur.
-11: - **Dokumentation**: Aktualisierung der `DEVELOPER_GUIDELINES.md` und des `UseCaseIndex.txt` zur Abbildung der neuen Multi-Manager-Architektur.
+- **Ultra-Lean FlowEditor**: Vollständige Modularisierung von `FlowEditor.ts` abgeschlossen. Die Dateigröße wurde massiv reduziert, indem fast alle Fachlogiken in spezialisierte Manager-Services extrahiert wurden.
+- **Neue Manager-Services**:
+  - `FlowUIController`: Übernimmt Grid-Management, Zoom, Scroll-Area Updates und die Mediator-Initialisierung.
+  - `FlowTaskManager`: Verwaltet Task-Registry-Operationen (`rebuildActionRegistry`, `ensureTaskExists`).
+  - `FlowNodeFactory`: Zentralisiert die Erstellung aller Flow-Elemente (`Action`, `Task`, `Condition`, `Variable`, `Start`).
+- **Delegations-Architektur**: `FlowEditor` fungiert nun primär als Orchestrator ("Lean Host"), was die Testbarkeit und Wartbarkeit erheblich verbessert.
+- **Bugfix (Type Error)**: Behebung von Linting-Fehlern in `FlowEditor.ts` durch typsichere Delegation an Manager.
+- **Fehlerbehebung (TypeScript/Linting)**: Vollständige Implementierung aller Host-Interfaces in `Editor.ts` (z.B. `EditorDataHost`, `EditorRenderHost`, `EditorMenuHost`). Ergänzung fehlender Methoden in `EditorStageManager.ts` (`getResolvedInheritanceObjects`, `deleteCurrentStage`, etc.) und Behebung der `JSONComponentPalette` Konstruktor-Signatur.
+- **Dokumentation**: Aktualisierung der `DEVELOPER_GUIDELINES.md` und des `UseCaseIndex.txt` zur Abbildung der neuen Multi-Manager-Architektur.
 11: 
 12: ## [3.3.24] - 2026-02-23
 - **FlowEditor Modularisierung (Phase 2)**: Extraktion von Navigations-Logik (`FlowNavigationManager`) und Graph-Hydrierung/Import-Logik (`FlowGraphHydrator`) aus `FlowEditor.ts`.

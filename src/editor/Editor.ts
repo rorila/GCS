@@ -239,9 +239,13 @@ export class Editor implements IViewHost {
     }
 
     private initFlowEditor() {
-        this.flowEditor = new FlowEditor('flow-editor-canvas');
-        this.flowToolbox = new FlowToolbox('flow-toolbox-content');
-        this.flowEditor.setProject(this.project);
+        try {
+            this.flowEditor = new FlowEditor('flow-viewer', this);
+            this.flowToolbox = new FlowToolbox('toolbox-content');
+            this.flowEditor.setProject(this.project);
+        } catch (e) {
+            console.error('[Editor] initFlowEditor error:', e);
+        }
     }
 
     private initMenuBar() {
