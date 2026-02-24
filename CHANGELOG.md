@@ -1,5 +1,6 @@
 
 ## [3.5.0] - 2026-02-23
+- **Hotfix (Flow Toolbox)**: Behebung der unsichtbaren Toolbox im Flow-Editor durch Ergänzung des fehlenden `render()`-Aufrufs und Korrektur der Layout-Toggle-ID.
 - **Hotfix (Stages Menü)**: Wiederherstellung der dynamischen Stage-Liste im Hauptmenü durch Korrektur der Menü-ID (`Project` -> `stages`) und automatische Aktualisierung bei Projekt-Änderungen.
 - **Hotfix (MenuBar Container)**: Behebung eines UI-Crashs durch Korrektur der DOM-ID `menu-bar` in `Editor.ts`.
 - **Hotfix (FlowEditor UI)**: Wiederherstellung des Flow-Editors durch Korrektur der IDs `flow-viewer` und `toolbox-content`.

@@ -243,6 +243,7 @@ export class Editor implements IViewHost {
         try {
             this.flowEditor = new FlowEditor('flow-viewer', this);
             this.flowToolbox = new FlowToolbox('toolbox-content');
+            this.flowToolbox.render();
             this.flowEditor.setProject(this.project);
         } catch (e) {
             console.error('[Editor] initFlowEditor error:', e);
@@ -282,7 +283,7 @@ export class Editor implements IViewHost {
 
     public toggleToolboxLayout() {
         this.useHorizontalToolbox = !this.useHorizontalToolbox;
-        document.getElementById('editor-layout')?.classList.toggle('horizontal-toolbox', this.useHorizontalToolbox);
+        document.getElementById('app-layout')?.classList.toggle('horizontal-toolbox', this.useHorizontalToolbox);
     }
 
     public refreshJSONView() {
