@@ -1,5 +1,6 @@
 
 ## [3.5.0] - 2026-02-23
+- **Hotfix (Stages Menü)**: Wiederherstellung der dynamischen Stage-Liste im Hauptmenü durch Korrektur der Menü-ID (`Project` -> `stages`) und automatische Aktualisierung bei Projekt-Änderungen.
 - **Hotfix (MenuBar Container)**: Behebung eines UI-Crashs durch Korrektur der DOM-ID `menu-bar` in `Editor.ts`.
 - **Hotfix (FlowEditor UI)**: Wiederherstellung des Flow-Editors durch Korrektur der IDs `flow-viewer` und `toolbox-content`.
 - **Hotfix (Stabilität)**: Einführung von Error-Handling (Try-Catch) für alle Kern-UI-Komponenten in `Editor.ts`.

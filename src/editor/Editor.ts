@@ -84,6 +84,7 @@ export class Editor implements IViewHost {
         // 2. Initialize Managers
         this.stageManager = new EditorStageManager(this.project, this.stage, () => {
             this.render();
+            this.menuManager.updateStagesMenu();
             this.dataManager.updateProjectJSON();
         });
         this.viewManager = new EditorViewManager(this);
@@ -249,12 +250,7 @@ export class Editor implements IViewHost {
     }
 
     private initMenuBar() {
-        try {
-            this.menuBar = new MenuBar('menu-bar');
-            this.menuManager.initMenuBar();
-        } catch (e) {
-            console.error('[Editor] initMenuBar error:', e);
-        }
+        this.menuManager.initMenuBar();
     }
 
     private initMediator() {

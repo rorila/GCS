@@ -3,14 +3,15 @@
  * Renders a horizontal menu bar with dropdown menus
  */
 
-interface MenuItem {
+export interface MenuItem {
     id: string;
     label: string;
     action: string;
     icon?: string;
+    active?: boolean;
 }
 
-interface Menu {
+export interface Menu {
     id: string;
     label: string;
     items: MenuItem[];

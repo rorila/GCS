@@ -1,5 +1,5 @@
 import { GameProject, StageType } from '../../model/types';
-import { MenuBar } from '../MenuBar';
+import { MenuBar, MenuItem } from '../MenuBar';
 import { ViewType } from '../EditorViewManager';
 import { changeRecorder } from '../../services/ChangeRecorder';
 import { playbackEngine } from '../../services/PlaybackEngine';
@@ -173,13 +173,21 @@ export class EditorMenuManager {
     public updateStagesMenu(): void {
         if (!this.host.menuBar || !this.host.project.stages) return;
 
-        const stageItems = this.host.project.stages.map(s => ({
+        // Base items for stage management
+        const baseItems: MenuItem[] = [
+            { id: 'new-stage', label: 'Neue Stage', action: 'new-stage', icon: '📄' },
+            { id: 'new-splash', label: 'Neuer Splashscreen', action: 'new-splash', icon: '🚀' },
+            { id: 'delete-stage', label: 'Stage löschen', action: 'delete-stage', icon: '🗑️' }
+        ];
+
+        // Dynamic stage list
+        const stageItems: MenuItem[] = this.host.project.stages.map(s => ({
             id: s.id,
             label: s.type === 'blueprint' ? `🏗️ ${s.name} (Blueprint)` : `🎭 ${s.name}`,
             action: `switch-stage-${s.id}`,
             active: s.id === this.host.project.activeStageId
         }));
 
-        this.host.menuBar.updateMenu('Project', stageItems);
+        this.host.menuBar.updateMenu('stages', [...baseItems, ...stageItems]);
     }
 }
