@@ -249,8 +249,12 @@ export class Editor implements IViewHost {
     }
 
     private initMenuBar() {
-        this.menuBar = new MenuBar('menu-bar-container');
-        this.menuManager.initMenuBar();
+        try {
+            this.menuBar = new MenuBar('menu-bar');
+            this.menuManager.initMenuBar();
+        } catch (e) {
+            console.error('[Editor] initMenuBar error:', e);
+        }
     }
 
     private initMediator() {

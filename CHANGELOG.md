@@ -1,6 +1,8 @@
 
 ## [3.5.0] - 2026-02-23
-- **Hotfix (FlowEditor Container)**: Behebung eines UI-Crashs beim Start des Editors. Die Referenz auf die DOM-Container in `Editor.ts` (`flow-editor-canvas` und `flow-toolbox-content`) wurde durch die korrekten, in `index.html`/`main.ts` existierenden IDs (`flow-viewer` und `toolbox-content`) ersetzt, wodurch der Flow-Editor und JSON-Editor wieder laden.
+- **Hotfix (MenuBar Container)**: Behebung eines UI-Crashs durch Korrektur der DOM-ID `menu-bar` in `Editor.ts`.
+- **Hotfix (FlowEditor UI)**: Wiederherstellung des Flow-Editors durch Korrektur der IDs `flow-viewer` und `toolbox-content`.
+- **Hotfix (Stabilität)**: Einführung von Error-Handling (Try-Catch) für alle Kern-UI-Komponenten in `Editor.ts`.
 - **Stage Refactoring (Phase 1 & 2)**: Vollständige Modularisierung der Stage.ts zur Komplexitätsreduktion.
   - StageRenderer.ts: Übernimmt das gesamte HTML/SVG Rendering der Bühne.
   - StageInteractionManager.ts: Verwaltet alle Benutzerinteraktionen (Drag, Resize, Selection, ContextMenu).

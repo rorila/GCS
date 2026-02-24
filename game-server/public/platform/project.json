@@ -3699,11 +3699,11 @@
       "_showGlobalPreview": false
     }
   ],
-  "activeStageId": "stage_room_management",
   "flowCharts": {
     "global": {
       "elements": [],
       "connections": []
     }
-  }
+  },
+  "activeStageId": "stage_room_management"
 }

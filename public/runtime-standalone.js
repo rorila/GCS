@@ -292,10 +292,16 @@
         const hasInContent = target !== null && typeof target === "object" && part in target || target !== void 0 && target !== null && target[part] !== void 0;
         if (hasInContent) {
           current = target[part];
+        } else if (current && current.isFlowNode === true && current.data && current.data[part] !== void 0) {
+          current = current.data[part];
         } else if (target && target.isFlowNode === true && target.data && target.data[part] !== void 0) {
           current = target.data[part];
-        } else {
+        } else if (current !== target && (current[part] !== void 0 || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(current), part)?.get !== void 0)) {
           current = current[part];
+        } else if (target === current) {
+          current = current[part];
+        } else {
+          current = void 0;
         }
         if (propPath.includes("LeftOperand") || propPath.includes("BaseVar")) {
           console.log(`[PropertyHelper] getPropertyValue("${propPath}") member "${part}":`, {
@@ -313,8 +319,9 @@
      */
     static resolveValue(val) {
       if (val && typeof val === "object" && (val.isVariable === true || val.className?.includes("Variable"))) {
-        if (val.value !== void 0) return val.value;
+        if (Array.isArray(val.data)) return val.data;
         if (Array.isArray(val.items)) return val.items;
+        if (val.value !== void 0) return val.value;
       }
       return val;
     }
@@ -398,6 +405,13 @@
     static autoConvert(value) {
       if (typeof value !== "string") return value;
       if (value === "") return value;
+      const trimmed = value.trim();
+      if (trimmed.startsWith("[") && trimmed.endsWith("]") || trimmed.startsWith("{") && trimmed.endsWith("}")) {
+        try {
+          return JSON.parse(trimmed);
+        } catch (e) {
+        }
+      }
       const num = Number(value);
       if (!isNaN(num) && value.trim() !== "") {
         return num;
@@ -806,9 +820,11 @@
       const target = this.unwrap(object);
       const objectWatchers = this.watchers.get(target);
       const objName = target.name || target.id || "Unknown";
+      const INTERNAL_PROPERTIES = /* @__PURE__ */ new Set(["eventCallback", "onEvent", "events", "Tasks", "id", "className"]);
       if (DebugLogService.getInstance().isEnabled()) {
-        const displayNew = typeof newValue === "object" ? JSON.stringify(newValue).substring(0, 50) : newValue;
-        const displayOld = typeof oldValue === "object" ? JSON.stringify(oldValue).substring(0, 50) : oldValue;
+        if (INTERNAL_PROPERTIES.has(propertyPath)) return;
+        const displayNew = typeof newValue === "object" ? JSON.stringify(newValue)?.substring(0, 50) : newValue;
+        const displayOld = typeof oldValue === "object" ? JSON.stringify(oldValue)?.substring(0, 50) : oldValue;
         DebugLogService.getInstance().log(
           "Variable",
           `${objName}.${propertyPath} changed: ${displayOld} -> ${displayNew}`,
@@ -1089,6 +1105,13 @@
       const id = obj.id || name;
       this.objectsById.set(id, reactiveObj);
       this.objectsByName.set(name, reactiveObj);
+      if (name === "currentRooms" || obj.name === "currentRooms") {
+        console.log(`%c[ReactiveRuntime] Registered currentRooms:`, "color: #4caf50; font-weight: bold", {
+          scope: obj.scope,
+          isVariable: obj.isVariable,
+          className: obj.className
+        });
+      }
       return reactiveObj;
     }
     /**
@@ -1148,17 +1171,24 @@
       };
       deps.forEach((dep) => {
         const parts = dep.split(".");
-        const objName = parts[0];
-        const propPath = parts.slice(1).join(".");
+        let objName = parts[0];
+        let propPath = parts.slice(1).join(".");
+        if ((objName === "global" || objName === "stage") && parts.length > 1) {
+          objName = parts[1];
+          propPath = parts.slice(2).join(".");
+        }
         const sourceObj = this.objectsByName.get(objName) || this.variables;
         if (sourceObj) {
-          this.watcher.watch(sourceObj, propPath || objName, () => {
+          const watchPath = propPath || objName;
+          this.watcher.watch(sourceObj, watchPath, () => {
             binding.update();
           });
-          if (!propPath && sourceObj.isVariable === true) {
-            console.log(`[ReactiveRuntime] Deep watch enabled for variable: ${objName}.value`);
-            this.watcher.watch(sourceObj, "value", () => binding.update());
-            this.watcher.watch(sourceObj, "items", () => binding.update());
+          if (!propPath) {
+            if (sourceObj.isVariable === true) {
+              this.watcher.watch(sourceObj, "value", () => binding.update());
+              this.watcher.watch(sourceObj, "items", () => binding.update());
+              this.watcher.watch(sourceObj, "data", () => binding.update());
+            }
           }
         }
       });
@@ -1191,17 +1221,55 @@
      * Gets the evaluation context (all objects + variables)
      */
     getContext() {
-      const context = {};
-      this.variables.forEach((value, name) => {
-        context[name] = value;
-      });
-      this.objectsByName.forEach((obj, name) => {
-        if (context[name] === void 0) {
-          context[name] = obj;
+      const self = this;
+      const context = new Proxy({}, {
+        get: (_target, prop) => {
+          if (prop === "global" || prop === "stage") {
+            return new Proxy({}, {
+              get: (_target2, subProp) => {
+                const obj2 = self.objectsByName.get(subProp);
+                const matchesScope = obj2 && (prop === "global" ? obj2.scope === "global" : obj2.scope === "stage");
+                if (subProp === "currentRooms") {
+                  console.log(`[ReactiveRuntime] Resolving ${prop}.${subProp}:`, {
+                    foundObj: !!obj2,
+                    objScope: obj2?.scope,
+                    matchesScope,
+                    variableValue: self.variables.get(subProp)
+                  });
+                }
+                if (matchesScope) {
+                  return obj2;
+                }
+                return self.variables.get(subProp);
+              },
+              has: (_target2, subProp) => {
+                return self.objectsByName.has(subProp) || self.variables.has(subProp);
+              },
+              ownKeys: () => {
+                const keys = /* @__PURE__ */ new Set([...self.objectsByName.keys(), ...self.variables.keys()]);
+                return Array.from(keys);
+              },
+              getOwnPropertyDescriptor: (_target2, _subProp) => {
+                return { enumerable: true, configurable: true };
+              }
+            });
+          }
+          const obj = self.objectsByName.get(prop);
+          if (obj !== void 0) return obj;
+          const variable = self.variables.get(prop);
+          if (variable !== void 0) return variable;
+          return self.objectsById.get(prop);
+        },
+        has: (_target, prop) => {
+          return prop === "global" || prop === "stage" || self.objectsByName.has(prop) || self.variables.has(prop) || self.objectsById.has(prop);
+        },
+        ownKeys: () => {
+          const keys = /* @__PURE__ */ new Set(["global", "stage", ...self.objectsByName.keys(), ...self.variables.keys(), ...self.objectsById.keys()]);
+          return Array.from(keys);
+        },
+        getOwnPropertyDescriptor: (_target, _unused) => {
+          return { enumerable: true, configurable: true };
         }
-      });
-      this.objectsById.forEach((obj, id) => {
-        if (!context[id]) context[id] = obj;
       });
       return context;
     }
@@ -1493,8 +1561,8 @@
     /**
      * Findet Objekte in einer Collection basierend auf Filtern.
      */
-    async findItems(storagePath, collection, query = {}) {
-      console.log(`[DataService] findItems in '${storagePath}' -> '${collection}' with query:`, JSON.stringify(query));
+    async findItems(storagePath, collection, query = {}, operator = "==") {
+      console.log(`[DataService] findItems in '${storagePath}' -> '${collection}' with query:`, JSON.stringify(query), `Operator: ${operator}`);
       const db = await this.readDb(storagePath);
       if (!db[collection]) {
         console.warn(`[DataService] Collection '${collection}' not found in '${storagePath}'`);
@@ -1506,12 +1574,42 @@
         for (const key in query) {
           const itemValue = item[key];
           const queryValue = query[key];
-          if (itemValue == queryValue) continue;
-          if (Array.isArray(itemValue) && typeof queryValue === "string") {
-            if (itemValue.join("") === queryValue) continue;
-            if (itemValue.toString() === queryValue) continue;
+          switch (operator) {
+            case ">":
+              if (!(Number(itemValue) > Number(queryValue))) return false;
+              break;
+            case ">=":
+              if (!(Number(itemValue) >= Number(queryValue))) return false;
+              break;
+            case "<":
+              if (!(Number(itemValue) < Number(queryValue))) return false;
+              break;
+            case "<=":
+              if (!(Number(itemValue) <= Number(queryValue))) return false;
+              break;
+            case "CONTAINS":
+              if (Array.isArray(itemValue)) {
+                if (!itemValue.includes(queryValue)) return false;
+              } else if (typeof itemValue === "string") {
+                if (!itemValue.includes(String(queryValue))) return false;
+              } else {
+                if (itemValue != queryValue) return false;
+              }
+              break;
+            case "IN":
+              const set = String(queryValue).split(",").map((s) => s.trim());
+              if (!set.includes(String(itemValue))) return false;
+              break;
+            case "==":
+            default:
+              if (itemValue == queryValue) continue;
+              if (Array.isArray(itemValue) && typeof queryValue === "string") {
+                if (itemValue.join("") === queryValue) continue;
+                if (itemValue.toString() === queryValue) return false;
+              } else {
+                return false;
+              }
           }
-          return false;
         }
         return true;
       });
@@ -1552,11 +1650,13 @@
       if (!Array.isArray(collection) || collection.length === 0) {
         return [];
       }
-      const firstItem = collection[0];
-      if (typeof firstItem === "object" && firstItem !== null) {
-        return Object.keys(firstItem);
-      }
-      return [];
+      const allKeys = /* @__PURE__ */ new Set();
+      collection.forEach((item) => {
+        if (typeof item === "object" && item !== null) {
+          Object.keys(item).forEach((key) => allKeys.add(key));
+        }
+      });
+      return Array.from(allKeys);
     }
     /**
      * Interne Methode zum Lesen der gesamten DB-Struktur
@@ -1948,9 +2048,10 @@
           effectiveUrl = `/api/data/${res}`;
           const qProp = action.queryProperty || action.property;
           const qVal = action.queryValue || action.value;
+          const qOp = action.queryOperator || "==";
           if (qProp && qVal) {
             const interpValue = PropertyHelper.interpolate(String(qVal), combinedContext, context.objects);
-            effectiveUrl += `?${qProp}=${encodeURIComponent(interpValue)}`;
+            effectiveUrl += `?${qProp}=${encodeURIComponent(interpValue)}&operator=${qOp}`;
           }
         }
       }
@@ -2016,17 +2117,44 @@
           if (action.resultPath && result) {
             result = PropertyHelper.getPropertyValue(result, action.resultPath);
           }
-          if (Array.isArray(result) && result.length === 1) {
-            console.log(`[Action: http] Auto-Unwrapping single-item array result for ${action.resultVariable}`);
+          if (action.selectFields && action.selectFields !== "*" && result) {
+            const fields = action.selectFields.split(",").map((f) => f.trim()).filter((f) => f);
+            const isCountOnly = fields.length === 1 && fields[0] === "count(*)";
+            if (isCountOnly && Array.isArray(result)) {
+              result = result.length;
+              console.log(`[Action: http] Applied SQL COUNT Projection: ${result}`);
+            } else {
+              const project = (obj) => {
+                if (typeof obj !== "object" || obj === null) return obj;
+                const partial = {};
+                fields.forEach((f) => {
+                  if (f === "count(*)" || f === "count") {
+                    partial["count"] = 1;
+                  } else if (f in obj) {
+                    partial[f] = obj[f];
+                  }
+                });
+                return partial;
+              };
+              result = Array.isArray(result) ? result.map(project) : project(result);
+              console.log(`[Action: http] Applied SQL Projection (${action.selectFields}):`, result);
+            }
+          }
+          if (action.requestJWT && Array.isArray(result) && result.length === 1) {
+            console.log(`[Action: http] Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
             result = result[0];
           }
           const resVar = action.resultVariable || action.variable;
           if (resVar) {
             context.vars[resVar] = result;
             context.contextVars[resVar] = result;
+            const varName = context.objects?.find((o) => o.id === resVar)?.name || resVar;
+            const displayValue = Array.isArray(result) ? `[${result.length} Eintr\xE4ge]` : typeof result === "object" && result !== null ? JSON.stringify(result)?.substring(0, 80) : String(result);
+            DebugLogService.getInstance().log("Variable", `${varName} \u2190 HTTP-Ergebnis: ${displayValue}`, {
+              objectName: varName,
+              data: result
+            });
             if (action.requestJWT) {
-              const varName = context.objects.find((o) => o.id === resVar)?.name || resVar;
-              const displayValue = typeof result === "object" && result !== null ? JSON.stringify(result) : String(result);
               console.log(`[Action: http] Variable "${varName}" gesetzt auf:`, displayValue);
             }
           }
@@ -2073,16 +2201,20 @@
         if (action.resultPath && data) {
           data = PropertyHelper.getPropertyValue(data, action.resultPath);
         }
-        if (Array.isArray(data) && data.length === 1) {
-          console.log(`[Action: http] Auto-Unwrapping single-item array result for ${action.resultVariable}`);
+        if (action.requestJWT && Array.isArray(data) && data.length === 1) {
+          console.log(`[Action: http] Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
           data = data[0];
         }
         if (action.resultVariable) {
           context.vars[action.resultVariable] = data;
           context.contextVars[action.resultVariable] = data;
+          const varName = context.objects?.find((o) => o.id === action.resultVariable)?.name || action.resultVariable;
+          const displayValue = Array.isArray(data) ? `[${data.length} Eintr\xE4ge]` : typeof data === "object" && data !== null ? JSON.stringify(data).substring(0, 80) : String(data);
+          DebugLogService.getInstance().log("Variable", `${varName} \u2190 HTTP-Ergebnis: ${displayValue}`, {
+            objectName: varName,
+            data
+          });
           if (action.requestJWT) {
-            const varName = context.objects.find((o) => o.id === action.resultVariable)?.name || action.resultVariable;
-            const displayValue = typeof data === "object" && data !== null ? JSON.stringify(data) : String(data);
             console.log(`[Action: http] Produktion: Variable "${varName}" gesetzt auf:`, displayValue);
           }
         }
@@ -2107,7 +2239,11 @@
         { name: "method", label: "Methode", type: "select", options: ["GET", "POST", "PUT", "DELETE"], defaultValue: "GET" },
         { name: "body", label: "Body (JSON-String oder Objekt)", type: "string" },
         { name: "resultVariable", label: "Ergebnis speichern in", type: "variable", source: "variables" },
-        { name: "resultPath", label: "Daten-Pfad (Selektor)", type: "string", hint: 'Optional: Pfad zum Objekt in der Response (z.B. "user")' }
+        { name: "resultPath", label: "Daten-Pfad (Selektor)", type: "string", hint: 'Optional: Pfad zum Objekt in der Response (z.B. "user")' },
+        { name: "selectFields", label: "Felder (SELECT)", type: "string", hint: "Kommagetrennte Liste der Felder oder count(*)" },
+        { name: "queryProperty", label: "Filter-Feld (WHERE)", type: "string", hint: "z.B. id oder email" },
+        { name: "queryOperator", label: "Operator", type: "select", options: ["==", "!=", ">", "<", ">=", "<=", "CONTAINS"], defaultValue: "==" },
+        { name: "queryValue", label: "Filter-Wert", type: "string", hint: "Wert oder ${variable}" }
       ]
     });
     actionRegistry.register("store_token", (action, context) => {
@@ -2280,7 +2416,11 @@
       label: "Data Action",
       description: "F\xFChrt eine Daten-Aktion aus (HTTP, SQL, etc.).",
       parameters: [
-        { name: "dataStore", label: "Data Store (Komponente)", type: "select", source: "components", hint: "W\xE4hle eine TDataStore-Komponente (z.B. UserData)" }
+        { name: "dataStore", label: "Data Store (Komponente)", type: "select", source: "components", hint: "W\xE4hle eine TDataStore-Komponente (z.B. UserData)" },
+        { name: "selectFields", label: "Felder (SELECT)", type: "string", hint: "Kommagetrennte Liste der Felder oder count(*)" },
+        { name: "queryProperty", label: "Filter-Feld (WHERE)", type: "string", hint: "z.B. id oder email" },
+        { name: "queryOperator", label: "Operator", type: "select", options: ["==", "!=", ">", "<", ">=", "<=", "CONTAINS"], defaultValue: "==" },
+        { name: "queryValue", label: "Filter-Wert", type: "string", hint: "Wert oder ${variable}" }
       ]
       // Dynamic based on sub-type
     });
@@ -2497,7 +2637,16 @@
       if (params) {
         vars = { ...vars, ...params };
       }
-      let task = this.tasks?.find((t) => t.name === taskName) || this.project.tasks?.find((t) => t.name === taskName);
+      let task = this.tasks?.find((t) => t.name === taskName);
+      if (!task) {
+        const blueprintStage = this.project.stages?.find((s) => s.type === "blueprint" || s.id === "stage_blueprint");
+        if (blueprintStage) {
+          task = blueprintStage.tasks?.find((t) => t.name === taskName);
+        }
+      }
+      if (!task) {
+        task = this.project.tasks?.find((t) => t.name === taskName);
+      }
       if (!task) {
         task = libraryService.getTask(taskName);
       }
@@ -3500,6 +3649,8 @@
     createVariableContext() {
       return new Proxy({}, {
         get: (_target, prop) => {
+          if (prop === "global") return this.projectVariables;
+          if (prop === "stage") return this.stageVariables;
           if (prop in this.stageVariables) return this.stageVariables[prop];
           if (prop in this.projectVariables) return this.projectVariables[prop];
           return void 0;
@@ -3534,7 +3685,13 @@
           );
           let componentUpdated = false;
           if (component) {
-            if (component.items !== void 0 && Array.isArray(value)) {
+            if (component.data !== void 0 && Array.isArray(value)) {
+              if (JSON.stringify(component.data) !== JSON.stringify(value)) {
+                component.data = value;
+                componentUpdated = true;
+                console.log(`%c[VariableContext:Sync] ${prop} \u2192 component.data (${value.length} items)`, "color: #00bcd4");
+              }
+            } else if (component.items !== void 0 && Array.isArray(value)) {
               if (JSON.stringify(component.items) !== JSON.stringify(value)) {
                 component.items = value;
                 componentUpdated = true;
@@ -3547,7 +3704,10 @@
           if (!componentUpdated) {
             this.logVariableChange(prop, finalValue, oldValue, varDef);
           }
-          console.log(`%c[VariableContext:Set] ${prop} = ${JSON.stringify(finalValue)} (Old: ${JSON.stringify(oldValue)})`, "color: #e91e63");
+          const displayName = varDef ? varDef.name : prop;
+          const finalStr = finalValue !== void 0 ? JSON.stringify(finalValue)?.substring(0, 200) || String(finalValue) : "undefined";
+          const oldStr = oldValue !== void 0 ? JSON.stringify(oldValue)?.substring(0, 100) || String(oldValue) : "undefined";
+          console.log(`%c[VariableContext:Set] ${displayName} = ${finalStr} (Old: ${oldStr})`, "color: #e91e63");
           this.host.reactiveRuntime.setVariable(actualProp, finalValue);
           if (this.host.taskExecutor) {
             if (varDef) {
@@ -3557,14 +3717,22 @@
           return true;
         },
         ownKeys: () => {
-          const keys = /* @__PURE__ */ new Set([...Object.keys(this.projectVariables), ...Object.keys(this.stageVariables)]);
+          const keys = /* @__PURE__ */ new Set([
+            "global",
+            "stage",
+            ...Object.keys(this.projectVariables),
+            ...Object.keys(this.stageVariables)
+          ]);
           return Array.from(keys);
         },
         has: (_target, prop) => {
-          return prop in this.stageVariables || prop in this.projectVariables;
+          return prop === "global" || prop === "stage" || prop in this.stageVariables || prop in this.projectVariables;
         },
         getOwnPropertyDescriptor: (_target, prop) => {
-          const val = this.stageVariables[prop] !== void 0 ? this.stageVariables[prop] : this.projectVariables[prop];
+          let val;
+          if (prop === "global") val = this.projectVariables;
+          else if (prop === "stage") val = this.stageVariables;
+          else val = this.stageVariables[prop] !== void 0 ? this.stageVariables[prop] : this.projectVariables[prop];
           if (val !== void 0) {
             return { configurable: true, enumerable: true, value: val };
           }
@@ -8780,31 +8948,53 @@
 
   // src/components/TTable.ts
   var TTable = class extends TWindow {
-    constructor(name, x, y, width = 8, height = 6) {
+    constructor(name = "Table", x = 0, y = 0, width = 10, height = 8) {
       super(name, x, y, width, height);
       __publicField(this, "className", "TTable");
       __publicField(this, "data", []);
+      // Daten-Basis (gebunden via RuntimeVariableManager)
       __publicField(this, "columns", []);
+      // JSON-Konfiguration (TColumnDef[])
       __publicField(this, "selectedIndex", -1);
       __publicField(this, "rowHeight", 30);
       __publicField(this, "showHeader", true);
-      __publicField(this, "onRowClick");
-      this.style.backgroundColor = "#2c3e50";
-      this.style.color = "#ecf0f1";
-      this.style.borderColor = "rgba(255,255,255,0.1)";
+      __publicField(this, "striped", true);
+      __publicField(this, "displayMode", "table");
+      __publicField(this, "cardConfig", {
+        width: 250,
+        height: 100,
+        gap: 10,
+        padding: 10,
+        borderRadius: 12,
+        backgroundColor: "rgba(255, 255, 255, 0.05)",
+        borderColor: "rgba(255, 255, 255, 0.1)",
+        borderWidth: 1
+      });
+      this.style.backgroundColor = "#ffffff";
+      this.style.color = "#333333";
+      this.style.borderColor = "#bdc3c7";
       this.style.borderWidth = 1;
-      this.columns = [
-        { property: "name", label: "Name", width: "1fr" },
-        { property: "type", label: "Typ", width: "80px" }
-      ];
+      this.style.borderRadius = 4;
+      this.style.fontSize = 14;
+    }
+    getEvents() {
+      return ["onSelect", "onDoubleClick", ...super.getEvents()];
     }
     getInspectorProperties() {
       const props = super.getInspectorProperties();
       return [
         ...props,
-        { name: "rowHeight", label: "Zeilenh\xF6he", type: "number", group: "Table" },
-        { name: "showHeader", label: "Header anzeigen", type: "boolean", group: "Table" }
+        { name: "data", label: "Daten-Basis (JSON)", type: "json", group: "Tabelle", hint: "Wird oft zur Laufzeit \xFCberschrieben" },
+        { name: "columns", label: "Spalten (JSON)", type: "json", group: "Tabelle", hint: '[{"field":"id", "label":"ID"}] - Leer lassen f\xFCr Auto-Columns' },
+        { name: "displayMode", label: "Anzeige-Modus", type: "select", options: ["table", "cards"], group: "Tabelle" },
+        { name: "cardConfig", label: "Karten-Design (JSON)", type: "json", group: "Tabelle", hint: 'Nur im Modus "cards" relevant' },
+        { name: "rowHeight", label: "Zeilenh\xF6he (px)", type: "number", group: "Tabelle" },
+        { name: "showHeader", label: "Kopfzeile zeigen", type: "boolean", group: "Tabelle" },
+        { name: "striped", label: "Zebra-Streifen", type: "boolean", group: "Tabelle" }
       ];
+    }
+    getInspectorFile() {
+      return "./inspector_table.json";
     }
     toJSON() {
       return {
@@ -8813,7 +9003,10 @@
         columns: this.columns,
         selectedIndex: this.selectedIndex,
         rowHeight: this.rowHeight,
-        showHeader: this.showHeader
+        showHeader: this.showHeader,
+        striped: this.striped,
+        displayMode: this.displayMode,
+        cardConfig: this.cardConfig
       };
     }
   };
@@ -10289,6 +10482,9 @@
   // src/runtime/RuntimeStageManager.ts
   var RuntimeStageManager = class {
     constructor(project) {
+      // Cache für globale Objekte, damit deren State bei Stage-Wechseln erhalten bleibt
+      __publicField(this, "cachedGlobalObjects", null);
+      __publicField(this, "project");
       this.project = project;
     }
     resolveInheritanceChain(stageId, visited = /* @__PURE__ */ new Set()) {
@@ -10312,14 +10508,37 @@
       let mergedActions = [...this.project.actions || []];
       let mergedFlowCharts = { ...this.project.flowCharts || {} };
       const objectIdSet = /* @__PURE__ */ new Set();
-      const blueprintStages = this.project.stages?.filter((s) => s.type === "blueprint") || [];
-      const processStage = (stage) => {
-        const stageObjects = hydrateObjects(stage.objects || []);
-        stageObjects.forEach((obj) => {
-          mergedObjects = mergedObjects.filter((o) => o.id !== obj.id);
-          mergedObjects.push(obj);
-          objectIdSet.add(obj.id);
-        });
+      const processStage = (stage, useCache = false) => {
+        if (useCache) {
+          if (!this.cachedGlobalObjects) {
+            this.cachedGlobalObjects = [];
+            const sObjects = hydrateObjects(stage.objects || []);
+            const sVars = hydrateObjects(stage.variables || []);
+            sVars.forEach((v) => v.isVariable = true);
+            this.cachedGlobalObjects.push(...sObjects, ...sVars);
+          }
+          this.cachedGlobalObjects.forEach((obj) => {
+            mergedObjects = mergedObjects.filter((o) => o.id !== obj.id);
+            mergedObjects.push(obj);
+            objectIdSet.add(obj.id);
+          });
+        } else {
+          const stageObjects = hydrateObjects(stage.objects || []);
+          stageObjects.forEach((obj) => {
+            mergedObjects = mergedObjects.filter((o) => o.id !== obj.id);
+            mergedObjects.push(obj);
+            objectIdSet.add(obj.id);
+          });
+          if (stage.variables) {
+            const hydratedVars = hydrateObjects(stage.variables);
+            hydratedVars.forEach((vObj) => {
+              vObj.isVariable = true;
+              mergedObjects = mergedObjects.filter((o) => o.id !== vObj.id);
+              mergedObjects.push(vObj);
+              objectIdSet.add(vObj.id);
+            });
+          }
+        }
         if (stage.tasks) {
           stage.tasks.forEach((t) => {
             mergedTasks = mergedTasks.filter((existing) => existing.name !== t.name);
@@ -10335,19 +10554,12 @@
         if (stage.flowCharts) {
           Object.assign(mergedFlowCharts, stage.flowCharts);
         }
-        if (stage.variables) {
-          const hydratedVars = hydrateObjects(stage.variables);
-          hydratedVars.forEach((vObj) => {
-            mergedObjects = mergedObjects.filter((o) => o.id !== vObj.id);
-            mergedObjects.push(vObj);
-            objectIdSet.add(vObj.id);
-          });
-        }
       };
       const targetIsBlueprint = this.project.stages?.find((s) => s.id === stageId)?.type === "blueprint";
+      const blueprintStages = this.project.stages?.filter((s) => s.type === "blueprint") || [];
       blueprintStages.forEach((bs) => {
         const preCount = mergedObjects.length;
-        processStage(bs);
+        processStage(bs, true);
         const postCount = mergedObjects.length;
         if (!targetIsBlueprint) {
           for (let i = preCount; i < postCount; i++) {
@@ -10359,34 +10571,13 @@
         }
       });
       stageChain.forEach((s) => {
-        if (s.type !== "blueprint") processStage(s);
+        if (s.type !== "blueprint") processStage(s, false);
       });
       const activeStage = stageChain[stageChain.length - 1];
       if (activeStage && activeStage.type !== "splash" && activeStage.type !== "main") {
         const mainStage = this.project.stages?.find((s) => s.type === "main");
-        if (mainStage && mainStage.objects) {
-          const globalObjects = hydrateObjects(mainStage.objects);
-          const globalVariables = hydrateObjects(mainStage.variables || []);
-          [...globalObjects, ...globalVariables].forEach((gObj) => {
-            const isGlobal = gObj.scope === "global" || gObj.isVariable;
-            const systemClasses = [
-              "TGameLoop",
-              "TStageController",
-              "TGameState",
-              "THandshake",
-              "THeartbeat",
-              "TGameServer",
-              "TInputController",
-              "TDebugLog"
-            ];
-            const isSystem = systemClasses.includes(gObj.className);
-            if ((isGlobal || isSystem) && !objectIdSet.has(gObj.id)) {
-              const nameCollision = mergedObjects.find((l) => l.name === gObj.name);
-              if (!nameCollision) {
-                mergedObjects.push(gObj);
-              }
-            }
-          });
+        if (mainStage) {
+          processStage(mainStage, true);
         }
       }
       return {
@@ -10610,12 +10801,20 @@
         const onEnterTask = (this.stage.events || this.stage.Tasks)?.onEnter;
         if (onEnterTask) {
           console.log(`[GameRuntime] Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
-          this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage);
+          const enterLogId = DebugLogService.getInstance().log("Event", `Triggered: ${this.stage.name || this.stage.id}.onEnter`, {
+            objectName: this.stage.name || this.stage.id,
+            eventName: "onEnter"
+          });
+          this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage, 0, enterLogId);
         }
         const onRuntimeStartTask = (this.stage.events || this.stage.Tasks)?.onRuntimeStart;
         if (onRuntimeStartTask) {
           console.log(`[GameRuntime] Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
-          this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage);
+          const startLogId = DebugLogService.getInstance().log("Event", `Triggered: ${this.stage.name || this.stage.id}.onRuntimeStart`, {
+            objectName: this.stage.name || this.stage.id,
+            eventName: "onRuntimeStart"
+          });
+          this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage, 0, startLogId);
         }
       }
       if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
@@ -10672,12 +10871,17 @@
     handleEvent(objectId, eventName, data = {}) {
       const obj = this.objects.find((o) => o.id === objectId);
       if (!obj) return;
-      const eventLogId = DebugLogService.getInstance().log("Event", `Triggered: ${obj.name}.${eventName}`, {
-        objectName: obj.name,
-        eventName,
-        data
-      });
-      DebugLogService.getInstance().pushContext(eventLogId);
+      const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
+      const hasTaskMap = obj.events && obj.events[eventName] || obj.Tasks && obj.Tasks[eventName];
+      let eventLogId = void 0;
+      if (hasOnEventMap || hasTaskMap) {
+        eventLogId = DebugLogService.getInstance().log("Event", `Triggered: ${obj.name}.${eventName}`, {
+          objectName: obj.name,
+          eventName,
+          data
+        });
+        DebugLogService.getInstance().pushContext(eventLogId);
+      }
       try {
         if (obj.className === "TEmojiPicker" && eventName === "onSelect" && typeof data === "string") {
           console.log(`[GameRuntime] Syncing selectedEmoji for ${obj.name}: ${data}`);
@@ -10692,13 +10896,15 @@
             }
           }
         }
-        if (this.taskExecutor) {
+        if (this.taskExecutor && hasTaskMap) {
           const taskName = `${obj.name}.${eventName}`;
           const eventVars = typeof data === "object" && data !== null ? { ...data, eventData: data, sender: obj } : { eventData: data, sender: obj };
           this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
         }
       } finally {
-        DebugLogService.getInstance().popContext();
+        if (eventLogId) {
+          DebugLogService.getInstance().popContext();
+        }
       }
     }
     updateRemoteState(objectIdOrName, state) {
