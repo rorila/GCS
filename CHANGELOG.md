@@ -1,6 +1,8 @@
 
-## [3.5.0] - 2026-02-23
-- **Hotfix (Flow Verbindungen)**: Behebung verschwindender Verbindungen durch robusten Anchor-Hit-Test und sofortiges Attaching beim Erstellen.
+## [3.5.1] - 2026-02-24
+- **Hotfix (Flow Verbindungen v2)**: Verfeinerter Anchor-Hit-Test erkennt nun auch `success`/`error` Ports und bietet 5px Puffer für einfachere Bedienung.
+- **Hotfix (Flow Sync)**: Erweitertes Logging im `FlowSyncManager` zur Verifizierung von verzweigten Aktionen (DataAction/Condition).
+- **Hotfix (Flow Verbindungen v1)**: Behebung verschwindender Verbindungen durch sofortiges Attaching beim Erstellen.
 - **Hotfix (Flow Toolbox)**: Behebung der unsichtbaren Toolbox im Flow-Editor durch Ergänzung des fehlenden `render()`-Aufrufs und Korrektur der Layout-Toggle-ID.
 - **Hotfix (Stages Menü)**: Wiederherstellung der dynamischen Stage-Liste im Hauptmenü durch Korrektur der Menü-ID (`Project` -> `stages`) und automatische Aktualisierung bei Projekt-Änderungen.
 - **Hotfix (MenuBar Container)**: Behebung eines UI-Crashs durch Korrektur der DOM-ID `menu-bar` in `Editor.ts`.

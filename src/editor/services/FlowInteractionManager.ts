@@ -278,24 +278,30 @@ export class FlowInteractionManager {
         let targetAnchorType: string | null = null;
 
         // More robust hit test: Check all anchors on all nodes
+        const padding = 5; // 5px buffer for better hit-test reliability
         for (const node of this.host.nodes) {
             const anchors = node.getElement().querySelectorAll('.flow-anchor');
             let found = false;
             for (const anchor of Array.from(anchors) as HTMLElement[]) {
                 const arect = anchor.getBoundingClientRect();
-                // Check if mouse is within anchor bounds
-                if (e.clientX >= arect.left && e.clientX <= arect.right && e.clientY >= arect.top && e.clientY <= arect.bottom) {
+                // Check if mouse is within anchor bounds (including padding)
+                if (e.clientX >= arect.left - padding && e.clientX <= arect.right + padding &&
+                    e.clientY >= arect.top - padding && e.clientY <= arect.bottom + padding) {
+
                     targetNode = node;
 
-                    // Determine anchor type from class
+                    // Determine anchor type from class or dataset
                     if (anchor.classList.contains('input')) targetAnchorType = 'input';
                     else if (anchor.classList.contains('output')) targetAnchorType = 'output';
                     else if (anchor.classList.contains('top')) targetAnchorType = 'top';
                     else if (anchor.classList.contains('bottom')) targetAnchorType = 'bottom';
+                    else if (anchor.classList.contains('success-port') || anchor.classList.contains('success')) targetAnchorType = 'success';
+                    else if (anchor.classList.contains('error-port') || anchor.classList.contains('error')) targetAnchorType = 'error';
                     else if (anchor.classList.contains('true')) targetAnchorType = 'true';
                     else if (anchor.classList.contains('false')) targetAnchorType = 'false';
                     else if (anchor.dataset.branch) targetAnchorType = anchor.dataset.branch;
 
+                    console.log(`[FlowInteraction] Target anchor found: node=${node.Name}, type=${targetAnchorType}`);
                     found = true;
                     break;
                 }

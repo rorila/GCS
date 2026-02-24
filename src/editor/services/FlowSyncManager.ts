@@ -313,13 +313,14 @@ export class FlowSyncManager {
                 const trueAnchor = isData ? 'success' : 'true';
                 const falseAnchor = isData ? 'error' : 'false';
 
-                let trueConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === trueAnchor);
-                // Fallback for DataAction nodes that might still use the generic 'output' anchor
-                if (isData && !trueConn) {
-                    trueConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === 'output' || !c.data?.startAnchorType));
-                }
+                const trueConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === trueAnchor || (isData && c.data?.startAnchorType === 'true')));
+                const falseConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === falseAnchor || (isData && c.data?.startAnchorType === 'false')));
 
-                const falseConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === falseAnchor);
+                if (isData) {
+                    console.log(`[FlowSyncManager] DataAction ${node.id} connections: success=${trueConn?.endTargetId || 'none'}, error=${falseConn?.endTargetId || 'none'}`);
+                } else {
+                    console.log(`[FlowSyncManager] Condition ${node.id} connections: true=${trueConn?.endTargetId || 'none'}, false=${falseConn?.endTargetId || 'none'}`);
+                }
 
                 const mergePoints = new Set<string>();
                 const trueVisited = new Set<string>();
@@ -334,8 +335,14 @@ export class FlowSyncManager {
                 if (falseConn) findReachable(falseConn.endTargetId, falseVisited);
                 trueVisited.forEach(id => { if (falseVisited.has(id)) mergePoints.add(id); });
 
-                if (trueConn) buildSequence(trueConn.endTargetId, branchItem[isData ? 'successBody' : 'body'], mergePoints);
-                if (falseConn) buildSequence(falseConn.endTargetId, branchItem[isData ? 'errorBody' : 'elseBody'], mergePoints);
+                if (trueConn) {
+                    console.log(`[FlowSyncManager] Building SUCCESS/TRUE branch for ${node.id}`);
+                    buildSequence(trueConn.endTargetId, branchItem[isData ? 'successBody' : 'body'], mergePoints);
+                }
+                if (falseConn) {
+                    console.log(`[FlowSyncManager] Building ERROR/FALSE branch for ${node.id}`);
+                    buildSequence(falseConn.endTargetId, branchItem[isData ? 'errorBody' : 'elseBody'], mergePoints);
+                }
 
                 const firstMerge = Array.from(mergePoints).filter(id => {
                     const incoming = connections.filter(c => c.endTargetId === id);
@@ -343,14 +350,17 @@ export class FlowSyncManager {
                 })[0];
 
                 if (firstMerge) {
+                    console.log(`[FlowSyncManager] Merge point detected at ${firstMerge} after branch ${node.id}`);
                     visited.delete(firstMerge);
                     buildSequence(firstMerge, targetSeq, stopSet);
                 }
             } else if (node.type === 'Task' && node.id !== startNode.id) {
+                console.log(`[FlowSyncManager] Inline task call detected: ${node.properties?.name || node.id}`);
                 targetSeq.push({ type: 'task', name: node.properties?.name || node.properties?.text });
                 const nextConn = connections.find(c => c.startTargetId === nodeId);
                 if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet);
             } else if (['While', 'For', 'Repeat'].includes(node.type)) {
+                console.log(`[FlowSyncManager] Loop detected: ${node.type}`);
                 const loop: any = { type: node.type.toLowerCase(), body: [] };
                 if (node.type === 'While') loop.condition = node.properties?.text || '';
                 if (node.type === 'Repeat') loop.count = parseInt(node.properties?.text) || 1;
@@ -359,18 +369,26 @@ export class FlowSyncManager {
                 const bodyConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'output');
                 const nextConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'bottom');
 
-                if (bodyConn) buildSequence(bodyConn.endTargetId, loop.body, new Set([nodeId]));
-                if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet);
+                if (bodyConn) {
+                    console.log(`[FlowSyncManager] Building LOOP BODY for ${node.id}`);
+                    buildSequence(bodyConn.endTargetId, loop.body, new Set([nodeId]));
+                }
+                if (nextConn) {
+                    console.log(`[FlowSyncManager] Building AFTER-LOOP sequence for ${node.id}`);
+                    buildSequence(nextConn.endTargetId, targetSeq, stopSet);
+                }
             }
         };
 
         const initialOutgoing = connections.filter(c => c.startTargetId === startNode.id);
+        console.log(`[FlowSyncManager] Initial outgoing from ${startNode.id}: ${initialOutgoing.length} connections found.`);
         // Robustness: Sort to keep 'output' anchor first, but process ALL outgoing connections
         initialOutgoing.sort((a) => (a.data?.startAnchorType === 'output' ? -1 : 1));
 
         if (initialOutgoing.length > 0) {
             console.log(`[FlowSyncManager] Following ${initialOutgoing.length} outgoing paths from start node.`);
             initialOutgoing.forEach(c => {
+                console.log(`[FlowSyncManager] Starting sequence from anchor: ${c.data?.startAnchorType || 'none'} -> ${c.endTargetId}`);
                 buildSequence(c.endTargetId, sequence);
             });
         }
