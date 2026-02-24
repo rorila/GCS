@@ -173,6 +173,7 @@ export class FlowInteractionManager {
 
                 const conn = new FlowConnection(this.host.canvas, x, y, x, y);
                 conn.setGridConfig(this.host.flowStage.cellSize);
+                conn.attachStart(node); // ATTACH TO SOURCE NODE!
 
                 const isGhostConnection = node.data?.isEmbeddedInternal || node.data?.parentProxyId;
                 conn.data = {
@@ -276,27 +277,30 @@ export class FlowInteractionManager {
         let targetNode: FlowElement | null = null;
         let targetAnchorType: string | null = null;
 
+        // More robust hit test: Check all anchors on all nodes
         for (const node of this.host.nodes) {
-            const anchor = isStart ? node.getOutputAnchor() : node.getInputAnchor();
-            if (anchor) {
+            const anchors = node.getElement().querySelectorAll('.flow-anchor');
+            let found = false;
+            for (const anchor of Array.from(anchors) as HTMLElement[]) {
                 const arect = anchor.getBoundingClientRect();
+                // Check if mouse is within anchor bounds
                 if (e.clientX >= arect.left && e.clientX <= arect.right && e.clientY >= arect.top && e.clientY <= arect.bottom) {
                     targetNode = node;
-                    targetAnchorType = isStart ? 'output' : 'input';
+
+                    // Determine anchor type from class
+                    if (anchor.classList.contains('input')) targetAnchorType = 'input';
+                    else if (anchor.classList.contains('output')) targetAnchorType = 'output';
+                    else if (anchor.classList.contains('top')) targetAnchorType = 'top';
+                    else if (anchor.classList.contains('bottom')) targetAnchorType = 'bottom';
+                    else if (anchor.classList.contains('true')) targetAnchorType = 'true';
+                    else if (anchor.classList.contains('false')) targetAnchorType = 'false';
+                    else if (anchor.dataset.branch) targetAnchorType = anchor.dataset.branch;
+
+                    found = true;
                     break;
                 }
             }
-            if (!isStart) {
-                const topAnchor = node.getTopAnchor();
-                if (topAnchor) {
-                    const arect = topAnchor.getBoundingClientRect();
-                    if (e.clientX >= arect.left && e.clientX <= arect.right && e.clientY >= arect.top && e.clientY <= arect.bottom) {
-                        targetNode = node;
-                        targetAnchorType = 'top';
-                        break;
-                    }
-                }
-            }
+            if (found) break;
         }
 
         if (targetNode) {
@@ -310,7 +314,9 @@ export class FlowInteractionManager {
             this.host.activeConnection.updatePosition();
             this.host.syncToProject();
         } else {
-            if (!this.host.activeConnection.startTarget || !this.host.activeConnection.endTarget) {
+            // ONLY delete if NO targets exist on either side (relaxed from "both must be set")
+            // This prevents existing connections from disappearing when re-adjusting one end
+            if (!this.host.activeConnection.startTarget && !this.host.activeConnection.endTarget) {
                 this.host.deleteConnection(this.host.activeConnection);
             } else {
                 this.host.activeConnection.updatePosition();
