@@ -96,29 +96,52 @@ export class FlowAction extends FlowElement {
         }
     }
 
+    public getAnchorPosition(type: 'input' | 'output' | 'true' | 'false' | 'success' | 'error' | 'top' | 'bottom'): { x: number, y: number } {
+        if (type === 'success' && this.actionType === 'data_action') {
+            // Success Port: right: 20px, bottom: -6px
+            // Anchor is 10x10, so center is x = width - 20 - 5, y = height + 6 - 5? No, bottom -6 means it sticks out.
+            // Let's use simpler relative positions that match the visual layout.
+            return { x: this.x + this.width - 25, y: this.y + this.height };
+        } else if (type === 'error' && this.actionType === 'data_action') {
+            // Error Port: right: 60px, bottom: -6px
+            return { x: this.x + this.width - 65, y: this.y + this.height };
+        }
+        return super.getAnchorPosition(type);
+    }
+
     /**
-     * Helper to get the underlying action definition
+     * Helper to get the underlying action definition.
+     * Robust resolution: Always prefers project/stage definition if a name match exists,
+     * to ensure Single Source of Truth consistency.
      */
     protected getActionDefinition(): any | null {
-        // 1. Linked Mode: Get from project/stage (Single Source of Truth)
-        if (this.data?.isLinked && this.projectRef && this.Name) {
-            // Priority: Global Actions
-            let action = this.projectRef.actions.find(a => a.name === this.Name);
-            if (action) return action;
+        if (!this.projectRef || !this.Name) return this.data;
 
-            // Secondary: Stage Actions
+        // 1. Resolve from project/stage (Single Source of Truth)
+        // We match by name even if 'isLinked' is not yet set (e.g. for newly renamed nodes)
+        let action = this.projectRef.actions.find(a => a.name === this.Name);
+
+        // Secondary: Stage Actions
+        if (!action) {
             const proj = this.projectRef as any;
             if (proj.activeStageId && proj.stages) {
                 const stage = proj.stages.find((s: any) => s.id === proj.activeStageId);
                 if (stage?.actions) {
                     action = stage.actions.find((a: any) => a.name === this.Name);
-                    if (action) return action;
                 }
             }
         }
 
+        if (action) {
+            // FIX: Ensure the node data reflects the linked state so toJSON saves only the reference
+            if (this.data && !this.data.isLinked) {
+                this.data.isLinked = true;
+                this.data.name = action.name;
+            }
+            return action;
+        }
+
         // 2. Embedded/Local Mode: Use local data copy
-        // This handles both marked 'isEmbeddedInternal' and generic local actions.
         return this.data;
     }
 

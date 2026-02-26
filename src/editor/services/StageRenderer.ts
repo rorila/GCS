@@ -31,15 +31,14 @@ export class StageRenderer {
             if (!(this.host as any).runModeLogDone) {
                 console.log(`[StageRenderer] RunMode Render Start. Rendering ${objects.length} objects.`);
                 if (objects.length > 0) {
-                    console.table(objects.slice(0, 10).map(o => ({
+                    console.table(objects.slice(0, 20).map(o => ({
                         name: o.name,
                         class: o.className || o.constructor?.name,
                         visible: o.visible,
-                        z: o.zIndex,
-                        w: (o.width || 0).toFixed(1),
-                        h: (o.height || 0).toFixed(1),
-                        bgImg: o.backgroundImage,
-                        src: o.src
+                        isVar: o.isVariable || false,
+                        scope: o.scope || '-',
+                        value: o.isVariable ? JSON.stringify(o.value)?.substring(0, 80) : '-',
+                        text: typeof o.text === 'string' ? o.text.substring(0, 60) : '-'
                     })));
                 } else {
                     console.warn("[StageRenderer] Rendering an EMPTY stage in RunMode!");

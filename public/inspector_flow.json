@@ -35,6 +35,7 @@
             "className": "TButton",
             "name": "DeleteButton",
             "caption": "🗑️ Delete Object",
+            "action": "delete",
             "style": {
                 "backgroundColor": "#c82333",
                 "color": "#fff",

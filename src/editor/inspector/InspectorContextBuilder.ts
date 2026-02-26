@@ -1,5 +1,6 @@
 import { ProjectRegistry } from '../../services/ProjectRegistry';
 import { actionRegistry } from '../../runtime/ActionRegistry';
+import { dataService } from '../../services/DataService';
 
 /**
  * InspectorContextBuilder - Erzeugt den Datenkontext für Inspector-Templates.
@@ -56,17 +57,11 @@ export class InspectorContextBuilder {
                     className === 'TObjectVariable' || className === 'TVariable') {
 
                     const model = (v.objectModel || '').toLowerCase();
-                    if (model === 'user' || model === 'users') {
-                        fields = ['id', 'name', 'role', 'authCode', 'avatar', 'status'];
-                    } else if (model === 'project' || model === 'projects') {
-                        fields = ['id', 'name', 'description', 'version'];
-                    } else if (model === 'stage' || model === 'stages') {
-                        fields = ['id', 'name', 'type'];
-                    } else if (model === 'variable' || model === 'variables') {
-                        fields = ['id', 'name', 'type', 'value'];
-                    } else if (model.includes('resource')) {
-                        fields = ['id', 'name', 'role', 'authCode', 'status'];
-                    } else {
+                    if (model) {
+                        fields = dataService.getModelFieldsSync('db.json', model);
+                    }
+
+                    if (fields.length === 0) {
                         fields = ['id', 'name', 'text', 'value'];
                     }
                 }
@@ -101,17 +96,11 @@ export class InspectorContextBuilder {
                     className === 'TObjectVariable' || className === 'TVariable') {
 
                     const model = (v.objectModel || '').toLowerCase();
-                    if (model === 'user' || model === 'users') {
-                        fields = ['id', 'name', 'role', 'authCode', 'avatar', 'status'];
-                    } else if (model === 'project' || model === 'projects') {
-                        fields = ['id', 'name', 'description', 'version'];
-                    } else if (model === 'stage' || model === 'stages') {
-                        fields = ['id', 'name', 'type'];
-                    } else if (model === 'variable' || model === 'variables') {
-                        fields = ['id', 'name', 'type', 'value'];
-                    } else if (model.includes('resource')) {
-                        fields = ['id', 'name', 'role', 'authCode', 'status'];
-                    } else {
+                    if (model) {
+                        fields = dataService.getModelFieldsSync('db.json', model);
+                    }
+
+                    if (fields.length === 0) {
                         fields = ['id', 'name', 'text', 'value'];
                     }
                 }
@@ -132,14 +121,8 @@ export class InspectorContextBuilder {
                     const dsObj = allObjects.find(o => o.name === dsName || o.id === dsName);
                     const collection = (dsObj as any)?.defaultCollection || '';
 
-                    if (collection === 'users') {
-                        return ['id', 'name', 'role', 'authCode', 'avatar', 'managedRooms', 'assignedRoomIds', 'houseId', 'status'];
-                    } else if (collection === 'rooms') {
-                        return ['id', 'name', 'houseId', 'adminId', 'config', 'games'];
-                    } else if (collection === 'cities') {
-                        return ['id', 'name', 'logo'];
-                    } else if (collection === 'houses') {
-                        return ['id', 'cityId', 'name', 'logo'];
+                    if (collection) {
+                        return dataService.getModelFieldsSync('db.json', collection);
                     }
 
                     return ['id', 'name', 'text', 'value'];
@@ -149,34 +132,28 @@ export class InspectorContextBuilder {
             })(),
 
             // Verfügbare Datenmodelle (für object/object_list Variablen)
-            availableModels: [
-                'User',
-                'Task',
-                'Project',
-                'Stage',
-                'Variable',
-                'Action',
-                'Resource',
-                'Hierarchy'
-            ],
+            // Kontext-aware: Singular für 'object', Plural für 'object_list'
+            // Dynamisch ermittelt aus dem LocalStore/db.json
+            availableModels: (() => {
+                // Versuche den Pfad aus dem ersten DataStore zu lesen, sonst Fallback auf db.json
+                const storagePath = (dataStores[0] as any)?.storagePath || 'db.json';
+                const pluralModels = dataService.getModelsSync(storagePath);
+
+                if (selectedObject.type === 'object_list') {
+                    // Plural-Modelle direkt zurückgeben
+                    return pluralModels;
+                } else {
+                    // Singular-Modelle ableiten (Primitiv: 's' am Ende entfernen)
+                    return pluralModels.map(m => m.endsWith('s') ? m.slice(0, -1) : m);
+                }
+            })(),
 
             // Liste aller Sichtbaren Objekte (für Eigenschafts-Vergleich)
             availableObjects: allObjects.map(obj => obj.name || obj.id),
 
             // Häufige Eigenschaften von Komponenten
             availableObjectProperties: [
-                'text',
-                'value',
-                'caption',
-                'width',
-                'height',
-                'top',
-                'left',
-                'visible',
-                'checked',
-                'progress',
-                'enabled',
-                'src'
+                'text', 'value', 'caption', 'width', 'height', 'top', 'left', 'visible', 'checked', 'progress', 'enabled', 'src'
             ],
 
             // Liste der verfügbaren Tasks (Global + Aktive Stage)
@@ -188,14 +165,8 @@ export class InspectorContextBuilder {
 
         // Variablen-Werte hinzufügen (für Live-Preview im Inspector)
         allVars.forEach(v => {
-            // Wir nutzen defaultValue oder den aktuellen Wert (falls vorhanden)
-            // Im Editor-Kontext ist defaultValue oft sicherer für die Anzeige
             const value = (v as any).value !== undefined && (v as any).value !== null ? (v as any).value : v.defaultValue;
-
-            // Zugriff via Name: ${varName}
             context[v.name] = value;
-
-            // Zugriff via Scope-Präfix: ${global.varName} oder ${stage.varName}
             if (v.uiScope) {
                 if (!context[v.uiScope]) context[v.uiScope] = {};
                 context[v.uiScope][v.name] = value;

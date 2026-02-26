@@ -3,6 +3,7 @@ import { FlowAction } from '../flow/FlowAction';
 import { FlowTask } from '../flow/FlowTask';
 import { GameProject } from '../../model/types';
 import { FlowStateManager } from '../flow/FlowStateManager';
+import { FlowConnection } from '../flow/FlowConnection';
 import { serviceRegistry } from '../../services/ServiceRegistry';
 
 export interface FlowSelectionHost {
@@ -58,6 +59,20 @@ export class FlowSelectionManager {
             this.selectNode(node);
             // Scroll node into view if needed
             node.getElement().scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        }
+    }
+
+    public selectConnection(conn: FlowConnection | null) {
+        if (!conn) {
+            this.deselectAll(true);
+            return;
+        }
+        this.deselectAll(false);
+        this.host.stateManager.selectConnection(conn);
+
+        // Notify Inspector
+        if (this.host.onObjectSelect) {
+            this.host.onObjectSelect(conn);
         }
     }
 

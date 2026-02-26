@@ -31,7 +31,7 @@ export class DataService {
             const data = await response.json();
 
             // Validate data structure if it's db.json
-            if (storagePath === 'data.json') {
+            if (storagePath === 'db.json') {
                 console.log(`[DataService] Validating seed data. Keys: ${Object.keys(data).join(', ')}`);
             }
 
@@ -161,6 +161,22 @@ export class DataService {
     }
 
     /**
+     * Synchrones Auslesen der Modelle (nur für Browser/Editor).
+     */
+    public getModelsSync(storagePath: string): string[] {
+        if (typeof window === 'undefined') return [];
+        try {
+            const key = `gcs_db_${storagePath}`;
+            const content = localStorage.getItem(key);
+            if (!content) return [];
+            const db = JSON.parse(content);
+            return Object.keys(db).filter(k => Array.isArray(db[k]));
+        } catch (e) {
+            return [];
+        }
+    }
+
+    /**
      * Liefert die Felder (Keys) des ersten Eintrags eines Modells.
      * Dient als "Schema-Erkennung" für IntelliSense.
      */
@@ -181,6 +197,36 @@ export class DataService {
         });
 
         return Array.from(allKeys);
+    }
+
+    /**
+     * Synchrones Auslesen der Felder eines Modells (nur für Browser/Editor).
+     */
+    public getModelFieldsSync(storagePath: string, modelName: string): string[] {
+        if (typeof window === 'undefined') return [];
+        try {
+            const key = `gcs_db_${storagePath}`;
+            const content = localStorage.getItem(key);
+            if (!content) return [];
+            const db = JSON.parse(content);
+
+            // Handle both plural and singular requests (e.g. 'user' -> 'users')
+            let collection = db[modelName];
+            if (!collection && !modelName.endsWith('s')) collection = db[modelName + 's'];
+            if (!collection && modelName.endsWith('s')) collection = db[modelName.slice(0, -1)];
+
+            if (!Array.isArray(collection) || collection.length === 0) return [];
+
+            const allKeys = new Set<string>();
+            collection.forEach((item: any) => {
+                if (typeof item === 'object' && item !== null) {
+                    Object.keys(item).forEach(key => allKeys.add(key));
+                }
+            });
+            return Array.from(allKeys);
+        } catch (e) {
+            return [];
+        }
     }
 
     /**

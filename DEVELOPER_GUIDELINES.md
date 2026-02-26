@@ -1,7 +1,10 @@
 # Developer Guidelines
 
 > [!CAUTION]
-> **MANDATORY AI AGENT RULE**: Every code modification MUST be followed by executing `npm run test`. Verification of the `docs/QA_Report.md` is required for the "Definition of Done". Do NOT notify the user before running tests.
+> **MANDATORY AI AGENT RULE**: Every code modification MUST be followed by executing `npm run test` (oder `run_tests.bat`, falls PowerShell blockiert). Verification of the `docs/QA_Report.md` is required for the "Definition of Done". Do NOT notify the user before running tests.
+
+> [!TIP]
+> **PowerShell Fix**: Falls `npm run test` wegen eines `ServicePointManager`-Fehlers fehlschlägt, nutze die bereitgestellten Batch-Dateien (`run_tests.bat`, `validate_project.bat`) direkt in einer Standard-CMD.
 
 ## Action System (Standardisierung / OOP)
 - Jede neue Action muss ein entsprechendes Interface in `src/model/types.ts` erhalten, das von `BaseAction` erbt.
@@ -60,6 +63,37 @@
 - **UseCase-Dokument**: `docs/use_cases/BlueprintFlowDropdown.md`
 - **Agenten-Workflow**: `/blueprint-flow-dropdown`
 
+## Architektur-Regeln (v3.6.0) – Stabilität
+
+> [!CAUTION]
+> **KRITISCH: Diese Regeln verhindern wiederkehrende Regressionen.** Jede Verletzung kann dazu führen, dass der Inspector leer bleibt, Objekte nicht verschoben werden können oder globale Variablen nach Stage-Wechsel verschwinden.
+
+### ObjectStore (Single Source of Truth)
+- **`ObjectStore.ts`** ist die einzige authoritative Quelle für aktuell gerenderte Objekte.
+- `EditorRenderManager.render()` aktualisiert den ObjectStore nach JEDEM Render.
+- `EditorCommandManager.findObjectById()` liest ZUERST aus dem ObjectStore, dann Fallback auf FlowNodes/GlobalVars.
+- **DO NOT**: Niemals direkt `getResolvedInheritanceObjects()` für Objekt-Lookups nutzen — immer `editor.objectStore.getById()`.
+
+### Run-Mode Schutz
+- **DO NOT**: Niemals `switchStage()` im Run-Mode aufrufen ohne `keepView=true` — es ruft `switchView('stage')` auf, was `setRunMode(false)` triggert und die Runtime zerstört.
+- **DO NOT**: Niemals `switchView('stage')` im Run-Mode aufrufen — es ruft `setRunMode(false)` und zerstört die Runtime samt aller globalen Variablen.
+- **Guard**: `EditorViewManager.switchView()` hat einen eingebauten Guard: `if (view === 'stage' && h.isRunning()) return;`
+- **Guard**: `Editor.switchStage()` hat einen eingebauten Guard: `if (!keepView && !this.isRunning()) switchView('stage');`
+- `Editor.isRunning()` prüft ob `runManager.runtime !== null`.
+
+
+## Task Sichtbarkeit & Aufgaben-Bereinigung (v3.5.6)
+- **Task Sichtbarkeit (Flow Editor)**:
+    - Die Gruppe `Global / Blueprint` ist im Flow-Editor Dropdown nun **permanent sichtbar**, unabhängig von der aktiven Stage.
+    - Dies ermöglicht den schnellen Wechsel zu globaler Infrastruktur-Logik von jeder UI-zentrischen Stage aus.
+    - Implementiert in `FlowEditor.ts` (`updateFlowSelector`) via `showGlobalAnyway` Flag.
+- **Task Duplizierung & SSoT**:
+    - Ein Task (z.B. `AttemptLogin`) sollte EXKLUSIV in seiner fachlichen Stage (z.B. `stage_login`) oder global in `stage_blueprint` definiert sein.
+    - Um Diskrepanzen zu vermeiden, bereinigt der `RefactoringManager.sanitizeProject` beim Laden des Projekts automatisch Duplikate über Stage-Grenzen hinweg (Keeping First Occurrence).
+- **Robuste Löschung**:
+    - Die Lösch-Logik (`RefactoringManager.deleteTask`) arbeitet **case-insensitive**.
+    - Beim Löschen werden alle Referenzen in `events` (ehemals `Tasks`), `actionSequences` und `flowCharts` projektweit bereinigt.
+
 ## Inspector & Refactoring (v2.16.21)
 - **Inspector JSON-Konfiguration**: Für Flow-Elemente mit spezifischem Layout (wie `DataAction`) ist die Verwendung einer dedizierten JSON-Datei (z.B. `public/inspector_data_action.json`) der Standard.
     - **Two-Way-Binding**: Um Felder editierbar zu machen, muss das Binding direkt auf das Property zeigen (z.B. `${selectedObject.Name}` statt `${selectedObject.name || ...}`).
@@ -81,6 +115,12 @@
     - **Sichtbarkeits-Logik (`visible`)**: Nutze die `visible`-Eigenschaft in JSON-Templates (`inspector_variable.json`), um Felder basierend auf regulären Expressions (z.B. `${selectedObject.type === 'timer'}`) ein- oder auszublenden. Die Evaluierung erfolgt im `InspectorHost.ts` via `resolveRawValue`.
     - **Event-Templates**: Handler können spezialisierte Event-Templates via `getEventsTemplate(obj)` bereitstellen. Für Variablen wird `inspector_variable_events.json` verwendet, das typspezifische Events (wie `onTimer` oder `onGenerated`) anbietet.
     - **Scope-Selection**: Das `scope`-Feld in der `inspector_variable.json` ermöglicht die Auswahl zwischen `global` (🌎) und `stage` (🎭) Scopes.
+
+## Stage Interaction & Scaling (v3.5.14)
+- **Koordinaten-Korrektur**: Bei Interaktionen auf der Stage (Dragging, Resizing, Click) MUSS immer die Browser-Skalierung (Zoom) berücksichtigt werden.
+- **Berechnung**: Nutze `getBoundingClientRect()` zur Bestimmung der aktuellen Viewport-Größe der Stage. Der Skalierungsfaktor ergibt sich aus `rect.width / element.offsetWidth`.
+- **Transformation**: Alle Maus-Koordinaten (`clientX/Y`) müssen nach Abzug des Offsets (`rect.left/top`) durch diesen Skalierungsfaktor geteilt werden, um präzise Stage-Koordinaten zu erhalten.
+- **Performance**: Während kontinuierlicher Events (`mousemove`) sollten DOM-Abfragen (`querySelector`) vermieden werden. Caching der betroffenen Elemente in einer `Map` zu Beginn der Interaktion (`mousedown`) ist zwingend erforderlich.
 
 ### 5. SPLIT-BRAIN VERMEIDUNG (SYNCHRONISATION)
 - **Problem**: Ein Task ist in der Blueprint-Stage definiert, aber der Flow-Editor speichert die visuellen Daten fälschlicherweise in der aktiven Stage.
@@ -193,11 +233,12 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
 - **Koordinaten-Ausrichtung (v2.10.1)**:
     - Der Flow-Editor nutzt ein Grid-System. Historisch gewachsene Offsets (z.B. -80px auf der X-Achse) wurden entfernt, um eine konsistente Ausrichtung zwischen Knoten und Verbindungen zu gewährleisten.
     - Achte darauf, dass beim Generieren neuer Diagramme keine künstlichen Offsets in `FlowSyncManager.generateFlowFromActionSequence` eingeführt werden.
-- **Action-Anzeige & Synchronisation (v2.16.19)**:
-    - Die visuelle Beschreibung einer Action im Flow-Editor (z.B. `a := b + c`) wird NICHT mehr vom Flow-Editor selbst berechnet.
-    - **Single Source of Truth**: Die Quelle ist das Feld `details` im Action-Objekt des JSON-Modells.
-    - Dieses Feld wird vom `JSONDialogRenderer.generateActionDetails` beim Speichern im Action-Editor befüllt.
-    - `FlowAction.getActionDetails` priorisiert dieses Feld und nutzt eine interne Logik nur noch als Fallback (z.B. für manuelle Pascal-Edits).
+- **Flow Connection Robustness (v3.5.4)**:
+    - Um eine 100%ige Zuverlässigkeit beim Koppeln zu erreichen, wird ein zweistufiges Magnet-System verwendet:
+        1. **Anker-Magnet**: 15px Puffer um jeden physischen Anker (`.flow-anchor`).
+        2. **Körper-Magnet**: 25px Puffer um den gesamten Knoten-Körper. Falls kein Anker direkt getroffen wird, wird der **nächstgelegene** Anker berechnet (Nearest-Anchor Heuristik).
+    - **Priorisierung**: Direkte Anker-Hits haben Vorrang vor Körper-Magneten. Die Schleife muss beim ersten Treffer abbrechen, um ein Überschreiben durch benachbarte Knoten zu verhindern.
+    - **Detachment**: Beim manuellen Ziehen eines Verbindungs-Handles muss die Verbindung sofort vom Ziel gelöst werden (`detach`), um ein intuitives Umpositionieren zu ermöglichen.
     - Dies stellt sicher, dass Änderungen im Dialog sofort und konsistent im Diagramm sichtbar sind.
 - **Typ-Vollständigkeit im Sync (v2.16.23)**:
     - Der `FlowSyncManager.syncToProject` muss jeden Knotentyp (z.B. `'Action'`, `'DataAction'`) explizit in seiner Registrierungsschleife unterstützen. Neue Knotentypen müssen dort nachgetragen werden, damit sie beim Erstellen sofort im Projektmodell angemeldet werden.
@@ -262,8 +303,8 @@ Um zu verhindern, dass Features nach Änderungen wieder kaputt gehen, gilt ab so
 - **Sichtbarkeit (v2.16.12)**: Vererbte Blueprint-Objekte werden auf normalen Stages im Editor ausgeblendet (`isFromBlueprint`), um die UI sauber zu halten. Sie bleiben im Hintergrund (Runtime) voll funktionsfähig.
 
 ### DataActions & Auto-Magic Simulation (v2.16.10)
-- **Konzept**: `DataActions` (typ: `data_action` oder `http`) unterstützen eine automatisierte Ressourcen-Simulation, die den echten Server spiegelt.
-- **Auto-Routing**: Wenn eine URL mit `/api/data/` beginnt, verarbeitet der `ApiSimulator` im Editor die Anfrage automatisch gegen die `db.json` via `DataService`. 
+- **Dual-Storage**: `DataService` nutzt im Browser den `localStorage` und serverseitig das Dateisystem. Der "Seeding"-Prozess ist im Editor automatisiert: Beim Start wird die `project.json` vom Server geladen und überschreibt den lokalen `localStorage`, um Konsistenz zu garantieren.
+- **Editor-Simulator**: Der Editor simuliert API-Aufrufe (`/api/platform/login` und `/api/data/*`) nicht mehr lokal, sondern delegiert sie per Proxy an den echten Server. Dadurch bleibt die `db.json` auf der Server-Platte die einzige "Source of Truth".
     - **WICHTIG**: In diesem Fall ist KEIN manueller `HandleApiRequest` Task im Flow-Editor erforderlich.
 - **Konfiguration**:
     - Nutze `resource` (z.B. `users`), `queryProperty` (z.B. `authCode`) und `queryValue` (z.B. `${pin}`), um Abfragen strukturiert zu definieren.
@@ -429,6 +470,8 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **UI-Sperre**: Wenn ein Flow existiert, muss die Listen-Ansicht (`TaskEditor.ts`) schreibgeschützt sein. Verwende das `isReadOnly`-Flag in `createSequenceItemElement`.
 - **Synchronisation**: Rufe vor allen Persistenz-Operationen `flowEditor.syncAllTasksFromFlow(project)` auf, um Datenkonsistenz zu garantieren.
 
+## Robuste Aktions-Auflösung (v3.5.5)
+- **Self-Healing Linkage**: Flow-Knoten (`FlowAction`, `FlowDataAction`) nutzen nun eine robuste `getActionDefinition` Logik. Wenn ein Namens-Match in den globalen Aktionen des Projekts oder der aktiven Stage gefunden wird, setzt der Knoten automatisch `isLinked: true` und nutzt diese Definition. Dies sichert die "Single Source of Truth", selbst wenn Knoten umbenannt werden oder neue Knoten erstellt werden, die bereits existierenden Bibliotheks-Aktionen entsprechen.
 ### Mediator-gesteuerte Synchronisation (Trinity-Sync v2.16.1 / v2.16.23)
 - **Problem**: Änderungen im Inspector oder Flow-Editor müssen sofort in allen Editoren (Flow, JSON, Pascal) reflektiert werden.
 - **Lösung**: Der `MediatorService` dient als zentrales Benachrichtigungssystem via `DATA_CHANGED`.
@@ -773,6 +816,15 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
     2.  **User-Unwrapping**: Prüft auf `response.user`. Wenn vorhanden, wird *nur* das User-Objekt in die `resultVariable` geschrieben, anstatt der gesamten Response. Dies erleichtert den direkten Zugriff auf User-Daten (z.B. `${currentUser.name}`).
   - **Sicherheit**: Dies geschieht sowohl in der Simulation (`ApiSimulator`) als auch im echten Request (`fetch`).
 
+## Flow-Variable SSoT Architektur (v3.5.9)
+- **Problem**: Redundante Datenhaltung zwischen Flow-Diagramm und Projekt-JSON führte zu Synchronisationsfehlern und Anzeige-Problemen im Inspector.
+- **Lösung (Single Source of Truth)**: 
+  - `FlowVariable` Knoten speichern im Diagramm-JSON (`toJSON`) nur noch Minimaldaten: `name` und `isVariable: true`.
+  - Alle fachlichen Eigenschaften (`type`, `scope`, `value`, `threshold`, etc.) werden live aus dem Projekt-Objekt (`projectRef`) bezogen.
+  - Der `FlowSyncManager` und die `FlowNodeFactory` stellen sicher, dass jeder Variablen-Knoten beim Laden/Erstellen eine Referenz auf das Projekt erhält (`setProjectRef`).
+- **Standardisierte Properties**: Um volle Kompatibilität mit dem Inspector-System zu gewährleisten, nutzt `FlowVariable.ts` standardisierte Getter/Setter (`name`, `type`, `scope`, `value`, `defaultValue`, `objectModel`). Diese greifen transparent auf die Projektdefinition zu.
+- **Legacy-Support**: Alte Feldnamen (wie `VarName`, `VarType`) werden als Aliase beibehalten, um Abwärtskompatibilität zu gewährleisten.
+
 - **DataAction Pattern (v2.14.0)**:
   - `DataAction` ist ein spezialisierter Knoten für asynchrone Server-Operationen mit visueller Branching-Logik (Success/Error).
   - Konfiguration erfolgt über `inspector_data_action.json`.
@@ -796,6 +848,17 @@ Variablen folgen einem spezialisierten GCS-Schema für verbesserte Übersicht un
 - **Suffix-Handling**: Der `InspectorHost` entfernt beim Speichern (`handleAutoSave`) automatisch den Suffix `Input`, um den Ziel-Property-Namen zu ermitteln.
 - **Re-rendering**: Wenn eine Änderung an einer Eigenschaft die Sichtbarkeit anderer Felder beeinflusst (z.B. `resource` oder `queryProperty`), muss in `handleAutoSave` explizit `this.render()` aufgerufen werden, um die UI-Struktur zu aktualisieren.
 - **Daten-Abruf**: Nutze `fetchResourceProperties` in `InspectorHost`, um beim Wechsel einer Ressource automatisch deren Metadaten (Properties) abzufragen und als reaktive Variable `availableResourceProperties` zur Verfügung zu stellen.
+
+## Stage-Interaktion & Events (v3.5.10)
+
+### Event-Handling in Editoren
+Editoren, die die Bühne (`Stage`) hosten, müssen das `onEvent`-Callback binden, um generische Ereignisse der Bühne zu verarbeiten. 
+- **Löschen**: Reagiere auf `delete` (einzeln) und `deleteMultiple` Ereignisse.
+- **Implementierung**: In `EditorInteractionManager.ts` (L116-123) wird dies genutzt, um die `removeObject`-Logik des Hosts aufzurufen.
+
+### Permanentes Löschen
+- **Standard-Vorgehensweise**: Verwende `EditorCommandManager.removeObject(id)`. Diese Methode kümmert sich um die Aufzeichnung im `ChangeRecorder` und das visuelle Entfernen aus der Selektion.
+- **SSoT-Integrität**: Innerhalb von `removeObject` muss zwingend `this.removeObjectSilent(id)` aufgerufen werden, um das Objekt auch permanent aus den Projekt-Listen (`project.objects`, `project.variables`, etc.) zu entfernen. Ohne diesen Aufruf bleibt das Objekt in der `project.json` erhalten, auch wenn es nicht mehr auf der aktuellen Stage sichtbar ist.
 
 ## Namensgebung & Eindeutigkeit
 - **Eindeutigkeit**: Namen für Variablen, Actions und Tasks müssen projektweit eindeutig sein.
@@ -1096,6 +1159,13 @@ Es gibt zwei grundlegend verschiedene Arten, wie Aktionen in der `actionSequence
 In der `project.json` sollten globale Variablen (aus der `stage_blueprint`) DIREKT ohne das Präfix `global.` referenziert werden (z.B. `${currentPIN}`). 
 - **Problem**: Der `ExpressionParser` sucht bereits in der globalen Map; ein zusätzliches `global.` führt zu einer misslungenen Auflösung (Empty String).
 - **Fix**: Immer `${Variable}` statt `${global.Variable}` verwenden.
+
+### DO NOT: Globale Variablen-Werte durch Komponenten-Proxies überschreiben
+In `ReactiveRuntime.getContext()` dürfen Variable-Komponenten (`isVariable === true`) NICHT den Runtime-Variablenwert (aus `variables` Map) überschatten.
+- **Grund**: Wenn `${currentUser.name}` aufgelöst wird und der Proxy der TVariable-Komponente zurückgegeben wird, liefert `.name` den Komponentennamen ('currentUser') statt den zugewiesenen Wert ('Rolf').
+- **Regel**: Bei Variable-Komponenten hat der Runtime-Wert aus der `variables` Map immer Vorrang vor dem registrierten Objekt in `objectsByName`.
+- **Implementierung**: `ReactiveRuntime.ts`, `getContext()`, Zeile 234+.
+- **Zusammenspiel**: Ergänzt `clear(false)` (Variable-Werte erhalten) und `cachedGlobalObjects` (Komponenten-Instanzen nicht neu hydratisieren).
 
 ## Dynamic Card Gallery (v2.0)
 - **Komponente**: `TTable` und `TObjectList` unterstützen nun einen `displayMode`.

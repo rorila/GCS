@@ -4,6 +4,7 @@ import { unwrap } from '../../runtime/ReactiveProperty';
 import { ExpressionParser } from '../../runtime/ExpressionParser';
 import { PascalGenerator } from '../PascalGenerator';
 import { PascalHighlighter } from '../PascalHighlighter';
+import { ObjectStore } from './ObjectStore';
 
 export interface EditorRenderHost {
     project: GameProject;
@@ -21,6 +22,7 @@ export interface EditorRenderHost {
     findObjectById(id: string): any;
     refreshJSONView(): void;
     autoSaveToLocalStorage(): void;
+    objectStore: ObjectStore;
 }
 
 export class EditorRenderManager {
@@ -33,21 +35,15 @@ export class EditorRenderManager {
     public render() {
         if (!this.host.project) return;
         try {
-            // Set Blueprint Mode on stage
+            // Set Blueprint Mode and Grid on stage from active stage definition
             const activeStage = this.host.getActiveStage();
             this.host.stage.isBlueprint = activeStage?.type === 'blueprint';
+            if (activeStage?.grid) {
+                this.host.stage.grid = activeStage.grid;
+            }
 
             // CRITICAL: Always get fresh objects from runtime if available
             let objectsToRender = this.host.runtime ? this.host.runtime.getObjects() : (this.host.runtimeObjects || this.host.getResolvedInheritanceObjects());
-
-            // FIX: Ensure variables are rendered on Blueprint Stage even if inheritance logic missed them
-            if (!this.host.runtime && this.host.stage.isBlueprint && activeStage && activeStage.variables) {
-                const alreadyIncluded = new Set(objectsToRender.map((o: any) => o.id));
-                const missingVars = activeStage.variables.filter((v: any) => !alreadyIncluded.has(v.id));
-                if (missingVars.length > 0) {
-                    objectsToRender = [...objectsToRender, ...missingVars];
-                }
-            }
 
             // Resolve preview (bindings, etc) for non-run mode
             if (!this.host.runtime) {
@@ -63,6 +59,11 @@ export class EditorRenderManager {
                 const isStageOrRunView = this.host.currentView === 'stage' || this.host.currentView === 'run';
                 stageWrapper.style.display = isStageOrRunView ? 'flex' : 'none';
             }
+
+            // ARCHITEKTUR: ObjectStore als Single Source of Truth aktualisieren.
+            // Alle Komponenten (findObjectById, Inspector, StageInteraction) lesen von hier.
+            // Defensiv: Darf den Render-Prozess nicht blockieren.
+            this.host.objectStore?.setObjects(objectsToRender);
         } catch (err) {
             console.error("[EditorRenderManager] Render error:", err);
         }
@@ -219,7 +220,7 @@ export class EditorRenderManager {
     public refreshAllViews(originator?: string): void {
         this.render();
 
-        if (originator !== 'flow' && this.host.flowEditor) {
+        if (originator !== 'flow-editor' && this.host.flowEditor) {
             this.host.flowEditor.setProject(this.host.project);
         }
 

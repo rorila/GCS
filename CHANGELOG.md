@@ -1,3 +1,93 @@
+## [3.6.0] - 2026-02-26
+- **Architecture (ObjectStore)**: Einführung von `ObjectStore.ts` als **Single Source of Truth** für alle aktuell gerenderten Objekte. Ersetzt die 4 parallelen Listen (`lastRenderedObjects`, `currentObjects`, `getResolvedInheritanceObjects()`, `runtime.getObjects()`).
+- **Architecture (Run-Mode Schutz)**: Guards in `Editor.switchStage()` und `EditorViewManager.switchView()` verhindern, dass die Runtime im Run-Mode zerstört wird.
+- **Architecture (findObjectById)**: `EditorCommandManager.findObjectById()` liest jetzt ZUERST aus dem ObjectStore statt aus `getResolvedInheritanceObjects()` — behebt leeren Inspector nach Stage-Wechsel.
+- **API**: Neuer `Editor.isRunning()` Getter und `IViewHost.isRunning()` Interface.
+- **Fix (Stage Navigation)**: `switchStage()` hat jetzt `keepView` Parameter — `switchView('stage')` wird nur im Editor-Modus aufgerufen.
+- **Docs**: Neue Sektion "Architektur-Regeln (v3.6.0)" in DEVELOPER_GUIDELINES.md mit ObjectStore- und Run-Mode-Schutz-Regeln.
+
+## [3.5.17] - 2026-02-26
+- **Fix (Flow Editor)**: Behebung der Lösch-Inkonsistenz durch Umstellung auf ID-basierte Löschung in `FlowGraphManager.ts`.
+- **Fix (UX)**: Konsolidierung der Lösch-Bestätigungsdialoge — nur noch 1x Frage statt 2-3x (`InspectorActionHandler`, `FlowGraphManager.deleteNodeSilent`, `Editor.removeObjectWithConfirm`).
+- **Fix (Runtime)**: Regression-Fix für `${currentUser.name}` Binding nach Stage-Wechsel. Globale Variablen-Komponenten werden in `GameRuntime.handleStageChange()` nicht mehr über `registerObject` neu registriert (Ergänzung zu `GlobalVariablePersistence` & `GlobalElementPersistenceFix`).
+- **Workflow**: Konsolidierung aller Wartungs-Skripte in `run_all.bat` (CMD-kompatibel als PowerShell-Fallback).
+
+## [3.5.16] - 2026-02-26
+- **Fix (Data Model)**: `project.json` bereinigt und mit der neuen Blueprint-Architektur synchronisiert (`currentUser` Refactoring).
+- **Fix (Validation)**: Validator `validate_project.cjs` an Blueprint-SSoT angepasst und eingebettete FlowCharts extrahiert.
+- **Cleanup**: Entfernung von Platzhalter-Tasks und Konsolidierung der Action-Referenzen in `stage_login`.
+
+## [3.5.15] - 2026-02-26
+- **Fix (Environment)**: PowerShell-Skripte (`npm run test`) durch CMD-kompatible Batch-Dateien (`.bat`) ergänzt, um native Windows-Kompatibilität bei beschädigter PowerShell-Umgebung sicherzustellen.
+- **Workflow**: Einführung von `run_tests.bat`, `validate_project.bat` und `fix_ssot.bat` im Root-Verzeichnis.
+
+## [3.5.14] - 2026-02-26
+- **Fix (Dragging Precision)**: Präzision beim Ziehen von Komponenten verbessert durch Berücksichtigung der Browser-Skalierung (Zoom).
+- **Performance**: DOM-Element Caching während des Draggings implementiert, um Verzögerungen in `handleMouseMove` zu minimieren.
+- **Improved UX**: Skalierungskorrektur für Rectangle Selection und Komponenten-Drop aus der Palette.
+- **Bugfix (Snap-Back)**: Fehler behoben, bei dem Objekte nach dem Drag an ihre alte Position zurücksprangen (fehlendes `render()` nach Style-Reset).
+- **Fix (Project Creation)**: Projekt-Neuerstellung über das Menü (Datei > Neues Projekt) wiederhergestellt.
+- **Architecture**: "New Project" initialisiert jetzt direkt eine Blueprint-Stage gemäß den SSoT-Regeln.
+
+## [3.5.13] - 2026-02-26
+- **Fix (Deletion Logic)**: Wiederherstellung der Löschfunktion für Stage-Komponenten und Flow-Diagramm-Elemente.
+- **Improved UX**: Implementierung von `removeMultipleObjectsWithConfirm` für das sichere Löschen mehrerer Objekte mit Referenzprüfung.
+- **Recursive Deletion**: `EditorCommandManager.removeObjectSilent` wurde um die rekursive Löschung verschachtelter Objekte (z.B. in Dialogen) erweitert.
+- **Flow Editor**: Entschärfung des `isLinked` Checks im `FlowGraphManager`, um das Löschen von verlinkten Knoten aus dem Diagramm zu ermöglichen.
+
+## [3.5.12] - 2026-02-25
+- **Feature (Inspector Discovery)**: Implementierung der dynamischen Modell- und Feld-Erkennung im `InspectorContextBuilder`. Modelle werden nun direkt aus der `db.json` geladen.
+- **Auto-Sync**: Einführung von automatischem Daten-Seeding beim Projekt-Laden (`EditorDataManager`), um die Konsistenz zwischen Server-Daten und LocalStorage zu garantieren.
+- **Improved UX**: Kontextsensitive Singular/Plural-Vorschläge basierend auf dem Variablentyp (`object` vs `object_list`).
+- **Path Resolution**: Dynamische Ermittlung des `storagePath` aus vorhandenen `TDataStore`-Objekten.
+
+## [3.5.11] - 2026-02-25
+- **Feature (Advanced Refactoring)**: Implementation eines projektweiten Refactoring-Systems.
+- **Unified Deletion**: Zentralisierte Lösch-Bestätigung mit Nutzungsberichten für Variablen, Tasks, Aktionen und Objekte.
+- **Seamless Renaming**: Automatische Aktualisierung aller Referenzen bei Namensänderungen im Inspector.
+- **RefactoringManager**: Erweiterte Usage-Reporting-Engine zur Identifikation von Abhängigkeiten in Flow-Charts und Objekt-Mappings.
+
+## [3.5.10] - 2026-02-25
+- **Fix (Deletion)**: Behebung des Fehlers beim Löschen von Variablen und Objekten. `EditorCommandManager.removeObject` löscht nun permanent via `removeObjectSilent`.
+- **Fix (Inspector)**: Löschfunktion im Inspector repariert (fehlende Action-Property und Verknüpfung zum Editor korrigiert).
+- **Integrität**: Stage-Events für `delete` und `deleteMultiple` in `EditorInteractionManager` angebunden, um Löschen via Entf-Taste und Kontextmenü zu unterstützen.
+
+## [3.5.9] - 2026-02-25
+- **Fix (Inspector)**: Behebung des Selektions-Problems für Variablen-Objekte (`TObjectVariable`) auf der Stage. Diese werden nun korrekt über die zentrale Objekt-Auflösung erkannt und im Inspector angezeigt.
+- **Architektur (SSoT)**: Konsolidierung der Flow-Variablen auf Single Source of Truth (SSoT). Visualisierungs-Knoten halten nun Referenzen auf Projekt-Variablen statt Kopien.
+- **Integrität**: Implementierung und Ausführung eines SSoT-Cleanup-Skripts zur automatischen Bereinigung redundanter Flow-Daten in der `project.json`.
+- **Validierung**: Erfolgreicher Regression-Test aller kritischen Pfade (QA-Report grün).
+
+## [3.5.8] - 2026-02-25
+- **Fix (Build)**: TypeScript-Fehler in `RefactoringManager.ts` behoben (ungenutzte Variable `originalCount` entfernt).
+- **Validierung**: Vollständiger Projekt-Build und Regression-Tests erfolgreich durchgeführt. QA-Report ist grün.
+
+## [3.5.7] - 2026-02-24
+- **Fix (Integrität)**: Backend-Synchronisation für den Editor implementiert. Die `project.json` wird nun beim Start vom Server geladen und überschreibt den lokalen `localStorage`, um Konsistenz sicherzustellen.
+- **Fix (UX)**: Automatischer Wechsel zur visuellen 'Stage'-Ansicht, wenn über das Menü oder bei Neuanlage eine Stage gewechselt wird. Dies verhindert Verwirrung, wenn man sich in anderen Ansichten (Flow/Code) befindet.
+- **Fix (Flow-Editor)**: Blueprint-Flow-Diagramme (Main Flow und Tasks) werden nun korrekt im Dropdown angezeigt und geladen, auch wenn man sich in einer anderen Stage befindet. Dies stellt sicher, dass globale Logik jederzeit editierbar ist.
+- **Fix (Login)**: Der `ApiSimulator` delegiert Login- ( `/api/platform/login`) und Datenanfragen (`/api/data/*`) nun per Proxy direkt an den Server. Dadurch bleibt die `db.json` auf der Festplatte die alleinige Source of Truth und der Login im Run-Mode funktioniert zuverlässig ohne manuelles Seeding.
+
+## [3.5.6] - 2026-02-24
+
+- **Feature (Flow Editor)**: Globale/Blueprint-Tasks sind nun von JEDER Stage aus im Dropdown sichtbar. Die Gruppe "Global / Blueprint" wird permanent eingeblendet.
+- **Fix (Refactoring)**: Task-Löschung ist nun robust gegen Case-Sensitivity (z.B. attemptLogin vs AttemptLogin).
+- **Fix (Integrität)**: Automatische Bereinigung von Task-Duplikaten in `project.json` beim Laden via `RefactoringManager.sanitizeProject`.
+- **Integrität**: `AttemptLogin` Task in `stage_login` konsolidiert und verwaiste Duplikate in anderen Stages entfernt.
+- **Fix (JSON)**: Reparatur der `project.json` nach struktureller Korruption im `stage_login` Bereich. Alle Tasks, Aktionen und FlowCharts sind nun wieder syntaktisch korrekt und konsistent.
+
+## [3.5.5] - 2026-02-24
+- **Hotfix (Flow Robustheit)**: Implementierung eines mehrstufigen "Magnet-Effekts". Verbindungen rasten nun extrem zuverlässig ein (Anker-Puffer 15px, Knoten-Körper-Magnet 25px).
+- **Hotfix (Flow Logik)**: Korrektur eines Priorisierungsfehlers im Hit-Test, der zu instabilem Verhalten beim Verbinden von eng beieinander liegenden Knoten führte.
+
+## [3.5.4] - 2026-02-24
+
+## [3.5.3] - 2026-02-24
+- **Hotfix (Flow Interaktion)**: Behebung des Problems, dass bestehende Verbindungen nicht mehr gelöst werden konnten (Detachment-Logik in `updatePath`).
+- **Hotfix (Selection & Focus)**: Korrektur des Fokusverlusts bei Verbindungen. Neue Verbindungen bleiben selektiert und werden korrekt an den Inspector gemeldet.
+- **Hotfix (Inspector Support)**: `FlowConnection` bietet nun eigene Inspector-Eigenschaften zur Identifikation und Bearbeitung (Beschriftung).
+
+## [3.5.2] - 2026-02-24
 
 ## [3.5.1] - 2026-02-24
 - **Hotfix (Flow Verbindungen v2)**: Verfeinerter Anchor-Hit-Test erkennt nun auch `success`/`error` Ports und bietet 5px Puffer für einfachere Bedienung.
@@ -8,6 +98,8 @@
 - **Hotfix (MenuBar Container)**: Behebung eines UI-Crashs durch Korrektur der DOM-ID `menu-bar` in `Editor.ts`.
 - **Hotfix (FlowEditor UI)**: Wiederherstellung des Flow-Editors durch Korrektur der IDs `flow-viewer` und `toolbox-content`.
 - **Hotfix (Stabilität)**: Einführung von Error-Handling (Try-Catch) für alle Kern-UI-Komponenten in `Editor.ts`.
+- **Fix**: Snap-Back Effekt beim Dragging behoben (fehlendes `render()` nach Style-Reset).
+- **Dragging**: Browser-Zoom Korrektur für alle Bühnen-Interaktionen implementiert.
 - **Stage Refactoring (Phase 1 & 2)**: Vollständige Modularisierung der Stage.ts zur Komplexitätsreduktion.
   - StageRenderer.ts: Übernimmt das gesamte HTML/SVG Rendering der Bühne.
   - StageInteractionManager.ts: Verwaltet alle Benutzerinteraktionen (Drag, Resize, Selection, ContextMenu).
@@ -45,6 +137,8 @@
 - **RefactoringManager**: Behebung von Typ-Warnungen und Bereinigung von statischen Methoden-Aufrufen (`filterSequenceItems`).
 - **Data Integrity**: Sicherstellung der Konsistenz zwischen visuellen Flow-Knoten (`VariableDecl`) und globalen Projekt-Variablen.
 - **AttemptLogin**: Synchronisierung des Flow-Diagramms durch Ergänzung des fehlenden `httpLogin`-Knotens.
+- **Fix**: Projekt-Neuerstellung über das Menü (Datei > Neues Projekt) wiederhergestellt.
+- **Architecture**: "New Project" initialisiert jetzt direkt eine Blueprint-Stage gemäß den SSoT-Regeln.
 - **Admin Dashboard**: Korrektur des fehlerhaften `onEnter`-Events in der `stage_admin_dashboard` und Definition der zuvor fehlenden `SendApiResponse`-Aktion.
 - **Blueprint-Stage**: Behebung struktureller JSON-Inkonsistenzen durch Bereinigung doppelter Eigenschafts-Keys.
 - **Data Integrity**: Veraltete eingebettete `flowChart`-Eigenschaften aus Tasks (`AttemptLogin`, `createAnEmojiPin`, `GetRoomAdminData`) entfernt und korrekt in die `flowCharts`-Mappings überführt. Project Validator läuft nun zu 100% sauber durch.
@@ -157,13 +251,16 @@
   - Inspector-Erweiterung: `ActionTypeSelect` erlaubt den Typwechsel direkt im Inspector mit sofortigem UI-Update.
   - Bereinigung: `dialog_action_editor.json` wurde auf das neue generische System (TActionParams) umgestellt, was Redundanzen eliminiert.
   - Fixes: `navigate_stage` und `call_method` sind nun vollständig über das UI konfigurierbar.
-  - **Fix (Data Binding)**: Intelligentes  - **Fix (Data Binding)**: Intelligentes Daten-Binding via `PropertyHelper` implementiert. Erlaubt automatischen Zugriff auf verschachtelte `.data`-Objekte von FlowNodes, wodurch Aktions-Parameter nun konsistent im Inspector angezeigt und gespeichert werden.
+  - **Fix (Data Binding)**: Intelligentes Daten-Binding via `PropertyHelper` implementiert. Erlaubt automatischen Zugriff auf verschachtelte `.data`-Objekte von FlowNodes, wodurch Aktions-Parameter nun konsistent im Inspector angezeigt und gespeichert werden.
   - **Feature (Variable Picker)**: Wiederherstellung des Variable Pickers im Inspector. Textfelder (z.B. `Label.text`) und Aktions-Parameter (z.B. `ShowMessage`) erhalten einen Button 'V', um Variablen-Tokens `${...}` einzufügen.
   - **Fix (Variable Binding)**: Behebung des Fehlers, bei dem Variablen-Ausdrücke wie `${currentUser.name}` im Inspector nicht aufgelöst wurden. Der `InspectorContextBuilder` stellt nun alle Variablen-Werte (inkl. Präfix-Support für `global.` und `stage.`) bereit.
   - **Fix (Runtime Persistence)**: Behebung des "Gedächtnisverlusts" beim Stage-Wechsel. Die `ReactiveRuntime` bewahrt globale Variablen nun persistent über Stage-Grenzen hinweg auf.
   - **Fix (Editor Preview)**: Konsistente Variablen-Auflösung in der Stage-Vorschau durch Angleichung des `VariableContext` an die Inspector-Logik.
   - **Fix (Live-Mode Navigation)**: Behebung des Fehlers, bei dem die Sandbox-Engine (`GameRuntime`) im Editor durch den Stage-Wechsel-Aufruf (`onNavigate`) komplett beendet und neu instanziiert wurde. Der Live-Modus weitet die Navigation jetzt durch die neue Methode `switchToStage` direkt auf die laufende Engine aus, was die Zustandserhaltung garantiert.
-  - **Fix (Editor Data Sync)**: Unterbrechung des fehlerhaften Speicherverhaltens, bei dem der Live-Modus des Editors Instanzierungsdaten und globale Variablen iterativ in die Stage des Projekt-JSONs zurückgespeichert hat. Beinhaltet eine implizite Bereinigungslogik in `Editor.loadProject`, um fälschlicherweise in lokale Stages kopierte globale Variablen (`currentUser`) sicher wieder zu entfernen. Zusätzlich wurde eine Endlos-Bootschleife beim Stage-Wechsel im Live-Modus via `EditorRunManager.setRunMode` durch einen Early Return behoben.
+  - **SSoT-Synchronisation (FlowSyncManager)**: Bei der grafischen Synchronisierung von canvas-nodes (`isLinked: true`) dürfen globale Definitionen nur dann aktualisiert werden, wenn der Knoten vollständige Logik-Daten enthält. Sparse Metadata-Updates (nur Name/Position) müssen von Logik-Updates getrennt bleiben, um ein Überschreiben der vollen Aktionsdefinition durch Minimaldaten durch Minimaldaten zu verhindern.
+- **Datenverlust-Schutz (type)**: In `updateGlobalActionDefinition` muss sichergestellt werden, dass ein bereits existierender `type` im globalen Register NICHT durch `undefined` aus den Knotendaten überschrieben wird. Dies ist entscheidend für neue Nodes, deren Metadaten noch nicht vollständig im Diagramm-Zustand repliziert wurden.
+- **Stabile Knoten-Referenzierung**: Verwende in Synchronisations- und Wiederherstellungs-Routinen (wie `restoreConnection`) IMMER die technische `id` des Knotens. Der Getter `name` auf `FlowElement` ist ein Alias für die `id`, aber für die Suche in Listen sollte robust gegen beide Felder (`id` ODER `name`) geprüft werden, um Abwärtskompatibilität zu gewährleisten.
+- **Typwechsel-Logik**: Beim Wechsel von Aktionstypen im Dialog sollte die Definition ersetzt statt gemergt werden, um inkompatible Felder (z.B. alte Variablenreferenzen) restlos zu entfernen. Zusätzlich wurde eine Endlos-Bootschleife beim Stage-Wechsel im Live-Modus via `EditorRunManager.setRunMode` durch einen Early Return behoben.
   - **Fix (Live Mode Variable Reset)**: Verhinderung des fehlerhaften `INITIAL SYNC`-Überschreibens in `GameRuntime.ts`. Globale Variablen, die beim Live-Stage-Wechsel persistent bleiben, werden nun vor dem Überschreiben mit Default-Werten aus Stage-Komponenten geschützt.
 ### [3.3.17] - 2026-02-19
 - **Fix (StandardActions)**: `call_method` als neuer Action-Handler registriert. Löst `ShowLoginError` (Toaster.show) im Error-Pfad der DataAction korrekt auf. Reihenfolge: Projekt-Objekt → Service-Registry → Spezialfall Toaster.show.
@@ -174,6 +271,10 @@
   - `platform/project.json`: FlowChart-Elemente und -Verbindungen angepasst.
   - `actionSequence`: DataAction enthält jetzt korrekte `successBody`/`errorBody`.
 
+### [v3.5.5] - 24.02.2026
+- **Fix (Flow Editor):** Selektions-Flimmern durch Originator-Abgleich behoben ('flow-editor').
+- **Fix (Inspector):** Automatisches Laden von Daten für existierende Aktionen (SSoT-Logic) in `FlowAction` & `FlowDataAction`.
+- **Feature (Inspector):** Connections im Flow-Editor sind nun selektierbar und im Inspector konfigurierbar.
 ### [3.3.15] - 2026-02-19
 - **Fix (FlowSyncManager)**: `doTheAuthenfification` (und alle weiteren DataActions mit `isLinked: true`) werden im Flow-Diagramm jetzt korrekt als **DataAction-Knoten** (blau, mit Success/Error-Ankern) dargestellt.
   - **Bug 1 – `restoreNode()`**: Lädt ForChart-Element mit `type:'Action'`, erkennt aber jetzt über die globale Def `type:'data_action'` und tauscht den instanziierten `FlowAction`-Knoten atomisch gegen `FlowDataAction` aus.
@@ -328,13 +429,19 @@
 
 ## [0.9.2] - 2026-02-17
 ### Fixed
-- **Inspector**: Fixes flickering issue in Flow Editor where Inspector data disappeared after selection.
-- **Editor**: Synchronized selection state between `FlowEditor` and `Editor`.
-- **Selection**: Extended `EditorCommandManager.findObjectById` to correctly resolve `FlowElement` nodes.
-
-## [0.9.1] - 2026-02-17
-- **Fix:** Inspector-Initialisierung durch `designRuntime` entkoppelt (funktioniert nun auch im Design-Mode).
-- **Fix:** Unterstützung für `TNumberInput`, `TCheckbox` und `TPanel` im neuen Inspector.
+- [x] Fix Flow Editor selection flickering (Originator: 'flow-editor')
+- [x] Bind `flowEditor.onObjectSelect` in `Editor.ts`
+- [x] Assign unique IDs to `FlowConnection`
+- [x] Search for connections in `EditorCommandManager.findObjectById`
+- [x] Fix `DataAction` Inspector Synchronization
+    - [x] Update `FlowAction.getActionDefinition` (implicit naming lookup)
+    - [x] Update `FlowDataAction.getActionDefinition` (implicit naming lookup)
+    - [x] Set `isLinked` automatically on name match
+    - [x] Verify fix with `npm run test`
+- [x] Documentation & Finalization
+    - [x] Update `UseCaseIndex.txt`
+    - [x] Update `CHANGELOG.md`
+    - [x] Final QA Report check
 - **Fix:** Expression-Resolution im Inspector via `ExpressionParser` (unterstützt komplexe Bindings & selectedObject).
 
 ### [0.9.0] - 2026-02-17
@@ -384,6 +491,11 @@
 - **Architecture**: `DataAction` integriert nun vollständig mit `TDataStore`. Direkte Dateipfad-Referenzen wurden durch Komponenten-Referenzen (`UserData`) ersetzt.
 - **API Simulator**: Der Simulator in `Editor.ts` unterstützt nun flexible Datenquellen via `storageFile`-Parameter, der aus der `dataStore`-Komponente aufgelöst wird.
 - **GCS Core**: Unterstützung für generische Variablentypen (`any`, `json`) hinzugefügt, um komplexe API-Antworten ohne festes Datenmodell zu speichern.
+- **Flow Editor Selection Fix**: Behobener Bug, bei dem die Selektion im Diagramm sofort wieder auf `null` zurückgesetzt wurde (Ursache: Originator-Mismatch 'flow' vs 'flow-editor' im RenderManager).
+- **Inspector Sync Fix**: Wiederherstellung der Datenanzeige im Inspector für selektierte Flow-Elemente (Nodes & Connections) durch Implementierung von IDs für Verbindungen und Binding des `onObjectSelect` Callbacks in `Editor.ts`.
+- **Magnet-Effekt (Robustness)**: 15px Puffer für direkte Anker-Treffer + 25px "Magnet" für Knoten-Bodies (Nearest-Anchor-Heuristik).
+- **Detachment-Logik**: Verbindungen können nun manuell von Ankern "abgezogen" werden (X/Y Delta Tracking).
+- **Hit-Test Fix**: Priorisierung von direkten Anker-Treffern vor Magnet-Effekten zur Vermeidung von Overwrites im Loop.
 - **Action Persistence**: Fix für die Persistenz von `http` Aktionen durch Getter/Setter-Proxys in `FlowAction`.
 - **Flow Editor**: Korrektur der Node-Details Anzeige (keine `undefined` Werte mehr).
 - **Persistence**: Implementierung von OOP-Getters/Settern in `FlowDataAction.ts` und Optimierung der `Smart-Sync`-Logik im `InspectorHost.ts` zur Vermeidung von Datenverlust bei verlinkten Elementen.
@@ -522,7 +634,7 @@
 - **VariableType Fix**: Korrektur der Persistenz-Sperre für das `type`-Property (reservedKeys) und systemweite Unifizierung von `variableType` auf `type`. Behebung des Revert-Bug im Inspector durch erzwungenes Re-Rendering bei Typ-Änderung und Anpassung der Serialisierung bleiben gewählte Typen (wie `object`) nun beim Speichern und Laden dauerhaft erhalten.
 - **TPropertyDef**: Unterstützung für dynamische Dropdown-Quellen (`source`).
 
-## [v2.16.22] - 2026-02-13
+## [2.16.22] - 2026-02-13
 ### Fixed
 - **FlowSyncManager Persistence Critical Fix**:
   - Behebung eines kritischen Fehlers in `syncAllTasksFromFlow`, bei dem die Map-Struktur der FlowCharts falsch adressiert wurde, was zum Leeren der `actionSequence` führte.
@@ -663,7 +775,7 @@
 - Bugfix: "Ghost-Einträge" (alte Namen) im Task-Dropdown nach Umbenennung behoben (RefactoringManager fix).
 - Bugfix: Kontexterhalt im Flow Editor nach Umbenennung (localStorage Sync in JSONInspector).
 - Mediator-Integration im Flow Editor zur reaktiven UI-Aktualisierung hinzugefügt.
-- Trinity-Sync in Editor.ts optimiert (refreshAllViews bei Inspector-Updates).
+- Trinity-Sync in Editor.ts optimiert (refreshAllViews bei Inspector-updates).
 
 ## [v2.16.0] - 2026-02-11
 ### Entfernt
@@ -966,6 +1078,13 @@
  in der modernisierten `Editor.ts`.
     - Erweiterung der Sichtbarkeitssteuerung im `EditorViewManager.ts` für die `stage`- und `flow`-Ansichten.
 - **Build-Stabilität**: Erfolgreiche Verifizierung des gesamten Refactorings durch `npm run build`.
+Status: [x] Abgeschlossen
+
+## Checkliste
+- [x] Ursachenanalyse (Fehlender Case im MenuManager)
+- [x] Implementierung `newProject` in `Editor.ts`
+- [x] Verknüpfung im `EditorMenuManager.ts`
+- [x] Verifizierung
 
 ## [Refactoring] - 2026-01-31
 - **Editor.ts**: Massive Modularisierung und Bereinigung. Die Datei fungiert nun als schlanker Orchestrator.

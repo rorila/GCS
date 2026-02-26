@@ -631,8 +631,12 @@ export class FlowSyncManager {
                 if (data.properties.text && !data.properties.name) node.Name = data.properties.text;
             }
 
-            // Ensure project reference is set for Action and Task nodes
-            if (this.host.project && (node instanceof FlowTask || node instanceof FlowAction)) {
+            // Ensure project reference is set for Action, Task and Variable nodes
+            if (this.host.project && (
+                node instanceof FlowTask ||
+                node instanceof FlowAction ||
+                node instanceof FlowVariable
+            )) {
                 (node as any).setProjectRef(this.host.project);
             }
 
@@ -742,11 +746,15 @@ export class FlowSyncManager {
 
         if (idx !== -1) {
             // FIX: If types differ, we REPLACE instead of merge to get rid of incompatible fields
-            if (targetCollection[idx].type !== newAction.type && newAction.type) {
+            // BUT: Do not overwrite with undefined if we already have a type!
+            const oldType = targetCollection[idx].type;
+            const newType = newAction.type || oldType;
+
+            if (oldType !== newType && newType) {
                 console.log(`[FlowSyncManager] Type changed for ${name}. Replacing definition to clean fields.`);
-                targetCollection[idx] = newAction;
+                targetCollection[idx] = { ...newAction, type: newType };
             } else {
-                targetCollection[idx] = { ...targetCollection[idx], ...newAction };
+                targetCollection[idx] = { ...targetCollection[idx], ...newAction, type: newType };
             }
         } else {
             targetCollection.push(newAction);

@@ -79,29 +79,35 @@ export class FlowDataAction extends FlowAction {
     }
 
     protected getActionDefinition(): any | null {
-        if (!this.projectRef) return this.data;
+        if (!this.projectRef || !this.Name) return this.data;
 
         // 1. Linked Mode: Get from project/stage (Single Source of Truth)
-        if (this.data?.isLinked && this.Name) {
-            let action = (this.projectRef.actions || []).find((a: any) => a.name === this.Name);
+        // Robust matching by name even if isLinked flag is missing
+        let action = (this.projectRef.actions || []).find((a: any) => a.name === this.Name);
 
-            // Search in stages if not found in global
-            if (!action && this.projectRef.stages) {
-                for (const s of this.projectRef.stages) {
-                    if (s.actions) {
-                        action = s.actions.find((a: any) => a.name === this.Name);
-                        if (action) break;
-                    }
+        // Search in stages if not found in global
+        if (!action && this.projectRef.stages) {
+            for (const s of this.projectRef.stages) {
+                if (s.actions) {
+                    action = s.actions.find((a: any) => a.name === this.Name);
+                    if (action) break;
                 }
             }
+        }
 
-            if (action) {
-                // Ensure it has correct type if it was a legacy/corrupt action
-                if (!action.type || action.type === 'property' || action.type === 'http') {
-                    action.type = 'data_action';
-                }
-                return action;
+        if (action) {
+            // Ensure it has correct type if it was a legacy/corrupt action
+            if (!action.type || action.type === 'property' || action.type === 'http') {
+                action.type = 'data_action';
             }
+
+            // Sync linked state to ensure clean persistence
+            if (this.data && !this.data.isLinked) {
+                this.data.isLinked = true;
+                this.data.name = action.name;
+            }
+
+            return action;
         }
 
         // 2. Embedded/Local Mode: Use local data copy

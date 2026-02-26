@@ -55,9 +55,13 @@ export class FlowGraphHydrator {
         const activeStage = this.host.getActiveStage();
 
         if (this.host.currentFlowContext === 'global') {
+            const blueprintStage = this.host.project.stages?.find((s: any) => s.type === 'blueprint' || s.id === 'stage_blueprint');
+            const blueprintFlowIdx = blueprintStage?.flowCharts?.global;
             const stageFlowIdx = activeStage?.flowCharts?.global;
             const projectFlowIdx = (this.host.project.flowCharts?.global) || (this.host.project as any).flow;
-            sourceData = stageFlowIdx || projectFlowIdx;
+
+            // Priority: Stage Local -> Blueprint -> Project Root (Legacy)
+            sourceData = stageFlowIdx || blueprintFlowIdx || projectFlowIdx;
         } else {
             const stageFlowChart = activeStage?.flowCharts?.[this.host.currentFlowContext];
             const globalFlowChart = this.host.project.flowCharts?.[this.host.currentFlowContext];

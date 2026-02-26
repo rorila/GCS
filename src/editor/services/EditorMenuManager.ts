@@ -11,6 +11,7 @@ export interface EditorMenuHost {
     playbackControls: any;
     inspector: any;
 
+    newProject(): void;
     saveProject(): void;
     triggerLoad(): void;
     exportHTML(): void;
@@ -62,6 +63,7 @@ export class EditorMenuManager {
 
     public handleMenuAction(action: string) {
         switch (action) {
+            case 'new-project': this.host.newProject(); break;
             case 'save': this.host.saveProject(); break;
             case 'load': this.host.triggerLoad(); break;
             case 'export-html': this.host.exportHTML(); break;

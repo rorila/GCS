@@ -187,6 +187,7 @@
             "className": "TButton",
             "name": "DeleteButton",
             "caption": "🗑️ Variable löschen",
+            "action": "delete",
             "style": {
                 "backgroundColor": "#c82333",
                 "color": "#fff",

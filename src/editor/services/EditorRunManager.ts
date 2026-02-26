@@ -79,18 +79,28 @@ export class EditorRunManager {
 
                     if (stageId && this.editor.project.stages?.some(s => s.id === stageId)) {
                         console.log(`[RunManager] Navigating to stage: ${stageId}`);
-                        // Update Editor State (UI) without exiting run mode
-                        (this.editor as any).switchStage(stageId, true);
 
-                        // Explicitly tell the run time to switch
-                        if (this.runtime && typeof (this.runtime as any).switchToStage === 'function') {
-                            (this.runtime as any).switchToStage(stageId);
-                        } else if (this.runtime && typeof (this.runtime as any).handleStageChange === 'function') {
-                            (this.runtime as any).handleStageChange(this.editor.project.activeStageId, stageId);
+                        // 1. Tell the RUNTIME to switch stage (preserves global variables)
+                        if (this.runtime) {
+                            const currentStageId = (this.runtime as any).stage?.id || '';
+                            console.log(`[RunManager] Runtime stage switch: ${currentStageId} → ${stageId}`);
+                            (this.runtime as any).handleStageChange(currentStageId, stageId);
+
+                            // Update runtime objects and components after stage change
+                            this.runtimeObjects = this.runtime.getObjects();
+                            this.initRuntimeComponents();
                         }
-                    }
 
-                    this.editor.switchView('run'); // Only brings the tab to front
+                        // 2. Update grid/visual properties for the new stage
+                        //    DO NOT call switchStage() — it asynchronously exits run mode,
+                        //    destroying the runtime context and losing all global variables.
+                        this.handleStageSwitch(stageId);
+
+                        // 3. Start the new stage and render with the runtime's full objects
+                        if (this.runtime) this.runtime.start();
+                        this.editor.render();
+                    }
+                    // DO NOT call switchView('run') here — we are already in run mode.
                 },
                 makeReactive: true,
                 multiplayerManager: mpManager,

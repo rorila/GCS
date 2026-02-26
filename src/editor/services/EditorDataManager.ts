@@ -3,6 +3,7 @@ import { ViewType } from '../EditorViewManager';
 import { projectPersistenceService } from '../../services/ProjectPersistenceService';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { mediatorService } from '../../services/MediatorService';
+import { dataService } from '../../services/DataService';
 import { RefactoringManager } from '../RefactoringManager';
 import { hydrateObjects } from '../../utils/Serialization';
 import { safeDeepCopy } from '../../utils/DeepCopy';
@@ -212,6 +213,24 @@ export class EditorDataManager {
 
         console.log("[EditorDataManager] Projekt geladen und Stages initialisiert", this.host.project);
         this.autoSaveToLocalStorage();
+
+        // AUTO-SEED: Datenbestände der TDataStores automatisch vom Server laden, wenn im Editor
+        if (typeof window !== 'undefined') {
+            const dataStores = this.host.project.objects.filter((o: any) => o.className === 'TDataStore');
+            dataStores.forEach((ds: any) => {
+                const path = ds.storagePath || 'db.json';
+                console.log(`[EditorDataManager] Auto-seeding DB: ${path}`);
+                dataService.seedFromUrl(path, `/api/dev/data/${path}`).then(() => {
+                    // Refresh inspector if data arrived
+                    if (this.host.inspector) this.host.inspector.update();
+                });
+            });
+
+            // Immer auch db.json seeden als Default-Modellquelle
+            dataService.seedFromUrl('db.json', '/api/dev/data/db.json').then(() => {
+                if (this.host.inspector) this.host.inspector.update();
+            });
+        }
 
         // Show success notification
         setTimeout(() => {

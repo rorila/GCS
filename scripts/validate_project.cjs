@@ -54,6 +54,21 @@ const allObjects = new Set(); // Global Object IDs/Names
     allObjects.add(o.name);
 });
 
+// 1.1 Special: stage_blueprint as global source
+const blueprintStage = project.stages.find(s => s.id === 'stage_blueprint');
+if (blueprintStage) {
+    (blueprintStage.variables || []).forEach(v => {
+        allVariables.add(v.name);
+        allVariables.add(v.id);
+    });
+    (blueprintStage.actions || []).forEach(a => {
+        allActions.add(a.name);
+    });
+    (blueprintStage.tasks || []).forEach(t => {
+        allTasks.set(t.name, { stage: 'stage_blueprint', source: 'blueprint.tasks' });
+    });
+}
+
 // 2. Collect Stage Elements
 project.stages.forEach(stage => {
     const stageId = stage.id || stage.name;
@@ -125,8 +140,6 @@ project.stages.forEach(stage => {
                     usedActions.add(step.name);
                     // Check if action exists
                     if (!allActions.has(step.name)) {
-                        // Some actions might be system actions or not in local list?
-                        // But per rules, they should be in project.json actions list or global.
                         logWarning(`Task "${task.name}" in Stage "${stage.id}" uses Action "${step.name}" which is not defined in any Stage/Global list.`);
                     } else {
                         // Action exists, check its resources

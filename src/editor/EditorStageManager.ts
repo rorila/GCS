@@ -251,18 +251,28 @@ export class EditorStageManager {
         const activeStage = this.getActiveStage();
         if (!activeStage) return [];
 
-        let resolvedObjects = [...(activeStage.objects || [])];
+        let resolvedObjects = [...(activeStage.objects || []), ...(activeStage.variables || [])];
 
         if (activeStage.inheritsFrom && this.project.stages) {
             const template = this.project.stages.find(s => s.id === activeStage.inheritsFrom);
-            if (template && template.objects) {
-                const templateObjects = template.objects.map(o => ({ ...o, isInherited: true } as any));
-                // Local overrides inherited
-                templateObjects.forEach(tObj => {
-                    if (!resolvedObjects.find(o => o.id === tObj.id)) {
-                        resolvedObjects.push(tObj);
-                    }
-                });
+            if (template) {
+                if (template.objects) {
+                    const templateObjects = template.objects.map(o => ({ ...o, isInherited: true } as any));
+                    // Local overrides inherited
+                    templateObjects.forEach(tObj => {
+                        if (!resolvedObjects.find(o => o.id === tObj.id)) {
+                            resolvedObjects.push(tObj);
+                        }
+                    });
+                }
+                if (template.variables) {
+                    const templateVars = template.variables.map(v => ({ ...v, isInherited: true } as any));
+                    templateVars.forEach(tVar => {
+                        if (!resolvedObjects.find(o => o.id === tVar.id)) {
+                            resolvedObjects.push(tVar);
+                        }
+                    });
+                }
             }
         }
         return resolvedObjects;

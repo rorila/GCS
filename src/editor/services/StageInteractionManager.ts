@@ -33,6 +33,7 @@ export class StageInteractionManager {
     private isResizing: boolean = false;
     private resizeDirection: string = '';
     private dragStart: { x: number, y: number } | null = null;
+    private dragStartRel: { x: number, y: number } | null = null;
     private dragObjId: string | null = null;
     private initialSize: { w: number, h: number } | null = null;
     private initialPos: { left: number, top: number } | null = null;
@@ -41,7 +42,7 @@ export class StageInteractionManager {
 
     // Rectangle Selection
     private isRectSelecting: boolean = false;
-    private rectStart: { x: number, y: number } | null = null;
+    private rectStartRel: { x: number, y: number } | null = null;
     private selectionRectEl: HTMLElement | null = null;
 
     // Group Drag
@@ -49,6 +50,7 @@ export class StageInteractionManager {
     private initialDragPositions: Map<string, { x: number, y: number }> = new Map();
     private currentDragPath: DragPoint[] = [];
     private dragStartTime: number = 0;
+    private dragElements: Map<string, HTMLElement> = new Map();
 
     // Context Menu
     private contextMenuEl: HTMLElement | null = null;
@@ -104,17 +106,28 @@ export class StageInteractionManager {
             try {
                 const payload = JSON.parse(data);
                 if (payload.type === 'tool-drop' && this.host.onDropCallback) {
-                    const rect = this.host.element.getBoundingClientRect();
-                    const rawX = e.clientX - rect.left;
-                    const rawY = e.clientY - rect.top;
-                    const gridX = Math.floor(rawX / this.host.grid.cellSize);
-                    const gridY = Math.floor(rawY / this.host.grid.cellSize);
+                    const coords = this.getRelativeCoordinates(e);
+                    const gridX = Math.floor(coords.x / this.host.grid.cellSize);
+                    const gridY = Math.floor(coords.y / this.host.grid.cellSize);
                     this.host.onDropCallback(payload.toolType, gridX, gridY);
                 }
             } catch (err) {
                 console.error("Drop Error", err);
             }
         }
+    }
+
+    private getRelativeCoordinates(e: MouseEvent | DragEvent) {
+        const rect = this.host.element.getBoundingClientRect();
+        const scaleX = rect.width / this.host.element.offsetWidth;
+        const scaleY = rect.height / this.host.element.offsetHeight;
+
+        return {
+            x: (e.clientX - rect.left) / (scaleX || 1),
+            y: (e.clientY - rect.top) / (scaleY || 1),
+            scaleX: scaleX || 1,
+            scaleY: scaleY || 1
+        };
     }
 
     private handleMouseDown(e: MouseEvent) {
@@ -196,11 +209,15 @@ export class StageInteractionManager {
                 this.isDragging = true;
                 this.dragObjId = id;
                 this.dragStart = { x: e.clientX, y: e.clientY };
+                const coords = this.getRelativeCoordinates(e);
+                this.dragStartRel = { x: coords.x, y: coords.y };
 
+                this.dragElements.clear();
                 this.initialPositions.clear();
                 this.host.selectedIds.forEach(selectedId => {
                     const el = this.host.element.querySelector(`[data-id="${selectedId}"]`) as HTMLElement;
                     if (el) {
+                        this.dragElements.set(selectedId, el);
                         this.initialPositions.set(selectedId, {
                             left: parseFloat(el.style.left || '0'),
                             top: parseFloat(el.style.top || '0')
@@ -221,12 +238,9 @@ export class StageInteractionManager {
                 changeRecorder.startBatch(`Objekte verschoben`);
             }
         } else {
-            const rect = this.host.element.getBoundingClientRect();
             this.isRectSelecting = true;
-            this.rectStart = {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
-            };
+            const coords = this.getRelativeCoordinates(e);
+            this.rectStartRel = { x: coords.x, y: coords.y };
 
             if (isClientPanel) {
                 (this as any).pendingClientPanelId = hitObject.getAttribute('data-id');
@@ -242,10 +256,12 @@ export class StageInteractionManager {
 
     private handleMouseMove(e: MouseEvent) {
         if (this.host.runMode) {
-            if (this.isDragging && this.dragObjId && this.dragStart) {
+            if (this.isDragging && this.dragObjId && this.dragStartRel) {
                 e.preventDefault();
-                const dx = e.clientX - this.dragStart.x;
-                const dy = e.clientY - this.dragStart.y;
+                const coords = this.getRelativeCoordinates(e);
+                const dx = coords.x - this.dragStartRel.x;
+                const dy = coords.y - this.dragStartRel.y;
+
                 if (this.isCopyDrag && this.dragGhost) {
                     this.dragGhost.style.transform = `translate(${dx}px, ${dy}px)`;
                 } else {
@@ -258,12 +274,12 @@ export class StageInteractionManager {
 
 
 
-        if (this.isRectSelecting && this.rectStart) {
-            const stageRect = this.host.element.getBoundingClientRect();
-            const currentX = e.clientX - stageRect.left;
-            const currentY = e.clientY - stageRect.top;
+        if (this.isRectSelecting && this.rectStartRel) {
+            const coords = this.getRelativeCoordinates(e);
+            const dx = coords.x - this.rectStartRel.x;
+            const dy = coords.y - this.rectStartRel.y;
 
-            if (Math.abs(currentX - this.rectStart.x) < 5 && Math.abs(currentY - this.rectStart.y) < 5) return;
+            if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
 
             if (!this.selectionRectEl) {
                 this.selectionRectEl = document.createElement('div');
@@ -271,10 +287,10 @@ export class StageInteractionManager {
                 this.host.element.appendChild(this.selectionRectEl);
             }
 
-            const left = Math.min(this.rectStart.x, currentX);
-            const top = Math.min(this.rectStart.y, currentY);
-            const width = Math.abs(currentX - this.rectStart.x);
-            const height = Math.abs(currentY - this.rectStart.y);
+            const left = Math.min(this.rectStartRel.x, coords.x);
+            const top = Math.min(this.rectStartRel.y, coords.y);
+            const width = Math.abs(dx);
+            const height = Math.abs(dy);
 
             this.selectionRectEl.style.left = `${left}px`;
             this.selectionRectEl.style.top = `${top}px`;
@@ -284,9 +300,9 @@ export class StageInteractionManager {
         }
 
         if (this.isPlacing && this.placingGhostEl) {
-            const rect = this.host.element.getBoundingClientRect();
-            const gridX = Math.floor((e.clientX - rect.left) / this.host.grid.cellSize) * this.host.grid.cellSize;
-            const gridY = Math.floor((e.clientY - rect.top) / this.host.grid.cellSize) * this.host.grid.cellSize;
+            const coords = this.getRelativeCoordinates(e);
+            const gridX = Math.floor(coords.x / this.host.grid.cellSize) * this.host.grid.cellSize;
+            const gridY = Math.floor(coords.y / this.host.grid.cellSize) * this.host.grid.cellSize;
             this.placingGhostEl.style.left = `${gridX}px`;
             this.placingGhostEl.style.top = `${gridY}px`;
         }
@@ -297,8 +313,9 @@ export class StageInteractionManager {
             e.preventDefault();
             const el = this.host.element.querySelector(`[data-id="${this.dragObjId}"]`) as HTMLElement;
             if (el) {
-                const dx = e.clientX - this.dragStart.x;
-                const dy = e.clientY - this.dragStart.y;
+                const coords = this.getRelativeCoordinates(e);
+                const dx = coords.x - this.dragStartRel!.x;
+                const dy = coords.y - this.dragStartRel!.y;
                 const dir = this.resizeDirection;
                 const minSize = this.host.grid.cellSize;
 
@@ -328,14 +345,16 @@ export class StageInteractionManager {
                 el.style.width = `${newW}px`; el.style.height = `${newH}px`;
                 el.style.left = `${newLeft}px`; el.style.top = `${newTop}px`;
             }
-        } else if (this.isDragging) {
+        } else if (this.isDragging && this.dragStartRel) {
             e.preventDefault();
-            const dx = e.clientX - this.dragStart.x;
-            const dy = e.clientY - this.dragStart.y;
-            this.host.selectedIds.forEach(id => {
-                const el = this.host.element.querySelector(`[data-id="${id}"]`) as HTMLElement;
-                if (el) el.style.transform = `translate(${dx}px, ${dy}px)`;
+            const coords = this.getRelativeCoordinates(e);
+            const dx = coords.x - this.dragStartRel.x;
+            const dy = coords.y - this.dragStartRel.y;
+
+            this.dragElements.forEach((el) => {
+                el.style.transform = `translate(${dx}px, ${dy}px)`;
             });
+
             if (this.dragStartTime > 0) {
                 this.currentDragPath.push({ x: e.clientX, y: e.clientY, t: Date.now() - this.dragStartTime });
             }
@@ -344,9 +363,11 @@ export class StageInteractionManager {
 
     private handleMouseUp(e: MouseEvent) {
         if (this.host.runMode) {
-            if (this.isDragging && this.dragObjId && this.dragStart) {
-                const dx = e.clientX - this.dragStart.x;
-                const dy = e.clientY - this.dragStart.y;
+            if (this.isDragging && this.dragObjId && this.dragStartRel) {
+                const coords = this.getRelativeCoordinates(e);
+                const dx = coords.x - this.dragStartRel.x;
+                const dy = coords.y - this.dragStartRel.y;
+
                 if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
                     const el = this.host.element.querySelector(`[data-id="${this.dragObjId}"]`) as HTMLElement;
                     if (el) {
@@ -364,13 +385,13 @@ export class StageInteractionManager {
         }
 
         // Rect selection finish
-        if (this.isRectSelecting && this.rectStart) {
+        if (this.isRectSelecting && this.rectStartRel) {
             if (this.selectionRectEl) {
-                const stageRect = this.host.element.getBoundingClientRect();
-                const selL = Math.min(this.rectStart.x, e.clientX - stageRect.left);
-                const selT = Math.min(this.rectStart.y, e.clientY - stageRect.top);
-                const selR = Math.max(this.rectStart.x, e.clientX - stageRect.left);
-                const selB = Math.max(this.rectStart.y, e.clientY - stageRect.top);
+                const coords = this.getRelativeCoordinates(e);
+                const selL = Math.min(this.rectStartRel.x, coords.x);
+                const selT = Math.min(this.rectStartRel.y, coords.y);
+                const selR = Math.max(this.rectStartRel.x, coords.x);
+                const selB = Math.max(this.rectStartRel.y, coords.y);
 
                 this.host.element.querySelectorAll('.game-object').forEach(el => {
                     const htmlEl = el as HTMLElement;
@@ -390,13 +411,16 @@ export class StageInteractionManager {
                     if (this.host.onSelectCallback) this.host.onSelectCallback(Array.from(this.host.selectedIds));
                 }
             }
-            (this as any).pendingClientPanelId = null; this.isRectSelecting = false; this.rectStart = null;
+            (this as any).pendingClientPanelId = null; this.isRectSelecting = false; this.rectStartRel = null;
             return;
         }
 
         // Drag/Resize finish
-        if (this.dragObjId && this.dragStart) {
-            const dx = e.clientX - this.dragStart.x, dy = e.clientY - this.dragStart.y;
+        if (this.dragObjId && this.dragStartRel) {
+            const coords = this.getRelativeCoordinates(e);
+            const dx = coords.x - this.dragStartRel.x;
+            const dy = coords.y - this.dragStartRel.y;
+
             if (this.isResizing && this.initialSize && this.initialPos) {
                 const el = this.host.element.querySelector(`[data-id="${this.dragObjId}"]`) as HTMLElement;
                 if (el) {
@@ -408,7 +432,7 @@ export class StageInteractionManager {
                 this.host.selectedIds.forEach(id => {
                     const el = this.host.element.querySelector(`[data-id="${id}"]`) as HTMLElement;
                     if (el) {
-                        el.style.transform = 'none';
+                        el.style.transform = '';
                         const iP = this.initialPositions.get(id), iG = this.initialDragPositions.get(id);
                         if (iP && iG) {
                             const gX = Math.round((iP.left + dx) / this.host.grid.cellSize), gY = Math.round((iP.top + dy) / this.host.grid.cellSize);
@@ -423,11 +447,14 @@ export class StageInteractionManager {
                     }
                 });
                 changeRecorder.endBatch();
+                this.host.render(); // Ensure new coordinates are applied to DOM
             }
         }
 
-        this.isDragging = false; this.isResizing = false; this.resizeDirection = ''; this.dragObjId = null; this.dragStart = null;
+        this.isDragging = false; this.isResizing = false; this.resizeDirection = ''; this.dragObjId = null; this.dragStart = null; this.dragStartRel = null;
         this.initialSize = null; this.initialPos = null; this.initialPositions.clear(); this.initialDragPositions.clear();
+        this.dragElements.clear();
+        this.isRectSelecting = false; this.rectStartRel = null;
         this.currentDragPath = []; this.dragStartTime = 0;
 
         if (this.isPlacing) {

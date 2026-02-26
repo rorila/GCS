@@ -128,6 +128,10 @@ export class FlowNodeFactory {
                 if (kind === 'list') { node.data.variable.type = 'list'; node.data.variable.initialValue = '[]'; }
                 if (kind === 'random') { node.data.variable.min = 0; node.data.variable.max = 100; node.data.variable.isRandom = true; }
 
+                if (this.host.project) {
+                    (node as FlowVariable).setProjectRef(this.host.project);
+                }
+
                 (node as FlowVariable).updateVisuals?.();
                 break;
             }

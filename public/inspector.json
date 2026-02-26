@@ -384,6 +384,7 @@
             "x": 0,
             "y": 36,
             "caption": "🗑️ Delete Object",
+            "action": "delete",
             "width": 30,
             "height": 2,
             "style": {

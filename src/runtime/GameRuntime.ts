@@ -244,6 +244,10 @@ export class GameRuntime implements IVariableHost {
 
             console.log(`[GameRuntime] Global Vars AFTER reactive clear:`, this.reactiveRuntime.getContext());
 
+            // Register ALL objects including global variables.
+            // Global variables persist via clear(false) + cachedGlobalObjects.
+            // The context resolution in ReactiveRuntime.getContext() handles
+            // the priority (variable VALUE over component proxy) correctly.
             this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
             this.reactiveRuntime.setVariable('isSplashActive', false);
 

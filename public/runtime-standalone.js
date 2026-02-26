@@ -1255,7 +1255,13 @@
             });
           }
           const obj = self.objectsByName.get(prop);
-          if (obj !== void 0) return obj;
+          if (obj !== void 0) {
+            if (obj.isVariable === true || obj.className?.includes("Variable")) {
+              const varValue = self.variables.get(prop);
+              if (varValue !== void 0) return varValue;
+            }
+            return obj;
+          }
           const variable = self.variables.get(prop);
           if (variable !== void 0) return variable;
           return self.objectsById.get(prop);
@@ -1533,7 +1539,7 @@
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        if (storagePath === "data.json") {
+        if (storagePath === "db.json") {
           console.log(`[DataService] Validating seed data. Keys: ${Object.keys(data).join(", ")}`);
         }
         await this.writeDb(storagePath, data);
@@ -1641,6 +1647,21 @@
       return Object.keys(db).filter((key) => Array.isArray(db[key]));
     }
     /**
+     * Synchrones Auslesen der Modelle (nur für Browser/Editor).
+     */
+    getModelsSync(storagePath) {
+      if (typeof window === "undefined") return [];
+      try {
+        const key = `gcs_db_${storagePath}`;
+        const content = localStorage.getItem(key);
+        if (!content) return [];
+        const db = JSON.parse(content);
+        return Object.keys(db).filter((k) => Array.isArray(db[k]));
+      } catch (e) {
+        return [];
+      }
+    }
+    /**
      * Liefert die Felder (Keys) des ersten Eintrags eines Modells.
      * Dient als "Schema-Erkennung" für IntelliSense.
      */
@@ -1657,6 +1678,31 @@
         }
       });
       return Array.from(allKeys);
+    }
+    /**
+     * Synchrones Auslesen der Felder eines Modells (nur für Browser/Editor).
+     */
+    getModelFieldsSync(storagePath, modelName) {
+      if (typeof window === "undefined") return [];
+      try {
+        const key = `gcs_db_${storagePath}`;
+        const content = localStorage.getItem(key);
+        if (!content) return [];
+        const db = JSON.parse(content);
+        let collection = db[modelName];
+        if (!collection && !modelName.endsWith("s")) collection = db[modelName + "s"];
+        if (!collection && modelName.endsWith("s")) collection = db[modelName.slice(0, -1)];
+        if (!Array.isArray(collection) || collection.length === 0) return [];
+        const allKeys = /* @__PURE__ */ new Set();
+        collection.forEach((item) => {
+          if (typeof item === "object" && item !== null) {
+            Object.keys(item).forEach((key2) => allKeys.add(key2));
+          }
+        });
+        return Array.from(allKeys);
+      } catch (e) {
+        return [];
+      }
     }
     /**
      * Interne Methode zum Lesen der gesamten DB-Struktur

@@ -18,6 +18,7 @@ export interface IViewHost {
     inspector: InspectorHost | null;
     debugLog: TDebugLog | null;
     setRunMode(active: boolean): void;
+    isRunning(): boolean;
     refreshJSONView(): void;
     getActiveStage(): StageDefinition | null;
     render(): void;

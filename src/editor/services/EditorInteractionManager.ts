@@ -8,6 +8,9 @@ export interface EditorInteractionHost {
     runtimeObjects: any[] | null;
 
     addObject(type: string, x: number, y: number): void;
+    removeObject(id: string): void;
+    removeObjectWithConfirm(id: string): void;
+    removeMultipleObjectsWithConfirm(ids: string[]): void;
     selectObject(id: string | null): void;
     findObjectById(id: string): any;
     render(): void;
@@ -54,6 +57,7 @@ export class EditorInteractionManager {
             if (obj) {
                 obj.x = newX;
                 obj.y = newY;
+                this.host.render();
             }
         };
 
@@ -109,6 +113,15 @@ export class EditorInteractionManager {
                 this.host.render();
                 this.host.selectObject(newObj.id);
                 this.host.autoSaveToLocalStorage();
+            }
+        };
+
+        // --- NEW: Lösch-Events von der Stage verarbeiten (Delete-Key & Kontextmenü) ---
+        this.host.stage.onEvent = (id: string, eventName: string, data?: any) => {
+            if (eventName === 'delete') {
+                this.host.removeObjectWithConfirm(id);
+            } else if (eventName === 'deleteMultiple' && Array.isArray(data)) {
+                this.host.removeMultipleObjectsWithConfirm(data);
             }
         };
     }

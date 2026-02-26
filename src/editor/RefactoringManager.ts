@@ -1,5 +1,14 @@
 import { GameProject, SequenceItem } from '../model/types';
 
+export interface UsageReport {
+    totalCount: number;
+    locations: {
+        type: 'stage' | 'task' | 'action' | 'event' | 'object';
+        name: string;
+        details?: string;
+    }[];
+}
+
 export class RefactoringManager {
     /**
      * Renames a variable project-wide
@@ -581,10 +590,10 @@ export class RefactoringManager {
     }
 
     /**
-     * Checks how many times an action is used across all tasks and stages.
+     * Returns a report on where an action is used project-wide.
      */
-    public static getActionUsageCount(project: GameProject, actionName: string): number {
-        let count = 0;
+    public static getActionUsageReport(project: GameProject, actionName: string): UsageReport {
+        const report: UsageReport = { totalCount: 0, locations: [] };
 
         const allTasks = [...(project.tasks || [])];
         if (project.stages) {
@@ -594,42 +603,113 @@ export class RefactoringManager {
         }
 
         allTasks.forEach(task => {
-            // 1. Check in ActionSequence
+            let usageInTask = 0;
             if (task.actionSequence) {
                 this.processSequenceItems(task.actionSequence, (item) => {
                     const anyItem = item as any;
-                    // Debug logging for usage check
-                    // console.log(`[RefactoringManager] Checking usage in ${task.name}: ${anyItem.name} (${anyItem.type}) vs ${actionName}`);
-
-                    if (item.type === 'action' && item.name === actionName) {
-                        console.log(`[RefactoringManager] Found usage (Action) in ${task.name}: ${actionName}`);
-                        count++;
-                    } else if (anyItem.type === 'data_action' && anyItem.action === actionName) {
-                        console.log(`[RefactoringManager] Found usage (DataAction.action) in ${task.name}: ${actionName}`);
-                        count++;
-                    }
-                    else if (anyItem.type === 'data_action' && anyItem.name === actionName) {
-                        console.log(`[RefactoringManager] Found usage (DataAction.name) in ${task.name}: ${actionName}`);
-                        count++;
-                    }
+                    if ((anyItem.type === 'action' || anyItem.type === 'data_action') && anyItem.name === actionName) usageInTask++;
                 });
             }
-
-            // 2. Check in FlowChart (Visual nodes)
-            // Note: FlowChart nodes usually map to sequence items, but we check to be thorough
-            // However, counting both might double-count.
-            // Strategy: We count Logical Usages (Sequence). 
-            // If FlowCharts are purely visual representations of Sequence, sequence check is enough.
-            // BUT: In current architecture, FlowCharts might exist independently or as Source of Truth.
-
-            // Let's rely on Sequence as the primary logic container for now, as that's what the runtime executes.
-            // If the user deletes a node in Flow Editor, they are effectively removing it from the FlowChart.
-            // If we only check Sequence, we might miss "unconnected" nodes?
-            // "ActionVisualisierungsSynchronisation" implies Sequence is Truth.
+            if (usageInTask > 0) {
+                report.totalCount += usageInTask;
+                report.locations.push({ type: 'task', name: task.name, details: `${usageInTask}x verwendet` });
+            }
         });
 
-        return count;
+        // Check if other actions use this action (e.g. nested / branching - handled by processSequenceItems already indirectly if parts of tasks)
+        // But some actions are just in the project.actions list
+        return report;
     }
+
+    /**
+     * Backward compatibility or simple count
+     */
+    public static getActionUsageCount(project: GameProject, actionName: string): number {
+        return this.getActionUsageReport(project, actionName).totalCount;
+    }
+
+    /**
+     * Returns a report on where a task is used project-wide ($taskName, ${taskName}, or mapped in stage objects).
+     */
+    public static getTaskUsageReport(project: GameProject, taskName: string): UsageReport {
+        const report: UsageReport = { totalCount: 0, locations: [] };
+
+        // 1. Scan mappings in objects (Global + Stage)
+        const scanObjects = (objs: any[], contextName: string) => {
+            if (!objs) return;
+            objs.forEach(obj => {
+                if (obj.Tasks) {
+                    Object.keys(obj.Tasks).forEach(evt => {
+                        if (obj.Tasks[evt] === taskName) {
+                            report.totalCount++;
+                            report.locations.push({ type: 'object', name: obj.name, details: `Event '${evt}' in ${contextName}` });
+                        }
+                    });
+                }
+            });
+        };
+
+        scanObjects(project.objects || [], 'Global');
+        if (project.stages) {
+            project.stages.forEach(s => scanObjects(s.objects || [], `Stage ${s.name}`));
+        }
+
+        // 2. Scan interpolation in strings (e.g. dynamic task names)
+        const searchPattern = new RegExp(`\\$?\{?${taskName}\}?`, 'g');
+        const scanInterpolation = (obj: any, type: any, name: string) => {
+            if (!obj) return;
+            const str = JSON.stringify(obj);
+            const matches = str.match(searchPattern);
+            if (matches) {
+                report.totalCount += matches.length;
+                report.locations.push({ type, name, details: `${matches.length} Treffer in Interpolation` });
+            }
+        };
+
+        if (project.stages) {
+            project.stages.forEach((s: any) => {
+                scanInterpolation(s.tasks, 'stage', `Stage: ${s.name} (Other Tasks)`);
+                scanInterpolation(s.actions, 'stage', `Stage: ${s.name} (Actions)`);
+            });
+        }
+        scanInterpolation(project.tasks, 'task', 'Globale Tasks');
+        scanInterpolation(project.actions, 'action', 'Globale Actions');
+
+        return report;
+    }
+
+    /**
+     * Returns a report on where an object (component) is used project-wide.
+     */
+    public static getObjectUsageReport(project: GameProject, objectName: string): UsageReport {
+        const report: UsageReport = { totalCount: 0, locations: [] };
+
+        // Scan all actions and tasks for references to this object name
+        const searchPattern = new RegExp(`(?:"${objectName}")|(?:'${objectName}')|(?:\\$\\{${objectName}\\})`, 'g');
+
+        const scan = (obj: any, type: any, name: string) => {
+            if (!obj) return;
+            const str = JSON.stringify(obj);
+            const matches = str.match(searchPattern);
+            if (matches) {
+                report.totalCount += matches.length;
+                report.locations.push({ type, name, details: `${matches.length} Referenzen` });
+            }
+        };
+
+        if (project.stages) {
+            project.stages.forEach((s: any) => {
+                scan(s.tasks, 'stage', `Stage: ${s.name} (Tasks)`);
+                scan(s.actions, 'stage', `Stage: ${s.name} (Actions)`);
+            });
+        }
+        scan(project.tasks, 'task', 'Globale Tasks');
+        scan(project.actions, 'action', 'Globale Actions');
+
+        return report;
+    }
+
+
 
     /**
      * Deletes an action project-wide (references in flows and sequences)
@@ -686,18 +766,19 @@ export class RefactoringManager {
      * Deletes a task project-wide
      */
     public static deleteTask(project: GameProject, taskName: string): void {
-        console.log(`[Refactoring] Deleting task "${taskName}" project-wide...`);
+        const lowerName = taskName.toLowerCase();
+        console.log(`[Refactoring] Deleting task "${taskName}" (Normalized: ${lowerName}) project-wide...`);
 
         // 1. Remove from global tasks
         if (project.tasks) {
-            project.tasks = project.tasks.filter(t => t.name !== taskName);
+            project.tasks = project.tasks.filter(t => t.name !== taskName && t.name.toLowerCase() !== lowerName);
         }
 
         // 2. Remove from stage tasks
         if (project.stages) {
             project.stages.forEach(stage => {
                 if (stage.tasks) {
-                    stage.tasks = stage.tasks.filter(t => t.name !== taskName);
+                    stage.tasks = stage.tasks.filter(t => t.name !== taskName && t.name.toLowerCase() !== lowerName);
                 }
             });
         }
@@ -706,8 +787,9 @@ export class RefactoringManager {
         const cleanupEvents = (events: any) => {
             if (!events) return;
             Object.keys(events).forEach(key => {
-                if (events[key] === taskName) {
-                    console.log(`[Refactoring] Removing event mapping: ${key} -> ${taskName}`);
+                const mappedVal = events[key];
+                if (typeof mappedVal === 'string' && (mappedVal === taskName || mappedVal.toLowerCase() === lowerName)) {
+                    console.log(`[Refactoring] Removing event mapping: ${key} -> ${mappedVal}`);
                     delete events[key];
                 }
             });
@@ -728,46 +810,64 @@ export class RefactoringManager {
         }
 
         // 5. Remove flow chart (from project and all stages)
-        if (project.flowCharts) delete project.flowCharts[taskName];
-        if (project.stages) {
-            project.stages.forEach(s => {
-                if (s.flowCharts) delete s.flowCharts[taskName];
+        if (project.flowCharts) {
+            Object.keys(project.flowCharts).forEach(key => {
+                if (key === taskName || key.toLowerCase() === lowerName) {
+                    delete project.flowCharts![key];
+                }
             });
         }
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.flowCharts) {
+                    Object.keys(s.flowCharts).forEach(key => {
+                        if (key === taskName || key.toLowerCase() === lowerName) {
+                            delete s.flowCharts![key];
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    /**
+     * Returns a report on where a variable is used project-wide.
+     */
+    public static getVariableUsageReport(project: any, varName: string): UsageReport {
+        const report: UsageReport = { totalCount: 0, locations: [] };
+        const searchPattern = new RegExp(`\\$?\{?${varName}\}?`, 'g');
+
+        const scan = (obj: any, type: any, name: string) => {
+            if (!obj) return;
+            const str = JSON.stringify(obj);
+            const matches = str.match(searchPattern);
+            if (matches) {
+                report.totalCount += matches.length;
+                report.locations.push({ type, name, details: `${matches.length} Treffer` });
+            }
+        };
+
+        if (project.stages) {
+            project.stages.forEach((s: any) => {
+                scan(s.objects, 'stage', `Stage: ${s.name} (Objekte)`);
+                scan(s.tasks, 'stage', `Stage: ${s.name} (Tasks)`);
+                scan(s.actions, 'stage', `Stage: ${s.name} (Actions)`);
+                scan(s.events, 'stage', `Stage: ${s.name} (Events)`);
+            });
+        }
+
+        scan(project.tasks, 'task', 'Globale Tasks');
+        scan(project.actions, 'action', 'Globale Actions');
+        if ((project as any).objects) scan((project as any).objects, 'object', 'Globale Objekte');
+
+        return report;
     }
 
     /**
      * Checks how many times a variable is used project-wide ($variableName or ${variableName})
      */
     public static getVariableUsageCount(project: any, varName: string): number {
-        let count = 0;
-        const searchPattern = new RegExp(`\\$?\{?${varName}\}?`, 'g');
-
-        const scanItem = (obj: any) => {
-            if (!obj) return;
-            const str = JSON.stringify(obj);
-            const matches = str.match(searchPattern);
-            if (matches) {
-                count += matches.length;
-            }
-        };
-
-        // Scan all stages
-        if (project.stages) {
-            project.stages.forEach((s: any) => {
-                scanItem(s.objects);
-                scanItem(s.tasks);
-                scanItem(s.actions);
-                scanItem(s.events);
-            });
-        }
-
-        // Scan global elements
-        scanItem(project.tasks);
-        scanItem(project.actions);
-        if ((project as any).objects) scanItem((project as any).objects);
-
-        return count;
+        return this.getVariableUsageReport(project, varName).totalCount;
     }
 
     /**
@@ -946,6 +1046,25 @@ export class RefactoringManager {
             report.push(`${diffSize} doppelte globale Tasks wurden entfernt (bereits in Stages vorhanden).`);
         }
 
+        // --- NEW: CROSS-STAGE DUPLICATION CLEANUP ---
+        // If a task exists in multiple stages, we keep only ONE (the first one found)
+        const seenTasks = new Set<string>();
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.tasks) {
+                    s.tasks = s.tasks.filter(t => {
+                        const lower = t.name.toLowerCase();
+                        if (seenTasks.has(lower)) {
+                            report.push(`Task-Duplikat "${t.name}" aus Stage "${s.name}" entfernt.`);
+                            return false;
+                        }
+                        seenTasks.add(lower);
+                        return true;
+                    });
+                }
+            });
+        }
+
         // Now collect all names for flowChart cleanup (including the remaining root tasks)
         project.tasks.forEach(t => taskNames.add(t.name));
         const cleanFlowCharts = (charts: Record<string, any> | undefined, label: string) => {
@@ -966,9 +1085,13 @@ export class RefactoringManager {
             project.stages.forEach(s => cleanFlowCharts(s.flowCharts, `Stage ${s.name}`));
         }
 
-        // --- NEW: VARIABLE DUPLICATION CLEANUP ---
-        // Identify all global variable names
+        // Identify all global variable names (from root AND blueprint stage)
         const globalVarNames = new Set((project.variables || []).map(v => v.name));
+        const blueprintStage = project.stages?.find(s => s.id === 'stage_blueprint');
+        if (blueprintStage && blueprintStage.variables) {
+            blueprintStage.variables.forEach((v: any) => globalVarNames.add(v.name));
+        }
+
         if (project.stages) {
             project.stages.forEach(stage => {
                 if (stage.variables) {
@@ -978,8 +1101,9 @@ export class RefactoringManager {
                     // 2. Already present in the root global variables list (by name)
                     if (stage.id !== 'stage_blueprint') {
                         stage.variables = stage.variables.filter((v: any) => {
-                            const isGlobal = v.scope === 'global' || globalVarNames.has(v.name);
-                            return !isGlobal;
+                            // Only remove if it's ALREADY present in the global source of truth
+                            const isDuplicateOfGlobal = globalVarNames.has(v.name);
+                            return !isDuplicateOfGlobal;
                         });
                     }
 

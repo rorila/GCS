@@ -127,8 +127,22 @@ export class InspectorHost {
         const type = document.createElement('span');
         type.style.color = '#888';
         type.style.fontSize = '10px';
+        type.style.marginRight = '10px';
         type.innerText = obj.className || obj.constructor?.name || 'Object';
         header.appendChild(type);
+
+        // --- NEW: Delete Button ---
+        if (this.onObjectDelete) {
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '🗑️';
+            delBtn.title = 'Löschen';
+            delBtn.style.cssText = 'background:none; border:none; color:#ff5252; cursor:pointer; font-size:14px; padding:0 5px;';
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.onObjectDelete!(obj);
+            };
+            header.appendChild(delBtn);
+        }
 
         return header;
     }
@@ -281,6 +295,11 @@ export class InspectorHost {
                 // If we still don't have an array, try to get from source
                 if (!Array.isArray(options)) {
                     options = this.renderer.getOptionsFromSource(def);
+                }
+
+                // If specialized source is not found in registry, try resolving from context
+                if ((!Array.isArray(options) || options.length === 0) && def.source) {
+                    options = this.resolveRawValue(`\${${def.source}}`, obj);
                 }
 
                 const select = this.renderer.renderSelect(Array.isArray(options) ? options : [], value, def.placeholder);

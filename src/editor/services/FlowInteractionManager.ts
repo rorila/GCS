@@ -20,6 +20,7 @@ export interface FlowInteractionHost {
     deleteNode(node: FlowElement): void;
     deleteConnection(conn: FlowConnection): void;
     deselectAll(emitEvent?: boolean): void;
+    selectConnection(conn: FlowConnection | null): void;
     syncToProject(): void;
     handleNodeDoubleClick(node: FlowElement): void;
 
@@ -50,20 +51,20 @@ export class FlowInteractionManager {
     public handleCanvasContextMenu(e: MouseEvent) {
         if (e.target === this.host.canvas) {
             e.preventDefault();
-            this.host.menuProvider.showCanvasContextMenu(e);
+            this.host.menuProvider.handleCanvasContextMenu(e);
         }
     }
 
     public handleNodeContextMenu(e: MouseEvent, node: FlowElement) {
         e.preventDefault();
         e.stopPropagation();
-        this.host.menuProvider.showNodeContextMenu(e, node);
+        this.host.menuProvider.handleNodeContextMenu(e, node);
     }
 
     public handleConnectionContextMenu(e: MouseEvent, conn: FlowConnection) {
         e.preventDefault();
         e.stopPropagation();
-        this.host.menuProvider.showConnectionContextMenu(e, conn);
+        this.host.menuProvider.handleConnectionContextMenu(e, conn);
     }
 
     public handleDrop(e: DragEvent) {
@@ -192,9 +193,7 @@ export class FlowInteractionManager {
                 this.host.activeHandle.dataset.isStart = 'false';
                 this.host.activeConnection = conn;
 
-                this.host.deselectAll();
-                conn.select();
-                this.host.selectedConnection = conn;
+                this.host.selectConnection(conn);
             });
         };
 
@@ -239,9 +238,7 @@ export class FlowInteractionManager {
                 this.host.activeHandle = handle;
                 this.host.activeHandle.dataset.isStart = isStart ? 'true' : 'false';
                 this.host.activeConnection = conn;
-                this.host.deselectAll();
-                conn.select();
-                this.host.selectedConnection = conn;
+                this.host.selectionManager.selectConnection(conn);
             });
         };
 
@@ -278,19 +275,18 @@ export class FlowInteractionManager {
         let targetAnchorType: string | null = null;
 
         // More robust hit test: Check all anchors on all nodes
-        const padding = 5; // 5px buffer for better hit-test reliability
+        const padding = 15; // Increased buffer for direct anchor hits
+        const bodyMagnetSize = 25; // "Magnet" area around node bodies
+
+        // 1. PRIORITY 1: Direct Anchor Hit Test (Check all nodes first)
         for (const node of this.host.nodes) {
             const anchors = node.getElement().querySelectorAll('.flow-anchor');
-            let found = false;
             for (const anchor of Array.from(anchors) as HTMLElement[]) {
                 const arect = anchor.getBoundingClientRect();
-                // Check if mouse is within anchor bounds (including padding)
                 if (e.clientX >= arect.left - padding && e.clientX <= arect.right + padding &&
                     e.clientY >= arect.top - padding && e.clientY <= arect.bottom + padding) {
 
                     targetNode = node;
-
-                    // Determine anchor type from class or dataset
                     if (anchor.classList.contains('input')) targetAnchorType = 'input';
                     else if (anchor.classList.contains('output')) targetAnchorType = 'output';
                     else if (anchor.classList.contains('top')) targetAnchorType = 'top';
@@ -301,12 +297,48 @@ export class FlowInteractionManager {
                     else if (anchor.classList.contains('false')) targetAnchorType = 'false';
                     else if (anchor.dataset.branch) targetAnchorType = anchor.dataset.branch;
 
-                    console.log(`[FlowInteraction] Target anchor found: node=${node.Name}, type=${targetAnchorType}`);
-                    found = true;
+                    console.log(`[FlowInteraction] Direct anchor hit: node=${node.Name}, type=${targetAnchorType}`);
                     break;
                 }
             }
-            if (found) break;
+            if (targetNode) break;
+        }
+
+        // 2. PRIORITY 2: Node Body Magnet Hit (If no direct anchor hit found)
+        if (!targetNode) {
+            for (const node of this.host.nodes) {
+                const nrect = node.getElement().getBoundingClientRect();
+                if (e.clientX >= nrect.left - bodyMagnetSize && e.clientX <= nrect.right + bodyMagnetSize &&
+                    e.clientY >= nrect.top - bodyMagnetSize && e.clientY <= nrect.bottom + bodyMagnetSize) {
+
+                    targetNode = node;
+
+                    // Determine NEAREST anchor type
+                    const availableTypes: any[] = ['input', 'output', 'top', 'bottom'];
+                    if (node instanceof FlowCondition) availableTypes.push('true', 'false');
+                    if (node.getType() === 'Action' && (node as any).actionType === 'data_action') availableTypes.push('success', 'error');
+
+                    let minDistance = Infinity;
+                    let nearestType = isStart ? 'output' : 'input';
+
+                    const rect = this.host.canvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left + this.host.canvas.scrollLeft;
+                    const mouseY = e.clientY - rect.top + this.host.canvas.scrollTop;
+
+                    availableTypes.forEach(type => {
+                        const pos = node.getAnchorPosition(type);
+                        const dist = Math.sqrt((pos.x - mouseX) ** 2 + (pos.y - mouseY) ** 2);
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            nearestType = type;
+                        }
+                    });
+
+                    targetAnchorType = nearestType;
+                    console.log(`[FlowInteraction] Magnet hit: node=${node.Name}, nearest type=${targetAnchorType}`);
+                    break;
+                }
+            }
         }
 
         if (targetNode) {
@@ -319,6 +351,9 @@ export class FlowInteractionManager {
             }
             this.host.activeConnection.updatePosition();
             this.host.syncToProject();
+
+            // Re-select to update Inspector with final attachment state
+            this.host.selectionManager.selectConnection(this.host.activeConnection);
         } else {
             // ONLY delete if NO targets exist on either side (relaxed from "both must be set")
             // This prevents existing connections from disappearing when re-adjusting one end

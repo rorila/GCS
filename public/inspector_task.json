@@ -52,5 +52,37 @@
             ],
             "allowEmpty": false
         }
+    ],
+    "footer": [
+        {
+            "name": "DeleteBtn",
+            "className": "TButton",
+            "caption": "Löschen",
+            "action": "delete",
+            "style": {
+                "backgroundColor": "#d11a2a",
+                "flex": "0 1 auto"
+            }
+        },
+        {
+            "name": "CancelBtn",
+            "className": "TButton",
+            "caption": "Abbrechen",
+            "action": "cancel",
+            "style": {
+                "backgroundColor": "#444",
+                "flex": "0 1 auto"
+            }
+        },
+        {
+            "name": "SaveBtn",
+            "className": "TButton",
+            "caption": "Speichern",
+            "action": "save",
+            "style": {
+                "backgroundColor": "#0e639c",
+                "flex": "1"
+            }
+        }
     ]
 }

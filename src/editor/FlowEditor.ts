@@ -534,16 +534,29 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         }
 
         // --- Global Section ---
-        // Nur anzeigen, wenn wir in der Blueprint-Stage oder Root (Legacy) sind.
-        if (!activeStage || isBlueprint) {
+        // FIX: IMMER ANZEIGEN, damit man von anderen Stages aus auf globale Tasks springen kann
+        const showGlobalAnyway = true;
+        if (!activeStage || isBlueprint || showGlobalAnyway) {
             const globalGroup = document.createElement('optgroup');
             globalGroup.label = isBlueprint ? '🔷 Blueprint / Global' : 'Global / Projekt (Infrastruktur)';
 
+            // 0. Blueprint Main Flow (SSoT für Infrastructure)
+            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint');
+            if (blueprintStage) {
+                const bpGlobalOpt = document.createElement('option');
+                bpGlobalOpt.value = 'global';
+                bpGlobalOpt.text = 'Main Flow (Blueprint)';
+                // Wenn wir in einer anderen Stage sind, bezieht sich 'global' auf die Stage. 
+                // Wenn wir in Blueprint sind, bezieht sich 'global' auf Blueprint.
+                bpGlobalOpt.selected = isBlueprint && this.currentFlowContext === 'global';
+                globalGroup.appendChild(bpGlobalOpt);
+            }
+
             const globalTasksFound = new Set<string>();
 
-            // 0. Blueprint-Stage-eigene FlowCharts (SSoT für globale Tasks)
-            if (activeStage?.flowCharts) {
-                Object.keys(activeStage.flowCharts).forEach(key => {
+            // 1. Blueprint-Stage-eigene FlowCharts (SSoT für globale Tasks)
+            if (blueprintStage?.flowCharts) {
+                Object.keys(blueprintStage.flowCharts).forEach(key => {
                     if (key !== 'global') {
                         const opt = document.createElement('option');
                         opt.value = key;
@@ -555,9 +568,9 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
                 });
             }
 
-            // 0b. Blueprint-Stage-eigene Tasks ohne FlowChart
-            if (activeStage?.tasks) {
-                activeStage.tasks.forEach(task => {
+            // 2. Blueprint-Stage-eigene Tasks ohne FlowChart
+            if (blueprintStage?.tasks) {
+                blueprintStage.tasks.forEach(task => {
                     if (!globalTasksFound.has(task.name)) {
                         const opt = document.createElement('option');
                         opt.value = task.name;
@@ -892,6 +905,10 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
      */
     public selectNodeById(nodeId: string | null): void {
         this.selectionManager.selectNodeById(nodeId);
+    }
+
+    public selectConnection(conn: FlowConnection | null) {
+        this.selectionManager.selectConnection(conn);
     }
 
     /**

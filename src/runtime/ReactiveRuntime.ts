@@ -234,7 +234,18 @@ export class ReactiveRuntime {
                 // Normal access (Root)
                 // Priority 1: Registered Object (Proxy/Component)
                 const obj = self.objectsByName.get(prop);
-                if (obj !== undefined) return obj;
+
+                if (obj !== undefined) {
+                    // CRITICAL: For variable components, the runtime value takes priority.
+                    // Without this, ${currentUser.name} returns the component's .name ('currentUser')
+                    // instead of the assigned value's .name ('Rolf').
+                    // See UC: GlobalVariablePersistence, GlobalElementPersistenceFix
+                    if (obj.isVariable === true || obj.className?.includes('Variable')) {
+                        const varValue = self.variables.get(prop);
+                        if (varValue !== undefined) return varValue;
+                    }
+                    return obj;
+                }
 
                 // Priority 2: Variable Value
                 const variable = self.variables.get(prop);

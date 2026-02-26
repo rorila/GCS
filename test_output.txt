@@ -1,0 +1,17 @@
+
+> game-builder-v1@0.0.0 test
+> npx tsx scripts/test_runner.ts
+
+===================================================
+­ƒøí´©Å  GCS REGRESSION TEST SUITE
+===================================================
+
+­ƒÅâ Starte Logik-Tests (Login)...
+­ƒÅâ Starte Smart Mapping & Discovery Tests...
+­ƒÅâ Starte Unification & Auto-Unwrap Tests...
+­ƒÅâ Starte TTable Smart-Unwrap Tests...
+­ƒÅâ Starte SELECT COUNT(*) Tests...
+
+­ƒôä Report generiert: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\docs\QA_Report.md
+
+Ô£à ALLE KRITISCHEN PFADE VERIFIZIERT

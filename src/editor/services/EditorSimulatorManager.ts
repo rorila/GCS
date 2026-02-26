@@ -1,7 +1,7 @@
 import { GameProject } from '../../model/types';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { serviceRegistry } from '../../services/ServiceRegistry';
-import { dataService } from '../../services/DataService';
+
 
 export interface EditorSimulatorHost {
     project: GameProject;
@@ -69,69 +69,55 @@ export class EditorSimulatorManager {
 
                 console.log(`[ApiSimulator] Simulating (${storageFile}): ${method} ${path}`, { body, query });
 
-                // --- SPECIAL PLATFORM ROUTING ---
+                // --- SPECIAL PLATFORM ROUTING (Proxy to Server) ---
                 if (path === '/api/platform/login' && method === 'POST') {
-                    console.log(`[ApiSimulator] Simulating Platform Login`, body);
-                    const authCode = body?.authCode;
-                    if (!authCode) {
-                        console.warn(`[ApiSimulator] Login Error: Missing authCode in body`);
-                        return { error: 'Missing authCode', status: 400 };
-                    }
-
-                    const targetFile = storageFile || 'db.json';
-                    const users = await dataService.findItems(targetFile, 'users', {});
-                    const user = users.find((u: any) => {
-                        const userAuth = Array.isArray(u.authCode) ? u.authCode.join('') : String(u.authCode);
-                        const targetAuth = Array.isArray(authCode) ? authCode.join('') : String(authCode);
-                        return userAuth === targetAuth;
-                    });
-
-                    if (user) {
-                        console.log(`[ApiSimulator] Login SUCCESS for: ${user.name} (ID: ${user.id})`);
-                        return {
-                            success: true,
-                            token: 'sim-jwt-token-' + user.id,
-                            user: {
-                                id: user.id,
-                                name: user.name,
-                                role: user.role,
-                                avatar: user.avatar
-                            }
-                        };
-                    } else {
-                        console.warn(`[ApiSimulator] Login FAILED: authCode "${authCode}" not found in ${targetFile}`);
-                        return { error: 'Invalid authCode', status: 401 };
-                    }
-                }
-
-                // --- AUTOMATIC RESOURCE ROUTING (Keep it simple) ---
-                if (path.startsWith('/api/data/')) {
-                    const parts = path.split('/');
-                    const resource = parts[3];
-
-                    if (resource) {
-                        try {
-                            const targetFile = storageFile || 'db.json';
-
-                            if (method === 'GET') {
-                                console.log(`[ApiSimulator] Auto-GET for resource: ${resource}`);
-                                const operator = query.operator || '==';
-                                const cleanQuery = { ...query };
-                                delete cleanQuery.operator;
-
-                                const allItems = await dataService.findItems(targetFile, resource, cleanQuery, operator);
-                                return allItems;
-                            } else if (method === 'POST') {
-                                console.log(`[ApiSimulator] Auto-POST for resource: ${resource}`);
-                                const newItem = await dataService.saveItem(targetFile, resource, body);
-                                return { success: true, item: newItem };
-                            }
-                        } catch (err) {
-                            console.error(`[ApiSimulator] Auto-Routing Error for ${resource}:`, err);
-                            return { error: String(err), status: 500 };
+                    console.log(`[ApiSimulator] Proxying Platform Login to server...`);
+                    try {
+                        const response = await fetch('/api/platform/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body)
+                        });
+                        const data = await response.json();
+                        if (response.ok) {
+                            console.log(`[ApiSimulator] Server Login SUCCESS`);
+                            return data;
+                        } else {
+                            console.warn(`[ApiSimulator] Server Login FAILED:`, data);
+                            return { ...data, status: response.status };
                         }
+                    } catch (err) {
+                        console.error(`[ApiSimulator] Proxy Login Error:`, err);
+                        return { error: String(err), status: 500 };
                     }
                 }
+
+                // --- AUTOMATIC RESOURCE ROUTING (Proxy to Server) ---
+                if (path.startsWith('/api/data/')) {
+                    console.log(`[ApiSimulator] Proxying Data-Request to server: ${method} ${url}`);
+                    try {
+                        const fetchOptions: any = {
+                            method,
+                            headers: { 'Content-Type': 'application/json' }
+                        };
+                        if (method !== 'GET' && body) {
+                            fetchOptions.body = JSON.stringify(body);
+                        }
+
+                        // Reconstruct search params for proxy
+                        const response = await fetch(url, fetchOptions);
+                        const data = await response.json();
+                        if (response.ok) {
+                            return data;
+                        } else {
+                            return { ...data, status: response.status };
+                        }
+                    } catch (err) {
+                        console.error(`[ApiSimulator] Proxy Data Error:`, err);
+                        return { error: String(err), status: 500 };
+                    }
+                }
+
 
                 // --- LEGACY / CUSTOM EVENT ROUTING ---
                 return new Promise((resolve) => {

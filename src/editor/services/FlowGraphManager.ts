@@ -59,7 +59,7 @@ export class FlowGraphManager {
         const baseType = type.includes(':') ? type.split(':')[0] : type;
 
         switch (baseType) {
-            case 'Action':
+            case 'Action': {
                 const actionSubtype = type.includes(':') ? type.split(':')[1] : null;
                 node = new FlowAction(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
                 if (initialName && initialName !== 'Action' && initialName !== 'Aktion') {
@@ -75,6 +75,7 @@ export class FlowGraphManager {
                     (node as FlowAction).setShowDetails(true, this.host.project);
                 }
                 break;
+            }
             case 'DataAction':
                 node = new FlowDataAction(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
                 if (initialName && initialName !== 'DataAction' && initialName !== 'Daten-Aktion') {
@@ -90,7 +91,7 @@ export class FlowGraphManager {
                 node = new FlowCondition(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
                 node.Name = initialName || 'Bedingung';
                 break;
-            case 'Task':
+            case 'Task': {
                 let taskName = initialName;
                 if (!taskName) {
                     taskName = prompt("Name für den neuen Task:", this.host.generateUniqueTaskName("ANewTask")) || undefined;
@@ -111,7 +112,8 @@ export class FlowGraphManager {
                     }
                 }
                 break;
-            case 'VariableDecl':
+            }
+            case 'VariableDecl': {
                 const kind = type.split(':')[1];
                 if (kind === 'threshold') {
                     node = new FlowThresholdVariable(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
@@ -142,18 +144,20 @@ export class FlowGraphManager {
 
                 (node as FlowVariable).updateVisuals?.();
                 break;
+            }
             case 'While':
             case 'For':
-            case 'Repeat':
+            case 'Repeat': {
                 node = new FlowLoop(id, x, y, this.host.canvas, this.host.flowStage.cellSize, type as any);
                 node.Name = type;
                 (node as FlowLoop).updateVisuals?.();
                 break;
+            }
             case 'Start':
                 node = new FlowStart(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
                 node.Name = 'Start';
                 break;
-            case 'Connection':
+            case 'Connection': {
                 const conn = new FlowConnection(this.host.canvas, x, y, x + 100, y + 50);
                 conn.setGridConfig(this.host.flowStage.cellSize);
                 this.host.connections.push(conn);
@@ -161,6 +165,7 @@ export class FlowGraphManager {
                 conn.select();
                 this.host.selectedConnection = conn;
                 return null;
+            }
             default:
                 return null;
         }
@@ -176,75 +181,69 @@ export class FlowGraphManager {
     }
 
     public deleteNode(node: FlowElement) {
-        if (node.data?.isLinked || node.data?.isEmbeddedInternal) {
-            alert('Eingebettete Tasks können nur im Original editiert oder gelöscht werden.');
-            return;
+        const isInternal = node.data?.isEmbeddedInternal;
+
+        if (isInternal) {
+            if (!confirm('Dieser Knoten ist intern eingebettet. Möchtest du ihn wirklich aus dieser Ansicht entfernen?')) {
+                return;
+            }
+        } else {
+            if (!confirm(`Möchtest du den Knoten "${node.Name || node.name}" wirklich löschen?`)) {
+                return;
+            }
         }
 
-        if (this.host.currentFlowContext === 'element-overview' && node.data?.isOverviewLink) {
-            const elementName = node.Name || node.name;
-            const liveRefs = projectRegistry.findReferences(elementName);
-            const refWarning = liveRefs.length > 0
-                ? `\n\n⚠️ Achtung: Dieses Element wird noch verwendet in:\n${liveRefs.join('\n')}\n\nReferenzen werden ebenfalls entfernt.`
-                : '';
+        this.deleteNodeSilent(node);
+    }
 
-            if (confirm(`Möchtest du das Element "${node.Name}" wirklich UNWIDERRUFLICH aus dem Projekt löschen?${refWarning}`)) {
-                this.deleteElementFromProject(node.data.type, node.Name, node.data.originalIndex, true);
-                if (this.host.onProjectChange) this.host.onProjectChange();
-                this.host.loadFromProject();
-            }
-            return;
-        }
+    public deleteNodeSilent(node: FlowElement) {
+        const nodeName = node.Name || node.name;
+        const nodeType = node.getType();
 
-        if (confirm(`Möchtest du den Knoten "${node.Name || node.name}" wirklich löschen?`)) {
-            const nodeName = node.Name || node.name;
-            const nodeType = node.getType();
+        this.removeNode(node.id);
+        this.host.syncToProject();
 
-            this.removeNode(node.name);
-            this.host.syncToProject();
-
-            if ((nodeType === 'Action' || nodeType === 'DataAction') && nodeName &&
-                nodeName !== 'Aktion' && nodeName !== 'Action' && nodeName !== 'DataAction') {
-                setTimeout(() => {
-                    const refs = projectRegistry.findReferences(nodeName);
-                    if (refs.length === 0) {
-                        const isGenericName = /^Action\d*$/.test(nodeName) || /^Aktion\d*$/.test(nodeName) ||
-                            /^DataAction\d*$/.test(nodeName) || /^HttpAction\d*$/.test(nodeName) ||
-                            nodeName === 'Aufruf';
-                        if (isGenericName) {
-                            this.deleteElementFromProject('Action', nodeName, undefined, false);
-                            if (this.host.onProjectChange) this.host.onProjectChange();
-                        } else {
-                            if (confirm(`Die Aktion "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch aus der globalen Aktions-Liste gelöscht werden?`)) {
-                                this.deleteElementFromProject('Action', nodeName, undefined, true);
-                                if (this.host.onProjectChange) this.host.onProjectChange();
-                            }
-                        }
-                    }
-                }, 200);
-            }
-
-            if (nodeType === 'VariableDecl' && nodeName) {
-                setTimeout(() => {
-                    const usageCount = (RefactoringManager as any).getVariableUsageCount(this.host.project, nodeName);
-                    if (usageCount === 0) {
-                        if (confirm(`Die Variable "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch Global aus dem Projekt gelöscht werden?`)) {
-                            this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
-                            if (this.host.onProjectChange) this.host.onProjectChange();
-                        }
+        if ((nodeType === 'Action' || nodeType === 'DataAction') && nodeName &&
+            nodeName !== 'Aktion' && nodeName !== 'Action' && nodeName !== 'DataAction') {
+            setTimeout(() => {
+                const refs = projectRegistry.findReferences(nodeName);
+                if (refs.length === 0) {
+                    const isGenericName = /^Action\d*$/.test(nodeName) || /^Aktion\d*$/.test(nodeName) ||
+                        /^DataAction\d*$/.test(nodeName) || /^HttpAction\d*$/.test(nodeName) ||
+                        nodeName === 'Aufruf';
+                    if (isGenericName) {
+                        this.deleteElementFromProject('Action', nodeName, undefined, false);
+                        if (this.host.onProjectChange) this.host.onProjectChange();
                     } else {
-                        if (confirm(`Möchtest du die Variable "${nodeName}" auch Global aus dem Projekt löschen?\n(Sie wird noch an ${usageCount} Stellen referenziert!)`)) {
-                            this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
+                        if (confirm(`Die Aktion "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch aus der globalen Aktions-Liste gelöscht werden?`)) {
+                            this.deleteElementFromProject('Action', nodeName, undefined, true);
                             if (this.host.onProjectChange) this.host.onProjectChange();
                         }
                     }
-                }, 200);
-            }
+                }
+            }, 200);
+        }
+
+        if (nodeType === 'VariableDecl' && nodeName) {
+            setTimeout(() => {
+                const usageCount = (RefactoringManager as any).getVariableUsageCount(this.host.project, nodeName);
+                if (usageCount === 0) {
+                    if (confirm(`Die Variable "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch Global aus dem Projekt gelöscht werden?`)) {
+                        this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
+                        if (this.host.onProjectChange) this.host.onProjectChange();
+                    }
+                } else {
+                    if (confirm(`Möchtest du die Variable "${nodeName}" auch Global aus dem Projekt löschen?\n(Sie wird noch an ${usageCount} Stellen referenziert!)`)) {
+                        this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
+                        if (this.host.onProjectChange) this.host.onProjectChange();
+                    }
+                }
+            }, 200);
         }
     }
 
     public removeNode(id: string) {
-        const node = this.host.nodes.find(n => n.name === id);
+        const node = this.host.nodes.find(n => n.id === id);
         if (!node) return;
 
         // Visual remove
@@ -268,23 +267,18 @@ export class FlowGraphManager {
         if (this.host.onNodesChanged) this.host.onNodesChanged(this.host.nodes);
     }
 
-    /**
-     * Entfernt alle Knoten und Verbindungen vom Canvas
-     */
     public clearFlowCanvas(): void {
-        // Clear existing nodes
         this.host.nodes.forEach(n => {
             if (n.getElement().parentNode === this.host.canvas) {
                 this.host.canvas.removeChild(n.getElement());
             }
         });
-        (this.host as any).nodes = [];
+        this.host.nodes.length = 0; // Better way to clear array if public
 
-        // Clear existing connections (including labels)
         this.host.connections.forEach(c => {
             c.destroy();
         });
-        (this.host as any).connections = [];
+        this.host.connections.length = 0;
     }
 
     public deleteConnection(conn: FlowConnection) {
@@ -302,20 +296,29 @@ export class FlowGraphManager {
     }
 
     public restoreConnection(data: any) {
-        const startNode = data.startTargetId ? this.host.nodes.find(n => n.name === data.startTargetId) : null;
-        const endNode = data.endTargetId ? this.host.nodes.find(n => n.name === data.endTargetId) : null;
+        console.log(`[FlowGraphManager] restoreConnection: ${data.startTargetId} -> ${data.endTargetId}`, data);
+
+        const startNode = data.startTargetId ? this.host.nodes.find(n => n.id === data.startTargetId || (n as any).name === data.startTargetId) : null;
+        const endNode = data.endTargetId ? this.host.nodes.find(n => n.id === data.endTargetId || (n as any).name === data.endTargetId) : null;
+
+        if (!startNode) console.warn(`[FlowGraphManager] Start node ${data.startTargetId} NOT FOUND in current nodes list! Total nodes: ${this.host.nodes.length}`);
+        if (!endNode) console.warn(`[FlowGraphManager] End node ${data.endTargetId} NOT FOUND in current nodes list! Total nodes: ${this.host.nodes.length}`);
 
         let x1 = data.startX || 0;
         let y1 = data.startY || 0;
         let x2 = data.endX || 0;
         let y2 = data.endY || 0;
 
-        const conn = new FlowConnection(this.host.canvas, x1, y1, x2, y2);
+        const conn = new FlowConnection(this.host.canvas, x1, y1, x2, y2, data.id);
         conn.setGridConfig(this.host.flowStage.cellSize);
         if (data.data) conn.data = { ...data.data };
 
-        if (startNode) conn.attachStart(startNode);
-        if (endNode) conn.attachEnd(endNode);
+        if (startNode) {
+            conn.attachStart(startNode);
+        }
+        if (endNode) {
+            conn.attachEnd(endNode);
+        }
 
         conn.updatePosition();
         this.host.connections.push(conn);

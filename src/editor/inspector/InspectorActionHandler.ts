@@ -59,15 +59,24 @@ export class InspectorActionHandler {
 
     private handleDelete(obj: any): void {
         const name = obj.name || obj.id;
-        if (!confirm(`Möchtest du das Objekt "${name}" wirklich löschen?`)) return;
 
+        // If host has a deletion handler (usually Editor.ts), let IT handle the confirmation
+        if (this.host.onObjectDelete) {
+            this.host.onObjectDelete(obj);
+            return;
+        }
+
+        // Standard prompt if no special handler exists
+        if (!confirm(`Möchtest du das Objekt "${name}" wirklich löschen?`)) return;
         console.log('[InspectorActionHandler] Deleting object:', name);
 
-        // Identify object type for correct refactoring/deletion
+        // Fallback: Identify object type for correct refactoring/deletion
         if (obj.className === 'TTask' || obj.actions !== undefined) {
             RefactoringManager.deleteTask(this.project, name);
         } else if (obj.className === 'TAction') {
             RefactoringManager.deleteAction(this.project, name);
+        } else if (obj.className === 'TVariable' || obj.isVariable) {
+            RefactoringManager.deleteVariable(this.project, obj.id || obj.name);
         } else {
             this.handleGenericDelete(obj);
         }

@@ -16,12 +16,14 @@ export class FlowConnection {
     private endX: number = 0;
     private endY: number = 0;
 
+    public id: string;
     public data: any = {};
     private isSelected: boolean = false;
     public onLabelDoubleClick: (() => void) | null = null;
     private gridSize: number = 20;
 
-    constructor(container: HTMLElement, x1: number, y1: number, x2: number, y2: number) {
+    constructor(container: HTMLElement, x1: number, y1: number, x2: number, y2: number, id?: string) {
+        this.id = id || `conn_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         this.startX = x1;
         this.startY = y1;
         this.endX = x2;
@@ -82,6 +84,11 @@ export class FlowConnection {
             const pos = this.endTarget.getAnchorPosition(anchorType as any);
             x2 = pos.x;
             y2 = pos.y + (this.data.endOffsetY || 0); // Apply offset for overlapping prevention
+        }
+
+        // Diagnostic log: Only if either target is missing, or if coordinates are suspiciously 0
+        if (!this.startTarget || !this.endTarget || (x1 === 0 && y1 === 0) || (x2 === 0 && y2 === 0)) {
+            console.log(`[FlowConnection] Update: (${x1},${y1}) -> (${x2},${y2}), startTarget=${this.startTarget?.id}, endTarget=${this.endTarget?.id}`);
         }
 
         this.element.style.zIndex = '5'; // Above nodes
@@ -171,6 +178,11 @@ export class FlowConnection {
     }
 
     public updatePath(x1: number, y1: number, x2: number, y2: number) {
+        // If the coordinates changed and we were attached, detach!
+        // This allows users to "pull off" a connection from a node.
+        if (x1 !== this.startX || y1 !== this.startY) this.startTarget = null;
+        if (x2 !== this.endX || y2 !== this.endY) this.endTarget = null;
+
         this.startX = x1;
         this.startY = y1;
         this.endX = x2;
@@ -200,8 +212,38 @@ export class FlowConnection {
         this.updatePosition();
     }
 
+    public getInspectorProperties(): any[] {
+        return [
+            { name: 'Type', type: 'string', label: 'Verbindung', readOnly: true },
+            { name: 'Text', type: 'string', label: 'Beschriftung' },
+            { name: 'startTargetId', type: 'string', label: 'Start (ID)', readOnly: true },
+            { name: 'endTargetId', type: 'string', label: 'Ende (ID)', readOnly: true },
+            {
+                name: 'startAnchorType',
+                type: 'string',
+                label: 'Start-Anker',
+                readOnly: true,
+                value: this.data.startAnchorType || 'output'
+            },
+            {
+                name: 'endAnchorType',
+                type: 'string',
+                label: 'End-Anker',
+                readOnly: true,
+                value: this.data.endAnchorType || 'input'
+            }
+        ];
+    }
+
+    // Helper for inspector access
+    public get startTargetId(): string | null { return this.startTarget ? this.startTarget.name : null; }
+    public get endTargetId(): string | null { return this.endTarget ? this.endTarget.name : null; }
+    public get startAnchorType(): string { return this.data.startAnchorType || 'output'; }
+    public get endAnchorType(): string { return this.data.endAnchorType || 'input'; }
+
     public toJSON(): any {
         return {
+            id: this.id,
             startTargetId: this.startTarget ? this.startTarget.name : null,
             endTargetId: this.endTarget ? this.endTarget.name : null,
             startX: this.startX,
