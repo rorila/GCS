@@ -2501,7 +2501,7 @@
       "_showGlobalPreview": false
     }
   ],
-  "activeStageId": "stage_super_dashboard",
+  "activeStageId": "stage_login",
   "flowCharts": {
     "global": {
       "elements": [],

@@ -1,3 +1,22 @@
+## [3.7.1] - 2026-02-27
+- **Cleanup (P0 Dead Code)**: Entfernung von ~577 KB Legacy-Code zur Reduktion der Wartungsschuld.
+  - Gelöschte Dateien: `TaskEditor.ts`, `ActionEditor.ts`, `FlowDiagramGenerator.ts`, `old_editor.ts`, `old_editor_temp.ts`, `FlowEditor_old.ts.tmp`.
+- **Architecture (Flow-Navigation)**: Umstellung von modalen "TaskEditor"-Fenstern auf direkte Navigation im `FlowEditor`.
+  - Doppelklick auf einen Task-Knoten führt nun direkt zum entsprechenden Diagramm via `switchActionFlow`.
+  - Einführung des `SWITCH_FLOW_CONTEXT` Events im `MediatorService` zur Entkopplung von Inspector und FlowEditor.
+- **Fix (FlowEditor)**: Syntaxfehler und Import-Probleme während der Migration behoben. `cleanCorruptTaskData` wiederhergestellt.
+- **Feature (Test-Suite)**: Umfassende Test-Suite als Sicherheitsnetz für Refactoring implementiert. 36 neue Tests in 5 Modulen:
+  - `serialization.test.ts` (8 Tests): JSON ↔ Objekt Round-Trip, `hydrateObjects`, Container-Children, Event-Fallback, Style-Merge.
+  - `refactoring_manager.test.ts` (9 Tests): Rename/Delete für Tasks, Actions, Variablen, Objekte; Usage-Report; Sanitize.
+  - `task_executor.test.ts` (7 Tests): Stage-Task, Blueprint-Hierarchie-Lookup, Action-Resolution, Condition-Branching, Recursion-Guard.
+  - `flow_sync.test.ts` (5 Tests): Element/Sequence-Konsistenz, Action-Namen-Match, Blueprint/Stage-Duplikate, Connection-Validierung, korrupte Task-Erkennung.
+  - `project_integrity.test.ts` (8 Tests): Orphaned FlowCharts, Task-Duplikate, Event→Task-Mappings, Undefined Actions, Blueprint-Existenz, korrupte Einträge, **Inline-Action-Erkennung**.
+- **Bug Discovery**: 2 Bugs im `RefactoringManager` aufgedeckt und **behoben**:
+  - Bug #1: `renameTask` aktualisiert jetzt auch Stage-Events (`onEnter`, `onLeave`) – neuer Schritt 8.
+  - Bug #2: `renameVariable` iteriert jetzt über alle Actions (Root + Stage) und aktualisiert auch `formula`-Felder.
+- **Infrastructure**: `test_runner.ts` erweitert um 5 neue Importe. `TestResult.type` auf `string` erweitert für neue Kategorien.
+- **Gesamt-Status**: 57/57 Tests grün (20 bestehende + 37 neue).
+
 ## [3.6.0] - 2026-02-26
 - **Architecture (ObjectStore)**: Einführung von `ObjectStore.ts` als **Single Source of Truth** für alle aktuell gerenderten Objekte. Ersetzt die 4 parallelen Listen (`lastRenderedObjects`, `currentObjects`, `getResolvedInheritanceObjects()`, `runtime.getObjects()`).
 - **Architecture (Run-Mode Schutz)**: Guards in `Editor.switchStage()` und `EditorViewManager.switchView()` verhindern, dass die Runtime im Run-Mode zerstört wird.

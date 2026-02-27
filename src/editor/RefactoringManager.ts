@@ -32,8 +32,15 @@ export class RefactoringManager {
             });
         }
 
-        // 2. Update actions
-        project.actions.forEach(action => {
+        // 2. Update actions (Global + all Stages)
+        const allActions = [...project.actions];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                if (s.actions) allActions.push(...s.actions);
+            });
+        }
+
+        allActions.forEach(action => {
             // Variable assignments and reads
             if (action.variableName === oldName) action.variableName = newName;
             if (action.resultVariable === oldName) action.resultVariable = newName;
@@ -55,6 +62,11 @@ export class RefactoringManager {
                         action.changes[key] = this.replaceInterpolation(val, oldName, newName);
                     }
                 }
+            }
+
+            // Formula interpolation
+            if ((action as any).formula && typeof (action as any).formula === 'string') {
+                (action as any).formula = this.replaceInterpolation((action as any).formula, oldName, newName);
             }
 
             // Service params interpolation
@@ -226,6 +238,20 @@ export class RefactoringManager {
                             }
                         }
                     });
+                }
+            });
+        }
+
+        // 8. Update stage-level events (onEnter, onLeave, onRuntimeStart)
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                if ((stage as any).events) {
+                    const stageEvents = (stage as any).events;
+                    for (const eventKey in stageEvents) {
+                        if (stageEvents[eventKey] === oldName) {
+                            stageEvents[eventKey] = newName;
+                        }
+                    }
                 }
             });
         }

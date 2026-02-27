@@ -6,6 +6,15 @@
 > [!TIP]
 > **PowerShell Fix**: Falls `npm run test` wegen eines `ServicePointManager`-Fehlers fehlschlägt, nutze die bereitgestellten Batch-Dateien (`run_tests.bat`, `validate_project.bat`) direkt in einer Standard-CMD.
 
+## Behobene Bugs im RefactoringManager (v3.7.0)
+- ~~**Bug #1**: `RefactoringManager.renameTask()` aktualisiert **keine Stage-Events**~~ → **Behoben**: Neuer Schritt 8 aktualisiert `stage.events` (onEnter, onLeave, onRuntimeStart).
+- ~~**Bug #2**: `RefactoringManager.renameVariable()` aktualisiert nur Root-Level Actions~~ → **Behoben**: Iteriert jetzt über alle Actions (Root + Stage) und aktualisiert auch `formula`-Felder.
+
+## Test-Suite (v3.7.0, 56 Tests)
+- **Ausführen**: `npm run test` → Ergebnis in `docs/QA_Report.md`
+- **5 Module**: serialization, refactoring_manager, task_executor, flow_sync, project_integrity
+- **Neue Tests hinzufügen**: Export-Funktion `runXxxTests(): Promise<TestResult[]>` in `tests/xxx.test.ts` erstellen und in `scripts/test_runner.ts` importieren + im `allResults` Array einhängen.
+
 ## Action System (Standardisierung / OOP)
 - Jede neue Action muss ein entsprechendes Interface in `src/model/types.ts` erhalten, das von `BaseAction` erbt.
 - Property-Namen im Modell müssen exakt den Feldnamen (`name` oder `actionData.field`) in der `dialog_action_editor.json` entsprechen.

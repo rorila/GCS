@@ -9,8 +9,8 @@ import { FlowVariable } from './flow/FlowVariable';
 import { FlowLoop } from './flow/FlowLoop';
 import { FlowStateManager } from './flow/FlowStateManager';
 import { TFlowStage } from '../components/TFlowStage';
-import { TaskEditor } from './TaskEditor';
 import { ContextMenu } from './ui/ContextMenu';
+import { mediatorService, MediatorEvents } from '../services/MediatorService';
 import { projectRegistry } from '../services/ProjectRegistry';
 import { FlowSyncManager } from './services/FlowSyncManager';
 import { FlowNamingService } from './services/FlowNamingService';
@@ -388,6 +388,18 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         });
 
         this.initMediator();
+    }
+
+    private initMediator() {
+        this.uiController.initMediator();
+
+        // Listen for context switch requests (e.g. from Inspector)
+        mediatorService.on(MediatorEvents.SWITCH_FLOW_CONTEXT, (data: any) => {
+            if (data && data.taskName) {
+                console.log(`[FlowEditor] Received SWITCH_FLOW_CONTEXT request for: ${data.taskName}`);
+                this.switchActionFlow(data.taskName);
+            }
+        });
     }
 
     /**
@@ -819,16 +831,6 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         return this.hydrationManager.importTaskGraph(targetNode, task, isLinked);
     }
 
-    /**
-     * Expands a DataAction's internal success/error bodies into visual ghost nodes.
-     */
-    public expandDataActionFlow(dataActionNode: FlowAction) {
-        this.hydrationManager.expandDataActionFlow(dataActionNode);
-    }
-
-    // Kontextmenü-Handler wurden in den FlowInteractionManager verschoben.
-
-
     public handleNodeDoubleClick(node: FlowElement) {
         // DEBUG: Log every double-click
         console.log(`[FlowEditor] === DOUBLE-CLICK on node: ${node.name} ===`);
@@ -843,10 +845,10 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             return;
         }
 
-        // 2. Standard Behavior: Open Task Editor for tasks
-        if (isTask) {
-            console.log(`[FlowEditor] Opening TaskEditor for: ${taskName}`);
-            this.openTaskEditor(node);
+        // 2. Standard Behavior: Switch directly to Task Flow
+        if (isTask && taskName) {
+            console.log(`[FlowEditor] Switching to Task Flow: ${taskName}`);
+            this.switchActionFlow(taskName);
             return;
         }
 
@@ -855,42 +857,6 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         node.setShowDetails(newShowState, this.project);
 
         this.syncToProject();
-
-        // 4. Extra: Open Action Editor for actual (non-embedded) action nodes
-        if (node.getType() === 'Action' && !node.data?.isEmbeddedInternal) {
-            this.openActionEditor(node);
-        }
-    }
-
-    private openTaskEditor(node: FlowElement) {
-        if (!this.project) return;
-
-        // Derive task name from Name property, data, or fallback
-        const taskName = node.Name || node.data?.name || node.data?.taskName || `Task_${node.name}`;
-
-        new TaskEditor(this.project, taskName, () => {
-
-            // Save link to task
-            node.data = { ...node.data, taskName: taskName };
-            node.Text = taskName;
-            node.setDetailed(true);
-
-            this.syncToProject();
-        });
-    }
-
-    private openActionEditor(node: FlowElement) {
-        // DEPRECATION NOTICE: The modal action editor (`dialog_action_editor`) has been completely 
-        // phased out in favor of the modular Inspector (`InspectorHost`).
-        // Double-clicking an action simply ensures it is selected so the Inspector can take over.
-
-        this.selectedNode = node;
-        console.log(`[FlowEditor] Action edit requested for "${node.Name}". Editing is now handled exclusively via the right-hand Inspector.`);
-
-        // Visual feedback to guide the user
-        if (this.editor && typeof (this.editor as any).showToast === 'function') {
-            (this.editor as any).showToast('Please use the Inspector panel to edit action properties.', 'info');
-        }
     }
 
     public selectNode(node: FlowElement | null) {
@@ -1005,9 +971,5 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
      */
     public updateScrollArea(): void {
         this.uiController.updateScrollArea();
-    }
-
-    private initMediator() {
-        this.uiController.initMediator();
     }
 }

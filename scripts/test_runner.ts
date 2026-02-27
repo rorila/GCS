@@ -6,6 +6,12 @@ import { runSmartMappingTests } from './test_smart_mapping.js';
 import { runUnificationTests } from './test_unification_regression.js';
 import { runTableUnwrapTests } from '../tests/table_unwrapping.test.js';
 import { runSelectCountTests } from '../tests/select_count.test.js';
+// Neue Sicherheitsnetz-Tests (v3.7.0)
+import { runSerializationTests } from '../tests/serialization.test.js';
+import { runRefactoringTests } from '../tests/refactoring_manager.test.js';
+import { runTaskExecutorTests } from '../tests/task_executor.test.js';
+import { runFlowSyncTests } from '../tests/flow_sync.test.js';
+import { runProjectIntegrityTests } from '../tests/project_integrity.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -83,9 +89,40 @@ async function main() {
         console.log('🏃 Starte SELECT COUNT(*) Tests...');
         const countResults = await runSelectCountTests();
 
-        const allResults = [...loginResults, ...smartResults, ...unificationResults, ...tableResults, ...countResults];
+        // 6. Serialization Tests (v3.7.0)
+        console.log('🏃 Starte Serialization Tests...');
+        const serializationResults = await runSerializationTests();
 
-        // 3. Report Generation
+        // 7. RefactoringManager Tests (v3.7.0)
+        console.log('🏃 Starte RefactoringManager Tests...');
+        const refactoringResults = await runRefactoringTests();
+
+        // 8. TaskExecutor Tests (v3.7.0)
+        console.log('🏃 Starte TaskExecutor Tests...');
+        const executorResults = await runTaskExecutorTests();
+
+        // 9. FlowSync Tests (v3.7.0)
+        console.log('🏃 Starte FlowSync Tests...');
+        const flowSyncResults = await runFlowSyncTests();
+
+        // 10. Project Integrity Tests (v3.7.0)
+        console.log('🏃 Starte Project Integrity Tests...');
+        const integrityResults = await runProjectIntegrityTests();
+
+        const allResults = [
+            ...loginResults,
+            ...smartResults,
+            ...unificationResults,
+            ...tableResults,
+            ...countResults,
+            ...serializationResults,
+            ...refactoringResults,
+            ...executorResults,
+            ...flowSyncResults,
+            ...integrityResults
+        ];
+
+        // Report Generation
         generateReport(allResults);
 
         if (allResults.every(r => r.passed)) {

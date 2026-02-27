@@ -1,11 +1,10 @@
 import { ReactiveRuntime } from '../../runtime/ReactiveRuntime';
 import { GameProject } from '../../model/types';
 import { InspectorHost } from './InspectorHost';
-import { TaskEditor } from '../TaskEditor';
 import { RefactoringManager } from '../RefactoringManager';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
-import { mediatorService } from '../../services/MediatorService';
+import { mediatorService, MediatorEvents } from '../../services/MediatorService';
 
 /**
  * InspectorActionHandler - Handles complex button-driven actions in the Inspector.
@@ -122,12 +121,10 @@ export class InspectorActionHandler {
             taskName = buttonDef.taskName;
         }
 
-        console.log('[InspectorActionHandler] Opening task editor for task:', taskName);
+        console.log('[InspectorActionHandler] Switching flow context to task:', taskName);
 
-        if (this.project) {
-            new TaskEditor(this.project, taskName, () => {
-                console.log('[InspectorActionHandler] Task saved');
-            });
+        if (this.project && taskName) {
+            mediatorService.notify(MediatorEvents.SWITCH_FLOW_CONTEXT, { taskName });
         }
     }
 

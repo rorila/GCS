@@ -10,7 +10,7 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 export interface TestResult {
     name: string;
-    type: 'Happy Path' | 'Security' | 'Edge Case' | 'Smart Mapping' | 'Discovery';
+    type: string;
     pin?: string;
     expectedSuccess: boolean;
     actualSuccess: boolean;
