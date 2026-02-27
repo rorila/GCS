@@ -1,3 +1,7 @@
+import { actionRegistry } from '../runtime/ActionRegistry';
+import { Logger } from '../utils/Logger';
+import { DialogComponentFactory } from './DialogComponentFactory';
+import { ActionParamRenderer } from './ActionParamRenderer';
 import { ReactiveRuntime } from '../runtime/ReactiveRuntime';
 import { GameProject } from '../model/types';
 import { serviceRegistry } from '../services/ServiceRegistry';
@@ -6,7 +10,7 @@ import { imageService } from '../services/ImageService';
 import { MethodRegistry } from './MethodRegistry';
 import { projectRegistry } from '../services/ProjectRegistry';
 
-import { actionRegistry } from '../runtime/ActionRegistry';
+const logger = Logger.get('JSONDialogRenderer');
 export interface IActionEditorDialogManager {
     showDialog(name: string, modal: boolean, data: any): Promise<any>;
 }
@@ -34,7 +38,7 @@ export class JSONDialogRenderer {
         onResult: (result: { action: string; data: any }) => void,
         dialogManager?: IActionEditorDialogManager
     ) {
-        console.log(`[JSONDialogRenderer] Initializing for:`, dialogDef.title);
+        logger.info(`Initializing for: ${dialogDef.title}`);
         this.dialogDef = dialogDef;
         this.project = project;
         this.onResult = onResult;
@@ -69,7 +73,7 @@ export class JSONDialogRenderer {
             actionId: this.dialogData.actionId || this.dialogData.name
         });
 
-        console.log(`[JSONDialogRenderer] Enrichment: Found ${stageObjects.length} objects and ${stageVars.length} variables in Registry.`);
+        logger.debug(`Enrichment: Found ${stageObjects.length} objects and ${stageVars.length} variables in Registry.`);
 
         const enrichedProject = {
             ...this.project,
@@ -258,17 +262,6 @@ export class JSONDialogRenderer {
             // Check visibility
             if (obj.visible !== undefined) {
                 const isVisible = this.evaluateExpression(obj.visible);
-                if (obj.name === 'PropertySelect') {
-                    console.log(`[JSONDialogRenderer] Visibility check for PropertySelect:`, {
-                        expr: obj.visible,
-                        result: isVisible,
-                        data: {
-                            type: this.dialogData.type,
-                            target: this.dialogData.target,
-                            targetProps: this.getPropertiesForObject(this.dialogData.target)
-                        }
-                    });
-                }
                 if (!isVisible) return null;
             }
 
@@ -282,252 +275,15 @@ export class JSONDialogRenderer {
                 return this.renderActionParams(obj);
             }
 
-            const el = document.createElement('div');
-            el.className = `dialog-object ${className}`;
-            el.style.marginBottom = '8px';
-
-            if (obj.scrollKey) {
-                el.setAttribute('data-scroll-key', obj.scrollKey);
-            }
-
-            // Apply styles
-            if (obj.style) {
-                Object.entries(obj.style).forEach(([key, value]) => {
-                    const cssKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
-                    const evaluatedValue = this.evaluateExpression(value);
-                    el.style.setProperty(cssKey, String(evaluatedValue));
-                });
-            }
-
-            // Render based on type
-            switch (className) {
-                case 'TLabel':
-                    el.innerText = this.evaluateExpression(obj.text || '');
-                    break;
-
-                case 'TEdit':
-                case 'TMemo': {
-                    const isMemo = className === 'TMemo';
-                    const input = document.createElement(isMemo ? 'textarea' : 'input');
-                    if (!isMemo) (input as HTMLInputElement).type = 'text';
-
-                    // Prioritize current form value during session, then static text
-                    const currentVal = this.dialogData._formValues?.[obj.name];
-                    input.value = currentVal !== undefined ? currentVal : this.evaluateExpression(obj.text || '');
-                    input.placeholder = obj.placeholder || '';
-                    if (obj.name) input.setAttribute('data-name', obj.name);
-
-                    input.style.cssText = `
-                    width: 100%;
-                    padding: 6px;
-                    background: #333;
-                    color: white;
-                    border: 1px solid #555;
-                    border-radius: 3px;
-                    box-sizing: border-box;
-                    min-height: ${isMemo ? (obj.rowSpan ? obj.rowSpan * 24 : 60) : 'auto'}px;
-                `;
-
-                    // Real-time sync to model (does not re-render)
-                    input.oninput = () => {
-                        if (obj.name) {
-                            this.updateModelValue(obj.name, input.value);
-                        }
-                    };
-
-                    // Trigger heavy actions (parsing/rendering) only on commit (blur/enter)
-                    input.onchange = () => {
-                        if (obj.action) {
-                            this.handleAction(obj.action, obj.actionData);
-                        }
-                    };
-
-                    el.appendChild(input);
-                    break;
-                }
-
-                case 'TDropdown':
-                    const select = document.createElement('select');
-                    if (obj.name) select.setAttribute('data-name', obj.name);
-
-                    const optionsArr = this.evaluateExpression(obj.options || []);
-                    console.log(`[JSONDialogRenderer] Rendering TDropdown "${obj.name}" with options:`, optionsArr);
-
-                    // Prioritize current form value during session
-                    const currentSelection = this.dialogData._formValues?.[obj.name];
-                    const selectedValue = currentSelection !== undefined ? currentSelection : this.evaluateExpression(obj.selectedValue);
-                    let selectedIndex = currentSelection !== undefined ? undefined : this.evaluateExpression(obj.selectedIndex);
-
-                    // Convert to number if it came from an expression string
-                    if (selectedIndex !== undefined && typeof selectedIndex !== 'number') {
-                        selectedIndex = parseInt(selectedIndex as any);
-                    }
-
-                    // Add placeholder if requested or if no valid selection exists
-                    const hasValidSelection = (selectedValue !== undefined && selectedValue !== '') || (selectedIndex !== undefined && !isNaN(selectedIndex));
-
-                    if (!hasValidSelection) {
-                        const placeholder = document.createElement('option');
-                        placeholder.value = '';
-                        placeholder.text = '--- bitte wählen ---';
-                        placeholder.disabled = true;
-                        placeholder.selected = true;
-                        select.appendChild(placeholder);
-                    }
-
-                    optionsArr.forEach((opt: any, idx: number) => {
-                        const option = document.createElement('option');
-                        const optVal = (typeof opt === 'object' && opt !== null) ? opt.value : opt;
-                        const optLabel = (typeof opt === 'object' && opt !== null) ? (opt.label || opt.name || opt.value) : opt;
-
-                        option.value = optVal;
-                        option.text = optLabel;
-
-                        // Robust comparison: convert both to string and trim
-                        const sVal = selectedValue !== undefined && selectedValue !== null ? String(selectedValue).trim() : undefined;
-                        const oVal = optVal !== undefined && optVal !== null ? String(optVal).trim() : undefined;
-
-                        if ((sVal !== undefined && sVal !== '' && sVal === oVal) || selectedIndex === idx) {
-                            option.selected = true;
-                        }
-
-                        select.appendChild(option);
-                    });
-
-                    select.style.cssText = `
-                    width: 100%;
-                    padding: 6px;
-                    background: #333;
-                    color: white;
-                    border: 1px solid #555;
-                    border-radius: 3px;
-                    cursor: pointer;
-                `;
-
-                    select.onchange = () => {
-                        // Sync to model
-                        if (obj.name) {
-                            this.updateModelValue(obj.name, select.value);
-                        }
-
-                        if (obj.action) {
-                            this.handleAction(obj.action, obj.actionData);
-                        }
-                    };
-                    el.appendChild(select);
-                    break;
-
-                case 'TCheckbox': {
-                    const label = document.createElement('label');
-                    label.style.cssText = 'display: flex; align-items: center; cursor: pointer;';
-
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-
-                    // Prioritize current form value during session
-                    const currentVal = obj.name ? this.dialogData._formValues?.[obj.name] : undefined;
-                    checkbox.checked = currentVal !== undefined ? currentVal : this.evaluateExpression(obj.checked || false);
-                    checkbox.style.marginRight = '8px';
-                    if (obj.name) checkbox.setAttribute('data-name', obj.name);
-
-                    checkbox.onchange = () => {
-                        // Sync to model
-                        if (obj.name) {
-                            this.updateModelValue(obj.name, checkbox.checked);
-                        }
-
-                        if (obj.action) {
-                            this.handleAction(obj.action, obj.actionData);
-                        }
-                    };
-                    label.appendChild(checkbox);
-
-                    const text = document.createElement('span');
-                    text.innerText = this.evaluateExpression(obj.label || '');
-                    text.style.color = 'white';
-                    label.appendChild(text);
-
-                    el.appendChild(label);
-                    break;
-                }
-
-                case 'TButton':
-                    const button = document.createElement('button');
-                    button.id = `btn-${obj.name || 'unknown'}`;
-                    button.innerText = this.evaluateExpression(obj.caption || obj.name);
-
-                    // Apply button styles - note: background color comes from obj.style, not hardcoded
-                    button.style.cssText = `
-                    padding: 8px 16px;
-                    background: ${obj.style?.backgroundColor || '#0e639c'};
-                    color: ${obj.style?.color || 'white'};
-                    border: none;
-                    border-radius: 3px;
-                    cursor: pointer;
-                    font-size: 12px;
-                `;
-
-                    // Clear wrapper background - button has its own
-                    el.style.backgroundColor = 'transparent';
-
-                    button.onclick = (e) => {
-                        e.stopPropagation();
-                        if (obj.action) {
-                            this.handleAction(obj.action, obj.actionData);
-                        }
-                    };
-                    el.appendChild(button);
-                    break;
-
-                case 'TPanel':
-                    // Render children
-                    if (obj.children && Array.isArray(obj.children)) {
-                        obj.children.forEach((child: any) => {
-                            const childEl = this.renderObject(child);
-                            if (childEl) el.appendChild(childEl);
-                        });
-                    }
-
-                    // Add action support for panels
-                    if (obj.action) {
-                        el.style.cursor = 'pointer';
-                        el.onclick = () => {
-                            this.handleAction(obj.action, obj.actionData);
-                        };
-                    }
-
-                    // Support double-click to directly select
-                    if (obj.doubleClickAction) {
-                        el.ondblclick = () => {
-                            this.handleAction(obj.doubleClickAction, obj.doubleClickActionData || obj.actionData);
-                        };
-                    }
-                    break;
-
-                case 'TImage': {
-                    const img = document.createElement('img');
-                    const src = this.evaluateExpression(obj.src || '');
-                    if (src) {
-                        img.src = src.startsWith('http') || src.startsWith('/') || src.startsWith('data:')
-                            ? src
-                            : `/images/${src}`;
-                    }
-                    img.style.width = '100%';
-                    img.style.height = '100%';
-                    img.style.objectFit = obj.objectFit || 'contain';
-                    img.style.display = src ? 'block' : 'none';
-                    el.appendChild(img);
-                    break;
-                }
-
-                default:
-                    el.innerText = `[${className}] ${obj.name}`;
-                    el.style.color = '#666';
-            }
-
-            return el;
+            return DialogComponentFactory.createComponent(obj, {
+                dialogData: this.dialogData,
+                evaluateExpression: (expr) => this.evaluateExpression(expr),
+                handleAction: (action, data) => this.handleAction(action, data),
+                updateModelValue: (name, value) => this.updateModelValue(name, value),
+                renderObject: (o) => this.renderObject(o)
+            });
         } catch (e: any) {
-            console.error('[JSONDialogRenderer] Error rendering object:', obj, e);
+            logger.error('Error rendering object:', obj, e);
             const errEl = document.createElement('div');
             errEl.style.color = 'red';
             errEl.innerText = `Error rendering ${obj.className || 'object'}: ${e.message}`;
@@ -536,208 +292,14 @@ export class JSONDialogRenderer {
     }
 
     private renderActionParams(_obj: any): HTMLElement | null {
-        const type = this.dialogData.type;
-        const meta = actionRegistry.getMetadata(type);
-        if (!meta) return null;
-
-        const container = document.createElement('div');
-        container.className = 'action-params-container';
-        container.style.display = 'flex';
-        container.style.flexDirection = 'column';
-        container.style.gap = '12px';
-        container.style.width = '100%';
-
-        meta.parameters.forEach(param => {
-            const row = document.createElement('div');
-            row.style.display = 'flex';
-            row.style.flexDirection = 'column';
-            row.style.gap = '4px';
-
-            const label = document.createElement('label');
-            label.innerText = param.label;
-            label.style.fontSize = '12px';
-            label.style.color = '#aaa';
-            row.appendChild(label);
-
-            let input: HTMLElement | null = null;
-
-            switch (param.type) {
-                case 'object':
-                case 'variable':
-                case 'stage':
-                case 'select': {
-                    const sel = document.createElement('select');
-                    sel.setAttribute('data-name', param.name);
-                    sel.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
-
-                    let items: any[] = [];
-                    if (param.source === 'objects') items = projectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }));
-                    else if (param.source === 'variables') items = (this.enrichedProject.variables || []).map(v => ({ value: v.name, label: v.name }));
-                    else if (param.source === 'stages') items = (this.project.stages || []).map((s: any) => ({ value: s.id, label: s.name || s.id }));
-                    else if (param.source === 'services') items = serviceRegistry.listServices().map(s => ({ value: s, label: s }));
-                    else if (param.source === 'tasks') items = projectRegistry.getTasks().map(t => ({ value: t.name, label: t.name }));
-                    else if (param.source === 'actions') items = projectRegistry.getActions().map(a => ({ value: a.name, label: a.name }));
-                    else if (param.source === 'easing-functions') items = ['linear', 'easeIn', 'easeOut', 'easeInOut'].map(e => ({ value: e, label: e }));
-
-                    // Add empty option
-                    const empty = document.createElement('option');
-                    empty.value = '';
-                    empty.text = '--- wählen ---';
-                    sel.appendChild(empty);
-
-                    items.forEach(it => {
-                        const opt = document.createElement('option');
-                        opt.value = it.value;
-                        opt.text = it.label;
-                        if (this.dialogData[param.name] === it.value) opt.selected = true;
-                        sel.appendChild(opt);
-                    });
-
-                    sel.onchange = () => {
-                        this.dialogData[param.name] = sel.value;
-                        this.render();
-                    };
-                    input = sel;
-                    break;
-                }
-                case 'json':
-                case 'string':
-                case 'number':
-                default: {
-                    // --- SPECIAL: Dynamic Method Parameters for call_method ---
-                    if (type === 'call_method' && param.name === 'params') {
-                        const methodName = this.dialogData.method;
-                        const signature = this.getMethodSignature(this.dialogData.target, methodName);
-
-                        const paramContainer = document.createElement('div');
-                        paramContainer.style.display = 'flex';
-                        paramContainer.style.flexDirection = 'column';
-                        paramContainer.style.gap = '8px';
-                        paramContainer.style.paddingLeft = '10px';
-                        paramContainer.style.borderLeft = '2px solid #555';
-                        paramContainer.style.marginTop = '4px';
-
-                        signature.forEach((sigParam: any, idx: number) => {
-                            const sigRow = document.createElement('div');
-                            sigRow.style.display = 'flex';
-                            sigRow.style.flexDirection = 'column';
-                            sigRow.style.gap = '2px';
-
-                            const sigLabel = document.createElement('label');
-                            sigLabel.innerText = `${sigParam.label || sigParam.name} (${sigParam.type})`;
-                            sigLabel.style.fontSize = '11px';
-                            sigLabel.style.color = '#888';
-                            sigRow.appendChild(sigLabel);
-
-                            const currentParamValue = (Array.isArray(this.dialogData.params) ? this.dialogData.params[idx] : '') || '';
-
-                            let sigInput: HTMLElement;
-                            if (sigParam.type === 'select' || sigParam.type === 'stage' || sigParam.type === 'variable') {
-                                // Reuse evaluation context for options
-                                const opts = sigParam.options || [];
-                                const evaluatedOpts = (typeof opts === 'string') ? this.evaluateExpression(opts) : opts;
-
-                                // Specific sources for stage/variable if string source is used
-                                let items = evaluatedOpts;
-                                if (sigParam.source === 'stages') items = (this.enrichedProject.stages || []).map((s: any) => ({ value: s.id, label: s.name || s.id }));
-                                else if (sigParam.source === 'variables') items = (this.enrichedProject.variables || []).map(v => ({ value: v.name, label: v.name }));
-
-                                const sel = document.createElement('select');
-                                sel.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
-
-                                // Add empty option
-                                const empty = document.createElement('option');
-                                empty.value = '';
-                                empty.text = '--- wählen ---';
-                                sel.appendChild(empty);
-
-                                items.forEach((it: any) => {
-                                    const opt = document.createElement('option');
-                                    opt.value = it.value || it;
-                                    opt.text = it.label || it.name || it;
-                                    if (currentParamValue === opt.value) opt.selected = true;
-                                    sel.appendChild(opt);
-                                });
-
-                                sel.onchange = () => {
-                                    const p = Array.isArray(this.dialogData.params) ? [...this.dialogData.params] : [];
-                                    p[idx] = sel.value;
-                                    this.dialogData.params = p;
-                                    this.render();
-                                };
-                                sigInput = sel;
-                            } else {
-                                const ed = document.createElement('input');
-                                ed.type = 'text';
-                                ed.value = currentParamValue;
-                                ed.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
-                                ed.onchange = () => {
-                                    const p = Array.isArray(this.dialogData.params) ? [...this.dialogData.params] : [];
-                                    p[idx] = ed.value;
-                                    if (sigParam.type === 'number') p[idx] = Number(ed.value);
-                                    this.dialogData.params = p;
-                                    // Normally we don't need re-render for simple text edit in array, 
-                                    // but if it's the last step we might.
-                                };
-                                sigInput = ed;
-                            }
-                            sigRow.appendChild(sigInput);
-                            paramContainer.appendChild(sigRow);
-                        });
-                        input = paramContainer;
-                    } else {
-                        const edit = document.createElement('input');
-                        edit.type = 'text';
-                        edit.setAttribute('data-name', param.name);
-                        edit.value = this.dialogData[param.name] !== undefined ? (typeof this.dialogData[param.name] === 'object' ? JSON.stringify(this.dialogData[param.name]) : this.dialogData[param.name]) : (param.defaultValue || '');
-                        edit.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
-
-                        edit.onchange = () => {
-                            let val: any = edit.value;
-                            if (param.type === 'number') val = Number(val);
-                            if (param.type === 'json') {
-                                try {
-                                    val = JSON.parse(val);
-                                } catch (e) {
-                                    // Support "prop=val" syntax for convenience (as requested by user)
-                                    if (typeof val === 'string' && val.includes('=') && !val.trim().startsWith('{')) {
-                                        const parts = val.split('=').map(s => s.trim());
-                                        if (parts.length === 2) {
-                                            const [k, v] = parts;
-                                            // Auto-convert numbers if possible
-                                            const numV = Number(v);
-                                            val = { [k]: !isNaN(numV) && v !== '' ? numV : v };
-                                            console.log(`[JSONDialogRenderer] Auto-converted "${edit.value}" to JSON:`, val);
-                                        }
-                                    } else {
-                                        console.error('Invalid JSON in param', param.name, val);
-                                    }
-                                }
-                            }
-                            this.dialogData[param.name] = val;
-                            if (param.name === 'target' || param.name === 'service' || param.name === 'method') {
-                                this.render();
-                            }
-                        };
-                        input = edit;
-                    }
-                    break;
-                }
-            }
-
-            if (input) row.appendChild(input);
-            if (param.hint) {
-                const hint = document.createElement('div');
-                hint.innerText = param.hint;
-                hint.style.fontSize = '10px';
-                hint.style.color = '#666';
-                row.appendChild(hint);
-            }
-
-            container.appendChild(row);
+        return ActionParamRenderer.render({
+            dialogData: this.dialogData,
+            project: this.project,
+            enrichedProject: this.enrichedProject,
+            evaluateExpression: (expr) => this.evaluateExpression(expr),
+            getMethodSignature: (target, method) => this.getMethodSignature(target, method),
+            render: () => this.render()
         });
-
-        return container;
     }
 
     private renderForEach(obj: any): HTMLElement | null {
@@ -1432,7 +994,7 @@ export class JSONDialogRenderer {
         this.dialogData._formValues = this.dialogData._formValues || {};
         this.dialogData._formValues[name] = value;
 
-        console.log(`[JSONDialogRenderer] updateModelValue: name="${name}", value="${value}"`);
+        logger.debug(`updateModelValue: name="${name}", value="${value}"`);
 
         // Standard properties list for Actions (Straight Path)
         const actionProps = [
