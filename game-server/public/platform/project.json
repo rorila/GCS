@@ -265,13 +265,92 @@
           ],
           "triggerMode": "local-sync",
           "params": [],
-          "description": ""
+          "description": "",
+          "flowChart": {
+            "elements": [
+              {
+                "id": "node-1770912717577",
+                "type": "Task",
+                "x": 40,
+                "y": 80,
+                "width": 180,
+                "height": 60,
+                "properties": {
+                  "name": "createAnEmojiPin",
+                  "details": "",
+                  "description": "",
+                  "text": "createAnEmojiPin"
+                },
+                "data": {
+                  "name": "createAnEmojiPin",
+                  "showDetails": false
+                }
+              },
+              {
+                "id": "node-1770912760363",
+                "type": "Action",
+                "x": 340,
+                "y": 80,
+                "width": 140,
+                "height": 60,
+                "properties": {
+                  "name": "Action1",
+                  "details": "currentPIN := currentPIN +PinPicker.selectedEmoji",
+                  "description": ""
+                },
+                "data": {
+                  "name": "Action1",
+                  "isLinked": true
+                }
+              }
+            ],
+            "connections": [
+              {
+                "id": "conn_1772184842644_996",
+                "startTargetId": "node-1770912717577",
+                "endTargetId": "node-1770912760363",
+                "startX": 197.328125,
+                "startY": 109,
+                "endX": 340,
+                "endY": 120,
+                "data": {
+                  "startAnchorType": "output",
+                  "originalStartAnchorType": "output",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "input"
+                }
+              }
+            ]
+          }
         },
         {
           "name": "TryLoginOnceMore",
           "description": "Erneuter Login-Versuch nach Fehler",
           "params": [],
-          "actionSequence": []
+          "actionSequence": [],
+          "flowChart": {
+            "elements": [
+              {
+                "id": "node-trylogin-root",
+                "type": "Task",
+                "x": 40,
+                "y": 80,
+                "width": 180,
+                "height": 60,
+                "properties": {
+                  "name": "TryLoginOnceMore",
+                  "details": "",
+                  "description": "Erneuter Login-Versuch nach Fehler",
+                  "text": "TryLoginOnceMore"
+                },
+                "data": {
+                  "name": "TryLoginOnceMore",
+                  "showDetails": false
+                }
+              }
+            ],
+            "connections": []
+          }
         },
         {
           "name": "HandleApiRequest",
@@ -458,7 +537,29 @@
           "name": "Task",
           "description": "",
           "params": [],
-          "actionSequence": []
+          "actionSequence": [],
+          "flowChart": {
+            "elements": [
+              {
+                "id": "root_task_1772184855840",
+                "type": "Task",
+                "x": 400,
+                "y": 60,
+                "width": 160,
+                "height": 60,
+                "properties": {
+                  "name": "Task",
+                  "details": "",
+                  "description": "",
+                  "text": "Task"
+                },
+                "data": {
+                  "taskName": "Task"
+                }
+              }
+            ],
+            "connections": []
+          }
         }
       ],
       "actions": [
@@ -547,8 +648,8 @@
               "type": "Action",
               "x": 340,
               "y": 80,
-              "width": 400,
-              "height": 80,
+              "width": 140,
+              "height": 60,
               "properties": {
                 "name": "Action1",
                 "details": "currentPIN := currentPIN +PinPicker.selectedEmoji",
@@ -562,6 +663,7 @@
           ],
           "connections": [
             {
+              "id": "conn_1772184842644_996",
               "startTargetId": "node-1770912717577",
               "endTargetId": "node-1770912760363",
               "startX": 197.328125,
@@ -665,8 +767,7 @@
               },
               "data": {
                 "name": "doTheAuthenfification",
-                "isLinked": true,
-                "showDetails": false
+                "isLinked": true
               }
             },
             {
@@ -789,12 +890,34 @@
               "properties": {
                 "name": "TryLoginOnceMore",
                 "details": "",
-                "description": "Erneuter Login-Versuch",
+                "description": "Erneuter Login-Versuch nach Fehler",
                 "text": "TryLoginOnceMore"
               },
               "data": {
                 "name": "TryLoginOnceMore",
                 "showDetails": false
+              }
+            }
+          ],
+          "connections": []
+        },
+        "Task": {
+          "elements": [
+            {
+              "id": "root_task_1772184855840",
+              "type": "Task",
+              "x": 400,
+              "y": 60,
+              "width": 160,
+              "height": 60,
+              "properties": {
+                "name": "Task",
+                "details": "",
+                "description": "",
+                "text": "Task"
+              },
+              "data": {
+                "taskName": "Task"
               }
             }
           ],

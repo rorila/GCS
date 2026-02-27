@@ -1,3 +1,15 @@
+## [3.9.1] - 2026-02-27
+- **Standalone Player (Refactoring)**: Vollständige Integration des `StageRenderer` in `player-standalone.ts`.
+  - Elimination von ~300 Zeilen redundantem Rendering-Code.
+  - Implementierung des `StageHost` Interfaces im `UniversalPlayer`.
+  - Einheitliches Rendering-System für Editor und Standalone-Player.
+- **Dokumentation (Restrukturierung)**: Aufteilung der `DEVELOPER_GUIDELINES.md` in spezialisierte Module.
+  - Neue Dateien unter `docs/`: `architecture.md`, `runtime-guide.md`, `coding-standards.md`, `ui-inspector-guide.md`.
+  - Fokus auf Cloud-native und Agent-first Entwicklungsprinzipien.
+- **Cleanup (Prio 3)**: Finale Entfernung der Legacy-Module `TaskEditor.ts` und `ActionEditor.ts`.
+  - Bereinigung aller Callsites im Inspector und Entkopplung via `MediatorService`.
+- **Versionierung**: Projektversion in `package.json` auf 3.9.1 angehoben.
+
 ## [3.9.0] - 2026-02-27
 - **Architecture (Modularisierung)**: Umfassende Modularisierung von `RefactoringManager.ts` und `TaskExecutor.ts`.
   - Extraktion der Refactoring-Logik in spezialisierte Services: `VariableRefactoringService`, `TaskRefactoringService`, `ActionRefactoringService`, `ObjectRefactoringService` und `SanitizationService`.

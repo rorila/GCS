@@ -2,6 +2,8 @@ import { GameRuntime } from './runtime/GameRuntime';
 import { network, ServerMessage } from './multiplayer';
 import { ExpressionParser } from './runtime/ExpressionParser';
 import { gunzipSync } from 'fflate';
+import { StageRenderer, StageHost } from './editor/services/StageRenderer';
+import { GridConfig } from './model/types';
 // HeadlessRuntime and HeadlessServer are Node.js-only (use express)
 // They should NOT be imported in the browser bundle
 
@@ -41,13 +43,27 @@ function decompressProject(data: string): any {
  * - Multiplayer rooms (?room=XXXX)
  * - Dynamic Lobby (if no game/room selected)
  */
-class UniversalPlayer {
+class UniversalPlayer implements StageHost {
     private runtime: GameRuntime | null = null;
-    private stage: HTMLElement;
+    public element: HTMLElement; // From StageHost
     private techClasses = ['TGameLoop', 'TInputController', 'TGameState', 'TTimer', 'TRemoteGameManager', 'TGameServer', 'THandshake', 'THeartbeat', 'TStageController'];
     private currentProject: any = null;
     private isStarted: boolean = false;
     private animationTickerId: number | null = null;
+    private renderer: StageRenderer;
+
+    // --- StageHost Implementation ---
+    public runMode: boolean = true;
+    public isBlueprint: boolean = false;
+    public selectedIds: Set<string> = new Set();
+    public lastRenderedObjects: any[] = [];
+    public onEvent: ((id: string, eventName: string, data?: any) => void) | null = null;
+
+    public get grid(): GridConfig {
+        const activeStage = this.runtime ? (this.runtime as any).stage : (this.currentProject?.stage || this.currentProject?.stages?.[0]);
+        return activeStage?.grid || { cols: 20, rows: 20, cellSize: 40 };
+    }
+    // --------------------------------
 
     // Drag & Drop State
     private dragTarget: any = null;
@@ -56,7 +72,11 @@ class UniversalPlayer {
     private dragOffset: { x: number, y: number } = { x: 0, y: 0 };
 
     constructor() {
-        this.stage = document.getElementById('stage')!;
+        this.element = document.getElementById('stage')!;
+        this.renderer = new StageRenderer(this);
+        this.onEvent = (id, ev, data) => {
+            if (this.runtime) this.runtime.handleEvent(id, ev, data);
+        };
         this.init();
     }
 
@@ -239,7 +259,7 @@ class UniversalPlayer {
         if (this.runtime) {
             this.runtime.stop();
             this.stopAnimationTicker();
-            this.stage.innerHTML = '';
+            this.element.innerHTML = '';
         }
 
         this.currentProject = project;
@@ -360,12 +380,12 @@ class UniversalPlayer {
         const margin = 20;
         const scale = Math.min((windowWidth - margin) / stageWidth, (windowHeight - margin) / stageHeight, 1.0);
 
-        this.stage.style.width = `${stageWidth}px`;
-        this.stage.style.height = `${stageHeight}px`;
-        this.stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
-        this.stage.style.left = '50%';
-        this.stage.style.top = '50%';
-        this.stage.style.position = 'absolute';
+        this.element.style.width = `${stageWidth}px`;
+        this.element.style.height = `${stageHeight}px`;
+        this.element.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        this.element.style.left = '50%';
+        this.element.style.top = '50%';
+        this.element.style.position = 'absolute';
 
         // Set background color from grid
         const bg = grid.backgroundColor || '#000';
@@ -375,9 +395,9 @@ class UniversalPlayer {
             const url = bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:')
                 ? bgImg
                 : `./images/${bgImg}`;
-            this.stage.style.background = `url("${url}") center center / ${activeStage.objectFit || 'cover'} no-repeat, ${bg}`;
+            this.element.style.background = `url("${url}") center center / ${activeStage.objectFit || 'cover'} no-repeat, ${bg}`;
         } else {
-            this.stage.style.background = bg;
+            this.element.style.background = bg;
         }
     }
 
@@ -421,359 +441,8 @@ class UniversalPlayer {
 
     private render() {
         if (!this.runtime) return;
-        const objects = this.runtime.getObjects();
-
-        const activeStage = (this.runtime as any).stage || (this.currentProject.stage || this.currentProject.stages?.[0]);
-        const grid = activeStage?.grid;
-        if (!grid) return;
-
-        const cellSize = grid.cellSize;
-        const stageWidth = grid.cols * cellSize;
-        const stageHeight = grid.rows * cellSize;
-
-        // Calculate dock positions for aligned objects
-        const dockArea = { left: 0, top: 0, right: stageWidth, bottom: stageHeight };
-        const dockPositions = new Map<string, { left: number, top: number, width: number, height: number }>();
-
-        // First pass: TOP, BOTTOM, LEFT, RIGHT
-        objects.forEach((obj: any) => {
-            const align = obj.align || 'NONE';
-            if (align === 'NONE' || align === 'CLIENT') return;
-
-            const objId = obj.id;
-            if (!objId) return;
-
-            const objHeight = (obj.height || 0) * cellSize;
-            const objWidth = (obj.width || 0) * cellSize;
-            const availableWidth = dockArea.right - dockArea.left;
-            const availableHeight = dockArea.bottom - dockArea.top;
-
-            if (align === 'TOP') {
-                dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: availableWidth, height: objHeight });
-                dockArea.top += objHeight;
-            } else if (align === 'BOTTOM') {
-                dockPositions.set(objId, { left: dockArea.left, top: dockArea.bottom - objHeight, width: availableWidth, height: objHeight });
-                dockArea.bottom -= objHeight;
-            } else if (align === 'LEFT') {
-                dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: objWidth, height: availableHeight });
-                dockArea.left += objWidth;
-            } else if (align === 'RIGHT') {
-                dockPositions.set(objId, { left: dockArea.right - objWidth, top: dockArea.top, width: objWidth, height: availableHeight });
-                dockArea.right -= objWidth;
-            }
-        });
-
-        // Second pass: CLIENT fills remaining area
-        objects.forEach((obj: any) => {
-            const align = obj.align || 'NONE';
-            if (align !== 'CLIENT') return;
-
-            const objId = obj.id;
-            if (!objId) return;
-
-            dockPositions.set(objId, {
-                left: dockArea.left,
-                top: dockArea.top,
-                width: dockArea.right - dockArea.left,
-                height: dockArea.bottom - dockArea.top
-            });
-        });
-
-        // Clean up DOM - remove elements that are no longer in runtime
-        const currentIds = new Set(objects.map((o: any) => o.id));
-        const rendered = Array.from(this.stage.querySelectorAll('.game-object')) as HTMLElement[];
-        rendered.forEach(el => {
-            if (!currentIds.has(el.id)) el.remove();
-        });
-
-        // Update/Create elements
-        objects.forEach((obj: any) => {
-            if (this.techClasses.includes(obj.className)) return;
-
-            const isVisible = obj.style?.visible !== false && obj.visible !== false;
-            let el = document.getElementById(obj.id);
-
-            if (!isVisible) {
-                if (el) el.remove();
-                return;
-            }
-
-            if (!el) {
-                el = document.createElement('div');
-                el.id = obj.id;
-                el.className = 'game-object';
-                this.stage.appendChild(el);
-            }
-
-            // Sync Basic Styles - use dock positions if available
-            const dockPos = dockPositions.get(obj.id);
-            if (dockPos) {
-                // For docked objects, x and y serve as relative grid-offsets to their dock position
-                // This allows animating docked objects (e.g. stage entry)
-                const offsetX = (obj.x || 0) * cellSize;
-                const offsetY = (obj.y || 0) * cellSize;
-                el.style.left = `${dockPos.left + offsetX}px`;
-                el.style.top = `${dockPos.top + offsetY}px`;
-                el.style.width = `${dockPos.width}px`;
-                el.style.height = `${dockPos.height}px`;
-            } else {
-                el.style.left = `${(obj.x || 0) * cellSize}px`;
-                el.style.top = `${(obj.y || 0) * cellSize}px`;
-                el.style.width = `${(obj.width || 0) * cellSize}px`;
-                el.style.height = `${(obj.height || 0) * cellSize}px`;
-            }
-            el.style.zIndex = String(obj.zIndex || 0);
-
-            // Opacity support for animations
-            if (obj.style && obj.style.opacity !== undefined) {
-                el.style.opacity = String(obj.style.opacity);
-            } else {
-                el.style.opacity = '1';
-            }
-
-            if (obj.style) {
-                el.style.backgroundColor = obj.style.backgroundColor || 'transparent';
-                el.style.color = obj.style.color || 'inherit';
-                el.style.fontSize = (obj.style.fontSize || 16) + 'px';
-                el.style.textAlign = obj.style.textAlign || 'left';
-                el.style.border = `${obj.style.borderWidth || 0}px solid ${obj.style.borderColor || 'transparent'}`;
-                el.style.borderRadius = (obj.style.borderRadius || 0) + 'px';
-                el.style.display = 'flex';
-                el.style.alignItems = 'center';
-                el.style.justifyContent = obj.style.textAlign === 'center' ? 'center' : 'flex-start';
-                el.style.padding = obj.style.textAlign === 'center' ? '0' : '0 10px';
-            }
-
-            this.renderComponentContent(el, obj);
-        });
-    }
-
-    private renderComponentContent(el: HTMLElement, obj: any) {
-        const type = obj.className;
-        switch (type) {
-            case 'TImage': {
-                el.innerHTML = '';
-                const img = document.createElement('img');
-                const src = obj.src || obj.backgroundImage || '';
-                if (src) {
-                    img.src = src.startsWith('http') || src.startsWith('/') || src.startsWith('data:')
-                        ? src
-                        : `./images/${src}`;
-                }
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = obj.objectFit || 'contain';
-                img.style.opacity = String(obj.imageOpacity ?? 1);
-                img.style.display = src ? 'block' : 'none';
-                el.appendChild(img);
-                break;
-            }
-            case 'TSprite': {
-                el.style.backgroundColor = obj.spriteColor || el.style.backgroundColor;
-                if (obj.shape === 'circle') el.style.borderRadius = '50%';
-
-                // Sprite background image
-                const bgImg = obj.backgroundImage;
-                if (bgImg) {
-                    const url = bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:')
-                        ? bgImg
-                        : `./images/${bgImg}`;
-                    el.style.backgroundImage = `url("${url}")`;
-                    el.style.backgroundSize = obj.objectFit || 'cover';
-                    el.style.backgroundPosition = 'center';
-                    el.style.backgroundRepeat = 'no-repeat';
-                } else {
-                    el.style.backgroundImage = 'none';
-                }
-                break;
-            }
-            case 'TButton':
-                el.innerText = obj.caption || obj.name;
-                el.style.cursor = 'pointer';
-
-                // Handle optional icon
-                if (obj.icon) {
-                    const iconUrl = obj.icon.startsWith('http') || obj.icon.startsWith('/') || obj.icon.startsWith('data:')
-                        ? obj.icon
-                        : `./images/${obj.icon}`;
-                    el.style.display = 'flex';
-                    el.style.gap = '8px';
-                    el.style.alignItems = 'center';
-                    el.style.justifyContent = 'center';
-                    el.innerHTML = `<img src="${iconUrl}" style="height: 1.2em; width: auto;"> <span>${obj.caption || obj.name}</span>`;
-                }
-
-                if (!el.onclick) {
-                    el.onclick = () => this.runtime?.handleEvent(obj.id, 'onClick');
-                }
-                break;
-            case 'TLabel':
-            case 'TNumberLabel':
-            case 'TGameHeader':
-                const labelText = (obj.text !== undefined && obj.text !== null) ? String(obj.text) :
-                    (obj.value !== undefined && obj.value !== null) ? String(obj.value) :
-                        (obj.title || obj.caption || '');
-                el.innerText = labelText;
-                break;
-            case 'TEdit':
-                if (!el.querySelector('input')) {
-                    el.innerHTML = '';
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.style.width = '100%';
-                    input.style.height = '100%';
-                    input.style.border = 'none';
-                    input.style.background = 'transparent';
-                    input.style.padding = '0 10px';
-                    input.style.color = 'inherit';
-                    input.style.fontSize = 'inherit';
-                    input.style.textAlign = 'center';
-                    input.style.outline = 'none';
-                    input.oninput = () => { obj.text = input.value; };
-                    el.appendChild(input);
-                }
-                const ti = el.querySelector('input')!;
-                const editValue = (obj.text !== undefined && obj.text !== null) ? String(obj.text) : '';
-                if (ti.value !== editValue) {
-                    ti.value = editValue;
-                }
-                break;
-            case 'TVideo':
-            case 'TSplashScreen': {
-                const videoSrc = obj.videoSource || '';
-                if (!videoSrc) {
-                    el.innerHTML = '<div style="color: #444; font-size: 10px; text-align: center;">No Video Source</div>';
-                    break;
-                }
-
-                let video = el.querySelector('video') as HTMLVideoElement;
-                if (!video) {
-                    el.innerHTML = '';
-                    video = document.createElement('video');
-                    video.style.width = '100%';
-                    video.style.height = '100%';
-                    video.playsInline = true;
-                    el.appendChild(video);
-                }
-
-                // Sync source
-                const fullSrc = videoSrc.startsWith('http') || videoSrc.startsWith('/') || videoSrc.startsWith('data:')
-                    ? videoSrc
-                    : `./images/${videoSrc}`;
-
-                if (video.src !== new URL(fullSrc, window.location.href).href) {
-                    video.src = fullSrc;
-                    if (obj.autoplay) video.play().catch(() => { });
-                }
-
-                // Sync properties
-                video.style.objectFit = obj.objectFit || 'contain';
-                video.style.opacity = String(obj.imageOpacity ?? 1);
-                video.loop = !!obj.loop;
-                video.muted = !!obj.muted;
-                if (obj.playbackRate) video.playbackRate = obj.playbackRate;
-
-                // Sync Playback State from model
-                if (obj.isPlaying && video.paused) {
-                    video.play().catch(e => console.warn('[Player] Video play failed:', e));
-                } else if (!obj.isPlaying && !video.paused) {
-                    video.pause();
-                }
-
-                break;
-            }
-            case 'TGameCard': {
-                el.innerHTML = '';
-                el.style.flexDirection = 'column';
-                el.style.padding = '15px';
-                el.style.gap = '10px';
-                el.style.borderRadius = '12px';
-                el.style.background = 'rgba(255, 255, 255, 0.05)';
-                el.style.border = '1px solid rgba(255, 255, 255, 0.1)';
-                el.style.backdropFilter = 'blur(10px)';
-
-                // Host Info Row
-                const hostRow = document.createElement('div');
-                hostRow.style.display = 'flex';
-                hostRow.style.alignItems = 'center';
-                hostRow.style.gap = '10px';
-                hostRow.style.width = '100%';
-
-                const avatar = document.createElement('div');
-                avatar.style.width = '40px';
-                avatar.style.height = '40px';
-                avatar.style.borderRadius = '50%';
-                avatar.style.background = '#4fc3f7';
-                avatar.style.display = 'flex';
-                avatar.style.alignItems = 'center';
-                avatar.style.justifyContent = 'center';
-                avatar.style.fontSize = '20px';
-                avatar.innerText = obj.hostAvatar || '👤';
-                hostRow.appendChild(avatar);
-
-                const nameAndGame = document.createElement('div');
-                nameAndGame.style.flex = '1';
-
-                const hostNameEl = document.createElement('div');
-                hostNameEl.style.fontSize = '14px';
-                hostNameEl.style.color = '#94a3b8';
-                hostNameEl.innerText = obj.hostName || 'Anonym';
-                nameAndGame.appendChild(hostNameEl);
-
-                const gameTitleEl = document.createElement('div');
-                gameTitleEl.style.fontSize = '18px';
-                gameTitleEl.style.fontWeight = 'bold';
-                gameTitleEl.innerText = obj.gameName || 'Unbekanntes Spiel';
-                nameAndGame.appendChild(gameTitleEl);
-
-                hostRow.appendChild(nameAndGame);
-                el.appendChild(hostRow);
-
-                // Join Button
-                const joinBtn = document.createElement('div');
-                joinBtn.style.width = '100%';
-                joinBtn.style.padding = '8px';
-                joinBtn.style.textAlign = 'center';
-                joinBtn.style.background = '#10b981';
-                joinBtn.style.color = 'white';
-                joinBtn.style.borderRadius = '6px';
-                joinBtn.style.cursor = 'pointer';
-                joinBtn.style.fontWeight = 'bold';
-                joinBtn.innerText = 'Beitreten';
-                joinBtn.onclick = () => {
-                    if (obj.roomCode) {
-                        this.handleNavigation(`room:${obj.roomCode}`);
-                    }
-                };
-                el.appendChild(joinBtn);
-                break;
-            }
-            case 'TShape': {
-                el.innerHTML = '';
-                el.style.backgroundColor = obj.fillColor || 'transparent';
-                el.style.border = `${obj.strokeWidth || 0}px solid ${obj.strokeColor || 'transparent'}`;
-                el.style.opacity = String(obj.opacity ?? 1);
-
-                if (obj.shapeType === 'circle') {
-                    el.style.borderRadius = '50%';
-                } else if (obj.shapeType === 'rect' || obj.shapeType === 'square') {
-                    el.style.borderRadius = '0';
-                } else if (obj.shapeType === 'ellipse') {
-                    el.style.borderRadius = '50% / 50%';
-                } else if (obj.shapeType === 'triangle') {
-                    el.style.backgroundColor = 'transparent';
-                    el.style.border = 'none';
-                    el.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
-                    el.style.background = obj.fillColor || 'white';
-                } else if (obj.shapeType === 'arrow') {
-                    el.style.backgroundColor = 'transparent';
-                    el.style.border = 'none';
-                    el.style.clipPath = 'polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%)';
-                    el.style.background = obj.fillColor || 'white';
-                }
-                break;
-            }
-        }
+        const objects = this.runtime.getObjects().filter(obj => !this.techClasses.includes(obj.className));
+        this.renderer.renderObjects(objects);
     }
 
     private showOverlay(text: string, subtext?: string) {
@@ -890,14 +559,14 @@ class UniversalPlayer {
     }
 
     private screenToGrid(clientX: number, clientY: number): { x: number, y: number } {
-        const rect = this.stage.getBoundingClientRect();
+        const rect = this.element.getBoundingClientRect();
 
         // Calculate relative position within the stage
         const relativeX = clientX - rect.left;
         const relativeY = clientY - rect.top;
 
         // Account for scaling
-        const style = window.getComputedStyle(this.stage);
+        const style = window.getComputedStyle(this.element);
         const matrix = new DOMMatrix(style.transform);
         const scale = matrix.a;
 
