@@ -1,4 +1,5 @@
 import { Recording, RecordedAction } from './ChangeRecorder';
+import { Logger } from '../utils/Logger';
 
 /**
  * PlaybackEngine - Verantwortlich für das Abspielen von Recording-Sessions
@@ -6,6 +7,7 @@ import { Recording, RecordedAction } from './ChangeRecorder';
  * Steuert das Timing und die Ausführung von aufgezeichneten Aktionen.
  */
 export class PlaybackEngine {
+    private static logger = Logger.get('PlaybackEngine', 'Editor_Diagnostics');
     private currentRecording: Recording | null = null;
     private isPlaying: boolean = false;
     private playbackSpeed: number = 1.0;
@@ -126,7 +128,7 @@ export class PlaybackEngine {
      * Führt eine einzelne Aktion aus
      */
     private executeAction(action: RecordedAction): void {
-        console.log(`[PlaybackEngine] Executing: ${action.description}`);
+        PlaybackEngine.logger.info(`Executing: ${action.description}`);
         this.onActionExecuted?.(action);
 
         // In dieser Phase informieren wir nur die UI/Editor über die Aktion.

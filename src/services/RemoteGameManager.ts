@@ -1,5 +1,6 @@
 import { MultiplayerManager } from '../runtime/MultiplayerManager';
 import { serviceRegistry } from './ServiceRegistry';
+import { Logger } from '../utils/Logger';
 
 /**
  * Result of room operations
@@ -18,6 +19,7 @@ export interface RoomResult {
  * Wraps the lower-level MultiplayerManager with service-friendly methods.
  */
 export class RemoteGameManager {
+    private logger = Logger.get('RemoteGameManager', 'API_Simulation');
     private mp: MultiplayerManager | null = null;
     private gameName: string = 'default';
 
@@ -33,7 +35,7 @@ export class RemoteGameManager {
     public onConnectionChange: ((connected: boolean) => void) | null = null;
 
     constructor() {
-        console.log('[RemoteGameManager] Service created');
+        this.logger.info('Service created');
     }
 
     /**
@@ -52,7 +54,7 @@ export class RemoteGameManager {
                         clearInterval(checkInterval);
                         this.setupCallbacks();
                         if (this.onConnectionChange) this.onConnectionChange(true);
-                        console.log('[RemoteGameManager] Connected');
+                        this.logger.info('Connected');
                         resolve(true);
                     }
                 }, 100);
@@ -61,13 +63,13 @@ export class RemoteGameManager {
                 setTimeout(() => {
                     clearInterval(checkInterval);
                     if (!this.mp?.isConnected) {
-                        console.error('[RemoteGameManager] Connection timeout');
+                        this.logger.error('Connection timeout');
                         if (this.onError) this.onError('Verbindung zum Server fehlgeschlagen');
                         resolve(false);
                     }
                 }, 5000);
             } catch (error) {
-                console.error('[RemoteGameManager] Connection error:', error);
+                this.logger.error('Connection error:', error);
                 resolve(false);
             }
         });
@@ -80,7 +82,7 @@ export class RemoteGameManager {
         if (!this.mp) return;
 
         this.mp.onRoomCreated = (msg) => {
-            console.log('[RemoteGameManager] Room created:', msg.roomCode);
+            this.logger.info('Room created:', msg.roomCode);
             if (this.createRoomResolve) {
                 this.createRoomResolve({
                     success: true,
@@ -92,7 +94,7 @@ export class RemoteGameManager {
         };
 
         this.mp.onRoomJoined = (msg) => {
-            console.log('[RemoteGameManager] Room joined:', msg.roomCode, 'as Player', msg.playerNumber);
+            this.logger.info('Room joined:', msg.roomCode, 'as Player', msg.playerNumber);
             if (this.joinRoomResolve) {
                 this.joinRoomResolve({
                     success: true,
@@ -104,12 +106,12 @@ export class RemoteGameManager {
         };
 
         this.mp.onPlayerJoined = (_msg) => {
-            console.log('[RemoteGameManager] Player 2 joined');
+            this.logger.info('Player 2 joined');
             if (this.onPlayerJoined) this.onPlayerJoined(2);
         };
 
         this.mp.onGameStart = (msg) => {
-            console.log('[RemoteGameManager] Game starting, seed:', msg.seed);
+            this.logger.info('Game starting, seed:', msg.seed);
             if (this.onGameStart) {
                 this.onGameStart(this.mp!.playerNumber as 1 | 2, msg.seed);
             }

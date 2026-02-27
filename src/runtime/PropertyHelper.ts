@@ -1,4 +1,8 @@
 
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('PropertyHelper', 'Variable_Handling');
+
 /**
  * PropertyHelper provides centralized logic for path-based property access,
  * modification, and variable interpolation.
@@ -51,7 +55,7 @@ export class PropertyHelper {
             }
 
             if (propPath.includes('LeftOperand') || propPath.includes('BaseVar')) {
-                console.log(`[PropertyHelper] getPropertyValue("${propPath}") member "${part}":`, {
+                logger.info(`getPropertyValue("${propPath}") member "${part}":`, {
                     targetType: (target as any).constructor?.name || typeof target,
                     hasInContent,
                     result: (typeof current === 'string' ? `"${current}"` : (current === undefined ? "undefined" : "object/val"))
@@ -118,7 +122,7 @@ export class PropertyHelper {
 
         return template.replace(/\$\{([^}]+)\}/g, (_, path) => {
             const trimmedPath = path.trim();
-            console.log(`[PropertyHelper] Starting interpolation for path: "${trimmedPath}"`);
+            logger.info(`Starting interpolation for path: "${trimmedPath}"`);
             // 0. Try literals first
             if (trimmedPath === 'true') return 'true';
             if (trimmedPath === 'false') return 'false';
@@ -132,7 +136,7 @@ export class PropertyHelper {
                     const obj = objects.find(o => o.name === objName || o.id === objName);
                     if (obj) {
                         const val = this.getPropertyValue(obj, propPath);
-                        console.log(`[PropertyHelper] Interpolate "${trimmedPath}" matched Object "${objName}". Prop: "${propPath}", Value: "${val}"`);
+                        logger.info(`Interpolate "${trimmedPath}" matched Object "${objName}". Prop: "${propPath}", Value: "${val}"`);
                         if (val !== undefined) return String(val);
                     }
                 } else {
@@ -140,7 +144,7 @@ export class PropertyHelper {
                     const obj = objects.find(o => o.name === trimmedPath || o.id === trimmedPath);
                     if (obj) {
                         const resolved = this.resolveValue(obj);
-                        console.log(`[PropertyHelper] Interpolate "${trimmedPath}" found Object. ID: ${obj.id}, Name: ${obj.name}, Value: "${resolved}"`);
+                        logger.info(`Interpolate "${trimmedPath}" found Object. ID: ${obj.id}, Name: ${obj.name}, Value: "${resolved}"`);
                         if (resolved !== obj) return String(resolved ?? '');
                         // Otherwise return the name or [object]
                         return obj.name || obj.id || String(obj);
@@ -161,11 +165,11 @@ export class PropertyHelper {
 
             if (val !== undefined) {
                 const resolvedVal = this.resolveValue(val);
-                console.log(`[PropertyHelper] Interpolate "${trimmedPath}" found in vars. Value: "${resolvedVal}"`);
+                logger.info(`Interpolate "${trimmedPath}" found in vars. Value: "${resolvedVal}"`);
                 return String(resolvedVal);
             }
 
-            console.warn(`[PropertyHelper] Interpolation failed for path: "${trimmedPath}". Variable not found.`);
+            logger.warn(`Interpolation failed for path: "${trimmedPath}". Variable not found.`);
             return '';
         });
     }

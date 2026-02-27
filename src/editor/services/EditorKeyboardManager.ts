@@ -1,3 +1,5 @@
+import { Logger } from '../../utils/Logger';
+
 export interface EditorKeyboardHost {
     handleRewind(): void;
     handleForward(): void;
@@ -6,6 +8,7 @@ export interface EditorKeyboardHost {
 }
 
 export class EditorKeyboardManager {
+    private static logger = Logger.get('EditorKeyboardManager', 'Inspector_Update');
     private host: EditorKeyboardHost;
 
     constructor(host: EditorKeyboardHost) {
@@ -30,6 +33,6 @@ export class EditorKeyboardManager {
                 this.host.saveProject();
             }
         });
-        console.log('[EditorKeyboardManager] Keyboard shortcuts initialized');
+        EditorKeyboardManager.logger.info('Keyboard shortcuts initialized');
     }
 }

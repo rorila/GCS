@@ -1,3 +1,5 @@
+import { Logger } from '../utils/Logger';
+
 /**
  * JSONToolbox - JSON-based Toolbox renderer with collapsible categories
  */
@@ -20,6 +22,7 @@ interface ToolboxConfig {
 }
 
 export class JSONToolbox {
+    private static logger = Logger.get('JSONToolbox', 'Inspector_Update');
     private container: HTMLElement;
     private config: ToolboxConfig | null = null;
     private expandedState: Map<string, boolean> = new Map();
@@ -50,7 +53,7 @@ export class JSONToolbox {
         });
 
         this.render();
-        console.log('[JSONToolbox] Loaded:', json.meta.name, 'v' + json.meta.version);
+        JSONToolbox.logger.info('Loaded:', json.meta.name, 'v' + json.meta.version);
     }
 
     /**

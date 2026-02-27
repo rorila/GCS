@@ -1,7 +1,9 @@
 import { GameProject, SequenceItem, UsageReport } from '../../model/types';
+import { Logger } from '../../utils/Logger';
 import { RefactoringUtils } from './RefactoringUtils';
 
 export class ActionRefactoringService {
+    private static logger = Logger.get('ActionRefactoring', 'Action_Management');
     /**
      * Renames an action project-wide
      */
@@ -90,7 +92,7 @@ export class ActionRefactoringService {
                     }
 
                     if (nodeChanged) {
-                        console.log(`[ActionRefactoring] Treffer in Flow-Chart "${key}", Node "${el.id}": ${oldName} -> ${newName}`);
+                        ActionRefactoringService.logger.info(`Treffer in Flow-Chart "${key}", Node "${el.id}": ${oldName} -> ${newName}`);
                     }
                 });
             }
@@ -195,7 +197,7 @@ export class ActionRefactoringService {
 
             const isMatch = (seqItem.type === type) || (type === 'action' && seqItem.type === 'data_action');
             if (isMatch && seqItem.name === name) {
-                console.log(`[ActionRefactoring] Filtering out item: ${seqItem.name} (Type: ${seqItem.type})`);
+                ActionRefactoringService.logger.info(`Filtering out item: ${seqItem.name} (Type: ${seqItem.type})`);
                 return false;
             }
 

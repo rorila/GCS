@@ -1,12 +1,14 @@
 
 import { GameRuntime, RuntimeOptions } from './GameRuntime';
 import { GameLoopManager } from './GameLoopManager';
+import { Logger } from '../utils/Logger';
 
 /**
  * HeadlessRuntime - Eine spezielle Runtime für Node.js Umgebungen (Server).
  * Entkoppelt die Engine vom Browser/DOM und stellt notwendige Mocks bereit.
  */
 export class HeadlessRuntime {
+    private static logger = Logger.get('HeadlessRuntime', 'Runtime_Execution');
     private runtime: GameRuntime;
 
     constructor(project: any, options: RuntimeOptions = {}) {
@@ -45,12 +47,12 @@ export class HeadlessRuntime {
                 removeItem: (key: string) => { delete store[key]; },
                 clear: () => { for (const key in store) delete store[key]; }
             };
-            console.log('[HeadlessRuntime] localStorage Mock initialisiert (In-Memory)');
+            HeadlessRuntime.logger.info('localStorage Mock initialisiert (In-Memory)');
         }
 
         // 3. fetch Mock (Node 18+ hat fetch global, für ältere Versionen oder Stabilität)
         if (typeof fetch === 'undefined') {
-            console.warn('[HeadlessRuntime] Globales fetch fehlt. Bitte Node.js 18+ verwenden oder polyfill hinzufügen.');
+            HeadlessRuntime.logger.warn('Globales fetch fehlt. Bitte Node.js 18+ verwenden oder polyfill hinzufügen.');
         }
 
         // 4. requestAnimationFrame / cancelAnimationFrame Mocks
@@ -68,7 +70,7 @@ export class HeadlessRuntime {
     private patchGameLoop(): void {
         GameLoopManager.getInstance();
         // Hier könnten Server-spezifische Anpassungen am Loop erfolgen (z.B. fixe Tick-Rate)
-        console.log('[HeadlessRuntime] GameLoop für Server-Betrieb optimiert');
+        HeadlessRuntime.logger.info('GameLoop für Server-Betrieb optimiert');
     }
 
     /**
@@ -76,7 +78,7 @@ export class HeadlessRuntime {
      */
     public start(): void {
         this.runtime.start();
-        console.log('[HeadlessRuntime] Server-Runtime gestartet.');
+        HeadlessRuntime.logger.info('Server-Runtime gestartet.');
     }
 
     /**
@@ -84,7 +86,7 @@ export class HeadlessRuntime {
      */
     public stop(): void {
         this.runtime.stop();
-        console.log('[HeadlessRuntime] Server-Runtime gestoppt.');
+        HeadlessRuntime.logger.info('Server-Runtime gestoppt.');
     }
 
     /**

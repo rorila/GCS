@@ -4,6 +4,7 @@ import { ViewType } from '../EditorViewManager';
 import { changeRecorder } from '../../services/ChangeRecorder';
 import { playbackEngine } from '../../services/PlaybackEngine';
 import { dataService } from '../../services/DataService';
+import { Logger } from '../../utils/Logger';
 
 export interface EditorMenuHost {
     project: GameProject;
@@ -31,6 +32,7 @@ export interface EditorMenuHost {
 }
 
 export class EditorMenuManager {
+    private static logger = Logger.get('EditorMenuManager', 'Inspector_Update');
     private host: EditorMenuHost;
 
     constructor(host: EditorMenuHost) {
@@ -41,7 +43,7 @@ export class EditorMenuManager {
         try {
             const menuBarContainer = document.getElementById('menu-bar');
             if (!menuBarContainer) {
-                console.warn('[EditorMenuManager] menu-bar container not found');
+                EditorMenuManager.logger.warn('menu-bar container not found');
                 return;
             }
 
@@ -55,9 +57,9 @@ export class EditorMenuManager {
                 this.handleMenuAction(action);
             };
 
-            console.log('[EditorMenuManager] MenuBar initialized');
+            EditorMenuManager.logger.info('MenuBar initialized');
         } catch (e) {
-            console.error('[EditorMenuManager] Failed to initialize MenuBar:', e);
+            EditorMenuManager.logger.error('Failed to initialize MenuBar:', e);
         }
     }
 
@@ -168,7 +170,7 @@ export class EditorMenuManager {
                 input.click();
                 break;
             default:
-                console.warn('[EditorMenuManager] Unknown menu action:', action);
+                EditorMenuManager.logger.warn('Unknown menu action:', action);
         }
     }
 

@@ -4,8 +4,11 @@ import { GameProject } from '../../model/types';
 import { InspectorRegistry } from './InspectorRegistry';
 import { PropertyChangeEvent } from './types';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
+import { Logger } from '../../utils/Logger';
 
 export class InspectorEventHandler {
+    private static logger = Logger.get('InspectorEventHandler', 'Inspector_Update');
+
     constructor(
         private runtime: ReactiveRuntime,
         private project: GameProject
@@ -30,11 +33,11 @@ export class InspectorEventHandler {
             if (propertyPath === 'none') {
                 return null; // Suppress property update for action-only controls
             }
-            console.log(`[InspectorEventHandler] Using explicit property path: ${propertyPath}`);
+            InspectorEventHandler.logger.debug(`Using explicit property path: ${propertyPath}`);
         } else {
             // LEGACY FALLBACK: Resolve from control name
             propertyPath = controlName;
-            console.warn(`[InspectorEventHandler] Legacy property resolution for control "${controlName}". Please use "property" attribute in template.`);
+            InspectorEventHandler.logger.warn(`Legacy property resolution for control "${controlName}". Please use "property" attribute in template.`);
 
             // Strip specific suffixes used for differentiation
             if (propertyPath.includes('_')) {
@@ -79,7 +82,7 @@ export class InspectorEventHandler {
             config: inspectorDef
         };
 
-        console.log(`[InspectorEventHandler] Property change: ${propertyPath} = ${newValue} (was ${oldValue})`);
+        InspectorEventHandler.logger.info(`Property change: ${propertyPath} = ${newValue} (was ${oldValue})`);
 
         // 4. Delegate to specialized handler if available
         const handler = InspectorRegistry.getHandler(selectedObject);
@@ -95,7 +98,7 @@ export class InspectorEventHandler {
                 // NEW: Use autoConvert to handle JSON, numbers, booleans from UI inputs
                 const convertedValue = PropertyHelper.autoConvert(newValue);
                 PropertyHelper.setPropertyValue(selectedObject, propertyPath, convertedValue);
-                console.log(`[InspectorEventHandler] Applied update to ${propertyPath}:`, convertedValue);
+                InspectorEventHandler.logger.debug(`Applied update to ${propertyPath}:`, convertedValue);
             }
         }
 

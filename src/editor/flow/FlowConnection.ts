@@ -1,6 +1,8 @@
 import { FlowElement } from './FlowElement';
+import { Logger } from '../../utils/Logger';
 
 export class FlowConnection {
+    private static logger = Logger.get('FlowConnection', 'Flow_Sync');
     private element: HTMLElement;
     private startHandle: HTMLElement;
     private endHandle: HTMLElement;
@@ -88,7 +90,7 @@ export class FlowConnection {
 
         // Diagnostic log: Only if either target is missing, or if coordinates are suspiciously 0
         if (!this.startTarget || !this.endTarget || (x1 === 0 && y1 === 0) || (x2 === 0 && y2 === 0)) {
-            console.log(`[FlowConnection] Update: (${x1},${y1}) -> (${x2},${y2}), startTarget=${this.startTarget?.id}, endTarget=${this.endTarget?.id}`);
+            FlowConnection.logger.info(`Update: (${x1},${y1}) -> (${x2},${y2}), startTarget=${this.startTarget?.id}, endTarget=${this.endTarget?.id}`);
         }
 
         this.element.style.zIndex = '5'; // Above nodes

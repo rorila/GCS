@@ -1,8 +1,10 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { VariableType } from '../model/types';
+import { Logger } from '../utils/Logger';
 
 export class TVariable extends TWindow {
+    private static logger = Logger.get('TVariable', 'Project_Validation');
     public className: string = 'TVariable';
     public value: any = undefined;
     public defaultValue: any = undefined;
@@ -12,11 +14,12 @@ export class TVariable extends TWindow {
     public get type(): VariableType { return this._type; }
     public set type(v: VariableType) {
         if (this._type !== v) {
-            console.log(`%c[TVariable] type update: ${this._type} -> ${v} (Object: ${this.name}, ID: ${this.id})`, 'color: #e91e63; font-weight: bold');
-            console.trace('[TVariable] Trace for type update');
+            TVariable.logger.info(`type update: ${this._type} -> ${v} (Object: ${this.name}, ID: ${this.id})`);
+            // Trace can be logged as debug info or handled via logger.debug if needed
+            TVariable.logger.debug(`Trace for type update ${this.name}`);
             this._type = v;
         } else {
-            console.log(`[TVariable] type setter called with SAME value: ${v} (Object: ${this.name})`);
+            TVariable.logger.debug(`type setter called with SAME value: ${v} (Object: ${this.name})`);
         }
     }
 
@@ -89,7 +92,7 @@ export class TVariable extends TWindow {
         json.type = this.type;
         json.objectModel = this.objectModel;
 
-        console.log(`[TVariable] Serializing "${this.name}" (ID: ${this.id}):`, {
+        TVariable.logger.debug(`Serializing "${this.name}" (ID: ${this.id}):`, {
             className: this.className,
             type: json.type,
             scope: this.scope,

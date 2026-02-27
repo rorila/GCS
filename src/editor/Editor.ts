@@ -32,6 +32,7 @@ import { EditorKeyboardManager } from './services/EditorKeyboardManager';
 import { EditorUndoManager } from './services/EditorUndoManager';
 import { EditorInteractionManager } from './services/EditorInteractionManager';
 import { ObjectStore } from './services/ObjectStore';
+import { Logger } from '../utils/Logger';
 
 /**
  * Editor.ts - Ultra-Lean Refactored Version
@@ -41,6 +42,7 @@ import { ObjectStore } from './services/ObjectStore';
  * Ziel: < 1000 Zeilen. Aktuell: ~200 Zeilen.
  */
 export class Editor implements IViewHost {
+    private static logger = Logger.get('Editor', 'Project_Save_Load');
     // UI Components
     public stage: Stage;
     public inspector: InspectorHost | null = null;
@@ -182,26 +184,26 @@ export class Editor implements IViewHost {
 
     private async tryRestoreLastSession() {
         try {
-            console.log('[Editor] Fetching latest project.json from server to sync LocalStorage...');
+            Editor.logger.info('Fetching latest project.json from server to sync LocalStorage...');
             const serverProject = await projectPersistenceService.fetchProjectFromServer();
             if (serverProject) {
                 // Overwrite LocalStorage with server state
                 localStorage.setItem('gcs_last_project', JSON.stringify(serverProject));
                 this.loadProject(serverProject);
-                console.log('[Editor] Synchronized with server project.json');
+                Editor.logger.info('Synchronized with server project.json');
                 return;
             }
         } catch (err) {
-            console.warn('[Editor] Server sync failed, falling back to LocalStorage', err);
+            Editor.logger.warn('Server sync failed, falling back to LocalStorage', err);
         }
 
         const lastProject = localStorage.getItem('gcs_last_project');
         if (lastProject) {
             try {
                 this.loadProject(JSON.parse(lastProject));
-                console.log('[Editor] Restored from last session');
+                Editor.logger.info('Restored from last session');
             } catch (err) {
-                console.error('[Editor] Restoration failed', err);
+                Editor.logger.error('Restoration failed', err);
                 this.switchView('stage');
             }
         } else {
@@ -347,7 +349,7 @@ export class Editor implements IViewHost {
         if (confirm('Möchtest du wirklich ein neues Projekt starten? Ungespeicherte Änderungen gehen verloren.')) {
             const freshProject = this.createDefaultProject();
             this.loadProject(freshProject);
-            console.log('[Editor] Neues Projekt initialisiert');
+            Editor.logger.info('Neues Projekt initialisiert');
         }
     }
     public saveProject() { this.dataManager.saveProject(); }
@@ -380,7 +382,7 @@ export class Editor implements IViewHost {
         this.inspector.setContainer(document.getElementById('json-inspector-content')!);
         this.inspector.onObjectUpdate = (update: any) => {
             if (update.propertyName === 'name' && update.oldValue && update.oldValue !== update.newValue) {
-                console.log(`[Editor] Name geändert: ${update.oldValue} -> ${update.newValue}. Starte Refactoring...`);
+                Editor.logger.info(`Name geändert: ${update.oldValue} -> ${update.newValue}. Starte Refactoring...`);
                 this.renameObjectWithRefactoring(update.object.id, update.newValue);
             }
             this.renderManager.refreshAllViews('inspector');
@@ -418,7 +420,7 @@ export class Editor implements IViewHost {
             this.flowToolbox.render();
             this.flowEditor.setProject(this.project);
         } catch (e) {
-            console.error('[Editor] initFlowEditor error:', e);
+            Editor.logger.error('initFlowEditor error:', e);
         }
     }
 

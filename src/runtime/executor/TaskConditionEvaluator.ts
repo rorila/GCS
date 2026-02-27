@@ -1,6 +1,8 @@
 import { PropertyHelper } from '../PropertyHelper';
+import { Logger } from '../../utils/Logger';
 
 export class TaskConditionEvaluator {
+    private static logger = Logger.get('TaskConditionEvaluator', 'Runtime_Execution');
     public static evaluateCondition(condition: any, vars: Record<string, any>, globalVars: Record<string, any>): boolean {
         if (!condition) return false;
 
@@ -44,10 +46,10 @@ export class TaskConditionEvaluator {
             conditionStr = `${leftValRaw} (${leftType}) ${operator} ${rightValRaw} (${rightType})`;
         }
 
-        console.log(`[TaskConditionEvaluator] Evaluating Condition: "${conditionStr}"`);
-        console.log(`               Left:  "${leftValue}" (type: ${typeof leftValue})`);
-        console.log(`               Right: "${rightValue}" (type: ${typeof rightValue})`);
-        console.log(`               Op:    "${operator}"`);
+        TaskConditionEvaluator.logger.debug(`Evaluating Condition: "${conditionStr}"`);
+        TaskConditionEvaluator.logger.debug(`               Left:  "${leftValue}" (type: ${typeof leftValue})`);
+        TaskConditionEvaluator.logger.debug(`               Right: "${rightValue}" (type: ${typeof rightValue})`);
+        TaskConditionEvaluator.logger.debug(`               Op:    "${operator}"`);
 
         switch (operator) {
             case '==': return String(leftValue) === String(rightValue);

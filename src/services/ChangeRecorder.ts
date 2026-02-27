@@ -67,7 +67,10 @@ export interface Recording {
 // ChangeRecorder Service
 // ─────────────────────────────────────────────
 
+import { Logger } from '../utils/Logger';
+
 class ChangeRecorderService {
+    private static logger = Logger.get('ChangeRecorder', 'Editor_Diagnostics');
     private history: RecordedAction[] = [];
     private future: RecordedAction[] = [];
     private maxHistory: number = 100;
@@ -134,7 +137,7 @@ class ChangeRecorderService {
             this.currentRecording.actions.push(recordedAction);
         }
 
-        console.log(`[ChangeRecorder] Recorded: ${action.description}`, action);
+        ChangeRecorderService.logger.info(`Recorded: ${action.description}`, action);
         this.onHistoryChange?.();
     }
 
@@ -147,7 +150,7 @@ class ChangeRecorderService {
      */
     public startRecording(name: string, description?: string): void {
         if (this.currentRecording) {
-            console.warn('[ChangeRecorder] Recording already in progress');
+            ChangeRecorderService.logger.warn('Recording already in progress');
             return;
         }
 
@@ -161,7 +164,7 @@ class ChangeRecorderService {
             actions: []
         };
 
-        console.log(`[ChangeRecorder] 🔴 Recording started: ${name}`);
+        ChangeRecorderService.logger.info(`🔴 Recording started: ${name}`);
     }
 
     /**
@@ -169,7 +172,7 @@ class ChangeRecorderService {
      */
     public stopRecording(): Recording | null {
         if (!this.currentRecording) {
-            console.warn('[ChangeRecorder] No recording in progress');
+            ChangeRecorderService.logger.warn('No recording in progress');
             return null;
         }
 
@@ -178,7 +181,7 @@ class ChangeRecorderService {
         this.currentRecording = null;
         this.recordingStartTime = 0;
 
-        console.log(`[ChangeRecorder] ⏹️ Recording stopped: ${recording.name} (${recording.actions.length} actions, ${Math.round(recording.duration / 1000)}s)`);
+        ChangeRecorderService.logger.info(`⏹️ Recording stopped: ${recording.name} (${recording.actions.length} actions, ${Math.round(recording.duration / 1000)}s)`);
         return recording;
     }
 
@@ -198,7 +201,7 @@ class ChangeRecorderService {
      */
     public startBatch(description: string): void {
         if (this.currentBatch) {
-            console.warn('[ChangeRecorder] Batch already in progress');
+            ChangeRecorderService.logger.warn('Batch already in progress');
             return;
         }
 
@@ -228,7 +231,7 @@ class ChangeRecorderService {
                 this.currentRecording.actions.push(this.currentBatch);
             }
 
-            console.log(`[ChangeRecorder] Batch completed: ${this.currentBatch.description} (${this.currentBatch.children.length} actions)`);
+            ChangeRecorderService.logger.info(`Batch completed: ${this.currentBatch.description} (${this.currentBatch.children.length} actions)`);
             this.onHistoryChange?.();
         }
 
@@ -248,7 +251,7 @@ class ChangeRecorderService {
         const action = this.history.pop()!;
         this.future.push(action);
 
-        console.log(`[ChangeRecorder] ↩️ Rewind: ${action.description}`);
+        ChangeRecorderService.logger.info(`↩️ Rewind: ${action.description}`);
         this.onHistoryChange?.();
 
         return action;
@@ -263,7 +266,7 @@ class ChangeRecorderService {
         const action = this.future.pop()!;
         this.history.push(action);
 
-        console.log(`[ChangeRecorder] ↪️ Forward: ${action.description}`);
+        ChangeRecorderService.logger.info(`↪️ Forward: ${action.description}`);
         this.onHistoryChange?.();
 
         return action;
@@ -314,7 +317,7 @@ class ChangeRecorderService {
         this.currentRecording = null;
         this.currentBatch = null;
 
-        console.log('[ChangeRecorder] History cleared');
+        ChangeRecorderService.logger.info('History cleared');
         this.onHistoryChange?.();
     }
 

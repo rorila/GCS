@@ -2,7 +2,9 @@
  * DataService - Kapselt die Persistenz für GCS-Projekte.
  * Unterstützt localStorage im Browser (Editor/Player) und das Dateisystem in Node.js (Server).
  */
+import { Logger } from '../utils/Logger';
 export class DataService {
+    private static logger = Logger.get('DataService', 'DataStore_Sync');
     private static instance: DataService;
 
     private constructor() { }
@@ -21,10 +23,10 @@ export class DataService {
         if (typeof window === 'undefined') return;
 
         try {
-            console.log(`[DataService] Seeding '${storagePath}' from ${url}...`);
+            DataService.logger.info(`Seeding '${storagePath}' from ${url}...`);
             const response = await fetch(url);
             if (!response.ok) {
-                console.error(`[DataService] Seeding failed: HTTP ${response.status} ${response.statusText} from ${url}`);
+                DataService.logger.error(`Seeding failed: HTTP ${response.status} ${response.statusText} from ${url}`);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
@@ -32,13 +34,13 @@ export class DataService {
 
             // Validate data structure if it's db.json
             if (storagePath === 'db.json') {
-                console.log(`[DataService] Validating seed data. Keys: ${Object.keys(data).join(', ')}`);
+                DataService.logger.debug(`Validating seed data. Keys: ${Object.keys(data).join(', ')}`);
             }
 
             await this.writeDb(storagePath, data);
-            console.log(`[DataService] Seeding successful for '${storagePath}'. Saved to localStorage as gcs_db_${storagePath}`);
+            DataService.logger.info(`Seeding successful for '${storagePath}'. Saved to localStorage as gcs_db_${storagePath}`);
         } catch (e) {
-            console.error(`[DataService] Seeding CRITICAL FAILURE for '${storagePath}':`, e);
+            DataService.logger.error(`Seeding CRITICAL FAILURE for '${storagePath}':`, e);
         }
     }
 
@@ -66,16 +68,16 @@ export class DataService {
      * Findet Objekte in einer Collection basierend auf Filtern.
      */
     public async findItems(storagePath: string, collection: string, query: any = {}, operator: string = '=='): Promise<any[]> {
-        console.log(`[DataService] findItems in '${storagePath}' -> '${collection}' with query:`, JSON.stringify(query), `Operator: ${operator}`);
+        DataService.logger.debug(`findItems in '${storagePath}' -> '${collection}' with query:`, JSON.stringify(query), `Operator: ${operator}`);
 
         const db = await this.readDb(storagePath);
         if (!db[collection]) {
-            console.warn(`[DataService] Collection '${collection}' not found in '${storagePath}'`);
+            DataService.logger.warn(`Collection '${collection}' not found in '${storagePath}'`);
             return [];
         }
 
         const list = db[collection] || [];
-        console.log(`[DataService] Searching in ${list.length} items...`);
+        DataService.logger.debug(`Searching in ${list.length} items...`);
 
         const results = list.filter((item: any) => {
             for (const key in query) {
@@ -128,9 +130,9 @@ export class DataService {
             return true;
         });
 
-        console.log(`[DataService] Found ${results.length} matches.`);
+        DataService.logger.debug(`Found ${results.length} matches.`);
         if (results.length === 0 && list.length > 0) {
-            console.log('[DataService] No matches found. Dump first item for debug:', list[0]);
+            DataService.logger.debug('No matches found. Dump first item for debug:', list[0]);
         }
         return results;
     }
@@ -237,7 +239,7 @@ export class DataService {
             // Browser / Editor
             const key = `gcs_db_${storagePath}`;
             const content = localStorage.getItem(key);
-            console.log(`[DataService] Reading from localStorage: ${key} (${content ? 'found' : 'not found'})`);
+            DataService.logger.debug(`Reading from localStorage: ${key} (${content ? 'found' : 'not found'})`);
             try {
                 return content ? JSON.parse(content) : {};
             } catch (e) {
@@ -250,7 +252,7 @@ export class DataService {
                 const path = await import('path');
                 const fullPath = path.join(process.cwd(), 'data', storagePath);
 
-                console.log(`[DataService] Reading from file: ${fullPath}`);
+                DataService.logger.info(`Reading from file: ${fullPath}`);
                 const content = await fs.readFile(fullPath, 'utf-8');
                 return JSON.parse(content);
             } catch (e) {
@@ -280,7 +282,7 @@ export class DataService {
 
                 await fs.writeFile(fullPath, JSON.stringify(db, null, 2));
             } catch (e) {
-                console.error('[DataService] Fehler beim Schreiben der Datei:', e);
+                DataService.logger.error('Fehler beim Schreiben der Datei:', e);
             }
         }
     }

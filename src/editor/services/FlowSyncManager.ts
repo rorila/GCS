@@ -14,6 +14,7 @@ import { FlowListVariable } from '../flow/FlowListVariable';
 import { FlowRandomVariable } from '../flow/FlowRandomVariable';
 import { FlowConnection } from '../flow/FlowConnection';
 import { FlowDataAction } from '../flow/FlowDataAction';
+import { Logger } from '../../utils/Logger';
 
 export interface FlowSyncHost {
     project: any;
@@ -32,6 +33,7 @@ export interface FlowSyncHost {
 }
 
 export class FlowSyncManager {
+    private static logger = Logger.get('FlowSyncManager', 'Flow_Sync');
     private host: FlowSyncHost;
 
     constructor(host: FlowSyncHost) {
@@ -40,7 +42,7 @@ export class FlowSyncManager {
 
     public syncAllTasksFromFlow() {
         if (!this.host.project) return;
-        console.log('[FlowSyncManager] Syncing all tasks from flow...');
+        FlowSyncManager.logger.info('Syncing all tasks from flow...');
 
         const processCollection = (tasks: any[]) => {
             if (!tasks) return;
@@ -77,9 +79,9 @@ export class FlowSyncManager {
 
     public syncToProject(currentContext: string) {
         if (!this.host.project) return;
-        console.log(`[FlowSyncManager] syncToProject start for context: ${currentContext}`);
+        FlowSyncManager.logger.debug(`syncToProject start for context: ${currentContext}`);
         if (currentContext === 'event-map' || currentContext === 'element-overview') {
-            console.log(`[FlowSyncManager] syncToProject skipped for special context: ${currentContext}`);
+            FlowSyncManager.logger.debug(`syncToProject skipped for special context: ${currentContext}`);
             return;
         }
 
@@ -109,9 +111,9 @@ export class FlowSyncManager {
         const persistentConnections = this.host.connections.filter(c => !c.data?.isEmbeddedInternal && !c.data?.parentProxyId);
         const connections = persistentConnections.map(c => c.toJSON());
 
-        console.log(`[FlowSyncManager] syncToProject: Detected ${elements.length} nodes and ${connections.length} connections.`);
-        elements.forEach(el => console.log(`[FlowSyncManager]   - Node: ${el.id} (${el.type}) name=${el.properties?.name}`));
-        connections.forEach(c => console.log(`[FlowSyncManager]   - Conn: ${c.startTargetId} -> ${c.endTargetId} (${c.data?.startAnchorType})`));
+        FlowSyncManager.logger.debug(`syncToProject: Detected ${elements.length} nodes and ${connections.length} connections.`);
+        elements.forEach(el => FlowSyncManager.logger.debug(`  - Node: ${el.id} (${el.type}) name=${el.properties?.name}`));
+        connections.forEach(c => FlowSyncManager.logger.debug(`  - Conn: ${c.startTargetId} -> ${c.endTargetId} (${c.data?.startAnchorType})`));
 
         this.host.nodes.forEach(node => {
             const nodeType = node.getType();
@@ -160,14 +162,14 @@ export class FlowSyncManager {
                     const container = (this.host as any).projectRegistry?.getTaskContainer(currentContext);
                     const containerInfo = container ? `${container.type} ${container.stageId || ''}` : 'unknown';
 
-                    console.log(`[FlowSyncManager] Syncing task logic for "${currentContext}" (Location: ${containerInfo}). Current sequence length: ${task.actionSequence?.length || 0}`);
+                    FlowSyncManager.logger.info(`Syncing task logic for "${currentContext}" (Location: ${containerInfo}). Current sequence length: ${task.actionSequence?.length || 0}`);
                     this.syncTaskFromFlow(task, elements, connections);
                     // Single Source of Truth: update the local reference too
                     task.flowChart = chartData;
                     if ((task as any).flowGraph) delete (task as any).flowGraph;
 
                     // Final check: did the object actually update?
-                    console.log(`[FlowSyncManager] Sync completed for "${currentContext}". New sequence length: ${task.actionSequence?.length || 0}`);
+                    FlowSyncManager.logger.info(`Sync completed for "${currentContext}". New sequence length: ${task.actionSequence?.length || 0}`);
                     // CLEANUP: Ensure we don't have redundant flowCharts in other stages if this is a global task
                     this.cleanupRedundantFlowCharts(currentContext, targetCharts);
                 }
@@ -176,7 +178,7 @@ export class FlowSyncManager {
 
         if (this.host.onProjectChange) this.host.onProjectChange();
         this.host.updateFlowSelector();
-        console.log(`[FlowSyncManager] syncToProject completed. Notifying mediator with project.`);
+        FlowSyncManager.logger.debug('syncToProject completed. Notifying mediator with project.');
         mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
     }
 
@@ -190,7 +192,7 @@ export class FlowSyncManager {
         // 1. Check Root
         if (this.host.project.flowCharts && this.host.project.flowCharts !== primaryCollection) {
             if (this.host.project.flowCharts[taskName]) {
-                console.log(`[FlowSyncManager] Cleanup: Removed redundant flowChart for ${taskName} from project-root.`);
+                FlowSyncManager.logger.info(`Cleanup: Removed redundant flowChart for ${taskName} from project-root.`);
                 delete this.host.project.flowCharts[taskName];
             }
         }
@@ -200,7 +202,7 @@ export class FlowSyncManager {
             this.host.project.stages.forEach((stage: any) => {
                 if (stage.flowCharts && stage.flowCharts !== primaryCollection) {
                     if (stage.flowCharts[taskName]) {
-                        console.log(`[FlowSyncManager] Cleanup: Removed redundant flowChart for ${taskName} from stage ${stage.name}.`);
+                        FlowSyncManager.logger.info(`Cleanup: Removed redundant flowChart for ${taskName} from stage ${stage.name}.`);
                         delete stage.flowCharts[taskName];
                     }
                 }
@@ -234,14 +236,14 @@ export class FlowSyncManager {
 
         const startNode = elements.find(e => e.type === 'Task' || (e.type === 'Start' && e.properties?.text?.toLowerCase() === 'start'));
         if (!startNode) {
-            console.log(`[FlowSyncManager] No start node found for task ${task.name}. Skipping sequence sync.`);
+            FlowSyncManager.logger.debug(`No start node found for task ${task.name}. Skipping sequence sync.`);
             return;
         }
 
         const sequence: any[] = [];
         const visited = new Set<string>();
 
-        console.log(`[FlowSyncManager] syncTaskFromFlow: elements=${elements.length}, connections=${connections.length}`);
+        FlowSyncManager.logger.debug(`syncTaskFromFlow: elements=${elements.length}, connections=${connections.length}`);
 
         const buildSequence = (nodeId: string, targetSeq: any[], stopSet: Set<string> = new Set()) => {
             if (visited.has(nodeId) || stopSet.has(nodeId)) return;
@@ -249,10 +251,10 @@ export class FlowSyncManager {
 
             const node = elements.find(e => e.id === nodeId);
             if (!node) {
-                console.log(`[FlowSyncManager] buildSequence: Node ${nodeId} not found in elements.`);
+                FlowSyncManager.logger.debug(`buildSequence: Node ${nodeId} not found in elements.`);
                 return;
             }
-            console.log(`[FlowSyncManager] buildSequence: processing node ${node.id} (${node.type})`);
+            FlowSyncManager.logger.debug(`buildSequence: processing node ${node.id} (${node.type})`);
 
             if (node.type === 'Action') {
                 const actionName = node.data?.name || node.data?.actionName || node.properties?.name || node.properties?.text;
@@ -317,9 +319,9 @@ export class FlowSyncManager {
                 const falseConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === falseAnchor || (isData && c.data?.startAnchorType === 'false')));
 
                 if (isData) {
-                    console.log(`[FlowSyncManager] DataAction ${node.id} connections: success=${trueConn?.endTargetId || 'none'}, error=${falseConn?.endTargetId || 'none'}`);
+                    FlowSyncManager.logger.debug(`DataAction ${node.id} connections: success=${trueConn?.endTargetId || 'none'}, error=${falseConn?.endTargetId || 'none'}`);
                 } else {
-                    console.log(`[FlowSyncManager] Condition ${node.id} connections: true=${trueConn?.endTargetId || 'none'}, false=${falseConn?.endTargetId || 'none'}`);
+                    FlowSyncManager.logger.debug(`Condition ${node.id} connections: true=${trueConn?.endTargetId || 'none'}, false=${falseConn?.endTargetId || 'none'}`);
                 }
 
                 const mergePoints = new Set<string>();
@@ -336,11 +338,11 @@ export class FlowSyncManager {
                 trueVisited.forEach(id => { if (falseVisited.has(id)) mergePoints.add(id); });
 
                 if (trueConn) {
-                    console.log(`[FlowSyncManager] Building SUCCESS/TRUE branch for ${node.id}`);
+                    FlowSyncManager.logger.debug(`Building SUCCESS/TRUE branch for ${node.id}`);
                     buildSequence(trueConn.endTargetId, branchItem[isData ? 'successBody' : 'body'], mergePoints);
                 }
                 if (falseConn) {
-                    console.log(`[FlowSyncManager] Building ERROR/FALSE branch for ${node.id}`);
+                    FlowSyncManager.logger.debug(`Building ERROR/FALSE branch for ${node.id}`);
                     buildSequence(falseConn.endTargetId, branchItem[isData ? 'errorBody' : 'elseBody'], mergePoints);
                 }
 
@@ -350,17 +352,17 @@ export class FlowSyncManager {
                 })[0];
 
                 if (firstMerge) {
-                    console.log(`[FlowSyncManager] Merge point detected at ${firstMerge} after branch ${node.id}`);
+                    FlowSyncManager.logger.debug(`Merge point detected at ${firstMerge} after branch ${node.id}`);
                     visited.delete(firstMerge);
                     buildSequence(firstMerge, targetSeq, stopSet);
                 }
             } else if (node.type === 'Task' && node.id !== startNode.id) {
-                console.log(`[FlowSyncManager] Inline task call detected: ${node.properties?.name || node.id}`);
+                FlowSyncManager.logger.debug(`Inline task call detected: ${node.properties?.name || node.id}`);
                 targetSeq.push({ type: 'task', name: node.properties?.name || node.properties?.text });
                 const nextConn = connections.find(c => c.startTargetId === nodeId);
                 if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet);
             } else if (['While', 'For', 'Repeat'].includes(node.type)) {
-                console.log(`[FlowSyncManager] Loop detected: ${node.type}`);
+                FlowSyncManager.logger.debug(`Loop detected: ${node.type}`);
                 const loop: any = { type: node.type.toLowerCase(), body: [] };
                 if (node.type === 'While') loop.condition = node.properties?.text || '';
                 if (node.type === 'Repeat') loop.count = parseInt(node.properties?.text) || 1;
@@ -370,32 +372,32 @@ export class FlowSyncManager {
                 const nextConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'bottom');
 
                 if (bodyConn) {
-                    console.log(`[FlowSyncManager] Building LOOP BODY for ${node.id}`);
+                    FlowSyncManager.logger.debug(`Building LOOP BODY for ${node.id}`);
                     buildSequence(bodyConn.endTargetId, loop.body, new Set([nodeId]));
                 }
                 if (nextConn) {
-                    console.log(`[FlowSyncManager] Building AFTER-LOOP sequence for ${node.id}`);
+                    FlowSyncManager.logger.debug(`Building AFTER-LOOP sequence for ${node.id}`);
                     buildSequence(nextConn.endTargetId, targetSeq, stopSet);
                 }
             }
         };
 
         const initialOutgoing = connections.filter(c => c.startTargetId === startNode.id);
-        console.log(`[FlowSyncManager] Initial outgoing from ${startNode.id}: ${initialOutgoing.length} connections found.`);
+        FlowSyncManager.logger.debug(`Initial outgoing from ${startNode.id}: ${initialOutgoing.length} connections found.`);
         // Robustness: Sort to keep 'output' anchor first, but process ALL outgoing connections
         initialOutgoing.sort((a) => (a.data?.startAnchorType === 'output' ? -1 : 1));
 
         if (initialOutgoing.length > 0) {
-            console.log(`[FlowSyncManager] Following ${initialOutgoing.length} outgoing paths from start node.`);
+            FlowSyncManager.logger.debug(`Following ${initialOutgoing.length} outgoing paths from start node.`);
             initialOutgoing.forEach(c => {
-                console.log(`[FlowSyncManager] Starting sequence from anchor: ${c.data?.startAnchorType || 'none'} -> ${c.endTargetId}`);
+                FlowSyncManager.logger.debug(`Starting sequence from anchor: ${c.data?.startAnchorType || 'none'} -> ${c.endTargetId}`);
                 buildSequence(c.endTargetId, sequence);
             });
         }
 
         if (sequence.length > 0) {
-            console.log(`[FlowSyncManager] Generated sequence for task ${task.name} with ${sequence.length} top-level items.`);
-            console.log(`[FlowSyncManager] Sequence summary:`, JSON.stringify(sequence.map(i => ({ type: i.type, name: i.name || i.condition }))));
+            FlowSyncManager.logger.debug(`Generated sequence for task ${task.name} with ${sequence.length} top-level items.`);
+            FlowSyncManager.logger.debug(`Sequence summary:`, JSON.stringify(sequence.map(i => ({ type: i.type, name: i.name || i.condition }))));
             // --- MODIFIED: Preserve extra data from node.data to prevent loss of 'params', 'resultVariable', etc. ---
             task.actionSequence = sequence.map(item => {
                 // If we have an original id, try to find the original item data to preserve fields
@@ -405,7 +407,7 @@ export class FlowSyncManager {
                 return item;
             });
         } else {
-            console.log(`[FlowSyncManager] Generated EMPTY sequence for task ${task.name}.`);
+            FlowSyncManager.logger.debug(`Generated EMPTY sequence for task ${task.name}.`);
             task.actionSequence = [];
         }
 
@@ -557,13 +559,13 @@ export class FlowSyncManager {
      */
     public cleanCorruptTaskData() {
         if (!this.host.project) return;
-        console.log('[FlowSyncManager] Starte Bereinigung korrupter Task-Daten...');
+        FlowSyncManager.logger.info('Starte Bereinigung korrupter Task-Daten...');
 
         const cleanCollection = (tasks: any[]) => {
             if (!tasks) return tasks;
             return tasks.filter(t => {
                 if (t.name === 'elements' || t.name === 'connections') {
-                    console.warn(`[FlowSyncManager] Entferne fälschlichen Task: ${t.name}`);
+                    FlowSyncManager.logger.warn(`Entferne fälschlichen Task: ${t.name}`);
                     return false;
                 }
                 return true;
@@ -720,7 +722,7 @@ export class FlowSyncManager {
     public updateGlobalActionDefinition(actionData: any) {
         if (!this.host.project) return;
         const name = actionData.name || actionData.actionName;
-        console.log(`[FlowSyncManager] updateGlobalActionDefinition: name=${name}, type=${actionData.type}`);
+        FlowSyncManager.logger.debug(`updateGlobalActionDefinition: name=${name}, type=${actionData.type}`);
         if (!name) return;
 
         // SKIP parsing/merging if this is just a minimal link from a canvas node
@@ -751,7 +753,7 @@ export class FlowSyncManager {
             const newType = newAction.type || oldType;
 
             if (oldType !== newType && newType) {
-                console.log(`[FlowSyncManager] Type changed for ${name}. Replacing definition to clean fields.`);
+                FlowSyncManager.logger.info(`Type changed for ${name}. Replacing definition to clean fields.`);
                 targetCollection[idx] = { ...newAction, type: newType };
             } else {
                 targetCollection[idx] = { ...targetCollection[idx], ...newAction, type: newType };
@@ -858,7 +860,7 @@ export class FlowSyncManager {
                 if (!this.host.project.tasks) this.host.project.tasks = [];
                 this.host.project.tasks.push(newTask);
             }
-            console.log(`[FlowSyncManager] Pre-registered new task: ${name}`);
+            FlowSyncManager.logger.info(`Pre-registered new task: ${name}`);
         }
     }
 }

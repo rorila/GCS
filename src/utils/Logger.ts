@@ -1,6 +1,5 @@
 import { Config } from '../config';
 import { LogLevel } from './LogTypes';
-import { UseCaseManager } from './UseCaseManager';
 
 /**
  * Logger - A central logging service to replace console.log.
@@ -8,6 +7,10 @@ import { UseCaseManager } from './UseCaseManager';
  */
 export class Logger {
     private static globalLevel: LogLevel = Config.LOG_LEVEL;
+    private static useCaseFilter: (id: string) => boolean = () => false;
+    private static useCaseLabelProvider: (id: string) => string = (id) => id;
+    private static lastUseCaseId: string | undefined = undefined;
+
     private prefix: string;
     private level: LogLevel;
     private useCase: string | undefined;
@@ -34,6 +37,20 @@ export class Logger {
      */
     public static setGlobalLevel(level: LogLevel): void {
         this.globalLevel = level;
+    }
+
+    /**
+     * Sets the filter function for UseCases.
+     */
+    public static setUseCaseFilter(filter: (id: string) => boolean): void {
+        this.useCaseFilter = filter;
+    }
+
+    /**
+     * Sets the provider function for UseCase labels.
+     */
+    public static setUseCaseLabelProvider(provider: (id: string) => string): void {
+        this.useCaseLabelProvider = provider;
     }
 
     /**
@@ -64,8 +81,18 @@ export class Logger {
 
         // UseCase Filter: ERROR geht immer durch. 
         // Debug/Info/Warn nur, wenn UseCase aktiv ist (falls einer gesetzt wurde).
-        if (level < LogLevel.ERROR && this.useCase && !UseCaseManager.isActive(this.useCase)) {
+        if (level < LogLevel.ERROR && this.useCase && !Logger.useCaseFilter(this.useCase)) {
             return;
+        }
+
+        // Header ausgeben, wenn UseCase-Wechsel stattfindet
+        if (this.useCase && level < LogLevel.ERROR && this.useCase !== Logger.lastUseCaseId) {
+            const label = Logger.useCaseLabelProvider(this.useCase);
+            console.log(
+                `%c\n--- UseCase: '${label}' ---`,
+                'color: #673ab7; font-weight: bold; border-top: 1px solid #ddd; padding-top: 8px; margin-top: 8px;'
+            );
+            Logger.lastUseCaseId = this.useCase;
         }
 
         const timestamp = new Date().toISOString().split('T')[1].split('Z')[0];

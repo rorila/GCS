@@ -58,6 +58,10 @@ import { TAvatar } from '../components/TAvatar';
 import { TTabBar } from '../components/TTabBar';
 import { TAuthService } from '../components/TAuthService';
 import { TUserManager } from '../components/TUserManager';
+import { Logger } from './Logger';
+
+const logger = Logger.get('Serialization', 'Project_Save_Load');
+
 import { TAPIServer } from '../components/TAPIServer';
 import { TTextControl } from '../components/TTextControl';
 import { TTable } from '../components/TTable';
@@ -68,9 +72,6 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
     objectsData.forEach((objData: any) => {
         let newObj: TWindow | null = null;
 
-        /** DEBUG LOG START **/
-        // console.log(`[Serialization] Hydrating: ${objData.className} (${objData.name})`);
-        /** DEBUG LOG END **/
 
         // Factory based on className
         switch (objData.className) {
@@ -269,7 +270,7 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 newObj = new TTable(objData.name, objData.x, objData.y, objData.width, objData.height);
                 break;
             default:
-                console.warn("Unknown class during load:", objData.className);
+                logger.warn("Unknown class during load:", objData.className);
                 break;
         }
 
@@ -303,7 +304,7 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             // Restore specific properties if available
             if (objData.caption !== undefined) {
                 if (newObj.constructor.name === 'TDataStore') {
-                    console.log(`[Serialization] Assigning caption "${objData.caption}" to TDataStore "${objData.name}"`);
+                    logger.debug(`Assigning caption "${objData.caption}" to TDataStore "${objData.name}"`);
                 }
                 (newObj as any).caption = objData.caption;
             }
@@ -335,11 +336,6 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
 
             // ImageCapable properties (TImage, TSprite, TStage)
             if (objData.backgroundImage !== undefined) (newObj as any).backgroundImage = objData.backgroundImage;
-            // Fallback for TImage/TSprite which might use 'src'
-            if (objData.src !== undefined && ((newObj as any).className === 'TImage' || (newObj as any).className === 'TSprite')) {
-                // console.log(`[Serialization] Applying src->backgroundImage fallback for "${objData.name}" (${(newObj as any).className}): ${objData.src}`);
-                (newObj as any).backgroundImage = objData.src;
-            }
             if (objData.objectFit !== undefined) (newObj as any).objectFit = objData.objectFit;
             if (objData.imageOpacity !== undefined) (newObj as any).imageOpacity = objData.imageOpacity;
             if (objData.icon !== undefined) (newObj as any).icon = objData.icon;
@@ -466,7 +462,7 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                     // Direct assignment
                     (newObj as any)[key] = val;
                     if ((newObj as any).isVariable && key === 'type') {
-                        console.log(`[Serialization] SETTING type via generic loop for "${newObj.name}":`, val);
+                        logger.debug(`SETTING type via generic loop for "${newObj.name}":`, val);
                     }
                 }
             });
@@ -476,10 +472,10 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 if (objData.value !== undefined) (newObj as any).value = objData.value;
                 // CRITICAL: Restore 'type' via setter (not _type) for correct morphing
                 if (objData.type !== undefined) {
-                    console.log(`[Serialization] RESTORING type via explicit setter for "${newObj.name}":`, objData.type);
+                    logger.debug(`RESTORING type via explicit setter for "${newObj.name}":`, objData.type);
                     (newObj as any).type = objData.type;
                 } else {
-                    console.log(`[Serialization] WARNING: No type found in JSON for variable "${newObj.name}", falling back to constructor default:`, (newObj as any).type);
+                    logger.warn(`No type found in JSON for variable "${newObj.name}", falling back to constructor default:`, (newObj as any).type);
                 }
             }
 

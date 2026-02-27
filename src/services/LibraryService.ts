@@ -1,8 +1,10 @@
+import { Logger } from '../utils/Logger';
 
 /**
  * LibraryService - Manages global tasks and actions across all projects
  */
 export class LibraryService {
+    private logger = Logger.get('LibraryService', 'Project_Save_Load');
     private libraryTasks: any[] = [];
     private libraryTemplates: any[] = [];
     private isLoaded: boolean = false;
@@ -15,9 +17,9 @@ export class LibraryService {
             this.libraryTasks = data.tasks || [];
             this.libraryTemplates = data.templates || [];
             this.isLoaded = true;
-            console.log(`[LibraryService] Loaded ${this.libraryTasks.length} tasks and ${this.libraryTemplates.length} templates.`);
+            this.logger.info(`Loaded ${this.libraryTasks.length} tasks and ${this.libraryTemplates.length} templates.`);
         } catch (err) {
-            console.error('[LibraryService] Failed to load library.json:', err);
+            this.logger.error('Failed to load library.json:', err);
         }
     }
 
@@ -57,14 +59,14 @@ export class LibraryService {
                 } else {
                     this.libraryTemplates.push(template);
                 }
-                console.log(`[LibraryService] Template "${template.name}" saved successfully.`);
+                this.logger.info(`Template "${template.name}" saved successfully.`);
                 return true;
             } else {
-                console.error('[LibraryService] Failed to save template:', await response.text());
+                this.logger.error('Failed to save template:', await response.text());
                 return false;
             }
         } catch (err) {
-            console.error('[LibraryService] Error saving template:', err);
+            this.logger.error('Error saving template:', err);
             return false;
         }
     }

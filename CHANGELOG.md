@@ -1,3 +1,19 @@
+## [3.14.0] - 2026-02-27
+### Fixed
+- **Log-Spam Reduzierung (Run-Mode)**: 
+  - Fix des `runModeLogDone`-Flags im `StageRenderer`: Die Objekt-Tabelle wird nun nur noch einmalig bei Stage-Start/Wechsel ausgegeben statt bei jedem Frame.
+  - Umstellung des `ReactiveProperty`-Proxys auf UseCase-basiertes Logging (`Variable_Management`).
+  - Integration von `Logger` in `ReactiveProperty.ts` zur Vermeidung ungefilterter `console.log` Aufrufe.
+
+## [3.13.0] - 2026-02-27
+### Added
+- **Vollständige Log-Migration**: Alle `console.log/warn/error` Aufrufe im `src/`-Verzeichnis wurden durch den UseCase-basierten `Logger` ersetzt.
+- **Entkopplungs-Pattern**: Einführung eines Filter-Registry-Mechanismus in `Logger.ts` zur Vermeidung von kreisförmigen Abhängigkeiten mit dem `UseCaseManager`.
+
+### Fixed
+- **ProjectRegistry**: Behebung von Syntaxfehlern in `getVariables` und Korrektur redundanter Attribut-Deklarationen.
+- **Multi-Group Migration**: Erfolgreiche Umstellung von 8 Service-Gruppen (Inspector, Flow, Runtime, Core, UI, Infra, Utility, Assets).
+
 ## [3.12.0] - 2026-02-27
 ### Added
 - **UseCase-basiertes Logging**: 

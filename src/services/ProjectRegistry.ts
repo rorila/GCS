@@ -2,6 +2,7 @@ import { GameProject, ProjectVariable, GameTask, GameAction } from '../model/typ
 
 import { libraryService } from './LibraryService';
 import { TWindow } from '../components/TWindow';
+import { Logger } from '../utils/Logger';
 
 export type ScopedVariable = ProjectVariable & { uiScope?: 'global' | 'stage' | 'local', uiEmoji?: string, usageCount?: number };
 export type ScopedTask = GameTask & { uiScope?: 'global' | 'stage' | 'library', uiEmoji?: string, usageCount?: number };
@@ -14,6 +15,7 @@ export type VariableScopeContext = {
 };
 
 export class ProjectRegistry {
+    private static logger = Logger.get('ProjectRegistry', 'Project_Validation');
     private static instance: ProjectRegistry;
     private project: GameProject | null = null;
 
@@ -112,21 +114,11 @@ export class ProjectRegistry {
                         // No global with same ID, safe to add
                         visibleVars.push(sv);
                     } else {
-                        console.warn(`[ProjectRegistry] Suppressing stage-local duplicate of global variable: ${sv.name} (${sv.id})`);
+                        ProjectRegistry.logger.warn(`Suppressing stage-local duplicate of global variable: ${sv.name} (${sv.id})`);
                         // We don't push the stage duplicate
                     }
                 });
             }
-
-            const scopedProjectVars = this.project.variables
-                .filter(v => v.scope === this.activeStageId)
-                .map(v => {
-                    const sv = v as ScopedVariable;
-                    sv.uiScope = 'stage';
-                    sv.uiEmoji = '🎭';
-                    return sv;
-                });
-            visibleVars = [...visibleVars, ...scopedProjectVars];
         }
 
         // 3. If inside a Task, include Task variables
@@ -136,7 +128,7 @@ export class ProjectRegistry {
                 .map(v => {
                     const sv = v as ScopedVariable;
                     sv.uiScope = 'local';
-                    sv.uiEmoji = '🎭';
+                    sv.uiEmoji = '📍';
                     return sv;
                 });
             visibleVars = [...visibleVars, ...taskVars];
@@ -149,7 +141,7 @@ export class ProjectRegistry {
                 .map(v => {
                     const sv = v as ScopedVariable;
                     sv.uiScope = 'local';
-                    sv.uiEmoji = '🎭';
+                    sv.uiEmoji = '⚡';
                     return sv;
                 });
             visibleVars = [...visibleVars, ...actionVars];
@@ -741,7 +733,7 @@ export class ProjectRegistry {
         const usedActions = new Set<string>();
         const usedVariables = new Set<string>();
 
-        console.log(`[LogicalUsage] Starting Static Deep-Scan for Project: ${proj.meta.name}`);
+        ProjectRegistry.logger.info(`Starting Static Deep-Scan for Project: ${proj.meta.name}`);
 
         // 1. Inventory: Get all existing names
         const allTasks = this.getTasks('all', false).map(t => t.name.trim());
@@ -760,7 +752,7 @@ export class ProjectRegistry {
             });
         });
 
-        console.log(`[LogicalUsage] Inventory: ${allTasks.length} Tasks, ${allActions.length} Actions, ${allVars.length} Variables`);
+        ProjectRegistry.logger.info(`Inventory: ${allTasks.length} Tasks, ${allActions.length} Actions, ${allVars.length} Variables`);
 
         // 2. Deep Walk: Scan entire project structure
         // We use a Set of definition objects to correctly ignore their own .name properties
@@ -796,21 +788,21 @@ export class ProjectRegistry {
                 // Check for Task usage
                 if (allTasks.includes(trimmed)) {
                     if (!usedTasks.has(trimmed)) {
-                        console.log(`  [Logic-Usage] Found Task: "${trimmed}" at ${path}`);
+                        ProjectRegistry.logger.debug(`Found Task: "${trimmed}" at ${path}`);
                         usedTasks.add(trimmed);
                     }
                 }
                 // Check for Action usage
                 else if (allActions.includes(trimmed)) {
                     if (!usedActions.has(trimmed)) {
-                        console.log(`  [Logic-Usage] Found Action: "${trimmed}" at ${path}`);
+                        ProjectRegistry.logger.debug(`Found Action: "${trimmed}" at ${path}`);
                         usedActions.add(trimmed);
                     }
                 }
                 // Check for Variable usage (Whole string)
                 else if (allVars.includes(trimmed)) {
                     if (!usedVariables.has(trimmed)) {
-                        console.log(`  [Logic-Usage] Found Variable: "${trimmed}" at ${path}`);
+                        ProjectRegistry.logger.debug(`Found Variable: "${trimmed}" at ${path}`);
                         usedVariables.add(trimmed);
                     }
                 }
@@ -845,7 +837,7 @@ export class ProjectRegistry {
         // Start scanning at project root
         scanValue(proj);
 
-        console.log(`[LogicalUsage] Finished. Marked as used: ${usedTasks.size} Tasks, ${usedActions.size} Actions, ${usedVariables.size} Variables.`);
+        ProjectRegistry.logger.info(`Finished. Marked as used: ${usedTasks.size} Tasks, ${usedActions.size} Actions, ${usedVariables.size} Variables.`);
         return { tasks: usedTasks, actions: usedActions, variables: usedVariables };
     }
 

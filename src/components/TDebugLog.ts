@@ -1,6 +1,8 @@
 import { DebugLogService, LogEntry, LogType } from '../services/DebugLogService';
+import { Logger } from '../utils/Logger';
 
 export class TDebugLog {
+    private static logger = Logger.get('TDebugLog', 'Editor_Diagnostics');
     private service = DebugLogService.getInstance();
     private element: HTMLElement;
     private logList!: HTMLElement;
@@ -15,10 +17,10 @@ export class TDebugLog {
     private isVisible: boolean = false;
 
     constructor() {
-        console.log('[TDebugLog] Initializing...');
+        TDebugLog.logger.info('Initializing...');
         // Add a toggle button to the page with a small delay to ensure DOM is ready
         setTimeout(() => {
-            console.log('[TDebugLog] Running delayed createToggleButton');
+            TDebugLog.logger.debug('Running delayed createToggleButton');
             this.createToggleButton();
         }, 500);
 
@@ -60,10 +62,10 @@ export class TDebugLog {
 
         // Check if we are in the editor (toolbox elements exist)
         const inEditor = !!(footer && asideToolbox);
-        console.log(`[TDebugLog] inEditor check: footer=${!!footer}, asideToolbox=${!!asideToolbox} -> result=${inEditor}`);
+        TDebugLog.logger.debug(`inEditor check: footer=${!!footer}, asideToolbox=${!!asideToolbox} -> result=${inEditor}`);
 
         if (inEditor && footer) {
-            console.log('[TDebugLog] Editor detected, placing button in toolbox footer');
+            TDebugLog.logger.debug('Editor detected, placing button in toolbox footer');
             btn.style.cssText = `
                 display: block;
                 width: calc(100% - 24px);
@@ -121,7 +123,7 @@ export class TDebugLog {
                 this.setPanelVisible(false);
             }
         };
-        console.log('[TDebugLog] Toggle button ready');
+        TDebugLog.logger.debug('Toggle button ready');
     }
 
     public toggle() {
@@ -130,7 +132,7 @@ export class TDebugLog {
     }
 
     private setPanelVisible(visible: boolean) {
-        console.log(`[TDebugLog] setPanelVisible(${visible}). Current zIndex=${this.element.style.zIndex}`);
+        TDebugLog.logger.debug(`setPanelVisible(${visible}). Current zIndex=${this.element.style.zIndex}`);
         this.isVisible = visible;
         this.element.style.transform = visible ? 'translateX(0)' : 'translateX(100%)';
         this.element.style.opacity = visible ? '1' : '0';
@@ -138,7 +140,7 @@ export class TDebugLog {
 
         // Ensure the element is actually in document.body
         if (!this.element.parentElement) {
-            console.warn('[TDebugLog] Element was not in DOM, re-appending to body');
+            TDebugLog.logger.warn('Element was not in DOM, re-appending to body');
             document.body.appendChild(this.element);
         }
     }
@@ -156,9 +158,9 @@ export class TDebugLog {
         }
 
         if (active) {
-            console.log('[TDebugLog] Logging activated');
+            TDebugLog.logger.info('Logging activated');
         } else {
-            console.log('[TDebugLog] Logging deactivated');
+            TDebugLog.logger.info('Logging deactivated');
         }
     }
 
@@ -395,7 +397,7 @@ export class TDebugLog {
     private renderLogs(logs: LogEntry[]) {
         if (this.isPaused) return;
 
-        console.log(`[TDebugLog] Rendering ${logs.length} logs...`);
+        TDebugLog.logger.debug(`Rendering ${logs.length} logs...`);
         this.updateObjectDropdown();
         this.updateEventDropdown();
         this.logList.innerHTML = '';

@@ -1,7 +1,9 @@
 import { ExpressionParser } from '../../runtime/ExpressionParser';
 import { InspectorContextBuilder } from './InspectorContextBuilder';
+import { Logger } from '../../utils/Logger';
 
 export class InspectorTemplateLoader {
+    private static logger = Logger.get('InspectorTemplateLoader', 'Inspector_Update');
     constructor() { }
 
     /**
@@ -16,7 +18,7 @@ export class InspectorTemplateLoader {
             const objects = Array.isArray(json) ? json : (json.objects || []);
             return this.expandForEach(objects, _context);
         } catch (error) {
-            console.error(`[InspectorTemplateLoader] Failed to load template ${url}:`, error);
+            InspectorTemplateLoader.logger.error(`Failed to load template ${url}:`, error);
             return [];
         }
     }

@@ -4,6 +4,7 @@
  * Services are registered by name and can be called via the registry.
  * This enables visual binding of dialog buttons to backend logic.
  */
+import { Logger } from '../utils/Logger';
 
 export interface ServiceMethod {
     name: string;
@@ -18,11 +19,12 @@ export interface ServiceInfo {
 }
 
 export class ServiceRegistryClass {
+    public static logger = Logger.get('ServiceRegistry', 'Editor_Diagnostics');
     private id: string = Math.random().toString(36).substr(2, 9);
     private services: Map<string, ServiceInfo> = new Map();
 
     constructor() {
-        console.log(`%c[ServiceRegistry] INSTANCE CREATED: ${this.id}`, 'background: #000; color: #fff; font-size: 14px; padding: 4px;');
+        ServiceRegistryClass.logger.info(`INSTANCE CREATED: ${this.id}`);
         const globalScope = typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : {} as any);
         globalScope._serviceRegistryInstances = globalScope._serviceRegistryInstances || [];
         globalScope._serviceRegistryInstances.push(this.id);
@@ -74,7 +76,7 @@ export class ServiceRegistryClass {
             description
         });
 
-        console.log(`[ServiceRegistry:${this.id}] Registered service: ${name} with methods:`, methods.map(m => m.name));
+        ServiceRegistryClass.logger.info(`Registered service: ${name} with methods:`, methods.map(m => m.name));
     }
 
     /**
@@ -82,7 +84,7 @@ export class ServiceRegistryClass {
      */
     unregister(name: string): void {
         this.services.delete(name);
-        console.log(`[ServiceRegistry] Unregistered service: ${name} `);
+        ServiceRegistryClass.logger.info(`Unregistered service: ${name} `);
     }
 
     /**
@@ -119,14 +121,14 @@ export class ServiceRegistryClass {
             throw new Error(`Method '${methodName}' not found on service '${serviceName}'`);
         }
 
-        console.log(`[ServiceRegistry] Calling ${serviceName}.${methodName} (`, params, ')');
+        ServiceRegistryClass.logger.debug(`Calling ${serviceName}.${methodName} (`, params, ')');
 
         try {
             const result = await method.apply(serviceInfo.instance, params || []);
-            console.log(`[ServiceRegistry] ${serviceName}.${methodName} returned: `, result);
+            ServiceRegistryClass.logger.debug(`${serviceName}.${methodName} returned: `, result);
             return result;
         } catch (error) {
-            console.error(`[ServiceRegistry] ${serviceName}.${methodName} threw: `, error);
+            ServiceRegistryClass.logger.error(`${serviceName}.${methodName} threw: `, error);
             throw error;
         }
     }
@@ -165,4 +167,4 @@ const globalScope = typeof window !== 'undefined' ? window : global;
 export const serviceRegistry: ServiceRegistryClass = (globalScope as any)._globalServiceRegistry || new ServiceRegistryClass();
 (globalScope as any)._globalServiceRegistry = serviceRegistry;
 
-console.log(`[ServiceRegistry] Singleton bound to window. ID: ${(serviceRegistry as any).id}`);
+ServiceRegistryClass.logger.info(`Singleton bound to window. ID: ${(serviceRegistry as any).id}`);

@@ -16,12 +16,15 @@ import { mediatorService } from '../../services/MediatorService';
 import { componentRegistry } from '../../services/ComponentRegistry';
 import { InspectorContextBuilder } from './InspectorContextBuilder';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
+import { Logger } from '../../utils/Logger';
 
 /**
  * InspectorHost - The main entry point for the new modular Inspector.
  * Coordinates selection, rendering, and property changes.
  */
 export class InspectorHost {
+    private static logger = Logger.get('InspectorHost', 'Inspector_Update');
+
     private renderer: InspectorRenderer;
     private eventHandler: InspectorEventHandler;
     private templateLoader: InspectorTemplateLoader;
@@ -109,11 +112,13 @@ export class InspectorHost {
         } else if (this.activeTab === 'events') {
             this.renderEventsContent(obj, content);
         } else if (this.activeTab === 'logs') {
+            InspectorHost.logger.debug('Rendering logs tab');
             await this.renderLogsContent(obj, content);
         }
     }
 
     private async renderLogsContent(obj: any, parent: HTMLElement): Promise<void> {
+        InspectorHost.logger.debug('Loading inspector_logs.json');
         const staticObjects = await this.templateLoader.loadTemplate('./inspector_logs.json', obj);
         staticObjects.forEach(def => {
             const el = this.renderUIDefinition(def, obj);
@@ -256,7 +261,7 @@ export class InspectorHost {
                             const oldName = event.oldValue;
                             const newName = event.newValue;
                             if (oldName && newName && oldName !== newName) {
-                                console.log(`[InspectorHost] Renaming action project-wide: "${oldName}" -> "${newName}"`);
+                                InspectorHost.logger.info(`Renaming action project-wide: "${oldName}" -> "${newName}"`);
                                 RefactoringManager.renameAction(this.project, oldName, newName);
                             }
                         }
@@ -315,7 +320,7 @@ export class InspectorHost {
 
                 const select = this.renderer.renderSelect(Array.isArray(options) ? options : [], value, def.placeholder);
                 select.onchange = () => {
-                    console.log(`[InspectorHost] ${def.className} onchange: Control="${def.name}", NewValue="${select.value}"`);
+                    InspectorHost.logger.info(`${def.className} onchange: Control="${def.name}", NewValue="${select.value}"`);
                     const event = this.eventHandler.handleControlChange(def.name, select.value, obj, def);
 
                     if (event) {
@@ -429,7 +434,7 @@ export class InspectorHost {
         const result = ExpressionParser.interpolate(expr, context);
 
         if (expr.includes('BaseVar') || expr.includes('availableVariableFields')) {
-            console.log(`[InspectorHost] resolveValue("${expr}") -> "${result}"`);
+            InspectorHost.logger.debug(`resolveValue("${expr}") -> "${result}"`);
         }
 
         return result;
@@ -442,7 +447,7 @@ export class InspectorHost {
         const result = ExpressionParser.evaluateRaw(expr, context);
 
         if (expr.includes('BaseVar') || expr.includes('availableVariableFields')) {
-            console.log(`[InspectorHost] resolveRawValue("${expr}") ->`, result);
+            InspectorHost.logger.debug(`resolveRawValue("${expr}") ->`, result);
         }
 
         return result;
@@ -472,7 +477,7 @@ export class InspectorHost {
                 try {
                     obj._supportedEvents = componentRegistry.getEvents(obj);
                 } catch (e) {
-                    console.warn('[InspectorHost] Could not determine events for object:', obj);
+                    InspectorHost.logger.warn('Could not determine events for object:', obj);
                 }
             }
         }
@@ -490,7 +495,7 @@ export class InspectorHost {
                 if (el) parent.appendChild(el);
             });
         } catch (e) {
-            console.warn(`[InspectorHost] Could not load events template: ${eventsFile}`, e);
+            InspectorHost.logger.warn(`Could not load events template: ${eventsFile}`, e);
             parent.innerHTML = '<div style="color: #666; font-style: italic;">Events konnten nicht geladen werden.</div>';
         }
     }
@@ -517,7 +522,7 @@ export class InspectorHost {
      * Legacy: Sets the flow context (nodes) for the inspector.
      */
     public setFlowContext(_nodes: any[] | null): void {
-        console.log('[InspectorHost] Flow context updated (Legacy Compat)');
+        InspectorHost.logger.info('Flow context updated (Legacy Compat)');
         // In the modular system, handlers can access nodes via ProjectRegistry if needed.
     }
 
@@ -525,7 +530,7 @@ export class InspectorHost {
      * Legacy: Forces an update of available actions in dropdowns.
      */
     public updateAvailableActions(_actions?: string[]): void {
-        console.log('[InspectorHost] Updating available actions (Legacy Compat)');
+        InspectorHost.logger.info('Updating available actions (Legacy Compat)');
         this.update();
     }
 
@@ -533,7 +538,7 @@ export class InspectorHost {
      * Legacy: Set editor reference.
      */
     public setEditor(_editor: any): void {
-        console.log('[InspectorHost] Editor reference set (Legacy Compat)');
+        InspectorHost.logger.info('Editor reference set (Legacy Compat)');
     }
 
     /**

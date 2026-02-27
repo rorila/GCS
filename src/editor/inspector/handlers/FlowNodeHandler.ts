@@ -1,10 +1,11 @@
-
+import { Logger } from '../../../utils/Logger';
 import { IInspectorHandler, PropertyChangeEvent } from '../types';
 import { GameProject } from '../../../model/types';
 import { ReactiveRuntime } from '../../../runtime/ReactiveRuntime';
 import { RefactoringManager } from '../../RefactoringManager';
 
 export class FlowNodeHandler implements IInspectorHandler {
+    private static logger = Logger.get('FlowNodeHandler', 'Task_Management');
 
     canHandle(obj: any): boolean {
         // Check for FlowTask or objects with specific FlowNode characteristics
@@ -34,7 +35,7 @@ export class FlowNodeHandler implements IInspectorHandler {
         const { propertyName, newValue, oldValue, object } = event;
 
         if (propertyName === 'name' || propertyName === 'Name') {
-            console.log(`[FlowNodeHandler] Renaming detected: "${oldValue}" -> "${newValue}"`);
+            FlowNodeHandler.logger.info(`Renaming detected: "${oldValue}" -> "${newValue}"`);
 
             // Determine subtype (Task vs Action)
             const type = (typeof object.getType === 'function') ? object.getType() : 'Task';

@@ -11,6 +11,7 @@ import { FlowStateManager } from './flow/FlowStateManager';
 import { TFlowStage } from '../components/TFlowStage';
 import { ContextMenu } from './ui/ContextMenu';
 import { mediatorService, MediatorEvents } from '../services/MediatorService';
+import { Logger } from '../utils/Logger';
 import { projectRegistry } from '../services/ProjectRegistry';
 import { FlowSyncManager } from './services/FlowSyncManager';
 import { FlowNamingService } from './services/FlowNamingService';
@@ -28,6 +29,7 @@ import { Editor } from './Editor';
 
 
 export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHost, FlowNavigationHost, FlowGraphHydrationHost, FlowUIHost, FlowTaskHost, FlowNodeHost {
+    private static logger = Logger.get('FlowEditor', 'Flow_Synchronization');
     private container: HTMLElement;
     public project: GameProject | null = null;
     public editor: Editor | null = null;
@@ -396,7 +398,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         // Listen for context switch requests (e.g. from Inspector)
         mediatorService.on(MediatorEvents.SWITCH_FLOW_CONTEXT, (data: any) => {
             if (data && data.taskName) {
-                console.log(`[FlowEditor] Received SWITCH_FLOW_CONTEXT request for: ${data.taskName}`);
+                FlowEditor.logger.info(`Received SWITCH_FLOW_CONTEXT request for: ${data.taskName}`);
                 this.switchActionFlow(data.taskName);
             }
         });
@@ -640,7 +642,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             }
 
             if (!found) {
-                console.warn(`[FlowEditor] Current context "${this.currentFlowContext}" missing from dropdown options. Force-adding it.`, { activeStage: activeStage?.id });
+                FlowEditor.logger.warn(`Current context "${this.currentFlowContext}" missing from dropdown options. Force-adding it.`, { activeStage: activeStage?.id });
 
                 // Try to determine where it belongs
                 const isInGlobal = this.project.tasks?.find(t => t.name === this.currentFlowContext);
@@ -690,10 +692,10 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         if (context !== 'global' && context !== 'event-map' && context !== 'element-overview') {
             const container = projectRegistry.getTaskContainer(context);
             if (container.type === 'stage' && container.stageId) {
-                console.log(`[FlowEditor] Auto-switching projectRegistry.activeStageId to ${container.stageId} for task ${context}`);
+                FlowEditor.logger.info(`Auto-switching projectRegistry.activeStageId to ${container.stageId} for task ${context}`);
                 projectRegistry.setActiveStageId(container.stageId);
             } else if (container.type === 'global') {
-                console.log(`[FlowEditor] Auto-switching projectRegistry.activeStageId to null (global) for task ${context}`);
+                FlowEditor.logger.info(`Auto-switching projectRegistry.activeStageId to null (global) for task ${context}`);
                 projectRegistry.setActiveStageId(null);
             }
         }
@@ -754,10 +756,10 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
 
     public syncToProject() {
         if (this.isLoading) {
-            console.log("[FlowEditor] Skipping syncToProject: isLoading is true");
+            FlowEditor.logger.info("Skipping syncToProject: isLoading is true");
             return;
         }
-        console.log(`[FlowEditor] syncToProject triggered for context: ${this.currentFlowContext}`);
+        FlowEditor.logger.info(`syncToProject triggered for context: ${this.currentFlowContext}`);
         this.syncManager.syncToProject(this.currentFlowContext);
     }
 
@@ -833,21 +835,21 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
 
     public handleNodeDoubleClick(node: FlowElement) {
         // DEBUG: Log every double-click
-        console.log(`[FlowEditor] === DOUBLE-CLICK on node: ${node.name} ===`);
+        FlowEditor.logger.info(`=== DOUBLE-CLICK on node: ${node.name} ===`);
 
         const isTask = node instanceof FlowTask;
         const taskName = isTask ? (node.data?.taskName || node.Name) : null;
 
         // 1. Feature: Map Navigation
         if (this.currentFlowContext === 'event-map' && node.data?.isMapLink && taskName) {
-            console.log(`[FlowEditor] Event-Map: Switching to task flow: ${taskName}`);
+            FlowEditor.logger.info(`Event-Map: Switching to task flow: ${taskName}`);
             this.switchActionFlow(taskName);
             return;
         }
 
         // 2. Standard Behavior: Switch directly to Task Flow
         if (isTask && taskName) {
-            console.log(`[FlowEditor] Switching to Task Flow: ${taskName}`);
+            FlowEditor.logger.info(`Switching to Task Flow: ${taskName}`);
             this.switchActionFlow(taskName);
             return;
         }

@@ -150,7 +150,7 @@ export class TaskExecutor {
             }
 
             if (foundTaskName) {
-                console.log(`[TaskExecutor] Final resolution for "${taskName}": "${foundTaskName}"`);
+                logger.debug(`Final resolution for "${taskName}": "${foundTaskName}"`);
                 return this.execute(foundTaskName, vars, globalVars, contextObj, depth + 1, parentId, params, isRemoteExecution);
             }
 
@@ -160,9 +160,9 @@ export class TaskExecutor {
 
             if (!isOptionalEvent) {
                 if (objectFound) {
-                    console.warn(`[TaskExecutor] Object "${objName}" found, but no task mapping for event "${evtName}".`);
+                    logger.warn(`Object "${objName}" found, but no task mapping for event "${evtName}".`);
                 } else {
-                    console.warn(`[TaskExecutor] Could not resolve dot-notation "${taskName}". Object "${objName}" not found in current project.`);
+                    logger.warn(`Could not resolve dot-notation "${taskName}". Object "${objName}" not found in current project.`);
                 }
             }
             return;
@@ -170,7 +170,7 @@ export class TaskExecutor {
 
         if (!task) {
             // This is for direct task calls (not dot-notation)
-            console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
+            logger.warn(`Task definition not found: ${taskName}`);
             return;
         }
 
@@ -184,7 +184,7 @@ export class TaskExecutor {
         if (isMultiplayer && !isRemoteExecution) {
             // broadcast: Non-host sends to host, does NOT execute locally
             if (triggerMode === 'broadcast' && !isHost) {
-                console.log(`[TaskExecutor] Broadcasting task "${taskName}" to host (not executing locally)`);
+                logger.info(`Broadcasting task "${taskName}" to host (not executing locally)`);
                 this.multiplayerManager!.sendTriggerTask(taskName, params);
                 return; // Do NOT execute locally
             }
@@ -193,7 +193,7 @@ export class TaskExecutor {
         if (isMultiplayer && isRemoteExecution) {
             // broadcast + remote: Only host should execute
             if (triggerMode === 'broadcast' && !isHost) {
-                console.log(`[TaskExecutor] Skipping remote broadcast task "${taskName}" - only host executes`);
+                logger.info(`Skipping remote broadcast task "${taskName}" - only host executes`);
                 return;
             }
         }
@@ -209,7 +209,7 @@ export class TaskExecutor {
                 }
             });
             if (Object.keys(paramDefaults).length > 0) {
-                console.log(`[TaskExecutor] Applied param defaults for "${taskName}":`, paramDefaults);
+                logger.debug(`Applied param defaults for "${taskName}":`, paramDefaults);
                 vars = { ...vars, ...paramDefaults };
             }
         }
@@ -227,18 +227,18 @@ export class TaskExecutor {
             const actionSequence = task.actionSequence || [];
 
             if (hasFlowChart) {
-                console.log(`[TaskExecutor] Nutze Flussdiagramm für "${taskName}" (Elemente: ${flowChart!.elements.length})`);
+                logger.info(`Nutze Flussdiagramm für "${taskName}" (Elemente: ${flowChart!.elements.length})`);
                 await this.executeFlowChart(taskName, flowChart!, vars, globalVars, contextObj, depth, taskLogId);
             } else {
                 if (actionSequence.length === 0) {
-                    console.log(`[TaskExecutor] Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
+                    logger.debug(`Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
                 }
 
                 for (const seqItem of actionSequence) {
                     try {
                         await this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
                     } catch (err) {
-                        console.error(`[TaskExecutor] Error in item of task ${taskName}: `, err);
+                        logger.error(`Error in item of task ${taskName}: ${err}`);
                         DebugLogService.getInstance().log('Event', `ERROR executing task ${taskName}: ${err}`, { parentId: taskLogId });
                     }
                 }
@@ -246,7 +246,7 @@ export class TaskExecutor {
 
             // local-sync: After execution, sync to other player
             if (isMultiplayer && triggerMode === 'local-sync' && !isRemoteExecution) {
-                console.log(`[TaskExecutor] Syncing task "${taskName}" to other player`);
+                logger.info(`Syncing task "${taskName}" to other player`);
                 this.multiplayerManager!.sendSyncTask(taskName, params);
             }
         } finally {
@@ -269,12 +269,12 @@ export class TaskExecutor {
         );
 
         if (!startNode) {
-            console.warn(`[TaskExecutor] No start node found in flowChart for task: ${taskName}. elements:`, elements.map(e => `${e.type}:${e.properties?.name || e.id}`));
+            logger.warn(`No start node found in flowChart for task: ${taskName}. elements:`, elements.map(e => `${e.type}:${e.properties?.name || e.id}`));
             return;
         }
 
-        console.log(`[TaskExecutor] FlowChart Elements for "${taskName}":`, elements.map(e => `${e.type}:${e.properties?.name || e.id}`));
-        console.log(`[TaskExecutor] FlowChart vars.eventData =`, vars.eventData, 'contextObj =', contextObj?.name || contextObj?.className);
+        logger.debug(`FlowChart Elements for "${taskName}":`, elements.map(e => `${e.type}:${e.properties?.name || e.id}`));
+        logger.debug(`FlowChart vars.eventData =`, vars.eventData, 'contextObj =', contextObj?.name || contextObj?.className);
 
         const executeNode = async (node: any): Promise<void> => {
             if (!node || visited.has(node.id)) return;
@@ -321,7 +321,7 @@ export class TaskExecutor {
                                 resolvedParams[key] = value;
                             }
                         }
-                        console.log(`[TaskExecutor] FlowChart: Executing action body for "${action.name}" with params:`, resolvedParams);
+                        logger.debug(`FlowChart: Executing action body for "${action.name}" with params:`, resolvedParams);
 
                         // Make $params available in the vars context for body execution
                         const bodyVars = { ...vars, $params: resolvedParams };
@@ -369,11 +369,11 @@ export class TaskExecutor {
                 const action = this.resolveAction({ type: 'data_action', name: name }) || node.data;
 
                 if (action) {
-                    console.log(`[TaskExecutor] FlowChart: Executing DataAction "${name}"`);
+                    logger.info(`FlowChart: Executing DataAction "${name}"`);
                     const result = await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
                     const isSuccess = result !== false;
 
-                    console.log(`[TaskExecutor] DataAction "${name}" finished. Success: ${isSuccess}`);
+                    logger.info(`DataAction "${name}" finished. Success: ${isSuccess}`);
 
                     // Find the appropriate branch connection
                     const successConn = connections.find((c: any) =>
@@ -409,7 +409,7 @@ export class TaskExecutor {
             if (nodeType === 'Condition' || nodeType === 'condition') {
                 const condition = node.data?.condition;
                 if (!condition) {
-                    console.warn(`[TaskExecutor] Condition node without condition data: ${node.id} `);
+                    logger.warn(`Condition node without condition data: ${node.id} `);
                     return;
                 }
 
@@ -417,7 +417,7 @@ export class TaskExecutor {
                 const result = this.evaluateCondition(condition, vars, globalVars);
                 const left = condition.leftValue || condition.variable || '?';
                 const right = condition.rightValue || condition.value || '?';
-                console.log(`[TaskExecutor] Condition ${left} ${condition.operator || '=='} ${right} => ${result} `);
+                logger.debug(`Condition ${left} ${condition.operator || '=='} ${right} => ${result} `);
 
                 // Find the appropriate branch connection
                 const trueConn = connections.find((c: any) =>
@@ -454,13 +454,13 @@ export class TaskExecutor {
             : seqItem;
 
         // Debug: Log every sequence item being processed
-        console.log(`[TaskExecutor] Processing item: type = "${item.type}" name = "${item.name || 'N/A'}" condition = "${item.condition?.variable || 'none'}"`);
+        logger.debug(`Processing item: type = "${item.type}" name = "${item.name || 'N/A'}" condition = "${item.condition?.variable || 'none'}"`);
 
         // Check condition if present (BUT skip checking for 'condition' type items, as they handle logic internally)
         if (item.type !== 'condition') {
             const condition = item.itemCondition || (typeof item.condition === 'string' ? item.condition : null);
             if (condition && !this.evaluateCondition(condition, vars, globalVars)) {
-                console.log(`[TaskExecutor] Item condition FALSE, skipping: ${condition} `);
+                logger.debug(`Item condition FALSE, skipping: ${condition} `);
                 return;
             }
         }
@@ -503,7 +503,7 @@ export class TaskExecutor {
                                 }
                             }
                         }
-                        console.log(`[TaskExecutor] Executing action body for "${action.name}" with params:`, resolvedParams);
+                        logger.debug(`Executing action body for "${action.name}" with params:`, resolvedParams);
 
                         // Make $params available in the vars context for body execution
                         const bodyVars = { ...vars, $params: resolvedParams };
@@ -517,7 +517,7 @@ export class TaskExecutor {
                         await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
                     }
                 } else {
-                    console.warn(`[TaskExecutor] Action definition not found: ${item.name} `);
+                    logger.warn(`Action definition not found: ${item.name} `);
                 }
                 break;
             case 'while':
@@ -593,16 +593,16 @@ export class TaskExecutor {
         );
 
         // Debug: Log condition evaluation for boundary checks
-        console.log(`[TaskExecutor] Condition: ${conditionExpr} => ${result}`);
+        logger.debug(`Condition: ${conditionExpr} => ${result}`);
 
         if (result) {
             if (item.thenAction) {
                 const action = this.resolveAction(item.thenAction);
-                console.log(`[TaskExecutor] Condition TRUE, executing thenAction: ${item.thenAction} `);
+                logger.debug(`Condition TRUE, executing thenAction: ${item.thenAction} `);
                 if (action) await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
             }
             if (item.thenTask) {
-                console.log(`[TaskExecutor] Condition TRUE, executing thenTask: ${item.thenTask} `);
+                logger.debug(`Condition TRUE, executing thenTask: ${item.thenTask} `);
                 await this.execute(item.thenTask, vars, globalVars, contextObj, depth + 1, parentId);
             }
             if (item.body) await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
@@ -643,18 +643,18 @@ export class TaskExecutor {
     private async handleDataAction(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<boolean> {
         const action = this.resolveAction(item);
         if (!action) {
-            console.warn(`[TaskExecutor] DataAction definition not found: ${item.name || item.type}`);
+            logger.warn(`DataAction definition not found: ${item.name || item.type}`);
             return false;
         }
 
-        console.log(`[TaskExecutor] Executing DataAction: ${action.name || action.type}`);
+        logger.debug(`Executing DataAction: ${action.name || action.type}`);
 
         // Execute the action and get the result
         const result = await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
 
         // Branching: result !== false is considered success
         const isSuccess = result !== false;
-        console.log(`[TaskExecutor] DataAction "${action.name || action.type}" finished. Success: ${isSuccess}`);
+        logger.debug(`DataAction "${action.name || action.type}" finished. Success: ${isSuccess}`);
 
         const body = isSuccess ? item.successBody : item.errorBody;
         if (body && Array.isArray(body)) {

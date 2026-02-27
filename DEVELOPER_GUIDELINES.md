@@ -28,5 +28,12 @@ Ausführliche Details findest du in den spezialisierten Dokumenten:
 - [🤖 AI Agent Integration Plan](docs/AI_Agent_Integration_Plan.md)
 - [⚡ Flow Safety (Self-Healing)](docs/coding-standards.md#ai-agent-api--flow-safety)
 
+## 7. LOGGING & DIAGNOSE
+- **Keine `console.log`**: Verwende NIEMALS `console.log`, `console.warn` oder `console.error` direkt im Code.
+- **Logger-Pflicht**: Nutze immer den zentralen Logger: `private static logger = Logger.get('ClassName', 'UseCaseId');`.
+- **UseCases**: Ordne Logs immer einem funktionalen UseCase zu (siehe `UseCaseManager.ts`).
+- **Fehler**: `logger.error` wird immer angezeigt. `debug/info/warn` nur, wenn der UseCase im Inspector aktiv ist.
+- **Circular Deps**: Wenn ein Utility-Modul den Logger braucht, achte darauf, dass keine kreisförmigen Abhängigkeiten entstehen (siehe Filter-Pattern in `Logger.ts`).
+
 ---
-*Letzte Aktualisierung: v3.9.1 (Prio 3 Refactoring)*
+*Letzte Aktualisierung: v3.13.0 (UseCase-Log Migration)*

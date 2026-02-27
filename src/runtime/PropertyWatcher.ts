@@ -1,4 +1,5 @@
 import { DebugLogService } from '../services/DebugLogService';
+import { Logger } from '../utils/Logger';
 
 /**
  * PropertyWatcher - Watches object properties and triggers callbacks on changes
@@ -7,6 +8,7 @@ import { DebugLogService } from '../services/DebugLogService';
  * Used as the foundation for automatic UI updates in the reactive system.
  */
 export class PropertyWatcher {
+    private static logger = Logger.get('PropertyWatcher', 'Variable_Management');
     // Map: Object -> Map: PropertyPath -> Set of Callbacks
     private watchers = new Map<any, Map<string, Set<(newValue: any, oldValue: any) => void>>>();
 
@@ -36,7 +38,7 @@ export class PropertyWatcher {
     ): void {
         const target = this.unwrap(object);
         if (!target || typeof target !== 'object') {
-            console.warn('[PropertyWatcher] Cannot watch non-object:', target);
+            PropertyWatcher.logger.warn(`Cannot watch non-object: ${target}`);
             return;
         }
 
@@ -154,7 +156,7 @@ export class PropertyWatcher {
                 try {
                     callback(newValue, oldValue);
                 } catch (error) {
-                    console.error('[PropertyWatcher] Callback error:', error);
+                    PropertyWatcher.logger.error('Callback error:', error);
                 }
             });
         }
@@ -178,7 +180,7 @@ export class PropertyWatcher {
             try {
                 callback(object, propertyPath, newValue, oldValue);
             } catch (error) {
-                console.error('[PropertyWatcher] Global callback error:', error);
+                PropertyWatcher.logger.error('Global callback error:', error);
             }
         });
     }
@@ -215,11 +217,11 @@ export class PropertyWatcher {
      * Debug: Lists all active watchers
      */
     debug(): void {
-        console.log('[PropertyWatcher] Active Watchers:');
+        PropertyWatcher.logger.info('Active Watchers:');
         this.watchers.forEach((objectWatchers, object) => {
             const objName = object.name || object.id || 'Unknown';
             objectWatchers.forEach((callbacks, propertyPath) => {
-                console.log(`  ${objName}.${propertyPath}: ${callbacks.size} watchers`);
+                PropertyWatcher.logger.info(`  ${objName}.${propertyPath}: ${callbacks.size} watchers`);
             });
         });
     }

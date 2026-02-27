@@ -6,12 +6,15 @@ import { projectRegistry } from '../../services/ProjectRegistry';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { UseCaseManager } from '../../utils/UseCaseManager';
 import { mediatorService, MediatorEvents } from '../../services/MediatorService';
+import { Logger } from '../../utils/Logger';
 
 /**
  * InspectorActionHandler - Handles complex button-driven actions in the Inspector.
  * This class captures the "Action/Command" logic for specialized Inspector buttons.
  */
 export class InspectorActionHandler {
+    private static logger = Logger.get('InspectorActionHandler', 'Inspector_Update');
+
     constructor(
         _runtime: ReactiveRuntime,
         private project: GameProject,
@@ -23,7 +26,7 @@ export class InspectorActionHandler {
      */
     public async handleAction(buttonDef: any, selectedObject: any, value?: any): Promise<void> {
         const action = buttonDef.action;
-        console.log(`[InspectorActionHandler] Executing action: ${action}`);
+        InspectorActionHandler.logger.debug(`Executing action: ${action}`);
 
         switch (action) {
             case 'save':
@@ -51,20 +54,20 @@ export class InspectorActionHandler {
                 this.handleToggleUseCase(buttonDef, value);
                 break;
             default:
-                console.warn(`[InspectorActionHandler] Unknown action: ${action}`);
+                InspectorActionHandler.logger.warn(`Unknown action: ${action}`);
         }
     }
 
     private handleToggleUseCase(def: any, value: any): void {
         const useCaseId = def.useCaseId;
         const active = value === true || value === 'true';
-        console.log(`[InspectorActionHandler] Toggling usecase ${useCaseId} to ${active}`);
+        InspectorActionHandler.logger.info(`Toggling usecase ${useCaseId} to ${active}`);
         UseCaseManager.getInstance().setUseCaseActive(useCaseId, active);
         this.host.update(); // Refresh UI to show updated checkbox state
     }
 
     private handleSave(): void {
-        console.log('[InspectorActionHandler] Save triggered');
+        InspectorActionHandler.logger.info('Save triggered');
         // Usually handled via auto-save, but can be forced here
     }
 
@@ -79,7 +82,7 @@ export class InspectorActionHandler {
 
         // Standard prompt if no special handler exists
         if (!confirm(`Möchtest du das Objekt "${name}" wirklich löschen?`)) return;
-        console.log('[InspectorActionHandler] Deleting object:', name);
+        InspectorActionHandler.logger.info('Deleting object:', name);
 
         // Fallback: Identify object type for correct refactoring/deletion
         if (obj.className === 'TTask' || obj.actions !== undefined) {
@@ -106,12 +109,12 @@ export class InspectorActionHandler {
             this.project.objects = this.project.objects.filter(o => o.name !== name && o.id !== name);
         }
 
-        console.log('[InspectorActionHandler] Generic delete finished for:', name);
+        InspectorActionHandler.logger.info('Generic delete finished for:', name);
     }
 
     private async handleBrowseImage(buttonDef: any, obj: any): Promise<void> {
         const propName = buttonDef.property || buttonDef.actionData?.property;
-        console.log('[InspectorActionHandler] Opening image browser for:', propName);
+        InspectorActionHandler.logger.info('Opening image browser for:', propName);
 
         // Simple prompt for now, will integrate with DialogManager in next phase
         const newPath = prompt('Bildpfad eingeben:', obj[propName] || '');
@@ -133,7 +136,7 @@ export class InspectorActionHandler {
             taskName = buttonDef.taskName;
         }
 
-        console.log('[InspectorActionHandler] Switching flow context to task:', taskName);
+        InspectorActionHandler.logger.info('Switching flow context to task:', taskName);
 
         if (this.project && taskName) {
             mediatorService.notify(MediatorEvents.SWITCH_FLOW_CONTEXT, { taskName });
@@ -231,7 +234,7 @@ export class InspectorActionHandler {
 
     private handleMapEvent(def: any, obj: any, value: string): void {
         const eventName = def.property ? def.property.replace('events.', '') : (def.name || '').substring(6).replace('Select', '').replace('Input', '');
-        console.log(`[InspectorActionHandler] Mapping event ${eventName} to task: ${value}`);
+        InspectorActionHandler.logger.info(`Mapping event ${eventName} to task: ${value}`);
 
         if (!obj.events) obj.events = {};
         const oldVal = obj.events[eventName];

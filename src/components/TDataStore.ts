@@ -1,5 +1,6 @@
 import { TPanel } from './TPanel';
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
+import { Logger } from '../utils/Logger';
 
 /**
  * TDataStore - Datenbank-Komponente für GCS
@@ -8,6 +9,7 @@ import { TPropertyDef, IRuntimeComponent } from './TComponent';
  * Im Editor wird localStorage genutzt, im Server-Modus das Dateisystem.
  */
 export class TDataStore extends TPanel implements IRuntimeComponent {
+    private static logger = Logger.get('TDataStore', 'Project_Validation');
     public storagePath: string = 'data.json';
     public defaultCollection: string = 'items';
 
@@ -19,7 +21,7 @@ export class TDataStore extends TPanel implements IRuntimeComponent {
 
     constructor(name: string = 'DataStore', x: number = 0, y: number = 0) {
         super(name, x, y, 6, 4);
-        console.log(`[TDataStore] Constructor: name=${this.name} (arg=${name})`);
+        TDataStore.logger.info(`Constructor: name=${this.name} (arg=${name})`);
 
         // Datenbank-Design (Zylinder-Optik via Hintergrund)
         this.style.backgroundColor = '#2c3e50';
@@ -37,10 +39,10 @@ export class TDataStore extends TPanel implements IRuntimeComponent {
     }
 
     set caption(v: string) {
-        console.log(`[TDataStore] set caption("${v}") - Current name: ${this.name}`);
+        TDataStore.logger.info(`set caption("${v}") - Current name: ${this.name}`);
         this._caption = v;
         if (this.name !== 'UserData' && this.name !== 'DataStore' && this.name !== 'LocalStore') {
-            console.warn(`[TDataStore] Warning: name has changed to ${this.name}!`);
+            TDataStore.logger.warn(`Warning: name has changed to ${this.name}!`);
         }
     }
 

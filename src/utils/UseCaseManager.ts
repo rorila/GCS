@@ -1,3 +1,5 @@
+import { Logger } from './Logger';
+
 export enum UseCaseCategory {
     PROJECT = 'Project',
     EDITOR = 'Editor',
@@ -23,6 +25,7 @@ export const USE_CASES: UseCaseDefinition[] = [
     { id: 'Stage_Navigation', category: UseCaseCategory.EDITOR, description: 'Wechseln zwischen Stages' },
     { id: 'Component_Manipulation', category: UseCaseCategory.EDITOR, description: 'Drag, Resize, Auswahl von Stage-Objekten' },
     { id: 'Inspector_Update', category: UseCaseCategory.EDITOR, description: 'Dynamisches Rendern von Properties' },
+    { id: 'Editor_Diagnostics', category: UseCaseCategory.EDITOR, description: 'Diagnose-Infrastruktur (DebugLog, Logger-Stats)' },
 
     // Logic & Flow-Editor
     { id: 'Task_Management', category: UseCaseCategory.FLOW, description: 'Erstellen, Löschen, Umbenennen von Tasks' },
@@ -32,7 +35,6 @@ export const USE_CASES: UseCaseDefinition[] = [
 
     // Runtime & Execution
     { id: 'Runtime_Execution', category: UseCaseCategory.RUNTIME, description: 'Der Prozess des Task-Durchlaufs' },
-    { id: 'Action_Logic', category: UseCaseCategory.RUNTIME, description: 'Ausführung einzelner Aktions-Befehle' },
     { id: 'Variable_Handling', category: UseCaseCategory.RUNTIME, description: 'Auflösung von Tokens und Proxy-Sync' },
     { id: 'Condition_Loop', category: UseCaseCategory.RUNTIME, description: 'Bedingungen und Schleifenlogik' },
 
@@ -46,11 +48,15 @@ export const USE_CASES: UseCaseDefinition[] = [
 ];
 
 export class UseCaseManager {
+    private static logger = Logger.get('UseCaseManager', 'Project_Save_Load');
     private static instance: UseCaseManager;
     private activeUseCases: Set<string> = new Set();
     private STORAGE_KEY = 'gcs_active_usecases';
 
     private constructor() {
+        // Register this manager as the filter for the Logger
+        Logger.setUseCaseFilter((id) => this.isUseCaseActive(id));
+        Logger.setUseCaseLabelProvider((id) => this.getUseCaseLabel(id));
         this.loadFromStorage();
     }
 
@@ -63,6 +69,11 @@ export class UseCaseManager {
 
     public static isActive(useCaseId: string): boolean {
         return UseCaseManager.getInstance().isUseCaseActive(useCaseId);
+    }
+
+    public getUseCaseLabel(useCaseId: string): string {
+        const def = USE_CASES.find(u => u.id === useCaseId);
+        return def ? def.description : useCaseId;
     }
 
     public isUseCaseActive(useCaseId: string): boolean {
@@ -104,7 +115,7 @@ export class UseCaseManager {
                 // Ich lasse es leer, damit der User explizit einschaltet.
             }
         } catch (e) {
-            console.error('Failed to load UseCases from storage', e);
+            UseCaseManager.logger.error('Failed to load UseCases from storage', e);
         }
     }
 }

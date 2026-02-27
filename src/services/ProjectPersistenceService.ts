@@ -1,12 +1,14 @@
 import { GameProject } from '../model/types';
 import { GameExporter } from '../export/GameExporter';
 import { projectRegistry } from './ProjectRegistry';
+import { Logger } from '../utils/Logger';
 
 /**
  * Service for project persistence operations: Loading, Saving, Exporting.
  * Centralizes data access via ProjectRegistry.
  */
 export class ProjectPersistenceService {
+    private static logger = Logger.get('ProjectPersistenceService', 'Project_Save_Load');
     private static instance: ProjectPersistenceService;
 
     private constructor() { }
@@ -36,7 +38,7 @@ export class ProjectPersistenceService {
     public async saveProject(project?: GameProject) {
         const targetProject = project || projectRegistry.getProject();
         if (!targetProject) {
-            console.error('[Persistence] No project found to save');
+            ProjectPersistenceService.logger.error('No project found to save');
             return;
         }
 
@@ -62,7 +64,7 @@ export class ProjectPersistenceService {
                 return;
             } catch (err: any) {
                 if (err.name === 'AbortError') return;
-                console.warn('File System Access API failed, using fallback:', err);
+                ProjectPersistenceService.logger.warn('File System Access API failed, using fallback:', err);
             }
         }
 
@@ -94,9 +96,9 @@ export class ProjectPersistenceService {
             const currentUserVar = (projectData.variables || []).find((v: any) => v.name === 'currentUser') ||
                 (projectData.stages || []).flatMap((s: any) => s.variables || []).find((v: any) => v.name === 'currentUser');
 
-            console.log(`[Persistence] Auto-save. Size: ${(json.length / 1024).toFixed(2)} KB. Sample variable "currentUser":`, currentUserVar);
+            ProjectPersistenceService.logger.debug(`Auto-save. Size: ${(json.length / 1024).toFixed(2)} KB. Sample variable "currentUser":`, currentUserVar);
         } catch (err) {
-            console.error('[Persistence] Auto-save to localStorage failed:', err);
+            ProjectPersistenceService.logger.error('Auto-save to localStorage failed:', err);
         }
     }
 

@@ -1,6 +1,9 @@
 import { GameProject } from '../../model/types';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { serviceRegistry } from '../../services/ServiceRegistry';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('EditorSimulator', 'API_Simulation');
 
 
 export interface EditorSimulatorHost {
@@ -21,7 +24,7 @@ export class EditorSimulatorManager {
         serviceRegistry.register('HttpServer', {
             respond: (requestId: string, status: number, data: any) => {
                 if (requestId && requestId.startsWith('sim-')) {
-                    console.log(`[EditorSimulator] Sim-Response empfangen für ${requestId}:`, data);
+                    logger.info(`Sim-Response empfangen für ${requestId}:`, data);
                     // Suche nach der TAPIServer Komponente im Projekt
                     const allObjects = projectRegistry.getObjects();
                     const server = allObjects.find(o => (o as any).className === 'TAPIServer');
@@ -64,14 +67,14 @@ export class EditorSimulatorManager {
                         query[key] = value;
                     });
                 } catch (e) {
-                    console.warn('[ApiSimulator] URL parsing failed:', e);
+                    logger.warn('URL parsing failed:', e);
                 }
 
-                console.log(`[ApiSimulator] Simulating (${storageFile}): ${method} ${path}`, { body, query });
+                logger.info(`Simulating (${storageFile}): ${method} ${path}`, { body, query });
 
                 // --- SPECIAL PLATFORM ROUTING (Proxy to Server) ---
                 if (path === '/api/platform/login' && method === 'POST') {
-                    console.log(`[ApiSimulator] Proxying Platform Login to server...`);
+                    logger.info(`Proxying Platform Login to server...`);
                     try {
                         const response = await fetch('/api/platform/login', {
                             method: 'POST',
@@ -80,21 +83,21 @@ export class EditorSimulatorManager {
                         });
                         const data = await response.json();
                         if (response.ok) {
-                            console.log(`[ApiSimulator] Server Login SUCCESS`);
+                            logger.info(`Server Login SUCCESS`);
                             return data;
                         } else {
-                            console.warn(`[ApiSimulator] Server Login FAILED:`, data);
+                            logger.warn(`Server Login FAILED:`, data);
                             return { ...data, status: response.status };
                         }
                     } catch (err) {
-                        console.error(`[ApiSimulator] Proxy Login Error:`, err);
+                        logger.error(`Proxy Login Error:`, err);
                         return { error: String(err), status: 500 };
                     }
                 }
 
                 // --- AUTOMATIC RESOURCE ROUTING (Proxy to Server) ---
                 if (path.startsWith('/api/data/')) {
-                    console.log(`[ApiSimulator] Proxying Data-Request to server: ${method} ${url}`);
+                    logger.info(`Proxying Data-Request to server: ${method} ${url}`);
                     try {
                         const fetchOptions: any = {
                             method,
@@ -113,7 +116,7 @@ export class EditorSimulatorManager {
                             return { ...data, status: response.status };
                         }
                     } catch (err) {
-                        console.error(`[ApiSimulator] Proxy Data Error:`, err);
+                        logger.error(`Proxy Data Error:`, err);
                         return { error: String(err), status: 500 };
                     }
                 }
@@ -122,7 +125,7 @@ export class EditorSimulatorManager {
                 // --- LEGACY / CUSTOM EVENT ROUTING ---
                 return new Promise((resolve) => {
                     (window as any).__pendingApiResponses.set(requestId, (response: any) => {
-                        console.log(`[ApiSimulator] Response received for ${requestId}:`, response);
+                        logger.info(`Response received for ${requestId}:`, response);
                         resolve(response);
                     });
 
@@ -147,7 +150,7 @@ export class EditorSimulatorManager {
                     setTimeout(() => {
                         if ((window as any).__pendingApiResponses.has(requestId)) {
                             (window as any).__pendingApiResponses.delete(requestId);
-                            console.warn(`[ApiSimulator] Timeout for request ${requestId}`);
+                            logger.warn(`Timeout for request ${requestId}`);
                             resolve({ error: 'Simulation timeout - no respond_http action executed', status: 504 });
                         }
                     }, 5000);

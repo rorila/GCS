@@ -1,9 +1,11 @@
 import { GridConfig } from '../model/types';
+import { Logger } from '../utils/Logger';
 
 import { StageRenderer, StageHost } from './services/StageRenderer';
 import { StageInteractionManager, StageInteractionHost } from './services/StageInteractionManager';
 
 export class Stage implements StageHost, StageInteractionHost {
+    private static logger = Logger.get('Stage', 'Editor_Diagnostics');
     public element: HTMLElement;
     private container: HTMLElement;
     private renderer: StageRenderer;
@@ -140,7 +142,7 @@ export class Stage implements StageHost, StageInteractionHost {
         this.element.style.backgroundColor = backgroundColor || '#ffffff';
 
         if (this.runMode) {
-            console.log(`[Stage] Game Stage Size updated: ${width}x${height}px. Visible: ${visible}. Host: ${this.container.id}`);
+            Stage.logger.info(`Game Stage Size updated: ${width}x${height}px. Visible: ${visible}. Host: ${this.container.id}`);
             // Force container to be at least as big as the stage if not in flex layout
             this.container.style.minHeight = `${height}px`;
             this.container.style.minWidth = `${width}px`;
@@ -183,7 +185,7 @@ export class Stage implements StageHost, StageInteractionHost {
      * Unterstützt Auto-Columns, JSON-Konfigurationen und Stage-Events.
      */
     public static renderTable(el: HTMLElement, obj: any, onEvent?: (id: string, event: string, data?: any) => void): void {
-        console.log(`[Stage.renderTable] Rendering ${obj.name} (${obj.id})`, { data: obj.data, columns: obj.columns });
+        Stage.logger.info(`Rendering ${obj.name} (${obj.id})`, { data: obj.data, columns: obj.columns });
         el.style.flexDirection = 'column';
         el.style.overflow = 'hidden';
         el.style.display = 'flex';
@@ -214,7 +216,7 @@ export class Stage implements StageHost, StageInteractionHost {
             try {
                 cols = JSON.parse(obj.columns);
             } catch (e) {
-                console.warn('[Stage.renderTable] Invalid JSON columns for:', obj.name);
+                Stage.logger.warn('Invalid JSON columns for:', obj.name);
             }
         }
 

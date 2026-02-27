@@ -2,6 +2,7 @@ import { GameProject, BaseAction, GameTask, ActionType, SequenceItem, ConditionO
 import { projectRegistry } from './ProjectRegistry';
 import { mediatorService } from './MediatorService';
 import { serviceRegistry } from './ServiceRegistry';
+import { Logger } from '../utils/Logger';
 
 /**
  * BranchBuilder
@@ -51,6 +52,7 @@ export class BranchBuilder {
  * Enforces "Keep it Simple" & Architecture Invariants.
  */
 export class AgentController {
+    private static logger = Logger.get('AgentController', 'Editor_Diagnostics');
     private static instance: AgentController;
     private project: GameProject | null = null;
 
@@ -85,7 +87,7 @@ export class AgentController {
         // 1. Check if task exists (Global or Stage)
         const exists = this.getTaskByName(taskName);
         if (exists) {
-            console.warn(`[AgentController] Task '${taskName}' already exists. Skipping creation.`);
+            AgentController.logger.warn(`Task '${taskName}' already exists. Skipping creation.`);
             return taskName;
         }
 
@@ -103,11 +105,11 @@ export class AgentController {
         if (blueprintStage) {
             if (!blueprintStage.tasks) blueprintStage.tasks = [];
             blueprintStage.tasks.push(newTask);
-            console.log(`[AgentController] Task '${taskName}' created in Blueprint Stage.`);
+            AgentController.logger.info(`Task '${taskName}' created in Blueprint Stage.`);
         } else {
             if (!this.project!.tasks) this.project!.tasks = [];
             this.project!.tasks.push(newTask);
-            console.log(`[AgentController] Task '${taskName}' created globally (fallback).`);
+            AgentController.logger.info(`Task '${taskName}' created globally (fallback).`);
         }
 
         if (stageId && stageId !== 'blueprint') {
@@ -164,7 +166,7 @@ export class AgentController {
             if (blueprintStage) {
                 if (!blueprintStage.actions) blueprintStage.actions = [];
                 blueprintStage.actions.push(actionDef as any);
-                console.log(`[AgentController] Action '${actionName}' created in Blueprint Stage.`);
+                AgentController.logger.info(`Action '${actionName}' created in Blueprint Stage.`);
             } else {
                 if (!this.project!.actions) this.project!.actions = [];
                 this.project!.actions.push(actionDef as any);
@@ -310,7 +312,7 @@ export class AgentController {
         if (actionDef) {
             // Bereits existent – Parameter aktualisieren
             Object.assign(actionDef, params);
-            console.log(`[AgentController] Updated existing action: ${actionName}`);
+            AgentController.logger.info(`Updated existing action: ${actionName}`);
         } else {
             // Neu erstellen
             actionDef = {
@@ -324,7 +326,7 @@ export class AgentController {
                 if (stage) {
                     if (!stage.actions) stage.actions = [];
                     stage.actions.push(actionDef as any);
-                    console.log(`[AgentController] Created new STAGE action: ${actionName} in ${stageId}`);
+                    AgentController.logger.info(`Created new STAGE action: ${actionName} in ${stageId}`);
                     return;
                 }
             }
@@ -334,11 +336,11 @@ export class AgentController {
             if (blueprintStage) {
                 if (!blueprintStage.actions) blueprintStage.actions = [];
                 blueprintStage.actions.push(actionDef as any);
-                console.log(`[AgentController] Created new action in BLUEPRINT: ${actionName}`);
+                AgentController.logger.info(`Created new action in BLUEPRINT: ${actionName}`);
             } else {
                 if (!this.project!.actions) this.project!.actions = [];
                 this.project!.actions.push(actionDef as any);
-                console.log(`[AgentController] Created new GLOBAL action (fallback): ${actionName}`);
+                AgentController.logger.info(`Created new GLOBAL action (fallback): ${actionName}`);
             }
         }
     }
@@ -470,12 +472,12 @@ export class AgentController {
             if (stage) {
                 if (!stage.flowCharts) stage.flowCharts = {};
                 stage.flowCharts[taskName] = { elements, connections };
-                console.log(`[AgentController] Generated FlowChart for '${taskName}' in stage '${container.stageId}'`);
+                AgentController.logger.info(`Generated FlowChart for '${taskName}' in stage '${container.stageId}'`);
             }
         } else {
             if (!this.project!.flowCharts) this.project!.flowCharts = {};
             this.project!.flowCharts[taskName] = { elements, connections };
-            console.log(`[AgentController] Generated GLOBAL FlowChart for '${taskName}'`);
+            AgentController.logger.info(`Generated GLOBAL FlowChart for '${taskName}'`);
         }
     }
 

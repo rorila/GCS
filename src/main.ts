@@ -85,6 +85,10 @@ document.addEventListener('mouseup', () => {
   }
 });
 
+// 0. Initialize Logging & UseCases early
+import { UseCaseManager } from './utils/UseCaseManager';
+UseCaseManager.getInstance();
+
 import { Editor } from './editor/Editor';
 import { registerStandardActions } from './runtime/actions/StandardActions';
 

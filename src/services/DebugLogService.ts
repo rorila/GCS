@@ -1,3 +1,5 @@
+import { Logger } from '../utils/Logger';
+
 export type LogType = 'Event' | 'Task' | 'Action' | 'Variable' | 'Condition';
 
 export interface LogEntry {
@@ -16,6 +18,7 @@ export interface LogEntry {
 export type LogListener = (logs: LogEntry[]) => void;
 
 export class DebugLogService {
+    private static logger = Logger.get('DebugLogService', 'Editor_Diagnostics');
     private static instance: DebugLogService;
     private logs: LogEntry[] = [];
     private listeners: LogListener[] = [];
@@ -35,7 +38,7 @@ export class DebugLogService {
     }
 
     public setEnabled(enabled: boolean) {
-        console.log(`[DebugLogService] setEnabled(${enabled})`);
+        DebugLogService.logger.info(`setEnabled(${enabled})`);
         this.enabled = enabled;
     }
 

@@ -1,12 +1,14 @@
 import { actionRegistry } from './ActionRegistry';
 import { registerStandardActions } from './actions/StandardActions';
 import { DebugLogService } from '../services/DebugLogService';
+import { Logger } from '../utils/Logger';
 
 /**
  * ActionExecutor handles the execution of all action types,
  * including core property changes and multiplayer/navigation actions.
  */
 export class ActionExecutor {
+    private static logger = Logger.get('ActionExecutor', 'Runtime_Execution');
     constructor(
         private objects: any[],
         private multiplayerManager?: any,
@@ -32,7 +34,7 @@ export class ActionExecutor {
             data: action
         });
 
-        console.log(`%c[Action] Executing: type="${action.type}"`, 'color: #4caf50', {
+        ActionExecutor.logger.debug(`Executing: type="${action.type}"`, {
             action,
             localVars: vars,
             globalVars,
@@ -56,7 +58,7 @@ export class ActionExecutor {
 
             // 2. Legacy Fallback
             if (!handler) {
-                console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
+                ActionExecutor.logger.warn(`Unknown action type: ${action.type}`);
             }
         } finally {
             DebugLogService.getInstance().popContext();

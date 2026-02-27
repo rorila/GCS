@@ -1,3 +1,4 @@
+import { Logger } from '../../utils/Logger';
 import { GameProject, StageDefinition } from '../../model/types';
 import { ViewType } from '../EditorViewManager';
 import { unwrap } from '../../runtime/ReactiveProperty';
@@ -26,6 +27,7 @@ export interface EditorRenderHost {
 }
 
 export class EditorRenderManager {
+    private logger = Logger.get('EditorRenderManager', 'Inspector_Update');
     private host: EditorRenderHost;
 
     constructor(host: EditorRenderHost) {
@@ -65,7 +67,7 @@ export class EditorRenderManager {
             // Defensiv: Darf den Render-Prozess nicht blockieren.
             this.host.objectStore?.setObjects(objectsToRender);
         } catch (err) {
-            console.error("[EditorRenderManager] Render error:", err);
+            this.logger.error('Render error:', err);
         }
     }
 
@@ -85,10 +87,10 @@ export class EditorRenderManager {
                 if (typeof val === 'string' && val.includes('${')) {
                     try {
                         const resolved = ExpressionParser.interpolate(val, context);
-                        console.log(`[EditorRenderManager.resolveObjectPreview] Resolved binding "${val}" ->`, resolved);
+                        this.logger.debug(`Resolved binding "${val}" ->`, resolved);
                         target[key] = resolved;
                     } catch (e) {
-                        console.warn(`[EditorRenderManager.resolveObjectPreview] Failed to resolve "${val}":`, e);
+                        this.logger.warn(`Failed to resolve "${val}":`, e);
                     }
                 } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'grid')) {
                     target[key] = { ...val };

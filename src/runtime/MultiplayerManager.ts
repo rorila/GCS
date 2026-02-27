@@ -1,6 +1,8 @@
 import { ClientMessage, ServerMessage } from '../../game-server/src/Protocol';
+import { Logger } from '../utils/Logger';
 
 export class MultiplayerManager {
+    private static logger = Logger.get('MultiplayerManager', 'Remote_Game_Sync');
     public gameName: string;
     private ws: WebSocket | null = null;
     public roomCode: string | null = null;
@@ -45,11 +47,11 @@ export class MultiplayerManager {
 
         const wsUrl = `${protocol}//${host}`;
 
-        console.log('[MP] Connecting to', wsUrl);
+        MultiplayerManager.logger.info(`Connecting to ${wsUrl}`);
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
-            console.log('[MP] Connected');
+            MultiplayerManager.logger.info('Connected');
             this.isConnected = true;
             while (this.msgQueue.length > 0) {
                 const msg = this.msgQueue.shift();
@@ -58,12 +60,12 @@ export class MultiplayerManager {
         };
 
         this.ws.onclose = () => {
-            console.log('[MP] Disconnected');
+            MultiplayerManager.logger.info('Disconnected');
             this.isConnected = false;
         };
 
         this.ws.onerror = (err) => {
-            console.error('[MP] Error:', err);
+            MultiplayerManager.logger.error('Error:', err);
         };
 
         this.ws.onmessage = (event) => {
@@ -71,7 +73,7 @@ export class MultiplayerManager {
                 const msg = JSON.parse(event.data) as ServerMessage;
                 this.handleMessage(msg);
             } catch (e) {
-                console.error('[MP] Invalid message:', e);
+                MultiplayerManager.logger.error('Invalid message:', e);
             }
         };
     }
@@ -79,7 +81,7 @@ export class MultiplayerManager {
     public disconnect() {
         this.stopHeartbeat();  // Stop heartbeat on disconnect
         if (this.ws) {
-            console.log('[MP] Manually disconnecting');
+            MultiplayerManager.logger.info('Manually disconnecting');
             this.ws.onclose = null;
             this.ws.onerror = null;
             this.ws.onmessage = null;
@@ -93,7 +95,7 @@ export class MultiplayerManager {
     public createRoom(gameName?: string) {
         this.gameStartMsg = null;
         const finalGameName = gameName || this.gameName;
-        console.log(`[MP] createRoom request for: ${finalGameName}`);
+        MultiplayerManager.logger.info(`createRoom request for: ${finalGameName}`);
         this.send({ type: 'create_room', gameName: finalGameName });
     }
 
@@ -103,19 +105,19 @@ export class MultiplayerManager {
     }
 
     public rejoinRoom(code: string, playerNumber: 1 | 2) {
-        console.log(`[MP] Rejoining room ${code} as Player ${playerNumber}`);
+        MultiplayerManager.logger.info(`Rejoining room ${code} as Player ${playerNumber}`);
         this.send({ type: 'rejoin_room', roomCode: code, playerNumber } as any);
     }
 
     public ready() {
-        console.log('[MP] Sending ready');
+        MultiplayerManager.logger.info('Sending ready');
         this.send({ type: 'ready' });
     }
 
     public set onGameStart(callback: ((msg: any) => void) | null) {
         this.onGameStartCallback = callback;
         if (callback && this.gameStartMsg) {
-            console.log('[MP] Delivering buffered game_start to new handler');
+            MultiplayerManager.logger.info('Delivering buffered game_start to new handler');
             setTimeout(() => {
                 if (this.onGameStartCallback === callback) {
                     callback(this.gameStartMsg);
@@ -133,7 +135,7 @@ export class MultiplayerManager {
             // Reduce log spam: console.log('[MP] Sending:', msg.type, msg);
             this.ws.send(JSON.stringify(msg));
         } else {
-            console.log('[MP] Queueing message (not connected yet):', msg.type);
+            MultiplayerManager.logger.debug(`Queueing message (not connected yet): ${msg.type}`);
             this.msgQueue.push(msg);
         }
     }
@@ -154,7 +156,7 @@ export class MultiplayerManager {
     }
 
     public sendInput(key: string, action: 'down' | 'up') {
-        console.log('[MP] Sending input:', key, action);
+        MultiplayerManager.logger.debug(`Sending input: ${key} ${action}`);
         this.send({
             type: 'input',
             key: key,
@@ -167,7 +169,7 @@ export class MultiplayerManager {
      * Non-host sends to host who will execute and sync
      */
     public sendTriggerTask(taskName: string, params?: any) {
-        console.log(`[MP] Sending trigger_task: ${taskName}`);
+        MultiplayerManager.logger.info(`Sending trigger_task: ${taskName}`);
         this.send({ type: 'trigger_task', taskName, params } as any);
     }
 
@@ -176,7 +178,7 @@ export class MultiplayerManager {
      * After local execution, sync to other player
      */
     public sendSyncTask(taskName: string, params?: any) {
-        console.log(`[MP] Sending sync_task: ${taskName}`);
+        MultiplayerManager.logger.info(`Sending sync_task: ${taskName}`);
         this.send({ type: 'sync_task', taskName, params } as any);
     }
 
@@ -191,7 +193,7 @@ export class MultiplayerManager {
         this.stopHeartbeat();
         this.missedPongs = 0;
 
-        console.log(`[MP] Starting heartbeat (interval: ${this.pingInterval}ms)`);
+        MultiplayerManager.logger.info(`Starting heartbeat (interval: ${this.pingInterval}ms)`);
 
         this.heartbeatTimer = window.setInterval(() => {
             this.sendPing();
@@ -216,7 +218,7 @@ export class MultiplayerManager {
         this.missedPongs++;
 
         if (this.missedPongs > this.timeoutThreshold) {
-            console.warn(`[MP] Heartbeat timeout! ${this.missedPongs} pings without response.`);
+            MultiplayerManager.logger.warn(`Heartbeat timeout! ${this.missedPongs} pings without response.`);
             if (this.onPlayerTimeout) {
                 this.onPlayerTimeout({ playerNumber: 0, reason: 'heartbeat' });
             }
@@ -270,7 +272,7 @@ export class MultiplayerManager {
                 break;
 
             case 'game_start':
-                console.log('[MP] Game starting! Player:', this.playerNumber, 'Seed:', msg.seed);
+                MultiplayerManager.logger.info(`Game starting! Player: ${this.playerNumber}, Seed: ${msg.seed}`);
                 this.gameStartMsg = msg;
                 this.startHeartbeat();  // Start heartbeat on game start
                 if (this.onGameStartCallback) this.onGameStartCallback(msg);
@@ -285,12 +287,12 @@ export class MultiplayerManager {
                 break;
 
             case 'remote_task':
-                console.log(`[MP] Remote task received: ${(msg as any).taskName} (mode: ${(msg as any).mode})`);
+                MultiplayerManager.logger.info(`Remote task received: ${(msg as any).taskName} (mode: ${(msg as any).mode})`);
                 if (this.onRemoteTask) this.onRemoteTask(msg);
                 break;
 
             case 'player_left':
-                console.log('[MP] Player left');
+                MultiplayerManager.logger.info('Player left');
                 alert('Gegner hat das Spiel verlassen!');
                 window.location.href = '/';
                 break;
@@ -304,7 +306,7 @@ export class MultiplayerManager {
                 break;
 
             case 'player_timeout':
-                console.log(`[MP] Player ${(msg as any).playerNumber} timeout (${(msg as any).reason})`);
+                MultiplayerManager.logger.warn(`Player ${(msg as any).playerNumber} timeout (${(msg as any).reason})`);
                 this.stopHeartbeat();
                 if (this.onPlayerTimeout) this.onPlayerTimeout(msg);
                 break;

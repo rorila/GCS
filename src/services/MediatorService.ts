@@ -2,7 +2,7 @@ import { TObjectList } from '../components/TObjectList';
 import { GameAction, GameTask, ProjectVariable } from '../model/types';
 import { projectRegistry } from './ProjectRegistry';
 import { RefactoringManager } from '../editor/RefactoringManager';
-// import { serviceRegistry } from './ServiceRegistry';
+import { Logger } from '../utils/Logger';
 
 /**
  * Zentrale Event-Typen für den Mediator.
@@ -21,6 +21,8 @@ export enum MediatorEvents {
  * Er entkoppelt die UI-Logik von der komplexen Stage-Auflösung.
  */
 export class MediatorService {
+    private logger = Logger.get('Mediator', 'Inspector_Update');
+    private refactoringLogger = Logger.get('Mediator', 'Flow_Synchronization');
     private static instance: MediatorService;
     private transientManagers: Map<string, TObjectList[]> = new Map();
     private eventListeners: Map<string, Function[]> = new Map();
@@ -73,14 +75,14 @@ export class MediatorService {
      * Benachrichtigt alle Listener eines Events (sofort).
      */
     public notify(event: string, data?: any, originator?: string): void {
-        console.log(`[Mediator] Notify Event: ${event}${originator ? ` (Originator: ${originator})` : ''}`, data);
+        this.logger.info(`Notify Event: ${event}${originator ? ` (Originator: ${originator})` : ''}`, data);
         const listeners = this.eventListeners.get(event);
         if (listeners) {
             listeners.forEach(cb => {
                 try {
                     cb(data, originator);
                 } catch (e) {
-                    console.error(`[Mediator] Error in Listener for "${event}":`, e);
+                    this.logger.error(`Error in Listener for "${event}":`, e);
                 }
             });
         }
@@ -96,7 +98,7 @@ export class MediatorService {
         }
 
         const timer = setTimeout(() => {
-            console.log(`[Mediator] Debounced Execution: ${event}${originator ? ` (Originator: ${originator})` : ''}`);
+            this.logger.info(`Debounced Execution: ${event}${originator ? ` (Originator: ${originator})` : ''}`);
             this.notify(event, data, originator);
             this.debounceTimers.delete(event);
         }, delay);
@@ -115,7 +117,7 @@ export class MediatorService {
             return existing;
         }
 
-        console.log(`[MediatorService] Erzeuge transiente Manager-Listen für Stage: ${stageId}`);
+        this.logger.info(`Erzeuge transiente Manager-Listen für Stage: ${stageId}`);
 
         const managers: TObjectList[] = [
             this.createConfiguredManager('VisualObjects', 0, 0, '#009688', [
@@ -154,6 +156,12 @@ export class MediatorService {
                 { property: 'name', label: 'Diagramm', width: '250px' },
                 { property: 'nodeCount', label: 'Nodes', width: '60px' },
                 { property: 'uiScope', label: 'Scope', width: '80px' }
+            ]),
+            this.createConfiguredManager('Stages', 50, 0, '#4caf50', [
+                { property: 'id', label: 'ID', width: '120px' },
+                { property: 'name', label: 'Name', width: '180px' },
+                { property: 'type', label: 'Typ', width: '100px' },
+                { property: 'objectCount', label: 'Objekte', width: '70px' }
             ])
         ];
 
@@ -175,6 +183,7 @@ export class MediatorService {
             else if (mgr.name === 'Actions') mgr.data = this.getActions(stageId);
             else if (mgr.name === 'Variables') mgr.data = this.getVariables(stageId);
             else if (mgr.name === 'FlowCharts') mgr.data = this.getFlowCharts(stageId);
+            else if (mgr.name === 'Stages') mgr.data = this.getStages();
         });
     }
 
@@ -277,6 +286,18 @@ export class MediatorService {
         return charts;
     }
 
+    public getStages(): any[] {
+        const project = (projectRegistry as any).project;
+        if (!project || !project.stages) return [];
+
+        return project.stages.map((s: any) => ({
+            id: s.id,
+            name: s.name || s.id,
+            type: s.type || 'standard',
+            objectCount: s.objects?.length || 0
+        }));
+    }
+
     /**
      * ZENTRALES REFACTORING: Benennt einen Task um und aktualisiert alle Referenzen inkl. FlowCharts.
      */
@@ -284,7 +305,7 @@ export class MediatorService {
         const project = (projectRegistry as any).project;
         if (!project) return false;
 
-        console.log(`[Mediator] Refactoring on Stage "${stageId}": Rename Task "${oldName}" -> "${newName}"`);
+        this.refactoringLogger.info(`Refactoring on Stage "${stageId}": Rename Task "${oldName}" -> "${newName}"`);
 
         // Nutze den RefactoringManager für die harte Arbeit
         RefactoringManager.renameTask(project, oldName, newName);

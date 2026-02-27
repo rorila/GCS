@@ -1,6 +1,8 @@
 import { GameProject } from '../../model/types';
+import { Logger } from '../../utils/Logger';
 
 export class SanitizationService {
+    private static logger = Logger.get('SanitizationService', 'Project_Validation');
     /**
      * Cleans up all action sequences in the project by removing empty or invalid items.
      * Prevents "ghost" nodes in diagrams and logic issues.
@@ -26,7 +28,7 @@ export class SanitizationService {
             }
         });
 
-        console.log('[SanitizationService] Action sequences cleaned');
+        SanitizationService.logger.info('Action sequences cleaned');
 
         // HOTFIX: Repair corrupted UserData object name
         if (project.stages) {

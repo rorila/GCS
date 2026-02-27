@@ -7,6 +7,7 @@ import { dataService } from '../../services/DataService';
 import { RefactoringManager } from '../RefactoringManager';
 import { hydrateObjects } from '../../utils/Serialization';
 import { safeDeepCopy } from '../../utils/DeepCopy';
+import { Logger } from '../../utils/Logger';
 
 export interface EditorDataHost {
     project: GameProject;
@@ -36,6 +37,7 @@ export interface EditorDataHost {
 }
 
 export class EditorDataManager {
+    private static logger = Logger.get('EditorDataManager', 'Project_Save_Load');
     private host: EditorDataHost;
 
     constructor(host: EditorDataHost) {
@@ -94,7 +96,7 @@ export class EditorDataManager {
 
         // CLEAR old LocalStorage before loading new project
         localStorage.removeItem('gcs_last_project');
-        console.log('[EditorDataManager] LocalStorage cleared for fresh project load');
+        EditorDataManager.logger.info('LocalStorage cleared for fresh project load');
 
         // Clean up data artifacts before loading
         RefactoringManager.cleanActionSequences(data);
@@ -150,7 +152,7 @@ export class EditorDataManager {
                     const originalLen = variables.length;
                     variables = variables.filter((v: any) => v.scope !== 'global');
                     if (variables.length < originalLen) {
-                        console.log(`[EditorDataManager] Cleaned up ${originalLen - variables.length} erroneous global variables from stage "${s.id}" upon load.`);
+                        EditorDataManager.logger.info(`Cleaned up ${originalLen - variables.length} erroneous global variables from stage "${s.id}" upon load.`);
                     }
                 }
 
@@ -211,7 +213,7 @@ export class EditorDataManager {
         this.host.updateStagesMenu(); // WICHTIG: Menü aktualisieren
         this.host.switchView('stage'); // Zur visuellen Bearbeitung wechseln
 
-        console.log("[EditorDataManager] Projekt geladen und Stages initialisiert", this.host.project);
+        EditorDataManager.logger.info("Projekt geladen und Stages initialisiert", this.host.project);
         this.autoSaveToLocalStorage();
 
         // AUTO-SEED: Datenbestände der TDataStores automatisch vom Server laden, wenn im Editor
@@ -219,7 +221,7 @@ export class EditorDataManager {
             const dataStores = this.host.project.objects.filter((o: any) => o.className === 'TDataStore');
             dataStores.forEach((ds: any) => {
                 const path = ds.storagePath || 'db.json';
-                console.log(`[EditorDataManager] Auto-seeding DB: ${path}`);
+                EditorDataManager.logger.info(`Auto-seeding DB: ${path}`);
                 dataService.seedFromUrl(path, `/api/dev/data/${path}`).then(() => {
                     // Refresh inspector if data arrived
                     if (this.host.inspector) this.host.inspector.update();
@@ -238,7 +240,7 @@ export class EditorDataManager {
             if (toast && typeof toast.success === 'function') {
                 toast.success('Projekt geladen und im Browser gespeichert.');
             } else {
-                console.log('%c[EditorDataManager] Project loaded & persisted to LocalStorage', 'color: #4caf50; font-weight: bold;');
+                EditorDataManager.logger.info('Project loaded & persisted to LocalStorage');
             }
         }, 500);
     }
@@ -248,7 +250,7 @@ export class EditorDataManager {
 
         const globalVarCount = (this.host.project.variables || []).length;
         const totalStageVarCount = (this.host.project.stages || []).reduce((acc, s) => acc + (s.variables?.length || 0), 0);
-        console.log(`%c[EditorDataManager] autoSaveToLocalStorage triggered (Global Vars: ${globalVarCount}, Stage Vars: ${totalStageVarCount})`, 'color: #9c27b0; font-weight: bold;');
+        EditorDataManager.logger.debug(`autoSaveToLocalStorage triggered (Global Vars: ${globalVarCount}, Stage Vars: ${totalStageVarCount})`);
     }
 
     public updateProjectJSON() {
@@ -256,7 +258,7 @@ export class EditorDataManager {
             projectPersistenceService.autoSaveToLocalStorage(this.host.project);
 
             // SSoT & DATEI-PERSISTENZ: Speichere Änderungen direkt auf Disk via Server-Endpoint
-            console.log('[EditorDataManager] Starte persistente Speicherung auf Disk...');
+            EditorDataManager.logger.info('Starte persistente Speicherung auf Disk...');
             fetch('/api/dev/save-project', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -265,13 +267,13 @@ export class EditorDataManager {
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        console.log('[EditorDataManager] Projekt wurde erfolgreich auf Disk gespeichert.');
+                        EditorDataManager.logger.info('Projekt wurde erfolgreich auf Disk gespeichert.');
                     } else {
-                        console.warn('[EditorDataManager] Server-seitige Speicherung fehlgeschlagen:', data.error);
+                        EditorDataManager.logger.warn('Server-seitige Speicherung fehlgeschlagen:', data.error);
                     }
                 })
                 .catch(err => {
-                    console.error('[EditorDataManager] Fehler bei Verbindung zum Speicher-Endpoint:', err);
+                    EditorDataManager.logger.error('Fehler bei Verbindung zum Speicher-Endpoint:', err);
                 });
         }
     }
@@ -279,14 +281,14 @@ export class EditorDataManager {
     public syncStageObjectsToProject() {
         // NEVER save runtime state back to the design project.
         if (this.host.stage && this.host.stage.runMode) {
-            console.log(`[EditorDataManager] SKIPPING syncStageObjectsToProject because we are in RunMode.`);
+            EditorDataManager.logger.debug(`SKIPPING syncStageObjectsToProject because we are in RunMode.`);
             return;
         }
 
         const activeStage = this.host.getActiveStage();
         if (!this.host.stage || !activeStage) return;
 
-        console.log(`[EditorDataManager] Syncing objects for stage "${activeStage.id}" to project JSON...`);
+        EditorDataManager.logger.debug(`Syncing objects for stage "${activeStage.id}" to project JSON...`);
 
         const projectStage = this.host.project.stages?.find((s: any) => s.id === activeStage.id);
         if (projectStage) {
@@ -298,7 +300,7 @@ export class EditorDataManager {
             );
 
             if (activeStage.type === 'blueprint' && newStageObjects.length === 0 && (projectStage.objects && projectStage.objects.length > 0)) {
-                console.error(`[EditorDataManager] CRITICAL SAFETY BLOCK: Attempted to overwrite Blueprint objects with empty list!`);
+                EditorDataManager.logger.error(`CRITICAL SAFETY BLOCK: Attempted to overwrite Blueprint objects with empty list!`);
             } else {
                 projectStage.objects = newStageObjects;
             }
@@ -315,7 +317,7 @@ export class EditorDataManager {
     }
 
     public morphVariable(variable: any, newType: any) {
-        console.log(`%c[EditorDataManager] MORPH START: "${variable.name}" (${variable.type} -> ${newType})`, 'color: #00bcd4; font-weight: bold;');
+        EditorDataManager.logger.info(`MORPH START: "${variable.name}" (${variable.type} -> ${newType})`);
 
         // 1. Determine new class name
         const classNameMap: Record<string, string> = {
@@ -339,7 +341,7 @@ export class EditorDataManager {
         const newInstance = this.host.commandManager.createObjectInstance(newClassName, variable.name, (variable as any).x || 0, (variable as any).y || 0);
 
         if (!newInstance) {
-            console.error(`[EditorDataManager] Failed to create instance for morphing to ${newClassName}`);
+            EditorDataManager.logger.error(`Failed to create instance for morphing to ${newClassName}`);
             return;
         }
 
@@ -395,7 +397,7 @@ export class EditorDataManager {
         if (stageObjIdx !== -1) {
             allObjs[stageObjIdx] = newInstance as any;
             this.host.stageManager.setCurrentObjects(allObjs);
-            console.log(`[EditorDataManager] SUCCESS: Replaced in currentObjects[${stageObjIdx}] (LIVE ENGINE).`);
+            EditorDataManager.logger.info(`SUCCESS: Replaced in currentObjects[${stageObjIdx}] (LIVE ENGINE).`);
         }
 
         // 5. Update UI
@@ -413,16 +415,16 @@ export class EditorDataManager {
         }
 
         try {
-            console.log('[EditorDataManager] Force Reload: Fetching project from server...');
+            EditorDataManager.logger.info('Force Reload: Fetching project from server...');
             const projectData = await projectPersistenceService.fetchProjectFromServer();
 
             // Overwrite LocalStorage
             localStorage.setItem('gcs_last_project', JSON.stringify(projectData));
 
-            console.log('[EditorDataManager] Force Reload successful. Reloading page...');
+            EditorDataManager.logger.info('Force Reload successful. Reloading page...');
             window.location.reload();
         } catch (err: any) {
-            console.error('[EditorDataManager] Force Reload failed:', err);
+            EditorDataManager.logger.error('Force Reload failed:', err);
             alert('Fehler beim Laden vom Server: ' + err.message);
         }
     }

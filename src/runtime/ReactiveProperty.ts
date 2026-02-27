@@ -1,5 +1,9 @@
 import { PropertyWatcher } from './PropertyWatcher';
 
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('Proxy', 'Variable_Management');
+
 /**
  * Makes an object reactive by wrapping it in a Proxy
  * All property changes will trigger the PropertyWatcher
@@ -72,7 +76,7 @@ export function makeReactive<T extends object>(
 
                 const propertyPath = path ? `${path}.${property}` : property;
                 const objName = actualRoot.name || actualRoot.id || 'Unknown';
-                console.log(`%c[Proxy] Set ${objName}.${propertyPath} = ${newValue}`, 'color: #2196f3');
+                logger.info(`Set ${objName}.${propertyPath} = ${newValue}`);
 
                 watcher.notify(actualRoot, propertyPath, newValue, oldValue);
             } else {

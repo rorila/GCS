@@ -1,4 +1,5 @@
 import { serviceRegistry } from './ServiceRegistry';
+import { Logger } from '../utils/Logger';
 
 export interface ImageFile {
     name: string;
@@ -12,10 +13,11 @@ export interface ImageFile {
  * Service to handle image related operations (listing, uploading)
  */
 export class ImageService {
+    private logger = Logger.get('ImageService', 'Project_Save_Load');
     private baseUrl: string = 'http://localhost:8080/api';
 
     constructor() {
-        console.log('[ImageService] Initialized');
+        this.logger.info('Initialized');
     }
 
     /**
@@ -27,7 +29,7 @@ export class ImageService {
             if (!response.ok) throw new Error('Failed to fetch images');
             return await response.json();
         } catch (error) {
-            console.error('[ImageService] listImages error:', error);
+            this.logger.error('listImages error:', error);
             return [];
         }
     }
@@ -44,7 +46,7 @@ export class ImageService {
                 results.push(...this.flattenImages(item.children));
             }
         });
-        console.log(`[ImageService] Flattened ${tree.length} items to ${results.length} files`);
+        this.logger.info(`Flattened ${tree.length} items to ${results.length} files`);
         return results;
     }
 

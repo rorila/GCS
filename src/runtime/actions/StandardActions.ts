@@ -5,6 +5,10 @@ import { AnimationManager } from '../AnimationManager';
 import { serviceRegistry } from '../../services/ServiceRegistry';
 import { DebugLogService } from '../../services/DebugLogService';
 import { ActionApiHandler } from '../../components/actions/ActionApiHandler';
+import { Logger } from '../../utils/Logger';
+
+const runtimeLogger = Logger.get('Action', 'Runtime_Execution');
+const dataLogger = Logger.get('Action', 'DataStore_Sync');
 
 /**
  * Hilfsfunktion zum Auflösen von Targets
@@ -96,7 +100,7 @@ export function registerStandardActions() {
                 data: { value: val, source: sourceName, property: action.sourceProperty }
             });
         } else {
-            console.warn(`[Action:variable] Fehler: Quelle "${sourceName}" konnte nicht aufgelöst werden oder variableName fehlt.`);
+            runtimeLogger.warn(`Quelle "${sourceName}" konnte nicht aufgelöst werden oder variableName fehlt.`);
             DebugLogService.getInstance().log('Action', `⚠️ Variable konnte nicht gelesen werden. Quelle: ${sourceName}`, {
                 data: action
             });
@@ -146,7 +150,7 @@ export function registerStandardActions() {
             try {
                 const result = ExpressionParser.evaluate(formula, evalContext);
 
-                console.log(`%c[Action:calculate] Result of "${formula}" -> ${JSON.stringify(result)} (Target: ${action.resultVariable})`, 'color: #2196f3');
+                runtimeLogger.info(`Result of "${formula}" -> ${JSON.stringify(result)} (Target: ${action.resultVariable})`);
 
                 if (action.resultVariable) {
                     context.contextVars[action.resultVariable] = result;
@@ -156,10 +160,10 @@ export function registerStandardActions() {
                     }
                 }
             } catch (err) {
-                console.error(`[Action:calculate] Error evaluating "${formula}":`, err);
+                runtimeLogger.error(`Error evaluating "${formula}":`, err);
             }
         } else {
-            console.warn('[Action:calculate] No formula/expression provided in action:', action);
+            runtimeLogger.warn('No formula/expression provided in action:', action);
         }
     }, {
         type: 'calculate',
@@ -247,14 +251,14 @@ export function registerStandardActions() {
             (o: any) => o.className === 'TStageController' || o.constructor?.name === 'TStageController'
         );
         if (stageController && typeof (stageController as any).goToStage === 'function') {
-            console.log(`[Action: navigate_stage] Via TStageController → ${resolved}`);
+            runtimeLogger.info(`Via TStageController → ${resolved}`);
             (stageController as any).goToStage(resolved);
             return;
         }
 
         // Fallback: über onNavigate-Callback (Editor-Modus)
         if (context.onNavigate) {
-            console.log(`[Action: navigate_stage] Via onNavigate fallback → stage:${resolved}`);
+            runtimeLogger.info(`Via onNavigate fallback → stage:${resolved}`);
             context.onNavigate(`stage:${resolved}`, action.params);
         }
     }, {
@@ -358,11 +362,11 @@ export function registerStandardActions() {
         // Runtime Safety: If requestJWT is true, we enforce the platform login route and POST method
         if (action.requestJWT) {
             if (!url || url === '/' || url.startsWith('/api/data/')) {
-                console.log(`[Action: http] Auto-fixing URL for JWT request: ${url} -> /api/platform/login`);
+                dataLogger.info(`Auto-fixing URL for JWT request: ${url} -> /api/platform/login`);
                 url = '/api/platform/login';
             }
             if (method === 'GET') {
-                console.log(`[Action: http] Auto-fixing METHOD for JWT request: GET -> POST`);
+                dataLogger.info(`Auto-fixing METHOD for JWT request: GET -> POST`);
                 method = 'POST';
             }
         }
@@ -384,12 +388,12 @@ export function registerStandardActions() {
             const qProp = action.queryProperty || action.property;
             const qVal = action.queryValue || action.value;
             if (qProp && qVal) {
-                console.log(`[Action: http] Interpolating qVal "${qVal}" for qProp "${qProp}"`);
+                dataLogger.info(`Interpolating qVal "${qVal}" for qProp "${qProp}"`);
                 const interpValue = PropertyHelper.interpolate(String(qVal), combinedContext, context.objects);
-                console.log(`[Action: http] Interpolated Value: "${interpValue}"`);
+                dataLogger.info(`Interpolated Value: "${interpValue}"`);
                 parsedBody = { [qProp]: interpValue };
                 body = JSON.stringify(parsedBody);
-                console.log(`[Action: http] Auto-constructed Login Body (JWT):`, parsedBody);
+                dataLogger.info(`Auto-constructed Login Body (JWT):`, parsedBody);
             }
         }
 
@@ -400,7 +404,7 @@ export function registerStandardActions() {
 
         // Check if ApiSimulator service is available (Editor mode simulation)
         if (serviceRegistry.has('ApiSimulator')) {
-            console.log(`[Action: http] Using API Simulation for: ${method} ${url}`);
+            dataLogger.info(`Using API Simulation for: ${method} ${url}`);
             try {
                 // Resolve storagePath from dataStore component if present
                 const dsName = action.dataStore;
@@ -408,20 +412,20 @@ export function registerStandardActions() {
                 const storageFile = (dsComponent as any)?.storagePath || 'db.json';
 
                 if (action.requestJWT) {
-                    console.log(`[Action: http] JWT Simulation Request: ${method} ${url}`, parsedBody);
+                    dataLogger.info(`JWT Simulation Request: ${method} ${url}`, parsedBody);
                 }
                 let result = await serviceRegistry.call('ApiSimulator', 'request', [method, url, parsedBody, storageFile]);
 
                 if (action.requestJWT) {
-                    console.log(`[Action: http] JWT Simulation Result:`, result);
+                    dataLogger.info(`JWT Simulation Result:`, result);
                     // Standard JWT handling: Save token & return User object
                     if (result && result.token) {
                         localStorage.setItem('auth_token', result.token);
-                        console.log('[Action: http] Auto-saved JWT token to localStorage "auth_token"');
+                        dataLogger.info('Auto-saved JWT token to localStorage "auth_token"');
                     }
                     if (result && result.user) {
                         result = result.user;
-                        console.log('[Action: http] Auto-unwrapped user object from JWT response');
+                        dataLogger.info('Auto-unwrapped user object from JWT response');
                     }
                 }
 
@@ -437,7 +441,7 @@ export function registerStandardActions() {
 
                     if (isCountOnly && Array.isArray(result)) {
                         result = result.length;
-                        console.log(`[Action: http] Applied SQL COUNT Projection: ${result}`);
+                        dataLogger.info(`Applied SQL COUNT Projection: ${result}`);
                     } else {
                         const project = (obj: any) => {
                             if (typeof obj !== 'object' || obj === null) return obj;
@@ -452,13 +456,13 @@ export function registerStandardActions() {
                             return partial;
                         };
                         result = Array.isArray(result) ? result.map(project) : project(result);
-                        console.log(`[Action: http] Applied SQL Projection (${action.selectFields}):`, result);
+                        dataLogger.info(`Applied SQL Projection (${action.selectFields}):`, result);
                     }
                 }
 
                 // Smart-Unwrap: Only for JWT login responses (single user object expected)
                 if (action.requestJWT && Array.isArray(result) && result.length === 1) {
-                    console.log(`[Action: http] Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
+                    dataLogger.info(`Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
                     result = result[0];
                 }
 
@@ -478,7 +482,7 @@ export function registerStandardActions() {
                     });
 
                     if (action.requestJWT) {
-                        console.log(`[Action: http] Variable "${varName}" gesetzt auf:`, displayValue);
+                        dataLogger.info(`Variable "${varName}" gesetzt auf:`, displayValue);
                     }
                 }
 
@@ -487,7 +491,7 @@ export function registerStandardActions() {
                     return false;
                 }
             } catch (err) {
-                console.error('[Action: http] Simulation Error:', err);
+                dataLogger.error('Simulation Error:', err);
                 if (action.resultVariable) {
                     const errorObj = { error: String(err), status: 500 };
                     context.vars[action.resultVariable] = errorObj;
@@ -514,22 +518,22 @@ export function registerStandardActions() {
             if (body) options.body = body;
 
             if (action.requestJWT) {
-                console.log(`[Action: http] JWT Real Request: ${method} ${url}`, { headers: options.headers, body: parsedBody });
+                dataLogger.info(`JWT Real Request: ${method} ${url}`, { headers: options.headers, body: parsedBody });
             }
 
             const response = await fetch(url, options);
             let data = await response.json();
 
             if (action.requestJWT) {
-                console.log(`[Action: http] JWT Real Response:`, data);
+                dataLogger.info(`JWT Real Response:`, data);
                 // Standard JWT handling: Save token & return User object
                 if (data && data.token) {
                     localStorage.setItem('auth_token', data.token);
-                    console.log('[Action: http] Auto-saved JWT token to localStorage "auth_token"');
+                    dataLogger.info('Auto-saved JWT token to localStorage "auth_token"');
                 }
                 if (data && data.user) {
                     data = data.user;
-                    console.log('[Action: http] Auto-unwrapped user object from JWT response');
+                    dataLogger.info('Auto-unwrapped user object from JWT response');
                 }
             }
 
@@ -540,7 +544,7 @@ export function registerStandardActions() {
 
             // Smart-Unwrap: Only for JWT login responses (single user object expected)
             if (action.requestJWT && Array.isArray(data) && data.length === 1) {
-                console.log(`[Action: http] Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
+                dataLogger.info(`Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
                 data = data[0];
             }
 
@@ -559,7 +563,7 @@ export function registerStandardActions() {
                 });
 
                 if (action.requestJWT) {
-                    console.log(`[Action: http] Produktion: Variable "${varName}" gesetzt auf:`, displayValue);
+                    dataLogger.info(`Produktion: Variable "${varName}" gesetzt auf:`, displayValue);
                 }
             }
 
@@ -568,7 +572,7 @@ export function registerStandardActions() {
                 return false;
             }
         } catch (err) {
-            console.error('[Action: http] Error:', err);
+            dataLogger.error('Error:', err);
             if (action.resultVariable) {
                 const errorObj = { error: String(err) };
                 context.vars[action.resultVariable] = errorObj;
@@ -603,7 +607,7 @@ export function registerStandardActions() {
         } else {
             const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
             const token = PropertyHelper.interpolate(String(action.token || ''), combinedContext, context.objects);
-            console.log(`[Action: store_token] Speichere Token "${key}":`, token ? (token.substring(0, 15) + '...') : 'null');
+            dataLogger.info(`Speichere Token "${key}":`, token ? (token.substring(0, 15) + '...') : 'null');
             localStorage.setItem(key, token);
         }
     }, {
@@ -630,7 +634,7 @@ export function registerStandardActions() {
             (toaster as any).show(message, toastType);
         } else {
             // Fallback auf Konsole und einfaches Alert für Sichtbarkeit
-            console.log(`[TOAST: ${toastType.toUpperCase()}] ${message}`);
+            runtimeLogger.info(`[TOAST: ${toastType.toUpperCase()}] ${message}`);
             // alert(message); // Alert ist oft störend, aber für Debugging gut. Wir lassen es weg, wenn Konsole reicht.
         }
     }, {
@@ -662,7 +666,7 @@ export function registerStandardActions() {
                 context.vars[action.resultVariable] = result;
                 context.contextVars[action.resultVariable] = result;
             }
-            console.log(`[Action: call_method] ${targetName}.${methodName}(${resolvedParams.join(', ')}) aufgerufen.`);
+            runtimeLogger.info(`${targetName}.${methodName}(${resolvedParams.join(', ')}) aufgerufen.`);
             return;
         }
 
@@ -673,7 +677,7 @@ export function registerStandardActions() {
                 context.vars[action.resultVariable] = result;
                 context.contextVars[action.resultVariable] = result;
             }
-            console.log(`[Action: call_method] Service ${targetName}.${methodName}(${resolvedParams.join(', ')}) aufgerufen.`);
+            runtimeLogger.info(`Service ${targetName}.${methodName}(${resolvedParams.join(', ')}) aufgerufen.`);
             return;
         }
 
@@ -687,7 +691,7 @@ export function registerStandardActions() {
             if (toaster && typeof (toaster as any).show === 'function') {
                 (toaster as any).show(message, toastType);
             } else {
-                console.log(`[TOAST: ${toastType.toUpperCase()}] ${message}`);
+                runtimeLogger.info(`[TOAST: ${toastType.toUpperCase()}] ${message}`);
             }
             return;
         }
@@ -718,15 +722,15 @@ export function registerStandardActions() {
                 data = JSON.parse(dataStr);
             }
         } catch (e) {
-            console.warn('[Action: respond_http] Could not parse data as JSON, sending as string:', e);
+            dataLogger.warn('Could not parse data as JSON, sending as string:', e);
         }
 
-        console.log(`[Action: respond_http] Sending response for ${requestId}:`, { status, data });
+        dataLogger.info(`Sending response for ${requestId}:`, { status, data });
 
         if (serviceRegistry.has('HttpServer')) {
             await serviceRegistry.call('HttpServer', 'respond', [requestId, status, data]);
         } else {
-            console.warn('[Action: respond_http] No HttpServer service registered!');
+            dataLogger.warn('No HttpServer service registered!');
         }
     }, {
         type: 'respond_http',
@@ -743,10 +747,10 @@ export function registerStandardActions() {
     actionRegistry.register('execute_login_request', async (_action, context) => {
         const pin = context.vars['currentPIN'] || context.contextVars['currentPIN'];
 
-        console.log('[Action: execute_login_request] Attempting login with PIN:', pin);
+        dataLogger.info('Attempting login with PIN:', pin);
 
         if (!pin) {
-            console.warn('[Action: execute_login_request] No PIN provided!');
+            dataLogger.warn('No PIN provided!');
             return false;
         }
 
@@ -767,7 +771,7 @@ export function registerStandardActions() {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('[Action: execute_login_request] Login success:', data);
+                dataLogger.info('Login success:', data);
 
                 // Store result in global/context variables as expected by the DataAction's successBody
                 context.contextVars['loginResult'] = data;
@@ -775,11 +779,11 @@ export function registerStandardActions() {
 
                 return true;
             } else {
-                console.warn('[Action: execute_login_request] Login failed:', response.status);
+                dataLogger.warn('Login failed:', response.status);
                 return false;
             }
         } catch (error) {
-            console.error('[Action: execute_login_request] Network error:', error);
+            dataLogger.error('Network error:', error);
             return false;
         }
     }, {
@@ -804,7 +808,7 @@ export function registerStandardActions() {
         // So we should look at action.data.type
         const subType = action.data?.type || action.subType || 'http'; // Default to http if ambiguous?
 
-        console.log(`[Action: data_action] Delegating to ${subType}`);
+        runtimeLogger.info(`Delegating to ${subType}`);
 
         const handler = actionRegistry.getHandler(subType);
         if (handler) {
@@ -812,7 +816,7 @@ export function registerStandardActions() {
             const mergedAction = { ...action.data, ...action, type: subType };
             return await handler(mergedAction, context);
         } else {
-            console.warn(`[Action: data_action] No handler found for sub-type "${subType}"`);
+            runtimeLogger.warn(`No handler found for sub-type "${subType}"`);
             return false;
         }
     }, {

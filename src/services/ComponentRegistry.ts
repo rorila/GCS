@@ -28,6 +28,7 @@ import { TIntegerVariable } from '../components/TIntegerVariable';
 import { TBooleanVariable } from '../components/TBooleanVariable';
 import { TRealVariable } from '../components/TRealVariable';
 import { TObjectVariable } from '../components/TObjectVariable';
+import { Logger } from '../utils/Logger';
 
 // Zusätzliche System-Komponenten
 import { TSplashScreen } from '../components/TSplashScreen';
@@ -64,12 +65,13 @@ import { TUserManager } from '../components/TUserManager';
  * ComponentRegistry - Der zentrale "Broker" für alle GCS-Komponenten.
  */
 export class ComponentRegistry {
+    private static logger = Logger.get('ComponentRegistry', 'Project_Validation');
     private static instance: ComponentRegistry;
     private registry: Map<string, any> = new Map();
     private typeMapping: Map<string, string> = new Map(); // Mapping von Kurz-Typen (z.B. 'Button') zu Klassennamen
 
     private constructor() {
-        console.log("[ComponentRegistry] Initialisierung startet...");
+        ComponentRegistry.logger.info("Initialisierung startet...");
         this.registerDefaultComponents();
         this.setupTypeMappings();
     }
@@ -151,7 +153,7 @@ export class ComponentRegistry {
         this.register('TRealVariable', TRealVariable);
         this.register('TObjectVariable', TObjectVariable);
 
-        console.log(`[ComponentRegistry] ${this.registry.size} Komponenten erfolgreich registriert.`);
+        ComponentRegistry.logger.info(`${this.registry.size} Komponenten erfolgreich registriert.`);
     }
 
     /**
@@ -235,13 +237,13 @@ export class ComponentRegistry {
             if (constructorName && (constructorName.endsWith('Editor') || constructorName.endsWith('Manager'))) {
                 return null; // Silently ignore editor/manager instances
             }
-            console.warn("[ComponentRegistry.createInstance] Konnte Klasse nicht bestimmen für:", data);
+            ComponentRegistry.logger.warn("Konnte Klasse nicht bestimmen für:", data);
             return null;
         }
 
         const Constructor = this.registry.get(className);
         if (!Constructor) {
-            console.error(`[ComponentRegistry.createInstance] Klasse "${className}" ist nicht registriert!`);
+            ComponentRegistry.logger.error(`Klasse "${className}" ist nicht registriert!`);
             return null;
         }
 
@@ -250,7 +252,7 @@ export class ComponentRegistry {
             const x = typeof data === 'object' ? (data.x || 0) : 0;
             const y = typeof data === 'object' ? (data.y || 0) : 0;
 
-            console.log(`[ComponentRegistry] Hydriere "${name}" (Typ: ${className})`);
+            ComponentRegistry.logger.info(`Hydriere "${name}" (Typ: ${className})`);
             const instance = new Constructor(name, x, y);
 
             // Daten übernehmen
@@ -266,7 +268,7 @@ export class ComponentRegistry {
 
             return instance;
         } catch (error) {
-            console.error(`[ComponentRegistry] Fehler beim Hydrieren von "${className}":`, error);
+            ComponentRegistry.logger.error(`Fehler beim Hydrieren von "${className}":`, error);
             return null;
         }
     }
@@ -279,7 +281,7 @@ export class ComponentRegistry {
         const instance = this.createInstance(data);
         if (instance && typeof instance.getEvents === 'function') {
             const events = instance.getEvents();
-            console.log(`[ComponentRegistry] Events für ${data.className} erfolgreich ermittelt:`, events);
+            ComponentRegistry.logger.info(`Events für ${data.className} erfolgreich ermittelt:`, events);
             return events;
         }
         return ['onClick', 'onDragStart', 'onDragEnd', 'onDrop']; // Fallback

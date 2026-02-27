@@ -1,10 +1,12 @@
 import { DialogManager } from '../editor/DialogManager';
+import { Logger } from '../utils/Logger';
 
 /**
  * DialogService - Service wrapper for DialogManager
  * Enables calling dialogs via ServiceRegistry: serviceRegistry.call('Dialog', 'showDialog', ['dialogName', true])
  */
 export class DialogService {
+    private logger = Logger.get('DialogService', 'Inspector_Update');
     private dialogManager: DialogManager | null = null;
 
     /**
@@ -12,7 +14,7 @@ export class DialogService {
      */
     setDialogManager(dm: DialogManager): void {
         this.dialogManager = dm;
-        console.log('[DialogService] DialogManager set');
+        this.logger.info('DialogManager set');
     }
 
     /**
@@ -23,11 +25,11 @@ export class DialogService {
      */
     async showDialog(dialogName: string, modal: boolean = true, data: any = {}): Promise<any> {
         if (!this.dialogManager) {
-            console.error('[DialogService] DialogManager not set!');
+            this.logger.error('DialogManager not set!');
             return { action: 'cancel', data: {} };
         }
 
-        console.log(`[DialogService] showDialog('${dialogName}', ${modal})`, data);
+        this.logger.info(`showDialog('${dialogName}', ${modal})`, data);
         return this.dialogManager.showDialog(dialogName, modal, data);
     }
 
@@ -39,11 +41,11 @@ export class DialogService {
      */
     async showDialogWithData(dialogName: string, modal: boolean, data: any): Promise<any> {
         if (!this.dialogManager) {
-            console.error('[DialogService] DialogManager not set!');
+            this.logger.error('DialogManager not set!');
             return { action: 'cancel', data: {} };
         }
 
-        console.log(`[DialogService] showDialogWithData('${dialogName}', ${modal}, data)`);
+        this.logger.info(`showDialogWithData('${dialogName}', ${modal}, data)`);
         return this.dialogManager.showDialog(dialogName, modal, data);
     }
 }

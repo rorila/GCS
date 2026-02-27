@@ -16,6 +16,7 @@ import { FlowStart } from '../flow/FlowStart';
 import { GameProject } from '../../model/types';
 import { RefactoringManager } from '../RefactoringManager';
 import { projectRegistry } from '../../services/ProjectRegistry';
+import { Logger } from '../../utils/Logger';
 
 export interface FlowGraphHost {
     project: GameProject | null;
@@ -46,6 +47,7 @@ export interface FlowGraphHost {
 }
 
 export class FlowGraphManager {
+    private static logger = Logger.get('FlowGraphManager', 'Task_Management');
     private host: FlowGraphHost;
 
     constructor(host: FlowGraphHost) {
@@ -53,7 +55,7 @@ export class FlowGraphManager {
     }
 
     public createNode(type: string, x: number, y: number, initialName?: string): FlowElement | null {
-        console.log(`[FlowGraphManager] createNode: type=${type}, x=${x}, y=${y}, initialName=${initialName}`);
+        FlowGraphManager.logger.info(`createNode: type=${type}, x=${x}, y=${y}, initialName=${initialName}`);
         let node: FlowElement;
         const id = 'node-' + Date.now();
         const baseType = type.includes(':') ? type.split(':')[0] : type;
@@ -296,13 +298,15 @@ export class FlowGraphManager {
     }
 
     public restoreConnection(data: any) {
-        console.log(`[FlowGraphManager] restoreConnection: ${data.startTargetId} -> ${data.endTargetId}`, data);
+        // Use Flow_Synchronization for connection restoration
+        const connLogger = Logger.get('FlowGraphManager', 'Flow_Synchronization');
+        connLogger.debug(`restoreConnection: ${data.startTargetId} -> ${data.endTargetId}`, data);
 
         const startNode = data.startTargetId ? this.host.nodes.find(n => n.id === data.startTargetId || (n as any).name === data.startTargetId) : null;
         const endNode = data.endTargetId ? this.host.nodes.find(n => n.id === data.endTargetId || (n as any).name === data.endTargetId) : null;
 
-        if (!startNode) console.warn(`[FlowGraphManager] Start node ${data.startTargetId} NOT FOUND in current nodes list! Total nodes: ${this.host.nodes.length}`);
-        if (!endNode) console.warn(`[FlowGraphManager] End node ${data.endTargetId} NOT FOUND in current nodes list! Total nodes: ${this.host.nodes.length}`);
+        if (!startNode) connLogger.warn(`Start node ${data.startTargetId} NOT FOUND in current nodes list! Total nodes: ${this.host.nodes.length}`);
+        if (!endNode) connLogger.warn(`End node ${data.endTargetId} NOT FOUND in current nodes list! Total nodes: ${this.host.nodes.length}`);
 
         let x1 = data.startX || 0;
         let y1 = data.startY || 0;

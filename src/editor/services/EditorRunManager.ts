@@ -8,6 +8,9 @@ import { TTimer } from '../../components/TTimer';
 import { TGameServer } from '../../components/TGameServer';
 import { TWindow } from '../../components/TWindow';
 import { mediatorService } from '../../services/MediatorService';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('RunManager', 'Runtime_Execution');
 
 export class EditorRunManager {
     public runtime: GameRuntime | null = null;
@@ -57,7 +60,7 @@ export class EditorRunManager {
 
         if (running) {
             this.editor.selectObject(null);
-            console.log("[RunManager] Starting Game Mode...");
+            logger.info("Starting Game Mode...");
 
             const mpManager = (this.editor as any)._isMultiplayer ? network : undefined;
             const activeStage = this.editor.getActiveStage();
@@ -83,7 +86,7 @@ export class EditorRunManager {
                         // 1. Tell the RUNTIME to switch stage (preserves global variables)
                         if (this.runtime) {
                             const currentStageId = (this.runtime as any).stage?.id || '';
-                            console.log(`[RunManager] Runtime stage switch: ${currentStageId} → ${stageId}`);
+                            logger.info(`Runtime stage switch: ${currentStageId} → ${stageId}`);
                             (this.runtime as any).handleStageChange(currentStageId, stageId);
 
                             // Update runtime objects and components after stage change

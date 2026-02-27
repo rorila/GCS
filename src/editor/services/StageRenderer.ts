@@ -34,7 +34,8 @@ export class StageRenderer {
 
             // RADICAL PERFORMANCE/DEBUG LOG: Only once per run-session
             if (!(this.host as any).runModeLogDone) {
-                console.log(`[StageRenderer] RunMode Render Start. Rendering ${objects.length} objects.`);
+                (this.host as any).runModeLogDone = true; // Mark as done after first log
+                logger.info(`RunMode Render Start. Rendering ${objects.length} objects.`);
                 if (objects.length > 0) {
                     console.table(objects.slice(0, 20).map(o => ({
                         name: o.name,

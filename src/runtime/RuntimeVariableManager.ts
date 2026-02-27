@@ -1,6 +1,7 @@
 import { ReactiveRuntime } from './ReactiveRuntime';
 import { TaskExecutor } from './TaskExecutor';
 import { DebugLogService } from '../services/DebugLogService';
+import { Logger } from '../utils/Logger';
 
 export interface IVariableHost {
     project: any;
@@ -11,6 +12,7 @@ export interface IVariableHost {
 }
 
 export class RuntimeVariableManager {
+    private static logger = Logger.get('RuntimeVariableManager', 'Variable_Management');
     public projectVariables: Record<string, any> = {};
     public stageVariables: Record<string, any> = {};
     public contextVars: Record<string, any>;
@@ -100,7 +102,7 @@ export class RuntimeVariableManager {
                 const variableDef = stage.variables?.find((v: any) => v.name === prop);
                 if (!variableDef) return undefined;
                 if (!variableDef.isPublic) {
-                    console.warn(`[Scope] Access denied: Variable '${prop}' in stage '${stage.name}' is private.`);
+                    RuntimeVariableManager.logger.warn(`Access denied: Variable '${prop}' in stage '${stage.name}' is private.`);
                     return undefined;
                 }
                 if (this.host.stage && this.host.stage.id === stage.id) {
@@ -109,7 +111,7 @@ export class RuntimeVariableManager {
                 return variableDef.defaultValue;
             },
             set: () => {
-                console.warn(`[Scope] Cannot set properties on Stage Proxy '${stage.name}'. Cross-stage writes are forbidden.`);
+                RuntimeVariableManager.logger.warn(`Cannot set properties on Stage Proxy '${stage.name}'. Cross-stage writes are forbidden.`);
                 return false;
             }
         });
@@ -181,7 +183,7 @@ export class RuntimeVariableManager {
                         if (JSON.stringify(component.data) !== JSON.stringify(value)) {
                             component.data = value;
                             componentUpdated = true;
-                            console.log(`%c[VariableContext:Sync] ${prop} → component.data (${value.length} items)`, 'color: #00bcd4');
+                            RuntimeVariableManager.logger.debug(`[Sync] ${prop} → component.data (${value.length} items)`);
                         }
                     } else if (component.items !== undefined && Array.isArray(value)) {
                         if (JSON.stringify(component.items) !== JSON.stringify(value)) {
@@ -202,7 +204,7 @@ export class RuntimeVariableManager {
                 const displayName = varDef ? varDef.name : prop;
                 const finalStr = finalValue !== undefined ? JSON.stringify(finalValue)?.substring(0, 200) || String(finalValue) : 'undefined';
                 const oldStr = oldValue !== undefined ? JSON.stringify(oldValue)?.substring(0, 100) || String(oldValue) : 'undefined';
-                console.log(`%c[VariableContext:Set] ${displayName} = ${finalStr} (Old: ${oldStr})`, 'color: #e91e63');
+                RuntimeVariableManager.logger.info(`[Set] ${displayName} = ${finalStr} (Old: ${oldStr})`);
 
                 this.host.reactiveRuntime.setVariable(actualProp, finalValue);
 

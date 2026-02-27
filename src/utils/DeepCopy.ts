@@ -1,3 +1,7 @@
+import { Logger } from './Logger';
+
+const logger = Logger.get('DeepCopy', 'Project_Save_Load');
+
 /**
  * Deep copy of an object, handling circular references and reactive proxies.
  * Useful for decoupling UI state from live project data.
@@ -57,7 +61,7 @@ export function safeDeepCopy<T>(obj: T, seen = new WeakMap()): T {
         try {
             result[key] = safeDeepCopy(val, seen);
         } catch (err) {
-            console.warn(`[DeepCopy] Could not copy property "${key}":`, err);
+            logger.warn(`Could not copy property "${key}":`, err);
         }
     }
 

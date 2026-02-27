@@ -1,4 +1,5 @@
 import { GameProject, StageDefinition } from '../model/types';
+import { Logger } from '../utils/Logger';
 import { InspectorHost } from './inspector/InspectorHost';
 import { FlowEditor } from './FlowEditor';
 import { FlowToolbox } from './FlowToolbox';
@@ -27,11 +28,13 @@ export interface IViewHost {
     currentSelectedId: string | null;
     selectObject(id: string | null, focus?: boolean): void;
     switchView(view: ViewType): void;
+    switchStage(id: string, keepView?: boolean): void;
 }
 
 export type ViewType = 'stage' | 'json' | 'run' | 'flow' | 'code' | 'management';
 
 export class EditorViewManager {
+    private static logger = Logger.get('ViewManager', 'Editor_Diagnostics');
     public currentView: ViewType = 'stage';
     public pascalEditorMode: boolean = false;
     public jsonMode: 'viewer' | 'editor' = 'viewer';
@@ -49,7 +52,7 @@ export class EditorViewManager {
             // Always refresh management data if panel is present
             const panel = document.getElementById('management-viewer');
             if (panel) {
-                console.log(`[ViewManager] Refreshing management view due to ${originator || 'external'} change`);
+                EditorViewManager.logger.info(`Refreshing management view due to ${originator || 'external'} change`);
                 this.renderManagementView(panel);
             }
         });
@@ -411,7 +414,8 @@ export class EditorViewManager {
             { id: 'Tasks', label: 'Tasks', emoji: '⚡' },
             { id: 'Actions', label: 'Aktionen', emoji: '🎬' },
             { id: 'Variables', label: 'Variablen', emoji: '📊' },
-            { id: 'FlowCharts', label: 'Ablaufdiagramme', emoji: '🗺️' }
+            { id: 'FlowCharts', label: 'Ablaufdiagramme', emoji: '🗺️' },
+            { id: 'Stages', label: 'Stages', emoji: '🎬' }
         ];
 
         managers.forEach(m => {
@@ -458,11 +462,12 @@ export class EditorViewManager {
                 tableEl.style.height = '100%';
                 tableContainer.appendChild(tableEl);
 
-                // Render the table
-                (activeManager as any).onRowClick = (row: any) => {
-                    this.handleManagerRowClick(this.selectedManager, row);
-                };
-                Stage.renderTable(tableEl, activeManager as any);
+                // Render the table with event callback
+                Stage.renderTable(tableEl, activeManager as any, (_, event, data) => {
+                    if (event === 'onSelect' && data) {
+                        this.handleManagerRowClick(this.selectedManager, data.data);
+                    }
+                });
 
                 // Add title
                 const title = document.createElement('h2');
@@ -491,6 +496,11 @@ export class EditorViewManager {
             h.switchView('flow');
             if (h.flowEditor && row.name) {
                 h.flowEditor.switchActionFlow(row.name);
+            }
+        } else if (managerId === 'Stages') {
+            // Zu einer anderen Stage wechseln
+            if (row.id && (h as any).switchStage) {
+                (h as any).switchStage(row.id);
             }
         }
     }
