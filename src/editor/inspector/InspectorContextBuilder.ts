@@ -31,6 +31,7 @@ export class InspectorContextBuilder {
         const context: Record<string, any> = {
             selectedObject,
             activeStageId,
+            activeStage: registry.getActiveStage(),
 
             // Magic Functions
             getAllActionTypes: () => actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label })),

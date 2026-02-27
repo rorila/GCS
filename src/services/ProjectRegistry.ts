@@ -340,6 +340,11 @@ export class ProjectRegistry {
         return this.activeStageId;
     }
 
+    public getActiveStage(): any | null {
+        if (!this.project || !this.activeStageId) return null;
+        return this.project.stages?.find(s => s.id === this.activeStageId) || null;
+    }
+
     public getObjects(scopeFilter?: 'stage-only' | 'all'): TWindow[] {
         if (!this.project) return [];
 

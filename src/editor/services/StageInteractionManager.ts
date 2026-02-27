@@ -173,6 +173,8 @@ export class StageInteractionManager {
                 this.isResizing = true;
                 this.dragObjId = parent.getAttribute('data-id');
                 this.dragStart = { x: e.clientX, y: e.clientY };
+                const coords = this.getRelativeCoordinates(e);
+                this.dragStartRel = { x: coords.x, y: coords.y };
 
                 const classes = target.className.split(' ');
                 this.resizeDirection = classes.find(c => ['n', 's', 'e', 'w', 'nw', 'ne', 'sw', 'se'].includes(c)) || 'se';

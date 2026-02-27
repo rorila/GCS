@@ -1,4 +1,17 @@
-## [3.14.0] - 2026-02-27
+## [3.15.0] - 2026-02-27
+### Added
+- **Dashboard Finale**: Implementierung des "Layered Dark Design" für das Room-Dashboard.
+  - Tabellen-Farben auf `#0f111a` (außen) und `#161922` (innen) angepasst.
+  - Mock-Daten direkt in `project.json` injiziert (Assigned Players & Game Queue), um "Keine Daten" Anzeige zu beheben.
+  - Metrik-Karten-Design vereinheitlicht.
+
+### Fixed
+- **Resizing-Bug**: Korrektur in `StageInteractionManager.ts`. Resizing-Handles funktionieren nun wieder korrekt, da `dragStartRel` beim Starten des Vorgangs initialisiert wird.
+- **Grid-Sichtbarkeit**: Fix der Gitter-Steuerung im Inspector.
+  - `activeStage` zum Kontext des `InspectorContextBuilder` hinzugefügt.
+  - Präfix-Behandlung für `activeStage.` im `StageHandler.ts` implementiert, um korrekte Modell-Updates sicherzustellen.
+  - **Bugfix (TypeError)**: Methode `getActiveStage` in `ProjectRegistry.ts` ergänzt.
+  - **Bugfix (ReferenceError)**: `require` durch `import` in `StageHandler.ts` ersetzt.
 ### Fixed
 - **Log-Spam Reduzierung (Run-Mode)**: 
   - Fix des `runModeLogDone`-Flags im `StageRenderer`: Die Objekt-Tabelle wird nun nur noch einmalig bei Stage-Start/Wechsel ausgegeben statt bei jedem Frame.
@@ -52,7 +65,7 @@
   - Fokus auf Cloud-native und Agent-first Entwicklungsprinzipien.
 - **Cleanup (Prio 3)**: Finale Entfernung der Legacy-Module `TaskEditor.ts` und `ActionEditor.ts`.
   - Bereinigung aller Callsites im Inspector und Entkopplung via `MediatorService`.
-- **Versionierung**: Projektversion in `package.json` auf 3.9.1 angehoben.
+- **Versionierung**: Projektversion in `package.json` auf 3.9.1
 
 ## [3.9.0] - 2026-02-27
 - **Architecture (Modularisierung)**: Umfassende Modularisierung von `RefactoringManager.ts` und `TaskExecutor.ts`.
@@ -265,6 +278,19 @@
 - **DataAction Inspector**: HinzufÃ¼gen von Feldern fÃ¼r `Name` und `Beschreibung` im spezialisierten DataAction-Inspector.
 - **Property Resolution**: Implementierung eines Fallbacks in `getPropertyValue`, der bei fehlerhafter Inhalts-AuflÃ¶sung auf die Eigenschaften der Ursprungskomponente zurÃ¼ckgreift.
 - **Testing**: Neuer Regressionstest `tests/variable_inspector.test.ts` zur Absicherung der Eigenschafts-AuflÃ¶sung.
+
+## [3.16.0] - 2026-02-27
+### Hinzugefügt
+- **RoomDashboard Stage**: Neues Monitoring-Interface für Spielräume (`roomDashboard`).
+- **TTable Card View**: Implementierung von `displayMode: "cards"` mit expliziter Spalten-Positionierung (`x`, `y`, `width`, `height`).
+- **Custom Badge Styles**: Neue Badge-Farben und Dot-Icons für Statusanzeigen.
+- **Metric Panels**: Footer-Karten für Latency, Packet Loss, Tick Rate und Sessions.
+- **Blueprint Integration**: Globale Datenhaltung in `stage_blueprint` für konsistente Dashboard-Daten.
+- **Header Refinement**: Optimiertes Header-Layout (Back-Button, Title, Online-Badge) gemäß Spezifikation.
+- **Grid Visibility**: Stage-Gitter wird nun standardmäßig ausgeblendet und ist nur via Inspector steuerbar.
+- **Card-Slot-Types**: Neue Slot-Typen `image`, `header`, `badge` und `meta` fÃ¼r standardisiertes Kartendesign.
+- **Dynamic Data Binding**: VollstÃ¤ndige Integration mit Stage-Variablen (`TListVariable`) und reaktivem Unwrapping.
+- **Inspector Upgrade**: Konditionale Sichtbarkeit fÃ¼r Karten- vs. Tabellen-Konfiguration in `inspector_table.json`.
 
 ## [3.3.20] - 2026-02-22
 ### Added

@@ -5,6 +5,8 @@
 
 ## Schnellstart & Kernregeln
 - **Sprache**: Die gesamte Kommunikation und Dokumentation erfolgt auf Deutsch.
+- **GCS Dashboard Pattern**: Für moderne Dashboards (z.B. `roomDashboard`) die `TTable` im `displayMode: "cards"` verwenden. Datenquellen dafür sind bevorzugt `TObjectList`-Variablen in der `stage_blueprint`.
+- **Global Hosting**: Gemäß Antigravity-Regeln MÜSSEN alle globalen Variablen und Komponenten in der `stage_blueprint` definiert sein.
 - **Modularisierung**: Max. 1000 Zeilen pro Datei. Bei Überschreitung: Modul-Aufteilung anwenden.
 - **Testing**: Pro Task mindestens ein Test (Gutfall & Schlechtfall).
 - **Synchronität**: Änderungen in Inspector/Flow-Editor müssen konsistent in JSON und Pascal reflektiert werden.

@@ -2,6 +2,7 @@
 import { IInspectorHandler, PropertyChangeEvent } from '../types';
 import { GameProject } from '../../../model/types';
 import { ReactiveRuntime } from '../../../runtime/ReactiveRuntime';
+import { PropertyHelper } from '../../../runtime/PropertyHelper';
 
 export class StageHandler implements IInspectorHandler {
 
@@ -20,12 +21,21 @@ export class StageHandler implements IInspectorHandler {
     }
 
     handlePropertyChange(event: PropertyChangeEvent, _project: GameProject, _runtime: ReactiveRuntime): boolean {
-        const { propertyName, newValue, object } = event;
+        let { propertyName, newValue, object } = event;
 
         console.log(`[StageHandler] Property change for stage "${object.name || object.id}": ${propertyName} = ${newValue}`);
 
+        // FIX: Strip 'activeStage.' prefix if present (template artifact)
+        if (propertyName.startsWith('activeStage.')) {
+            propertyName = propertyName.replace('activeStage.', '');
+            event.propertyName = propertyName; // Update event for subsequent logic
+
+            // Apply the property change directly to avoid fälschliche "activeStage" property insertion
+            PropertyHelper.setPropertyValue(object, propertyName, newValue);
+            return true;
+        }
+
         // Handle event changes specially if they are prefixed with 'events.'
-        // (The Template Loader might pass them as 'events.onEnter' etc.)
         if (propertyName.startsWith('on')) {
             if (!object.events) object.events = {};
             object.events[propertyName] = newValue;

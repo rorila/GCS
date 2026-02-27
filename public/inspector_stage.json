@@ -216,7 +216,7 @@
         },
         {
             "className": "TCheckbox",
-            "name": "activeStage.grid.visibleInput",
+            "name": "activeStage.grid.visible",
             "checked": "${(activeStage && activeStage.grid && activeStage.grid.visible !== undefined) ? activeStage.grid.visible : selectedObject.stage.grid.visible}",
             "label": "Rasterlinien zeichnen"
         },
