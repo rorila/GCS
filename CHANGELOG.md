@@ -1,3 +1,14 @@
+## [3.9.0] - 2026-02-27
+- **Architecture (Modularisierung)**: Umfassende Modularisierung von `RefactoringManager.ts` und `TaskExecutor.ts`.
+  - Extraktion der Refactoring-Logik in spezialisierte Services: `VariableRefactoringService`, `TaskRefactoringService`, `ActionRefactoringService`, `ObjectRefactoringService` und `SanitizationService`.
+  - Einführung von `RefactoringUtils` für shared helper Methoden.
+  - Slim-down von `RefactoringManager.ts` zu einem reinen Delegator (Facade).
+- **Runtime (Performance & Clutter)**: Modularisierung des `TaskExecutor.ts`.
+  - Extraktion von `TaskConditionEvaluator` und `TaskLoopHandler` in das neue Verzeichnis `src/runtime/executor`.
+  - Reduktion der Dateigröße und Verbesserung der Testbarkeit der Kern-Logik.
+- **Typ-Sicherheit**: Einführung des globalen `UsageReport` Interfaces in `src/model/types.ts`.
+- **Cleanup**: Finale Bereinigung des Projekt-Wurzelverzeichnisses von verwaisten Batch-Dateien und temporären Logs.
+
 ## [3.8.0] - 2026-02-27
 - **Core (Type Safety)**: Vollständige Entfernung des `any`-Typs von `GameAction` in `types.ts`.
   - Behebung von ~13 TypeScript-Build-Fehlern in `PascalGenerator.ts`, `FlowAction.ts`, `MediatorService.ts`, `AgentController.ts` und `RefactoringManager.ts`.

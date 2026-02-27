@@ -33,6 +33,13 @@
   - Die Auflösung von `${...}` erfolgt primär im `PropertyHelper` (Runtime) oder `InspectorHost` (Design-Time).
   - Der `TaskExecutor` selbst interpoliert KEINE Parameter — dies erfolgt erst in der `ActionExecutor.execute()` Phase durch die jeweiligen Action-Handler (z.B. `calculate`, `property`).
 
+## Architektur-Standards (v3.9.0)
+- **Modularisierung**: Große Manager-Klassen (über 1000 Zeilen) wie `RefactoringManager` oder `TaskExecutor` MÜSSEN in spezialisierte Services aufgeteilt werden. Die Hauptklasse fungiert dann nur noch als Delegator (Facade/Facade-Muster).
+- **Service-Location**: 
+  - Refactoring-Services: `src/editor/refactoring/`
+  - Runtime-Executor-Helpers: `src/runtime/executor/`
+- **Shared Helpers**: Statische Hilfsmethoden, die von mehreren Services genutzt werden, gehören in eine `XxxUtils.ts`-Datei (z.B. `RefactoringUtils.ts`).
+
 ## Action System (Standardisierung / OOP)
 - Jede neue Action muss ein entsprechendes Interface in `src/model/types.ts` erhalten, das von `BaseAction` erbt.
 - Property-Namen im Modell müssen exakt den Feldnamen (`name` oder `actionData.field`) in der `dialog_action_editor.json` entsprechen.

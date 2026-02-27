@@ -3,11 +3,11 @@ import { DebugLogService } from '../services/DebugLogService';
 import { FlowCharts, GameProject, GameTask } from '../model/types';
 import { libraryService } from '../services/LibraryService';
 import { MultiplayerManager } from './MultiplayerManager';
-import { PropertyHelper } from './PropertyHelper';
+import { TaskConditionEvaluator } from './executor/TaskConditionEvaluator';
+import { TaskLoopHandler } from './executor/TaskLoopHandler';
 
 export class TaskExecutor {
     private static readonly MAX_DEPTH = 10;
-    private static readonly MAX_ITERATIONS = 1000;  // Prevent infinite loops
 
     constructor(
         private project: GameProject,
@@ -488,10 +488,10 @@ export class TaskExecutor {
                                     } else if (value.startsWith('${') && value.endsWith('}')) {
                                         // Variable reference like ${currentPIN} or ${user.name}
                                         const varName = value.slice(2, -1);
-                                        resolvedParams[key] = this.resolveVarPath(varName, vars, globalVars);
+                                        resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
                                     } else if (value.startsWith('$')) {
                                         // Simple $variable reference (e.g. $eventData.body.pin)
-                                        resolvedParams[key] = this.resolveVarPath(value, vars, globalVars);
+                                        resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(value, vars, globalVars);
                                     } else {
                                         resolvedParams[key] = value;
                                     }
@@ -555,115 +555,9 @@ export class TaskExecutor {
     }
 
     private evaluateCondition(condition: any, vars: Record<string, any>, globalVars: Record<string, any>): boolean {
-        if (!condition) return false;
-
-        let leftValue: any;
-        let rightValue: any;
-        let operator = '==';
-        let conditionStr = '';
-
-        // Support string condition like "isPlayer1 == 1"
-        if (typeof condition === 'string') {
-            conditionStr = condition;
-            const parts = condition.split(/\s*(==|!=|>|<|>=|<=)\s*/);
-            if (parts.length === 3) {
-                const left = parts[0].trim();
-                operator = parts[1];
-                const right = parts[2].trim();
-
-                // Resolve values using helper to support "object.property" and "$variable" syntax
-                leftValue = this.resolveValue(left, vars, globalVars);
-                rightValue = this.resolveValue(right, vars, globalVars);
-            } else {
-                // Boolean check for single variable
-                return !!this.resolveValue(condition, vars, globalVars);
-            }
-        } else {
-            // Object style condition
-            // Support both old {variable, value} and new {leftType, leftValue, rightType, rightValue} formats
-            const leftType = condition.leftType || 'variable';
-            const rightType = condition.rightType || 'literal';
-            const leftValRaw = condition.leftValue || condition.variable;
-            const rightValRaw = condition.rightValue || condition.value;
-            operator = condition.operator || '==';
-
-            // Resolve Left Operand
-            if (leftType === 'variable' || leftType === 'property') {
-                leftValue = this.resolveValue(leftValRaw, vars, globalVars);
-            } else {
-                leftValue = leftValRaw; // Literal
-            }
-
-            // Resolve Right Operand
-            if (rightType === 'variable' || rightType === 'property') {
-                rightValue = this.resolveValue(rightValRaw, vars, globalVars);
-            } else {
-                rightValue = rightValRaw; // Literal
-            }
-
-            conditionStr = `${leftValRaw} (${leftType}) ${operator} ${rightValRaw} (${rightType})`;
-        }
-
-        // Debug Log
-        console.log(`[TaskExecutor] Evaluating Condition: "${conditionStr}"`);
-        console.log(`               Left:  "${leftValue}" (type: ${typeof leftValue})`);
-        console.log(`               Right: "${rightValue}" (type: ${typeof rightValue})`);
-        console.log(`               Op:    "${operator}"`);
-
-        switch (operator) {
-            case '==': return String(leftValue) === String(rightValue);
-            case '!=': return String(leftValue) !== String(rightValue);
-            case '>': return Number(leftValue) > Number(rightValue);
-            case '<': return Number(leftValue) < Number(rightValue);
-            case '>=': return Number(leftValue) >= Number(rightValue);
-            case '<=': return Number(leftValue) <= Number(rightValue);
-            default: return String(leftValue) === String(rightValue);
-        }
+        return TaskConditionEvaluator.evaluateCondition(condition, vars, globalVars);
     }
 
-    private resolveValue(value: number | string | undefined, vars: Record<string, any>, globalVars: Record<string, any>): any {
-        if (typeof value === 'number') return value;
-        if (typeof value === 'boolean') return value;
-        if (value === undefined || value === null) return value;
-
-        if (typeof value === 'string') {
-            // 1. String Literal (quoted)
-            if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
-                return value.substring(1, value.length - 1);
-            }
-
-            // 2. Variable Reference with ${...}
-            const match = value.match(/^\$\{(.+)\}$/);
-            if (match) {
-                return this.resolveVarPath(match[1], vars, globalVars);
-            }
-
-            // 3. Simple Variable Reference (starts with meaning full char or $)
-            // Try to resolve as path
-            return this.resolveVarPath(value, vars, globalVars);
-        }
-        return value;
-    }
-
-    private resolveVarPath(path: string, vars: Record<string, any>, globalVars: Record<string, any>): any {
-        let root = vars;
-        let lookup = path;
-
-        // Strip ${ } if present
-        if (lookup.startsWith('${') && lookup.endsWith('}')) {
-            lookup = lookup.slice(2, -1);
-        }
-
-        if (lookup.startsWith('global.')) {
-            root = globalVars;
-            lookup = lookup.substring(7);
-        } else if (lookup.startsWith('stage.')) {
-            root = vars;
-            lookup = lookup.substring(6);
-        }
-
-        return PropertyHelper.getPropertyValue(root, lookup);
-    }
 
     private async handleCondition(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
         if (!item.condition) return;
@@ -723,84 +617,21 @@ export class TaskExecutor {
      * WHILE loop: Execute body while condition is true
      */
     private async handleWhile(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
-        if (!item.condition || !item.body) {
-            console.warn('[TaskExecutor] WHILE loop missing condition or body');
-            return;
-        }
-
-        let iterations = 0;
-        while (this.evaluateCondition(item.condition, vars, globalVars)) {
-            if (iterations++ >= TaskExecutor.MAX_ITERATIONS) {
-                console.error(`[TaskExecutor] WHILE loop exceeded max iterations(${TaskExecutor.MAX_ITERATIONS})`);
-                break;
-            }
-            await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
-        }
-        console.log(`[TaskExecutor] WHILE loop completed after ${iterations} iterations`);
+        await TaskLoopHandler.handleWhile(item, vars, globalVars, contextObj, depth, parentId, this.executeBody.bind(this));
     }
 
     /**
      * FOR loop: Execute body for each value from 'from' to 'to'
      */
     private async handleFor(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
-        if (!item.iteratorVar || !item.body) {
-            console.warn('[TaskExecutor] FOR loop missing iteratorVar or body');
-            return;
-        }
-
-        const from = this.resolveValue(item.from, vars, globalVars);
-        const to = this.resolveValue(item.to, vars, globalVars);
-        const step = item.step || 1;
-
-        let iterations = 0;
-        for (let i = from; (step > 0 ? i <= to : i >= to); i += step) {
-            if (iterations++ >= TaskExecutor.MAX_ITERATIONS) {
-                console.error(`[TaskExecutor] FOR loop exceeded max iterations(${TaskExecutor.MAX_ITERATIONS})`);
-                break;
-            }
-            // Set iterator variable
-            vars[item.iteratorVar] = i;
-            globalVars[item.iteratorVar] = i;
-            await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
-        }
-        console.log(`[TaskExecutor] FOR loop completed after ${iterations} iterations`);
+        await TaskLoopHandler.handleFor(item, vars, globalVars, contextObj, depth, parentId, this.executeBody.bind(this));
     }
 
     /**
      * FOREACH loop: Execute body for each item in array
      */
     private async handleForeach(item: any, vars: Record<string, any>, globalVars: Record<string, any>, contextObj: any, depth: number, parentId?: string): Promise<void> {
-        if (!item.sourceArray || !item.itemVar || !item.body) {
-            console.warn('[TaskExecutor] FOREACH loop missing sourceArray, itemVar, or body');
-            return;
-        }
-
-        // Get the array from variables
-        const arrayName = item.sourceArray;
-        const arr = vars[arrayName] !== undefined ? vars[arrayName] : globalVars[arrayName];
-
-        if (!Array.isArray(arr)) {
-            console.warn(`[TaskExecutor] FOREACH: ${arrayName} is not an array`);
-            return;
-        }
-
-        let idx = 0;
-        for (const element of arr) {
-            if (idx >= TaskExecutor.MAX_ITERATIONS) {
-                console.error(`[TaskExecutor] FOREACH loop exceeded max iterations(${TaskExecutor.MAX_ITERATIONS})`);
-                break;
-            }
-            // Set item and index variables
-            vars[item.itemVar] = element;
-            globalVars[item.itemVar] = element;
-            if (item.indexVar) {
-                vars[item.indexVar] = idx;
-                globalVars[item.indexVar] = idx;
-            }
-            await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
-            idx++;
-        }
-        console.log(`[TaskExecutor] FOREACH loop completed after ${idx} iterations`);
+        await TaskLoopHandler.handleForeach(item, vars, globalVars, contextObj, depth, parentId, this.executeBody.bind(this));
     }
 
     /**

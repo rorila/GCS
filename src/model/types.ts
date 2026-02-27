@@ -9,6 +9,15 @@ export interface GridConfig {
     backgroundColor: string;
 }
 
+export interface UsageReport {
+    totalCount: number;
+    locations: {
+        type: 'stage' | 'task' | 'action' | 'event' | 'object';
+        name: string;
+        details?: string;
+    }[];
+}
+
 export interface ProjectMetadata {
     name: string;
     version: string;
