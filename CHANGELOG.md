@@ -1,3 +1,13 @@
+## [3.10.0] - 2026-02-27
+- **Pascal-Editor (Architectural Refactoring)**: Modularisierung des massiven `PascalGenerator.ts` (1100+ Zeilen).
+  - Aufteilung in [PascalCodeGenerator.ts](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/PascalCodeGenerator.ts) (Erzegung) und [PascalCodeParser.ts](file:///c:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/src/editor/PascalCodeParser.ts) (Parsing).
+  - `PascalGenerator.ts` fungiert nun als schlanke Fassade (Facade-Pattern).
+- **Pascal-Editor (Features)**:
+  - **Komponenten-Deklaration**: Automatische Deklaration aller Stage-Objekte im Pascal-Sourcecode unter `VAR { STAGE COMPONENTS }`.
+  - **Parser-Upgrade**: Volle Unterstützung für `WHILE`, `FOR`, `IF-THEN-ELSE` und Inkrement/Berechnungs-Aktionen im Round-Trip.
+  - **Logger-Integration**: Der Parser nutzt den zentralen `Logger`-Service zur Protokollierung des Sync-Vorgangs.
+- **Config**: `src/config.ts` um Sicherheitsprüfungen für `import.meta.env` erweitert, um Kompatibilität mit Node/TSX-Testumgebungen sicherzustellen.
+
 ## [3.9.1] - 2026-02-27
 - **Standalone Player (Refactoring)**: Vollständige Integration des `StageRenderer` in `player-standalone.ts`.
   - Elimination von ~300 Zeilen redundantem Rendering-Code.
