@@ -503,10 +503,11 @@ export class ProjectRegistry {
         if (!this.project) return refs;
 
         this.getActions('all', false).forEach(action => {
-            if (action.target === name) refs.push(`Aktion: ${action.name} -> Target ist Objekt: ${name}`);
-            if (action.source === name) refs.push(`Aktion: ${action.name} -> Source ist Objekt: ${name}`);
-            if (action.changes) {
-                const str = JSON.stringify(action.changes);
+            const anyAction = action as any;
+            if (anyAction.target === name) refs.push(`Aktion: ${action.name} -> Target ist Objekt: ${name}`);
+            if (anyAction.source === name) refs.push(`Aktion: ${action.name} -> Source ist Objekt: ${name}`);
+            if (anyAction.changes) {
+                const str = JSON.stringify(anyAction.changes);
                 if (str.includes(`\${${name}.`)) refs.push(`Aktion: ${action.name} -> Referenziert Objekt: ${name}`);
             }
         });

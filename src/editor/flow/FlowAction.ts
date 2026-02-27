@@ -311,13 +311,13 @@ export class FlowAction extends FlowElement {
 
     public get headersJSON(): string {
         const action = this.getActionDefinition();
-        return JSON.stringify(action?.headers || {}, null, 2);
+        return JSON.stringify((action as any)?.headers || {}, null, 2);
     }
     public set headersJSON(v: string) {
         const action = this.getActionDefinition();
         if (action) {
             try {
-                action.headers = JSON.parse(v);
+                (action as any).headers = JSON.parse(v);
             } catch (e) {
                 console.warn('Invalid JSON for headers:', e);
             }
@@ -364,11 +364,11 @@ export class FlowAction extends FlowElement {
 
     public get token(): string {
         const action = this.getActionDefinition();
-        return action?.token || '';
+        return (action as any)?.token || '';
     }
     public set token(v: string) {
         const action = this.getActionDefinition();
-        if (action) action.token = v;
+        if (action) (action as any).token = v;
     }
 
     public get tokenKey(): string {
@@ -661,8 +661,8 @@ export class FlowAction extends FlowElement {
             return `${result}HTTP ${method} ${url}`;
         }
 
-        if (displayAction.type === 'store_token') {
-            const op = displayAction.operation === 'delete' ? 'Delete' : 'Store';
+        if ((displayAction as any).type === 'store_token') {
+            const op = (displayAction as any).operation === 'delete' ? 'Delete' : 'Store';
             const key = (displayAction as any).tokenKey || 'auth_token';
             return `${op} Token [${key}]`;
         }

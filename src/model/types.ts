@@ -139,7 +139,7 @@ export interface HttpAction extends BaseAction {
 }
 
 // Union Type für alle Aktionen
-export type GameAction = PropertyAction | VariableAction | ServiceAction | CalculateAction | MethodAction | NavigateAction | BroadcastAction | HttpAction | any;
+export type GameAction = PropertyAction | VariableAction | ServiceAction | CalculateAction | MethodAction | NavigateAction | BroadcastAction | HttpAction;
 
 // ─────────────────────────────────────────────
 // Task: Sequence of actions and task calls

@@ -158,16 +158,16 @@ export class AgentController {
                 name: actionName,
                 type: actionType,
                 ...params
-            };
+            } as any;
 
             const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
             if (blueprintStage) {
                 if (!blueprintStage.actions) blueprintStage.actions = [];
-                blueprintStage.actions.push(actionDef);
+                blueprintStage.actions.push(actionDef as any);
                 console.log(`[AgentController] Action '${actionName}' created in Blueprint Stage.`);
             } else {
                 if (!this.project!.actions) this.project!.actions = [];
-                this.project!.actions.push(actionDef);
+                this.project!.actions.push(actionDef as any);
             }
         }
 
@@ -317,13 +317,13 @@ export class AgentController {
                 name: actionName,
                 type: actionType,
                 ...params
-            };
+            } as any;
 
             if (stageId) {
                 const stage = this.project!.stages?.find(s => s.id === stageId);
                 if (stage) {
                     if (!stage.actions) stage.actions = [];
-                    stage.actions.push(actionDef);
+                    stage.actions.push(actionDef as any);
                     console.log(`[AgentController] Created new STAGE action: ${actionName} in ${stageId}`);
                     return;
                 }
@@ -333,11 +333,11 @@ export class AgentController {
             const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
             if (blueprintStage) {
                 if (!blueprintStage.actions) blueprintStage.actions = [];
-                blueprintStage.actions.push(actionDef);
+                blueprintStage.actions.push(actionDef as any);
                 console.log(`[AgentController] Created new action in BLUEPRINT: ${actionName}`);
             } else {
                 if (!this.project!.actions) this.project!.actions = [];
-                this.project!.actions.push(actionDef);
+                this.project!.actions.push(actionDef as any);
                 console.log(`[AgentController] Created new GLOBAL action (fallback): ${actionName}`);
             }
         }

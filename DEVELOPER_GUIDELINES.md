@@ -10,10 +10,28 @@
 - ~~**Bug #1**: `RefactoringManager.renameTask()` aktualisiert **keine Stage-Events**~~ → **Behoben**: Neuer Schritt 8 aktualisiert `stage.events` (onEnter, onLeave, onRuntimeStart).
 - ~~**Bug #2**: `RefactoringManager.renameVariable()` aktualisiert nur Root-Level Actions~~ → **Behoben**: Iteriert jetzt über alle Actions (Root + Stage) und aktualisiert auch `formula`-Felder.
 
-## Test-Suite (v3.7.0, 56 Tests)
+## Test-Suite (v3.7.0 / v3.8.0)
+- **Status (v3.8.0)**: Die Suite wurde massiv erweitert. Alle 65 Tests müssen grün sein.
 - **Ausführen**: `npm run test` → Ergebnis in `docs/QA_Report.md`
-- **5 Module**: serialization, refactoring_manager, task_executor, flow_sync, project_integrity
-- **Neue Tests hinzufügen**: Export-Funktion `runXxxTests(): Promise<TestResult[]>` in `tests/xxx.test.ts` erstellen und in `scripts/test_runner.ts` importieren + im `allResults` Array einhängen.
+- **Module**: serialization, refactoring_manager, task_executor, flow_sync, project_integrity
+- **P1-Erweiterung (`tasks_executor.expand.test.ts`)**: Deckt komplexe Logik ab:
+  - Verschachtelte Bedingungen (Branching)
+  - FOR / FOREACH / WHILE Loops
+  - Variable Interpolation in Action-Bodys (`${$params.msg}`)
+- **Hinzufügen**: Export-Funktion `runXxxTests(): Promise<TestResult[]>` in `tests/xxx.test.ts` erstellen und in `scripts/test_runner.ts` integrieren.
+
+## Typsicherheit & Action-Handling (v3.8.0)
+
+> [!IMPORTANT]
+> **Kein `any` bei GameAction mehr!** Das Interface `GameAction` in `types.ts` ist strikt typisiert.
+
+- **Vermeidung von Build-Fehlern**:
+  - Da Aktionen zur Laufzeit oft dynamische Properties besitzen (z.B. `.value`, `.url`), muss an kritischen Stellen in Generatoren oder Managern mit Type-Guards oder `as any` Casts gearbeitet werden.
+  - **Best Practice**: `const data = action as any;` nutzen, wenn auf kontextspezifische Properties zugegriffen wird, die nicht im Basis-Interface definiert sind.
+  - **Prüfung**: Vor dem Zugriff auf `action.body` oder `action.thenAction` IMMER prüfen, ob die Action vom Typ `condition` oder `data_action` ist.
+- **Interpolation**:
+  - Die Auflösung von `${...}` erfolgt primär im `PropertyHelper` (Runtime) oder `InspectorHost` (Design-Time).
+  - Der `TaskExecutor` selbst interpoliert KEINE Parameter — dies erfolgt erst in der `ActionExecutor.execute()` Phase durch die jeweiligen Action-Handler (z.B. `calculate`, `property`).
 
 ## Action System (Standardisierung / OOP)
 - Jede neue Action muss ein entsprechendes Interface in `src/model/types.ts` erhalten, das von `BaseAction` erbt.

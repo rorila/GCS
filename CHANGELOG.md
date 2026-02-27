@@ -1,3 +1,12 @@
+## [3.8.0] - 2026-02-27
+- **Core (Type Safety)**: Vollständige Entfernung des `any`-Typs von `GameAction` in `types.ts`.
+  - Behebung von ~13 TypeScript-Build-Fehlern in `PascalGenerator.ts`, `FlowAction.ts`, `MediatorService.ts`, `AgentController.ts` und `RefactoringManager.ts`.
+  - Implementierung von Robustheits-Casts (`as any`) an strategischen Stellen, um dynamische Properties typsicher zu handhaben.
+- **Cleanup (Repository)**: Bereinigung des Root-Verzeichnisses von 17 veralteten Hilfsskripten und JSON-Konfigurationen (u.a. `run_all.bat`, `temp_...`, `fix_ssot.bat`).
+- **Feature (TaskExecutor Tests)**: Massive Erweiterung der Test-Suite in `tests/task_executor.expand.test.ts`. 
+  - 8 neue Szenarien: Verschachtelte Bedingungen (Branching), FOR-Loops, FOREACH-Loops, Action-Bodys mit Parameter-Interpolation (`${$params.msg}`).
+- **Gesamt-Status**: P1 erfolgreich abgeschlossen. Build ist sauber, alle 65 Tests (57 bestehende + 8 neue) sind grün.
+
 ## [3.7.1] - 2026-02-27
 - **Cleanup (P0 Dead Code)**: Entfernung von ~577 KB Legacy-Code zur Reduktion der Wartungsschuld.
   - Gelöschte Dateien: `TaskEditor.ts`, `ActionEditor.ts`, `FlowDiagramGenerator.ts`, `old_editor.ts`, `old_editor_temp.ts`, `FlowEditor_old.ts.tmp`.

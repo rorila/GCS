@@ -222,13 +222,16 @@ export class MediatorService {
 
     public getActions(stageId: string): GameAction[] {
         const actions = projectRegistry.getActions(stageId);
-        return actions.map(action => ({
-            ...action,
-            usageCount: projectRegistry.getActionUsage(action.name).length,
-            uiScope: (action as any).uiScope || 'stage',
-            changesDisplay: action.changes ? JSON.stringify(action.changes).replace(/[{}"]/g, '').replace(/:/g, '=') :
-                (action.method ? `${action.method}(...)` : '')
-        }));
+        return actions.map(action => {
+            const anyAction = action as any;
+            return {
+                ...action,
+                usageCount: projectRegistry.getActionUsage(action.name).length,
+                uiScope: anyAction.uiScope || 'stage',
+                changesDisplay: anyAction.changes ? JSON.stringify(anyAction.changes).replace(/[{}"]/g, '').replace(/:/g, '=') :
+                    (anyAction.method ? `${anyAction.method}(...)` : '')
+            } as any as GameAction;
+        });
     }
 
     public getVariables(stageId: string): ProjectVariable[] {

@@ -41,13 +41,14 @@ export class RefactoringManager {
         }
 
         allActions.forEach(action => {
+            const anyAction = action as any;
             // Variable assignments and reads
-            if (action.variableName === oldName) action.variableName = newName;
-            if (action.resultVariable === oldName) action.resultVariable = newName;
+            if (anyAction.variableName === oldName) anyAction.variableName = newName;
+            if (anyAction.resultVariable === oldName) anyAction.resultVariable = newName;
 
             // Calculation steps
-            if (action.calcSteps) {
-                action.calcSteps.forEach((step: any) => {
+            if (anyAction.calcSteps) {
+                anyAction.calcSteps.forEach((step: any) => {
                     if (step.operandType === 'variable' && step.variable === oldName) {
                         step.variable = newName;
                     }
@@ -55,11 +56,11 @@ export class RefactoringManager {
             }
 
             // String interpolation in property changes
-            if (action.type === 'property' && action.changes) {
-                for (const key in action.changes) {
-                    let val = action.changes[key];
+            if (anyAction.type === 'property' && anyAction.changes) {
+                for (const key in anyAction.changes) {
+                    let val = anyAction.changes[key];
                     if (typeof val === 'string') {
-                        action.changes[key] = this.replaceInterpolation(val, oldName, newName);
+                        anyAction.changes[key] = this.replaceInterpolation(val, oldName, newName);
                     }
                 }
             }
@@ -70,9 +71,9 @@ export class RefactoringManager {
             }
 
             // Service params interpolation
-            if (action.serviceParams) {
-                for (const key in action.serviceParams) {
-                    action.serviceParams[key] = this.replaceInterpolation(action.serviceParams[key], oldName, newName);
+            if (anyAction.serviceParams) {
+                for (const key in anyAction.serviceParams) {
+                    anyAction.serviceParams[key] = this.replaceInterpolation(anyAction.serviceParams[key], oldName, newName);
                 }
             }
         });
@@ -312,46 +313,47 @@ export class RefactoringManager {
         let actionUpdateCount = 0;
         console.log(`[Refactoring] Scanne ${allActions.length} Aktionen...`);
         allActions.forEach((action, idx) => {
+            const anyAction = action as any;
             let changed = false;
             // DEBUG: Log every action target
-            if (action.target || action.source) {
-                console.log(`[Refactoring] Aktion [${idx}] "${action.name}": target="${action.target}", source="${action.source}"`);
+            if (anyAction.target || anyAction.source) {
+                console.log(`[Refactoring] Aktion [${idx}] "${action.name}": target="${anyAction.target}", source="${anyAction.source}"`);
             }
-            if (action.target === oldName) {
+            if (anyAction.target === oldName) {
                 console.log(`[Refactoring] Treffer in Aktion "${action.name}": target "${oldName}" -> "${newName}"`);
-                action.target = newName;
+                anyAction.target = newName;
                 changed = true;
             }
-            if (action.source === oldName) {
+            if (anyAction.source === oldName) {
                 console.log(`[Refactoring] Treffer in Aktion "${action.name}": source "${oldName}" -> "${newName}"`);
-                action.source = newName;
+                anyAction.source = newName;
                 changed = true;
             }
 
-            if (action.changes) {
-                for (const key in action.changes) {
-                    let val = action.changes[key];
+            if (anyAction.changes) {
+                for (const key in anyAction.changes) {
+                    let val = anyAction.changes[key];
                     if (typeof val === 'string') {
                         if (val === oldName) {
-                            action.changes[key] = newName;
+                            anyAction.changes[key] = newName;
                             changed = true;
                         } else if (val.includes(`\${${oldName}`)) {
-                            action.changes[key] = this.replaceObjectInterpolation(val, oldName, newName);
+                            anyAction.changes[key] = this.replaceObjectInterpolation(val, oldName, newName);
                             changed = true;
                         }
                     }
                 }
             }
 
-            if (action.serviceParams) {
-                for (const key in action.serviceParams) {
-                    let val = action.serviceParams[key];
+            if (anyAction.serviceParams) {
+                for (const key in anyAction.serviceParams) {
+                    let val = anyAction.serviceParams[key];
                     if (typeof val === 'string') {
                         if (val === oldName) {
-                            action.serviceParams[key] = newName;
+                            anyAction.serviceParams[key] = newName;
                             changed = true;
                         } else if (val.includes(`\${${oldName}`)) {
-                            action.serviceParams[key] = this.replaceObjectInterpolation(val, oldName, newName);
+                            anyAction.serviceParams[key] = this.replaceObjectInterpolation(val, oldName, newName);
                             changed = true;
                         }
                     }

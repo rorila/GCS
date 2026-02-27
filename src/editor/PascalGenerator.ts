@@ -397,7 +397,7 @@ export class PascalGenerator {
     }
 
     private static getActionPascalCode(project: GameProject, actionName: string, asHtml: boolean, activeStage?: any, embeddedData?: any): string {
-        const action = embeddedData || project.actions.find(a => a.name === actionName) || (activeStage?.actions?.find((a: any) => a.name === actionName));
+        const action = (embeddedData || project.actions.find(a => a.name === actionName) || (activeStage?.actions?.find((a: any) => a.name === actionName))) as any;
         if (!action) return `${this.span(actionName, '#dcdcaa', asHtml)} (); `;
 
         let code = '';
@@ -893,9 +893,10 @@ export class PascalGenerator {
             const anyItem = item as any;
             let part = `[${item.type}]`;
             if (item.type === 'action') {
+                const anyAction = item as any;
                 // Include target and sorted property keys
-                const keys = Object.keys(anyItem.changes || {}).sort().join(',');
-                part += `:${anyItem.target}:${keys} `;
+                const keys = Object.keys(anyAction.changes || {}).sort().join(',');
+                part += `:${anyAction.target}:${keys} `;
             } else if (item.type === 'task') {
                 part += `:${item.name} `;
             } else if (item.type === 'condition' || item.type === 'while') {
@@ -926,8 +927,9 @@ export class PascalGenerator {
 
         // 2. Search in project.actions
         for (const action of project.actions) {
-            if (action.changes) {
-                const key = Object.keys(action.changes).find(k => k.toLowerCase() === searchString);
+            const anyAction = action as any;
+            if (anyAction.changes) {
+                const key = Object.keys(anyAction.changes).find(k => k.toLowerCase() === searchString);
                 if (key) return key;
             }
         }
