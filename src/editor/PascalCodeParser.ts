@@ -2,7 +2,7 @@ import { GameProject, SequenceItem, ProjectVariable, VariableScope, GameTask } f
 import { projectRegistry } from '../services/ProjectRegistry';
 import { Logger } from '../utils/Logger';
 
-const logger = Logger.get('PascalCodeParser');
+const logger = Logger.get('PascalCodeParser', 'Pascal_Parsing');
 
 /**
  * PascalCodeParser - Encapsulates the logic for parsing Pascal code back into a GameProject.

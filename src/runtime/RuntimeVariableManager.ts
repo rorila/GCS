@@ -349,14 +349,18 @@ export class RuntimeVariableManager {
 
         const displayName = varDef ? varDef.name : id;
         const displayValue = (typeof value === 'object' && value !== null) ? JSON.stringify(value) : String(value);
+        const displayOldValue = (typeof oldValue === 'object' && oldValue !== null) ? JSON.stringify(oldValue) : String(oldValue);
 
-        // User requests format: currentUser := {"name":"Rolf"....}
-        DebugLogService.getInstance().log('Variable', `${displayName} := ${displayValue}`, {
+        // Enhanced message for better State-Diff visibility in DebugLogViewer
+        const message = `${displayName} := ${displayValue} (vorher: ${displayOldValue})`;
+
+        DebugLogService.getInstance().log('Variable', message, {
             objectName: displayName,
             data: {
                 type: 'variable',
                 variableName: displayName,
                 value: value,
+                oldValue: oldValue
             }
         });
     }

@@ -1,5 +1,6 @@
 import { Config } from '../config';
 import { LogLevel } from './LogTypes';
+import { UseCaseManager } from './UseCaseManager';
 
 /**
  * Logger - A central logging service to replace console.log.
@@ -9,9 +10,11 @@ export class Logger {
     private static globalLevel: LogLevel = Config.LOG_LEVEL;
     private prefix: string;
     private level: LogLevel;
+    private useCase: string | undefined;
 
-    constructor(prefix: string = '', level?: LogLevel) {
+    constructor(prefix: string = '', useCase?: string, level?: LogLevel) {
         this.prefix = prefix ? `[${prefix}] ` : '';
+        this.useCase = useCase;
 
         // Priorität: 
         // 1. Explizit übergebenes Level
@@ -34,10 +37,10 @@ export class Logger {
     }
 
     /**
-     * Creates a new logger instance with a prefix.
+     * Creates a new logger instance with a prefix and optional useCase.
      */
-    public static get(prefix: string): Logger {
-        return new Logger(prefix);
+    public static get(prefix: string, useCase?: string): Logger {
+        return new Logger(prefix, useCase);
     }
 
     public debug(...args: any[]): void {
@@ -58,6 +61,12 @@ export class Logger {
 
     private log(level: LogLevel, ...args: any[]): void {
         if (level < this.level || level < Logger.globalLevel) return;
+
+        // UseCase Filter: ERROR geht immer durch. 
+        // Debug/Info/Warn nur, wenn UseCase aktiv ist (falls einer gesetzt wurde).
+        if (level < LogLevel.ERROR && this.useCase && !UseCaseManager.isActive(this.useCase)) {
+            return;
+        }
 
         const timestamp = new Date().toISOString().split('T')[1].split('Z')[0];
         const prefix = `${timestamp} ${this.prefix}`;

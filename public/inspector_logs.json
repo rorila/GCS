@@ -1,0 +1,28 @@
+[
+    {
+        "className": "TPanel",
+        "style": "padding: 5px; background: #222; margin-bottom: 10px; border-radius: 4px;",
+        "children": [
+            {
+                "className": "TLabel",
+                "text": "UseCase-Logging konfigurieren",
+                "style": "font-weight: bold; color: #00bcd4; margin-bottom: 5px;"
+            },
+            {
+                "className": "TLabel",
+                "text": "Wähle aus, für welche Bereiche Debug-Logs angezeigt werden sollen. ERRORs werden immer geloggt.",
+                "style": "font-size: 10px; color: #888; font-style: italic;"
+            }
+        ]
+    },
+    {
+        "forEach": "${Config.USE_CASES}",
+        "className": "TCheckbox",
+        "label": "${item.description}",
+        "name": "usecase_${item.id}",
+        "property": "none",
+        "checked": "${UseCaseManager.isActive('${item.id}')}",
+        "action": "toggle_usecase",
+        "useCaseId": "${item.id}"
+    }
+]

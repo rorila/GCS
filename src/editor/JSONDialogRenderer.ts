@@ -10,7 +10,7 @@ import { imageService } from '../services/ImageService';
 import { MethodRegistry } from './MethodRegistry';
 import { projectRegistry } from '../services/ProjectRegistry';
 
-const logger = Logger.get('JSONDialogRenderer');
+const logger = Logger.get('JSONDialogRenderer', 'Inspector_Update');
 export interface IActionEditorDialogManager {
     showDialog(name: string, modal: boolean, data: any): Promise<any>;
 }

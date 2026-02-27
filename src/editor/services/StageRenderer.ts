@@ -3,7 +3,7 @@ import { Logger } from '../../utils/Logger';
 import { EmojiPickerRenderer } from './EmojiPickerRenderer';
 import { TableRenderer } from './TableRenderer';
 
-const logger = Logger.get('StageRenderer');
+const logger = Logger.get('StageRenderer', 'Component_Manipulation');
 
 /**
  * Interface für den Host (Stage), damit der Renderer auf notwendige Eigenschaften zugreifen kann.

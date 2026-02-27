@@ -27,6 +27,9 @@ export class InspectorEventHandler {
         // NEW: Prioritize explicit 'property' from JSON definition
         if (inspectorDef?.property) {
             propertyPath = inspectorDef.property;
+            if (propertyPath === 'none') {
+                return null; // Suppress property update for action-only controls
+            }
             console.log(`[InspectorEventHandler] Using explicit property path: ${propertyPath}`);
         } else {
             // LEGACY FALLBACK: Resolve from control name
@@ -35,14 +38,18 @@ export class InspectorEventHandler {
 
             // Strip specific suffixes used for differentiation
             if (propertyPath.includes('_')) {
-                const parts = propertyPath.split('_');
-                const suffix = (propertyPath.endsWith('Input') ? 'Input' : (propertyPath.endsWith('Select') ? 'Select' : ''));
-
                 // Handle event_ prefix specifically
                 if (propertyPath.startsWith('event_')) {
+                    const parts = propertyPath.split('_');
                     const eventName = parts[1].replace('Select', '').replace('Input', '');
                     propertyPath = `events.${eventName}`;
+                } else if (propertyPath.startsWith('usecase_')) {
+                    // Specific fix for usecase checkboxes: redirect to 'none' to avoid corrupting selected object
+                    return null;
                 } else {
+                    // Default split behavior: take first part + suffix
+                    const parts = propertyPath.split('_');
+                    const suffix = (propertyPath.endsWith('Input') ? 'Input' : (propertyPath.endsWith('Select') ? 'Select' : ''));
                     propertyPath = parts[0] + suffix;
                 }
             }

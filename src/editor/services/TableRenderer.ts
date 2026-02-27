@@ -1,6 +1,6 @@
 import { Logger } from '../../utils/Logger';
 
-const logger = Logger.get('TableRenderer');
+const logger = Logger.get('TableRenderer', 'Inspector_Update');
 
 /**
  * TableRenderer - Handles rendering of TTable and TGrid component content.

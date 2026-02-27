@@ -11,7 +11,7 @@ import { hydrateObjects } from '../utils/Serialization';
 import { TStageController } from '../components/TStageController';
 import { Logger } from '../utils/Logger';
 
-const logger = Logger.get('GameRuntime');
+const logger = Logger.get('GameRuntime', 'Runtime_Execution');
 
 export interface RuntimeOptions {
     multiplayerManager?: any;

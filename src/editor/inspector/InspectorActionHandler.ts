@@ -4,6 +4,7 @@ import { InspectorHost } from './InspectorHost';
 import { RefactoringManager } from '../RefactoringManager';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
+import { UseCaseManager } from '../../utils/UseCaseManager';
 import { mediatorService, MediatorEvents } from '../../services/MediatorService';
 
 /**
@@ -46,9 +47,20 @@ export class InspectorActionHandler {
             case 'map_event':
                 this.handleMapEvent(buttonDef, selectedObject, value);
                 break;
+            case 'toggle_usecase':
+                this.handleToggleUseCase(buttonDef, value);
+                break;
             default:
                 console.warn(`[InspectorActionHandler] Unknown action: ${action}`);
         }
+    }
+
+    private handleToggleUseCase(def: any, value: any): void {
+        const useCaseId = def.useCaseId;
+        const active = value === true || value === 'true';
+        console.log(`[InspectorActionHandler] Toggling usecase ${useCaseId} to ${active}`);
+        UseCaseManager.getInstance().setUseCaseActive(useCaseId, active);
+        this.host.update(); // Refresh UI to show updated checkbox state
     }
 
     private handleSave(): void {

@@ -7,7 +7,7 @@ import { TaskConditionEvaluator } from './executor/TaskConditionEvaluator';
 import { TaskLoopHandler } from './executor/TaskLoopHandler';
 import { Logger } from '../utils/Logger';
 
-const logger = Logger.get('TaskExecutor');
+const logger = Logger.get('TaskExecutor', 'Runtime_Execution');
 
 export class TaskExecutor {
     private static readonly MAX_DEPTH = 10;

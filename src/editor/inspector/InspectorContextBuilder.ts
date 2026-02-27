@@ -1,6 +1,7 @@
 import { ProjectRegistry } from '../../services/ProjectRegistry';
 import { actionRegistry } from '../../runtime/ActionRegistry';
 import { dataService } from '../../services/DataService';
+import { UseCaseManager, USE_CASES } from '../../utils/UseCaseManager';
 
 /**
  * InspectorContextBuilder - Erzeugt den Datenkontext für Inspector-Templates.
@@ -160,7 +161,13 @@ export class InspectorContextBuilder {
             availableTasks: registry.getTasks('active').map(t => ({
                 value: t.name,
                 label: `${t.uiEmoji || '📍'} ${t.name}`
-            }))
+            })),
+
+            // UseCase Diagnostic System
+            UseCaseManager: UseCaseManager,
+            Config: {
+                USE_CASES: USE_CASES
+            }
         };
 
         // Variablen-Werte hinzufügen (für Live-Preview im Inspector)

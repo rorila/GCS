@@ -108,7 +108,17 @@ export class InspectorHost {
             await this.renderPropertiesContent(obj, content);
         } else if (this.activeTab === 'events') {
             this.renderEventsContent(obj, content);
+        } else if (this.activeTab === 'logs') {
+            await this.renderLogsContent(obj, content);
         }
+    }
+
+    private async renderLogsContent(obj: any, parent: HTMLElement): Promise<void> {
+        const staticObjects = await this.templateLoader.loadTemplate('./inspector_logs.json', obj);
+        staticObjects.forEach(def => {
+            const el = this.renderUIDefinition(def, obj);
+            if (el) parent.appendChild(el);
+        });
     }
 
     private renderHeader(obj: any): HTMLElement {
@@ -170,6 +180,7 @@ export class InspectorHost {
 
         tabs.appendChild(createTab('properties', 'Eigenschaften'));
         tabs.appendChild(createTab('events', 'Events'));
+        tabs.appendChild(createTab('logs', 'Logs'));
 
         return tabs;
     }
@@ -342,6 +353,12 @@ export class InspectorHost {
                         }, 'inspector');
                         if (this.onObjectUpdate) this.onObjectUpdate(event);
                     }
+
+                    // --- NEW: Handle optional action trigger ---
+                    if (def.action) {
+                        this.actionHandler.handleAction(def, obj, cb.checked);
+                    }
+
                     this.update(obj); // Immediate re-render
                 };
                 return container;

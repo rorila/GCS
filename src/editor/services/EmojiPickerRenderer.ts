@@ -1,6 +1,6 @@
 import { Logger } from '../../utils/Logger';
 
-const logger = Logger.get('EmojiPickerRenderer');
+const logger = Logger.get('EmojiPickerRenderer', 'Inspector_Update');
 
 /**
  * EmojiPickerRenderer - Handles rendering of the TEmojiPicker component.
