@@ -5,6 +5,9 @@ import { libraryService } from '../services/LibraryService';
 import { MultiplayerManager } from './MultiplayerManager';
 import { TaskConditionEvaluator } from './executor/TaskConditionEvaluator';
 import { TaskLoopHandler } from './executor/TaskLoopHandler';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TaskExecutor');
 
 export class TaskExecutor {
     private static readonly MAX_DEPTH = 10;
@@ -37,7 +40,7 @@ export class TaskExecutor {
 
     async execute(taskName: string, vars: Record<string, any>, globalVars: Record<string, any>, contextObj?: any, depth: number = 0, parentId?: string, params?: Record<string, any>, isRemoteExecution: boolean = false): Promise<void> {
         if (depth >= TaskExecutor.MAX_DEPTH) {
-            console.error(`[TaskExecutor] Max recursion depth exceeded: ${taskName}`);
+            logger.error(`Max recursion depth exceeded: ${taskName}`);
             return;
         }
 
@@ -78,7 +81,7 @@ export class TaskExecutor {
                 const evts = (contextObj as any).events || (contextObj as any).Tasks;
                 if (evts && evts[evtName]) {
                     foundTaskName = evts[evtName];
-                    console.log(`[TaskExecutor] Resolved "${taskName}" via direct contextObj match: "${foundTaskName}"`);
+                    logger.debug(`Resolved "${taskName}" via direct contextObj match: "${foundTaskName}"`);
                 }
             }
 

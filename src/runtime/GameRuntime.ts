@@ -9,6 +9,9 @@ import { DebugLogService } from '../services/DebugLogService';
 
 import { hydrateObjects } from '../utils/Serialization';
 import { TStageController } from '../components/TStageController';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('GameRuntime');
 
 export interface RuntimeOptions {
     multiplayerManager?: any;
@@ -120,7 +123,7 @@ export class GameRuntime implements IVariableHost {
     public updateRuntimeData(project: any) {
         this.project = project;
         if (this.taskExecutor) {
-            console.log('[GameRuntime] Updating runtime data (FlowCharts, Actions, Tasks)');
+            logger.info('Updating runtime data (FlowCharts, Actions, Tasks)');
             // Erneut zusammengeführte Daten für die aktuelle Stage holen
             const stageId = this.stage?.id || this.project.activeStageId;
             const merged = this.stageManager.getMergedStageData(stageId);
@@ -216,8 +219,12 @@ export class GameRuntime implements IVariableHost {
         if (this.stage && this.taskExecutor) {
             const onLeaveTask = (this.stage.events || this.stage.Tasks)?.onLeave;
             if (onLeaveTask) {
-                console.log(`[GameRuntime] Triggering onLeave for stage: ${this.stage.id} (Task: ${onLeaveTask})`);
-                this.taskExecutor.execute(onLeaveTask, { sender: this.stage }, this.contextVars, this.stage);
+                logger.info(`Triggering onLeave for stage: ${this.stage.id} (Task: ${onLeaveTask})`);
+                try {
+                    this.taskExecutor.execute(onLeaveTask, { sender: this.stage }, this.contextVars, this.stage);
+                } catch (e) {
+                    logger.error(`Error executing onLeave for stage ${this.stage.id}:`, e);
+                }
             }
         }
 
@@ -233,8 +240,8 @@ export class GameRuntime implements IVariableHost {
             this.taskExecutor.setActions(merged.actions);
         }
 
-        console.log(`[GameRuntime] --- STAGE CHANGE: ${newStageId} ---`);
-        console.log(`[GameRuntime] Global Vars BEFORE reactive clear:`, this.reactiveRuntime.getContext());
+        logger.info(`--- STAGE CHANGE: ${newStageId} ---`);
+        logger.debug(`Global Vars BEFORE reactive clear:`, this.reactiveRuntime.getContext());
 
         // IMPORTANT: Update ActionExecutor with new objects!
         if (this.options.makeReactive) {
@@ -242,7 +249,7 @@ export class GameRuntime implements IVariableHost {
             this.clearAllTimers();
             AnimationManager.getInstance().clear();
 
-            console.log(`[GameRuntime] Global Vars AFTER reactive clear:`, this.reactiveRuntime.getContext());
+            logger.debug(`Global Vars AFTER reactive clear:`, this.reactiveRuntime.getContext());
 
             // Register ALL objects including global variables.
             // Global variables persist via clear(false) + cachedGlobalObjects.
@@ -259,7 +266,7 @@ export class GameRuntime implements IVariableHost {
             this.objects = this.reactiveRuntime.getObjects();
             this.initializeReactiveBindings();
 
-            console.log(`[GameRuntime] Global Vars AFTER initializeReactiveBindings:`, this.reactiveRuntime.getContext());
+            logger.debug(`Global Vars AFTER initializeReactiveBindings:`, this.reactiveRuntime.getContext());
         }
 
         // IMPORTANT: Update ActionExecutor with new objects (Proxies if reactive)
@@ -279,22 +286,30 @@ export class GameRuntime implements IVariableHost {
         if (this.stage && this.taskExecutor) {
             const onEnterTask = (this.stage.events || this.stage.Tasks)?.onEnter;
             if (onEnterTask) {
-                console.log(`[GameRuntime] Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
+                logger.debug(`Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
                 const enterLogId = DebugLogService.getInstance().log('Event', `Triggered: ${this.stage.name || this.stage.id}.onEnter`, {
                     objectName: this.stage.name || this.stage.id,
                     eventName: 'onEnter'
                 });
-                this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage, 0, enterLogId);
+                try {
+                    this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage, 0, enterLogId);
+                } catch (e) {
+                    logger.error(`Error executing onEnter for stage ${this.stage.id}:`, e);
+                }
             }
 
             const onRuntimeStartTask = (this.stage.events || this.stage.Tasks)?.onRuntimeStart;
             if (onRuntimeStartTask) {
-                console.log(`[GameRuntime] Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
+                logger.debug(`Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
                 const startLogId = DebugLogService.getInstance().log('Event', `Triggered: ${this.stage.name || this.stage.id}.onRuntimeStart`, {
                     objectName: this.stage.name || this.stage.id,
                     eventName: 'onRuntimeStart'
                 });
-                this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage, 0, startLogId);
+                try {
+                    this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage, 0, startLogId);
+                } catch (e) {
+                    logger.error(`Error executing onRuntimeStart for stage ${this.stage.id}:`, e);
+                }
             }
         }
 
@@ -380,7 +395,7 @@ export class GameRuntime implements IVariableHost {
             // The view (Stage) triggers onSelect with the emoji as data.
             // We must update the runtime object's state BEFORE executing ANY actions or tasks.
             if (obj.className === 'TEmojiPicker' && eventName === 'onSelect' && typeof data === 'string') {
-                console.log(`[GameRuntime] Syncing selectedEmoji for ${obj.name}: ${data}`);
+                logger.debug(`Syncing selectedEmoji for ${obj.name}: ${data}`);
                 obj.selectedEmoji = data;
             }
 
@@ -647,7 +662,7 @@ export class GameRuntime implements IVariableHost {
                 const propPath = pathPrefix ? `${pathPrefix}.${key}` : key;
 
                 if (typeof val === 'string' && val.includes('${')) {
-                    console.log(`%c[GameRuntime] Creating reactive binding: ${obj.name}.${propPath} ← ${val}`, 'color: #4caf50; font-weight: bold');
+                    logger.debug(`Creating reactive binding: ${obj.name}.${propPath} ← ${val}`);
                     this.reactiveRuntime.bindComponent(obj, propPath, val);
                 } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'events' || key === 'Tasks')) {
                     // Recursive binding for nested objects like style or events
