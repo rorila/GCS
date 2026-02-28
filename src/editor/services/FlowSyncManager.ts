@@ -555,7 +555,7 @@ export class FlowSyncManager {
     }
 
     /**
-     * Bereinigt das Projekt von korrupten Task-Einträgen (z.B. "elements" oder "connections" fälschlicherweise in der Task-Liste)
+     * Bereinigt das Projekt von korrupten Task-Einträgen und verwaisten FlowCharts.
      */
     public cleanCorruptTaskData() {
         if (!this.host.project) return;
@@ -572,10 +572,41 @@ export class FlowSyncManager {
             });
         };
 
+        // 1. Bereinigung der Task-Einträge selbst
         this.host.project.tasks = cleanCollection(this.host.project.tasks);
         if (this.host.project.stages) {
             this.host.project.stages.forEach((s: any) => {
                 s.tasks = cleanCollection(s.tasks);
+            });
+        }
+
+        // 2. Bereinigung verwaister FlowCharts (Robuster Cleanup)
+        const cleanFlowCharts = (flowCharts: any, definedTasks: any[]) => {
+            if (!flowCharts) return;
+            const definedNames = new Set(definedTasks?.map(t => t.name) || []);
+            Object.keys(flowCharts).forEach(key => {
+                if (key !== 'global' && !definedNames.has(key)) {
+                    FlowSyncManager.logger.info(`Entferne verwaisten FlowChart: ${key} (keine Task-Definition gefunden)`);
+                    delete flowCharts[key];
+                }
+            });
+        };
+
+        // Global (Root / Blueprint)
+        const blueprintStage = this.host.project.stages?.find((s: any) => s.type === 'blueprint' || s.id === 'stage_blueprint');
+        if (blueprintStage?.flowCharts) {
+            cleanFlowCharts(blueprintStage.flowCharts, blueprintStage.tasks);
+        }
+        if (this.host.project.flowCharts) {
+            cleanFlowCharts(this.host.project.flowCharts, blueprintStage?.tasks || this.host.project.tasks || []);
+        }
+
+        // Pro Stage
+        if (this.host.project.stages) {
+            this.host.project.stages.forEach((stage: any) => {
+                if (stage.flowCharts) {
+                    cleanFlowCharts(stage.flowCharts, stage.tasks);
+                }
             });
         }
     }

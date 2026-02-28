@@ -1,8 +1,10 @@
 import { GameProject, UsageReport } from '../../model/types';
 import { RefactoringUtils } from './RefactoringUtils';
 import { ActionRefactoringService } from './ActionRefactoringService';
+import { Logger } from '../../utils/Logger';
 
 export class TaskRefactoringService {
+    private static logger = Logger.get('Refactoring', 'Task_Management');
     /**
      * Renames a task project-wide
      */
@@ -168,6 +170,15 @@ export class TaskRefactoringService {
         return report;
     }
 
+    private static cleanupEvents(evts: any, taskName: string): void {
+        if (!evts) return;
+        for (const event in evts) {
+            if (evts[event] === taskName) {
+                evts[event] = "";
+            }
+        }
+    }
+
     /**
      * Deletes a task project-wide
      */
@@ -214,7 +225,24 @@ export class TaskRefactoringService {
             }
         });
 
-        // 4. Remove flow charts
+        // 4. Remove from Object Events (Global + all Stages)
+        const scanAndCleanupObjects = (objs: any[]) => {
+            if (!objs) return;
+            objs.forEach(obj => {
+                if (obj.events) TaskRefactoringService.cleanupEvents(obj.events, taskName);
+                if (obj.Tasks) TaskRefactoringService.cleanupEvents(obj.Tasks, taskName);
+                if (obj.children) scanAndCleanupObjects(obj.children);
+            });
+        };
+
+        scanAndCleanupObjects(project.objects || []);
+        if (project.stages) {
+            project.stages.forEach(stage => {
+                scanAndCleanupObjects(stage.objects || []);
+            });
+        }
+
+        // 5. Remove flow charts
         if (project.flowCharts) {
             Object.keys(project.flowCharts).forEach(key => {
                 if (key === taskName || key.toLowerCase() === lowerName) {
@@ -233,5 +261,7 @@ export class TaskRefactoringService {
                 }
             });
         }
+
+        TaskRefactoringService.logger.info(`Task "${taskName}" erfolgreich aus dem Projekt-Modell (JSON) gelöscht.`);
     }
 }

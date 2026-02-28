@@ -3,6 +3,7 @@ import { TWindow } from '../../components/TWindow';
 import { componentRegistry } from '../../services/ComponentRegistry';
 import { changeRecorder } from '../../services/ChangeRecorder';
 import { RefactoringManager } from '../RefactoringManager';
+import { mediatorService } from '../../services/MediatorService';
 
 export class EditorCommandManager {
     constructor(private editor: Editor) { }
@@ -93,9 +94,9 @@ export class EditorCommandManager {
 
             // --- Refactoring Cleanup ---
             if (obj) {
-                if (obj.className === 'TAction' || obj.type === 'action' || obj.type === 'data_action') {
+                if (obj.className === 'TAction' || obj.type === 'action' || obj.type === 'data_action' || (obj as any).type === 'Action') {
                     RefactoringManager.deleteAction(this.editor.project, obj.name);
-                } else if (obj.className === 'TTask' || obj.type === 'task') {
+                } else if (obj.className === 'TTask' || obj.type === 'task' || (obj as any).type === 'Task') {
                     RefactoringManager.deleteTask(this.editor.project, obj.name);
                 } else if (obj.scope === 'global' || obj.isVariable) {
                     RefactoringManager.deleteVariable(this.editor.project, id);
@@ -109,6 +110,9 @@ export class EditorCommandManager {
         this.editor.selectObject(null);
         this.editor.render();
         this.editor.autoSaveToLocalStorage();
+
+        // Notify Mediator about data change (deletion)
+        mediatorService.notifyDataChanged(this.editor.project, 'editor');
     }
 
     public removeObjectSilent(id: string) {

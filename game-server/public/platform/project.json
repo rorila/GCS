@@ -991,17 +991,6 @@
           }
         },
         {
-          "name": "HandleApiRequest",
-          "description": "",
-          "params": [],
-          "actionSequence": [
-            {
-              "name": "SendApiResponse",
-              "type": "action"
-            }
-          ]
-        },
-        {
           "name": "AttemptLogin",
           "actionSequence": [
             {
@@ -1170,34 +1159,6 @@
               }
             ]
           }
-        },
-        {
-          "name": "Task",
-          "description": "",
-          "params": [],
-          "actionSequence": [],
-          "flowChart": {
-            "elements": [
-              {
-                "id": "root_task_1772184855840",
-                "type": "Task",
-                "x": 400,
-                "y": 60,
-                "width": 160,
-                "height": 60,
-                "properties": {
-                  "name": "Task",
-                  "details": "",
-                  "description": "",
-                  "text": "Task"
-                },
-                "data": {
-                  "taskName": "Task"
-                }
-              }
-            ],
-            "connections": []
-          }
         }
       ],
       "actions": [
@@ -1317,60 +1278,6 @@
             }
           ]
         },
-        "HandleApiRequest": {
-          "elements": [
-            {
-              "id": "root_task_1771149304790",
-              "type": "Task",
-              "x": 40,
-              "y": 80,
-              "width": 200,
-              "height": 60,
-              "properties": {
-                "name": "HandleApiRequest",
-                "details": "",
-                "description": "",
-                "text": "HandleApiRequest"
-              },
-              "data": {
-                "taskName": "HandleApiRequest",
-                "showDetails": false
-              }
-            },
-            {
-              "id": "auto_action_0_1771149304790",
-              "type": "Action",
-              "x": 320,
-              "y": 80,
-              "width": 180,
-              "height": 60,
-              "properties": {
-                "name": "SendApiResponse",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "SendApiResponse",
-                "isLinked": true
-              }
-            }
-          ],
-          "connections": [
-            {
-              "id": "conn_1771932567411_51",
-              "startTargetId": "root_task_1771149304790",
-              "endTargetId": "auto_action_0_1771149304790",
-              "startX": 0,
-              "startY": 0,
-              "endX": 0,
-              "endY": 0,
-              "data": {
-                "startAnchorType": "output",
-                "endAnchorType": "input"
-              }
-            }
-          ]
-        },
         "TryLoginOnceMore": {
           "elements": [
             {
@@ -1389,28 +1296,6 @@
               "data": {
                 "name": "TryLoginOnceMore",
                 "showDetails": false
-              }
-            }
-          ],
-          "connections": []
-        },
-        "Task": {
-          "elements": [
-            {
-              "id": "root_task_1772184855840",
-              "type": "Task",
-              "x": 400,
-              "y": 60,
-              "width": 160,
-              "height": 60,
-              "properties": {
-                "name": "Task",
-                "details": "",
-                "description": "",
-                "text": "Task"
-              },
-              "data": {
-                "taskName": "Task"
               }
             }
           ],

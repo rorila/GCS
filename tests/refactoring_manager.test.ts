@@ -200,9 +200,11 @@ export async function runRefactoringTests(): Promise<TestResult[]> {
         const eventCleared = !(loginStage as any).events?.onEnter || (loginStage as any).events.onEnter !== 'AttemptLogin';
         const flowChartGone = !(loginStage as any).flowCharts?.['AttemptLogin'];
 
-        const ok = taskGone && eventCleared && flowChartGone;
+        const objEventCleared = !loginStage.objects.some((o: any) => o.events?.onClick === 'AttemptLogin');
+
+        const ok = taskGone && eventCleared && flowChartGone && objEventCleared;
         addResult('Delete Task: AttemptLogin', ok,
-            `TaskGone=${taskGone}, EventCleared=${eventCleared}, FlowChartGone=${flowChartGone}`);
+            `TaskGone=${taskGone}, EventCleared=${eventCleared}, FlowChartGone=${flowChartGone}, ObjEventCleared=${objEventCleared}`);
     } catch (e: any) {
         addResult('Delete Task: AttemptLogin', false, `Exception: ${e.message}`);
     }

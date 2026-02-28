@@ -2,6 +2,7 @@ import { GameProject, StageDefinition } from '../../model/types';
 import { RefactoringManager } from '../RefactoringManager';
 import { mediatorService } from '../../services/MediatorService';
 import { FlowNamingService } from './FlowNamingService';
+import { Logger } from '../../utils/Logger';
 
 export interface FlowTaskHost {
     project: GameProject | null;
@@ -12,13 +13,14 @@ export interface FlowTaskHost {
     getActiveStage(): StageDefinition | null;
     getTaskDefinitionByName(name: string): any | null;
     updateFlowSelector(): void;
-    switchActionFlow(context: string): void;
+    switchActionFlow(context: string, addToHistory?: boolean, skipSync?: boolean): void;
     createNode(type: string, x: number, y: number, initialName?: string): any;
     syncManager: any;
     nodes: any[];
 }
 
 export class FlowTaskManager {
+    private static logger = Logger.get('FlowEditor', 'Task_Management');
     constructor(private host: FlowTaskHost) { }
 
     public createNewTaskFlow() {
@@ -101,7 +103,17 @@ export class FlowTaskManager {
         }
 
         RefactoringManager.deleteTask(this.host.project, this.host.currentFlowContext);
-        this.host.switchActionFlow('global');
+
+        // 2. Switch context WITHOUT syncing the deleted flow back to project!
+        this.host.switchActionFlow('global', true, true);
+
+        // 3. Force rebuild of selector options
+        this.host.updateFlowSelector();
+        FlowTaskManager.logger.info(`Flow-Dropdown-Liste aktualisiert.`);
+
+        // Notify Mediator
+        mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
+        FlowTaskManager.logger.info(`Management-Liste (Mediator) synchronisiert.`);
 
         if (this.host.onProjectChange) this.host.onProjectChange();
     }

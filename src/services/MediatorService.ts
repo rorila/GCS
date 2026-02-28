@@ -225,8 +225,12 @@ export class MediatorService {
         return tasks.map(task => ({
             ...task,
             usageCount: projectRegistry.getTaskUsage(task.name).length,
-            uiScope: (task as any).uiScope || 'stage' // getTasks sets this already in some versions
-        }));
+            uiScope: (task as any).uiScope || 'stage'
+        })).filter(task => {
+            // Library-Tasks nur anzeigen, wenn sie im Projekt verwendet werden (usageCount > 0)
+            if (task.uiScope === 'library' && task.usageCount === 0) return false;
+            return true;
+        });
     }
 
     public getActions(stageId: string): GameAction[] {

@@ -518,10 +518,11 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             // Tasks in this stage
             const stageTasksFound = new Set<string>();
 
-            // 1. Tasks that have a flowchart
+            // 1. Tasks that have a flowchart (and are actually defined in tasks)
             if (activeStage.flowCharts) {
+                const definedTaskNames = new Set(activeStage.tasks?.map(t => t.name) || []);
                 Object.keys(activeStage.flowCharts).forEach(key => {
-                    if (key !== 'global') {
+                    if (key !== 'global' && definedTaskNames.has(key)) {
                         const opt = document.createElement('option');
                         opt.value = key;
                         opt.text = `Task: ${key}`;
@@ -570,8 +571,9 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
 
             // 1. Blueprint-Stage-eigene FlowCharts (SSoT für globale Tasks)
             if (blueprintStage?.flowCharts) {
+                const definedGlobalTaskNames = new Set(blueprintStage.tasks?.map(t => t.name) || []);
                 Object.keys(blueprintStage.flowCharts).forEach(key => {
-                    if (key !== 'global') {
+                    if (key !== 'global' && definedGlobalTaskNames.has(key)) {
                         const opt = document.createElement('option');
                         opt.value = key;
                         opt.text = `Task: ${key}`;
@@ -661,7 +663,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         this.flowSelect.value = this.currentFlowContext;
     }
 
-    public switchActionFlow(context: string, addToHistory: boolean = true) {
+    public switchActionFlow(context: string, addToHistory: boolean = true, skipSync: boolean = false) {
         if (this.currentFlowContext === context) return;
 
         // 1. Save current scroll position before switching
@@ -673,7 +675,9 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         }
 
         // 2. Save current state
-        this.syncToProject();
+        if (!skipSync) {
+            this.syncToProject();
+        }
 
         // 3. Add current context to history before switching (for back navigation)
         if (addToHistory && this.currentFlowContext) {

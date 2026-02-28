@@ -94,6 +94,9 @@ export class InspectorActionHandler {
         } else {
             this.handleGenericDelete(obj);
         }
+
+        // Notify Mediator explicitly if no host handler was present
+        this.notifyChange(obj, 'deletion', null, obj);
     }
 
     private handleGenericDelete(obj: any): void {

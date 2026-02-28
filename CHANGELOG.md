@@ -7,11 +7,16 @@
 
 ### Fixed
 - **Resizing-Bug**: Korrektur in `StageInteractionManager.ts`. Resizing-Handles funktionieren nun wieder korrekt, da `dragStartRel` beim Starten des Vorgangs initialisiert wird.
-- **Grid-Sichtbarkeit**: Fix der Gitter-Steuerung im Inspector.
+- **Grid-Sichtbarkeit**: Fix der Gitter-Steuerung im Inspector. (Phase 21)
   - `activeStage` zum Kontext des `InspectorContextBuilder` hinzugefügt.
   - Präfix-Behandlung für `activeStage.` im `StageHandler.ts` implementiert, um korrekte Modell-Updates sicherzustellen.
   - **Bugfix (TypeError)**: Methode `getActiveStage` in `ProjectRegistry.ts` ergänzt.
   - **Bugfix (ReferenceError)**: `require` durch `import` in `StageHandler.ts` ersetzt.
+- **Phase 23 & 24: Flow-Editor Robustheit & Bereinigung Geister-Tasks**
+    - **Filterung im FlowEditor**: Das Dropdown zeigt nun nur noch Tasks mit gültiger Definition an.
+    - **Auto-Healing im FlowSyncManager**: Verwaiste FlowCharts ohne zugehörige Task werden beim Laden automatisch aus der `project.json` entfernt.
+    - **Filterung im MediatorService**: Library-Tasks ohne aktive Verwendung (`usageCount == 0`) werden im Manager-Tab (Tasks ⚡) ausgeblendet, um die Ansicht sauber zu halten.
+    - **Daten-Integrität**: Beseitigung von "Resurrection-Bugs" durch Synchronisation nach Löschvorgängen.
 ### Fixed
 - **Log-Spam Reduzierung (Run-Mode)**: 
   - Fix des `runModeLogDone`-Flags im `StageRenderer`: Die Objekt-Tabelle wird nun nur noch einmalig bei Stage-Start/Wechsel ausgegeben statt bei jedem Frame.

@@ -416,6 +416,11 @@ export class Editor implements IViewHost {
                 }
             };
 
+            this.flowEditor.onProjectChange = () => {
+                this.autoSaveToLocalStorage();
+                mediatorService.notifyDataChanged(this.project, 'flow-editor');
+            };
+
             this.flowToolbox = new FlowToolbox('toolbox-content');
             this.flowToolbox.render();
             this.flowEditor.setProject(this.project);
