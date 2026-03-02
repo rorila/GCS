@@ -298,7 +298,8 @@ export class JSONDialogRenderer {
             enrichedProject: this.enrichedProject,
             evaluateExpression: (expr) => this.evaluateExpression(expr),
             getMethodSignature: (target, method) => this.getMethodSignature(target, method),
-            render: () => this.render()
+            render: () => this.render(),
+            onUpdate: (name, value) => this.updateModelValue(name, value)
         });
     }
 
@@ -714,14 +715,13 @@ export class JSONDialogRenderer {
         // Fields that should be KEPT for all types 
         const baseFields = ['type', 'name', 'description', 'details', 'showDetails', 'sync', 'taskParams', 'actionName', 'taskName'];
 
-        // Standardized allowed fields according to types.ts interfaces
         const allowedFieldsMap: Record<string, string[]> = {
             'property': ['target', 'changes'],
             'increment': ['target', 'changes'],
             'negate': ['target', 'changes'],
             'call_method': ['target', 'method', 'params'],
             'variable': ['variableName', 'source', 'sourceProperty'],
-            'set_variable': ['variableName', 'value'],
+            'set_variable': ['variableName', 'value', 'source', 'sourceProperty'],
             'service': ['service', 'method', 'serviceParams', 'resultVariable'],
             'broadcast': ['eventName', 'eventData'],
             'navigate_stage': ['stageId', 'params'],

@@ -86,7 +86,8 @@ export function registerStandardActions() {
 
         // 4. FIX (v3.3.17): Direkt definierten Literal-Wert verwenden (z.B. set_variable mit value:"")
         //    Wichtig: leerer String "" ist ein valider Wert, daher explizite Prüfung auf undefined
-        if (val === undefined && action.value !== undefined) {
+        //    Priorität geändert (neu): Wenn action.value explizit gesetzt ist (und nicht auf ein Objekt verweist)
+        if ((val === undefined || (!action.source && !action.sourceProperty)) && action.value !== undefined) {
             const combinedCtx = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
             val = PropertyHelper.interpolate(String(action.value), combinedCtx, context.objects);
         }
@@ -100,8 +101,8 @@ export function registerStandardActions() {
                 data: { value: val, source: sourceName, property: action.sourceProperty }
             });
         } else {
-            runtimeLogger.warn(`Quelle "${sourceName}" konnte nicht aufgelöst werden oder variableName fehlt.`);
-            DebugLogService.getInstance().log('Action', `⚠️ Variable konnte nicht gelesen werden. Quelle: ${sourceName}`, {
+            runtimeLogger.warn(`Quelle "${sourceName}" (Value: ${action.value}) konnte nicht aufgelöst werden oder variableName fehlt.`);
+            DebugLogService.getInstance().log('Action', `⚠️ Variable konnte nicht gelesen werden. Quelle: ${sourceName}, Value: ${action.value}`, {
                 data: action
             });
         }
@@ -109,11 +110,12 @@ export function registerStandardActions() {
     }, {
         type: 'variable',
         label: 'Variable lesen / setzen',
-        description: 'Liest einen Wert aus einer Quelle (Objekt-Eigenschaft oder andere Variable) und speichert ihn in einer Ziel-Variable.',
+        description: 'Liest einen Wert aus einer Quelle (Objekt-Eigenschaft, Wert oder andere Variable) und speichert ihn in einer Ziel-Variable.',
         parameters: [
             { name: 'variableName', label: 'Ziel-Variable', type: 'variable', source: 'variables' },
-            { name: 'source', label: 'Quell-Objekt / Variable', type: 'object', source: 'objects' },
-            { name: 'sourceProperty', label: 'Eigenschaft (optional)', type: 'string', placeholder: 'z.B. text oder value' }
+            { name: 'value', label: 'Einfacher Wert (z.B. 555)', type: 'string', placeholder: 'Literal oder ${var}' },
+            { name: 'source', label: '(oder) Quell-Objekt / Variable', type: 'object', source: 'objects' },
+            { name: 'sourceProperty', label: '(oder) Eigenschaft (optional)', type: 'string', placeholder: 'z.B. text oder value' }
         ]
     });
 
@@ -124,8 +126,9 @@ export function registerStandardActions() {
         description: 'Liest einen Wert aus einer Quelle und speichert ihn in einer Ziel-Variable.',
         parameters: [
             { name: 'variableName', label: 'Ziel-Variable', type: 'variable', source: 'variables' },
-            { name: 'source', label: 'Quell-Objekt / Variable', type: 'object', source: 'objects' },
-            { name: 'sourceProperty', label: 'Eigenschaft (optional)', type: 'string', placeholder: 'z.B. text oder value' }
+            { name: 'value', label: 'Einfacher Wert (z.B. 555)', type: 'string', placeholder: 'Literal oder ${var}' },
+            { name: 'source', label: '(oder) Quell-Objekt / Variable', type: 'object', source: 'objects' },
+            { name: 'sourceProperty', label: '(oder) Eigenschaft (optional)', type: 'string', placeholder: 'z.B. text oder value' }
         ]
     });
 

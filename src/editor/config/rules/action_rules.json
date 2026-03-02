@@ -31,7 +31,7 @@
                     "description": "Sendet ein Signal aus, auf das andere Prozesse reagieren können."
                 },
                 {
-                    "value": "variable",
+                    "value": "set_variable",
                     "label": "Variable setzen",
                     "description": "Speichert einen Wert in einer globalen oder lokalen Variable."
                 },
@@ -48,6 +48,7 @@
                     "method": "ask_method_target",
                     "event": "ask_event_name",
                     "variable": "ask_variable_name",
+                    "set_variable": "ask_variable_name",
                     "calculate": "ask_calc_formula"
                 }
             }
@@ -131,18 +132,57 @@
         },
         "ask_variable_name": {
             "id": "ask_variable_name",
-            "prompt": "Wie heißt die Variable?",
+            "prompt": "Wie heißt die Ziel-Variable?",
             "propName": "variableName",
             "type": "string",
             "required": true,
-            "next": "ask_variable_value"
+            "next": "ask_variable_source_type"
+        },
+        "ask_variable_source_type": {
+            "id": "ask_variable_source_type",
+            "prompt": "Möchtest du einen festen Wert oder einen Wert aus einem anderen Objekt / einer Variable zuweisen?",
+            "propName": "_sourceType",
+            "type": "select",
+            "options": [
+                {
+                    "value": "value",
+                    "label": "Fester Wert (z.B. Text / Zahl)"
+                },
+                {
+                    "value": "object",
+                    "label": "Wert aus anderem Objekt / Variable lesen"
+                }
+            ],
+            "required": true,
+            "next": {
+                "_sourceType": {
+                    "value": "ask_variable_value",
+                    "object": "ask_variable_source"
+                }
+            }
         },
         "ask_variable_value": {
             "id": "ask_variable_value",
-            "prompt": "Welchen Wert soll sie bekommen?",
+            "prompt": "Welchen festen Wert soll die Variable bekommen?",
             "propName": "value",
             "type": "string",
             "required": true,
+            "next": null
+        },
+        "ask_variable_source": {
+            "id": "ask_variable_source",
+            "prompt": "Wie heißt das Quell-Objekt oder die Quell-Variable?",
+            "propName": "source",
+            "type": "string",
+            "required": true,
+            "next": "ask_variable_source_property"
+        },
+        "ask_variable_source_property": {
+            "id": "ask_variable_source_property",
+            "prompt": "Welche Objekt-Eigenschaft soll gelesen werden (optional, z.B. 'text')? Leer lassen, wenn der ganze Variablenwert übernommen werden soll.",
+            "propName": "sourceProperty",
+            "type": "string",
+            "required": false,
             "next": null
         },
         "ask_calc_formula": {

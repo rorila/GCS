@@ -385,15 +385,20 @@ export class InspectorHost {
                 const onUpdate = (prop: string, val: any) => {
                     const oldVal = PropertyHelper.getPropertyValue(obj, prop);
                     if (oldVal === val) return;
-                    PropertyHelper.setPropertyValue(obj, prop, val);
-                    mediatorService.notifyDataChanged({
-                        property: prop,
-                        value: val,
-                        oldValue: oldVal,
-                        object: obj
-                    }, 'inspector');
-                    this.update(obj); // Refesh UI
-                    if (this.onObjectUpdate) this.onObjectUpdate({ object: obj, propertyName: prop, newValue: val, oldValue: oldVal });
+
+                    // Route through event handler to ensure persistence!
+                    const event = this.eventHandler.handleControlChange(prop, val, obj, { name: prop, property: prop });
+
+                    if (event) {
+                        mediatorService.notifyDataChanged({
+                            property: event.propertyName,
+                            value: event.newValue,
+                            oldValue: event.oldValue,
+                            object: event.object
+                        }, 'inspector');
+                        if (this.onObjectUpdate) this.onObjectUpdate(event);
+                    }
+                    this.update(obj); // Refresh UI
                 };
                 const onAction = (actionDef: any) => {
                     this.actionHandler.handleAction(actionDef, obj);

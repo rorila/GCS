@@ -43,9 +43,15 @@ export class EditorInteractionManager {
         let found = findDeep(project.objects);
         if (found) return found;
 
+        found = findDeep(project.variables);
+        if (found) return found;
+
         if (project.stages) {
             for (const stage of project.stages) {
-                found = findDeep(stage.objects);
+                found = findDeep(stage.objects || []);
+                if (found) return found;
+
+                found = findDeep(stage.variables || []);
                 if (found) return found;
             }
         }

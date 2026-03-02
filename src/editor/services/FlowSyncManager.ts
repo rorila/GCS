@@ -773,7 +773,7 @@ export class FlowSyncManager {
         if (isMinimalLink) return;
 
         if (!this.host.project.actions) this.host.project.actions = [];
-        const taskFields = ['taskName', 'isMapLink', 'isProxy', 'stageObjectId', 'embeddedGroupId', 'parentProxyId', 'isLinked', 'isEmbeddedInternal', 'isExpanded', 'sourceTaskName', '_formValues', 'section', 'property', 'value', 'params', 'body', 'elseBody', 'successBody'];
+        const taskFields = ['taskName', 'isMapLink', 'isProxy', 'stageObjectId', 'embeddedGroupId', 'parentProxyId', 'isLinked', 'isEmbeddedInternal', 'isExpanded', 'sourceTaskName', '_formValues', 'section', 'property'];
         const cleanedData = { ...actionData };
 
         // --- SAFE PARSING ---

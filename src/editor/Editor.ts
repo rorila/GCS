@@ -394,6 +394,7 @@ export class Editor implements IViewHost {
                 Editor.logger.info(`Name geändert: ${update.oldValue} -> ${update.newValue}. Starte Refactoring...`);
                 this.renameObjectWithRefactoring(update.object.id, update.newValue, update.oldValue);
             }
+            this.autoSaveToLocalStorage(); // ARC-FIX: Persist property changes to disk!
             this.renderManager.refreshAllViews('inspector');
         };
         this.inspector.onProjectUpdate = () => { this.render(); this.autoSaveToLocalStorage(); this.renderManager.refreshAllViews('inspector'); };

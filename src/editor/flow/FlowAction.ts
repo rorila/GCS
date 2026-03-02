@@ -228,6 +228,24 @@ export class FlowAction extends FlowElement {
         if (action) action.value = v;
     }
 
+    public get source(): string {
+        const action = this.getActionDefinition();
+        return action?.source || '';
+    }
+    public set source(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.source = v;
+    }
+
+    public get sourceProperty(): string {
+        const action = this.getActionDefinition();
+        return action?.sourceProperty || '';
+    }
+    public set sourceProperty(v: string) {
+        const action = this.getActionDefinition();
+        if (action) action.sourceProperty = v;
+    }
+
     public get service(): string {
         const action = this.getActionDefinition();
         return action?.service || '';

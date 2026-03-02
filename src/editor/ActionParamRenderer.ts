@@ -12,6 +12,7 @@ export interface ActionParamContext {
     evaluateExpression: (expr: any) => any;
     getMethodSignature: (target: string, method: string) => any[];
     render: () => void;
+    onUpdate?: (name: string, value: any) => void;
 }
 
 /**
@@ -79,6 +80,7 @@ export class ActionParamRenderer {
 
                     sel.onchange = () => {
                         ctx.dialogData[param.name] = sel.value;
+                        if (ctx.onUpdate) ctx.onUpdate(param.name, sel.value);
                         ctx.render();
                     };
                     input = sel;
@@ -118,6 +120,7 @@ export class ActionParamRenderer {
                                 }
                             }
                             ctx.dialogData[param.name] = val;
+                            if (ctx.onUpdate) ctx.onUpdate(param.name, val);
                             if (param.name === 'target' || param.name === 'service' || param.name === 'method') {
                                 ctx.render();
                             }
@@ -190,6 +193,7 @@ export class ActionParamRenderer {
                     const p = Array.isArray(ctx.dialogData.params) ? [...ctx.dialogData.params] : [];
                     p[idx] = sel.value;
                     ctx.dialogData.params = p;
+                    if (ctx.onUpdate) ctx.onUpdate('params', p);
                     ctx.render();
                 };
                 sigInput = sel;
@@ -203,6 +207,7 @@ export class ActionParamRenderer {
                     p[idx] = ed.value;
                     if (sigParam.type === 'number') p[idx] = Number(ed.value);
                     ctx.dialogData.params = p;
+                    if (ctx.onUpdate) ctx.onUpdate('params', p);
                 };
                 sigInput = ed;
             }

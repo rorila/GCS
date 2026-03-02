@@ -52,6 +52,19 @@ DeletionSyncFix (v3.14.4): FlowGraphManager.ts
 - [2026-02-27] ModularisierungUndHygiene: In Phase 2 wurden die monolithischen Klassen `RefactoringManager.ts` und `TaskExecutor.ts` modularisiert. Refactoring-Logik wurde in spezialisierte Services (`VariableRefactoringService`, `TaskRefactoringService`, etc.) in `src/editor/refactoring/` extrahiert. Runtime-Logik (Conditions/Loops) wurde in `TaskConditionEvaluator.ts` und `TaskLoopHandler.ts` in `src/runtime/executor/` ausgelagert. Ziel: Einhaltung des 1000-Zeilen-Limits und Verbesserung der Wartbarkeit.
 - [2026-02-24] TaskVisibilityConsolidation: Lösung des Problems verschwindender Tasks. `FlowEditor.ts` (`updateFlowSelector`) zeigt nun permanent die Gruppe "Global / Blueprint" an. `RefactoringManager.ts` (`sanitizeProject`) bereinigt automatisch Task-Duplikate über Stage-Grenzen hinweg. Deletion-Logik in `deleteTask` wurde auf Case-Insensitivity umgestellt, um Fehler bei unterschiedlicher Schreibweise (AttemptLogin vs attemptLogin) zu vermeiden. AttemptLogin wurde in stage_login konsolidiert.
 - UC-001: DeletionLogicFixV2 - Umfassende Wiederherstellung der Löschfunktion. Behebt das Problem blockierter Flow-Knoten durch Entschärfung des `isLinked` Checks in `FlowGraphManager.ts`. Implementierung von `removeMultipleObjectsWithConfirm` in `Editor.ts` für konsistente Referenzprüfung bei Mehrfachselektion. Rekursive Löschung verschachtelter Objekte in `EditorCommandManager.ts` (`removeObjectSilent`) via `findParentContainer`. (FlowGraphManager.ts, Editor.ts, EditorCommandManager.ts, EditorInteractionManager.ts)
+Task: Fix set_variable action parameters & JSON Sync (Phase 16)
+Date: 2026-03-02
+Files:
+- src/editor/flow/FlowAction.ts (added source/sourceProperty accessors, L230-248)
+- src/editor/services/FlowSyncManager.ts (fixed field stripping, L776)
+- src/editor/ActionParamRenderer.ts (added onUpdate callback, L15, L81, L119)
+- src/editor/JSONDialogRenderer.ts (passed onUpdate, L302)
+- scripts/verify_action_persistence_fix.ts (new verification script)
+- docs/QA_Report.md (updated via npm run test)
+- CHANGELOG.md (updated version 3.9.2)
+- DEVELOPER_GUIDELINES.md (added proxy rule)
+--------------------------------------------------------------------------------
+Task: Fix getOriginalObject in EditorInteractionManager (Phase 15)
 [V3.15.4] - 2026-03-02 - Systemwide Node Type Case-Sensitivity Standardization
 Dateien: FlowSyncManager.ts, FlowGraphManager.ts, FlowNodeHandler.ts, TaskExecutor.ts, etc.
 --------------------------------------------------------------------------------
@@ -165,3 +178,15 @@ Scope: Umstellung der gesamten Umbenennungs-Logik von UI-gesteuert auf zentral g
 - [2026-03-02] Phase 13: Stage Component Drag Fix (Snap-Back & JSON-Wipe).
 Files: StageInteractionManager.ts, EditorInteractionManager.ts (L56+), EditorDataManager.ts (L288+).
 Scope: Behebung des "Snap-Backs" von Komponenten auf der Stage nach Drag&Drop sowie des massenhaften Stage-Objekt-Verlusts bei Headless-Testruns. Umstellung von ObjectStore-Autosaves auf exakte JSON-Live-Mutation mithilfe von `getOriginalObject` und Entfernung der schädlichen Überschreibung in `syncStageObjectsToProject`.
+
+- [2026-03-02] Phase 14: Inspector Variable Value Persistence.
+Files: InspectorEventHandler.ts (L100+), Editor.ts (L390+).
+Scope: Behebung des Problems, dass Inspector-Änderungen an Variablen (oder anderen Eigenschaften) nicht persistent gespeichert wurden. Einführung der Modifikation direkter Original-Project-JSON Objekte parallel zu den Preview-Objekten via `getOriginalObject` und Einbau des AutoSaves nach Property-Updates in `Editor.ts`.
+
+- [2026-03-02] Phase 15: Stage Variable Drag Persistence.
+Files: EditorInteractionManager.ts (L40+).
+Scope: Behebung des Fehlers, bei dem Variablen auf der Stage nicht mehr per Drag&Drop verschoben/platziert werden konnten. `getOriginalObject` durchsucht nun korrekterweise auch die `project.variables` und `stage.variables` Arrays nach den Original-Objekten.
+
+- [2026-03-02] Phase 16: set_variable Action Parameters & Auto-Config.
+Files: StandardActions.ts (L110+), InspectorHost.ts (L385+), action_rules.json (L35+).
+Scope: Behebung fehlender Zuweisungsmöglichkeiten für "Variable setzen" (set_variable). Der Action-Agent kann nun dynamisch erfragen, ob ein statischer Wert, ein Quell-Objekt oder eine Objekt-Eigenschaft gesetzt werden soll. Die dynamischen Parameter persisting wurden in `InspectorHost.ts` korrigiert.

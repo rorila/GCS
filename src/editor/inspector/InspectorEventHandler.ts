@@ -98,10 +98,60 @@ export class InspectorEventHandler {
                 // NEW: Use autoConvert to handle JSON, numbers, booleans from UI inputs
                 const convertedValue = PropertyHelper.autoConvert(newValue);
                 PropertyHelper.setPropertyValue(selectedObject, propertyPath, convertedValue);
+
+                // ARC-FIX: Ensure original JSON object is also updated for persistence!
+                const objectIdentifier = selectedObject?.id || selectedObject?.name;
+                if (objectIdentifier) {
+                    const originalObj = this.getOriginalObject(objectIdentifier);
+                    if (originalObj && originalObj !== selectedObject) {
+                        PropertyHelper.setPropertyValue(originalObj, propertyPath, convertedValue);
+                        InspectorEventHandler.logger.debug(`Synchronized update with original project JSON object (ID/Name: ${objectIdentifier}).`);
+                    }
+                }
+
                 InspectorEventHandler.logger.debug(`Applied update to ${propertyPath}:`, convertedValue);
             }
         }
 
         return event;
+    }
+
+    private getOriginalObject(objId: string): any {
+        if (!objId || !this.project) return null;
+
+        const matchIdOrName = (item: any) => item.id === objId || item.name === objId;
+
+        let original: any = this.project.stages?.find(matchIdOrName);
+        if (original) return original;
+
+        original = this.project.variables?.find(matchIdOrName);
+        if (original) return original;
+
+        original = this.project.objects?.find(matchIdOrName);
+        if (original) return original;
+
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                original = stage.variables?.find(matchIdOrName);
+                if (original) return original;
+
+                original = stage.objects?.find(matchIdOrName);
+                if (original) return original;
+
+                original = stage.tasks?.find(matchIdOrName);
+                if (original) return original;
+
+                original = stage.actions?.find(matchIdOrName);
+                if (original) return original;
+            }
+        }
+
+        original = this.project.tasks?.find(matchIdOrName);
+        if (original) return original;
+
+        original = this.project.actions?.find(matchIdOrName);
+        if (original) return original;
+
+        return null;
     }
 }
