@@ -1,0 +1,109 @@
+{
+    "start": "ask_data_action_name",
+    "nodes": {
+        "ask_data_action_name": {
+            "id": "ask_data_action_name",
+            "prompt": "Wie soll die Daten-Aktion heißen (Name)?",
+            "propName": "name",
+            "type": "string",
+            "required": true,
+            "next": "ask_method"
+        },
+        "ask_method": {
+            "id": "ask_method",
+            "prompt": "Welche HTTP-Methode soll verwendet werden?",
+            "propName": "method",
+            "type": "select",
+            "options": [
+                {
+                    "value": "GET",
+                    "label": "GET (Lesen)",
+                    "description": "Lädt Daten vom Server herunter."
+                },
+                {
+                    "value": "POST",
+                    "label": "POST (Erstellen)",
+                    "description": "Sendet neue Daten zum Server."
+                },
+                {
+                    "value": "PUT",
+                    "label": "PUT (Aktualisieren)",
+                    "description": "Aktualisiert bestehende Daten auf dem Server."
+                },
+                {
+                    "value": "DELETE",
+                    "label": "DELETE (Löschen)",
+                    "description": "Löscht Daten vom Server."
+                }
+            ],
+            "required": true,
+            "next": "ask_is_jwt"
+        },
+        "ask_is_jwt": {
+            "id": "ask_is_jwt",
+            "prompt": "Ist dies ein Login-Request (Platform JWT Request)?",
+            "propName": "requestJWT",
+            "type": "boolean",
+            "required": true,
+            "next": {
+                "requestJWT": {
+                    "true": "ask_body",
+                    "false": "ask_resource"
+                }
+            }
+        },
+        "ask_resource": {
+            "id": "ask_resource",
+            "prompt": "Auf welche Backend-Ressource soll zugegriffen werden (z.B. 'users' oder 'highscores')? Leer lassen für absolute URL.",
+            "propName": "resource",
+            "type": "string",
+            "required": false,
+            "next": {
+                "method": {
+                    "GET": "ask_query_prop",
+                    "default": "ask_body"
+                }
+            }
+        },
+        "ask_query_prop": {
+            "id": "ask_query_prop",
+            "prompt": "Soll das Ergebnis gefiltert werden? Falls ja, nach welchem Feld (z.B. 'id')? Sonst leer lassen.",
+            "propName": "queryProperty",
+            "type": "string",
+            "required": false,
+            "next": "ask_query_value"
+        },
+        "ask_query_value": {
+            "id": "ask_query_value",
+            "prompt": "Nach welchem Wert soll gefiltert werden?",
+            "propName": "queryValue",
+            "type": "string",
+            "required": false,
+            "next": "ask_result_var"
+        },
+        "ask_body": {
+            "id": "ask_body",
+            "prompt": "Welcher JSON-Payload (Body) soll gesendet werden? (Optional, als JSON-String eingeben)",
+            "propName": "body",
+            "type": "string",
+            "required": false,
+            "next": "ask_result_var"
+        },
+        "ask_result_var": {
+            "id": "ask_result_var",
+            "prompt": "In welcher Variable soll die Server-Antwort gespeichert werden?",
+            "propName": "resultVariable",
+            "type": "string",
+            "required": false,
+            "next": "ask_result_path"
+        },
+        "ask_result_path": {
+            "id": "ask_result_path",
+            "prompt": "Welcher Pfad aus der Payload soll extrahiert werden (z.B. 'data' oder 'data.token')? Leer lassen für alles.",
+            "propName": "resultPath",
+            "type": "string",
+            "required": false,
+            "next": null
+        }
+    }
+}

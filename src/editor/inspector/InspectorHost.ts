@@ -222,7 +222,7 @@ export class InspectorHost {
     private renderUIDefinition(def: any, obj: any): HTMLElement | null {
         // --- NEW: Evaluate visibility ---
         if (def.visible !== undefined) {
-            const isVisible = this.resolveRawValue(def.visible, obj);
+            const isVisible = this.resolveRawValue(def.visible, obj, def);
             if (!isVisible) return null;
         }
 
@@ -247,9 +247,9 @@ export class InspectorHost {
 
         switch (def.className) {
             case 'TLabel':
-                return this.renderer.renderLabel(this.resolveValue(def.text, obj), def.style);
+                return this.renderer.renderLabel(this.resolveValue(def.text, obj, def), def.style);
             case 'TEdit': {
-                const value = this.resolveValue(def.text || def.value, obj);
+                const value = this.resolveValue(def.text || def.value, obj, def);
                 const input = this.renderer.renderEdit(value);
                 input.onchange = () => {
                     const event = this.eventHandler.handleControlChange(def.name, input.value, obj, def);
@@ -267,7 +267,7 @@ export class InspectorHost {
                 return input;
             }
             case 'TNumberInput': {
-                const value = this.resolveValue(def.text || def.value, obj);
+                const value = this.resolveValue(def.text || def.value, obj, def);
                 const input = this.renderer.renderNumberInput(Number(value), def.min, def.max, def.step);
                 input.onchange = () => {
                     const event = this.eventHandler.handleControlChange(def.name, Number(input.value), obj, def);
@@ -286,14 +286,14 @@ export class InspectorHost {
             }
             case 'TSelect':
             case 'TDropdown': {
-                const value = this.resolveValue(def.selectedValue, obj);
+                const value = this.resolveValue(def.selectedValue, obj, def);
 
                 // --- NEW: Resolve Options from source OR expression ---
                 let options = def.options;
 
                 // If options is a string expression (like "${availableDataStores}"), resolve it first
                 if (typeof options === 'string' && options.includes('${')) {
-                    options = this.resolveValue(options, obj);
+                    options = this.resolveValue(options, obj, def);
                 }
 
                 // If we still don't have an array, try to get from source
@@ -303,7 +303,7 @@ export class InspectorHost {
 
                 // If specialized source is not found in registry, try resolving from context
                 if ((!Array.isArray(options) || options.length === 0) && def.source) {
-                    options = this.resolveRawValue(`\${${def.source}}`, obj);
+                    options = this.resolveRawValue(`\${${def.source}}`, obj, def);
                 }
 
                 const select = this.renderer.renderSelect(Array.isArray(options) ? options : [], value, def.placeholder);
@@ -331,7 +331,7 @@ export class InspectorHost {
                 return select;
             }
             case 'TCheckbox': {
-                const value = this.resolveValue(def.checked, obj);
+                const value = this.resolveValue(def.checked, obj, def);
                 const container = this.renderer.renderCheckbox(!!value, def.label || '');
                 const cb = (container as any).input as HTMLInputElement;
                 cb.onchange = () => {
@@ -357,7 +357,7 @@ export class InspectorHost {
                 return container;
             }
             case 'TChips': {
-                const value = this.resolveValue(def.value, obj);
+                const value = this.resolveValue(def.value, obj, def);
                 const chips = this.renderer.renderChips(String(value || ''), (chipToRemove) => {
                     const currentValues = String(value || '').split(',').map(s => s.trim()).filter(s => s);
                     const newValues = currentValues.filter(v => v !== chipToRemove);
@@ -415,10 +415,18 @@ export class InspectorHost {
         }
     }
 
-    private resolveValue(expr: any, obj: any): any {
+    private resolveValue(expr: any, obj: any, def?: any): any {
         if (typeof expr !== 'string' || !expr.includes('${')) return expr;
 
         const context = InspectorContextBuilder.build(obj);
+
+        // NEW: Inject template context if present
+        if (def && (def.__template_item !== undefined)) {
+            context.item = def.__template_item;
+            context.value = def.__template_item.value !== undefined ? def.__template_item.value : def.__template_item;
+            context.index = def.__template_index;
+        }
+
         const result = ExpressionParser.interpolate(expr, context);
 
         if (expr.includes('BaseVar') || expr.includes('availableVariableFields')) {
@@ -428,10 +436,18 @@ export class InspectorHost {
         return result;
     }
 
-    private resolveRawValue(expr: any, obj: any): any {
+    private resolveRawValue(expr: any, obj: any, def?: any): any {
         if (typeof expr !== 'string' || !expr.includes('${')) return expr;
 
         const context = InspectorContextBuilder.build(obj);
+
+        // NEW: Inject template context if present
+        if (def && (def.__template_item !== undefined)) {
+            context.item = def.__template_item;
+            context.value = def.__template_item.value !== undefined ? def.__template_item.value : def.__template_item;
+            context.index = def.__template_index;
+        }
+
         const result = ExpressionParser.evaluateRaw(expr, context);
 
         if (expr.includes('BaseVar') || expr.includes('availableVariableFields')) {

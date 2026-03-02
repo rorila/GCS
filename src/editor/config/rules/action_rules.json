@@ -1,0 +1,165 @@
+{
+    "start": "ask_action_name",
+    "nodes": {
+        "ask_action_name": {
+            "id": "ask_action_name",
+            "prompt": "Wie soll die Aktion heißen?",
+            "propName": "name",
+            "type": "string",
+            "required": true,
+            "next": "ask_action_type"
+        },
+        "ask_action_type": {
+            "id": "ask_action_type",
+            "prompt": "Welcher Typ von Aktion ist das?",
+            "propName": "type",
+            "type": "select",
+            "options": [
+                {
+                    "value": "property",
+                    "label": "Eigenschaft ändern",
+                    "description": "Ändert eine Eigenschaft eines Objekts (z. B. Farbe, Sichtbarkeit)."
+                },
+                {
+                    "value": "method",
+                    "label": "Methode aufrufen",
+                    "description": "Ruft eine Funktion auf einem Objekt auf (z. B. 'start()')."
+                },
+                {
+                    "value": "event",
+                    "label": "Event feuern",
+                    "description": "Sendet ein Signal aus, auf das andere Prozesse reagieren können."
+                },
+                {
+                    "value": "variable",
+                    "label": "Variable setzen",
+                    "description": "Speichert einen Wert in einer globalen oder lokalen Variable."
+                },
+                {
+                    "value": "calculate",
+                    "label": "Berechnung",
+                    "description": "Führt eine mathematische Berechnung durch und speichert das Ergebnis."
+                }
+            ],
+            "required": true,
+            "next": {
+                "type": {
+                    "property": "ask_property_target",
+                    "method": "ask_method_target",
+                    "event": "ask_event_name",
+                    "variable": "ask_variable_name",
+                    "calculate": "ask_calc_formula"
+                }
+            }
+        },
+        "ask_property_target": {
+            "id": "ask_property_target",
+            "prompt": "Welches Objekt soll geändert werden?",
+            "propName": "target",
+            "type": "select",
+            "options": "@objects",
+            "required": true,
+            "next": "ask_property_section"
+        },
+        "ask_property_section": {
+            "id": "ask_property_section",
+            "prompt": "In welchem Bereich liegt die Eigenschaft?",
+            "propName": "section",
+            "type": "select",
+            "options": "@property_sections",
+            "required": true,
+            "next": "ask_property_name"
+        },
+        "ask_property_name": {
+            "id": "ask_property_name",
+            "prompt": "Welche Eigenschaft möchtest du ändern?",
+            "propName": "property",
+            "type": "select",
+            "options": "@properties_for_section",
+            "required": true,
+            "next": "ask_property_value"
+        },
+        "ask_property_value": {
+            "id": "ask_property_value",
+            "prompt": "Auf welchen Wert soll '{target}.{property}' gesetzt werden?",
+            "propName": "value",
+            "type": "string",
+            "required": true,
+            "next": null
+        },
+        "ask_method_target": {
+            "id": "ask_method_target",
+            "prompt": "Auf welchem Objekt soll die Methode aufgerufen werden?",
+            "propName": "target",
+            "type": "select",
+            "options": "@objects",
+            "required": true,
+            "next": "ask_method_name"
+        },
+        "ask_method_name": {
+            "id": "ask_method_name",
+            "prompt": "Welche Methode soll auf '{target}' aufgerufen werden?",
+            "propName": "method",
+            "type": "select",
+            "options": "@methods",
+            "required": true,
+            "next": "ask_method_params"
+        },
+        "ask_method_params": {
+            "id": "ask_method_params",
+            "prompt": "Welche Parameter (als JSON Array, ex: [\"val1\", 2])?",
+            "propName": "params",
+            "type": "string",
+            "required": false,
+            "next": null
+        },
+        "ask_event_name": {
+            "id": "ask_event_name",
+            "prompt": "Wie heißt das Event?",
+            "propName": "eventName",
+            "type": "string",
+            "required": true,
+            "next": "ask_event_payload"
+        },
+        "ask_event_payload": {
+            "id": "ask_event_payload",
+            "prompt": "Welchen Payload soll das Event erhalten?",
+            "propName": "eventPayload",
+            "type": "string",
+            "required": false,
+            "next": null
+        },
+        "ask_variable_name": {
+            "id": "ask_variable_name",
+            "prompt": "Wie heißt die Variable?",
+            "propName": "variableName",
+            "type": "string",
+            "required": true,
+            "next": "ask_variable_value"
+        },
+        "ask_variable_value": {
+            "id": "ask_variable_value",
+            "prompt": "Welchen Wert soll sie bekommen?",
+            "propName": "value",
+            "type": "string",
+            "required": true,
+            "next": null
+        },
+        "ask_calc_formula": {
+            "id": "ask_calc_formula",
+            "prompt": "Wie lautet die Berechnungs-Formel?",
+            "propName": "formula",
+            "type": "string",
+            "required": true,
+            "next": "ask_calc_result"
+        },
+        "ask_calc_result": {
+            "id": "ask_calc_result",
+            "prompt": "In welcher Variable soll das Ergebnis gespeichert werden?",
+            "propName": "resultVariable",
+            "type": "string",
+            "required": true,
+            "next": null
+        }
+    }
+}

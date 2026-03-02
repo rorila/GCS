@@ -1,4 +1,6 @@
 import taskRules from '../config/rules/task_rules.json';
+import actionRules from '../config/rules/action_rules.json';
+import dataActionRules from '../config/rules/data_action_rules.json';
 
 /**
  * Expert Rule Engine (Headless API)
@@ -13,7 +15,7 @@ export interface RuleNode {
     propName: string;
     type: 'string' | 'select' | 'boolean';
     required?: boolean;
-    options?: string[] | { label: string; value: any }[]; // For selects
+    options?: string[] | { label: string; value: any; description?: string }[]; // For selects
     next: string | null | { [conditionProp: string]: { [value: string]: string } };
 }
 
@@ -32,15 +34,33 @@ export interface RuleSessionState {
 
 export class ExpertRuleEngine {
     private rulesets: Map<string, RuleSet> = new Map();
+    private dynamicOptions: Map<string, any[]> = new Map();
+    private dynamicResolvers: Map<string, (state: RuleSessionState) => any[]> = new Map();
     private activeSession: RuleSessionState | null = null;
 
     constructor() {
         // Pre-load known schemas (in a real app, this might be async from server/file)
         this.registerRuleSet('task', taskRules as unknown as RuleSet);
+        this.registerRuleSet('action', actionRules as unknown as RuleSet);
+        this.registerRuleSet('data_action', dataActionRules as unknown as RuleSet);
     }
 
     public registerRuleSet(type: string, rules: RuleSet) {
         this.rulesets.set(type, rules);
+    }
+
+    /**
+     * Setzt zur Laufzeit verfügbare Optionen für einen Platzhalter (z.B. '@objects').
+     */
+    public setDynamicOptions(key: string, options: any[]) {
+        this.dynamicOptions.set(key, options);
+    }
+
+    /**
+     * Registriert eine Funktion, die zur Laufzeit Optionen generiert.
+     */
+    public registerDynamicResolver(key: string, resolver: (state: RuleSessionState) => any[]) {
+        this.dynamicResolvers.set(key, resolver);
     }
 
     /**
@@ -68,7 +88,43 @@ export class ExpertRuleEngine {
         if (!this.activeSession || this.activeSession.isComplete || !this.activeSession.currentNodeId) return null;
 
         const rules = this.rulesets.get(this.activeSession.entityType);
-        return rules?.nodes[this.activeSession.currentNodeId] || null;
+        const node = rules?.nodes[this.activeSession.currentNodeId];
+        if (!node) return null;
+
+        let resolvedNode = { ...node };
+
+        // Resolve dynamic prompts (interpolation)
+        if (this.activeSession && resolvedNode.prompt) {
+            let prompt = resolvedNode.prompt;
+            for (const [key, value] of Object.entries(this.activeSession.collectedData)) {
+                const placeholder = `{${key}}`;
+                if (prompt.includes(placeholder)) {
+                    prompt = prompt.replace(new RegExp(placeholder, 'g'), String(value));
+                }
+            }
+            resolvedNode.prompt = prompt;
+        }
+
+        // Resolve dynamic options
+        if (typeof node.options === 'string' && (node.options as string).startsWith('@')) {
+            const key = node.options as string;
+
+            // 1. Try resolver function first (more dynamic)
+            const resolver = this.dynamicResolvers.get(key);
+            if (resolver && this.activeSession) {
+                resolvedNode.options = resolver(this.activeSession);
+                return resolvedNode;
+            }
+
+            // 2. Fallback to static dynamic options
+            const resolved = this.dynamicOptions.get(key);
+            if (resolved) {
+                resolvedNode.options = resolved;
+                return resolvedNode;
+            }
+        }
+
+        return resolvedNode;
     }
 
     /**
@@ -103,6 +159,30 @@ export class ExpertRuleEngine {
      */
     public getSessionPayload(): Record<string, any> {
         return this.activeSession?.collectedData || {};
+    }
+
+    /**
+     * Bricht die aktuelle Sitzung komplett ab.
+     */
+    public abandonSession(): void {
+        this.activeSession = null;
+    }
+
+    /**
+     * Beendet die Sitzung vorzeitig und markiert sie als vollständig,
+     * damit die bisherigen Daten übernommen werden können.
+     */
+    public forceComplete(finalValue?: any): void {
+        if (this.activeSession) {
+            if (finalValue !== undefined) {
+                const currentNode = this.getCurrentNode();
+                if (currentNode) {
+                    this.activeSession.collectedData[currentNode.propName] = finalValue;
+                }
+            }
+            this.activeSession.isComplete = true;
+            this.activeSession.currentNodeId = null;
+        }
     }
 
     public isSessionComplete(): boolean {

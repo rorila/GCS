@@ -37,6 +37,7 @@ export interface FlowSyncHost {
 export class FlowSyncManager {
     public static logger = Logger.get('FlowSync', 'Flow_Synchronization');
     private static lifecycleLogger = Logger.get('FlowSync', 'Action_Lifecycle');
+    private static propertyLogger = Logger.get('FlowSyncMan', 'Property_Management');
     private host: FlowSyncHost;
 
     constructor(host: FlowSyncHost) {
@@ -772,11 +773,32 @@ export class FlowSyncManager {
         if (isMinimalLink) return;
 
         if (!this.host.project.actions) this.host.project.actions = [];
-        const taskFields = ['taskName', 'isMapLink', 'isProxy', 'stageObjectId', 'embeddedGroupId', 'parentProxyId', 'isLinked', 'isEmbeddedInternal', 'isExpanded', 'sourceTaskName', '_formValues'];
+        const taskFields = ['taskName', 'isMapLink', 'isProxy', 'stageObjectId', 'embeddedGroupId', 'parentProxyId', 'isLinked', 'isEmbeddedInternal', 'isExpanded', 'sourceTaskName', '_formValues', 'section', 'property', 'value', 'params', 'body', 'elseBody', 'successBody'];
         const cleanedData = { ...actionData };
+
+        // --- SAFE PARSING ---
+        const safeParse = (val: any) => {
+            if (typeof val !== 'string' || !val.trim()) return val;
+            try { return JSON.parse(val); } catch (e) { return val; }
+        };
+
+        // --- WIZARD SYNC ENHANCEMENT ---
+        // Wenn es eine Property-Aktion ist, mappen wir 'value' und 'property' in das 'changes' Objekt.
+        if (cleanedData.type === 'property' && cleanedData.property && cleanedData.value !== undefined) {
+            FlowSyncManager.propertyLogger.info(`Mapping Wizard property change: ${cleanedData.target}.${cleanedData.property} =`, cleanedData.value);
+            cleanedData.changes = { [cleanedData.property]: safeParse(cleanedData.value) };
+        } else if (cleanedData.changes !== undefined) {
+            cleanedData.changes = safeParse(cleanedData.changes);
+        }
+
+        if (cleanedData.params !== undefined) cleanedData.params = safeParse(cleanedData.params);
+        if (cleanedData.body !== undefined) cleanedData.body = safeParse(cleanedData.body);
+
+        // Erst JETZT die Wizard-Hilfsfelder löschen
         taskFields.forEach(field => delete cleanedData[field]);
 
         const newAction = { ...cleanedData, name };
+        FlowSyncManager.propertyLogger.info(`Final action definition for '${name}':`, newAction);
 
         // Only parse if we strictly have only details and nothing else (legacy support)
         if (newAction.details && !newAction.type && !newAction.target && !newAction.service && !newAction.calcSteps) {

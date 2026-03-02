@@ -1,7 +1,22 @@
 UseCase Index
 -------------
+- [2026-03-02] ExpressionParserStageFix (v3.15.12): Lösung von Fehlern bei verschachtelten Ausdrücken (${value}) und unpräziser Stage-Platzierung. 
+  - src/runtime/ExpressionParser.ts: Implementierung der Balanced-Brace-Interpolation und Fail-Safe-Mechanismus.
+  - src/editor/services/StageInteractionManager.ts: Korrektur der Koordinatenberechnung (Border/Padding) und Zentrierung beim Drop.
+  - src/editor/inspector/InspectorTemplateLoader.ts: Rekursive forEach-Expansion und Kontext-Weitergabe (__template_item).
+  - src/editor/inspector/InspectorHost.ts: Injektion von Template-Kontext in resolveValue für korrekte Label-Anzeige.
+- [2026-03-02] ActionWizardSyncFix (v3.15.11): Zentralisierung der Action-Updates im FlowSyncManager zur Vermeidung von verwaisten Referenzen. Node-Anzeige wird nun sofort aktualisiert.
+- [2026-03-02] ActionWizardSafeJsonFix (v3.15.10): Behebung von Syntax-Fehlern beim Speichern von Property-Aktionen mit Plain-Strings (z.B. "trau Dich"). Implementierung von `safeParse` in `FlowContextMenuProvider.ts`, was intelligent zwischen JSON-Objekten und einfachen Texten unterscheidet.
+- [2026-03-02] ExpertWizardPromptInterpolation (v3.15.9): Einführung dynamischer Prompt-Interpolation im Expert Wizard. Fragen passen sich nun dem Kontext an (z.B. "Auf welchen Wert soll 'Button1.visible' gesetzt werden?"). Korrektur der Payload-Struktur für Property-Aktionen in `FlowContextMenuProvider.ts`, um eine sofortige Wirkung auf Komponenten sicherzustellen.
+- [2026-03-02] ActionWizardPropertyRefinement (v3.15.8): Verfeinerung des Eigenschafts-Wizards. Einführung eines zweistufigen Auswahlprozesses (Sektion -> Eigenschaft) statt Freitext. Erweiterung der `ExpertRuleEngine` um dynamische Resolver-Funktionen (`registerDynamicResolver`). Registrierung von Metadaten-Resolvern in `FlowContextMenuProvider.ts`.
+- [2026-03-02] ExpertWizardDynamicOptions (v3.15.7): Einführung dynamischer Optionen (@objects) im Expert Wizard. Behebung des UI-Überlappungsfehlers in `ExpertDialog.ts` durch saubere Container-Trennung. Unterstützung für Emojis und Beschreibungen in den Auswahl-Tiles. Dynamische Befüllung der Objekt-Listen via `ProjectRegistry` in `FlowContextMenuProvider.ts`.
 - [2026-03-02] FlowEditorContextJumpFix (v3.15.6): Behebung des Fehlers, dass der FlowEditor nach der Umbenennung eines Tasks auf die Haupt-Stage zurückstellte. Dynamisches Anhängen von `getType()` in `EditorCommandManager.findObjectById`, welches sicherstellt, dass `renameContext()` im FlowEditor korrekt getriggert wird.
 - [2026-03-02] TaskRenameSyncFix (v3.15.5): Vollständige Behebung des Synchronisations-Bugs bei der Umbenennung von Tasks/Actions. Bugfix in `EditorCommandManager.findObjectById`, um Entities via `name` korrekt aufzulösen (da z.B. Tasks keine UUID besitzen). Umstellung von `InspectorEventHandler.ts` und `FlowContextMenuProvider.ts` (Expert-Wizard) auf die Nutzung von `EditorCommandManager.renameObject`. Verifiziert durch Tests und manuell im Editor.
+- Data Action Wizard:
+  UseCase 'Erstellen, Löschen, Umbenennen von Actions'
+  - src\editor\config\rules\action_rules.json (Neu: JSON Regelwerk für Expert System Config)
+  - src\editor\config\rules\data_action_rules.json (Neu: JSON Regelwerk für Data Actions)
+  - src\editor\services\FlowContextMenuProvider.ts (Erweitert um 'Wizard Edit (Action)' und 'Wizard Edit (Data Action)' in handleNodeContextMenu und showEmbeddedContextMenu)
 - [2026-03-02] ActionDeletionBugfix (v3.15.2): Vollständige Korrektur der Action-Löschung im Flow-Diagramm. Fix der Case-Sensitivity bei Node-Typen ('action' vs 'Action') in `FlowGraphManager.ts` und `ProjectRegistry.ts`. Korrektur der Referenzprüfung in `ProjectRegistry.ts`, um auch Kleinschreibung zu unterstützen. Konsolidierung der Lösch-Bestätigungsdialoge in `Editor.ts` zur Vermeidung von Doppel-Prompts. Verifiziert durch Deep-Trace-Browsertest.
 - [2026-03-01] ActionDeletionFixV2 (v3.15.0): Korrektur des `deleteAction` Fehlers im `ActionRefactoringService.ts`, durch den `DataAction`-Knoten bei der Löschung übersprungen wurden. Vollständige Bereinigung der `project.json` von verwaisten `Action1/2` Definitionen in allen Stages (Login, Dashboard, Blueprint). Verifiziert durch erweiterten `action_crud.test.ts` und workspace-weiten Content-Scan.
 - FinalDeletionSyncFix (v3.14.5): FlowGraphManager.ts, FlowTaskManager.ts (Sync-Muster)
@@ -146,3 +161,7 @@ UseCase: ActionInliningCleanup (File: project.json, Tasks: AttemptLogin, GetRoom
 UseCase: FlowEditorNavigationFix (Tiefen-Fix)
 Files: Editor.ts (L383+), EditorCommandManager.ts (L190+), FlowElement.ts (L480+), FlowTask.ts (L155+), FlowNodeHandler.ts (L43+)
 Scope: Umstellung der gesamten Umbenennungs-Logik von UI-gesteuert auf zentral gesteuert (CommandManager).
+
+- [2026-03-02] Phase 13: Stage Component Drag Fix (Snap-Back & JSON-Wipe).
+Files: StageInteractionManager.ts, EditorInteractionManager.ts (L56+), EditorDataManager.ts (L288+).
+Scope: Behebung des "Snap-Backs" von Komponenten auf der Stage nach Drag&Drop sowie des massenhaften Stage-Objekt-Verlusts bei Headless-Testruns. Umstellung von ObjectStore-Autosaves auf exakte JSON-Live-Mutation mithilfe von `getOriginalObject` und Entfernung der schädlichen Überschreibung in `syncStageObjectsToProject`.

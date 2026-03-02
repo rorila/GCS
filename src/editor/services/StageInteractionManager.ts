@@ -107,9 +107,19 @@ export class StageInteractionManager {
                 const payload = JSON.parse(data);
                 if (payload.type === 'tool-drop' && this.host.onDropCallback) {
                     const coords = this.getRelativeCoordinates(e);
-                    const gridX = Math.floor(coords.x / this.host.grid.cellSize);
-                    const gridY = Math.floor(coords.y / this.host.grid.cellSize);
-                    this.host.onDropCallback(payload.toolType, gridX, gridY);
+
+                    // NEW: Estimate tool dimensions for centering if we don't know them yet
+                    // Default tools are usually 6x2 (Buttons) or 10x6 (Panels)
+                    // We use a modest offset for a "centered" feel
+                    let offX = 3;
+                    let offY = 1;
+                    if (payload.toolType === 'Panel' || payload.toolType === 'TDataStore') {
+                        offX = 5; offY = 3;
+                    }
+
+                    const gridX = Math.floor(coords.x / this.host.grid.cellSize) - offX;
+                    const gridY = Math.floor(coords.y / this.host.grid.cellSize) - offY;
+                    this.host.onDropCallback(payload.toolType, Math.max(0, gridX), Math.max(0, gridY));
                 }
             } catch (err) {
                 console.error("Drop Error", err);
@@ -122,9 +132,16 @@ export class StageInteractionManager {
         const scaleX = rect.width / this.host.element.offsetWidth;
         const scaleY = rect.height / this.host.element.offsetHeight;
 
+        // NEW: Account for scroll and borders/padding of the stage itself
+        const style = window.getComputedStyle(this.host.element);
+        const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+        const borderTop = parseFloat(style.borderTopWidth) || 0;
+        const paddingLeft = parseFloat(style.paddingLeft) || 0;
+        const paddingTop = parseFloat(style.paddingTop) || 0;
+
         return {
-            x: (e.clientX - rect.left) / (scaleX || 1),
-            y: (e.clientY - rect.top) / (scaleY || 1),
+            x: (e.clientX - rect.left - borderLeft) / (scaleX || 1) - paddingLeft,
+            y: (e.clientY - rect.top - borderTop) / (scaleY || 1) - paddingTop,
             scaleX: scaleX || 1,
             scaleY: scaleY || 1
         };

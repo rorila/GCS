@@ -30,6 +30,11 @@ export class InspectorTemplateLoader {
         const result: any[] = [];
 
         for (const obj of objects) {
+            // Recursively process children first (if any)
+            if (obj.children && Array.isArray(obj.children)) {
+                obj.children = this.expandForEach(obj.children, _context);
+            }
+
             if (obj.forEach) {
                 const listExpr = obj.forEach;
 
@@ -41,6 +46,10 @@ export class InspectorTemplateLoader {
                     items.forEach((item, index) => {
                         const cloned = JSON.parse(JSON.stringify(obj));
                         delete cloned.forEach;
+
+                        // NEW: Store item context on the cloned object for later resolution
+                        cloned.__template_item = item;
+                        cloned.__template_index = index;
 
                         // We will replace template variables like ${item.name} later 
                         // or during rendering. InspectorHost uses replaceTemplateVars recursively.
@@ -84,6 +93,11 @@ export class InspectorTemplateLoader {
                             return current !== undefined ? String(current) : '';
                         });
                 } else if (typeof val === 'object' && val !== null) {
+                    // NEW: Attach context even to nested children so resolveValue can find it
+                    if (val.className || val.forEach || Array.isArray(val)) {
+                        val.__template_item = item;
+                        val.__template_index = index;
+                    }
                     replace(val);
                 }
             }

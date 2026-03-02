@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## Unreleased (WIP)
+- **EditorDataManager Sync-Bug behoben (Phase 13 Fortsetzung):** Die Funktion `syncStageObjectsToProject` überschrieb fehlerhafterweise fälschlicherweise `projectStage.objects` mit aufgelösten Laufzeitobjekten aus der Stage. Im Headless-Modus (z. B. beim Ausführen von npm run test) führte dies dazu, dass alle Stage-Objekte durch ein leeres Array überschrieben (gelöscht) wurden. Dies wurde korrigiert: Operationen verändern das JSON nun direkt, ohne verlustbehafteten Re-Sync.
+- **Stage Interaction & Template Stability (Phase 12):** Offset-Rechenfehler beim Drag&Drop korrigiert. Komponenten-Placement-Anchor auf `Center` angepasst (Centering-on-Drop). `InspectorTemplateLoader` iteriert nun rekursiv durch `forEach` Blöcke, um komplexe Strukturen besser abzubilden.
+- **Stage Component Drag Persistence (Phase 13):** `EditorInteractionManager` modifiziert nun die ursprünglichen (unaufgelösten) JSON-Target-Objekte des Projektes anstatt der aufgelösten Preview-Objekte, wodurch Positionen beim Verschieben durch die Maus persistent in die JSON geschrieben werden, ohne dabei bestehende Expression-Bindings zu beschädigen.
+## [3.15.12] - 2026-03-02
+### Fixed
+- **Expression Parsing**: `ExpressionParser.ts` auf Balanced-Brace-Parsing umgestellt. Behebt Syntax-Fehler bei verschachtelten Ausdrücken wie `${selectedObject.events.${value}}`.
+- **Interpolation Resilience**: Fail-Safe-Mechanismus hinzugefügt, der Original-Tags (`${...}`) bei Evaluierungsfehlern (z.B. fehlender Kontext) beibehält, statt leere Strings oder "undefined" zu rendern.
+- **Stage Placement**: Korrektur der Koordinatenberechnung in `StageInteractionManager.ts`. Berücksichtigt nun Border und Padding der Stage-Fläche, was den 28px/8px Versatz beim Platzieren von Komponenten behebt.
+- **Auto-Centering**: Komponenten werden beim "Drop" aus der Toolbox nun präzise unter dem Mauszeiger zentriert.
+- **Recursive Template Expansion**: `InspectorTemplateLoader.ts` führt nun rekursive `forEach`-Expansionen durch. Stellt sicher, dass auch tief verschachtelte UI-Komponenten in Vorlagen (z.B. Events-Tab) den korrekten Variablen-Kontext (`item`, `index`, `value`) erhalten.
+- **Inspector Context**: `InspectorHost.resolveValue` injiziert nun konsistent den Template-Kontext, was die korrekte Anzeige von Event-Labels (z.B. "onClick" statt "undefined") garantiert.
+
+## [3.15.11] - 2026-03-02
+
+## [3.15.9] - 2026-03-02
+### Added
+- **Dynamic Prompt Interpolation**: Unterstützung für Platzhalter im Expert Wizard (z.B. `{target}`, `{property}`).
+- **Corrected Action Payload Sync**: Property-Aktionen werden nun mit der korrekten `changes`-Objektstruktur gespeichert, was die sofortige Wirksamkeit sicherstellt.
+- **Dynamic Method Selection**: Resolver für Komponenten-Methoden im Wizard integriert.
+
+## [3.15.8] - 2026-03-02
+### Added
+- **Dynamic Property Resolver**: `ExpertRuleEngine` unterstützt nun Funktions-Resolver zur dynamischen Generierung von Optionen basierend auf dem aktuellen Sitzungs-Status.
+- **Refined Property Wizard**: Die Auswahl von Eigenschaften erfolgt nun zweistufig (Kategorie wählen -> Eigenschaft wählen) inklusive Hilfetexten und Emojis.
+
+## [3.15.7] - 2026-03-02
+### Added
+- **Expert Wizard UX Expansion**: Unterstützung für dynamische Auswahl-Listen (@objects) statt Freitextfeldern.
+- **Rich Interaction**: Auswahl-Tiles unterstützen nun Emojis (`uiEmoji`) und detaillierte Beschreibungen.
+- **Improved UI Replacement**: Saubere Container-Trennung in `ExpertDialog` verhindert UI-Bleeding zwischen Schritten.
+
 ## [3.15.6] - 2026-03-02
 ### Fixed
 - **FlowEditor Context Jump Bugfix**: Behebung des Fehlers, bei dem der FlowEditor nach der Umbenennung eines Tasks via Agent Wizard zu "Main Flow" (Global Context) zurücksprang. 
@@ -9,6 +41,11 @@
 
 ## [3.15.5] - 2026-03-02
 ### Fixed
+### Expert System / Wizards
+*   **Rich Wizard Selections**: Das Auswahlmenü im Wizard wurde zu einer modernen Kachel-Ansicht (Tiles) umgebaut.
+*   **Erläuterungen**: Jede Option (z. B. Action-Typen, HTTP-Methoden) unterstützt nun zusätzliche Beschreibungen zur besseren Orientierung.
+*   **Action Wizard Refinement**: Die Reihenfolge wurde auf "Name -> Typ (mit Info)" optimiert.
+*   **Action Wizard Context Menus**: Die "Expert Edit" Option steht nun auch für eingebettete Tasks und Actions zur Verfügung (`showEmbeddedContextMenu`).
 - **Task Rename Synchronization**: Vollständige Behebung des Synchronisations-Bugs bei der Umbenennung von Tasks/Actions.
   - Das Umbenennen über den Inspector (`InspectorEventHandler.ts` -> `Editor.ts`) sowie über den Expert-Wizard (`FlowContextMenuProvider.ts`) nutzt nun zentral `EditorCommandManager.renameObject`.
   - Bugfix in `EditorCommandManager.findObjectById`: Die Methode durchsucht nun explizit auch Tasks und Aktionen nach ihrem `name`-Attribut (da diese keine UUID besitzen). Dies stellt sicher, dass das Refactoring-Framework das Entity korrekt auflöst und nicht nur isoliert im UI operiert.

@@ -40,29 +40,62 @@ export class ExpressionParser {
             return text;
         }
 
-        // Replace all ${...} with evaluated values
-        const result = text.replace(/\$\{([^}]+)\}/g, (match, expression) => {
-            try {
-                const value = this.evaluate(expression.trim(), context);
-                return this.valueToString(value);
-            } catch (error) {
-                console.error(`[ExpressionParser] Error evaluating expression "${expression}":`, error);
-                return match; // Return original match on error
-            }
-        });
+        let result = '';
+        let i = 0;
 
-        // Try to parse as number or boolean if entire string was a single expression
-        // Enhanced trim to handle cases like "${ value } "
-        const trimmedText = text.trim();
-        if (trimmedText.startsWith('${') && trimmedText.endsWith('}') && !trimmedText.includes('${', 2)) {
-            // Single expression - try to preserve type including objects and arrays.
-            // This is critical for inspector properties like 'options' which expect a real array.
-            const expression = trimmedText.slice(2, -1).trim();
-            try {
-                return this.evaluate(expression, context);
-            } catch (error) {
-                return result;
+        while (i < text.length) {
+            if (text[i] === '$' && text[i + 1] === '{') {
+                // Start of expression - find matching closing brace with nesting support
+                let braceDepth = 1;
+                let start = i + 2;
+                let j = start;
+
+                while (j < text.length && braceDepth > 0) {
+                    if (text[j] === '$' && text[j + 1] === '{') {
+                        braceDepth++;
+                        j++; // Skip {
+                    } else if (text[j] === '}') {
+                        braceDepth--;
+                    }
+                    j++;
+                }
+
+                if (braceDepth === 0) {
+                    // Found matched expression
+                    const expression = text.substring(start, j - 1);
+                    try {
+                        // Recursively interpolate nested expressions first if any
+                        const interpolatedExpr = this.interpolate(expression, context);
+
+                        const evaluated = this.evaluate(interpolatedExpr.trim(), context);
+
+                        // If the entire text was just this one expression, return the raw value
+                        if (i === 0 && j === text.length) {
+                            // FAIL-SAFE: If evaluation failed but it still contains template tags, return original
+                            if (evaluated === undefined && (interpolatedExpr.includes('${') || expression.includes('${'))) {
+                                return text;
+                            }
+                            return evaluated;
+                        }
+
+                        // FAIL-SAFE for nested interpolation: 
+                        // If evaluate returns undefined but it looks like a template variable remains,
+                        // keep the ${...} tag instead of converting to empty string.
+                        if (evaluated === undefined && (interpolatedExpr.includes('${') || expression.includes('${'))) {
+                            result += `\${${interpolatedExpr}}`;
+                        } else {
+                            result += this.valueToString(evaluated);
+                        }
+                    } catch (error) {
+                        console.error(`[ExpressionParser] Error evaluating expression "${expression}":`, error);
+                        result += `\${${expression}}`;
+                    }
+                    i = j;
+                    continue;
+                }
             }
+            result += text[i];
+            i++;
         }
 
         return result;

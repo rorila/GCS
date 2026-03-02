@@ -2,12 +2,18 @@ import { GameProject } from '../../model/types';
 import { FlowElement } from '../flow/FlowElement';
 import { FlowConnection } from '../flow/FlowConnection';
 import { FlowTask } from '../flow/FlowTask';
+import { FlowAction } from '../flow/FlowAction';
+import { FlowDataAction } from '../flow/FlowDataAction';
 import { ContextMenu, ContextMenuItem } from '../ui/ContextMenu';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { libraryService } from '../../services/LibraryService';
 import { FlowNamingService } from './FlowNamingService';
 import { ExpertDialog } from '../../components/ExpertDialog';
 import { RefactoringManager } from '../RefactoringManager';
+import { expertRuleEngine } from './ExpertRuleEngine';
+import { MethodRegistry } from '../MethodRegistry';
+
+import { Logger } from '../../utils/Logger';
 
 export interface FlowContextMenuHost {
     project: GameProject | null;
@@ -22,6 +28,7 @@ export interface FlowContextMenuHost {
     handleNodeDoubleClick: (node: FlowElement) => void;
     importTaskGraph: (node: FlowElement, task: any, isLinked?: boolean) => any;
     updateFlowSelector: () => void;
+    showDetails: boolean;
     onProjectChange?: () => void;
     getTargetFlowCharts: (context: string) => any;
     syncManager: any; // For global action updates
@@ -32,10 +39,78 @@ export interface FlowContextMenuHost {
 export class FlowContextMenuProvider {
     private host: FlowContextMenuHost;
     private expertDialog: ExpertDialog;
+    private static logger = Logger.get('FlowContextMenuProvider', 'Property_Management');
 
     constructor(host: FlowContextMenuHost) {
         this.host = host;
         this.expertDialog = new ExpertDialog();
+        this.initializeResolvers();
+    }
+
+    private initializeResolvers() {
+        // Resolver for Property Sections
+        expertRuleEngine.registerDynamicResolver('@property_sections', () => [
+            { value: 'position', label: 'Position & Größe', description: 'Position (x, y) und Dimensionen (Breite, Höhe).', uiEmoji: '📏' },
+            { value: 'style', label: 'Darstellung', description: 'Farbe, Rahmen, Schriftart und Größe.', uiEmoji: '🎨' },
+            { value: 'display', label: 'Sichtbarkeit', description: 'Sichtbarkeit und Interaktivität.', uiEmoji: '👁️' },
+            { value: 'content', label: 'Inhalt', description: 'Texte, Beschriftungen und Werte.', uiEmoji: '📝' },
+            { value: 'identity', label: 'Identität', description: 'Name und eindeutige Kennung.', uiEmoji: '🆔' },
+            { value: 'multiplayer', label: 'Multiplayer', description: 'Netzwerk- und Synchronisation-Verhalten.', uiEmoji: '🌐' }
+        ]);
+
+        // Resolver for Properties filtered by chosen section
+        expertRuleEngine.registerDynamicResolver('@properties_for_section', (state) => {
+            const section = state.collectedData.section;
+            if (!section) return [];
+
+            // Static mapping from public/editor/inspector_layout.json
+            const allProps: Record<string, any[]> = {
+                'position': [
+                    { value: 'x', label: 'X Position', description: 'Horizontale Position' },
+                    { value: 'y', label: 'Y Position', description: 'Vertikale Position' },
+                    { value: 'width', label: 'Breite', description: 'Objektbreite' },
+                    { value: 'height', label: 'Höhe', description: 'Objekthöhe' }
+                ],
+                'style': [
+                    { value: 'backgroundColor', label: 'Hintergrund', description: 'Hintergrundfarbe' },
+                    { value: 'borderColor', label: 'Rahmenfarbe', description: 'Farbe des Rahmens' },
+                    { value: 'fontFamily', label: 'Schriftart', description: 'Name der Schriftfamilie' },
+                    { value: 'fontSize', label: 'Schriftgröße', description: 'Größe in Pixel' }
+                ],
+                'display': [
+                    { value: 'visible', label: 'Sichtbar', description: 'Objekt auf der Stage anzeigen' },
+                    { value: 'enabled', label: 'Aktiviert', description: 'Interaktionsfähigkeit erlauben' }
+                ],
+                'content': [
+                    { value: 'text', label: 'Text', description: 'Anzeigetext oder Wert' },
+                    { value: 'caption', label: 'Beschriftung', description: 'Label-Text' },
+                    { value: 'value', label: 'Aktueller Wert', description: 'Numerischer Wert' },
+                    { value: 'maxValue', label: 'Maximalwert', description: 'Limit des Wertes' }
+                ],
+                'identity': [
+                    { value: 'name', label: 'Name', description: 'Eindeutiger Bezeichner' }
+                ],
+                'multiplayer': [
+                    { value: 'triggerMode', label: 'Trigger-Modus', description: 'Netzwerk-Synchronisation' }
+                ]
+            };
+
+            return allProps[section] || [];
+        });
+
+        // Resolver for Methods
+        expertRuleEngine.registerDynamicResolver('@methods', (state) => {
+            const target = state.collectedData.target;
+            if (!target) return [];
+
+            // In a more sophisticated version, we'd lookup the component type.
+            // For now, we return all standard methods from the registry.
+            return Object.keys(MethodRegistry).map(m => ({
+                value: m,
+                label: m,
+                description: `Methode ${m} aufrufen`
+            }));
+        });
     }
 
     public handleNodeContextMenu(e: MouseEvent, node: FlowElement): void {
@@ -64,63 +139,14 @@ export class FlowContextMenuProvider {
         });
 
         // 1b. Expert Mode
-        if (node instanceof FlowTask) {
-            items.push({
-                label: '🧙‍♂️ Expert Edit (Task)',
-                action: () => {
-                    // Get existing data to prepopulate wizard
-                    const existingData = {
-                        name: node.Name,
-                        description: node.Description || ''
-                    };
+        const expertTaskItem = this.getExpertTaskItem(node);
+        if (expertTaskItem) items.push(expertTaskItem);
 
-                    // currentFlowContext is usually the stage id if we are not deep
-                    const stageId = this.host.currentFlowContext === 'event-map' ? 'blueprint' : this.host.currentFlowContext;
+        const expertDataActionItem = this.getExpertDataActionItem(node);
+        if (expertDataActionItem) items.push(expertDataActionItem);
 
-                    this.expertDialog.open('task', node.Name, existingData, stageId).then((payload) => {
-                        if (!payload) return;
-
-                        const newName = payload.name;
-                        const newDesc = payload.description;
-
-                        if (newName) {
-                            if (node.Name !== newName) {
-                                // Delegate to central refactoring manager via Editor
-                                if (this.host.renameObjectWithRefactoring) {
-                                    this.host.renameObjectWithRefactoring(node.Name, newName, node.Name);
-                                } else {
-                                    // Fallback if not hosted in full editor
-                                    const proj = projectRegistry.getProject();
-                                    if (proj) RefactoringManager.renameTask(proj, node.Name, newName);
-                                }
-                            }
-
-                            // description update
-                            const proj = projectRegistry.getProject();
-                            const existingTask = proj?.tasks?.find(t => t.name === newName) ||
-                                proj?.stages?.flatMap(s => s.tasks || []).find(t => t.name === newName);
-
-                            if (existingTask && newDesc !== undefined) {
-                                existingTask.description = newDesc;
-                            }
-
-                            // Update diagram node visuals
-                            node.Name = newName;
-                            node.setText(newName);
-                            node.data = { ...node.data, name: newName, taskName: newName, details: newDesc };
-                            if (newDesc !== undefined) {
-                                node.Description = newDesc;
-                            }
-                        }
-
-                        // Force global sync and redraw after expert dialog finishes
-                        this.host.syncToProject();
-                        this.host.updateFlowSelector();
-                        if (this.host.onProjectChange) this.host.onProjectChange();
-                    });
-                }
-            });
-        }
+        const expertActionItem = this.getExpertActionItem(node);
+        if (expertActionItem) items.push(expertActionItem);
 
         const elementName = node.Name || node.id;
         const liveRefs = projectRegistry.findReferences(elementName);
@@ -157,7 +183,7 @@ export class FlowContextMenuProvider {
 
             if (linkItems.length > 0) {
                 items.push({
-                    label: 'Use Existing Task (Link)',
+                    label: 'Existing Task verwenden (Link)',
                     submenu: linkItems
                 });
             }
@@ -169,7 +195,7 @@ export class FlowContextMenuProvider {
 
             if (importItems.length > 0) {
                 items.push({
-                    label: 'Embed Task (Copy Structure)',
+                    label: 'Task einbetten (Struktur kopieren)',
                     submenu: importItems
                 });
             }
@@ -193,7 +219,7 @@ export class FlowContextMenuProvider {
 
             if (linkItems.length > 0) {
                 items.push({
-                    label: 'Use Existing Action (Link)',
+                    label: 'Existing Action verwenden (Link)',
                     submenu: linkItems
                 });
             }
@@ -205,7 +231,7 @@ export class FlowContextMenuProvider {
 
             if (copyItems.length > 0) {
                 items.push({
-                    label: 'Embed Action (Copy)',
+                    label: 'Aktion einbetten (Kopie)',
                     submenu: copyItems
                 });
             }
@@ -216,6 +242,21 @@ export class FlowContextMenuProvider {
 
     private showEmbeddedContextMenu(e: MouseEvent, node: FlowElement): void {
         const items: ContextMenuItem[] = [];
+
+        // Add Expert options for embedded nodes too!
+        const expertTaskItem = this.getExpertTaskItem(node);
+        if (expertTaskItem) items.push(expertTaskItem);
+
+        const expertDataActionItem = this.getExpertDataActionItem(node);
+        if (expertDataActionItem) items.push(expertDataActionItem);
+
+        const expertActionItem = this.getExpertActionItem(node);
+        if (expertActionItem) items.push(expertActionItem);
+
+        if (expertTaskItem || expertDataActionItem || expertActionItem) {
+            items.push({ separator: true, label: '' });
+        }
+
         const typeLabel = node.getType() === 'task' ? 'Task' : 'Aktion';
         items.push({
             label: `Eingebettete ${typeLabel} löschen`,
@@ -325,7 +366,6 @@ export class FlowContextMenuProvider {
         this.host.syncToProject();
     }
 
-
     private copyLibraryTaskAsTemplate(node: FlowElement, libraryTask: any): void {
         if (!this.host.project) return;
 
@@ -333,7 +373,6 @@ export class FlowContextMenuProvider {
         let newName = baseName;
         let counter = 1;
 
-        // Eindeutigen Namen finden
         while (this.host.project.tasks.find(t => t.name === newName)) {
             newName = `${baseName}_${counter}`;
             counter++;
@@ -343,13 +382,11 @@ export class FlowContextMenuProvider {
         if (!userInput) return;
         newName = userInput;
 
-        // Prüfen ob der Name existiert
         let existingTask = this.host.project.tasks.find(t => t.name === newName);
         if (existingTask && (existingTask.actionSequence?.length > 0 || existingTask.flowChart)) {
             if (!confirm(`Task "${newName}" existiert bereits und ist nicht leer. Überschreiben?`)) return;
         }
 
-        // 1. Independent deep copy
         const taskCopy = JSON.parse(JSON.stringify(libraryTask));
         taskCopy.name = newName;
         taskCopy.description = (libraryTask.description || '') + ' (Kopie)';
@@ -359,7 +396,6 @@ export class FlowContextMenuProvider {
             taskCopy.params.forEach((p: any) => p.fromLibrary = true);
         }
 
-        // 2. FlowChart kopieren
         if (libraryTask.flowChart) {
             const flowChartCopy = JSON.parse(JSON.stringify(libraryTask.flowChart));
             const idMapping: Record<string, string> = {};
@@ -388,7 +424,6 @@ export class FlowContextMenuProvider {
                 });
             }
 
-            // Task entry node if missing
             const hasTaskNode = flowChartCopy.elements?.some((el: any) => el.type === 'task');
             if (!hasTaskNode && flowChartCopy.elements?.length > 0) {
                 const taskNodeId = `${newName}-task-entry`;
@@ -407,21 +442,18 @@ export class FlowContextMenuProvider {
             targetCharts[newName] = flowChartCopy;
         }
 
-        // 3. Commit
         if (existingTask) {
             Object.assign(existingTask, taskCopy);
         } else {
             this.host.project.tasks.push(taskCopy);
         }
 
-        // 4. Node update
         node.Name = newName;
         node.setText(newName);
         node.data = { ...node.data, name: newName, taskName: newName, sourceTaskName: libraryTask.name };
         node.setDetailed(true);
         node.setLinked(false);
 
-        // 5. Registry & Persistence
         this.registerActionsFromTask(taskCopy);
         this.host.updateFlowSelector();
         if (this.host.onProjectChange) this.host.onProjectChange();
@@ -453,5 +485,140 @@ export class FlowContextMenuProvider {
                 }
             });
         }
+    }
+
+    private async showExpertWizard(node: FlowElement, type: 'task' | 'action' | 'data_action'): Promise<void> {
+        const proj = this.host.project; // Use host.project
+        if (!proj) return;
+
+        // Prepare dynamic options from registry
+        const objects = projectRegistry.getObjectsWithMetadata().map(obj => ({
+            label: obj.name,
+            value: obj.name,
+            description: obj.className,
+            uiEmoji: (obj as any).uiEmoji || '📦'
+        }));
+        expertRuleEngine.setDynamicOptions('@objects', objects);
+
+        const stageId = this.host.currentFlowContext === 'event-map' ? 'blueprint' : this.host.currentFlowContext;
+
+        let existingData: any = { ...node.data };
+        let originalName = node.Name;
+
+        if (type === 'task') {
+            existingData = {
+                name: node.Name,
+                description: node.Description || ''
+            };
+        } else if (type === 'action' || type === 'data_action') {
+            const realAction = proj.actions?.find(a => a.name === node.Name) ||
+                proj.stages?.flatMap(s => s.actions || []).find(a => a.name === node.Name);
+            if (realAction) {
+                existingData = { ...realAction };
+            }
+
+            if (existingData.changes && typeof existingData.changes === 'object') {
+                existingData.changes = JSON.stringify(existingData.changes, null, 2);
+            }
+            if (existingData.params && typeof existingData.params === 'object') {
+                existingData.params = JSON.stringify(existingData.params, null, 2);
+            }
+            if (existingData.body && typeof existingData.body === 'object') {
+                existingData.body = JSON.stringify(existingData.body, null, 2);
+            }
+        }
+
+        const payload = await this.expertDialog.open(type, originalName, existingData, stageId);
+
+        if (!payload) return;
+
+        const newName = payload.name;
+
+        if (type === 'action' || type === 'data_action') {
+            // Die Verarbeitung des Payloads (Mapping von property/value zu changes, safeParse)
+            // erfolgt nun zentral im FlowSyncManager.updateGlobalActionDefinition.
+            // Dies garantiert eine konsistente Datenstruktur (SSoT).
+            FlowContextMenuProvider.logger.info(`Processed Wizard payload for '${newName}':`, payload);
+        }
+
+        if (newName) {
+            if (originalName !== newName) {
+                FlowContextMenuProvider.logger.info(`Wizard: Refactoring name change from '${originalName}' to '${newName}'`);
+                if (this.host.renameObjectWithRefactoring) {
+                    this.host.renameObjectWithRefactoring(originalName, newName, originalName);
+                } else {
+                    if (proj) {
+                        if (type === 'task') RefactoringManager.renameTask(proj, originalName, newName);
+                        else RefactoringManager.renameAction(proj, originalName, newName);
+                    }
+                }
+            }
+
+            if (type === 'task') {
+                const existingTask = proj.tasks?.find(t => t.name === newName) ||
+                    proj.stages?.flatMap(s => s.tasks || []).find(t => t.name === newName);
+                if (existingTask && payload.description !== undefined) {
+                    existingTask.description = payload.description;
+                }
+            } else { // action or data_action
+                // SSoT-FIX: Wir nutzen den syncManager, um die globale Definition zu erstellen oder zu aktualisieren.
+                // Dies verhindert "Dangling Links", wenn die Action vorher nur lokal existierte.
+                const actionData = { ...payload, name: newName };
+                FlowContextMenuProvider.logger.info(`Wizard: Syncing global definition for '${newName}':`, actionData);
+                this.host.syncManager.updateGlobalActionDefinition(actionData);
+            }
+
+            node.Name = newName;
+            node.setText(newName);
+            if (type === 'task') {
+                node.data = { ...node.data, name: newName, taskName: newName, details: payload.description };
+                if (payload.description !== undefined) {
+                    node.Description = payload.description;
+                }
+            } else { // action or data_action
+                node.data = { ...node.data, ...payload, isLinked: true };
+                // Visuelle Details aktualisieren (z.B. geänderte Property-Werte anzeigen)
+                if (node instanceof FlowAction || (node as any).getType?.() === 'data_action') {
+                    FlowContextMenuProvider.logger.info(`Wizard: Refreshing visual details for node '${newName}'`);
+                    (node as any).setShowDetails?.(this.host.showDetails || false, proj);
+                }
+                node.setDetailed(true);
+                if ((node as any).setProjectRef) {
+                    (node as any).setProjectRef(proj);
+                }
+            }
+        }
+
+        this.host.syncToProject();
+        this.host.updateFlowSelector();
+        if (this.host.onProjectChange) this.host.onProjectChange();
+    }
+
+    private getExpertTaskItem(node: FlowElement): ContextMenuItem | null {
+        if (!(node instanceof FlowTask) && node.getType() !== 'task') return null;
+
+        return {
+            label: '🧙‍♂️ Expert Edit (Task)',
+            action: () => this.showExpertWizard(node, 'task')
+        };
+    }
+
+    private getExpertActionItem(node: FlowElement): ContextMenuItem | null {
+        if (!(node instanceof FlowAction) && node.getType() !== 'action') return null;
+        if (node instanceof FlowDataAction) return null;
+
+        return {
+            label: '🧙‍♂️ Expert Edit (Action)',
+            action: () => this.showExpertWizard(node, 'action')
+        };
+    }
+
+    private getExpertDataActionItem(node: FlowElement): ContextMenuItem | null {
+        if (!(node instanceof FlowDataAction) && node.getType() !== 'data_action') return null;
+
+        return {
+            label: '🧙‍♂️ Expert Edit (Data Action)',
+            action: () => this.showExpertWizard(node, 'data_action')
+        };
     }
 }

@@ -581,23 +581,48 @@
       if (typeof text !== "string" || !text.includes("${")) {
         return text;
       }
-      const result = text.replace(/\$\{([^}]+)\}/g, (match, expression) => {
-        try {
-          const value = this.evaluate(expression.trim(), context);
-          return this.valueToString(value);
-        } catch (error) {
-          console.error(`[ExpressionParser] Error evaluating expression "${expression}":`, error);
-          return match;
+      let result = "";
+      let i = 0;
+      while (i < text.length) {
+        if (text[i] === "$" && text[i + 1] === "{") {
+          let braceDepth = 1;
+          let start = i + 2;
+          let j = start;
+          while (j < text.length && braceDepth > 0) {
+            if (text[j] === "$" && text[j + 1] === "{") {
+              braceDepth++;
+              j++;
+            } else if (text[j] === "}") {
+              braceDepth--;
+            }
+            j++;
+          }
+          if (braceDepth === 0) {
+            const expression = text.substring(start, j - 1);
+            try {
+              const interpolatedExpr = this.interpolate(expression, context);
+              const evaluated = this.evaluate(interpolatedExpr.trim(), context);
+              if (i === 0 && j === text.length) {
+                if (evaluated === void 0 && (interpolatedExpr.includes("${") || expression.includes("${"))) {
+                  return text;
+                }
+                return evaluated;
+              }
+              if (evaluated === void 0 && (interpolatedExpr.includes("${") || expression.includes("${"))) {
+                result += `\${${interpolatedExpr}}`;
+              } else {
+                result += this.valueToString(evaluated);
+              }
+            } catch (error) {
+              console.error(`[ExpressionParser] Error evaluating expression "${expression}":`, error);
+              result += `\${${expression}}`;
+            }
+            i = j;
+            continue;
+          }
         }
-      });
-      const trimmedText = text.trim();
-      if (trimmedText.startsWith("${") && trimmedText.endsWith("}") && !trimmedText.includes("${", 2)) {
-        const expression = trimmedText.slice(2, -1).trim();
-        try {
-          return this.evaluate(expression, context);
-        } catch (error) {
-          return result;
-        }
+        result += text[i];
+        i++;
       }
       return result;
     }
@@ -3158,7 +3183,7 @@
       const { elements, connections } = flowChart;
       const visited = /* @__PURE__ */ new Set();
       const startNode = elements.find(
-        (e) => e.type === "Task" && e.properties?.name === taskName || e.type === "Start"
+        (e) => e.type === "task" && e.properties?.name === taskName || e.type === "start"
       );
       if (!startNode) {
         logger3.warn(`No start node found in flowChart for task: ${taskName}. elements:`, elements.map((e) => `${e.type}:${e.properties?.name || e.id}`));
@@ -3171,7 +3196,7 @@
         visited.add(node.id);
         const nodeType = node.type;
         const name = node.properties?.name || node.data?.name || node.data?.actionName;
-        if (nodeType === "Task" && name === taskName) {
+        if (nodeType === "task" && name === taskName) {
           const outgoing = connections.filter((c) => c.startTargetId === node.id);
           for (const conn of outgoing) {
             const nextNode = elements.find((e) => e.id === conn.endTargetId);
@@ -3179,7 +3204,7 @@
           }
           return;
         }
-        if (nodeType === "Action" || nodeType === "action") {
+        if (nodeType === "action" || nodeType === "action") {
           const action = this.resolveAction({ type: "action", name }) || node.data;
           if (action) {
             if (action.body && Array.isArray(action.body)) {
@@ -3220,7 +3245,7 @@
           }
           return;
         }
-        if (nodeType === "Task" || nodeType === "task") {
+        if (nodeType === "task" || nodeType === "task") {
           await this.execute(name, vars, globalVars, contextObj, depth + 1, parentId, node.data?.params);
           const outgoing = connections.find(
             (c) => c.startTargetId === node.id && !["true", "false"].includes(c.data?.startAnchorType || c.data?.anchorType || "")
@@ -3231,7 +3256,7 @@
           }
           return;
         }
-        if (nodeType === "DataAction" || nodeType === "data_action") {
+        if (nodeType === "data_action" || nodeType === "data_action") {
           const action = this.resolveAction({ type: "data_action", name }) || node.data;
           if (action) {
             logger3.info(`FlowChart: Executing DataAction "${name}"`);
@@ -3262,7 +3287,7 @@
           }
           return;
         }
-        if (nodeType === "Condition" || nodeType === "condition") {
+        if (nodeType === "condition" || nodeType === "condition") {
           const condition = node.data?.condition;
           if (!condition) {
             logger3.warn(`Condition node without condition data: ${node.id} `);
@@ -9909,7 +9934,7 @@
       __publicField(this, "_caption", "\u{1F5C4}\uFE0F Database");
       // Runtime-Callback für Events (z.B. onDataChanged)
       __publicField(this, "eventCallback", null);
-      _TDataStore.logger.info(`Constructor: name=${this.name} (arg=${name})`);
+      _TDataStore.dsLogger.info(`Constructor: name=${this.name} (arg=${name})`);
       this.style.backgroundColor = "#2c3e50";
       this.style.borderColor = "#bdc3c7";
       this.style.borderWidth = 2;
@@ -9921,10 +9946,10 @@
       return this._caption;
     }
     set caption(v) {
-      _TDataStore.logger.info(`set caption("${v}") - Current name: ${this.name}`);
+      _TDataStore.dsLogger.info(`set caption("${v}") - Current name: ${this.name}`);
       this._caption = v;
       if (this.name !== "UserData" && this.name !== "DataStore" && this.name !== "LocalStore") {
-        _TDataStore.logger.warn(`Warning: name has changed to ${this.name}!`);
+        _TDataStore.dsLogger.warn(`Warning: name has changed to ${this.name}!`);
       }
     }
     /**
@@ -9968,7 +9993,7 @@
       };
     }
   };
-  __publicField(_TDataStore, "logger", Logger.get("TDataStore", "Project_Validation"));
+  __publicField(_TDataStore, "dsLogger", Logger.get("TDataStore", "Project_Validation"));
   var TDataStore = _TDataStore;
 
   // src/components/TBadge.ts

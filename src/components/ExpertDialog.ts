@@ -3,10 +3,13 @@ import { expertRuleEngine, RuleNode } from '../editor/services/ExpertRuleEngine'
 export class ExpertDialog {
     private overlay: HTMLElement;
     private modal: HTMLElement;
-    private contentContainer: HTMLElement;
+    private contentContainer: HTMLDivElement;
+    private inputContainer: HTMLDivElement; // New: Dedicated wrapper for inputs/tiles
     private inputField: HTMLInputElement | HTMLSelectElement;
     private nextButton: HTMLButtonElement;
-    private resolvePromise: ((payload: Record<string, any>) => void) | null = null;
+    private cancelButton: HTMLButtonElement;
+    private finishButton: HTMLButtonElement;
+    private resolvePromise: ((payload: Record<string, any> | null) => void) | null = null;
 
     constructor() {
         this.overlay = document.createElement('div');
@@ -40,6 +43,7 @@ export class ExpertDialog {
 
         this.contentContainer = document.createElement('div');
 
+        // Initial inputField, will be replaced by renderNode
         this.inputField = document.createElement('input');
         this.inputField.type = 'text';
         this.inputField.style.width = '100%';
@@ -50,30 +54,77 @@ export class ExpertDialog {
         this.inputField.style.color = '#fff';
         this.inputField.style.border = '1px solid #555';
 
+        this.inputContainer = document.createElement('div');
+        this.inputContainer.style.marginTop = '15px';
+        // The initial inputField is not appended here anymore, renderNode will handle it.
+
+        this.modal.appendChild(this.contentContainer);
+        this.modal.appendChild(this.inputContainer);
+
+        // --- BUTTON FOOTER (FLEXBOX) ---
+        const footer = document.createElement('div');
+        footer.style.display = 'flex';
+        footer.style.justifyContent = 'space-between';
+        footer.style.alignItems = 'center';
+        footer.style.marginTop = '25px';
+        footer.style.paddingTop = '15px';
+        footer.style.borderTop = '1px solid #333';
+
+        // Left: Cancel
+        this.cancelButton = document.createElement('button');
+        this.cancelButton.textContent = '✖ Abbrechen';
+        this.cancelButton.style.padding = '8px 16px';
+        this.cancelButton.style.backgroundColor = 'transparent';
+        this.cancelButton.style.color = '#ff6b6b';
+        this.cancelButton.style.border = '1px solid #444';
+        this.cancelButton.style.borderRadius = '6px';
+        this.cancelButton.style.cursor = 'pointer';
+        this.cancelButton.style.fontSize = '12px';
+        this.cancelButton.style.transition = 'all 0.2s';
+        this.cancelButton.onmouseover = () => { this.cancelButton.style.backgroundColor = 'rgba(255, 107, 107, 0.1)'; };
+        this.cancelButton.onmouseout = () => { this.cancelButton.style.backgroundColor = 'transparent'; };
+        this.cancelButton.addEventListener('click', () => this.handleCancel());
+        footer.appendChild(this.cancelButton);
+
+        // Right Group: Finish & Next
+        const rightGroup = document.createElement('div');
+        rightGroup.style.display = 'flex';
+        rightGroup.style.gap = '12px';
+
+        this.finishButton = document.createElement('button');
+        this.finishButton.textContent = '🏁 Fertig';
+        this.finishButton.style.padding = '8px 16px';
+        this.finishButton.style.backgroundColor = '#383838';
+        this.finishButton.style.color = '#ccc';
+        this.finishButton.style.border = '1px solid #555';
+        this.finishButton.style.borderRadius = '6px';
+        this.finishButton.style.cursor = 'pointer';
+        this.finishButton.style.fontSize = '13px';
+        this.finishButton.title = 'Übernehmen & Beenden';
+        this.finishButton.addEventListener('click', () => this.handleFinishEarly());
+        rightGroup.appendChild(this.finishButton);
+
         this.nextButton = document.createElement('button');
-        this.nextButton.textContent = 'Next ➔';
-        this.nextButton.style.marginTop = '15px';
-        this.nextButton.style.padding = '8px 16px';
-        this.nextButton.style.float = 'right';
+        this.nextButton.textContent = 'Weiter ➔';
+        this.nextButton.style.padding = '10px 24px';
         this.nextButton.style.backgroundColor = '#007acc';
         this.nextButton.style.color = 'white';
         this.nextButton.style.border = 'none';
+        this.nextButton.style.borderRadius = '6px';
         this.nextButton.style.cursor = 'pointer';
-
+        this.nextButton.style.fontWeight = 'bold';
+        this.nextButton.style.fontSize = '14px';
+        this.nextButton.style.boxShadow = '0 4px 10px rgba(0, 122, 204, 0.3)';
         this.nextButton.addEventListener('click', () => this.handleNext());
+        rightGroup.appendChild(this.nextButton);
+
+        footer.appendChild(rightGroup);
+        this.modal.appendChild(footer);
 
         this.inputField.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') this.handleNext();
+            if (e.key === 'Escape') this.handleCancel();
         });
-
-        this.modal.appendChild(this.contentContainer);
-        this.modal.appendChild(this.inputField);
-        this.modal.appendChild(this.nextButton);
-
-        // Clear float
-        const clr = document.createElement('div');
-        clr.style.clear = 'both';
-        this.modal.appendChild(clr);
 
         this.overlay.appendChild(this.modal);
         document.body.appendChild(this.overlay);
@@ -83,7 +134,7 @@ export class ExpertDialog {
      * Startet den Dialog für einen spezifischen TargetType (z.B. 'task' oder 'action').
      * @param targetName Der Name der Entität (für Updates) or empty string für neu.
      */
-    public async open(targetType: string, targetName: string, existingData: Record<string, any> = {}, _stageId?: string): Promise<Record<string, any>> {
+    public async open(targetType: string, targetName: string, existingData: Record<string, any> = {}, _stageId?: string): Promise<Record<string, any> | null> {
         const firstNode = expertRuleEngine.startSession(targetType, existingData, targetName);
         this.renderNode(firstNode);
 
@@ -98,44 +149,117 @@ export class ExpertDialog {
         this.contentContainer.innerHTML = '';
 
         // Question Bubble
-        const question = document.createElement('div');
-        question.textContent = `🤖 ${node.prompt}`;
-        question.style.fontWeight = 'bold';
-        question.style.marginBottom = '15px';
-        this.contentContainer.appendChild(question);
+        const prompt = document.createElement('p');
+        prompt.style.fontWeight = 'bold';
+        prompt.style.fontSize = '16px';
+        prompt.style.marginBottom = '20px';
+        prompt.innerHTML = `🤖 ${node.prompt} `; // No more duplication in cards
+        this.contentContainer.appendChild(prompt);
+
+        // Clear input area
+        this.inputContainer.innerHTML = '';
 
         // Update Input Field based on type
         if (node.type === 'select') {
-            // For later action phases
-            const select = document.createElement('select');
-            select.className = 'expert-input';
-            select.style.width = '100%';
-            select.style.padding = '8px';
+            const container = document.createElement('div');
+            container.style.display = 'grid';
+            container.style.gridTemplateColumns = '1fr 1fr';
+            container.style.gap = '10px';
+            // container.style.marginTop = '10px'; // Margin is on inputContainer now
 
             (node.options as any[]).forEach(opt => {
-                const option = document.createElement('option');
-                option.value = typeof opt === 'string' ? opt : opt.value;
-                option.textContent = typeof opt === 'string' ? opt : opt.label;
-                select.appendChild(option);
+                const tile = document.createElement('div');
+                const val = (typeof opt === 'string') ? opt : opt.value;
+                const labelText = (typeof opt === 'string') ? opt : opt.label;
+                const descText = (typeof opt === 'object') ? opt.description : '';
+                const emoji = (typeof opt === 'object') ? (opt as any).uiEmoji : '';
+
+                tile.style.backgroundColor = '#2d2d2d';
+                tile.style.border = '1px solid #444';
+                tile.style.borderRadius = '6px';
+                tile.style.padding = '12px';
+                tile.style.cursor = 'pointer';
+                tile.style.transition = 'all 0.2s';
+                tile.style.display = 'flex';
+                tile.style.flexDirection = 'column';
+
+                const label = document.createElement('div');
+                label.textContent = (emoji ? emoji + ' ' : '') + labelText;
+                label.style.fontWeight = 'bold';
+                label.style.fontSize = '13px';
+                label.style.marginBottom = descText ? '4px' : '0';
+                tile.appendChild(label);
+
+                if (descText) {
+                    const desc = document.createElement('div');
+                    desc.textContent = descText;
+                    desc.style.fontSize = '11px';
+                    desc.style.color = '#aaa';
+                    tile.appendChild(desc);
+                }
+
+                tile.onmouseover = () => {
+                    tile.style.borderColor = '#007acc';
+                    tile.style.backgroundColor = '#363636';
+                };
+                tile.onmouseout = () => {
+                    tile.style.borderColor = '#444';
+                    tile.style.backgroundColor = '#2d2d2d';
+                };
+
+                tile.onclick = () => {
+                    (this.inputField as any).value = val;
+                    this.handleNext();
+                };
+
+                container.appendChild(tile);
             });
-            this.inputField.replaceWith(select);
-            this.inputField = select;
+
+            // Keep reference for value retrieval
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            this.inputField = hidden;
+            this.inputContainer.appendChild(container);
+            this.inputContainer.appendChild(hidden);
         } else {
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'expert-input';
             input.style.width = '100%';
-            input.style.padding = '8px';
+            input.style.padding = '10px';
+            input.style.backgroundColor = '#1e1e1e';
+            input.style.color = '#fff';
+            input.style.border = '1px solid #555';
+            input.style.borderRadius = '4px';
+            input.placeholder = 'Wert eingeben...';
 
             // Pre-fill existing data if modifying
             const existingVal = expertRuleEngine.getSessionPayload()[node.propName];
             if (existingVal) input.value = existingVal;
 
-            this.inputField.replaceWith(input);
             this.inputField = input;
+            this.inputContainer.appendChild(input);
         }
 
         setTimeout(() => this.inputField.focus(), 100);
+
+        // Update Button visibility: 'Next' only if there's a next node possible
+        this.nextButton.style.display = node.next ? 'inline-block' : 'none';
+    }
+
+    private handleCancel() {
+        expertRuleEngine.abandonSession();
+        this.overlay.style.display = 'none';
+        if (this.resolvePromise) {
+            this.resolvePromise(null);
+            this.resolvePromise = null;
+        }
+    }
+
+    private handleFinishEarly() {
+        const val = this.inputField.value;
+        expertRuleEngine.forceComplete(val);
+        this.finishSession();
     }
 
     private handleNext() {

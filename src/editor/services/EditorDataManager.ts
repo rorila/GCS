@@ -34,6 +34,7 @@ export interface EditorDataHost {
     commandManager: any;
     menuManager: any;
     undoManager: any;
+    objectStore: any;
 }
 
 export class EditorDataManager {
@@ -246,6 +247,7 @@ export class EditorDataManager {
     }
 
     public autoSaveToLocalStorage() {
+        this.host.syncStageObjectsToProject();
         this.updateProjectJSON();
 
         const globalVarCount = (this.host.project.variables || []).length;
@@ -293,32 +295,13 @@ export class EditorDataManager {
         const activeStage = this.host.getActiveStage();
         if (!this.host.stage || !activeStage) return;
 
-        EditorDataManager.logger.debug(`Syncing objects for stage "${activeStage.id}" to project JSON...`);
-
-        const projectStage = this.host.project.stages?.find((s: any) => s.id === activeStage.id);
-        if (projectStage) {
-            const allObjs = this.host.stageManager.currentObjects(); // Assume stageManager available via host or similar
-
-            const newStageObjects = allObjs.filter((o: any) =>
-                !o.isVariable && !o.isTransient &&
-                (o.scope === activeStage.id || !o.scope || o.scope === 'stage')
-            );
-
-            if (activeStage.type === 'blueprint' && newStageObjects.length === 0 && (projectStage.objects && projectStage.objects.length > 0)) {
-                EditorDataManager.logger.error(`CRITICAL SAFETY BLOCK: Attempted to overwrite Blueprint objects with empty list!`);
-            } else {
-                projectStage.objects = newStageObjects;
-            }
-
-            (projectStage as any).variables = allObjs.filter((o: any) =>
-                o.isVariable && !o.isTransient &&
-                (
-                    o.scope === activeStage.id ||
-                    o.scope === 'stage' ||
-                    (activeStage.type === 'blueprint' && o.scope === 'global')
-                )
-            );
-        }
+        // ARC-FIX: DANGEROUS OVERWRITE REMOVED!
+        // We no longer read from `this.host.stageManager.currentObjects()` to overwrite `projectStage.objects`.
+        // Doing so caused objects from visually-rendered stages to replace the raw un-resolved JSON templates,
+        // which destroyed variable bindings (e.g. converting "\${loginError}" -> "") and intermittently wiped
+        // the objects array entirely during automated test runner execution headless mode.
+        // InteractionManager, CommandManager and Inspector now correctly update the JSON directly!
+        EditorDataManager.logger.debug(`Syncing objects for stage "${activeStage.id}" to project JSON is a NO-OP. (Managed directly in JSON)`);
     }
 
     public morphVariable(variable: any, newType: any) {

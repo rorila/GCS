@@ -24,6 +24,34 @@ export class EditorInteractionManager {
         this.host = host;
     }
 
+    private getOriginalObject(id: string): any {
+        const project = this.host.project;
+        if (!project) return null;
+
+        const findDeep = (objs: any[]): any => {
+            if (!objs) return null;
+            for (const o of objs) {
+                if (o.id === id) return o;
+                if (o.children) {
+                    const found = findDeep(o.children);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+
+        let found = findDeep(project.objects);
+        if (found) return found;
+
+        if (project.stages) {
+            for (const stage of project.stages) {
+                found = findDeep(stage.objects);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
     public initCallbacks() {
         this.host.stage.onDropCallback = (type: string, gridX: number, gridY: number) => {
             this.host.addObject(type, gridX, gridY);
@@ -57,8 +85,16 @@ export class EditorInteractionManager {
             if (obj) {
                 obj.x = newX;
                 obj.y = newY;
-                this.host.render();
             }
+
+            const rawObj = this.getOriginalObject(id);
+            if (rawObj) {
+                rawObj.x = newX;
+                rawObj.y = newY;
+            }
+
+            this.host.render();
+            this.host.autoSaveToLocalStorage();
         };
 
         this.host.stage.onObjectResize = (id: string, newWidth: number, newHeight: number) => {
@@ -66,8 +102,16 @@ export class EditorInteractionManager {
             if (obj) {
                 obj.width = newWidth;
                 obj.height = newHeight;
-                this.host.render();
             }
+
+            const rawObj = this.getOriginalObject(id);
+            if (rawObj) {
+                rawObj.width = newWidth;
+                rawObj.height = newHeight;
+            }
+
+            this.host.render();
+            this.host.autoSaveToLocalStorage();
         };
 
         this.host.stage.onCopyCallback = (id: string) => {
