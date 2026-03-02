@@ -228,10 +228,10 @@ export class FlowGraphManager {
                         /^FinalTest\d*$/.test(nodeName) || /^Data_Action\d*$/.test(nodeName) || nodeName === 'Aufruf';
 
                     if (isGenericName) {
-                        this.deleteElementFromProject('Action', nodeName, undefined, false);
+                        this.deleteElementFromProject('action', nodeName, undefined, false);
                     } else {
                         if (confirm(`Die Aktion "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch aus der globalen Aktions-Liste gelöscht werden?`)) {
-                            this.deleteElementFromProject('Action', nodeName, undefined, true);
+                            this.deleteElementFromProject('action', nodeName, undefined, true);
                         }
                     }
                 }
@@ -346,7 +346,7 @@ export class FlowGraphManager {
         this.host.setupConnectionListeners(conn);
     }
 
-    public deleteElementFromProject(type: 'action' | 'Task', name: string, index?: number, force: boolean = false) {
+    public deleteElementFromProject(type: 'action' | 'task' | 'variable', name: string, index?: number, force: boolean = false) {
         if (!this.host.project) return;
 
         if (type === 'action') {

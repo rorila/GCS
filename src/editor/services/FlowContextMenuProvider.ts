@@ -6,6 +6,8 @@ import { ContextMenu, ContextMenuItem } from '../ui/ContextMenu';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { libraryService } from '../../services/LibraryService';
 import { FlowNamingService } from './FlowNamingService';
+import { ExpertDialog } from '../../components/ExpertDialog';
+import { RefactoringManager } from '../RefactoringManager';
 
 export interface FlowContextMenuHost {
     project: GameProject | null;
@@ -24,13 +26,16 @@ export interface FlowContextMenuHost {
     getTargetFlowCharts: (context: string) => any;
     syncManager: any; // For global action updates
     createNode: (type: string, x: number, y: number, initialName?: string) => FlowElement | null;
+    renameObjectWithRefactoring?: (id: string, newName: string, oldName?: string) => void;
 }
 
 export class FlowContextMenuProvider {
     private host: FlowContextMenuHost;
+    private expertDialog: ExpertDialog;
 
     constructor(host: FlowContextMenuHost) {
         this.host = host;
+        this.expertDialog = new ExpertDialog();
     }
 
     public handleNodeContextMenu(e: MouseEvent, node: FlowElement): void {
@@ -57,6 +62,65 @@ export class FlowContextMenuProvider {
             label: 'Bearbeiten...',
             action: () => this.host.handleNodeDoubleClick(node)
         });
+
+        // 1b. Expert Mode
+        if (node instanceof FlowTask) {
+            items.push({
+                label: '🧙‍♂️ Expert Edit (Task)',
+                action: () => {
+                    // Get existing data to prepopulate wizard
+                    const existingData = {
+                        name: node.Name,
+                        description: node.Description || ''
+                    };
+
+                    // currentFlowContext is usually the stage id if we are not deep
+                    const stageId = this.host.currentFlowContext === 'event-map' ? 'blueprint' : this.host.currentFlowContext;
+
+                    this.expertDialog.open('task', node.Name, existingData, stageId).then((payload) => {
+                        if (!payload) return;
+
+                        const newName = payload.name;
+                        const newDesc = payload.description;
+
+                        if (newName) {
+                            if (node.Name !== newName) {
+                                // Delegate to central refactoring manager via Editor
+                                if (this.host.renameObjectWithRefactoring) {
+                                    this.host.renameObjectWithRefactoring(node.Name, newName, node.Name);
+                                } else {
+                                    // Fallback if not hosted in full editor
+                                    const proj = projectRegistry.getProject();
+                                    if (proj) RefactoringManager.renameTask(proj, node.Name, newName);
+                                }
+                            }
+
+                            // description update
+                            const proj = projectRegistry.getProject();
+                            const existingTask = proj?.tasks?.find(t => t.name === newName) ||
+                                proj?.stages?.flatMap(s => s.tasks || []).find(t => t.name === newName);
+
+                            if (existingTask && newDesc !== undefined) {
+                                existingTask.description = newDesc;
+                            }
+
+                            // Update diagram node visuals
+                            node.Name = newName;
+                            node.setText(newName);
+                            node.data = { ...node.data, name: newName, taskName: newName, details: newDesc };
+                            if (newDesc !== undefined) {
+                                node.Description = newDesc;
+                            }
+                        }
+
+                        // Force global sync and redraw after expert dialog finishes
+                        this.host.syncToProject();
+                        this.host.updateFlowSelector();
+                        if (this.host.onProjectChange) this.host.onProjectChange();
+                    });
+                }
+            });
+        }
 
         const elementName = node.Name || node.id;
         const liveRefs = projectRegistry.findReferences(elementName);

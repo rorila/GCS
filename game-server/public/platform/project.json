@@ -1162,12 +1162,7 @@
         },
         {
           "name": "ANewTask",
-          "actionSequence": [
-            {
-              "name": "Action1",
-              "type": "action"
-            }
-          ],
+          "actionSequence": [],
           "triggerMode": "local-sync",
           "params": [],
           "description": "",
@@ -1178,54 +1173,56 @@
                 "type": "task",
                 "x": 60,
                 "y": 80,
-                "width": 140,
+                "width": 220,
                 "height": 60,
                 "properties": {
-                  "name": "ANewTask",
+                  "name": "GetTheCurrentUserRR",
                   "details": "",
-                  "description": "",
-                  "text": "ANewTask"
+                  "description": "Das ist die BeschreibungXX",
+                  "text": "GetTheCurrentUserRR"
                 },
                 "data": {
-                  "name": "ANewTask",
-                  "showDetails": false
-                }
-              },
-              {
-                "id": "node-1772439306757",
-                "type": "action",
-                "x": 340,
-                "y": 80,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Action1",
-                  "details": "",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Action1",
-                  "isLinked": true
+                  "name": "GetTheCurrentUserRR",
+                  "showDetails": false,
+                  "taskName": "GetTheCurrentUserRR",
+                  "details": "Das ist die BeschreibungXX",
+                  "description": "Das ist die BeschreibungXX"
                 }
               }
             ],
-            "connections": [
+            "connections": []
+          }
+        },
+        {
+          "name": "TestTaskNeuer Name",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "neue Beschreibung",
+          "flowChart": {
+            "elements": [
               {
-                "id": "conn_1772439323877_872",
-                "startTargetId": "node-1772438456508",
-                "endTargetId": "node-1772439306757",
-                "startX": 199.90625,
-                "startY": 109,
-                "endX": 340,
-                "endY": 100,
+                "id": "node-1772452353360",
+                "type": "task",
+                "x": 400,
+                "y": 200,
+                "width": 220,
+                "height": 60,
+                "properties": {
+                  "name": "TestTaskNeuer Name",
+                  "details": "",
+                  "description": "neue Beschreibung",
+                  "text": "TestTaskNeuer Name"
+                },
                 "data": {
-                  "startAnchorType": "output",
-                  "originalStartAnchorType": "output",
-                  "isEmbeddedInternal": false,
-                  "endAnchorType": "input"
+                  "name": "TestTaskNeuer Name",
+                  "showDetails": false,
+                  "taskName": "TestTaskNeuer Name",
+                  "description": "dfdfdfdfxcxcxcxc"
                 }
               }
-            ]
+            ],
+            "connections": []
           }
         }
       ],
@@ -1526,54 +1523,49 @@
               "type": "task",
               "x": 60,
               "y": 80,
-              "width": 140,
+              "width": 220,
               "height": 60,
               "properties": {
-                "name": "ANewTask",
+                "name": "GetTheCurrentUserRR",
                 "details": "",
-                "description": "",
-                "text": "ANewTask"
+                "description": "Das ist die BeschreibungXX",
+                "text": "GetTheCurrentUserRR"
               },
               "data": {
-                "name": "ANewTask",
-                "showDetails": false
-              }
-            },
-            {
-              "id": "node-1772439306757",
-              "type": "action",
-              "x": 340,
-              "y": 80,
-              "width": 140,
-              "height": 60,
-              "properties": {
-                "name": "Action1",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "Action1",
-                "isLinked": true
+                "name": "GetTheCurrentUserRR",
+                "showDetails": false,
+                "taskName": "GetTheCurrentUserRR",
+                "details": "Das ist die BeschreibungXX",
+                "description": "Das ist die BeschreibungXX"
               }
             }
           ],
-          "connections": [
+          "connections": []
+        },
+        "TestTaskNeuer Name": {
+          "elements": [
             {
-              "id": "conn_1772439323877_872",
-              "startTargetId": "node-1772438456508",
-              "endTargetId": "node-1772439306757",
-              "startX": 199.90625,
-              "startY": 109,
-              "endX": 340,
-              "endY": 100,
+              "id": "node-1772452353360",
+              "type": "task",
+              "x": 400,
+              "y": 200,
+              "width": 220,
+              "height": 60,
+              "properties": {
+                "name": "TestTaskNeuer Name",
+                "details": "",
+                "description": "neue Beschreibung",
+                "text": "TestTaskNeuer Name"
+              },
               "data": {
-                "startAnchorType": "output",
-                "originalStartAnchorType": "output",
-                "isEmbeddedInternal": false,
-                "endAnchorType": "input"
+                "name": "TestTaskNeuer Name",
+                "showDetails": false,
+                "taskName": "TestTaskNeuer Name",
+                "description": "dfdfdfdfxcxcxcxc"
               }
             }
-          ]
+          ],
+          "connections": []
         }
       },
       "_showGlobalPreview": false,
@@ -2640,7 +2632,15 @@
           "defaultCollection": "users"
         }
       ],
-      "tasks": [],
+      "tasks": [
+        {
+          "name": "GetTheCurrentUserRR",
+          "description": "Das ist die BeschreibungXX",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": []
+        }
+      ],
       "actions": [],
       "flowCharts": {}
     },

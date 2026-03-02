@@ -299,6 +299,31 @@ export class EditorCommandManager {
             if (globalVar) return globalVar;
         }
 
+        // 4. Fallback: Tasks und Actions (Identifiziert über Namen)
+        if (this.editor.project) {
+            const allTasks = [...(this.editor.project.tasks || [])];
+            const allActions = [...(this.editor.project.actions || [])];
+
+            if (this.editor.project.stages) {
+                this.editor.project.stages.forEach(s => {
+                    if (s.tasks) allTasks.push(...s.tasks);
+                    if (s.actions) allActions.push(...s.actions);
+                });
+            }
+
+            const taskObj = allTasks.find(t => (t as any).id === id || t.name === id);
+            if (taskObj) {
+                if (!(taskObj as any).getType) (taskObj as any).getType = () => 'task';
+                return taskObj;
+            }
+
+            const actionObj = allActions.find(a => (a as any).id === id || a.name === id);
+            if (actionObj) {
+                if (!(actionObj as any).getType) (actionObj as any).getType = () => 'action';
+                return actionObj;
+            }
+        }
+
         return null;
     }
 

@@ -134,6 +134,12 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         this.syncManager.syncAllTasksFromFlow();
     }
 
+    public renameObjectWithRefactoring(id: string, newName: string, oldName?: string) {
+        if (this.editor) {
+            this.editor.renameObjectWithRefactoring(id, newName, oldName);
+        }
+    }
+
     /**
      * Updates the visual representation of a single node based on its internal `data`.
      * This prevents complete canvas re-renders and preserves selection state.

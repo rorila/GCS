@@ -499,7 +499,7 @@ export class TDebugLog {
         const timeLabel = `<span style="color: #555; font-size: 9px; margin-left: auto; margin-top: 2px;">${new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>`;
 
         let detailText = '';
-        if (entry.type === 'action' && entry.data) {
+        if (entry.type === 'Action' && entry.data) {
             const data = entry.data;
             if (data.type === 'calculate') {
                 detailText = `(${data.resultVariable || 'result'} = ${data.formula || '?'})`;

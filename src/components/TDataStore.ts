@@ -9,7 +9,7 @@ import { Logger } from '../utils/Logger';
  * Im Editor wird localStorage genutzt, im Server-Modus das Dateisystem.
  */
 export class TDataStore extends TPanel implements IRuntimeComponent {
-    private static logger = Logger.get('TDataStore', 'Project_Validation');
+    private static dsLogger = Logger.get('TDataStore', 'Project_Validation');
     public storagePath: string = 'data.json';
     public defaultCollection: string = 'items';
 
@@ -21,7 +21,7 @@ export class TDataStore extends TPanel implements IRuntimeComponent {
 
     constructor(name: string = 'DataStore', x: number = 0, y: number = 0) {
         super(name, x, y, 6, 4);
-        TDataStore.logger.info(`Constructor: name=${this.name} (arg=${name})`);
+        TDataStore.dsLogger.info(`Constructor: name=${this.name} (arg=${name})`);
 
         // Datenbank-Design (Zylinder-Optik via Hintergrund)
         this.style.backgroundColor = '#2c3e50';
@@ -39,10 +39,10 @@ export class TDataStore extends TPanel implements IRuntimeComponent {
     }
 
     set caption(v: string) {
-        TDataStore.logger.info(`set caption("${v}") - Current name: ${this.name}`);
+        TDataStore.dsLogger.info(`set caption("${v}") - Current name: ${this.name}`);
         this._caption = v;
         if (this.name !== 'UserData' && this.name !== 'DataStore' && this.name !== 'LocalStore') {
-            TDataStore.logger.warn(`Warning: name has changed to ${this.name}!`);
+            TDataStore.dsLogger.warn(`Warning: name has changed to ${this.name}!`);
         }
     }
 

@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## [3.15.6] - 2026-03-02
+### Fixed
+- **FlowEditor Context Jump Bugfix**: Behebung des Fehlers, bei dem der FlowEditor nach der Umbenennung eines Tasks via Agent Wizard zu "Main Flow" (Global Context) zurücksprang. 
+  - Ursache: Die Methode `EditorCommandManager.findObjectById` lieferte bei Tasks und Actions rohe JSON-Objekte aus `project.json` zurück, welche keine `getType()` Methode besaßen. Folglich schlug der `isFlowNode` Check bei der Umbenennung fehl (`type` evaluierte zu `''`), wodurch `FlowEditor.renameContext(oldName, newName)` nie aufgerufen wurde.
+  - Fix: Den von `findObjectById` gefundenen raw JSON-Objekten (Task/Action) wird nun dynamisch eine `getType: () => 'task'` bzw. `'action'` Methode angehängt. Dadurch wird der Kontext im FlowEditor vor dem Neuladen korrekt aktualisiert, und der Editor verbleibt im selben Diagramm.
+- **TypeScript & UI Bugfixes**: `TDebugLog.ts` Verlgeich auf korrekten Type (`Action`), `TDataStore.ts` Static Property Shadowing (`logger` umbenannt in `dsLogger`), sowie UI CSS Fixes (zIndex Update für Debug Toggle Button).
+
+## [3.15.5] - 2026-03-02
+### Fixed
+- **Task Rename Synchronization**: Vollständige Behebung des Synchronisations-Bugs bei der Umbenennung von Tasks/Actions.
+  - Das Umbenennen über den Inspector (`InspectorEventHandler.ts` -> `Editor.ts`) sowie über den Expert-Wizard (`FlowContextMenuProvider.ts`) nutzt nun zentral `EditorCommandManager.renameObject`.
+  - Bugfix in `EditorCommandManager.findObjectById`: Die Methode durchsucht nun explizit auch Tasks und Aktionen nach ihrem `name`-Attribut (da diese keine UUID besitzen). Dies stellt sicher, dass das Refactoring-Framework das Entity korrekt auflöst und nicht nur isoliert im UI operiert.
+  - Dadurch werden JSON-Daten, Dropdown-Listen und Flow-Charts wieder zu 100 % passend umbenannt.
+
 ## [3.15.4] - 2026-03-02
 ### Changed
 - **Systematic Case-Sensitivity Fix**: Komplette Umstellung aller Flow-Node-Typen (`Task`, `Action`, `DataAction`, `Condition`, `Start`) auf durchgängige Kleinschreibung im gesamten Quellcode (TypeScript) und in der Projektdatei (`project.json`). Dies verhindert fehlerhafte Vergleiche (`===`) und unbemerkte Dateninkonsistenzen in der Sequenzgenerierung oder beim Löschen von Objekten.

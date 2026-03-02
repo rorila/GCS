@@ -43,5 +43,6 @@ Ausführliche Details findest du in den spezialisierten Dokumenten:
 - **DO NOT**: Vergesse NIEMALS die `projectRef` Zuweisung in der `FlowNodeFactory` für neue Knoten-Typen.
 - **DO NOT**: Vergesse NIEMALS, beim Löschen von Actions (`deleteAction`) alle Sub-Typen wie `DataAction` oder `HttpAction` im Filter zu berücksichtigen, um verwaiste Knoten-Reste in Flow-Charts zu vermeiden.
 - **DO NOT**: Verlasse dich bei der Referenzprüfung (`ProjectRegistry`) niemals auf exakte Typ-Übereinstimmungen ohne Normalisierung (Bugfix v3.15.2).
+- **DO NOT**: Vergiss NIEMALS, dass `EditorCommandManager.findObjectById` Objekte via String-Namen auflösen muss, wenn UI-Handler (wie `InspectorActionHandler` oder `FlowContextMenuProvider`) ein Umbenennen triggern. Es muss sichergestellt werden, dass Basis-Tasks/Actions dort als Entity gefunden werden, sonst greift das projektweite Refactoring ins Leere und nur das isolierte JSON-Objekt ändert seinen Namen (Bugfix v3.15.3).
 
-Letzte Aktualisierung: v3.15.2 (Fix: Action Deletion Case-Sensitivity in Registry)
+Letzte Aktualisierung: v3.15.3 (Fix: Task/Action Resolution by Name in CommandManager)
