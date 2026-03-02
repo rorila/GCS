@@ -282,7 +282,7 @@ export class FlowGraphHydrator {
                     };
                 }
 
-                if (newNode.getType() === 'Start') importedStart = newNode;
+                if (newNode.getType() === 'start') importedStart = newNode;
             }
         });
 
@@ -389,7 +389,7 @@ export class FlowGraphHydrator {
         }
 
         newNodes.forEach(node => {
-            if (node.getType() === 'Action' && (node as FlowAction).actionType === 'data_action') {
+            if (node.getType() === 'action' && (node as FlowAction).actionType === 'data_action') {
                 this.expandDataActionFlow(node as FlowAction);
             }
         });

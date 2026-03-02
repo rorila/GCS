@@ -501,7 +501,7 @@ export abstract class FlowElement {
         this.data.description = v;
 
         // Propagate to registry if possible
-        if ((this as any).projectRef && (this as any).getType && (this as any).getType() === 'Task') {
+        if ((this as any).projectRef && (this as any).getType && (this as any).getType() === 'task') {
             const taskName = this.data.taskName || this.Name;
             const task = (this as any).projectRef.tasks.find((t: any) => t.name === taskName);
             if (task) task.description = v;

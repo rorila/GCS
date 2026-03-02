@@ -61,7 +61,7 @@ export class FlowNodeFactory {
                 }
                 break;
             }
-            case 'dataaction': {
+            case 'data_action': {
                 node = new FlowDataAction(id, x, y, this.host.canvas, cellSize);
                 if (initialName && initialName !== 'DataAction' && initialName !== 'Daten-Aktion') {
                     node.Name = initialName;

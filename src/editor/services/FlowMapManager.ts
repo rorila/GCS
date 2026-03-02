@@ -313,7 +313,7 @@ export class FlowMapManager {
                 node.setText(node.Name);
                 node.Width = maxActionWidth;
                 node.Height = baseNodeHeight;
-                node.data = { ...action, isOverviewLink: true, type: 'Action', canDelete: !isUsed };
+                node.data = { ...action, isOverviewLink: true, type: 'action', canDelete: !isUsed };
                 node.setDetailed(true);
                 (node as any).setUsageInfo(refs);
                 if (!isUsed) node.setUnused(true);
@@ -358,7 +358,7 @@ export class FlowMapManager {
                     node.Details = `📚 ${usedLib}`;
                 }
 
-                node.data = { isOverviewLink: true, type: 'Task', canDelete: !isUsed, taskName: task.name, isLocal };
+                node.data = { isOverviewLink: true, type: 'task', canDelete: !isUsed, taskName: task.name, isLocal };
                 node.setDetailed(true);
                 (node as any).setUsageInfo(refs);
                 if (!isUsed) node.setUnused(true);
@@ -481,13 +481,13 @@ export class FlowMapManager {
             name = name.trim();
             let isUnused = false;
 
-            if (nodeType === 'Action') {
+            if (nodeType === 'action') {
                 isUnused = !usage.actions.has(name);
                 if (isUnused) {
                     unusedActionCount++;
                     // console.log(`  [Check] Action "${name}" (ID: ${node.id}) is UNUSED. Usage Set contains:`, Array.from(usage.actions));
                 }
-            } else if (nodeType === 'Task') {
+            } else if (nodeType === 'task') {
                 isUnused = !usage.tasks.has(name);
                 if (isUnused) unusedTaskCount++;
             } else if (nodeType === 'VariableDecl' || nodeType === 'TVariable') {

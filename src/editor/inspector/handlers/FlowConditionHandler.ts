@@ -8,7 +8,7 @@ export class FlowConditionHandler implements IInspectorHandler {
     canHandle(obj: any): boolean {
         const isCondition = obj && (
             obj.constructor?.name === 'FlowCondition' ||
-            (typeof obj.getType === 'function' && obj.getType() === 'Condition')
+            (typeof obj.getType === 'function' && obj.getType() === 'condition')
         );
         if (isCondition) console.log('[FlowConditionHandler] Identified Condition node!');
         return !!isCondition;

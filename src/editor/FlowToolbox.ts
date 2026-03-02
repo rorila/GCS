@@ -17,17 +17,17 @@ export class FlowToolbox {
 
         const items = [
             { label: 'Variable', icon: '📦', type: 'VariableDecl' }, // Stays task-local
-            { label: 'Task', icon: '⚡', type: 'Task' },
-            { label: 'Action', icon: '🎬', type: 'Action' },
+            { label: 'Task', icon: '⚡', type: 'task' },
+            { label: 'Action', icon: '🎬', type: 'action' },
             { label: 'HTTP Request', icon: '🌐', type: 'Action:http' },
             { label: 'Store Token', icon: '🔑', type: 'Action:store_token' },
             { label: 'Variable Set', icon: '📦', type: 'Action:variable' },
-            { label: 'If Condition', icon: '❓', type: 'Condition' },
+            { label: 'If Condition', icon: '❓', type: 'condition' },
             { label: 'For Loop', icon: '🔄', type: 'For' },
             { label: 'While Loop', icon: '💫', type: 'While' },
             { label: 'Repeat Until', icon: '🔁', type: 'Repeat' },
             { label: 'Pfeil', icon: '🔗', type: 'Connection' },
-            { label: 'Start', icon: '🏁', type: 'Start' },
+            { label: 'Start', icon: '🏁', type: 'start' },
             { label: 'End', icon: '🛑', type: 'End' }
         ];
 

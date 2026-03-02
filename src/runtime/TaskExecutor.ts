@@ -264,8 +264,8 @@ export class TaskExecutor {
 
         // Find the start node (Task node with same name as the task, or a Start node)
         const startNode = elements.find((e: any) =>
-            (e.type === 'Task' && e.properties?.name === taskName) ||
-            (e.type === 'Start')
+            (e.type === 'task' && e.properties?.name === taskName) ||
+            (e.type === 'start')
         );
 
         if (!startNode) {
@@ -284,7 +284,7 @@ export class TaskExecutor {
             const name = node.properties?.name || node.data?.name || node.data?.actionName;
 
             // Skip the task node itself (it's just the entry point)
-            if (nodeType === 'Task' && name === taskName) {
+            if (nodeType === 'task' && name === taskName) {
                 // Find outgoing connections and execute them
                 const outgoing = connections.filter((c: any) => c.startTargetId === node.id);
                 for (const conn of outgoing) {
@@ -295,7 +295,7 @@ export class TaskExecutor {
             }
 
 
-            if (nodeType === 'Action' || nodeType === 'action') {
+            if (nodeType === 'action' || nodeType === 'action') {
                 // Execute this action
                 const action = this.resolveAction({ type: 'action', name: name }) || node.data;
                 if (action) {
@@ -348,7 +348,7 @@ export class TaskExecutor {
                 return;
             }
 
-            if (nodeType === 'Task' || nodeType === 'task') {
+            if (nodeType === 'task' || nodeType === 'task') {
                 // Execute sub-task
                 await this.execute(name, vars, globalVars, contextObj, depth + 1, parentId, node.data?.params);
 
@@ -364,7 +364,7 @@ export class TaskExecutor {
                 return;
             }
 
-            if (nodeType === 'DataAction' || nodeType === 'data_action') {
+            if (nodeType === 'data_action' || nodeType === 'data_action') {
                 // Execute DataAction
                 const action = this.resolveAction({ type: 'data_action', name: name }) || node.data;
 
@@ -406,7 +406,7 @@ export class TaskExecutor {
                 return;
             }
 
-            if (nodeType === 'Condition' || nodeType === 'condition') {
+            if (nodeType === 'condition' || nodeType === 'condition') {
                 const condition = node.data?.condition;
                 if (!condition) {
                     logger.warn(`Condition node without condition data: ${node.id} `);

@@ -19,9 +19,10 @@ export interface FlowInteractionHost {
     createNode(type: string, x: number, y: number, initialName?: string): FlowElement | null;
     deleteNode(node: FlowElement): void;
     deleteConnection(conn: FlowConnection): void;
+    syncToProject(): void;
+    syncManager?: any;
     deselectAll(emitEvent?: boolean): void;
     selectConnection(conn: FlowConnection | null): void;
-    syncToProject(): void;
     handleNodeDoubleClick(node: FlowElement): void;
 
     // State needed for dragging
@@ -97,7 +98,7 @@ export class FlowInteractionManager {
             finalY = snapped.y;
         }
 
-        if (type === 'Task') {
+        if (type === 'task') {
             this.host.createNode(type, finalX, finalY, data?.name || 'Task');
         } else {
             this.host.createNode(type, finalX, finalY, type);
@@ -316,7 +317,7 @@ export class FlowInteractionManager {
                     // Determine NEAREST anchor type
                     const availableTypes: any[] = ['input', 'output', 'top', 'bottom'];
                     if (node instanceof FlowCondition) availableTypes.push('true', 'false');
-                    if (node.getType() === 'Action' && (node as any).actionType === 'data_action') availableTypes.push('success', 'error');
+                    if (node.getType() === 'action' && (node as any).actionType === 'data_action') availableTypes.push('success', 'error');
 
                     let minDistance = Infinity;
                     let nearestType = isStart ? 'output' : 'input';
@@ -351,6 +352,10 @@ export class FlowInteractionManager {
             }
             this.host.activeConnection.updatePosition();
             this.host.syncToProject();
+            // Trigger immediate logic sync for connections
+            if (this.host.syncManager) {
+                this.host.syncManager.syncToProject(this.host.currentFlowContext);
+            }
 
             // Re-select to update Inspector with final attachment state
             this.host.selectionManager.selectConnection(this.host.activeConnection);

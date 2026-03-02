@@ -63,7 +63,7 @@ export class FlowGraphManager {
         const baseType = type.includes(':') ? type.split(':')[0] : type;
 
         switch (baseType) {
-            case 'Action': {
+            case 'action': {
                 const actionSubtype = type.includes(':') ? type.split(':')[1] : null;
                 node = new FlowAction(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
                 if (initialName && initialName !== 'Action' && initialName !== 'Aktion') {
@@ -80,7 +80,7 @@ export class FlowGraphManager {
                 }
                 break;
             }
-            case 'DataAction':
+            case 'data_action':
                 node = new FlowDataAction(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
                 if (initialName && initialName !== 'DataAction' && initialName !== 'Daten-Aktion') {
                     node.Name = initialName;
@@ -91,11 +91,11 @@ export class FlowGraphManager {
                     (node as FlowAction).setShowDetails(true, this.host.project);
                 }
                 break;
-            case 'Condition':
+            case 'condition':
                 node = new FlowCondition(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
                 node.Name = initialName || 'Bedingung';
                 break;
-            case 'Task': {
+            case 'task': {
                 let taskName = initialName;
                 if (!taskName) {
                     taskName = prompt("Name für den neuen Task:", this.host.generateUniqueTaskName("ANewTask")) || undefined;
@@ -157,7 +157,7 @@ export class FlowGraphManager {
                 (node as FlowLoop).updateVisuals?.();
                 break;
             }
-            case 'Start':
+            case 'start':
                 node = new FlowStart(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
                 node.Name = 'Start';
                 break;
@@ -182,7 +182,7 @@ export class FlowGraphManager {
         this.host.selectNode(node);
         this.host.syncToProject();
 
-        if (baseType === 'Action' || baseType === 'DataAction') {
+        if (baseType === 'action' || baseType === 'data_action') {
             FlowGraphManager.lifecycleLogger.info(`Action "${node.Name}" wurde im Flow-Diagramm erstellt.`);
         }
         return node;
@@ -211,14 +211,14 @@ export class FlowGraphManager {
 
         console.log(`[TRACE] FlowGraphManager: deleteNodeSilent gestartet für "${nodeName}" (ID: ${node.id}, Typ: ${nodeType})`);
 
-        if (nodeType === 'action' || nodeType === 'dataaction' || nodeType === 'data_action') {
+        if (nodeType === 'action' || nodeType === 'data_action' || nodeType === 'data_action') {
             FlowGraphManager.lifecycleLogger.info(`Action "${nodeName}" wurde aus dem Flow-Diagramm entfernt.`);
         }
 
         this.removeNode(node.id);
         this.host.syncToProject();
 
-        if ((nodeType === 'action' || nodeType === 'dataaction' || nodeType === 'data_action') && nodeName &&
+        if ((nodeType === 'action' || nodeType === 'data_action' || nodeType === 'data_action') && nodeName &&
             nodeName !== 'Aktion' && nodeName !== 'Action' && nodeName !== 'DataAction' && nodeName !== 'Data_Action') {
             setTimeout(() => {
                 const refs = projectRegistry.findReferences(nodeName);
@@ -307,6 +307,10 @@ export class FlowGraphManager {
                 this.host.selectedConnection = null;
             }
             this.host.syncToProject();
+            // Trigger logic sync immediately after connection deletion
+            if (this.host.syncManager) {
+                this.host.syncManager.syncToProject(this.host.currentFlowContext);
+            }
         }
     }
 
@@ -342,10 +346,10 @@ export class FlowGraphManager {
         this.host.setupConnectionListeners(conn);
     }
 
-    public deleteElementFromProject(type: 'Action' | 'Task', name: string, index?: number, force: boolean = false) {
+    public deleteElementFromProject(type: 'action' | 'Task', name: string, index?: number, force: boolean = false) {
         if (!this.host.project) return;
 
-        if (type === 'Action') {
+        if (type === 'action') {
             const usageCount = RefactoringManager.getActionUsageCount(this.host.project, name);
             if (!force && usageCount > 0) return;
 
@@ -368,7 +372,7 @@ export class FlowGraphManager {
             // GLOBAL UI SYNC
             mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
 
-        } else if (type === 'Task') {
+        } else if (type === 'task') {
             RefactoringManager.deleteTask(this.host.project, name);
             if (this.host.onProjectChange) this.host.onProjectChange();
             // SYNC SELECTOR: If a task is gone, the dropdown must reflect it

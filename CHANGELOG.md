@@ -1,6 +1,13 @@
 # CHANGELOG
 
-## [3.15.2] - 2026-03-02
+## [3.15.4] - 2026-03-02
+### Changed
+- **Systematic Case-Sensitivity Fix**: Komplette Umstellung aller Flow-Node-Typen (`Task`, `Action`, `DataAction`, `Condition`, `Start`) auf durchgängige Kleinschreibung im gesamten Quellcode (TypeScript) und in der Projektdatei (`project.json`). Dies verhindert fehlerhafte Vergleiche (`===`) und unbemerkte Dateninkonsistenzen in der Sequenzgenerierung oder beim Löschen von Objekten.
+
+### Added
+- **Sofortige Verbindungs-Synchronisation**: Jede neue oder gelöschte Verbindung im Flow-Diagramm wird nun unmittelbar in der `actionSequence` des JSON-Datenmodells registriert.
+- **Ghost Task Auto-Creation**: Wenn ein Flow-Diagramm ohne zugehörige Task-Definition existiert, wird diese nun automatisch erstellt und synchronisiert.
+- **Casing-Robustness**: Unterstützung für beide Schreibweisen (`tasks` und `Tasks`) in Stage-Definitionen zur Vermeidung von Datenverlust.
 ### Fixed
 - **Action-Löschung (Final Bugfix)**: Vollständige Korrektur der Action-Löschung aus dem Flow-Diagramm. Die Action wird nun zuverlässig aus allen Projekt-Strukturen (Global, Stages, Sequenzen) entfernt.
 - **Case-Sensitivity**: Behebung von Fehlern bei der Erkennung von Node-Typen (Normalisierung auf Kleinschreibung 'action').

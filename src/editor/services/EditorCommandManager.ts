@@ -99,9 +99,9 @@ export class EditorCommandManager {
 
             // --- Refactoring Cleanup ---
             if (obj) {
-                if (obj.className === 'TAction' || obj.type === 'action' || obj.type === 'data_action' || (obj as any).type === 'Action') {
+                if (obj.className === 'TAction' || obj.type === 'action' || obj.type === 'data_action' || (obj as any).type === 'action') {
                     RefactoringManager.deleteAction(this.editor.project, obj.name);
-                } else if (obj.className === 'TTask' || obj.type === 'task' || (obj as any).type === 'Task') {
+                } else if (obj.className === 'TTask' || obj.type === 'task' || (obj as any).type === 'task') {
                     RefactoringManager.deleteTask(this.editor.project, obj.name);
                 } else if (obj.scope === 'global' || obj.isVariable) {
                     RefactoringManager.deleteVariable(this.editor.project, id);

@@ -2,7 +2,7 @@ import { FlowAction } from './FlowAction';
 import { GameProject } from '../../model/types';
 
 export class FlowDataAction extends FlowAction {
-    public getType(): string { return 'dataaction'; }
+    public getType(): string { return 'data_action'; }
 
     public getEvents(): string[] {
         return ['onSuccess', 'onError'];

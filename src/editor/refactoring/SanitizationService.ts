@@ -211,7 +211,7 @@ export class SanitizationService {
                 if (!flowChart || !flowChart.elements) return;
 
                 flowChart.elements.forEach((el: any) => {
-                    if (el.type === 'Action') {
+                    if (el.type === 'action') {
                         const actionName = el.properties?.name || el.data?.name;
 
                         if (el.data) {

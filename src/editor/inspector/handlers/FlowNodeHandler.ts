@@ -14,8 +14,8 @@ export class FlowNodeHandler implements IInspectorHandler {
             obj?.isFlowNode === true) return true;
 
         // Check for raw data objects that might be tasks or actions in the editor
-        const getType = (typeof obj?.getType === 'function') ? obj.getType() : null;
-        if (getType === 'Task' || getType === 'Action' || getType === 'DataAction') return true;
+        const nodeType = (typeof obj.getType === 'function') ? obj.getType() : null;
+        if (nodeType === 'task' || nodeType === 'action' || nodeType === 'data_action') return true;
 
         return false;
     }
@@ -23,9 +23,9 @@ export class FlowNodeHandler implements IInspectorHandler {
     getInspectorTemplate(obj: any): string | null {
         const type = (typeof obj?.getType === 'function') ? obj.getType() : null;
 
-        if (type === 'DataAction') return './inspector_data_action.json';
-        if (type === 'Task') return './inspector_task.json';
-        if (type === 'Action') return './inspector_action.json';
+        if (type === 'data_action') return './inspector_data_action.json';
+        if (type === 'task') return './inspector_task.json';
+        if (type === 'action') return './inspector_action.json';
 
         return './inspector_flow.json';
     }
@@ -39,7 +39,7 @@ export class FlowNodeHandler implements IInspectorHandler {
             // Determine subtype (Task vs Action)
             const type = (typeof object.getType === 'function') ? object.getType() : 'Task';
 
-            if (type === 'Task' || type === 'Action' || type === 'DataAction') {
+            if (type === 'task' || type === 'action' || type === 'data_action') {
                 // Return true to signal that this is a naming change handled by specialized logic.
                 // The central EditorCommandManager will perform the actual project-wide refactoring.
                 // WE REMOVED the immediate object.Name update here, because it pollutes the shared

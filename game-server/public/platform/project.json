@@ -908,7 +908,7 @@
             "elements": [
               {
                 "id": "node-1770912717577",
-                "type": "Task",
+                "type": "task",
                 "x": 40,
                 "y": 80,
                 "width": 180,
@@ -926,7 +926,7 @@
               },
               {
                 "id": "node-1770912760363",
-                "type": "Action",
+                "type": "action",
                 "x": 340,
                 "y": 80,
                 "width": 140,
@@ -970,7 +970,7 @@
             "elements": [
               {
                 "id": "node-trylogin-root",
-                "type": "Task",
+                "type": "task",
                 "x": 40,
                 "y": 80,
                 "width": 180,
@@ -1018,7 +1018,7 @@
             "elements": [
               {
                 "id": "node-1771513021504-1",
-                "type": "Task",
+                "type": "task",
                 "x": 20,
                 "y": 60,
                 "width": 160,
@@ -1036,7 +1036,7 @@
               },
               {
                 "id": "node-1771513021504-2",
-                "type": "DataAction",
+                "type": "data_action",
                 "x": 260,
                 "y": 60,
                 "width": 220,
@@ -1053,7 +1053,7 @@
               },
               {
                 "id": "node-1771513021504-4",
-                "type": "Action",
+                "type": "action",
                 "x": 620,
                 "y": 60,
                 "width": 160,
@@ -1070,7 +1070,7 @@
               },
               {
                 "id": "node-1771513021504-5",
-                "type": "Action",
+                "type": "action",
                 "x": 260,
                 "y": 200,
                 "width": 160,
@@ -1087,7 +1087,7 @@
               },
               {
                 "id": "node-1771513021504-6",
-                "type": "Action",
+                "type": "action",
                 "x": 260,
                 "y": 320,
                 "width": 140,
@@ -1162,7 +1162,12 @@
         },
         {
           "name": "ANewTask",
-          "actionSequence": [],
+          "actionSequence": [
+            {
+              "name": "Action1",
+              "type": "action"
+            }
+          ],
           "triggerMode": "local-sync",
           "params": [],
           "description": "",
@@ -1187,9 +1192,9 @@
                 }
               },
               {
-                "id": "node-1772438565041",
+                "id": "node-1772439306757",
                 "type": "action",
-                "x": 320,
+                "x": 340,
                 "y": 80,
                 "width": 140,
                 "height": 60,
@@ -1206,12 +1211,12 @@
             ],
             "connections": [
               {
-                "id": "conn_1772438568392_235",
+                "id": "conn_1772439323877_872",
                 "startTargetId": "node-1772438456508",
-                "endTargetId": "node-1772438565041",
-                "startX": 197.90625,
-                "startY": 108,
-                "endX": 320,
+                "endTargetId": "node-1772439306757",
+                "startX": 199.90625,
+                "startY": 109,
+                "endX": 340,
                 "endY": 100,
                 "data": {
                   "startAnchorType": "output",
@@ -1294,7 +1299,7 @@
           "elements": [
             {
               "id": "node-1770912717577",
-              "type": "Task",
+              "type": "task",
               "x": 40,
               "y": 80,
               "width": 180,
@@ -1312,7 +1317,7 @@
             },
             {
               "id": "node-1770912760363",
-              "type": "Action",
+              "type": "action",
               "x": 340,
               "y": 80,
               "width": 140,
@@ -1350,7 +1355,7 @@
           "elements": [
             {
               "id": "node-trylogin-root",
-              "type": "Task",
+              "type": "task",
               "x": 40,
               "y": 80,
               "width": 180,
@@ -1373,7 +1378,7 @@
           "elements": [
             {
               "id": "node-1771513021504-1",
-              "type": "Task",
+              "type": "task",
               "x": 20,
               "y": 60,
               "width": 160,
@@ -1391,7 +1396,7 @@
             },
             {
               "id": "node-1771513021504-2",
-              "type": "DataAction",
+              "type": "data_action",
               "x": 260,
               "y": 60,
               "width": 220,
@@ -1408,7 +1413,7 @@
             },
             {
               "id": "node-1771513021504-4",
-              "type": "Action",
+              "type": "action",
               "x": 620,
               "y": 60,
               "width": 160,
@@ -1425,7 +1430,7 @@
             },
             {
               "id": "node-1771513021504-5",
-              "type": "Action",
+              "type": "action",
               "x": 260,
               "y": 200,
               "width": 160,
@@ -1442,7 +1447,7 @@
             },
             {
               "id": "node-1771513021504-6",
-              "type": "Action",
+              "type": "action",
               "x": 260,
               "y": 320,
               "width": 140,
@@ -1535,9 +1540,9 @@
               }
             },
             {
-              "id": "node-1772438565041",
+              "id": "node-1772439306757",
               "type": "action",
-              "x": 320,
+              "x": 340,
               "y": 80,
               "width": 140,
               "height": 60,
@@ -1554,12 +1559,12 @@
           ],
           "connections": [
             {
-              "id": "conn_1772438568392_235",
+              "id": "conn_1772439323877_872",
               "startTargetId": "node-1772438456508",
-              "endTargetId": "node-1772438565041",
-              "startX": 197.90625,
-              "startY": 108,
-              "endX": 320,
+              "endTargetId": "node-1772439306757",
+              "startX": 199.90625,
+              "startY": 109,
+              "endX": 340,
               "endY": 100,
               "data": {
                 "startAnchorType": "output",

@@ -124,7 +124,7 @@ export class FlowTaskManager {
 
         const register = (elements: any[]) => {
             elements.forEach(el => {
-                if (el.type === 'Action') {
+                if (el.type === 'action') {
                     const name = el.properties?.name || el.data?.name || el.data?.actionName || el.properties?.text;
                     const details = el.properties?.details || el.data?.details;
                     const isMeaningful = el.data?.type || el.data?.actionName || el.data?.taskName || (el.properties?.details && el.properties.details.trim() !== '');

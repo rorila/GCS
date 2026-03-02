@@ -114,7 +114,7 @@ export class VariableRefactoringService {
                         const flowChart = stage.flowCharts![key];
                         if (flowChart?.elements) {
                             flowChart.elements.forEach((el: any) => {
-                                if (el.type === 'Condition' && el.data?.condition) {
+                                if (el.type === 'condition' && el.data?.condition) {
                                     if (el.data.condition.variable === oldName) {
                                         el.data.condition.variable = newName;
                                     }

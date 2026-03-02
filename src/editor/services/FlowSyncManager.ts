@@ -62,14 +62,17 @@ export class FlowSyncManager {
 
         processCollection(this.host.project.tasks);
         if (this.host.project.stages) {
-            this.host.project.stages.forEach((s: any) => processCollection(s.tasks));
+            this.host.project.stages.forEach((s: any) => {
+                const stageTasks = s.tasks || s.Tasks;
+                if (stageTasks) processCollection(stageTasks);
+            });
         }
     }
 
     public syncActionsFromProject() {
         if (!this.host.project) return;
         this.host.nodes.forEach(node => {
-            if (node.getType() === 'Action' && node.data?.isLinked) {
+            if (node.getType() === 'action' && node.data?.isLinked) {
                 const actionName = node.Name || node.data.name;
                 const actionDef = this.host.project.actions.find((a: any) => a.name === actionName);
                 if (actionDef) {
@@ -115,10 +118,13 @@ export class FlowSyncManager {
         const connections = persistentConnections.map(c => c.toJSON());
 
         FlowSyncManager.logger.info(`[TRACE] syncToProject: Detected ${elements.length} nodes and ${connections.length} connections.`);
+        connections.forEach((c, i) => {
+            FlowSyncManager.logger.info(`[TRACE] Conn ${i}: ${c.startTargetId} (${c.data?.startAnchorType}) -> ${c.endTargetId} (${c.data?.endAnchorType})`);
+        });
 
         this.host.nodes.forEach(node => {
             const nodeType = node.getType().toLowerCase();
-            if ((nodeType === 'action' || nodeType === 'dataaction') && node.data && !node.data.isEmbeddedInternal) {
+            if ((nodeType === 'action' || nodeType === 'data_action') && node.data && !node.data.isEmbeddedInternal) {
                 const actionName = node.Name || node.data.name || node.data.actionName;
                 if (actionName) {
                     if (node.data.isLinked) {
@@ -154,7 +160,14 @@ export class FlowSyncManager {
                 const chartData = { elements, connections };
                 targetCharts[currentContext] = chartData;
 
-                const task = this.host.getTaskDefinitionByName(currentContext);
+                let task = this.host.getTaskDefinitionByName(currentContext);
+
+                // GHOST TASK FIX: If task exists in flow but not in definitions, ensure it exists
+                if (!task && currentContext !== 'global') {
+                    FlowSyncManager.logger.info(`[TRACE] syncToProject: Ghost task detected for "${currentContext}". Creating definition.`);
+                    this.ensureTaskExists(currentContext, "");
+                    task = this.host.getTaskDefinitionByName(currentContext);
+                }
 
                 if (task) {
                     FlowSyncManager.logger.info(`[TRACE] syncToProject: Synchronisiere Task-Logik für "${currentContext}". Elemente: ${elements.length}`);
@@ -227,7 +240,10 @@ export class FlowSyncManager {
             return;
         }
 
-        const startNode = elements.find(e => e.type === 'Task' || (e.type === 'Start' && e.properties?.text?.toLowerCase() === 'start'));
+        const startNode = elements.find(e => {
+            const t = (e.type || '').toLowerCase();
+            return t === 'task' || (t === 'start' && e.properties?.text?.toLowerCase() === 'start');
+        });
         if (!startNode) {
             FlowSyncManager.logger.debug(`No start node found for task ${task.name}. Skipping sequence sync.`);
             return;
@@ -249,7 +265,9 @@ export class FlowSyncManager {
             }
             FlowSyncManager.logger.debug(`buildSequence: processing node ${node.id} (${node.type})`);
 
-            if (node.type === 'Action') {
+            const nodeType = (node.type || '').toLowerCase();
+
+            if (nodeType === 'action') {
                 const actionName = node.data?.name || node.data?.actionName || node.properties?.name || node.properties?.text;
                 if (actionName) {
                     // FIX (v3.3.15): Echten Typ der verlinkten Action nachschlagen
@@ -276,8 +294,8 @@ export class FlowSyncManager {
                 if (nextConns.length > 0) {
                     nextConns.forEach(nc => buildSequence(nc.endTargetId, targetSeq, stopSet));
                 }
-            } else if (node.type === 'Condition' || node.type === 'DataAction') {
-                const isData = node.type === 'DataAction';
+            } else if (nodeType === 'condition' || nodeType === 'data_action' || nodeType === 'data_action') {
+                const isData = nodeType.includes('data');
                 const branchType = isData ? 'data_action' : 'condition';
 
                 // --- DATA ACTION ENHANCEMENT: Get full definition for linked nodes ---
@@ -349,16 +367,16 @@ export class FlowSyncManager {
                     visited.delete(firstMerge);
                     buildSequence(firstMerge, targetSeq, stopSet);
                 }
-            } else if (node.type === 'Task' && node.id !== startNode.id) {
+            } else if (nodeType === 'task' && node.id !== startNode.id) {
                 FlowSyncManager.logger.debug(`Inline task call detected: ${node.properties?.name || node.id}`);
                 targetSeq.push({ type: 'task', name: node.properties?.name || node.properties?.text });
                 const nextConn = connections.find(c => c.startTargetId === nodeId);
                 if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet);
-            } else if (['While', 'For', 'Repeat'].includes(node.type)) {
+            } else if (['while', 'for', 'repeat'].includes(nodeType)) {
                 FlowSyncManager.logger.debug(`Loop detected: ${node.type}`);
-                const loop: any = { type: node.type.toLowerCase(), body: [] };
-                if (node.type === 'While') loop.condition = node.properties?.text || '';
-                if (node.type === 'Repeat') loop.count = parseInt(node.properties?.text) || 1;
+                const loop: any = { type: nodeType, body: [] };
+                if (nodeType === 'while') loop.condition = node.properties?.text || '';
+                if (nodeType === 'repeat') loop.count = parseInt(node.properties?.text) || 1;
                 targetSeq.push(loop);
 
                 const bodyConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'output');
@@ -389,18 +407,10 @@ export class FlowSyncManager {
         }
 
         if (sequence.length > 0) {
-            FlowSyncManager.logger.debug(`Generated sequence for task ${task.name} with ${sequence.length} top-level items.`);
-            FlowSyncManager.logger.debug(`Sequence summary:`, JSON.stringify(sequence.map(i => ({ type: i.type, name: i.name || i.condition }))));
-            // --- MODIFIED: Preserve extra data from node.data to prevent loss of 'params', 'resultVariable', etc. ---
-            task.actionSequence = sequence.map(item => {
-                // If we have an original id, try to find the original item data to preserve fields
-                // that might not be part of the visual node structure but are essential for runtime.
-                // However, building 'sequence' already uses node.data where possible.
-                // We just need to ensure node.data isn't just {type, name}.
-                return item;
-            });
+            FlowSyncManager.logger.info(`[TRACE] Generated sequence for task ${task.name} with ${sequence.length} items.`);
+            task.actionSequence = sequence.map(item => item);
         } else {
-            FlowSyncManager.logger.debug(`Generated EMPTY sequence for task ${task.name}.`);
+            FlowSyncManager.logger.info(`[TRACE] Generated EMPTY sequence for task ${task.name}. Elements: ${elements.length}, Connections: ${connections.length}`);
             task.actionSequence = [];
         }
 
@@ -414,7 +424,8 @@ export class FlowSyncManager {
         const paramRegex = /\$\{(\w+)\}/g;
 
         elements.forEach((el: any) => {
-            if (el.type !== 'Action') return;
+            const elType = (el.type || '').toLowerCase();
+            if (elType !== 'action' && elType !== 'dataaction' && elType !== 'data_action') return;
             const jsonStr = JSON.stringify(el.data || {});
             let match;
             while ((match = paramRegex.exec(jsonStr)) !== null) {
@@ -447,7 +458,7 @@ export class FlowSyncManager {
 
     private syncTaskParamValues(task: any, elements: any[]) {
         if (!task.params || !Array.isArray(task.params)) return;
-        const taskNode = elements.find(el => el.type === 'Task' && (el.properties?.name === task.name || el.data?.taskName === task.name));
+        const taskNode = elements.find(el => el.type === 'task' && (el.properties?.name === task.name || el.data?.taskName === task.name));
         if (!taskNode) return;
         const paramValues = taskNode.data?.paramValues || taskNode.data?.params;
         if (!paramValues || typeof paramValues !== 'object') return;
@@ -469,7 +480,7 @@ export class FlowSyncManager {
 
         elements.push({
             id: rootId,
-            type: 'Task',
+            type: 'task',
             x: 400,
             y: 50,
             properties: {
@@ -490,7 +501,7 @@ export class FlowSyncManager {
             sequence.forEach(item => {
                 const id = getNewId(item.type || 'action');
                 if (item.type === 'condition') {
-                    elements.push({ id, type: 'Condition', x: startX, y: currentY, properties: { text: item.condition || item.expression || '' } });
+                    elements.push({ id, type: 'condition', x: startX, y: currentY, properties: { text: item.condition || item.expression || '' } });
                     connections.push({
                         startTargetId: lastId, endTargetId: id,
                         data: { startAnchorType: lastAnchor, endAnchorType: 'input' }
@@ -499,7 +510,7 @@ export class FlowSyncManager {
                     const elseRes = process(item.elseBody || item.else || [], id, 'false', 'false', startX + 250, currentY + 120);
                     currentY = Math.max(thenRes.endY, elseRes.endY) + 50;
                     const mergeId = getNewId('merge');
-                    elements.push({ id: mergeId, type: 'Action', x: startX - 80, y: currentY, properties: { name: 'Merge', text: 'Merge' } });
+                    elements.push({ id: mergeId, type: 'action', x: startX - 80, y: currentY, properties: { name: 'Merge', text: 'Merge' } });
                     connections.push({ startTargetId: thenRes.lastId, endTargetId: mergeId, data: { startAnchorType: 'output', endAnchorType: 'input' } });
                     connections.push({ startTargetId: elseRes.lastId, endTargetId: mergeId, data: { startAnchorType: 'output', endAnchorType: 'input' } });
                     lastId = mergeId; lastAnchor = 'output'; currentY += 120;
@@ -618,7 +629,7 @@ export class FlowSyncManager {
             case 'action':
                 node = new FlowAction(data.id, data.x, data.y, canvas, cellSize);
                 break;
-            case 'dataaction':
+            case 'data_action':
                 node = new FlowDataAction(data.id, data.x, data.y, canvas, cellSize);
                 break;
             case 'condition':
@@ -814,12 +825,16 @@ export class FlowSyncManager {
 
         if (task.flowChart?.elements) {
             task.flowChart.elements.forEach((el: any) => {
-                if (el.type === 'Action') {
-                    const name = el.properties?.name || el.data?.name || el.data?.actionName;
-                    const isMeaningful = el.data?.type || el.data?.actionName || el.data?.taskName;
-                    if (name && (name !== 'Action' && name !== 'Aktion' || isMeaningful)) {
-                        this.updateGlobalActionDefinition({ ...el.data, name });
-                    }
+                const elType = (el.type || '').toLowerCase();
+                if (elType !== 'action' && elType !== 'dataaction' && elType !== 'data_action') return;
+
+                const proxyId = el.data?.parentProxyId;
+                if (!proxyId) return;
+
+                const name = el.properties?.name || el.data?.name || el.data?.actionName;
+                const isMeaningful = el.data?.type || el.data?.actionName || el.data?.taskName;
+                if (name && (name !== 'Action' && name !== 'Aktion' || isMeaningful)) {
+                    this.updateGlobalActionDefinition({ ...el.data, name });
                 }
             });
         }

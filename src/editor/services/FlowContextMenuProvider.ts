@@ -85,7 +85,7 @@ export class FlowContextMenuProvider {
         }
 
         // 2. Assign Actions (Reuse)
-        if (node.getType() === 'Task') {
+        if (node.getType() === 'task') {
             const linkItems: ContextMenuItem[] = proj.tasks.map(t => ({
                 label: t.name,
                 action: () => this.assignTaskToNode(node, t)
@@ -121,7 +121,7 @@ export class FlowContextMenuProvider {
                     submenu: libraryItems
                 });
             }
-        } else if (node.getType() === 'Action') {
+        } else if (node.getType() === 'action') {
             const linkItems: ContextMenuItem[] = proj.actions.map(a => ({
                 label: a.name,
                 action: () => this.linkActionToNode(node, a)
@@ -152,7 +152,7 @@ export class FlowContextMenuProvider {
 
     private showEmbeddedContextMenu(e: MouseEvent, node: FlowElement): void {
         const items: ContextMenuItem[] = [];
-        const typeLabel = node.getType() === 'Task' ? 'Task' : 'Aktion';
+        const typeLabel = node.getType() === 'task' ? 'Task' : 'Aktion';
         items.push({
             label: `Eingebettete ${typeLabel} löschen`,
             action: () => {
@@ -308,7 +308,7 @@ export class FlowContextMenuProvider {
                     el.id = newId;
 
                     const actionName = el.properties?.name || el.data?.name || el.data?.actionName;
-                    if (el.type === 'Action' && actionName) {
+                    if (el.type === 'action' && actionName) {
                         const actionInLibrary = this.host.syncManager.findActionInSequence(libraryTask.actionSequence, actionName);
                         if (actionInLibrary) {
                             el.data = { ...el.data, ...actionInLibrary, name: actionName };
@@ -325,12 +325,12 @@ export class FlowContextMenuProvider {
             }
 
             // Task entry node if missing
-            const hasTaskNode = flowChartCopy.elements?.some((el: any) => el.type === 'Task');
+            const hasTaskNode = flowChartCopy.elements?.some((el: any) => el.type === 'task');
             if (!hasTaskNode && flowChartCopy.elements?.length > 0) {
                 const taskNodeId = `${newName}-task-entry`;
                 const taskNode = {
                     id: taskNodeId,
-                    type: 'Task',
+                    type: 'task',
                     x: 40, y: 60, width: 160, height: 60,
                     properties: { name: newName, details: libraryTask.description || '' },
                     data: { taskName: newName }
@@ -383,7 +383,7 @@ export class FlowContextMenuProvider {
 
         if (task.flowChart && task.flowChart.elements) {
             task.flowChart.elements.forEach((el: any) => {
-                if (el.type === 'Action') {
+                if (el.type === 'action') {
                     const name = el.properties?.name || el.data?.name || el.data?.actionName;
                     if (name) this.host.syncManager.updateGlobalActionDefinition({ ...el.data, name });
                 }

@@ -200,7 +200,7 @@ export class EditorRenderManager {
             if (!chart?.elements) return;
 
             chart.elements.forEach((el: any) => {
-                if (el.type !== 'Action') return;
+                if (el.type !== 'action') return;
 
                 const actionName = el.properties?.name || el.data?.name;
                 if (!actionName) return;

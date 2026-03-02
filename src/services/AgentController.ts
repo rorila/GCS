@@ -395,7 +395,7 @@ export class AgentController {
         const rootId = getId();
         elements.push({
             id: rootId,
-            type: 'Task',
+            type: 'task',
             x: 400, y: 50,
             properties: { name: task.name, text: task.name, description: task.description },
             data: { name: task.name }
@@ -412,7 +412,7 @@ export class AgentController {
 
                 if (item.type === 'condition') {
                     elements.push({
-                        id, type: 'Condition',
+                        id, type: 'condition',
                         x: startX, y: y,
                         properties: { text: item.name || `${item.condition.variable} ${item.condition.operator} ${item.condition.value}` }
                     });

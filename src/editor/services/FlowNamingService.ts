@@ -27,7 +27,7 @@ export class FlowNamingService {
 
         // From current flow nodes (including unnamed ones that might not be synced yet)
         nodes.forEach(n => {
-            if (n.getType() === 'Action' || n.getType() === 'DataAction' || n.getType() === 'Condition') { // Condition / DataAction sind auch Aktionen
+            if (n.getType() === 'action' || n.getType() === 'data_action' || n.getType() === 'condition') { // Condition / DataAction sind auch Aktionen
                 existingNames.add(n.Name || n.name);
             }
         });
@@ -84,7 +84,7 @@ export class FlowNamingService {
             });
         }
         nodes.forEach(n => {
-            if (n.getType() === 'Task') {
+            if (n.getType() === 'task') {
                 existingNames.add(n.Name || n.name);
             }
         });

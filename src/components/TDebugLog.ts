@@ -184,10 +184,10 @@ export class TDebugLog {
         this.filterContainer.innerHTML = `
             <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 4px;">
                 <label style="color: #ff9800; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Event"> Event</label>
-                <label style="color: #007acc; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Task"> Task</label>
-                <label style="color: #4caf50; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Action"> Action</label>
+                <label style="color: #007acc; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type = "task"> Task</label>
+                <label style="color: #4caf50; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type = "action"> Action</label>
                 <label style="color: #9c27b0; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Variable"> Variable</label>
-                <label style="color: #00bcd4; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Condition"> Condition</label>
+                <label style="color: #00bcd4; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type = "condition"> Condition</label>
                 <label style="color: #888; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked id="show-details-cb"> Details</label>
             </div>
             <div style="display: flex; gap: 6px;">
@@ -499,7 +499,7 @@ export class TDebugLog {
         const timeLabel = `<span style="color: #555; font-size: 9px; margin-left: auto; margin-top: 2px;">${new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>`;
 
         let detailText = '';
-        if (entry.type === 'Action' && entry.data) {
+        if (entry.type === 'action' && entry.data) {
             const data = entry.data;
             if (data.type === 'calculate') {
                 detailText = `(${data.resultVariable || 'result'} = ${data.formula || '?'})`;
