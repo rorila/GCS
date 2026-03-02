@@ -194,11 +194,18 @@ app.post('/api/dev/save-project', (req, res) => {
             fs.mkdirSync(dir, { recursive: true });
         }
 
+        const actionCount = projectData.actions?.length || 0;
+        const taskCount = projectData.tasks?.length || 0;
+        const stageCount = projectData.stages?.length || 0;
+
+        console.log(`[TRACE] [API] Saving project to ${projectPath}`);
+        console.log(`[TRACE] [API] Data summary: Actions=${actionCount}, Tasks=${taskCount}, Stages=${stageCount}`);
+
         fs.writeFileSync(projectPath, JSON.stringify(projectData, null, 2), 'utf-8');
-        console.log(`[API] Project saved successfully to ${projectPath}`);
+        console.log(`[TRACE] [API] Project saved successfully.`);
         res.json({ success: true, message: 'Projekt erfolgreich gespeichert' });
     } catch (err) {
-        console.error('[API] Fehler beim Speichern des Projekts:', err);
+        console.error('[TRACE] [API] Fehler beim Speichern des Projekts:', err);
         res.status(500).json({ error: 'Serverfehler beim Speichervorgang', details: (err as any).message });
     }
 });

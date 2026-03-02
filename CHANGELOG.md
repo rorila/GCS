@@ -1,3 +1,45 @@
+# CHANGELOG
+
+## [3.15.2] - 2026-03-02
+### Fixed
+- **Action-Löschung (Final Bugfix)**: Vollständige Korrektur der Action-Löschung aus dem Flow-Diagramm. Die Action wird nun zuverlässig aus allen Projekt-Strukturen (Global, Stages, Sequenzen) entfernt.
+- **Case-Sensitivity**: Behebung von Fehlern bei der Erkennung von Node-Typen (Normalisierung auf Kleinschreibung 'action').
+- **ProjectRegistry**: Korrektur der Referenzprüfung (`getActionUsage`), die zuvor aufgrund von Groß-/Kleinschreibung keine Treffer in Flow-Diagrammen fand.
+- **UX**: Konsolidierung der Lösch-Bestätigungsdialoge. Verhindert redundante Prompts beim Löschen über den Inspector oder das Kontextmenü.
+### Fixed
+- **UI-Sync (Final Deletion Fix)**: Vollständige Synchronisation beim Löschen von Knoten im Flow-Editor. Inklusive Link-Count-Update (Mediator) für alle Knoten sowie automatischer Aktualisierung des Flow-Dropdowns bei Task-Löschungen.
+
+## [3.14.4] - 2026-03-01
+### Fixed
+- **UI-Sync (Deletion)**: Behebung der fehlenden Listen-Aktualisierung beim Löschen von Actions, Tasks oder Variablen im Flow-Editor. Integration des `MediatorService` in den `FlowGraphManager`.
+
+## [3.14.3] - 2026-03-01
+### Fixed
+- **Action Drop Bug**: Fix für Case-Sensitivity Probleme beim Drop von Actions auf das Flow-Diagramm.
+- **Sync-Stabilisierung**: Sicherstellung der Projekt-Referenz (`projectRef`) für Aktions-Knoten in der Factory.
+- **Typ-Konsistenz**: `FlowDataAction.getType()` auf `'dataaction'` (kleingeschrieben) vereinheitlicht.
+
+## [3.14.2] - 2026-03-01
+- **Fix**: Automatische Action-Registrierung beim Drop auf den Flow-Editor sichergestellt.
+- **Action Manager:** Lifecycle-Logging für Erstellen, Löschen und Umbenennen von Actions implementiert.
+- **Action Refactoring:** Fix in `deleteAction`: Unterstützung für alle Action-Typen (Normal, `DataAction`, `HttpAction`) sichergestellt; verwaiste Knoten-Reste werden nun restlos aus Flow-Charts entfernt.
+- **Flow Synchronization:** Verbesserte Synchronisation im `FlowGraphManager` nach dem Löschen von Knoten.
+- **Testing:** Neue CRUD-Tests für die Action-Verwaltung integriert (`action_crud.test.ts`).
+- **Fix**: UI-Synchronität (Mediator) bei Projekt-Datenänderungen verbessert (erzwingt Refresh der Manager-Listen).
+- **Test**: Automatisierter Regressionstest `tests/action_registration.test.ts` zur Absicherung hinzugefügt.
+
+## [3.14.1] - 2026-03-01
+### Fixed (Visual & Refactoring)
+- **Deep Refactoring Fix**: Behebung der Namens-Inkonsistenz (Reversion auf alten Namen) im Flow-Editor.
+  - Einführung von Multi-Feld-Matching (`hasOldNameMatch`) in `TaskRefactoringService.ts` und `ActionRefactoringService.ts`.
+  - Verhindern von "Daten-Verschmutzung" durch Aufschub der `object.Name` Zuweisung im `FlowNodeHandler.ts`.
+- **FlowSyncManager**: Korrektur der Zuweisungsreihenfolge und Ergänzung eines erzwungenen `setShowDetails()` Aufrufs in `restoreNode()`.
+- **Test-Katalog**: Integration neuer Robustheits-Tests (`renaming_robustness.test.ts`).
+
+### Refactoring (UI & Flow)
+- **Stage-Inspector**: Bereinigung der `inspector_stage.json`. Entfernung redundanter Listen (Variables, Tasks, Actions, Objects) und des "+ Add Variable" Buttons zur Verbesserung der Übersichtlichkeit.
+- **Flow-Editor**: Behebung des Kontext-Verlusts bei Task-Umbenennungen. Der Editor behält nun den Fokus auf dem umbenannten Element (inkl. Scroll-Position), anstatt zum Main-Flow zurückzuspringen.
+
 ## [3.15.0] - 2026-02-27
 ### Added
 - **Dashboard Finale**: Implementierung des "Layered Dark Design" für das Room-Dashboard.
@@ -125,8 +167,24 @@
 - **Fix (Runtime)**: Regression-Fix fÃ¼r `${currentUser.name}` Binding nach Stage-Wechsel. Globale Variablen-Komponenten werden in `GameRuntime.handleStageChange()` nicht mehr Ã¼ber `registerObject` neu registriert (ErgÃ¤nzung zu `GlobalVariablePersistence` & `GlobalElementPersistenceFix`).
 - **Workflow**: Konsolidierung aller Wartungs-Skripte in `run_all.bat` (CMD-kompatibel als PowerShell-Fallback).
 
+## [3.5.17] - 2026-03-01
+- **Fix (Refactoring)**: Behebung der Task-Duplikation durch projektweite Case-Harmonisierung der Flow-Typen auf Kleinschreibung.
+- **Improved UX**: Einführung eines `refreshVisuals` Hooks in `FlowElement` sorgt für sofortiges Re-Rendering von Flow-Knoten nach Umbenennungen.
+- **Architecture**: Umstellung von `getType()` in allen Flow-Elementen (`FlowTask`, `FlowAction`, etc.) auf Lowercase-Literale.
+- **Improved Robustness**: Case-insensitive Typ-Erkennung im `EditorCommandManager` und automatische Normalisierung in `FlowNodeFactory` und `FlowSyncManager`.
+- **Sync**: Gewährleistung der Abwärtskompatibilität beim Laden alter PascalCase-Projekte durch On-the-fly-Konvertierung.
+
 ## [3.5.16] - 2026-02-26
 - **Fix (Data Model)**: `project.json` bereinigt und mit der neuen Blueprint-Architektur synchronisiert (`currentUser` Refactoring).
+- **Fix**: Radikale Bereinigung der Task-Umbenennungs-Logik ("Gefrickel-Flush").
+- **Fix**: Verlagerung der Refactoring-Logik von UI-Klassen (`FlowElement`) in den `EditorCommandManager`.
+- **Fix**: Verhindern von Kontext-Verlust (View-Jump) im Flow-Editor durch synchrone `renameContext`-Migration vor dem Refactoring.
+- **Fix**: Korrektur der Namens-Inkonsistenz im Task-Objekt durch robuste `oldValue`-Übergabe aus dem Inspector.
+- **Fix (Regression)**: `TypeError` in `FlowSyncManager` beim Laden von Nodes behoben (Name-Setter in FlowTask wiederhergestellt).
+- **Fix (Duplikation)**: Verhindern von Task-Duplikaten durch Einführung einer Synchronisations-Sperre (`isRefactoring`) während Umbenennungsvorgängen.
+- **Fix (Inspector)**: Behebung der Case-Sensitivity bei der Namens-Erkennung im Inspector (`Name` vs `name`).
+- **Fix (Editor)**: Behebung des `TypeError` im `EditorCommandManager` durch Unterstützung von `Name`-Properties bei Flow-Elementen.
+- **Cleanup**: Entfernung redundanter Refactoring-Hooks aus `InspectorHost`.
 - **Fix (Validation)**: Validator `validate_project.cjs` an Blueprint-SSoT angepasst und eingebettete FlowCharts extrahiert.
 - **Cleanup**: Entfernung von Platzhalter-Tasks und Konsolidierung der Action-Referenzen in `stage_login`.
 

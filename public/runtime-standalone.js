@@ -271,7 +271,140 @@
     }
   });
 
+  // src/config.ts
+  var import_meta = {};
+  var env = import_meta.env || {};
+  var Config = {
+    APP_TITLE: env.VITE_APP_TITLE || "GCS Game Builder",
+    // Globales Log-Level
+    LOG_LEVEL: parseLogLevel(env.VITE_LOG_LEVEL),
+    // Spezifische Log-Level für einzelne Präfixe/Klassen
+    // Beispiel in .env: VITE_LOG_LEVEL_StageRenderer=DEBUG
+    PREFIX_LOG_LEVELS: parsePrefixLogLevels(env)
+  };
+  function parseLogLevel(val) {
+    if (!val) return 0 /* DEBUG */;
+    switch (val.toUpperCase()) {
+      case "DEBUG":
+        return 0 /* DEBUG */;
+      case "INFO":
+        return 1 /* INFO */;
+      case "WARN":
+        return 2 /* WARN */;
+      case "ERROR":
+        return 3 /* ERROR */;
+      case "NONE":
+        return 4 /* NONE */;
+      default:
+        return 0 /* DEBUG */;
+    }
+  }
+  function parsePrefixLogLevels(env2) {
+    const levels = {};
+    const prefix = "VITE_LOG_LEVEL_";
+    for (const key in env2) {
+      if (key.startsWith(prefix)) {
+        const moduleName = key.substring(prefix.length);
+        if (moduleName && moduleName !== "LEVEL") {
+          levels[moduleName] = parseLogLevel(env2[key]);
+        }
+      }
+    }
+    return levels;
+  }
+
+  // src/utils/Logger.ts
+  var _Logger = class _Logger {
+    constructor(prefix = "", useCase, level) {
+      __publicField(this, "prefix");
+      __publicField(this, "level");
+      __publicField(this, "useCase");
+      this.prefix = prefix ? `[${prefix}] ` : "";
+      this.useCase = useCase;
+      if (level !== void 0) {
+        this.level = level;
+      } else if (prefix && Config.PREFIX_LOG_LEVELS[prefix] !== void 0) {
+        this.level = Config.PREFIX_LOG_LEVELS[prefix];
+      } else {
+        this.level = _Logger.globalLevel;
+      }
+    }
+    /**
+     * Sets the global log level.
+     */
+    static setGlobalLevel(level) {
+      this.globalLevel = level;
+    }
+    /**
+     * Sets the filter function for UseCases.
+     */
+    static setUseCaseFilter(filter) {
+      this.useCaseFilter = filter;
+    }
+    /**
+     * Sets the provider function for UseCase labels.
+     */
+    static setUseCaseLabelProvider(provider) {
+      this.useCaseLabelProvider = provider;
+    }
+    /**
+     * Creates a new logger instance with a prefix and optional useCase.
+     */
+    static get(prefix, useCase) {
+      return new _Logger(prefix, useCase);
+    }
+    debug(...args) {
+      this.log(0 /* DEBUG */, ...args);
+    }
+    info(...args) {
+      this.log(1 /* INFO */, ...args);
+    }
+    warn(...args) {
+      this.log(2 /* WARN */, ...args);
+    }
+    error(...args) {
+      this.log(3 /* ERROR */, ...args);
+    }
+    log(level, ...args) {
+      if (level < this.level || level < _Logger.globalLevel) return;
+      if (level < 3 /* ERROR */ && this.useCase && !_Logger.useCaseFilter(this.useCase)) {
+        return;
+      }
+      if (this.useCase && level < 3 /* ERROR */ && this.useCase !== _Logger.lastUseCaseId) {
+        const label = _Logger.useCaseLabelProvider(this.useCase);
+        console.log(
+          `%c
+--- UseCase: '${label}' ---`,
+          "color: #673ab7; font-weight: bold; border-top: 1px solid #ddd; padding-top: 8px; margin-top: 8px;"
+        );
+        _Logger.lastUseCaseId = this.useCase;
+      }
+      const timestamp = (/* @__PURE__ */ new Date()).toISOString().split("T")[1].split("Z")[0];
+      const prefix = `${timestamp} ${this.prefix}`;
+      switch (level) {
+        case 0 /* DEBUG */:
+          console.debug(prefix, ...args);
+          break;
+        case 1 /* INFO */:
+          console.info(prefix, ...args);
+          break;
+        case 2 /* WARN */:
+          console.warn(prefix, ...args);
+          break;
+        case 3 /* ERROR */:
+          console.error(prefix, ...args);
+          break;
+      }
+    }
+  };
+  __publicField(_Logger, "globalLevel", Config.LOG_LEVEL);
+  __publicField(_Logger, "useCaseFilter", () => false);
+  __publicField(_Logger, "useCaseLabelProvider", (id) => id);
+  __publicField(_Logger, "lastUseCaseId");
+  var Logger = _Logger;
+
   // src/runtime/PropertyHelper.ts
+  var logger = Logger.get("PropertyHelper", "Variable_Handling");
   var PropertyHelper = class _PropertyHelper {
     /**
      * Reads a property value using a dot-path (e.g., "style.backgroundColor")
@@ -304,7 +437,7 @@
           current = void 0;
         }
         if (propPath.includes("LeftOperand") || propPath.includes("BaseVar")) {
-          console.log(`[PropertyHelper] getPropertyValue("${propPath}") member "${part}":`, {
+          logger.info(`getPropertyValue("${propPath}") member "${part}":`, {
             targetType: target.constructor?.name || typeof target,
             hasInContent,
             result: typeof current === "string" ? `"${current}"` : current === void 0 ? "undefined" : "object/val"
@@ -359,7 +492,7 @@
       }
       return template.replace(/\$\{([^}]+)\}/g, (_, path) => {
         const trimmedPath = path.trim();
-        console.log(`[PropertyHelper] Starting interpolation for path: "${trimmedPath}"`);
+        logger.info(`Starting interpolation for path: "${trimmedPath}"`);
         if (trimmedPath === "true") return "true";
         if (trimmedPath === "false") return "false";
         if (!isNaN(Number(trimmedPath))) return trimmedPath;
@@ -370,14 +503,14 @@
             const obj = objects.find((o) => o.name === objName || o.id === objName);
             if (obj) {
               const val2 = this.getPropertyValue(obj, propPath);
-              console.log(`[PropertyHelper] Interpolate "${trimmedPath}" matched Object "${objName}". Prop: "${propPath}", Value: "${val2}"`);
+              logger.info(`Interpolate "${trimmedPath}" matched Object "${objName}". Prop: "${propPath}", Value: "${val2}"`);
               if (val2 !== void 0) return String(val2);
             }
           } else {
             const obj = objects.find((o) => o.name === trimmedPath || o.id === trimmedPath);
             if (obj) {
               const resolved = this.resolveValue(obj);
-              console.log(`[PropertyHelper] Interpolate "${trimmedPath}" found Object. ID: ${obj.id}, Name: ${obj.name}, Value: "${resolved}"`);
+              logger.info(`Interpolate "${trimmedPath}" found Object. ID: ${obj.id}, Name: ${obj.name}, Value: "${resolved}"`);
               if (resolved !== obj) return String(resolved ?? "");
               return obj.name || obj.id || String(obj);
             }
@@ -392,10 +525,10 @@
         }
         if (val !== void 0) {
           const resolvedVal = this.resolveValue(val);
-          console.log(`[PropertyHelper] Interpolate "${trimmedPath}" found in vars. Value: "${resolvedVal}"`);
+          logger.info(`Interpolate "${trimmedPath}" found in vars. Value: "${resolvedVal}"`);
           return String(resolvedVal);
         }
-        console.warn(`[PropertyHelper] Interpolation failed for path: "${trimmedPath}". Variable not found.`);
+        logger.warn(`Interpolation failed for path: "${trimmedPath}". Variable not found.`);
         return "";
       });
     }
@@ -624,7 +757,7 @@
       this.contextStack.pop();
     }
     setEnabled(enabled) {
-      console.log(`[DebugLogService] setEnabled(${enabled})`);
+      _DebugLogService.logger.info(`setEnabled(${enabled})`);
       this.enabled = enabled;
     }
     isEnabled() {
@@ -722,6 +855,7 @@
       return Array.from(events).sort();
     }
   };
+  __publicField(_DebugLogService, "logger", Logger.get("DebugLogService", "Editor_Diagnostics"));
   __publicField(_DebugLogService, "instance");
   var DebugLogService = _DebugLogService;
   var globalScope = typeof window !== "undefined" ? window : global;
@@ -729,7 +863,7 @@
   globalScope._globalDebugLogService = debugLogService;
 
   // src/runtime/PropertyWatcher.ts
-  var PropertyWatcher = class {
+  var _PropertyWatcher = class _PropertyWatcher {
     constructor() {
       // Map: Object -> Map: PropertyPath -> Set of Callbacks
       __publicField(this, "watchers", /* @__PURE__ */ new Map());
@@ -754,7 +888,7 @@
     watch(object, propertyPath, callback) {
       const target = this.unwrap(object);
       if (!target || typeof target !== "object") {
-        console.warn("[PropertyWatcher] Cannot watch non-object:", target);
+        _PropertyWatcher.logger.warn(`Cannot watch non-object: ${target}`);
         return;
       }
       if (!this.watchers.has(target)) {
@@ -844,7 +978,7 @@
           try {
             callback(newValue, oldValue);
           } catch (error) {
-            console.error("[PropertyWatcher] Callback error:", error);
+            _PropertyWatcher.logger.error("Callback error:", error);
           }
         });
       }
@@ -865,7 +999,7 @@
         try {
           callback(object, propertyPath, newValue, oldValue);
         } catch (error) {
-          console.error("[PropertyWatcher] Global callback error:", error);
+          _PropertyWatcher.logger.error("Global callback error:", error);
         }
       });
     }
@@ -898,17 +1032,20 @@
      * Debug: Lists all active watchers
      */
     debug() {
-      console.log("[PropertyWatcher] Active Watchers:");
+      _PropertyWatcher.logger.info("Active Watchers:");
       this.watchers.forEach((objectWatchers, object) => {
         const objName = object.name || object.id || "Unknown";
         objectWatchers.forEach((callbacks, propertyPath) => {
-          console.log(`  ${objName}.${propertyPath}: ${callbacks.size} watchers`);
+          _PropertyWatcher.logger.info(`  ${objName}.${propertyPath}: ${callbacks.size} watchers`);
         });
       });
     }
   };
+  __publicField(_PropertyWatcher, "logger", Logger.get("PropertyWatcher", "Variable_Management"));
+  var PropertyWatcher = _PropertyWatcher;
 
   // src/runtime/ReactiveProperty.ts
+  var logger2 = Logger.get("Proxy", "Variable_Management");
   function makeReactive(obj, watcher, path = "", root = null) {
     if (obj === null || typeof obj !== "object") {
       return obj;
@@ -941,7 +1078,7 @@
           target[property] = newValue;
           const propertyPath = path ? `${path}.${property}` : property;
           const objName = actualRoot.name || actualRoot.id || "Unknown";
-          console.log(`%c[Proxy] Set ${objName}.${propertyPath} = ${newValue}`, "color: #2196f3");
+          logger2.info(`Set ${objName}.${propertyPath} = ${newValue}`);
           watcher.notify(actualRoot, propertyPath, newValue, oldValue);
         } else {
           target[property] = newValue;
@@ -1395,11 +1532,11 @@
   init_AnimationManager();
 
   // src/services/ServiceRegistry.ts
-  var ServiceRegistryClass = class {
+  var _ServiceRegistryClass = class _ServiceRegistryClass {
     constructor() {
       __publicField(this, "id", Math.random().toString(36).substr(2, 9));
       __publicField(this, "services", /* @__PURE__ */ new Map());
-      console.log(`%c[ServiceRegistry] INSTANCE CREATED: ${this.id}`, "background: #000; color: #fff; font-size: 14px; padding: 4px;");
+      _ServiceRegistryClass.logger.info(`INSTANCE CREATED: ${this.id}`);
       const globalScope4 = typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : {};
       globalScope4._serviceRegistryInstances = globalScope4._serviceRegistryInstances || [];
       globalScope4._serviceRegistryInstances.push(this.id);
@@ -1439,14 +1576,14 @@
         methods,
         description
       });
-      console.log(`[ServiceRegistry:${this.id}] Registered service: ${name} with methods:`, methods.map((m) => m.name));
+      _ServiceRegistryClass.logger.info(`Registered service: ${name} with methods:`, methods.map((m) => m.name));
     }
     /**
      * Unregister a service
      */
     unregister(name) {
       this.services.delete(name);
-      console.log(`[ServiceRegistry] Unregistered service: ${name} `);
+      _ServiceRegistryClass.logger.info(`Unregistered service: ${name} `);
     }
     /**
      * Get a service by name
@@ -1476,13 +1613,13 @@
       if (typeof method !== "function") {
         throw new Error(`Method '${methodName}' not found on service '${serviceName}'`);
       }
-      console.log(`[ServiceRegistry] Calling ${serviceName}.${methodName} (`, params, ")");
+      _ServiceRegistryClass.logger.debug(`Calling ${serviceName}.${methodName} (`, params, ")");
       try {
         const result = await method.apply(serviceInfo.instance, params || []);
-        console.log(`[ServiceRegistry] ${serviceName}.${methodName} returned: `, result);
+        _ServiceRegistryClass.logger.debug(`${serviceName}.${methodName} returned: `, result);
         return result;
       } catch (error) {
-        console.error(`[ServiceRegistry] ${serviceName}.${methodName} threw: `, error);
+        _ServiceRegistryClass.logger.error(`${serviceName}.${methodName} threw: `, error);
         throw error;
       }
     }
@@ -1511,10 +1648,12 @@
       return Array.from(this.services.values());
     }
   };
+  __publicField(_ServiceRegistryClass, "logger", Logger.get("ServiceRegistry", "Editor_Diagnostics"));
+  var ServiceRegistryClass = _ServiceRegistryClass;
   var globalScope2 = typeof window !== "undefined" ? window : global;
   var serviceRegistry = globalScope2._globalServiceRegistry || new ServiceRegistryClass();
   globalScope2._globalServiceRegistry = serviceRegistry;
-  console.log(`[ServiceRegistry] Singleton bound to window. ID: ${serviceRegistry.id}`);
+  ServiceRegistryClass.logger.info(`Singleton bound to window. ID: ${serviceRegistry.id}`);
 
   // src/services/DataService.ts
   var _DataService = class _DataService {
@@ -1532,20 +1671,20 @@
     async seedFromUrl(storagePath, url) {
       if (typeof window === "undefined") return;
       try {
-        console.log(`[DataService] Seeding '${storagePath}' from ${url}...`);
+        _DataService.logger.info(`Seeding '${storagePath}' from ${url}...`);
         const response = await fetch(url);
         if (!response.ok) {
-          console.error(`[DataService] Seeding failed: HTTP ${response.status} ${response.statusText} from ${url}`);
+          _DataService.logger.error(`Seeding failed: HTTP ${response.status} ${response.statusText} from ${url}`);
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         if (storagePath === "db.json") {
-          console.log(`[DataService] Validating seed data. Keys: ${Object.keys(data).join(", ")}`);
+          _DataService.logger.debug(`Validating seed data. Keys: ${Object.keys(data).join(", ")}`);
         }
         await this.writeDb(storagePath, data);
-        console.log(`[DataService] Seeding successful for '${storagePath}'. Saved to localStorage as gcs_db_${storagePath}`);
+        _DataService.logger.info(`Seeding successful for '${storagePath}'. Saved to localStorage as gcs_db_${storagePath}`);
       } catch (e) {
-        console.error(`[DataService] Seeding CRITICAL FAILURE for '${storagePath}':`, e);
+        _DataService.logger.error(`Seeding CRITICAL FAILURE for '${storagePath}':`, e);
       }
     }
     /**
@@ -1568,14 +1707,14 @@
      * Findet Objekte in einer Collection basierend auf Filtern.
      */
     async findItems(storagePath, collection, query = {}, operator = "==") {
-      console.log(`[DataService] findItems in '${storagePath}' -> '${collection}' with query:`, JSON.stringify(query), `Operator: ${operator}`);
+      _DataService.logger.debug(`findItems in '${storagePath}' -> '${collection}' with query:`, JSON.stringify(query), `Operator: ${operator}`);
       const db = await this.readDb(storagePath);
       if (!db[collection]) {
-        console.warn(`[DataService] Collection '${collection}' not found in '${storagePath}'`);
+        _DataService.logger.warn(`Collection '${collection}' not found in '${storagePath}'`);
         return [];
       }
       const list = db[collection] || [];
-      console.log(`[DataService] Searching in ${list.length} items...`);
+      _DataService.logger.debug(`Searching in ${list.length} items...`);
       const results = list.filter((item) => {
         for (const key in query) {
           const itemValue = item[key];
@@ -1619,9 +1758,9 @@
         }
         return true;
       });
-      console.log(`[DataService] Found ${results.length} matches.`);
+      _DataService.logger.debug(`Found ${results.length} matches.`);
       if (results.length === 0 && list.length > 0) {
-        console.log("[DataService] No matches found. Dump first item for debug:", list[0]);
+        _DataService.logger.debug("No matches found. Dump first item for debug:", list[0]);
       }
       return results;
     }
@@ -1711,7 +1850,7 @@
       if (typeof window !== "undefined") {
         const key = `gcs_db_${storagePath}`;
         const content = localStorage.getItem(key);
-        console.log(`[DataService] Reading from localStorage: ${key} (${content ? "found" : "not found"})`);
+        _DataService.logger.debug(`Reading from localStorage: ${key} (${content ? "found" : "not found"})`);
         try {
           return content ? JSON.parse(content) : {};
         } catch (e) {
@@ -1722,7 +1861,7 @@
           const fs = await import("fs/promises");
           const path = await import("path");
           const fullPath = path.join(process.cwd(), "data", storagePath);
-          console.log(`[DataService] Reading from file: ${fullPath}`);
+          _DataService.logger.info(`Reading from file: ${fullPath}`);
           const content = await fs.readFile(fullPath, "utf-8");
           return JSON.parse(content);
         } catch (e) {
@@ -1749,11 +1888,12 @@
           }
           await fs.writeFile(fullPath, JSON.stringify(db, null, 2));
         } catch (e) {
-          console.error("[DataService] Fehler beim Schreiben der Datei:", e);
+          _DataService.logger.error("Fehler beim Schreiben der Datei:", e);
         }
       }
     }
   };
+  __publicField(_DataService, "logger", Logger.get("DataService", "DataStore_Sync"));
   __publicField(_DataService, "instance");
   var DataService = _DataService;
   var dataService = DataService.getInstance();
@@ -1817,6 +1957,8 @@
   };
 
   // src/runtime/actions/StandardActions.ts
+  var runtimeLogger = Logger.get("Action", "Runtime_Execution");
+  var dataLogger = Logger.get("Action", "DataStore_Sync");
   function resolveTarget(targetName, objects, vars, _contextObj) {
     if (!targetName) return null;
     let actualName = targetName;
@@ -1882,7 +2024,7 @@
           data: { value: val, source: sourceName, property: action.sourceProperty }
         });
       } else {
-        console.warn(`[Action:variable] Fehler: Quelle "${sourceName}" konnte nicht aufgel\xF6st werden oder variableName fehlt.`);
+        runtimeLogger.warn(`Quelle "${sourceName}" konnte nicht aufgel\xF6st werden oder variableName fehlt.`);
         DebugLogService.getInstance().log("Action", `\u26A0\uFE0F Variable konnte nicht gelesen werden. Quelle: ${sourceName}`, {
           data: action
         });
@@ -1923,7 +2065,7 @@
         };
         try {
           const result = ExpressionParser.evaluate(formula, evalContext);
-          console.log(`%c[Action:calculate] Result of "${formula}" -> ${JSON.stringify(result)} (Target: ${action.resultVariable})`, "color: #2196f3");
+          runtimeLogger.info(`Result of "${formula}" -> ${JSON.stringify(result)} (Target: ${action.resultVariable})`);
           if (action.resultVariable) {
             context.contextVars[action.resultVariable] = result;
             if (context.vars) {
@@ -1931,10 +2073,10 @@
             }
           }
         } catch (err2) {
-          console.error(`[Action:calculate] Error evaluating "${formula}":`, err2);
+          runtimeLogger.error(`Error evaluating "${formula}":`, err2);
         }
       } else {
-        console.warn("[Action:calculate] No formula/expression provided in action:", action);
+        runtimeLogger.warn("No formula/expression provided in action:", action);
       }
     }, {
       type: "calculate",
@@ -2012,12 +2154,12 @@
         (o) => o.className === "TStageController" || o.constructor?.name === "TStageController"
       );
       if (stageController && typeof stageController.goToStage === "function") {
-        console.log(`[Action: navigate_stage] Via TStageController \u2192 ${resolved}`);
+        runtimeLogger.info(`Via TStageController \u2192 ${resolved}`);
         stageController.goToStage(resolved);
         return;
       }
       if (context.onNavigate) {
-        console.log(`[Action: navigate_stage] Via onNavigate fallback \u2192 stage:${resolved}`);
+        runtimeLogger.info(`Via onNavigate fallback \u2192 stage:${resolved}`);
         context.onNavigate(`stage:${resolved}`, action.params);
       }
     }, {
@@ -2105,11 +2247,11 @@
       let method = action.method || "GET";
       if (action.requestJWT) {
         if (!url || url === "/" || url.startsWith("/api/data/")) {
-          console.log(`[Action: http] Auto-fixing URL for JWT request: ${url} -> /api/platform/login`);
+          dataLogger.info(`Auto-fixing URL for JWT request: ${url} -> /api/platform/login`);
           url = "/api/platform/login";
         }
         if (method === "GET") {
-          console.log(`[Action: http] Auto-fixing METHOD for JWT request: GET -> POST`);
+          dataLogger.info(`Auto-fixing METHOD for JWT request: GET -> POST`);
           method = "POST";
         }
       }
@@ -2128,36 +2270,36 @@
         const qProp = action.queryProperty || action.property;
         const qVal = action.queryValue || action.value;
         if (qProp && qVal) {
-          console.log(`[Action: http] Interpolating qVal "${qVal}" for qProp "${qProp}"`);
+          dataLogger.info(`Interpolating qVal "${qVal}" for qProp "${qProp}"`);
           const interpValue = PropertyHelper.interpolate(String(qVal), combinedContext, context.objects);
-          console.log(`[Action: http] Interpolated Value: "${interpValue}"`);
+          dataLogger.info(`Interpolated Value: "${interpValue}"`);
           parsedBody = { [qProp]: interpValue };
           body = JSON.stringify(parsedBody);
-          console.log(`[Action: http] Auto-constructed Login Body (JWT):`, parsedBody);
+          dataLogger.info(`Auto-constructed Login Body (JWT):`, parsedBody);
         }
       }
       DebugLogService.getInstance().log("Action", `HTTP: ${method} ${url}`, {
         data: { type: "http", method, url, body: parsedBody }
       });
       if (serviceRegistry.has("ApiSimulator")) {
-        console.log(`[Action: http] Using API Simulation for: ${method} ${url}`);
+        dataLogger.info(`Using API Simulation for: ${method} ${url}`);
         try {
           const dsName = action.dataStore;
           const dsComponent = context.objects.find((o) => o.name === dsName || o.id === dsName);
           const storageFile = dsComponent?.storagePath || "db.json";
           if (action.requestJWT) {
-            console.log(`[Action: http] JWT Simulation Request: ${method} ${url}`, parsedBody);
+            dataLogger.info(`JWT Simulation Request: ${method} ${url}`, parsedBody);
           }
           let result = await serviceRegistry.call("ApiSimulator", "request", [method, url, parsedBody, storageFile]);
           if (action.requestJWT) {
-            console.log(`[Action: http] JWT Simulation Result:`, result);
+            dataLogger.info(`JWT Simulation Result:`, result);
             if (result && result.token) {
               localStorage.setItem("auth_token", result.token);
-              console.log('[Action: http] Auto-saved JWT token to localStorage "auth_token"');
+              dataLogger.info('Auto-saved JWT token to localStorage "auth_token"');
             }
             if (result && result.user) {
               result = result.user;
-              console.log("[Action: http] Auto-unwrapped user object from JWT response");
+              dataLogger.info("Auto-unwrapped user object from JWT response");
             }
           }
           if (action.resultPath && result) {
@@ -2168,7 +2310,7 @@
             const isCountOnly = fields.length === 1 && fields[0] === "count(*)";
             if (isCountOnly && Array.isArray(result)) {
               result = result.length;
-              console.log(`[Action: http] Applied SQL COUNT Projection: ${result}`);
+              dataLogger.info(`Applied SQL COUNT Projection: ${result}`);
             } else {
               const project = (obj) => {
                 if (typeof obj !== "object" || obj === null) return obj;
@@ -2183,11 +2325,11 @@
                 return partial;
               };
               result = Array.isArray(result) ? result.map(project) : project(result);
-              console.log(`[Action: http] Applied SQL Projection (${action.selectFields}):`, result);
+              dataLogger.info(`Applied SQL Projection (${action.selectFields}):`, result);
             }
           }
           if (action.requestJWT && Array.isArray(result) && result.length === 1) {
-            console.log(`[Action: http] Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
+            dataLogger.info(`Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
             result = result[0];
           }
           const resVar = action.resultVariable || action.variable;
@@ -2201,14 +2343,14 @@
               data: result
             });
             if (action.requestJWT) {
-              console.log(`[Action: http] Variable "${varName}" gesetzt auf:`, displayValue);
+              dataLogger.info(`Variable "${varName}" gesetzt auf:`, displayValue);
             }
           }
           if (result && (result.error || result.status >= 400)) {
             return false;
           }
         } catch (err2) {
-          console.error("[Action: http] Simulation Error:", err2);
+          dataLogger.error("Simulation Error:", err2);
           if (action.resultVariable) {
             const errorObj = { error: String(err2), status: 500 };
             context.vars[action.resultVariable] = errorObj;
@@ -2229,26 +2371,26 @@
         }
         if (body) options.body = body;
         if (action.requestJWT) {
-          console.log(`[Action: http] JWT Real Request: ${method} ${url}`, { headers: options.headers, body: parsedBody });
+          dataLogger.info(`JWT Real Request: ${method} ${url}`, { headers: options.headers, body: parsedBody });
         }
         const response = await fetch(url, options);
         let data = await response.json();
         if (action.requestJWT) {
-          console.log(`[Action: http] JWT Real Response:`, data);
+          dataLogger.info(`JWT Real Response:`, data);
           if (data && data.token) {
             localStorage.setItem("auth_token", data.token);
-            console.log('[Action: http] Auto-saved JWT token to localStorage "auth_token"');
+            dataLogger.info('Auto-saved JWT token to localStorage "auth_token"');
           }
           if (data && data.user) {
             data = data.user;
-            console.log("[Action: http] Auto-unwrapped user object from JWT response");
+            dataLogger.info("Auto-unwrapped user object from JWT response");
           }
         }
         if (action.resultPath && data) {
           data = PropertyHelper.getPropertyValue(data, action.resultPath);
         }
         if (action.requestJWT && Array.isArray(data) && data.length === 1) {
-          console.log(`[Action: http] Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
+          dataLogger.info(`Auto-Unwrapping single-item JWT result for ${action.resultVariable}`);
           data = data[0];
         }
         if (action.resultVariable) {
@@ -2261,14 +2403,14 @@
             data
           });
           if (action.requestJWT) {
-            console.log(`[Action: http] Produktion: Variable "${varName}" gesetzt auf:`, displayValue);
+            dataLogger.info(`Produktion: Variable "${varName}" gesetzt auf:`, displayValue);
           }
         }
         if (!response.ok) {
           return false;
         }
       } catch (err2) {
-        console.error("[Action: http] Error:", err2);
+        dataLogger.error("Error:", err2);
         if (action.resultVariable) {
           const errorObj = { error: String(err2) };
           context.vars[action.resultVariable] = errorObj;
@@ -2300,7 +2442,7 @@
       } else {
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         const token = PropertyHelper.interpolate(String(action.token || ""), combinedContext, context.objects);
-        console.log(`[Action: store_token] Speichere Token "${key}":`, token ? token.substring(0, 15) + "..." : "null");
+        dataLogger.info(`Speichere Token "${key}":`, token ? token.substring(0, 15) + "..." : "null");
         localStorage.setItem(key, token);
       }
     }, {
@@ -2321,7 +2463,7 @@
       if (toaster && typeof toaster.show === "function") {
         toaster.show(message, toastType);
       } else {
-        console.log(`[TOAST: ${toastType.toUpperCase()}] ${message}`);
+        runtimeLogger.info(`[TOAST: ${toastType.toUpperCase()}] ${message}`);
       }
     }, {
       type: "show_toast",
@@ -2347,7 +2489,7 @@
           context.vars[action.resultVariable] = result;
           context.contextVars[action.resultVariable] = result;
         }
-        console.log(`[Action: call_method] ${targetName}.${methodName}(${resolvedParams.join(", ")}) aufgerufen.`);
+        runtimeLogger.info(`${targetName}.${methodName}(${resolvedParams.join(", ")}) aufgerufen.`);
         return;
       }
       if (serviceRegistry.has(targetName)) {
@@ -2356,7 +2498,7 @@
           context.vars[action.resultVariable] = result;
           context.contextVars[action.resultVariable] = result;
         }
-        console.log(`[Action: call_method] Service ${targetName}.${methodName}(${resolvedParams.join(", ")}) aufgerufen.`);
+        runtimeLogger.info(`Service ${targetName}.${methodName}(${resolvedParams.join(", ")}) aufgerufen.`);
         return;
       }
       if (targetName === "Toaster" && methodName === "show") {
@@ -2368,7 +2510,7 @@
         if (toaster && typeof toaster.show === "function") {
           toaster.show(message, toastType);
         } else {
-          console.log(`[TOAST: ${toastType.toUpperCase()}] ${message}`);
+          runtimeLogger.info(`[TOAST: ${toastType.toUpperCase()}] ${message}`);
         }
         return;
       }
@@ -2395,13 +2537,13 @@
           data = JSON.parse(dataStr);
         }
       } catch (e) {
-        console.warn("[Action: respond_http] Could not parse data as JSON, sending as string:", e);
+        dataLogger.warn("Could not parse data as JSON, sending as string:", e);
       }
-      console.log(`[Action: respond_http] Sending response for ${requestId}:`, { status, data });
+      dataLogger.info(`Sending response for ${requestId}:`, { status, data });
       if (serviceRegistry.has("HttpServer")) {
         await serviceRegistry.call("HttpServer", "respond", [requestId, status, data]);
       } else {
-        console.warn("[Action: respond_http] No HttpServer service registered!");
+        dataLogger.warn("No HttpServer service registered!");
       }
     }, {
       type: "respond_http",
@@ -2415,9 +2557,9 @@
     });
     actionRegistry.register("execute_login_request", async (_action, context) => {
       const pin = context.vars["currentPIN"] || context.contextVars["currentPIN"];
-      console.log("[Action: execute_login_request] Attempting login with PIN:", pin);
+      dataLogger.info("Attempting login with PIN:", pin);
       if (!pin) {
-        console.warn("[Action: execute_login_request] No PIN provided!");
+        dataLogger.warn("No PIN provided!");
         return false;
       }
       try {
@@ -2428,16 +2570,16 @@
         });
         if (response.ok) {
           const data = await response.json();
-          console.log("[Action: execute_login_request] Login success:", data);
+          dataLogger.info("Login success:", data);
           context.contextVars["loginResult"] = data;
           context.vars["loginResult"] = data;
           return true;
         } else {
-          console.warn("[Action: execute_login_request] Login failed:", response.status);
+          dataLogger.warn("Login failed:", response.status);
           return false;
         }
       } catch (error) {
-        console.error("[Action: execute_login_request] Network error:", error);
+        dataLogger.error("Network error:", error);
         return false;
       }
     }, {
@@ -2448,13 +2590,13 @@
     });
     actionRegistry.register("data_action", async (action, context) => {
       const subType = action.data?.type || action.subType || "http";
-      console.log(`[Action: data_action] Delegating to ${subType}`);
+      runtimeLogger.info(`Delegating to ${subType}`);
       const handler = actionRegistry.getHandler(subType);
       if (handler) {
         const mergedAction = { ...action.data, ...action, type: subType };
         return await handler(mergedAction, context);
       } else {
-        console.warn(`[Action: data_action] No handler found for sub-type "${subType}"`);
+        runtimeLogger.warn(`No handler found for sub-type "${subType}"`);
         return false;
       }
     }, {
@@ -2503,7 +2645,7 @@
   }
 
   // src/runtime/ActionExecutor.ts
-  var ActionExecutor = class {
+  var _ActionExecutor = class _ActionExecutor {
     constructor(objects, multiplayerManager, onNavigate) {
       this.objects = objects;
       this.multiplayerManager = multiplayerManager;
@@ -2523,7 +2665,7 @@
         parentId,
         data: action
       });
-      console.log(`%c[Action] Executing: type="${action.type}"`, "color: #4caf50", {
+      _ActionExecutor.logger.debug(`Executing: type="${action.type}"`, {
         action,
         localVars: vars,
         globalVars,
@@ -2543,7 +2685,7 @@
           });
         }
         if (!handler) {
-          console.warn(`[ActionExecutor] Unknown action type: ${action.type}`);
+          _ActionExecutor.logger.warn(`Unknown action type: ${action.type}`);
         }
       } finally {
         DebugLogService.getInstance().popContext();
@@ -2586,10 +2728,13 @@
       }
     }
   };
+  __publicField(_ActionExecutor, "logger", Logger.get("ActionExecutor", "Runtime_Execution"));
+  var ActionExecutor = _ActionExecutor;
 
   // src/services/LibraryService.ts
   var LibraryService = class {
     constructor() {
+      __publicField(this, "logger", Logger.get("LibraryService", "Project_Save_Load"));
       __publicField(this, "libraryTasks", []);
       __publicField(this, "libraryTemplates", []);
       __publicField(this, "isLoaded", false);
@@ -2602,9 +2747,9 @@
         this.libraryTasks = data.tasks || [];
         this.libraryTemplates = data.templates || [];
         this.isLoaded = true;
-        console.log(`[LibraryService] Loaded ${this.libraryTasks.length} tasks and ${this.libraryTemplates.length} templates.`);
+        this.logger.info(`Loaded ${this.libraryTasks.length} tasks and ${this.libraryTemplates.length} templates.`);
       } catch (err2) {
-        console.error("[LibraryService] Failed to load library.json:", err2);
+        this.logger.error("Failed to load library.json:", err2);
       }
     }
     getTasks() {
@@ -2637,14 +2782,14 @@
           } else {
             this.libraryTemplates.push(template);
           }
-          console.log(`[LibraryService] Template "${template.name}" saved successfully.`);
+          this.logger.info(`Template "${template.name}" saved successfully.`);
           return true;
         } else {
-          console.error("[LibraryService] Failed to save template:", await response.text());
+          this.logger.error("Failed to save template:", await response.text());
           return false;
         }
       } catch (err2) {
-        console.error("[LibraryService] Error saving template:", err2);
+        this.logger.error("Error saving template:", err2);
         return false;
       }
     }
@@ -2652,7 +2797,7 @@
   var libraryService = new LibraryService();
 
   // src/runtime/executor/TaskConditionEvaluator.ts
-  var TaskConditionEvaluator = class {
+  var _TaskConditionEvaluator = class _TaskConditionEvaluator {
     static evaluateCondition(condition, vars, globalVars) {
       if (!condition) return false;
       let leftValue;
@@ -2689,10 +2834,10 @@
         }
         conditionStr = `${leftValRaw} (${leftType}) ${operator} ${rightValRaw} (${rightType})`;
       }
-      console.log(`[TaskConditionEvaluator] Evaluating Condition: "${conditionStr}"`);
-      console.log(`               Left:  "${leftValue}" (type: ${typeof leftValue})`);
-      console.log(`               Right: "${rightValue}" (type: ${typeof rightValue})`);
-      console.log(`               Op:    "${operator}"`);
+      _TaskConditionEvaluator.logger.debug(`Evaluating Condition: "${conditionStr}"`);
+      _TaskConditionEvaluator.logger.debug(`               Left:  "${leftValue}" (type: ${typeof leftValue})`);
+      _TaskConditionEvaluator.logger.debug(`               Right: "${rightValue}" (type: ${typeof rightValue})`);
+      _TaskConditionEvaluator.logger.debug(`               Op:    "${operator}"`);
       switch (operator) {
         case "==":
           return String(leftValue) === String(rightValue);
@@ -2742,27 +2887,29 @@
       return PropertyHelper.getPropertyValue(root, lookup);
     }
   };
+  __publicField(_TaskConditionEvaluator, "logger", Logger.get("TaskConditionEvaluator", "Runtime_Execution"));
+  var TaskConditionEvaluator = _TaskConditionEvaluator;
 
   // src/runtime/executor/TaskLoopHandler.ts
-  var TaskLoopHandler = class {
+  var _TaskLoopHandler = class _TaskLoopHandler {
     static async handleWhile(item, vars, globalVars, contextObj, depth, parentId, executeBody) {
       if (!item.condition || !item.body) {
-        console.warn("[TaskLoopHandler] WHILE loop missing condition or body");
+        _TaskLoopHandler.logger.warn("WHILE loop missing condition or body");
         return;
       }
       let iterations = 0;
       while (TaskConditionEvaluator.evaluateCondition(item.condition, vars, globalVars)) {
         if (iterations++ >= this.MAX_ITERATIONS) {
-          console.error(`[TaskLoopHandler] WHILE loop exceeded max iterations(${this.MAX_ITERATIONS})`);
+          _TaskLoopHandler.logger.error(`WHILE loop exceeded max iterations(${this.MAX_ITERATIONS})`);
           break;
         }
         await executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
       }
-      console.log(`[TaskLoopHandler] WHILE loop completed after ${iterations} iterations`);
+      _TaskLoopHandler.logger.info(`WHILE loop completed after ${iterations} iterations`);
     }
     static async handleFor(item, vars, globalVars, contextObj, depth, parentId, executeBody) {
       if (!item.iteratorVar || !item.body) {
-        console.warn("[TaskLoopHandler] FOR loop missing iteratorVar or body");
+        _TaskLoopHandler.logger.warn("FOR loop missing iteratorVar or body");
         return;
       }
       const from = TaskConditionEvaluator.resolveValue(item.from, vars, globalVars);
@@ -2771,30 +2918,30 @@
       let iterations = 0;
       for (let i = from; step > 0 ? i <= to : i >= to; i += step) {
         if (iterations++ >= this.MAX_ITERATIONS) {
-          console.error(`[TaskLoopHandler] FOR loop exceeded max iterations(${this.MAX_ITERATIONS})`);
+          _TaskLoopHandler.logger.error(`FOR loop exceeded max iterations(${this.MAX_ITERATIONS})`);
           break;
         }
         vars[item.iteratorVar] = i;
         globalVars[item.iteratorVar] = i;
         await executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
       }
-      console.log(`[TaskLoopHandler] FOR loop completed after ${iterations} iterations`);
+      _TaskLoopHandler.logger.info(`FOR loop completed after ${iterations} iterations`);
     }
     static async handleForeach(item, vars, globalVars, contextObj, depth, parentId, executeBody) {
       if (!item.sourceArray || !item.itemVar || !item.body) {
-        console.warn("[TaskLoopHandler] FOREACH loop missing sourceArray, itemVar, or body");
+        _TaskLoopHandler.logger.warn("FOREACH loop missing sourceArray, itemVar, or body");
         return;
       }
       const arrayName = item.sourceArray;
       const arr = vars[arrayName] !== void 0 ? vars[arrayName] : globalVars[arrayName];
       if (!Array.isArray(arr)) {
-        console.warn(`[TaskLoopHandler] FOREACH: ${arrayName} is not an array`);
+        _TaskLoopHandler.logger.warn(`FOREACH: ${arrayName} is not an array`);
         return;
       }
       let idx = 0;
       for (const element of arr) {
         if (idx >= this.MAX_ITERATIONS) {
-          console.error(`[TaskLoopHandler] FOREACH loop exceeded max iterations(${this.MAX_ITERATIONS})`);
+          _TaskLoopHandler.logger.error(`FOREACH loop exceeded max iterations(${this.MAX_ITERATIONS})`);
           break;
         }
         vars[item.itemVar] = element;
@@ -2806,12 +2953,15 @@
         await executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
         idx++;
       }
-      console.log(`[TaskLoopHandler] FOREACH loop completed after ${idx} iterations`);
+      _TaskLoopHandler.logger.info(`FOREACH loop completed after ${idx} iterations`);
     }
   };
-  __publicField(TaskLoopHandler, "MAX_ITERATIONS", 1e3);
+  __publicField(_TaskLoopHandler, "logger", Logger.get("TaskLoopHandler", "Runtime_Execution"));
+  __publicField(_TaskLoopHandler, "MAX_ITERATIONS", 1e3);
+  var TaskLoopHandler = _TaskLoopHandler;
 
   // src/runtime/TaskExecutor.ts
+  var logger3 = Logger.get("TaskExecutor", "Runtime_Execution");
   var _TaskExecutor = class _TaskExecutor {
     constructor(project, actions, actionExecutor, flowCharts, multiplayerManager, tasks) {
       this.project = project;
@@ -2836,7 +2986,7 @@
     }
     async execute(taskName, vars, globalVars, contextObj, depth = 0, parentId, params, isRemoteExecution = false) {
       if (depth >= _TaskExecutor.MAX_DEPTH) {
-        console.error(`[TaskExecutor] Max recursion depth exceeded: ${taskName}`);
+        logger3.error(`Max recursion depth exceeded: ${taskName}`);
         return;
       }
       if (params) {
@@ -2864,7 +3014,7 @@
           const evts = contextObj.events || contextObj.Tasks;
           if (evts && evts[evtName]) {
             foundTaskName = evts[evtName];
-            console.log(`[TaskExecutor] Resolved "${taskName}" via direct contextObj match: "${foundTaskName}"`);
+            logger3.debug(`Resolved "${taskName}" via direct contextObj match: "${foundTaskName}"`);
           }
         }
         if (!foundTaskName) {
@@ -2921,22 +3071,22 @@
           }
         }
         if (foundTaskName) {
-          console.log(`[TaskExecutor] Final resolution for "${taskName}": "${foundTaskName}"`);
+          logger3.debug(`Final resolution for "${taskName}": "${foundTaskName}"`);
           return this.execute(foundTaskName, vars, globalVars, contextObj, depth + 1, parentId, params, isRemoteExecution);
         }
         const optionalEvents = ["onStart", "onStop", "onValueChanged", "onLoad", "onUnload", "onFocus", "onBlur", "onEnter", "onLeave"];
         const isOptionalEvent = optionalEvents.includes(evtName);
         if (!isOptionalEvent) {
           if (objectFound) {
-            console.warn(`[TaskExecutor] Object "${objName}" found, but no task mapping for event "${evtName}".`);
+            logger3.warn(`Object "${objName}" found, but no task mapping for event "${evtName}".`);
           } else {
-            console.warn(`[TaskExecutor] Could not resolve dot-notation "${taskName}". Object "${objName}" not found in current project.`);
+            logger3.warn(`Could not resolve dot-notation "${taskName}". Object "${objName}" not found in current project.`);
           }
         }
         return;
       }
       if (!task) {
-        console.warn(`[TaskExecutor] Task definition not found: ${taskName}`);
+        logger3.warn(`Task definition not found: ${taskName}`);
         return;
       }
       const triggerMode = task.triggerMode || "local-sync";
@@ -2944,14 +3094,14 @@
       const isHost = this.multiplayerManager?.isHost === true;
       if (isMultiplayer && !isRemoteExecution) {
         if (triggerMode === "broadcast" && !isHost) {
-          console.log(`[TaskExecutor] Broadcasting task "${taskName}" to host (not executing locally)`);
+          logger3.info(`Broadcasting task "${taskName}" to host (not executing locally)`);
           this.multiplayerManager.sendTriggerTask(taskName, params);
           return;
         }
       }
       if (isMultiplayer && isRemoteExecution) {
         if (triggerMode === "broadcast" && !isHost) {
-          console.log(`[TaskExecutor] Skipping remote broadcast task "${taskName}" - only host executes`);
+          logger3.info(`Skipping remote broadcast task "${taskName}" - only host executes`);
           return;
         }
       }
@@ -2963,7 +3113,7 @@
           }
         });
         if (Object.keys(paramDefaults).length > 0) {
-          console.log(`[TaskExecutor] Applied param defaults for "${taskName}":`, paramDefaults);
+          logger3.debug(`Applied param defaults for "${taskName}":`, paramDefaults);
           vars = { ...vars, ...paramDefaults };
         }
       }
@@ -2977,23 +3127,23 @@
         const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
         const actionSequence = task.actionSequence || [];
         if (hasFlowChart) {
-          console.log(`[TaskExecutor] Nutze Flussdiagramm f\xFCr "${taskName}" (Elemente: ${flowChart.elements.length})`);
+          logger3.info(`Nutze Flussdiagramm f\xFCr "${taskName}" (Elemente: ${flowChart.elements.length})`);
           await this.executeFlowChart(taskName, flowChart, vars, globalVars, contextObj, depth, taskLogId);
         } else {
           if (actionSequence.length === 0) {
-            console.log(`[TaskExecutor] Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
+            logger3.debug(`Task "${taskName}" hat weder FlowChart noch ActionSequence.`);
           }
           for (const seqItem of actionSequence) {
             try {
               await this.executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, taskLogId);
             } catch (err2) {
-              console.error(`[TaskExecutor] Error in item of task ${taskName}: `, err2);
+              logger3.error(`Error in item of task ${taskName}: ${err2}`);
               DebugLogService.getInstance().log("Event", `ERROR executing task ${taskName}: ${err2}`, { parentId: taskLogId });
             }
           }
         }
         if (isMultiplayer && triggerMode === "local-sync" && !isRemoteExecution) {
-          console.log(`[TaskExecutor] Syncing task "${taskName}" to other player`);
+          logger3.info(`Syncing task "${taskName}" to other player`);
           this.multiplayerManager.sendSyncTask(taskName, params);
         }
       } finally {
@@ -3011,11 +3161,11 @@
         (e) => e.type === "Task" && e.properties?.name === taskName || e.type === "Start"
       );
       if (!startNode) {
-        console.warn(`[TaskExecutor] No start node found in flowChart for task: ${taskName}. elements:`, elements.map((e) => `${e.type}:${e.properties?.name || e.id}`));
+        logger3.warn(`No start node found in flowChart for task: ${taskName}. elements:`, elements.map((e) => `${e.type}:${e.properties?.name || e.id}`));
         return;
       }
-      console.log(`[TaskExecutor] FlowChart Elements for "${taskName}":`, elements.map((e) => `${e.type}:${e.properties?.name || e.id}`));
-      console.log(`[TaskExecutor] FlowChart vars.eventData =`, vars.eventData, "contextObj =", contextObj?.name || contextObj?.className);
+      logger3.debug(`FlowChart Elements for "${taskName}":`, elements.map((e) => `${e.type}:${e.properties?.name || e.id}`));
+      logger3.debug(`FlowChart vars.eventData =`, vars.eventData, "contextObj =", contextObj?.name || contextObj?.className);
       const executeNode = async (node) => {
         if (!node || visited.has(node.id)) return;
         visited.add(node.id);
@@ -3052,7 +3202,7 @@
                   resolvedParams[key] = value;
                 }
               }
-              console.log(`[TaskExecutor] FlowChart: Executing action body for "${action.name}" with params:`, resolvedParams);
+              logger3.debug(`FlowChart: Executing action body for "${action.name}" with params:`, resolvedParams);
               const bodyVars = { ...vars, $params: resolvedParams };
               for (const bodyItem of action.body) {
                 await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, parentId);
@@ -3084,10 +3234,10 @@
         if (nodeType === "DataAction" || nodeType === "data_action") {
           const action = this.resolveAction({ type: "data_action", name }) || node.data;
           if (action) {
-            console.log(`[TaskExecutor] FlowChart: Executing DataAction "${name}"`);
+            logger3.info(`FlowChart: Executing DataAction "${name}"`);
             const result = await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
             const isSuccess = result !== false;
-            console.log(`[TaskExecutor] DataAction "${name}" finished. Success: ${isSuccess}`);
+            logger3.info(`DataAction "${name}" finished. Success: ${isSuccess}`);
             const successConn = connections.find(
               (c) => c.startTargetId === node.id && (c.data?.startAnchorType === "success" || c.data?.anchorType === "success" || c.data?.startAnchorType === "true")
             );
@@ -3115,13 +3265,13 @@
         if (nodeType === "Condition" || nodeType === "condition") {
           const condition = node.data?.condition;
           if (!condition) {
-            console.warn(`[TaskExecutor] Condition node without condition data: ${node.id} `);
+            logger3.warn(`Condition node without condition data: ${node.id} `);
             return;
           }
           const result = this.evaluateCondition(condition, vars, globalVars);
           const left = condition.leftValue || condition.variable || "?";
           const right = condition.rightValue || condition.value || "?";
-          console.log(`[TaskExecutor] Condition ${left} ${condition.operator || "=="} ${right} => ${result} `);
+          logger3.debug(`Condition ${left} ${condition.operator || "=="} ${right} => ${result} `);
           const trueConn = connections.find(
             (c) => c.startTargetId === node.id && (c.data?.startAnchorType === "true" || c.data?.anchorType === "true")
           );
@@ -3146,11 +3296,11 @@
     }
     async executeSequenceItem(seqItem, vars, globalVars, contextObj, depth, parentId) {
       const item = typeof seqItem === "string" ? { type: "action", name: seqItem } : seqItem;
-      console.log(`[TaskExecutor] Processing item: type = "${item.type}" name = "${item.name || "N/A"}" condition = "${item.condition?.variable || "none"}"`);
+      logger3.debug(`Processing item: type = "${item.type}" name = "${item.name || "N/A"}" condition = "${item.condition?.variable || "none"}"`);
       if (item.type !== "condition") {
         const condition = item.itemCondition || (typeof item.condition === "string" ? item.condition : null);
         if (condition && !this.evaluateCondition(condition, vars, globalVars)) {
-          console.log(`[TaskExecutor] Item condition FALSE, skipping: ${condition} `);
+          logger3.debug(`Item condition FALSE, skipping: ${condition} `);
           return;
         }
       }
@@ -3187,7 +3337,7 @@
                   }
                 }
               }
-              console.log(`[TaskExecutor] Executing action body for "${action.name}" with params:`, resolvedParams);
+              logger3.debug(`Executing action body for "${action.name}" with params:`, resolvedParams);
               const bodyVars = { ...vars, $params: resolvedParams };
               for (const bodyItem of action.body) {
                 await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, parentId);
@@ -3196,7 +3346,7 @@
               await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
             }
           } else {
-            console.warn(`[TaskExecutor] Action definition not found: ${item.name} `);
+            logger3.warn(`Action definition not found: ${item.name} `);
           }
           break;
         case "while":
@@ -3258,15 +3408,15 @@
           data: logData
         }
       );
-      console.log(`[TaskExecutor] Condition: ${conditionExpr} => ${result}`);
+      logger3.debug(`Condition: ${conditionExpr} => ${result}`);
       if (result) {
         if (item.thenAction) {
           const action = this.resolveAction(item.thenAction);
-          console.log(`[TaskExecutor] Condition TRUE, executing thenAction: ${item.thenAction} `);
+          logger3.debug(`Condition TRUE, executing thenAction: ${item.thenAction} `);
           if (action) await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
         }
         if (item.thenTask) {
-          console.log(`[TaskExecutor] Condition TRUE, executing thenTask: ${item.thenTask} `);
+          logger3.debug(`Condition TRUE, executing thenTask: ${item.thenTask} `);
           await this.execute(item.thenTask, vars, globalVars, contextObj, depth + 1, parentId);
         }
         if (item.body) await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
@@ -3303,13 +3453,13 @@
     async handleDataAction(item, vars, globalVars, contextObj, depth, parentId) {
       const action = this.resolveAction(item);
       if (!action) {
-        console.warn(`[TaskExecutor] DataAction definition not found: ${item.name || item.type}`);
+        logger3.warn(`DataAction definition not found: ${item.name || item.type}`);
         return false;
       }
-      console.log(`[TaskExecutor] Executing DataAction: ${action.name || action.type}`);
+      logger3.debug(`Executing DataAction: ${action.name || action.type}`);
       const result = await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
       const isSuccess = result !== false;
-      console.log(`[TaskExecutor] DataAction "${action.name || action.type}" finished. Success: ${isSuccess}`);
+      logger3.debug(`DataAction "${action.name || action.type}" finished. Success: ${isSuccess}`);
       const body = isSuccess ? item.successBody : item.errorBody;
       if (body && Array.isArray(body)) {
         await this.executeBody(body, vars, globalVars, contextObj, depth, parentId);
@@ -3623,7 +3773,7 @@
   var GameLoopManager = _GameLoopManager;
 
   // src/runtime/RuntimeVariableManager.ts
-  var RuntimeVariableManager = class {
+  var _RuntimeVariableManager = class _RuntimeVariableManager {
     constructor(host, initialGlobalVars = {}) {
       this.host = host;
       __publicField(this, "projectVariables", {});
@@ -3697,7 +3847,7 @@
           const variableDef = stage.variables?.find((v) => v.name === prop);
           if (!variableDef) return void 0;
           if (!variableDef.isPublic) {
-            console.warn(`[Scope] Access denied: Variable '${prop}' in stage '${stage.name}' is private.`);
+            _RuntimeVariableManager.logger.warn(`Access denied: Variable '${prop}' in stage '${stage.name}' is private.`);
             return void 0;
           }
           if (this.host.stage && this.host.stage.id === stage.id) {
@@ -3706,7 +3856,7 @@
           return variableDef.defaultValue;
         },
         set: () => {
-          console.warn(`[Scope] Cannot set properties on Stage Proxy '${stage.name}'. Cross-stage writes are forbidden.`);
+          _RuntimeVariableManager.logger.warn(`Cannot set properties on Stage Proxy '${stage.name}'. Cross-stage writes are forbidden.`);
           return false;
         }
       });
@@ -3754,7 +3904,7 @@
               if (JSON.stringify(component.data) !== JSON.stringify(value)) {
                 component.data = value;
                 componentUpdated = true;
-                console.log(`%c[VariableContext:Sync] ${prop} \u2192 component.data (${value.length} items)`, "color: #00bcd4");
+                _RuntimeVariableManager.logger.debug(`[Sync] ${prop} \u2192 component.data (${value.length} items)`);
               }
             } else if (component.items !== void 0 && Array.isArray(value)) {
               if (JSON.stringify(component.items) !== JSON.stringify(value)) {
@@ -3772,7 +3922,7 @@
           const displayName = varDef ? varDef.name : prop;
           const finalStr = finalValue !== void 0 ? JSON.stringify(finalValue)?.substring(0, 200) || String(finalValue) : "undefined";
           const oldStr = oldValue !== void 0 ? JSON.stringify(oldValue)?.substring(0, 100) || String(oldValue) : "undefined";
-          console.log(`%c[VariableContext:Set] ${displayName} = ${finalStr} (Old: ${oldStr})`, "color: #e91e63");
+          _RuntimeVariableManager.logger.info(`[Set] ${displayName} = ${finalStr} (Old: ${oldStr})`);
           this.host.reactiveRuntime.setVariable(actualProp, finalValue);
           if (this.host.taskExecutor) {
             if (varDef) {
@@ -3886,12 +4036,15 @@
       if (value === oldValue) return;
       const displayName = varDef ? varDef.name : id;
       const displayValue = typeof value === "object" && value !== null ? JSON.stringify(value) : String(value);
-      DebugLogService.getInstance().log("Variable", `${displayName} := ${displayValue}`, {
+      const displayOldValue = typeof oldValue === "object" && oldValue !== null ? JSON.stringify(oldValue) : String(oldValue);
+      const message = `${displayName} := ${displayValue} (vorher: ${displayOldValue})`;
+      DebugLogService.getInstance().log("Variable", message, {
         objectName: displayName,
         data: {
           type: "variable",
           variableName: displayName,
-          value
+          value,
+          oldValue
         }
       });
     }
@@ -3921,6 +4074,8 @@
       }
     }
   };
+  __publicField(_RuntimeVariableManager, "logger", Logger.get("RuntimeVariableManager", "Variable_Management"));
+  var RuntimeVariableManager = _RuntimeVariableManager;
 
   // src/components/TWindow.ts
   init_AnimationManager();
@@ -4086,7 +4241,7 @@
   };
 
   // src/components/TPanel.ts
-  var TPanel = class extends TWindow {
+  var _TPanel = class _TPanel extends TWindow {
     constructor(name, x, y, width, height) {
       super(name, x, y, width, height);
       __publicField(this, "_showGrid", false);
@@ -4100,7 +4255,7 @@
       return this.name;
     }
     set caption(v) {
-      console.log(`[TPanel] set caption("${v}") - Renaming ${this.name} to ${v}`);
+      _TPanel.logger.info(`set caption("${v}") - Renaming ${this.name} to ${v}`);
       this.name = v;
     }
     get showGrid() {
@@ -4132,6 +4287,8 @@
       ];
     }
   };
+  __publicField(_TPanel, "logger", Logger.get("TPanel", "Component_Manipulation"));
+  var TPanel = _TPanel;
 
   // src/components/TLabel.ts
   var TLabel = class extends TTextControl {
@@ -8920,7 +9077,7 @@
   };
 
   // src/components/TVariable.ts
-  var TVariable = class extends TWindow {
+  var _TVariable = class _TVariable extends TWindow {
     constructor(name, x, y) {
       super(name, x, y, 6, 2);
       __publicField(this, "className", "TVariable");
@@ -8940,11 +9097,11 @@
     }
     set type(v) {
       if (this._type !== v) {
-        console.log(`%c[TVariable] type update: ${this._type} -> ${v} (Object: ${this.name}, ID: ${this.id})`, "color: #e91e63; font-weight: bold");
-        console.trace("[TVariable] Trace for type update");
+        _TVariable.logger.info(`type update: ${this._type} -> ${v} (Object: ${this.name}, ID: ${this.id})`);
+        _TVariable.logger.debug(`Trace for type update ${this.name}`);
         this._type = v;
       } else {
-        console.log(`[TVariable] type setter called with SAME value: ${v} (Object: ${this.name})`);
+        _TVariable.logger.debug(`type setter called with SAME value: ${v} (Object: ${this.name})`);
       }
     }
     // Alias for backward compatibility
@@ -9001,7 +9158,7 @@
       const json = super.toJSON();
       json.type = this.type;
       json.objectModel = this.objectModel;
-      console.log(`[TVariable] Serializing "${this.name}" (ID: ${this.id}):`, {
+      _TVariable.logger.debug(`Serializing "${this.name}" (ID: ${this.id}):`, {
         className: this.className,
         type: json.type,
         scope: this.scope,
@@ -9010,6 +9167,8 @@
       return json;
     }
   };
+  __publicField(_TVariable, "logger", Logger.get("TVariable", "Project_Validation"));
+  var TVariable = _TVariable;
 
   // src/components/TTable.ts
   var TTable = class extends TWindow {
@@ -9741,7 +9900,7 @@
   };
 
   // src/components/TDataStore.ts
-  var TDataStore = class extends TPanel {
+  var _TDataStore = class _TDataStore extends TPanel {
     constructor(name = "DataStore", x = 0, y = 0) {
       super(name, x, y, 6, 4);
       __publicField(this, "storagePath", "data.json");
@@ -9750,7 +9909,7 @@
       __publicField(this, "_caption", "\u{1F5C4}\uFE0F Database");
       // Runtime-Callback für Events (z.B. onDataChanged)
       __publicField(this, "eventCallback", null);
-      console.log(`[TDataStore] Constructor: name=${this.name} (arg=${name})`);
+      _TDataStore.logger.info(`Constructor: name=${this.name} (arg=${name})`);
       this.style.backgroundColor = "#2c3e50";
       this.style.borderColor = "#bdc3c7";
       this.style.borderWidth = 2;
@@ -9762,10 +9921,10 @@
       return this._caption;
     }
     set caption(v) {
-      console.log(`[TDataStore] set caption("${v}") - Current name: ${this.name}`);
+      _TDataStore.logger.info(`set caption("${v}") - Current name: ${this.name}`);
       this._caption = v;
       if (this.name !== "UserData" && this.name !== "DataStore" && this.name !== "LocalStore") {
-        console.warn(`[TDataStore] Warning: name has changed to ${this.name}!`);
+        _TDataStore.logger.warn(`Warning: name has changed to ${this.name}!`);
       }
     }
     /**
@@ -9809,6 +9968,8 @@
       };
     }
   };
+  __publicField(_TDataStore, "logger", Logger.get("TDataStore", "Project_Validation"));
+  var TDataStore = _TDataStore;
 
   // src/components/TBadge.ts
   var TBadge = class extends TWindow {
@@ -10170,6 +10331,7 @@
   };
 
   // src/utils/Serialization.ts
+  var logger4 = Logger.get("Serialization", "Project_Save_Load");
   function hydrateObjects(objectsData) {
     const objects = [];
     objectsData.forEach((objData) => {
@@ -10369,7 +10531,7 @@
           newObj = new TTable(objData.name, objData.x, objData.y, objData.width, objData.height);
           break;
         default:
-          console.warn("Unknown class during load:", objData.className);
+          logger4.warn("Unknown class during load:", objData.className);
           break;
       }
       if (newObj) {
@@ -10391,7 +10553,7 @@
         }
         if (objData.caption !== void 0) {
           if (newObj.constructor.name === "TDataStore") {
-            console.log(`[Serialization] Assigning caption "${objData.caption}" to TDataStore "${objData.name}"`);
+            logger4.debug(`Assigning caption "${objData.caption}" to TDataStore "${objData.name}"`);
           }
           newObj.caption = objData.caption;
         }
@@ -10418,9 +10580,6 @@
         if (objData.shape !== void 0) newObj.shape = objData.shape;
         if (objData.spriteColor !== void 0) newObj.spriteColor = objData.spriteColor;
         if (objData.backgroundImage !== void 0) newObj.backgroundImage = objData.backgroundImage;
-        if (objData.src !== void 0 && (newObj.className === "TImage" || newObj.className === "TSprite")) {
-          newObj.backgroundImage = objData.src;
-        }
         if (objData.objectFit !== void 0) newObj.objectFit = objData.objectFit;
         if (objData.imageOpacity !== void 0) newObj.imageOpacity = objData.imageOpacity;
         if (objData.icon !== void 0) newObj.icon = objData.icon;
@@ -10513,17 +10672,17 @@
           } else {
             newObj[key] = val;
             if (newObj.isVariable && key === "type") {
-              console.log(`[Serialization] SETTING type via generic loop for "${newObj.name}":`, val);
+              logger4.debug(`SETTING type via generic loop for "${newObj.name}":`, val);
             }
           }
         });
         if (newObj.isVariable) {
           if (objData.value !== void 0) newObj.value = objData.value;
           if (objData.type !== void 0) {
-            console.log(`[Serialization] RESTORING type via explicit setter for "${newObj.name}":`, objData.type);
+            logger4.debug(`RESTORING type via explicit setter for "${newObj.name}":`, objData.type);
             newObj.type = objData.type;
           } else {
-            console.log(`[Serialization] WARNING: No type found in JSON for variable "${newObj.name}", falling back to constructor default:`, newObj.type);
+            logger4.warn(`No type found in JSON for variable "${newObj.name}", falling back to constructor default:`, newObj.type);
           }
         }
         if (objData.style) {
@@ -10547,6 +10706,7 @@
   // src/runtime/RuntimeStageManager.ts
   var RuntimeStageManager = class {
     constructor(project) {
+      __publicField(this, "logger", Logger.get("RuntimeStageManager", "Stage_Navigation"));
       // Cache für globale Objekte, damit deren State bei Stage-Wechseln erhalten bleibt
       __publicField(this, "cachedGlobalObjects", null);
       __publicField(this, "project");
@@ -10554,7 +10714,7 @@
     }
     resolveInheritanceChain(stageId, visited = /* @__PURE__ */ new Set()) {
       if (visited.has(stageId)) {
-        console.error(`[RuntimeStageManager] Circular inheritance detected for stage: ${stageId}`);
+        this.logger.error(`Circular inheritance detected for stage: ${stageId}`);
         return [];
       }
       visited.add(stageId);
@@ -10655,6 +10815,7 @@
   };
 
   // src/runtime/GameRuntime.ts
+  var logger5 = Logger.get("GameRuntime", "Runtime_Execution");
   var GameRuntime = class {
     constructor(project, objects, options = {}) {
       this.project = project;
@@ -10739,7 +10900,7 @@
     updateRuntimeData(project) {
       this.project = project;
       if (this.taskExecutor) {
-        console.log("[GameRuntime] Updating runtime data (FlowCharts, Actions, Tasks)");
+        logger5.info("Updating runtime data (FlowCharts, Actions, Tasks)");
         const stageId = this.stage?.id || this.project.activeStageId;
         const merged = this.stageManager.getMergedStageData(stageId);
         this.taskExecutor.setFlowCharts(merged.flowCharts);
@@ -10824,8 +10985,12 @@
       if (this.stage && this.taskExecutor) {
         const onLeaveTask = (this.stage.events || this.stage.Tasks)?.onLeave;
         if (onLeaveTask) {
-          console.log(`[GameRuntime] Triggering onLeave for stage: ${this.stage.id} (Task: ${onLeaveTask})`);
-          this.taskExecutor.execute(onLeaveTask, { sender: this.stage }, this.contextVars, this.stage);
+          logger5.info(`Triggering onLeave for stage: ${this.stage.id} (Task: ${onLeaveTask})`);
+          try {
+            this.taskExecutor.execute(onLeaveTask, { sender: this.stage }, this.contextVars, this.stage);
+          } catch (e) {
+            logger5.error(`Error executing onLeave for stage ${this.stage.id}:`, e);
+          }
         }
       }
       this.stage = this.project.stages?.find((s) => s.id === newStageId);
@@ -10837,13 +11002,13 @@
         this.taskExecutor.setTasks(merged.tasks);
         this.taskExecutor.setActions(merged.actions);
       }
-      console.log(`[GameRuntime] --- STAGE CHANGE: ${newStageId} ---`);
-      console.log(`[GameRuntime] Global Vars BEFORE reactive clear:`, this.reactiveRuntime.getContext());
+      logger5.info(`--- STAGE CHANGE: ${newStageId} ---`);
+      logger5.debug(`Global Vars BEFORE reactive clear:`, this.reactiveRuntime.getContext());
       if (this.options.makeReactive) {
         this.reactiveRuntime.clear(false);
         this.clearAllTimers();
         AnimationManager.getInstance().clear();
-        console.log(`[GameRuntime] Global Vars AFTER reactive clear:`, this.reactiveRuntime.getContext());
+        logger5.debug(`Global Vars AFTER reactive clear:`, this.reactiveRuntime.getContext());
         this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
         this.reactiveRuntime.setVariable("isSplashActive", false);
         if (this.options.onRender) {
@@ -10851,7 +11016,7 @@
         }
         this.objects = this.reactiveRuntime.getObjects();
         this.initializeReactiveBindings();
-        console.log(`[GameRuntime] Global Vars AFTER initializeReactiveBindings:`, this.reactiveRuntime.getContext());
+        logger5.debug(`Global Vars AFTER initializeReactiveBindings:`, this.reactiveRuntime.getContext());
       }
       if (this.actionExecutor) {
         this.actionExecutor.setObjects(this.objects);
@@ -10865,21 +11030,29 @@
       if (this.stage && this.taskExecutor) {
         const onEnterTask = (this.stage.events || this.stage.Tasks)?.onEnter;
         if (onEnterTask) {
-          console.log(`[GameRuntime] Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
+          logger5.debug(`Triggering onEnter for stage: ${this.stage.id} (Task: ${onEnterTask})`);
           const enterLogId = DebugLogService.getInstance().log("Event", `Triggered: ${this.stage.name || this.stage.id}.onEnter`, {
             objectName: this.stage.name || this.stage.id,
             eventName: "onEnter"
           });
-          this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage, 0, enterLogId);
+          try {
+            this.taskExecutor.execute(onEnterTask, { sender: this.stage }, this.contextVars, this.stage, 0, enterLogId);
+          } catch (e) {
+            logger5.error(`Error executing onEnter for stage ${this.stage.id}:`, e);
+          }
         }
         const onRuntimeStartTask = (this.stage.events || this.stage.Tasks)?.onRuntimeStart;
         if (onRuntimeStartTask) {
-          console.log(`[GameRuntime] Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
+          logger5.debug(`Triggering onRuntimeStart for stage: ${this.stage.id} (Task: ${onRuntimeStartTask})`);
           const startLogId = DebugLogService.getInstance().log("Event", `Triggered: ${this.stage.name || this.stage.id}.onRuntimeStart`, {
             objectName: this.stage.name || this.stage.id,
             eventName: "onRuntimeStart"
           });
-          this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage, 0, startLogId);
+          try {
+            this.taskExecutor.execute(onRuntimeStartTask, { sender: this.stage }, this.contextVars, this.stage, 0, startLogId);
+          } catch (e) {
+            logger5.error(`Error executing onRuntimeStart for stage ${this.stage.id}:`, e);
+          }
         }
       }
       if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
@@ -10949,7 +11122,7 @@
       }
       try {
         if (obj.className === "TEmojiPicker" && eventName === "onSelect" && typeof data === "string") {
-          console.log(`[GameRuntime] Syncing selectedEmoji for ${obj.name}: ${data}`);
+          logger5.debug(`Syncing selectedEmoji for ${obj.name}: ${data}`);
           obj.selectedEmoji = data;
         }
         if (obj.onEvent) {
@@ -11191,7 +11364,7 @@
           const val = target[key];
           const propPath = pathPrefix ? `${pathPrefix}.${key}` : key;
           if (typeof val === "string" && val.includes("${")) {
-            console.log(`%c[GameRuntime] Creating reactive binding: ${obj.name}.${propPath} \u2190 ${val}`, "color: #4caf50; font-weight: bold");
+            logger5.debug(`Creating reactive binding: ${obj.name}.${propPath} \u2190 ${val}`);
             this.reactiveRuntime.bindComponent(obj, propPath, val);
           } else if (val && typeof val === "object" && !Array.isArray(val) && (key === "style" || key === "events" || key === "Tasks")) {
             bindProps(val, propPath);
@@ -11600,6 +11773,1010 @@
   } catch (e) {
   }
 
+  // src/editor/services/EmojiPickerRenderer.ts
+  var logger6 = Logger.get("EmojiPickerRenderer", "Inspector_Update");
+  var EmojiPickerRenderer = class {
+    /**
+     * Renders the internal emoji grid for a TEmojiPicker object.
+     */
+    static renderEmojiPicker(el, obj, cellSize, onEvent) {
+      try {
+        el.style.display = "grid";
+        el.style.gridTemplateColumns = `repeat(${obj.columns || 5}, 1fr)`;
+        el.style.gap = "5px";
+        el.style.padding = "10px";
+        el.style.overflowY = "auto";
+        el.style.alignContent = "start";
+        el.style.justifyItems = "center";
+        el.innerHTML = "";
+        const emojiList = Array.isArray(obj.emojis) ? obj.emojis : [];
+        const itemSizePx = (obj.itemSize || 2) * cellSize;
+        emojiList.forEach((emoji) => {
+          const btn = document.createElement("div");
+          btn.style.width = `${itemSizePx}px`;
+          btn.style.height = `${itemSizePx}px`;
+          btn.style.display = "flex";
+          btn.style.alignItems = "center";
+          btn.style.justifyContent = "center";
+          btn.style.fontSize = `${itemSizePx * 0.7}px`;
+          btn.style.cursor = "pointer";
+          btn.style.borderRadius = "8px";
+          btn.style.transition = "background 0.2s, transform 0.1s";
+          btn.innerText = emoji;
+          if (emoji === obj.selectedEmoji) {
+            btn.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+            btn.style.boxShadow = "0 0 0 2px #4fc3f7";
+          }
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            obj.selectedEmoji = emoji;
+            if (onEvent) onEvent(obj.id, "onSelect", emoji);
+            this.renderEmojiPicker(el, obj, cellSize, onEvent);
+          };
+          el.appendChild(btn);
+        });
+      } catch (e) {
+        logger6.error("Error rendering EmojiPicker:", e);
+      }
+    }
+  };
+
+  // src/editor/services/TableRenderer.ts
+  var logger7 = Logger.get("TableRenderer", "Inspector_Update");
+  var TableRenderer = class {
+    /**
+     * Main entry point for rendering any table/grid structure.
+     */
+    static renderTable(el, obj, onEvent) {
+      try {
+        el.innerHTML = "";
+        const scrollArea = document.createElement("div");
+        scrollArea.style.cssText = "width:100%; height:100%; overflow:auto;";
+        el.appendChild(scrollArea);
+        const cols = Array.isArray(obj.columns) ? obj.columns : [];
+        const rawData = Array.isArray(obj.data) ? obj.data : [];
+        if (obj.viewType === "grid") {
+          this.renderGrid(scrollArea, el, obj, cols, rawData, onEvent);
+        } else {
+          this.renderStandardTable(scrollArea, el, obj, cols, rawData, onEvent);
+        }
+      } catch (e) {
+        logger7.error("Error rendering table:", e);
+      }
+    }
+    static renderGrid(scrollArea, el, obj, cols, rawData, onEvent) {
+      const config = obj.gridConfig || {};
+      const cardWidth = config.cardWidth || 180;
+      const cardHeight = config.cardHeight || 120;
+      const gap = config.gap || 16;
+      scrollArea.style.display = "flex";
+      scrollArea.style.flexWrap = "wrap";
+      scrollArea.style.gap = `${gap}px`;
+      scrollArea.style.padding = `${gap}px`;
+      scrollArea.style.alignContent = "flex-start";
+      rawData.forEach((row, idx) => {
+        const card = document.createElement("div");
+        card.className = "gcs-card-item";
+        card.style.cssText = `position: relative; width: ${cardWidth}px; height: ${cardHeight}px; background: ${config.backgroundColor || "rgba(255, 255, 255, 0.05)"}; border: ${config.borderWidth || 1}px solid ${config.borderColor || "rgba(255, 255, 255, 0.1)"}; border-radius: ${config.borderRadius || 12}px; padding: ${config.padding || 12}px; cursor: pointer; overflow: hidden; transition: transform 0.2s, background 0.2s; box-sizing: border-box;`;
+        if (idx === obj.selectedIndex) {
+          card.style.background = "rgba(255, 255, 255, 0.15)";
+          card.style.borderColor = "#0ed7b5";
+        }
+        card.onmouseenter = () => card.style.transform = "translateY(-2px)";
+        card.onmouseleave = () => card.style.transform = "none";
+        card.onclick = (e) => {
+          e.stopPropagation();
+          obj.selectedIndex = idx;
+          if (onEvent) onEvent(obj.id, "onSelect", { index: idx, data: row });
+          this.renderTable(el, obj, onEvent);
+        };
+        cols.forEach((col) => {
+          const fieldName = col.field || col.property;
+          const value = row[fieldName] ?? "";
+          const type = col.type || "text";
+          const colStyle = col.style || {};
+          const itemEl = document.createElement("div");
+          itemEl.style.position = "absolute";
+          const cellSize = 10;
+          if (col.x !== void 0) itemEl.style.left = `${col.x * cellSize}px`;
+          if (col.y !== void 0) itemEl.style.top = `${col.y * cellSize}px`;
+          if (col.width !== void 0) itemEl.style.width = `${col.width * cellSize}px`;
+          if (col.height !== void 0) itemEl.style.height = `${col.height * cellSize}px`;
+          if (colStyle.fontSize) itemEl.style.fontSize = typeof colStyle.fontSize === "number" ? `${colStyle.fontSize}px` : colStyle.fontSize;
+          if (colStyle.color) itemEl.style.color = colStyle.color;
+          if (colStyle.fontWeight) itemEl.style.fontWeight = colStyle.fontWeight;
+          if (type === "image") {
+            itemEl.style.borderRadius = "50%";
+            itemEl.style.backgroundImage = `url(${value})`;
+            itemEl.style.backgroundSize = "cover";
+            itemEl.style.backgroundPosition = "center";
+            if (!col.width) itemEl.style.width = "40px";
+            if (!col.height) itemEl.style.height = "40px";
+          } else if (type === "badge") {
+            itemEl.innerText = String(value).toUpperCase();
+            itemEl.style.cssText += "padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: bold; border: 1px solid currentColor; background: rgba(0,0,0,0.2); display: inline-flex; align-items: center; justify-content: center;";
+          } else {
+            itemEl.innerText = String(value);
+            if (type === "header") itemEl.style.fontWeight = "bold";
+            else if (type === "meta") itemEl.style.opacity = "0.6";
+          }
+          card.appendChild(itemEl);
+        });
+        scrollArea.appendChild(card);
+      });
+    }
+    static renderStandardTable(scrollArea, el, obj, cols, rawData, onEvent) {
+      const table = document.createElement("table");
+      table.style.cssText = "width:100%; border-collapse:collapse; color:inherit; text-align:left;";
+      if (obj.showHeader !== false && cols.length > 0) {
+        const thead = document.createElement("thead");
+        const hRow = document.createElement("tr");
+        hRow.style.cssText = "background:rgba(0,0,0,0.05); position:sticky; top:0; z-index:1;";
+        cols.forEach((col) => {
+          const th = document.createElement("th");
+          th.style.cssText = `padding:8px 12px; border-bottom:1px solid rgba(0,0,0,0.1); width:${col.width || "auto"}; font-weight:600;`;
+          th.innerText = col.label || col.field || col.property;
+          hRow.appendChild(th);
+        });
+        thead.appendChild(hRow);
+        table.appendChild(thead);
+      }
+      const tbody = document.createElement("tbody");
+      if (rawData.length === 0) {
+        const tr = document.createElement("tr");
+        const td2 = document.createElement("td");
+        td2.colSpan = Math.max(1, cols.length);
+        td2.innerText = "Keine Daten vorhanden.";
+        td2.style.cssText = "padding:12px; text-align:center; opacity:0.6; font-style:italic;";
+        tr.appendChild(td2);
+        tbody.appendChild(tr);
+      } else {
+        rawData.forEach((row, idx) => {
+          const tr = document.createElement("tr");
+          tr.style.cssText = `border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer; height:${obj.rowHeight || 30}px;`;
+          const isSelected = idx === obj.selectedIndex;
+          const isStriped = obj.striped !== false && idx % 2 === 1;
+          tr.style.backgroundColor = isSelected ? "rgba(0,0,0,0.1)" : isStriped ? "rgba(0,0,0,0.02)" : "transparent";
+          tr.onclick = (e) => {
+            e.stopPropagation();
+            obj.selectedIndex = idx;
+            if (onEvent) onEvent(obj.id, "onSelect", { index: idx, data: row });
+            this.renderTable(el, obj, onEvent);
+          };
+          cols.forEach((col) => {
+            const td2 = document.createElement("td");
+            td2.style.cssText = "padding:6px 12px;";
+            td2.innerText = String(row[col.field || col.property] ?? "");
+            tr.appendChild(td2);
+          });
+          tbody.appendChild(tr);
+        });
+      }
+      table.appendChild(tbody);
+      scrollArea.appendChild(table);
+    }
+  };
+
+  // src/editor/services/StageRenderer.ts
+  var logger8 = Logger.get("StageRenderer", "Component_Manipulation");
+  var StageRenderer = class _StageRenderer {
+    constructor(host) {
+      __publicField(this, "host");
+      this.host = host;
+    }
+    renderObjects(objects) {
+      const objectHash = objects.map((o) => `${o.id}@${o.x?.toFixed(1)},${o.y?.toFixed(1)}`).join("|");
+      if (this.host.runMode) {
+        this.host.lastObjectHash = objectHash;
+        if (!this.host.runModeLogDone) {
+          this.host.runModeLogDone = true;
+          logger8.info(`RunMode Render Start. Rendering ${objects.length} objects.`);
+          if (objects.length > 0) {
+            console.table(objects.slice(0, 20).map((o) => ({
+              name: o.name,
+              class: o.className || o.constructor?.name,
+              visible: o.visible,
+              isVar: o.isVariable || false,
+              scope: o.scope || "-",
+              value: o.isVariable ? JSON.stringify(o.value)?.substring(0, 80) : "-",
+              text: typeof o.text === "string" ? o.text.substring(0, 60) : "-"
+            })));
+          } else {
+            console.warn("[StageRenderer] Rendering an EMPTY stage in RunMode!");
+          }
+        }
+      }
+      this.host.lastRenderedObjects = objects;
+      const gridConfig = this.host.grid;
+      const stageWidth = gridConfig.cols * gridConfig.cellSize;
+      const stageHeight = gridConfig.rows * gridConfig.cellSize;
+      const dockArea = { left: 0, top: 0, right: stageWidth, bottom: stageHeight };
+      const dockPositions = /* @__PURE__ */ new Map();
+      objects.forEach((obj) => {
+        const align = obj.align || "NONE";
+        if (align === "NONE" || align === "CLIENT") return;
+        const objId = obj.id || obj.name;
+        if (!objId) return;
+        const objHeight = (obj.height || 0) * gridConfig.cellSize;
+        const objWidth = (obj.width || 0) * gridConfig.cellSize;
+        let actualHeight = objHeight;
+        let actualWidth = objWidth;
+        if (obj.className === "TStatusBar" || obj.name?.startsWith("Status")) {
+          actualHeight = obj.height || 0;
+          actualWidth = obj.width || 0;
+        }
+        const availableWidth = dockArea.right - dockArea.left;
+        const availableHeight = dockArea.bottom - dockArea.top;
+        if (align === "TOP") {
+          dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: availableWidth, height: actualHeight });
+          dockArea.top += actualHeight;
+        } else if (align === "BOTTOM") {
+          dockPositions.set(objId, { left: dockArea.left, top: dockArea.bottom - actualHeight, width: availableWidth, height: actualHeight });
+          dockArea.bottom -= actualHeight;
+        } else if (align === "LEFT") {
+          dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: actualWidth, height: availableHeight });
+          dockArea.left += actualWidth;
+        } else if (align === "RIGHT") {
+          dockPositions.set(objId, { left: dockArea.right - actualWidth, top: dockArea.top, width: actualWidth, height: availableHeight });
+          dockArea.right -= actualWidth;
+        }
+      });
+      objects.forEach((obj) => {
+        const align = obj.align || "NONE";
+        if (align !== "CLIENT") return;
+        const objId = obj.id || obj.name;
+        if (!objId) return;
+        const clientWidth = dockArea.right - dockArea.left;
+        const clientHeight = dockArea.bottom - dockArea.top;
+        dockPositions.set(objId, {
+          left: dockArea.left,
+          top: dockArea.top,
+          width: clientWidth,
+          height: clientHeight
+        });
+      });
+      const currentIds = this.collectAllIds(objects);
+      const renderedElements = Array.from(this.host.element.querySelectorAll(".game-object"));
+      renderedElements.forEach((el) => {
+        const id = el.getAttribute("data-id");
+        if (id && !currentIds.has(id)) {
+          el.remove();
+        }
+      });
+      const sortedObjects = [...objects].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+      sortedObjects.forEach((obj) => {
+        const objId = obj.id || obj.name;
+        if (!objId) return;
+        let el = this.host.element.querySelector(`[data-id="${objId}"]`);
+        let isNew = false;
+        if (!el) {
+          el = document.createElement("div");
+          el.className = "game-object";
+          el.setAttribute("data-id", objId);
+          el.style.position = "absolute";
+          el.style.boxSizing = "border-box";
+          el.style.overflow = "hidden";
+          el.style.display = "flex";
+          el.style.alignItems = "center";
+          el.style.justifyContent = "center";
+          el.style.userSelect = "none";
+          this.host.element.appendChild(el);
+          isNew = true;
+        }
+        const className = obj.className || obj.constructor?.name;
+        el.setAttribute("data-align", obj.align || "NONE");
+        const dockPos = dockPositions.get(objId);
+        if (dockPos) {
+          const offsetX = (obj.x || 0) * gridConfig.cellSize;
+          const offsetY = (obj.y || 0) * gridConfig.cellSize;
+          el.style.left = `${dockPos.left + offsetX}px`;
+          el.style.top = `${dockPos.top + offsetY}px`;
+          el.style.width = `${dockPos.width}px`;
+          el.style.height = `${dockPos.height}px`;
+        } else {
+          el.style.left = `${(obj.x || 0) * gridConfig.cellSize}px`;
+          el.style.top = `${(obj.y || 0) * gridConfig.cellSize}px`;
+          el.style.width = `${(obj.width || 0) * gridConfig.cellSize}px`;
+          el.style.height = `${(obj.height || 0) * gridConfig.cellSize}px`;
+        }
+        let isVisible = this.checkVisible(obj.visible) && this.checkVisible(obj.style?.visible);
+        const isInherited = !!obj.isInherited;
+        const isFromBlueprint = !!obj.isFromBlueprint;
+        const isBlueprintOnly = !!obj.isBlueprintOnly;
+        const isService = !!obj.isService;
+        if (!this.host.isBlueprint) {
+          if (isInherited && isFromBlueprint) {
+            isVisible = false;
+          } else if (isBlueprintOnly && isService) {
+            isVisible = false;
+          }
+        }
+        el.style.display = isVisible ? "flex" : "none";
+        if (isInherited) {
+          el.classList.add("inherited-object");
+          el.style.pointerEvents = "none";
+        } else {
+          el.classList.remove("inherited-object");
+          el.style.pointerEvents = "auto";
+        }
+        const opacity = obj.style && obj.style.opacity !== void 0 && obj.style.opacity !== null ? obj.style.opacity : obj.imageOpacity !== void 0 ? obj.imageOpacity : void 0;
+        if (opacity !== void 0 && opacity !== null) {
+          el.style.opacity = String(opacity);
+        } else if (isInherited) {
+          el.style.opacity = "0.4";
+        } else {
+          el.style.opacity = "1";
+        }
+        if (obj.style) {
+          const isTShape = className === "TShape";
+          if (!isTShape) {
+            el.style.border = `${obj.style.borderWidth || 0}px solid ${obj.style.borderColor || "transparent"}`;
+          } else {
+            el.style.border = "none";
+          }
+          if (obj.style.color) el.style.color = obj.style.color;
+          if (obj.style.fontSize) el.style.fontSize = typeof obj.style.fontSize === "number" ? `${obj.style.fontSize}px` : obj.style.fontSize;
+          if (obj.style.fontWeight) el.style.fontWeight = obj.style.fontWeight;
+          if (obj.style.borderRadius) el.style.borderRadius = typeof obj.style.borderRadius === "number" ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
+          if (obj.zIndex !== void 0) {
+            el.style.zIndex = String(obj.zIndex);
+          } else if (obj.name && (obj.name.startsWith("Overlay") || obj.name.startsWith("Btn") || obj.name.startsWith("Input") || obj.name.startsWith("Status"))) {
+            el.style.zIndex = "2000";
+          }
+        }
+        if (obj.showGrid && !this.host.runMode) {
+          this.applyGridOverlay(el, obj);
+        } else {
+          this.applyBackground(el, obj, className, objId);
+        }
+        const hasTaskClick = obj.Tasks && (obj.Tasks.onClick || obj.Tasks.onSingleClick || obj.Tasks.onMultiClick);
+        const isClickable = hasTaskClick || this.host.runMode && className === "TButton";
+        if (this.host.runMode && isClickable) {
+          el.style.cursor = "pointer";
+          el.onclick = (e) => {
+            e.stopPropagation();
+            console.log(`[StageRenderer] Click on ${obj.name} (${obj.id}). Task: ${obj.Tasks?.onClick || "none"}`);
+            if (this.host.onEvent) {
+              this.host.onEvent(obj.id, "onClick");
+            }
+          };
+        } else if (this.host.runMode) {
+          el.style.cursor = "default";
+          if (isNew) el.onclick = null;
+        }
+        this.renderComponentContent(el, obj, className, isNew);
+        this.updateSelectionState(el, objId);
+      });
+    }
+    collectAllIds(objs) {
+      const ids = /* @__PURE__ */ new Set();
+      objs.forEach((o) => {
+        const objId = o.id || o.name;
+        if (objId) ids.add(objId);
+        if (o.children && Array.isArray(o.children)) {
+          o.children.forEach((c) => {
+            const childId = c.id || c.name;
+            if (childId) ids.add(childId);
+          });
+        }
+      });
+      return ids;
+    }
+    checkVisible(val) {
+      if (val === void 0 || val === null) return true;
+      if (typeof val === "boolean") return val;
+      if (typeof val === "string") {
+        const clean = val.trim().toLowerCase();
+        if (clean === "false") return false;
+        if (clean === "true") return true;
+      }
+      return !!val;
+    }
+    applyGridOverlay(el, obj) {
+      const cellSize = this.host.grid.cellSize;
+      const bgColor = obj.style?.backgroundColor || "transparent";
+      const gridColor = obj.gridColor || "#000000";
+      const gridStyle = obj.gridStyle || "lines";
+      const hexToRgba = (hex, alpha) => {
+        let r = 0, g = 0, b = 0;
+        if (hex.length === 4) {
+          r = parseInt(hex[1] + hex[1], 16);
+          g = parseInt(hex[2] + hex[2], 16);
+          b = parseInt(hex[3] + hex[3], 16);
+        } else if (hex.length === 7) {
+          r = parseInt(hex.slice(1, 3), 16);
+          g = parseInt(hex.slice(3, 5), 16);
+          b = parseInt(hex.slice(5, 7), 16);
+        }
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      };
+      const gridRgba = hexToRgba(gridColor, 0.4);
+      const dotRgba = hexToRgba(gridColor, 0.25);
+      if (gridStyle === "dots") {
+        const halfCell = cellSize / 2;
+        el.style.background = `radial-gradient(circle, ${dotRgba} 1px, transparent 1px), ${bgColor}`;
+        el.style.backgroundSize = `${cellSize}px ${cellSize}px, 100% 100%`;
+        el.style.backgroundPosition = `${halfCell}px ${halfCell}px, 0 0`;
+      } else {
+        el.style.background = `linear-gradient(to right, ${gridRgba} 1px, transparent 1px), linear-gradient(to bottom, ${gridRgba} 1px, transparent 1px), ${bgColor}`;
+        el.style.backgroundSize = `${cellSize}px ${cellSize}px, ${cellSize}px ${cellSize}px, 100% 100%`;
+      }
+    }
+    applyBackground(el, obj, className, objId) {
+      const bgColor = obj.style?.backgroundColor || "transparent";
+      let bgImg = obj.backgroundImage || obj.src || obj.style?.backgroundImage;
+      if (bgImg && bgImg.startsWith("url(")) {
+        const match = bgImg.match(/url\(['"]?([^'"]+)['"]?\)/);
+        if (match) bgImg = match[1];
+      }
+      if (this.host.runMode && !el.runModeTraceDone) {
+        el.lastLoggedSrc = null;
+        el.runModeTraceDone = true;
+      }
+      if (bgImg) {
+        let src = bgImg.startsWith("http") || bgImg.startsWith("/") || bgImg.startsWith("data:") ? bgImg : `/images/${bgImg}`;
+        if (!src.startsWith("data:")) {
+          const parts = src.split("/");
+          const lastPart = parts.pop() || "";
+          src = [...parts, encodeURIComponent(lastPart)].join("/");
+        }
+        if (el.lastLoggedSrc !== src) {
+          console.log(`[StageRenderer] Component "${objId}" (${className}) setting image: "${src}"`);
+          el.lastLoggedSrc = src;
+        }
+        const fit = obj.objectFit || "contain";
+        el.style.backgroundImage = `url("${src}")`;
+        el.style.backgroundPosition = "center";
+        el.style.backgroundSize = fit;
+        el.style.backgroundRepeat = "no-repeat";
+        el.style.backgroundColor = bgColor;
+      } else {
+        el.style.background = bgColor;
+      }
+    }
+    renderComponentContent(el, obj, className, isNew) {
+      if (className === "TCheckbox") {
+        this.renderCheckbox(el, obj, isNew);
+      } else if (className === "TNumberInput") {
+        this.renderNumberInput(el, obj, isNew);
+      } else if (className === "TEdit" || className === "TTextInput") {
+        this.renderTextInput(el, obj, isNew);
+      } else if (className === "TGameCard") {
+        this.renderGameCard(el, obj, isNew);
+      } else if (className === "TButton") {
+        this.renderButton(el, obj, isNew);
+      } else if (className === "TEmojiPicker") {
+        this.renderEmojiPickerInternal(el, obj);
+      } else if (className === "TTable" || className === "TObjectList") {
+        _StageRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host));
+      } else if (className === "TStringVariable" || className === "TObjectVariable" || className === "TIntegerVariable" || className === "TBooleanVariable" || className === "TListVariable" || obj.isVariable || obj.isService) {
+        this.renderSystemComponent(el, obj, className);
+      } else if (className === "TLabel" || className === "TNumberLabel" || className !== "TShape" && ("text" in obj || "value" in obj)) {
+        this.renderLabel(el, obj);
+      } else if (className === "TPanel") {
+        this.renderPanel(el, obj);
+      } else if (className === "TGameHeader") {
+        this.renderGameHeader(el, obj);
+      } else if (className === "TSprite") {
+        this.renderSprite(el, obj);
+      } else if (className === "TShape") {
+        this.renderShape(el, obj, isNew);
+      } else if (className === "TInspectorTemplate") {
+        this.renderInspectorTemplate(el, obj);
+      } else if (className === "TDialogRoot") {
+        this.renderDialogRoot(el, obj);
+      }
+    }
+    renderCheckbox(el, obj, isNew) {
+      if (isNew) {
+        el.innerHTML = "";
+        const label = document.createElement("label");
+        label.style.display = "flex";
+        label.style.alignItems = "center";
+        label.style.gap = "8px";
+        label.style.width = "100%";
+        label.style.height = "100%";
+        label.style.cursor = "inherit";
+        const input2 = document.createElement("input");
+        input2.type = "checkbox";
+        input2.style.cursor = "pointer";
+        input2.onchange = () => {
+          obj.checked = input2.checked;
+        };
+        const textSpan2 = document.createElement("span");
+        textSpan2.className = "checkbox-label";
+        label.appendChild(input2);
+        label.appendChild(textSpan2);
+        el.appendChild(label);
+      }
+      const input = el.querySelector("input");
+      const textSpan = el.querySelector(".checkbox-label");
+      if (input) input.checked = !!obj.checked;
+      if (textSpan) {
+        textSpan.innerText = obj.label || obj.name;
+        textSpan.style.color = obj.style?.color || "#000000";
+        textSpan.style.fontSize = obj.style?.fontSize ? typeof obj.style.fontSize === "number" ? `${obj.style.fontSize}px` : obj.style.fontSize : "14px";
+        const fw = obj.style?.fontWeight;
+        textSpan.style.fontWeight = fw === true || fw === "bold" ? "bold" : "normal";
+        const fs = obj.style?.fontStyle;
+        textSpan.style.fontStyle = fs === true || fs === "italic" ? "italic" : "normal";
+        if (obj.style?.fontFamily) textSpan.style.fontFamily = obj.style.fontFamily;
+      }
+    }
+    renderNumberInput(el, obj, isNew) {
+      if (isNew) {
+        el.innerHTML = "";
+        const input2 = document.createElement("input");
+        input2.type = "number";
+        input2.style.width = "100%";
+        input2.style.height = "100%";
+        input2.style.border = "none";
+        input2.style.background = "transparent";
+        input2.style.padding = "0 8px";
+        input2.style.fontSize = "inherit";
+        input2.style.outline = "none";
+        input2.style.boxSizing = "border-box";
+        input2.oninput = () => {
+          obj.value = parseFloat(input2.value);
+        };
+        el.appendChild(input2);
+      }
+      const input = el.querySelector("input");
+      if (input) {
+        if (parseFloat(input.value) !== obj.value) input.value = String(obj.value || 0);
+        if (obj.min !== void 0 && obj.min !== -Infinity) input.min = String(obj.min);
+        if (obj.max !== void 0 && obj.max !== Infinity) input.max = String(obj.max);
+        if (obj.step !== void 0) input.step = String(obj.step);
+        input.style.color = obj.style?.color || "#000000";
+        input.style.backgroundColor = obj.style?.backgroundColor || "transparent";
+        input.style.fontSize = obj.style?.fontSize ? typeof obj.style.fontSize === "number" ? `${obj.style.fontSize}px` : obj.style.fontSize : "inherit";
+        input.style.textAlign = obj.style?.textAlign || "left";
+        const fw = obj.style?.fontWeight;
+        input.style.fontWeight = fw === true || fw === "bold" ? "bold" : "normal";
+        const fs = obj.style?.fontStyle;
+        input.style.fontStyle = fs === true || fs === "italic" ? "italic" : "normal";
+        if (obj.style?.fontFamily) input.style.fontFamily = obj.style.fontFamily;
+      }
+    }
+    renderTextInput(el, obj, isNew) {
+      const isInput = !this.host.runMode || obj.className === "TTextInput" || obj.className === "TEdit";
+      if (isInput) {
+        if (isNew) {
+          el.innerHTML = "";
+          const input2 = document.createElement("input");
+          input2.type = "text";
+          input2.style.width = "100%";
+          input2.style.height = "100%";
+          input2.style.border = "none";
+          input2.style.background = "transparent";
+          input2.style.padding = "0 8px";
+          input2.style.fontSize = "inherit";
+          input2.style.outline = "none";
+          input2.style.boxSizing = "border-box";
+          input2.oninput = () => {
+            let val = input2.value;
+            if (obj.uppercase) val = val.toUpperCase();
+            obj.text = val;
+            input2.value = val;
+          };
+          el.appendChild(input2);
+        }
+        const input = el.querySelector("input");
+        if (input) {
+          if (input.value !== (obj.text || "")) input.value = obj.text || "";
+          input.placeholder = obj.placeholder || "";
+          input.style.color = obj.style?.color || "#000000";
+          input.style.backgroundColor = obj.style?.backgroundColor || "transparent";
+          input.style.textAlign = obj.style?.textAlign || "left";
+          input.style.fontSize = obj.style?.fontSize ? typeof obj.style.fontSize === "number" ? `${obj.style.fontSize}px` : obj.style.fontSize : "inherit";
+          const fw = obj.style?.fontWeight;
+          input.style.fontWeight = fw === true || fw === "bold" ? "bold" : "normal";
+          const fs = obj.style?.fontStyle;
+          input.style.fontStyle = fs === true || fs === "italic" ? "italic" : "normal";
+          if (obj.style?.fontFamily) input.style.fontFamily = obj.style.fontFamily;
+        }
+      } else {
+        el.innerText = obj.text || obj.placeholder || "Enter text...";
+      }
+    }
+    renderGameCard(el, obj, isNew) {
+      if (isNew) {
+        el.innerHTML = `
+                <div class="card-title" style="font-weight:bold;margin-bottom:10px"></div>
+                <div class="card-btns" style="display:flex;gap:5px">
+                    <button class="btn-single" style="padding:6px;border:none;border-radius:4px;background:#4caf50;color:#fff;cursor:pointer">\u25B6 Single</button>
+                    <button class="btn-multi" style="padding:6px;border:none;border-radius:4px;background:#2196f3;color:#fff;cursor:pointer">\u{1F465} Multi</button>
+                </div>
+            `;
+        el.style.flexDirection = "column";
+        el.querySelector(".btn-single")?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (this.host.onEvent) this.host.onEvent(obj.id, "onSingleClick");
+        });
+        el.querySelector(".btn-multi")?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (this.host.onEvent) this.host.onEvent(obj.id, "onMultiClick");
+        });
+      }
+      const titleEl = el.querySelector(".card-title");
+      if (titleEl && titleEl.innerText !== obj.gameName) titleEl.innerText = obj.gameName;
+    }
+    renderButton(el, obj, isNew) {
+      if (el.querySelector(".table-title-bar")) el.innerHTML = "";
+      if (el.innerText !== (obj.caption || obj.name)) el.innerText = obj.caption || obj.name;
+      const fw = obj.style?.fontWeight;
+      el.style.fontWeight = fw === true || fw === "bold" ? "bold" : "normal";
+      const fstyle = obj.style?.fontStyle;
+      el.style.fontStyle = fstyle === true || fstyle === "italic" ? "italic" : "normal";
+      if (obj.style?.fontSize) el.style.fontSize = typeof obj.style.fontSize === "number" ? `${obj.style.fontSize}px` : obj.style.fontSize;
+      if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+      const align = obj.style?.textAlign;
+      el.style.justifyContent = align === "left" ? "flex-start" : align === "right" ? "flex-end" : "center";
+      if (this.host.runMode && isNew) {
+        el.onmouseenter = () => el.style.filter = "brightness(1.1)";
+        el.onmouseleave = () => el.style.filter = "none";
+        el.onmousedown = () => el.style.transform = "scale(0.98)";
+        el.onmouseup = () => el.style.transform = "none";
+      }
+    }
+    renderEmojiPickerInternal(el, obj) {
+      el.innerHTML = "";
+      el.style.display = "grid";
+      el.style.gridTemplateColumns = `repeat(${obj.columns || 5}, 1fr)`;
+      el.style.gap = "4px";
+      el.style.padding = "8px";
+      el.style.alignItems = "center";
+      el.style.justifyItems = "center";
+      el.style.overflowY = "auto";
+      const emojis = obj.emojis || ["\u{1F600}", "\u{1F60E}", "\u{1F680}", "\u2B50", "\u{1F308}", "\u{1F355}", "\u{1F3AE}", "\u{1F984}", "\u{1F388}", "\u{1F3A8}"];
+      emojis.forEach((emoji) => {
+        const btn = document.createElement("div");
+        btn.innerText = emoji;
+        btn.style.fontSize = "24px";
+        btn.style.cursor = this.host.runMode ? "pointer" : "default";
+        btn.style.width = "100%";
+        btn.style.height = "100%";
+        btn.style.display = "flex";
+        btn.style.alignItems = "center";
+        btn.style.justifyContent = "center";
+        btn.style.borderRadius = "8px";
+        btn.style.transition = "background 0.2s, transform 0.1s";
+        btn.style.userSelect = "none";
+        if (obj.selectedEmoji === emoji) {
+          btn.style.background = "rgba(255, 255, 255, 0.3)";
+          btn.style.border = "1px solid rgba(255, 255, 255, 0.5)";
+        } else {
+          btn.style.border = "1px solid transparent";
+        }
+        if (this.host.runMode) {
+          btn.onmouseenter = () => {
+            if (obj.selectedEmoji !== emoji) btn.style.background = "rgba(255, 255, 255, 0.1)";
+            btn.style.transform = "scale(1.1)";
+          };
+          btn.onmouseleave = () => {
+            if (obj.selectedEmoji !== emoji) btn.style.background = "transparent";
+            btn.style.transform = "scale(1)";
+          };
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            obj.selectedEmoji = emoji;
+            if (this.host.onEvent) {
+              this.host.onEvent(obj.id, "onSelect", emoji);
+              this.host.onEvent(obj.id, "propertyChange", { property: "selectedEmoji", value: emoji });
+            }
+            this.renderObjects(this.host.lastRenderedObjects);
+          };
+        }
+        el.appendChild(btn);
+      });
+    }
+    renderSystemComponent(el, obj, className) {
+      let effectivelyVisible = true;
+      if (this.host.runMode) {
+        if (obj.isHiddenInRun || obj.isVariable) effectivelyVisible = false;
+      } else {
+        if (obj.isBlueprintOnly && !this.host.isBlueprint && obj.isInherited) effectivelyVisible = false;
+      }
+      if (!effectivelyVisible) {
+        el.style.display = "none";
+      } else {
+        el.style.display = "flex";
+        if (!this.host.runMode) {
+          el.style.backgroundColor = this.getSystemComponentColor(className, obj);
+          el.innerText = obj.name;
+          el.style.color = "#ffffff";
+          el.style.fontSize = "12px";
+          if (obj.isVariable) {
+            el.style.border = "1px solid #ffffff";
+          }
+        } else {
+          el.innerText = "";
+        }
+      }
+    }
+    getSystemComponentColor(className, obj) {
+      switch (className) {
+        case "TGameLoop":
+          return "#2196f3";
+        case "TInputController":
+          return "#9c27b0";
+        case "TRepeater":
+          return "#ff9800";
+        case "TGameState":
+          return "#607d8b";
+        case "TGameServer":
+          return "#4caf50";
+        case "THandshake":
+          return "#5c6bc0";
+        case "THeartbeat":
+          return "#e91e63";
+        case "TStageController":
+          return "#9c27b0";
+        case "TAPIServer":
+          return "#f44336";
+        case "TDataStore":
+          return "#3f51b5";
+        default:
+          return obj.isVariable ? obj.style?.backgroundColor || "#673ab7" : "#4caf50";
+      }
+    }
+    renderLabel(el, obj) {
+      const textValue = obj.text !== void 0 && obj.text !== null ? String(obj.text) : obj.value !== void 0 && obj.value !== null ? String(obj.value) : "";
+      if (el.innerText !== textValue) el.innerText = textValue;
+      const fs = obj.style?.fontSize || obj.fontSize;
+      if (fs) el.style.fontSize = typeof fs === "number" ? `${fs}px` : fs;
+      el.style.color = obj.style?.color || "#ffffff";
+      const fw = obj.style?.fontWeight;
+      el.style.fontWeight = fw === true || fw === "bold" ? "bold" : "normal";
+      const fstyle = obj.style?.fontStyle;
+      el.style.fontStyle = fstyle === true || fstyle === "italic" ? "italic" : "normal";
+      if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+      el.style.userSelect = "text";
+      el.style.cursor = "text";
+      const align = obj.style?.textAlign || obj.alignment;
+      if (align === "center") el.style.justifyContent = "center";
+      else if (align === "right") el.style.justifyContent = "flex-end";
+      else el.style.justifyContent = "flex-start";
+    }
+    renderPanel(el, obj) {
+      if (!this.host.runMode) {
+        el.innerText = obj.name;
+        el.style.color = "#777";
+        el.style.fontSize = "12px";
+        el.style.justifyContent = "center";
+        el.style.alignItems = "center";
+      } else {
+        el.innerText = "";
+      }
+    }
+    renderGameHeader(el, obj) {
+      if (el.innerText !== (obj.title || obj.caption || obj.name)) el.innerText = obj.title || obj.caption || obj.name;
+      el.style.fontSize = obj.style?.fontSize ? typeof obj.style.fontSize === "number" ? `${obj.style.fontSize}px` : obj.style.fontSize : "18px";
+      const fw = obj.style?.fontWeight;
+      el.style.fontWeight = fw === true || fw === "bold" ? "bold" : fw || "bold";
+      const align = obj.style?.textAlign;
+      el.style.justifyContent = align === "left" ? "flex-start" : align === "right" ? "flex-end" : "center";
+      if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+    }
+    renderSprite(el, obj) {
+      el.style.backgroundColor = obj.style?.backgroundColor || obj.spriteColor || "#ff6b6b";
+      el.style.borderRadius = obj.shape === "circle" ? "50%" : "0";
+      if (!this.host.runMode) el.innerText = obj.name;
+    }
+    renderShape(el, obj, isNew) {
+      const shapeType = obj.shapeType || "circle";
+      const fillColor = obj.style?.backgroundColor && obj.style.backgroundColor !== "transparent" ? obj.style.backgroundColor : obj.fillColor || "#4fc3f7";
+      const strokeColor = obj.style?.borderColor && obj.style.borderColor !== "transparent" ? obj.style.borderColor : obj.strokeColor || "#29b6f6";
+      const strokeWidth = obj.style?.borderWidth !== void 0 && obj.style.borderWidth !== 0 ? obj.style.borderWidth : obj.strokeWidth || 0;
+      const opacity = obj.style?.opacity ?? obj.opacity ?? 1;
+      let svgContent = "";
+      if (shapeType === "circle") {
+        svgContent = `<circle cx="50" cy="50" r="48" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill-opacity="${opacity}" vector-effect="non-scaling-stroke" />`;
+      } else if (shapeType === "square" || shapeType === "rectangle" || shapeType === "rect") {
+        svgContent = `<rect x="1" y="1" width="98" height="98" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill-opacity="${opacity}" vector-effect="non-scaling-stroke" />`;
+      } else if (shapeType === "triangle") {
+        svgContent = `<polygon points="50,2 2,98 98,98" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill-opacity="${opacity}" vector-effect="non-scaling-stroke" />`;
+      } else if (shapeType === "ellipse") {
+        svgContent = `<ellipse cx="50" cy="50" rx="48" ry="48" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill-opacity="${opacity}" vector-effect="non-scaling-stroke" />`;
+      }
+      if (obj.contentImage) {
+        svgContent += `<image href="${obj.contentImage}" x="15" y="15" width="70" height="70" preserveAspectRatio="xMidYMid meet" />`;
+      }
+      if (obj.text) {
+        const fontSize = obj.style?.fontSize || 50;
+        const fontColor = obj.style?.color || "#ffffff";
+        svgContent += `<text x="50" y="52" dominant-baseline="central" text-anchor="middle" font-size="${fontSize}" fill="${fontColor}" font-family="${obj.style?.fontFamily || "Arial"}">${obj.text}</text>`;
+      }
+      let svgTag = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute; top:0; left:0; display:block; overflow:visible; pointer-events:all;">`;
+      svgTag += svgContent;
+      svgTag += `</svg>`;
+      el.innerHTML = svgTag;
+      if (isNew) {
+        const label = document.createElement("span");
+        label.innerText = obj.name;
+        label.style.cssText = "position:absolute; font-size:10px; color:rgba(255,255,255,0.5); pointer-events:none;";
+        el.appendChild(label);
+      }
+    }
+    renderInspectorTemplate(el, obj) {
+      if (this.host.runMode) {
+        el.style.display = "none";
+      } else {
+        el.style.backgroundColor = obj.style?.backgroundColor || "#2a2a2a";
+        el.style.flexDirection = "column";
+        el.style.alignItems = "stretch";
+        el.style.justifyContent = "flex-start";
+        el.style.padding = "8px";
+        el.style.overflow = "auto";
+        el.innerHTML = "";
+        const header = document.createElement("div");
+        header.className = "inspector-preview-header";
+        header.style.cssText = "font-weight:bold;color:#fff;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #444";
+        header.innerText = "\u{1F4CB} Inspector Designer";
+        el.appendChild(header);
+        const preview = document.createElement("div");
+        preview.className = "inspector-preview";
+        preview.style.cssText = "display:flex;flex-direction:column;gap:6px;font-size:11px;color:#ccc";
+        const layoutConfig = obj.layoutConfig;
+        if (layoutConfig && layoutConfig.properties) {
+          const groupedProps = /* @__PURE__ */ new Map();
+          const sortedProps = Object.values(layoutConfig.properties).filter((p) => p.visible !== false).sort((a, b) => a.order - b.order);
+          sortedProps.forEach((prop) => {
+            const groupId = prop.groupId || "default";
+            if (!groupedProps.has(groupId)) groupedProps.set(groupId, []);
+            groupedProps.get(groupId).push(prop);
+          });
+          layoutConfig.groups?.sort((a, b) => a.order - b.order).forEach((group) => {
+            const props = groupedProps.get(group.id);
+            if (props && props.length > 0) {
+              const groupEl = document.createElement("div");
+              groupEl.style.cssText = "font-weight:bold;color:#888;margin-top:6px;font-size:10px";
+              groupEl.innerText = group.label.toUpperCase();
+              preview.appendChild(groupEl);
+              props.forEach((prop) => {
+                const row = document.createElement("div");
+                row.style.cssText = "display:flex;align-items:center;gap:4px";
+                const label = document.createElement("span");
+                label.style.cssText = "flex:1";
+                if (prop.style?.color) label.style.color = prop.style.color;
+                else label.style.color = "#aaa";
+                if (prop.style?.fontSize) label.style.fontSize = prop.style.fontSize;
+                label.innerText = prop.label;
+                const input = document.createElement("span");
+                input.style.cssText = "flex:1;background:#333;padding:2px 4px;border-radius:2px;color:#fff";
+                input.innerText = prop.type === "boolean" ? "\u2610" : prop.type === "color" ? "\u{1F3A8}" : prop.type === "select" ? "\u25BC" : "...";
+                row.appendChild(label);
+                row.appendChild(input);
+                preview.appendChild(row);
+              });
+            }
+          });
+        }
+        el.appendChild(preview);
+      }
+    }
+    renderDialogRoot(el, obj) {
+      el.style.borderRadius = "12px";
+      el.style.flexDirection = "column";
+      el.style.alignItems = "stretch";
+      el.style.justifyContent = "flex-start";
+      el.style.overflow = "visible";
+      if (!el.querySelector(".dialog-title-bar")) {
+        const titleBar2 = document.createElement("div");
+        titleBar2.className = "dialog-title-bar";
+        titleBar2.style.cssText = `display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid ${obj.style?.borderColor || "#4fc3f7"}; color: #fff; font-weight: bold;`;
+        titleBar2.textContent = obj.caption || obj.title || obj.name;
+        el.appendChild(titleBar2);
+      }
+      const titleBar = el.querySelector(".dialog-title-bar");
+      if (titleBar && titleBar.textContent !== (obj.caption || obj.title || obj.name)) {
+        titleBar.textContent = obj.caption || obj.title || obj.name;
+      }
+      if (obj.children && Array.isArray(obj.children)) {
+        const cellSize = this.host.grid.cellSize;
+        const parentX = obj.x * cellSize;
+        const parentY = obj.y * cellSize;
+        obj.children.forEach((child) => {
+          let childEl = this.host.element.querySelector(`[data-id="${child.id}"]`);
+          if (!childEl) {
+            childEl = document.createElement("div");
+            childEl.className = "game-object dialog-child";
+            childEl.setAttribute("data-id", child.id);
+            childEl.style.position = "absolute";
+            childEl.style.boxSizing = "border-box";
+            childEl.style.display = "flex";
+            childEl.style.alignItems = "center";
+            childEl.style.justifyContent = "center";
+            this.host.element.appendChild(childEl);
+          }
+          const childX = parentX + (child.x || 0) * cellSize;
+          const childY = parentY + (child.y || 0) * cellSize + 30;
+          childEl.style.left = `${childX}px`;
+          childEl.style.top = `${childY}px`;
+          childEl.style.width = `${(child.width || 4) * cellSize}px`;
+          childEl.style.height = `${(child.height || 2) * cellSize}px`;
+          childEl.style.zIndex = "10";
+          childEl.setAttribute("data-parent-x", (parentX / cellSize).toString());
+          childEl.setAttribute("data-parent-y", ((parentY + 30) / cellSize).toString());
+          if (child.style) {
+            childEl.style.backgroundColor = child.style.backgroundColor || "transparent";
+            childEl.style.border = `${child.style.borderWidth || 0}px solid ${child.style.borderColor || "transparent"}`;
+            if (child.style.color) childEl.style.color = child.style.color;
+          }
+          const childClassName = child.className || child.constructor?.name;
+          if (childClassName === "TButton") {
+            childEl.innerText = child.caption || child.name;
+            childEl.style.fontWeight = "bold";
+            childEl.style.cursor = "pointer";
+          } else if (childClassName === "TLabel" || child.text) {
+            childEl.innerText = child.text || "";
+          } else if (childClassName === "TEdit") {
+            if (!childEl.querySelector("input")) {
+              const input = document.createElement("input");
+              input.type = "text";
+              input.style.cssText = "width:100%;height:100%;border:none;background:transparent;padding:0 8px;font-size:inherit;";
+              childEl.appendChild(input);
+            }
+          } else {
+            childEl.innerText = child.name || "";
+          }
+          this.updateSelectionState(childEl, child.id);
+        });
+      }
+    }
+    updateSelectionState(el, id) {
+      if (this.host.selectedIds.has(id)) {
+        el.classList.add("selected");
+        el.style.overflow = "visible";
+        el.style.outline = "2px solid #4fc3f7";
+        if (!el.querySelector(".resize-handle")) {
+          this.addResizeHandles(el);
+        }
+      } else {
+        el.classList.remove("selected");
+        el.style.overflow = "hidden";
+        el.style.outline = "none";
+        el.querySelectorAll(".resize-handle").forEach((h) => h.remove());
+      }
+    }
+    addResizeHandles(el) {
+      const handleSize = 6;
+      const handles = ["n", "s", "e", "w", "nw", "ne", "sw", "se"];
+      const handleStyles = {
+        "nw": { top: "-6px", left: "-6px", cursor: "nwse-resize" },
+        "n": { top: "-6px", left: "50%", cursor: "ns-resize", transform: "translateX(-50%)" },
+        "ne": { top: "-6px", right: "-6px", cursor: "nesw-resize" },
+        "w": { top: "50%", left: "-6px", cursor: "ew-resize", transform: "translateY(-50%)" },
+        "e": { top: "50%", right: "-6px", cursor: "ew-resize", transform: "translateY(-50%)" },
+        "sw": { bottom: "-6px", left: "-6px", cursor: "nesw-resize" },
+        "s": { bottom: "-6px", left: "50%", cursor: "ns-resize", transform: "translateX(-50%)" },
+        "se": { bottom: "-6px", right: "-6px", cursor: "nwse-resize" }
+      };
+      handles.forEach((dir) => {
+        const handle = document.createElement("div");
+        handle.className = `resize-handle ${dir}`;
+        handle.style.position = "absolute";
+        handle.style.width = `${handleSize}px`;
+        handle.style.height = `${handleSize}px`;
+        handle.style.backgroundColor = "#000000";
+        handle.style.zIndex = "100";
+        handle.style.cursor = handleStyles[dir].cursor;
+        if (handleStyles[dir].top) handle.style.top = handleStyles[dir].top;
+        if (handleStyles[dir].bottom) handle.style.bottom = handleStyles[dir].bottom;
+        if (handleStyles[dir].left) handle.style.left = handleStyles[dir].left;
+        if (handleStyles[dir].right) handle.style.right = handleStyles[dir].right;
+        if (handleStyles[dir].transform) handle.style.transform = handleStyles[dir].transform;
+        el.appendChild(handle);
+      });
+    }
+    static renderTable(el, obj, onEvent) {
+      TableRenderer.renderTable(el, obj, onEvent);
+    }
+    static renderEmojiPicker(el, obj, cellSize, onEvent) {
+      EmojiPickerRenderer.renderEmojiPicker(el, obj, cellSize, onEvent);
+    }
+  };
+
   // src/player-standalone.ts
   var globalScope3 = typeof window !== "undefined" ? window : global;
   globalScope3.ExpressionParser = ExpressionParser;
@@ -11622,18 +12799,35 @@
   var UniversalPlayer = class {
     constructor() {
       __publicField(this, "runtime", null);
-      __publicField(this, "stage");
+      __publicField(this, "element");
+      // From StageHost
       __publicField(this, "techClasses", ["TGameLoop", "TInputController", "TGameState", "TTimer", "TRemoteGameManager", "TGameServer", "THandshake", "THeartbeat", "TStageController"]);
       __publicField(this, "currentProject", null);
       __publicField(this, "isStarted", false);
       __publicField(this, "animationTickerId", null);
+      __publicField(this, "renderer");
+      // --- StageHost Implementation ---
+      __publicField(this, "runMode", true);
+      __publicField(this, "isBlueprint", false);
+      __publicField(this, "selectedIds", /* @__PURE__ */ new Set());
+      __publicField(this, "lastRenderedObjects", []);
+      __publicField(this, "onEvent", null);
+      // --------------------------------
       // Drag & Drop State
       __publicField(this, "dragTarget", null);
       __publicField(this, "dragPhantom", null);
       __publicField(this, "isDragging", false);
       __publicField(this, "dragOffset", { x: 0, y: 0 });
-      this.stage = document.getElementById("stage");
+      this.element = document.getElementById("stage");
+      this.renderer = new StageRenderer(this);
+      this.onEvent = (id, ev, data) => {
+        if (this.runtime) this.runtime.handleEvent(id, ev, data);
+      };
       this.init();
+    }
+    get grid() {
+      const activeStage = this.runtime ? this.runtime.stage : this.currentProject?.stage || this.currentProject?.stages?.[0];
+      return activeStage?.grid || { cols: 20, rows: 20, cellSize: 40 };
     }
     async init() {
       window.addEventListener("resize", () => this.setupScaling());
@@ -11776,7 +12970,7 @@
       if (this.runtime) {
         this.runtime.stop();
         this.stopAnimationTicker();
-        this.stage.innerHTML = "";
+        this.element.innerHTML = "";
       }
       this.currentProject = project;
       this.runtime = new GameRuntime(project, void 0, {
@@ -11871,19 +13065,19 @@
       const windowHeight = window.innerHeight;
       const margin = 20;
       const scale = Math.min((windowWidth - margin) / stageWidth, (windowHeight - margin) / stageHeight, 1);
-      this.stage.style.width = `${stageWidth}px`;
-      this.stage.style.height = `${stageHeight}px`;
-      this.stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
-      this.stage.style.left = "50%";
-      this.stage.style.top = "50%";
-      this.stage.style.position = "absolute";
+      this.element.style.width = `${stageWidth}px`;
+      this.element.style.height = `${stageHeight}px`;
+      this.element.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      this.element.style.left = "50%";
+      this.element.style.top = "50%";
+      this.element.style.position = "absolute";
       const bg = grid.backgroundColor || "#000";
       const bgImg = activeStage.backgroundImage;
       if (bgImg) {
         const url = bgImg.startsWith("http") || bgImg.startsWith("/") || bgImg.startsWith("data:") ? bgImg : `./images/${bgImg}`;
-        this.stage.style.background = `url("${url}") center center / ${activeStage.objectFit || "cover"} no-repeat, ${bg}`;
+        this.element.style.background = `url("${url}") center center / ${activeStage.objectFit || "cover"} no-repeat, ${bg}`;
       } else {
-        this.stage.style.background = bg;
+        this.element.style.background = bg;
       }
     }
     startAnimationTicker() {
@@ -11914,299 +13108,8 @@
     }
     render() {
       if (!this.runtime) return;
-      const objects = this.runtime.getObjects();
-      const activeStage = this.runtime.stage || (this.currentProject.stage || this.currentProject.stages?.[0]);
-      const grid = activeStage?.grid;
-      if (!grid) return;
-      const cellSize = grid.cellSize;
-      const stageWidth = grid.cols * cellSize;
-      const stageHeight = grid.rows * cellSize;
-      const dockArea = { left: 0, top: 0, right: stageWidth, bottom: stageHeight };
-      const dockPositions = /* @__PURE__ */ new Map();
-      objects.forEach((obj) => {
-        const align = obj.align || "NONE";
-        if (align === "NONE" || align === "CLIENT") return;
-        const objId = obj.id;
-        if (!objId) return;
-        const objHeight = (obj.height || 0) * cellSize;
-        const objWidth = (obj.width || 0) * cellSize;
-        const availableWidth = dockArea.right - dockArea.left;
-        const availableHeight = dockArea.bottom - dockArea.top;
-        if (align === "TOP") {
-          dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: availableWidth, height: objHeight });
-          dockArea.top += objHeight;
-        } else if (align === "BOTTOM") {
-          dockPositions.set(objId, { left: dockArea.left, top: dockArea.bottom - objHeight, width: availableWidth, height: objHeight });
-          dockArea.bottom -= objHeight;
-        } else if (align === "LEFT") {
-          dockPositions.set(objId, { left: dockArea.left, top: dockArea.top, width: objWidth, height: availableHeight });
-          dockArea.left += objWidth;
-        } else if (align === "RIGHT") {
-          dockPositions.set(objId, { left: dockArea.right - objWidth, top: dockArea.top, width: objWidth, height: availableHeight });
-          dockArea.right -= objWidth;
-        }
-      });
-      objects.forEach((obj) => {
-        const align = obj.align || "NONE";
-        if (align !== "CLIENT") return;
-        const objId = obj.id;
-        if (!objId) return;
-        dockPositions.set(objId, {
-          left: dockArea.left,
-          top: dockArea.top,
-          width: dockArea.right - dockArea.left,
-          height: dockArea.bottom - dockArea.top
-        });
-      });
-      const currentIds = new Set(objects.map((o) => o.id));
-      const rendered = Array.from(this.stage.querySelectorAll(".game-object"));
-      rendered.forEach((el) => {
-        if (!currentIds.has(el.id)) el.remove();
-      });
-      objects.forEach((obj) => {
-        if (this.techClasses.includes(obj.className)) return;
-        const isVisible = obj.style?.visible !== false && obj.visible !== false;
-        let el = document.getElementById(obj.id);
-        if (!isVisible) {
-          if (el) el.remove();
-          return;
-        }
-        if (!el) {
-          el = document.createElement("div");
-          el.id = obj.id;
-          el.className = "game-object";
-          this.stage.appendChild(el);
-        }
-        const dockPos = dockPositions.get(obj.id);
-        if (dockPos) {
-          const offsetX = (obj.x || 0) * cellSize;
-          const offsetY = (obj.y || 0) * cellSize;
-          el.style.left = `${dockPos.left + offsetX}px`;
-          el.style.top = `${dockPos.top + offsetY}px`;
-          el.style.width = `${dockPos.width}px`;
-          el.style.height = `${dockPos.height}px`;
-        } else {
-          el.style.left = `${(obj.x || 0) * cellSize}px`;
-          el.style.top = `${(obj.y || 0) * cellSize}px`;
-          el.style.width = `${(obj.width || 0) * cellSize}px`;
-          el.style.height = `${(obj.height || 0) * cellSize}px`;
-        }
-        el.style.zIndex = String(obj.zIndex || 0);
-        if (obj.style && obj.style.opacity !== void 0) {
-          el.style.opacity = String(obj.style.opacity);
-        } else {
-          el.style.opacity = "1";
-        }
-        if (obj.style) {
-          el.style.backgroundColor = obj.style.backgroundColor || "transparent";
-          el.style.color = obj.style.color || "inherit";
-          el.style.fontSize = (obj.style.fontSize || 16) + "px";
-          el.style.textAlign = obj.style.textAlign || "left";
-          el.style.border = `${obj.style.borderWidth || 0}px solid ${obj.style.borderColor || "transparent"}`;
-          el.style.borderRadius = (obj.style.borderRadius || 0) + "px";
-          el.style.display = "flex";
-          el.style.alignItems = "center";
-          el.style.justifyContent = obj.style.textAlign === "center" ? "center" : "flex-start";
-          el.style.padding = obj.style.textAlign === "center" ? "0" : "0 10px";
-        }
-        this.renderComponentContent(el, obj);
-      });
-    }
-    renderComponentContent(el, obj) {
-      const type = obj.className;
-      switch (type) {
-        case "TImage": {
-          el.innerHTML = "";
-          const img = document.createElement("img");
-          const src = obj.src || obj.backgroundImage || "";
-          if (src) {
-            img.src = src.startsWith("http") || src.startsWith("/") || src.startsWith("data:") ? src : `./images/${src}`;
-          }
-          img.style.width = "100%";
-          img.style.height = "100%";
-          img.style.objectFit = obj.objectFit || "contain";
-          img.style.opacity = String(obj.imageOpacity ?? 1);
-          img.style.display = src ? "block" : "none";
-          el.appendChild(img);
-          break;
-        }
-        case "TSprite": {
-          el.style.backgroundColor = obj.spriteColor || el.style.backgroundColor;
-          if (obj.shape === "circle") el.style.borderRadius = "50%";
-          const bgImg = obj.backgroundImage;
-          if (bgImg) {
-            const url = bgImg.startsWith("http") || bgImg.startsWith("/") || bgImg.startsWith("data:") ? bgImg : `./images/${bgImg}`;
-            el.style.backgroundImage = `url("${url}")`;
-            el.style.backgroundSize = obj.objectFit || "cover";
-            el.style.backgroundPosition = "center";
-            el.style.backgroundRepeat = "no-repeat";
-          } else {
-            el.style.backgroundImage = "none";
-          }
-          break;
-        }
-        case "TButton":
-          el.innerText = obj.caption || obj.name;
-          el.style.cursor = "pointer";
-          if (obj.icon) {
-            const iconUrl = obj.icon.startsWith("http") || obj.icon.startsWith("/") || obj.icon.startsWith("data:") ? obj.icon : `./images/${obj.icon}`;
-            el.style.display = "flex";
-            el.style.gap = "8px";
-            el.style.alignItems = "center";
-            el.style.justifyContent = "center";
-            el.innerHTML = `<img src="${iconUrl}" style="height: 1.2em; width: auto;"> <span>${obj.caption || obj.name}</span>`;
-          }
-          if (!el.onclick) {
-            el.onclick = () => this.runtime?.handleEvent(obj.id, "onClick");
-          }
-          break;
-        case "TLabel":
-        case "TNumberLabel":
-        case "TGameHeader":
-          const labelText = obj.text !== void 0 && obj.text !== null ? String(obj.text) : obj.value !== void 0 && obj.value !== null ? String(obj.value) : obj.title || obj.caption || "";
-          el.innerText = labelText;
-          break;
-        case "TEdit":
-          if (!el.querySelector("input")) {
-            el.innerHTML = "";
-            const input = document.createElement("input");
-            input.type = "text";
-            input.style.width = "100%";
-            input.style.height = "100%";
-            input.style.border = "none";
-            input.style.background = "transparent";
-            input.style.padding = "0 10px";
-            input.style.color = "inherit";
-            input.style.fontSize = "inherit";
-            input.style.textAlign = "center";
-            input.style.outline = "none";
-            input.oninput = () => {
-              obj.text = input.value;
-            };
-            el.appendChild(input);
-          }
-          const ti = el.querySelector("input");
-          const editValue = obj.text !== void 0 && obj.text !== null ? String(obj.text) : "";
-          if (ti.value !== editValue) {
-            ti.value = editValue;
-          }
-          break;
-        case "TVideo":
-        case "TSplashScreen": {
-          const videoSrc = obj.videoSource || "";
-          if (!videoSrc) {
-            el.innerHTML = '<div style="color: #444; font-size: 10px; text-align: center;">No Video Source</div>';
-            break;
-          }
-          let video = el.querySelector("video");
-          if (!video) {
-            el.innerHTML = "";
-            video = document.createElement("video");
-            video.style.width = "100%";
-            video.style.height = "100%";
-            video.playsInline = true;
-            el.appendChild(video);
-          }
-          const fullSrc = videoSrc.startsWith("http") || videoSrc.startsWith("/") || videoSrc.startsWith("data:") ? videoSrc : `./images/${videoSrc}`;
-          if (video.src !== new URL(fullSrc, window.location.href).href) {
-            video.src = fullSrc;
-            if (obj.autoplay) video.play().catch(() => {
-            });
-          }
-          video.style.objectFit = obj.objectFit || "contain";
-          video.style.opacity = String(obj.imageOpacity ?? 1);
-          video.loop = !!obj.loop;
-          video.muted = !!obj.muted;
-          if (obj.playbackRate) video.playbackRate = obj.playbackRate;
-          if (obj.isPlaying && video.paused) {
-            video.play().catch((e) => console.warn("[Player] Video play failed:", e));
-          } else if (!obj.isPlaying && !video.paused) {
-            video.pause();
-          }
-          break;
-        }
-        case "TGameCard": {
-          el.innerHTML = "";
-          el.style.flexDirection = "column";
-          el.style.padding = "15px";
-          el.style.gap = "10px";
-          el.style.borderRadius = "12px";
-          el.style.background = "rgba(255, 255, 255, 0.05)";
-          el.style.border = "1px solid rgba(255, 255, 255, 0.1)";
-          el.style.backdropFilter = "blur(10px)";
-          const hostRow = document.createElement("div");
-          hostRow.style.display = "flex";
-          hostRow.style.alignItems = "center";
-          hostRow.style.gap = "10px";
-          hostRow.style.width = "100%";
-          const avatar = document.createElement("div");
-          avatar.style.width = "40px";
-          avatar.style.height = "40px";
-          avatar.style.borderRadius = "50%";
-          avatar.style.background = "#4fc3f7";
-          avatar.style.display = "flex";
-          avatar.style.alignItems = "center";
-          avatar.style.justifyContent = "center";
-          avatar.style.fontSize = "20px";
-          avatar.innerText = obj.hostAvatar || "\u{1F464}";
-          hostRow.appendChild(avatar);
-          const nameAndGame = document.createElement("div");
-          nameAndGame.style.flex = "1";
-          const hostNameEl = document.createElement("div");
-          hostNameEl.style.fontSize = "14px";
-          hostNameEl.style.color = "#94a3b8";
-          hostNameEl.innerText = obj.hostName || "Anonym";
-          nameAndGame.appendChild(hostNameEl);
-          const gameTitleEl = document.createElement("div");
-          gameTitleEl.style.fontSize = "18px";
-          gameTitleEl.style.fontWeight = "bold";
-          gameTitleEl.innerText = obj.gameName || "Unbekanntes Spiel";
-          nameAndGame.appendChild(gameTitleEl);
-          hostRow.appendChild(nameAndGame);
-          el.appendChild(hostRow);
-          const joinBtn = document.createElement("div");
-          joinBtn.style.width = "100%";
-          joinBtn.style.padding = "8px";
-          joinBtn.style.textAlign = "center";
-          joinBtn.style.background = "#10b981";
-          joinBtn.style.color = "white";
-          joinBtn.style.borderRadius = "6px";
-          joinBtn.style.cursor = "pointer";
-          joinBtn.style.fontWeight = "bold";
-          joinBtn.innerText = "Beitreten";
-          joinBtn.onclick = () => {
-            if (obj.roomCode) {
-              this.handleNavigation(`room:${obj.roomCode}`);
-            }
-          };
-          el.appendChild(joinBtn);
-          break;
-        }
-        case "TShape": {
-          el.innerHTML = "";
-          el.style.backgroundColor = obj.fillColor || "transparent";
-          el.style.border = `${obj.strokeWidth || 0}px solid ${obj.strokeColor || "transparent"}`;
-          el.style.opacity = String(obj.opacity ?? 1);
-          if (obj.shapeType === "circle") {
-            el.style.borderRadius = "50%";
-          } else if (obj.shapeType === "rect" || obj.shapeType === "square") {
-            el.style.borderRadius = "0";
-          } else if (obj.shapeType === "ellipse") {
-            el.style.borderRadius = "50% / 50%";
-          } else if (obj.shapeType === "triangle") {
-            el.style.backgroundColor = "transparent";
-            el.style.border = "none";
-            el.style.clipPath = "polygon(50% 0%, 0% 100%, 100% 100%)";
-            el.style.background = obj.fillColor || "white";
-          } else if (obj.shapeType === "arrow") {
-            el.style.backgroundColor = "transparent";
-            el.style.border = "none";
-            el.style.clipPath = "polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%)";
-            el.style.background = obj.fillColor || "white";
-          }
-          break;
-        }
-      }
+      const objects = this.runtime.getObjects().filter((obj) => !this.techClasses.includes(obj.className));
+      this.renderer.renderObjects(objects);
     }
     showOverlay(text, subtext) {
       let overlay = document.getElementById("player-overlay");
@@ -12295,10 +13198,10 @@
       this.render();
     }
     screenToGrid(clientX, clientY) {
-      const rect = this.stage.getBoundingClientRect();
+      const rect = this.element.getBoundingClientRect();
       const relativeX = clientX - rect.left;
       const relativeY = clientY - rect.top;
-      const style = window.getComputedStyle(this.stage);
+      const style = window.getComputedStyle(this.element);
       const matrix = new DOMMatrix(style.transform);
       const scale = matrix.a;
       const activeStage = this.runtime?.stage || (this.currentProject?.stage || this.currentProject?.stages?.[0]);

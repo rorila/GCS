@@ -4,7 +4,7 @@ import { GameAction, GameProject } from '../../model/types';
 import { ExpressionParser } from '../../runtime/ExpressionParser';
 
 export class FlowAction extends FlowElement {
-    public getType(): string { return 'Action'; }
+    public getType(): string { return 'action'; }
 
     public getEvents(): string[] {
         return []; // Standardaktionen haben keine Standard-Events
@@ -529,7 +529,8 @@ export class FlowAction extends FlowElement {
         }
 
         const taskPrefix = (this.data && (this.data.taskName || this.data.sourceTaskName)) ? `${this.data.taskName || this.data.sourceTaskName} ---- ` : '';
-        const title = taskPrefix + this.Name;
+        const currentName = this.Name;
+        const title = taskPrefix + currentName;
         const action = this.getActionDefinition(); // Use helper
 
         if (!show) {
@@ -720,5 +721,9 @@ export class FlowAction extends FlowElement {
             ...base,
             data: this.data
         };
+    }
+
+    protected refreshVisuals() {
+        this.setShowDetails(this.showDetails, this.projectRef);
     }
 }

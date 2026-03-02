@@ -1,5 +1,4 @@
 import { GameProject } from '../../model/types';
-import { RefactoringManager } from '../RefactoringManager';
 
 export abstract class FlowElement {
     public abstract getType(): string;
@@ -466,27 +465,28 @@ export abstract class FlowElement {
         const oldName = this.Name;
         if (oldName === v) return;
 
-        // Apply visual update locally first
-        this.content.dataset.name = v;
-        if (!this.content.dataset.details) {
-            this.content.innerText = v;
-        }
-
-        // Apply data update
+        // Apply data update first
         if (!this.data) this.data = {};
         if (this.data.taskName) this.data.taskName = v;
         else this.data.name = v;
 
-        // Trigger refactoring if we have a project reference (Task or Action)
-        // This ensures the change is propagated to the registry
-        if ((this as any).projectRef && (this as any).getType) {
-            const type = (this as any).getType();
-            // Use imported RefactoringManager (needs import)
-            if (type === 'Task') {
-                RefactoringManager.renameTask((this as any).projectRef, oldName, v);
-            } else if (type === 'Action') {
-                RefactoringManager.renameAction((this as any).projectRef, oldName, v);
-            }
+        // Apply visual update locally last, AFTER data is updated
+        this.content.dataset.name = v;
+        this.refreshVisuals();
+
+        // CRITICAL DEEP-FIX: We REMOVED the direct RefactoringManager call from here.
+        // Refactoring is a global operation that MUST be handled by the EditorCommandManager
+        // to ensure the FlowEditor's context (scroll, history) is updated BEFORE the 
+        // project structure changes and triggers a re-render.
+    }
+
+    /**
+     * Hook to refresh visual appearance when properties change.
+     * Subclasses should override this for complex HTML rendering.
+     */
+    protected refreshVisuals() {
+        if (!this.content.dataset.details) {
+            this.content.innerText = this.Name;
         }
     }
 

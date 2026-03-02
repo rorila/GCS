@@ -240,7 +240,7 @@ export class FlowGraphHydrator {
         let importedStart: FlowElement | null = null;
 
         flowChart.elements.forEach((data: any) => {
-            const isIdentityNode = data.type === 'Task' &&
+            const isIdentityNode = data.type?.toLowerCase() === 'task' &&
                 (data.properties?.name === task.name ||
                     data.properties?.name === task.sourceTaskName ||
                     data.properties?.name === task.copiedFromLibrary);

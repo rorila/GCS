@@ -732,6 +732,37 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     }
 
     /**
+     * Renames a flow context (e.g. when a task is renamed)
+     */
+    public renameContext(oldName: string, newName: string) {
+        if (!oldName || !newName || oldName === newName) return;
+
+        // 1. Update Scroll Positions map
+        const pos = this.scrollPositions.get(oldName);
+        if (pos) {
+            this.scrollPositions.delete(oldName);
+            this.scrollPositions.set(newName, pos);
+        }
+
+        // 2. Update localStorage for scroll positions
+        const savedScroll = localStorage.getItem(`gcs_flow_scroll_${oldName}`);
+        if (savedScroll) {
+            localStorage.setItem(`gcs_flow_scroll_${newName}`, savedScroll);
+            localStorage.removeItem(`gcs_flow_scroll_${oldName}`);
+        }
+
+        // 3. Update history
+        this.contextHistory = this.contextHistory.map(h => h === oldName ? newName : h);
+
+        // 4. Update StateManager if it's the current context
+        if (this.currentFlowContext === oldName) {
+            this.stateManager.renameContext(oldName, newName);
+            // Refresh dropdown to show new name instead of falling back to global
+            this.updateFlowSelector();
+        }
+    }
+
+    /**
      * Navigate back to the previous view context
      */
     private goBack() {

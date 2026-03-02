@@ -2,7 +2,6 @@ import { Logger } from '../../../utils/Logger';
 import { IInspectorHandler, PropertyChangeEvent } from '../types';
 import { GameProject } from '../../../model/types';
 import { ReactiveRuntime } from '../../../runtime/ReactiveRuntime';
-import { RefactoringManager } from '../../RefactoringManager';
 
 export class FlowNodeHandler implements IInspectorHandler {
     private static logger = Logger.get('FlowNodeHandler', 'Task_Management');
@@ -40,15 +39,12 @@ export class FlowNodeHandler implements IInspectorHandler {
             // Determine subtype (Task vs Action)
             const type = (typeof object.getType === 'function') ? object.getType() : 'Task';
 
-            if (type === 'Task') {
-                RefactoringManager.renameTask(project, oldValue, newValue);
-                // Ensure local object is updated via its setter
-                if (object.Name !== newValue) object.Name = newValue;
-                return true;
-            } else if (type === 'Action') {
-                RefactoringManager.renameAction(project, oldValue, newValue);
-                // Ensure local object is updated via its setter
-                if (object.Name !== newValue) object.Name = newValue;
+            if (type === 'Task' || type === 'Action' || type === 'DataAction') {
+                // Return true to signal that this is a naming change handled by specialized logic.
+                // The central EditorCommandManager will perform the actual project-wide refactoring.
+                // WE REMOVED the immediate object.Name update here, because it pollutes the shared
+                // data reference, making it impossible for the RefactoringService to find the 
+                // node by its "oldName" if it has already been updated to "newValue".
                 return true;
             }
         }

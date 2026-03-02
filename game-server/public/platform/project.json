@@ -1159,6 +1159,69 @@
               }
             ]
           }
+        },
+        {
+          "name": "ANewTask",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowChart": {
+            "elements": [
+              {
+                "id": "node-1772438456508",
+                "type": "task",
+                "x": 60,
+                "y": 80,
+                "width": 140,
+                "height": 60,
+                "properties": {
+                  "name": "ANewTask",
+                  "details": "",
+                  "description": "",
+                  "text": "ANewTask"
+                },
+                "data": {
+                  "name": "ANewTask",
+                  "showDetails": false
+                }
+              },
+              {
+                "id": "node-1772438565041",
+                "type": "action",
+                "x": 320,
+                "y": 80,
+                "width": 140,
+                "height": 60,
+                "properties": {
+                  "name": "Action1",
+                  "details": "",
+                  "description": ""
+                },
+                "data": {
+                  "name": "Action1",
+                  "isLinked": true
+                }
+              }
+            ],
+            "connections": [
+              {
+                "id": "conn_1772438568392_235",
+                "startTargetId": "node-1772438456508",
+                "endTargetId": "node-1772438565041",
+                "startX": 197.90625,
+                "startY": 108,
+                "endX": 320,
+                "endY": 100,
+                "data": {
+                  "startAnchorType": "output",
+                  "originalStartAnchorType": "output",
+                  "isEmbeddedInternal": false,
+                  "endAnchorType": "input"
+                }
+              }
+            ]
+          }
         }
       ],
       "actions": [
@@ -1219,6 +1282,11 @@
           "type": "set_variable",
           "variableName": "currentPIN",
           "value": ""
+        },
+        {
+          "details": "",
+          "name": "Action1",
+          "showDetails": false
         }
       ],
       "flowCharts": {
@@ -1445,6 +1513,62 @@
               }
             }
           ]
+        },
+        "ANewTask": {
+          "elements": [
+            {
+              "id": "node-1772438456508",
+              "type": "task",
+              "x": 60,
+              "y": 80,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "ANewTask",
+                "details": "",
+                "description": "",
+                "text": "ANewTask"
+              },
+              "data": {
+                "name": "ANewTask",
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1772438565041",
+              "type": "action",
+              "x": 320,
+              "y": 80,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "Action1",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "Action1",
+                "isLinked": true
+              }
+            }
+          ],
+          "connections": [
+            {
+              "id": "conn_1772438568392_235",
+              "startTargetId": "node-1772438456508",
+              "endTargetId": "node-1772438565041",
+              "startX": 197.90625,
+              "startY": 108,
+              "endX": 320,
+              "endY": 100,
+              "data": {
+                "startAnchorType": "output",
+                "originalStartAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
         }
       },
       "_showGlobalPreview": false,
@@ -1456,7 +1580,13 @@
           "rows": 20
         }
       },
-      "usecase": true
+      "usecase": true,
+      "_supportedEvents": [
+        "onClick",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop"
+      ]
     },
     {
       "id": "stage_main",

@@ -152,8 +152,9 @@ export class FlowContextMenuProvider {
 
     private showEmbeddedContextMenu(e: MouseEvent, node: FlowElement): void {
         const items: ContextMenuItem[] = [];
+        const typeLabel = node.getType() === 'Task' ? 'Task' : 'Aktion';
         items.push({
-            label: 'Eingebetteten Task löschen',
+            label: `Eingebettete ${typeLabel} löschen`,
             action: () => {
                 const groupId = node.data?.embeddedGroupId;
                 const nodesToDelete = groupId
@@ -161,7 +162,7 @@ export class FlowContextMenuProvider {
                     : [node];
 
                 const count = nodesToDelete.length;
-                if (confirm(`Möchtest du den gesamten eingebetteten Task (${count} Elemente) wirklich löschen?`)) {
+                if (confirm(`Möchtest du die eingebettete ${typeLabel} (${count} Elemente) wirklich löschen?`)) {
                     nodesToDelete.forEach(n => this.host.removeNode(n.id));
 
                     const anyGhost = nodesToDelete[0];

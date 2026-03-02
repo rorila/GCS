@@ -238,7 +238,7 @@ export class Editor implements IViewHost {
         }
 
         let report;
-        if (obj.className === 'TAction' || obj.type === 'action') {
+        if (obj.className === 'TAction' || obj.type === 'action' || (obj as any).getType?.() === 'action') {
             report = RefactoringManager.getActionUsageReport(this.project, obj.name);
         } else if (obj.className === 'TTask' || obj.type === 'task') {
             report = RefactoringManager.getTaskUsageReport(this.project, obj.name);
@@ -253,7 +253,6 @@ export class Editor implements IViewHost {
             const msg = `"${obj.name}" wird an ${report.totalCount} Stellen verwendet:\n\n${locations}\n\nMöchtest du das Element und alle Referenzen wirklich löschen?`;
             if (confirm(msg)) {
                 // If the object is a FlowElement, use silent deletion to prevent double prompt
-                // Casting to any to skip private check for now, or use a better way if available
                 const flowManager = (this.flowEditor as any)?.graphManager;
                 const nodes = flowManager?.host?.nodes;
 
@@ -268,6 +267,16 @@ export class Editor implements IViewHost {
             }
         } else {
             if (confirm(`Möchtest du "${obj.name}" wirklich löschen?`)) {
+                const flowManager = (this.flowEditor as any)?.graphManager;
+                const nodes = flowManager?.host?.nodes;
+
+                if (nodes && Array.isArray(nodes)) {
+                    const node = nodes.find((n: any) => n.id === id);
+                    if (node) {
+                        flowManager.deleteNodeSilent(node);
+                        return;
+                    }
+                }
                 this.removeObject(id);
             }
         }
@@ -317,8 +326,8 @@ export class Editor implements IViewHost {
         }
     }
 
-    public renameObjectWithRefactoring(id: string, newName: string) {
-        this.commandManager.renameObject(id, newName);
+    public renameObjectWithRefactoring(id: string, newName: string, oldName?: string) {
+        this.commandManager.renameObject(id, newName, oldName);
     }
 
     public findObjectById(id: string) { return this.commandManager.findObjectById(id); }
@@ -381,9 +390,9 @@ export class Editor implements IViewHost {
         this.inspector = new InspectorHost(this.designRuntime, this.project);
         this.inspector.setContainer(document.getElementById('json-inspector-content')!);
         this.inspector.onObjectUpdate = (update: any) => {
-            if (update.propertyName === 'name' && update.oldValue && update.oldValue !== update.newValue) {
+            if (update.propertyName.toLowerCase() === 'name' && update.oldValue && update.oldValue !== update.newValue) {
                 Editor.logger.info(`Name geändert: ${update.oldValue} -> ${update.newValue}. Starte Refactoring...`);
-                this.renameObjectWithRefactoring(update.object.id, update.newValue);
+                this.renameObjectWithRefactoring(update.object.id, update.newValue, update.oldValue);
             }
             this.renderManager.refreshAllViews('inspector');
         };
@@ -435,8 +444,13 @@ export class Editor implements IViewHost {
 
     private initMediator() {
         mediatorService.on(MediatorEvents.DATA_CHANGED, (_data: any, originator?: string) => {
-            if (originator !== 'editor' && originator !== 'inspector') this.renderManager.refreshAllViews(originator);
-            else if (originator !== 'inspector') this.render();
+            // Wenn sich Daten ändern (z.B. neue Actions hinzugefügt), müssen wir die Views aktualisieren.
+            // Der Originator hilft zu vermeiden, dass wir Events im Kreis schicken.
+            if (originator !== 'editor' && originator !== 'inspector') {
+                this.renderManager.refreshAllViews(originator);
+            } else if (originator !== 'inspector') {
+                this.render();
+            }
         });
     }
 

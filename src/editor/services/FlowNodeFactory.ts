@@ -40,11 +40,11 @@ export class FlowNodeFactory {
         console.log(`[FlowEditor] createNode: type=${type}, x=${x}, y=${y}, initialName=${initialName}`);
         let node: FlowElement;
         const id = 'node-' + Date.now();
-        const baseType = type.includes(':') ? type.split(':')[0] : type;
+        const baseType = (type.includes(':') ? type.split(':')[0] : type).toLowerCase();
         const cellSize = this.host.flowStage.cellSize;
 
         switch (baseType) {
-            case 'Action': {
+            case 'action': {
                 const actionSubtype = type.includes(':') ? type.split(':')[1] : null;
                 node = new FlowAction(id, x, y, this.host.canvas, cellSize);
                 if (initialName && initialName !== 'Action' && initialName !== 'Aktion') {
@@ -56,28 +56,28 @@ export class FlowNodeFactory {
                     node.data = node.data || {};
                     node.data.type = actionSubtype;
                 }
-                if (this.host.showDetails) {
-                    (node as FlowAction).setShowDetails(true, this.host.project);
+                if (this.host.project) {
+                    (node as FlowAction).setProjectRef(this.host.project);
                 }
                 break;
             }
-            case 'DataAction': {
+            case 'dataaction': {
                 node = new FlowDataAction(id, x, y, this.host.canvas, cellSize);
                 if (initialName && initialName !== 'DataAction' && initialName !== 'Daten-Aktion') {
                     node.Name = initialName;
                 } else {
                     node.Name = FlowNamingService.generateUniqueActionName(this.host.project, this.host.nodes, initialName || 'DataAction');
                 }
-                if (this.host.showDetails) {
-                    (node as FlowAction).setShowDetails(true, this.host.project);
+                if (this.host.project) {
+                    (node as FlowAction).setProjectRef(this.host.project);
                 }
                 break;
             }
-            case 'Condition':
+            case 'condition':
                 node = new FlowCondition(id, x, y, this.host.canvas, cellSize);
                 node.Name = initialName || 'Bedingung';
                 break;
-            case 'Task': {
+            case 'task': {
                 let taskName = initialName;
                 if (!taskName) {
                     taskName = prompt("Name für den neuen Task:", FlowNamingService.generateUniqueTaskName(this.host.project, this.host.nodes, "ANewTask")) || undefined;
@@ -99,7 +99,7 @@ export class FlowNodeFactory {
                 }
                 break;
             }
-            case 'VariableDecl': {
+            case 'variabledecl': {
                 const kind = type.split(':')[1];
                 if (kind === 'threshold') {
                     node = new FlowThresholdVariable(id, x, y, this.host.canvas, cellSize);
@@ -135,14 +135,14 @@ export class FlowNodeFactory {
                 (node as FlowVariable).updateVisuals?.();
                 break;
             }
-            case 'While':
-            case 'For':
-            case 'Repeat':
-                node = new FlowLoop(id, x, y, this.host.canvas, cellSize, type as any);
+            case 'while':
+            case 'for':
+            case 'repeat':
+                node = new FlowLoop(id, x, y, this.host.canvas, cellSize, baseType as any);
                 node.Name = type;
                 (node as FlowLoop).updateVisuals?.();
                 break;
-            case 'Start':
+            case 'start':
                 node = new FlowStart(id, x, y, this.host.canvas, cellSize);
                 node.Name = 'Start';
                 break;

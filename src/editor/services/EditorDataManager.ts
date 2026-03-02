@@ -258,7 +258,12 @@ export class EditorDataManager {
             projectPersistenceService.autoSaveToLocalStorage(this.host.project);
 
             // SSoT & DATEI-PERSISTENZ: Speichere Änderungen direkt auf Disk via Server-Endpoint
-            EditorDataManager.logger.info('Starte persistente Speicherung auf Disk...');
+            const actionCount = this.host.project.actions?.length || 0;
+            const taskCount = this.host.project.tasks?.length || 0;
+            const stageCount = this.host.project.stages?.length || 0;
+
+            EditorDataManager.logger.info(`[TRACE] updateProjectJSON: Sende Projektdaten an Server... (Actions: ${actionCount}, Tasks: ${taskCount}, Stages: ${stageCount})`);
+
             fetch('/api/dev/save-project', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -267,13 +272,13 @@ export class EditorDataManager {
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        EditorDataManager.logger.info('Projekt wurde erfolgreich auf Disk gespeichert.');
+                        EditorDataManager.logger.info(`[TRACE] updateProjectJSON: Projekt erfolgreich auf Disk gespeichert. Server-Antwort: success=true`);
                     } else {
-                        EditorDataManager.logger.warn('Server-seitige Speicherung fehlgeschlagen:', data.error);
+                        EditorDataManager.logger.warn(`[TRACE] updateProjectJSON: Server-seitige Speicherung fehlgeschlagen:`, data.error);
                     }
                 })
                 .catch(err => {
-                    EditorDataManager.logger.error('Fehler bei Verbindung zum Speicher-Endpoint:', err);
+                    EditorDataManager.logger.error(`[TRACE] updateProjectJSON: Kritischer Fehler bei Verbindung zum Speicher-Endpoint:`, err);
                 });
         }
     }

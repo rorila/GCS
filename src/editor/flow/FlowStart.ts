@@ -2,7 +2,7 @@
 import { FlowElement } from './FlowElement';
 
 export class FlowStart extends FlowElement {
-    public getType(): string { return 'Start'; }
+    public getType(): string { return 'start'; }
 
     constructor(id: string, x: number, y: number, container: HTMLElement, gridSize: number) {
         super(id, x, y, container, gridSize);

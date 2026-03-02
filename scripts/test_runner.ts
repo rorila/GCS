@@ -12,6 +12,9 @@ import { runRefactoringTests } from '../tests/refactoring_manager.test.js';
 import { runTaskExecutorTests } from '../tests/task_executor.test.js';
 import { runFlowSyncTests } from '../tests/flow_sync.test.js';
 import { runProjectIntegrityTests } from '../tests/project_integrity.test.js';
+import { runRenamingRobustnessTests } from '../tests/renaming_robustness.test.js';
+import { runTests as runActionRegistrationTests } from '../tests/action_registration.test.js';
+import { runTests as runActionCRUDTests } from '../tests/action_crud.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -89,6 +92,14 @@ async function main() {
         console.log('🏃 Starte SELECT COUNT(*) Tests...');
         const countResults = await runSelectCountTests();
 
+        // 13. Action Registration Tests
+        console.log('🏃 Starte Action Registration Tests...');
+        const registrationResults = await runActionRegistrationTests();
+
+        // 14. Action CRUD Tests
+        console.log('🏃 Starte Action CRUD Tests...');
+        const crudResults = await runActionCRUDTests();
+
         // 6. Serialization Tests (v3.7.0)
         console.log('🏃 Starte Serialization Tests...');
         const serializationResults = await runSerializationTests();
@@ -109,6 +120,10 @@ async function main() {
         console.log('🏃 Starte Project Integrity Tests...');
         const integrityResults = await runProjectIntegrityTests();
 
+        // 11. Renaming Robustness Tests (v3.14.1)
+        console.log('🏃 Starte Renaming Robustness Tests...');
+        const robustnessResults = await runRenamingRobustnessTests();
+
         const allResults = [
             ...loginResults,
             ...smartResults,
@@ -119,7 +134,10 @@ async function main() {
             ...refactoringResults,
             ...executorResults,
             ...flowSyncResults,
-            ...integrityResults
+            ...integrityResults,
+            ...robustnessResults,
+            ...registrationResults,
+            ...crudResults
         ];
 
         // Report Generation

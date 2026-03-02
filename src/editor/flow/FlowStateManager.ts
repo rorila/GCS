@@ -305,6 +305,20 @@ export class FlowStateManager {
     }
 
     /**
+     * Renames the current context (e.g. during refactoring)
+     * without triggering a full reload if it's the active one.
+     */
+    public renameContext(oldName: string, newName: string): void {
+        if (this._currentContext === oldName) {
+            this._currentContext = newName;
+            localStorage.setItem('gcs_last_flow_context', newName);
+
+            // Note: We don't trigger onContextChanged here because 
+            // the FlowEditor will handle the visual naming update.
+        }
+    }
+
+    /**
      * Gibt den aktuellen Context zurück
      */
     public getContext(): string {

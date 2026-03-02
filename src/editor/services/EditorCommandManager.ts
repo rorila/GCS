@@ -6,7 +6,12 @@ import { RefactoringManager } from '../RefactoringManager';
 import { mediatorService } from '../../services/MediatorService';
 
 export class EditorCommandManager {
-    constructor(private editor: Editor) { }
+    private editor: Editor;
+    public isRefactoring: boolean = false;
+
+    constructor(editor: Editor) {
+        this.editor = editor;
+    }
 
     public createObjectInstance(type: string, name: string, x: number, y: number): TWindow | null {
         console.log(`[CommandManager] Erzeuge Instanz für Typ: ${type}, Name: ${name}`);
@@ -187,28 +192,59 @@ export class EditorCommandManager {
         }
     }
 
-    public renameObject(id: string, newName: string) {
+    public renameObject(id: string, newName: string, forcedOldName?: string) {
         const obj = this.findObjectById(id);
         if (!obj) return;
-        const oldName = obj.name;
+
+        const oldName = forcedOldName || obj.name;
         if (oldName === newName) return;
 
-        console.log(`[CommandManager] Refactoring: Umbenennung ${oldName} -> ${newName}`);
+        // CRITICAL: Set refactoring flag to suppress intermediate syncs
+        this.isRefactoring = true;
 
-        if (obj.className === 'TVariable' || obj.isVariable) {
-            RefactoringManager.renameVariable(this.editor.project, oldName, newName);
-        } else if (obj.className === 'TTask' || obj.type === 'task') {
-            RefactoringManager.renameTask(this.editor.project, oldName, newName);
-        } else if (obj.className === 'TAction' || obj.type === 'action') {
-            RefactoringManager.renameAction(this.editor.project, oldName, newName);
-        } else {
-            // General object
-            RefactoringManager.renameObject(this.editor.project, oldName, newName);
+        try {
+            // 1. Notify FlowEditor BEFORE refactoring. 
+            if (this.editor.flowEditor) {
+                const type = (obj.getType?.() || obj.type || '').toLowerCase();
+                const isFlowNode = obj.className === 'TTask' || type === 'task' || obj.className === 'TAction' || type === 'action';
+                if (isFlowNode) {
+                    this.editor.flowEditor.renameContext(oldName, newName);
+                }
+            }
+
+            // 2. Perform global refactoring
+            const type = (obj.getType?.() || obj.type || '').toLowerCase();
+            if (obj.className === 'TVariable' || obj.isVariable || type === 'variable') {
+                RefactoringManager.renameVariable(this.editor.project, oldName, newName);
+            } else if (obj.className === 'TTask' || type === 'task') {
+                RefactoringManager.renameTask(this.editor.project, oldName, newName);
+            } else if (obj.className === 'TAction' || type === 'action') {
+                RefactoringManager.renameAction(this.editor.project, oldName, newName);
+            } else {
+                RefactoringManager.renameObject(this.editor.project, oldName, newName);
+            }
+
+            // 3. Ensure the object instance itself carries the new name
+            if ((obj as any).Name !== undefined) {
+                (obj as any).Name = newName;
+            } else if (obj.name !== newName) {
+                obj.name = newName;
+            }
+
+            // 4. Update UI & Notify (Manager-Liste, Dropdown, etc.)
+            // Trigger View-Updates (Flow-Dropdown, Stage, Inspector)
+            this.editor.renderManager.refreshAllViews('editor');
+
+            // Trigger Management-View Refresh (Manager-Liste) via Mediator
+            mediatorService.notifyDataChanged(this.editor.project, 'editor');
+
+            this.editor.autoSaveToLocalStorage();
+
+            console.log(`[CommandManager] UI-UPDATE ERFOLGREICH: Alle Listen (Dropdown & Manager) wurden synchronisiert.`);
+        } finally {
+            // CRITICAL: Always release the lock
+            this.isRefactoring = false;
         }
-
-        obj.name = newName;
-        this.editor.render();
-        this.editor.autoSaveToLocalStorage();
     }
 
     public selectObject(id: string | null, focus: boolean = false) {

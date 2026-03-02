@@ -30,10 +30,13 @@ export interface FlowSyncHost {
     getTargetFlowCharts: (context: string) => any;
     getTaskDefinitionByName: (name: string) => any;
     setupNodeListeners: (node: FlowElement) => void;
+    syncManager: any;
+    editor?: any;
 }
 
 export class FlowSyncManager {
-    private static logger = Logger.get('FlowSyncManager', 'Flow_Sync');
+    public static logger = Logger.get('FlowSync', 'Flow_Synchronization');
+    private static lifecycleLogger = Logger.get('FlowSync', 'Action_Lifecycle');
     private host: FlowSyncHost;
 
     constructor(host: FlowSyncHost) {
@@ -79,7 +82,7 @@ export class FlowSyncManager {
 
     public syncToProject(currentContext: string) {
         if (!this.host.project) return;
-        FlowSyncManager.logger.debug(`syncToProject start for context: ${currentContext}`);
+        FlowSyncManager.logger.info(`[TRACE] syncToProject start (Context: ${currentContext})`);
         if (currentContext === 'event-map' || currentContext === 'element-overview') {
             FlowSyncManager.logger.debug(`syncToProject skipped for special context: ${currentContext}`);
             return;
@@ -111,33 +114,30 @@ export class FlowSyncManager {
         const persistentConnections = this.host.connections.filter(c => !c.data?.isEmbeddedInternal && !c.data?.parentProxyId);
         const connections = persistentConnections.map(c => c.toJSON());
 
-        FlowSyncManager.logger.debug(`syncToProject: Detected ${elements.length} nodes and ${connections.length} connections.`);
-        elements.forEach(el => FlowSyncManager.logger.debug(`  - Node: ${el.id} (${el.type}) name=${el.properties?.name}`));
-        connections.forEach(c => FlowSyncManager.logger.debug(`  - Conn: ${c.startTargetId} -> ${c.endTargetId} (${c.data?.startAnchorType})`));
+        FlowSyncManager.logger.info(`[TRACE] syncToProject: Detected ${elements.length} nodes and ${connections.length} connections.`);
 
         this.host.nodes.forEach(node => {
-            const nodeType = node.getType();
-            if ((nodeType === 'Action' || nodeType === 'DataAction') && node.data && !node.data.isEmbeddedInternal) {
+            const nodeType = node.getType().toLowerCase();
+            if ((nodeType === 'action' || nodeType === 'dataaction') && node.data && !node.data.isEmbeddedInternal) {
                 const actionName = node.Name || node.data.name || node.data.actionName;
                 if (actionName) {
-                    // Critical: if it is a linked action, we ONLY sync the basic node metadata (name, positions)
-                    // We must NOT call updateGlobalActionDefinition with node.data if it is sparse/linked,
-                    // as that would overwrite the full global definition with minimal data.
                     if (node.data.isLinked) {
-                        // Just ensure the global action exists, don't update its core logic from the sparse node
-                        // However, we might want to sync 'details' if it's the only thing that changed visually?
-                        // No, 'details' should be derived from global action.
-                        // Let's just skip updating the logic part.
+                        FlowSyncManager.logger.info(`[TRACE] syncToProject: Überspringe Logik-Update für verlinkte Action "${actionName}"`);
                     } else {
+                        FlowSyncManager.logger.info(`[TRACE] syncToProject: Aktualisiere Model-Definition für "${actionName}" (isLinked=false)`);
                         this.updateGlobalActionDefinition({ details: (node as any).Details, ...node.data, name: actionName });
                     }
                 }
             }
 
-            if (node.getType() === 'Task' && node.data && !node.data.isEmbeddedInternal) {
+            if (nodeType === 'task' && node.data && !node.data.isEmbeddedInternal) {
                 const taskName = node.Name || node.data.taskName;
                 if (taskName) {
-                    this.ensureTaskExists(taskName, (node as any).Details || "");
+                    const isRefactoring = (this.host as any).editor?.commandManager?.isRefactoring;
+                    if (!isRefactoring) {
+                        FlowSyncManager.logger.info(`[TRACE] syncToProject: ensureTaskExists für "${taskName}"`);
+                        this.ensureTaskExists(taskName, (node as any).Details || "");
+                    }
                 }
             }
         });
@@ -151,34 +151,27 @@ export class FlowSyncManager {
             }
         } else {
             if (targetCharts) {
-                // BUG FIX: Store under the specific task name key, not directly on the collection object
                 const chartData = { elements, connections };
                 targetCharts[currentContext] = chartData;
 
-                // FIX: Use hierarchical search instead of just root/active stage
                 const task = this.host.getTaskDefinitionByName(currentContext);
 
                 if (task) {
-                    const container = (this.host as any).projectRegistry?.getTaskContainer(currentContext);
-                    const containerInfo = container ? `${container.type} ${container.stageId || ''}` : 'unknown';
-
-                    FlowSyncManager.logger.info(`Syncing task logic for "${currentContext}" (Location: ${containerInfo}). Current sequence length: ${task.actionSequence?.length || 0}`);
+                    FlowSyncManager.logger.info(`[TRACE] syncToProject: Synchronisiere Task-Logik für "${currentContext}". Elemente: ${elements.length}`);
                     this.syncTaskFromFlow(task, elements, connections);
-                    // Single Source of Truth: update the local reference too
                     task.flowChart = chartData;
                     if ((task as any).flowGraph) delete (task as any).flowGraph;
 
-                    // Final check: did the object actually update?
-                    FlowSyncManager.logger.info(`Sync completed for "${currentContext}". New sequence length: ${task.actionSequence?.length || 0}`);
-                    // CLEANUP: Ensure we don't have redundant flowCharts in other stages if this is a global task
                     this.cleanupRedundantFlowCharts(currentContext, targetCharts);
                 }
             }
         }
 
-        if (this.host.onProjectChange) this.host.onProjectChange();
+        if (this.host.onProjectChange) {
+            FlowSyncManager.logger.info(`[TRACE] syncToProject: Löse onProjectChange (Speichern) aus.`);
+            this.host.onProjectChange();
+        }
         this.host.updateFlowSelector();
-        FlowSyncManager.logger.debug('syncToProject completed. Notifying mediator with project.');
         mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
     }
 
@@ -617,29 +610,30 @@ export class FlowSyncManager {
         const canvas = this.host.canvas;
         const snap = true;
 
-        switch (data.type) {
-            case 'Start':
+        const type = (data.type || '').toLowerCase();
+        switch (type) {
+            case 'start':
                 node = new FlowStart(data.id, data.x, data.y, canvas, cellSize);
                 break;
-            case 'Action':
+            case 'action':
                 node = new FlowAction(data.id, data.x, data.y, canvas, cellSize);
                 break;
-            case 'DataAction':
+            case 'dataaction':
                 node = new FlowDataAction(data.id, data.x, data.y, canvas, cellSize);
                 break;
-            case 'Condition':
+            case 'condition':
                 node = new FlowCondition(data.id, data.x, data.y, canvas, cellSize);
                 break;
-            case 'Task':
+            case 'task':
                 node = new FlowTask(data.id, data.x, data.y, canvas, cellSize);
                 break;
-            case 'VariableDecl':
+            case 'variabledecl':
                 node = this.restoreVariableNode(data);
                 break;
-            case 'While':
-            case 'For':
-            case 'Repeat':
-                node = new FlowLoop(data.id, data.x, data.y, canvas, cellSize, data.type);
+            case 'while':
+            case 'for':
+            case 'repeat':
+                node = new FlowLoop(data.id, data.x, data.y, canvas, cellSize, type);
                 break;
         }
 
@@ -657,11 +651,19 @@ export class FlowSyncManager {
             node.X = Math.round(dx / cellSize) * cellSize;
             node.Y = Math.round(dy / cellSize) * cellSize;
 
+            node.data = data.data || {};
+
             if (data.properties) {
                 if (data.properties.name) node.Name = data.properties.name;
                 if (data.properties.details) node.Details = data.properties.details;
                 if (data.properties.description) node.Description = data.properties.description;
                 if (data.properties.text && !data.properties.name) node.Name = data.properties.text;
+            }
+
+            // Sicherstellen, dass der Knoten initial gerendert wird, 
+            // falls der Name-Setter (oben) aufgrund identischer Daten geskippt wurde.
+            if (node instanceof FlowTask || node instanceof FlowAction || node instanceof FlowDataAction) {
+                (node as any).setShowDetails?.(this.host.showDetails || false, this.host.project);
             }
 
             // Ensure project reference is set for Action, Task and Variable nodes
@@ -676,11 +678,9 @@ export class FlowSyncManager {
             if (node instanceof FlowVariable) (node as any).updateVisuals?.();
             if (node instanceof FlowLoop) (node as any).updateVisuals?.();
 
-            node.data = data.data || {};
-
             // SINGLE SOURCE OF TRUTH: For Action nodes, load data from project.actions
             // FIX (v3.3.15): Wenn die globale Def type:'data_action' ist, Knoten auf FlowDataAction upgraden
-            if (data.type === 'Action' && this.host.project) {
+            if (type === 'action' && this.host.project) {
                 const actionName = data.properties?.name || data.data?.name;
                 const stage = this.host.getActiveStage();
                 const projectAction = (this.host.project.actions || []).find((a: any) => a.name === actionName) ||
@@ -790,6 +790,7 @@ export class FlowSyncManager {
                 targetCollection[idx] = { ...targetCollection[idx], ...newAction, type: newType };
             }
         } else {
+            FlowSyncManager.lifecycleLogger.info(`Neue Action "${name}" registriert (Typ: ${newAction.type || 'property'}).`);
             targetCollection.push(newAction);
         }
     }

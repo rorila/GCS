@@ -10,7 +10,7 @@ export class FlowLoop extends FlowCondition {
         this.applyLoopStyling();
     }
 
-    public getType(): string { return this.loopType; }
+    public getType(): string { return this.loopType.toLowerCase(); }
 
     private applyLoopStyling() {
         // Clear and apply modern glass classes

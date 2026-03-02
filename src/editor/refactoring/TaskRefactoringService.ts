@@ -87,8 +87,33 @@ export class TaskRefactoringService {
             const flowChart = charts[key];
             if (flowChart?.elements) {
                 flowChart.elements.forEach((el: any) => {
-                    if (el.type === 'Task' && el.data?.taskName === oldName) {
-                        el.data.taskName = newName;
+                    const type = (el.type || '').toLowerCase();
+                    if (type === 'task') {
+                        // Prüfe ALLE Felder auf den alten Namen. Wenn IRGENDEINES passt, update alle.
+                        // Dies ist kritisch, falls durch Referenzen ein Feld (z.B. data.taskName) bereits
+                        // den neuen Namen hat, aber properties.name noch den alten.
+                        const hasOldNameMatch = (el.data?.taskName === oldName) ||
+                            (el.data?.name === oldName) ||
+                            (el.properties?.name === oldName) ||
+                            (el.properties?.text === oldName);
+
+                        if (hasOldNameMatch) {
+                            // Update ALLE Felder konsistent, um Visuelle Reversionen zu vermeiden
+                            if (!el.data) el.data = {};
+                            el.data.taskName = newName;
+                            el.data.name = newName;
+
+                            if (!el.properties) el.properties = {};
+                            el.properties.name = newName;
+                            el.properties.text = newName;
+
+                            TaskRefactoringService.logger.info(`Treffer (Multi-Check) in Flow-Chart "${key}", Node "${el.id}": ${oldName} -> ${newName}`);
+                        }
+                    } else if (type === 'condition') {
+                        if (el.data) {
+                            if (el.data.thenTask === oldName) el.data.thenTask = newName;
+                            if (el.data.elseTask === oldName) el.data.elseTask = newName;
+                        }
                     }
                 });
             }

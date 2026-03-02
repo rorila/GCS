@@ -2,7 +2,7 @@
 import { FlowElement } from './FlowElement';
 
 export class FlowCondition extends FlowElement {
-    public getType(): string { return 'Condition'; }
+    public getType(): string { return 'condition'; }
 
     public trueAnchor!: HTMLElement;
     public falseAnchor!: HTMLElement;
@@ -248,5 +248,9 @@ export class FlowCondition extends FlowElement {
         } else {
             this.setText("Bedingung", true);
         }
+    }
+
+    protected refreshVisuals() {
+        this.updateText();
     }
 }

@@ -30,6 +30,7 @@ export const USE_CASES: UseCaseDefinition[] = [
     // Logic & Flow-Editor
     { id: 'Task_Management', category: UseCaseCategory.FLOW, description: 'Erstellen, Löschen, Umbenennen von Tasks' },
     { id: 'Action_Management', category: UseCaseCategory.FLOW, description: 'Hinzufügen/Verknüpfen von Aktionen' },
+    { id: 'Action_Lifecycle', category: UseCaseCategory.FLOW, description: 'Erstellen, Löschen, Umbenennen von Actions' },
     { id: 'Flow_Synchronization', category: UseCaseCategory.FLOW, description: 'Abgleich zwischen Modell und visualisiertem Graph' },
     { id: 'Flow_UI_Updates', category: UseCaseCategory.FLOW, description: 'Mermaid-Diagramme und Canvas-Events' },
 

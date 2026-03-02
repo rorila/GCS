@@ -4,7 +4,7 @@ import { FlowElement } from './FlowElement';
 import { libraryService } from '../../services/LibraryService';
 
 export class FlowTask extends FlowElement {
-    public getType(): string { return 'Task'; }
+    public getType(): string { return 'task'; }
 
     // Reference to project for task lookups (set by FlowEditor)
     private projectRef: GameProject | null = null;
@@ -152,6 +152,9 @@ export class FlowTask extends FlowElement {
         }
     }
 
+    // Name getter already handled via data.taskName in Name() override of FlowElement
+    // Setter doesn't need override anymore if basic FlowElement setter is used.
+    // FlowTask.Name override in this file was only for appending event names visually.
     public get Name(): string {
         const taskName = this.data?.taskName || super.Name;
         const eventName = this.data?.eventName;
@@ -160,6 +163,7 @@ export class FlowTask extends FlowElement {
         }
         return taskName;
     }
+
     public set Name(v: string) {
         super.Name = v;
     }
@@ -173,6 +177,10 @@ export class FlowTask extends FlowElement {
         this.data.description = v;
         const t = this.getTaskDefinition();
         if (t) t.description = v;
+
+        // DEEP-FIX: Description update is also a data change that should be 
+        // synchronized via central mechanisms if it affects the global definition.
+        // For now, updating the local data and the definition reference (if found) is enough.
     }
 
     public get uiScope(): string {
@@ -324,5 +332,9 @@ export class FlowTask extends FlowElement {
         } else {
             super.setDetailed(detailed);
         }
+    }
+
+    protected refreshVisuals() {
+        this.setShowDetails(this.showDetails, this.projectRef);
     }
 }

@@ -651,7 +651,8 @@ export class ProjectRegistry {
         const scanFlow = (flow: any, sourceName: string) => {
             if (!flow || !flow.elements || !Array.isArray(flow.elements)) return;
             flow.elements.forEach((el: any) => {
-                if (el.type === 'Action') {
+                const type = (el.type || '').toLowerCase();
+                if (type === 'action' || type === 'dataaction' || type === 'httpaction') {
                     // Check various name properties to be safe
                     const elName = el.Name || el.data?.name || el.data?.actionName || el.properties?.name || el.properties?.text;
                     if (elName === name) {

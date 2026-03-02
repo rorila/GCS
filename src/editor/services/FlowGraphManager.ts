@@ -16,6 +16,7 @@ import { FlowStart } from '../flow/FlowStart';
 import { GameProject } from '../../model/types';
 import { RefactoringManager } from '../RefactoringManager';
 import { projectRegistry } from '../../services/ProjectRegistry';
+import { mediatorService } from '../../services/MediatorService';
 import { Logger } from '../../utils/Logger';
 
 export interface FlowGraphHost {
@@ -48,6 +49,7 @@ export interface FlowGraphHost {
 
 export class FlowGraphManager {
     private static logger = Logger.get('FlowGraphManager', 'Task_Management');
+    private static lifecycleLogger = Logger.get('FlowSync', 'Action_Lifecycle');
     private host: FlowGraphHost;
 
     constructor(host: FlowGraphHost) {
@@ -179,10 +181,15 @@ export class FlowGraphManager {
         if (this.host.onNodesChanged) this.host.onNodesChanged(this.host.nodes);
         this.host.selectNode(node);
         this.host.syncToProject();
+
+        if (baseType === 'Action' || baseType === 'DataAction') {
+            FlowGraphManager.lifecycleLogger.info(`Action "${node.Name}" wurde im Flow-Diagramm erstellt.`);
+        }
         return node;
     }
 
     public deleteNode(node: FlowElement) {
+        const nodeName = node.Name || node.name;
         const isInternal = node.data?.isEmbeddedInternal;
 
         if (isInternal) {
@@ -190,7 +197,7 @@ export class FlowGraphManager {
                 return;
             }
         } else {
-            if (!confirm(`Möchtest du den Knoten "${node.Name || node.name}" wirklich löschen?`)) {
+            if (!confirm(`Möchtest du den Knoten "${nodeName}" wirklich löschen?`)) {
                 return;
             }
         }
@@ -200,30 +207,35 @@ export class FlowGraphManager {
 
     public deleteNodeSilent(node: FlowElement) {
         const nodeName = node.Name || node.name;
-        const nodeType = node.getType();
+        const nodeType = node.getType()?.toLowerCase(); // Normalize for safety
+
+        console.log(`[TRACE] FlowGraphManager: deleteNodeSilent gestartet für "${nodeName}" (ID: ${node.id}, Typ: ${nodeType})`);
+
+        if (nodeType === 'action' || nodeType === 'dataaction' || nodeType === 'data_action') {
+            FlowGraphManager.lifecycleLogger.info(`Action "${nodeName}" wurde aus dem Flow-Diagramm entfernt.`);
+        }
 
         this.removeNode(node.id);
         this.host.syncToProject();
 
-        if ((nodeType === 'Action' || nodeType === 'DataAction') && nodeName &&
-            nodeName !== 'Aktion' && nodeName !== 'Action' && nodeName !== 'DataAction') {
+        if ((nodeType === 'action' || nodeType === 'dataaction' || nodeType === 'data_action') && nodeName &&
+            nodeName !== 'Aktion' && nodeName !== 'Action' && nodeName !== 'DataAction' && nodeName !== 'Data_Action') {
             setTimeout(() => {
                 const refs = projectRegistry.findReferences(nodeName);
                 if (refs.length === 0) {
                     const isGenericName = /^Action\d*$/.test(nodeName) || /^Aktion\d*$/.test(nodeName) ||
                         /^DataAction\d*$/.test(nodeName) || /^HttpAction\d*$/.test(nodeName) ||
-                        nodeName === 'Aufruf';
+                        /^FinalTest\d*$/.test(nodeName) || /^Data_Action\d*$/.test(nodeName) || nodeName === 'Aufruf';
+
                     if (isGenericName) {
                         this.deleteElementFromProject('Action', nodeName, undefined, false);
-                        if (this.host.onProjectChange) this.host.onProjectChange();
                     } else {
                         if (confirm(`Die Aktion "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch aus der globalen Aktions-Liste gelöscht werden?`)) {
                             this.deleteElementFromProject('Action', nodeName, undefined, true);
-                            if (this.host.onProjectChange) this.host.onProjectChange();
                         }
                     }
                 }
-            }, 200);
+            }, 500);
         }
 
         if (nodeType === 'VariableDecl' && nodeName) {
@@ -232,16 +244,17 @@ export class FlowGraphManager {
                 if (usageCount === 0) {
                     if (confirm(`Die Variable "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch Global aus dem Projekt gelöscht werden?`)) {
                         this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
-                        if (this.host.onProjectChange) this.host.onProjectChange();
                     }
                 } else {
                     if (confirm(`Möchtest du die Variable "${nodeName}" auch Global aus dem Projekt löschen?\n(Sie wird noch an ${usageCount} Stellen referenziert!)`)) {
                         this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
-                        if (this.host.onProjectChange) this.host.onProjectChange();
                     }
                 }
             }, 200);
         }
+
+        // CENTRAL UI SYNC: Update usage counts (links) in sidebar even if project element stays
+        mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
     }
 
     public removeNode(id: string) {
@@ -352,13 +365,21 @@ export class FlowGraphManager {
 
             RefactoringManager.deleteAction(this.host.project, name);
             if (this.host.onProjectChange) this.host.onProjectChange();
+            // GLOBAL UI SYNC
+            mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
 
         } else if (type === 'Task') {
             RefactoringManager.deleteTask(this.host.project, name);
             if (this.host.onProjectChange) this.host.onProjectChange();
+            // SYNC SELECTOR: If a task is gone, the dropdown must reflect it
+            this.host.updateFlowSelector();
+            // GLOBAL UI SYNC
+            mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
         } else if ((type as string) === 'Variable') {
             RefactoringManager.deleteVariable(this.host.project, name);
             if (this.host.onProjectChange) this.host.onProjectChange();
+            // GLOBAL UI SYNC
+            mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
         }
     }
 }
