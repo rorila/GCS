@@ -130,7 +130,7 @@ export class InspectorRenderer {
     /**
      * Renders a TButton-like button
      */
-    public renderButton(text: string, onClick: () => void): HTMLButtonElement {
+    public renderButton(text: string, onClick: () => void, customStyle?: any): HTMLButtonElement {
         const btn = document.createElement('button');
         btn.innerText = text;
         btn.className = 'inspector-button';
@@ -147,8 +147,12 @@ export class InspectorRenderer {
             textAlign: 'center'
         });
 
-        btn.onmouseover = () => btn.style.backgroundColor = '#555';
-        btn.onmouseout = () => btn.style.backgroundColor = '#444';
+        if (customStyle) {
+            this.applyStyle(btn, customStyle);
+        }
+
+        btn.onmouseover = () => btn.style.opacity = '0.8';
+        btn.onmouseout = () => btn.style.opacity = '1';
         btn.onclick = onClick;
 
         return btn;
@@ -360,7 +364,7 @@ export class InspectorRenderer {
                         if (onAction && sigParam.type !== 'number') {
                             const b = document.createElement('button');
                             b.innerText = 'V';
-                            b.style.cssText = 'width: 32px; padding: 4px; background-color: #444; color: white; border: none; border-radius: 3px; cursor: pointer;';
+                            b.style.cssText = 'width: 32px; padding: 4px; background-color: #e67e22; color: white; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;';
                             b.onclick = () => {
                                 onAction({
                                     action: 'pickVariable',
@@ -435,7 +439,7 @@ export class InspectorRenderer {
                         if (onAction) {
                             const b = document.createElement('button');
                             b.innerText = 'V';
-                            b.style.cssText = 'width: 32px; padding: 4px; background-color: #444; color: white; border: none; border-radius: 3px; cursor: pointer;';
+                            b.style.cssText = 'width: 32px; padding: 4px; background-color: #e67e22; color: white; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;';
                             b.onclick = () => {
                                 onAction({
                                     action: 'pickVariable',
@@ -476,7 +480,7 @@ export class InspectorRenderer {
                         if (onAction && param.type !== 'number' && param.type !== 'boolean') {
                             const b = document.createElement('button');
                             b.innerText = 'V';
-                            b.style.cssText = 'width: 32px; padding: 4px; background-color: #444; color: white; border: none; border-radius: 3px; cursor: pointer;';
+                            b.style.cssText = 'width: 32px; padding: 4px; background-color: #e67e22; color: white; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;';
                             b.onclick = () => {
                                 onAction({
                                     action: 'pickVariable',
@@ -526,7 +530,7 @@ export class InspectorRenderer {
                 className: 'TLabel',
                 name: `${groupName}Header`,
                 text: groupName.toUpperCase(),
-                style: { fontSize: 11, fontWeight: 'bold', color: '#ccc', marginBottom: 12, borderBottom: '1px solid #444', paddingBottom: '4px' } // Enhanced header style
+                style: { fontSize: 11, fontWeight: 'bold', color: '#4da6ff', marginBottom: 12, borderBottom: '1px solid #4da6ff', paddingBottom: '4px' } // Enhanced header style
             });
 
             // Properties in group
@@ -699,7 +703,7 @@ export class InspectorRenderer {
                         caption: 'V',
                         action: 'pickVariable',
                         actionData: { property: prop.name, inputName: inputName },
-                        style: { width: '32px', minWidth: '32px', flexShrink: '0', padding: '4px', marginTop: '0', backgroundColor: '#444' }
+                        style: { width: '32px', minWidth: '32px', flexShrink: '0', padding: '4px', marginTop: '0', backgroundColor: '#e67e22', color: '#fff', fontWeight: 'bold', border: 'none' }
                     }
                 ]
             });

@@ -380,7 +380,7 @@ export class InspectorHost {
             case 'TButton': {
                 return this.renderer.renderButton(def.caption || def.name, () => {
                     this.actionHandler.handleAction(def, obj);
-                });
+                }, def.style);
             }
             case 'TColorInput': {
                 const value = this.resolveValue(def.text || def.value, obj, def);

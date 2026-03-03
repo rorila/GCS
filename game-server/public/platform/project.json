@@ -1753,8 +1753,7 @@
               },
               "data": {
                 "name": "setLoginButtonText",
-                "isLinked": true,
-                "showDetails": false
+                "isLinked": true
               }
             },
             {
@@ -1771,8 +1770,7 @@
               },
               "data": {
                 "name": "SetVarValue",
-                "isLinked": true,
-                "showDetails": false
+                "isLinked": true
               }
             }
           ],
