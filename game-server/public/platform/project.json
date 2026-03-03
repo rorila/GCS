@@ -1021,6 +1021,8 @@
           "visible": true,
           "x": 5,
           "y": 2,
+          "width": 5,
+          "height": 2,
           "zIndex": 0,
           "align": "NONE",
           "style": {
@@ -1753,7 +1755,8 @@
               },
               "data": {
                 "name": "setLoginButtonText",
-                "isLinked": true
+                "isLinked": true,
+                "showDetails": false
               }
             },
             {
@@ -1770,7 +1773,8 @@
               },
               "data": {
                 "name": "SetVarValue",
-                "isLinked": true
+                "isLinked": true,
+                "showDetails": false
               }
             }
           ],

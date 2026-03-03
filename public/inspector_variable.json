@@ -1,8 +1,8 @@
 {
     "meta": {
         "name": "Smart Variable Inspector",
-        "version": "1.1.0",
-        "description": "Context-aware Inspector for Variables"
+        "version": "2.0.0",
+        "description": "Context-aware Card-UI Inspector for Variables"
     },
     "objects": [
         {
@@ -12,187 +12,302 @@
             "style": {
                 "fontSize": 14,
                 "fontWeight": "bold",
-                "color": "#ffcc00",
-                "marginBottom": 12
-            }
-        },
-        {
-            "className": "TDropdown",
-            "name": "scope",
-            "label": "Geltungsbereich (Scope)",
-            "options": [
-                {
-                    "value": "global",
-                    "label": "🌎 Global (Projektweit)"
-                },
-                {
-                    "value": "stage",
-                    "label": "🎭 Stage (Lokal)"
-                }
-            ],
-            "selectedValue": "${selectedObject.scope}"
-        },
-        {
-            "className": "TEdit",
-            "name": "name",
-            "label": "Name",
-            "text": "${selectedObject.name}"
-        },
-        {
-            "className": "TDropdown",
-            "name": "type",
-            "label": "Datentyp",
-            "options": [
-                {
-                    "value": "integer",
-                    "label": "Integer"
-                },
-                {
-                    "value": "real",
-                    "label": "Real"
-                },
-                {
-                    "value": "string",
-                    "label": "String"
-                },
-                {
-                    "value": "boolean",
-                    "label": "Boolean"
-                },
-                {
-                    "value": "timer",
-                    "label": "Timer (Zeitgeber)"
-                },
-                {
-                    "value": "random",
-                    "label": "Zufallszahl"
-                },
-                {
-                    "value": "threshold",
-                    "label": "Schwellenwert"
-                },
-                {
-                    "value": "trigger",
-                    "label": "Trigger (Auslöser)"
-                },
-                {
-                    "value": "range",
-                    "label": "Wertebereich"
-                },
-                {
-                    "value": "object",
-                    "label": "Objekt (Modell)"
-                },
-                {
-                    "value": "object_list",
-                    "label": "Objekt-Liste"
-                },
-                {
-                    "value": "list",
-                    "label": "Liste (Einfach)"
-                },
-                {
-                    "value": "keystore",
-                    "label": "KeyStore"
-                },
-                {
-                    "value": "json",
-                    "label": "JSON Daten"
-                },
-                {
-                    "value": "any",
-                    "label": "Beliebig (Any)"
-                }
-            ],
-            "selectedValue": "${selectedObject.type}"
-        },
-        {
-            "className": "TDropdown",
-            "name": "objectModel",
-            "label": "Datenmodell (Schema)",
-            "visible": "${selectedObject.type === 'object' || selectedObject.type === 'object_list'}",
-            "source": "availableModels",
-            "placeholder": "Modell wählen...",
-            "selectedValue": "${selectedObject.objectModel}"
-        },
-        {
-            "className": "TNumberInput",
-            "name": "interval",
-            "label": "Intervall (ms)",
-            "visible": "${selectedObject.type === 'timer'}",
-            "value": "${selectedObject.interval}"
-        },
-        {
-            "className": "TCheckbox",
-            "name": "enabled",
-            "label": "Aktiviert",
-            "visible": "${selectedObject.type === 'timer'}",
-            "checked": "${selectedObject.enabled}"
-        },
-        {
-            "className": "TNumberInput",
-            "name": "maxInterval",
-            "label": "Max Wiederholungen (0=∞)",
-            "visible": "${selectedObject.type === 'timer'}",
-            "value": "${selectedObject.maxInterval}"
-        },
-        {
-            "className": "TNumberInput",
-            "name": "min",
-            "label": "Minimum",
-            "visible": "${selectedObject.type === 'random' || selectedObject.type === 'range'}",
-            "value": "${selectedObject.min}"
-        },
-        {
-            "className": "TNumberInput",
-            "name": "max",
-            "label": "Maximum",
-            "visible": "${selectedObject.type === 'random' || selectedObject.type === 'range'}",
-            "value": "${selectedObject.max}"
-        },
-        {
-            "className": "TCheckbox",
-            "name": "isInteger",
-            "label": "Nur Ganzzahlen",
-            "visible": "${selectedObject.type === 'random'}",
-            "checked": "${selectedObject.isInteger}"
-        },
-        {
-            "className": "TNumberInput",
-            "name": "threshold",
-            "label": "Schwellenwert",
-            "visible": "${selectedObject.type === 'threshold'}",
-            "value": "${selectedObject.threshold}"
-        },
-        {
-            "className": "TEdit",
-            "name": "triggerValue",
-            "label": "Auslöser-Wert",
-            "visible": "${selectedObject.type === 'trigger'}",
-            "text": "${selectedObject.triggerValue}"
-        },
-        {
-            "className": "TEdit",
-            "name": "defaultValue",
-            "label": "Standardwert",
-            "text": "${selectedObject.defaultValue}"
-        },
-        {
-            "className": "TEdit",
-            "name": "value",
-            "label": "Aktueller Wert",
-            "text": "${selectedObject.value}"
-        },
-        {
-            "className": "TButton",
-            "name": "DeleteButton",
-            "caption": "🗑️ Variable löschen",
-            "action": "delete",
-            "style": {
-                "backgroundColor": "#c82333",
                 "color": "#fff",
-                "marginTop": 20
+                "marginBottom": 16
             }
+        },
+        {
+            "className": "TPanel",
+            "name": "IdentityCard",
+            "style": {
+                "backgroundColor": "#2a2a2a",
+                "borderRadius": "8px",
+                "padding": "12px",
+                "marginBottom": "16px",
+                "border": "1px solid #3a3a3a",
+                "boxShadow": "0 2px 4px rgba(0,0,0,0.2)"
+            },
+            "children": [
+                {
+                    "className": "TLabel",
+                    "name": "IdentityHeader",
+                    "text": "IDENTITÄT",
+                    "style": {
+                        "fontSize": 11,
+                        "fontWeight": "bold",
+                        "color": "#4da6ff",
+                        "marginBottom": 12,
+                        "borderBottom": "1px solid #4da6ff",
+                        "paddingBottom": "4px"
+                    }
+                },
+                {
+                    "className": "TEdit",
+                    "name": "name",
+                    "label": "Name",
+                    "text": "${selectedObject.name}"
+                },
+                {
+                    "className": "TDropdown",
+                    "name": "scope",
+                    "label": "Geltungsbereich (Scope)",
+                    "options": [
+                        {
+                            "value": "global",
+                            "label": "🌎 Global (Projektweit)"
+                        },
+                        {
+                            "value": "stage",
+                            "label": "🎭 Stage (Lokal)"
+                        }
+                    ],
+                    "selectedValue": "${selectedObject.scope}"
+                },
+                {
+                    "className": "TDropdown",
+                    "name": "type",
+                    "label": "Datentyp",
+                    "options": [
+                        {
+                            "value": "integer",
+                            "label": "Integer"
+                        },
+                        {
+                            "value": "real",
+                            "label": "Real"
+                        },
+                        {
+                            "value": "string",
+                            "label": "String"
+                        },
+                        {
+                            "value": "boolean",
+                            "label": "Boolean"
+                        },
+                        {
+                            "value": "timer",
+                            "label": "Timer (Zeitgeber)"
+                        },
+                        {
+                            "value": "random",
+                            "label": "Zufallszahl"
+                        },
+                        {
+                            "value": "threshold",
+                            "label": "Schwellenwert"
+                        },
+                        {
+                            "value": "trigger",
+                            "label": "Trigger (Auslöser)"
+                        },
+                        {
+                            "value": "range",
+                            "label": "Wertebereich"
+                        },
+                        {
+                            "value": "object",
+                            "label": "Objekt (Modell)"
+                        },
+                        {
+                            "value": "object_list",
+                            "label": "Objekt-Liste"
+                        },
+                        {
+                            "value": "list",
+                            "label": "Liste (Einfach)"
+                        },
+                        {
+                            "value": "keystore",
+                            "label": "KeyStore"
+                        },
+                        {
+                            "value": "json",
+                            "label": "JSON Daten"
+                        },
+                        {
+                            "value": "any",
+                            "label": "Beliebig (Any)"
+                        }
+                    ],
+                    "selectedValue": "${selectedObject.type}"
+                },
+                {
+                    "className": "TDropdown",
+                    "name": "objectModel",
+                    "label": "Datenmodell (Schema)",
+                    "visible": "${selectedObject.type === 'object' || selectedObject.type === 'object_list'}",
+                    "source": "availableModels",
+                    "placeholder": "Modell wählen...",
+                    "selectedValue": "${selectedObject.objectModel}"
+                }
+            ]
+        },
+        {
+            "className": "TPanel",
+            "name": "ValuesCard",
+            "style": {
+                "backgroundColor": "#2a2a2a",
+                "borderRadius": "8px",
+                "padding": "12px",
+                "marginBottom": "16px",
+                "border": "1px solid #3a3a3a",
+                "boxShadow": "0 2px 4px rgba(0,0,0,0.2)"
+            },
+            "children": [
+                {
+                    "className": "TLabel",
+                    "name": "ValuesHeader",
+                    "text": "WERT & LIMITS",
+                    "style": {
+                        "fontSize": 11,
+                        "fontWeight": "bold",
+                        "color": "#4da6ff",
+                        "marginBottom": 12,
+                        "borderBottom": "1px solid #4da6ff",
+                        "paddingBottom": "4px"
+                    }
+                },
+                {
+                    "className": "TEdit",
+                    "name": "defaultValue",
+                    "label": "Standardwert",
+                    "text": "${selectedObject.defaultValue}"
+                },
+                {
+                    "className": "TEdit",
+                    "name": "value",
+                    "label": "Aktueller Wert",
+                    "text": "${selectedObject.value}"
+                },
+                {
+                    "className": "TNumberInput",
+                    "name": "interval",
+                    "label": "Intervall (ms)",
+                    "visible": "${selectedObject.type === 'timer'}",
+                    "value": "${selectedObject.interval}"
+                },
+                {
+                    "className": "TCheckbox",
+                    "name": "enabled",
+                    "label": "Aktiviert",
+                    "visible": "${selectedObject.type === 'timer'}",
+                    "checked": "${selectedObject.enabled}"
+                },
+                {
+                    "className": "TNumberInput",
+                    "name": "maxInterval",
+                    "label": "Max Wiederholungen (0=∞)",
+                    "visible": "${selectedObject.type === 'timer'}",
+                    "value": "${selectedObject.maxInterval}"
+                },
+                {
+                    "className": "TPanel",
+                    "name": "MinMaxRow",
+                    "visible": "${selectedObject.type === 'random' || selectedObject.type === 'range'}",
+                    "style": {
+                        "display": "flex",
+                        "gap": "12px",
+                        "marginBottom": "8px",
+                        "padding": 0,
+                        "alignItems": "center"
+                    },
+                    "children": [
+                        {
+                            "className": "TLabel",
+                            "name": "MinLabel",
+                            "text": "Minimum:",
+                            "style": {
+                                "fontSize": 12,
+                                "color": "#aaa",
+                                "marginBottom": 0
+                            }
+                        },
+                        {
+                            "className": "TNumberInput",
+                            "name": "min",
+                            "value": "${selectedObject.min}",
+                            "width": 14,
+                            "height": 2
+                        },
+                        {
+                            "className": "TLabel",
+                            "name": "MaxLabel",
+                            "text": "Maximum:",
+                            "style": {
+                                "fontSize": 12,
+                                "color": "#aaa",
+                                "marginBottom": 0
+                            }
+                        },
+                        {
+                            "className": "TNumberInput",
+                            "name": "max",
+                            "value": "${selectedObject.max}",
+                            "width": 14,
+                            "height": 2
+                        }
+                    ]
+                },
+                {
+                    "className": "TCheckbox",
+                    "name": "isInteger",
+                    "label": "Nur Ganzzahlen",
+                    "visible": "${selectedObject.type === 'random'}",
+                    "checked": "${selectedObject.isInteger}"
+                },
+                {
+                    "className": "TNumberInput",
+                    "name": "threshold",
+                    "label": "Schwellenwert",
+                    "visible": "${selectedObject.type === 'threshold'}",
+                    "value": "${selectedObject.threshold}"
+                },
+                {
+                    "className": "TEdit",
+                    "name": "triggerValue",
+                    "label": "Auslöser-Wert",
+                    "visible": "${selectedObject.type === 'trigger'}",
+                    "text": "${selectedObject.triggerValue}"
+                }
+            ]
+        },
+        {
+            "className": "TPanel",
+            "name": "ActionsCard",
+            "style": {
+                "backgroundColor": "#2a2a2a",
+                "borderRadius": "8px",
+                "padding": "12px",
+                "marginBottom": "0px",
+                "border": "1px solid #3a3a3a",
+                "boxShadow": "0 2px 4px rgba(0,0,0,0.2)"
+            },
+            "children": [
+                {
+                    "className": "TLabel",
+                    "name": "ActionsHeader",
+                    "text": "AKTIONEN",
+                    "style": {
+                        "fontSize": 11,
+                        "fontWeight": "bold",
+                        "color": "#4da6ff",
+                        "marginBottom": 12,
+                        "borderBottom": "1px solid #4da6ff",
+                        "paddingBottom": "4px"
+                    }
+                },
+                {
+                    "className": "TButton",
+                    "name": "DeleteButton",
+                    "caption": "🗑️ Variable löschen",
+                    "action": "delete",
+                    "style": {
+                        "backgroundColor": "#c82333",
+                        "color": "#fff",
+                        "marginTop": 4
+                    }
+                }
+            ]
         }
     ]
 }

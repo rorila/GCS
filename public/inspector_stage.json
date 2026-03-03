@@ -35,9 +35,9 @@
                     "style": {
                         "fontSize": 11,
                         "fontWeight": "bold",
-                        "color": "#ccc",
+                        "color": "#4da6ff",
                         "marginBottom": 12,
-                        "borderBottom": "1px solid #444",
+                        "borderBottom": "1px solid #4da6ff",
                         "paddingBottom": "4px"
                     }
                 },
@@ -189,13 +189,13 @@
                 {
                     "className": "TLabel",
                     "name": "RasterHeader",
-                    "text": "RASTER EINSTELLUNGEN",
+                    "text": "RASTER",
                     "style": {
                         "fontSize": 11,
                         "fontWeight": "bold",
-                        "color": "#ccc",
+                        "color": "#4da6ff",
                         "marginBottom": 12,
-                        "borderBottom": "1px solid #444",
+                        "borderBottom": "1px solid #4da6ff",
                         "paddingBottom": "4px"
                     }
                 },
@@ -332,9 +332,9 @@
                     "style": {
                         "fontSize": 11,
                         "fontWeight": "bold",
-                        "color": "#ccc",
+                        "color": "#4da6ff",
                         "marginBottom": 12,
-                        "borderBottom": "1px solid #444",
+                        "borderBottom": "1px solid #4da6ff",
                         "paddingBottom": "4px"
                     }
                 },
@@ -387,9 +387,9 @@
                     "style": {
                         "fontSize": 11,
                         "fontWeight": "bold",
-                        "color": "#ccc",
+                        "color": "#4da6ff",
                         "marginBottom": 12,
-                        "borderBottom": "1px solid #444",
+                        "borderBottom": "1px solid #4da6ff",
                         "paddingBottom": "4px"
                     }
                 },
