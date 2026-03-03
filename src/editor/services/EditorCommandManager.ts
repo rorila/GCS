@@ -29,6 +29,9 @@ export class EditorCommandManager {
         } else if (type === 'Button') {
             instance.width = 6;
             instance.height = 2;
+        } else if (type === 'Image') {
+            instance.width = 6;
+            instance.height = 6;
         }
 
         // Globaler Fallback für Komponenten ohne explizite Größenangaben
