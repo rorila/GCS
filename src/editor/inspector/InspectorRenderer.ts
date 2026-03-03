@@ -377,6 +377,76 @@ export class InspectorRenderer {
                 input = paramContainer;
             } else {
                 switch (param.type) {
+                    case 'json': {
+                        let displayValue = '';
+                        if (typeof currentValue === 'object' && currentValue !== null) {
+                            const keys = Object.keys(currentValue);
+                            if (keys.length > 0) {
+                                displayValue = keys.map(k => {
+                                    const val = currentValue[k];
+                                    if (typeof val === 'string') return `${k} := '${val}'`;
+                                    return `${k} := ${val}`;
+                                }).join(', ');
+                            } else {
+                                displayValue = '{}';
+                            }
+                        } else {
+                            displayValue = String(currentValue || '');
+                        }
+
+                        const edit = this.renderEdit(displayValue, param.placeholder || '');
+                        edit.onchange = () => {
+                            let val: any = edit.value;
+                            try {
+                                if (val.trim().startsWith('{')) {
+                                    val = JSON.parse(val);
+                                } else if (val.includes(':=')) {
+                                    const parts = val.split(',').map((p: string) => p.trim());
+                                    const obj: any = {};
+                                    parts.forEach((p: string) => {
+                                        const [k, v] = p.split(':=').map((s: string) => s.trim());
+                                        if (k && v !== undefined) {
+                                            let cleanV = v;
+                                            if (cleanV.startsWith("'") && cleanV.endsWith("'")) {
+                                                cleanV = cleanV.slice(1, -1);
+                                            } else if (cleanV.startsWith('"') && cleanV.endsWith('"')) {
+                                                cleanV = cleanV.slice(1, -1);
+                                            } else if (cleanV === 'true') cleanV = true as any;
+                                            else if (cleanV === 'false') cleanV = false as any;
+                                            else if (!isNaN(Number(cleanV)) && cleanV !== '') cleanV = Number(cleanV) as any;
+                                            obj[k] = cleanV;
+                                        }
+                                    });
+                                    val = obj;
+                                }
+                            } catch (e) {
+                                console.warn('Failed to parse assigned JSON', e);
+                            }
+                            onUpdate(param.name, val);
+                        };
+                        edit.style.flex = '1';
+
+                        const cont = document.createElement('div');
+                        cont.style.display = 'flex';
+                        cont.style.gap = '4px';
+                        cont.style.width = '100%';
+                        cont.appendChild(edit);
+
+                        if (onAction) {
+                            const b = document.createElement('button');
+                            b.innerText = 'V';
+                            b.style.cssText = 'width: 32px; padding: 4px; background-color: #444; color: white; border: none; border-radius: 3px; cursor: pointer;';
+                            b.onclick = () => {
+                                onAction({
+                                    action: 'pickVariable',
+                                    actionData: { property: param.name }
+                                });
+                            };
+                            cont.appendChild(b);
+                        }
+                        input = cont;
+                        break;
+                    }
                     case 'object':
                     case 'variable':
                     case 'stage':
@@ -389,7 +459,11 @@ export class InspectorRenderer {
                         break;
                     }
                     default: {
-                        const edit = this.renderEdit(currentValue, param.placeholder || '');
+                        let finalValue = currentValue;
+                        if (typeof finalValue === 'object' && finalValue !== null) {
+                            finalValue = JSON.stringify(finalValue);
+                        }
+                        const edit = this.renderEdit(finalValue, param.placeholder || '');
                         edit.onchange = () => onUpdate(param.name, edit.value);
                         edit.style.flex = '1';
 
@@ -625,7 +699,7 @@ export class InspectorRenderer {
                         caption: 'V',
                         action: 'pickVariable',
                         actionData: { property: prop.name, inputName: inputName },
-                        style: { width: '32px', padding: '4px', marginTop: '0', backgroundColor: '#444' }
+                        style: { width: '32px', minWidth: '32px', flexShrink: '0', padding: '4px', marginTop: '0', backgroundColor: '#444' }
                     }
                 ]
             });

@@ -1006,6 +1006,32 @@
             "fontFamily": "Arial"
           },
           "text": "Label_21"
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1772556675029_4jwqkt7sc",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "Panel_22",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 5,
+          "y": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Panel_22",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
         }
       ],
       "tasks": [
@@ -1284,7 +1310,7 @@
               "type": "action"
             },
             {
-              "name": "setLoginButtoText",
+              "name": "setLoginButtonText",
               "type": "action"
             }
           ],
@@ -1318,15 +1344,15 @@
                 "type": "action",
                 "x": 320,
                 "y": 60,
-                "width": 180,
+                "width": 200,
                 "height": 60,
                 "properties": {
-                  "name": "setLoginButtoText",
+                  "name": "setLoginButtonText",
                   "details": "LoginButton.text := anmelden",
                   "description": ""
                 },
                 "data": {
-                  "name": "setLoginButtoText",
+                  "name": "setLoginButtonText",
                   "isLinked": true
                 }
               },
@@ -1449,7 +1475,7 @@
         },
         {
           "details": "",
-          "name": "setLoginButtoText",
+          "name": "setLoginButtonText",
           "showDetails": false,
           "type": "property",
           "target": "LoginButton",
@@ -1718,15 +1744,15 @@
               "type": "action",
               "x": 320,
               "y": 60,
-              "width": 180,
+              "width": 200,
               "height": 60,
               "properties": {
-                "name": "setLoginButtoText",
+                "name": "setLoginButtonText",
                 "details": "LoginButton.text := anmelden",
                 "description": ""
               },
               "data": {
-                "name": "setLoginButtoText",
+                "name": "setLoginButtonText",
                 "isLinked": true,
                 "showDetails": false
               }

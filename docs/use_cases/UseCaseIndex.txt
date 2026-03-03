@@ -1,5 +1,7 @@
 UseCase Index
 -------------
+- [2026-03-03] ActionParamFormatting (v3.9.9): Optische Aufbereitung von JSON-Parametern im Inspector. Objekte werden als `key := value` formatiert und beim Editieren per Custom-Parser bidirektional synchronisiert.
+  - src/editor/inspector/InspectorRenderer.ts: Erweiterung von `renderActionParams` um dedizierten Case für `type: 'json'`. Includes Parsing-Logik für Zuweisungs-Strings.
 - [2026-03-03] InspectorCardLayout (v3.9.8): Umbau der Eigenschaftslisten im Inspector zu einem visuell ansprechenden Card-Layout (TPanels mit Hintergrund, Border und Schatten). Statisches Stage-Template analog umstrukturiert inklusive Bugfix für den Farbwähler.
   - src/editor/inspector/InspectorRenderer.ts: Neue Schleifen-Logik in `generateUIFromProperties`, die Gruppen in `TPanel`-Container (Cards) packt.
   - public/inspector_stage.json: Flache Hierarchie in 4 Cards aufgebaut, alte `TColorPicker`-Komponente zu `TColorInput` inkl. Attributwechsel aktualisiert.
