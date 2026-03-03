@@ -1,11 +1,40 @@
 # CHANGELOG
 
 ## Unreleased (WIP)
+- **Inspector Card Layout & Stage Fix (Phase 18.6):** Komplette visuelle Überarbeitung des Inspectors. Eigenschaften werden jetzt gruppiert in `TPanel`-Karten mit eigenem Hintergrund, abgerundeten Ecken, Rahmen und Schatten dargestellt. Überflüssige Properties (`name`, `id`, `Objekt löschen`) wurden bereinigt. Raster- und Animations-Felder in Stage-Template wurden zu `inline`-Feldern optimiert. Fehler in der Stage-Farbanpassung korrigiert (Update von veralteter `TColorPicker`- zu neuer `TColorInput`-Komponente).
+- **Inspector UI Aufräumen (Phase 18.5):** Doppeltes `name`-Property entfernt, `id`-Property entfernt (nicht editierbar), Objekt-löschen-Button entfernt (redundant mit Papierkorb-Icon), `draggable`/`droppable` nebeneinander angezeigt, `Textfarbe` in TYPOGRAFIE-Gruppe verschoben.
+- **Rendering-Bugfix & Live-Sync (Phase 18.3):** Behebung eines kritischen Fehlers im `StageRenderer`, bei dem Text-Labels standardmäßig weiß gerendert wurden, was sie auf weißem Hintergrund unsichtbar machte. Die Rendering-Logik wurde robuster gestaltet (Klassen-Check vor Duck-Typing). Zudem wurde ein Live-Sync für die Game-Runtime implementiert (`GameRuntime.updateRuntimeData`), wodurch Inspector-Änderungen an Design-Eigenschaften (Farbe, Position, Sichtbarkeit) nun auch im aktiven Run-Mode sofort sichtbar werden.
 - **set_variable Configuration, Action Agent & Persistence Bugfixes (Phase 16):** Die Aktion `set_variable` (Variable setzen) unterstützt nun offiziell die Zuweisung von festen Werten über den Inspector (Feld: `value`). Zudem wurde der Action-Agent aktualisiert (`action_rules.json`). **Core Bugfixes:** 1) Es wurde ein massiver Fehler im `InspectorEventHandler` behoben, der dafür sorgte, dass sämtliche direkte Eigenschaften von Action-Knoten (wie `source`) nicht in der *project.json* gespeichert wurden, da der Handler fälschlicherweise bei Actions (die nur einen `.name` besitzen) wegen fehlender `.id` abbrach. 2) Ein Whitelist-Fehler im `JSONDialogRenderer` wurde behoben. Die Funktion `cleanupActionFields` hat beim Erstellen / Modifizieren durch den UI-Action-Agenten aggressiv Felder wie `source` und `sourceProperty` bei `set_variable`-Aktionen gelöscht. Beide Wege (Inspector & Agent) speichern Variablen-Quellen nun zuverlässig in die project.json.
 - **Stage Variable Drag Persistence (Phase 15):** Behebung eines Fehlers in `EditorInteractionManager`, bei dem Variablen auf der Stage nicht mehr per Drag&Drop verschoben werden konnten. Die Funktion `getOriginalObject` durchsucht nun korrekterweise auch die `project.variables` und `stage.variables` Arrays nach den Original-Objekten.
 - **Inspector Persistence Fix (Phase 14):** Inspector-Eingaben (z.B. Variablen-Werte, Koordinaten) werden nun wieder persistent in der `project.json` gespeichert. Der Fix stellt sicher, dass `InspectorEventHandler` das Original-JSON-Objekt modifiziert und dass der Editor nach jedem Inspector-Update einen Speichervorgang triggert.
 - **EditorDataManager Sync-Bug behoben (Phase 13 Fortsetzung):** Die Funktion `syncStageObjectsToProject` überschrieb fehlerhafterweise fälschlicherweise `projectStage.objects` mit aufgelösten Laufzeitobjekten aus der Stage. Im Headless-Modus (z. B. beim Ausführen von npm run test) führte dies dazu, dass alle Stage-Objekte durch ein leeres Array überschrieben (gelöscht) wurden. Dies wurde korrigiert: Operationen verändern das JSON nun direkt, ohne verlustbehafteten Re-Sync.- **Stage Interaction & Template Stability (Phase 12):** Offset-Rechenfehler beim Drag&Drop korrigiert. Komponenten-Placement-Anchor auf `Center` angepasst (Centering-on-Drop). `InspectorTemplateLoader` iteriert nun rekursiv durch `forEach` Blöcke, um komplexe Strukturen besser abzubilden.
-- **Stage Component Drag Persistence (Phase 13):** `EditorInteractionManager` modifiziert nun die ursprünglichen (unaufgelösten) JSON-Target-Objekte des Projektes anstatt der aufgelösten Preview-Objekte, wodurch Positionen beim Verschieben durch die Maus persistent in die JSON geschrieben werden, ohne dabei bestehende Expression-Bindings zu beschädigen.
+## [3.9.4] - 2026-03-03
+### Hinzugefügt
+- **Typografie UI-Optimierung**: Horizontales Layout (Inline) für zusammengehörige Eigenschaften (z. B. Fett/Kursiv).
+- **Farbwähler**: Unterstützung für den Property-Typ `color` im Inspector (Textfarbe, Hintergrundfarbe, Rahmenfarbe).
+- **Inline-Support**: Erweiterung von `TPropertyDef` um ein `inline` Flag für kompaktere Darstellungen.
+
+### Geändert
+- **Inspector-Layout**: Entfernung redundanter Labels bei Checkboxen und automatische Gruppierung von Inline-Elementen.
+- **TTextControl**: "Fett" und "Kursiv" nun nebeneinander angeordnet.
+- **Farbwähler (Native Integration)**: Farbauswahl direkt im Inspector durch spezialisierte Eingabefelder (Farbfeld + Hex-Text). Ersetzt die vorherige, externe Button-Lösung.
+- **Live-Update**: Änderungen im Inspector (z. B. Farben) werden nun in Echtzeit auf der Stage visualisiert, ohne dass ein finaler "Change"-Event abgewartet werden muss.
+
+## [3.9.3] - 2026-03-03
+### Added
+- Unterstützung für `opacity` (Deckkraft) in allen visuellen Komponenten (`TWindow`).
+- Erweiterte Typografie-Eigenschaften für `TTextControl` (Fett, Kursiv, Schriftart, Ausrichtung).
+- Deutsche Lokalisierung für alle Inspector-Labels und Gruppen.
+
+### Changed
+- **Optimierung des Inspectors**: Redundante Feld-Definitionen in `inspector.json` entfernt; Felder werden nun dynamisch und konsistent aus den Komponenten-Klassen generiert.
+- Gruppierung im Inspector verbessert: **IDENTITÄT**, **GEOMETRIE**, **STIL**, **TYPOGRAFIE**, **BILD**, **FORM**, **INHALT**, **EINGABE**, **GITTER**.
+- `TPropertyDef` erweitert um `min`, `max` und korrigierten `step`-Typ.
+
+### Fixed
+- Beseitigung von doppelten Geometrie-Eigenschaften im Inspector.
+- Korrektur der Methoden-Signatur in `TButton.ts`.
+
 ## [3.9.2] - 2026-03-02
 ### Fixes
 - **Persistenz**: Behebung des Fehlers, bei dem `source` und `sourceProperty` in `set_variable` Aktionen nicht gespeichert wurden (fehlende Accessoren in `FlowAction.ts`).

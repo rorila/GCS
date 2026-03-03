@@ -122,15 +122,44 @@ export class GameRuntime implements IVariableHost {
      */
     public updateRuntimeData(project: any) {
         this.project = project;
+
+        // 1. Sync TaskExecutor (Flows, Actions, Tasks)
         if (this.taskExecutor) {
             logger.info('Updating runtime data (FlowCharts, Actions, Tasks)');
-            // Erneut zusammengeführte Daten für die aktuelle Stage holen
             const stageId = this.stage?.id || this.project.activeStageId;
             const merged = this.stageManager.getMergedStageData(stageId);
 
             this.taskExecutor.setFlowCharts(merged.flowCharts);
             this.taskExecutor.setActions(merged.actions);
             this.taskExecutor.setTasks(merged.tasks || []);
+
+            // 2. LIVE SYNC: Update Object Styles & Design Properties
+            // We iterate over the current runtime objects and find their counterparts in the new project data.
+            // This allows changing color/size/position in the Inspector while the game is running.
+            this.objects.forEach(obj => {
+                const projectObj = merged.objects.find(po => po.id === obj.id);
+                if (projectObj) {
+                    // Sync common style properties
+                    if (projectObj.style) {
+                        obj.style = { ...(obj.style || {}), ...projectObj.style };
+                    }
+
+                    // Sync caption/text if not dynamically changed by game logic
+                    if (projectObj.caption !== undefined) obj.caption = projectObj.caption;
+                    if (projectObj.text !== undefined && !obj.isVariable) obj.text = projectObj.text;
+
+                    // Sync geometry
+                    if (projectObj.x !== undefined) obj.x = projectObj.x;
+                    if (projectObj.y !== undefined) obj.y = projectObj.y;
+                    if (projectObj.width !== undefined) obj.width = projectObj.width;
+                    if (projectObj.height !== undefined) obj.height = projectObj.height;
+                    if (projectObj.visible !== undefined) obj.visible = projectObj.visible;
+                    if (projectObj.opacity !== undefined) obj.opacity = projectObj.opacity;
+                }
+            });
+
+            // Trigger a re-render to make changes visible
+            if (this.options.onRender) this.options.onRender();
         }
     }
 

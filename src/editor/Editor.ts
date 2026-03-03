@@ -449,7 +449,8 @@ export class Editor implements IViewHost {
             // Der Originator hilft zu vermeiden, dass wir Events im Kreis schicken.
             if (originator !== 'editor' && originator !== 'inspector') {
                 this.renderManager.refreshAllViews(originator);
-            } else if (originator !== 'inspector') {
+            } else {
+                // Auch bei Inspector-Änderungen rendern wir sofort (Live-Preview)
                 this.render();
             }
         });

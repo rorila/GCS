@@ -23,7 +23,7 @@ export class TButton extends TTextControl {
         const props = super.getInspectorProperties();
         return [
             ...props,
-            { name: 'icon', label: 'Icon', type: 'image_picker', group: 'DARSTELLUNG' }
+            { name: 'icon', label: 'Icon', type: 'image_picker', group: 'ICON' }
         ];
     }
 }

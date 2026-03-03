@@ -11,6 +11,9 @@
 - **Synchronität**: Änderungen in Inspector/Flow-Editor müssen konsistent in JSON und Pascal reflektiert werden.
 - **Flow-Typen**: Typ-Bezeichner für Flow-Elemente (`getType()`) müssen IMMER kleingeschrieben sein (z.B. 'task', 'action'). Dies sichert die Konsistenz mit dem Datenmodell und dem Refactoring-System.
 - **Expert-Wizard Dynamisierung**: Um im Wizard Auswahl-Listen statt Textfeldern zu zeigen, in der Regel-JSON `type: "select"` und `options: "@objects"` (oder andere Key-Platzhalter) verwenden. Die Auflösung erfolgt zur Laufzeit via `ProjectRegistry`.
+- **Inspector-Typen**: 
+  - `type: "color"`: Zeigt einen Farbwähler (🎨-Icon) an.
+  - `inline: true`: Gruppiert aufeinanderfolgende Eigenschaften horizontal (ideal für Checkboxen wie Fett/Kursiv).
 - **FlowAction Proxy-Regel**: Wenn neue Felder in `StandardActions.ts` oder `action_rules.json` hinzugefügt werden (z.B. für neue Aktions-Typen), MÜSSEN diese auch als Getter/Setter in `FlowAction.ts` implementiert werden, damit der Inspector sie bearbeiten kann.
 - **Sync-Blacklist**: Die `taskFields` Liste in `FlowSyncManager.ts` darf keine Felder enthalten, die für Aktionen (Global oder Embedded) essentiell sind (z.B. `value`, `params`, `body`, `source`).
 
@@ -51,8 +54,6 @@ Ausführliche Details findest du in den spezialisierten Dokumenten:
 - **DO NOT**: Verlasse dich bei der Referenzprüfung (`ProjectRegistry`) niemals auf exakte Typ-Übereinstimmungen ohne Normalisierung (Bugfix v3.15.2).
 - **DO NOT**: Vergiss NIEMALS, dass `EditorCommandManager.findObjectById` Objekte via String-Namen auflösen muss, wenn UI-Handler (wie `InspectorActionHandler` oder `FlowContextMenuProvider`) ein Umbenennen triggern. Es muss sichergestellt werden, dass Basis-Tasks/Actions dort als Entity gefunden werden, sonst greift das projektweite Refactoring ins Leere und nur das isolierte JSON-Objekt ändert seinen Namen (Bugfix v3.15.3).
 
-Letzte Aktualisierung: v3.15.4 (Expert Wizard: Dynamische Objekt-Auswahl via @objects)
-
-## Architektur & Persistenz
-- **DO NOT**: Niemals Laufzeit-Objekte (z.B. aus dem ObjectStore oder StageManager.currentObjects()) direkt über das project.json Template schreiben. Laufzeit-Objekte enthalten aufgelöste Bindings (z.B. *'Hallo Welt'* anstatt *${text}*). Ein Speichern dieser Objekte zerstört die Datenbindung!
 - **Stattdessen**: Editoren (wie EditorInteractionManager) müssen über Hilfsfunktionen wie getOriginalObject auf das originale JSON-Objekt im Speicher zugreifen und nur dort spezifische Eigenschaften (wie x, y, width, height) aktualisieren, **bevor** der Autosave angestoßen wird.
+
+Letzte Aktualisierung: v3.9.5 (Phase 18.3: Rendering-Bugfix & Live-Sync)

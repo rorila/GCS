@@ -7,7 +7,9 @@ export interface TPropertyDef {
     serializable?: boolean; // Ob die Property gespeichert werden soll (default: true)
     editorOnly?: boolean;   // Ob die Property nur im Editor relevant ist (default: false)
     defaultValue?: any;     // Standardwert
-    step?: string;     // for number inputs
+    step?: number | string; // for number inputs
+    min?: number;      // for number inputs
+    max?: number;      // for number inputs
     options?: string[]; // for select type - available options
     selectedValue?: any; // Explicitly set value (overrides binding)
     source?: string;    // for select type - dynamic source name (e.g. 'availableModels')
@@ -16,6 +18,7 @@ export interface TPropertyDef {
     style?: any;       // For button type: custom CSS styles
     action?: string;   // For button type: internal action name
     actionData?: any;  // For button type: payload for action
+    inline?: boolean;  // Display horizontally if possible
 }
 
 /** 
@@ -73,11 +76,10 @@ export abstract class TComponent {
     protected getBaseProperties(): TPropertyDef[] {
         return [
             { name: 'name', label: 'Name', type: 'string', group: 'IDENTITÄT' },
-            { name: 'id', label: 'ID', type: 'string', group: 'IDENTITÄT', readonly: true },
             { name: 'scope', label: 'Scope', type: 'select', group: 'IDENTITÄT', options: ['global', 'stage'] },
-            { name: 'draggable', label: 'Draggable', type: 'boolean', group: 'INTERAKTION', editorOnly: true },
-            { name: 'dragMode', label: 'Drag Mode', type: 'select', group: 'INTERAKTION', options: ['move', 'copy'], editorOnly: true },
-            { name: 'droppable', label: 'Droppable', type: 'boolean', group: 'INTERAKTION', editorOnly: true }
+            { name: 'draggable', label: 'Draggable', type: 'boolean', group: 'INTERAKTION', editorOnly: true, inline: true },
+            { name: 'droppable', label: 'Droppable', type: 'boolean', group: 'INTERAKTION', editorOnly: true, inline: true },
+            { name: 'dragMode', label: 'Drag Mode', type: 'select', group: 'INTERAKTION', options: ['move', 'copy'], editorOnly: true }
         ];
     }
 

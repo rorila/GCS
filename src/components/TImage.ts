@@ -83,14 +83,14 @@ export class TImage extends TPanel {
         return [
             ...filtered,
             // Image-Gruppe
-            { name: 'src', label: 'Image Path', type: 'image_picker', group: 'Image' },
+            { name: 'src', label: 'Bildquelle', type: 'image_picker', group: 'BILD' },
             {
-                name: 'objectFit', label: 'Object Fit', type: 'select', group: 'Image',
+                name: 'objectFit', label: 'Skalierung', type: 'select', group: 'BILD',
                 options: ['cover', 'contain', 'fill', 'none']
             },
-            { name: 'alt', label: 'Alt Text', type: 'string', group: 'Image' },
-            { name: 'imageOpacity', label: 'Opacity', type: 'number', group: 'Image' },
-            { name: 'fallbackColor', label: 'Fallback Color', type: 'color', group: 'Image' }
+            { name: 'alt', label: 'Alt-Text', type: 'string', group: 'BILD' },
+            { name: 'imageOpacity', label: 'Bild-Deckkraft', type: 'number', group: 'BILD', min: 0, max: 1, step: 0.1 },
+            { name: 'fallbackColor', label: 'Fallback-Farbe', type: 'color', group: 'BILD' }
         ];
     }
 

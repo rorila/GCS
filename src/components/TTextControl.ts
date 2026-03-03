@@ -27,12 +27,12 @@ export class TTextControl extends TWindow {
         const props = super.getInspectorProperties();
         return [
             ...props,
+            { name: 'text', label: 'Inhalt', type: 'string', group: 'INHALT' },
             { name: 'style.fontSize', label: 'Schriftgröße', type: 'number', group: 'TYPOGRAFIE' },
-            { name: 'style.fontWeight', label: 'Fett', type: 'boolean', group: 'TYPOGRAFIE' },
-            { name: 'style.fontStyle', label: 'Kursiv', type: 'boolean', group: 'TYPOGRAFIE' },
+            { name: 'style.fontWeight', label: 'Fett', type: 'boolean', group: 'TYPOGRAFIE', inline: true },
+            { name: 'style.fontStyle', label: 'Kursiv', type: 'boolean', group: 'TYPOGRAFIE', inline: true },
             { name: 'style.textAlign', label: 'Ausrichtung', type: 'select', group: 'TYPOGRAFIE', options: ['left', 'center', 'right'] },
-            { name: 'style.fontFamily', label: 'Schriftart', type: 'select', group: 'TYPOGRAFIE', options: ['Arial', 'Verdana', 'Times New Roman', 'Courier New', 'Georgia', 'Tahoma', 'Trebuchet MS'] },
-            { name: 'style.color', label: 'Textfarbe', type: 'color', group: 'TYPOGRAFIE' }
+            { name: 'style.fontFamily', label: 'Schriftart', type: 'select', group: 'TYPOGRAFIE', options: ['Arial', 'Verdana', 'Times New Roman', 'Courier New', 'Georgia', 'Tahoma', 'Trebuchet MS'] }
         ];
     }
 }

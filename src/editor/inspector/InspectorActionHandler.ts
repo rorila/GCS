@@ -209,6 +209,7 @@ export class InspectorActionHandler {
         }
     }
 
+
     private handleAppendField(_buttonDef: any, obj: any, value: string): void {
         if (!value) return;
 

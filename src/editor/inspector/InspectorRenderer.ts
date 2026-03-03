@@ -1,4 +1,3 @@
-import { ReactiveRuntime } from '../../runtime/ReactiveRuntime';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { serviceRegistry } from '../../services/ServiceRegistry';
 import { actionRegistry } from '../../runtime/ActionRegistry';
@@ -10,7 +9,7 @@ import { PropertyHelper } from '../../runtime/PropertyHelper';
  * This class captures the "View" part of the Inspector.
  */
 export class InspectorRenderer {
-    constructor(private runtime: ReactiveRuntime) { }
+    constructor() { }
 
     /**
      * Renders a basic Label element
@@ -103,10 +102,6 @@ export class InspectorRenderer {
             select.appendChild(opt);
         }
 
-        if (selectedValue === undefined || selectedValue === null) {
-            // Trace if suspicious
-        }
-
         options.forEach(opt => {
             const option = document.createElement('option');
             let val: string;
@@ -125,7 +120,6 @@ export class InspectorRenderer {
 
             if (val === selectedValue) {
                 option.selected = true;
-                // console.log(`[InspectorRenderer] Select "${text}" as active (Value: ${val})`);
             }
             select.appendChild(option);
         });
@@ -358,24 +352,24 @@ export class InspectorRenderer {
                         };
                         ed.style.flex = '1';
 
-                        const container = document.createElement('div');
-                        container.style.display = 'flex';
-                        container.style.gap = '4px';
-                        container.appendChild(ed);
+                        const cont = document.createElement('div');
+                        cont.style.display = 'flex';
+                        cont.style.gap = '4px';
+                        cont.appendChild(ed);
 
                         if (onAction && sigParam.type !== 'number') {
-                            const btn = document.createElement('button');
-                            btn.innerText = 'V';
-                            btn.style.cssText = 'width: 32px; padding: 4px; background-color: #444; color: white; border: none; border-radius: 3px; cursor: pointer;';
-                            btn.onclick = () => {
+                            const b = document.createElement('button');
+                            b.innerText = 'V';
+                            b.style.cssText = 'width: 32px; padding: 4px; background-color: #444; color: white; border: none; border-radius: 3px; cursor: pointer;';
+                            b.onclick = () => {
                                 onAction({
                                     action: 'pickVariable',
                                     actionData: { property: 'params', index: idx } // index is needed for array update
                                 });
                             };
-                            container.appendChild(btn);
+                            cont.appendChild(b);
                         }
-                        sigInput = container;
+                        sigInput = cont;
                     }
                     sigRow.appendChild(sigInput);
                     paramContainer.appendChild(sigRow);
@@ -399,25 +393,25 @@ export class InspectorRenderer {
                         edit.onchange = () => onUpdate(param.name, edit.value);
                         edit.style.flex = '1';
 
-                        const container = document.createElement('div');
-                        container.style.display = 'flex';
-                        container.style.gap = '4px';
-                        container.style.width = '100%';
-                        container.appendChild(edit);
+                        const cont = document.createElement('div');
+                        cont.style.display = 'flex';
+                        cont.style.gap = '4px';
+                        cont.style.width = '100%';
+                        cont.appendChild(edit);
 
                         if (onAction && param.type !== 'number' && param.type !== 'boolean') {
-                            const btn = document.createElement('button');
-                            btn.innerText = 'V';
-                            btn.style.cssText = 'width: 32px; padding: 4px; background-color: #444; color: white; border: none; border-radius: 3px; cursor: pointer;';
-                            btn.onclick = () => {
+                            const b = document.createElement('button');
+                            b.innerText = 'V';
+                            b.style.cssText = 'width: 32px; padding: 4px; background-color: #444; color: white; border: none; border-radius: 3px; cursor: pointer;';
+                            b.onclick = () => {
                                 onAction({
                                     action: 'pickVariable',
                                     actionData: { property: param.name }
                                 });
                             };
-                            container.appendChild(btn);
+                            cont.appendChild(b);
                         }
-                        input = container;
+                        input = cont;
                         break;
                     }
                 }
@@ -450,114 +444,236 @@ export class InspectorRenderer {
         });
 
         // Render each group
-        grouped.forEach((props, groupName) => {
+        grouped.forEach((groupProps, groupName) => {
+            const groupChildren: any[] = [];
+
             // Group header
-            uiObjects.push({
+            groupChildren.push({
                 className: 'TLabel',
                 name: `${groupName}Header`,
                 text: groupName.toUpperCase(),
-                style: { fontSize: 10, fontWeight: 'bold', color: '#888', marginTop: 12, marginBottom: 6 }
+                style: { fontSize: 11, fontWeight: 'bold', color: '#ccc', marginBottom: 12, borderBottom: '1px solid #444', paddingBottom: '4px' } // Enhanced header style
             });
 
             // Properties in group
-            props.forEach((prop: any) => {
+            for (let i = 0; i < groupProps.length; i++) {
+                const prop = groupProps[i];
                 const labelStyle: any = { fontSize: 12, color: '#aaa' };
 
-                // Label
-                uiObjects.push({
-                    className: 'TLabel',
-                    name: `${prop.name}Label`,
-                    text: `${prop.label || prop.name}:`,
-                    style: labelStyle,
-                    readOnly: prop.readOnly
-                });
-
-                // Input based on type
-                const inputName = `${prop.name}Input`;
-                const binding = `\${selectedObject.${prop.name}}`;
-
-                if (prop.type === 'number') {
-                    uiObjects.push({
-                        className: 'TNumberInput',
-                        name: inputName,
-                        value: binding,
-                        min: 0,
-                        step: 0.1
-                    });
-                } else if (prop.type === 'string') {
-                    uiObjects.push({
+                // Start an inline group if this prop and next prop are inline
+                if (prop.inline && groupProps[i + 1]?.inline) {
+                    const inlineGroup: any[] = [];
+                    const wrapper = {
                         className: 'TPanel',
-                        name: `${prop.name}Wrapper`,
-                        style: { display: 'flex', gap: '4px', marginBottom: '8px', padding: '0' },
-                        children: [
-                            {
-                                className: 'TEdit',
-                                name: inputName,
-                                text: binding,
-                                style: { flex: 1, marginBottom: '0' }
-                            },
-                            {
-                                className: 'TButton',
-                                name: `${prop.name}PickVarBtn`,
-                                caption: 'V',
-                                action: 'pickVariable',
-                                actionData: { property: prop.name, inputName: inputName },
-                                style: { width: '32px', padding: '4px', marginTop: '0', backgroundColor: '#444' }
-                            }
-                        ]
-                    });
-                } else if (prop.type === 'boolean') {
-                    uiObjects.push({
-                        className: 'TCheckbox',
-                        name: inputName,
-                        checked: binding,
-                        label: prop.label
-                    });
-                } else if (prop.type === 'select') {
-                    uiObjects.push({
-                        className: 'TDropdown',
-                        name: inputName,
-                        options: this.getOptionsFromSource(prop),
-                        selectedValue: binding
-                    });
-                } else if (prop.type === 'image_picker') {
-                    uiObjects.push({
-                        className: 'TPanel',
-                        name: `${prop.name}Wrapper`,
-                        style: { display: 'flex', gap: '4px', marginBottom: '8px', padding: '0' },
-                        children: [
-                            {
-                                className: 'TEdit',
-                                name: inputName,
-                                text: binding,
-                                style: { flex: 1, marginBottom: '0' }
-                            },
-                            {
-                                className: 'TButton',
-                                name: `${prop.name}BrowseBtn`,
-                                caption: '...',
-                                action: 'browseImage',
-                                actionData: { property: prop.name, inputName: inputName },
-                                style: { width: '32px', padding: '4px', marginTop: '0' }
-                            }
-                        ]
-                    });
-                } else if (prop.type === 'button') {
-                    uiObjects.push({
-                        className: 'TButton',
-                        name: inputName,
-                        caption: prop.label || prop.name,
-                        action: prop.action,
-                        style: prop.style
+                        name: `${prop.name}InlineWrapper`,
+                        style: { display: 'flex', gap: '12px', marginBottom: '8px', padding: '0', alignItems: 'center' },
+                        children: inlineGroup
+                    };
+                    groupChildren.push(wrapper);
+
+                    // Collect up to 2 consecutive inline props
+                    let inlineCount = 0;
+                    while (i < groupProps.length && groupProps[i].inline && inlineCount < 2) {
+                        const p = groupProps[i];
+                        // For inline props, we still might want a small label if it's not a checkbox
+                        if (p.type !== 'boolean' && p.label) {
+                            inlineGroup.push({
+                                className: 'TLabel',
+                                name: `${p.name}Label`,
+                                text: `${p.label}:`,
+                                style: { ...labelStyle, marginBottom: 0 }
+                            });
+                        }
+
+                        const inputName = `${p.name}Input`;
+                        const binding = `\${selectedObject.${p.name}}`;
+                        this.pushInputIntoUI(inlineGroup, p, inputName, binding);
+
+                        inlineCount++;
+
+                        // If we haven't reached 2 yet, check if the next one is inline
+                        if (inlineCount < 2 && groupProps[i + 1]?.inline) {
+                            i++;
+                        } else {
+                            break;
+                        }
+                    }
+                    continue;
+                }
+
+                // Normal rendering (not inline group)
+                if (prop.type !== 'boolean') {
+                    groupChildren.push({
+                        className: 'TLabel',
+                        name: `${prop.name}Label`,
+                        text: `${prop.label || prop.name}:`,
+                        style: labelStyle,
+                        readOnly: prop.readOnly
                     });
                 }
+
+                const inputName = `${prop.name}Input`;
+                const binding = `\${selectedObject.${prop.name}}`;
+                this.pushInputIntoUI(groupChildren, prop, inputName, binding);
+            }
+
+            // Wrap the group in a Card Panel
+            uiObjects.push({
+                className: 'TPanel',
+                name: `${groupName}Card`,
+                style: {
+                    backgroundColor: '#2a2a2a',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    marginBottom: '16px',
+                    border: '1px solid #3a3a3a',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                },
+                children: groupChildren
             });
         });
 
-        // Use runtime to suppress lint if needed, although usually we want to use it
-        if (this.runtime) { /* placeholder to use runtime */ }
 
         return uiObjects;
+    }
+
+    /**
+     * Renders a specialized Color Input
+     */
+    public renderColorInput(value: string): HTMLElement {
+        const container = document.createElement('div');
+        container.className = 'inspector-color-container';
+        this.applyStyle(container, {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            width: '100%',
+            marginBottom: '8px'
+        });
+
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = value && value.startsWith('#') && value.length === 7 ? value : '#000000';
+        colorInput.className = 'inspector-color-input';
+        this.applyStyle(colorInput, {
+            width: '32px',
+            height: '24px',
+            padding: '0',
+            border: '1px solid #444',
+            borderRadius: '3px',
+            backgroundColor: 'transparent',
+            cursor: 'pointer',
+            flexShrink: '0'
+        });
+
+        const textInput = document.createElement('input');
+        textInput.type = 'text';
+        textInput.value = value || '#000000';
+        textInput.className = 'inspector-color-text';
+        this.applyStyle(textInput, {
+            flex: '1',
+            backgroundColor: '#222',
+            color: '#fff',
+            border: '1px solid #444',
+            borderRadius: '3px',
+            padding: '4px 6px',
+            fontSize: '12px',
+            outline: 'none'
+        });
+
+        container.appendChild(colorInput);
+        container.appendChild(textInput);
+
+        // Expose inputs for events
+        (container as any).colorInput = colorInput;
+        (container as any).textInput = textInput;
+
+        return container;
+    }
+
+    private pushInputIntoUI(target: any[], prop: any, inputName: string, binding: string): void {
+        if (prop.type === 'number') {
+            target.push({
+                className: 'TNumberInput',
+                name: inputName,
+                value: binding,
+                min: prop.min ?? 0,
+                max: prop.max,
+                step: prop.step ?? 0.1
+            });
+        } else if (prop.type === 'color') {
+            target.push({
+                className: 'TColorInput',
+                name: inputName,
+                value: binding
+            });
+        } else if (prop.type === 'string') {
+            target.push({
+                className: 'TPanel',
+                name: `${prop.name}Wrapper`,
+                style: { display: 'flex', gap: '4px', marginBottom: '8px', padding: '0', flex: 1 },
+                children: [
+                    {
+                        className: 'TEdit',
+                        name: inputName,
+                        text: binding,
+                        style: { flex: 1, marginBottom: '0' }
+                    },
+                    {
+                        className: 'TButton',
+                        name: `${prop.name}PickVarBtn`,
+                        caption: 'V',
+                        action: 'pickVariable',
+                        actionData: { property: prop.name, inputName: inputName },
+                        style: { width: '32px', padding: '4px', marginTop: '0', backgroundColor: '#444' }
+                    }
+                ]
+            });
+        } else if (prop.type === 'boolean') {
+            target.push({
+                className: 'TCheckbox',
+                name: inputName,
+                checked: binding,
+                label: prop.label
+            });
+        } else if (prop.type === 'select') {
+            target.push({
+                className: 'TDropdown',
+                name: inputName,
+                options: this.getOptionsFromSource(prop),
+                selectedValue: binding
+            });
+        } else if (prop.type === 'image_picker') {
+            target.push({
+                className: 'TPanel',
+                name: `${prop.name}Wrapper`,
+                style: { display: 'flex', gap: '4px', marginBottom: '8px', padding: '0', flex: 1 },
+                children: [
+                    {
+                        className: 'TEdit',
+                        name: inputName,
+                        text: binding,
+                        style: { flex: 1, marginBottom: '0' }
+                    },
+                    {
+                        className: 'TButton',
+                        name: `${prop.name}BrowseBtn`,
+                        caption: '...',
+                        action: 'browseImage',
+                        actionData: { property: prop.name, inputName: inputName },
+                        style: { width: '32px', padding: '4px', marginTop: '0' }
+                    }
+                ]
+            });
+        } else if (prop.type === 'button') {
+            target.push({
+                className: 'TButton',
+                name: inputName,
+                caption: prop.label || prop.name,
+                action: prop.action,
+                style: prop.style
+            });
+        }
     }
 
     public getOptionsFromSource(prop: any): any[] {

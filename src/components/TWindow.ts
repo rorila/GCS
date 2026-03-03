@@ -15,6 +15,7 @@ export interface ComponentStyle {
     textAlign?: string;
     fontFamily?: string;
     borderRadius?: number;
+    opacity?: number;
 }
 
 export class TWindow extends TComponent {
@@ -143,19 +144,19 @@ export class TWindow extends TComponent {
     public getInspectorProperties(): TPropertyDef[] {
         return [
             ...this.getBaseProperties(),
-            { name: 'x', label: 'X Position', type: 'number', group: 'GEOMETRIE' },
-            { name: 'y', label: 'Y Position', type: 'number', group: 'GEOMETRIE' },
-            { name: 'width', label: 'Breite', type: 'number', group: 'GEOMETRIE' },
-            { name: 'height', label: 'Höhe', type: 'number', group: 'GEOMETRIE' },
-            { name: 'zIndex', label: 'Z-Index', type: 'number', group: 'GEOMETRIE' },
-            { name: 'align', label: 'Ausrichtung', type: 'select', group: 'GEOMETRIE', options: ['NONE', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CLIENT'] },
-            { name: 'text', label: 'Text', type: 'string', group: 'INHALT' },
             { name: 'visible', label: 'Sichtbar', type: 'boolean', group: 'IDENTITÄT' },
-            { name: 'style.visible', label: 'Style Sichtbar', type: 'boolean', group: 'STIL', editorOnly: true },
+            { name: 'x', label: 'X', type: 'number', group: 'GEOMETRIE', inline: true },
+            { name: 'y', label: 'Y', type: 'number', group: 'GEOMETRIE', inline: true },
+            { name: 'width', label: 'Breite', type: 'number', group: 'GEOMETRIE', inline: true },
+            { name: 'height', label: 'Höhe', type: 'number', group: 'GEOMETRIE', inline: true },
+            { name: 'zIndex', label: 'Z-Index', type: 'number', group: 'GEOMETRIE', inline: true },
+            { name: 'align', label: 'Ausrichtung', type: 'select', group: 'GEOMETRIE', options: ['NONE', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CLIENT'], inline: true },
+            { name: 'style.color', label: 'Textfarbe', type: 'color', group: 'TYPOGRAFIE' },
             { name: 'style.backgroundColor', label: 'Hintergrund', type: 'color', group: 'STIL' },
             { name: 'style.borderColor', label: 'Rahmenfarbe', type: 'color', group: 'STIL' },
-            { name: 'style.borderWidth', label: 'Rahmenbreite', type: 'number', group: 'STIL' },
-            { name: 'style.borderRadius', label: 'Abrundung', type: 'number', group: 'STIL' }
+            { name: 'style.borderWidth', label: 'Rahmenbreite', type: 'number', group: 'STIL', min: 0, step: 1 },
+            { name: 'style.borderRadius', label: 'Abrundung', type: 'number', group: 'STIL', min: 0, step: 1 },
+            { name: 'style.opacity', label: 'Deckkraft', type: 'number', group: 'STIL', min: 0, max: 1, step: 0.1 }
         ];
     }
 }

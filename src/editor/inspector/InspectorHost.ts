@@ -36,7 +36,7 @@ export class InspectorHost {
         private runtime: ReactiveRuntime,
         public project: GameProject
     ) {
-        this.renderer = new InspectorRenderer(runtime);
+        this.renderer = new InspectorRenderer();
         this.eventHandler = new InspectorEventHandler(runtime, project);
         this.templateLoader = new InspectorTemplateLoader(); // Removed runtime
         this.actionHandler = new InspectorActionHandler(runtime, project, this);
@@ -54,7 +54,7 @@ export class InspectorHost {
      */
     public setRuntime(runtime: ReactiveRuntime): void {
         this.runtime = runtime;
-        this.renderer = new InspectorRenderer(runtime);
+        this.renderer = new InspectorRenderer();
         this.eventHandler = new InspectorEventHandler(runtime, this.project);
         this.templateLoader = new InspectorTemplateLoader(); // Removed runtime
         this.actionHandler = new InspectorActionHandler(runtime, this.project, this);
@@ -145,7 +145,7 @@ export class InspectorHost {
         type.innerText = obj.className || obj.constructor?.name || 'Object';
         header.appendChild(type);
 
-        // --- NEW: Delete Button ---
+        // Papierkorb-Icon zum Löschen
         if (this.onObjectDelete) {
             const delBtn = document.createElement('button');
             delBtn.innerHTML = '🗑️';
@@ -157,6 +157,7 @@ export class InspectorHost {
             };
             header.appendChild(delBtn);
         }
+
 
         return header;
     }
@@ -380,6 +381,44 @@ export class InspectorHost {
                 return this.renderer.renderButton(def.caption || def.name, () => {
                     this.actionHandler.handleAction(def, obj);
                 });
+            }
+            case 'TColorInput': {
+                const value = this.resolveValue(def.text || def.value, obj, def);
+                const container = this.renderer.renderColorInput(String(value || '#000000'));
+                const colorInput = (container as any).colorInput as HTMLInputElement;
+                const textInput = (container as any).textInput as HTMLInputElement;
+
+                const updateValue = (newValue: string) => {
+                    console.info(`[InspectorHost] TColorInput changed: ${newValue} for ${def.name}`);
+                    const event = this.eventHandler.handleControlChange(def.name, newValue, obj, def);
+                    if (event) {
+                        mediatorService.notifyDataChanged({
+                            property: event.propertyName,
+                            value: event.newValue,
+                            oldValue: event.oldValue,
+                            object: event.object
+                        }, 'inspector');
+                        if (this.onObjectUpdate) this.onObjectUpdate(event);
+                    }
+                };
+
+                colorInput.oninput = () => {
+                    textInput.value = colorInput.value;
+                    updateValue(colorInput.value);
+                };
+
+                textInput.oninput = () => {
+                    if (textInput.value.startsWith('#') && textInput.value.length === 7) {
+                        colorInput.value = textInput.value;
+                        updateValue(textInput.value);
+                    }
+                };
+
+                textInput.onchange = () => {
+                    updateValue(textInput.value);
+                };
+
+                return container;
             }
             case 'TActionParams': {
                 const onUpdate = (prop: string, val: any) => {

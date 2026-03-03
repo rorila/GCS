@@ -1,5 +1,29 @@
 UseCase Index
 -------------
+- [2026-03-03] InspectorCardLayout (v3.9.8): Umbau der Eigenschaftslisten im Inspector zu einem visuell ansprechenden Card-Layout (TPanels mit Hintergrund, Border und Schatten). Statisches Stage-Template analog umstrukturiert inklusive Bugfix für den Farbwähler.
+  - src/editor/inspector/InspectorRenderer.ts: Neue Schleifen-Logik in `generateUIFromProperties`, die Gruppen in `TPanel`-Container (Cards) packt.
+  - public/inspector_stage.json: Flache Hierarchie in 4 Cards aufgebaut, alte `TColorPicker`-Komponente zu `TColorInput` inkl. Attributwechsel aktualisiert.
+- [2026-03-03] InspectorUICleanup (v3.9.7): Doppeltes name-Property, id-Property und Objekt-loeschen-Button entfernt. Draggable/Droppable inline. Textfarbe in TYPOGRAFIE.
+  - src/components/TComponent.ts: `id` aus `getBaseProperties()` entfernt, `draggable`/`droppable` mit `inline: true`, Reihenfolge angepasst.
+  - src/components/TWindow.ts: Doppeltes `name` entfernt, `style.color` von STIL nach TYPOGRAFIE verschoben, Geometrie Eigenschaften (x,y,w,h,zIndex,align) inline gemacht.
+  - src/editor/inspector/InspectorHost.ts: Objekt-loeschen-Button aus Header entfernt, Papierkorb Icon wiederhergestellt.
+- [2026-03-03] TextColorForAllComponents (v3.9.6): Verschiebung von `style.color` von TTextControl in die Basis-Klasse TWindow, damit alle visuellen Komponenten eine Textfarben-Auswahl im Inspector erhalten.
+  - src/components/TWindow.ts: `style.color` (Typ 'color') zur STIL-Gruppe in `getInspectorProperties()` hinzugefügt.
+  - src/components/TTextControl.ts: Duplikates `style.color` aus TYPOGRAFIE-Gruppe entfernt.
+- [2026-03-03] TextRenderingFix (v3.9.5): Behebung des Weiß-auf-Weiß Rendering-Problems und Implementierung von Live-Sync für die Game-Runtime.
+  - src/editor/services/StageRenderer.ts: Entfernung des fehlerhaften #ffffff Fallbacks in `renderLabel`. Korrektur der Klassen-Priorisierung in `renderComponentContent`.
+  - src/runtime/GameRuntime.ts: Implementierung von Objekt-Property Sync in `updateRuntimeData`.
+- [2026-03-03] TypographyUIRefinement (v3.9.4): Implementierung von Inline-Layout (Fett/Kursiv nebeneinander) und nativer Farbwahl-Integration.
+  - src/editor/Editor.ts: Live-Preview durch Korrektur des DATA_CHANGED Listeners aktiviert.
+  - src/editor/inspector/InspectorRenderer.ts: Neue `renderColorInput` Methode für direkt eingebettete Farbauswahl.
+  - src/editor/inspector/InspectorHost.ts: Implementierung der Echtzeit-Logik (`oninput`) für Farbanpassungen.
+  - src/components/TTextControl.ts, TWindow.ts: Nutzung der nativen Farbauswahl-Komponente.
+- [2026-03-03] InspectorUiOptimization (v3.9.3): Tiefgreifende Optimierung des Inspectors. Entfernung von Redundanzen, deutsche Lokalisierung und Erweiterung um Typografie- und Deckkraft-Eigenschaften.
+  - src/components/TWindow.ts: Basis-Eigenschaften (Geometrie, Stil) vereinheitlicht, `opacity` hinzugefügt.
+  - src/components/TTextControl.ts: TYPOGRAFIE-Gruppe mit neuen Styles (Schriftart, Fett, Kursiv, etc.) erweitert.
+  - src/components/TImage.ts, TPanel.ts, TShape.ts, TEdit.ts, TButton.ts: Spezial-Eigenschaften lokalisiert und gruppiert.
+  - public/inspector.json: Redundante hartzcodierte Felder entfernt; Felder werden nun dynamisch generiert.
+  - src/components/TComponent.ts: `TPropertyDef` um `min`, `max` und korrigierten `step`-Typ erweitert.
 - [2026-03-02] ExpressionParserStageFix (v3.15.12): Lösung von Fehlern bei verschachtelten Ausdrücken (${value}) und unpräziser Stage-Platzierung. 
   - src/runtime/ExpressionParser.ts: Implementierung der Balanced-Brace-Interpolation und Fail-Safe-Mechanismus.
   - src/editor/services/StageInteractionManager.ts: Korrektur der Koordinatenberechnung (Border/Padding) und Zentrierung beim Drop.

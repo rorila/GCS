@@ -2038,7 +2038,7 @@
       if (val === void 0 && sourceName && String(sourceName).includes("${")) {
         val = PropertyHelper.interpolate(String(sourceName), { ...context.contextVars, ...context.vars }, context.objects);
       }
-      if (val === void 0 && action.value !== void 0) {
+      if ((val === void 0 || !action.source && !action.sourceProperty) && action.value !== void 0) {
         const combinedCtx = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         val = PropertyHelper.interpolate(String(action.value), combinedCtx, context.objects);
       }
@@ -2049,19 +2049,20 @@
           data: { value: val, source: sourceName, property: action.sourceProperty }
         });
       } else {
-        runtimeLogger.warn(`Quelle "${sourceName}" konnte nicht aufgel\xF6st werden oder variableName fehlt.`);
-        DebugLogService.getInstance().log("Action", `\u26A0\uFE0F Variable konnte nicht gelesen werden. Quelle: ${sourceName}`, {
+        runtimeLogger.warn(`Quelle "${sourceName}" (Value: ${action.value}) konnte nicht aufgel\xF6st werden oder variableName fehlt.`);
+        DebugLogService.getInstance().log("Action", `\u26A0\uFE0F Variable konnte nicht gelesen werden. Quelle: ${sourceName}, Value: ${action.value}`, {
           data: action
         });
       }
     }, {
       type: "variable",
       label: "Variable lesen / setzen",
-      description: "Liest einen Wert aus einer Quelle (Objekt-Eigenschaft oder andere Variable) und speichert ihn in einer Ziel-Variable.",
+      description: "Liest einen Wert aus einer Quelle (Objekt-Eigenschaft, Wert oder andere Variable) und speichert ihn in einer Ziel-Variable.",
       parameters: [
         { name: "variableName", label: "Ziel-Variable", type: "variable", source: "variables" },
-        { name: "source", label: "Quell-Objekt / Variable", type: "object", source: "objects" },
-        { name: "sourceProperty", label: "Eigenschaft (optional)", type: "string", placeholder: "z.B. text oder value" }
+        { name: "value", label: "Einfacher Wert (z.B. 555)", type: "string", placeholder: "Literal oder ${var}" },
+        { name: "source", label: "(oder) Quell-Objekt / Variable", type: "object", source: "objects" },
+        { name: "sourceProperty", label: "(oder) Eigenschaft (optional)", type: "string", placeholder: "z.B. text oder value" }
       ]
     });
     actionRegistry.register("set_variable", actionRegistry.getHandler("variable"), {
@@ -2070,8 +2071,9 @@
       description: "Liest einen Wert aus einer Quelle und speichert ihn in einer Ziel-Variable.",
       parameters: [
         { name: "variableName", label: "Ziel-Variable", type: "variable", source: "variables" },
-        { name: "source", label: "Quell-Objekt / Variable", type: "object", source: "objects" },
-        { name: "sourceProperty", label: "Eigenschaft (optional)", type: "string", placeholder: "z.B. text oder value" }
+        { name: "value", label: "Einfacher Wert (z.B. 555)", type: "string", placeholder: "Literal oder ${var}" },
+        { name: "source", label: "(oder) Quell-Objekt / Variable", type: "object", source: "objects" },
+        { name: "sourceProperty", label: "(oder) Eigenschaft (optional)", type: "string", placeholder: "z.B. text oder value" }
       ]
     });
     actionRegistry.register("calculate", (action, context) => {
@@ -4201,19 +4203,20 @@
     getInspectorProperties() {
       return [
         ...this.getBaseProperties(),
+        { name: "name", label: "Name", type: "string", group: "IDENTIT\xC4T" },
+        { name: "visible", label: "Sichtbar", type: "boolean", group: "IDENTIT\xC4T" },
         { name: "x", label: "X Position", type: "number", group: "GEOMETRIE" },
         { name: "y", label: "Y Position", type: "number", group: "GEOMETRIE" },
         { name: "width", label: "Breite", type: "number", group: "GEOMETRIE" },
         { name: "height", label: "H\xF6he", type: "number", group: "GEOMETRIE" },
         { name: "zIndex", label: "Z-Index", type: "number", group: "GEOMETRIE" },
         { name: "align", label: "Ausrichtung", type: "select", group: "GEOMETRIE", options: ["NONE", "TOP", "BOTTOM", "LEFT", "RIGHT", "CLIENT"] },
-        { name: "text", label: "Text", type: "string", group: "INHALT" },
-        { name: "visible", label: "Sichtbar", type: "boolean", group: "IDENTIT\xC4T" },
-        { name: "style.visible", label: "Style Sichtbar", type: "boolean", group: "STIL", editorOnly: true },
         { name: "style.backgroundColor", label: "Hintergrund", type: "color", group: "STIL" },
+        { name: "style.color", label: "Textfarbe", type: "color", group: "STIL" },
         { name: "style.borderColor", label: "Rahmenfarbe", type: "color", group: "STIL" },
-        { name: "style.borderWidth", label: "Rahmenbreite", type: "number", group: "STIL" },
-        { name: "style.borderRadius", label: "Abrundung", type: "number", group: "STIL" }
+        { name: "style.borderWidth", label: "Rahmenbreite", type: "number", group: "STIL", min: 0, step: 1 },
+        { name: "style.borderRadius", label: "Abrundung", type: "number", group: "STIL", min: 0, step: 1 },
+        { name: "style.opacity", label: "Deckkraft", type: "number", group: "STIL", min: 0, max: 1, step: 0.1 }
       ];
     }
   };
@@ -4233,12 +4236,12 @@
       const props = super.getInspectorProperties();
       return [
         ...props,
+        { name: "text", label: "Inhalt", type: "string", group: "INHALT" },
         { name: "style.fontSize", label: "Schriftgr\xF6\xDFe", type: "number", group: "TYPOGRAFIE" },
-        { name: "style.fontWeight", label: "Fett", type: "boolean", group: "TYPOGRAFIE" },
-        { name: "style.fontStyle", label: "Kursiv", type: "boolean", group: "TYPOGRAFIE" },
+        { name: "style.fontWeight", label: "Fett", type: "boolean", group: "TYPOGRAFIE", inline: true },
+        { name: "style.fontStyle", label: "Kursiv", type: "boolean", group: "TYPOGRAFIE", inline: true },
         { name: "style.textAlign", label: "Ausrichtung", type: "select", group: "TYPOGRAFIE", options: ["left", "center", "right"] },
-        { name: "style.fontFamily", label: "Schriftart", type: "select", group: "TYPOGRAFIE", options: ["Arial", "Verdana", "Times New Roman", "Courier New", "Georgia", "Tahoma", "Trebuchet MS"] },
-        { name: "style.color", label: "Textfarbe", type: "color", group: "TYPOGRAFIE" }
+        { name: "style.fontFamily", label: "Schriftart", type: "select", group: "TYPOGRAFIE", options: ["Arial", "Verdana", "Times New Roman", "Courier New", "Georgia", "Tahoma", "Trebuchet MS"] }
       ];
     }
   };
@@ -4260,7 +4263,7 @@
       const props = super.getInspectorProperties();
       return [
         ...props,
-        { name: "icon", label: "Icon", type: "image_picker", group: "DARSTELLUNG" }
+        { name: "icon", label: "Icon", type: "image_picker", group: "ICON" }
       ];
     }
   };
@@ -4305,10 +4308,10 @@
       const props = super.getInspectorProperties();
       return [
         ...props,
-        { name: "caption", label: "Caption", type: "string", group: "Specifics" },
-        { name: "showGrid", label: "Show Grid", type: "boolean", group: "Specifics" },
-        { name: "gridColor", label: "Grid Color", type: "color", group: "Specifics" },
-        { name: "gridStyle", label: "Grid Style", type: "select", options: ["lines", "dots"], group: "Specifics" }
+        { name: "caption", label: "Titel", type: "string", group: "IDENTIT\xC4T" },
+        { name: "showGrid", label: "Gitter anzeigen", type: "boolean", group: "GITTER" },
+        { name: "gridColor", label: "Gitterfarbe", type: "color", group: "GITTER" },
+        { name: "gridStyle", label: "Gitterstil", type: "select", options: ["lines", "dots"], group: "GITTER" }
       ];
     }
   };
@@ -4391,8 +4394,8 @@
       const props = super.getInspectorProperties();
       return [
         ...props,
-        { name: "placeholder", label: "Placeholder", type: "string", group: "Specifics" },
-        { name: "maxLength", label: "Max Length", type: "number", group: "Specifics" }
+        { name: "placeholder", label: "Platzhalter", type: "string", group: "EINGABE" },
+        { name: "maxLength", label: "Max. L\xE4nge", type: "number", group: "EINGABE" }
         // Inherits styles from TTextControl
       ];
     }
@@ -8207,17 +8210,17 @@
       return [
         ...filtered,
         // Image-Gruppe
-        { name: "src", label: "Image Path", type: "image_picker", group: "Image" },
+        { name: "src", label: "Bildquelle", type: "image_picker", group: "BILD" },
         {
           name: "objectFit",
-          label: "Object Fit",
+          label: "Skalierung",
           type: "select",
-          group: "Image",
+          group: "BILD",
           options: ["cover", "contain", "fill", "none"]
         },
-        { name: "alt", label: "Alt Text", type: "string", group: "Image" },
-        { name: "imageOpacity", label: "Opacity", type: "number", group: "Image" },
-        { name: "fallbackColor", label: "Fallback Color", type: "color", group: "Image" }
+        { name: "alt", label: "Alt-Text", type: "string", group: "BILD" },
+        { name: "imageOpacity", label: "Bild-Deckkraft", type: "number", group: "BILD", min: 0, max: 1, step: 0.1 },
+        { name: "fallbackColor", label: "Fallback-Farbe", type: "color", group: "BILD" }
       ];
     }
     // ─────────────────────────────────────────────
@@ -9075,16 +9078,16 @@
           name: "shapeType",
           label: "Form-Typ",
           type: "select",
-          group: "Form",
+          group: "FORM",
           options: ["circle", "rect", "square", "ellipse", "triangle", "arrow", "line"]
         },
-        { name: "fillColor", label: "F\xFCllfarbe", type: "color", group: "Form" },
-        { name: "strokeColor", label: "Linienfarbe (Rand)", type: "color", group: "Form" },
-        { name: "strokeWidth", label: "Linienst\xE4rke", type: "number", group: "Form" },
-        { name: "opacity", label: "Deckkraft", type: "number", group: "Form" },
+        { name: "fillColor", label: "F\xFCllfarbe", type: "color", group: "FORM" },
+        { name: "strokeColor", label: "Linienfarbe (Rand)", type: "color", group: "FORM" },
+        { name: "strokeWidth", label: "Linienst\xE4rke", type: "number", group: "FORM" },
+        { name: "opacity", label: "Deckkraft", type: "number", group: "FORM", min: 0, max: 1, step: 0.1 },
         // Content group
-        { name: "text", label: "Text/Emoji", type: "string", group: "Inhalt" },
-        { name: "contentImage", label: "Bild-Inhalt", type: "image_picker", group: "Inhalt" }
+        { name: "text", label: "Text/Emoji", type: "string", group: "INHALT" },
+        { name: "contentImage", label: "Bild-Inhalt", type: "image_picker", group: "INHALT" }
       ];
     }
     toJSON() {
@@ -10931,6 +10934,23 @@
         this.taskExecutor.setFlowCharts(merged.flowCharts);
         this.taskExecutor.setActions(merged.actions);
         this.taskExecutor.setTasks(merged.tasks || []);
+        this.objects.forEach((obj) => {
+          const projectObj = merged.objects.find((po) => po.id === obj.id);
+          if (projectObj) {
+            if (projectObj.style) {
+              obj.style = { ...obj.style || {}, ...projectObj.style };
+            }
+            if (projectObj.caption !== void 0) obj.caption = projectObj.caption;
+            if (projectObj.text !== void 0 && !obj.isVariable) obj.text = projectObj.text;
+            if (projectObj.x !== void 0) obj.x = projectObj.x;
+            if (projectObj.y !== void 0) obj.y = projectObj.y;
+            if (projectObj.width !== void 0) obj.width = projectObj.width;
+            if (projectObj.height !== void 0) obj.height = projectObj.height;
+            if (projectObj.visible !== void 0) obj.visible = projectObj.visible;
+            if (projectObj.opacity !== void 0) obj.opacity = projectObj.opacity;
+          }
+        });
+        if (this.options.onRender) this.options.onRender();
       }
     }
     stop() {
@@ -12139,7 +12159,11 @@
           } else {
             el.style.border = "none";
           }
-          if (obj.style.color) el.style.color = obj.style.color;
+          if (obj.style.color) {
+            el.style.color = obj.style.color;
+            if (obj.className === "TLabel" || obj.className === "TButton") {
+            }
+          }
           if (obj.style.fontSize) el.style.fontSize = typeof obj.style.fontSize === "number" ? `${obj.style.fontSize}px` : obj.style.fontSize;
           if (obj.style.fontWeight) el.style.fontWeight = obj.style.fontWeight;
           if (obj.style.borderRadius) el.style.borderRadius = typeof obj.style.borderRadius === "number" ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
@@ -12276,7 +12300,7 @@
         _StageRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host));
       } else if (className === "TStringVariable" || className === "TObjectVariable" || className === "TIntegerVariable" || className === "TBooleanVariable" || className === "TListVariable" || obj.isVariable || obj.isService) {
         this.renderSystemComponent(el, obj, className);
-      } else if (className === "TLabel" || className === "TNumberLabel" || className !== "TShape" && ("text" in obj || "value" in obj)) {
+      } else if (className === "TLabel" || className === "TNumberLabel") {
         this.renderLabel(el, obj);
       } else if (className === "TPanel") {
         this.renderPanel(el, obj);
@@ -12290,6 +12314,8 @@
         this.renderInspectorTemplate(el, obj);
       } else if (className === "TDialogRoot") {
         this.renderDialogRoot(el, obj);
+      } else if (className !== "TShape" && ("text" in obj || "value" in obj)) {
+        this.renderLabel(el, obj);
       }
     }
     renderCheckbox(el, obj, isNew) {
@@ -12434,6 +12460,7 @@
       const fstyle = obj.style?.fontStyle;
       el.style.fontStyle = fstyle === true || fstyle === "italic" ? "italic" : "normal";
       if (obj.style?.fontSize) el.style.fontSize = typeof obj.style.fontSize === "number" ? `${obj.style.fontSize}px` : obj.style.fontSize;
+      if (obj.style?.color) el.style.color = obj.style.color;
       if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
       const align = obj.style?.textAlign;
       el.style.justifyContent = align === "left" ? "flex-start" : align === "right" ? "flex-end" : "center";
@@ -12550,7 +12577,12 @@
       if (el.innerText !== textValue) el.innerText = textValue;
       const fs = obj.style?.fontSize || obj.fontSize;
       if (fs) el.style.fontSize = typeof fs === "number" ? `${fs}px` : fs;
-      el.style.color = obj.style?.color || "#ffffff";
+      const color = obj.style?.color;
+      if (color) {
+        el.style.color = color;
+      } else {
+        el.style.color = "";
+      }
       const fw = obj.style?.fontWeight;
       el.style.fontWeight = fw === true || fw === "bold" ? "bold" : "normal";
       const fstyle = obj.style?.fontStyle;

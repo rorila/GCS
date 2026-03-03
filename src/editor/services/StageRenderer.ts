@@ -217,7 +217,12 @@ export class StageRenderer {
                     el.style.border = 'none';
                 }
 
-                if (obj.style.color) el.style.color = obj.style.color;
+                if (obj.style.color) {
+                    el.style.color = obj.style.color;
+                    if (obj.className === 'TLabel' || obj.className === 'TButton') {
+                        // Color applied
+                    }
+                }
                 if (obj.style.fontSize) el.style.fontSize = typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize;
                 if (obj.style.fontWeight) el.style.fontWeight = obj.style.fontWeight;
                 if (obj.style.borderRadius) el.style.borderRadius = typeof obj.style.borderRadius === 'number' ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
@@ -380,7 +385,7 @@ export class StageRenderer {
             StageRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host));
         } else if (className === 'TStringVariable' || className === 'TObjectVariable' || className === 'TIntegerVariable' || className === 'TBooleanVariable' || className === 'TListVariable' || obj.isVariable || obj.isService) {
             this.renderSystemComponent(el, obj, className);
-        } else if (className === 'TLabel' || className === 'TNumberLabel' || (className !== 'TShape' && ('text' in obj || 'value' in obj))) {
+        } else if (className === 'TLabel' || className === 'TNumberLabel') {
             this.renderLabel(el, obj);
         } else if (className === 'TPanel') {
             this.renderPanel(el, obj);
@@ -394,6 +399,9 @@ export class StageRenderer {
             this.renderInspectorTemplate(el, obj);
         } else if (className === 'TDialogRoot') {
             this.renderDialogRoot(el, obj);
+        } else if (className !== 'TShape' && ('text' in obj || 'value' in obj)) {
+            // Fallback for generic text objects
+            this.renderLabel(el, obj);
         }
     }
 
@@ -549,6 +557,7 @@ export class StageRenderer {
         const fstyle = obj.style?.fontStyle;
         el.style.fontStyle = (fstyle === true || fstyle === 'italic') ? 'italic' : 'normal';
         if (obj.style?.fontSize) el.style.fontSize = typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize;
+        if (obj.style?.color) el.style.color = obj.style.color;
         if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
         const align = obj.style?.textAlign;
         el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
@@ -663,7 +672,14 @@ export class StageRenderer {
         if (el.innerText !== textValue) el.innerText = textValue;
         const fs = obj.style?.fontSize || obj.fontSize;
         if (fs) el.style.fontSize = typeof fs === 'number' ? `${fs}px` : fs;
-        el.style.color = obj.style?.color || '#ffffff';
+        // REMOVED white fallback: Let CSS or container define the default color (usually dark grey/black)
+        const color = obj.style?.color;
+        if (color) {
+            el.style.color = color;
+        } else {
+            // Reset to prevent carrying over color from recycled elements or inherited styles if not desired
+            el.style.color = '';
+        }
         const fw = obj.style?.fontWeight;
         el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
         const fstyle = obj.style?.fontStyle;
@@ -680,7 +696,7 @@ export class StageRenderer {
     private renderPanel(el: HTMLElement, obj: any) {
         if (!this.host.runMode) {
             el.innerText = obj.name;
-            el.style.color = '#777';
+            el.style.color = obj.style?.color || '#777';
             el.style.fontSize = '12px';
             el.style.justifyContent = 'center';
             el.style.alignItems = 'center';
@@ -692,6 +708,7 @@ export class StageRenderer {
     private renderGameHeader(el: HTMLElement, obj: any) {
         if (el.innerText !== (obj.title || obj.caption || obj.name)) el.innerText = obj.title || obj.caption || obj.name;
         el.style.fontSize = obj.style?.fontSize ? (typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize) : '18px';
+        if (obj.style?.color) el.style.color = obj.style.color;
         const fw = obj.style?.fontWeight;
         el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : (fw || 'bold');
         const align = obj.style?.textAlign;
@@ -702,6 +719,7 @@ export class StageRenderer {
     private renderSprite(el: HTMLElement, obj: any) {
         el.style.backgroundColor = obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b';
         el.style.borderRadius = obj.shape === 'circle' ? '50%' : '0';
+        if (obj.style?.color) el.style.color = obj.style.color;
         if (!this.host.runMode) el.innerText = obj.name;
     }
 

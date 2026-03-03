@@ -42,16 +42,16 @@ export class TShape extends TPanel {
                 name: 'shapeType',
                 label: 'Form-Typ',
                 type: 'select',
-                group: 'Form',
+                group: 'FORM',
                 options: ['circle', 'rect', 'square', 'ellipse', 'triangle', 'arrow', 'line']
             },
-            { name: 'fillColor', label: 'Füllfarbe', type: 'color', group: 'Form' },
-            { name: 'strokeColor', label: 'Linienfarbe (Rand)', type: 'color', group: 'Form' },
-            { name: 'strokeWidth', label: 'Linienstärke', type: 'number', group: 'Form' },
-            { name: 'opacity', label: 'Deckkraft', type: 'number', group: 'Form' },
+            { name: 'fillColor', label: 'Füllfarbe', type: 'color', group: 'FORM' },
+            { name: 'strokeColor', label: 'Linienfarbe (Rand)', type: 'color', group: 'FORM' },
+            { name: 'strokeWidth', label: 'Linienstärke', type: 'number', group: 'FORM' },
+            { name: 'opacity', label: 'Deckkraft', type: 'number', group: 'FORM', min: 0, max: 1, step: 0.1 },
             // Content group
-            { name: 'text', label: 'Text/Emoji', type: 'string', group: 'Inhalt' },
-            { name: 'contentImage', label: 'Bild-Inhalt', type: 'image_picker', group: 'Inhalt' }
+            { name: 'text', label: 'Text/Emoji', type: 'string', group: 'INHALT' },
+            { name: 'contentImage', label: 'Bild-Inhalt', type: 'image_picker', group: 'INHALT' }
         ];
     }
 

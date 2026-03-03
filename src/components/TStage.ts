@@ -153,19 +153,19 @@ export class TStage extends TWindow {
         const props = super.getInspectorProperties();
         return [
             ...props,
-            { name: 'description', label: 'Description', type: 'string', group: 'Info' },
-            { name: 'cols', label: 'Columns', type: 'number', group: 'Grid' },
-            { name: 'rows', label: 'Rows', type: 'number', group: 'Grid' },
-            { name: 'cellSize', label: 'Cell Size', type: 'number', group: 'Grid' },
-            { name: 'snapToGrid', label: 'Snap to Grid', type: 'boolean', group: 'Grid' },
-            { name: 'showGrid', label: 'Show Grid', type: 'boolean', group: 'Grid' },
+            { name: 'description', label: 'Beschreibung', type: 'string', group: 'INFO' },
+            { name: 'cols', label: 'Spalten', type: 'number', group: 'RASTER', inline: true },
+            { name: 'rows', label: 'Zeilen', type: 'number', group: 'RASTER', inline: true },
+            { name: 'cellSize', label: 'Zellengröße', type: 'number', group: 'RASTER', inline: true },
+            { name: 'snapToGrid', label: 'Am Raster ausrichten', type: 'boolean', group: 'RASTER' },
+            { name: 'showGrid', label: 'Raster sichtbar', type: 'boolean', group: 'RASTER' },
             // Background
-            { name: 'backgroundImage', label: 'Background Image', type: 'image_picker', group: 'Appearance' },
-            { name: 'objectFit', label: 'Image Fit', type: 'select', group: 'Appearance', options: ['cover', 'contain', 'fill', 'none'] },
+            { name: 'backgroundImage', label: 'Hintergrundbild', type: 'image_picker', group: 'DARSTELLUNG' },
+            { name: 'objectFit', label: 'Bild-Skalierung', type: 'select', group: 'DARSTELLUNG', options: ['cover', 'contain', 'fill', 'none'] },
             // Start Animation
-            { name: 'startAnimation', label: 'Start Animation', type: 'select', group: 'Animation', options: ['none', 'UpLeft', 'UpMiddle', 'UpRight', 'Left', 'Right', 'BottomLeft', 'BottomMiddle', 'BottomRight', 'ChaosIn', 'ChaosOut', 'Matrix', 'Random'] },
-            { name: 'startAnimationDuration', label: 'Duration (ms)', type: 'number', group: 'Animation' },
-            { name: 'startAnimationEasing', label: 'Easing', type: 'select', group: 'Animation', options: ['linear', 'easeIn', 'easeOut', 'easeInOut', 'bounce', 'elastic'] }
+            { name: 'startAnimation', label: 'Start-Animation', type: 'select', group: 'ANIMATION', options: ['none', 'UpLeft', 'UpMiddle', 'UpRight', 'Left', 'Right', 'BottomLeft', 'BottomMiddle', 'BottomRight', 'ChaosIn', 'ChaosOut', 'Matrix', 'Random'] },
+            { name: 'startAnimationDuration', label: 'Dauer (ms)', type: 'number', group: 'ANIMATION', inline: true },
+            { name: 'startAnimationEasing', label: 'Easing', type: 'select', group: 'ANIMATION', options: ['linear', 'easeIn', 'easeOut', 'easeInOut', 'bounce', 'elastic'], inline: true }
         ];
     }
 

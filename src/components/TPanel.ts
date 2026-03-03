@@ -55,10 +55,10 @@ export class TPanel extends TWindow {
         const props = super.getInspectorProperties();
         return [
             ...props,
-            { name: 'caption', label: 'Caption', type: 'string', group: 'Specifics' },
-            { name: 'showGrid', label: 'Show Grid', type: 'boolean', group: 'Specifics' },
-            { name: 'gridColor', label: 'Grid Color', type: 'color', group: 'Specifics' },
-            { name: 'gridStyle', label: 'Grid Style', type: 'select', options: ['lines', 'dots'], group: 'Specifics' }
+            { name: 'caption', label: 'Titel', type: 'string', group: 'IDENTITÄT' },
+            { name: 'showGrid', label: 'Gitter anzeigen', type: 'boolean', group: 'GITTER' },
+            { name: 'gridColor', label: 'Gitterfarbe', type: 'color', group: 'GITTER' },
+            { name: 'gridStyle', label: 'Gitterstil', type: 'select', options: ['lines', 'dots'], group: 'GITTER' }
         ];
     }
 }
