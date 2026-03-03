@@ -216,3 +216,5 @@ Scope: Behebung des Fehlers, bei dem Variablen auf der Stage nicht mehr per Drag
 - [2026-03-02] Phase 16: set_variable Action Parameters & Auto-Config.
 Files: StandardActions.ts (L110+), InspectorHost.ts (L385+), action_rules.json (L35+).
 Scope: Behebung fehlender Zuweisungsmöglichkeiten für "Variable setzen" (set_variable). Der Action-Agent kann nun dynamisch erfragen, ob ein statischer Wert, ein Quell-Objekt oder eine Objekt-Eigenschaft gesetzt werden soll. Die dynamischen Parameter persisting wurden in `InspectorHost.ts` korrigiert.
+-   D e f a u l t   S i z e   F i x   ( W i d t h = 5 ,   H e i g h t = 2 ) :   s r c / e d i t o r / s e r v i c e s / E d i t o r C o m m a n d M a n a g e r . t s   ( c r e a t e O b j e c t I n s t a n c e   L _ 3 5 )  
+ 

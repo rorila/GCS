@@ -31,6 +31,10 @@ export class EditorCommandManager {
             instance.height = 2;
         }
 
+        // Globaler Fallback für Komponenten ohne explizite Größenangaben
+        if (!instance.width) instance.width = 5;
+        if (!instance.height) instance.height = 2;
+
         return instance;
     }
 
