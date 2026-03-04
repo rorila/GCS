@@ -59,6 +59,7 @@ import { TCard } from '../components/TCard';
 import { TNavBar } from '../components/TNavBar';
 import { TTabBar } from '../components/TTabBar';
 import { TList } from '../components/TList';
+import { TDataList } from '../components/TDataList';
 import { TAuthService } from '../components/TAuthService';
 import { TUserManager } from '../components/TUserManager';
 /**
@@ -136,6 +137,7 @@ export class ComponentRegistry {
         this.register('TNavBar', TNavBar);
         this.register('TTabBar', TTabBar);
         this.register('TList', TList);
+        this.register('TDataList', TDataList);
         this.register('TAuthService', TAuthService);
         this.register('TUserManager', TUserManager);
 
@@ -210,6 +212,7 @@ export class ComponentRegistry {
         this.typeMapping.set('APIServer', 'TAPIServer');
         this.typeMapping.set('Database', 'TDataStore');
         this.typeMapping.set('DataStore', 'TDataStore');
+        this.typeMapping.set('DataList', 'TDataList');
     }
 
     /**

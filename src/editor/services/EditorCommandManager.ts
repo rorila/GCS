@@ -59,6 +59,28 @@ export class EditorCommandManager {
             return cn === 'TDialogRoot' || cn === 'TSplashScreen';
         }) as any[];
 
+        // Spezifische Logik für TDataList (Phase 22): 
+        // Generiere beim Erstellen sofort ein inneres Row-Panel als Template-Container
+        if (type === 'DataList') {
+            const rowPanel = this.createObjectInstance('Panel', `${name}_RowTemplate`, 0, 0);
+            if (rowPanel) {
+                rowPanel.width = newObj.width;
+                rowPanel.height = 40; // Default Row Height
+                rowPanel.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                rowPanel.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                rowPanel.style.borderWidth = 1;
+                (rowPanel as any).className = 'TPanel';
+                (rowPanel as any).scope = newObj.scope;
+
+                // Wir betten es direkt als Child in die DataList ein
+                if (!newObj.children) newObj.children = [];
+                newObj.children.push(rowPanel);
+
+                // WICHTIG: Child-Element auch dem Editor bekannt machen
+                this.editor.currentObjects.push(rowPanel);
+            }
+        }
+
         let parentDialog: any = null;
         for (const dialog of dialogContainers) {
             if (dialog.containsObject && dialog.containsObject(newObj)) {
