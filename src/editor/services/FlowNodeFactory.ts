@@ -146,13 +146,18 @@ export class FlowNodeFactory {
                 node = new FlowStart(id, x, y, this.host.canvas, cellSize);
                 node.Name = 'Start';
                 break;
-            case 'Connection': {
+            case 'connection': {
+                console.log(`[FlowEditor] Erstelle freifliegende Connection bei ${x}, ${y}`);
                 const conn = new FlowConnection(this.host.canvas, x, y, x + 100, y + 50);
                 conn.setGridConfig(cellSize);
                 this.host.connections.push(conn);
                 this.host.setupConnectionListeners(conn);
                 conn.select();
                 this.host.selectedConnection = conn;
+                console.log(`[FlowEditor] Freifliegende Connection erstellt. ID: ${conn.id}`);
+
+                // Mache ein Event Update, damit der Node auch registriert/gesynct werden kann
+                this.host.syncToProject();
                 return null;
             }
             default:

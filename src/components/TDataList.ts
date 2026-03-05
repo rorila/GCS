@@ -12,8 +12,8 @@ import { Logger } from '../utils/Logger';
 export class TDataList extends TPanel implements IRuntimeComponent {
     private static listLogger = Logger.get('TDataList', 'Component_Manipulation');
 
-    // Name der Variable (ObjectList oder DataAction Variable), von der Daten bezogen werden
-    public dataSource: string = '';
+    // Name der DataAction, von der Daten bezogen werden
+    public dataAction: string = '';
 
     constructor(name: string = 'DataList', x: number = 0, y: number = 0, width: number = 200, height: number = 300) {
         super(name, x, y, width, height);
@@ -22,7 +22,7 @@ export class TDataList extends TPanel implements IRuntimeComponent {
         this.style.backgroundColor = '#1e1e1e';
         this.style.borderColor = '#4da6ff'; // Blau passend zu unseren Inspector-Headern
         this.style.borderWidth = 2;
-        this.style.overflow = 'auto'; // Scrollbar falls nötig
+        (this.style as any).overflow = 'auto'; // Scrollbar falls nötig
 
         TDataList.listLogger.info(`TDataList Constructor: name=${this.name}`);
     }
@@ -36,11 +36,12 @@ export class TDataList extends TPanel implements IRuntimeComponent {
         return [
             ...baseProps,
             {
-                name: 'dataSource',
-                label: 'Datenquelle (Variable)',
-                type: 'string', // Später evtl. als 'select' oder 'variable' Typ wenn der Editor das unterstützt
+                name: 'dataAction',
+                label: 'Datenquelle (DataAction)',
+                type: 'select',
+                source: 'dataActions',
                 group: 'DATENBINDUNG',
-                hint: 'Name der TObjectList Variable'
+                hint: 'Name der DataAction'
             }
         ];
     }
@@ -51,15 +52,15 @@ export class TDataList extends TPanel implements IRuntimeComponent {
     public toJSON(): any {
         return {
             ...super.toJSON(),
-            dataSource: this.dataSource
+            dataAction: this.dataAction
         };
     }
 
     // --- IRuntimeComponent Implementation ---
 
-    public initRuntime(callbacks: { handleEvent: (id: string, ev: string, data?: any) => void }): void {
-        // Hier wird später die Logik zum Überwachen der dataSource und
+    public initRuntime(_callbacks: { handleEvent: (id: string, ev: string, data?: any) => void }): void {
+        // Hier wird später die Logik zum Überwachen der dataAction und
         // Klonen des ersten Child-Panels implementiert (Phase 22 Runtime Cloning).
-        TDataList.listLogger.info(`TDataList initRuntime: dataSource=${this.dataSource}`);
+        TDataList.listLogger.info(`TDataList initRuntime: dataAction=${this.dataAction}`);
     }
 }

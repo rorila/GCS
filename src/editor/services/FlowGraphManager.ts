@@ -297,6 +297,7 @@ export class FlowGraphManager {
     }
 
     public deleteConnection(conn: FlowConnection) {
+        console.log(`%c[FlowGraphManager:DELETE_CONN] ID=${conn.id}`, 'background: #440000; color: #fff');
         const index = this.host.connections.indexOf(conn);
         if (index !== -1) {
             this.host.connections.splice(index, 1);
@@ -317,13 +318,12 @@ export class FlowGraphManager {
     public restoreConnection(data: any) {
         // Use Flow_Synchronization for connection restoration
         const connLogger = Logger.get('FlowGraphManager', 'Flow_Synchronization');
-        connLogger.debug(`restoreConnection: ${data.startTargetId} -> ${data.endTargetId}`, data);
 
-        const startNode = data.startTargetId ? this.host.nodes.find(n => n.id === data.startTargetId || (n as any).name === data.startTargetId) : null;
-        const endNode = data.endTargetId ? this.host.nodes.find(n => n.id === data.endTargetId || (n as any).name === data.endTargetId) : null;
+        const startId = data.startTargetId;
+        const endId = data.endTargetId;
 
-        if (!startNode) connLogger.warn(`Start node ${data.startTargetId} NOT FOUND in current nodes list! Total nodes: ${this.host.nodes.length}`);
-        if (!endNode) connLogger.warn(`End node ${data.endTargetId} NOT FOUND in current nodes list! Total nodes: ${this.host.nodes.length}`);
+        const startNode = startId ? this.host.nodes.find(n => n.id === startId || (n as any).name === startId) : null;
+        const endNode = endId ? this.host.nodes.find(n => n.id === endId || (n as any).name === endId) : null;
 
         let x1 = data.startX || 0;
         let y1 = data.startY || 0;
@@ -344,6 +344,9 @@ export class FlowGraphManager {
         conn.updatePosition();
         this.host.connections.push(conn);
         this.host.setupConnectionListeners(conn);
+
+        const status = (startNode && endNode) ? 'attached' : (startNode || endNode ? 'partially-attached' : 'floating');
+        connLogger.info(`[TRACE] restoreConnection successful: ID=${conn.id}, Status=${status}, Nodes: ${startId || 'none'} -> ${endId || 'none'}`);
     }
 
     public deleteElementFromProject(type: 'action' | 'task' | 'variable', name: string, index?: number, force: boolean = false) {

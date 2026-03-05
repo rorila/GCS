@@ -16,6 +16,7 @@ export interface EditorRenderHost {
     runtime: any;
     runtimeObjects: any[] | null;
     currentView: ViewType;
+    runManager: any;
     currentSelectedId: string | null;
 
     getActiveStage(): StageDefinition | null;
@@ -34,14 +35,16 @@ export class EditorRenderManager {
         this.host = host;
     }
 
-    public render() {
+    public render(targetStage?: any) {
         if (!this.host.project) return;
         try {
+            const stage = targetStage || (this.host.currentView === 'run' ? this.host.runManager?.runStage : this.host.stage);
+            if (!stage) return;
             // Set Blueprint Mode and Grid on stage from active stage definition
             const activeStage = this.host.getActiveStage();
-            this.host.stage.isBlueprint = activeStage?.type === 'blueprint';
+            stage.isBlueprint = activeStage?.type === 'blueprint';
             if (activeStage?.grid) {
-                this.host.stage.grid = activeStage.grid;
+                stage.grid = activeStage.grid;
             }
 
             // CRITICAL: Always get fresh objects from runtime if available
@@ -53,18 +56,16 @@ export class EditorRenderManager {
                 objectsToRender = objectsToRender.map((obj: any) => this.resolveObjectPreview(obj, varContext));
             }
 
-            this.host.stage.renderObjects(objectsToRender);
+            stage.renderObjects(objectsToRender);
 
-            // Stage-Wrapper nur im Stage- oder Run-Tab einblenden
+            // Stage-Wrapper nur im Stage-Tab einblenden (Run nutzt #run-stage)
             const stageWrapper = document.getElementById('stage-wrapper');
             if (stageWrapper) {
-                const isStageOrRunView = this.host.currentView === 'stage' || this.host.currentView === 'run';
-                stageWrapper.style.display = isStageOrRunView ? 'flex' : 'none';
+                const isStageView = this.host.currentView === 'stage';
+                stageWrapper.style.display = isStageView ? 'flex' : 'none';
             }
 
             // ARCHITEKTUR: ObjectStore als Single Source of Truth aktualisieren.
-            // Alle Komponenten (findObjectById, Inspector, StageInteraction) lesen von hier.
-            // Defensiv: Darf den Render-Prozess nicht blockieren.
             this.host.objectStore?.setObjects(objectsToRender);
         } catch (err) {
             this.logger.error('Render error:', err);

@@ -13,7 +13,8 @@ export class TableRenderer {
     public static renderTable(
         el: HTMLElement,
         obj: any,
-        onEvent?: (id: string, event: string, data?: any) => void
+        onEvent?: (id: string, event: string, data?: any) => void,
+        cellSize: number = 20
     ): void {
         try {
             el.innerHTML = '';
@@ -25,7 +26,7 @@ export class TableRenderer {
             const rawData = Array.isArray(obj.data) ? obj.data : [];
 
             if (obj.viewType === 'grid') {
-                this.renderGrid(scrollArea, el, obj, cols, rawData, onEvent);
+                this.renderGrid(scrollArea, el, obj, cols, rawData, onEvent, cellSize);
             } else {
                 this.renderStandardTable(scrollArea, el, obj, cols, rawData, onEvent);
             }
@@ -40,7 +41,8 @@ export class TableRenderer {
         obj: any,
         cols: any[],
         rawData: any[],
-        onEvent?: any
+        onEvent?: any,
+        cellSize: number = 20
     ) {
         const config = obj.gridConfig || {};
         const cardWidth = config.cardWidth || 180;
@@ -80,7 +82,6 @@ export class TableRenderer {
 
                 const itemEl = document.createElement('div');
                 itemEl.style.position = 'absolute';
-                const cellSize = 10;
                 if (col.x !== undefined) itemEl.style.left = `${col.x * cellSize}px`;
                 if (col.y !== undefined) itemEl.style.top = `${col.y * cellSize}px`;
                 if (col.width !== undefined) itemEl.style.width = `${col.width * cellSize}px`;

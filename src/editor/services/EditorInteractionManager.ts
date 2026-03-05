@@ -6,6 +6,7 @@ export interface EditorInteractionHost {
     project: GameProject;
     stage: any;
     runtimeObjects: any[] | null;
+    runManager: any; // Added for routing runtime events
 
     addObject(type: string, x: number, y: number): void;
     removeObject(id: string): void;
@@ -58,12 +59,13 @@ export class EditorInteractionManager {
         return null;
     }
 
-    public initCallbacks() {
-        this.host.stage.onDropCallback = (type: string, gridX: number, gridY: number) => {
+    public initCallbacks(targetStage?: any) {
+        const stage = targetStage || this.host.stage;
+        stage.onDropCallback = (type: string, gridX: number, gridY: number) => {
             this.host.addObject(type, gridX, gridY);
         };
 
-        this.host.stage.onSelectCallback = (ids: string[]) => {
+        stage.onSelectCallback = (ids: string[]) => {
             if (ids.length > 0) {
                 this.host.selectObject(ids[0]);
                 console.log(`[EditorInteractionManager] Selected ${ids.length} object(s):`, ids);
@@ -75,8 +77,8 @@ export class EditorInteractionManager {
             mediatorService.notifyObjectSelected(selectedObj);
         };
 
-        this.host.stage.onObjectMove = (id: string, newX: number, newY: number) => {
-            if (this.host.stage.runMode) {
+        stage.onObjectMove = (id: string, newX: number, newY: number) => {
+            if (stage.runMode) {
                 if (this.host.runtimeObjects) {
                     const runtimeObj = this.host.runtimeObjects.find(ro => ro.id === id);
                     if (runtimeObj) {
@@ -103,7 +105,7 @@ export class EditorInteractionManager {
             this.host.autoSaveToLocalStorage();
         };
 
-        this.host.stage.onObjectResize = (id: string, newWidth: number, newHeight: number) => {
+        stage.onObjectResize = (id: string, newWidth: number, newHeight: number) => {
             const obj = this.host.findObjectById(id);
             if (obj) {
                 obj.width = newWidth;
@@ -120,7 +122,7 @@ export class EditorInteractionManager {
             this.host.autoSaveToLocalStorage();
         };
 
-        this.host.stage.onCopyCallback = (id: string) => {
+        stage.onCopyCallback = (id: string) => {
             const obj = this.host.findObjectById(id);
             if (obj) {
                 return JSON.parse(JSON.stringify(obj));
@@ -128,11 +130,11 @@ export class EditorInteractionManager {
             return null;
         };
 
-        this.host.stage.onDragStart = (id: string) => {
+        stage.onDragStart = (id: string) => {
             console.log(`[EditorInteractionManager] Drag start: ${id}`);
         };
 
-        this.host.stage.onObjectCopy = (id: string, x: number, y: number) => {
+        stage.onObjectCopy = (id: string, x: number, y: number) => {
             console.log(`[EditorInteractionManager] onObjectCopy called for ${id} at ${x},${y}`);
             const original = this.host.findObjectById(id);
             if (!original) return;
@@ -151,27 +153,54 @@ export class EditorInteractionManager {
             }
         };
 
-        this.host.stage.onPasteCallback = (jsonObj: any, x: number, y: number) => {
+        stage.onPasteCallback = (jsonObj: any, x: number, y: number): string | null => {
+            console.log('[EditorInteractionManager] onPasteCallback called', jsonObj?.className, x, y);
             const copyData = JSON.parse(JSON.stringify(jsonObj));
             copyData.id = 'obj_' + Math.random().toString(36).substr(2, 9);
             copyData.x = x;
             copyData.y = y;
+            // Eindeutigen Namen vergeben
+            const baseName = (jsonObj.name || 'Object').replace(/_copy\d*$/, '');
+            copyData.name = `${baseName}_copy`;
 
             const newObj = componentRegistry.createInstance(copyData);
-            if (newObj) {
-                this.host.project.objects.push(newObj as any);
-                this.host.render();
-                this.host.selectObject(newObj.id);
-                this.host.autoSaveToLocalStorage();
+            if (!newObj) {
+                console.error('[EditorInteractionManager] createInstance returned null for', copyData.className);
+                return null;
             }
+            console.log('[EditorInteractionManager] Created copy:', newObj.id, newObj.name);
+
+            const project = this.host.project;
+            if (project.stages && project.activeStageId) {
+                const activeStage = project.stages.find(s => s.id === project.activeStageId);
+                if (activeStage && activeStage.objects) {
+                    activeStage.objects.push(newObj as any);
+                    console.log('[EditorInteractionManager] Pushed to activeStage.objects, count:', activeStage.objects.length);
+                } else {
+                    console.error('[EditorInteractionManager] activeStage oder objects nicht gefunden');
+                    return null;
+                }
+            } else {
+                project.objects.push(newObj as any);
+            }
+
+            this.host.render();
+            this.host.selectObject(newObj.id);
+            this.host.autoSaveToLocalStorage();
+            return newObj.id;
         };
 
-        // --- NEW: Lösch-Events von der Stage verarbeiten (Delete-Key & Kontextmenü) ---
-        this.host.stage.onEvent = (id: string, eventName: string, data?: any) => {
-            if (eventName === 'delete') {
-                this.host.removeObjectWithConfirm(id);
-            } else if (eventName === 'deleteMultiple' && Array.isArray(data)) {
-                this.host.removeMultipleObjectsWithConfirm(data);
+        stage.onEvent = (id: string, eventName: string, data?: any) => {
+            if (stage.runMode) {
+                if (this.host.runManager.runtime) {
+                    this.host.runManager.runtime.handleEvent(id, eventName, data);
+                }
+            } else {
+                if (eventName === 'delete') {
+                    this.host.removeObjectWithConfirm(id);
+                } else if (eventName === 'deleteMultiple' && Array.isArray(data)) {
+                    this.host.removeMultipleObjectsWithConfirm(data);
+                }
             }
         };
     }

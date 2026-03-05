@@ -1148,11 +1148,10 @@
     getBaseProperties() {
       return [
         { name: "name", label: "Name", type: "string", group: "IDENTIT\xC4T" },
-        { name: "id", label: "ID", type: "string", group: "IDENTIT\xC4T", readonly: true },
         { name: "scope", label: "Scope", type: "select", group: "IDENTIT\xC4T", options: ["global", "stage"] },
-        { name: "draggable", label: "Draggable", type: "boolean", group: "INTERAKTION", editorOnly: true },
-        { name: "dragMode", label: "Drag Mode", type: "select", group: "INTERAKTION", options: ["move", "copy"], editorOnly: true },
-        { name: "droppable", label: "Droppable", type: "boolean", group: "INTERAKTION", editorOnly: true }
+        { name: "draggable", label: "Draggable", type: "boolean", group: "INTERAKTION", editorOnly: true, inline: true },
+        { name: "droppable", label: "Droppable", type: "boolean", group: "INTERAKTION", editorOnly: true, inline: true },
+        { name: "dragMode", label: "Drag Mode", type: "select", group: "INTERAKTION", options: ["move", "copy"], editorOnly: true }
       ];
     }
     /**
@@ -1191,7 +1190,12 @@
         }
       });
       if (this.children.length > 0) {
-        json.children = this.children.map((child) => child.toJSON());
+        json.children = this.children.map((child) => {
+          if (typeof child.toJSON === "function") {
+            return child.toJSON();
+          }
+          return child;
+        });
       }
       return json;
     }
@@ -4203,16 +4207,15 @@
     getInspectorProperties() {
       return [
         ...this.getBaseProperties(),
-        { name: "name", label: "Name", type: "string", group: "IDENTIT\xC4T" },
         { name: "visible", label: "Sichtbar", type: "boolean", group: "IDENTIT\xC4T" },
-        { name: "x", label: "X Position", type: "number", group: "GEOMETRIE" },
-        { name: "y", label: "Y Position", type: "number", group: "GEOMETRIE" },
-        { name: "width", label: "Breite", type: "number", group: "GEOMETRIE" },
-        { name: "height", label: "H\xF6he", type: "number", group: "GEOMETRIE" },
-        { name: "zIndex", label: "Z-Index", type: "number", group: "GEOMETRIE" },
-        { name: "align", label: "Ausrichtung", type: "select", group: "GEOMETRIE", options: ["NONE", "TOP", "BOTTOM", "LEFT", "RIGHT", "CLIENT"] },
+        { name: "x", label: "X", type: "number", group: "GEOMETRIE", inline: true },
+        { name: "y", label: "Y", type: "number", group: "GEOMETRIE", inline: true },
+        { name: "width", label: "Breite", type: "number", group: "GEOMETRIE", inline: true },
+        { name: "height", label: "H\xF6he", type: "number", group: "GEOMETRIE", inline: true },
+        { name: "zIndex", label: "Z-Index", type: "number", group: "GEOMETRIE", inline: true },
+        { name: "align", label: "Ausrichtung", type: "select", group: "GEOMETRIE", options: ["NONE", "TOP", "BOTTOM", "LEFT", "RIGHT", "CLIENT"], inline: true },
+        { name: "style.color", label: "Textfarbe", type: "color", group: "TYPOGRAFIE" },
         { name: "style.backgroundColor", label: "Hintergrund", type: "color", group: "STIL" },
-        { name: "style.color", label: "Textfarbe", type: "color", group: "STIL" },
         { name: "style.borderColor", label: "Rahmenfarbe", type: "color", group: "STIL" },
         { name: "style.borderWidth", label: "Rahmenbreite", type: "number", group: "STIL", min: 0, step: 1 },
         { name: "style.borderRadius", label: "Abrundung", type: "number", group: "STIL", min: 0, step: 1 },
@@ -8527,19 +8530,19 @@
       const props = super.getInspectorProperties();
       return [
         ...props,
-        { name: "description", label: "Description", type: "string", group: "Info" },
-        { name: "cols", label: "Columns", type: "number", group: "Grid" },
-        { name: "rows", label: "Rows", type: "number", group: "Grid" },
-        { name: "cellSize", label: "Cell Size", type: "number", group: "Grid" },
-        { name: "snapToGrid", label: "Snap to Grid", type: "boolean", group: "Grid" },
-        { name: "showGrid", label: "Show Grid", type: "boolean", group: "Grid" },
+        { name: "description", label: "Beschreibung", type: "string", group: "INFO" },
+        { name: "cols", label: "Spalten", type: "number", group: "RASTER", inline: true },
+        { name: "rows", label: "Zeilen", type: "number", group: "RASTER", inline: true },
+        { name: "cellSize", label: "Zellengr\xF6\xDFe", type: "number", group: "RASTER", inline: true },
+        { name: "snapToGrid", label: "Am Raster ausrichten", type: "boolean", group: "RASTER" },
+        { name: "showGrid", label: "Raster sichtbar", type: "boolean", group: "RASTER" },
         // Background
-        { name: "backgroundImage", label: "Background Image", type: "image_picker", group: "Appearance" },
-        { name: "objectFit", label: "Image Fit", type: "select", group: "Appearance", options: ["cover", "contain", "fill", "none"] },
+        { name: "backgroundImage", label: "Hintergrundbild", type: "image_picker", group: "DARSTELLUNG" },
+        { name: "objectFit", label: "Bild-Skalierung", type: "select", group: "DARSTELLUNG", options: ["cover", "contain", "fill", "none"] },
         // Start Animation
-        { name: "startAnimation", label: "Start Animation", type: "select", group: "Animation", options: ["none", "UpLeft", "UpMiddle", "UpRight", "Left", "Right", "BottomLeft", "BottomMiddle", "BottomRight", "ChaosIn", "ChaosOut", "Matrix", "Random"] },
-        { name: "startAnimationDuration", label: "Duration (ms)", type: "number", group: "Animation" },
-        { name: "startAnimationEasing", label: "Easing", type: "select", group: "Animation", options: ["linear", "easeIn", "easeOut", "easeInOut", "bounce", "elastic"] }
+        { name: "startAnimation", label: "Start-Animation", type: "select", group: "ANIMATION", options: ["none", "UpLeft", "UpMiddle", "UpRight", "Left", "Right", "BottomLeft", "BottomMiddle", "BottomRight", "ChaosIn", "ChaosOut", "Matrix", "Random"] },
+        { name: "startAnimationDuration", label: "Dauer (ms)", type: "number", group: "ANIMATION", inline: true },
+        { name: "startAnimationEasing", label: "Easing", type: "select", group: "ANIMATION", options: ["linear", "easeIn", "easeOut", "easeInOut", "bounce", "elastic"], inline: true }
       ];
     }
     // ─────────────────────────────────────────────
@@ -10358,12 +10361,66 @@
     }
   };
 
+  // src/components/TDataList.ts
+  var _TDataList = class _TDataList extends TPanel {
+    constructor(name = "DataList", x = 0, y = 0, width = 200, height = 300) {
+      super(name, x, y, width, height);
+      // Name der DataAction, von der Daten bezogen werden
+      __publicField(this, "dataAction", "");
+      this.style.backgroundColor = "#1e1e1e";
+      this.style.borderColor = "#4da6ff";
+      this.style.borderWidth = 2;
+      this.style.overflow = "auto";
+      _TDataList.listLogger.info(`TDataList Constructor: name=${this.name}`);
+    }
+    /**
+     * Erweitert die Inspector-Eigenschaften um die dataSource
+     */
+    getInspectorProperties() {
+      const baseProps = super.getInspectorProperties();
+      return [
+        ...baseProps,
+        {
+          name: "dataAction",
+          label: "Datenquelle (DataAction)",
+          type: "select",
+          source: "dataActions",
+          group: "DATENBINDUNG",
+          hint: "Name der DataAction"
+        }
+      ];
+    }
+    /**
+     * Bereitet die Serialisierung für project.json vor
+     */
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        dataAction: this.dataAction
+      };
+    }
+    // --- IRuntimeComponent Implementation ---
+    initRuntime(_callbacks) {
+      _TDataList.listLogger.info(`TDataList initRuntime: dataAction=${this.dataAction}`);
+    }
+  };
+  __publicField(_TDataList, "listLogger", Logger.get("TDataList", "Component_Manipulation"));
+  var TDataList = _TDataList;
+
   // src/utils/Serialization.ts
   var logger4 = Logger.get("Serialization", "Project_Save_Load");
   function hydrateObjects(objectsData) {
     const objects = [];
     objectsData.forEach((objData) => {
+      if (!objData) return;
+      if (objData.className && typeof objData.clone === "function" && objData.constructor.name !== "Object") {
+        objects.push(objData);
+        return;
+      }
+      const internalContainers = ["TDataList", "TTable", "TObjectList", "TEmojiPicker"];
+      const isInternal = internalContainers.includes(objData.className);
       let newObj = null;
+      if (newObj) newObj.isInternalContainer = isInternal;
       switch (objData.className) {
         case "TButton":
           newObj = new TButton(objData.name, objData.x, objData.y, objData.width, objData.height, objData.caption);
@@ -10558,6 +10615,9 @@
         case "TTable":
           newObj = new TTable(objData.name, objData.x, objData.y, objData.width, objData.height);
           break;
+        case "TDataList":
+          newObj = new TDataList(objData.name, objData.x, objData.y, objData.width, objData.height);
+          break;
         default:
           logger4.warn("Unknown class during load:", objData.className);
           break;
@@ -10740,33 +10800,20 @@
       __publicField(this, "project");
       this.project = project;
     }
-    resolveInheritanceChain(stageId, visited = /* @__PURE__ */ new Set()) {
-      if (visited.has(stageId)) {
-        this.logger.error(`Circular inheritance detected for stage: ${stageId}`);
-        return [];
-      }
-      visited.add(stageId);
-      const stage = this.project.stages?.find((s) => s.id === stageId);
-      if (!stage) return [];
-      const chain = [stage];
-      if (stage.inheritsFrom) {
-        chain.unshift(...this.resolveInheritanceChain(stage.inheritsFrom, visited));
-      }
-      return chain;
-    }
     getMergedStageData(stageId) {
-      const stageChain = this.resolveInheritanceChain(stageId);
+      const stage = this.project.stages?.find((s) => s.id === stageId);
+      const stageChain = stage ? [stage] : [];
       let mergedObjects = [];
       let mergedTasks = [...this.project.tasks || []];
       let mergedActions = [...this.project.actions || []];
       let mergedFlowCharts = { ...this.project.flowCharts || {} };
       const objectIdSet = /* @__PURE__ */ new Set();
-      const processStage = (stage, useCache = false) => {
+      const processStage = (stage2, useCache = false) => {
         if (useCache) {
           if (!this.cachedGlobalObjects) {
             this.cachedGlobalObjects = [];
-            const sObjects = hydrateObjects(stage.objects || []);
-            const sVars = hydrateObjects(stage.variables || []);
+            const sObjects = hydrateObjects(stage2.objects || []);
+            const sVars = hydrateObjects(stage2.variables || []);
             sVars.forEach((v) => v.isVariable = true);
             this.cachedGlobalObjects.push(...sObjects, ...sVars);
           }
@@ -10776,14 +10823,14 @@
             objectIdSet.add(obj.id);
           });
         } else {
-          const stageObjects = hydrateObjects(stage.objects || []);
+          const stageObjects = hydrateObjects(stage2.objects || []);
           stageObjects.forEach((obj) => {
             mergedObjects = mergedObjects.filter((o) => o.id !== obj.id);
             mergedObjects.push(obj);
             objectIdSet.add(obj.id);
           });
-          if (stage.variables) {
-            const hydratedVars = hydrateObjects(stage.variables);
+          if (stage2.variables) {
+            const hydratedVars = hydrateObjects(stage2.variables);
             hydratedVars.forEach((vObj) => {
               vObj.isVariable = true;
               mergedObjects = mergedObjects.filter((o) => o.id !== vObj.id);
@@ -10792,20 +10839,20 @@
             });
           }
         }
-        if (stage.tasks) {
-          stage.tasks.forEach((t) => {
+        if (stage2.tasks) {
+          stage2.tasks.forEach((t) => {
             mergedTasks = mergedTasks.filter((existing) => existing.name !== t.name);
             mergedTasks.push(t);
           });
         }
-        if (stage.actions) {
-          stage.actions.forEach((a) => {
+        if (stage2.actions) {
+          stage2.actions.forEach((a) => {
             mergedActions = mergedActions.filter((existing) => existing.name !== a.name);
             mergedActions.push(a);
           });
         }
-        if (stage.flowCharts) {
-          Object.assign(mergedFlowCharts, stage.flowCharts);
+        if (stage2.flowCharts) {
+          Object.assign(mergedFlowCharts, stage2.flowCharts);
         }
       };
       const targetIsBlueprint = this.project.stages?.find((s) => s.id === stageId)?.type === "blueprint";
@@ -10837,7 +10884,10 @@
         objects: mergedObjects,
         tasks: mergedTasks,
         actions: mergedActions,
-        flowCharts: mergedFlowCharts
+        flowCharts: mergedFlowCharts,
+        grid: activeStage?.grid || blueprintStages[0]?.grid,
+        backgroundColor: activeStage?.grid?.backgroundColor || blueprintStages[0]?.grid?.backgroundColor,
+        backgroundImage: activeStage?.backgroundImage || blueprintStages[0]?.backgroundImage
       };
     }
   };
@@ -10879,6 +10929,12 @@
         this.isSplashActive = activeStage.type === "splash";
         const merged = this.stageManager.getMergedStageData(activeStage.id);
         this.objects = merged.objects;
+        if (merged.grid) activeStage.grid = { ...activeStage.grid, ...merged.grid };
+        if (merged.backgroundColor) {
+          if (!activeStage.grid) activeStage.grid = {};
+          activeStage.grid.backgroundColor = merged.backgroundColor;
+        }
+        if (merged.backgroundImage) activeStage.backgroundImage = merged.backgroundImage;
         this.variableManager.initializeStageVariables(activeStage);
         this.syncVariableComponents();
         if (options.makeReactive) {
@@ -11230,10 +11286,31 @@
       const results = [];
       const process2 = (objs, parentX = 0, parentY = 0, parentZ = 0) => {
         objs.forEach((obj) => {
-          if (obj.visible === false) return;
-          const absoluteX = parentX + (obj.x || 0);
-          const absoluteY = parentY + (obj.y || 0);
-          const absoluteZ = parentZ + (obj.zIndex || 0);
+          const resolveCoord = (val) => {
+            if (val === void 0 || val === null) return val;
+            if (typeof val === "string" && val.includes("${")) {
+              try {
+                const evaluated = this.reactiveRuntime.evaluate(val);
+                const n = Number(evaluated);
+                return isNaN(n) ? evaluated : n;
+              } catch (e) {
+                return val;
+              }
+            }
+            if (typeof val === "string") {
+              const n = Number(val);
+              return isNaN(n) ? val : n;
+            }
+            return typeof val === "number" ? val : 0;
+          };
+          const rx = resolveCoord(obj.x);
+          const ry = resolveCoord(obj.y);
+          const absoluteX = parentX + rx;
+          const absoluteY = parentY + ry;
+          if (obj.name?.includes("Button") || obj.name && obj.name.includes("Emoji")) {
+            console.log(`[GameRuntime:Layout] ${obj.name}: x=${obj.x} (resolved=${rx}), parentX=${parentX} -> absoluteX=${absoluteX}`);
+          }
+          const absoluteZ = parentZ + resolveCoord(obj.zIndex);
           const copy = { ...obj };
           let proto = Object.getPrototypeOf(obj);
           while (proto && proto !== Object.prototype) {
@@ -11251,10 +11328,17 @@
           }
           copy.x = absoluteX;
           copy.y = absoluteY;
+          copy.width = resolveCoord(obj.width);
+          copy.height = resolveCoord(obj.height);
           copy.zIndex = absoluteZ;
           results.push(copy);
-          if (obj.children && obj.children.length > 0) {
-            process2(obj.children, absoluteX, absoluteY, absoluteZ);
+          const shouldRecurse = !obj.isInternalContainer;
+          if (shouldRecurse && obj.children && obj.children.length > 0) {
+            const gridConfig = this.project.stage?.grid || { cellSize: 20 };
+            const cellSize = gridConfig.cellSize || 20;
+            const isDialog = obj.className === "TDialogRoot" || obj.className === "TDialog";
+            const childOffsetY = isDialog ? 30 / cellSize : 0;
+            process2(obj.children, absoluteX, absoluteY + childOffsetY, absoluteZ + 1);
           }
         });
       };
@@ -11872,7 +11956,7 @@
     /**
      * Main entry point for rendering any table/grid structure.
      */
-    static renderTable(el, obj, onEvent) {
+    static renderTable(el, obj, onEvent, cellSize = 20) {
       try {
         el.innerHTML = "";
         const scrollArea = document.createElement("div");
@@ -11881,7 +11965,7 @@
         const cols = Array.isArray(obj.columns) ? obj.columns : [];
         const rawData = Array.isArray(obj.data) ? obj.data : [];
         if (obj.viewType === "grid") {
-          this.renderGrid(scrollArea, el, obj, cols, rawData, onEvent);
+          this.renderGrid(scrollArea, el, obj, cols, rawData, onEvent, cellSize);
         } else {
           this.renderStandardTable(scrollArea, el, obj, cols, rawData, onEvent);
         }
@@ -11889,7 +11973,7 @@
         logger7.error("Error rendering table:", e);
       }
     }
-    static renderGrid(scrollArea, el, obj, cols, rawData, onEvent) {
+    static renderGrid(scrollArea, el, obj, cols, rawData, onEvent, cellSize = 20) {
       const config = obj.gridConfig || {};
       const cardWidth = config.cardWidth || 180;
       const cardHeight = config.cardHeight || 120;
@@ -11922,7 +12006,6 @@
           const colStyle = col.style || {};
           const itemEl = document.createElement("div");
           itemEl.style.position = "absolute";
-          const cellSize = 10;
           if (col.x !== void 0) itemEl.style.left = `${col.x * cellSize}px`;
           if (col.y !== void 0) itemEl.style.top = `${col.y * cellSize}px`;
           if (col.width !== void 0) itemEl.style.width = `${col.width * cellSize}px`;
@@ -12013,6 +12096,8 @@
       const objectHash = objects.map((o) => `${o.id}@${o.x?.toFixed(1)},${o.y?.toFixed(1)}`).join("|");
       if (this.host.runMode) {
         this.host.lastObjectHash = objectHash;
+        const gridConfig2 = this.host.grid;
+        logger8.info(`%c[Layout] renderObjects: Using cellSize=${gridConfig2.cellSize} for ${objects.length} objects`, "color: #00ff00; font-weight: bold");
         if (!this.host.runModeLogDone) {
           this.host.runModeLogDone = true;
           logger8.info(`RunMode Render Start. Rendering ${objects.length} objects.`);
@@ -12035,6 +12120,9 @@
       const gridConfig = this.host.grid;
       const stageWidth = gridConfig.cols * gridConfig.cellSize;
       const stageHeight = gridConfig.rows * gridConfig.cellSize;
+      if (this.host.runMode) {
+        logger8.info(`[StageRenderer:Layout] Stage Size: ${stageWidth}x${stageHeight} (cols: ${gridConfig.cols}, nodes: ${objects.length})`);
+      }
       const dockArea = { left: 0, top: 0, right: stageWidth, bottom: stageHeight };
       const dockPositions = /* @__PURE__ */ new Map();
       objects.forEach((obj) => {
@@ -12111,18 +12199,27 @@
         const className = obj.className || obj.constructor?.name;
         el.setAttribute("data-align", obj.align || "NONE");
         const dockPos = dockPositions.get(objId);
+        let finalX, finalY, finalW, finalH;
         if (dockPos) {
-          const offsetX = (obj.x || 0) * gridConfig.cellSize;
-          const offsetY = (obj.y || 0) * gridConfig.cellSize;
-          el.style.left = `${dockPos.left + offsetX}px`;
-          el.style.top = `${dockPos.top + offsetY}px`;
-          el.style.width = `${dockPos.width}px`;
-          el.style.height = `${dockPos.height}px`;
+          finalX = dockPos.left;
+          finalY = dockPos.top;
+          finalW = dockPos.width;
+          finalH = dockPos.height;
         } else {
-          el.style.left = `${(obj.x || 0) * gridConfig.cellSize}px`;
-          el.style.top = `${(obj.y || 0) * gridConfig.cellSize}px`;
-          el.style.width = `${(obj.width || 0) * gridConfig.cellSize}px`;
-          el.style.height = `${(obj.height || 0) * gridConfig.cellSize}px`;
+          finalX = (obj.x || 0) * gridConfig.cellSize;
+          finalY = (obj.y || 0) * gridConfig.cellSize;
+          finalW = (obj.width || 0) * gridConfig.cellSize;
+          finalH = (obj.height || 0) * gridConfig.cellSize;
+        }
+        el.style.left = `${finalX}px`;
+        el.style.top = `${finalY}px`;
+        el.style.width = `${finalW}px`;
+        el.style.height = `${finalH}px`;
+        if (this.host.runMode) {
+          const isMetric = obj.name?.includes("Metric") || obj.id?.includes("metric");
+          if (isMetric || obj.id === "dash_title" || obj.id === "dash_back_btn" || obj.name?.includes("Button") || obj.name && obj.name.includes("Emoji")) {
+            logger8.debug(`%c[Layout] ${obj.name || obj.id} (RUN): align=${obj.align}, x=${obj.x}, y=${obj.y}, w=${obj.width}, cellSize=${gridConfig.cellSize} -> left=${finalX}, top=${finalY}`, "color: #ff00ff; font-weight: bold");
+          }
         }
         let isVisible = this.checkVisible(obj.visible) && this.checkVisible(obj.style?.visible);
         const isInherited = !!obj.isInherited;
@@ -12130,9 +12227,7 @@
         const isBlueprintOnly = !!obj.isBlueprintOnly;
         const isService = !!obj.isService;
         if (!this.host.isBlueprint) {
-          if (isInherited && isFromBlueprint) {
-            isVisible = false;
-          } else if (isBlueprintOnly && isService) {
+          if (isFromBlueprint && (isService || isBlueprintOnly)) {
             isVisible = false;
           }
         }
@@ -12296,8 +12391,8 @@
         this.renderButton(el, obj, isNew);
       } else if (className === "TEmojiPicker") {
         this.renderEmojiPickerInternal(el, obj);
-      } else if (className === "TTable" || className === "TObjectList") {
-        _StageRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host));
+      } else if (className === "TTable" || className === "TObjectList" || className === "TDataList") {
+        _StageRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host), this.host.grid.cellSize);
       } else if (className === "TStringVariable" || className === "TObjectVariable" || className === "TIntegerVariable" || className === "TBooleanVariable" || className === "TListVariable" || obj.isVariable || obj.isService) {
         this.renderSystemComponent(el, obj, className);
       } else if (className === "TLabel" || className === "TNumberLabel") {
@@ -12596,19 +12691,25 @@
       else el.style.justifyContent = "flex-start";
     }
     renderPanel(el, obj) {
+      const textValue = obj.caption || (this.host.runMode ? "" : obj.name);
+      if (el.innerText !== textValue) el.innerText = textValue;
       if (!this.host.runMode) {
-        el.innerText = obj.name;
-        el.style.color = "#777";
+        el.style.color = obj.style?.color || "#777";
         el.style.fontSize = "12px";
         el.style.justifyContent = "center";
         el.style.alignItems = "center";
       } else {
-        el.innerText = "";
+        if (obj.style?.color) el.style.color = obj.style.color;
+        if (obj.style?.fontSize) el.style.fontSize = typeof obj.style.fontSize === "number" ? `${obj.style.fontSize}px` : obj.style.fontSize;
+        const align = obj.style?.textAlign || "center";
+        el.style.justifyContent = align === "left" ? "flex-start" : align === "right" ? "flex-end" : "center";
+        el.style.alignItems = "center";
       }
     }
     renderGameHeader(el, obj) {
       if (el.innerText !== (obj.title || obj.caption || obj.name)) el.innerText = obj.title || obj.caption || obj.name;
       el.style.fontSize = obj.style?.fontSize ? typeof obj.style.fontSize === "number" ? `${obj.style.fontSize}px` : obj.style.fontSize : "18px";
+      if (obj.style?.color) el.style.color = obj.style.color;
       const fw = obj.style?.fontWeight;
       el.style.fontWeight = fw === true || fw === "bold" ? "bold" : fw || "bold";
       const align = obj.style?.textAlign;
@@ -12618,7 +12719,9 @@
     renderSprite(el, obj) {
       el.style.backgroundColor = obj.style?.backgroundColor || obj.spriteColor || "#ff6b6b";
       el.style.borderRadius = obj.shape === "circle" ? "50%" : "0";
-      if (!this.host.runMode) el.innerText = obj.name;
+      if (obj.style?.color) el.style.color = obj.style.color;
+      const textValue = obj.caption || (this.host.runMode ? "" : obj.name);
+      if (el.innerText !== textValue) el.innerText = textValue;
     }
     renderShape(el, obj, isNew) {
       const shapeType = obj.shapeType || "circle";
@@ -12729,7 +12832,7 @@
       if (titleBar && titleBar.textContent !== (obj.caption || obj.title || obj.name)) {
         titleBar.textContent = obj.caption || obj.title || obj.name;
       }
-      if (obj.children && Array.isArray(obj.children)) {
+      if (!this.host.runMode && obj.children && Array.isArray(obj.children)) {
         const cellSize = this.host.grid.cellSize;
         const parentX = obj.x * cellSize;
         const parentY = obj.y * cellSize;
@@ -12826,8 +12929,8 @@
         el.appendChild(handle);
       });
     }
-    static renderTable(el, obj, onEvent) {
-      TableRenderer.renderTable(el, obj, onEvent);
+    static renderTable(el, obj, onEvent, cellSize = 20) {
+      TableRenderer.renderTable(el, obj, onEvent, cellSize);
     }
     static renderEmojiPicker(el, obj, cellSize, onEvent) {
       EmojiPickerRenderer.renderEmojiPicker(el, obj, cellSize, onEvent);
@@ -12884,7 +12987,18 @@
     }
     get grid() {
       const activeStage = this.runtime ? this.runtime.stage : this.currentProject?.stage || this.currentProject?.stages?.[0];
-      return activeStage?.grid || { cols: 20, rows: 20, cellSize: 40 };
+      if (!activeStage?.grid) {
+        console.warn(`%c[UniversalPlayer:Grid] Fallback to 20px because grid is missing in ${activeStage?.name || "unknown stage"}`, "color: red");
+        return {
+          cols: 64,
+          rows: 40,
+          cellSize: 20,
+          snapToGrid: true,
+          visible: true,
+          backgroundColor: "#ffffff"
+        };
+      }
+      return activeStage.grid;
     }
     async init() {
       window.addEventListener("resize", () => this.setupScaling());
@@ -13112,23 +13226,25 @@
       if (!this.currentProject) return;
       const activeStage = this.runtime ? this.runtime.stage : this.currentProject.stage || this.currentProject.stages?.[0];
       if (!activeStage || !activeStage.grid) {
-        console.warn("[UniversalPlayer] No active stage or grid found for scaling");
+        console.warn("%c[UniversalPlayer:Layout] No active stage or grid found for scaling", "color: orange");
         return;
       }
       const grid = activeStage.grid;
-      const stageWidth = grid.cols * grid.cellSize;
-      const stageHeight = grid.rows * grid.cellSize;
+      const cellSize = grid.cellSize || 32;
+      const stageWidth = grid.cols * cellSize;
+      const stageHeight = grid.rows * cellSize;
       const windowWidth = window.innerWidth;
       const windowHeight = window.innerHeight;
       const margin = 20;
       const scale = Math.min((windowWidth - margin) / stageWidth, (windowHeight - margin) / stageHeight, 1);
+      console.log(`%c[UniversalPlayer:Layout] Scaling Stage "${activeStage.name || activeStage.id}": cellSize=${cellSize}, size=${stageWidth}x${stageHeight}, scale=${scale.toFixed(3)}`, "color: #00ff00; font-weight: bold");
       this.element.style.width = `${stageWidth}px`;
       this.element.style.height = `${stageHeight}px`;
       this.element.style.transform = `translate(-50%, -50%) scale(${scale})`;
       this.element.style.left = "50%";
       this.element.style.top = "50%";
       this.element.style.position = "absolute";
-      const bg = grid.backgroundColor || "#000";
+      const bg = grid.backgroundColor || "#ffffff";
       const bgImg = activeStage.backgroundImage;
       if (bgImg) {
         const url = bgImg.startsWith("http") || bgImg.startsWith("/") || bgImg.startsWith("data:") ? bgImg : `./images/${bgImg}`;

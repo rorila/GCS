@@ -72,24 +72,6 @@
                                 "main",
                                 "template"
                             ]
-                        },
-                        {
-                            "className": "TLabel",
-                            "name": "InheritanceLabel",
-                            "text": "Erbt von:",
-                            "style": {
-                                "fontSize": 12,
-                                "color": "#aaa",
-                                "marginBottom": 0
-                            }
-                        },
-                        {
-                            "className": "TSelect",
-                            "name": "activeStage.inheritsFromInput",
-                            "selectedValue": "${(activeStage && activeStage.inheritsFrom) || ''}",
-                            "source": "stages",
-                            "allowEmpty": true,
-                            "emptyLabel": "-- Kein Template --"
                         }
                     ]
                 },

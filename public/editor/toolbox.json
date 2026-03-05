@@ -90,6 +90,11 @@
                     "type": "Table",
                     "icon": "📊",
                     "label": "Table"
+                },
+                {
+                    "type": "DataList",
+                    "icon": "📑",
+                    "label": "Data List"
                 }
             ]
         },

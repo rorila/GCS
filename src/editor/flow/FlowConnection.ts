@@ -26,6 +26,7 @@ export class FlowConnection {
 
     constructor(container: HTMLElement, x1: number, y1: number, x2: number, y2: number, id?: string) {
         this.id = id || `conn_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+        console.log(`%c[FlowConnection:INIT] ID=${this.id} Coords=(${x1},${y1})->(${x2},${y2})`, 'background: #222; color: #bada55');
         this.startX = x1;
         this.startY = y1;
         this.endX = x2;
@@ -170,20 +171,25 @@ export class FlowConnection {
     }
 
     public attachStart(target: FlowElement) {
+        console.log(`[FlowConnection:ATTACH_START] ID=${this.id} to Node=${target.Name} (ID=${target.id})`);
         this.startTarget = target;
         this.updatePosition();
     }
 
     public attachEnd(target: FlowElement) {
+        console.log(`[FlowConnection:ATTACH_END] ID=${this.id} to Node=${target.Name} (ID=${target.id})`);
         this.endTarget = target;
         this.updatePosition();
     }
 
     public updatePath(x1: number, y1: number, x2: number, y2: number) {
-        // If the coordinates changed and we were attached, detach!
-        // This allows users to "pull off" a connection from a node.
-        if (x1 !== this.startX || y1 !== this.startY) this.startTarget = null;
-        if (x2 !== this.endX || y2 !== this.endY) this.endTarget = null;
+        // Only detach if the coordinate ACTUALLY changed to something new
+        // and it's not simply re-applying the current anchor position.
+        const startMoved = Math.abs(x1 - this.startX) > 1 || Math.abs(y1 - this.startY) > 1;
+        const endMoved = Math.abs(x2 - this.endX) > 1 || Math.abs(y2 - this.endY) > 1;
+
+        if (startMoved) this.startTarget = null;
+        if (endMoved) this.endTarget = null;
 
         this.startX = x1;
         this.startY = y1;
@@ -202,6 +208,7 @@ export class FlowConnection {
     public get EndY(): number { return this.endY; }
 
     public destroy() {
+        console.log(`%c[FlowConnection:DESTROY] ID=${this.id}`, 'background: #222; color: #ff0000');
         if (this.element.parentNode) this.element.parentNode.removeChild(this.element);
         if (this.startHandle.parentNode) this.startHandle.parentNode.removeChild(this.startHandle);
         if (this.endHandle.parentNode) this.endHandle.parentNode.removeChild(this.endHandle);

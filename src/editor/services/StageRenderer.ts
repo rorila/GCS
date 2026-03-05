@@ -31,6 +31,8 @@ export class StageRenderer {
 
         if (this.host.runMode) {
             (this.host as any).lastObjectHash = objectHash;
+            const gridConfig = this.host.grid;
+            logger.info(`%c[Layout] renderObjects: Using cellSize=${gridConfig.cellSize} for ${objects.length} objects`, 'color: #00ff00; font-weight: bold');
 
             // RADICAL PERFORMANCE/DEBUG LOG: Only once per run-session
             if (!(this.host as any).runModeLogDone) {
@@ -56,6 +58,10 @@ export class StageRenderer {
         const gridConfig = this.host.grid;
         const stageWidth = gridConfig.cols * gridConfig.cellSize;
         const stageHeight = gridConfig.rows * gridConfig.cellSize;
+
+        if (this.host.runMode) {
+            logger.info(`[StageRenderer:Layout] Stage Size: ${stageWidth}x${stageHeight} (cols: ${gridConfig.cols}, nodes: ${objects.length})`);
+        }
 
         // 1. Calculate dock positions
         const dockArea = { left: 0, top: 0, right: stageWidth, bottom: stageHeight };
@@ -144,7 +150,7 @@ export class StageRenderer {
                 el.setAttribute('data-id', objId);
                 el.style.position = 'absolute';
                 el.style.boxSizing = 'border-box';
-                el.style.overflow = 'hidden';
+                el.style.overflow = 'hidden'; // Wichtig für border-radius + children!
                 el.style.display = 'flex';
                 el.style.alignItems = 'center';
                 el.style.justifyContent = 'center';
@@ -158,18 +164,33 @@ export class StageRenderer {
 
             // Apply positioning
             const dockPos = dockPositions.get(objId);
+            let finalX, finalY, finalW, finalH;
+
             if (dockPos) {
-                const offsetX = (obj.x || 0) * gridConfig.cellSize;
-                const offsetY = (obj.y || 0) * gridConfig.cellSize;
-                el.style.left = `${dockPos.left + offsetX}px`;
-                el.style.top = `${dockPos.top + offsetY}px`;
-                el.style.width = `${dockPos.width}px`;
-                el.style.height = `${dockPos.height}px`;
+                // FIXED: For docked objects, we ignore the internal x/y coordinates to prevent "jumping out" of the stage
+                // The alignment (TOP, BOTTOM, LEFT, RIGHT, CLIENT) is the primary source of truth.
+                finalX = dockPos.left;
+                finalY = dockPos.top;
+                finalW = dockPos.width;
+                finalH = dockPos.height;
             } else {
-                el.style.left = `${(obj.x || 0) * gridConfig.cellSize}px`;
-                el.style.top = `${(obj.y || 0) * gridConfig.cellSize}px`;
-                el.style.width = `${(obj.width || 0) * gridConfig.cellSize}px`;
-                el.style.height = `${(obj.height || 0) * gridConfig.cellSize}px`;
+                finalX = (obj.x || 0) * gridConfig.cellSize;
+                finalY = (obj.y || 0) * gridConfig.cellSize;
+                finalW = (obj.width || 0) * gridConfig.cellSize;
+                finalH = (obj.height || 0) * gridConfig.cellSize;
+            }
+
+            el.style.left = `${finalX}px`;
+            el.style.top = `${finalY}px`;
+            el.style.width = `${finalW}px`;
+            el.style.height = `${finalH}px`;
+
+            if (this.host.runMode) {
+                // Log all objects in Run-Mode to trace layout issues
+                const isMetric = obj.name?.includes('Metric') || obj.id?.includes('metric');
+                if (isMetric || obj.id === 'dash_title' || obj.id === 'dash_back_btn' || obj.name?.includes('Button') || (obj.name && obj.name.includes('Emoji'))) {
+                    logger.info(`%c[Layout:${this.host.element.id}] ${obj.name || obj.id} (RUN): align=${obj.align}, x=${obj.x}, y=${obj.y}, w=${obj.width}, cellSize=${gridConfig.cellSize} -> left=${finalX}, top=${finalY}`, 'color: #ff00ff; font-weight: bold');
+                }
             }
 
             let isVisible = this.checkVisible(obj.visible) && this.checkVisible(obj.style?.visible);
@@ -181,9 +202,8 @@ export class StageRenderer {
             const isService = !!obj.isService;
 
             if (!this.host.isBlueprint) {
-                if (isInherited && isFromBlueprint) {
-                    isVisible = false;
-                } else if (isBlueprintOnly && isService) {
+                // Hide services and strictly blueprint-only marker objects on regular stages
+                if (isFromBlueprint && (isService || isBlueprintOnly)) {
                     isVisible = false;
                 }
             }
@@ -242,7 +262,8 @@ export class StageRenderer {
             }
 
             // Interaction hints & Click handlers
-            const hasTaskClick = obj.Tasks && (obj.Tasks.onClick || obj.Tasks.onSingleClick || obj.Tasks.onMultiClick);
+            const hasTaskClick = (obj.Tasks && (obj.Tasks.onClick || obj.Tasks.onSingleClick || obj.Tasks.onMultiClick)) ||
+                (obj.events && (obj.events.onClick || obj.events.onSingleClick || obj.events.onMultiClick));
             const isClickable = hasTaskClick || (this.host.runMode && className === 'TButton');
 
             if (this.host.runMode && isClickable) {
@@ -381,8 +402,8 @@ export class StageRenderer {
             this.renderButton(el, obj, isNew);
         } else if (className === 'TEmojiPicker') {
             this.renderEmojiPickerInternal(el, obj);
-        } else if (className === 'TTable' || className === 'TObjectList') {
-            StageRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host));
+        } else if (className === 'TTable' || className === 'TObjectList' || className === 'TDataList') {
+            StageRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host), this.host.grid.cellSize);
         } else if (className === 'TStringVariable' || className === 'TObjectVariable' || className === 'TIntegerVariable' || className === 'TBooleanVariable' || className === 'TListVariable' || obj.isVariable || obj.isService) {
             this.renderSystemComponent(el, obj, className);
         } else if (className === 'TLabel' || className === 'TNumberLabel') {
@@ -694,14 +715,20 @@ export class StageRenderer {
     }
 
     private renderPanel(el: HTMLElement, obj: any) {
+        const textValue = obj.caption || (this.host.runMode ? '' : obj.name);
+        if (el.innerText !== textValue) el.innerText = textValue;
+
         if (!this.host.runMode) {
-            el.innerText = obj.name;
             el.style.color = obj.style?.color || '#777';
             el.style.fontSize = '12px';
             el.style.justifyContent = 'center';
             el.style.alignItems = 'center';
         } else {
-            el.innerText = '';
+            if (obj.style?.color) el.style.color = obj.style.color;
+            if (obj.style?.fontSize) el.style.fontSize = typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize;
+            const align = obj.style?.textAlign || 'center';
+            el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
+            el.style.alignItems = 'center';
         }
     }
 
@@ -720,7 +747,9 @@ export class StageRenderer {
         el.style.backgroundColor = obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b';
         el.style.borderRadius = obj.shape === 'circle' ? '50%' : '0';
         if (obj.style?.color) el.style.color = obj.style.color;
-        if (!this.host.runMode) el.innerText = obj.name;
+
+        const textValue = obj.caption || (this.host.runMode ? '' : obj.name);
+        if (el.innerText !== textValue) el.innerText = textValue;
     }
 
     private renderShape(el: HTMLElement, obj: any, isNew: boolean) {
@@ -848,7 +877,7 @@ export class StageRenderer {
             titleBar.textContent = obj.caption || obj.title || obj.name;
         }
 
-        if (obj.children && Array.isArray(obj.children)) {
+        if (!this.host.runMode && obj.children && Array.isArray(obj.children)) {
             const cellSize = this.host.grid.cellSize;
             const parentX = obj.x * cellSize;
             const parentY = obj.y * cellSize;
@@ -954,8 +983,8 @@ export class StageRenderer {
         });
     }
 
-    public static renderTable(el: HTMLElement, obj: any, onEvent?: (id: string, event: string, data?: any) => void): void {
-        TableRenderer.renderTable(el, obj, onEvent);
+    public static renderTable(el: HTMLElement, obj: any, onEvent?: (id: string, event: string, data?: any) => void, cellSize: number = 20): void {
+        TableRenderer.renderTable(el, obj, onEvent, cellSize);
     }
 
     public static renderEmojiPicker(el: HTMLElement, obj: any, cellSize: number, onEvent?: (id: string, event: string, data?: any) => void): void {

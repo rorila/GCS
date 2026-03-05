@@ -6,6 +6,9 @@ export interface MergedStageData {
     tasks: any[];
     actions: any[];
     flowCharts: any;
+    grid?: any;
+    backgroundColor?: string;
+    backgroundImage?: string;
 }
 
 export class RuntimeStageManager {
@@ -18,25 +21,9 @@ export class RuntimeStageManager {
         this.project = project;
     }
 
-    public resolveInheritanceChain(stageId: string, visited: Set<string> = new Set()): any[] {
-        if (visited.has(stageId)) {
-            this.logger.error(`Circular inheritance detected for stage: ${stageId}`);
-            return [];
-        }
-        visited.add(stageId);
-
-        const stage = this.project.stages?.find((s: any) => s.id === stageId);
-        if (!stage) return [];
-
-        const chain = [stage];
-        if (stage.inheritsFrom) {
-            chain.unshift(...this.resolveInheritanceChain(stage.inheritsFrom, visited));
-        }
-        return chain;
-    }
-
     public getMergedStageData(stageId: string): MergedStageData {
-        const stageChain = this.resolveInheritanceChain(stageId);
+        const stage = this.project.stages?.find((s: any) => s.id === stageId);
+        const stageChain = stage ? [stage] : [];
 
         let mergedObjects: any[] = [];
         let mergedTasks: any[] = [...(this.project.tasks || [])];
@@ -141,7 +128,10 @@ export class RuntimeStageManager {
             objects: mergedObjects,
             tasks: mergedTasks,
             actions: mergedActions,
-            flowCharts: mergedFlowCharts
+            flowCharts: mergedFlowCharts,
+            grid: activeStage?.grid || blueprintStages[0]?.grid,
+            backgroundColor: activeStage?.grid?.backgroundColor || blueprintStages[0]?.grid?.backgroundColor,
+            backgroundImage: activeStage?.backgroundImage || blueprintStages[0]?.backgroundImage
         };
     }
 }

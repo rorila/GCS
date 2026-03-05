@@ -218,12 +218,23 @@ export class Editor implements IViewHost {
     public get currentActions(): GameAction[] { return this.stageManager.currentActions(); }
     public get currentTasks(): GameTask[] { return this.stageManager.currentTasks(); }
     public get currentVariables(): ProjectVariable[] { return this.stageManager.currentVariables(); }
-    public getActiveStage(): StageDefinition | null { return this.stageManager.getActiveStage(); }
+    public getActiveStage(): StageDefinition | null {
+        if (this.stage.runMode && this.runtime) {
+            return (this.runtime as any).stage || this.stageManager.getActiveStage();
+        }
+        return this.stageManager.getActiveStage();
+    }
     public get runtime() { return this.runManager.runtime; }
     public get runtimeObjects() { return this.runManager.runtimeObjects; }
 
     // --- DELEGATIONS ---
-    public render() { this.renderManager.render(); }
+    public render() {
+        if (this.stage.runMode && this.runManager.runStage) {
+            this.renderManager.render(this.runManager.runStage);
+        } else {
+            this.renderManager.render();
+        }
+    }
     public addObject(type: string, x: number, y: number) { this.commandManager.addObject(type, x, y); }
     public removeObject(id: string) { this.commandManager.removeObject(id); }
     public removeMultipleObjects(ids: string[]) { this.commandManager.removeObject(ids); } // CommandManager handles both string and string[]

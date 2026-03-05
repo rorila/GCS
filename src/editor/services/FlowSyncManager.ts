@@ -118,9 +118,11 @@ export class FlowSyncManager {
         const persistentConnections = this.host.connections.filter(c => !c.data?.isEmbeddedInternal && !c.data?.parentProxyId);
         const connections = persistentConnections.map(c => c.toJSON());
 
-        FlowSyncManager.logger.info(`[TRACE] syncToProject: Detected ${elements.length} nodes and ${connections.length} connections.`);
+        // Use currentFlowContext if contextName is not directly accessible or use contextName from parameter
+        console.log(`%c[FlowSync:PROJECT_WRITE] Nodes=${elements.length} Conns=${connections.length}`, 'background: #004400; color: #fff; font-weight: bold;');
         connections.forEach((c, i) => {
-            FlowSyncManager.logger.info(`[TRACE] Conn ${i}: ${c.startTargetId} (${c.data?.startAnchorType}) -> ${c.endTargetId} (${c.data?.endAnchorType})`);
+            const status = (c.startTargetId && c.endTargetId) ? 'attached' : 'floating';
+            console.log(`  Conn ${i} (${status}): ${c.id} | ${c.startTargetId || '(' + c.startX + ',' + c.startY + ')'} -> ${c.endTargetId || '(' + c.endX + ',' + c.endY + ')'}`);
         });
 
         this.host.nodes.forEach(node => {

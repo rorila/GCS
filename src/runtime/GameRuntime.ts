@@ -4,15 +4,13 @@ import { TaskExecutor } from './TaskExecutor';
 import { AnimationManager } from './AnimationManager';
 import { GameLoopManager } from './GameLoopManager';
 import { RuntimeVariableManager, IVariableHost } from './RuntimeVariableManager';
-import { RuntimeStageManager } from './RuntimeStageManager';
+import { RuntimeStageManager, MergedStageData } from './RuntimeStageManager';
 import { DebugLogService } from '../services/DebugLogService';
-
 import { hydrateObjects } from '../utils/Serialization';
 import { TStageController } from '../components/TStageController';
 import { Logger } from '../utils/Logger';
 
 const logger = Logger.get('GameRuntime', 'Runtime_Execution');
-
 export interface RuntimeOptions {
     multiplayerManager?: any;
     onNavigate?: (target: string, params?: any) => void;
@@ -73,6 +71,14 @@ export class GameRuntime implements IVariableHost {
 
             const merged = this.stageManager.getMergedStageData(activeStage.id);
             this.objects = merged.objects;
+
+            // Apply merged stage properties (grid, background)
+            if (merged.grid) activeStage.grid = { ...activeStage.grid, ...merged.grid };
+            if (merged.backgroundColor) {
+                if (!activeStage.grid) activeStage.grid = {};
+                activeStage.grid.backgroundColor = merged.backgroundColor;
+            }
+            if (merged.backgroundImage) activeStage.backgroundImage = merged.backgroundImage;
 
             // NEW: Initialize stage variables for the first stage correctly!
             this.variableManager.initializeStageVariables(activeStage);
@@ -505,10 +511,33 @@ export class GameRuntime implements IVariableHost {
         const results: any[] = [];
         const process = (objs: any[], parentX = 0, parentY = 0, parentZ = 0) => {
             objs.forEach(obj => {
-                if (obj.visible === false) return;
-                const absoluteX = parentX + (obj.x || 0);
-                const absoluteY = parentY + (obj.y || 0);
-                const absoluteZ = parentZ + (obj.zIndex || 0);
+                const resolveCoord = (val: any) => {
+                    if (val === undefined || val === null) return val;
+                    if (typeof val === 'string' && val.includes('${')) {
+                        try {
+                            const evaluated = this.reactiveRuntime.evaluate(val);
+                            const n = Number(evaluated);
+                            return isNaN(n) ? evaluated : n;
+                        } catch (e) {
+                            return val;
+                        }
+                    }
+                    if (typeof val === 'string') {
+                        const n = Number(val);
+                        return isNaN(n) ? val : n;
+                    }
+                    return typeof val === 'number' ? val : 0;
+                };
+
+                const rx = resolveCoord(obj.x);
+                const ry = resolveCoord(obj.y);
+                const absoluteX = parentX + rx;
+                const absoluteY = parentY + ry;
+
+                if (obj.name?.includes('Button') || (obj.name && obj.name.includes('Emoji'))) {
+                    console.log(`[GameRuntime:Layout] ${obj.name}: x=${obj.x} (resolved=${rx}), parentX=${parentX} -> absoluteX=${absoluteX}`);
+                }
+                const absoluteZ = parentZ + resolveCoord(obj.zIndex);
 
                 // 1. Basis-Kopie der eigenen Properties
                 const copy: any = { ...obj };
@@ -535,12 +564,21 @@ export class GameRuntime implements IVariableHost {
                 // 3. Absolute Koordinaten setzen
                 copy.x = absoluteX;
                 copy.y = absoluteY;
+                copy.width = resolveCoord(obj.width);
+                copy.height = resolveCoord(obj.height);
                 copy.zIndex = absoluteZ;
 
                 results.push(copy);
 
-                if (obj.children && obj.children.length > 0) {
-                    process(obj.children, absoluteX, absoluteY, absoluteZ);
+                // GHOST FIX: Don't recurse into children for components that manage their own internal rendering
+                const shouldRecurse = !obj.isInternalContainer;
+
+                if (shouldRecurse && obj.children && obj.children.length > 0) {
+                    const gridConfig = (this as any).stage?.grid || this.project.stage?.grid || { cellSize: 20 };
+                    const cellSize = gridConfig.cellSize || 20;
+                    const isDialog = obj.className === 'TDialogRoot' || obj.className === 'TDialog';
+                    const childOffsetY = isDialog ? (30 / cellSize) : 0;
+                    process(obj.children, absoluteX, absoluteY + childOffsetY, absoluteZ + 1);
                 }
             });
         };

@@ -75,6 +75,7 @@ export class EditorViewManager {
 
         this.currentView = view;
         const stageWrapper = document.getElementById('stage-wrapper');
+        const runStage = document.getElementById('run-stage');
         const jsonPanel = document.getElementById('json-viewer');
         const flowPanel = document.getElementById('flow-viewer');
         const codePanel = document.getElementById('code-viewer');
@@ -87,6 +88,7 @@ export class EditorViewManager {
 
         // 1. Hide ALL panels
         if (stageWrapper) stageWrapper.style.display = 'none';
+        if (runStage) runStage.style.display = 'none';
         if (jsonPanel) jsonPanel.style.display = 'none';
         const jsonToolbar = document.getElementById('json-viewer-toolbar');
         if (jsonToolbar) jsonToolbar.style.display = 'none';
@@ -118,6 +120,7 @@ export class EditorViewManager {
         if (view === 'stage') {
             h.setRunMode(false);
             if (stageWrapper) stageWrapper.style.display = 'flex';
+            if (runStage) runStage.style.display = 'none';
             if (jsonToolbox) jsonToolbox.style.display = 'block';
             if (jsonInspector) jsonInspector.style.display = 'block';
             // Debug Log button hidden in stage view
@@ -128,7 +131,8 @@ export class EditorViewManager {
             }
         } else if (view === 'run') {
             h.setRunMode(true);
-            if (stageWrapper) stageWrapper.style.display = 'flex';
+            if (stageWrapper) stageWrapper.style.display = 'none';
+            if (runStage) runStage.style.display = 'flex';
             if (toolboxFooter) {
                 toolboxFooter.style.display = 'block';
                 toolboxFooter.style.minHeight = '60px';

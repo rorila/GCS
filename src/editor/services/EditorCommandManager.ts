@@ -32,6 +32,9 @@ export class EditorCommandManager {
         } else if (type === 'Image') {
             instance.width = 6;
             instance.height = 6;
+        } else if (type === 'DataList') {
+            instance.width = 16;
+            instance.height = 12;
         }
 
         // Globaler Fallback für Komponenten ohne explizite Größenangaben
@@ -65,7 +68,7 @@ export class EditorCommandManager {
             const rowPanel = this.createObjectInstance('Panel', `${name}_RowTemplate`, 0, 0);
             if (rowPanel) {
                 rowPanel.width = newObj.width;
-                rowPanel.height = 40; // Default Row Height
+                rowPanel.height = 3; // Default Row Height (3 Cells = z.B. 60px)
                 rowPanel.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
                 rowPanel.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 rowPanel.style.borderWidth = 1;

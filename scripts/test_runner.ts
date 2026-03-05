@@ -15,6 +15,7 @@ import { runProjectIntegrityTests } from '../tests/project_integrity.test.js';
 import { runRenamingRobustnessTests } from '../tests/renaming_robustness.test.js';
 import { runTests as runActionRegistrationTests } from '../tests/action_registration.test.js';
 import { runTests as runActionCRUDTests } from '../tests/action_crud.test.js';
+import { runTests as runCoordinateTests } from '../src/runtime/CoordinateBinding.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -100,6 +101,10 @@ async function main() {
         console.log('🏃 Starte Action CRUD Tests...');
         const crudResults = await runActionCRUDTests();
 
+        // 15. Coordinate Binding Tests
+        console.log('🏃 Starte Coordinate Binding Tests...');
+        const coordinateResults = await runCoordinateTests();
+
         // 6. Serialization Tests (v3.7.0)
         console.log('🏃 Starte Serialization Tests...');
         const serializationResults = await runSerializationTests();
@@ -137,7 +142,8 @@ async function main() {
             ...integrityResults,
             ...robustnessResults,
             ...registrationResults,
-            ...crudResults
+            ...crudResults,
+            ...coordinateResults
         ];
 
         // Report Generation

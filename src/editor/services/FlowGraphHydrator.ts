@@ -3,6 +3,7 @@ import { FlowAction } from '../flow/FlowAction';
 import { FlowConnection } from '../flow/FlowConnection';
 import { FlowStart } from '../flow/FlowStart';
 import { libraryService } from '../../services/LibraryService';
+import { Logger } from '../../utils/Logger';
 
 export interface FlowGraphHydrationHost {
     project: any;
@@ -29,6 +30,8 @@ export interface FlowGraphHydrationHost {
 }
 
 export class FlowGraphHydrator {
+    private static logger = Logger.get('FlowGraphHydrator', 'Flow_Synchronization');
+
     constructor(private host: FlowGraphHydrationHost) { }
 
     public loadFromProject(contextName?: string) {
@@ -116,6 +119,7 @@ export class FlowGraphHydrator {
         }
 
         if (sourceData.connections) {
+            FlowGraphHydrator.logger.info(`[TRACE] loadFromProject: Found ${sourceData.connections.length} connections in source data.`);
             sourceData.connections.forEach((data: any) => {
                 this.host.graphManager.restoreConnection(data);
             });
@@ -292,53 +296,29 @@ export class FlowGraphHydrator {
 
         if (flowChart.connections) {
             flowChart.connections.forEach((data: any) => {
-                const startId = idMap[data.startTargetId];
-                const endId = idMap[data.endTargetId];
+                // Map IDs using idMap for proxies/embedded flows
+                const startId = data.startTargetId ? (idMap[data.startTargetId] || data.startTargetId) : null;
+                const endId = data.endTargetId ? (idMap[data.endTargetId] || data.endTargetId) : null;
 
-                if (startId && endId) {
-                    const startNode = this.host.nodes.find(n => n.name === startId);
-                    const endNode = this.host.nodes.find(n => n.name === endId);
+                // Create a temporary data object with mapped IDs
+                const mappedData = {
+                    ...data,
+                    startTargetId: startId,
+                    endTargetId: endId
+                };
 
-                    if (startNode && endNode) {
-                        const conn = new FlowConnection(this.host.canvas, 0, 0, 0, 0);
-                        conn.setGridConfig(this.host.flowStage.cellSize);
-                        const origStartId = data.startTargetId;
-                        const origEndId = data.endTargetId;
-                        const origStartAnchor = data.data?.startAnchorType || 'output';
+                // Use the centralized restoreConnection logic to handle the rest
+                this.host.graphManager.restoreConnection(mappedData);
 
-                        const savedConn = isLinked && targetNode.data?.ghostConnections?.find((gc: any) =>
-                            gc.startOriginalId === origStartId &&
-                            gc.endOriginalId === origEndId &&
-                            gc.originalStartAnchorType === origStartAnchor
-                        );
-
-                        if (savedConn) {
-                            conn.data = {
-                                ...conn.data,
-                                startAnchorType: savedConn.startAnchorType,
-                                endAnchorType: savedConn.endAnchorType
-                            };
-                        } else if (data.data?.startAnchorType) {
-                            conn.data = { ...conn.data, startAnchorType: data.data.startAnchorType };
-                        } else if (data.data?.branchType) {
-                            conn.data = { ...conn.data, startAnchorType: data.data.branchType };
-                        }
-
-                        conn.attachStart(startNode);
-                        conn.attachEnd(endNode);
-                        conn.updatePosition();
-                        this.host.connections.push(conn);
-                        this.host.setupConnectionListeners(conn);
-
-                        if (isLinked) {
-                            conn.data = {
-                                ...conn.data,
-                                isEmbeddedInternal: true,
-                                parentProxyId: targetNode.name,
-                                originalStartAnchorType: origStartAnchor
-                            };
-                        }
-                    }
+                // Add embedded metadata if needed
+                const lastConn = this.host.connections[this.host.connections.length - 1];
+                if (isLinked && lastConn && lastConn.id === data.id) { // id check to be sure we got the right one
+                    lastConn.data = {
+                        ...lastConn.data,
+                        isEmbeddedInternal: true,
+                        parentProxyId: targetNode.name,
+                        originalStartAnchorType: data.data?.startAnchorType || 'output'
+                    };
                 }
             });
         }

@@ -1,4 +1,5 @@
 import { Editor } from '../Editor';
+import { Stage } from '../Stage';
 import { GameRuntime } from '../../runtime/GameRuntime';
 import { network } from '../../multiplayer';
 import { AnimationManager } from '../../runtime/AnimationManager';
@@ -20,6 +21,7 @@ export class EditorRunManager {
     public activeTimers: TTimer[] = [];
     public activeGameServers: TGameServer[] = [];
     private animationTickerId: number | null = null;
+    public runStage: any | null = null;
 
     constructor(private editor: Editor) {
         // Listen for data changes to update runtime
@@ -42,21 +44,8 @@ export class EditorRunManager {
         this.editor.stage.updateBorder();
 
         // EARLY event handler assignment to prevent "missing handler" errors during first render
-        if (running) {
-            this.editor.stage.onEvent = (objectId: string, eventName: string, data?: any) => {
-                if (this.runtime) {
-                    this.runtime.handleEvent(objectId, eventName, data);
-                } else {
-                    // Fallback to editor handler if runtime not yet ready
-                    (this.editor as any).handleEvent(objectId, eventName, data);
-                }
-            };
-        } else {
-            // Restore editor stage events
-            if (this.editor.stage) {
-                this.editor.stage.onEvent = null;
-            }
-        }
+        // Note: Stage events are now permanently routed to the runtime via EditorInteractionManager 
+        // when runMode is true. No need to reassign or nullify them here.
 
         if (running) {
             this.editor.selectObject(null);
@@ -68,6 +57,17 @@ export class EditorRunManager {
 
             if (activeStage && activeStage.type !== 'main' && activeStage.type !== 'splash') {
                 startStageId = activeStage.id;
+            }
+
+            // Create Run-Mode stage instance
+            if (!this.runStage) {
+                this.runStage = new Stage('run-stage', activeStage?.grid || this.editor.project.stage.grid);
+                this.runStage.runMode = true;
+
+                // Register event callbacks for the new run stage!
+                if ((this.editor as any).interactionManager) {
+                    (this.editor as any).interactionManager.initCallbacks(this.runStage);
+                }
             }
 
             (this.editor as any).syncStageObjectsToProject();
@@ -129,6 +129,10 @@ export class EditorRunManager {
             this.editor.render();
         } else {
             this.stopRuntime();
+            if (this.runStage) {
+                this.runStage.element.remove();
+                this.runStage = null;
+            }
             this.editor.render();
         }
     }
@@ -136,13 +140,13 @@ export class EditorRunManager {
     private handleStageSwitch(stageId: string) {
         const targetStage = this.editor.project.stages?.find((s: any) => s.id === stageId);
         if (targetStage) {
-            if (this.editor.stage) {
-                this.editor.stage.grid = {
-                    cols: targetStage.grid?.cols || 32,
-                    rows: targetStage.grid?.rows || 24,
+            if (this.runStage) {
+                this.runStage.grid = {
+                    cols: targetStage.grid?.cols || 64,
+                    rows: targetStage.grid?.rows || 40,
                     cellSize: targetStage.grid?.cellSize || 20,
                     snapToGrid: targetStage.grid?.snapToGrid ?? true,
-                    visible: (this.editor.stage?.runMode) ? (targetStage.grid?.visible ?? false) : (targetStage.grid?.visible ?? true),
+                    visible: targetStage.grid?.visible ?? false,
                     backgroundColor: targetStage.grid?.backgroundColor || '#1e1e1e'
                 };
             }
@@ -196,10 +200,6 @@ export class EditorRunManager {
         if (this.runtime) {
             this.runtime.stop();
             this.runtime = null;
-        }
-
-        if (this.editor.stage) {
-            this.editor.stage.onEvent = null;
         }
 
         if (this.activeGameLoop && typeof (this.activeGameLoop as any).stop === 'function') {

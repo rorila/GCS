@@ -37,6 +37,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
             <div id="stage-wrapper">
               <div id="stage"></div>
             </div>
+            <div id="run-stage" style="display: none;"></div>
             <div id="json-viewer" class="json-panel" style="display: none;"></div>
             <div id="flow-viewer" class="flow-panel" style="display: none;"></div>
             <div id="code-viewer" class="code-panel" style="display: none;"></div>

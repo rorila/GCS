@@ -148,6 +148,18 @@ export class StageInteractionManager {
     }
 
     private handleMouseDown(e: MouseEvent) {
+        // COPY-PASTE: Wenn isPlacing aktiv ist, wird der Klick zum Ablegen der Kopie verwendet.
+        // Dies MUSS vor allen anderen Checks stehen, damit kein neuer Drag-Prozess gestartet wird.
+        if (this.isPlacing && !this.host.runMode) {
+            e.preventDefault();
+            e.stopPropagation();
+            const coords = this.getRelativeCoordinates(e);
+            const gridX = Math.floor(coords.x / this.host.grid.cellSize);
+            const gridY = Math.floor(coords.y / this.host.grid.cellSize);
+            this.finishPlacingSelection(gridX, gridY);
+            return;
+        }
+
         const target = e.target as HTMLElement;
         const objEl = target.closest('.game-object') as HTMLElement;
 
@@ -475,11 +487,6 @@ export class StageInteractionManager {
         this.dragElements.clear();
         this.isRectSelecting = false; this.rectStartRel = null;
         this.currentDragPath = []; this.dragStartTime = 0;
-
-        if (this.isPlacing) {
-            const rect = this.host.element.getBoundingClientRect();
-            this.finishPlacingSelection(Math.floor((e.clientX - rect.left) / this.host.grid.cellSize), Math.floor((e.clientY - rect.top) / this.host.grid.cellSize));
-        }
     }
 
     private handleKeyDown(e: KeyboardEvent) {

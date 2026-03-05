@@ -61,7 +61,18 @@ class UniversalPlayer implements StageHost {
 
     public get grid(): GridConfig {
         const activeStage = this.runtime ? (this.runtime as any).stage : (this.currentProject?.stage || this.currentProject?.stages?.[0]);
-        return activeStage?.grid || { cols: 20, rows: 20, cellSize: 40 };
+        if (!activeStage?.grid) {
+            console.warn(`%c[UniversalPlayer:Grid] Fallback to 20px because grid is missing in ${activeStage?.name || 'unknown stage'}`, 'color: red');
+            return {
+                cols: 64,
+                rows: 40,
+                cellSize: 20,
+                snapToGrid: true,
+                visible: true,
+                backgroundColor: '#ffffff'
+            };
+        }
+        return activeStage.grid;
     }
     // --------------------------------
 
@@ -72,7 +83,7 @@ class UniversalPlayer implements StageHost {
     private dragOffset: { x: number, y: number } = { x: 0, y: 0 };
 
     constructor() {
-        this.element = document.getElementById('stage')!;
+        this.element = document.getElementById('run-stage')!;
         this.renderer = new StageRenderer(this);
         this.onEvent = (id, ev, data) => {
             if (this.runtime) this.runtime.handleEvent(id, ev, data);
@@ -367,18 +378,21 @@ class UniversalPlayer implements StageHost {
         // Use active stage grid from runtime if available, else fallback to project default
         const activeStage = this.runtime ? (this.runtime as any).stage : (this.currentProject.stage || this.currentProject.stages?.[0]);
         if (!activeStage || !activeStage.grid) {
-            console.warn('[UniversalPlayer] No active stage or grid found for scaling');
+            console.warn('%c[UniversalPlayer:Layout] No active stage or grid found for scaling', 'color: orange');
             return;
         }
 
         const grid = activeStage.grid;
-        const stageWidth = grid.cols * grid.cellSize;
-        const stageHeight = grid.rows * grid.cellSize;
+        const cellSize = grid.cellSize || 32;
+        const stageWidth = grid.cols * cellSize;
+        const stageHeight = grid.rows * cellSize;
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
 
         const margin = 20;
         const scale = Math.min((windowWidth - margin) / stageWidth, (windowHeight - margin) / stageHeight, 1.0);
+
+        console.log(`%c[UniversalPlayer:Layout] Scaling Stage "${activeStage.name || activeStage.id}": cellSize=${cellSize}, size=${stageWidth}x${stageHeight}, scale=${scale.toFixed(3)}`, 'color: #00ff00; font-weight: bold');
 
         this.element.style.width = `${stageWidth}px`;
         this.element.style.height = `${stageHeight}px`;
@@ -388,7 +402,7 @@ class UniversalPlayer implements StageHost {
         this.element.style.position = 'absolute';
 
         // Set background color from grid
-        const bg = grid.backgroundColor || '#000';
+        const bg = grid.backgroundColor || '#ffffff';
         const bgImg = activeStage.backgroundImage;
 
         if (bgImg) {

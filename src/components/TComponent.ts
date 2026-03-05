@@ -131,7 +131,14 @@ export abstract class TComponent {
 
         // Kinder rekursiv serialisieren
         if (this.children.length > 0) {
-            json.children = this.children.map(child => child.toJSON());
+            json.children = this.children.map(child => {
+                // Sicherheit: Falls ein Child nur ein rohes JSON-Objekt ist (z.B. nach Copy-Paste),
+                // hat es keine toJSON()-Methode. In dem Fall direkt zurückgeben.
+                if (typeof child.toJSON === 'function') {
+                    return child.toJSON();
+                }
+                return child; // Plain object – as-is übernehmen
+            });
         }
 
         return json;

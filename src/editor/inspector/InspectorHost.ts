@@ -31,6 +31,7 @@ export class InspectorHost {
     private container: HTMLElement | null = null;
     private activeTab: string = 'properties';
     private selectedObject: any = null;
+    private savedScrollTop: number = 0;
 
     constructor(
         private runtime: ReactiveRuntime,
@@ -75,7 +76,19 @@ export class InspectorHost {
         if (!this.container) return;
 
         if (obj) {
+            // Bei neuem Objekt (Selektion geändert) Scroll-Position zurücksetzen
+            if (this.selectedObject !== obj) {
+                this.savedScrollTop = 0;
+            }
             this.selectedObject = obj;
+        }
+
+        // --- NEW: Speichere aktuelle Scroll-Position vor dem Neurendern ---
+        if (this.container) {
+            const contentDiv = this.container.querySelector('.inspector-content');
+            if (contentDiv) {
+                this.savedScrollTop = contentDiv.scrollTop;
+            }
         }
 
         const currentObject = this.selectedObject || this.runtime.getVariable('selectedObject');
@@ -109,11 +122,18 @@ export class InspectorHost {
         if (this.activeTab === 'properties') {
             await this.renderPropertiesContent(obj, content);
         } else if (this.activeTab === 'events') {
-            this.renderEventsContent(obj, content);
+            await this.renderEventsContent(obj, content);
         } else if (this.activeTab === 'logs') {
             InspectorHost.logger.debug('Rendering logs tab');
             await this.renderLogsContent(obj, content);
         }
+
+        // --- NEW: Stelle Scroll-Position nach dem Rendern wieder her ---
+        requestAnimationFrame(() => {
+            if (content) {
+                content.scrollTop = this.savedScrollTop;
+            }
+        });
     }
 
     private async renderLogsContent(obj: any, parent: HTMLElement): Promise<void> {

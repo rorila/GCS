@@ -146,6 +146,10 @@ export class Stage implements StageHost, StageInteractionHost {
             // Force container to be at least as big as the stage if not in flex layout
             this.container.style.minHeight = `${height}px`;
             this.container.style.minWidth = `${width}px`;
+        } else {
+            // ARC-FIX: Remove min-width/height when NOT in run-mode to prevent leakage from previous sessions
+            this.container.style.minHeight = '';
+            this.container.style.minWidth = '';
         }
 
         if (visible) {

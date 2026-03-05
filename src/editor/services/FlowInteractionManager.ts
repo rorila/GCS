@@ -98,6 +98,7 @@ export class FlowInteractionManager {
             finalY = snapped.y;
         }
 
+        console.log(`[FlowInteraction:DROP] type=${type} at (${finalX},${finalY})`);
         if (type === 'task') {
             this.host.createNode(type, finalX, finalY, data?.name || 'Task');
         } else {
@@ -194,7 +195,10 @@ export class FlowInteractionManager {
                 this.host.activeHandle.dataset.isStart = 'false';
                 this.host.activeConnection = conn;
 
-                this.host.selectConnection(conn);
+                // Disable pointer events while dragging to not obscure drop targets
+                conn.getElement().style.pointerEvents = 'none';
+
+                console.log(`[FlowInteraction] Created new connection from node ${node.Name} (branch: ${branchType || 'output'}), dragging handle`);
             });
         };
 
@@ -239,7 +243,12 @@ export class FlowInteractionManager {
                 this.host.activeHandle = handle;
                 this.host.activeHandle.dataset.isStart = isStart ? 'true' : 'false';
                 this.host.activeConnection = conn;
-                this.host.selectionManager.selectConnection(conn);
+
+                // Disable pointer events while dragging
+                conn.getElement().style.pointerEvents = 'none';
+
+                // Keep selection visual but DO NOT trigger global inspector update while dragging
+                conn.select();
             });
         };
 
@@ -264,6 +273,11 @@ export class FlowInteractionManager {
             this.host.activeConnection.updatePath(x, y, this.host.activeConnection.EndX, this.host.activeConnection.EndY);
         } else {
             this.host.activeConnection.updatePath(this.host.activeConnection.StartX, this.host.activeConnection.StartY, x, y);
+        }
+
+        // Debug Log only every ~20 frames to avoid spam
+        if (Math.random() < 0.05) {
+            console.log(`[FlowInteraction] Dragging connection (isStart=${isStart}) to (${x}, ${y})`);
         }
     }
 
@@ -343,6 +357,10 @@ export class FlowInteractionManager {
         }
 
         if (targetNode) {
+            console.log(`[FlowInteraction:UP_HIT] ID=${this.host.activeConnection.id} target=${targetNode.Name} isStart=${isStart}`);
+            if (this.host.activeConnection) {
+                this.host.activeConnection.getElement().style.pointerEvents = 'auto';
+            }
             if (isStart) {
                 this.host.activeConnection.attachStart(targetNode);
                 if (targetAnchorType) this.host.activeConnection.data.startAnchorType = targetAnchorType;
@@ -358,14 +376,22 @@ export class FlowInteractionManager {
             }
 
             // Re-select to update Inspector with final attachment state
+            // and trigger the selectConnection event AFTER attach is fully complete
             this.host.selectionManager.selectConnection(this.host.activeConnection);
         } else {
-            // ONLY delete if NO targets exist on either side (relaxed from "both must be set")
-            // This prevents existing connections from disappearing when re-adjusting one end
-            if (!this.host.activeConnection.startTarget && !this.host.activeConnection.endTarget) {
-                this.host.deleteConnection(this.host.activeConnection);
-            } else {
+            console.log(`[FlowInteraction:UP_MISS] ID=${this.host.activeConnection.id} - Pointed into void, keeping as floating`);
+            if (this.host.activeConnection) {
+                this.host.activeConnection.getElement().style.pointerEvents = 'auto';
+            }
+
+            // Allow standalone connections to exist (don't auto-delete them).
+            // This allows drawing connections from the toolbox and placing them 
+            // before attaching them to nodes.
+            if (this.host.activeConnection) {
                 this.host.activeConnection.updatePosition();
+
+                // Only select it if it's not already fully detached and we just dropped it in nowhere
+                this.host.selectionManager.selectConnection(this.host.activeConnection);
             }
         }
 

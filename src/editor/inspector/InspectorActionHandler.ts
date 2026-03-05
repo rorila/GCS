@@ -163,16 +163,73 @@ export class InspectorActionHandler {
         }
 
         // Variablennamen mit Modell-Info aufbereiten
-        const varList = variables.map(v => {
+        const varList = Object.values(variables).map(v => {
             let info = v.name;
             if (v.objectModel) info += ` (Modell: ${v.objectModel})`;
             return `• ${info}`;
         }).join('\n');
 
-        const chosen = prompt(`Variable wählen (aus verfügbaren):\n\n${varList}\n\n(Tipp: Nutze ".property" für Objekt-Felder, z.B. currentUser.name)`, '');
+        // --- NEU: TDataList (Row-Binding) Prüfung ---
+        let repeaterList = '';
+        try {
+            // Finde parent object (z.B. DataList) im ObjectStore
+            const editor = (window as any).editor;
+            if (editor && editor.findParentContainer) {
+                let currentParent = editor.findParentContainer(obj.id);
+                // Walk up checking for DataList
+                while (currentParent) {
+                    if (currentParent.className === 'TDataList' || currentParent.type === 'DataList') {
+                        const dsName = currentParent.dataSource;
+                        if (dsName) {
+                            // Finde TDataAction mit diesem Namen
+                            const action = projectRegistry.getActions('all', false).find(a => (a as any).resultVariable === dsName || a.name === dsName);
+                            if (action && (action as any).selectFields) {
+                                const fieldsStr = (action as any).selectFields;
+                                const fields = fieldsStr === '*' ? ['* (Alle Felder)'] : fieldsStr.split(',').map((f: string) => f.trim()).filter((f: string) => f);
+                                repeaterList = fields.map((f: string) => `• row.${f}`).join('\n');
+                            }
+                            break; // Stop climbing if we hit a DataList
+                        }
+                    }
+                    currentParent = editor.findParentContainer(currentParent.id);
+                }
+            }
+        } catch (e) { console.error('Fehler beim Auflösen der Repeater-Bindings:', e); }
+
+        const promptText = `Variable wählen (aus verfügbaren):\n\n${varList}\n` +
+            (repeaterList ? `\n--- Verfügbare Repeater Daten ({row.*}) ---\n${repeaterList}\n` : '') +
+            `\n(Tipp: Nutze ".property" für Objekt-Felder, z.B. currentUser.name)`;
+
+        const chosen = prompt(promptText, '');
 
         if (chosen && chosen.trim()) {
             const varNameInput = chosen.trim();
+
+            // SONDERRFALL: {row.*} Binding (DataList / Repeater Pattern)
+            if (varNameInput.startsWith('row.')) {
+                let currentVal: any;
+                let newValue: any;
+                const varToInsert = varNameInput;
+
+                if (index !== undefined && propName === 'params') {
+                    const params = PropertyHelper.getPropertyValue(obj, 'params') || [];
+                    currentVal = (Array.isArray(params) ? params[index] : '') || '';
+                    newValue = (currentVal ? currentVal + ' ' : '') + `\${${varToInsert}}`;
+
+                    const newParams = Array.isArray(params) ? [...params] : [];
+                    newParams[index] = newValue;
+                    PropertyHelper.setPropertyValue(obj, 'params', newParams);
+                    this.notifyChange(obj, 'params', newParams, params);
+                } else {
+                    currentVal = PropertyHelper.getPropertyValue(obj, propName) || '';
+                    newValue = (currentVal ? currentVal + ' ' : '') + `\${${varToInsert}}`;
+                    PropertyHelper.setPropertyValue(obj, propName, newValue);
+                    this.notifyChange(obj, propName, newValue, currentVal);
+                }
+                this.host.update(obj);
+                return;
+            }
+
             // Basis-Name für Validierung extrahieren (alles vor dem ersten Punkt)
             const baseVarName = varNameInput.split('.')[0];
             const baseVar = variables.find(v => v.name === baseVarName);

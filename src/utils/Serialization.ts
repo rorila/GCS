@@ -65,12 +65,28 @@ const logger = Logger.get('Serialization', 'Project_Save_Load');
 import { TAPIServer } from '../components/TAPIServer';
 import { TTextControl } from '../components/TTextControl';
 import { TTable } from '../components/TTable';
+import { TDataList } from '../components/TDataList';
 
 export function hydrateObjects(objectsData: any[]): TWindow[] {
     const objects: TWindow[] = [];
 
     objectsData.forEach((objData: any) => {
+        if (!objData) return;
+
+        // IDEMPOTENCY CHECK: If it's already an instance of a component class, don't re-hydrate
+        if (objData.className && typeof objData.clone === 'function' && objData.constructor.name !== 'Object') {
+            objects.push(objData);
+            return;
+        }
+
+        const internalContainers = ['TDataList', 'TTable', 'TObjectList', 'TEmojiPicker'];
+        const isInternal = internalContainers.includes(objData.className);
+
         let newObj: TWindow | null = null;
+        // ... switch logic ...
+
+        // After object creation, apply isInternal-Flag
+        if (newObj) (newObj as any).isInternalContainer = isInternal;
 
 
         // Factory based on className
@@ -268,6 +284,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 break;
             case 'TTable':
                 newObj = new TTable(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
+            case 'TDataList':
+                newObj = new TDataList(objData.name, objData.x, objData.y, objData.width, objData.height);
                 break;
             default:
                 logger.warn("Unknown class during load:", objData.className);
