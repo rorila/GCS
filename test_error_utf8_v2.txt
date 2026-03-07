@@ -1,0 +1,37 @@
+﻿
+Running 1 test using 1 worker
+
+  Ô£ÿ  1 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:136:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution (12.8s)
+
+
+  1) [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:136:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('#stage').locator('.game-object.TButton').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('#stage').locator('.game-object.TButton').first()[22m
+
+
+      142 |
+      143 |         const placedButton = stage.locator('.game-object.TButton').first();
+    > 144 |         await expect(placedButton).toBeVisible({ timeout: 10000 });
+          |                                    ^
+      145 |
+      146 |         await page.locator('.tab-btn:has-text("Flow")').click();
+      147 |         await page.locator('button[title="New Task Flow"]').click();
+        at C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:144:36
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\deep_integration-Deep-Inte-901b3-Use-Case-Run-Mode-Execution-chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\deep_integration-Deep-Inte-901b3-Use-Case-Run-Mode-Execution-chromium\error-context.md
+
+  1 failed
+    [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:136:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution 

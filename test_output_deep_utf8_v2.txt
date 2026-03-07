@@ -1,0 +1,120 @@
+﻿
+Running 3 tests using 1 worker
+
+  Ô£ÿ  1 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:48:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete) (600ms)
+  Ô£ÿ  2 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:86:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON) (613ms)
+  Ô£ÿ  3 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:122:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution (609ms)
+
+
+  1) [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:48:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete) 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: locator('.inspector-panel')
+    Expected substring: [32m"Initial Stage"[39m
+    Error: strict mode violation: locator('.inspector-panel') resolved to 7 elements:
+        1) <div class="inspector-panel">ÔÇª</div> aka getByText('BASIS EINSTELLUNGENTyp:')
+        2) <div class="inspector-panel">ÔÇª</div> aka getByText('Typ:standardsplashmaintemplate')
+        3) <div class="inspector-panel">ÔÇª</div> aka getByText('RASTERSpalten:Zeilen:Zellgr├Â├ƒ')
+        4) <div class="inspector-panel">ÔÇª</div> aka getByText('Spalten:Zeilen:')
+        5) <div class="inspector-panel">ÔÇª</div> aka locator('div').filter({ hasText: /^Zellgr├Â├ƒe \(px\):$/ }).first()
+        6) <div class="inspector-panel">ÔÇª</div> aka getByText('ANIMATIONStart Animation:')
+        7) <div class="inspector-panel">ÔÇª</div> aka getByText('Dauer (ms):Easing:')
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 15000ms[22m
+    [2m  - waiting for locator('.inspector-panel')[22m
+
+
+      21 |         const stageItem = dropdown.locator('.menu-item').filter({ hasText: stageName });
+      22 |         await stageItem.click();
+    > 23 |         await expect(page.locator('.inspector-panel')).toContainText(stageName, { timeout: 15000 });
+         |                                                        ^
+      24 |     }
+      25 |
+      26 |     async function expandToolboxCategory(page: Page, categoryName: string) {
+        at switchStage (C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:23:56)
+        at C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:13:9
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\deep_integration-Deep-Inte-af382--D-Rename-JSON-Sync-Delete--chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\deep_integration-Deep-Inte-af382--D-Rename-JSON-Sync-Delete--chromium\error-context.md
+
+  2) [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:86:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON) 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: locator('.inspector-panel')
+    Expected substring: [32m"Initial Stage"[39m
+    Error: strict mode violation: locator('.inspector-panel') resolved to 7 elements:
+        1) <div class="inspector-panel">ÔÇª</div> aka getByText('BASIS EINSTELLUNGENTyp:')
+        2) <div class="inspector-panel">ÔÇª</div> aka getByText('Typ:standardsplashmaintemplate')
+        3) <div class="inspector-panel">ÔÇª</div> aka getByText('RASTERSpalten:Zeilen:Zellgr├Â├ƒ')
+        4) <div class="inspector-panel">ÔÇª</div> aka getByText('Spalten:Zeilen:')
+        5) <div class="inspector-panel">ÔÇª</div> aka locator('div').filter({ hasText: /^Zellgr├Â├ƒe \(px\):$/ }).first()
+        6) <div class="inspector-panel">ÔÇª</div> aka getByText('ANIMATIONStart Animation:')
+        7) <div class="inspector-panel">ÔÇª</div> aka getByText('Dauer (ms):Easing:')
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 15000ms[22m
+    [2m  - waiting for locator('.inspector-panel')[22m
+
+
+      21 |         const stageItem = dropdown.locator('.menu-item').filter({ hasText: stageName });
+      22 |         await stageItem.click();
+    > 23 |         await expect(page.locator('.inspector-panel')).toContainText(stageName, { timeout: 15000 });
+         |                                                        ^
+      24 |     }
+      25 |
+      26 |     async function expandToolboxCategory(page: Page, categoryName: string) {
+        at switchStage (C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:23:56)
+        at C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:13:9
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\deep_integration-Deep-Inte-7f998-g-Task-Action-Linking-JSON--chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\deep_integration-Deep-Inte-7f998-g-Task-Action-Linking-JSON--chromium\error-context.md
+
+  3) [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:122:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: locator('.inspector-panel')
+    Expected substring: [32m"Initial Stage"[39m
+    Error: strict mode violation: locator('.inspector-panel') resolved to 7 elements:
+        1) <div class="inspector-panel">ÔÇª</div> aka getByText('BASIS EINSTELLUNGENTyp:')
+        2) <div class="inspector-panel">ÔÇª</div> aka getByText('Typ:standardsplashmaintemplate')
+        3) <div class="inspector-panel">ÔÇª</div> aka getByText('RASTERSpalten:Zeilen:Zellgr├Â├ƒ')
+        4) <div class="inspector-panel">ÔÇª</div> aka getByText('Spalten:Zeilen:')
+        5) <div class="inspector-panel">ÔÇª</div> aka locator('div').filter({ hasText: /^Zellgr├Â├ƒe \(px\):$/ }).first()
+        6) <div class="inspector-panel">ÔÇª</div> aka getByText('ANIMATIONStart Animation:')
+        7) <div class="inspector-panel">ÔÇª</div> aka getByText('Dauer (ms):Easing:')
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 15000ms[22m
+    [2m  - waiting for locator('.inspector-panel')[22m
+
+
+      21 |         const stageItem = dropdown.locator('.menu-item').filter({ hasText: stageName });
+      22 |         await stageItem.click();
+    > 23 |         await expect(page.locator('.inspector-panel')).toContainText(stageName, { timeout: 15000 });
+         |                                                        ^
+      24 |     }
+      25 |
+      26 |     async function expandToolboxCategory(page: Page, categoryName: string) {
+        at switchStage (C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:23:56)
+        at C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:13:9
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\deep_integration-Deep-Inte-901b3-Use-Case-Run-Mode-Execution-chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\deep_integration-Deep-Inte-901b3-Use-Case-Run-Mode-Execution-chromium\error-context.md
+
+  3 failed
+    [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:48:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete) 
+    [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:86:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON) 
+    [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:122:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution 

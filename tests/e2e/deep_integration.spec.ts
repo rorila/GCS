@@ -14,11 +14,12 @@ test.describe('Deep Integration: Editor & Engine', () => {
         await page.goto('/?e2e=true');
         await expect(page.locator('#app-layout')).toBeVisible();
 
-        // Load clean project state
+        // Load clean project state with proper hydration
         await page.evaluate(async () => {
             const res = await fetch('platform/project.json');
             const project = await res.json();
-            (window as any).editor.setProject(project);
+            // Use loadProject instead of setProject to ensure objects are hydrated (class instances)
+            (window as any).editor.loadProject(project);
         });
 
         await expect(page.locator('#stage-viewport')).toBeVisible({ timeout: 15000 });
@@ -87,12 +88,10 @@ test.describe('Deep Integration: Editor & Engine', () => {
         const toolboxButton = page.locator('#json-toolbox-content .toolbox-item').filter({ hasText: 'Button' }).first();
         await toolboxButton.click();
 
-        // The click places it at a default position (e.g., 10,10)
-        // We look for the newly created button on the stage
         const placedButton = page.locator('#stage-viewport .game-object').filter({ hasText: 'Button' }).first();
         await expect(placedButton).toBeVisible({ timeout: 15000 });
 
-        // 2. Drag on Stage (This uses mouse move and is stable)
+        // 2. Drag on Stage
         const box = await placedButton.boundingBox();
         if (box) {
             await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
@@ -102,9 +101,11 @@ test.describe('Deep Integration: Editor & Engine', () => {
         }
 
         await placedButton.click({ force: true });
+        await page.waitForTimeout(500);
 
-        const nameInput = page.locator('#inspector').locator('input[name="nameInput"]').first();
-        await expect(nameInput).toBeVisible({ timeout: 10000 });
+        // Robust selector for inspector input
+        const nameInput = page.locator('#inspector').locator('input[name="nameInput"], input[name="NameInput"]').first();
+        await expect(nameInput).toBeVisible({ timeout: 15000 });
 
         await nameInput.fill('TestButton1');
         await nameInput.press('Enter');
@@ -163,7 +164,7 @@ test.describe('Deep Integration: Editor & Engine', () => {
     });
 
     test('Use Case: Run-Mode & Execution', async ({ page }) => {
-        test.slow(); // Mark as slow test (increases timeout)
+        test.slow(); // Mark as slow test
         await switchView(page, 'stage');
         await expandToolboxCategory(page, 'Standard');
 
@@ -208,7 +209,7 @@ test.describe('Deep Integration: Editor & Engine', () => {
         const runButton = page.locator('#run-stage-viewport .TButton').first();
         await expect(runButton).toBeVisible({ timeout: 10000 });
 
-        // Open Debug Log before clicking
+        // Open Debug Log
         const debugLogToggle = page.locator('#debug-log-toggle');
         await expect(debugLogToggle).toBeVisible();
         await debugLogToggle.click();
@@ -216,12 +217,9 @@ test.describe('Deep Integration: Editor & Engine', () => {
         const debugLogPanel = page.locator('#debug-log-panel');
         await expect(debugLogPanel).toBeVisible({ timeout: 5000 });
 
-        // Force click the run button
         await runButton.click({ force: true });
         await page.waitForTimeout(1000); // Wait for execution
 
-        // Check if RunTestTask appeared in the log
-        // The message is "START: RunTestTask"
         await expect(debugLogPanel).toContainText('RunTestTask', { timeout: 15000 });
     });
 });

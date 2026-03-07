@@ -1,0 +1,378 @@
+﻿{
+  "config": {
+    "configFile": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\playwright.config.ts",
+    "rootDir": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:5173",
+      "reuseExistingServer": true,
+      "timeout": 60000
+    }
+  },
+  "suites": [
+    {
+      "title": "deep_integration.spec.ts",
+      "file": "deep_integration.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Deep Integration: Editor & Engine",
+          "file": "deep_integration.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 12393,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('#stage').locator('.game-object.TButton').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('#stage').locator('.game-object.TButton').first()\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('#stage').locator('.game-object.TButton').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('#stage').locator('.game-object.TButton').first()\u001b[22m\n\n    at C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts:72:36",
+                        "location": {
+                          "file": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts",
+                          "column": 36,
+                          "line": 72
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 70 |\u001b[39m\n \u001b[90m 71 |\u001b[39m         \u001b[36mconst\u001b[39m placedButton \u001b[33m=\u001b[39m stage\u001b[33m.\u001b[39mlocator(\u001b[32m'.game-object.TButton'\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 72 |\u001b[39m         \u001b[36mawait\u001b[39m expect(placedButton)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m10000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 73 |\u001b[39m\n \u001b[90m 74 |\u001b[39m         \u001b[36mawait\u001b[39m placedButton\u001b[33m.\u001b[39mclick({ force\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 75 |\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts",
+                            "column": 36,
+                            "line": 72
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('#stage').locator('.game-object.TButton').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('#stage').locator('.game-object.TButton').first()\u001b[22m\n\n\n  70 |\n  71 |         const placedButton = stage.locator('.game-object.TButton').first();\n> 72 |         await expect(placedButton).toBeVisible({ timeout: 10000 });\n     |                                    ^\n  73 |\n  74 |         await placedButton.click({ force: true });\n  75 |\n    at C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts:72:36"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-06T13:22:22.677Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\test-results\\deep_integration-Deep-Inte-af382--D-Rename-JSON-Sync-Delete--chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\test-results\\deep_integration-Deep-Inte-af382--D-Rename-JSON-Sync-Delete--chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts",
+                        "column": 36,
+                        "line": 72
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1df72938b82521e67ba1-2fbc3695eea991f9457b",
+              "file": "deep_integration.spec.ts",
+              "line": 63,
+              "column": 5
+            },
+            {
+              "title": "Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3573,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-06T13:22:36.513Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1df72938b82521e67ba1-6bba86dad971651947fb",
+              "file": "deep_integration.spec.ts",
+              "line": 100,
+              "column": 5
+            },
+            {
+              "title": "Use Case: Run-Mode & Execution",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 7316,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.game-object.TButton').first()\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.game-object.TButton').first()\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.game-object.TButton').first()\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.game-object.TButton').first()\u001b[22m\n\n    at C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts:142:36",
+                        "location": {
+                          "file": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts",
+                          "column": 36,
+                          "line": 142
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 140 |\u001b[39m\n \u001b[90m 141 |\u001b[39m         \u001b[36mconst\u001b[39m placedButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'.game-object.TButton'\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 142 |\u001b[39m         \u001b[36mawait\u001b[39m expect(placedButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 143 |\u001b[39m\n \u001b[90m 144 |\u001b[39m         \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'.tab-btn:has-text(\"Flow\")'\u001b[39m)\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 145 |\u001b[39m         \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'button[title=\"New Task Flow\"]'\u001b[39m)\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts",
+                            "column": 36,
+                            "line": 142
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.game-object.TButton').first()\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.game-object.TButton').first()\u001b[22m\n\n\n  140 |\n  141 |         const placedButton = page.locator('.game-object.TButton').first();\n> 142 |         await expect(placedButton).toBeVisible();\n      |                                    ^\n  143 |\n  144 |         await page.locator('.tab-btn:has-text(\"Flow\")').click();\n  145 |         await page.locator('button[title=\"New Task Flow\"]').click();\n    at C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts:142:36"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-06T13:22:40.181Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\test-results\\deep_integration-Deep-Inte-901b3-Use-Case-Run-Mode-Execution-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\test-results\\deep_integration-Deep-Inte-901b3-Use-Case-Run-Mode-Execution-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts",
+                        "column": 36,
+                        "line": 142
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1df72938b82521e67ba1-03431962f82afe76dd57",
+              "file": "deep_integration.spec.ts",
+              "line": 136,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "editor_smoke.spec.ts",
+      "file": "editor_smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Editor Smoke Tests",
+          "file": "editor_smoke.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "sollte den Editor korrekt laden",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 423,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-06T13:22:48.914Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "70216a2cfd110a12b8b3-d80bc436c42c634d5097",
+              "file": "editor_smoke.spec.ts",
+              "line": 21,
+              "column": 5
+            },
+            {
+              "title": "sollte zwischen Views umschalten k├Ânnen",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 668,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-06T13:22:49.436Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "70216a2cfd110a12b8b3-6fc41857a5ee22241c62",
+              "file": "editor_smoke.spec.ts",
+              "line": 28,
+              "column": 5
+            },
+            {
+              "title": "sollte die Komponenten-Palette in der Toolbox anzeigen",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 918,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-06T13:22:50.115Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "70216a2cfd110a12b8b3-e157a28c61873afb192d",
+              "file": "editor_smoke.spec.ts",
+              "line": 46,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-03-06T13:22:21.281Z",
+    "duration": 29833.43,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

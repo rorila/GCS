@@ -32,4 +32,6 @@ UC-123: Layout-Fixes & Container-Isolation | main.ts, EditorViewManager.ts, play
 - [2026-03-07] Intelligentes Speichermanagement & Projekt-Schutz:
   - Dateien: Editor.ts (L139, L424), EditorDataManager.ts (L50, L60, L188, L339, L340), EditorViewManager.ts (L51)
   - Methoden: Editor.newProject, EditorDataManager.saveProject, EditorDataManager.updateProjectJSON, EditorDataManager.triggerLoad, EditorDataManager.loadFromServer
-  - Details: Einführung von `isProjectDirty` (SSOT), Browser Navigation Guard (`onbeforeunload`) und Bestätigungs-Dialogen. Entkopplung von Auto-Save (LocalStorage) und Disk-Save (Server).
+- [2026-03-07] E2E-Reporting Fix & Server Safety & Hydration:
+  - Dateien: scripts/test_runner.ts, src/runtime/GameRuntime.ts, src/runtime/RuntimeStageManager.ts, tests/e2e/deep_integration.spec.ts
+  - Details: Rekursives E2E-Ergebnis-Parsing für verschachtelte Suites implementiert. Server-Check für Port 8080 hinzugefügt. Unbenutzte Deklarationen entfernt. E2E-Stabilität durch loadProject (Hydrierung) sichergestellt.

@@ -13,6 +13,10 @@ Alle relevanten Änderungen an diesem Projekt werden in dieser Datei dokumentier
 
 ### Fixed
 - Wiederherstellung der `project.json` aus der Git-Historie nach versehentlichem Überschreiben.
+- **E2E-Reporting**: Rekursives Parsing von Test-Ergebnissen im Test-Runner zur Unterstützung verschachtelter Test-Suites.
+- **Server-Check**: Automatisierte Prüfung der Game-Server Erreichbarkeit vor E2E-Tests.
+- **E2E-Stabilität**: Fix der Inspector-Hydrierung in `deep_integration.spec.ts` durch Umstellung von `setProject` auf `loadProject`.
+- **Code-Cleanup**: Entfernen ungenutzter Variablen und Imports in der Runtime (TSC-Fix).
 
 ## [3.9.1] - 2026-03-06
 ### Added

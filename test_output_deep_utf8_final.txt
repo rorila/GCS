@@ -1,0 +1,5 @@
+﻿
+Running 3 tests using 1 worker
+
+  Ô£ÿ  1 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:63:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete) (12.3s)
+  Ô£ô  2 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:100:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON) (3.7s)

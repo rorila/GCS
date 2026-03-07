@@ -1,4 +1,4 @@
-import { Logger } from '../utils/Logger';
+// 
 import { hydrateObjects } from '../utils/Serialization';
 
 export interface MergedStageData {
@@ -12,7 +12,7 @@ export interface MergedStageData {
 }
 
 export class RuntimeStageManager {
-    private logger = Logger.get('RuntimeStageManager', 'Stage_Navigation');
+    // Manager instance
     // Cache für globale Objekte, damit deren State bei Stage-Wechseln erhalten bleibt
     private cachedGlobalObjects: any[] | null = null;
     private project: any;

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import net from 'net';
 import { fileURLToPath } from 'url';
 import { runLoginTests, TestResult } from './test_login_logic.js'; // Note the .js extension for ESM imports
 import { runSmartMappingTests } from './test_smart_mapping.js';
@@ -135,47 +136,82 @@ async function main() {
 
         // 🌐 12. Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');
+
+        // Check if Game Server (Port 8080) is running
+        const isServerRunning = await new Promise((resolve) => {
+            const client = new net.Socket();
+            client.setTimeout(1000);
+            client.on('connect', () => { client.destroy(); resolve(true); });
+            client.on('error', () => { client.destroy(); resolve(false); });
+            client.on('timeout', () => { client.destroy(); resolve(false); });
+            client.connect(8080, 'localhost');
+        });
+
+        if (!isServerRunning) {
+            console.warn('⚠️  [WARNUNG] Game-Server (Port 8080) läuft nicht!');
+            console.warn('   E2E-Tests werden wahrscheinlich fehlschlagen, da /platform nicht erreichbar ist.');
+            console.warn('   Starte den Server mit: cd game-server && npm run dev\n');
+        }
+
         try {
             const e2eOutput = execSync('npx playwright test --reporter=json', { encoding: 'utf-8', stdio: 'pipe' });
             const e2eData = JSON.parse(e2eOutput);
 
-            e2eData.suites.forEach((suite: any) => {
-                suite.specs.forEach((spec: any) => {
-                    spec.tests.forEach((test: any) => {
-                        const result = test.results[0];
-                        allResults.push({
-                            name: `E2E: ${spec.title}`,
-                            type: 'E2E Browser',
-                            passed: result.status === 'passed',
-                            expectedSuccess: true,
-                            actualSuccess: result.status === 'passed',
-                            details: `Browser: ${test.projectName}`
-                        });
-                    });
-                });
-            });
-            console.log('✅ Browser-Tests abgeschlossen.');
-        } catch (e2eErr: any) {
-            console.warn('⚠️ Playwright Tests fehlgeschlagen oder mit Warnungen abgeschlossen.');
-            if (e2eErr.stdout) {
-                try {
-                    const e2eData = JSON.parse(e2eErr.stdout);
-                    // Add failed tests to report anyway
-                    e2eData.suites?.forEach((suite: any) => {
-                        suite.specs?.forEach((spec: any) => {
-                            spec.tests?.forEach((testItem: any) => {
-                                const result = testItem.results[0];
+            const extractResults = (suites: any[]) => {
+                suites.forEach((suite: any) => {
+                    if (suite.specs) {
+                        suite.specs.forEach((spec: any) => {
+                            spec.tests.forEach((test: any) => {
+                                const result = test.results[0];
                                 allResults.push({
                                     name: `E2E: ${spec.title}`,
                                     type: 'E2E Browser',
                                     passed: result.status === 'passed',
                                     expectedSuccess: true,
                                     actualSuccess: result.status === 'passed',
-                                    details: `Browser: ${testItem.projectName} - ${result.error?.message || 'Fehler'}`
+                                    details: `Browser: ${test.projectName}`
                                 });
                             });
                         });
-                    });
+                    }
+                    if (suite.suites) {
+                        extractResults(suite.suites);
+                    }
+                });
+            };
+
+            extractResults(e2eData.suites);
+            console.log('✅ Browser-Tests abgeschlossen.');
+        } catch (e2eErr: any) {
+            console.warn('⚠️ Playwright Tests fehlgeschlagen oder mit Warnungen abgeschlossen.');
+            if (e2eErr.stdout) {
+                try {
+                    const e2eData = JSON.parse(e2eErr.stdout);
+
+                    const extractFailedResults = (suites: any[]) => {
+                        suites.forEach((suite: any) => {
+                            if (suite.specs) {
+                                suite.specs.forEach((spec: any) => {
+                                    spec.tests.forEach((testItem: any) => {
+                                        const result = testItem.results[0];
+                                        allResults.push({
+                                            name: `E2E: ${spec.title}`,
+                                            type: 'E2E Browser',
+                                            passed: result.status === 'passed',
+                                            expectedSuccess: true,
+                                            actualSuccess: result.status === 'passed',
+                                            details: `Browser: ${testItem.projectName} - ${result.error?.message || 'Fehler'}`
+                                        });
+                                    });
+                                });
+                            }
+                            if (suite.suites) {
+                                extractFailedResults(suite.suites);
+                            }
+                        });
+                    };
+
+                    extractFailedResults(e2eData.suites);
                 } catch (parseErr) {
                     console.error('❌ Fehler beim Parsen der Playwright-Ergebnisse.');
                 }

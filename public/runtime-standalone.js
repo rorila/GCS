@@ -789,14 +789,15 @@
       return this.enabled;
     }
     static getInstance() {
-      if (!_DebugLogService.instance) {
-        _DebugLogService.instance = new _DebugLogService();
+      const globalScope4 = typeof window !== "undefined" ? window : global;
+      if (!globalScope4._globalDebugLogService) {
+        globalScope4._globalDebugLogService = new _DebugLogService();
       }
-      return _DebugLogService.instance;
+      return globalScope4._globalDebugLogService;
     }
     log(type, message, options = {}) {
       if (!this.enabled) return "";
-      const parentId = options.parentId || (this.contextStack.length > 0 ? this.contextStack[this.contextStack.length - 1] : void 0);
+      const parentId = options.flatten ? void 0 : options.parentId || (this.contextStack.length > 0 ? this.contextStack[this.contextStack.length - 1] : void 0);
       const id = `log-${Date.now()}-${this.counter++}`;
       const entry = {
         id,
@@ -818,6 +819,7 @@
           return id;
         }
       }
+      console.log(`[DebugLogService] [${type}] ${message}`);
       this.logs.push(entry);
       if (this.logs.length > this.maxLogs) {
         this.logs.shift();
@@ -881,7 +883,6 @@
     }
   };
   __publicField(_DebugLogService, "logger", Logger.get("DebugLogService", "Editor_Diagnostics"));
-  __publicField(_DebugLogService, "instance");
   var DebugLogService = _DebugLogService;
   var globalScope = typeof window !== "undefined" ? window : global;
   var debugLogService = globalScope._globalDebugLogService || DebugLogService.getInstance();
@@ -2005,7 +2006,12 @@
         Object.keys(action.changes).forEach((prop) => {
           const rawValue = action.changes[prop];
           const value = PropertyHelper.interpolate(String(rawValue), combinedContext, context.objects);
-          PropertyHelper.setPropertyValue(target, prop, PropertyHelper.autoConvert(value));
+          const finalValue = PropertyHelper.autoConvert(value);
+          PropertyHelper.setPropertyValue(target, prop, finalValue);
+          DebugLogService.getInstance().log("Variable", `${target.name || target.id}.${prop} = ${finalValue}`, {
+            objectName: target.name || target.id,
+            flatten: true
+          });
         });
       }
     }, {
@@ -3015,14 +3021,22 @@
     setActions(actions) {
       this.actions = actions;
     }
-    async execute(taskName, vars, globalVars, contextObj, depth = 0, parentId, params, isRemoteExecution = false) {
-      if (depth >= _TaskExecutor.MAX_DEPTH) {
-        logger3.error(`Max recursion depth exceeded: ${taskName}`);
+    async execute(taskName, vars = {}, globalVars = {}, contextObj = null, depth = 0, parentId, params = null, isRemoteExecution = false) {
+      if (depth > _TaskExecutor.MAX_DEPTH) {
+        logger3.error(`Max recursion depth reached for task ${taskName}`);
         return;
       }
-      if (params) {
-        vars = { ...vars, ...params };
+      const isMultiplayer = !!this.multiplayerManager;
+      const isEnabled = DebugLogService.getInstance().isEnabled();
+      if (isEnabled) {
+        console.error(`[TaskExecutor] EXECUTING: ${taskName} (depth: ${depth}, context: ${contextObj?.name || "none"})`);
       }
+      const taskLogId = DebugLogService.getInstance().log("Task", `START: ${taskName}`, {
+        parentId,
+        objectName: contextObj?.name,
+        flatten: depth > 0
+        // Bei Rekursion flach halten für E2E Sichtbarkeit
+      });
       let task = this.tasks?.find((t) => t.name === taskName);
       if (!task) {
         const blueprintStage = this.project.stages?.find((s) => s.type === "blueprint" || s.id === "stage_blueprint");
@@ -3039,9 +3053,9 @@
       if (!task && taskName.includes(".")) {
         const [objName, evtName] = taskName.split(".");
         let foundTaskName = "";
-        let objectFound = false;
+        let objectFound = null;
         if (contextObj && (contextObj.name === objName || contextObj.id === objName)) {
-          objectFound = true;
+          objectFound = contextObj;
           const evts = contextObj.events || contextObj.Tasks;
           if (evts && evts[evtName]) {
             foundTaskName = evts[evtName];
@@ -3063,7 +3077,7 @@
             if (foundTaskName) return;
             const obj = findDeep(s.objects || []);
             if (obj) {
-              objectFound = true;
+              objectFound = obj;
               if ((obj.events || obj.Tasks) && (obj.events || obj.Tasks)[evtName]) {
                 foundTaskName = (obj.events || obj.Tasks)[evtName];
               }
@@ -3071,7 +3085,7 @@
             if (!foundTaskName && s.variables) {
               const v = s.variables.find((v2) => v2.name === objName);
               if (v) {
-                objectFound = true;
+                objectFound = v;
                 if (v.events && v.events[evtName]) {
                   foundTaskName = v.events[evtName];
                 } else if (v.Tasks && v.Tasks[evtName]) {
@@ -3083,7 +3097,7 @@
           if (!foundTaskName && this.project.variables) {
             const v = this.project.variables.find((v2) => v2.name === objName);
             if (v) {
-              objectFound = true;
+              objectFound = v;
               if (v.events && v.events[evtName]) {
                 foundTaskName = v.events[evtName];
               } else if (v.Tasks && v.Tasks[evtName]) {
@@ -3094,7 +3108,7 @@
           if (!foundTaskName && this.project.objects) {
             const obj = findDeep(this.project.objects);
             if (obj) {
-              objectFound = true;
+              objectFound = obj;
               if ((obj.events || obj.Tasks) && (obj.events || obj.Tasks)[evtName]) {
                 foundTaskName = (obj.events || obj.Tasks)[evtName];
               }
@@ -3103,7 +3117,7 @@
         }
         if (foundTaskName) {
           logger3.debug(`Final resolution for "${taskName}": "${foundTaskName}"`);
-          return this.execute(foundTaskName, vars, globalVars, contextObj, depth + 1, parentId, params, isRemoteExecution);
+          return this.execute(foundTaskName, vars, globalVars, objectFound, depth + 1, taskLogId, params, isRemoteExecution);
         }
         const optionalEvents = ["onStart", "onStop", "onValueChanged", "onLoad", "onUnload", "onFocus", "onBlur", "onEnter", "onLeave"];
         const isOptionalEvent = optionalEvents.includes(evtName);
@@ -3117,46 +3131,19 @@
         return;
       }
       if (!task) {
-        logger3.warn(`Task definition not found: ${taskName}`);
-        return;
-      }
-      const triggerMode = task.triggerMode || "local-sync";
-      const isMultiplayer = this.multiplayerManager?.isConnected === true;
-      const isHost = this.multiplayerManager?.isHost === true;
-      if (isMultiplayer && !isRemoteExecution) {
-        if (triggerMode === "broadcast" && !isHost) {
-          logger3.info(`Broadcasting task "${taskName}" to host (not executing locally)`);
-          this.multiplayerManager.sendTriggerTask(taskName, params);
+        const flowChart = this.flowCharts?.[taskName];
+        const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
+        if (!hasFlowChart) {
+          logger3.warn(`Task definition or FlowChart not found: ${taskName}`);
           return;
         }
       }
-      if (isMultiplayer && isRemoteExecution) {
-        if (triggerMode === "broadcast" && !isHost) {
-          logger3.info(`Skipping remote broadcast task "${taskName}" - only host executes`);
-          return;
-        }
-      }
-      if (task.params && Array.isArray(task.params)) {
-        const paramDefaults = {};
-        task.params.forEach((p) => {
-          if (p.name && p.default !== void 0 && vars[p.name] === void 0) {
-            paramDefaults[p.name] = p.default;
-          }
-        });
-        if (Object.keys(paramDefaults).length > 0) {
-          logger3.debug(`Applied param defaults for "${taskName}":`, paramDefaults);
-          vars = { ...vars, ...paramDefaults };
-        }
-      }
-      const taskLogId = DebugLogService.getInstance().log("Task", `START: ${taskName}`, {
-        parentId,
-        objectName: contextObj?.name
-      });
+      const triggerMode = task?.triggerMode || "local-sync";
       DebugLogService.getInstance().pushContext(taskLogId);
       try {
         const flowChart = this.flowCharts?.[taskName];
         const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
-        const actionSequence = task.actionSequence || [];
+        const actionSequence = task?.actionSequence || [];
         if (hasFlowChart) {
           logger3.info(`Nutze Flussdiagramm f\xFCr "${taskName}" (Elemente: ${flowChart.elements.length})`);
           await this.executeFlowChart(taskName, flowChart, vars, globalVars, contextObj, depth, taskLogId);
@@ -10794,7 +10781,7 @@
   // src/runtime/RuntimeStageManager.ts
   var RuntimeStageManager = class {
     constructor(project) {
-      __publicField(this, "logger", Logger.get("RuntimeStageManager", "Stage_Navigation"));
+      // Manager instance
       // Cache für globale Objekte, damit deren State bei Stage-Wechseln erhalten bleibt
       __publicField(this, "cachedGlobalObjects", null);
       __publicField(this, "project");
@@ -11212,6 +11199,7 @@
       if (!obj) return;
       const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
       const hasTaskMap = obj.events && obj.events[eventName] || obj.Tasks && obj.Tasks[eventName];
+      console.log(`[GameRuntime] handleEvent(${objectId}, ${eventName}). hasOnEventMap=${!!hasOnEventMap}, hasTaskMap=${!!hasTaskMap}. Task=${obj.events && obj.events[eventName] || obj.Tasks && obj.Tasks[eventName]}`);
       let eventLogId = void 0;
       if (hasOnEventMap || hasTaskMap) {
         eventLogId = DebugLogService.getInstance().log("Event", `Triggered: ${obj.name}.${eventName}`, {
@@ -11236,7 +11224,7 @@
           }
         }
         if (this.taskExecutor && hasTaskMap) {
-          const taskName = `${obj.name}.${eventName}`;
+          const taskName = typeof hasTaskMap === "string" ? hasTaskMap : `${obj.name}.${eventName}`;
           const eventVars = typeof data === "object" && data !== null ? { ...data, eventData: data, sender: obj } : { eventData: data, sender: obj };
           this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
         }
@@ -12184,7 +12172,6 @@
         let isNew = false;
         if (!el) {
           el = document.createElement("div");
-          el.className = "game-object";
           el.setAttribute("data-id", objId);
           el.style.position = "absolute";
           el.style.boxSizing = "border-box";
@@ -12197,6 +12184,7 @@
           isNew = true;
         }
         const className = obj.className || obj.constructor?.name;
+        el.className = "game-object" + (className ? " " + className : "");
         el.setAttribute("data-align", obj.align || "NONE");
         const dockPos = dockPositions.get(objId);
         let finalX, finalY, finalW, finalH;
@@ -12279,7 +12267,7 @@
           el.style.cursor = "pointer";
           el.onclick = (e) => {
             e.stopPropagation();
-            console.log(`[StageRenderer] Click on ${obj.name} (${obj.id}). Task: ${obj.Tasks?.onClick || "none"}`);
+            console.log(`[StageRenderer] Click on ${obj.name} (${obj.id}). Task: ${obj.events?.onClick || obj.Tasks?.onClick || "none"}`);
             if (this.host.onEvent) {
               this.host.onEvent(obj.id, "onClick");
             }
@@ -12564,6 +12552,13 @@
         el.onmouseleave = () => el.style.filter = "none";
         el.onmousedown = () => el.style.transform = "scale(0.98)";
         el.onmouseup = () => el.style.transform = "none";
+        el.onclick = (e) => {
+          e.stopPropagation();
+          if (this.host.onEvent) {
+            logger8.debug(`[StageRenderer] Button clicked: ${obj.id} (${obj.name})`);
+            this.host.onEvent(obj.id, "onClick");
+          }
+        };
       }
     }
     renderEmojiPickerInternal(el, obj) {

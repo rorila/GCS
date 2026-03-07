@@ -4,7 +4,7 @@ import { TaskExecutor } from './TaskExecutor';
 import { AnimationManager } from './AnimationManager';
 import { GameLoopManager } from './GameLoopManager';
 import { RuntimeVariableManager, IVariableHost } from './RuntimeVariableManager';
-import { RuntimeStageManager, MergedStageData } from './RuntimeStageManager';
+import { RuntimeStageManager } from './RuntimeStageManager';
 import { DebugLogService } from '../services/DebugLogService';
 import { hydrateObjects } from '../utils/Serialization';
 import { TStageController } from '../components/TStageController';

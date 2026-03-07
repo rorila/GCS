@@ -1,0 +1,101 @@
+﻿
+Running 3 tests using 1 worker
+
+  Ô£ÿ  1 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:57:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete) (7.2s)
+  Ô£ô  2 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:106:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON) (4.7s)
+  Ô£ÿ  3 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:140:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution (30.1s)
+
+
+  1) [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:57:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete) 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).not.[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('#game-stage .game-object').filter({ hasText: 'Panel' }).first()
+    Expected: not visible
+    Received: visible
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "not toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('#game-stage .game-object').filter({ hasText: 'Panel' }).first()[22m
+    [2m    9 ├ù locator resolved to <div data-align="NONE" class="game-object" data-id="obj_1772822986294_l0hd4ip9m">Panel_29</div>[22m
+    [2m      - unexpected value "visible"[22m
+
+
+      101 |         await placedPanel.click({ force: true });
+      102 |         await page.keyboard.press('Delete');
+    > 103 |         await expect(placedPanel).not.toBeVisible();
+          |                                       ^
+      104 |     });
+      105 |
+      106 |     test('Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON)', async ({ page }) => {
+        at C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:103:39
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\deep_integration-Deep-Inte-af382--D-Rename-JSON-Sync-Delete--chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\deep_integration-Deep-Inte-af382--D-Rename-JSON-Sync-Delete--chromium\error-context.md
+
+  2) [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:140:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.dragTo: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('.toolbox-item:has-text("Button")')[22m
+    [2m    - locator resolved to <div draggable="true" class="toolbox-item">ÔÇª</div>[22m
+    [2m  - attempting move and down action[22m
+    [2m    - waiting for element to be visible and stable[22m
+    [2m    - element is visible and stable[22m
+    [2m    - scrolling into view if needed[22m
+    [2m    - done scrolling[22m
+    [2m    - performing move and down action[22m
+    [2m    - move and down action done[22m
+    [2m    - waiting for scheduled navigations to finish[22m
+    [2m    - navigations have finished[22m
+    [2m  - waiting for locator('#stage')[22m
+    [2m    - locator resolved to <div id="stage">ÔÇª</div>[22m
+    [2m  - attempting move and up action[22m
+    [2m    2 ├ù waiting for element to be visible and stable[22m
+    [2m      - element is visible and stable[22m
+    [2m      - scrolling into view if needed[22m
+    [2m      - done scrolling[22m
+    [2m      - <html lang="en">ÔÇª</html> intercepts pointer events[22m
+    [2m    - retrying move and up action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 ├ù waiting for element to be visible and stable[22m
+    [2m      - element is visible and stable[22m
+    [2m      - scrolling into view if needed[22m
+    [2m      - done scrolling[22m
+    [2m      - <html lang="en">ÔÇª</html> intercepts pointer events[22m
+    [2m    - retrying move and up action[22m
+    [2m      - waiting 100ms[22m
+    [2m    55 ├ù waiting for element to be visible and stable[22m
+    [2m       - element is visible and stable[22m
+    [2m       - scrolling into view if needed[22m
+    [2m       - done scrolling[22m
+    [2m       - <html lang="en">ÔÇª</html> intercepts pointer events[22m
+    [2m     - retrying move and up action[22m
+    [2m       - waiting 500ms[22m
+
+
+      143 |
+      144 |         const stage = page.locator('#stage');
+    > 145 |         await page.locator('.toolbox-item:has-text("Button")').dragTo(stage, {
+          |                                                                ^
+      146 |             targetPosition: { x: 100, y: 100 }
+      147 |         });
+      148 |
+        at C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:145:64
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\deep_integration-Deep-Inte-901b3-Use-Case-Run-Mode-Execution-chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\deep_integration-Deep-Inte-901b3-Use-Case-Run-Mode-Execution-chromium\error-context.md
+
+  2 failed
+    [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:57:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete) 
+    [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:140:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution 
+  1 passed (44.9s)

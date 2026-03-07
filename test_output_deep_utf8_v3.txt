@@ -1,0 +1,99 @@
+﻿
+Running 3 tests using 1 worker
+
+  Ô£ÿ  1 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:48:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete) (7.1s)
+  Ô£ÿ  2 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:86:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON) (5.8s)
+  Ô£ÿ  3 [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:122:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution (7.2s)
+
+
+  1) [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:48:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete) 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('#stage').locator('.game-object.TButton').first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('#stage').locator('.game-object.TButton').first()[22m
+
+
+      55 |
+      56 |         const placedButton = stage.locator('.game-object.TButton').first();
+    > 57 |         await expect(placedButton).toBeVisible();
+         |                                    ^
+      58 |
+      59 |         await placedButton.click({ force: true });
+      60 |
+        at C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:57:36
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\deep_integration-Deep-Inte-af382--D-Rename-JSON-Sync-Delete--chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\deep_integration-Deep-Inte-af382--D-Rename-JSON-Sync-Delete--chromium\error-context.md
+
+  2) [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:86:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON) 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('.inspector-panel').filter({ hasText: /IDENTIT├äT|BASIS/i }).locator('input.inspector-input').first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('.inspector-panel').filter({ hasText: /IDENTIT├äT|BASIS/i }).locator('input.inspector-input').first()[22m
+
+
+      94 |         await taskNode.click({ force: true });
+      95 |         const nameInput = page.locator('.inspector-panel', { hasText: /IDENTIT├äT|BASIS/i }).locator('input.inspector-input').first();
+    > 96 |         await expect(nameInput).toBeVisible();
+         |                                 ^
+      97 |         await nameInput.fill('MainTask');
+      98 |         await nameInput.press('Enter');
+      99 |
+        at C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:96:33
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\deep_integration-Deep-Inte-7f998-g-Task-Action-Linking-JSON--chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\deep_integration-Deep-Inte-7f998-g-Task-Action-Linking-JSON--chromium\error-context.md
+
+  3) [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:122:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('.game-object.TButton').first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('.game-object.TButton').first()[22m
+
+
+      126 |
+      127 |         const placedButton = page.locator('.game-object.TButton').first();
+    > 128 |         await expect(placedButton).toBeVisible();
+          |                                    ^
+      129 |
+      130 |         await page.locator('.tab-btn:has-text("Flow")').click();
+      131 |         await page.locator('button[title="New Task Flow"]').click();
+        at C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\tests\e2e\deep_integration.spec.ts:128:36
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\deep_integration-Deep-Inte-901b3-Use-Case-Run-Mode-Execution-chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+    Error Context: test-results\deep_integration-Deep-Inte-901b3-Use-Case-Run-Mode-Execution-chromium\error-context.md
+
+  3 failed
+    [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:48:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete) 
+    [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:86:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON) 
+    [chromium] ÔÇ║ tests\e2e\deep_integration.spec.ts:122:5 ÔÇ║ Deep Integration: Editor & Engine ÔÇ║ Use Case: Run-Mode & Execution 
