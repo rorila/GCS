@@ -190,6 +190,7 @@ export class InspectorHost {
 
         const createTab = (id: string, label: string) => {
             const tab = document.createElement('div');
+            tab.className = 'inspector-tab';
             tab.innerText = label;
             tab.style.padding = '8px 12px';
             tab.style.cursor = 'pointer';
@@ -272,6 +273,7 @@ export class InspectorHost {
             case 'TEdit': {
                 const value = this.resolveValue(def.text || def.value, obj, def);
                 const input = this.renderer.renderEdit(value);
+                if (def.name) input.name = def.name;
                 input.onchange = () => {
                     const event = this.eventHandler.handleControlChange(def.name, input.value, obj, def);
 
@@ -290,6 +292,7 @@ export class InspectorHost {
             case 'TNumberInput': {
                 const value = this.resolveValue(def.text || def.value, obj, def);
                 const input = this.renderer.renderNumberInput(Number(value), def.min, def.max, def.step);
+                if (def.name) input.name = def.name;
                 input.onchange = () => {
                     const event = this.eventHandler.handleControlChange(def.name, Number(input.value), obj, def);
 
@@ -328,6 +331,7 @@ export class InspectorHost {
                 }
 
                 const select = this.renderer.renderSelect(Array.isArray(options) ? options : [], value, def.placeholder);
+                if (def.name) select.name = def.name;
                 select.onchange = () => {
                     InspectorHost.logger.info(`${def.className} onchange: Control="${def.name}", NewValue="${select.value}"`);
                     const event = this.eventHandler.handleControlChange(def.name, select.value, obj, def);
@@ -355,6 +359,7 @@ export class InspectorHost {
                 const value = this.resolveValue(def.checked, obj, def);
                 const container = this.renderer.renderCheckbox(!!value, def.label || '');
                 const cb = (container as any).input as HTMLInputElement;
+                if (def.name) cb.name = def.name;
                 cb.onchange = () => {
                     const event = this.eventHandler.handleControlChange(def.name, cb.checked, obj, def);
 

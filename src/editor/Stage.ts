@@ -86,7 +86,7 @@ export class Stage implements StageHost, StageInteractionHost {
 
         // Create the actual stage element
         this.element = document.createElement('div');
-        this.element.id = 'game-stage';
+        this.element.id = `${containerId}-viewport`;
         this.element.style.position = 'relative';
         this.element.style.transformOrigin = 'top left';
         this.element.style.backgroundColor = '#1a1a2e'; // Force opaque background to hide potential ghosts

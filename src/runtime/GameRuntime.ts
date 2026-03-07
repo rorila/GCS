@@ -413,6 +413,8 @@ export class GameRuntime implements IVariableHost {
         const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
         const hasTaskMap = (obj.events && obj.events[eventName]) || ((obj as any).Tasks && (obj as any).Tasks[eventName]);
 
+        console.log(`[GameRuntime] handleEvent(${objectId}, ${eventName}). hasOnEventMap=${!!hasOnEventMap}, hasTaskMap=${!!hasTaskMap}. Task=${(obj.events && obj.events[eventName]) || ((obj as any).Tasks && (obj as any).Tasks[eventName])}`);
+
         let eventLogId: string | undefined = undefined;
 
         if (hasOnEventMap || hasTaskMap) {
@@ -446,7 +448,8 @@ export class GameRuntime implements IVariableHost {
             }
 
             if (this.taskExecutor && hasTaskMap) {
-                const taskName = `${obj.name}.${eventName}`;
+                // Priority 1: Explicit mapping (string), Priority 2: Convention (ObjectName.EventName)
+                const taskName = (typeof hasTaskMap === 'string') ? hasTaskMap : `${obj.name}.${eventName}`;
                 // Ensure eventData is available in vars even when 'data' is not an object (e.g., a string like an emoji)
                 const eventVars = typeof data === 'object' && data !== null
                     ? { ...data, eventData: data, sender: obj }

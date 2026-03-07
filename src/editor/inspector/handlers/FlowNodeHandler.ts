@@ -3,6 +3,9 @@ import { IInspectorHandler, PropertyChangeEvent } from '../types';
 import { GameProject } from '../../../model/types';
 import { ReactiveRuntime } from '../../../runtime/ReactiveRuntime';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
+import { projectRegistry } from '../../../services/ProjectRegistry';
+import { RefactoringManager } from '../../RefactoringManager';
+import { mediatorService } from '../../../services/MediatorService';
 
 export class FlowNodeHandler implements IInspectorHandler {
     private static logger = Logger.get('FlowNodeHandler', 'Task_Management');
@@ -37,9 +40,31 @@ export class FlowNodeHandler implements IInspectorHandler {
         if (propertyName === 'name' || propertyName === 'Name') {
             FlowNodeHandler.logger.info(`Renaming detected: "${oldValue}" -> "${newValue}"`);
             const type = (typeof object.getType === 'function') ? object.getType() : 'Task';
-            if (type === 'task' || type === 'action' || type === 'data_action') {
-                return true;
+
+            // Handle renaming via RefactoringManager to ensure SSOT consistency
+            if (oldValue && newValue !== oldValue) {
+                const currentProject = projectRegistry.getProject(); // Get the active project
+                if (currentProject) {
+                    const nodeType = type?.toLowerCase();
+
+                    if (nodeType === 'task') {
+                        FlowNodeHandler.logger.info(`Triggere Task-Refactoring: ${oldValue} -> ${newValue}`);
+                        RefactoringManager.renameTask(currentProject, oldValue, newValue);
+                        // Benachrichtige den FlowEditor, falls dieser Task gerade editiert wird
+                        mediatorService.notifyDataChanged(currentProject, 'flow-node-handler');
+                    } else if (['action', 'dataaction', 'data_action'].includes(nodeType)) {
+                        FlowNodeHandler.logger.info(`Triggere Action-Refactoring: ${oldValue} -> ${newValue}`);
+                        RefactoringManager.renameAction(currentProject, oldValue, newValue);
+                        mediatorService.notifyDataChanged(currentProject, 'flow-node-handler');
+                    }
+                } else {
+                    FlowNodeHandler.logger.error("Refactoring fehlgeschlagen: Kein aktives Projekt gefunden.");
+                }
             }
+            // The original logic for name changes just returned true.
+            // We still need to update the object's name for immediate display.
+            PropertyHelper.setPropertyValue(object, propertyName, newValue);
+            return true; // Indicate that the change was handled
         }
 
         // =====================================================================

@@ -111,14 +111,23 @@ export class ProjectPersistenceService {
             fileInput.type = 'file';
             fileInput.accept = '.json';
             fileInput.style.display = 'none';
+
+            const cleanup = () => {
+                if (fileInput.parentNode) {
+                    fileInput.parentNode.removeChild(fileInput);
+                }
+            };
+
             fileInput.onchange = (e) => {
                 const file = (e.target as HTMLInputElement).files?.[0];
                 if (!file) {
+                    cleanup();
                     resolve(null);
                     return;
                 }
                 const reader = new FileReader();
                 reader.onload = (evt) => {
+                    cleanup();
                     try {
                         const json = JSON.parse(evt.target?.result as string);
                         resolve(json);
@@ -126,12 +135,15 @@ export class ProjectPersistenceService {
                         reject(err);
                     }
                 };
-                reader.onerror = () => reject(new Error('File reading failed'));
+                reader.onerror = () => {
+                    cleanup();
+                    reject(new Error('File reading failed'));
+                };
                 reader.readAsText(file);
             };
+
             document.body.appendChild(fileInput);
             fileInput.click();
-            document.body.removeChild(fileInput);
         });
     }
 

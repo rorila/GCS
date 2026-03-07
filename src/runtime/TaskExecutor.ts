@@ -38,16 +38,35 @@ export class TaskExecutor {
         this.actions = actions;
     }
 
-    async execute(taskName: string, vars: Record<string, any>, globalVars: Record<string, any>, contextObj?: any, depth: number = 0, parentId?: string, params?: Record<string, any>, isRemoteExecution: boolean = false): Promise<void> {
-        if (depth >= TaskExecutor.MAX_DEPTH) {
-            logger.error(`Max recursion depth exceeded: ${taskName}`);
+    public async execute(
+        taskName: string,
+        vars: Record<string, any> = {},
+        globalVars: Record<string, any> = {},
+        contextObj: any = null,
+        depth: number = 0,
+        parentId?: string,
+        params: any = null,
+        isRemoteExecution: boolean = false
+    ): Promise<void> {
+        if (depth > TaskExecutor.MAX_DEPTH) {
+            logger.error(`Max recursion depth reached for task ${taskName}`);
             return;
         }
 
-        // Merge parameters into local variables scope
-        if (params) {
-            vars = { ...vars, ...params };
+        const isMultiplayer = !!this.multiplayerManager;
+
+        // 2. Logging (ZENTRAL: Ganz am Anfang, damit E2E-Tests JEDEM Startversuch sehen)
+        const isEnabled = DebugLogService.getInstance().isEnabled();
+        // console.error for extra visibility in Playwright!
+        if (isEnabled) {
+            console.error(`[TaskExecutor] EXECUTING: ${taskName} (depth: ${depth}, context: ${contextObj?.name || 'none'})`);
         }
+
+        const taskLogId = DebugLogService.getInstance().log('Task', `START: ${taskName}`, {
+            parentId,
+            objectName: contextObj?.name,
+            flatten: depth > 0 // Bei Rekursion flach halten für E2E Sichtbarkeit
+        });
 
         // 1. Resolve Task
         // Search order: Active Stage (this.tasks) -> Blueprint Stage -> Legacy Project Tasks
@@ -73,11 +92,11 @@ export class TaskExecutor {
         if (!task && taskName.includes('.')) {
             const [objName, evtName] = taskName.split('.');
             let foundTaskName = '';
-            let objectFound = false;
+            let objectFound: any = null;
 
             // STRATEGY 1: Check Context Object directly (Robust & Fast)
             if (contextObj && (contextObj.name === objName || contextObj.id === objName)) {
-                objectFound = true;
+                objectFound = contextObj;
                 const evts = (contextObj as any).events || (contextObj as any).Tasks;
                 if (evts && evts[evtName]) {
                     foundTaskName = evts[evtName];
@@ -104,7 +123,7 @@ export class TaskExecutor {
                     // Search in objects
                     const obj = findDeep(s.objects || []);
                     if (obj) {
-                        objectFound = true;
+                        objectFound = obj; // Track the object found
                         if ((obj.events || obj.Tasks) && (obj.events || obj.Tasks)[evtName]) {
                             foundTaskName = (obj.events || obj.Tasks)[evtName];
                         }
@@ -114,7 +133,7 @@ export class TaskExecutor {
                     if (!foundTaskName && s.variables) {
                         const v = s.variables.find((v: any) => v.name === objName);
                         if (v) {
-                            objectFound = true;
+                            objectFound = v;
                             if ((v as any).events && (v as any).events[evtName]) {
                                 foundTaskName = (v as any).events[evtName];
                             } else if ((v as any).Tasks && (v as any).Tasks[evtName]) {
@@ -128,7 +147,7 @@ export class TaskExecutor {
                 if (!foundTaskName && this.project.variables) {
                     const v = this.project.variables.find((v: any) => v.name === objName);
                     if (v) {
-                        objectFound = true;
+                        objectFound = v;
                         if ((v as any).events && (v as any).events[evtName]) {
                             foundTaskName = (v as any).events[evtName];
                         } else if ((v as any).Tasks && (v as any).Tasks[evtName]) {
@@ -141,7 +160,7 @@ export class TaskExecutor {
                 if (!foundTaskName && this.project.objects) {
                     const obj = findDeep(this.project.objects);
                     if (obj) {
-                        objectFound = true;
+                        objectFound = obj;
                         if ((obj.events || obj.Tasks) && (obj.events || obj.Tasks)[evtName]) {
                             foundTaskName = (obj.events || obj.Tasks)[evtName];
                         }
@@ -151,7 +170,7 @@ export class TaskExecutor {
 
             if (foundTaskName) {
                 logger.debug(`Final resolution for "${taskName}": "${foundTaskName}"`);
-                return this.execute(foundTaskName, vars, globalVars, contextObj, depth + 1, parentId, params, isRemoteExecution);
+                return this.execute(foundTaskName, vars, globalVars, objectFound, depth + 1, taskLogId, params, isRemoteExecution);
             }
 
             // Only warn if it's NOT an optional event and NOT found
@@ -169,62 +188,28 @@ export class TaskExecutor {
         }
 
         if (!task) {
-            // This is for direct task calls (not dot-notation)
-            logger.warn(`Task definition not found: ${taskName}`);
-            return;
+            // Check if we have a flow chart at least
+            const flowChart = this.flowCharts?.[taskName];
+            const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
+
+            if (!hasFlowChart) {
+                // This is for direct task calls (not dot-notation) without any definition
+                logger.warn(`Task definition or FlowChart not found: ${taskName}`);
+                return;
+            }
         }
 
         // ─────────────────────────────────────────────
         // TriggerMode Logic (Multiplayer only)
         // ─────────────────────────────────────────────
-        const triggerMode = task.triggerMode || 'local-sync';
-        const isMultiplayer = this.multiplayerManager?.isConnected === true;
-        const isHost = this.multiplayerManager?.isHost === true;
-
-        if (isMultiplayer && !isRemoteExecution) {
-            // broadcast: Non-host sends to host, does NOT execute locally
-            if (triggerMode === 'broadcast' && !isHost) {
-                logger.info(`Broadcasting task "${taskName}" to host (not executing locally)`);
-                this.multiplayerManager!.sendTriggerTask(taskName, params);
-                return; // Do NOT execute locally
-            }
-        }
-
-        if (isMultiplayer && isRemoteExecution) {
-            // broadcast + remote: Only host should execute
-            if (triggerMode === 'broadcast' && !isHost) {
-                logger.info(`Skipping remote broadcast task "${taskName}" - only host executes`);
-                return;
-            }
-        }
-
-        // 2. Merge task parameter defaults into vars (for cloned tasks with ${param} placeholders)
-        // This allows direct execution of tasks without passing explicit params
-        if (task.params && Array.isArray(task.params)) {
-            const paramDefaults: Record<string, any> = {};
-            task.params.forEach((p: any) => {
-                // Only use default if param not already provided
-                if (p.name && p.default !== undefined && vars[p.name] === undefined) {
-                    paramDefaults[p.name] = p.default;
-                }
-            });
-            if (Object.keys(paramDefaults).length > 0) {
-                logger.debug(`Applied param defaults for "${taskName}":`, paramDefaults);
-                vars = { ...vars, ...paramDefaults };
-            }
-        }
-
-        const taskLogId = DebugLogService.getInstance().log('Task', `START: ${taskName}`, {
-            parentId,
-            objectName: contextObj?.name
-        });
+        const triggerMode = task?.triggerMode || 'local-sync';
 
         DebugLogService.getInstance().pushContext(taskLogId);
         try {
             // Bestimme Ausführungsquelle: Bevorzuge FlowChart (Source of Truth im Editor)
             const flowChart = this.flowCharts?.[taskName];
             const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
-            const actionSequence = task.actionSequence || [];
+            const actionSequence = task?.actionSequence || [];
 
             if (hasFlowChart) {
                 logger.info(`Nutze Flussdiagramm für "${taskName}" (Elemente: ${flowChart!.elements.length})`);
@@ -253,6 +238,7 @@ export class TaskExecutor {
             DebugLogService.getInstance().popContext();
         }
     }
+
 
     /**
      * Execute a task's flowChart directly at runtime

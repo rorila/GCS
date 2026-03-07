@@ -96,5 +96,6 @@ import { registerStandardActions } from './runtime/actions/StandardActions';
 // Globale Registrierung der Aktionen (für Editor & Runtime)
 registerStandardActions();
 
-new Editor();
+const editor = new Editor();
+(window as any).editor = editor;
 

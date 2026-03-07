@@ -211,49 +211,39 @@ export class FlowGraphManager {
 
         console.log(`[TRACE] FlowGraphManager: deleteNodeSilent gestartet für "${nodeName}" (ID: ${node.id}, Typ: ${nodeType})`);
 
-        if (nodeType === 'action' || nodeType === 'data_action' || nodeType === 'data_action') {
+        if (nodeType === 'action' || nodeType === 'data_action' || nodeType === 'httpaction') {
             FlowGraphManager.lifecycleLogger.info(`Action "${nodeName}" wurde aus dem Flow-Diagramm entfernt.`);
         }
 
         this.removeNode(node.id);
         this.host.syncToProject();
 
-        if ((nodeType === 'action' || nodeType === 'data_action' || nodeType === 'data_action') && nodeName &&
-            nodeName !== 'Aktion' && nodeName !== 'Action' && nodeName !== 'DataAction' && nodeName !== 'Data_Action') {
+        // Check if the definition should also be removed
+        if (nodeName && nodeName !== 'Action' && nodeName !== 'Task' && nodeName !== 'Variable') {
             setTimeout(() => {
                 const refs = projectRegistry.findReferences(nodeName);
                 if (refs.length === 0) {
                     const isGenericName = /^Action\d*$/.test(nodeName) || /^Aktion\d*$/.test(nodeName) ||
                         /^DataAction\d*$/.test(nodeName) || /^HttpAction\d*$/.test(nodeName) ||
-                        /^FinalTest\d*$/.test(nodeName) || /^Data_Action\d*$/.test(nodeName) || nodeName === 'Aufruf';
+                        /^Task\d*$/.test(nodeName) || /^Aufruf\d*$/.test(nodeName) ||
+                        /^Variable\d*$/.test(nodeName);
 
                     if (isGenericName) {
-                        this.deleteElementFromProject('action', nodeName, undefined, false);
+                        if (nodeType === 'task') this.deleteElementFromProject('task', nodeName, undefined, true);
+                        else if (nodeType === 'VariableDecl') this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
+                        else this.deleteElementFromProject('action', nodeName, undefined, true);
                     } else {
-                        if (confirm(`Die Aktion "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch aus der globalen Aktions-Liste gelöscht werden?`)) {
-                            this.deleteElementFromProject('action', nodeName, undefined, true);
+                        if (confirm(`Das Element "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll die Definition auch Global aus dem Projekt gelöscht werden?`)) {
+                            if (nodeType === 'task') this.deleteElementFromProject('task', nodeName, undefined, true);
+                            else if (nodeType === 'VariableDecl') this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
+                            else this.deleteElementFromProject('action', nodeName, undefined, true);
                         }
                     }
                 }
             }, 500);
         }
 
-        if (nodeType === 'VariableDecl' && nodeName) {
-            setTimeout(() => {
-                const usageCount = (RefactoringManager as any).getVariableUsageCount(this.host.project, nodeName);
-                if (usageCount === 0) {
-                    if (confirm(`Die Variable "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll sie auch Global aus dem Projekt gelöscht werden?`)) {
-                        this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
-                    }
-                } else {
-                    if (confirm(`Möchtest du die Variable "${nodeName}" auch Global aus dem Projekt löschen?\n(Sie wird noch an ${usageCount} Stellen referenziert!)`)) {
-                        this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
-                    }
-                }
-            }, 200);
-        }
-
-        // CENTRAL UI SYNC: Update usage counts (links) in sidebar even if project element stays
+        // CENTRAL UI SYNC
         mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
     }
 
@@ -349,43 +339,23 @@ export class FlowGraphManager {
         connLogger.info(`[TRACE] restoreConnection successful: ID=${conn.id}, Status=${status}, Nodes: ${startId || 'none'} -> ${endId || 'none'}`);
     }
 
-    public deleteElementFromProject(type: 'action' | 'task' | 'variable', name: string, index?: number, force: boolean = false) {
+    public deleteElementFromProject(type: 'action' | 'task' | 'variable', name: string, _index?: number, _force: boolean = false) {
         if (!this.host.project) return;
 
         if (type === 'action') {
-            const usageCount = RefactoringManager.getActionUsageCount(this.host.project, name);
-            if (!force && usageCount > 0) return;
-
-            if (index !== undefined && index >= 0 && index < this.host.project.actions.length) {
-                this.host.project.actions.splice(index, 1);
-            } else {
-                this.host.project.actions = this.host.project.actions.filter(a => a.name !== name);
-            }
-
-            if (this.host.project.stages) {
-                this.host.project.stages.forEach(stage => {
-                    if (stage.actions) {
-                        stage.actions = stage.actions.filter(a => a.name !== name);
-                    }
-                });
-            }
-
             RefactoringManager.deleteAction(this.host.project, name);
             if (this.host.onProjectChange) this.host.onProjectChange();
-            // GLOBAL UI SYNC
             mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
 
         } else if (type === 'task') {
             RefactoringManager.deleteTask(this.host.project, name);
             if (this.host.onProjectChange) this.host.onProjectChange();
-            // SYNC SELECTOR: If a task is gone, the dropdown must reflect it
             this.host.updateFlowSelector();
-            // GLOBAL UI SYNC
             mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
-        } else if ((type as string) === 'Variable') {
+
+        } else if ((type as string).toLowerCase() === 'variable') {
             RefactoringManager.deleteVariable(this.host.project, name);
             if (this.host.onProjectChange) this.host.onProjectChange();
-            // GLOBAL UI SYNC
             mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
         }
     }

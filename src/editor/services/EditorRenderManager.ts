@@ -80,6 +80,9 @@ export class EditorRenderManager {
         const previewObj = Object.create(Object.getPrototypeOf(rawObj));
         Object.assign(previewObj, rawObj);
 
+        // ARCHITEKTUR-FIX: Store reference to original source object for syncing back from Inspector
+        previewObj.__rawSource = rawObj;
+
         // Resolve nested bindings ${varName}
         const resolveProps = (target: any) => {
             if (!target || typeof target !== 'object') return;

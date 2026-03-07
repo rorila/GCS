@@ -70,6 +70,72 @@ export class AgentController {
     }
 
     // ─────────────────────────────────────────────
+    // 0. Project Structure
+    // ─────────────────────────────────────────────
+
+    /** Erstellt eine neue Stage. */
+    public createStage(id: string, name: string, type: 'standard' | 'blueprint' = 'standard'): void {
+        this.validateProjectLoaded();
+        if (!this.project!.stages) this.project!.stages = [];
+
+        if (this.project!.stages.find(s => s.id === id)) {
+            AgentController.logger.warn(`Stage with id '${id}' already exists.`);
+            return;
+        }
+
+        this.project!.stages.push({
+            id, name, type,
+            objects: [],
+            tasks: [],
+            actions: [],
+            variables: [],
+            flowCharts: {},
+            events: {}
+        } as any);
+
+        AgentController.logger.info(`Stage '${name}' (${id}) created.`);
+        this.notifyChange();
+    }
+
+    /** Fügt ein Objekt zu einer Stage hinzu. */
+    public addObject(stageId: string, objectData: any): void {
+        this.validateProjectLoaded();
+        const stage = this.project!.stages?.find(s => s.id === stageId);
+        if (!stage) throw new Error(`Stage '${stageId}' not found.`);
+
+        if (!stage.objects) stage.objects = [];
+        stage.objects.push(objectData);
+
+        AgentController.logger.info(`Object '${objectData.name}' added to stage '${stageId}'.`);
+        this.notifyChange();
+    }
+
+    /** Registriert eine globale Variable im Projekt. */
+    public addVariable(name: string, type: any, initialValue: any, scope: string = 'global'): void {
+        this.validateProjectLoaded();
+        if (!this.project!.variables) this.project!.variables = [];
+
+        const existing = this.project!.variables.find(v => v.name === name);
+        if (existing) {
+            existing.type = type;
+            existing.initialValue = initialValue;
+            existing.defaultValue = initialValue; // Sync
+            existing.scope = scope;
+        } else {
+            this.project!.variables.push({
+                name,
+                type,
+                initialValue,
+                defaultValue: initialValue,
+                scope
+            } as any);
+        }
+
+        AgentController.logger.info(`Variable '${name}' added/updated.`);
+        this.notifyChange();
+    }
+
+    // ─────────────────────────────────────────────
     // 1. Task Management
     // ─────────────────────────────────────────────
 
@@ -100,24 +166,19 @@ export class AgentController {
             params: []
         };
 
-        // 3. Register Globally (Data) & Locally (Stage)
-        const blueprintStage = this.project!.stages?.find(s => s.type === 'blueprint');
-        if (blueprintStage) {
-            if (!blueprintStage.tasks) blueprintStage.tasks = [];
-            blueprintStage.tasks.push(newTask);
-            AgentController.logger.info(`Task '${taskName}' created in Blueprint Stage.`);
+        // 3. Register Locally (Stage) or Globally (Blueprint)
+        const targetStageId = stageId || 'stage_blueprint';
+        const targetStage = this.project!.stages?.find(s => s.id === targetStageId || s.name === targetStageId);
+
+        if (targetStage) {
+            if (!targetStage.tasks) targetStage.tasks = [];
+            targetStage.tasks.push(newTask);
+            AgentController.logger.info(`Task '${taskName}' created in stage '${targetStageId}'.`);
         } else {
+            // Fallback to project root if no stage found
             if (!this.project!.tasks) this.project!.tasks = [];
             this.project!.tasks.push(newTask);
-            AgentController.logger.info(`Task '${taskName}' created globally (fallback).`);
-        }
-
-        if (stageId && stageId !== 'blueprint') {
-            const stage = this.project!.stages?.find(s => s.id === stageId || s.name === stageId);
-            if (stage && stage.type !== 'blueprint') {
-                if (!stage.tasks) stage.tasks = [];
-                stage.tasks.push(newTask);
-            }
+            AgentController.logger.info(`Task '${taskName}' created in project root (fallback).`);
         }
 
         // 4. Invalidate Flow (Scorched Earth)

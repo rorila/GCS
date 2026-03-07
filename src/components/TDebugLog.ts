@@ -184,10 +184,10 @@ export class TDebugLog {
         this.filterContainer.innerHTML = `
             <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 4px;">
                 <label style="color: #ff9800; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Event"> Event</label>
-                <label style="color: #007acc; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type = "task"> Task</label>
-                <label style="color: #4caf50; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type = "action"> Action</label>
+                <label style="color: #007acc; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Task"> Task</label>
+                <label style="color: #4caf50; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Action"> Action</label>
                 <label style="color: #9c27b0; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Variable"> Variable</label>
-                <label style="color: #00bcd4; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type = "condition"> Condition</label>
+                <label style="color: #00bcd4; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Condition"> Condition</label>
                 <label style="color: #888; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked id="show-details-cb"> Details</label>
             </div>
             <div style="display: flex; gap: 6px;">
@@ -313,7 +313,13 @@ export class TDebugLog {
         if (saved) {
             try {
                 const filters = JSON.parse(saved);
-                if (filters.types) this.typeFilters = new Set(filters.types);
+                if (filters.types) {
+                    this.typeFilters = new Set(filters.types.map((t: string) => {
+                        // Nomalize to correct casing (Event, Task, Action, Variable, Condition)
+                        const normalized = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+                        return normalized as LogType;
+                    }));
+                }
                 if (filters.showDetails !== undefined) this.showDetails = filters.showDetails;
                 if (filters.object !== undefined) this.objectFilter = filters.object;
                 if (filters.event !== undefined) this.eventFilter = filters.event;
@@ -454,7 +460,9 @@ export class TDebugLog {
 
     private matchesTypeHierarchy(e: LogEntry): boolean {
         // Simple independence: Show if the type itself is enabled
-        return this.typeFilters.has(e.type);
+        // Use case-insensitive check to be robust
+        const entryType = e.type;
+        return Array.from(this.typeFilters).some(t => t.toLowerCase() === entryType.toLowerCase());
     }
 
     private renderEntry(entry: LogEntry, container: HTMLElement, level: number, parentMatched: boolean) {

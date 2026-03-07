@@ -38,6 +38,18 @@ export class MediatorService {
     }
 
     /**
+     * Resets the mediator state (e.g. for fresh project load).
+     */
+    public reset(): void {
+        this.logger.info('Resetting Mediator state');
+        this.transientManagers.clear();
+        // Event listeners are usually global to the app session, so we keep them.
+        // But we might want to clear debounce timers.
+        this.debounceTimers.forEach(t => clearTimeout(t));
+        this.debounceTimers.clear();
+    }
+
+    /**
      * Benachrichtigt über eine Datenänderung (mit Debouncing).
      */
     public notifyDataChanged(data?: any, originator?: string): void {

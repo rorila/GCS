@@ -1,5 +1,6 @@
 import { GridConfig } from '../../model/types';
 import { changeRecorder, DragPoint } from '../../services/ChangeRecorder';
+import { DnDHelper, DnDPayload } from '../utils/DnDHelper';
 
 export interface StageInteractionHost {
     element: HTMLElement;
@@ -68,20 +69,15 @@ export class StageInteractionManager {
     public bindEvents() {
         const el = this.host.element;
 
-        // Drag & Drop
-        el.addEventListener('dragover', (e) => {
-            if (this.host.runMode) return;
-            e.preventDefault();
-            e.dataTransfer!.dropEffect = 'copy';
-            el.classList.add('drag-over');
-        });
-
-        el.addEventListener('dragleave', () => {
-            if (this.host.runMode) return;
-            el.classList.remove('drag-over');
-        });
-
-        el.addEventListener('drop', (e) => this.handleDrop(e));
+        // Drag & Drop (Unified via DnDHelper)
+        DnDHelper.setupDropTarget(
+            el,
+            (payload, e) => this.handleDrop(payload, e),
+            () => {
+                if (this.host.runMode) return;
+                el.classList.add('drag-over');
+            }
+        );
 
         // Mouse Events
         el.addEventListener('mousedown', (e) => this.handleMouseDown(e));
@@ -96,34 +92,24 @@ export class StageInteractionManager {
         window.addEventListener('click', () => this.hideContextMenu());
     }
 
-    private handleDrop(e: DragEvent) {
+    private handleDrop(payload: DnDPayload, e: DragEvent) {
         if (this.host.runMode) return;
-        e.preventDefault();
-        this.host.element.classList.remove('drag-over');
 
-        const data = e.dataTransfer?.getData('application/json');
-        if (data) {
-            try {
-                const payload = JSON.parse(data);
-                if (payload.type === 'tool-drop' && this.host.onDropCallback) {
-                    const coords = this.getRelativeCoordinates(e);
+        if (payload.type === 'tool-drop' && this.host.onDropCallback) {
+            const coords = this.getRelativeCoordinates(e);
 
-                    // NEW: Estimate tool dimensions for centering if we don't know them yet
-                    // Default tools are usually 6x2 (Buttons) or 10x6 (Panels)
-                    // We use a modest offset for a "centered" feel
-                    let offX = 3;
-                    let offY = 1;
-                    if (payload.toolType === 'Panel' || payload.toolType === 'TDataStore') {
-                        offX = 5; offY = 3;
-                    }
-
-                    const gridX = Math.floor(coords.x / this.host.grid.cellSize) - offX;
-                    const gridY = Math.floor(coords.y / this.host.grid.cellSize) - offY;
-                    this.host.onDropCallback(payload.toolType, Math.max(0, gridX), Math.max(0, gridY));
-                }
-            } catch (err) {
-                console.error("Drop Error", err);
+            // NEW: Estimate tool dimensions for centering if we don't know them yet
+            // Default tools are usually 6x2 (Buttons) or 10x6 (Panels)
+            // We use a modest offset for a "centered" feel
+            let offX = 3;
+            let offY = 1;
+            if (payload.toolType === 'Panel' || payload.toolType === 'TDataStore') {
+                offX = 5; offY = 3;
             }
+
+            const gridX = Math.floor(coords.x / this.host.grid.cellSize) - offX;
+            const gridY = Math.floor(coords.y / this.host.grid.cellSize) - offY;
+            this.host.onDropCallback(payload.toolType, Math.max(0, gridX), Math.max(0, gridY));
         }
     }
 

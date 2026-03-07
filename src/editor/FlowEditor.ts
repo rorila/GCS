@@ -369,11 +369,8 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         world.style.cssText = 'position:absolute;top:0;left:0;width:5000px;height:5000px;pointer-events:none';
         this.canvas.appendChild(world);
 
-        // Drop Handler
-        this.canvas.ondragover = (e) => e.preventDefault();
-        this.canvas.ondrop = (e) => this.interactionManager.handleDrop(e);
-        this.canvas.onmousedown = (e) => this.interactionManager.handleCanvasClick(e);
-        this.canvas.oncontextmenu = (e) => this.interactionManager.handleCanvasContextMenu(e);
+        // Events logic unified in InteractionManager
+        this.interactionManager.bindEvents();
 
         this.container.appendChild(this.canvas);
 

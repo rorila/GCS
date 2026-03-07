@@ -11334,7 +11334,7 @@
           results.push(copy);
           const shouldRecurse = !obj.isInternalContainer;
           if (shouldRecurse && obj.children && obj.children.length > 0) {
-            const gridConfig = this.project.stage?.grid || { cellSize: 20 };
+            const gridConfig = this.stage?.grid || this.project.stage?.grid || { cellSize: 20 };
             const cellSize = gridConfig.cellSize || 20;
             const isDialog = obj.className === "TDialogRoot" || obj.className === "TDialog";
             const childOffsetY = isDialog ? 30 / cellSize : 0;
@@ -12218,7 +12218,7 @@
         if (this.host.runMode) {
           const isMetric = obj.name?.includes("Metric") || obj.id?.includes("metric");
           if (isMetric || obj.id === "dash_title" || obj.id === "dash_back_btn" || obj.name?.includes("Button") || obj.name && obj.name.includes("Emoji")) {
-            logger8.debug(`%c[Layout] ${obj.name || obj.id} (RUN): align=${obj.align}, x=${obj.x}, y=${obj.y}, w=${obj.width}, cellSize=${gridConfig.cellSize} -> left=${finalX}, top=${finalY}`, "color: #ff00ff; font-weight: bold");
+            logger8.info(`%c[Layout:${this.host.element.id}] ${obj.name || obj.id} (RUN): align=${obj.align}, x=${obj.x}, y=${obj.y}, w=${obj.width}, cellSize=${gridConfig.cellSize} -> left=${finalX}, top=${finalY}`, "color: #ff00ff; font-weight: bold");
           }
         }
         let isVisible = this.checkVisible(obj.visible) && this.checkVisible(obj.style?.visible);
@@ -12273,7 +12273,7 @@
         } else {
           this.applyBackground(el, obj, className, objId);
         }
-        const hasTaskClick = obj.Tasks && (obj.Tasks.onClick || obj.Tasks.onSingleClick || obj.Tasks.onMultiClick);
+        const hasTaskClick = obj.Tasks && (obj.Tasks.onClick || obj.Tasks.onSingleClick || obj.Tasks.onMultiClick) || obj.events && (obj.events.onClick || obj.events.onSingleClick || obj.events.onMultiClick);
         const isClickable = hasTaskClick || this.host.runMode && className === "TButton";
         if (this.host.runMode && isClickable) {
           el.style.cursor = "pointer";
@@ -12978,7 +12978,7 @@
       __publicField(this, "dragPhantom", null);
       __publicField(this, "isDragging", false);
       __publicField(this, "dragOffset", { x: 0, y: 0 });
-      this.element = document.getElementById("stage");
+      this.element = document.getElementById("run-stage");
       this.renderer = new StageRenderer(this);
       this.onEvent = (id, ev, data) => {
         if (this.runtime) this.runtime.handleEvent(id, ev, data);

@@ -140,7 +140,7 @@ body {
   flex-direction: column;
 }
 
-#stage-wrapper {
+#stage-wrapper, #run-stage {
   flex: 1;
   padding: 2rem;
   box-sizing: border-box;

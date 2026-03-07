@@ -163,63 +163,73 @@ export class EditorCommandManager {
             // After removing from children, we still want to check if it's in other lists
         }
 
-        const activeStage = this.editor.getActiveStage();
-        if (activeStage) {
-            const objIdx = (activeStage.objects || []).findIndex(o => o.id === id);
+        // 2. Search in ALL stages (Active Stage first for performance)
+        const activeStageId = this.editor.project.activeStageId;
+        const stages = this.editor.project.stages || [];
+
+        // Sort stages so activeStage is checked first
+        const sortedStages = [...stages].sort((a, b) => {
+            if (a.id === activeStageId) return -1;
+            if (b.id === activeStageId) return 1;
+            return 0;
+        });
+
+        for (const stage of sortedStages) {
+            const objIdx = (stage.objects || []).findIndex(o => o.id === id);
             if (objIdx !== -1) {
-                activeStage.objects!.splice(objIdx, 1);
-                console.log(`[CommandManager] Removed from stage objects`);
+                stage.objects!.splice(objIdx, 1);
+                console.log(`[CommandManager] Removed from stage ${stage.name} (${stage.id}) objects`);
                 return;
             }
 
-            const varIdx = (activeStage.variables || []).findIndex(v => (v as any).id === id);
+            const varIdx = (stage.variables || []).findIndex(v => (v as any).id === id);
             if (varIdx !== -1) {
-                activeStage.variables!.splice(varIdx, 1);
-                console.log(`[CommandManager] Removed from stage variables`);
+                stage.variables!.splice(varIdx, 1);
+                console.log(`[CommandManager] Removed from stage ${stage.name} variables`);
                 return;
             }
 
-            const taskIdx = (activeStage.tasks || []).findIndex(t => (t as any).id === id || t.name === id);
+            const taskIdx = (stage.tasks || []).findIndex(t => (t as any).id === id || t.name === id);
             if (taskIdx !== -1) {
-                activeStage.tasks!.splice(taskIdx, 1);
-                console.log(`[CommandManager] Removed from stage tasks`);
+                stage.tasks!.splice(taskIdx, 1);
+                console.log(`[CommandManager] Removed from stage ${stage.name} tasks`);
                 return;
             }
 
-            const actionIdx = (activeStage.actions || []).findIndex(a => (a as any).id === id || a.name === id);
+            const actionIdx = (stage.actions || []).findIndex(a => (a as any).id === id || a.name === id);
             if (actionIdx !== -1) {
-                activeStage.actions!.splice(actionIdx, 1);
-                console.log(`[CommandManager] Removed from stage actions`);
+                stage.actions!.splice(actionIdx, 1);
+                console.log(`[CommandManager] Removed from stage ${stage.name} actions`);
                 return;
             }
         }
 
-        // Global Fallback
+        // 3. Global Legacy Fallback (Root project level)
         const objIdx = this.editor.project.objects.findIndex(o => o.id === id);
         if (objIdx !== -1) {
             this.editor.project.objects.splice(objIdx, 1);
-            console.log(`[CommandManager] Removed from global objects`);
+            console.log(`[CommandManager] Removed from global root objects`);
             return;
         }
 
         const varIdx = this.editor.project.variables.findIndex(v => (v as any).id === id);
         if (varIdx !== -1) {
             this.editor.project.variables.splice(varIdx, 1);
-            console.log(`[CommandManager] Removed from global variables`);
+            console.log(`[CommandManager] Removed from global root variables`);
             return;
         }
 
         const taskIdx = this.editor.project.tasks.findIndex(t => (t as any).id === id || t.name === id);
         if (taskIdx !== -1) {
             this.editor.project.tasks.splice(taskIdx, 1);
-            console.log(`[CommandManager] Removed from global tasks`);
+            console.log(`[CommandManager] Removed from global root tasks`);
             return;
         }
 
         const actionIdx = this.editor.project.actions.findIndex(a => (a as any).id === id || a.name === id);
         if (actionIdx !== -1) {
             this.editor.project.actions.splice(actionIdx, 1);
-            console.log(`[CommandManager] Removed from global actions`);
+            console.log(`[CommandManager] Removed from global root actions`);
             return;
         }
     }

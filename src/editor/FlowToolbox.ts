@@ -1,3 +1,5 @@
+import { DnDHelper } from './utils/DnDHelper';
+
 export class FlowToolbox {
     private container: HTMLElement;
 
@@ -64,13 +66,13 @@ export class FlowToolbox {
             btn.onmouseenter = () => { btn.style.backgroundColor = '#444'; btn.style.borderColor = '#666'; };
             btn.onmouseleave = () => { btn.style.backgroundColor = '#333'; btn.style.borderColor = '#444'; };
 
-            // Drag events
-            btn.ondragstart = (e) => {
-                e.dataTransfer!.setData('application/flow-item', item.type);
-                e.dataTransfer!.effectAllowed = 'copy';
-            };
-
             list.appendChild(btn);
+
+            // Drag events (Unified via DnDHelper)
+            DnDHelper.setupDraggable(btn, {
+                type: 'flow-item',
+                toolType: item.type
+            });
         });
 
         this.container.appendChild(list);

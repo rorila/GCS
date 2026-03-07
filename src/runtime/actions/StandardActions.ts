@@ -36,7 +36,13 @@ export function registerStandardActions() {
             Object.keys(action.changes).forEach(prop => {
                 const rawValue = action.changes[prop];
                 const value = PropertyHelper.interpolate(String(rawValue), combinedContext, context.objects);
-                PropertyHelper.setPropertyValue(target, prop, PropertyHelper.autoConvert(value));
+                const finalValue = PropertyHelper.autoConvert(value);
+                PropertyHelper.setPropertyValue(target, prop, finalValue);
+
+                DebugLogService.getInstance().log('Variable', `${target.name || target.id}.${prop} = ${finalValue}`, {
+                    objectName: target.name || target.id,
+                    flatten: true
+                });
             });
         }
     }, {

@@ -67,84 +67,120 @@ function generateReport(results: TestResult[]) {
     console.log(`\n📄 Report generiert: ${REPORT_FILE}`);
 }
 
+import { execSync } from 'child_process';
+
 async function main() {
     console.log('===================================================');
     console.log('🛡️  GCS REGRESSION TEST SUITE');
     console.log('===================================================\n');
 
+    const allResults: TestResult[] = [];
+
     try {
         // 1. Logic Tests
         console.log('🏃 Starte Logik-Tests (Login)...');
-        const loginResults = await runLoginTests();
+        allResults.push(...await runLoginTests());
 
         // 2. Smart Mapping & Discovery Tests
         console.log('🏃 Starte Smart Mapping & Discovery Tests...');
-        const smartResults = await runSmartMappingTests();
+        allResults.push(...await runSmartMappingTests());
 
-        // 3. Unification & Auto-Unwrap Tests (v2.18.12.2)
+        // 3. Unification & Auto-Unwrap Tests
         console.log('🏃 Starte Unification & Auto-Unwrap Tests...');
-        const unificationResults = await runUnificationTests();
+        allResults.push(...await runUnificationTests());
 
         // 4. TTable Smart-Unwrap Tests
         console.log('🏃 Starte TTable Smart-Unwrap Tests...');
-        const tableResults = await runTableUnwrapTests();
+        allResults.push(...await runTableUnwrapTests());
 
         // 5. SELECT COUNT(*) Tests
         console.log('🏃 Starte SELECT COUNT(*) Tests...');
-        const countResults = await runSelectCountTests();
+        allResults.push(...await runSelectCountTests());
 
         // 13. Action Registration Tests
         console.log('🏃 Starte Action Registration Tests...');
-        const registrationResults = await runActionRegistrationTests();
+        allResults.push(...await runActionRegistrationTests());
 
         // 14. Action CRUD Tests
         console.log('🏃 Starte Action CRUD Tests...');
-        const crudResults = await runActionCRUDTests();
+        allResults.push(...await runActionCRUDTests());
 
         // 15. Coordinate Binding Tests
         console.log('🏃 Starte Coordinate Binding Tests...');
-        const coordinateResults = await runCoordinateTests();
+        allResults.push(...await runCoordinateTests());
 
-        // 6. Serialization Tests (v3.7.0)
+        // 6. Serialization Tests
         console.log('🏃 Starte Serialization Tests...');
-        const serializationResults = await runSerializationTests();
+        allResults.push(...await runSerializationTests());
 
-        // 7. RefactoringManager Tests (v3.7.0)
+        // 7. RefactoringManager Tests
         console.log('🏃 Starte RefactoringManager Tests...');
-        const refactoringResults = await runRefactoringTests();
+        allResults.push(...await runRefactoringTests());
 
-        // 8. TaskExecutor Tests (v3.7.0)
+        // 8. TaskExecutor Tests
         console.log('🏃 Starte TaskExecutor Tests...');
-        const executorResults = await runTaskExecutorTests();
+        allResults.push(...await runTaskExecutorTests());
 
-        // 9. FlowSync Tests (v3.7.0)
+        // 9. FlowSync Tests
         console.log('🏃 Starte FlowSync Tests...');
-        const flowSyncResults = await runFlowSyncTests();
+        allResults.push(...await runFlowSyncTests());
 
-        // 10. Project Integrity Tests (v3.7.0)
+        // 10. Project Integrity Tests
         console.log('🏃 Starte Project Integrity Tests...');
-        const integrityResults = await runProjectIntegrityTests();
+        allResults.push(...await runProjectIntegrityTests());
 
-        // 11. Renaming Robustness Tests (v3.14.1)
+        // 11. Renaming Robustness Tests
         console.log('🏃 Starte Renaming Robustness Tests...');
-        const robustnessResults = await runRenamingRobustnessTests();
+        allResults.push(...await runRenamingRobustnessTests());
 
-        const allResults = [
-            ...loginResults,
-            ...smartResults,
-            ...unificationResults,
-            ...tableResults,
-            ...countResults,
-            ...serializationResults,
-            ...refactoringResults,
-            ...executorResults,
-            ...flowSyncResults,
-            ...integrityResults,
-            ...robustnessResults,
-            ...registrationResults,
-            ...crudResults,
-            ...coordinateResults
-        ];
+        // 🌐 12. Browser E2E Tests (Playwright)
+        console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');
+        try {
+            const e2eOutput = execSync('npx playwright test --reporter=json', { encoding: 'utf-8', stdio: 'pipe' });
+            const e2eData = JSON.parse(e2eOutput);
+
+            e2eData.suites.forEach((suite: any) => {
+                suite.specs.forEach((spec: any) => {
+                    spec.tests.forEach((test: any) => {
+                        const result = test.results[0];
+                        allResults.push({
+                            name: `E2E: ${spec.title}`,
+                            type: 'E2E Browser',
+                            passed: result.status === 'passed',
+                            expectedSuccess: true,
+                            actualSuccess: result.status === 'passed',
+                            details: `Browser: ${test.projectName}`
+                        });
+                    });
+                });
+            });
+            console.log('✅ Browser-Tests abgeschlossen.');
+        } catch (e2eErr: any) {
+            console.warn('⚠️ Playwright Tests fehlgeschlagen oder mit Warnungen abgeschlossen.');
+            if (e2eErr.stdout) {
+                try {
+                    const e2eData = JSON.parse(e2eErr.stdout);
+                    // Add failed tests to report anyway
+                    e2eData.suites?.forEach((suite: any) => {
+                        suite.specs?.forEach((spec: any) => {
+                            spec.tests?.forEach((testItem: any) => {
+                                const result = testItem.results[0];
+                                allResults.push({
+                                    name: `E2E: ${spec.title}`,
+                                    type: 'E2E Browser',
+                                    passed: result.status === 'passed',
+                                    expectedSuccess: true,
+                                    actualSuccess: result.status === 'passed',
+                                    details: `Browser: ${testItem.projectName} - ${result.error?.message || 'Fehler'}`
+                                });
+                            });
+                        });
+                    });
+                } catch (parseErr) {
+                    console.error('❌ Fehler beim Parsen der Playwright-Ergebnisse.');
+                }
+            }
+        }
 
         // Report Generation
         generateReport(allResults);

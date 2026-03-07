@@ -1,12 +1,18 @@
-﻿- [2026-03-05] Root-Cause Fix Dimensions-Leckage & Event-Handling:
+﻿- [2026-03-06] Phase 5: Lösch-Synchronisation & SSOT-Fixes:
+  - Dateien: EditorCommandManager.ts (L155-235), FlowGraphManager.ts (L208-391), Editor.ts (L244-293), ProjectRegistry.ts (L381-405), AgentController.ts (L170-187)
+  - Details: Globales Löschen über alle Stages, isInherited-Ghosting, Fix von Task-Duplikaten. QA-Report: 69/69 Pass.
+
+- [2026-03-06] Systemische Stabilitäts-Analyse (SSOT) & Anti-Patterns:
+  - Dateien: Editor.ts (L230-300), FlowNodeHandler.ts (L34-112), TaskRefactoringService.ts (L11-148)
+  - Guidelines: Anti-Patterns in DEVELOPER_GUIDELINES.md (L79-83)
+  - Details: Analyse der Desynchronisation zwischen Inspector und RefactoringManager.
+
+- [2026-03-05] Root-Cause Fix Dimensions-Leckage & Event-Handling:
   - src/editor/Editor.ts: getActiveStage() dynamisch auf Runtime erweitert (L221)
   - src/editor/services/EditorRunManager.ts: Isoliertes runStage-Rendering & Interaction-Init (L22-135)
   - src/editor/services/EditorRenderManager.ts: Rendering-Target auf runStage für Run-View fixiert (L37-45)
   - src/editor/services/StageRenderer.ts: onClick-Erkennung auf obj.events erweitert (L265)
   - src/editor/Stage.ts: Layout-Cleanup in updategrid (L149)
-
-- [2026-03-05] Run-Mode Discrepancy Fix (Part 4): Container-Isolation und Grid-Resolution.
-  - src/main.ts: Container #run-stage hinzugefügt (L39)
   - src/editor/EditorViewManager.ts: Container-Toggling implementiert (L77-135)
   - src/player-standalone.ts: Umstellung auf #run-stage Host (L86)
   - src/runtime/GameRuntime.ts: Grid-Referenz & TDialog Fix (L577, L580)
@@ -18,3 +24,12 @@
 UC-122: Stage Inheritance Removal | RuntimeStageManager.ts, EditorStageManager.ts, inspector_stage.json
 
 UC-123: Layout-Fixes & Container-Isolation | main.ts, EditorViewManager.ts, player-standalone.ts, GameRuntime.ts, StageRenderer.ts
+
+- [2026-03-07] E2E-Test Fixes & Sync-Bridge (Run-Mode Execution):
+  - Dateien: GameRuntime.ts (L448-452), InspectorEventHandler.ts (L102-114), EditorRenderManager.ts (L81-83), DebugLogService.ts
+  - Details: Fix der Task-Priorisierung in Runtime. Implementierung von `__rawSource` Sync für Inspector-Änderungen. Aktivierung DebugLog im Run-Mode. QA-Report: 84 Tests Pass, E2E Deep Integration Pass.
+
+- [2026-03-07] Intelligentes Speichermanagement & Projekt-Schutz:
+  - Dateien: Editor.ts (L139, L424), EditorDataManager.ts (L50, L60, L188, L339, L340), EditorViewManager.ts (L51)
+  - Methoden: Editor.newProject, EditorDataManager.saveProject, EditorDataManager.updateProjectJSON, EditorDataManager.triggerLoad, EditorDataManager.loadFromServer
+  - Details: Einführung von `isProjectDirty` (SSOT), Browser Navigation Guard (`onbeforeunload`) und Bestätigungs-Dialogen. Entkopplung von Auto-Save (LocalStorage) und Disk-Save (Server).

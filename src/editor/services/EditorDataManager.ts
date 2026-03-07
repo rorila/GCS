@@ -30,6 +30,7 @@ export interface EditorDataHost {
     syncStageObjectsToProject(): void;
     getActiveStage(): any;
     morphVariable(variable: any, newType: any): void;
+    setProject(project: GameProject): void;
     stageManager: any;
     commandManager: any;
     menuManager: any;
@@ -46,6 +47,11 @@ export class EditorDataManager {
     }
 
     public async triggerLoad() {
+        if (this.host.isProjectDirty) {
+            if (!confirm("Sie haben ungespeicherte Änderungen am aktuellen Projekt. Möchten Sie wirklich ein anderes Projekt laden? (Nicht gespeicherte Änderungen gehen verloren)")) {
+                return;
+            }
+        }
         try {
             const json = await projectPersistenceService.triggerLoad();
             if (json) {
@@ -64,8 +70,27 @@ export class EditorDataManager {
 
         this.host.syncStageObjectsToProject();
 
+        // 1. Lokaler Download / Storage Sync
         await projectPersistenceService.saveProject(this.host.project);
-        alert('Projekt erfolgreich gespeichert!');
+
+        // 2. Server-seitige Persistenz (Disk)
+        try {
+            const res = await fetch('/api/dev/save-project', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.host.project)
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.host.isProjectDirty = false;
+                alert('Projekt erfolgreich gespeichert und auf Disk persistiert!');
+            } else {
+                alert('Fehler beim Speichern auf Disk: ' + (data.error || 'Unbekannter Fehler'));
+            }
+        } catch (err) {
+            EditorDataManager.logger.error('Kritischer Fehler beim Server-Save:', err);
+            alert('Kritischer Fehler beim Speichern auf Disk. Bitte prüfen Sie die Server-Verbindung.');
+        }
     }
 
     public async exportHTML() {
@@ -95,92 +120,44 @@ export class EditorDataManager {
     public loadProject(data: any) {
         if (!data) return;
 
-        // CLEAR old LocalStorage before loading new project
-        localStorage.removeItem('gcs_last_project');
-        EditorDataManager.logger.info('LocalStorage cleared for fresh project load');
+        // Reset dirty flag after successful load
+        this.host.isProjectDirty = false;
 
-        // Clean up data artifacts before loading
+        EditorDataManager.logger.info('Projekt-Ladeprozess gestartet...', data);
+
+        // 1. CLEANUP before load
+        localStorage.removeItem('gcs_last_project');
+
+        // 2. DATA PREPARATION (Sanitization & Hydration)
         RefactoringManager.cleanActionSequences(data);
 
-        // Metadata wiederherstellen
-        if (data.meta) this.host.project.meta = data.meta;
-        if (data.stage && data.stage.grid) this.host.project.stage.grid = data.stage.grid;
+        // Hydrate objects in legacy lists if present
+        if (data.objects) data.objects = hydrateObjects(data.objects);
+        if (data.variables) data.variables = hydrateObjects(data.variables);
+        if (data.splashObjects) data.splashObjects = hydrateObjects(data.splashObjects);
 
-        // Cleanup korrupter Task-Daten
-        if (this.host.flowEditor) {
-            this.host.flowEditor.cleanCorruptTaskData();
-        }
+        // Hydrate objects in stages
+        if (data.stages) {
+            data.stages.forEach((s: any) => {
+                if (s.objects) s.objects = hydrateObjects(s.objects);
+                if (s.variables) s.variables = hydrateObjects(s.variables);
 
-        // Actions, Tasks, Variables
-        this.host.project.actions = data.actions || [];
-        this.host.project.tasks = data.tasks || [];
-        this.host.project.variables = data.variables || [];
-
-        // Restore Flow Data
-        if (data.flowCharts) {
-            this.host.project.flowCharts = data.flowCharts;
-            const flowCharts = data.flowCharts as any;
-            if (flowCharts.global) {
-                this.host.project.flow = flowCharts.global;
-            }
-        } else if (data.flow) {
-            this.host.project.flow = data.flow;
-            this.host.project.flowCharts = { global: data.flow };
-        } else {
-            // Standard-Flow falls nichts vorhanden
-            const defaultGrid = {
-                cols: 100,
-                rows: 100,
-                cellSize: 20,
-                snapToGrid: true,
-                visible: true,
-                backgroundColor: '#1e1e1e'
-            };
-            this.host.project.flow = {
-                stage: defaultGrid,
-                elements: [],
-                connections: []
-            };
-            this.host.project.flowCharts = { global: this.host.project.flow };
-        }
-
-        // Restore Stages (New System)
-        if (data.stages && data.stages.length > 0) {
-            const hydratedStages = data.stages.map((s: any) => {
-                // FIX: Clean up accidentally saved global variables from non-blueprint stages
-                let variables = s.variables || [];
-                if (s.type !== 'blueprint') {
-                    const originalLen = variables.length;
-                    variables = variables.filter((v: any) => v.scope !== 'global');
-                    if (variables.length < originalLen) {
-                        EditorDataManager.logger.info(`Cleaned up ${originalLen - variables.length} erroneous global variables from stage "${s.id}" upon load.`);
-                    }
+                // Fix: Clean up accidentally saved global variables from non-blueprint stages
+                if (s.type !== 'blueprint' && s.variables) {
+                    s.variables = s.variables.filter((v: any) => v.scope !== 'global');
                 }
-
-                return {
-                    ...s,
-                    objects: hydrateObjects(s.objects || []),
-                    variables: hydrateObjects(variables) as any
-                };
             });
-            this.host.project.stages = hydratedStages;
-            this.host.project.activeStageId = data.activeStageId || hydratedStages[0].id;
-            projectRegistry.setActiveStageId(this.host.project.activeStageId || null);
         }
 
-        // Restore Objects (Legacy System)
-        this.host.project.objects = hydrateObjects(data.objects || []);
-        this.host.project.variables = hydrateObjects(data.variables || []) as any;
-        this.host.project.splashObjects = hydrateObjects(data.splashObjects || []);
-        this.host.project.splashDuration = data.splashDuration ?? 3000;
-        this.host.project.splashAutoHide = data.splashAutoHide ?? true;
+        // 3. CENTRAL UPDATE (Replaces reference and notifies managers)
+        this.host.setProject(data);
 
-        // Migration falls nötig (wenn keine Stages im geladenen Projekt waren)
+        // 4. MIGRATIONS (Acts on the new project reference)
         if (!this.host.project.stages || this.host.project.stages.length === 0) {
             this.host.migrateToStages();
         }
 
-        // Sicherstellen, dass jede Stage ein eigenes Grid-Objekt hat (Deep Copy)
+        // Deep copy grid to stages if missing
         if (this.host.project.stages) {
             this.host.project.stages.forEach(s => {
                 if (!s.grid) {
@@ -189,61 +166,41 @@ export class EditorDataManager {
             });
         }
 
-        // Sync UI
-        if (this.host.inspector) this.host.inspector.setProject(this.host.project);
-        if (this.host.dialogManager) this.host.dialogManager.setProject(this.host.project);
-
-        // Stage-spezifisches Grid anwenden
-        const activeStage = this.host.project.stages?.find(s => s.id === this.host.project.activeStageId);
-        if (activeStage && activeStage.grid) {
-            this.host.stage.grid = activeStage.grid;
-            this.host.stage.isBlueprint = activeStage.type === 'blueprint';
-        } else {
-            this.host.stage.grid = this.host.project.stage.grid;
-            this.host.stage.isBlueprint = false;
+        // 5. POST-LOAD FIXES
+        if (this.host.flowEditor) {
+            this.host.flowEditor.cleanCorruptTaskData();
         }
-
-        if (this.host.flowEditor) this.host.flowEditor.setProject(this.host.project);
-        projectRegistry.setProject(this.host.project);
-
-        // Sanitize project
         RefactoringManager.sanitizeProject(this.host.project);
 
-        this.host.render();
-        this.host.selectObject(null);
-        this.host.updateStagesMenu(); // WICHTIG: Menü aktualisieren
-        this.host.switchView('stage'); // Zur visuellen Bearbeitung wechseln
-
-        EditorDataManager.logger.info("Projekt geladen und Stages initialisiert", this.host.project);
+        // 6. SYNC & PERSISTENCE
         this.autoSaveToLocalStorage();
 
-        // AUTO-SEED: Datenbestände der TDataStores automatisch vom Server laden, wenn im Editor
+        // 7. AUTO-SEED & DATA ACCESS
         if (typeof window !== 'undefined') {
             const dataStores = this.host.project.objects.filter((o: any) => o.className === 'TDataStore');
             dataStores.forEach((ds: any) => {
                 const path = ds.storagePath || 'db.json';
-                EditorDataManager.logger.info(`Auto-seeding DB: ${path}`);
                 dataService.seedFromUrl(path, `/api/dev/data/${path}`).then(() => {
-                    // Refresh inspector if data arrived
                     if (this.host.inspector) this.host.inspector.update();
                 });
             });
 
-            // Immer auch db.json seeden als Default-Modellquelle
             dataService.seedFromUrl('db.json', '/api/dev/data/db.json').then(() => {
                 if (this.host.inspector) this.host.inspector.update();
             });
         }
 
-        // Show success notification
+        // 8. NOTIFICATION
         setTimeout(() => {
             const toast = this.host.project?.objects.find(o => (o as any).className === 'TToast') as any;
             if (toast && typeof toast.success === 'function') {
-                toast.success('Projekt geladen und im Browser gespeichert.');
+                toast.success('Projekt geladen.');
             } else {
                 EditorDataManager.logger.info('Project loaded & persisted to LocalStorage');
             }
         }, 500);
+
+        EditorDataManager.logger.info("Projekt erfolgreich geladen.", this.host.project);
     }
 
     public autoSaveToLocalStorage() {
@@ -257,31 +214,13 @@ export class EditorDataManager {
 
     public updateProjectJSON() {
         if (this.host.project) {
+            // Nur noch in LocalStorage sichern (Crash-Schutz)
             projectPersistenceService.autoSaveToLocalStorage(this.host.project);
 
-            // SSoT & DATEI-PERSISTENZ: Speichere Änderungen direkt auf Disk via Server-Endpoint
-            const actionCount = this.host.project.actions?.length || 0;
-            const taskCount = this.host.project.tasks?.length || 0;
-            const stageCount = this.host.project.stages?.length || 0;
-
-            EditorDataManager.logger.info(`[TRACE] updateProjectJSON: Sende Projektdaten an Server... (Actions: ${actionCount}, Tasks: ${taskCount}, Stages: ${stageCount})`);
-
-            fetch('/api/dev/save-project', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.host.project)
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        EditorDataManager.logger.info(`[TRACE] updateProjectJSON: Projekt erfolgreich auf Disk gespeichert. Server-Antwort: success=true`);
-                    } else {
-                        EditorDataManager.logger.warn(`[TRACE] updateProjectJSON: Server-seitige Speicherung fehlgeschlagen:`, data.error);
-                    }
-                })
-                .catch(err => {
-                    EditorDataManager.logger.error(`[TRACE] updateProjectJSON: Kritischer Fehler bei Verbindung zum Speicher-Endpoint:`, err);
-                });
+            // SSoT & DATEI-PERSISTENZ: 
+            // ARC-CHANGE: Wir senden NICHT mehr automatisch per Fetch an den Server!
+            // Das Überschreiben der project.json auf Disk erfolgt nur noch explizit in saveProject().
+            EditorDataManager.logger.debug(`[TRACE] updateProjectJSON: LocalStorage synchronisiert. Server-Sync übersprungen.`);
         }
     }
 
@@ -398,8 +337,10 @@ export class EditorDataManager {
     }
 
     public async loadFromServer() {
-        if (!confirm('Möchten Sie das Projekt wirklich vom Server neu laden? Alle nicht gespeicherten lokalen Änderungen gehen verloren.')) {
-            return;
+        if (this.host.isProjectDirty) {
+            if (!confirm('Sie haben ungespeicherte Änderungen. Möchten Sie wirklich das Projekt vom Server neu laden?')) {
+                return;
+            }
         }
 
         try {
@@ -424,7 +365,7 @@ export class EditorDataManager {
             this.host.syncFlowChartsWithActions();
 
             this.loadProject(safeDeepCopy(this.host.workingProjectData));
-            this.host.viewManager.isProjectDirty = false;
+            this.host.isProjectDirty = false;
             this.host.refreshJSONView(); // Hide apply button
 
             // Notify Mediator that project data has changed via JSON Editor

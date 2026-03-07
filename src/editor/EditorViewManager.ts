@@ -49,6 +49,9 @@ export class EditorViewManager {
 
     private initMediator() {
         mediatorService.on(MediatorEvents.DATA_CHANGED, (_data: any, originator?: string) => {
+            // Mark project as dirty on every change
+            this.isProjectDirty = true;
+
             // Always refresh management data if panel is present
             const panel = document.getElementById('management-viewer');
             if (panel) {

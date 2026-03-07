@@ -100,13 +100,19 @@ export class InspectorEventHandler {
                 PropertyHelper.setPropertyValue(selectedObject, propertyPath, convertedValue);
 
                 // ARC-FIX: Ensure original JSON object is also updated for persistence!
-                const objectIdentifier = selectedObject?.id || selectedObject?.name;
-                if (objectIdentifier) {
-                    const originalObj = this.getOriginalObject(objectIdentifier);
-                    if (originalObj && originalObj !== selectedObject) {
-                        PropertyHelper.setPropertyValue(originalObj, propertyPath, convertedValue);
-                        InspectorEventHandler.logger.debug(`Synchronized update with original project JSON object (ID/Name: ${objectIdentifier}).`);
+                // Priority 1: Direct reference (__rawSource)
+                // Priority 2: Lookup via ID/Name (getOriginalObject)
+                let originalObj = (selectedObject as any).__rawSource;
+                if (!originalObj) {
+                    const objectIdentifier = selectedObject?.id || selectedObject?.name;
+                    if (objectIdentifier) {
+                        originalObj = this.getOriginalObject(objectIdentifier);
                     }
+                }
+
+                if (originalObj && originalObj !== selectedObject) {
+                    PropertyHelper.setPropertyValue(originalObj, propertyPath, convertedValue);
+                    InspectorEventHandler.logger.debug(`Synchronized update with original project JSON object.`);
                 }
 
                 InspectorEventHandler.logger.debug(`Applied update to ${propertyPath}:`, convertedValue);

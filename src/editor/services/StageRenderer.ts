@@ -146,7 +146,6 @@ export class StageRenderer {
 
             if (!el) {
                 el = document.createElement('div');
-                el.className = 'game-object';
                 el.setAttribute('data-id', objId);
                 el.style.position = 'absolute';
                 el.style.boxSizing = 'border-box';
@@ -160,6 +159,7 @@ export class StageRenderer {
             }
 
             const className = obj.className || obj.constructor?.name;
+            el.className = 'game-object' + (className ? ' ' + className : '');
             el.setAttribute('data-align', obj.align || 'NONE');
 
             // Apply positioning
@@ -270,12 +270,14 @@ export class StageRenderer {
                 el.style.cursor = 'pointer';
                 el.onclick = (e) => {
                     e.stopPropagation();
-                    console.log(`[StageRenderer] Click on ${obj.name} (${obj.id}). Task: ${obj.Tasks?.onClick || 'none'}`);
+                    console.log(`[StageRenderer] Click on ${obj.name} (${obj.id}). Task: ${obj.events?.onClick || obj.Tasks?.onClick || 'none'}`);
                     if (this.host.onEvent) {
                         this.host.onEvent(obj.id, 'onClick');
                     }
                 };
             } else if (this.host.runMode) {
+                // FALLBACK: Even if not explicitly "clickable" (no task assigned yet), 
+                // we might want to catch clicks in runMode for other reasons or ensure old handlers are cleared.
                 el.style.cursor = 'default';
                 if (isNew) el.onclick = null;
             }
@@ -587,6 +589,14 @@ export class StageRenderer {
             el.onmouseleave = () => el.style.filter = 'none';
             el.onmousedown = () => el.style.transform = 'scale(0.98)';
             el.onmouseup = () => el.style.transform = 'none';
+            // NEW: Trigger onClick event in runMode
+            el.onclick = (e: MouseEvent) => {
+                e.stopPropagation();
+                if (this.host.onEvent) {
+                    logger.debug(`[StageRenderer] Button clicked: ${obj.id} (${obj.name})`);
+                    this.host.onEvent(obj.id, 'onClick');
+                }
+            };
         }
     }
 

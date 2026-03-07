@@ -9,6 +9,7 @@ import { TTimer } from '../../components/TTimer';
 import { TGameServer } from '../../components/TGameServer';
 import { TWindow } from '../../components/TWindow';
 import { mediatorService } from '../../services/MediatorService';
+import { DebugLogService } from '../../services/DebugLogService';
 import { Logger } from '../../utils/Logger';
 
 const logger = Logger.get('RunManager', 'Runtime_Execution');
@@ -50,6 +51,7 @@ export class EditorRunManager {
         if (running) {
             this.editor.selectObject(null);
             logger.info("Starting Game Mode...");
+            DebugLogService.getInstance().setEnabled(true);
 
             const mpManager = (this.editor as any)._isMultiplayer ? network : undefined;
             const activeStage = this.editor.getActiveStage();
@@ -71,6 +73,9 @@ export class EditorRunManager {
             }
 
             (this.editor as any).syncStageObjectsToProject();
+            if ((this.editor as any).flowEditor) {
+                (this.editor as any).flowEditor.syncAllTasksFromFlow(this.editor.project);
+            }
 
             this.runtime = new GameRuntime(this.editor.project, undefined, {
                 onNavigate: (target: string, _params?: any) => {
@@ -197,6 +202,7 @@ export class EditorRunManager {
     }
 
     private stopRuntime() {
+        DebugLogService.getInstance().setEnabled(false);
         if (this.runtime) {
             this.runtime.stop();
             this.runtime = null;

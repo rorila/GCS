@@ -389,7 +389,9 @@ export class ProjectRegistry {
 
                 stageGlobals.forEach((obj: any) => {
                     if (!objectIds.has(obj.id)) {
-                        allObjects.push(obj);
+                        // Mark as inherited for UI/Renderer awareness
+                        const inheritedObj = { ...obj, isInherited: true };
+                        allObjects.push(inheritedObj);
                         objectIds.add(obj.id);
                     }
                 });

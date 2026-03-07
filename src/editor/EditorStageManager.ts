@@ -19,6 +19,10 @@ export class EditorStageManager {
         private onRefresh: () => void
     ) { }
 
+    public setProject(project: GameProject) {
+        this.project = project;
+    }
+
     public currentObjects(): TWindow[] {
         return ProjectRegistry.getInstance().getObjects();
     }

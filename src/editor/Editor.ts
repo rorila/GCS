@@ -74,6 +74,9 @@ export class Editor implements IViewHost {
     public objectStore: ObjectStore = new ObjectStore();
     private useHorizontalToolbox: boolean = false;
 
+    public get isProjectDirty() { return this.viewManager.isProjectDirty; }
+    public set isProjectDirty(v: boolean) { this.viewManager.isProjectDirty = v; }
+
     public get workingProjectData() { return this.viewManager.workingProjectData; }
     public set workingProjectData(v: any) { this.viewManager.workingProjectData = v; }
 
@@ -132,6 +135,14 @@ export class Editor implements IViewHost {
         // Setup toolbox toggle
         const toolboxToggleBtn = document.getElementById('toolbox-layout-toggle');
         if (toolboxToggleBtn) toolboxToggleBtn.onclick = () => this.toggleToolboxLayout();
+
+        // 8. Browser Navigation Guard (Back-Button / Refresh)
+        window.onbeforeunload = (e) => {
+            if (this.isProjectDirty) {
+                e.preventDefault();
+                e.returnValue = ''; // Standard-Browser-Warnung auslösen
+            }
+        };
     }
 
     private createDefaultProject(): GameProject {
@@ -183,6 +194,10 @@ export class Editor implements IViewHost {
     }
 
     private async tryRestoreLastSession() {
+        if (window.location.search.includes('e2e=true')) {
+            Editor.logger.info('E2E mode detected: skipping session restoration');
+            return;
+        }
         try {
             Editor.logger.info('Fetching latest project.json from server to sync LocalStorage...');
             const serverProject = await projectPersistenceService.fetchProjectFromServer();
@@ -248,6 +263,9 @@ export class Editor implements IViewHost {
             return;
         }
 
+        const isInherited = !!obj.isInherited;
+        const inheritedWarning = isInherited ? "\n\n⚠️ ACHTUNG: Dies ist ein geerbtes Objekt (aus dem Blueprint/Global).\nDas Löschen entfernt es permanent aus ALLEN Stages!" : "";
+
         let report;
         if (obj.className === 'TAction' || obj.type === 'action' || (obj as any).getType?.() === 'action') {
             report = RefactoringManager.getActionUsageReport(this.project, obj.name);
@@ -261,7 +279,7 @@ export class Editor implements IViewHost {
 
         if (report && report.totalCount > 0) {
             const locations = report.locations.map(l => `- ${l.name} (${l.details})`).join('\n');
-            const msg = `"${obj.name}" wird an ${report.totalCount} Stellen verwendet:\n\n${locations}\n\nMöchtest du das Element und alle Referenzen wirklich löschen?`;
+            const msg = `"${obj.name}" wird an ${report.totalCount} Stellen verwendet:\n\n${locations}${inheritedWarning}\n\nMöchtest du das Element und alle Referenzen wirklich löschen?`;
             if (confirm(msg)) {
                 // If the object is a FlowElement, use silent deletion to prevent double prompt
                 const flowManager = (this.flowEditor as any)?.graphManager;
@@ -277,7 +295,7 @@ export class Editor implements IViewHost {
                 this.removeObject(id);
             }
         } else {
-            if (confirm(`Möchtest du "${obj.name}" wirklich löschen?`)) {
+            if (confirm(`Möchtest du "${obj.name}" wirklich löschen?${inheritedWarning}`)) {
                 const flowManager = (this.flowEditor as any)?.graphManager;
                 const nodes = flowManager?.host?.nodes;
 
@@ -365,12 +383,53 @@ export class Editor implements IViewHost {
     public handleForward() { this.undoManager.handleForward(); }
     public applyRecordedAction(action: any, dir: 'rewind' | 'forward') { this.undoManager.applyRecordedAction(action, dir); }
     public loadProject(data: any) { this.dataManager.loadProject(data); }
-    public newProject() {
-        if (confirm('Möchtest du wirklich ein neues Projekt starten? Ungespeicherte Änderungen gehen verloren.')) {
-            const freshProject = this.createDefaultProject();
-            this.loadProject(freshProject);
-            Editor.logger.info('Neues Projekt initialisiert');
+
+    /**
+     * ZENTRAL: Ersetzt das gesamte Projekt-Objekt und informiert alle Manager.
+     * Verhindert Stale-References nach dem Laden.
+     */
+    public setProject(project: GameProject) {
+        Editor.logger.info('Updating project reference across all managers');
+        this.project = project;
+
+        // 1. Registry & Services
+        projectRegistry.setProject(project);
+
+        // 2. Specialized Managers
+        this.stageManager.setProject(project);
+        this.dialogManager.setProject(project);
+        if (this.inspector) this.inspector.setProject(project);
+        if (this.flowEditor) this.flowEditor.setProject(project);
+        // dataManager, runManager etc. typically use this.host.project or ProjectRegistry
+
+        // 3. UI State Reset
+        this.currentSelectedId = null;
+        if (this.stage) {
+            const activeStage = this.getActiveStage();
+            if (activeStage && activeStage.grid) {
+                this.stage.grid = activeStage.grid;
+            } else {
+                this.stage.grid = project.stage.grid;
+            }
         }
+
+        // 4. Mediator Reset
+        mediatorService.reset();
+
+        // 5. Visual Refresh
+        this.render();
+        this.updateStagesMenu();
+    }
+
+    public newProject() {
+        if (this.isProjectDirty) {
+            if (!confirm('Sie haben ungespeicherte Änderungen. Möchten Sie wirklich ein neues Projekt starten?')) {
+                return;
+            }
+        }
+        const freshProject = this.createDefaultProject();
+        this.loadProject(freshProject);
+        Editor.logger.info('Neues Projekt initialisiert');
     }
     public saveProject() { this.dataManager.saveProject(); }
     public triggerLoad() { this.dataManager.triggerLoad(); }
@@ -415,6 +474,12 @@ export class Editor implements IViewHost {
 
     private async initJSONToolbox() {
         this.jsonToolbox = new JSONToolbox('json-toolbox-content');
+        this.jsonToolbox.onAction = (type, toolType) => {
+            if (type === 'click') {
+                // Place in the middle of current view or at a default position
+                this.addObject(toolType, 10, 10);
+            }
+        };
         const res = await fetch('./editor/toolbox.json');
         if (res.ok) await this.jsonToolbox.loadFromJSON(await res.json());
     }
@@ -468,12 +533,27 @@ export class Editor implements IViewHost {
     }
 
     private bindViewEvents() {
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const view = (e.target as HTMLElement).getAttribute('data-view') as ViewType;
-                if (view) this.switchView(view);
+        const tabsContainer = document.getElementById('view-tabs');
+        if (tabsContainer) {
+            tabsContainer.addEventListener('click', (e) => {
+                const btn = (e.target as HTMLElement).closest('.tab-btn') as HTMLElement;
+                if (btn) {
+                    const view = btn.getAttribute('data-view') as ViewType;
+                    if (view) {
+                        Editor.logger.info(`Switching view to: ${view}`);
+                        this.switchView(view);
+                    }
+                }
             });
-        });
+        } else {
+            // Fallback for direct binding if container not found yet
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                (btn as HTMLElement).onclick = (e: MouseEvent) => {
+                    const view = (e.currentTarget as HTMLElement).getAttribute('data-view') as ViewType;
+                    if (view) this.switchView(view);
+                };
+            });
+        }
     }
 
     private bindSystemInfoEvents() {
@@ -508,6 +588,4 @@ export class Editor implements IViewHost {
     public get pascalEditorMode(): boolean { return this.viewManager.pascalEditorMode; }
     public get jsonMode(): 'viewer' | 'editor' { return this.viewManager.jsonMode; }
     public set jsonMode(v: 'viewer' | 'editor') { this.viewManager.jsonMode = v; }
-    public get isProjectDirty(): boolean { return this.viewManager.isProjectDirty; }
-    public set isProjectDirty(v: boolean) { this.viewManager.isProjectDirty = v; }
 }

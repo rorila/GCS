@@ -19,7 +19,6 @@ export type LogListener = (logs: LogEntry[]) => void;
 
 export class DebugLogService {
     private static logger = Logger.get('DebugLogService', 'Editor_Diagnostics');
-    private static instance: DebugLogService;
     private logs: LogEntry[] = [];
     private listeners: LogListener[] = [];
     private maxLogs = 1000;
@@ -47,22 +46,25 @@ export class DebugLogService {
     }
 
     public static getInstance(): DebugLogService {
-        if (!DebugLogService.instance) {
-            DebugLogService.instance = new DebugLogService();
+        const globalScope = typeof window !== 'undefined' ? window : global;
+        if (!(globalScope as any)._globalDebugLogService) {
+            (globalScope as any)._globalDebugLogService = new DebugLogService();
         }
-        return DebugLogService.instance;
+        return (globalScope as any)._globalDebugLogService;
     }
 
     public log(type: LogType, message: string, options: {
         parentId?: string,
         data?: any,
         objectName?: string,
-        eventName?: string
+        eventName?: string,
+        flatten?: boolean
     } = {}): string {
         if (!this.enabled) return '';
 
         // AUTO-PARENT: If no parentId provided, check if we are in a scoped context (Task/Action)
-        const parentId = options.parentId || (this.contextStack.length > 0 ? this.contextStack[this.contextStack.length - 1] : undefined);
+        // But ONLY if not flattened
+        const parentId = options.flatten ? undefined : (options.parentId || (this.contextStack.length > 0 ? this.contextStack[this.contextStack.length - 1] : undefined));
 
         const id = `log-${Date.now()}-${this.counter++}`;
         const entry: LogEntry = {
@@ -81,12 +83,14 @@ export class DebugLogService {
         if (parentId) {
             const parent = this.findEntry(this.logs, parentId);
             if (parent) {
+                // console.log(`[DebugLogService] [${type}] ${message} (Parent: ${parentId})`);
                 parent.children.push(entry);
                 this.notify();
                 return id;
             }
         }
 
+        console.log(`[DebugLogService] [${type}] ${message}`);
         this.logs.push(entry);
         if (this.logs.length > this.maxLogs) {
             this.logs.shift();

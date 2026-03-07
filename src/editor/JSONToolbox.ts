@@ -1,23 +1,24 @@
 import { Logger } from '../utils/Logger';
+import { DnDHelper } from './utils/DnDHelper';
 
 /**
  * JSONToolbox - JSON-based Toolbox renderer with collapsible categories
  */
-
-interface ToolboxItem {
+export interface ToolboxItem {
     type: string;
     icon: string;
     label: string;
 }
 
-interface ToolboxCategory {
+export interface ToolboxCategory {
     name: string;
-    expanded: boolean;
+    icon?: string;
+    expanded?: boolean;
     items: ToolboxItem[];
 }
 
-interface ToolboxConfig {
-    meta: { name: string; version: string };
+export interface ToolboxConfig {
+    meta?: { name: string; version: string };
     categories: ToolboxCategory[];
 }
 
@@ -27,6 +28,7 @@ export class JSONToolbox {
     private config: ToolboxConfig | null = null;
     private expandedState: Map<string, boolean> = new Map();
     private actions = new Map<string, () => void>();
+    public onAction: ((type: string, toolType: string) => void) | null = null;
 
     constructor(containerId: string) {
         const el = document.getElementById(containerId);
@@ -53,7 +55,9 @@ export class JSONToolbox {
         });
 
         this.render();
-        JSONToolbox.logger.info('Loaded:', json.meta.name, 'v' + json.meta.version);
+        if (json.meta) {
+            JSONToolbox.logger.info('Loaded:', json.meta.name, 'v' + json.meta.version);
+        }
     }
 
     /**
@@ -201,15 +205,18 @@ export class JSONToolbox {
             item.style.borderColor = '#3a3a3a';
         };
 
-        // Drag & Drop
-        item.addEventListener('dragstart', (e) => {
-            if (e.dataTransfer) {
-                e.dataTransfer.setData('application/json', JSON.stringify({
-                    type: 'tool-drop',
-                    toolType: tool.type
-                }));
-                e.dataTransfer.effectAllowed = 'copy';
+        // Click Fallback
+        item.onclick = (e) => {
+            e.stopPropagation();
+            if (this.onAction) {
+                this.onAction('click', tool.type);
             }
+        };
+
+        // Drag & Drop (Unified via DnDHelper)
+        DnDHelper.setupDraggable(item, {
+            type: 'tool-drop',
+            toolType: tool.type
         });
 
         return item;

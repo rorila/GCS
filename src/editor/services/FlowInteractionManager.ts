@@ -32,12 +32,25 @@ export interface FlowInteractionHost {
     selectedConnection: FlowConnection | null;
 }
 
+import { DnDHelper, DnDPayload } from '../utils/DnDHelper';
+
 export class FlowInteractionManager {
     private host: FlowInteractionHost;
     private tooltipEl: HTMLElement | null = null;
 
     constructor(host: FlowInteractionHost) {
         this.host = host;
+    }
+
+    public bindEvents() {
+        // Drag & Drop (Unified via DnDHelper)
+        DnDHelper.setupDropTarget(
+            this.host.canvas,
+            (payload, e) => this.handleDrop(payload, e)
+        );
+
+        this.host.canvas.onmousedown = (e) => this.handleCanvasClick(e);
+        this.host.canvas.oncontextmenu = (e) => this.handleCanvasContextMenu(e);
     }
 
     public handleCanvasClick(e: MouseEvent) {
@@ -68,42 +81,20 @@ export class FlowInteractionManager {
         this.host.menuProvider.handleConnectionContextMenu(e, conn);
     }
 
-    public handleDrop(e: DragEvent) {
-        e.preventDefault();
-        const rawData = e.dataTransfer?.getData('application/flow-item');
-        if (!rawData) return;
-
-        let type = rawData;
-        let data: any = null;
-
-        if (rawData.startsWith('{')) {
-            try {
-                data = JSON.parse(rawData);
-                type = data.type;
-            } catch (err) {
-                console.warn('[FlowInteractionManager] Failed to parse drop data as JSON', err);
-            }
-        }
+    private handleDrop(payload: DnDPayload, e: DragEvent) {
+        let type = payload.toolType;
+        let name = payload.name || (type === 'task' ? 'Task' : type);
 
         const rect = this.host.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        let finalX = x;
-        let finalY = y;
+        // Snap to grid
+        const gridSize = this.host.flowStage.snapToGrid ? this.host.flowStage.cellSize : 1;
+        const finalX = Math.floor(x / gridSize) * gridSize;
+        const finalY = Math.floor(y / gridSize) * gridSize;
 
-        if (this.host.flowStage.snapToGrid) {
-            const snapped = this.host.flowStage.snapToGridPosition(x, y);
-            finalX = snapped.x;
-            finalY = snapped.y;
-        }
-
-        console.log(`[FlowInteraction:DROP] type=${type} at (${finalX},${finalY})`);
-        if (type === 'task') {
-            this.host.createNode(type, finalX, finalY, data?.name || 'Task');
-        } else {
-            this.host.createNode(type, finalX, finalY, type);
-        }
+        this.host.createNode(type, finalX, finalY, name);
     }
 
     public setupNodeListeners(node: FlowElement) {
