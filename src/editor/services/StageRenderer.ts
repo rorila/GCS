@@ -206,6 +206,11 @@ export class StageRenderer {
                 if (isFromBlueprint && (isService || isBlueprintOnly)) {
                     isVisible = false;
                 }
+            } else {
+                // In blueprint stage, we ALWAYS want to see blueprint elements
+                if (isFromBlueprint || isService || isBlueprintOnly) {
+                    isVisible = true;
+                }
             }
 
             el.style.display = isVisible ? 'flex' : 'none';
@@ -442,9 +447,6 @@ export class StageRenderer {
             const input = document.createElement('input');
             input.type = 'checkbox';
             input.style.cursor = 'pointer';
-            input.onchange = () => {
-                obj.checked = input.checked;
-            };
 
             const textSpan = document.createElement('span');
             textSpan.className = 'checkbox-label';
@@ -457,7 +459,14 @@ export class StageRenderer {
         const input = el.querySelector('input') as HTMLInputElement;
         const textSpan = el.querySelector('.checkbox-label') as HTMLElement;
 
-        if (input) input.checked = !!obj.checked;
+        if (input) {
+            if (this.host.runMode) {
+                input.onchange = () => {
+                    obj.checked = input.checked;
+                };
+            }
+            input.checked = !!obj.checked;
+        }
         if (textSpan) {
             textSpan.innerText = obj.label || obj.name;
             textSpan.style.color = obj.style?.color || '#000000';
@@ -483,13 +492,16 @@ export class StageRenderer {
             input.style.fontSize = 'inherit';
             input.style.outline = 'none';
             input.style.boxSizing = 'border-box';
-            input.oninput = () => {
-                obj.value = parseFloat(input.value);
-            };
             el.appendChild(input);
         }
         const input = el.querySelector('input') as HTMLInputElement;
         if (input) {
+            if (this.host.runMode) {
+                input.oninput = () => {
+                    obj.value = parseFloat(input.value);
+                };
+            }
+
             if (parseFloat(input.value) !== obj.value) input.value = String(obj.value || 0);
             if (obj.min !== undefined && obj.min !== -Infinity) input.min = String(obj.min);
             if (obj.max !== undefined && obj.max !== Infinity) input.max = String(obj.max);
@@ -522,16 +534,18 @@ export class StageRenderer {
                 input.style.fontSize = 'inherit';
                 input.style.outline = 'none';
                 input.style.boxSizing = 'border-box';
-                input.oninput = () => {
-                    let val = input.value;
-                    if (obj.uppercase) val = val.toUpperCase();
-                    obj.text = val;
-                    input.value = val;
-                };
                 el.appendChild(input);
             }
             const input = el.querySelector('input') as HTMLInputElement;
             if (input) {
+                if (this.host.runMode) {
+                    input.oninput = () => {
+                        let val = input.value;
+                        if (obj.uppercase) val = val.toUpperCase();
+                        obj.text = val;
+                        input.value = val;
+                    };
+                }
                 if (input.value !== (obj.text || '')) input.value = obj.text || '';
                 input.placeholder = obj.placeholder || '';
                 input.style.color = obj.style?.color || '#000000';
@@ -572,7 +586,7 @@ export class StageRenderer {
         if (titleEl && titleEl.innerText !== obj.gameName) titleEl.innerText = obj.gameName;
     }
 
-    private renderButton(el: HTMLElement, obj: any, isNew: boolean) {
+    private renderButton(el: HTMLElement, obj: any, _isNew: boolean) {
         if (el.querySelector('.table-title-bar')) el.innerHTML = '';
         if (el.innerText !== (obj.caption || obj.name)) el.innerText = obj.caption || obj.name;
         const fw = obj.style?.fontWeight;
@@ -584,7 +598,7 @@ export class StageRenderer {
         if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
         const align = obj.style?.textAlign;
         el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
-        if (this.host.runMode && isNew) {
+        if (this.host.runMode) {
             el.onmouseenter = () => el.style.filter = 'brightness(1.1)';
             el.onmouseleave = () => el.style.filter = 'none';
             el.onmousedown = () => el.style.transform = 'scale(0.98)';
@@ -669,11 +683,18 @@ export class StageRenderer {
             el.style.display = 'flex';
             if (!this.host.runMode) {
                 el.style.backgroundColor = this.getSystemComponentColor(className, obj);
-                el.innerText = obj.name;
+
+                let val = (obj.value !== undefined) ? obj.value : obj.defaultValue;
+                if (val === undefined) val = '-';
+
+                el.innerText = obj.isVariable ? `${obj.name}\n(${val})` : obj.name;
                 el.style.color = '#ffffff';
-                el.style.fontSize = '12px';
+                el.style.fontSize = '10px';
+                el.style.textAlign = 'center';
+                el.style.whiteSpace = 'pre-wrap';
+
                 if (obj.isVariable) {
-                    el.style.border = '1px solid #ffffff';
+                    el.style.border = '1px solid rgba(255, 255, 255, 0.5)';
                 }
             } else {
                 el.innerText = '';

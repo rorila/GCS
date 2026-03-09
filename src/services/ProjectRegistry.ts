@@ -185,8 +185,9 @@ export class ProjectRegistry {
     /**
      * Gets tasks. By default returns Global + Active Stage tasks.
      * Set stageId to 'all' to get everything.
+     * @param includeUnusedLibrary If true, returns all library tasks even if not used in project.
      */
-    public getTasks(stageId: string | 'all' | 'active' = 'active', resolveUsage: boolean = true): ScopedTask[] {
+    public getTasks(stageId: string | 'all' | 'active' = 'active', resolveUsage: boolean = true, includeUnusedLibrary: boolean = false): ScopedTask[] {
         if (!this.project) return [];
 
         // 1. Global tasks (Root + Blueprint)
@@ -207,18 +208,39 @@ export class ProjectRegistry {
         // 2. Library tasks
         const libTasks = libraryService.getTasks().map(t => ({ ...t, uiScope: 'library' as const }));
 
+        const combineAndDedup = (tasks: ScopedTask[]) => {
+            const unique = new Map<string, ScopedTask>();
+            tasks.forEach(t => {
+                // Priority: Globals typically have precedence for identity, but we keep the instance that was added
+                if (!unique.has(t.name)) {
+                    unique.set(t.name, t);
+                }
+            });
+
+            let finalTasks = Array.from(unique.values()).map(t => ({
+                ...t,
+                usageCount: resolveUsage ? this.getTaskUsage(t.name).length : 0
+            }));
+
+            // Filter library tasks if not explicitly requested and they have no usage
+            if (!includeUnusedLibrary && resolveUsage) {
+                finalTasks = finalTasks.filter(t => t.uiScope !== 'library' || (t.usageCount || 0) > 0);
+            }
+
+            return finalTasks;
+        };
+
         if (stageId === 'all') {
-            let allTasks = [...globalTasks, ...libTasks];
+            let all = [...globalTasks, ...libTasks];
             if (this.project.stages) {
                 this.project.stages.forEach(stage => {
-                    // Blueprint Tasks wurden schon als global geladen
                     if (stage.type === 'blueprint') return;
                     if (stage.tasks) {
-                        allTasks = [...allTasks, ...stage.tasks.map(t => ({ ...t, uiScope: 'stage' as const }))];
+                        all = [...all, ...stage.tasks.map(t => ({ ...t, uiScope: 'stage' as const }))];
                     }
                 });
             }
-            return allTasks.map(t => ({ ...t, usageCount: resolveUsage ? this.getTaskUsage(t.name).length : 0 }));
+            return combineAndDedup(all);
         }
 
         const targetStageId = stageId === 'active' ? this.activeStageId : stageId;
@@ -226,11 +248,11 @@ export class ProjectRegistry {
             const stage = this.project.stages.find(s => s.id === targetStageId);
             if (stage && stage.type !== 'blueprint' && stage.tasks) {
                 const stageTasks = stage.tasks.map(t => ({ ...t, uiScope: 'stage' as const }));
-                return [...globalTasks, ...stageTasks, ...libTasks].map(t => ({ ...t, usageCount: resolveUsage ? this.getTaskUsage(t.name).length : 0 }));
+                return combineAndDedup([...globalTasks, ...stageTasks, ...libTasks]);
             }
         }
 
-        return [...globalTasks, ...libTasks].map(t => ({ ...t, usageCount: resolveUsage ? this.getTaskUsage(t.name).length : 0 }));
+        return combineAndDedup([...globalTasks, ...libTasks]);
     }
 
     /**
@@ -324,6 +346,56 @@ export class ProjectRegistry {
             uiScope: 'global',
             usageCount: resolveUsage ? this.getActionUsage(a.name).length : 0
         }));
+    }
+
+    /**
+     * SSoT-Lookup: Findet die ORIGINAL-Instanz einer Aktion im Projekt-Modell.
+     * Dies ist kritisch für die Referenz-Stabilität im Inspector und Flow-Editor.
+     */
+    public findOriginalAction(nameOrId: string): GameAction | null {
+        if (!this.project) return null;
+
+        const isMatch = (a: any) =>
+            a.name === nameOrId ||
+            a.id === nameOrId ||
+            a.actionName === nameOrId ||
+            (a.data && (a.data.name === nameOrId || a.data.actionName === nameOrId)) ||
+            (a.properties && (a.properties.name === nameOrId || a.properties.text === nameOrId));
+
+        // 1. Globale Aktionen
+        const globalAction = (this.project.actions || []).find(isMatch);
+        if (globalAction) return globalAction;
+
+        // 2. Stage-Aktionen (inkl. Blueprint)
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                const stageAction = (stage.actions || []).find(isMatch);
+                if (stageAction) return stageAction;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * SSoT-Lookup: Findet die ORIGINAL-Instanz eines Tasks.
+     */
+    public findOriginalTask(name: string): GameTask | null {
+        if (!this.project) return null;
+
+        // 1. Globale Tasks
+        const globalTask = (this.project.tasks || []).find(t => t.name === name);
+        if (globalTask) return globalTask;
+
+        // 2. Stage-Tasks
+        if (this.project.stages) {
+            for (const stage of this.project.stages) {
+                const stageTask = (stage.tasks || []).find((t: any) => t.name === name);
+                if (stageTask) return stageTask;
+            }
+        }
+
+        return null;
     }
 
     // =========================================================================================

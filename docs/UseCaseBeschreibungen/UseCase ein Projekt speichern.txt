@@ -1,0 +1,28 @@
+-- UseCase: Projekt speichern
+Bemerkungen: Der User beabsichtigt das Projekt zu speichern. 
+
+- den Menüpunkt: Datei/Projekt Speichern auswählen.
+
+1. Schritt: Prüfung Änderungsstatus
+- Prüfen: Haben sich die Daten seit dem letzten Speichern geändert? 
+- Testen: Die globale Variable in der Blueprint-Stage 'isProjectChangeAvailable' muss den Wert 'true' haben.
+- Wenn Wert = 'false': Einen User-Hinweis geben ("Daten haben sich nicht geändert") und den Vorgang abbrechen.
+
+2. Schritt: Prüfung Spielname
+- Prüfen: Wurde der Standard-Name der Main-Stage geändert? 
+- Bedingung: Der Name der Stage mit ID 'main' darf NICHT 'Haupt-Level' sein.
+- Wenn Name = 'Haupt-Level': Einen User-Hinweis geben ("Bitte ändern sie den Spielnamen in der Main-Stage") und den Vorgang abbrechen.
+
+3. Schritt: Pfad-Konstruktion und Speicherung
+- Der Zielpfad wird automatisch konstruiert: 'C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\projects\master_test\<Spielname>.json'.
+- Der <Spielname> entspricht dabei dem 'gameName' oder 'name' der Main-Stage.
+- Prüfung: Existiert die Datei bereits auf dem Server/Disk?
+- Falls JA: Den User fragen ("Die Datei ist schon vorhanden, soll diese überschrieben werden? ja/nein").
+- Falls User 'nein' wählt: Vorgang abbrechen.
+- Falls User 'ja' wählt oder Datei NEU ist: Gesamte JSON-Daten schreiben.
+
+4. Schritt: Abschluss
+- Nach erfolgreichem Speichern: Die globale Variable 'isProjectChangeAvailable' in der Blueprint-Stage auf 'false' zurücksetzen.
+- Erfolgsmeldung anzeigen ("Projekt erfolgreich gespeichert").
+
+

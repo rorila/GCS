@@ -1,0 +1,6 @@
+--UseCase Pfade:
+
+- UseCase: 'Neues Projekt (Spiel) erzeugen': Pfad: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\docs\UseCaseBeschreibungen\UseCase ein neues Projekt (Spiel) erstellen.txt
+- UseCase: 'Projekt speichern': Pfad: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\docs\UseCaseBeschreibungen\UseCase ein Projekt speichern.txt
+- UseCase: 'Task umbenennen': Pfad: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\docs\UseCaseBeschreibungen\UseCase Ein Task umbenennen.txt
+- UseCase: 'Action umbenennen': Pfad: C:\Users\rolfr\.gemini\antigravity\scratch\game-builder-v1\docs\UseCaseBeschreibungen\UseCase Eine Action umbenennen.txt

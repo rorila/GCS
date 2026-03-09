@@ -2,6 +2,7 @@
 import { GameProject } from '../../model/types';
 import { FlowElement } from './FlowElement';
 import { libraryService } from '../../services/LibraryService';
+import { projectRegistry } from '../../services/ProjectRegistry';
 
 export class FlowTask extends FlowElement {
     public getType(): string { return 'task'; }
@@ -46,38 +47,15 @@ export class FlowTask extends FlowElement {
      * Get the task definition from project or library
      */
     public getTaskDefinition(): any | null {
-        // Find task by its name (local name in project) or by library reference
+        // Find task by its name (local name in project)
         const taskName = this.data?.taskName || this.Name;
         const sourceName = this.data?.copiedFromLibrary || this.data?.sourceTaskName;
 
         if (!taskName && !sourceName) return null;
 
-        let result: any = null;
-
-        // 0. Search in Active Stage (Local Scope) - Priority!
-        const proj = this.projectRef;
-        if (proj && proj.activeStageId && proj.stages) {
-            const stage = proj.stages.find(s => s.id === proj.activeStageId);
-            if (stage?.tasks && taskName) {
-                const localTask = stage.tasks.find(t => t.name === taskName);
-                if (localTask) return localTask;
-            }
-        }
-
-        // 0b. Fallback: Search in ALL stages if not found in active stage
-        if (proj && proj.stages && taskName) {
-            for (const s of proj.stages) {
-                if (s.tasks) {
-                    const task = s.tasks.find(t => t.name === taskName);
-                    if (task) return task;
-                }
-            }
-        }
-
-        // 1. Search in Global Project tasks
-        if (proj?.tasks && taskName) {
-            result = proj.tasks.find(t => t.name === taskName);
-        }
+        // 1. Resolve from project/stage via ProjectRegistry (Single Source of Truth)
+        // This covers both global and stage-specific tasks in the current project.
+        let result: any = projectRegistry.findOriginalTask(taskName);
 
         // 2. If no project task OR project task has no params, try library
         if (!result || !result.params || result.params.length === 0) {

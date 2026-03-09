@@ -53,9 +53,33 @@ export class InspectorActionHandler {
             case 'toggle_usecase':
                 this.handleToggleUseCase(buttonDef, value);
                 break;
+            case 'changeActionType':
+                this.handleChangeActionType(selectedObject, value);
+                break;
             default:
                 InspectorActionHandler.logger.warn(`Unknown action: ${action}`);
         }
+    }
+
+    private handleChangeActionType(selectedObject: any, newType: string): void {
+        const oldType = selectedObject.type || 'property';
+        const name = selectedObject.Name || selectedObject.name || selectedObject.data?.name;
+        InspectorActionHandler.logger.info(`[FLOW-TRACE] handleChangeActionType: Node="${name}", OldType="${oldType}", NewType="${newType}"`);
+
+        // 1. Update logic if it's a FlowNode
+        if (selectedObject.id && typeof selectedObject.setShowDetails === 'function') {
+            InspectorActionHandler.logger.debug(`[FLOW-TRACE] Forcing visual refresh for node "${name}"`);
+            // Force visual refresh of the node
+            selectedObject.setShowDetails(true, this.project);
+        }
+
+        // 2. Notify system about data change (this will trigger saves and refreshes)
+        InspectorActionHandler.logger.debug(`[FLOW-TRACE] Notifying DATA_CHANGED for "${name}"`);
+        mediatorService.notifyDataChanged(this.project, 'inspector');
+
+        // 3. Re-render inspector to show new parameters for the new type
+        InspectorActionHandler.logger.debug(`[FLOW-TRACE] Updating Inspector Host for "${name}"`);
+        this.host.update(selectedObject);
     }
 
     private handleToggleUseCase(def: any, value: any): void {

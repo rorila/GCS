@@ -4,6 +4,7 @@ import { TaskRefactoringService } from './refactoring/TaskRefactoringService';
 import { ActionRefactoringService } from './refactoring/ActionRefactoringService';
 import { ObjectRefactoringService } from './refactoring/ObjectRefactoringService';
 import { SanitizationService } from './refactoring/SanitizationService';
+import { mediatorService, MediatorEvents } from '../services/MediatorService';
 
 /**
  * RefactoringManager (Facade / Delegator)
@@ -23,6 +24,7 @@ export class RefactoringManager {
      */
     public static renameTask(project: GameProject, oldName: string, newName: string): void {
         TaskRefactoringService.renameTask(project, oldName, newName);
+        mediatorService.notify(MediatorEvents.TASK_RENAMED, { oldName, newName });
     }
 
     /**
@@ -37,6 +39,8 @@ export class RefactoringManager {
      */
     public static renameAction(project: GameProject, oldName: string, newName: string): void {
         ActionRefactoringService.renameAction(project, oldName, newName);
+        // Wir könnten hier auch ACTION_RENAMED hinzufügen, falls nötig. 
+        // Für den FlowEditor ist TASK_RENAMED am wichtigsten.
     }
 
     /**

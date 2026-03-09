@@ -1,6 +1,7 @@
 import { Logger } from '../utils/Logger';
+import { LogLevel } from '../utils/LogTypes';
 
-export type LogType = 'Event' | 'Task' | 'Action' | 'Variable' | 'Condition';
+export type LogType = 'Event' | 'Task' | 'Action' | 'Variable' | 'Condition' | 'System';
 
 export interface LogEntry {
     id: string;
@@ -26,7 +27,16 @@ export class DebugLogService {
     private contextStack: string[] = [];
     private enabled = false;
 
-    private constructor() { }
+    private constructor() {
+        // Register bridge to central Logger
+        Logger.setLogHandler((level: LogLevel, prefix: string, message: string, useCase?: string) => {
+            // Only log INFO and above to DebugLogService to avoid cluttering with DEBUG logs
+            this.log('System', `${prefix}${message}`, {
+                level: String(level),
+                category: useCase
+            });
+        });
+    }
 
     public pushContext(id: string) {
         if (id) this.contextStack.push(id);
@@ -53,14 +63,27 @@ export class DebugLogService {
         return (globalScope as any)._globalDebugLogService;
     }
 
+    private isNotifying = false;
+
     public log(type: LogType, message: string, options: {
         parentId?: string,
         data?: any,
         objectName?: string,
         eventName?: string,
-        flatten?: boolean
+        flatten?: boolean,
+        level?: any,
+        category?: any
     } = {}): string {
-        if (!this.enabled) return '';
+        if (!this.enabled || this.isNotifying) return '';
+
+        // Filter by level: only show INFO or higher in the UI to avoid clutter
+        if (options.level) {
+            const level = options.level;
+            const numericLevel = typeof level === 'number' ? level : 0; // Default or map if string
+            // LogLevel.DEBUG is usually 0, INFO 1, WARN 2, ERROR 3
+            // If it's a string from Logger.ts, LogLevel.DEBUG is 'DEBUG'
+            if (level === 'DEBUG' || numericLevel === 0) return '';
+        }
 
         // AUTO-PARENT: If no parentId provided, check if we are in a scoped context (Task/Action)
         // But ONLY if not flattened
@@ -83,14 +106,12 @@ export class DebugLogService {
         if (parentId) {
             const parent = this.findEntry(this.logs, parentId);
             if (parent) {
-                // console.log(`[DebugLogService] [${type}] ${message} (Parent: ${parentId})`);
                 parent.children.push(entry);
                 this.notify();
                 return id;
             }
         }
 
-        console.log(`[DebugLogService] [${type}] ${message}`);
         this.logs.push(entry);
         if (this.logs.length > this.maxLogs) {
             this.logs.shift();

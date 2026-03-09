@@ -261,6 +261,12 @@ export function registerStandardActions() {
         );
         if (stageController && typeof (stageController as any).goToStage === 'function') {
             runtimeLogger.info(`Via TStageController → ${resolved}`);
+
+            DebugLogService.getInstance().log('Action', `Stage wechselt zu: ${resolved}`, {
+                objectName: 'TStageController',
+                data: { stageId: resolved }
+            });
+
             (stageController as any).goToStage(resolved);
             return;
         }
@@ -268,6 +274,11 @@ export function registerStandardActions() {
         // Fallback: über onNavigate-Callback (Editor-Modus)
         if (context.onNavigate) {
             runtimeLogger.info(`Via onNavigate fallback → stage:${resolved}`);
+
+            DebugLogService.getInstance().log('Action', `Navigation zu Stage: ${resolved}`, {
+                data: { stageId: resolved }
+            });
+
             context.onNavigate(`stage:${resolved}`, action.params);
         }
     }, {

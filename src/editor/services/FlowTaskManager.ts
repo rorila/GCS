@@ -161,6 +161,7 @@ export class FlowTaskManager {
 
     public ensureTaskExists(taskName: string, description?: string) {
         if (!this.host.project) return;
+        FlowTaskManager.logger.info(`[TRACE] ensureTaskExists: "${taskName}"`);
         if (!this.host.project.tasks) this.host.project.tasks = [];
 
         const existingTask = this.host.getTaskDefinitionByName(taskName);

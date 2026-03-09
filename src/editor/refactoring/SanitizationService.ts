@@ -8,27 +8,61 @@ export class SanitizationService {
      * Prevents "ghost" nodes in diagrams and logic issues.
      */
     public static cleanActionSequences(project: GameProject): void {
-        const allTasks = [...(project.tasks || [])];
+        // Collect all valid actions (Global + Stages)
+        const validActions = new Set<string>();
+        if (project.actions) project.actions.forEach(a => validActions.add(a.name));
         if (project.stages) {
             project.stages.forEach(s => {
-                if (s.tasks) allTasks.push(...s.tasks);
+                const stageActions = s.actions || (s as any).Actions;
+                if (stageActions && Array.isArray(stageActions)) {
+                    stageActions.forEach(a => validActions.add(a.name));
+                }
             });
         }
 
+        const allTasks = [...(project.tasks || [])];
+        if (project.stages) {
+            project.stages.forEach(s => {
+                const stageTasks = s.tasks || (s as any).Tasks;
+                if (stageTasks && Array.isArray(stageTasks)) {
+                    allTasks.push(...stageTasks);
+                }
+            });
+        }
+
+        let removedCount = 0;
         allTasks.forEach(task => {
             if (task.actionSequence) {
                 task.actionSequence = task.actionSequence.filter(item => {
                     if (!item) return false;
-                    // If it's a string, it's a legacy action name - keep it
-                    if (typeof item === 'string') return true;
-                    // If it's an object, it must have a type or at least a name
+
+                    // Case 1: String (Legacy/Short-Ref)
+                    if (typeof item === 'string') {
+                        const exists = validActions.has(item);
+                        if (!exists) removedCount++;
+                        return exists;
+                    }
+
+                    // Case 2: Object Reference
                     const obj = item as any;
+                    if (obj.type === 'action' && obj.name) {
+                        const exists = validActions.has(obj.name);
+                        if (!exists) {
+                            SanitizationService.logger.warn(`Entferne verwaiste Action-Referenz "${obj.name}" aus Task "${task.name}"`);
+                            removedCount++;
+                        }
+                        return exists;
+                    }
+
+                    // Keep other items (Conditionals, direct definitions with fields)
                     return obj.type !== undefined || obj.name !== undefined || obj.condition !== undefined;
                 });
             }
         });
 
-        SanitizationService.logger.info('Action sequences cleaned');
+        if (removedCount > 0) {
+            SanitizationService.logger.info(`${removedCount} verwaiste Action-Referenzen aus Sequenzen entfernt.`);
+        }
 
         // HOTFIX: Repair corrupted UserData object name
         if (project.stages) {

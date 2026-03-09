@@ -340,6 +340,7 @@ export class InspectorRenderer {
                     if (sigParam.type === 'select' || sigParam.type === 'stage' || sigParam.type === 'variable') {
                         const opts = this.getOptionsFromSource(sigParam);
                         const sel = this.renderSelect(opts, currentParamValue, '--- wählen ---');
+                        sel.name = sigParam.name; // Technical name for E2E
                         sel.onchange = () => {
                             const p = Array.isArray(params) ? [...params] : [];
                             p[idx] = sel.value;
@@ -458,6 +459,7 @@ export class InspectorRenderer {
                     case 'method': {
                         const options = this.getOptionsFromSource(param);
                         const sel = this.renderSelect(options, currentValue, '--- wählen ---');
+                        sel.name = param.name; // Technical name for E2E
                         sel.onchange = () => onUpdate(param.name, sel.value);
                         input = sel;
                         break;
@@ -468,6 +470,7 @@ export class InspectorRenderer {
                             finalValue = JSON.stringify(finalValue);
                         }
                         const edit = this.renderEdit(finalValue, param.placeholder || '');
+                        edit.name = param.name; // Technical name for E2E
                         edit.onchange = () => onUpdate(param.name, edit.value);
                         edit.style.flex = '1';
 

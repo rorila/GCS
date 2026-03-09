@@ -281,10 +281,29 @@ export class TaskExecutor {
             }
 
 
-            if (nodeType === 'action' || nodeType === 'action') {
+            if (nodeType === 'action') {
                 // Execute this action
-                const action = this.resolveAction({ type: 'action', name: name }) || node.data;
-                if (action) {
+                // Try to resolve custom action definition FIRST
+                let action = this.resolveAction({ type: 'action', name: name });
+
+                // If no custom definition found, OR it's just a placeholder without body, use local node data
+                if (!action || (action.type === 'action' && !action.body)) {
+                    action = node.data;
+                }
+
+                // SAFETY FALLBACK: If we still have an action but it's missing the 'type', 
+                // it might be a corrupted link. Try to fix it.
+                if (action && (!action.type || action.type === 'action') && name) {
+                    logger.warn(`Action "${name}" is missing or has generic type. Attempting rescue via resolveAction.`);
+                    const rescued = this.resolveAction(name); // Search by name directly
+                    if (rescued && rescued !== action && rescued.type && rescued.type !== 'action') {
+                        action = { ...rescued, ...action, type: rescued.type };
+                    } else if (node.data?.type && node.data.type !== 'action') {
+                        action.type = node.data.type; // Fallback to raw data
+                    }
+                }
+
+                if (action && action.type && action.type !== 'action') {
                     // If action has a body (is an action-definition), we execute its body ourselves
                     if (action.body && Array.isArray(action.body)) {
                         // Resolve params from node.data (e.g., { emoji: "$eventData" })
@@ -531,15 +550,23 @@ export class TaskExecutor {
     }
 
     private resolveAction(item: any): any {
+        if (!item) return null;
         if (typeof item === 'string') {
-            return this.actions.find(a => a.name === item);
+            return this.actions.find(a => a.name === item) || null;
         }
-        // Fix: resolve generalized to look up by name if present, 
-        // to support 'data_action' and other types being loaded from registry.
-        if (item && item.name) {
+
+        // Lookup by name if present
+        if (item.name) {
             const found = this.actions.find(a => a.name === item.name);
             if (found) return found;
         }
+
+        // If it was a generic search for 'action' type and not found in custom actions, 
+        // return null to allow fallback to node data
+        if (item.type === 'action' && !item.body) {
+            return null;
+        }
+
         return item;
     }
 

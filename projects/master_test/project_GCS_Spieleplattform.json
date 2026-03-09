@@ -913,7 +913,7 @@
               "type": "data_action",
               "successBody": [
                 {
-                  "name": "action",
+                  "name": "goToStage10",
                   "type": "action"
                 }
               ],
@@ -941,7 +941,8 @@
                 "data": {
                   "name": "AttemptLogin",
                   "showDetails": false,
-                  "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
+                  "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
+                  "taskName": "AttemptLogin"
                 }
               },
               {
@@ -986,12 +987,12 @@
                 "width": 140,
                 "height": 60,
                 "properties": {
-                  "name": "action",
+                  "name": "goToStage10",
                   "details": "",
                   "description": ""
                 },
                 "data": {
-                  "name": "action",
+                  "name": "goToStage10",
                   "isLinked": true
                 }
               }
@@ -1217,11 +1218,11 @@
         },
         {
           "details": "",
-          "name": "action",
+          "name": "goToStage10",
           "showDetails": false,
           "actionType": "navigate_stage",
           "type": "navigate_stage",
-          "stageId": "stage-1773076193557"
+          "stageId": "stage-1772730749211"
         }
       ],
       "flowCharts": {
@@ -1414,7 +1415,8 @@
               "data": {
                 "name": "AttemptLogin",
                 "showDetails": false,
-                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
+                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
+                "taskName": "AttemptLogin"
               }
             },
             {
@@ -1431,8 +1433,7 @@
               },
               "data": {
                 "name": "doTheAuthenfification",
-                "isLinked": true,
-                "showDetails": false
+                "isLinked": true
               }
             },
             {
@@ -1449,8 +1450,7 @@
               },
               "data": {
                 "name": "ClearPIN",
-                "isLinked": true,
-                "showDetails": false
+                "isLinked": true
               }
             },
             {
@@ -1461,14 +1461,13 @@
               "width": 140,
               "height": 60,
               "properties": {
-                "name": "action",
+                "name": "goToStage10",
                 "details": "",
                 "description": ""
               },
               "data": {
-                "name": "action",
-                "isLinked": true,
-                "showDetails": false
+                "name": "goToStage10",
+                "isLinked": true
               }
             }
           ],
@@ -3694,233 +3693,9 @@
         "backgroundColor": "#ffffff"
       },
       "flowCharts": {}
-    },
-    {
-      "id": "stage-1773076193557",
-      "name": "Stage 11",
-      "type": "standard",
-      "objects": [
-        {
-          "className": "TButton",
-          "id": "obj_1773076201323_81mw3f63l",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "name": "Button_12",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1,
-            "fontSize": 14,
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "fontFamily": "Arial"
-          },
-          "text": "Button_12",
-          "icon": ""
-        },
-        {
-          "className": "TLabel",
-          "id": "obj_1773076201415_ivbw5bgwl",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
-            "onClick": "GotoLevel2"
-          },
-          "name": "Label_13",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 1,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#000000",
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0,
-            "fontSize": 14,
-            "fontWeight": "normal",
-            "fontStyle": "normal",
-            "textAlign": "left",
-            "fontFamily": "Arial"
-          },
-          "text": "Label_13"
-        }
-      ],
-      "actions": [
-        {
-          "name": "action",
-          "type": "navigate_stage",
-          "showDetails": false,
-          "stageId": "stage-1773076193557"
-        }
-      ],
-      "tasks": [
-        {
-          "name": "GotoLevel2",
-          "actionSequence": [
-            {
-              "name": "action",
-              "type": "action"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "description": "",
-          "flowChart": {
-            "elements": [
-              {
-                "id": "node-1773076195834",
-                "type": "task",
-                "x": 400,
-                "y": 200,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "GotoLevel2",
-                  "details": "",
-                  "description": "",
-                  "text": "GotoLevel2"
-                },
-                "data": {
-                  "name": "GotoLevel2",
-                  "showDetails": false,
-                  "taskName": "GotoLevel2"
-                }
-              },
-              {
-                "id": "node-1773076196690",
-                "type": "action",
-                "x": 400,
-                "y": 380,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "action",
-                  "details": "",
-                  "description": ""
-                },
-                "data": {
-                  "name": "action",
-                  "type": "navigate_stage",
-                  "isLinked": true,
-                  "showDetails": false
-                }
-              }
-            ],
-            "connections": [
-              {
-                "id": "conn_1773076198355_90",
-                "startX": 536.90625,
-                "startY": 230,
-                "endX": 400,
-                "endY": 400,
-                "startTargetId": "node-1773076195834",
-                "endTargetId": "node-1773076196690",
-                "data": {
-                  "startAnchorType": "output",
-                  "originalStartAnchorType": "output",
-                  "isEmbeddedInternal": false,
-                  "endAnchorType": "input"
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "variables": [],
-      "grid": {
-        "cols": 64,
-        "rows": 40,
-        "cellSize": 20,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#ffffff"
-      },
-      "flowCharts": {
-        "GotoLevel2": {
-          "elements": [
-            {
-              "id": "node-1773076195834",
-              "type": "task",
-              "x": 400,
-              "y": 200,
-              "width": 140,
-              "height": 60,
-              "properties": {
-                "name": "GotoLevel2",
-                "details": "",
-                "description": "",
-                "text": "GotoLevel2"
-              },
-              "data": {
-                "name": "GotoLevel2",
-                "showDetails": false,
-                "taskName": "GotoLevel2"
-              }
-            },
-            {
-              "id": "node-1773076196690",
-              "type": "action",
-              "x": 400,
-              "y": 380,
-              "width": 140,
-              "height": 60,
-              "properties": {
-                "name": "action",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "action",
-                "type": "navigate_stage",
-                "isLinked": true,
-                "showDetails": false
-              }
-            }
-          ],
-          "connections": [
-            {
-              "id": "conn_1773076198355_90",
-              "startX": 536.90625,
-              "startY": 230,
-              "endX": 400,
-              "endY": 400,
-              "startTargetId": "node-1773076195834",
-              "endTargetId": "node-1773076196690",
-              "data": {
-                "startAnchorType": "output",
-                "originalStartAnchorType": "output",
-                "isEmbeddedInternal": false,
-                "endAnchorType": "input"
-              }
-            }
-          ]
-        }
-      }
     }
   ],
-  "activeStageId": "stage-1773076193557",
+  "activeStageId": "stage_login",
   "flowCharts": {
     "global": {
       "elements": [],

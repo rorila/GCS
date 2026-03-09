@@ -336,6 +336,12 @@
       this.globalLevel = level;
     }
     /**
+     * Sets the log handler callback.
+     */
+    static setLogHandler(handler) {
+      this.logHandler = handler;
+    }
+    /**
      * Sets the filter function for UseCases.
      */
     static setUseCaseFilter(filter) {
@@ -381,6 +387,9 @@
       }
       const timestamp = (/* @__PURE__ */ new Date()).toISOString().split("T")[1].split("Z")[0];
       const prefix = `${timestamp} ${this.prefix}`;
+      if (_Logger.logHandler) {
+        _Logger.logHandler(level, this.prefix, args.map((a) => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" "), this.useCase);
+      }
       switch (level) {
         case 0 /* DEBUG */:
           console.debug(prefix, ...args);
@@ -397,6 +406,7 @@
       }
     }
   };
+  __publicField(_Logger, "logHandler");
   __publicField(_Logger, "globalLevel", Config.LOG_LEVEL);
   __publicField(_Logger, "useCaseFilter", () => false);
   __publicField(_Logger, "useCaseLabelProvider", (id) => id);
@@ -774,6 +784,13 @@
       __publicField(this, "counter", 0);
       __publicField(this, "contextStack", []);
       __publicField(this, "enabled", false);
+      __publicField(this, "isNotifying", false);
+      Logger.setLogHandler((level, prefix, message, useCase) => {
+        this.log("System", `${prefix}${message}`, {
+          level: String(level),
+          category: useCase
+        });
+      });
     }
     pushContext(id) {
       if (id) this.contextStack.push(id);
@@ -796,7 +813,12 @@
       return globalScope4._globalDebugLogService;
     }
     log(type, message, options = {}) {
-      if (!this.enabled) return "";
+      if (!this.enabled || this.isNotifying) return "";
+      if (options.level) {
+        const level = options.level;
+        const numericLevel = typeof level === "number" ? level : 0;
+        if (level === "DEBUG" || numericLevel === 0) return "";
+      }
       const parentId = options.flatten ? void 0 : options.parentId || (this.contextStack.length > 0 ? this.contextStack[this.contextStack.length - 1] : void 0);
       const id = `log-${Date.now()}-${this.counter++}`;
       const entry = {
@@ -819,7 +841,6 @@
           return id;
         }
       }
-      console.log(`[DebugLogService] [${type}] ${message}`);
       this.logs.push(entry);
       if (this.logs.length > this.maxLogs) {
         this.logs.shift();
@@ -2192,11 +2213,18 @@
       );
       if (stageController && typeof stageController.goToStage === "function") {
         runtimeLogger.info(`Via TStageController \u2192 ${resolved}`);
+        DebugLogService.getInstance().log("Action", `Stage wechselt zu: ${resolved}`, {
+          objectName: "TStageController",
+          data: { stageId: resolved }
+        });
         stageController.goToStage(resolved);
         return;
       }
       if (context.onNavigate) {
         runtimeLogger.info(`Via onNavigate fallback \u2192 stage:${resolved}`);
+        DebugLogService.getInstance().log("Action", `Navigation zu Stage: ${resolved}`, {
+          data: { stageId: resolved }
+        });
         context.onNavigate(`stage:${resolved}`, action.params);
       }
     }, {
@@ -3197,9 +3225,21 @@
           }
           return;
         }
-        if (nodeType === "action" || nodeType === "action") {
-          const action = this.resolveAction({ type: "action", name }) || node.data;
-          if (action) {
+        if (nodeType === "action") {
+          let action = this.resolveAction({ type: "action", name });
+          if (!action || action.type === "action" && !action.body) {
+            action = node.data;
+          }
+          if (action && (!action.type || action.type === "action") && name) {
+            logger3.warn(`Action "${name}" is missing or has generic type. Attempting rescue via resolveAction.`);
+            const rescued = this.resolveAction(name);
+            if (rescued && rescued !== action && rescued.type && rescued.type !== "action") {
+              action = { ...rescued, ...action, type: rescued.type };
+            } else if (node.data?.type && node.data.type !== "action") {
+              action.type = node.data.type;
+            }
+          }
+          if (action && action.type && action.type !== "action") {
             if (action.body && Array.isArray(action.body)) {
               const itemParams = node.data?.params || {};
               const resolvedParams = {};
@@ -3389,12 +3429,16 @@
       }
     }
     resolveAction(item) {
+      if (!item) return null;
       if (typeof item === "string") {
-        return this.actions.find((a) => a.name === item);
+        return this.actions.find((a) => a.name === item) || null;
       }
-      if (item && item.name) {
+      if (item.name) {
         const found = this.actions.find((a) => a.name === item.name);
         if (found) return found;
+      }
+      if (item.type === "action" && !item.body) {
+        return null;
       }
       return item;
     }
@@ -8715,7 +8759,7 @@
   };
 
   // src/components/TStageController.ts
-  var TStageController = class extends TWindow {
+  var _TStageController = class _TStageController extends TWindow {
     constructor(name = "StageController", x = 0, y = 0) {
       super(name, x, y, 5, 2);
       // Referenz auf das Projekt (wird von GameRuntime gesetzt)
@@ -8792,7 +8836,7 @@
       }
       const splashStage = stages.find((s) => s.type === "splash");
       this._currentStageId = splashStage?.id || this._mainStageId;
-      console.log(`[TStageController] Initialized with ${stages.length} stages. Starting at: ${this._currentStageId}`);
+      _TStageController.logger.info(`Initialized with ${stages.length} stages. Starting at: ${this._currentStageId}`);
     }
     // ─────────────────────────────────────────────
     // Methoden (aufrufbar via call_method Action)
@@ -8833,7 +8877,7 @@
       }
       const oldStageId = this._currentStageId;
       this._currentStageId = stageId;
-      console.log(`[TStageController] Switching from ${oldStageId} to ${stageId}`);
+      _TStageController.logger.info(`Switching from ${oldStageId} to ${stageId}`);
       if (this._onStageChangeCallback) {
         this._onStageChangeCallback(oldStageId, stageId, stage.objects || []);
       }
@@ -8892,7 +8936,7 @@
     }
     triggerEvent(eventName, data) {
       this.emit?.(eventName, data);
-      console.log(`[TStageController] Event: ${eventName}`, data);
+      _TStageController.logger.debug(`Event triggered: ${eventName}`, data);
     }
     // ─────────────────────────────────────────────
     // Inspector Properties
@@ -8920,6 +8964,8 @@
       };
     }
   };
+  __publicField(_TStageController, "logger", Logger.get("TStageController", "Stage_Management"));
+  var TStageController = _TStageController;
 
   // src/components/TNumberLabel.ts
   var TNumberLabel = class extends TTextControl {
@@ -11058,6 +11104,12 @@
     }
     initStageController() {
       this.stageController = this.objects.find((o) => o.className === "TStageController");
+      if (!this.stageController) {
+        logger5.info("No TStageController found in project. Creating virtual controller for navigation support.");
+        this.stageController = new TStageController("VirtualStageController", 0, 0);
+        this.stageController.isTransient = true;
+        this.objects.push(this.stageController);
+      }
       if (this.stageController && this.project.stages) {
         this.stageController.setStages(this.project.stages);
         this.stageController.setOnStageChangeCallback((oldId, newId) => this.handleStageChange(oldId, newId));
@@ -11195,11 +11247,15 @@
       });
     }
     handleEvent(objectId, eventName, data = {}) {
+      console.info(`[DIAGNOSTIC] handleEvent entry: objId=${objectId}, event=${eventName}`);
       const obj = this.objects.find((o) => o.id === objectId);
-      if (!obj) return;
+      if (!obj) {
+        console.warn(`[DIAGNOSTIC] Object not found: ${objectId}`);
+        return;
+      }
       const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
       const hasTaskMap = obj.events && obj.events[eventName] || obj.Tasks && obj.Tasks[eventName];
-      console.log(`[GameRuntime] handleEvent(${objectId}, ${eventName}). hasOnEventMap=${!!hasOnEventMap}, hasTaskMap=${!!hasTaskMap}. Task=${obj.events && obj.events[eventName] || obj.Tasks && obj.Tasks[eventName]}`);
+      console.info(`[DIAGNOSTIC] Object found: ${obj.name}. hasOnEventMap=${!!hasOnEventMap}, hasTaskMap=${!!hasTaskMap}`);
       let eventLogId = void 0;
       if (hasOnEventMap || hasTaskMap) {
         eventLogId = DebugLogService.getInstance().log("Event", `Triggered: ${obj.name}.${eventName}`, {
@@ -12414,9 +12470,6 @@
         const input2 = document.createElement("input");
         input2.type = "checkbox";
         input2.style.cursor = "pointer";
-        input2.onchange = () => {
-          obj.checked = input2.checked;
-        };
         const textSpan2 = document.createElement("span");
         textSpan2.className = "checkbox-label";
         label.appendChild(input2);
@@ -12425,7 +12478,14 @@
       }
       const input = el.querySelector("input");
       const textSpan = el.querySelector(".checkbox-label");
-      if (input) input.checked = !!obj.checked;
+      if (input) {
+        if (this.host.runMode) {
+          input.onchange = () => {
+            obj.checked = input.checked;
+          };
+        }
+        input.checked = !!obj.checked;
+      }
       if (textSpan) {
         textSpan.innerText = obj.label || obj.name;
         textSpan.style.color = obj.style?.color || "#000000";
@@ -12450,13 +12510,15 @@
         input2.style.fontSize = "inherit";
         input2.style.outline = "none";
         input2.style.boxSizing = "border-box";
-        input2.oninput = () => {
-          obj.value = parseFloat(input2.value);
-        };
         el.appendChild(input2);
       }
       const input = el.querySelector("input");
       if (input) {
+        if (this.host.runMode) {
+          input.oninput = () => {
+            obj.value = parseFloat(input.value);
+          };
+        }
         if (parseFloat(input.value) !== obj.value) input.value = String(obj.value || 0);
         if (obj.min !== void 0 && obj.min !== -Infinity) input.min = String(obj.min);
         if (obj.max !== void 0 && obj.max !== Infinity) input.max = String(obj.max);
@@ -12487,16 +12549,18 @@
           input2.style.fontSize = "inherit";
           input2.style.outline = "none";
           input2.style.boxSizing = "border-box";
-          input2.oninput = () => {
-            let val = input2.value;
-            if (obj.uppercase) val = val.toUpperCase();
-            obj.text = val;
-            input2.value = val;
-          };
           el.appendChild(input2);
         }
         const input = el.querySelector("input");
         if (input) {
+          if (this.host.runMode) {
+            input.oninput = () => {
+              let val = input.value;
+              if (obj.uppercase) val = val.toUpperCase();
+              obj.text = val;
+              input.value = val;
+            };
+          }
           if (input.value !== (obj.text || "")) input.value = obj.text || "";
           input.placeholder = obj.placeholder || "";
           input.style.color = obj.style?.color || "#000000";
@@ -12535,7 +12599,7 @@
       const titleEl = el.querySelector(".card-title");
       if (titleEl && titleEl.innerText !== obj.gameName) titleEl.innerText = obj.gameName;
     }
-    renderButton(el, obj, isNew) {
+    renderButton(el, obj, _isNew) {
       if (el.querySelector(".table-title-bar")) el.innerHTML = "";
       if (el.innerText !== (obj.caption || obj.name)) el.innerText = obj.caption || obj.name;
       const fw = obj.style?.fontWeight;
@@ -12547,7 +12611,7 @@
       if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
       const align = obj.style?.textAlign;
       el.style.justifyContent = align === "left" ? "flex-start" : align === "right" ? "flex-end" : "center";
-      if (this.host.runMode && isNew) {
+      if (this.host.runMode) {
         el.onmouseenter = () => el.style.filter = "brightness(1.1)";
         el.onmouseleave = () => el.style.filter = "none";
         el.onmousedown = () => el.style.transform = "scale(0.98)";

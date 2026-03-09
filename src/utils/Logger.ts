@@ -1,11 +1,14 @@
 import { Config } from '../config';
 import { LogLevel } from './LogTypes';
 
+export type LogHandler = (level: LogLevel, prefix: string, message: string, useCase?: string) => void;
+
 /**
  * Logger - A central logging service to replace console.log.
  * Allows prefixing, log level control, and easy silencing in production.
  */
 export class Logger {
+    private static logHandler?: LogHandler;
     private static globalLevel: LogLevel = Config.LOG_LEVEL;
     private static useCaseFilter: (id: string) => boolean = () => false;
     private static useCaseLabelProvider: (id: string) => string = (id) => id;
@@ -37,6 +40,13 @@ export class Logger {
      */
     public static setGlobalLevel(level: LogLevel): void {
         this.globalLevel = level;
+    }
+
+    /**
+     * Sets the log handler callback.
+     */
+    public static setLogHandler(handler: LogHandler): void {
+        this.logHandler = handler;
     }
 
     /**
@@ -97,6 +107,10 @@ export class Logger {
 
         const timestamp = new Date().toISOString().split('T')[1].split('Z')[0];
         const prefix = `${timestamp} ${this.prefix}`;
+
+        if (Logger.logHandler) {
+            Logger.logHandler(level, this.prefix, args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '), this.useCase);
+        }
 
         switch (level) {
             case LogLevel.DEBUG:

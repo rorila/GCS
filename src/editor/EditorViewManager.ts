@@ -29,6 +29,7 @@ export interface IViewHost {
     selectObject(id: string | null, focus?: boolean): void;
     switchView(view: ViewType): void;
     switchStage(id: string, keepView?: boolean): void;
+    setProject(project: GameProject): void;
 }
 
 export type ViewType = 'stage' | 'json' | 'run' | 'flow' | 'code' | 'management';
@@ -52,6 +53,20 @@ export class EditorViewManager {
             // Mark project as dirty on every change
             this.isProjectDirty = true;
 
+            // set global change variable in blueprint stage
+            if (originator !== 'editor-load' && this.host.project.stages) {
+                const blueprint = this.host.project.stages.find(s => s.id === 'blueprint');
+                if (blueprint && blueprint.variables) {
+                    const changeVar = blueprint.variables.find(v => v.name === 'isProjectChangeAvailable');
+                    if (changeVar) {
+                        changeVar.defaultValue = true;
+                        if ((changeVar as any).value !== undefined) {
+                            (changeVar as any).value = true;
+                        }
+                    }
+                }
+            }
+
             // Always refresh management data if panel is present
             const panel = document.getElementById('management-viewer');
             if (panel) {
@@ -69,6 +84,7 @@ export class EditorViewManager {
 
     public switchView(view: ViewType) {
         const h = this.host;
+        EditorViewManager.logger.info(`[TRACE] switchView called: ${this.currentView} -> ${view}`, { stack: new Error().stack });
 
         // Sync flow editor changes back to project before switching views
         if (this.currentView === 'flow' && h.flowEditor) {

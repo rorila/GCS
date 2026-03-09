@@ -82,119 +82,181 @@ export class FlowNodeHandler implements IInspectorHandler {
 
         const type = (typeof object.getType === 'function') ? object.getType() : null;
         const nodeName = object.Name || object.name;
+        const nodeId = object.id;
         const convertedValue = PropertyHelper.autoConvert(newValue);
 
-        if (type === 'action' || type === 'data_action') {
-            // 1. Finde die Action-Definition im Projekt-JSON per Name
-            const actionDef = this.findActionDefinition(nodeName, project);
+        FlowNodeHandler.logger.info(`[FLOW-CHANGE-TRACE] Node="${nodeName}", ID="${nodeId}", Type="${type}", Prop="${propertyName}", Value="${convertedValue}"`);
 
-            if (actionDef) {
-                // 2. Schreibe den Wert DIREKT in die Projekt-JSON-Definition
-                PropertyHelper.setPropertyValue(actionDef, propertyName, convertedValue);
-                FlowNodeHandler.logger.info(
-                    `[PERSIST] Action "${nodeName}".${propertyName} = ${JSON.stringify(convertedValue)} ← direkt in project.actions geschrieben`
-                );
-            } else {
-                FlowNodeHandler.logger.warn(
-                    `[PERSIST] Action "${nodeName}" nicht in project.actions gefunden! Schreibe auf FlowAction-Instanz (NICHT persistent)`
-                );
+        if (type === 'action' || type === 'data_action' || type === 'http') {
+            FlowNodeHandler.logger.debug(`[FLOW-CHANGE-TRACE] Searching Action Definition for "${nodeName}" (ID: ${nodeId})...`);
+            let actionDef = this.findActionDefinition(nodeName, project);
+
+            if (!actionDef && nodeId) {
+                FlowNodeHandler.logger.debug(`[FLOW-CHANGE-TRACE] Not found in index, searching in FlowCharts for ID "${nodeId}"...`);
+                actionDef = this.findActionInFlowCharts(nodeId, nodeName, project);
             }
 
-            // 3. Auch auf dem FlowAction-Objekt setzen (für Live-Preview)
+            if (actionDef) {
+                FlowNodeHandler.logger.info(`[FLOW-CHANGE-TRACE] FOUND Action Definition for "${nodeName}". Original Object Type: ${(actionDef as any).type}`);
+                PropertyHelper.setPropertyValue(actionDef, propertyName, convertedValue);
+
+                // Extra Log für Typsynchronität
+                if (propertyName === 'type') {
+                    FlowNodeHandler.logger.info(`[FLOW-CHANGE-TRACE] CRITICAL: Changed type from ${(actionDef as any).type} to ${convertedValue}`);
+                }
+            } else {
+                FlowNodeHandler.logger.error(`[FLOW-CHANGE-TRACE] Action Definition NOT FOUND for "${nodeName}" (ID: ${nodeId})! Persistenz wird fehlschlagen.`);
+            }
+
             PropertyHelper.setPropertyValue(object, propertyName, convertedValue);
 
         } else if (type === 'task') {
-            // Task-Definition im Projekt-JSON per Name finden
+            FlowNodeHandler.logger.debug(`[FLOW-CHANGE-TRACE] Searching Task Definition for "${nodeName}"...`);
             const taskDef = this.findTaskDefinition(nodeName, project);
 
             if (taskDef) {
+                FlowNodeHandler.logger.info(`[FLOW-CHANGE-TRACE] FOUND Task Definition for "${nodeName}".`);
                 PropertyHelper.setPropertyValue(taskDef, propertyName, convertedValue);
-                FlowNodeHandler.logger.info(
-                    `[PERSIST] Task "${nodeName}".${propertyName} = ${JSON.stringify(convertedValue)} ← direkt in project.tasks geschrieben`
-                );
             } else {
-                FlowNodeHandler.logger.warn(
-                    `[PERSIST] Task "${nodeName}" nicht in project.tasks gefunden!`
-                );
+                FlowNodeHandler.logger.error(`[FLOW-CHANGE-TRACE] Task Definition NOT FOUND for "${nodeName}"!`);
             }
 
             PropertyHelper.setPropertyValue(object, propertyName, convertedValue);
 
         } else {
-            // Fallback für unbekannte Node-Typen
+            FlowNodeHandler.logger.debug(`[FLOW-CHANGE-TRACE] Generic update for type "${type}".`);
             PropertyHelper.setPropertyValue(object, propertyName, convertedValue);
         }
 
-        // 4. Visuellen Refresh der Flow-Node auslösen
         if (typeof object.setShowDetails === 'function') {
+            FlowNodeHandler.logger.debug(`[FLOW-CHANGE-TRACE] Refreshing node view...`);
             object.setShowDetails(object.showDetails || true, project);
         }
 
-        // TRUE zurückgeben → die Standard-Logik in InspectorEventHandler wird ÜBERSPRUNGEN.
-        // Das ist der entscheidende Punkt: Wir überlassen die Persistenz NICHT mehr dem
-        // InspectorEventHandler, weil dessen getOriginalObject() für FlowNodes NICHT FUNKTIONIERT.
         return true;
     }
 
     /**
-     * Sucht die Action-Definition im Projekt-JSON per Name.
-     * Durchsucht: Blueprint-Stage → alle Stages → Root-Actions.
+     * Sucht die Action-Definition im Projekt-JSON.
+     * Nutzt primär die ProjectRegistry als Index für Performance und Robustheit.
      */
-    private findActionDefinition(name: string, project: GameProject): any | null {
-        if (!name || !project) return null;
+    private findActionDefinition(name: string, _project: GameProject): any | null {
+        if (!name) return null;
 
-        // 1. Blueprint-Stage (primäre Quelle für globale Actions)
-        const blueprint = project.stages?.find(s => s.type === 'blueprint');
-        if (blueprint?.actions) {
-            const action = blueprint.actions.find(a => a.name === name);
-            if (action) return action;
+        FlowNodeHandler.logger.info(`[FLOW-LOOKUP] Searching Original Action: "${name}"`);
+
+        // SSoT-Lookup via ProjectRegistry: Findet die ECHTE Instanz im Projekt-Modell
+        const originalAction = projectRegistry.findOriginalAction(name);
+
+        if (originalAction) {
+            FlowNodeHandler.logger.info(`[FLOW-LOOKUP] SSoT MATCH FOUND: ${originalAction.name}`);
+            return originalAction;
         }
 
-        // 2. Alle Stages durchsuchen
-        if (project.stages) {
-            for (const stage of project.stages) {
-                if (stage.type === 'blueprint') continue;
-                if (stage.actions) {
-                    const action = stage.actions.find(a => a.name === name);
-                    if (action) return action;
-                }
-            }
-        }
-
-        // 3. Root-Level Actions (Legacy)
-        if (project.actions) {
-            const action = project.actions.find(a => a.name === name);
-            if (action) return action;
-        }
-
+        FlowNodeHandler.logger.warn(`[FLOW-LOOKUP] FAILED to find original action "${name}" in SSoT.`);
         return null;
     }
 
     /**
-     * Sucht die Task-Definition im Projekt-JSON per Name.
+     * Sucht die Task-Definition im Projekt-JSON.
      */
-    private findTaskDefinition(name: string, project: GameProject): any | null {
-        if (!name || !project) return null;
+    private findTaskDefinition(name: string, _project: GameProject): any | null {
+        if (!name) return null;
 
-        const blueprint = project.stages?.find(s => s.type === 'blueprint');
-        if (blueprint?.tasks) {
-            const task = blueprint.tasks.find(t => t.name === name);
-            if (task) return task;
+        FlowNodeHandler.logger.info(`[FLOW-LOOKUP] Searching Original Task: "${name}"`);
+
+        // SSoT-Lookup via ProjectRegistry: Findet die ECHTE Instanz im Projekt-Modell
+        const originalTask = projectRegistry.findOriginalTask(name);
+
+        if (originalTask) {
+            FlowNodeHandler.logger.info(`[FLOW-LOOKUP] SSoT MATCH FOUND (Task): ${originalTask.name}`);
+            return originalTask;
         }
 
-        if (project.stages) {
-            for (const stage of project.stages) {
-                if (stage.type === 'blueprint') continue;
-                if (stage.tasks) {
-                    const task = stage.tasks.find(t => t.name === name);
-                    if (task) return task;
+        FlowNodeHandler.logger.warn(`[FLOW-LOOKUP] FAILED to find task "${name}" in SSoT.`);
+        return null;
+    }
+
+    /**
+     * Sucht eine Action-Definition innerhalb aller FlowCharts im Projekt.
+     * Dies ist wichtig für "unlinked" / lokale Actions in Diagrammen.
+     */
+    private findActionInFlowCharts(id: string, name: string, project: GameProject): any | null {
+        if (!project) return null;
+
+        const targetId = String(id).trim();
+        const targetName = String(name).trim().toLowerCase();
+
+        const match = (el: any) => {
+            if (!el) return false;
+
+            // 1. ID Match (höchste Priorität)
+            const elId = String(el.id).trim();
+            if (elId === targetId) return true;
+
+            // 2. Broad-Field Name Match (orientiert an ActionRefactoringService)
+            const check = (val: any) => val && String(val).trim().toLowerCase() === targetName;
+
+            return check(el.data?.actionName) ||
+                check(el.data?.name) ||
+                check(el.name) ||
+                check(el.properties?.name) ||
+                check(el.properties?.text);
+        };
+
+        const searchInChartElements = (elements: any[]): any | null => {
+            if (!elements || !Array.isArray(elements)) return null;
+            const el = elements.find(e => match(e));
+            if (el) return el.data || el;
+            return null;
+        };
+
+        const searchInChartsMap = (charts: any): any | null => {
+            if (!charts) return null;
+            for (const contextName in charts) {
+                const chart = charts[contextName];
+                if (chart && chart.elements) {
+                    const res = searchInChartElements(chart.elements);
+                    if (res) return res;
                 }
             }
+            return null;
+        };
+
+        const searchInTaskList = (tasks: any[]): any | null => {
+            if (!tasks || !Array.isArray(tasks)) return null;
+            for (const task of tasks) {
+                if (task.flowChart && task.flowChart.elements) {
+                    const res = searchInChartElements(task.flowChart.elements);
+                    if (res) return res;
+                }
+            }
+            return null;
+        };
+
+        // 1. Root Flow
+        if ((project as any).flow?.elements) {
+            const found = searchInChartElements((project as any).flow.elements);
+            if (found) return found;
         }
 
-        if (project.tasks) {
-            const task = project.tasks.find(t => t.name === name);
-            if (task) return task;
+        // 2. Root FlowCharts (Map structure)
+        let found = searchInChartsMap(project.flowCharts);
+        if (found) return found;
+
+        // 3. Root Tasks
+        found = searchInTaskList(project.tasks || (project as any).Tasks);
+        if (found) return found;
+
+        // 4. Stage-spezifische Suche
+        if (project.stages) {
+            for (const stage of project.stages) {
+                found = searchInChartsMap(stage.flowCharts);
+                if (found) return found;
+
+                found = searchInTaskList(stage.tasks || (stage as any).Tasks);
+                if (found) return found;
+            }
         }
 
         return null;

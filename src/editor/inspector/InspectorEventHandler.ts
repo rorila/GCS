@@ -66,8 +66,8 @@ export class InspectorEventHandler {
             }
 
             // --- Specialized mappings ---
-            if (propertyPath === 'ActionType') propertyPath = 'actionType';
-            if (propertyPath === 'Aktions-Typ') propertyPath = 'actionType';
+            if (propertyPath === 'ActionType') propertyPath = 'type';
+            if (propertyPath === 'Aktions-Typ') propertyPath = 'type';
         }
 
         // 2. Capture old value safely
@@ -82,18 +82,21 @@ export class InspectorEventHandler {
             config: inspectorDef
         };
 
-        InspectorEventHandler.logger.info(`Property change: ${propertyPath} = ${newValue} (was ${oldValue})`);
+        InspectorEventHandler.logger.info(`[INSPECTOR-TRACE] Property change: ${propertyPath} = ${newValue} (was ${oldValue})`);
 
         // 4. Delegate to specialized handler if available
         const handler = InspectorRegistry.getHandler(selectedObject);
         let wasHandled = false;
 
         if (handler) {
+            InspectorEventHandler.logger.debug(`[INSPECTOR-TRACE] Delegating to specialized handler: ${handler.constructor.name}`);
             wasHandled = handler.handlePropertyChange(event, this.project, this.runtime);
+            InspectorEventHandler.logger.debug(`[INSPECTOR-TRACE] Handler wasHandled=${wasHandled}`);
         }
 
         // 5. Default behavior if not handled by specialized logic
         if (!wasHandled) {
+            InspectorEventHandler.logger.debug(`[INSPECTOR-TRACE] Using default property update logic...`);
             if (oldValue !== newValue) {
                 // NEW: Use autoConvert to handle JSON, numbers, booleans from UI inputs
                 const convertedValue = PropertyHelper.autoConvert(newValue);

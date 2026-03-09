@@ -10,6 +10,7 @@
             "name": "ActionTypeSelect",
             "className": "TDropdown",
             "label": "Aktions-Typ",
+            "property": "type",
             "selectedValue": "${selectedObject.actionType || selectedObject.type}",
             "options": "${getAllActionTypes()}",
             "action": "changeActionType"

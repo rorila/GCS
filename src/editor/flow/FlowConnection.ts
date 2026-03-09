@@ -245,20 +245,20 @@ export class FlowConnection {
     }
 
     // Helper for inspector access
-    public get startTargetId(): string | null { return this.startTarget ? this.startTarget.name : null; }
-    public get endTargetId(): string | null { return this.endTarget ? this.endTarget.name : null; }
+    public get startTargetId(): string | null { return this.startTarget ? this.startTarget.id : null; }
+    public get endTargetId(): string | null { return this.endTarget ? this.endTarget.id : null; }
     public get startAnchorType(): string { return this.data.startAnchorType || 'output'; }
     public get endAnchorType(): string { return this.data.endAnchorType || 'input'; }
 
     public toJSON(): any {
         return {
             id: this.id,
-            startTargetId: this.startTarget ? this.startTarget.name : null,
-            endTargetId: this.endTarget ? this.endTarget.name : null,
             startX: this.startX,
             startY: this.startY,
             endX: this.endX,
             endY: this.endY,
+            startTargetId: this.startTarget ? this.startTarget.id : null,
+            endTargetId: this.endTarget ? this.endTarget.id : null,
             data: this.data
         };
     }

@@ -910,10 +910,12 @@
             {
               "name": "doTheAuthenfification",
               "isLinked": true,
+              "showDetails": false,
               "type": "data_action",
               "successBody": [
                 {
-                  "name": "action",
+                  "name": "actionXX",
+                  "showDetails": false,
                   "type": "action"
                 }
               ],
@@ -1146,6 +1148,55 @@
               }
             ]
           }
+        },
+        {
+          "name": "ANewTaskXX",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowChart": {
+            "elements": [
+              {
+                "id": "node-1773053728800",
+                "type": "task",
+                "x": 60,
+                "y": 100,
+                "width": 160,
+                "height": 60,
+                "properties": {
+                  "name": "ANewTaskXX",
+                  "details": "",
+                  "description": "",
+                  "text": "ANewTaskXX"
+                },
+                "data": {
+                  "name": "ANewTaskXX",
+                  "showDetails": false,
+                  "taskName": "ANewTaskXX"
+                }
+              },
+              {
+                "id": "node-1773053738550",
+                "type": "action",
+                "x": 300,
+                "y": 100,
+                "width": 140,
+                "height": 60,
+                "properties": {
+                  "name": "actionXX",
+                  "details": "",
+                  "description": ""
+                },
+                "data": {
+                  "name": "actionXX",
+                  "type": "navigate_stage",
+                  "isLinked": true
+                }
+              }
+            ],
+            "connections": []
+          }
         }
       ],
       "actions": [
@@ -1216,12 +1267,9 @@
           "source": "QuellVar"
         },
         {
-          "details": "",
-          "name": "action",
-          "showDetails": false,
-          "actionType": "navigate_stage",
-          "type": "navigate_stage",
-          "stageId": "stage-1773076193557"
+          "name": "actionXX",
+          "type": "property",
+          "showDetails": false
         }
       ],
       "flowCharts": {
@@ -1461,12 +1509,13 @@
               "width": 140,
               "height": 60,
               "properties": {
-                "name": "action",
+                "name": "actionXX",
                 "details": "",
-                "description": ""
+                "description": "",
+                "text": "actionXX"
               },
               "data": {
-                "name": "action",
+                "name": "actionXX",
                 "isLinked": true,
                 "showDetails": false
               }
@@ -1513,6 +1562,48 @@
               }
             }
           ]
+        },
+        "ANewTaskXX": {
+          "elements": [
+            {
+              "id": "node-1773053728800",
+              "type": "task",
+              "x": 60,
+              "y": 100,
+              "width": 160,
+              "height": 60,
+              "properties": {
+                "name": "ANewTaskXX",
+                "details": "",
+                "description": "",
+                "text": "ANewTaskXX"
+              },
+              "data": {
+                "name": "ANewTaskXX",
+                "showDetails": false,
+                "taskName": "ANewTaskXX"
+              }
+            },
+            {
+              "id": "node-1773053738550",
+              "type": "action",
+              "x": 300,
+              "y": 100,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "actionXX",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "actionXX",
+                "type": "navigate_stage",
+                "isLinked": true
+              }
+            }
+          ],
+          "connections": []
         }
       },
       "_showGlobalPreview": false,
@@ -3696,13 +3787,13 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1773076193557",
+      "id": "stage-1773053680457",
       "name": "Stage 11",
       "type": "standard",
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1773076201323_81mw3f63l",
+          "id": "obj_1773053688206_c4t8zw54t",
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
@@ -3734,7 +3825,7 @@
         },
         {
           "className": "TLabel",
-          "id": "obj_1773076201415_ivbw5bgwl",
+          "id": "obj_1773053688299_p7t3wct8d",
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
@@ -3769,10 +3860,10 @@
       ],
       "actions": [
         {
-          "name": "action",
+          "name": "actionXX",
           "type": "navigate_stage",
           "showDetails": false,
-          "stageId": "stage-1773076193557"
+          "stageId": "stage-1773053680457"
         }
       ],
       "tasks": [
@@ -3780,7 +3871,7 @@
           "name": "GotoLevel2",
           "actionSequence": [
             {
-              "name": "action",
+              "name": "actionXX",
               "type": "action"
             }
           ],
@@ -3790,7 +3881,7 @@
           "flowChart": {
             "elements": [
               {
-                "id": "node-1773076195834",
+                "id": "node-1773053682741",
                 "type": "task",
                 "x": 400,
                 "y": 200,
@@ -3809,7 +3900,7 @@
                 }
               },
               {
-                "id": "node-1773076196690",
+                "id": "node-1773053683576",
                 "type": "action",
                 "x": 400,
                 "y": 380,
@@ -3830,13 +3921,13 @@
             ],
             "connections": [
               {
-                "id": "conn_1773076198355_90",
+                "id": "conn_1773053685238_480",
                 "startX": 536.90625,
                 "startY": 230,
                 "endX": 400,
                 "endY": 400,
-                "startTargetId": "node-1773076195834",
-                "endTargetId": "node-1773076196690",
+                "startTargetId": "node-1773053682741",
+                "endTargetId": "node-1773053683576",
                 "data": {
                   "startAnchorType": "output",
                   "originalStartAnchorType": "output",
@@ -3861,7 +3952,7 @@
         "GotoLevel2": {
           "elements": [
             {
-              "id": "node-1773076195834",
+              "id": "node-1773053682741",
               "type": "task",
               "x": 400,
               "y": 200,
@@ -3880,19 +3971,20 @@
               }
             },
             {
-              "id": "node-1773076196690",
+              "id": "node-1773053683576",
               "type": "action",
               "x": 400,
               "y": 380,
               "width": 140,
               "height": 60,
               "properties": {
-                "name": "action",
+                "name": "actionXX",
                 "details": "",
-                "description": ""
+                "description": "",
+                "text": "actionXX"
               },
               "data": {
-                "name": "action",
+                "name": "actionXX",
                 "type": "navigate_stage",
                 "isLinked": true,
                 "showDetails": false
@@ -3901,13 +3993,13 @@
           ],
           "connections": [
             {
-              "id": "conn_1773076198355_90",
+              "id": "conn_1773053685238_480",
               "startX": 536.90625,
               "startY": 230,
               "endX": 400,
               "endY": 400,
-              "startTargetId": "node-1773076195834",
-              "endTargetId": "node-1773076196690",
+              "startTargetId": "node-1773053682741",
+              "endTargetId": "node-1773053683576",
               "data": {
                 "startAnchorType": "output",
                 "originalStartAnchorType": "output",
@@ -3920,7 +4012,7 @@
       }
     }
   ],
-  "activeStageId": "stage-1773076193557",
+  "activeStageId": "stage_login",
   "flowCharts": {
     "global": {
       "elements": [],

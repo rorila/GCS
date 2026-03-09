@@ -405,6 +405,16 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
                 this.switchActionFlow(data.taskName);
             }
         });
+
+        // Listen for rename events to update internal context pointer and nodes
+        mediatorService.on(MediatorEvents.TASK_RENAMED, (data: { oldName: string, newName: string }) => {
+            FlowEditor.logger.info(`Received TASK_RENAMED event: ${data.oldName} -> ${data.newName}`);
+            this.renameContext(data.oldName, data.newName);
+
+            if (this.currentFlowContext === data.newName) {
+                localStorage.setItem('gcs_last_flow_context', data.newName);
+            }
+        });
     }
 
     /**
@@ -757,8 +767,24 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         // 3. Update history
         this.contextHistory = this.contextHistory.map(h => h === oldName ? newName : h);
 
-        // 4. Update StateManager if it's the current context
+        FlowEditor.logger.info(`[TRACE] renameContext: "${oldName}" -> "${newName}"`);
+        // 4. CRITICAL: Update ALL live nodes that might still have the old name in their data
+        // This prevents the syncManager from recreating the old task as a "ghost"
+        // regardless of whether we are currently in that task's flow or not.
+        this.nodes.forEach(node => {
+            const type = (node as any).getType?.();
+            if (type === 'task' && (node.data?.taskName === oldName || node.Name === oldName)) {
+                node.Name = newName;
+                if (node.data) node.data.taskName = newName;
+            } else if (type === 'action' && (node.data?.name === oldName || node.Name === oldName)) {
+                node.Name = newName;
+                if (node.data) node.data.name = newName;
+            }
+        });
+
+        // 5. Update StateManager if it's the current context
         if (this.currentFlowContext === oldName) {
+            this.currentFlowContext = newName;
             this.stateManager.renameContext(oldName, newName);
             // Refresh dropdown to show new name instead of falling back to global
             this.updateFlowSelector();

@@ -1,6 +1,7 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { StageDefinition } from '../model/types';
+import { Logger } from '../utils/Logger';
 
 /**
  * TStageController - Zentrale Komponente für Stage-Verwaltung
@@ -15,6 +16,7 @@ import { StageDefinition } from '../model/types';
  * - Reihenfolge: Splash → Main → Standard-Stages
  */
 export class TStageController extends TWindow {
+    private static logger = Logger.get('TStageController', 'Stage_Management');
     // Referenz auf das Projekt (wird von GameRuntime gesetzt)
     private _stages: StageDefinition[] = [];
     private _currentStageId: string = '';
@@ -114,7 +116,7 @@ export class TStageController extends TWindow {
         const splashStage = stages.find(s => s.type === 'splash');
         this._currentStageId = splashStage?.id || this._mainStageId;
 
-        console.log(`[TStageController] Initialized with ${stages.length} stages. Starting at: ${this._currentStageId}`);
+        TStageController.logger.info(`Initialized with ${stages.length} stages. Starting at: ${this._currentStageId}`);
     }
 
     // ─────────────────────────────────────────────
@@ -161,7 +163,7 @@ export class TStageController extends TWindow {
         const oldStageId = this._currentStageId;
         this._currentStageId = stageId;
 
-        console.log(`[TStageController] Switching from ${oldStageId} to ${stageId}`);
+        TStageController.logger.info(`Switching from ${oldStageId} to ${stageId}`);
 
         // Callback mit neuen Objekten aufrufen
         if (this._onStageChangeCallback) {
@@ -229,7 +231,7 @@ export class TStageController extends TWindow {
     private triggerEvent(eventName: string, data?: any): void {
         // Event wird von GameRuntime abgefangen
         (this as any).emit?.(eventName, data);
-        console.log(`[TStageController] Event: ${eventName}`, data);
+        TStageController.logger.debug(`Event triggered: ${eventName}`, data);
     }
 
     // ─────────────────────────────────────────────

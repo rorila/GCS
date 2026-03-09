@@ -7,7 +7,7 @@ export class TDebugLog {
     private element: HTMLElement;
     private logList!: HTMLElement;
     private filterContainer!: HTMLElement;
-    private typeFilters: Set<LogType> = new Set(['Event', 'Task', 'Action', 'Variable', 'Condition']);
+    private typeFilters: Set<LogType> = new Set(['Event', 'Task', 'Action', 'Variable', 'Condition', 'System']);
     private showDetails: boolean = true;
     private objectFilter: string = '';
     private eventFilter: string = '';
@@ -188,6 +188,7 @@ export class TDebugLog {
                 <label style="color: #4caf50; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Action"> Action</label>
                 <label style="color: #9c27b0; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Variable"> Variable</label>
                 <label style="color: #00bcd4; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="Condition"> Condition</label>
+                <label style="color: #ff5722; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked data-type="System"> System</label>
                 <label style="color: #888; display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" checked id="show-details-cb"> Details</label>
             </div>
             <div style="display: flex; gap: 6px;">
@@ -289,7 +290,7 @@ export class TDebugLog {
         this.eventFilter = eventName;
 
         // Alle Typen aktivieren für den Fokus
-        this.typeFilters = new Set(['Event', 'Task', 'Action', 'Variable', 'Condition']);
+        this.typeFilters = new Set(['Event', 'Task', 'Action', 'Variable', 'Condition', 'System']);
         this.showDetails = true;
 
         this.filterContainer.querySelectorAll('input[type="checkbox"][data-type]').forEach((cb: any) => cb.checked = true);
@@ -315,9 +316,9 @@ export class TDebugLog {
                 const filters = JSON.parse(saved);
                 if (filters.types) {
                     this.typeFilters = new Set(filters.types.map((t: string) => {
-                        // Nomalize to correct casing (Event, Task, Action, Variable, Condition)
-                        const normalized = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
-                        return normalized as LogType;
+                        // Nomalize to correct casing (Event, Task, Action, Variable, Condition, System)
+                        const normalizedLabel = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+                        return normalizedLabel as LogType;
                     }));
                 }
                 if (filters.showDetails !== undefined) this.showDetails = filters.showDetails;
@@ -403,7 +404,8 @@ export class TDebugLog {
     private renderLogs(logs: LogEntry[]) {
         if (this.isPaused) return;
 
-        TDebugLog.logger.debug(`Rendering ${logs.length} logs...`);
+        // Use console.debug directly to avoid recursive logging loops via central Logger
+        console.debug(`[TDebugLog] Rendering ${logs.length} logs...`);
         this.updateObjectDropdown();
         this.updateEventDropdown();
         this.logList.innerHTML = '';
@@ -497,7 +499,8 @@ export class TDebugLog {
             Task: '#007acc',
             Action: '#4caf50',
             Variable: '#9c27b0',
-            Condition: '#00bcd4'
+            Condition: '#00bcd4',
+            System: '#ff5722'
         };
 
         const hasChildren = entry.children.length > 0;

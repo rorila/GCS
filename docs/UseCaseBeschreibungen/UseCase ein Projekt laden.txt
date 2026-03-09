@@ -1,0 +1,12 @@
+-- UseCase: ein Projekt laden
+Bemerkungen: Der User beabsichtigt ein Projekt zu laden 
+- den Menüpunkt: Datei/Projekt Laden auswählen.
+- Daten auf Plausibilität prüfen und Datenstrukturen aufbauen 
+- Testen: die globale Variable: 'isProjectChangeAvailable' := false in der Blueprint-Stage setzen
+- Testen: wurde der Local storage entsprechend aktualisiert?
+- Testen: wurde die Änderung in den JSON-Daten aktualisiert?
+- Testen: wurde die Änderung im Menü: Stages in der Stage-Liste aktualisiert?
+- Testen: wurde die Änderung im der Manager-Liste (Stages) aktualisiert?
+
+
+

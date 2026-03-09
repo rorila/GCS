@@ -272,7 +272,8 @@ export class InspectorHost {
                 return this.renderer.renderLabel(this.resolveValue(def.text, obj, def), def.style);
             case 'TEdit': {
                 const value = this.resolveValue(def.text || def.value, obj, def);
-                const input = this.renderer.renderEdit(value);
+                const stringValue = (value === undefined || value === null) ? '' : String(value);
+                const input = this.renderer.renderEdit(stringValue);
                 if (def.name) input.name = def.name;
                 input.onchange = () => {
                     const event = this.eventHandler.handleControlChange(def.name, input.value, obj, def);
@@ -333,7 +334,7 @@ export class InspectorHost {
                 const select = this.renderer.renderSelect(Array.isArray(options) ? options : [], value, def.placeholder);
                 if (def.name) select.name = def.name;
                 select.onchange = () => {
-                    InspectorHost.logger.info(`${def.className} onchange: Control="${def.name}", NewValue="${select.value}"`);
+                    InspectorHost.logger.info(`[UI-TRACE] Control="${def.name}" onchange: NewValue="${select.value}"`);
                     const event = this.eventHandler.handleControlChange(def.name, select.value, obj, def);
 
                     if (event) {

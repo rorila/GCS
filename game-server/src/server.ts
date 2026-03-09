@@ -211,6 +211,29 @@ app.post('/api/dev/save-project', (req, res) => {
 });
 
 /**
+ * POST /api/dev/reset-project - Setzt die project.json auf den Template-Zustand zurück
+ * NUR FÜR E2E-TESTS
+ */
+app.post('/api/dev/reset-project', (req, res) => {
+    try {
+        const projectPath = path.join(PUBLIC_DIR, 'platform/project.json');
+        const templatePath = path.join(PUBLIC_DIR, 'platform/project_template.json');
+
+        if (!fs.existsSync(templatePath)) {
+            console.error(`[TRACE] [API] Reset failed: Template not found at ${templatePath}`);
+            return res.status(404).json({ error: 'Projekt-Template nicht gefunden' });
+        }
+
+        fs.copyFileSync(templatePath, projectPath);
+        console.log(`[TRACE] [API] Project reset to template state.`);
+        res.json({ success: true, message: 'Projekt erfolgreich zurückgesetzt' });
+    } catch (err) {
+        console.error('[TRACE] [API] Fehler beim Reset des Projekts:', err);
+        res.status(500).json({ error: 'Serverfehler beim Reset', details: (err as any).message });
+    }
+});
+
+/**
  * GET /api/platform/context/:userId - Get full hierarchy context for a user
  */
 app.get('/api/platform/context/:userId', (req, res) => {
@@ -759,6 +782,64 @@ app.post('/api/library/templates', (req, res) => {
     } catch (err) {
         console.error('[API] Error updating library:', err);
         res.status(500).json({ error: 'Failed to update library' });
+    }
+});
+
+/**
+ * POST /api/dev/check-exists - Prüft ob eine Datei im Projekt-Verzeichnis existiert
+ */
+app.post('/api/dev/check-exists', (req, res) => {
+    try {
+        const { filePath } = req.body;
+        if (!filePath || typeof filePath !== 'string') {
+            return res.status(400).json({ error: 'Ungültiger Pfad' });
+        }
+
+        // Sicherheits-Check: Nur Dateien im game-builder-v1/projects zulassen
+        const absolutePath = path.resolve(__dirname, '../../', filePath);
+        const projectsRoot = path.resolve(__dirname, '../../projects');
+
+        if (!absolutePath.startsWith(projectsRoot)) {
+            return res.status(403).json({ error: 'Zugriff verweigert: Pfad außerhalb des Projekt-Ordners' });
+        }
+
+        const exists = fs.existsSync(absolutePath);
+        res.json({ exists });
+    } catch (e) {
+        res.status(500).json({ error: 'Fehler beim Prüfen der Datei-Existenz' });
+    }
+});
+
+/**
+ * POST /api/dev/save-custom - Speichert Projektdaten an einen benutzerdefinierten Ort
+ */
+app.post('/api/dev/save-custom', (req, res) => {
+    try {
+        const { filePath, projectData } = req.body;
+        if (!filePath || !projectData) {
+            return res.status(400).json({ error: 'Ungültige Parameter' });
+        }
+
+        // Sicherheits-Check: Nur Dateien im game-builder-v1/projects zulassen
+        const absolutePath = path.resolve(__dirname, '../../', filePath);
+        const projectsRoot = path.resolve(__dirname, '../../projects');
+
+        if (!absolutePath.startsWith(projectsRoot)) {
+            return res.status(403).json({ error: 'Zugriff verweigert: Pfad außerhalb des Projekt-Ordners' });
+        }
+
+        // Verzeichnis sicherstellen
+        const dir = path.dirname(absolutePath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        fs.writeFileSync(absolutePath, JSON.stringify(projectData, null, 2));
+        console.log(`[Dev] Project saved to custom path: ${filePath}`);
+        res.json({ success: true });
+    } catch (e) {
+        console.error('[Dev] Error in save-custom:', e);
+        res.status(500).json({ error: 'Fehler beim benutzerdefinierten Speichern' });
     }
 });
 

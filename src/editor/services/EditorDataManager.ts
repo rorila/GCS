@@ -19,6 +19,7 @@ export interface EditorDataHost {
     currentView: ViewType;
     workingProjectData: any;
     isProjectDirty: boolean;
+    setProject(project: GameProject): void;
 
     render(): void;
     selectObject(id: string | null): void;
@@ -150,7 +151,21 @@ export class EditorDataManager {
         }
 
         // 3. CENTRAL UPDATE (Replaces reference and notifies managers)
-        this.host.setProject(data);
+        EditorDataManager.logger.info('Calling this.host.setProject(data)', {
+            host: !!this.host,
+            hasSetProject: this.host && typeof (this.host as any).setProject === 'function',
+            hostType: this.host?.constructor?.name
+        });
+
+        if (this.host && typeof (this.host as any).setProject === 'function') {
+            this.host.setProject(data);
+        } else {
+            EditorDataManager.logger.error('CRITICAL: this.host.setProject is NOT a function!', {
+                host: this.host,
+                hostType: this.host?.constructor?.name
+            });
+            throw new TypeError('this.host.setProject is not a function. Host type: ' + (this.host?.constructor?.name || 'unknown'));
+        }
 
         // 4. MIGRATIONS (Acts on the new project reference)
         if (!this.host.project.stages || this.host.project.stages.length === 0) {
@@ -191,6 +206,8 @@ export class EditorDataManager {
         }
 
         // 8. NOTIFICATION
+        mediatorService.notifyDataChanged(this.host.project, 'editor-load');
+
         setTimeout(() => {
             const toast = this.host.project?.objects.find(o => (o as any).className === 'TToast') as any;
             if (toast && typeof toast.success === 'function') {
@@ -214,13 +231,32 @@ export class EditorDataManager {
 
     public updateProjectJSON() {
         if (this.host.project) {
-            // Nur noch in LocalStorage sichern (Crash-Schutz)
+            // 1. In LocalStorage sichern (Crash-Schutz)
             projectPersistenceService.autoSaveToLocalStorage(this.host.project);
 
-            // SSoT & DATEI-PERSISTENZ: 
-            // ARC-CHANGE: Wir senden NICHT mehr automatisch per Fetch an den Server!
-            // Das Überschreiben der project.json auf Disk erfolgt nur noch explizit in saveProject().
-            EditorDataManager.logger.debug(`[TRACE] updateProjectJSON: LocalStorage synchronisiert. Server-Sync übersprungen.`);
+            // 2. workingProjectData für JSON-View aktualisieren
+            if (this.host.viewManager) {
+                this.host.viewManager.workingProjectData = safeDeepCopy(this.host.project);
+            }
+
+            // 3. SSoT & DATEI-PERSISTENZ: 
+            // ARC-CHANGE: Wir senden die Daten nun doch per Fetch an den Server,
+            // damit die project.json auf Disk immer aktuell bleibt (Anforderung Benutzer).
+            fetch('/api/dev/save-project', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.host.project)
+            }).then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        EditorDataManager.logger.debug(`[PERSISTENT] project.json auf Disk wurde automatisch aktualisiert.`);
+                    }
+                })
+                .catch(err => {
+                    EditorDataManager.logger.warn(`Fehler beim automatischen Disk-Save:`, err);
+                });
+
+            EditorDataManager.logger.debug(`[TRACE] updateProjectJSON: LocalStorage und Disk synchronisiert.`);
         }
     }
 

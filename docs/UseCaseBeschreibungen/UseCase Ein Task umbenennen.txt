@@ -1,0 +1,29 @@
+-- UseCase: Ein Task umbenennen
+Bemerkungen: Der User beabsichtigt einen neuen Task zu erstellen, visuell anzuordnen und umzubenennen.
+
+1. Schritt: Vorbereitung
+- Sichergehen, dass man sich in der Stage: 'Login' befindet. 
+- Falls nicht: Über das Menü 'Stages' die Stage 'Login' auswählen.
+- Den Tab 'Flow' im Editor aktivieren.
+
+2. Schritt: Task erzeugen
+- Den '+'-Button in der Flow-Toolbar betätigen, um einen neuen Task anzulegen.
+- Erwartetes Ergebnis: Ein neuer Task-Knoten erscheint im Diagramm.
+- Testen: In den JSON-Daten (unter 'stages' -> 'Login' -> 'tasks') muss ein Eintrag mit dem Namen 'ANewTask' vorhanden sein.
+- Testen: Im Task-Dropdown der Stage muss der Eintrag 'ANewTask' wählbar sein.
+
+3. Schritt: Flow Objekt bewegen (Layout)
+- Das Task-Objekt 'ANewTask' per Drag & Drop nach links bewegen (Platz schaffen für Actions).
+- Testen: In den Flow-Daten des Projekts müssen die neuen x/y-Koordinaten für diesen Task-Knoten gespeichert sein.
+
+4. Schritt: Task umbenennen
+- Den Task-Knoten 'ANewTask' im Flow-Editor markieren.
+- Im Inspector den Bereich 'Properties' auswählen.
+- Den Namen von 'ANewTask' nach 'VerifyTask' ändern.
+
+5. Schritt: Validierung der Änderungen
+- Testen: Die globale Variable in der Blueprint-Stage 'isProjectChangeAvailable' muss nun auf 'true' stehen.
+- Testen: Im Task-Dropdown muss nun 'VerifyTask' stehen. Der Name 'ANewTask' darf nicht mehr existieren.
+- Testen: In den JSON-Daten muss der Task nun unter dem Namen 'VerifyTask' gelistet sein.
+- Testen: In der Manager-Liste (Tab 'Management' -> 'Tasks') muss der Name konsistent auf 'VerifyTask' aktualisiert sein.
+- Testen: Falls bereits Actions mit diesem Task verknüpft waren, müssen diese Verknüpfungen erhalten bleiben (Refactoring-Check).

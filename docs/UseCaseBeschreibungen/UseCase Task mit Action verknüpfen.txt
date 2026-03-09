@@ -1,0 +1,17 @@
+-- UseCase: Ein Task mit einer Action verknüpfen 
+- Sichergehen, dass man sich in der Stage: Login befindet, wenn das nicht der Fall ist: über das Menü (Stages) die Stage: Login auswählen.
+- Tab: Flow auswählen
+- Sichergehen, dass man sich in dem Task: VerifyTask befindet, wenn das nicht der Fall ist: über das DropDown den Task: VerifyTask auswählen
+- Sichergehen, dass ein Task mit dem Namen: VerifyTask vorhanden ist. Wenn nicht, dann UseCase: Ein Task umbenennen ausführen.
+- Sichergehen, dass eine Action mit dem Namen: VerifyAction vorhanden ist. Wenn nicht, dass UseCase: Eine Action umbenennen ausführen
+
+-- UseCase: Verbindung erzeugen
+- von der Toolbox eine Verbindung (Pfeil) auf das Flowdiagramm ziehen.
+
+-- UseCase: Verbindung herstellen
+- ein Ende des Pfeils mit dem rechten Anker des Tasks verbinden.
+- das andere Ende des Pfeils mit dem linken Anker der Action verbinden.
+- Testen, dass die Verbindung auch in den JSON-Daten korrekt vorhanden ist.
+- Testen, ob die Action in der Action-Sequenz des Tasks: VerifyTask enthalten ist.
+- Sicher gehen, dass die Action nicht als inline-Action vorhanden ist, sondern als Link.
+

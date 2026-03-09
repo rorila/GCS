@@ -1,0 +1,44 @@
+-- UseCase: Ein neues Projekt (Spiel) erzeugen
+Bemerkungen: Ein neues Projekt wird über das Menü angelegt. Dabei werden Standard-Stages (Main & Blueprint) erzeugt.
+
+1. Schritt: Erzeugung
+- Menü: Datei -> Neues Projekt auswählen.
+- Falls ungespeicherte Änderungen vorliegen: Bestätigungs-Dialog ("Möchten Sie wirklich ein neues Projekt starten?").
+
+2. Schritt: Validierung Initial-Zustand (JSON/Manager)
+- Testen: Die Liste der Objekte, Actions, Tasks und Variablen in der Main-Stage ('Haupt-Level') ist leer.
+- Testen: Es existiert eine Blueprint-Stage (ID: 'blueprint', Name: 'Blueprint (Global)').
+- Testen: In der Blueprint-Stage ist das Objekt 'StageController' vorhanden.
+- Testen: In der Blueprint-Stage ist die Variable 'isProjectChangeAvailable' (Typ: boolean) mit dem Wert 'false' vorhanden.
+- Testen: Die Projekt-Metadaten (Autor, Beschreibung) sind leere Strings.
+
+3. Schritt: Projekt umbenennen
+- Im Inspector den Spielnamen von leeren String auf 'MyCoolGame' ändern.
+- Testen: Die globale Variable in der Blueprint-Stage 'isProjectChangeAvailable' muss nun 'true' sein.
+- Testen: Der Local Storage wurde aktualisiert.
+- Testen: Die Änderung ist in den JSON-Daten (`meta.name`) sowie im Menü (Stages) und in der Manager-Liste sichtbar.
+
+4. Schritt: Stage umbenennen
+- Im Inspector den Stagenamen von 'Haupt-Level' nach 'MainStage' ändern.
+- Testen: 'isProjectChangeAvailable' in der Blueprint-Stage ist 'true'.
+- Testen: Die Änderung ist in den JSON-Daten (`stages[id=main].name`) und in allen UI-Listen (Menü, Manager) reflektiert.
+
+5. Schritt: Metadaten ergänzen (Autor & Beschreibung)
+- Autor im Inspector auf 'GCS-Team' setzen.
+- Beschreibung im Inspector auf 'Das ist mein cooles Spiel' setzen.
+- Testen: 'isProjectChangeAvailable' in der Blueprint-Stage ist bei beiden Schritten 'true'.
+- Testen: Die JSON-Daten wurden korrekt aktualisiert.
+
+6. Schritt: Raster- und Stage-Einstellungen
+- Spalten (60), Zeilen (38) und Zellgröße (22) im Inspector ändern.
+- Hintergrundfarbe auf '#16da36' ändern.
+- Rasterlinien deaktivieren / aktivieren.
+- 'snapToGrid' deaktivieren / aktivieren.
+- Testen: Nach jeder Änderung muss 'isProjectChangeAvailable' in der Blueprint-Stage auf 'true' stehen.
+- Testen: Die visuellen Änderungen werden sofort in der Stage gerendert.
+- Testen: Die JSON-Daten der aktiven Stage enthalten die korrekten Grid-Werte.
+
+
+
+
+

@@ -2,9 +2,12 @@
 import { FlowElement } from './FlowElement';
 import { GameAction, GameProject } from '../../model/types';
 import { ExpressionParser } from '../../runtime/ExpressionParser';
+import { projectRegistry } from '../../services/ProjectRegistry';
 
 export class FlowAction extends FlowElement {
-    public getType(): string { return 'action'; }
+    public getType(): string {
+        return 'action';
+    }
 
     public getEvents(): string[] {
         return []; // Standardaktionen haben keine Standard-Events
@@ -41,7 +44,7 @@ export class FlowAction extends FlowElement {
         this.content.style.justifyContent = 'center';
 
         // Helper to create visual ports (will be functionalized in FlowEditor)
-        if (this.actionType === 'data_action') {
+        if (this.type === 'data_action') {
             this.createDataActionPorts();
         }
     }
@@ -97,12 +100,12 @@ export class FlowAction extends FlowElement {
     }
 
     public getAnchorPosition(type: 'input' | 'output' | 'true' | 'false' | 'success' | 'error' | 'top' | 'bottom'): { x: number, y: number } {
-        if (type === 'success' && this.actionType === 'data_action') {
+        if (type === 'success' && this.type === 'data_action') {
             // Success Port: right: 20px, bottom: -6px
             // Anchor is 10x10, so center is x = width - 20 - 5, y = height + 6 - 5? No, bottom -6 means it sticks out.
             // Let's use simpler relative positions that match the visual layout.
             return { x: this.x + this.width - 25, y: this.y + this.height };
-        } else if (type === 'error' && this.actionType === 'data_action') {
+        } else if (type === 'error' && this.type === 'data_action') {
             // Error Port: right: 60px, bottom: -6px
             return { x: this.x + this.width - 65, y: this.y + this.height };
         }
@@ -115,49 +118,55 @@ export class FlowAction extends FlowElement {
      * to ensure Single Source of Truth consistency.
      */
     protected getActionDefinition(): any | null {
-        if (!this.projectRef || !this.Name) return this.data;
-
-        // 1. Resolve from project/stage (Single Source of Truth)
-        // We match by name even if 'isLinked' is not yet set (e.g. for newly renamed nodes)
-        let action = this.projectRef.actions.find(a => a.name === this.Name);
-
-        // Secondary: Stage Actions
-        if (!action) {
-            const proj = this.projectRef as any;
-            if (proj.activeStageId && proj.stages) {
-                const stage = proj.stages.find((s: any) => s.id === proj.activeStageId);
-                if (stage?.actions) {
-                    action = stage.actions.find((a: any) => a.name === this.Name);
-                }
-            }
+        if (!this.Name) {
+            return this.data;
         }
+
+        // 1. Resolve from project/stage via ProjectRegistry (Single Source of Truth)
+        // We match by name even if 'isLinked' is not yet set (e.g. for newly renamed nodes)
+        const action = projectRegistry.findOriginalAction(this.Name);
 
         if (action) {
             // FIX: Ensure the node data reflects the linked state so toJSON saves only the reference
             if (this.data && !this.data.isLinked) {
                 this.data.isLinked = true;
                 this.data.name = action.name;
+                console.log(`[FLOW-TRACE] Action "${this.Name}" is now LINKED.`);
             }
             return action;
         }
 
-        // 2. Embedded/Local Mode: Use local data copy
+        console.warn(`[FLOW-TRACE] Action Definition NOT FOUND for "${this.Name}". Falling back to local data copy.`);
         return this.data;
     }
 
     // --- Inspector Property Accessors ---
 
-    public get actionType(): string {
+    public get type(): string {
         const action = this.getActionDefinition();
         return action?.type || 'property';
     }
-    public set actionType(v: string) {
+    public set type(v: string) {
         const action = this.getActionDefinition();
         if (action) {
             action.type = v;
+            // SYNC: Update local data type to avoid stale saves in toJSON
+            if (this.data) {
+                this.data.type = v;
+                // Sync actionType alias in data if present
+                if ((this.data as any).actionType) (this.data as any).actionType = v;
+            }
+
+            // Visual Update: Data Action Ports might need to be added/removed
+            this.applyActionStyling();
+
             this.setShowDetails(this.showDetails, this.projectRef);
         }
     }
+
+    // Alias for compatibility with templates and hydrator
+    public get actionType(): string { return this.type; }
+    public set actionType(v: string) { this.type = v; }
 
     public get target(): string {
         const action = this.getActionDefinition();
@@ -728,7 +737,8 @@ export class FlowAction extends FlowElement {
             return {
                 ...base,
                 data: {
-                    name: this.data.name || this.Name,
+                    name: this.Name, // Match current Name (SSoT)
+                    type: this.type, // Match current Type (SSoT)
                     isLinked: true
                 }
             };

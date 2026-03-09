@@ -130,12 +130,8 @@ export class FlowSyncManager {
             if ((nodeType === 'action' || nodeType === 'data_action') && node.data && !node.data.isEmbeddedInternal) {
                 const actionName = node.Name || node.data.name || node.data.actionName;
                 if (actionName) {
-                    if (node.data.isLinked) {
-                        FlowSyncManager.logger.info(`[TRACE] syncToProject: Überspringe Logik-Update für verlinkte Action "${actionName}"`);
-                    } else {
-                        FlowSyncManager.logger.info(`[TRACE] syncToProject: Aktualisiere Model-Definition für "${actionName}" (isLinked=false)`);
-                        this.updateGlobalActionDefinition({ details: (node as any).Details, ...node.data, name: actionName });
-                    }
+                    FlowSyncManager.logger.debug(`[TRACE] syncToProject: Aktualisiere Model-Definition für "${actionName}" (isLinked=${!!node.data.isLinked})`);
+                    this.updateGlobalActionDefinition({ details: (node as any).Details, ...node.data, name: actionName });
                 }
             }
 
@@ -143,8 +139,8 @@ export class FlowSyncManager {
                 const taskName = node.Name || node.data.taskName;
                 if (taskName) {
                     const isRefactoring = (this.host as any).editor?.commandManager?.isRefactoring;
+                    FlowSyncManager.logger.debug(`[TRACE] syncToProject: Prüfe Task "${taskName}" (isRefactoring=${isRefactoring})`);
                     if (!isRefactoring) {
-                        FlowSyncManager.logger.info(`[TRACE] syncToProject: ensureTaskExists für "${taskName}"`);
                         this.ensureTaskExists(taskName, (node as any).Details || "");
                     }
                 }
@@ -813,16 +809,25 @@ export class FlowSyncManager {
         const idx = targetCollection.findIndex((a: any) => a.name === name);
 
         if (idx !== -1) {
-            // FIX: If types differ, we REPLACE instead of merge to get rid of incompatible fields
-            // BUT: Do not overwrite with undefined if we already have a type!
-            const oldType = targetCollection[idx].type;
+            const existingAction = targetCollection[idx];
+            const oldType = existingAction.type;
             const newType = newAction.type || oldType;
 
             if (oldType !== newType && newType) {
-                FlowSyncManager.logger.info(`Type changed for ${name}. Replacing definition to clean fields.`);
-                targetCollection[idx] = { ...newAction, type: newType };
+                FlowSyncManager.logger.info(`Type changed for ${name} (${oldType} -> ${newType}). Cleaning fields for referential-stable update.`);
+
+                // --- REFERENZ-STABILES UPDATE ---
+                // Wir löschen alle Felder des existierenden Objekts außer dem Namen,
+                // um Inkompatibilitäten beim Typ-Wechsel zu vermeiden, aber die INSTANZ zu behalten.
+                Object.keys(existingAction).forEach(key => {
+                    if (key !== 'name' && key !== 'id') delete existingAction[key];
+                });
+
+                // Neue Daten in dieselbe Instanz kopieren
+                Object.assign(existingAction, newAction, { type: newType });
             } else {
-                targetCollection[idx] = { ...targetCollection[idx], ...newAction, type: newType };
+                // Normales Merge bei gleichem Typ
+                Object.assign(existingAction, newAction, { type: newType });
             }
         } else {
             FlowSyncManager.lifecycleLogger.info(`Neue Action "${name}" registriert (Typ: ${newAction.type || 'property'}).`);
