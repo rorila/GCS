@@ -1,0 +1,17 @@
+-- UseCase: Action Typ ändern
+- Sichergehen, dass man sich in der Stage: MainStage befindet, wenn das nicht der Fall ist: über das Menü (Stages) die Stage: MainStage auswählen.
+- Tab: Flow auswählen
+- Sichergehen, dass man sich in dem Task: VerifyTask befindet, wenn das nicht der Fall ist: über das DropDown den Task: VerifyTask auswählen
+- Sichergehen, dass eine Action mit dem Namen: VerifyAction vorhanden ist. Wenn nicht, UseCase: Eine Action umbenennen ausführen.
+- Sichergehen, dass eine Stage mit dem Namen: HighscoreStage vorhanden ist. Wenn nicht, UseCase: Eine neue Stage erzeugen ausführen.
+
+-- UseCase: Action-Typ auf navigate_stage setzen
+- Die Action: VerifyAction im Flowdiagramm markieren (anklicken).
+- Im Inspector den Action-Typ (ActionTypeSelect) auf 'navigate_stage' ändern.
+- Testen: Der Action-Typ wurde in den JSON-Daten korrekt auf 'navigate_stage' gesetzt.
+
+-- UseCase: Ziel-Stage auswählen
+- Im Inspector die Ziel-Stage (stageId) auf 'HighscoreStage' setzen.
+- Testen: Die Ziel-Stage wurde in den JSON-Daten der Action korrekt gespeichert.
+- Testen: Die globale Variable in der Blueprint-Stage 'isProjectChangeAvailable' muss nun 'true' sein.
+

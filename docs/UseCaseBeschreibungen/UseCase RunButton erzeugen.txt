@@ -1,0 +1,17 @@
+-- UseCase: RunButton erzeugen
+- Sichergehen, dass man sich in der Stage: MainStage befindet, wenn das nicht der Fall ist: über das Menü (Stages) die Stage: MainStage auswählen.
+- Tab: Stage auswählen
+
+-- UseCase: Button erzeugen
+- Von der Toolbox (Kategorie: Standard) einen Button auf die Stage: MainStage ziehen.
+- Testen: Der Button ist auf der Stage sichtbar.
+- Testen: Der Button ist in den JSON-Daten (objects-Array der MainStage) vorhanden.
+- Testen: Der Button ist in der Manager-Liste (Objects) vorhanden.
+
+-- UseCase: Button beschriften
+- Den Button auf der Stage markieren (anklicken).
+- Im Inspector die Beschriftung (caption) auf 'run' ändern.
+- Testen: Die Beschriftung 'run' ist auf dem Button in der Stage sichtbar.
+- Testen: Die Beschriftung wurde in den JSON-Daten korrekt gespeichert.
+- Testen: Die globale Variable in der Blueprint-Stage 'isProjectChangeAvailable' muss nun 'true' sein.
+

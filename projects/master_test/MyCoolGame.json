@@ -47,7 +47,7 @@
       "flowChart": {
         "elements": [
           {
-            "id": "root_task_1773094351694",
+            "id": "root_task_1773097825471",
             "type": "task",
             "x": 400,
             "y": 60,
@@ -65,7 +65,7 @@
             }
           },
           {
-            "id": "node-1773094352203",
+            "id": "node-1773097825986",
             "type": "action",
             "x": 500,
             "y": 200,
@@ -79,7 +79,8 @@
             "data": {
               "name": "VerifyAction",
               "type": "property",
-              "isLinked": true
+              "isLinked": true,
+              "showDetails": false
             }
           }
         ],
@@ -90,8 +91,8 @@
             "startY": 90,
             "endX": 500,
             "endY": 230,
-            "startTargetId": "root_task_1773094351694",
-            "endTargetId": "node-1773094352203",
+            "startTargetId": "root_task_1773097825471",
+            "endTargetId": "node-1773097825986",
             "data": {
               "startAnchorType": "output",
               "endAnchorType": "input"
@@ -186,13 +187,47 @@
       "id": "main",
       "name": "MainStage",
       "type": "main",
-      "objects": [],
+      "objects": [
+        {
+          "className": "TButton",
+          "id": "obj_1773097840361_k5jrxutip",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "Button_3",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 10,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1,
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial"
+          },
+          "text": "run",
+          "icon": ""
+        }
+      ],
       "actions": [
         {
           "name": "VerifyAction",
           "details": "",
-          "type": "property",
-          "showDetails": false
+          "type": "navigate_stage",
+          "showDetails": false,
+          "stageId": "stage-1773097832761"
         }
       ],
       "tasks": [],
@@ -206,6 +241,23 @@
         "backgroundColor": "#16da36"
       },
       "flowCharts": {}
+    },
+    {
+      "id": "stage-1773097832761",
+      "name": "HighscoreStage",
+      "type": "standard",
+      "objects": [],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
     }
   ],
   "activeStageId": "main",
@@ -213,61 +265,6 @@
     "global": {
       "elements": [],
       "connections": []
-    },
-    "VerifyTask": {
-      "elements": [
-        {
-          "id": "root_task_1773094351694",
-          "type": "task",
-          "x": 400,
-          "y": 60,
-          "width": 140,
-          "height": 60,
-          "properties": {
-            "name": "VerifyTask",
-            "details": "",
-            "description": "",
-            "text": "VerifyTask"
-          },
-          "data": {
-            "taskName": "VerifyTask",
-            "showDetails": false
-          }
-        },
-        {
-          "id": "node-1773094352203",
-          "type": "action",
-          "x": 500,
-          "y": 200,
-          "width": 140,
-          "height": 60,
-          "properties": {
-            "name": "VerifyAction",
-            "details": "",
-            "description": ""
-          },
-          "data": {
-            "name": "VerifyAction",
-            "type": "property",
-            "isLinked": true
-          }
-        }
-      ],
-      "connections": [
-        {
-          "id": "conn_task_to_action",
-          "startX": 600,
-          "startY": 90,
-          "endX": 500,
-          "endY": 230,
-          "startTargetId": "root_task_1773094351694",
-          "endTargetId": "node-1773094352203",
-          "data": {
-            "startAnchorType": "output",
-            "endAnchorType": "input"
-          }
-        }
-      ]
     }
   }
 }

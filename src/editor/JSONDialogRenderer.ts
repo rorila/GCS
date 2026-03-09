@@ -89,7 +89,9 @@ export class JSONDialogRenderer {
         this.runtime.registerVariable('getMethods', (name: string) => this.getMethodsForObject(name));
         this.runtime.registerVariable('getMethodSignature', (target: string, method: string) => this.getMethodSignature(target, method));
         this.runtime.registerVariable('getStageOptions', () => {
-            return (this.enrichedProject.stages || []).map(s => ({ value: s.id, label: s.name || s.id }));
+            // BUGFIX: project.stages statt enrichedProject.stages nutzen,
+            // da enrichedProject ein Snapshot ist und neue Stages fehlen können
+            return (this.project.stages || []).map(s => ({ value: s.id, label: s.name || s.id }));
         });
         this.runtime.registerVariable('getAllActionTypes', () => {
             const registered = actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));

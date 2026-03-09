@@ -1,4 +1,24 @@
-﻿- [2026-03-09] UseCase: Projekt speichern (E2E-Test + Implementation):
+﻿- [2026-03-10] UseCase: RunButton erzeugen (E2E-Test):
+  - Dateien: tests/e2e/07_RunButtonCreation.spec.ts (L1-133)
+  - Methoden: Toolbox-Click → selectObject → Inspector caption/text
+  - Details: Button aus Toolbox auf MainStage platzieren, per Inspector auf 'run' beschriften. Object-Count-Validierung.
+
+- [2026-03-10] UseCase: Action Typ ändern (E2E-Test):
+  - Dateien: tests/e2e/06_ActionTypeChange.spec.ts (L1-93)
+  - Methoden: switchActionFlow('VerifyTask') → ActionTypeSelect → stageId
+  - Details: VerifyAction auf navigate_stage setzen, HighscoreStage als Ziel. ActionTypeSelect und stageId Select im Inspector.
+
+- [2026-03-10] UseCase: Stage erzeugen (E2E-Test):
+  - Dateien: tests/e2e/05_StageCreation.spec.ts (L1-87)
+  - Methoden: Menü Stages → Neue Stage, notifyDataChanged für Rename
+  - Details: Neue Stage via Menü erzeugen, zu HighscoreStage umbenennen, switchStage zurück zu MainStage.
+
+- [2026-03-10] Bugfix: getStageOptions in JSONDialogRenderer:
+  - Dateien: src/editor/JSONDialogRenderer.ts (L91-95)
+  - Methoden: getStageOptions() Runtime-Variable
+  - Details: Nutzt jetzt this.project.stages statt this.enrichedProject.stages. Neue Stages erscheinen im stageId-Select.
+
+- [2026-03-09] UseCase: Projekt speichern (E2E-Test + Implementation):
   - Dateien:
     - src/editor/services/EditorDataManager.ts (saveProjectToFile: L97-211)
     - src/editor/Editor.ts (saveProjectToFile-Delegation: L467)

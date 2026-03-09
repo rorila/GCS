@@ -1,3 +1,16 @@
+## [3.11.8] - 2026-03-10
+### Added
+- **E2E-Test: Stage erzeugen** (`tests/e2e/05_StageCreation.spec.ts`): UseCase "Eine neue Stage erzeugen" — Menü: Stages → Neue Stage, Umbenennung zu HighscoreStage, Validierung in project.stages, Speicherung.
+- **E2E-Test: Action Typ ändern** (`tests/e2e/06_ActionTypeChange.spec.ts`): UseCase "Action Typ ändern" — Flow-Tab → VerifyTask-Flow → VerifyAction anklicken → ActionTypeSelect auf navigate_stage, stageId auf HighscoreStage.
+- **E2E-Test: RunButton erzeugen** (`tests/e2e/07_RunButtonCreation.spec.ts`): UseCase "RunButton erzeugen" — Stage-Tab → Toolbox → Button platzieren → Inspector caption auf 'run' setzen.
+- **UseCase-Beschreibungen** (`docs/UseCaseBeschreibungen/`): 3 neue UseCase-Dateien für Stage erzeugen, Action Typ ändern, RunButton erzeugen.
+
+### Fixed
+- **getStageOptions Bugfix** (`src/editor/JSONDialogRenderer.ts`, L91-95): `getStageOptions()` nutzt jetzt `this.project.stages` statt `this.enrichedProject.stages`. Das `enrichedProject` war ein Snapshot vom Dialog-Konstruktor und konnte neue Stages (z.B. HighscoreStage) nicht enthalten.
+
+### Changed
+- **Test-Nummerierung**: `05_ProjectSaving.spec.ts` → `08_ProjectSaving.spec.ts` (Tests 05-07 sind die neuen UseCase-Tests).
+
 ## [3.11.7] - 2026-03-09
 ### Added
 - **UseCase: Projekt speichern** (`src/editor/services/EditorDataManager.ts`): `saveProjectToFile()` implementiert. Speichert das Projekt gemäß den 4 UseCase-Schritten: Änderungsstatus prüfen, Spielname validieren (kein 'Haupt-Level'), Datei-Existenz prüfen + Überschreiben-Dialog, Speichern via `/api/dev/save-custom`. `isProjectChangeAvailable` wird VOR dem JSON.stringify zurückgesetzt.

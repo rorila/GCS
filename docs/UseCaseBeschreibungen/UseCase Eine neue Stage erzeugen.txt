@@ -1,0 +1,17 @@
+-- UseCase: Eine neue Stage erzeugen
+- Sichergehen, dass man sich in der Stage: MainStage befindet, wenn das nicht der Fall ist: über das Menü (Stages) die Stage: MainStage auswählen.
+- Sichergehen, dass das Projekt: MyCoolGame geladen ist. Wenn nicht, UseCase: Ein Projekt laden ausführen.
+
+-- UseCase: Stage erzeugen
+- Menü: Stages -> Neue Stage auswählen.
+- Testen: Eine neue Stage mit dem Standard-Namen wurde erzeugt.
+- Testen: Die neue Stage ist im Menü (Stages) sichtbar.
+- Testen: Die neue Stage ist in den JSON-Daten (stages-Array) vorhanden.
+
+-- UseCase: Stage umbenennen
+- Die neue Stage muss aktiv sein (über das Menü: Stages die neue Stage auswählen).
+- Im Inspector den Stagenamen von dem Standard-Namen nach 'HighscoreStage' ändern.
+- Testen: Die globale Variable in der Blueprint-Stage 'isProjectChangeAvailable' muss nun 'true' sein.
+- Testen: Die Änderung ist in den JSON-Daten (stages[].name) reflektiert. Der alte Name darf nicht mehr vorhanden sein.
+- Testen: Die Änderung ist im Menü (Stages) sichtbar. Die neue Stage heißt nun 'HighscoreStage'.
+
