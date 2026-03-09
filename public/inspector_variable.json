@@ -170,7 +170,7 @@
                 {
                     "className": "TEdit",
                     "name": "defaultValue",
-                    "label": "Standardwert",
+                    "label": "Default-Wert",
                     "text": "${selectedObject.defaultValue}"
                 },
                 {
@@ -268,44 +268,6 @@
                     "label": "Auslöser-Wert",
                     "visible": "${selectedObject.type === 'trigger'}",
                     "text": "${selectedObject.triggerValue}"
-                }
-            ]
-        },
-        {
-            "className": "TPanel",
-            "name": "ActionsCard",
-            "style": {
-                "backgroundColor": "#2a2a2a",
-                "borderRadius": "8px",
-                "padding": "12px",
-                "marginBottom": "0px",
-                "border": "1px solid #3a3a3a",
-                "boxShadow": "0 2px 4px rgba(0,0,0,0.2)"
-            },
-            "children": [
-                {
-                    "className": "TLabel",
-                    "name": "ActionsHeader",
-                    "text": "AKTIONEN",
-                    "style": {
-                        "fontSize": 11,
-                        "fontWeight": "bold",
-                        "color": "#4da6ff",
-                        "marginBottom": 12,
-                        "borderBottom": "1px solid #4da6ff",
-                        "paddingBottom": "4px"
-                    }
-                },
-                {
-                    "className": "TButton",
-                    "name": "DeleteButton",
-                    "caption": "🗑️ Variable löschen",
-                    "action": "delete",
-                    "style": {
-                        "backgroundColor": "#c82333",
-                        "color": "#fff",
-                        "marginTop": 4
-                    }
                 }
             ]
         }

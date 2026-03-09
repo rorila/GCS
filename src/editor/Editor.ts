@@ -150,10 +150,37 @@ export class Editor implements IViewHost {
             id: 'blueprint',
             name: 'Blueprint (Global)',
             type: 'blueprint',
-            objects: [],
+            objects: [
+                {
+                    id: 'stage_controller',
+                    name: 'StageController',
+                    className: 'TStageController',
+                    scope: 'global',
+                    isService: true,
+                    x: 2,
+                    y: 2,
+                    width: 8,
+                    height: 4
+                } as any
+            ],
             actions: [],
             tasks: [],
-            variables: [],
+            variables: [
+                {
+                    id: 'var_project_change',
+                    name: 'isProjectChangeAvailable',
+                    type: 'boolean',
+                    defaultValue: false,
+                    value: false,
+                    scope: 'global',
+                    className: 'TVariable',
+                    isVariable: true,
+                    x: 12,
+                    y: 2,
+                    width: 10,
+                    height: 4
+                } as any
+            ],
             grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#f5f5f5' }
         };
 
@@ -169,7 +196,7 @@ export class Editor implements IViewHost {
         };
 
         return {
-            meta: { name: "Neues Spiel", version: "1.0.0", author: "Anonym" },
+            meta: { name: "Neues Spiel", version: "1.0.0", author: "", description: "" },
             stage: { grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#ffffff' } },
             flow: { stage: { cols: 100, rows: 100, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#1e1e1e' }, elements: [], connections: [] },
             input: { player1Controls: 'arrows', player1Target: '', player1Speed: 0.2, player2Controls: 'wasd', player2Target: '', player2Speed: 0.2 },

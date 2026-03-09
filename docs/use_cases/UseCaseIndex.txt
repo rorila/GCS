@@ -1,4 +1,18 @@
-﻿- [2026-03-06] Phase 5: Lösch-Synchronisation & SSOT-Fixes:
+﻿- [2026-03-09] Blueprint-Visualisierung & Variablen-Inspector:
+  - Dateien: Editor.ts (L153-178), StageRenderer.ts (L204-210, L683-698), EditorDataManager.ts (L208), inspector_variable.json (L171-200)
+  - Details: Sichtbarkeit von Service-Objekten und globalen Variablen in der Blueprint-Stage implementiert. Anzeige von Variablenwerten auf der Stage. Optimierung des Variablen-Inspectors (Checkboxen für Booleans). Fix des initialen Dirty-Flags durch 'editor-load' Originator.
+
+- [2026-03-09] **Variable Inspector & Stage Sync**:
+  - `public/inspector_variable.json`: Revert auf Textfelder, Entfernen redundanter Buttons.
+  - `src/runtime/ExpressionParser.ts`: Fix für Boolean-Werte (Typ-Erhaltung).
+  - `src/editor/inspector/InspectorHost.ts`: String-Konvertierung für `TEdit`.
+  - `src/editor/Editor.ts`: Initialisierung von `isProjectChangeAvailable`.
+  - `src/editor/services/EditorRenderManager.ts`: Integration von `updateStagesMenu`.
+  - `src/utils/Serialization.ts`: Fix für Read-Only Properties.
+  - `public/inspector_stage.json`: Checkbox für `snapToGrid` hinzugefügt.
+  - `src/editor/services/StageInteractionManager.ts`: Logik für optionales Snapping implementiert (Methoden `snap` und `snapFloor`).
+
+- [2026-03-06] Phase 5: Lösch-Synchronisation & SSOT-Fixes:
   - Dateien: EditorCommandManager.ts (L155-235), FlowGraphManager.ts (L208-391), Editor.ts (L244-293), ProjectRegistry.ts (L381-405), AgentController.ts (L170-187)
   - Details: Globales Löschen über alle Stages, isInherited-Ghosting, Fix von Task-Duplikaten. QA-Report: 69/69 Pass.
 
@@ -22,6 +36,18 @@
   - src/runtime/CoordinateBinding.test.ts: Integrationstest für Koordinaten-Bindings.
 
 UC-122: Stage Inheritance Removal | RuntimeStageManager.ts, EditorStageManager.ts, inspector_stage.json
+--- UseCase: 'Inspector-Action-Sync (Sofortige JSON-Persistenz)' ---
+- public/inspector_action.json: property: "type" ergänzt (Z. 13)
+- src/editor/inspector/InspectorEventHandler.ts: Mapping für ActionTypeSelect (Z. 70)
+- src/editor/services/EditorDataManager.ts: updateProjectJSON triggert Server-Sync (Z. 235)
+
+- [2026-03-09] Flow-Action Persistenz & Bereinigung (Index-basierte Suche):
+  - Dateien: FlowNodeHandler.ts (L145-250), SanitizationService.ts (L10-50), FlowSyncManager.ts (L811)
+  - Details: Umstellung der Action-Suche im Inspector auf Index-Lookup (ProjectRegistry). Broad-Field Matching für robuste Identifizierung. Implementierung automatischer Bereinigung verwaister Action-Referenzen in Sequenzen. QA-Report: 78/79 Pass (Integrität OK).
+
+- [2026-03-09] Action-Typ-Persistenz & Dynamisierung:
+  - Dateien: FlowAction.ts (L8-11, L147-160), FlowDataAction.ts (L4-22), FlowSyncManager.ts (L272-283, L812)
+  - Details: Dynamisierung von getType() für korrekte Serialisierung. Synchronisation des Typs im SSoT-Objekt und Proxy. Implementierung von Sofort-Ports bei Typ-Wechsel. QA-Report: 75/76 Pass.
 
 UC-123: Layout-Fixes & Container-Isolation | main.ts, EditorViewManager.ts, player-standalone.ts, GameRuntime.ts, StageRenderer.ts
 
@@ -35,3 +61,7 @@ UC-123: Layout-Fixes & Container-Isolation | main.ts, EditorViewManager.ts, play
 - [2026-03-07] E2E-Reporting Fix & Server Safety & Hydration:
   - Dateien: scripts/test_runner.ts, src/runtime/GameRuntime.ts, src/runtime/RuntimeStageManager.ts, tests/e2e/deep_integration.spec.ts
   - Details: Rekursives E2E-Ergebnis-Parsing für verschachtelte Suites implementiert. Server-Check für Port 8080 hinzugefügt. Unbenutzte Deklarationen entfernt. E2E-Stabilität durch loadProject (Hydrierung) sichergestellt.
+
+- [2026-03-08] Projekt-Ladefehler beheben (TypeError: setProject):
+  - Dateien: EditorDataManager.ts (L153), EditorViewManager.ts (L31)
+  - Details: Behebung von TypeError durch Interface-Erweiterung (IViewHost) und robustes Error-Handling in loadProject. Automatisch verifiziert durch Test 74.

@@ -268,13 +268,29 @@
                     ]
                 },
                 {
-                    "className": "TCheckbox",
-                    "name": "activeStage.grid.visible",
-                    "checked": "${(activeStage && activeStage.grid && activeStage.grid.visible !== undefined) ? activeStage.grid.visible : selectedObject.stage.grid.visible}",
-                    "label": "Rasterlinien zeichnen",
+                    "className": "TPanel",
+                    "name": "RowGridOptions",
                     "style": {
-                        "marginBottom": 12
-                    }
+                        "display": "flex",
+                        "gap": "12px",
+                        "marginBottom": "12px",
+                        "padding": 0,
+                        "alignItems": "center"
+                    },
+                    "children": [
+                        {
+                            "className": "TCheckbox",
+                            "name": "activeStage.grid.visible",
+                            "checked": "${(activeStage && activeStage.grid && activeStage.grid.visible !== undefined) ? activeStage.grid.visible : selectedObject.stage.grid.visible}",
+                            "label": "Rasterlinien zeichnen"
+                        },
+                        {
+                            "className": "TCheckbox",
+                            "name": "activeStage.grid.snapToGrid",
+                            "checked": "${(activeStage && activeStage.grid && activeStage.grid.snapToGrid !== undefined) ? activeStage.grid.snapToGrid : (selectedObject.stage.grid.snapToGrid !== false)}",
+                            "label": "Am Raster ausrichten"
+                        }
+                    ]
                 },
                 {
                     "className": "TLabel",

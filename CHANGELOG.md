@@ -1,4 +1,40 @@
-# Changelog
+## [3.11.4] - 2026-03-09
+### Added
+- **Blueprint-Visualisierung**: Service-Objekte (z. B. `StageController`) und globale Variablen sind nun exklusiv in der `blueprint`-Stage sichtbar.
+- **Variablen-Werte auf Stage**: Variablen zeigen nun ihren Namen und ihren aktuellen Wert (oder Defaultwert) direkt auf der Stage an.
+
+### Changed
+- **Variablen-Inspector**: Variablen werden einheitlich als Textfelder (`TEdit`) dargestellt, um die explizite Anzeige von Werten wie "true" oder "false" zu ermöglichen (Nutzerpräferenz). Labels wurden auf "Default-Wert" und "Aktueller Wert" angepasst.
+- **Stage-Menü Synchronisierung**: Namen von Stages werden nun bei einer Änderung im Inspector sofort im "Stages"-Menü der MenuBar aktualisiert.
+- **Snap-To-Grid**: Neue Option im Stage-Inspector, um das Einrasten am Raster beim Verschieben/Resizen zu aktivieren oder zu deaktivieren.
+
+### Fixed
+- **Datenbindung im Inspector**: Fehler behoben, bei dem Boolean `false` und `undefined` in Textfeldern verschluckt wurden.
+- **Serialization-Stabilität**: `TypeError` beim Laden von Objekten mit Read-Only Properties (z.B. `currentStageId`) behoben.
+
+## [3.11.3] - 2026-03-09
+### Fixed
+- **Action-Typ-Persistenz**: Stabilisierung der strukturellen Knoten-Identität in `FlowAction.ts`.
+- **TypeScript-Fix**: Behebung des Fehlers TS2339 in `FlowGraphHydrator.ts` durch korrektes Casting.
+- **Sync-Stabilität**: Sicherstellung, dass Typ-Änderungen im Inspector konsistent in `project.json` gespeichert werden.
+
+## [3.11.2] - 2026-03-09
+### Fixed
+- **Action-Typ-Persistenz**: Behebung des Fehlers, bei dem Typ-Änderungen im Inspector (z. B. zu `data_action`) nicht gespeichert wurden.
+- **Dynamische Typ-Erkennung**: `FlowAction.getType()` ermittelt den Typ nun zur Laufzeit aus den Model-Daten, was eine korrekte Serialisierung in `project.json` garantiert.
+- **Auto-Morphed Nodes**: Automatische Erzeugung von Success/Error-Ports bei Typ-Wechsel zu `data_action` ohne Instanz-Austausch.
+
+## [3.11.1] - 2026-03-09
+### Fixed
+- **Action-Persistenz (Index-basiert)**: Umstellung der Action-Suche im `FlowNodeHandler` auf einen hochperformanten Index-Lookup via `ProjectRegistry`. Verhindert zuverlässig "Action not found" Fehler.
+- **Broad-Field Matching**: Unterstützung für robuste Identifizierung von Action-Knoten über verschiedene Felder (`name`, `actionName`, `data.name`, `properties.name`, `properties.text`).
+- **Orphaned Action Cleanup**: Automatische Bereinigung von verwaisten Action-Referenzen in `actionSequence`-Listen durch den `SanitizationService`.
+- **Flow-Synchronisation**: Korrekte Typ-Behandlung (`actionType` -> `type`) und Synchronisation verlinkter Actions im `FlowSyncManager`.
+
+## [3.10.1] - 2026-03-08
+### Fixed
+- **Legacy-Ladefehler**: `TypeError: this.host.setProject is not a function` beim Laden von Projekten behoben.
+- **Interface-Konsistenz**: `IViewHost` wurde um `setProject` erweitert.
 
 Alle relevanten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 

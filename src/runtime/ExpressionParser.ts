@@ -174,10 +174,10 @@ export class ExpressionParser {
                 const val = context[key];
                 try {
                     const resolved = PropertyHelper.resolveValue(val);
-                    // CRITICAL: Treat undefined/null as empty string to prevent "undefined" appearing in UI strings
-                    return (resolved === undefined || resolved === null) ? "" : resolved;
+                    // CRITICAL: Treat undefined/null as their respective values to allow boolean 'false' to work
+                    return resolved;
                 } catch (e) {
-                    return "";
+                    return undefined;
                 }
             });
 

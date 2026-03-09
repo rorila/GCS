@@ -24,6 +24,7 @@ export interface EditorRenderHost {
     findObjectById(id: string): any;
     refreshJSONView(): void;
     autoSaveToLocalStorage(): void;
+    updateStagesMenu(): void;
     objectStore: ObjectStore;
 }
 
@@ -244,5 +245,6 @@ export class EditorRenderManager {
         }
 
         this.host.autoSaveToLocalStorage();
+        this.host.updateStagesMenu();
     }
 }

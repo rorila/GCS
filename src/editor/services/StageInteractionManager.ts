@@ -66,6 +66,22 @@ export class StageInteractionManager {
         this.host = host;
     }
 
+    private snap(val: number, forceRound: boolean = false): number {
+        const cellSize = this.host.grid.cellSize || 20;
+        if (this.host.grid.snapToGrid || forceRound) {
+            return Math.round(val / cellSize);
+        }
+        return val / cellSize;
+    }
+
+    private snapFloor(val: number): number {
+        const cellSize = this.host.grid.cellSize || 20;
+        if (this.host.grid.snapToGrid) {
+            return Math.floor(val / cellSize);
+        }
+        return val / cellSize;
+    }
+
     public bindEvents() {
         const el = this.host.element;
 
@@ -107,8 +123,8 @@ export class StageInteractionManager {
                 offX = 5; offY = 3;
             }
 
-            const gridX = Math.floor(coords.x / this.host.grid.cellSize) - offX;
-            const gridY = Math.floor(coords.y / this.host.grid.cellSize) - offY;
+            const gridX = this.snapFloor(coords.x) - offX;
+            const gridY = this.snapFloor(coords.y) - offY;
             this.host.onDropCallback(payload.toolType, Math.max(0, gridX), Math.max(0, gridY));
         }
     }
@@ -140,8 +156,8 @@ export class StageInteractionManager {
             e.preventDefault();
             e.stopPropagation();
             const coords = this.getRelativeCoordinates(e);
-            const gridX = Math.floor(coords.x / this.host.grid.cellSize);
-            const gridY = Math.floor(coords.y / this.host.grid.cellSize);
+            const gridX = this.snapFloor(coords.x);
+            const gridY = this.snapFloor(coords.y);
             this.finishPlacingSelection(gridX, gridY);
             return;
         }
@@ -318,8 +334,8 @@ export class StageInteractionManager {
 
         if (this.isPlacing && this.placingGhostEl) {
             const coords = this.getRelativeCoordinates(e);
-            const gridX = Math.floor(coords.x / this.host.grid.cellSize) * this.host.grid.cellSize;
-            const gridY = Math.floor(coords.y / this.host.grid.cellSize) * this.host.grid.cellSize;
+            const gridX = this.host.grid.snapToGrid ? Math.floor(coords.x / this.host.grid.cellSize) * this.host.grid.cellSize : coords.x;
+            const gridY = this.host.grid.snapToGrid ? Math.floor(coords.y / this.host.grid.cellSize) * this.host.grid.cellSize : coords.y;
             this.placingGhostEl.style.left = `${gridX}px`;
             this.placingGhostEl.style.top = `${gridY}px`;
         }
@@ -389,8 +405,8 @@ export class StageInteractionManager {
                     const el = this.host.element.querySelector(`[data-id="${this.dragObjId}"]`) as HTMLElement;
                     if (el) {
                         el.style.transform = '';
-                        const gridX = Math.round((parseFloat(el.style.left || '0') + dx) / this.host.grid.cellSize);
-                        const gridY = Math.round((parseFloat(el.style.top || '0') + dy) / this.host.grid.cellSize);
+                        const gridX = this.snap(parseFloat(el.style.left || '0') + dx);
+                        const gridY = this.snap(parseFloat(el.style.top || '0') + dy);
                         if (this.isCopyDrag && this.host.onObjectCopy) this.host.onObjectCopy(this.dragObjId, Math.max(0, gridX), Math.max(0, gridY));
                         else if (!this.isCopyDrag && this.host.onObjectMove) this.host.onObjectMove(this.dragObjId, Math.max(0, gridX), Math.max(0, gridY));
                     }
@@ -441,7 +457,7 @@ export class StageInteractionManager {
             if (this.isResizing && this.initialSize && this.initialPos) {
                 const el = this.host.element.querySelector(`[data-id="${this.dragObjId}"]`) as HTMLElement;
                 if (el) {
-                    const gW = Math.round(parseFloat(el.style.width) / this.host.grid.cellSize), gH = Math.round(parseFloat(el.style.height) / this.host.grid.cellSize), gX = Math.round(parseFloat(el.style.left || '0') / this.host.grid.cellSize), gY = Math.round(parseFloat(el.style.top || '0') / this.host.grid.cellSize);
+                    const gW = this.snap(parseFloat(el.style.width)), gH = this.snap(parseFloat(el.style.height)), gX = this.snap(parseFloat(el.style.left || '0')), gY = this.snap(parseFloat(el.style.top || '0'));
                     if (this.resizeDirection.match(/[wn]/) && this.host.onObjectMove) this.host.onObjectMove(this.dragObjId, Math.max(0, gX), Math.max(0, gY));
                     if (this.host.onObjectResize) this.host.onObjectResize(this.dragObjId, Math.max(1, gW), Math.max(1, gH));
                 }
@@ -452,7 +468,7 @@ export class StageInteractionManager {
                         el.style.transform = '';
                         const iP = this.initialPositions.get(id), iG = this.initialDragPositions.get(id);
                         if (iP && iG) {
-                            const gX = Math.round((iP.left + dx) / this.host.grid.cellSize), gY = Math.round((iP.top + dy) / this.host.grid.cellSize);
+                            const gX = this.snap(iP.left + dx), gY = this.snap(iP.top + dy);
                             if (gX !== iG.x || gY !== iG.y) {
                                 const obj = this.host.lastRenderedObjects.find(o => o.id === id);
                                 if (obj) {
@@ -566,8 +582,8 @@ export class StageInteractionManager {
         selected.forEach(id => {
             const el = this.host.element.querySelector(`[data-id="${id}"]`) as HTMLElement;
             if (el) {
-                minX = Math.min(minX, parseFloat(el.style.left || '0') / this.host.grid.cellSize);
-                minY = Math.min(minY, parseFloat(el.style.top || '0') / this.host.grid.cellSize);
+                minX = Math.min(minX, this.snap(parseFloat(el.style.left || '0'), true));
+                minY = Math.min(minY, this.snap(parseFloat(el.style.top || '0'), true));
             }
         });
         selected.forEach(id => {

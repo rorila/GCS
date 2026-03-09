@@ -457,7 +457,8 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             const reservedKeys = [
                 'className', 'id', 'children', 'Tasks', 'style', // Handled explicitly
                 'shapeType', // Often constructor arg, but safe to re-assign if public
-                '_type' // Private backing field - must go through 'type' setter instead
+                '_type', // Private backing field - must go through 'type' setter instead
+                'currentStageId' // Read-only property on TStageController
             ];
 
             // 1. Generic assignment for all primitive properties
