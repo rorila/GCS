@@ -1,4 +1,8 @@
-﻿- [2026-03-09] Blueprint-Visualisierung & Variablen-Inspector:
+﻿- [2026-03-09] Projekt Erstellen Use Case (E2E Test):
+  - Dateien: tests/e2e/ProjectCreation.spec.ts (L1-75)
+  - Details: Implementierung und Stabilisierung (Debouncing-Timings via waitForTimeout) eines E2E-Tests, der alle 6 Schritte des UseCases "Ein neues Projekt (Spiel) erstellen.txt" abdeckt.
+
+- [2026-03-09] Blueprint-Visualisierung & Variablen-Inspector:
   - Dateien: Editor.ts (L153-178), StageRenderer.ts (L204-210, L683-698), EditorDataManager.ts (L208), inspector_variable.json (L171-200)
   - Details: Sichtbarkeit von Service-Objekten und globalen Variablen in der Blueprint-Stage implementiert. Anzeige von Variablenwerten auf der Stage. Optimierung des Variablen-Inspectors (Checkboxen für Booleans). Fix des initialen Dirty-Flags durch 'editor-load' Originator.
 
