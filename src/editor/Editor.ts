@@ -136,6 +136,11 @@ export class Editor implements IViewHost {
         const toolboxToggleBtn = document.getElementById('toolbox-layout-toggle');
         if (toolboxToggleBtn) toolboxToggleBtn.onclick = () => this.toggleToolboxLayout();
 
+        // Expose for E2E Testing
+        if (window.location.search.includes('e2e=true')) {
+            (window as any).mediatorService = mediatorService;
+        }
+
         // 8. Browser Navigation Guard (Back-Button / Refresh)
         window.onbeforeunload = (e) => {
             if (this.isProjectDirty) {
