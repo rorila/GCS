@@ -683,9 +683,9 @@
           const val = context[key];
           try {
             const resolved = PropertyHelper.resolveValue(val);
-            return resolved === void 0 || resolved === null ? "" : resolved;
+            return resolved;
           } catch (e) {
-            return "";
+            return void 0;
           }
         });
         const func = new Function(...contextKeys, `return ${expression}`);
@@ -10774,8 +10774,10 @@
           // Handled explicitly
           "shapeType",
           // Often constructor arg, but safe to re-assign if public
-          "_type"
+          "_type",
           // Private backing field - must go through 'type' setter instead
+          "currentStageId"
+          // Read-only property on TStageController
         ];
         Object.keys(objData).forEach((key) => {
           if (reservedKeys.includes(key)) return;
@@ -12274,6 +12276,10 @@
           if (isFromBlueprint && (isService || isBlueprintOnly)) {
             isVisible = false;
           }
+        } else {
+          if (isFromBlueprint || isService || isBlueprintOnly) {
+            isVisible = true;
+          }
         }
         el.style.display = isVisible ? "flex" : "none";
         if (isInherited) {
@@ -12689,11 +12695,16 @@
         el.style.display = "flex";
         if (!this.host.runMode) {
           el.style.backgroundColor = this.getSystemComponentColor(className, obj);
-          el.innerText = obj.name;
+          let val = obj.value !== void 0 ? obj.value : obj.defaultValue;
+          if (val === void 0) val = "-";
+          el.innerText = obj.isVariable ? `${obj.name}
+(${val})` : obj.name;
           el.style.color = "#ffffff";
-          el.style.fontSize = "12px";
+          el.style.fontSize = "10px";
+          el.style.textAlign = "center";
+          el.style.whiteSpace = "pre-wrap";
           if (obj.isVariable) {
-            el.style.border = "1px solid #ffffff";
+            el.style.border = "1px solid rgba(255, 255, 255, 0.5)";
           }
         } else {
           el.innerText = "";

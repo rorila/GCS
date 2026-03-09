@@ -1,5 +1,5 @@
 -- UseCase: Eine Action umbenennen
-- Sichergehen, dass man sich in der Stage: Login befindet, wenn das nicht der Fall ist: über das Menü (Stages) die Stage: Login auswählen.
+- Sichergehen, dass man sich in der Stage: MainStage befindet, wenn das nicht der Fall ist: über das Menü (Stages) die Stage: MainStage auswählen.
 - Tab: Flow auswählen
 - Sichergehen, dass man sich in dem Task: VerifyTask befindet, wenn das nicht der Fall ist: über das DropDown den Task: VerifyTask auswählen
 

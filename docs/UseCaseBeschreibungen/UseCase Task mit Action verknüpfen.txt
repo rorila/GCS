@@ -1,5 +1,5 @@
 -- UseCase: Ein Task mit einer Action verknüpfen 
-- Sichergehen, dass man sich in der Stage: Login befindet, wenn das nicht der Fall ist: über das Menü (Stages) die Stage: Login auswählen.
+- Sichergehen, dass man sich in der Stage: MainStage befindet, wenn das nicht der Fall ist: über das Menü (Stages) die Stage: MainStage auswählen.
 - Tab: Flow auswählen
 - Sichergehen, dass man sich in dem Task: VerifyTask befindet, wenn das nicht der Fall ist: über das DropDown den Task: VerifyTask auswählen
 - Sichergehen, dass ein Task mit dem Namen: VerifyTask vorhanden ist. Wenn nicht, dann UseCase: Ein Task umbenennen ausführen.

@@ -99,3 +99,26 @@ Letzte Aktualisierung: v3.9.6 (E2E-Stability & Hydration Fix)
 
 ## 9. BEST PRACTICES (NEU)
 - **Interface Konsistenz**: Host-Objekte für Manager-Klassen (z.B. `EditorDataManager`) müssen ihre Anforderungen in einem dedizierten Interface definieren. Stellen Sie sicher, dass der `Editor` (oder andere Hosts) dieses Interface vollständig implementiert, um Laufzeitfehler wie `TypeError` zu vermeiden. Siehe Fix in `EditorViewManager.ts` (`IViewHost`).
+
+## 10. FLOW-EDITOR REGELN (E2E Testing & API)
+
+### switchActionFlow & Task-Knoten
+- **`switchActionFlow(taskName)` erzeugt automatisch** einen Task-Knoten als Startpunkt (via `generateFlowFromActionSequence()`). KEIN weiteres `createNode('Task', ...)` aufrufen!
+- Ein zweites `createNode('Task', ...)` im gleichen Kontext erzeugt **ZWEI** Task-Knoten. `syncTaskFromFlow` findet nur den **ersten** (per `elements.find(e => e.type === 'task')`) → der hat keine Connection → leere `actionSequence`.
+- **Korrekt**: `nodes.find(n => n.getType() === 'task')` nutzen um den auto-generierten Knoten zu referenzieren.
+
+### Task/Action Speicherort
+- Tasks und Actions gehören in `stage.tasks` / `stage.actions` der **aktiven Stage** (z. B. `mainStage`).
+- NICHT in `project.tasks` (Root-Level) — außer Blueprint-globale Elemente.
+- `ensureTaskExists` speichert in Root wenn `activeStage.type === 'main'`. Daher explizit `mainStage.tasks.push(...)` nutzen.
+
+### restoreConnection API
+- `restoreConnection({ id, startTargetId, endTargetId, startX, startY, endX, endY, data: { startAnchorType, endAnchorType } })`
+- `startTargetId`/`endTargetId` = `node.id` (UUID wie `node-1234567890`)
+- Muss **nach** `createNode` aufgerufen werden, damit die Nodes im `this.host.nodes[]` Array vorhanden sind.
+
+### syncTaskFromFlow Traversierung
+- `startNode = elements.find(e => type === 'task')` → Task-Knoten als Startpunkt
+- `initialOutgoing = connections.filter(c => c.startTargetId === startNode.id)` → alle ausgehenden Verbindungen
+- Von jedem Ziel wird `buildSequence(targetId)` aufgerufen → fügt Actions zur Sequenz hinzu
+- `actionName = node.data?.name || node.properties?.name` für Action-Knoten

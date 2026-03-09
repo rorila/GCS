@@ -2,14 +2,14 @@
 Bemerkungen: Der User beabsichtigt einen neuen Task zu erstellen, visuell anzuordnen und umzubenennen.
 
 1. Schritt: Vorbereitung
-- Sichergehen, dass man sich in der Stage: 'Login' befindet. 
-- Falls nicht: Über das Menü 'Stages' die Stage 'Login' auswählen.
+- Sichergehen, dass man sich in der Stage: 'MainStage' befindet. 
+- Falls nicht: Über das Menü 'Stages' die Stage 'MainStage' auswählen.
 - Den Tab 'Flow' im Editor aktivieren.
 
 2. Schritt: Task erzeugen
 - Den '+'-Button in der Flow-Toolbar betätigen, um einen neuen Task anzulegen.
 - Erwartetes Ergebnis: Ein neuer Task-Knoten erscheint im Diagramm.
-- Testen: In den JSON-Daten (unter 'stages' -> 'Login' -> 'tasks') muss ein Eintrag mit dem Namen 'ANewTask' vorhanden sein.
+- Testen: In den JSON-Daten (unter 'stages' -> 'MainStage' -> 'tasks') muss ein Eintrag mit dem Namen 'ANewTask' vorhanden sein.
 - Testen: Im Task-Dropdown der Stage muss der Eintrag 'ANewTask' wählbar sein.
 
 3. Schritt: Flow Objekt bewegen (Layout)

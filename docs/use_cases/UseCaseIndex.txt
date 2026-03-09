@@ -69,3 +69,34 @@ UC-123: Layout-Fixes & Container-Isolation | main.ts, EditorViewManager.ts, play
 - [2026-03-08] Projekt-Ladefehler beheben (TypeError: setProject):
   - Dateien: EditorDataManager.ts (L153), EditorViewManager.ts (L31)
   - Details: Behebung von TypeError durch Interface-Erweiterung (IViewHost) und robustes Error-Handling in loadProject. Automatisch verifiziert durch Test 74.
+
+- [2026-03-09] UseCase: Eine Action umbenennen (E2E Test):
+  - Dateien: tests/e2e/ActionRenaming.spec.ts (L1-120)
+  - Methoden: FlowEditor.createNode, FlowEditor.syncToProject, InspectorEventHandler.handleControlChange, FlowSyncManager.updateGlobalActionDefinition, EditorStageManager.getTargetActionCollection
+  - Details: Vollständiger E2E-Test für den UseCase "Action Umbenennen via Inspector UI". Test prüft:
+    1. Projekt und VerifyTask anlegen (via Editor-API)
+    2. Action erzeugen und syncToProject
+    3. Inspector-UI Rename: Input ausfüllen, Enter, blur
+    4. Explizites syncToProject() nach Rename
+    5. JSON-Validierung via findActionAnywhere (durchsucht Root, alle Stages, alle FlowCharts)
+    6. Manager-View UI-Verifikation (Manager Liste zeigt neuen Namen)
+  - Lernpunkte: Actions werden in activeStage.actions gespeichert (nicht Root-Level); findActionAnywhere Pattern für robuste Stage-unabhängige Suche eingeführt.
+
+- [2026-03-09] UseCase: Task mit Action verknüpfen (E2E Test):
+  - Dateien: tests/e2e/TaskActionLinking.spec.ts (L1-185)
+  - Methoden: FlowEditor.switchActionFlow, FlowEditor.createNode, FlowEditor.restoreConnection, FlowEditor.syncToProject, FlowSyncManager.syncTaskFromFlow, FlowSyncManager.getTargetFlowCharts, FlowTaskManager.getTargetFlowCharts, FlowElement.toJSON, FlowConnection.toJSON
+  - Details: Vollständiger E2E-Test für den UseCase "Task mit Action verknüpfen via Flow-Editor". Test prüft:
+    1. Projekt erstellen, Task und Action in mainStage.tasks / mainStage.actions ablegen
+    2. switchActionFlow('VerifyTask') aufrufen → erzeugt automatisch Task-Knoten als Startpunkt
+    3. Action-Knoten via createNode erstellen (rechts neben bestehendem Task-Knoten)
+    4. Verbindung via restoreConnection() herstellen: Task(Output) → Action(Input)
+    5. syncToProject() aufrufen → löst syncTaskFromFlow aus
+    6. JSON-Validierung: Connection in flowCharts, VerifyAction in actionSequence (kein Inline-Block)
+    7. Manager-View UI: VerifyAction in Aktions-Liste sichtbar
+  - Lernpunkte:
+    * switchActionFlow() erzeugt automatisch Task-Knoten als Startpunkt via generateFlowFromActionSequence()
+    * KRITISCH: Kein zweites createNode('Task', ...) aufrufen → führt zu zwei Task-Knoten im Canvas
+    * syncTaskFromFlow sucht startNode=elements.find(type==='task'), findet ERSTEN Knoten → zweiter Knoten hat keine Connection
+    * Tasks und Actions gehören in stage.tasks / stage.actions der aktiven Stage (nicht Root-Level project.tasks)
+    * getTargetFlowCharts: priorisiert Stage-Tasks bei activeStage-Kontext
+

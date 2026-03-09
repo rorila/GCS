@@ -1,3 +1,19 @@
+## [3.11.6] - 2026-03-09
+### Added
+- **E2E-Test: Task mit Action verknüpfen** (`tests/e2e/TaskActionLinking.spec.ts`): Vollständiger E2E-Test für den UseCase "Task mit Action verknüpfen" via Flow-Editor API. Testet den gesamten Flow: Projekt erstellen, Task und Action in MainStage ablegen, auto-generierten Task-Knoten wiederverwenden, Action-Knoten erzeugen, Verbindung über `restoreConnection()` herstellen, JSON-Validierung (Connection + actionSequence) und Manager-View UI-Prüfung.
+
+### Fixed
+- **Flow-Editor Knoten-Duplikat-Problem**: `switchActionFlow()` erzeugt automatisch einen Task-Knoten als Startpunkt. Ein zusätzlicher `createNode('Task', ...)` Aufruf im gleichen Kontext erzeugt einen Konflikt. Korrekte Lösung: auto-generierten Knoten per `nodes.find(n => type === 'task')` referenzieren.
+- **Task/Action Speicherort**: Tasks und Actions gehören in `stage.tasks` / `stage.actions` der aktiven Stage (z.B. `mainStage`), nicht in `project.tasks` (Root-Level).
+
+## [3.11.5] - 2026-03-09
+### Added
+- **E2E-Test: Action Umbenennen** (`tests/e2e/ActionRenaming.spec.ts`): Vollständiger E2E-Test für den UseCase "Eine Action umbenennen" via Inspector UI. Testet den gesamten Flow: Projekt erstellen, VerifyTask anlegen, Action erzeugen, per Inspector umbenennen, JSON-Validierung (alle Speicherorte) und Manager-View Prüfung.
+
+### Fixed
+- **Action-Speicherort-Logik**: Test-Assertions robustifiziert, um alle möglichen Action-Speicherorte zu berücksichtigen (Root-Level, alle Stages inkl. Blueprint, alle FlowCharts-Einträge). Actions werden gemäß `getTargetActionCollection`-Logik in `activeStage.actions` gespeichert.
+- **syncToProject nach Rename**: Explizites Aufrufen von `syncToProject()` nach dem Inspector-Rename stellt sicher, dass die Änderung in der Projektstruktur persistiert wird.
+
 ## [3.11.4] - 2026-03-09
 ### Added
 - **Blueprint-Visualisierung**: Service-Objekte (z. B. `StageController`) und globale Variablen sind nun exklusiv in der `blueprint`-Stage sichtbar.

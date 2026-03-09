@@ -1,13 +1,13 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 9.3.2026, 18:08:41
+**Generiert am**: 9.3.2026, 20:10:46
 **Status**: ❌ FEHLER GEFUNDEN
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 77)
+pie title Test-Status (Gesamt: 80)
     "Bestanden ✅" : 76
-    "Fehlgeschlagen ❌" : 1
+    "Fehlgeschlagen ❌" : 4
 ```
 
 ## 🧪 Test-Details
@@ -82,263 +82,25 @@ pie title Test-Status (Gesamt: 77)
 | Multi-Feld-Matching: Erfasst teil-aktualisierte Knoten<br><small>data.taskName=SolidTask, properties.name=SolidTask</small> | Robustness | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Condition-Update: thenTask/elseTask Referenzen<br><small>thenTask=SolidTask</small> | Robustness | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Case-Insensitivity: Erkennt "task" und "TASK"<br><small>lower=New, upper=New2</small> | Robustness | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete)<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON)<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Use Case: Run-Mode & Execution<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Use Case: Stage-Switch-Action (Anforderung 4)<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+| E2E: Kompletter Flow: Erzeugen und Umbenennen einer Action via Inspector UI<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete)<br><small>Browser: chromium - Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
 
-Locator: locator('#debug-log-panel')
-Timeout: 15000ms
-[32m- Expected substring  -   1[39m
-[31m+ Received string     + 118[39m
+Received: [31mfalse[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON)<br><small>Browser: chromium - Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
 
-[32m- TStageController[39m
-[31m+ DEBUG LOG VIEWER✕[39m
-[31m+ [43m            [49m[39m
-[31m+                  Event[39m
-[31m+                  Task[39m
-[31m+                  Action[39m
-[31m+                  Variable[39m
-[31m+                  Condition[39m
-[31m+                  System[39m
-[31m+                  Details[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m            [49m[39m
-[31m+                 All ObjectsButton_12Label_13LocalStoreToasterUserDataassignedPlayerscurrentPINcurrentRoomAdminUserscurrentUsergameQueue🖥️ API Server[39m
-[31m+                 All Events[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m            [49m[39m
-[31m+                 Clear All[39m
-[31m+                 Pause[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m        [49m[39m
-[31m+ [43m             [49m[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m                [49m[39m
-[31m+                     [Variable] 🖥️ API Server.style changed: {"backgroundColor":"#1a1a2e","borderColor":"#4fc3f -> {"backgroundColor":"#1a1a2e","borderColor":"#4fc3f[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m            [49m[39m
-[31m+             06:08:20 PM[39m
-[31m+ [43m        [49m[39m
-[31m+ [43m             [49m[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m                [49m[39m
-[31m+                     [Variable] UserData.style changed: {"backgroundColor":"#2c3e50","borderColor":"#bdc3c -> {"backgroundColor":"#2c3e50","borderColor":"#bdc3c[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m            [49m[39m
-[31m+             06:08:20 PM[39m
-[31m+ [43m        [49m[39m
-[31m+ [43m             [49m[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m                [49m[39m
-[31m+                     [Variable] Toaster.style changed: {"backgroundColor":"transparent","borderColor":"tr -> {"backgroundColor":"transparent","borderColor":"tr[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m            [49m[39m
-[31m+             06:08:20 PM[39m
-[31m+ [43m        [49m[39m
-[31m+ [43m             [49m[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m                [49m[39m
-[31m+                     [Variable] LocalStore.style changed: {"backgroundColor":"#2c3e50","borderColor":"#bdc3c -> {"backgroundColor":"#2c3e50","borderColor":"#bdc3c[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m            [49m[39m
-[31m+             06:08:20 PM[39m
-[31m+ [43m        [49m[39m
-[31m+ [43m             [49m[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m                [49m[39m
-[31m+                     [Variable] currentPIN.style changed: {"backgroundColor":"#2c3e50","borderColor":"#bdc3c -> {"backgroundColor":"#2c3e50","borderColor":"#bdc3c[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m            [49m[39m
-[31m+             06:08:20 PM[39m
-[31m+ [43m        [49m[39m
-[31m+ [43m             [49m[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m                [49m[39m
-[31m+                     [Variable] assignedPlayers.style changed: {"backgroundColor":"#009688","borderColor":"#00796 -> {"backgroundColor":"#009688","borderColor":"#00796[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m            [49m[39m
-[31m+             06:08:20 PM[39m
-[31m+ [43m        [49m[39m
-[31m+ [43m             [49m[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m                [49m[39m
-[31m+                     [Variable] gameQueue.style changed: {"backgroundColor":"#009688","borderColor":"#00796 -> {"backgroundColor":"#009688","borderColor":"#00796[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m            [49m[39m
-[31m+             06:08:20 PM[39m
-[31m+ [43m        [49m[39m
-[31m+ [43m             [49m[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m                [49m[39m
-[31m+                     [Variable] currentUser.style changed: {"backgroundColor":"#d1c4e9","borderColor":"#9575c -> {"backgroundColor":"#d1c4e9","borderColor":"#9575c[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m            [49m[39m
-[31m+             06:08:20 PM[39m
-[31m+ [43m        [49m[39m
-[31m+ [43m             [49m[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m                [49m[39m
-[31m+                     [Variable] currentRoomAdminUsers.style changed: {"backgroundColor":"#d1c4e9","borderColor":"#9575c -> {"backgroundColor":"#d1c4e9","borderColor":"#9575c[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m            [49m[39m
-[31m+             06:08:20 PM[39m
-[31m+ [43m        [49m[39m
-[31m+ [43m             [49m[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m                [49m[39m
-[31m+                     [Variable] Button_12.style changed: {"backgroundColor":"#007bff","borderColor":"#00000 -> {"backgroundColor":"#007bff","borderColor":"#00000[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m            [49m[39m
-[31m+             06:08:20 PM[39m
-[31m+ [43m        [49m[39m
-[31m+ [43m             [49m[39m
-[31m+ [43m            [49m[39m
-[31m+ [43m                [49m[39m
-[31m+                     [Variable] Label_13.style changed: {"backgroundColor":"transparent","borderColor":"tr -> {"backgroundColor":"transparent","borderColor":"tr[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m                [49m[39m
-[31m+ [43m            [49m[39m
-[31m+             06:08:20 PM[39m
-[31m+ [43m        [49m[39m
+Received: [31mfalse[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: Use Case: Run-Mode & Execution<br><small>Browser: chromium - Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
 
-Call log:
-[2m  - Expect "toContainText" with timeout 15000ms[22m
-[2m  - waiting for locator('#debug-log-panel')[22m
-[2m    18 × locator resolved to <div id="debug-log-panel">…</div>[22m
-[2m       - unexpected value "DEBUG LOG VIEWER✕[22m
-[2m            [22m
-[2m                 Event[22m
-[2m                 Task[22m
-[2m                 Action[22m
-[2m                 Variable[22m
-[2m                 Condition[22m
-[2m                 System[22m
-[2m                 Details[22m
-[2m            [22m
-[2m            [22m
-[2m                All ObjectsButton_12Label_13LocalStoreToasterUserDataassignedPlayerscurrentPINcurrentRoomAdminUserscurrentUsergameQueue🖥️ API Server[22m
-[2m                All Events[22m
-[2m            [22m
-[2m            [22m
-[2m                Clear All[22m
-[2m                Pause[22m
-[2m            [22m
-[2m        [22m
-[2m             [22m
-[2m            [22m
-[2m                [22m
-[2m                    [Variable] 🖥️ API Server.style changed: {"backgroundColor":"#1a1a2e","borderColor":"#4fc3f -> {"backgroundColor":"#1a1a2e","borderColor":"#4fc3f[22m
-[2m                [22m
-[2m                [22m
-[2m            [22m
-[2m            06:08:20 PM[22m
-[2m        [22m
-[2m             [22m
-[2m            [22m
-[2m                [22m
-[2m                    [Variable] UserData.style changed: {"backgroundColor":"#2c3e50","borderColor":"#bdc3c -> {"backgroundColor":"#2c3e50","borderColor":"#bdc3c[22m
-[2m                [22m
-[2m                [22m
-[2m            [22m
-[2m            06:08:20 PM[22m
-[2m        [22m
-[2m             [22m
-[2m            [22m
-[2m                [22m
-[2m                    [Variable] Toaster.style changed: {"backgroundColor":"transparent","borderColor":"tr -> {"backgroundColor":"transparent","borderColor":"tr[22m
-[2m                [22m
-[2m                [22m
-[2m            [22m
-[2m            06:08:20 PM[22m
-[2m        [22m
-[2m             [22m
-[2m            [22m
-[2m                [22m
-[2m                    [Variable] LocalStore.style changed: {"backgroundColor":"#2c3e50","borderColor":"#bdc3c -> {"backgroundColor":"#2c3e50","borderColor":"#bdc3c[22m
-[2m                [22m
-[2m                [22m
-[2m            [22m
-[2m            06:08:20 PM[22m
-[2m        [22m
-[2m             [22m
-[2m            [22m
-[2m                [22m
-[2m                    [Variable] currentPIN.style changed: {"backgroundColor":"#2c3e50","borderColor":"#bdc3c -> {"backgroundColor":"#2c3e50","borderColor":"#bdc3c[22m
-[2m                [22m
-[2m                [22m
-[2m            [22m
-[2m            06:08:20 PM[22m
-[2m        [22m
-[2m             [22m
-[2m            [22m
-[2m                [22m
-[2m                    [Variable] assignedPlayers.style changed: {"backgroundColor":"#009688","borderColor":"#00796 -> {"backgroundColor":"#009688","borderColor":"#00796[22m
-[2m                [22m
-[2m                [22m
-[2m            [22m
-[2m            06:08:20 PM[22m
-[2m        [22m
-[2m             [22m
-[2m            [22m
-[2m                [22m
-[2m                    [Variable] gameQueue.style changed: {"backgroundColor":"#009688","borderColor":"#00796 -> {"backgroundColor":"#009688","borderColor":"#00796[22m
-[2m                [22m
-[2m                [22m
-[2m            [22m
-[2m            06:08:20 PM[22m
-[2m        [22m
-[2m             [22m
-[2m            [22m
-[2m                [22m
-[2m                    [Variable] currentUser.style changed: {"backgroundColor":"#d1c4e9","borderColor":"#9575c -> {"backgroundColor":"#d1c4e9","borderColor":"#9575c[22m
-[2m                [22m
-[2m                [22m
-[2m            [22m
-[2m            06:08:20 PM[22m
-[2m        [22m
-[2m             [22m
-[2m            [22m
-[2m                [22m
-[2m                    [Variable] currentRoomAdminUsers.style changed: {"backgroundColor":"#d1c4e9","borderColor":"#9575c -> {"backgroundColor":"#d1c4e9","borderColor":"#9575c[22m
-[2m                [22m
-[2m                [22m
-[2m            [22m
-[2m            06:08:20 PM[22m
-[2m        [22m
-[2m             [22m
-[2m            [22m
-[2m                [22m
-[2m                    [Variable] Button_12.style changed: {"backgroundColor":"#007bff","borderColor":"#00000 -> {"backgroundColor":"#007bff","borderColor":"#00000[22m
-[2m                [22m
-[2m                [22m
-[2m            [22m
-[2m            06:08:20 PM[22m
-[2m        [22m
-[2m             [22m
-[2m            [22m
-[2m                [22m
-[2m                    [Variable] Label_13.style changed: {"backgroundColor":"transparent","borderColor":"tr -> {"backgroundColor":"transparent","borderColor":"tr[22m
-[2m                [22m
-[2m                [22m
-[2m            [22m
-[2m            06:08:20 PM[22m
-[2m        "[22m
-</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+Received: [31mfalse[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: Use Case: Stage-Switch-Action (Anforderung 4)<br><small>Browser: chromium - Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | E2E: sollte den Editor korrekt laden<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: sollte zwischen Views umschalten können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: sollte die Komponenten-Palette in der Toolbox anzeigen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: VerifyTask mit VerifyAction verbinden via Flow-Editor<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Erzeugen, Bewegen und Umbenennen eines Tasks<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 
 ---
 *Hinweis: Dieser Bericht wurde automatisch vom GCS Regression Test Runner erstellt.*
