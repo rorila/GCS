@@ -1,4 +1,17 @@
-﻿- [2026-03-09] Projekt Erstellen Use Case (E2E Test):
+﻿- [2026-03-09] UseCase: Projekt speichern (E2E-Test + Implementation):
+  - Dateien:
+    - src/editor/services/EditorDataManager.ts (saveProjectToFile: L97-211)
+    - src/editor/Editor.ts (saveProjectToFile-Delegation: L467)
+    - src/editor/services/EditorMenuManager.ts (handleMenuAction case 'save': L69, Interface: L17)
+    - tests/e2e/ProjectSaving.spec.ts (L1-190)
+    - src/utils/Serialization.ts (reservedKeys: L457-463)
+  - Methoden:
+    - EditorDataManager.saveProjectToFile(overwriteConfirmed?: boolean): Steps 1-4 des UseCases
+    - Serialization.hydrateObjects: reservedKeys um 'currentStageName' erweitert
+  - Details: 4-Schritte-UseCase implementiert. Bug-Fix: changeVar.defaultValue=false vor JSON.stringify gesetzt.
+    Fix: currentStageName zur reservedKeys-Liste hinzugefügt (nur getter, kein setter).
+    E2E: 3 Tests: Abbruch kein Change, Abbruch Standard-Name, Round-Trip Speicherung. Alle passed (3.1s).
+
   - Dateien: tests/e2e/ProjectCreation.spec.ts (L1-75)
   - Details: Implementierung und Stabilisierung (Debouncing-Timings via waitForTimeout) eines E2E-Tests, der alle 6 Schritte des UseCases "Ein neues Projekt (Spiel) erstellen.txt" abdeckt.
 

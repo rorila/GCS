@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { loadMyCoolGame, saveMyCoolGame } from './helpers/loadMyCoolGame';
 
 /**
  * UseCase: Task mit Action verknüpfen
@@ -25,55 +26,48 @@ test.describe('UseCase: Task mit Action verknüpfen', () => {
         await page.goto('http://localhost:5173/?e2e=true');
         await page.waitForSelector('#app-layout');
 
-        // 1. Vorbereitung: Neues Projekt, Task + Action in MainStage
-        console.log('Test: 1. Vorbereitung (Projekt, MainStage, VerifyTask, VerifyAction)...');
+        // 1. Vorbereitung: MyCoolGame.json laden (enthält VerifyTask + VerifyAction)
+        console.log('Test: 1. Vorbereitung (MyCoolGame.json laden)...');
         await page.waitForFunction(() => (window as any).editor && (window as any).mediatorService);
+        await loadMyCoolGame(page);
+
+        // Flow-Ansicht, VerifyTask-Kontext öffnen
         await page.evaluate(() => {
             const editor = (window as any).editor;
-            editor.newProject();
-
-            const mainStage = editor.project.stages.find((s: any) => s.id === 'main');
-            if (mainStage) mainStage.name = 'MainStage';
-
-            // Task in der MainStage (nicht Root-Level)
-            if (!mainStage.tasks) mainStage.tasks = [];
-            if (!mainStage.tasks.find((t: any) => t.name === 'VerifyTask')) {
-                mainStage.tasks.push({ name: 'VerifyTask', description: '', actionSequence: [], triggerMode: 'local-sync', params: [] });
-            }
-
-            // Action in der MainStage
-            if (!mainStage.actions) mainStage.actions = [];
-            if (!mainStage.actions.find((a: any) => a.name === 'VerifyAction')) {
-                mainStage.actions.push({ name: 'VerifyAction', type: 'action' });
-            }
-
-            // Flow-Ansicht, VerifyTask-Kontext
-            // switchActionFlow erzeugt automatisch einen Task-Knoten als Startpunkt
             editor.switchView('flow');
+            // WICHTIG: Erst 'global' setzen, dann 'VerifyTask'
+            // switchActionFlow() hat einen Guard: 'if (currentFlowContext === context) return'
+            // Falls localStorage noch 'VerifyTask' enthält, würde der Guard greifen
+            // und loadFromProject() würde nicht aufgerufen → keine Nodes auf der Canvas
+            editor.flowEditor.switchActionFlow('global', false, true);
             editor.flowEditor.switchActionFlow('VerifyTask');
         });
 
         await page.waitForSelector('#flow-canvas');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(800);
 
-        // 2. Auto-generierten Task-Knoten finden, Action-Knoten erzeugen, verbinden
-        console.log('Test: 2. Action-Knoten erzeugen und mit bestehendem Task-Knoten verbinden...');
+        // 2. Bestehende Task- und Action-Knoten finden und verbinden
+        console.log('Test: 2. Bestehende Knoten finden und verbinden...');
         const nodeIds = await page.evaluate(() => {
             const editor = (window as any).editor;
             const flowEditor = editor.flowEditor;
 
-            // Den automatisch erzeugten Task-Knoten (Startpunkt) finden
-            // switchActionFlow erzeugt via generateFlowFromActionSequence einen 'task'-Typ-Knoten
-            const existingTaskNode = flowEditor.nodes.find((n: any) => n.getType?.() === 'task');
+            // Den Task-Knoten finden - entweder via getType() oder via Name
+            // (beide Strategien abdecken loadProject-Restore und frische Erstellung)
+            const existingTaskNode = flowEditor.nodes.find((n: any) =>
+                n.getType?.() === 'task' || n.Name === 'VerifyTask'
+            );
             if (!existingTaskNode) {
-                console.error('[E2E] Kein auto-generierter Task-Knoten gefunden!');
+                console.error('[E2E] Kein Task-Knoten gefunden! Nodes:', flowEditor.nodes.map((n: any) => n.Name + ':' + n.getType?.()));
                 return { error: 'no task node' };
             }
 
-            // Action-Knoten erzeugen (rechts neben dem Task-Knoten)
-            const actionNode = flowEditor.createNode('Action', existingTaskNode.X + 250, existingTaskNode.Y, 'VerifyAction');
+            // Den existierenden VerifyAction-Knoten finden (wurde im ActionRenaming-Test umbenannt)
+            const actionNode = flowEditor.nodes.find((n: any) =>
+                n.getType?.() === 'action' || n.Name === 'VerifyAction'
+            );
             if (!actionNode) {
-                console.error('[E2E] createNode für Action schlug fehl!');
+                console.error('[E2E] Kein Action-Knoten gefunden! Nodes:', flowEditor.nodes.map((n: any) => n.Name + ':' + n.getType?.()));
                 return { error: 'no action node' };
             }
 
@@ -165,6 +159,9 @@ test.describe('UseCase: Task mit Action verknüpfen', () => {
         const contentText = await page.locator('.management-content').innerText();
         expect(contentText).toContain('VerifyAction');
 
-        console.log('Test: TaskActionLinking erfolgreich abgeschlossen.');
+        // 5. Projekt speichern für nächste Test-Stufe (ProjectSaving)
+        console.log('Test: 5. Speichern nach Task-Action-Verknüpfung...');
+        await saveMyCoolGame(page);
+        console.log('Test: TaskActionLinking erfolgreich abgeschlossen. MyCoolGame.json aktualisiert.');
     });
 });

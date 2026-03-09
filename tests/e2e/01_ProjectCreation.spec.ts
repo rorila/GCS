@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { saveMyCoolGame } from './helpers/loadMyCoolGame';
 
 test.describe('UseCase: Ein neues Projekt (Spiel) erzeugen', () => {
     test('Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid', async ({ page }) => {
@@ -141,6 +142,9 @@ test.describe('UseCase: Ein neues Projekt (Spiel) erzeugen', () => {
         changeVar = blueprint.variables.find((v: any) => v.name === 'isProjectChangeAvailable');
         expect(changeVar.defaultValue).toBe(true);
 
-        console.log('Test: Completed flow.');
+        // 7. Projekt als MyCoolGame.json speichern (Grundlage für nachfolgende Tests)
+        console.log('Test: 7. Speichern als MyCoolGame.json...');
+        await saveMyCoolGame(page);
+        console.log('Test: MyCoolGame.json erfolgreich gespeichert. Nachfolgende Tests können aufbauen.');
     });
 });

@@ -79,17 +79,17 @@ export class FlowGraphHydrator {
                 }
             }
 
-            if (stageFlowChart) {
+            if (stageFlowChart && stageFlowChart.elements?.length > 0) {
                 sourceData = stageFlowChart;
-            } else if (globalFlowChart) {
+            } else if (globalFlowChart && globalFlowChart.elements?.length > 0) {
                 sourceData = globalFlowChart;
-            } else if (fallbackStageChart) {
+            } else if (fallbackStageChart && fallbackStageChart.elements?.length > 0) {
                 sourceData = fallbackStageChart;
             } else {
                 let task = this.host.getTaskDefinitionByName(this.host.currentFlowContext);
-                if (task?.flowChart) {
+                if (task?.flowChart && task.flowChart.elements?.length > 0) {
                     sourceData = task.flowChart;
-                } else if (task?.flowGraph) {
+                } else if (task?.flowGraph && task.flowGraph.elements?.length > 0) {
                     sourceData = task.flowGraph;
                     const targetCharts = this.host.getTargetFlowCharts(this.host.currentFlowContext);
                     targetCharts[this.host.currentFlowContext] = task.flowGraph;

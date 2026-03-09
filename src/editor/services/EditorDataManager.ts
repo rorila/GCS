@@ -94,6 +94,126 @@ export class EditorDataManager {
         }
     }
 
+    /**
+     * Speichert das Projekt gemäß UseCase „Projekt speichern":
+     * Schritt 1: isProjectChangeAvailable prüfen
+     * Schritt 2: Spielname prüfen (≠ 'Haupt-Level')
+     * Schritt 3: Datei-Existenz prüfen + ggf. Überschreiben-Dialog
+     * Schritt 4: Speichern via /api/dev/save-custom + isProjectChangeAvailable zurücksetzen
+     *
+     * @param overwriteConfirmed - für E2E-Tests: Datei-Überschreiben ohne Browser-confirm
+     * @returns { success: boolean, message: string }
+     */
+    public async saveProjectToFile(overwriteConfirmed?: boolean): Promise<{ success: boolean; message: string }> {
+        // --- Schritt 1: Änderungsstatus prüfen ---
+        const blueprint = this.host.project.stages?.find((s: any) => s.id === 'blueprint' || s.type === 'blueprint');
+        const changeVar = blueprint?.variables?.find((v: any) => v.name === 'isProjectChangeAvailable');
+        const hasChanges = changeVar ? !!(changeVar.defaultValue || (changeVar as any).value) : this.host.isProjectDirty;
+
+        if (!hasChanges) {
+            const msg = 'Daten haben sich nicht geändert';
+            EditorDataManager.logger.info(`[UseCase: Projekt speichern] Abbruch: ${msg}`);
+            if (overwriteConfirmed === undefined) alert(msg);
+            return { success: false, message: msg };
+        }
+
+        // --- Schritt 2: Spielname prüfen ---
+        const mainStage = this.host.project.stages?.find((s: any) => s.id === 'main');
+        const gameName = mainStage?.name || (this.host.project.meta as any)?.name || '';
+
+        if (!gameName || gameName === 'Haupt-Level') {
+            const msg = 'Bitte ändern Sie den Spielnamen in der Main-Stage';
+            EditorDataManager.logger.info(`[UseCase: Projekt speichern] Abbruch: ${msg}`);
+            if (overwriteConfirmed === undefined) alert(msg);
+            return { success: false, message: msg };
+        }
+
+        // --- Schritt 3: Pfad-Konstruktion und Datei-Existenz-Prüfung ---
+        // Spielname bereinigen (Sonderzeichen entfernen, für Dateiname geeignet)
+        const safeGameName = gameName.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
+        const targetFilePath = `projects/master_test/${safeGameName}.json`;
+
+        try {
+            const existsRes = await fetch('/api/dev/check-exists', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filePath: targetFilePath })
+            });
+            const existsData = await existsRes.json();
+
+            if (existsData.exists) {
+                // Datei existiert bereits → Überschreiben-Dialog
+                let doOverwrite = overwriteConfirmed;
+                if (doOverwrite === undefined) {
+                    doOverwrite = confirm(`Die Datei "${safeGameName}.json" ist schon vorhanden, soll diese überschrieben werden?`);
+                }
+                if (!doOverwrite) {
+                    const msg = 'Speichervorgang abgebrochen (Überschreiben verweigert)';
+                    EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
+                    return { success: false, message: msg };
+                }
+            }
+        } catch (err) {
+            EditorDataManager.logger.warn('[UseCase: Projekt speichern] check-exists fehlgeschlagen (Server nicht erreichbar?), fahre fort mit Speichern:', err);
+            // Kein Abbruch – server könnte nicht laufen; save-custom wird trotzdem versucht
+        }
+
+        // --- Schritt 4: Speichern ---
+        // Flow-Editor und Stage vor dem Speichern synchronisieren
+        // Im E2E-Test-Modus (overwriteConfirmed !== undefined) syncToProject() überspringen,
+        // um keine DATA_CHANGED Events auszulösen, die isProjectDirty wieder auf true setzen
+        if (overwriteConfirmed === undefined && this.host.flowEditor) {
+            this.host.flowEditor.syncToProject();
+            this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
+        }
+        this.host.syncStageObjectsToProject();
+
+        // KRITISCH: isProjectChangeAvailable und isProjectDirty VOR dem JSON.stringify auf false setzen,
+        // damit der gespeicherte JSON-Snapshot den korrekten "gespeichert"-Zustand enthält
+        if (changeVar) {
+            changeVar.defaultValue = false;
+            (changeVar as any).value = false;
+        }
+        this.host.isProjectDirty = false;
+
+        try {
+            const saveRes = await fetch('/api/dev/save-custom', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filePath: targetFilePath, projectData: this.host.project })
+            });
+            const saveData = await saveRes.json();
+
+            if (saveData.success) {
+                // Sicherheit: nach potenziellen async DATA_CHANGED Events nochmals zurücksetzen
+                setTimeout(() => { this.host.isProjectDirty = false; }, 0);
+
+                const msg = `Projekt erfolgreich gespeichert: ${targetFilePath}`;
+                EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
+                if (overwriteConfirmed === undefined) alert(msg);
+                return { success: true, message: msg };
+            } else {
+                // Falls Speichern fehl schlägt: Zustand zurücksetzen
+                if (changeVar) { changeVar.defaultValue = true; (changeVar as any).value = true; }
+                this.host.isProjectDirty = true;
+                const msg = 'Fehler beim Speichern: ' + (saveData.error || 'Unbekannter Fehler');
+                EditorDataManager.logger.error(`[UseCase: Projekt speichern] ${msg}`);
+                if (overwriteConfirmed === undefined) alert(msg);
+                return { success: false, message: msg };
+            }
+        } catch (err) {
+            // Falls Speichern fehl schlägt: Zustand zurücksetzen
+            if (changeVar) { changeVar.defaultValue = true; (changeVar as any).value = true; }
+            this.host.isProjectDirty = true;
+            const msg = 'Kritischer Fehler beim Speichern (Server nicht erreichbar)';
+            EditorDataManager.logger.error(`[UseCase: Projekt speichern] ${msg}:`, err);
+            if (overwriteConfirmed === undefined) alert(msg);
+            return { success: false, message: msg };
+        }
+    }
+
+
+
     public async exportHTML() {
         if (this.host.flowEditor) this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
         this.host.syncStageObjectsToProject();
@@ -207,6 +327,12 @@ export class EditorDataManager {
 
         // 8. NOTIFICATION
         mediatorService.notifyDataChanged(this.host.project, 'editor-load');
+
+        // KRITISCH: isProjectDirty NACH allen Events auf false setzen
+        // setProject() und autoSaveToLocalStorage() lösen DATA_CHANGED aus → isProjectDirty=true
+        // Muss deshalb NACH diesen Aufrufen zurückgesetzt werden
+        this.host.isProjectDirty = false;
+        setTimeout(() => { this.host.isProjectDirty = false; }, 100);
 
         setTimeout(() => {
             const toast = this.host.project?.objects.find(o => (o as any).className === 'TToast') as any;

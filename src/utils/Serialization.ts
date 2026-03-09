@@ -458,7 +458,10 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 'className', 'id', 'children', 'Tasks', 'style', // Handled explicitly
                 'shapeType', // Often constructor arg, but safe to re-assign if public
                 '_type', // Private backing field - must go through 'type' setter instead
-                'currentStageId' // Read-only property on TStageController
+                // TStageController: alle computed getter (nur getter, kein setter)
+                'currentStageId', 'currentStageName', 'currentStageType',
+                'currentStageIndex', 'stageCount', 'mainStageId',
+                'isOnMainStage', 'isOnSplashStage'
             ];
 
             // 1. Generic assignment for all primitive properties

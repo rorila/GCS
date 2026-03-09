@@ -14,6 +14,7 @@ export interface EditorMenuHost {
 
     newProject(): void;
     saveProject(): void;
+    saveProjectToFile(overwriteConfirmed?: boolean): Promise<{ success: boolean; message: string }>;
     triggerLoad(): void;
     exportHTML(): void;
     exportHTMLCompressed(): void;
@@ -66,7 +67,8 @@ export class EditorMenuManager {
     public handleMenuAction(action: string) {
         switch (action) {
             case 'new-project': this.host.newProject(); break;
-            case 'save': this.host.saveProject(); break;
+            case 'save': this.host.saveProjectToFile(); break;
+            case 'save-dev': this.host.saveProject(); break;
             case 'load': this.host.triggerLoad(); break;
             case 'export-html': this.host.exportHTML(); break;
             case 'export-html-gzip': this.host.exportHTMLCompressed(); break;

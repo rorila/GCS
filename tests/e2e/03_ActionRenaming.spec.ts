@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { loadMyCoolGame, saveMyCoolGame } from './helpers/loadMyCoolGame';
 
 test.describe('UseCase: Eine Action umbenennen', () => {
     test.describe.configure({ mode: 'serial' });
@@ -8,41 +9,30 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         await page.goto('http://localhost:5173/?e2e=true');
         await page.waitForSelector('#app-layout');
 
-        // 1. Vorbereitung
-        console.log('Test: 1. Vorbereitung (Projekt & VerifyTask)...');
+        // 1. Vorbereitung (MyCoolGame.json laden)
+        console.log('Test: 1. Vorbereitung (MyCoolGame.json laden)...');
         await page.waitForFunction(() => (window as any).editor && (window as any).mediatorService);
+        await loadMyCoolGame(page);
+
+        // In die Flow-Ansicht wechseln und VerifyTask-Flow öffnen
+        // (enthält bereits Task-Startknoten + Action-Knoten 'action' vom TaskRenaming-Test)
         await page.evaluate(() => {
             const editor = (window as any).editor;
-            editor.newProject();
             editor.switchView('flow');
-            editor.flowEditor.taskManager.ensureTaskExists('VerifyTask');
+            editor.flowEditor.switchActionFlow('global', false, true);
             editor.flowEditor.switchActionFlow('VerifyTask');
-
-            // Set dirty state back to false
-            const blueprint = editor.project.stages.find((s: any) => s.id === 'blueprint');
-            const changeVar = blueprint.variables.find((v: any) => v.name === 'isProjectChangeAvailable');
-            if (changeVar) changeVar.defaultValue = false;
         });
 
         await page.waitForSelector('#flow-canvas');
-
-        // 2. Action erzeugen
-        console.log('Test: 2. Action erzeugen...');
-        await page.evaluate(() => {
-            const editor = (window as any).editor;
-            editor.flowEditor.createNode('Action', 300, 200, 'action');
-            editor.flowEditor.syncToProject();
-        });
-
         await page.waitForTimeout(500);
 
-        // 3. Action umbenennen (via UI Interaktion)
-        console.log('Test: 3. Action umbenennen via Inspector UI...');
+        // 2. Action umbenennen (via UI Interaktion)
+        console.log('Test: 2. Action umbenennen via Inspector UI...');
 
-        // 3.1 Knoten auswählen
-        await page.locator('.flow-node', { hasText: 'action' }).click();
+        // 2.1 Knoten auswählen (.first() da nach loadMyCoolGame mehrere Nodes existieren können)
+        await page.locator('.flow-node', { hasText: 'action' }).first().click();
 
-        // 3.2 Im Inspector tippen
+        // 2.2 Im Inspector tippen
         // Der NameInput sollte nach Selektion existieren
         const nameInput = page.locator('input[name="NameInput"]');
         await expect(nameInput).toBeVisible();
@@ -52,7 +42,7 @@ test.describe('UseCase: Eine Action umbenennen', () => {
 
         await page.waitForTimeout(500);
 
-        // Explizit syncToProject auslösen, um sicherzustellen dass die Änderung persistiert wurde
+        // Explizit syncToProject auslösen
         await page.evaluate(() => {
             const editor = (window as any).editor;
             editor.flowEditor.syncToProject();
@@ -60,8 +50,8 @@ test.describe('UseCase: Eine Action umbenennen', () => {
 
         await page.waitForTimeout(300);
 
-        // 4. Validierung der Änderungen (JSON)
-        console.log('Test: 4. Validierung der Änderungen (JSON)...');
+        // 3. Validierung der Änderungen (JSON)
+        console.log('Test: 3. Validierung der Änderungen (JSON)...');
         const projectData = await page.evaluate(() => (window as any).editor.project);
 
         // Dirty-Check
@@ -114,8 +104,8 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         expect(newActionFound).toBeTruthy();
         expect(oldActionFound).toBeFalsy();
 
-        // 5. Validierung im Manager View (UI)
-        console.log('Test: 5. Check Manager Liste auf UI-Ebene...');
+        // 4. Validierung im Manager View (UI)
+        console.log('Test: 4. Check Manager Liste auf UI-Ebene...');
         await page.locator('.tab-btn[data-view="management"]').click();
         await page.waitForSelector('.management-sidebar');
 
@@ -126,6 +116,9 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         expect(contentText).toContain('VerifyAction');
         expect(contentText).not.toContain('action');
 
-        console.log('Test: Flow ActionRenaming erfolgreich abgeschlossen.');
+        // 5. Projekt speichern für nächste Test-Stufe
+        console.log('Test: 5. Speichern nach Action-Umbenennung...');
+        await saveMyCoolGame(page);
+        console.log('Test: Flow ActionRenaming erfolgreich abgeschlossen. MyCoolGame.json aktualisiert.');
     });
 });

@@ -25,6 +25,9 @@
 
 ## DO NOT
 - **Expert-Wizard Prompts**: Prompts unterstützen Platzhalter in geschweiften Klammern (z.B. `"Wert für {target}.{property}?"`). Diese werden automatisch durch bereits gesammelte Werte aus der Session ersetzt.
+- **Serialization reservedKeys**: Wenn neue Komponenten Read-Only Properties (nur `get`, kein `set`) einführen, MUSS der Property-Name zur `reservedKeys`-Liste in `Serialization.ts` hinzugefügt werden. Anderenfalls schmeisst die `hydrateObjects`-Funktion einen `TypeError: Cannot set property ... which has only a getter` beim Laden. Bekannte Beispiele: `currentStageId`, `currentStageName`, `currentStageType`, `currentStageIndex`, `stageCount`, `mainStageId`, `isOnMainStage`, `isOnSplashStage`.
+- **saveProjectToFile – Reihenfolge**: `isProjectChangeAvailable.defaultValue` und `isProjectDirty` müssen VOR dem `JSON.stringify`-Aufruf zurückgesetzt werden, damit der gespeicherte Snapshot den korrekten Zustand enthält.
+- **loadProject – isProjectDirty**: `isProjectDirty=false` muss NACH `setProject()` und `notifyDataChanged()` gesetzt werden (synchron + `setTimeout(100)`), da diese Aufrufe `DATA_CHANGED` auslösen und `isProjectDirty` wieder auf `true` setzen.
 
 ## Fachliche Dokumentation
 Ausführliche Details findest du in den spezialisierten Dokumenten:
