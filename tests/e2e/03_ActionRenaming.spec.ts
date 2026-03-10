@@ -14,13 +14,13 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         await page.waitForFunction(() => (window as any).editor && (window as any).mediatorService);
         await loadMyCoolGame(page);
 
-        // In die Flow-Ansicht wechseln und VerifyTask-Flow öffnen
+        // In die Flow-Ansicht wechseln und SwitchToTheHighscoreStage-Flow öffnen
         // (enthält bereits Task-Startknoten + Action-Knoten 'action' vom TaskRenaming-Test)
         await page.evaluate(() => {
             const editor = (window as any).editor;
             editor.switchView('flow');
             editor.flowEditor.switchActionFlow('global', false, true);
-            editor.flowEditor.switchActionFlow('VerifyTask');
+            editor.flowEditor.switchActionFlow('SwitchToTheHighscoreStage');
         });
 
         await page.waitForSelector('#flow-canvas');
@@ -36,7 +36,7 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         // Der NameInput sollte nach Selektion existieren
         const nameInput = page.locator('input[name="NameInput"]');
         await expect(nameInput).toBeVisible();
-        await nameInput.fill('VerifyAction');
+        await nameInput.fill('ShowTheHighscoreStage');
         await nameInput.press('Enter'); // Trigger onchange
         await nameInput.blur();
 
@@ -96,10 +96,10 @@ test.describe('UseCase: Eine Action umbenennen', () => {
             return false;
         };
 
-        const newActionFound = findActionAnywhere(projectData, 'VerifyAction');
+        const newActionFound = findActionAnywhere(projectData, 'ShowTheHighscoreStage');
         const oldActionFound = findActionAnywhere(projectData, 'action');
 
-        console.log(`Test: VerifyAction gefunden: ${newActionFound}, 'action' noch vorhanden: ${oldActionFound}`);
+        console.log(`Test: ShowTheHighscoreStage gefunden: ${newActionFound}, 'action' noch vorhanden: ${oldActionFound}`);
 
         expect(newActionFound).toBeTruthy();
         expect(oldActionFound).toBeFalsy();
@@ -113,7 +113,7 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         await page.waitForTimeout(300);
 
         const contentText = await page.locator('.management-content').innerText();
-        expect(contentText).toContain('VerifyAction');
+        expect(contentText).toContain('ShowTheHighscoreStage');
         expect(contentText).not.toContain('action');
 
         // 5. Projekt speichern für nächste Test-Stufe

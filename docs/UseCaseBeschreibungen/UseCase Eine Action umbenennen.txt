@@ -1,7 +1,7 @@
 -- UseCase: Eine Action umbenennen
 - Sichergehen, dass man sich in der Stage: MainStage befindet, wenn das nicht der Fall ist: über das Menü (Stages) die Stage: MainStage auswählen.
 - Tab: Flow auswählen
-- Sichergehen, dass man sich in dem Task: VerifyTask befindet, wenn das nicht der Fall ist: über das DropDown den Task: VerifyTask auswählen
+- Sichergehen, dass man sich in dem Task: SwitchToTheHighscoreStage befindet, wenn das nicht der Fall ist: über das DropDown den Task: SwitchToTheHighscoreStage auswählen
 
 -- UseCase: Action erzeugen
 - von der Toolbox ein Action auf das Flowdiagramm ziehen
@@ -10,9 +10,9 @@
 
 -- UseCase: Action umbenennen
 - Action muss markiert werden.  Properties im Inspector ausgewählt sein
-- Action im Inspector umbenennen: von action nach VerifyAction
+- Action im Inspector umbenennen: von action nach ShowTheHighscoreStage
 
 - Testen: Die globale Variable in der Blueprint-Stage 'isProjectChangeAvailable' muss nun 'true' sein.
 
-- Testen ob der Actionname in den JSON-Daten geändert hat.(Name: VerifyAction). Die Action mit dem Namen: action darf nicht mehr vorhanden sein.
-- Testen ob der Actionname in den Manager-Daten (Tasks) geändert hat.(Name: VerifyAction). Die Action mit dem Namen: action darf nicht mehr vorhanden sein.
+- Testen ob der Actionname in den JSON-Daten geändert hat.(Name: ShowTheHighscoreStage). Die Action mit dem Namen: action darf nicht mehr vorhanden sein.
+- Testen ob der Actionname in den Manager-Daten (Tasks) geändert hat.(Name: ShowTheHighscoreStage). Die Action mit dem Namen: action darf nicht mehr vorhanden sein.

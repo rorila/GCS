@@ -35,7 +35,7 @@ test.describe('UseCase: Ein Task umbenennen', () => {
         console.log('Test: 3. Task umbenennen (Inspector Simulation)...');
         await page.evaluate(() => {
             const mediator = (window as any).mediatorService;
-            mediator.renameTask('global', 'ANewTask', 'VerifyTask');
+            mediator.renameTask('global', 'ANewTask', 'SwitchToTheHighscoreStage');
         });
 
         await page.waitForTimeout(500);
@@ -52,7 +52,7 @@ test.describe('UseCase: Ein Task umbenennen', () => {
                 }
                 return false;
             };
-            return { oldFound: findTask('ANewTask'), newFound: findTask('VerifyTask') };
+            return { oldFound: findTask('ANewTask'), newFound: findTask('SwitchToTheHighscoreStage') };
         });
 
         expect(taskSearch.oldFound).toBe(false);
@@ -69,24 +69,24 @@ test.describe('UseCase: Ein Task umbenennen', () => {
         await page.locator('.management-sidebar-btn', { hasText: 'Tasks' }).click();
         await page.waitForTimeout(300); // Warten auf Re-Rendering
 
-        // Validieren, dass VerifyTask dargestellt wird und ANewTask weg ist
+        // Validieren, dass SwitchToTheHighscoreStage dargestellt wird und ANewTask weg ist
         const contentText = await page.locator('.management-content').innerText();
-        expect(contentText).toContain('VerifyTask');
+        expect(contentText).toContain('SwitchToTheHighscoreStage');
         expect(contentText).not.toContain('ANewTask');
 
-        // 6. VerifyTask-Flow öffnen und Action auf Canvas ziehen
+        // 6. SwitchToTheHighscoreStage-Flow öffnen und Action auf Canvas ziehen
         // (simuliert den echten User-Workflow: Action aus Toolbox auf Flow-Canvas ziehen)
-        console.log('Test: 6. VerifyTask-Flow öffnen und Action auf Canvas ziehen...');
+        console.log('Test: 6. SwitchToTheHighscoreStage-Flow öffnen und Action auf Canvas ziehen...');
         await page.locator('.tab-btn[data-view="flow"]').click();
         await page.waitForSelector('#flow-canvas');
 
-        // VerifyTask-Flow öffnen (FlowGraphHydrator erkennt leere flowCharts
+        // SwitchToTheHighscoreStage-Flow öffnen (FlowGraphHydrator erkennt leere flowCharts
         // und generiert den Task-Startknoten via generateFlowFromActionSequence)
         await page.evaluate(() => {
             const editor = (window as any).editor;
-            // Guard-Umgehung: erst 'global', dann 'VerifyTask'
+            // Guard-Umgehung: erst 'global', dann 'SwitchToTheHighscoreStage'
             editor.flowEditor.switchActionFlow('global', false, true);
-            editor.flowEditor.switchActionFlow('VerifyTask');
+            editor.flowEditor.switchActionFlow('SwitchToTheHighscoreStage');
         });
         await page.waitForTimeout(500);
 
@@ -102,7 +102,7 @@ test.describe('UseCase: Ein Task umbenennen', () => {
         const flowNodeCount = await page.evaluate(() => {
             return (window as any).editor.flowEditor.nodes.length;
         });
-        console.log(`Test: Flow-Knoten im VerifyTask-Diagramm: ${flowNodeCount}`);
+        console.log(`Test: Flow-Knoten im SwitchToTheHighscoreStage-Diagramm: ${flowNodeCount}`);
         expect(flowNodeCount).toBeGreaterThanOrEqual(2); // Task-Start + Action
 
         // 7. Projekt speichern für nächste Test-Stufe

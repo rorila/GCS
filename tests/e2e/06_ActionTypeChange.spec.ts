@@ -7,8 +7,8 @@ import { loadMyCoolGame, saveMyCoolGame } from './helpers/loadMyCoolGame';
  * User-Workflow:
  * 1. MyCoolGame.json laden
  * 2. Tab: Flow auswählen
- * 3. Im Flow-Dropdown den Task: VerifyTask auswählen
- * 4. Im Flowdiagramm die Action: VerifyAction anklicken
+ * 3. Im Flow-Dropdown den Task: SwitchToTheHighscoreStage auswählen
+ * 4. Im Flowdiagramm die Action: ShowTheHighscoreStage anklicken
  * 5. Im Inspector den Action-Typ (ActionTypeSelect) auf 'navigate_stage' ändern
  * 6. Im Inspector die Ziel-Stage (stageId) auf HighscoreStage setzen
  * 7. Speichern
@@ -16,7 +16,7 @@ import { loadMyCoolGame, saveMyCoolGame } from './helpers/loadMyCoolGame';
 test.describe('UseCase: Action Typ ändern', () => {
     test.describe.configure({ mode: 'serial' });
 
-    test('Kompletter Flow: VerifyAction auf navigate_stage setzen und HighscoreStage als Ziel', async ({ page }) => {
+    test('Kompletter Flow: ShowTheHighscoreStage auf navigate_stage setzen und HighscoreStage als Ziel', async ({ page }) => {
         await page.goto('http://localhost:5173/?e2e=true');
         await page.waitForSelector('#app-layout');
 
@@ -27,20 +27,20 @@ test.describe('UseCase: Action Typ ändern', () => {
 
         // 2. Zum Flow-Tab wechseln (User klickt auf den Tab "Flow")
         console.log('Test: 2. Flow-Tab auswählen...');
-        // User wählt im Flow-Dropdown "VerifyTask" (simuliert via switchActionFlow wie in Test 04)
+        // User wählt im Flow-Dropdown "SwitchToTheHighscoreStage" (simuliert via switchActionFlow wie in Test 04)
         await page.evaluate(() => {
             const editor = (window as any).editor;
             editor.switchView('flow');
-            // WICHTIG: Erst 'global' setzen, dann 'VerifyTask' (Guard-Bypass)
+            // WICHTIG: Erst 'global' setzen, dann 'SwitchToTheHighscoreStage' (Guard-Bypass)
             editor.flowEditor.switchActionFlow('global', false, true);
-            editor.flowEditor.switchActionFlow('VerifyTask');
+            editor.flowEditor.switchActionFlow('SwitchToTheHighscoreStage');
         });
         await page.waitForSelector('#flow-canvas');
         await page.waitForTimeout(800);
 
-        // 4. VerifyAction-Knoten im Flowdiagramm anklicken (User klickt auf den Knoten)
-        console.log('Test: 4. VerifyAction im Flow anklicken...');
-        const actionNode = page.locator('.flow-node:has-text("VerifyAction")').first();
+        // 4. ShowTheHighscoreStage-Knoten im Flowdiagramm anklicken (User klickt auf den Knoten)
+        console.log('Test: 4. ShowTheHighscoreStage im Flow anklicken...');
+        const actionNode = page.locator('.flow-node:has-text("ShowTheHighscoreStage")').first();
         await expect(actionNode).toBeVisible({ timeout: 5000 });
         await actionNode.click();
         await page.waitForTimeout(500);
@@ -82,10 +82,10 @@ test.describe('UseCase: Action Typ ändern', () => {
                 }
                 return p.actions?.find((a: any) => a.name === name);
             };
-            const a = findAction('VerifyAction');
+            const a = findAction('ShowTheHighscoreStage');
             return a ? { name: a.name, type: a.type, stageId: a.stageId } : null;
         });
-        console.log(`Test: VerifyAction: ${JSON.stringify(actionData)}`);
+        console.log(`Test: ShowTheHighscoreStage: ${JSON.stringify(actionData)}`);
 
         // 8. Projekt speichern
         console.log('Test: 8. Speichern...');

@@ -6,41 +6,41 @@ import { loadMyCoolGame, saveMyCoolGame } from './helpers/loadMyCoolGame';
  *
  * Vorbedingungen:
  * - Stage: MainStage (id='main')
- * - Task "VerifyTask" in mainStage.tasks
- * - Action "VerifyAction" in mainStage.actions
+ * - Task "SwitchToTheHighscoreStage" in mainStage.tasks
+ * - Action "ShowTheHighscoreStage" in mainStage.actions
  *
  * Schritte:
- * 1. VerifyTask-Flow öffnen (switchActionFlow erzeugt automatisch einen Task-Knoten als Startpunkt)
- * 2. Action-Knoten "VerifyAction" im Flow erzeugen
+ * 1. SwitchToTheHighscoreStage-Flow öffnen (switchActionFlow erzeugt automatisch einen Task-Knoten als Startpunkt)
+ * 2. Action-Knoten "ShowTheHighscoreStage" im Flow erzeugen
  * 3. Verbindung vom auto-generierten Task-Knoten (Output-Anker)
  *    zum Action-Knoten (Input-Anker) herstellen
  * 4. JSON-Validierung:
  *    - Connection in flowCharts vorhanden
- *    - VerifyAction in actionSequence des VerifyTask (kein Inline-Block)
- * 5. Manager-View: VerifyAction in Aktions-Liste
+ *    - ShowTheHighscoreStage in actionSequence des SwitchToTheHighscoreStage (kein Inline-Block)
+ * 5. Manager-View: ShowTheHighscoreStage in Aktions-Liste
  */
 test.describe('UseCase: Task mit Action verknüpfen', () => {
     test.describe.configure({ mode: 'serial' });
 
-    test('Kompletter Flow: VerifyTask mit VerifyAction verbinden via Flow-Editor', async ({ page }) => {
+    test('Kompletter Flow: SwitchToTheHighscoreStage mit ShowTheHighscoreStage verbinden via Flow-Editor', async ({ page }) => {
         await page.goto('http://localhost:5173/?e2e=true');
         await page.waitForSelector('#app-layout');
 
-        // 1. Vorbereitung: MyCoolGame.json laden (enthält VerifyTask + VerifyAction)
+        // 1. Vorbereitung: MyCoolGame.json laden (enthält SwitchToTheHighscoreStage + ShowTheHighscoreStage)
         console.log('Test: 1. Vorbereitung (MyCoolGame.json laden)...');
         await page.waitForFunction(() => (window as any).editor && (window as any).mediatorService);
         await loadMyCoolGame(page);
 
-        // Flow-Ansicht, VerifyTask-Kontext öffnen
+        // Flow-Ansicht, SwitchToTheHighscoreStage-Kontext öffnen
         await page.evaluate(() => {
             const editor = (window as any).editor;
             editor.switchView('flow');
-            // WICHTIG: Erst 'global' setzen, dann 'VerifyTask'
+            // WICHTIG: Erst 'global' setzen, dann 'SwitchToTheHighscoreStage'
             // switchActionFlow() hat einen Guard: 'if (currentFlowContext === context) return'
-            // Falls localStorage noch 'VerifyTask' enthält, würde der Guard greifen
+            // Falls localStorage noch 'SwitchToTheHighscoreStage' enthält, würde der Guard greifen
             // und loadFromProject() würde nicht aufgerufen → keine Nodes auf der Canvas
             editor.flowEditor.switchActionFlow('global', false, true);
-            editor.flowEditor.switchActionFlow('VerifyTask');
+            editor.flowEditor.switchActionFlow('SwitchToTheHighscoreStage');
         });
 
         await page.waitForSelector('#flow-canvas');
@@ -55,16 +55,16 @@ test.describe('UseCase: Task mit Action verknüpfen', () => {
             // Den Task-Knoten finden - entweder via getType() oder via Name
             // (beide Strategien abdecken loadProject-Restore und frische Erstellung)
             const existingTaskNode = flowEditor.nodes.find((n: any) =>
-                n.getType?.() === 'task' || n.Name === 'VerifyTask'
+                n.getType?.() === 'task' || n.Name === 'SwitchToTheHighscoreStage'
             );
             if (!existingTaskNode) {
                 console.error('[E2E] Kein Task-Knoten gefunden! Nodes:', flowEditor.nodes.map((n: any) => n.Name + ':' + n.getType?.()));
                 return { error: 'no task node' };
             }
 
-            // Den existierenden VerifyAction-Knoten finden (wurde im ActionRenaming-Test umbenannt)
+            // Den existierenden ShowTheHighscoreStage-Knoten finden (wurde im ActionRenaming-Test umbenannt)
             const actionNode = flowEditor.nodes.find((n: any) =>
-                n.getType?.() === 'action' || n.Name === 'VerifyAction'
+                n.getType?.() === 'action' || n.Name === 'ShowTheHighscoreStage'
             );
             if (!actionNode) {
                 console.error('[E2E] Kein Action-Knoten gefunden! Nodes:', flowEditor.nodes.map((n: any) => n.Name + ':' + n.getType?.()));
@@ -89,7 +89,7 @@ test.describe('UseCase: Task mit Action verknüpfen', () => {
 
             // Sofort-Check der Sequenz nach syncToProject
             const mainStage = editor.project.stages.find((s: any) => s.id === 'main');
-            const task = (mainStage?.tasks || []).find((t: any) => t.name === 'VerifyTask');
+            const task = (mainStage?.tasks || []).find((t: any) => t.name === 'SwitchToTheHighscoreStage');
             console.log(`[E2E] Nach syncToProject: seqLen=${task?.actionSequence?.length}, seq=${JSON.stringify(task?.actionSequence)}`);
 
             return {
@@ -116,9 +116,9 @@ test.describe('UseCase: Task mit Action verknüpfen', () => {
                 return null;
             };
 
-            const task = findTask('VerifyTask');
+            const task = findTask('SwitchToTheHighscoreStage');
             const seq: any[] = task?.actionSequence || [];
-            const actionEntry = seq.find((item: any) => item.name === 'VerifyAction');
+            const actionEntry = seq.find((item: any) => item.name === 'ShowTheHighscoreStage');
             const isInline = actionEntry ? !!(actionEntry.body || actionEntry.steps || actionEntry.inline) : false;
 
             let connFound = false;
@@ -144,7 +144,7 @@ test.describe('UseCase: Task mit Action verknüpfen', () => {
 
         // 3a. Verbindung im FlowChart vorhanden
         expect(result.connFound).toBeTruthy();
-        // 3b. VerifyAction in actionSequence
+        // 3b. ShowTheHighscoreStage in actionSequence
         expect(result.actionInSequence).toBeTruthy();
         // 3c. Kein Inline-Block
         expect(result.isInline).toBeFalsy();
@@ -157,7 +157,7 @@ test.describe('UseCase: Task mit Action verknüpfen', () => {
         await page.waitForTimeout(300);
 
         const contentText = await page.locator('.management-content').innerText();
-        expect(contentText).toContain('VerifyAction');
+        expect(contentText).toContain('ShowTheHighscoreStage');
 
         // 5. Projekt speichern für nächste Test-Stufe (ProjectSaving)
         console.log('Test: 5. Speichern nach Task-Action-Verknüpfung...');

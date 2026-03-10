@@ -19,11 +19,11 @@ Bemerkungen: Der User beabsichtigt einen neuen Task zu erstellen, visuell anzuor
 4. Schritt: Task umbenennen
 - Den Task-Knoten 'ANewTask' im Flow-Editor markieren.
 - Im Inspector den Bereich 'Properties' auswählen.
-- Den Namen von 'ANewTask' nach 'VerifyTask' ändern.
+- Den Namen von 'ANewTask' nach 'SwitchToTheHighscoreStage' ändern.
 
 5. Schritt: Validierung der Änderungen
 - Testen: Die globale Variable in der Blueprint-Stage 'isProjectChangeAvailable' muss nun auf 'true' stehen.
-- Testen: Im Task-Dropdown muss nun 'VerifyTask' stehen. Der Name 'ANewTask' darf nicht mehr existieren.
-- Testen: In den JSON-Daten muss der Task nun unter dem Namen 'VerifyTask' gelistet sein.
-- Testen: In der Manager-Liste (Tab 'Management' -> 'Tasks') muss der Name konsistent auf 'VerifyTask' aktualisiert sein.
+- Testen: Im Task-Dropdown muss nun 'SwitchToTheHighscoreStage' stehen. Der Name 'ANewTask' darf nicht mehr existieren.
+- Testen: In den JSON-Daten muss der Task nun unter dem Namen 'SwitchToTheHighscoreStage' gelistet sein.
+- Testen: In der Manager-Liste (Tab 'Management' -> 'Tasks') muss der Name konsistent auf 'SwitchToTheHighscoreStage' aktualisiert sein.
 - Testen: Falls bereits Actions mit diesem Task verknüpft waren, müssen diese Verknüpfungen erhalten bleiben (Refactoring-Check).

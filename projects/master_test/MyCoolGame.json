@@ -34,11 +34,11 @@
   "actions": [],
   "tasks": [
     {
-      "name": "VerifyTask",
+      "name": "SwitchToTheHighscoreStage",
       "description": "",
       "actionSequence": [
         {
-          "name": "VerifyAction",
+          "name": "ShowTheHighscoreStage",
           "type": "action"
         }
       ],
@@ -47,37 +47,37 @@
       "flowChart": {
         "elements": [
           {
-            "id": "root_task_1773097825471",
+            "id": "root_task_1773126837638",
             "type": "task",
             "x": 400,
             "y": 60,
-            "width": 140,
+            "width": 260,
             "height": 60,
             "properties": {
-              "name": "VerifyTask",
+              "name": "SwitchToTheHighscoreStage",
               "details": "",
               "description": "",
-              "text": "VerifyTask"
+              "text": "SwitchToTheHighscoreStage"
             },
             "data": {
-              "taskName": "VerifyTask",
+              "taskName": "SwitchToTheHighscoreStage",
               "showDetails": false
             }
           },
           {
-            "id": "node-1773097825986",
+            "id": "node-1773126838153",
             "type": "action",
             "x": 500,
             "y": 200,
-            "width": 140,
+            "width": 240,
             "height": 60,
             "properties": {
-              "name": "VerifyAction",
+              "name": "ShowTheHighscoreStage",
               "details": "",
               "description": ""
             },
             "data": {
-              "name": "VerifyAction",
+              "name": "ShowTheHighscoreStage",
               "type": "property",
               "isLinked": true,
               "showDetails": false
@@ -91,8 +91,8 @@
             "startY": 90,
             "endX": 500,
             "endY": 230,
-            "startTargetId": "root_task_1773097825471",
-            "endTargetId": "node-1773097825986",
+            "startTargetId": "root_task_1773126837638",
+            "endTargetId": "node-1773126838153",
             "data": {
               "startAnchorType": "output",
               "endAnchorType": "input"
@@ -190,7 +190,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1773097840361_k5jrxutip",
+          "id": "obj_1773126852577_6te65ecdu",
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
@@ -223,11 +223,11 @@
       ],
       "actions": [
         {
-          "name": "VerifyAction",
+          "name": "ShowTheHighscoreStage",
           "details": "",
           "type": "navigate_stage",
           "showDetails": false,
-          "stageId": "stage-1773097832761"
+          "stageId": "stage-1773126844909"
         }
       ],
       "tasks": [],
@@ -243,7 +243,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1773097832761",
+      "id": "stage-1773126844909",
       "name": "HighscoreStage",
       "type": "standard",
       "objects": [],
