@@ -16,6 +16,10 @@ export interface ComponentStyle {
     fontFamily?: string;
     borderRadius?: number;
     opacity?: number;
+    boxShadow?: string;
+    glowColor?: string;
+    glowBlur?: number;
+    glowSpread?: number;
 }
 
 export class TWindow extends TComponent {
@@ -156,7 +160,11 @@ export class TWindow extends TComponent {
             { name: 'style.borderColor', label: 'Rahmenfarbe', type: 'color', group: 'STIL' },
             { name: 'style.borderWidth', label: 'Rahmenbreite', type: 'number', group: 'STIL', min: 0, step: 1 },
             { name: 'style.borderRadius', label: 'Abrundung', type: 'number', group: 'STIL', min: 0, step: 1 },
-            { name: 'style.opacity', label: 'Deckkraft', type: 'number', group: 'STIL', min: 0, max: 1, step: 0.1 }
+            { name: 'style.opacity', label: 'Deckkraft', type: 'number', group: 'STIL', min: 0, max: 1, step: 0.1 },
+            { name: 'style.glowColor', label: 'Glow Farbe', type: 'color', group: 'GLOW-EFFEKT' },
+            { name: 'style.glowBlur', label: 'Glow Unschärfe', type: 'number', group: 'GLOW-EFFEKT', min: 0, max: 100, step: 1 },
+            { name: 'style.glowSpread', label: 'Glow Ausbreitung', type: 'number', group: 'GLOW-EFFEKT', min: 0, max: 50, step: 1 },
+            { name: 'style.boxShadow', label: 'Box-Shadow (CSS)', type: 'string', group: 'GLOW-EFFEKT' }
         ];
     }
 }

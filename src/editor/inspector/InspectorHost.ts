@@ -503,6 +503,28 @@ export class InspectorHost {
             InspectorHost.logger.debug(`resolveValue("${expr}") -> "${result}"`);
         }
 
+        // BUGFIX: Wenn das Ergebnis selbst ein ${...}-Template ist (z.B. ein Binding-Wert
+        // wie "${currentUser.name}"), darf es NICHT erneut aufgelöst werden. Wir geben
+        // den Rohwert als display-String zurück.
+        // Dies verhindert die doppelte Template-Auflösung, die Binding-Werte zerstört.
+        if (typeof result === 'string' && result.includes('${') && result !== expr) {
+            InspectorHost.logger.debug(`resolveValue: Binding-Wert erkannt, Rohwert bewahrt: "${result}"`);
+            return result;
+        }
+
+        // Wenn result leer/undefined ist aber der Ausdruck selectedObject.X enthielt,
+        // prüfe ob der Rohwert selbst ein Template war
+        if ((result === '' || result === undefined) && expr.includes('selectedObject.')) {
+            const propMatch = expr.match(/\$\{selectedObject\.(\w+)\}/);
+            if (propMatch) {
+                const rawVal = PropertyHelper.getPropertyValue(obj, propMatch[1]);
+                if (typeof rawVal === 'string' && rawVal.includes('${')) {
+                    InspectorHost.logger.debug(`resolveValue: Rohwert aus Objekt bewahrt: "${rawVal}"`);
+                    return rawVal;
+                }
+            }
+        }
+
         return result;
     }
 

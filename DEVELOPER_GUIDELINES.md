@@ -28,6 +28,9 @@
 - **Serialization reservedKeys**: Wenn neue Komponenten Read-Only Properties (nur `get`, kein `set`) einführen, MUSS der Property-Name zur `reservedKeys`-Liste in `Serialization.ts` hinzugefügt werden. Anderenfalls schmeisst die `hydrateObjects`-Funktion einen `TypeError: Cannot set property ... which has only a getter` beim Laden. Bekannte Beispiele: `currentStageId`, `currentStageName`, `currentStageType`, `currentStageIndex`, `stageCount`, `mainStageId`, `isOnMainStage`, `isOnSplashStage`.
 - **saveProjectToFile – Reihenfolge**: `isProjectChangeAvailable.defaultValue` und `isProjectDirty` müssen VOR dem `JSON.stringify`-Aufruf zurückgesetzt werden, damit der gespeicherte Snapshot den korrekten Zustand enthält.
 - **loadProject – isProjectDirty**: `isProjectDirty=false` muss NACH `setProject()` und `notifyDataChanged()` gesetzt werden (synchron + `setTimeout(100)`), da diese Aufrufe `DATA_CHANGED` auslösen und `isProjectDirty` wieder auf `true` setzen.
+- **Inspector resolveValue – Doppelte Template-Auflösung**: Wenn `resolveValue()` einen Wert auflöst, der selbst `${...}`-Templates enthält (z.B. Binding-Variablen wie `${currentUser.name}`), darf das Ergebnis NICHT erneut durch den Template-Parser geschickt werden. Siehe Bugfix in `InspectorHost.resolveValue()`.
+- **Inspector Variable Picker**: Für Variablen-Auswahl im Inspector immer `VariablePickerDialog.show()` verwenden (nicht `prompt()`). Der Dialog ist in `src/editor/inspector/VariablePickerDialog.ts`.
+- **isProjectDirty – Originator prüfen**: In `EditorViewManager.initMediator` wird `isProjectDirty = true` NUR bei echten User-Änderungen gesetzt. Events mit Originator `'editor-load'` oder `'autosave'` werden ignoriert. Wenn neue `notifyDataChanged()`-Aufrufe hinzugefügt werden, MUSS ein sinnvoller Originator übergeben werden.
 
 ## Fachliche Dokumentation
 Ausführliche Details findest du in den spezialisierten Dokumenten:

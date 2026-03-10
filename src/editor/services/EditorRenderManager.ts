@@ -239,7 +239,7 @@ export class EditorRenderManager {
             this.refreshPascalView();
         }
 
-        if (this.host.inspector && this.host.currentSelectedId) {
+        if (this.host.inspector && this.host.currentSelectedId && originator !== 'inspector') {
             const obj = this.host.findObjectById(this.host.currentSelectedId);
             this.host.inspector.update(obj || this.host.project);
         }

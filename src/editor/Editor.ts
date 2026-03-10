@@ -465,6 +465,7 @@ export class Editor implements IViewHost {
     }
     public saveProject() { this.dataManager.saveProject(); }
     public saveProjectToFile(overwriteConfirmed?: boolean) { return this.dataManager.saveProjectToFile(overwriteConfirmed); }
+    public saveProjectAs() { return this.dataManager.saveProjectAs(); }
     public triggerLoad() { this.dataManager.triggerLoad(); }
     public migrateToStages() { this.stageManager.migrateToStages(); }
     public autoSaveToLocalStorage() { this.dataManager.autoSaveToLocalStorage(); }

@@ -13,6 +13,20 @@ export class ProjectPersistenceService {
 
     private constructor() { }
 
+    /** Erzeugt einen JSON.stringify-Replacer der zirkuläre Referenzen filtert */
+    public static safeReplacer(): (key: string, value: any) => any {
+        const seen = new WeakSet();
+        const SKIP_KEYS = new Set(['renderer', 'host', 'parent', 'stage', 'editor', '__rawSource', '_listeners', '_eventTarget']);
+        return (key: string, value: any) => {
+            if (SKIP_KEYS.has(key)) return undefined;
+            if (typeof value === 'object' && value !== null) {
+                if (seen.has(value)) return undefined;
+                seen.add(value);
+            }
+            return value;
+        };
+    }
+
     /**
      * Fetches the current project.json from the server.
      */
@@ -42,7 +56,7 @@ export class ProjectPersistenceService {
             return;
         }
 
-        const json = JSON.stringify(targetProject, null, 2);
+        const json = JSON.stringify(targetProject, ProjectPersistenceService.safeReplacer(), 2);
 
         // Get game name for filename
         const projName = targetProject.stages?.find((s: any) => s.type === 'main')?.gameName ||
@@ -88,15 +102,10 @@ export class ProjectPersistenceService {
         if (!targetProject) return;
 
         try {
-            const json = JSON.stringify(targetProject);
+            const json = JSON.stringify(targetProject, ProjectPersistenceService.safeReplacer());
             localStorage.setItem('gcs_last_project', json);
 
-            // Debug-Log for variable persistence
-            const projectData = JSON.parse(json);
-            const currentUserVar = (projectData.variables || []).find((v: any) => v.name === 'currentUser') ||
-                (projectData.stages || []).flatMap((s: any) => s.variables || []).find((v: any) => v.name === 'currentUser');
-
-            ProjectPersistenceService.logger.debug(`Auto-save. Size: ${(json.length / 1024).toFixed(2)} KB. Sample variable "currentUser":`, currentUserVar);
+            ProjectPersistenceService.logger.debug(`Auto-save. Size: ${(json.length / 1024).toFixed(2)} KB`);
         } catch (err) {
             ProjectPersistenceService.logger.error('Auto-save to localStorage failed:', err);
         }

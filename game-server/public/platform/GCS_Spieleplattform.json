@@ -1,9 +1,19 @@
 {
   "meta": {
-    "name": "GCS_Spieleplattform",
+    "name": "GCS Spieleplattform",
     "author": "GCS Team",
     "version": "1.0.0",
     "runtimeVersion": "1.0.0"
+  },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
   },
   "flow": {
     "elements": [],
@@ -899,8 +909,8 @@
           "actionSequence": [
             {
               "name": "doTheAuthenfification",
-              "type": "data_action",
               "isLinked": true,
+              "type": "data_action",
               "successBody": [
                 {
                   "name": "action",
@@ -948,7 +958,6 @@
                 },
                 "data": {
                   "name": "doTheAuthenfification",
-                  "type": "data_action",
                   "isLinked": true
                 }
               },
@@ -966,7 +975,6 @@
                 },
                 "data": {
                   "name": "ClearPIN",
-                  "type": "set_variable",
                   "isLinked": true
                 }
               },
@@ -984,7 +992,6 @@
                 },
                 "data": {
                   "name": "action",
-                  "type": "navigate_stage",
                   "isLinked": true
                 }
               }
@@ -992,12 +999,12 @@
             "connections": [
               {
                 "id": "conn_1771942164554_315",
+                "startTargetId": "node-1771513021504-1",
+                "endTargetId": "node-1771513021504-2",
                 "startX": 0,
                 "startY": 0,
                 "endX": 280,
                 "endY": 80,
-                "startTargetId": "node-1771513021504-1",
-                "endTargetId": "node-1771513021504-2",
                 "data": {
                   "startAnchorType": "output",
                   "endAnchorType": "input"
@@ -1005,12 +1012,12 @@
               },
               {
                 "id": "conn_1772713073555_654",
+                "startTargetId": "node-1771513021504-2",
+                "endTargetId": "node-1771513021504-6",
                 "startX": 400,
                 "startY": 120,
                 "endX": 340,
                 "endY": 260,
-                "startTargetId": "node-1771513021504-2",
-                "endTargetId": "node-1771513021504-6",
                 "data": {
                   "startAnchorType": "bottom",
                   "endAnchorType": "top"
@@ -1018,12 +1025,12 @@
               },
               {
                 "id": "conn_1772732902881_154",
+                "startTargetId": "node-1771513021504-2",
+                "endTargetId": "node-1772732899856",
                 "startX": 500,
                 "startY": 100,
                 "endX": 620,
                 "endY": 100,
-                "startTargetId": "node-1771513021504-2",
-                "endTargetId": "node-1772732899856",
                 "data": {
                   "startAnchorType": "success",
                   "endAnchorType": "input"
@@ -1183,9 +1190,7 @@
           "name": "ClearPIN",
           "type": "set_variable",
           "variableName": "currentPIN",
-          "value": "",
-          "details": "currentPIN := ",
-          "showDetails": false
+          "value": ""
         },
         {
           "details": "",
@@ -1211,11 +1216,12 @@
           "source": "QuellVar"
         },
         {
+          "details": "",
           "name": "action",
           "showDetails": false,
           "actionType": "navigate_stage",
           "type": "navigate_stage",
-          "stageId": "roomAdminStage"
+          "stageId": "stage-1772730749211"
         }
       ],
       "flowCharts": {
@@ -1385,6 +1391,124 @@
                 "startAnchorType": "output",
                 "originalStartAnchorType": "output",
                 "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        },
+        "AttemptLogin": {
+          "elements": [
+            {
+              "id": "node-1771513021504-1",
+              "type": "task",
+              "x": 20,
+              "y": 60,
+              "width": 160,
+              "height": 60,
+              "properties": {
+                "name": "AttemptLogin",
+                "details": "",
+                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen",
+                "text": "AttemptLogin"
+              },
+              "data": {
+                "name": "AttemptLogin",
+                "showDetails": false,
+                "description": "Mit Hilfe der erzeugten Emoji-Kombination wird versucht eine Athenfifizierung zu erlangen"
+              }
+            },
+            {
+              "id": "node-1771513021504-2",
+              "type": "data_action",
+              "x": 280,
+              "y": 60,
+              "width": 220,
+              "height": 60,
+              "properties": {
+                "name": "doTheAuthenfification",
+                "details": "(data_action)",
+                "description": ""
+              },
+              "data": {
+                "name": "doTheAuthenfification",
+                "isLinked": true,
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1771513021504-6",
+              "type": "action",
+              "x": 320,
+              "y": 300,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "ClearPIN",
+                "details": "currentPIN := ",
+                "description": ""
+              },
+              "data": {
+                "name": "ClearPIN",
+                "isLinked": true,
+                "showDetails": false
+              }
+            },
+            {
+              "id": "node-1772732899856",
+              "type": "action",
+              "x": 620,
+              "y": 60,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "action",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "action",
+                "isLinked": true,
+                "showDetails": false
+              }
+            }
+          ],
+          "connections": [
+            {
+              "id": "conn_1771942164554_315",
+              "startTargetId": "node-1771513021504-1",
+              "endTargetId": "node-1771513021504-2",
+              "startX": 0,
+              "startY": 0,
+              "endX": 280,
+              "endY": 80,
+              "data": {
+                "startAnchorType": "output",
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "id": "conn_1772713073555_654",
+              "startTargetId": "node-1771513021504-2",
+              "endTargetId": "node-1771513021504-6",
+              "startX": 400,
+              "startY": 120,
+              "endX": 340,
+              "endY": 260,
+              "data": {
+                "startAnchorType": "bottom",
+                "endAnchorType": "top"
+              }
+            },
+            {
+              "id": "conn_1772732902881_154",
+              "startTargetId": "node-1771513021504-2",
+              "endTargetId": "node-1772732899856",
+              "startX": 500,
+              "startY": 100,
+              "endX": 620,
+              "endY": 100,
+              "data": {
+                "startAnchorType": "success",
                 "endAnchorType": "input"
               }
             }
@@ -2157,7 +2281,7 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "",
+          "name": "NavBar",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -2442,7 +2566,7 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "",
+          "name": "MainCard",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -2471,7 +2595,7 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "",
+          "name": "AvatarCircle",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -2487,9 +2611,7 @@
             "backgroundColor": "#1a1a3e",
             "borderColor": "#6c63ff",
             "borderWidth": 2,
-            "borderRadius": 50,
-            "glowColor": "#d8c5c5",
-            "glowSpread": 0
+            "borderRadius": 50
           },
           "caption": "",
           "showGrid": false,
@@ -2556,7 +2678,7 @@
             "textAlign": "center",
             "fontFamily": "Arial"
           },
-          "text": "${currentUser.name}"
+          "text": "Alex Phoenix"
         },
         {
           "className": "TBadge",
@@ -2578,13 +2700,17 @@
           "align": "NONE",
           "style": {
             "color": "#6c63ff",
-            "backgroundColor": "#34495e",
+            "backgroundColor": "transparent",
             "borderColor": "transparent",
             "borderWidth": 0,
-            "borderRadius": 4
+            "borderRadius": 4,
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "textAlign": "center"
           },
           "badgeType": "info",
-          "pill": false
+          "pill": false,
+          "text": "ROOMADMIN"
         },
         {
           "className": "TLabel",
@@ -2678,9 +2804,7 @@
             "textAlign": "left",
             "fontFamily": "Arial"
           },
-          "text": "${currentUser.name}",
-          "placeholder": "Enter text...",
-          "maxLength": 100
+          "text": "Alex Phoenix"
         },
         {
           "className": "TLabel",
@@ -2743,9 +2867,7 @@
             "textAlign": "left",
             "fontFamily": "Arial"
           },
-          "text": "alex.phoenix@gaming-cms.io",
-          "placeholder": "Enter text...",
-          "maxLength": 100
+          "text": "alex.phoenix@gaming-cms.io"
         },
         {
           "className": "TLabel",
@@ -2808,9 +2930,7 @@
             "textAlign": "left",
             "fontFamily": "Arial"
           },
-          "text": "UTC -08:00 (Pacific Time)",
-          "placeholder": "Enter text...",
-          "maxLength": 100
+          "text": "UTC -08:00 (Pacific Time)"
         },
         {
           "className": "TLabel",
@@ -2849,7 +2969,7 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "",
+          "name": "PermCardRooms",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -3003,7 +3123,7 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "",
+          "name": "PermCardPlayers",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -3126,7 +3246,7 @@
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
-          "name": "",
+          "name": "PermCardGames",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
@@ -3407,34 +3527,11 @@
       ],
       "variables": [],
       "tasks": [],
-      "actions": [
-        {
-          "details": "(data_action)",
-          "name": "doTheAuthenfification",
-          "type": "data_action",
-          "showDetails": false
-        },
-        {
-          "details": "currentPIN := ",
-          "name": "ClearPIN",
-          "type": "set_variable",
-          "showDetails": false,
-          "variableName": "currentPIN",
-          "value": ""
-        },
-        {
-          "details": "",
-          "name": "action",
-          "type": "navigate_stage",
-          "showDetails": false,
-          "actionType": "navigate_stage",
-          "stageId": "roomAdminStage"
-        }
-      ],
+      "actions": [],
       "flowCharts": {}
     }
   ],
-  "activeStageId": "roomAdminStage",
+  "activeStageId": "roomDashboard",
   "flowCharts": {
     "global": {
       "elements": [],

@@ -23,6 +23,12 @@
                     "icon": "💾"
                 },
                 {
+                    "id": "save-as",
+                    "label": "Speichern unter...",
+                    "action": "save-as",
+                    "icon": "💾"
+                },
+                {
                     "id": "force-reload",
                     "label": "Vom Server neu laden (Force)",
                     "action": "force-reload",

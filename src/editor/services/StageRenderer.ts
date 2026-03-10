@@ -252,6 +252,17 @@ export class StageRenderer {
                 if (obj.style.fontWeight) el.style.fontWeight = obj.style.fontWeight;
                 if (obj.style.borderRadius) el.style.borderRadius = typeof obj.style.borderRadius === 'number' ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
 
+                // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor + glowBlur + glowSpread
+                if (obj.style.boxShadow) {
+                    el.style.boxShadow = obj.style.boxShadow;
+                } else if (obj.style.glowColor && (obj.style.glowBlur || obj.style.glowSpread)) {
+                    const blur = obj.style.glowBlur || 20;
+                    const spread = obj.style.glowSpread || 5;
+                    el.style.boxShadow = `0 0 ${blur}px ${spread}px ${obj.style.glowColor}`;
+                } else {
+                    el.style.boxShadow = '';
+                }
+
                 if (obj.zIndex !== undefined) {
                     el.style.zIndex = String(obj.zIndex);
                 } else if (obj.name && (obj.name.startsWith('Overlay') || obj.name.startsWith('Btn') || obj.name.startsWith('Input') || obj.name.startsWith('Status'))) {

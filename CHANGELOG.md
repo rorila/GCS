@@ -1,3 +1,21 @@
+## [3.11.9] - 2026-03-10
+### Added
+- **Glow/Shadow-Effekt für alle Komponenten** (`src/components/TWindow.ts`, `src/editor/services/StageRenderer.ts`): Neue Properties `glowColor`, `glowBlur`, `glowSpread` und `boxShadow` (CSS-String) im Inspector unter Gruppe "GLOW-EFFEKT". Wirkt auf alle TWindow-Ableitungen (TPanel, TButton, TLabel, etc.).
+- **SaveAsDialog** (`src/editor/SaveAsDialog.ts`): Neuer modaler Dialog für "Speichern unter" mit Ordner-Auswahl, Dateianzeige, Neuer-Ordner-Option und Dateiname-Eingabe.
+- **Server-Endpoint** `GET /api/dev/list-projects`: Listet alle Ordner und JSON-Dateien unter `projects/` auf.
+- **Dynamischer Speicherpfad** (`src/editor/services/EditorDataManager.ts`): `saveProjectToFile` nutzt jetzt `currentSavePath` statt festen Pfad `projects/master_test/`. "Speichern unter" setzt diesen Pfad via Dialog.
+- **VariablePickerDialog** (`src/editor/inspector/VariablePickerDialog.ts`): Neuer modaler Dialog zur Variablen-Auswahl im Inspector. Ersetzt den bisherigen `prompt()`-Dialog. Zeigt globale und Stage-Variablen mit Subeigenschaften als Baumstruktur, Suchfeld und Gruppierung (🌐 Global / 🎭 Stage / 🔄 Repeater).
+
+### Fixed
+- **Binding-Anzeige im Inspector** (`src/editor/inspector/InspectorHost.ts`): `resolveValue()` bewahrt jetzt Binding-Werte (z.B. `${currentUser.name}`) als Rohtext, statt sie erneut durch den Template-Parser zu schicken. Verhindert doppelte Template-Auflösung, die Binding-Werte zu leeren Strings machte.
+- **findObjectById gibt Original statt Preview** (`src/editor/services/EditorCommandManager.ts`): `findObjectById()` gab Preview-Objekte aus dem ObjectStore zurück, in denen Bindings bereits aufgelöst (= leer) waren. Jetzt wird über `__rawSource` das Original-Objekt mit den Roh-Binding-Werten zurückgegeben.
+- **Falsches Dirty-Flag nach Startup** (`src/editor/EditorViewManager.ts`): `isProjectDirty` wurde bei JEDEM `DATA_CHANGED`-Event auf `true` gesetzt, auch beim initialen Laden. Jetzt wird der Originator geprüft: Events mit `'editor-load'` oder `'autosave'` setzen das Flag nicht mehr.
+- **Circular JSON beim Serialisieren** (`src/services/ProjectPersistenceService.ts`): Neuer `safeReplacer()` filtert zirkuläre Properties (`renderer`, `host`, `parent`, `stage`, `editor`, `__rawSource`) bei ALLEN `JSON.stringify`-Aufrufen (autoSave, saveProject, saveProjectToFile).
+- **Stage-Menü nach Laden** (`src/editor/services/EditorDataManager.ts`): `updateStagesMenu()` wird jetzt verzögert am Ende von `loadProject()` aufgerufen, damit neue Stages zuverlässig im Menü erscheinen.
+
+### Changed
+- **InspectorActionHandler** (`src/editor/inspector/InspectorActionHandler.ts`): `handlePickVariable()` nutzt jetzt den neuen `VariablePickerDialog` statt `prompt()`. Vereinfachte Wert-Persistierung (keine Konkatenation mehr, direktes Ersetzen).
+
 ## [3.11.8] - 2026-03-10
 ### Added
 - **E2E-Test: Stage erzeugen** (`tests/e2e/05_StageCreation.spec.ts`): UseCase "Eine neue Stage erzeugen" — Menü: Stages → Neue Stage, Umbenennung zu HighscoreStage, Validierung in project.stages, Speicherung.

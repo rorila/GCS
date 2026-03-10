@@ -786,6 +786,33 @@ app.post('/api/library/templates', (req, res) => {
 });
 
 /**
+ * GET /api/dev/list-projects - Listet alle Ordner und JSON-Dateien unter projects/
+ */
+app.get('/api/dev/list-projects', (_req, res) => {
+    try {
+        const projectsRoot = path.resolve(__dirname, '../../projects');
+        if (!fs.existsSync(projectsRoot)) {
+            return res.json({ folders: [] });
+        }
+
+        const entries = fs.readdirSync(projectsRoot, { withFileTypes: true });
+        const folders = entries
+            .filter(e => e.isDirectory())
+            .map(dir => {
+                const dirPath = path.join(projectsRoot, dir.name);
+                const files = fs.readdirSync(dirPath)
+                    .filter(f => f.endsWith('.json'));
+                return { name: dir.name, files };
+            });
+
+        res.json({ folders });
+    } catch (e) {
+        console.error('[Dev] Error listing projects:', e);
+        res.status(500).json({ error: 'Fehler beim Auflisten der Projekte' });
+    }
+});
+
+/**
  * POST /api/dev/check-exists - Prüft ob eine Datei im Projekt-Verzeichnis existiert
  */
 app.post('/api/dev/check-exists', (req, res) => {
@@ -809,6 +836,7 @@ app.post('/api/dev/check-exists', (req, res) => {
         res.status(500).json({ error: 'Fehler beim Prüfen der Datei-Existenz' });
     }
 });
+
 
 /**
  * POST /api/dev/save-custom - Speichert Projektdaten an einen benutzerdefinierten Ort

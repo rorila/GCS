@@ -7,6 +7,7 @@ import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { UseCaseManager } from '../../utils/UseCaseManager';
 import { mediatorService, MediatorEvents } from '../../services/MediatorService';
 import { Logger } from '../../utils/Logger';
+import { VariablePickerDialog } from './VariablePickerDialog';
 
 /**
  * InspectorActionHandler - Handles complex button-driven actions in the Inspector.
@@ -173,46 +174,24 @@ export class InspectorActionHandler {
     private async handlePickVariable(buttonDef: any, obj: any): Promise<void> {
         const propName = buttonDef.property || buttonDef.actionData?.property;
         const index = buttonDef.actionData?.index;
-        console.log('[InspectorActionHandler] Opening variable picker for:', propName, index !== undefined ? `at index ${index}` : '');
+        InspectorActionHandler.logger.debug('Opening variable picker for:', propName, index !== undefined ? `at index ${index}` : '');
 
-        // Get variables from Registry (matches ContextBuilder logic)
-        const variables = projectRegistry.getVariables({
-            taskName: (obj as any).taskName,
-            actionId: (obj as any).id || (obj as any).name
-        });
-
-        if (variables.length === 0) {
-            alert('Keine Variablen verfügbar.');
-            return;
-        }
-
-        // Variablennamen mit Modell-Info aufbereiten
-        const varList = Object.values(variables).map(v => {
-            let info = v.name;
-            if (v.objectModel) info += ` (Modell: ${v.objectModel})`;
-            return `• ${info}`;
-        }).join('\n');
-
-        // --- NEU: TDataList (Row-Binding) Prüfung ---
-        let repeaterList = '';
+        // Repeater-Felder ermitteln (falls im DataList-Kontext)
+        let repeaterFields: string[] = [];
         try {
-            // Finde parent object (z.B. DataList) im ObjectStore
             const editor = (window as any).editor;
             if (editor && editor.findParentContainer) {
                 let currentParent = editor.findParentContainer(obj.id);
-                // Walk up checking for DataList
                 while (currentParent) {
                     if (currentParent.className === 'TDataList' || currentParent.type === 'DataList') {
                         const dsName = currentParent.dataSource;
                         if (dsName) {
-                            // Finde TDataAction mit diesem Namen
                             const action = projectRegistry.getActions('all', false).find(a => (a as any).resultVariable === dsName || a.name === dsName);
                             if (action && (action as any).selectFields) {
                                 const fieldsStr = (action as any).selectFields;
-                                const fields = fieldsStr === '*' ? ['* (Alle Felder)'] : fieldsStr.split(',').map((f: string) => f.trim()).filter((f: string) => f);
-                                repeaterList = fields.map((f: string) => `• row.${f}`).join('\n');
+                                repeaterFields = fieldsStr === '*' ? ['*'] : fieldsStr.split(',').map((f: string) => f.trim()).filter((f: string) => f);
                             }
-                            break; // Stop climbing if we hit a DataList
+                            break;
                         }
                     }
                     currentParent = editor.findParentContainer(currentParent.id);
@@ -220,74 +199,53 @@ export class InspectorActionHandler {
             }
         } catch (e) { console.error('Fehler beim Auflösen der Repeater-Bindings:', e); }
 
-        const promptText = `Variable wählen (aus verfügbaren):\n\n${varList}\n` +
-            (repeaterList ? `\n--- Verfügbare Repeater Daten ({row.*}) ---\n${repeaterList}\n` : '') +
-            `\n(Tipp: Nutze ".property" für Objekt-Felder, z.B. currentUser.name)`;
+        // Dialog anzeigen
+        const chosen = await VariablePickerDialog.show({
+            objectId: obj.id || obj.name,
+            repeaterFields
+        });
 
-        const chosen = prompt(promptText, '');
+        if (!chosen || !chosen.trim()) return;
 
-        if (chosen && chosen.trim()) {
-            const varNameInput = chosen.trim();
+        const varNameInput = chosen.trim();
 
-            // SONDERRFALL: {row.*} Binding (DataList / Repeater Pattern)
-            if (varNameInput.startsWith('row.')) {
-                let currentVal: any;
-                let newValue: any;
-                const varToInsert = varNameInput;
+        // Wert setzen (row.* oder normale Variable)
+        const isRepeater = varNameInput.startsWith('row.');
+        const variables = projectRegistry.getVariables({
+            taskName: (obj as any).taskName,
+            actionId: (obj as any).id || (obj as any).name
+        });
 
-                if (index !== undefined && propName === 'params') {
-                    const params = PropertyHelper.getPropertyValue(obj, 'params') || [];
-                    currentVal = (Array.isArray(params) ? params[index] : '') || '';
-                    newValue = (currentVal ? currentVal + ' ' : '') + `\${${varToInsert}}`;
-
-                    const newParams = Array.isArray(params) ? [...params] : [];
-                    newParams[index] = newValue;
-                    PropertyHelper.setPropertyValue(obj, 'params', newParams);
-                    this.notifyChange(obj, 'params', newParams, params);
-                } else {
-                    currentVal = PropertyHelper.getPropertyValue(obj, propName) || '';
-                    newValue = (currentVal ? currentVal + ' ' : '') + `\${${varToInsert}}`;
-                    PropertyHelper.setPropertyValue(obj, propName, newValue);
-                    this.notifyChange(obj, propName, newValue, currentVal);
-                }
-                this.host.update(obj);
-                return;
-            }
-
-            // Basis-Name für Validierung extrahieren (alles vor dem ersten Punkt)
+        // Validierung (nur für nicht-Repeater)
+        if (!isRepeater) {
             const baseVarName = varNameInput.split('.')[0];
             const baseVar = variables.find(v => v.name === baseVarName);
-
-            if (baseVar) {
-                let currentVal: any;
-                let newValue: any;
-                const varToInsert = varNameInput;
-
-                if (index !== undefined && propName === 'params') {
-                    // Update specific parameter in array (e.g. for call_method)
-                    const params = PropertyHelper.getPropertyValue(obj, 'params') || [];
-                    currentVal = (Array.isArray(params) ? params[index] : '') || '';
-                    newValue = (currentVal ? currentVal + ' ' : '') + `\${${varToInsert}}`;
-
-                    const newParams = Array.isArray(params) ? [...params] : [];
-                    newParams[index] = newValue;
-                    PropertyHelper.setPropertyValue(obj, 'params', newParams);
-                    this.notifyChange(obj, 'params', newParams, params);
-                } else {
-                    // Standard property update
-                    currentVal = PropertyHelper.getPropertyValue(obj, propName) || '';
-                    newValue = (currentVal ? currentVal + ' ' : '') + `\${${varToInsert}}`;
-
-                    PropertyHelper.setPropertyValue(obj, propName, newValue);
-                    this.notifyChange(obj, propName, newValue, currentVal);
-                }
-
-                // Refresh host
-                this.host.update(obj);
-            } else {
+            if (!baseVar) {
                 alert(`Basis-Variable "${baseVarName}" wurde nicht gefunden.`);
+                return;
             }
         }
+
+        // Wert in das Objekt schreiben
+        let currentVal: any;
+        let newValue: any;
+
+        if (index !== undefined && propName === 'params') {
+            const params = PropertyHelper.getPropertyValue(obj, 'params') || [];
+            currentVal = (Array.isArray(params) ? params[index] : '') || '';
+            newValue = `\${${varNameInput}}`;
+            const newParams = Array.isArray(params) ? [...params] : [];
+            newParams[index] = newValue;
+            PropertyHelper.setPropertyValue(obj, 'params', newParams);
+            this.notifyChange(obj, 'params', newParams, params);
+        } else {
+            currentVal = PropertyHelper.getPropertyValue(obj, propName) || '';
+            newValue = `\${${varNameInput}}`;
+            PropertyHelper.setPropertyValue(obj, propName, newValue);
+            this.notifyChange(obj, propName, newValue, currentVal);
+        }
+
+        this.host.update(obj);
     }
 
 

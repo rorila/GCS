@@ -50,8 +50,11 @@ export class EditorViewManager {
 
     private initMediator() {
         mediatorService.on(MediatorEvents.DATA_CHANGED, (_data: any, originator?: string) => {
-            // Mark project as dirty on every change
-            this.isProjectDirty = true;
+            // Mark project as dirty only on REAL user changes (not on load/autosave)
+            const isLoadEvent = originator === 'editor-load' || originator === 'autosave';
+            if (!isLoadEvent) {
+                this.isProjectDirty = true;
+            }
 
             // set global change variable in blueprint stage
             if (originator !== 'editor-load' && this.host.project.stages) {

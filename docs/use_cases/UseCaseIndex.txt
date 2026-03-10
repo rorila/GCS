@@ -1,4 +1,26 @@
-﻿- [2026-03-10] UseCase: RunButton erzeugen (E2E-Test):
+﻿- [2026-03-10] Feature: Speichern unter Dialog:
+  - Dateien:
+    - src/editor/SaveAsDialog.ts (L1-210) [NEU]
+    - src/editor/services/EditorDataManager.ts (saveProjectAs: L222-250, currentSavePath: L46)
+    - game-server/src/server.ts (GET /api/dev/list-projects: L788-813)
+  - Methoden:
+    - SaveAsDialog.show(currentName): Modaler Dialog für Ordner/Datei-Auswahl
+    - EditorDataManager.saveProjectAs(): prompt() → SaveAsDialog
+    - EditorDataManager.saveProjectToFile(): Dynamischer Pfad via currentSavePath
+  - Details: "Speichern unter" zeigt modalen Dialog mit Ordnerauswahl, Dateiliste und Dateiname-Eingabe. Server-Endpoint listet vorhandene Projektordner.
+
+- [2026-03-10] Feature: VariablePickerDialog (Inspector V-Button):
+  - Dateien:
+    - src/editor/inspector/VariablePickerDialog.ts (L1-247) [NEU]
+    - src/editor/inspector/InspectorActionHandler.ts (handlePickVariable: L174-251)
+    - src/editor/inspector/InspectorHost.ts (resolveValue: L488-530)
+  - Methoden:
+    - VariablePickerDialog.show(context): Modaler Auswahl-Dialog für Variablen mit Baumstruktur
+    - InspectorActionHandler.handlePickVariable(): prompt() → VariablePickerDialog
+    - InspectorHost.resolveValue(): Binding-Werte als Rohtext bewahren
+  - Details: V-Button im Inspector öffnet modalen Dialog statt prompt(). Variablen mit Subeigenschaften, Suchfeld, Scope-Gruppierung. Bugfix: Doppelte Template-Auflösung in resolveValue() verhindert.
+
+- [2026-03-10] UseCase: RunButton erzeugen (E2E-Test):
   - Dateien: tests/e2e/07_RunButtonCreation.spec.ts (L1-133)
   - Methoden: Toolbox-Click → selectObject → Inspector caption/text
   - Details: Button aus Toolbox auf MainStage platzieren, per Inspector auf 'run' beschriften. Object-Count-Validierung.

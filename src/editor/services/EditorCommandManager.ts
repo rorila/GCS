@@ -315,10 +315,13 @@ export class EditorCommandManager {
             : (this.editor as any).getResolvedInheritanceObjects();
 
         for (const obj of searchList) {
-            if (obj.id === id) return obj;
+            // WICHTIG: Objekte im ObjectStore sind Preview-Kopien (mit aufgelösten Bindings).
+            // Für den Inspector muss das ORIGINAL-Objekt (__rawSource) zurückgegeben werden,
+            // damit Binding-Werte (z.B. "${currentUser.name}") erhalten bleiben.
+            if (obj.id === id) return obj.__rawSource || obj;
             if (obj.children && Array.isArray(obj.children)) {
                 for (const child of obj.children) {
-                    if (child.id === id) return child;
+                    if (child.id === id) return child.__rawSource || child;
                 }
             }
         }

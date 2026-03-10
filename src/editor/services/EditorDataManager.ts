@@ -1,6 +1,6 @@
 import { GameProject } from '../../model/types';
 import { ViewType } from '../EditorViewManager';
-import { projectPersistenceService } from '../../services/ProjectPersistenceService';
+import { projectPersistenceService, ProjectPersistenceService } from '../../services/ProjectPersistenceService';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { mediatorService } from '../../services/MediatorService';
 import { dataService } from '../../services/DataService';
@@ -8,6 +8,7 @@ import { RefactoringManager } from '../RefactoringManager';
 import { hydrateObjects } from '../../utils/Serialization';
 import { safeDeepCopy } from '../../utils/DeepCopy';
 import { Logger } from '../../utils/Logger';
+import { SaveAsDialog } from '../SaveAsDialog';
 
 export interface EditorDataHost {
     project: GameProject;
@@ -42,6 +43,8 @@ export interface EditorDataHost {
 export class EditorDataManager {
     private static logger = Logger.get('EditorDataManager', 'Project_Save_Load');
     private host: EditorDataHost;
+    /** Aktueller Speicherpfad (relativ, z.B. 'projects/master_test/MeinSpiel.json') */
+    public currentSavePath: string | null = null;
 
     constructor(host: EditorDataHost) {
         this.host = host;
@@ -79,7 +82,7 @@ export class EditorDataManager {
             const res = await fetch('/api/dev/save-project', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.host.project)
+                body: JSON.stringify(this.host.project, ProjectPersistenceService.safeReplacer())
             });
             const data = await res.json();
             if (data.success) {
@@ -119,7 +122,7 @@ export class EditorDataManager {
 
         // --- Schritt 2: Spielname prüfen ---
         const mainStage = this.host.project.stages?.find((s: any) => s.id === 'main');
-        const gameName = mainStage?.name || (this.host.project.meta as any)?.name || '';
+        const gameName = (this.host.project.meta as any)?.name || mainStage?.name || '';
 
         if (!gameName || gameName === 'Haupt-Level') {
             const msg = 'Bitte ändern Sie den Spielnamen in der Main-Stage';
@@ -131,7 +134,8 @@ export class EditorDataManager {
         // --- Schritt 3: Pfad-Konstruktion und Datei-Existenz-Prüfung ---
         // Spielname bereinigen (Sonderzeichen entfernen, für Dateiname geeignet)
         const safeGameName = gameName.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
-        const targetFilePath = `projects/master_test/${safeGameName}.json`;
+        // Dynamischer Pfad: nutze currentSavePath oder Fallback
+        const targetFilePath = this.currentSavePath || `projects/master_test/${safeGameName}.json`;
 
         try {
             const existsRes = await fetch('/api/dev/check-exists', {
@@ -180,7 +184,7 @@ export class EditorDataManager {
             const saveRes = await fetch('/api/dev/save-custom', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filePath: targetFilePath, projectData: this.host.project })
+                body: JSON.stringify({ filePath: targetFilePath, projectData: this.host.project }, ProjectPersistenceService.safeReplacer())
             });
             const saveData = await saveRes.json();
 
@@ -212,6 +216,38 @@ export class EditorDataManager {
         }
     }
 
+    /**
+ * "Speichern unter..." — Zeigt SaveAsDialog für Ordner-/Dateiname-Auswahl.
+ */
+    public async saveProjectAs(): Promise<{ success: boolean; message: string }> {
+        const meta = (this.host.project as any).meta || {};
+        const currentName = meta.name || 'MeinSpiel';
+
+        const result = await SaveAsDialog.show(currentName);
+        if (!result) {
+            return { success: false, message: 'Speichern abgebrochen' };
+        }
+
+        // Spielnamen in project.meta setzen
+        const fileBaseName = result.filename.replace('.json', '');
+        if (!this.host.project.meta) (this.host.project as any).meta = {};
+        (this.host.project.meta as any).name = fileBaseName;
+
+        // Neuen Speicherpfad setzen
+        this.currentSavePath = `projects/${result.folder}/${result.filename}`;
+
+        // Dirty-Flag forcieren, damit saveProjectToFile den Änderungs-Check übergeht
+        this.host.isProjectDirty = true;
+        const blueprint = this.host.project.stages?.find((s: any) => s.type === 'blueprint');
+        const changeVar = blueprint?.variables?.find((v: any) => v.name === 'isProjectChangeAvailable');
+        if (changeVar) {
+            changeVar.defaultValue = true;
+            (changeVar as any).value = true;
+        }
+
+        // An bestehende Speicher-Logik delegieren
+        return this.saveProjectToFile();
+    }
 
 
     public async exportHTML() {
@@ -344,6 +380,10 @@ export class EditorDataManager {
         }, 500);
 
         EditorDataManager.logger.info("Projekt erfolgreich geladen.", this.host.project);
+
+        // Stage-Menü nach allen Post-Load-Operationen aktualisieren
+        // setProject() ruft updateStagesMenu() auf, aber zu früh (vor async Ops)
+        setTimeout(() => { this.host.updateStagesMenu(); }, 200);
     }
 
     public autoSaveToLocalStorage() {
