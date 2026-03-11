@@ -1,7 +1,11 @@
 ## [3.11.9] - 2026-03-10
 ### Added
 - **Glow/Shadow-Effekt für alle Komponenten** (`src/components/TWindow.ts`, `src/editor/services/StageRenderer.ts`): Neue Properties `glowColor`, `glowBlur`, `glowSpread` und `boxShadow` (CSS-String) im Inspector unter Gruppe "GLOW-EFFEKT". Wirkt auf alle TWindow-Ableitungen (TPanel, TButton, TLabel, etc.).
-- **SaveAsDialog** (`src/editor/SaveAsDialog.ts`): Neuer modaler Dialog für "Speichern unter" mit Ordner-Auswahl, Dateianzeige, Neuer-Ordner-Option und Dateiname-Eingabe.
+- **AgentController API vervollständigt** (`src/services/AgentController.ts`): 22 neue Methoden — Delete (Task/Action/Object/Stage/Variable), Rename (Task/Action), Read (listStages/listTasks/listActions/listVariables/listObjects/getTaskDetails), UI (setProperty/bindVariable/connectEvent), Workflow (duplicateTask), Validation (validate).
+
+### Fixed
+- **AgentController.generateTaskFlow()**: Connection-IDs, Start/End-Koordinaten und Type-Casing (kleingeschrieben) korrigiert für korrekte FlowEditor-Darstellung.
+- **Inspector Scroll-Position**: Bleibt nach Property-Änderung erhalten (kein doppeltes update bei originator='inspector').
 - **Server-Endpoint** `GET /api/dev/list-projects`: Listet alle Ordner und JSON-Dateien unter `projects/` auf.
 - **Dynamischer Speicherpfad** (`src/editor/services/EditorDataManager.ts`): `saveProjectToFile` nutzt jetzt `currentSavePath` statt festen Pfad `projects/master_test/`. "Speichern unter" setzt diesen Pfad via Dialog.
 - **VariablePickerDialog** (`src/editor/inspector/VariablePickerDialog.ts`): Neuer modaler Dialog zur Variablen-Auswahl im Inspector. Ersetzt den bisherigen `prompt()`-Dialog. Zeigt globale und Stage-Variablen mit Subeigenschaften als Baumstruktur, Suchfeld und Gruppierung (🌐 Global / 🎭 Stage / 🔄 Repeater).

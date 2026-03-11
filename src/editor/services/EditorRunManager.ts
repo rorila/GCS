@@ -120,12 +120,28 @@ export class EditorRunManager {
             if (this.runtime) {
                 this.runtimeObjects = this.runtime.getObjects();
                 this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as TGameLoop) || null;
+                console.log(`[RunManager] runtimeObjects: ${this.runtimeObjects.length}, activeGameLoop: ${this.activeGameLoop ? this.activeGameLoop.name : 'NULL'}`);
+                console.log(`[RunManager] Object classNames:`, this.runtimeObjects.map((o: any) => `${o.name}(${o.className})`).join(', '));
             }
 
             // Event handler already set above
 
             if (!this.activeGameLoop) {
+                console.log(`[RunManager] No TGameLoop found → using AnimationTicker fallback`);
                 this.startAnimationTicker();
+            } else {
+                // Initialize and start TGameLoop with runtime objects
+                console.log(`[RunManager] Initializing TGameLoop with ${this.runtimeObjects!.length} objects`);
+                this.activeGameLoop.initRuntime({
+                    objects: this.runtimeObjects!,
+                    gridConfig: this.runStage?.grid || this.editor.project.stage?.grid,
+                    render: () => this.editor.render(),
+                    handleEvent: (spriteId: string, eventName: string, data?: any) => {
+                        this.handleRuntimeEvent(spriteId, eventName, data);
+                    }
+                });
+                console.log(`[RunManager] Calling TGameLoop.start()`);
+                this.activeGameLoop.start();
             }
 
             this.initRuntimeComponents();

@@ -30,6 +30,7 @@
             "text": "Spiel wurde gestartet"
           },
           "name": "setStatusLabelToRunning",
+          "details": "StatusLabel.text := Spiel gestarte",
           "sync": true,
           "description": "Updates the status label text to 'Spiel wurde gestartet'.",
           "hostOnly": true,
@@ -40,7 +41,7 @@
           "type": "property",
           "target": "LeftPaddle",
           "changes": {
-            "velocityY": "-0.5"
+            "velocityY": -0.5
           },
           "details": "LeftPaddle.velocityY := -0.5",
           "hostOnly": true,
@@ -53,8 +54,7 @@
           "changes": {
             "velocityY": 0
           },
-          "hostOnly": true,
-          "showDetails": false
+          "hostOnly": true
         },
         {
           "name": "DecrementLeftPaddleY_Position",
@@ -72,11 +72,11 @@
           "type": "property",
           "target": "GameState",
           "changes": {
-            "spritesMoving": "${true}"
+            "spritesMoving": true
           },
           "sync": true,
           "description": "Sets GameState.spritesMoving to true to enable physics.",
-          "showDetails": true,
+          "showDetails": false,
           "hostOnly": true
         },
         {
@@ -85,11 +85,11 @@
           "type": "property",
           "target": "GameState",
           "changes": {
-            "collisionsEnabled": "${true}"
+            "collisionsEnabled": true
           },
           "sync": true,
           "description": "Enables collision detection in the GameState.",
-          "showDetails": true,
+          "showDetails": false,
           "hostOnly": true
         },
         {
@@ -119,7 +119,7 @@
           "type": "property",
           "target": "RightPaddle",
           "changes": {
-            "velocityY": "-0.5"
+            "velocityY": 0.5
           },
           "details": "RightPaddle.velocityY := -0.5",
           "hostOnly": true,
@@ -127,7 +127,7 @@
         },
         {
           "name": "stopBall",
-          "details": "BallSprite.x := 32; BallSprite.y := 19 (+2)",
+          "details": "BallSprite.velocityX := 0; BallSprite.velocityY := 0",
           "type": "property",
           "target": "BallSprite",
           "changes": {
@@ -162,6 +162,7 @@
           "changes": {
             "text": 0
           },
+          "details": "(call_method)",
           "hostOnly": true,
           "showDetails": false,
           "taskParams": [],
@@ -184,15 +185,23 @@
         {
           "name": "GetGameStatus",
           "details": "curGameStatus := GameState.state",
-          "type": "calculate",
-          "resultVariable": "curGameStatus",
-          "calcSteps": [
-            {
-              "operandType": "variable",
-              "constant": 0,
-              "variable": "GameState.state"
-            }
-          ]
+          "type": "variable",
+          "target": "GameState",
+          "changes": {
+            "spritesMoving": true
+          },
+          "sync": true,
+          "isLinked": false,
+          "method": "info",
+          "params": [
+            "Das Spiel wurde pausiert"
+          ],
+          "showDetails": false,
+          "taskParams": [],
+          "variableName": "curGameStatus",
+          "source": "GameState",
+          "sourceProperty": "state",
+          "hostOnly": true
         },
         {
           "name": "ChangeY_DirectionToUp",
@@ -200,7 +209,7 @@
           "type": "property",
           "target": "BallSprite",
           "changes": {
-            "velocityY": "-0.3"
+            "velocityY": -0.3
           },
           "showDetails": false,
           "hostOnly": true
@@ -253,56 +262,44 @@
           "hostOnly": true
         },
         {
+          "type": "variable",
+          "source": "other",
+          "sourceProperty": "y",
+          "variableName": "paddleY",
           "name": "Get Paddle Y",
           "details": "paddleY := other.y",
-          "type": "calculate",
-          "resultVariable": "paddleY",
-          "calcSteps": [
-            {
-              "operandType": "variable",
-              "constant": 0,
-              "variable": "other.y"
-            }
-          ]
+          "showDetails": false,
+          "hostOnly": true
         },
         {
+          "type": "variable",
+          "source": "other",
+          "sourceProperty": "height",
+          "variableName": "paddleH",
           "name": "Get Paddle H",
           "details": "paddleH := other.height",
-          "type": "calculate",
-          "resultVariable": "paddleH",
-          "calcSteps": [
-            {
-              "operandType": "variable",
-              "constant": 0,
-              "variable": "other.height"
-            }
-          ]
+          "showDetails": false,
+          "hostOnly": true
         },
         {
+          "type": "variable",
+          "source": "self",
+          "sourceProperty": "y",
+          "variableName": "ballY",
           "name": "Get Ball Y",
           "details": "ballY := self.y",
-          "type": "calculate",
-          "resultVariable": "ballY",
-          "calcSteps": [
-            {
-              "operandType": "variable",
-              "constant": 0,
-              "variable": "self.y"
-            }
-          ]
+          "showDetails": false,
+          "hostOnly": true
         },
         {
+          "type": "variable",
+          "source": "self",
+          "sourceProperty": "height",
+          "variableName": "ballH",
           "name": "Get Ball H",
           "details": "ballH := self.height",
-          "type": "calculate",
-          "resultVariable": "ballH",
-          "calcSteps": [
-            {
-              "operandType": "variable",
-              "constant": 0,
-              "variable": "self.height"
-            }
-          ]
+          "showDetails": false,
+          "hostOnly": true
         },
         {
           "type": "calculate",
@@ -310,8 +307,11 @@
           "calcSteps": [
             {
               "operandType": "variable",
-              "constant": 0,
-              "variable": "(Berechnung)"
+              "variable": "paddleH"
+            },
+            {
+              "operator": "/",
+              "constant": 2
             }
           ],
           "name": "Calc Paddle Half",
@@ -327,8 +327,11 @@
           "calcSteps": [
             {
               "operandType": "variable",
-              "constant": 0,
-              "variable": "(Berechnung)"
+              "variable": "ballH"
+            },
+            {
+              "operator": "/",
+              "constant": 2
             }
           ],
           "name": "Calc Ball Half",
@@ -343,8 +346,12 @@
           "calcSteps": [
             {
               "operandType": "variable",
-              "constant": 0,
-              "variable": "(Berechnung)"
+              "variable": "paddleY"
+            },
+            {
+              "operator": "+",
+              "operandType": "variable",
+              "variable": "paddleHalfH"
             }
           ],
           "name": "Paddle Center Y",
@@ -359,8 +366,12 @@
           "calcSteps": [
             {
               "operandType": "variable",
-              "constant": 0,
-              "variable": "(Berechnung)"
+              "variable": "ballY"
+            },
+            {
+              "operator": "+",
+              "operandType": "variable",
+              "variable": "ballHalfH"
             }
           ],
           "name": "Ball Center Y",
@@ -375,8 +386,12 @@
           "calcSteps": [
             {
               "operandType": "variable",
-              "constant": 0,
-              "variable": "(Berechnung)"
+              "variable": "ballCenterY"
+            },
+            {
+              "operator": "-",
+              "operandType": "variable",
+              "variable": "paddleCenterY"
             }
           ],
           "name": "Calc Diff Y",
@@ -391,8 +406,12 @@
           "calcSteps": [
             {
               "operandType": "variable",
-              "constant": 0,
-              "variable": "(Berechnung)"
+              "variable": "diffY"
+            },
+            {
+              "operator": "/",
+              "operandType": "variable",
+              "variable": "paddleHalfH"
             }
           ],
           "name": "Calc Factor",
@@ -407,8 +426,11 @@
           "calcSteps": [
             {
               "operandType": "variable",
-              "constant": 0,
-              "variable": "(Berechnung)"
+              "variable": "factor"
+            },
+            {
+              "operator": "*",
+              "constant": 0.5
             }
           ],
           "name": "Calc New VY",
@@ -445,8 +467,9 @@
           "type": "property",
           "target": "GameState",
           "changes": {
-            "spritesMoving": "${false}",
-            "sync": "true (+1)"
+            "spritesMoving": false,
+            "sync": true,
+            "state": "paused"
           },
           "description": "Sets the GameState.spritesMoving to false to pause physics.",
           "showDetails": false,
@@ -459,6 +482,7 @@
           "target": "Toast",
           "changes": {},
           "name": "setStartMessageToToast",
+          "details": "Toast.text := Spiel gestartet",
           "method": "info",
           "params": [
             "Das Spiel wurde gestartet"
@@ -474,7 +498,7 @@
           "type": "property",
           "target": "ResumeGameBtn",
           "changes": {
-            "caption": "${BlubBlub}"
+            "caption": "BlubBlub"
           },
           "taskParams": [],
           "sync": true,
@@ -487,8 +511,8 @@
           "type": "property",
           "target": "GameState",
           "changes": {
-            "spritesMoving": "${true}",
-            "state": "${playing}"
+            "spritesMoving": true,
+            "state": "playing"
           },
           "taskParams": [],
           "sync": true,
@@ -501,7 +525,7 @@
           "type": "property",
           "target": "ResumeGameBtn",
           "changes": {
-            "caption": "${BlaBla}"
+            "caption": "BlaBla"
           },
           "taskParams": [],
           "sync": true,
@@ -583,6 +607,7 @@
         {
           "showDetails": false,
           "name": "StageController.gotoStageImpressum",
+          "details": "",
           "type": "call_method",
           "target": "StageController",
           "changes": {},
@@ -608,15 +633,7 @@
       ],
       "variables": [],
       "flowCharts": {},
-      "events": {},
-      "grid": {
-        "cols": 64,
-        "rows": 40,
-        "cellSize": 18,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#2d865f"
-      }
+      "events": {}
     },
     {
       "id": "stage_splash",
@@ -626,30 +643,29 @@
         {
           "className": "TImage",
           "id": "obj_1768673710977_nobw1qy8q",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "Image_1",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 0,
           "y": 0,
           "width": 64,
           "height": 40,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#2a2a2a",
             "borderColor": "#999999",
             "borderWidth": 0
           },
-          "src": "backgrounds/Modernes Pong-Design mit lebendigen Farben.png",
+          "caption": "Image_1",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines",
+          "backgroundImage": "backgrounds/Modernes Pong-Design mit lebendigen Farben.png",
           "objectFit": "contain",
-          "alt": "",
           "imageOpacity": 1,
+          "alt": "",
           "fallbackColor": "#2a2a2a"
         }
       ],
@@ -675,6 +691,150 @@
             "visible": true,
             "backgroundColor": "#1e1e1e"
           }
+        },
+        "RightPlayerScores": {
+          "elements": [
+            {
+              "id": "node-1767014784848",
+              "type": "Task",
+              "x": 80,
+              "y": 140,
+              "width": 180,
+              "height": 60,
+              "properties": {
+                "name": "RightPlayerScores",
+                "details": "",
+                "description": "Increments Player 2 score and resets the ball direction."
+              },
+              "data": {
+                "description": "Increments Player 2 score and resets the ball direction.",
+                "showDetails": false,
+                "paramValues": {}
+              }
+            },
+            {
+              "id": "node-1767021477892",
+              "type": "Action",
+              "x": 1160,
+              "y": 140,
+              "width": 220,
+              "height": 60,
+              "properties": {
+                "name": "PauseTimer.timerStart",
+                "details": "PauseTimer.timerStart()",
+                "description": ""
+              },
+              "data": {
+                "name": "PauseTimer.timerStart",
+                "isLinked": false
+              }
+            },
+            {
+              "id": "node-1768307960576",
+              "type": "Action",
+              "x": 320,
+              "y": 140,
+              "width": 220,
+              "height": 60,
+              "properties": {
+                "name": "ScoreLblRight.incValue",
+                "details": "ScoreLblRight.incValue()",
+                "description": ""
+              },
+              "data": {
+                "name": "ScoreLblRight.incValue",
+                "isLinked": false
+              }
+            },
+            {
+              "id": "node-1768327140181",
+              "type": "Action",
+              "x": 580,
+              "y": 140,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "stopBall",
+                "details": "BallSprite.velocityX := 0; BallSprite.velocityY := 0",
+                "description": "Resets the ball sprite to the center of the court (32, 19)."
+              },
+              "data": {
+                "name": "stopBall",
+                "isLinked": false
+              }
+            },
+            {
+              "id": "node-1768486033096",
+              "type": "Action",
+              "x": 840,
+              "y": 140,
+              "width": 260,
+              "height": 60,
+              "properties": {
+                "name": "BallSprite.moveToStartpoint",
+                "details": "BallSprite.moveTo(32, 19, 500, linear)",
+                "description": ""
+              },
+              "data": {
+                "name": "BallSprite.moveToStartpoint",
+                "isLinked": false
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1767014784848",
+              "endTargetId": "node-1768307960576",
+              "startX": 230,
+              "startY": 170,
+              "endX": 560,
+              "endY": 150,
+              "data": {
+                "startAnchorType": "output",
+                "endAnchorType": "input",
+                "isEmbeddedInternal": false
+              }
+            },
+            {
+              "startTargetId": "node-1768307960576",
+              "endTargetId": "node-1768327140181",
+              "startX": 540,
+              "startY": 170,
+              "endX": 620,
+              "endY": 320,
+              "data": {
+                "startAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "startTargetId": "node-1768486033096",
+              "endTargetId": "node-1767021477892",
+              "startX": 1200,
+              "startY": 310,
+              "endX": 860,
+              "endY": 170,
+              "data": {
+                "startAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "startTargetId": "node-1768327140181",
+              "endTargetId": "node-1768486033096",
+              "startX": 940,
+              "startY": 170,
+              "endX": 1040,
+              "endY": 310,
+              "data": {
+                "startAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
         }
       },
       "tasks": [],
@@ -690,22 +850,17 @@
         {
           "className": "TSprite",
           "id": "obj_1766753853667_zhfdyqr29",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "LeftPaddle",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 3,
           "y": 17,
           "width": 1,
           "height": 6,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#10148e",
             "borderColor": "#4b4fbe",
             "borderWidth": 1
@@ -723,22 +878,17 @@
         {
           "className": "TSprite",
           "id": "7b42a974-a229-4918-9ba5-1283a337ea03",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "RightPaddle",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 60,
           "y": 17,
           "width": 1,
           "height": 6,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#3ed06a",
             "borderColor": "#17401a",
             "borderWidth": 1
@@ -756,66 +906,47 @@
         {
           "className": "TGameHeader",
           "id": "obj_1766753944753_ph0i01i8j",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "GameHeader",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 0,
           "y": 0,
           "width": 64,
           "height": 4,
           "zIndex": 0,
+          "visible": true,
           "align": "TOP",
           "style": {
-            "color": "#ffffff",
+            "visible": true,
             "backgroundColor": "#2c3e50",
             "borderColor": "#34495e",
             "borderWidth": 0,
             "fontSize": 18,
+            "color": "#ffffff",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
             "fontFamily": "Segoe UI, sans-serif"
           },
-          "text": "New Tennis",
           "title": "New Tennis"
         },
         {
           "className": "TStatusBar",
           "id": "obj_1766753993735_zup1nxzg9",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
           "name": "StatusBar",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 0,
           "y": 36,
           "width": 64,
           "height": 4,
           "zIndex": 0,
+          "visible": true,
           "align": "BOTTOM",
           "style": {
+            "visible": true,
             "backgroundColor": "#1a1a2e",
             "borderColor": "#333333",
             "borderWidth": 1
           },
-          "text": "",
-          "textColor": "#ffffff",
-          "fontSize": 12,
-          "paddingX": 12,
-          "paddingY": 6,
-          "sectionGap": 16,
-          "separatorColor": "#444444",
-          "showSeparators": true,
           "sections": [
             {
               "id": "status",
@@ -824,27 +955,29 @@
               "width": "auto",
               "align": "left"
             }
-          ]
+          ],
+          "textColor": "#ffffff",
+          "fontSize": 12,
+          "paddingX": 12,
+          "paddingY": 6,
+          "sectionGap": 16,
+          "separatorColor": "#444444",
+          "showSeparators": true
         },
         {
           "className": "TToast",
           "id": "obj_1766754019555_x3h3ygkpm",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
           "name": "Toast",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 44,
           "y": 32,
           "width": 20,
           "height": 4,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "transparent",
             "borderColor": "transparent",
             "borderWidth": 0
@@ -865,22 +998,17 @@
         {
           "className": "TPanel",
           "id": "obj_1766754427094_eva7t9y7p",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "Panel_6",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 32,
           "y": 5,
           "width": 1,
           "height": 30,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#1b552a",
             "borderColor": "#999999",
             "borderWidth": 1
@@ -893,26 +1021,20 @@
         {
           "className": "TSprite",
           "id": "obj_1766754456369_dmh8grz0p",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
+          "name": "BallSprite",
+          "Tasks": {
             "onBoundaryHit": "HandleBallBoundary",
             "onCollision": "HandlePaddleHit"
           },
-          "name": "BallSprite",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 32,
           "y": 19,
           "width": 1,
           "height": 1,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#6bff84",
             "borderColor": "#333333",
             "borderWidth": 1
@@ -930,10 +1052,8 @@
         {
           "className": "TInputController",
           "id": "obj_1766761331624_j984qpwvt",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
-          "events": {
+          "name": "InputController",
+          "Tasks": {
             "onKeyDown_KeyW": "SendLeftPaddleUp",
             "onKeyDown_KeyS": "SendLeftPaddleDown",
             "onKeyUp_KeyW": "StopLeftPaddle",
@@ -943,49 +1063,40 @@
             "onKeyDown_ArrowDown": "SendRightPaddleDown",
             "onKeyUp_ArrowDown": "StopRightPaddle"
           },
-          "name": "InputController",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 1,
           "y": 7,
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#ffffff",
+            "visible": true,
             "backgroundColor": "#9c27b0",
             "borderColor": "#6a1b9a",
-            "borderWidth": 2
+            "borderWidth": 2,
+            "color": "#ffffff"
           },
           "enabled": true
         },
         {
           "className": "TGameState",
           "id": "obj_1766761345082_edswzt2cj",
-          "isVariable": true,
-          "isService": true,
-          "isHiddenInRun": true,
           "name": "GameState",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 1,
           "y": 9,
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#ffffff",
+            "visible": true,
             "backgroundColor": "#4caf50",
             "borderColor": "transparent",
-            "borderWidth": 0
+            "borderWidth": 0,
+            "color": "#ffffff"
           },
           "state": "playing",
           "spritesMoving": false,
@@ -994,26 +1105,21 @@
         {
           "className": "TGameLoop",
           "id": "obj_1766761409695_4e4rv62ig",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
           "name": "GameLoop",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 1,
           "y": 5,
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#ffffff",
+            "visible": true,
             "backgroundColor": "#2196f3",
             "borderColor": "#1565c0",
-            "borderWidth": 2
+            "borderWidth": 2,
+            "color": "#ffffff"
           },
           "targetFPS": 60,
           "boundsOffsetTop": 4,
@@ -1022,25 +1128,19 @@
         {
           "className": "TTimer",
           "id": "obj_1766761437072_vxhsjao1q",
-          "isVariable": true,
-          "isService": true,
-          "isHiddenInRun": true,
-          "events": {
+          "name": "SynchronTimer",
+          "Tasks": {
             "onTimer": "PeriodicSync"
           },
-          "name": "SynchronTimer",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 1,
           "y": 11,
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "",
           "style": {
+            "visible": true,
             "backgroundColor": "#4caf50",
             "borderColor": "#2e7d32",
             "borderWidth": 2
@@ -1053,27 +1153,22 @@
         {
           "className": "TLabel",
           "id": "obj_1766765262504_4f29ef7uz",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "StaticStatusLabel",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 48,
           "y": 37,
           "width": 3,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#588d7c",
+            "visible": true,
             "backgroundColor": "transparent",
             "borderColor": "transparent",
             "borderWidth": 0,
             "fontSize": 14,
+            "color": "#588d7c",
             "fontWeight": "normal",
             "fontStyle": "normal",
             "textAlign": "left",
@@ -1084,27 +1179,22 @@
         {
           "className": "TLabel",
           "id": "1f535da9-766d-4081-a6c4-dd2233f68063",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "StatusLabel",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 51,
           "y": 37,
           "width": 7,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#588d7c",
+            "visible": true,
             "backgroundColor": "transparent",
             "borderColor": "transparent",
             "borderWidth": 0,
             "fontSize": 14,
+            "color": "#588d7c",
             "fontWeight": "normal",
             "fontStyle": "normal",
             "textAlign": "left",
@@ -1115,127 +1205,107 @@
         {
           "className": "TButton",
           "id": "obj_1766861595312_98ymsbf45",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
+          "name": "StartBtn",
+          "Tasks": {
             "onClick": "StartGame"
           },
-          "name": "StartBtn",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 9,
           "y": 37,
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#ffffff",
+            "visible": true,
             "backgroundColor": "#007bff",
             "borderColor": "#000000",
             "borderWidth": 1,
             "fontSize": 14,
+            "color": "#ffffff",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
             "fontFamily": "Arial"
           },
-          "text": "Spiel starten",
+          "caption": "Spiel starten",
+          "color": "#007bff",
           "icon": ""
         },
         {
           "className": "TButton",
           "id": "37b384ed-5573-4d08-823a-bc0692fc016a",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
+          "name": "PauseGameBtn",
+          "Tasks": {
             "onClick": "PauseGame"
           },
-          "name": "PauseGameBtn",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 20,
           "y": 37,
           "width": 10,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#ffffff",
+            "visible": true,
             "backgroundColor": "#007bff",
             "borderColor": "#000000",
             "borderWidth": 1,
             "fontSize": 14,
+            "color": "#ffffff",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
             "fontFamily": "Arial"
           },
-          "text": "Spiel pausieren",
+          "caption": "Spiel pausieren",
+          "color": "#007bff",
           "icon": ""
         },
         {
           "className": "TButton",
           "id": "obj_1767094196869_s5kxtbodl",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
+          "name": "ResumeGameBtn",
+          "Tasks": {
             "onClick": "ResumeGame"
           },
-          "name": "ResumeGameBtn",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 31,
           "y": 37,
           "width": 9,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#ffffff",
+            "visible": true,
             "backgroundColor": "#007bff",
             "borderColor": "#000000",
             "borderWidth": 1,
             "fontSize": 14,
+            "color": "#ffffff",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
             "fontFamily": "Arial"
           },
-          "text": "Spiel fortsetzen",
+          "caption": "Spiel fortsetzen",
+          "color": "#007bff",
           "icon": ""
         },
         {
           "className": "TPanel",
           "id": "obj_1768123181726_f8lxvpnwv",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "Panel_19",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 0,
           "y": 5,
           "width": 1,
           "height": 30,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#f0f0f0",
             "borderColor": "#999999",
             "borderWidth": 1
@@ -1248,22 +1318,17 @@
         {
           "className": "TPanel",
           "id": "ce79a17f-d6c1-44ef-9dab-deee1883c68d",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "Panel_19",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 63,
           "y": 5,
           "width": 1,
           "height": 30,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#f0f0f0",
             "borderColor": "#999999",
             "borderWidth": 1
@@ -1276,22 +1341,17 @@
         {
           "className": "TPanel",
           "id": "obj_1768123224409_wo5809ewc",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "Panel_21",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 0,
           "y": 4,
           "width": 64,
           "height": 1,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#f0f0f0",
             "borderColor": "#999999",
             "borderWidth": 1
@@ -1304,22 +1364,17 @@
         {
           "className": "TPanel",
           "id": "a815d2e0-0753-480c-8a0e-7eb026e5d4ef",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "Panel_21",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 0,
           "y": 35,
           "width": 64,
           "height": 1,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#f0f0f0",
             "borderColor": "#999999",
             "borderWidth": 1
@@ -1332,101 +1387,81 @@
         {
           "className": "TNumberLabel",
           "id": "obj_1768307659013_6ccbjgywj",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
+          "name": "ScoreLblLeft",
+          "Tasks": {
             "onMaxValueReached": "PauseGame"
           },
-          "name": "ScoreLblLeft",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 20,
           "y": 1,
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#f0ebeb",
+            "visible": true,
             "backgroundColor": "transparent",
             "borderColor": "transparent",
             "borderWidth": 0,
             "fontSize": 36,
+            "color": "#f0ebeb",
             "fontWeight": "normal",
             "fontStyle": "normal",
             "textAlign": "center",
             "fontFamily": "Arial"
           },
-          "text": "",
-          "startValue": 0,
           "value": 0,
+          "startValue": 0,
           "maxValue": 5,
           "step": 1
         },
         {
           "className": "TNumberLabel",
           "id": "f5eb5ec2-c70b-4309-b441-f0d9543d8806",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
+          "name": "ScoreLblRight",
+          "Tasks": {
             "onMaxValueReached": "PauseGame"
           },
-          "name": "ScoreLblRight",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 37,
           "y": 1,
           "width": 4,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#f4f1f1",
+            "visible": true,
             "backgroundColor": "transparent",
             "borderColor": "transparent",
             "borderWidth": 0,
             "fontSize": 36,
+            "color": "#f4f1f1",
             "fontWeight": "normal",
             "fontStyle": "normal",
             "textAlign": "center",
             "fontFamily": "Arial"
           },
-          "text": "",
-          "startValue": 0,
           "value": 0,
+          "startValue": 0,
           "maxValue": 5,
           "step": 1
         },
         {
           "className": "TTimer",
           "id": "obj_1768324032417_h7nn1j1yj",
-          "isVariable": true,
-          "isService": true,
-          "isHiddenInRun": true,
-          "events": {
+          "name": "PauseTimer",
+          "Tasks": {
             "onMaxIntervalReached": "ServeBall"
           },
-          "name": "PauseTimer",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 1,
           "y": 13,
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#4caf50",
             "borderColor": "#2e7d32",
             "borderWidth": 2
@@ -1439,22 +1474,17 @@
         {
           "className": "THeartbeat",
           "id": "obj_1768406871452_45jpkqbr6",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
           "name": "Heartbeat",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 1,
           "y": 17,
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#e91e63",
             "borderColor": "#c2185b",
             "borderWidth": 2
@@ -1470,103 +1500,81 @@
         {
           "className": "THandshake",
           "id": "obj_1768406910807_73vk7ohq8",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
-          "events": {
+          "name": "Handshake",
+          "Tasks": {
             "onPeerJoined": "HandlePeerJoined",
             "onRoomJoined": "HandleJoinSuccess",
             "onPeerLeft": "HandlePeerLeft"
           },
-          "name": "Handshake",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 1,
           "y": 15,
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
+            "visible": true,
             "backgroundColor": "#5c6bc0",
             "borderColor": "#3949ab",
             "borderWidth": 2
           },
           "protocolVersion": "1.0",
-          "enabled": "${isMultiplayer}",
-          "status": "disconnected",
-          "roomCode": "",
-          "playerNumber": 0,
+          "peerVersion": "",
           "isHost": false,
-          "peerVersion": ""
+          "playerNumber": 0,
+          "roomCode": "",
+          "status": "disconnected",
+          "enabled": "${isMultiplayer}"
         },
         {
           "className": "TStageController",
           "id": "obj_1768642087440_0rwyr1wr9",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
           "name": "StageController",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
+          "Tasks": {},
           "x": 1,
           "y": 19,
           "width": 5,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#ffffff",
+            "visible": true,
             "backgroundColor": "#9c27b0",
             "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "currentStageId": "",
-          "currentStageName": "",
-          "currentStageType": "standard",
-          "stageCount": 0,
-          "isOnMainStage": false,
-          "isOnSplashStage": false
+            "borderWidth": 0,
+            "color": "#ffffff"
+          }
         },
         {
           "className": "TButton",
           "id": "obj_1768721373068_dx29k460k",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
+          "name": "ImpressumBtn",
+          "Tasks": {
             "onClick": "SwitchToImpressum"
           },
-          "name": "ImpressumBtn",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 57,
           "y": 37,
           "width": 6,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#ffffff",
+            "visible": true,
             "backgroundColor": "#007bff",
             "borderColor": "#000000",
             "borderWidth": 1,
             "fontSize": 14,
+            "color": "#ffffff",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
             "fontFamily": "Arial"
           },
-          "text": "Impressum",
+          "caption": "Impressum",
+          "color": "#007bff",
           "icon": ""
         }
       ],
@@ -1593,113 +1601,24 @@
               "name": "ResetScore"
             },
             {
-              "name": "stopBall",
-              "type": "action"
+              "type": "action",
+              "name": "stopBall"
             }
           ],
           "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
           "params": [],
-          "triggerMode": "local-sync",
-          "flowChart": {
-            "elements": [
-              {
-                "id": "node-1766860995380",
-                "type": "task",
-                "x": 100,
-                "y": 200,
-                "width": 220,
-                "height": 60,
-                "properties": {
-                  "name": "InitialAllGameElements",
-                  "details": "",
-                  "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
-                  "text": "InitialAllGameElements"
-                },
-                "data": {
-                  "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
-                  "showDetails": false,
-                  "paramValues": {},
-                  "name": "InitialAllGameElements"
-                }
-              },
-              {
-                "id": "imported-1766861382527-401",
-                "type": "task",
-                "x": 400,
-                "y": 160,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "ResetScore",
-                  "details": "",
-                  "description": "Resets the scores of both players to zero.",
-                  "text": "ResetScore"
-                },
-                "data": {
-                  "isLinked": false,
-                  "isExpanded": true,
-                  "sourceTaskName": "ResetScore",
-                  "description": "Resets the scores of both players to zero.",
-                  "originalId": "node-1766861136279",
-                  "ghostPositions": {},
-                  "ghostConnections": [],
-                  "showDetails": false,
-                  "name": "ResetScore"
-                }
-              },
-              {
-                "id": "node-1766861408042",
-                "type": "action",
-                "x": 400,
-                "y": 260,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "stopBall",
-                  "details": "BallSprite.x := 32; BallSprite.y := 19 (+2)",
-                  "description": "Resets the ball sprite to the center of the court (32, 19)."
-                },
-                "data": {
-                  "name": "stopBall",
-                  "type": "property",
-                  "isLinked": true
-                }
-              }
-            ],
-            "connections": [
-              {
-                "id": "conn-migrated-1",
-                "startX": 357.77778339385986,
-                "startY": 190.00000476837158,
-                "endX": 502.22224140167236,
-                "endY": 190.00000476837158,
-                "startTargetId": "node-1766860995380",
-                "endTargetId": "imported-1766861382527-401",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-2",
-                "startX": 357.77778339385986,
-                "startY": 190.00000476837158,
-                "endX": 562.2222414016724,
-                "endY": 310.0000047683716,
-                "startTargetId": "node-1766860995380",
-                "endTargetId": "node-1766861408042",
-                "data": {}
-              }
-            ]
-          }
+          "triggerMode": "local-sync"
         },
         {
           "name": "ResetScore",
           "actionSequence": [
             {
-              "name": "ScoreLblLeft.reset",
-              "type": "action"
+              "type": "action",
+              "name": "ScoreLblLeft.reset"
             },
             {
-              "name": "ScoreLblRight.reset",
-              "type": "action"
+              "type": "action",
+              "name": "ScoreLblRight.reset"
             }
           ],
           "description": "Resets the scores of both players to zero.",
@@ -1712,298 +1631,34 @@
           "actionSequence": [
             {
               "type": "task",
-              "name": "SendStartMessage"
-            },
-            {
-              "type": "task",
               "name": "InitialAllGameElements"
-            },
-            {
-              "name": "SetSpriteMovingToTrue",
-              "type": "action"
-            },
-            {
-              "name": "SetCollisionsToTrue",
-              "type": "action"
             },
             {
               "type": "task",
               "name": "ServeBall"
+            },
+            {
+              "type": "task",
+              "name": "SendStartMessage"
+            },
+            {
+              "type": "action",
+              "name": "SetSpriteMovingToTrue"
+            },
+            {
+              "type": "action",
+              "name": "SetCollisionsToTrue"
             }
           ],
           "description": "Orchestrates the game start: initializes elements, serves the ball, sends start message, and enables movement/collisions.",
-          "params": [],
-          "flowChart": {
-            "elements": [
-              {
-                "id": "node-1766900099148",
-                "type": "task",
-                "x": 20,
-                "y": 280,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "StartGame",
-                  "details": "",
-                  "description": "Orchestrates the game start: initializes elements, serves the ball, sends start message, and enables movement/collisions.",
-                  "text": "StartGame"
-                },
-                "data": {
-                  "description": "Orchestrates the game start: initializes elements, serves the ball, sends start message, and enables movement/collisions.",
-                  "showDetails": true,
-                  "name": "StartGame"
-                }
-              },
-              {
-                "id": "imported-1766900123333-879",
-                "type": "task",
-                "x": 440,
-                "y": 140,
-                "width": 200,
-                "height": 60,
-                "properties": {
-                  "name": "InitialAllGameElements",
-                  "details": "",
-                  "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
-                  "text": "InitialAllGameElements"
-                },
-                "data": {
-                  "isLinked": false,
-                  "isExpanded": false,
-                  "sourceTaskName": "InitialAllGameElements",
-                  "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
-                  "showDetails": true,
-                  "paramValues": {},
-                  "originalId": "node-1766860995380",
-                  "ghostPositions": {
-                    "imported-1766861382527-401": {
-                      "x": 840,
-                      "y": 60
-                    },
-                    "node-1766861408042": {
-                      "x": 840,
-                      "y": 160
-                    },
-                    "node-1766861136279": {
-                      "x": 840,
-                      "y": 60
-                    }
-                  },
-                  "ghostConnections": [
-                    {
-                      "startOriginalId": "node-1766860995380",
-                      "endOriginalId": "node-1766861136279",
-                      "originalStartAnchorType": "output"
-                    },
-                    {
-                      "startOriginalId": "node-1766860995380",
-                      "endOriginalId": "node-1766861408042",
-                      "originalStartAnchorType": "output"
-                    },
-                    {
-                      "startOriginalId": "node-1766860995380",
-                      "endOriginalId": "node-1766861136279",
-                      "originalStartAnchorType": "output"
-                    }
-                  ],
-                  "name": "InitialAllGameElements"
-                }
-              },
-              {
-                "id": "node-1766943844265",
-                "type": "action",
-                "x": 420,
-                "y": 500,
-                "width": 260,
-                "height": 80,
-                "properties": {
-                  "name": "SetSpriteMovingToTrue",
-                  "details": "GameState.spritesMoving := true",
-                  "description": "Sets GameState.spritesMoving to true to enable physics."
-                },
-                "data": {
-                  "name": "SetSpriteMovingToTrue",
-                  "type": "property",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "node-1766943898453",
-                "type": "action",
-                "x": 420,
-                "y": 600,
-                "width": 300,
-                "height": 80,
-                "properties": {
-                  "name": "SetCollisionsToTrue",
-                  "details": "GameState.collisionsEnabled := true",
-                  "description": "Enables collision detection in the GameState."
-                },
-                "data": {
-                  "name": "SetCollisionsToTrue",
-                  "type": "property",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "imported-1767002278164-192",
-                "type": "task",
-                "x": 440,
-                "y": 280,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "ServeBall",
-                  "details": "",
-                  "description": "Sets the initial velocity for the ball to start the rally.",
-                  "text": "ServeBall"
-                },
-                "data": {
-                  "isLinked": false,
-                  "isExpanded": false,
-                  "sourceTaskName": "ServeBall",
-                  "description": "Sets the initial velocity for the ball to start the rally.",
-                  "showDetails": true,
-                  "paramValues": {},
-                  "originalId": "node-1767002081311",
-                  "ghostPositions": {
-                    "node-1767002095432": {
-                      "x": 920,
-                      "y": 280
-                    }
-                  },
-                  "ghostConnections": [
-                    {
-                      "startOriginalId": "node-1767002081311",
-                      "endOriginalId": "node-1767002095432",
-                      "originalStartAnchorType": "output"
-                    },
-                    {
-                      "startOriginalId": "node-1767002081311",
-                      "endOriginalId": "node-1767002095432",
-                      "originalStartAnchorType": "output"
-                    }
-                  ],
-                  "name": "ServeBall"
-                }
-              },
-              {
-                "id": "node-1767266909599",
-                "type": "task",
-                "x": 440,
-                "y": 380,
-                "width": 160,
-                "height": 60,
-                "properties": {
-                  "name": "SendStartMessage",
-                  "details": "",
-                  "description": "Updates UI elements to inform players that the game has begun.",
-                  "text": "SendStartMessage"
-                },
-                "data": {
-                  "isExpanded": false,
-                  "sourceTaskName": "SendStartMessage",
-                  "description": "Updates UI elements to inform players that the game has begun.",
-                  "showDetails": true,
-                  "paramValues": {},
-                  "originalId": "node-1767266331527",
-                  "ghostPositions": {
-                    "node-1767266350472": {
-                      "x": 1000,
-                      "y": 380
-                    },
-                    "node-1767266505672": {
-                      "x": 1000,
-                      "y": 500
-                    }
-                  },
-                  "ghostConnections": [
-                    {
-                      "startOriginalId": "node-1767266331527",
-                      "endOriginalId": "node-1767266350472",
-                      "originalStartAnchorType": "output",
-                      "startAnchorType": "output"
-                    },
-                    {
-                      "startOriginalId": "node-1767266331527",
-                      "endOriginalId": "node-1767266505672",
-                      "originalStartAnchorType": "output",
-                      "startAnchorType": "output"
-                    },
-                    {
-                      "startOriginalId": "node-1767266331527",
-                      "endOriginalId": "node-1767266350472",
-                      "originalStartAnchorType": "output",
-                      "startAnchorType": "output"
-                    }
-                  ],
-                  "name": "SendStartMessage"
-                }
-              }
-            ],
-            "connections": [
-              {
-                "id": "conn-migrated-1",
-                "startX": 227.77778339385986,
-                "startY": 190.00000476837158,
-                "endX": 482.22224140167236,
-                "endY": 190.00000476837158,
-                "startTargetId": "node-1766900099148",
-                "endTargetId": "imported-1766900123333-879",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-2",
-                "startX": 247.77778339385986,
-                "startY": 350.0000123977661,
-                "endX": 482.22224140167236,
-                "endY": 490.0000123977661,
-                "startTargetId": "node-1766900099148",
-                "endTargetId": "node-1766943844265",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-3",
-                "startX": 247.77778339385986,
-                "startY": 350.0000123977661,
-                "endX": 502.22224140167236,
-                "endY": 630.0000123977661,
-                "startTargetId": "node-1766900099148",
-                "endTargetId": "node-1766943898453",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-4",
-                "startX": 147.77778339385986,
-                "startY": 470.0000123977661,
-                "endX": 482.22224140167236,
-                "endY": 310.0000123977661,
-                "startTargetId": "node-1766900099148",
-                "endTargetId": "imported-1767002278164-192",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-5",
-                "startX": 150,
-                "startY": 470,
-                "endX": 520,
-                "endY": 450,
-                "startTargetId": "node-1766900099148",
-                "endTargetId": "node-1767266909599",
-                "data": {
-                  "startAnchorType": "output",
-                  "endAnchorType": "input"
-                }
-              }
-            ]
-          }
+          "params": []
         },
         {
           "name": "SendLeftPaddleUp",
           "actionSequence": [
             {
-              "name": "IncrementLeftPaddleY_Position",
-              "type": "action"
+              "type": "action",
+              "name": "IncrementLeftPaddleY_Position"
             }
           ],
           "description": "Moves the left paddle upwards by setting negative Y velocity.",
@@ -2014,99 +1669,30 @@
           "name": "SendLeftPaddleDown",
           "actionSequence": [
             {
-              "name": "DecrementLeftPaddleY_Position",
               "type": "action",
-              "target": "LeftPaddle",
-              "changes": {
-                "velocityY": 0.5
-              },
-              "_formValues": {
-                "PropertySelect": "y",
-                "PropertyValueInput": "-1",
-                "NameInput": "",
-                "ActionTypeSelect": "📝 Property Change (Set)",
-                "TargetObjectSelect": "LeftPaddle"
-              },
-              "taskName": "DecrementLeftPaddleY_Position",
-              "actionName": "DecrementLeftPaddleY_Position",
-              "details": ""
+              "name": "DecrementLeftPaddleY_Position"
             }
           ],
           "description": "Moves the left paddle downwards by setting positive Y velocity.",
-          "triggerMode": "local-sync",
-          "params": []
+          "triggerMode": "local-sync"
         },
         {
           "name": "StopLeftPaddle",
           "actionSequence": [
             {
-              "name": "setVelocityY_To_zero",
-              "type": "action"
+              "type": "action",
+              "name": "setVelocityY_To_zero"
             }
           ],
           "description": "Stops the left paddle by setting Y velocity to zero.",
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowChart": {
-            "elements": [
-              {
-                "id": "node-1766940237783",
-                "type": "task",
-                "x": 200,
-                "y": 160,
-                "width": 160,
-                "height": 60,
-                "properties": {
-                  "name": "StopLeftPaddle",
-                  "details": "",
-                  "description": "Stops the left paddle by setting Y velocity to zero.",
-                  "text": "StopLeftPaddle"
-                },
-                "data": {
-                  "description": "Stops the left paddle by setting Y velocity to zero.",
-                  "name": "StopLeftPaddle",
-                  "showDetails": false
-                }
-              },
-              {
-                "id": "node-1766940256448",
-                "type": "action",
-                "x": 460,
-                "y": 160,
-                "width": 200,
-                "height": 60,
-                "properties": {
-                  "name": "setVelocityY_To_zero",
-                  "details": "",
-                  "description": ""
-                },
-                "data": {
-                  "name": "setVelocityY_To_zero",
-                  "type": "property",
-                  "isLinked": true
-                }
-              }
-            ],
-            "connections": [
-              {
-                "id": "conn-migrated-1",
-                "startX": 347.77778339385986,
-                "startY": 190.0000123977661,
-                "endX": 462.22224140167236,
-                "endY": 190.0000123977661,
-                "startTargetId": "node-1766940237783",
-                "endTargetId": "node-1766940256448",
-                "data": {}
-              }
-            ]
-          }
+          "triggerMode": "local-sync"
         },
         {
           "name": "SendRightPaddleUp",
           "actionSequence": [
             {
-              "name": "IncrementRightPaddleY_Position",
-              "type": "action"
+              "type": "action",
+              "name": "IncrementRightPaddleY_Position"
             }
           ],
           "description": "Moves the right paddle upwards by setting negative Y velocity.",
@@ -2117,8 +1703,8 @@
           "name": "StopRightPaddle",
           "actionSequence": [
             {
-              "name": "SetRightPaddle.velocityYToNull",
-              "type": "action"
+              "type": "action",
+              "name": "SetRightPaddle.velocityYToNull"
             }
           ],
           "description": "Stops the right paddle by setting Y velocity to zero.",
@@ -2129,8 +1715,8 @@
           "name": "SendRightPaddleDown",
           "actionSequence": [
             {
-              "name": "DecrementRightPaddleY_Position",
-              "type": "action"
+              "type": "action",
+              "name": "DecrementRightPaddleY_Position"
             }
           ],
           "description": "Moves the right paddle downwards by setting positive Y velocity.",
@@ -2141,97 +1727,114 @@
           "name": "ServeBall",
           "actionSequence": [
             {
-              "name": "SetSpeed",
-              "type": "action"
+              "type": "action",
+              "name": "SetSpeed"
             }
           ],
           "description": "Sets the initial velocity for the ball to start the rally.",
           "params": [],
-          "triggerMode": "local-sync",
-          "flowChart": {
-            "elements": [
-              {
-                "id": "node-1767002081311",
-                "type": "task",
-                "x": 160,
-                "y": 140,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "ServeBall",
-                  "details": "",
-                  "description": "Sets the initial velocity for the ball to start the rally.",
-                  "text": "ServeBall"
-                },
-                "data": {
-                  "description": "Sets the initial velocity for the ball to start the rally.",
-                  "showDetails": false,
-                  "name": "ServeBall"
-                }
-              },
-              {
-                "id": "node-1767002095432",
-                "type": "action",
-                "x": 420,
-                "y": 140,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "SetSpeed",
-                  "details": "BallSprite.velocityX := 0.3; BallSprite.velocityY := 0.3",
-                  "description": ""
-                },
-                "data": {
-                  "name": "SetSpeed",
-                  "type": "property",
-                  "isLinked": true
-                }
-              }
-            ],
-            "connections": [
-              {
-                "id": "conn-migrated-1",
-                "startX": 287.77778339385986,
-                "startY": 170.0000123977661,
-                "endX": 422.22224140167236,
-                "endY": 109.99999713897705,
-                "startTargetId": "node-1767002081311",
-                "endTargetId": "node-1767002095432",
-                "data": {}
-              }
-            ]
-          }
+          "triggerMode": "local-sync"
         },
         {
           "name": "HandleBallBoundary",
           "actionSequence": [
             {
-              "name": "getHitSide",
-              "type": "action"
+              "type": "action",
+              "name": "getHitSide"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "variable": "hitSide",
+                "value": "left",
+                "operator": "=="
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "RightPlayerScores"
+                }
+              ],
+              "else": [
+                {
+                  "type": "condition",
+                  "condition": {
+                    "variable": "hitSide",
+                    "value": "right",
+                    "operator": "=="
+                  },
+                  "then": [
+                    {
+                      "type": "task",
+                      "name": "LeftPlayerScores"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "condition",
+                      "condition": {
+                        "variable": "hitSide",
+                        "value": "top",
+                        "operator": "=="
+                      },
+                      "then": [
+                        {
+                          "type": "action",
+                          "name": "ChangeY_DirectionToDown"
+                        }
+                      ],
+                      "else": [
+                        {
+                          "type": "condition",
+                          "condition": {
+                            "variable": "hitSide",
+                            "value": "bottom",
+                            "operator": "=="
+                          },
+                          "then": [
+                            {
+                              "type": "action",
+                              "name": "ChangeY_DirectionToUp"
+                            }
+                          ],
+                          "else": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             }
           ],
           "description": "Handles collision with walls: bounces off top/bottom, or triggers scoring if hits left/right.",
-          "params": [],
+          "params": [
+            {
+              "name": "hitSide",
+              "type": "string",
+              "label": "hitSide",
+              "default": ""
+            }
+          ],
           "triggerMode": "local-sync"
         },
         {
           "name": "LeftPlayerScores",
           "actionSequence": [
             {
-              "name": "ScoreLblLeft.incValue",
-              "type": "action"
+              "type": "action",
+              "name": "ScoreLblLeft.incValue"
             },
             {
-              "name": "stopBall",
-              "type": "action"
+              "type": "action",
+              "name": "stopBall"
             },
             {
-              "name": "BallSprite.moveToStartpoint",
-              "type": "action"
+              "type": "action",
+              "name": "BallSprite.moveToStartpoint"
             },
             {
-              "name": "PauseTimer.timerStart",
-              "type": "action"
+              "type": "action",
+              "name": "PauseTimer.timerStart"
             }
           ],
           "description": "Increments Player 1 score and resets the ball direction.",
@@ -2242,20 +1845,20 @@
           "name": "RightPlayerScores",
           "actionSequence": [
             {
-              "name": "ScoreLblRight.incValue",
-              "type": "action"
+              "type": "action",
+              "name": "ScoreLblRight.incValue"
             },
             {
-              "name": "stopBall",
-              "type": "action"
+              "type": "action",
+              "name": "stopBall"
             },
             {
-              "name": "BallSprite.moveToStartpoint",
-              "type": "action"
+              "type": "action",
+              "name": "BallSprite.moveToStartpoint"
             },
             {
-              "name": "PauseTimer.timerStart",
-              "type": "action"
+              "type": "action",
+              "name": "PauseTimer.timerStart"
             }
           ],
           "description": "Increments Player 2 score and resets the ball direction.",
@@ -2266,523 +1869,111 @@
           "name": "HandlePaddleHit",
           "actionSequence": [
             {
-              "name": "Get Paddle Y",
-              "type": "action"
+              "type": "action",
+              "name": "Get Paddle Y"
+            },
+            {
+              "type": "action",
+              "name": "Get Paddle H"
+            },
+            {
+              "type": "action",
+              "name": "Get Ball Y"
+            },
+            {
+              "type": "action",
+              "name": "Get Ball H"
+            },
+            {
+              "type": "action",
+              "name": "Calc Paddle Half"
+            },
+            {
+              "type": "action",
+              "name": "Calc Ball Half"
+            },
+            {
+              "type": "action",
+              "name": "Paddle Center Y"
+            },
+            {
+              "type": "action",
+              "name": "Ball Center Y"
+            },
+            {
+              "type": "action",
+              "name": "Calc Diff Y"
+            },
+            {
+              "type": "action",
+              "name": "Calc Factor"
+            },
+            {
+              "type": "action",
+              "name": "Calc New VY"
+            },
+            {
+              "type": "action",
+              "name": "Set Velocity Y"
+            },
+            {
+              "type": "action",
+              "name": "Negate Velocity X"
             }
           ],
           "description": "Calculates the bounce angle based on relative impact position and reverses horizontal direction.",
-          "params": [],
-          "triggerMode": "local-sync",
-          "flowChart": {
-            "elements": [
-              {
-                "id": "task-start",
-                "type": "task",
-                "x": 60,
-                "y": 60,
-                "width": 180,
-                "height": 60,
-                "properties": {
-                  "name": "HandlePaddleHit",
-                  "details": "",
-                  "description": "Calculates the bounce angle based on relative impact position and reverses horizontal direction.",
-                  "text": "HandlePaddleHit"
-                },
-                "data": {
-                  "description": "Calculates the bounce angle based on relative impact position and reverses horizontal direction.",
-                  "showDetails": false,
-                  "name": "HandlePaddleHit"
-                }
-              },
-              {
-                "id": "act-1",
-                "type": "action",
-                "x": 300,
-                "y": 60,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Get Paddle Y",
-                  "details": "paddleY := other.y",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Get Paddle Y",
-                  "type": "calculate",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-2",
-                "type": "action",
-                "x": 560,
-                "y": 60,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Get Paddle H",
-                  "details": "paddleH := other.height",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Get Paddle H",
-                  "type": "calculate",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-3",
-                "type": "action",
-                "x": 800,
-                "y": 60,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Get Ball Y",
-                  "details": "ballY := self.y",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Get Ball Y",
-                  "type": "calculate",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-4",
-                "type": "action",
-                "x": 1060,
-                "y": 60,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Get Ball H",
-                  "details": "ballH := self.height",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Get Ball H",
-                  "type": "calculate",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-5",
-                "type": "action",
-                "x": 300,
-                "y": 200,
-                "width": 160,
-                "height": 60,
-                "properties": {
-                  "name": "Calc Paddle Half",
-                  "details": "paddleHalfH := (Berechnung)",
-                  "description": "Calculates half the height of the paddle for collision math."
-                },
-                "data": {
-                  "name": "Calc Paddle Half",
-                  "type": "calculate",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-6",
-                "type": "action",
-                "x": 560,
-                "y": 200,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Calc Ball Half",
-                  "details": "ballHalfH := (Berechnung)",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Calc Ball Half",
-                  "type": "calculate",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-7",
-                "type": "action",
-                "x": 800,
-                "y": 200,
-                "width": 160,
-                "height": 60,
-                "properties": {
-                  "name": "Paddle Center Y",
-                  "details": "paddleCenterY := (Berechnung)",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Paddle Center Y",
-                  "type": "calculate",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-8",
-                "type": "action",
-                "x": 1060,
-                "y": 200,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Ball Center Y",
-                  "details": "ballCenterY := (Berechnung)",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Ball Center Y",
-                  "type": "calculate",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-9",
-                "type": "action",
-                "x": 300,
-                "y": 360,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Calc Diff Y",
-                  "details": "diffY := (Berechnung)",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Calc Diff Y",
-                  "type": "calculate",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-10",
-                "type": "action",
-                "x": 560,
-                "y": 360,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Calc Factor",
-                  "details": "factor := (Berechnung)",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Calc Factor",
-                  "type": "calculate",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-11",
-                "type": "action",
-                "x": 800,
-                "y": 360,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Calc New VY",
-                  "details": "newVY := (Berechnung)",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Calc New VY",
-                  "type": "calculate",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-12",
-                "type": "action",
-                "x": 1060,
-                "y": 360,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "Set Velocity Y",
-                  "details": "self.velocityY := ${newVY}",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Set Velocity Y",
-                  "type": "property",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "act-13",
-                "type": "action",
-                "x": 1060,
-                "y": 500,
-                "width": 180,
-                "height": 60,
-                "properties": {
-                  "name": "Negate Velocity X",
-                  "details": "(negate)",
-                  "description": ""
-                },
-                "data": {
-                  "name": "Negate Velocity X",
-                  "type": "negate",
-                  "isLinked": true
-                }
-              }
-            ],
-            "connections": [
-              {
-                "id": "conn-migrated-1",
-                "startX": 250,
-                "startY": 80,
-                "endX": 300,
-                "endY": 80,
-                "startTargetId": "task-start",
-                "endTargetId": "act-1",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-2",
-                "startX": 500,
-                "startY": 90,
-                "endX": 550,
-                "endY": 90,
-                "startTargetId": "act-1",
-                "endTargetId": "act-2",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-3",
-                "startX": 750,
-                "startY": 90,
-                "endX": 800,
-                "endY": 90,
-                "startTargetId": "act-2",
-                "endTargetId": "act-3",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-4",
-                "startX": 1000,
-                "startY": 90,
-                "endX": 1050,
-                "endY": 90,
-                "startTargetId": "act-3",
-                "endTargetId": "act-4",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-5",
-                "startX": 1250,
-                "startY": 90,
-                "endX": 300,
-                "endY": 240,
-                "startTargetId": "act-4",
-                "endTargetId": "act-5",
-                "data": {
-                  "startAnchorType": "right",
-                  "endAnchorType": "left"
-                }
-              },
-              {
-                "id": "conn-migrated-6",
-                "startX": 500,
-                "startY": 240,
-                "endX": 550,
-                "endY": 240,
-                "startTargetId": "act-5",
-                "endTargetId": "act-6",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-7",
-                "startX": 750,
-                "startY": 240,
-                "endX": 800,
-                "endY": 240,
-                "startTargetId": "act-6",
-                "endTargetId": "act-7",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-8",
-                "startX": 1000,
-                "startY": 240,
-                "endX": 1050,
-                "endY": 240,
-                "startTargetId": "act-7",
-                "endTargetId": "act-8",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-9",
-                "startX": 1250,
-                "startY": 240,
-                "endX": 300,
-                "endY": 390,
-                "startTargetId": "act-8",
-                "endTargetId": "act-9",
-                "data": {
-                  "startAnchorType": "right",
-                  "endAnchorType": "left"
-                }
-              },
-              {
-                "id": "conn-migrated-10",
-                "startX": 500,
-                "startY": 390,
-                "endX": 550,
-                "endY": 390,
-                "startTargetId": "act-9",
-                "endTargetId": "act-10",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-11",
-                "startX": 750,
-                "startY": 390,
-                "endX": 800,
-                "endY": 390,
-                "startTargetId": "act-10",
-                "endTargetId": "act-11",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-12",
-                "startX": 1000,
-                "startY": 390,
-                "endX": 1050,
-                "endY": 390,
-                "startTargetId": "act-11",
-                "endTargetId": "act-12",
-                "data": {}
-              },
-              {
-                "id": "conn-migrated-13",
-                "startX": 1150,
-                "startY": 430,
-                "endX": 1150,
-                "endY": 500,
-                "startTargetId": "act-12",
-                "endTargetId": "act-13",
-                "data": {
-                  "startAnchorType": "bottom",
-                  "endAnchorType": "top"
-                }
-              }
-            ]
-          }
+          "params": [
+            {
+              "name": "newVY",
+              "type": "number",
+              "label": "newVY",
+              "default": 0
+            }
+          ],
+          "triggerMode": "local-sync"
         },
         {
           "name": "PauseGame",
           "actionSequence": [
             {
-              "name": "setGameStatusToPaused",
-              "type": "action"
+              "type": "action",
+              "name": "setGameStatusToPaused"
             },
             {
-              "name": "SetResumeGameBtn.CaptionToGoOn",
-              "type": "action"
+              "type": "action",
+              "name": "SetResumeGameBtn.CaptionToGoOn"
             }
           ],
           "description": "Pauses the game loop, stopping usage of physics and inputs.",
           "params": [],
-          "triggerMode": "local-sync",
-          "flowChart": {
-            "elements": [
-              {
-                "id": "node-1767088850434",
-                "type": "task",
-                "x": 140,
-                "y": 160,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "PauseGame",
-                  "details": "",
-                  "description": "Pauses the game loop, stopping usage of physics and inputs.",
-                  "text": "PauseGame"
-                },
-                "data": {
-                  "description": "Pauses the game loop, stopping usage of physics and inputs.",
-                  "showDetails": true,
-                  "name": "PauseGame"
-                }
-              },
-              {
-                "id": "node-1767088872211",
-                "type": "action",
-                "x": 380,
-                "y": 160,
-                "width": 280,
-                "height": 80,
-                "properties": {
-                  "name": "setGameStatusToPaused",
-                  "details": "GameState.spritesMoving := false; GameState.sync := true (+1)",
-                  "description": "Sets the GameState.spritesMoving to false to pause physics."
-                },
-                "data": {
-                  "name": "setGameStatusToPaused",
-                  "type": "property",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "node-1767965677906",
-                "type": "action",
-                "x": 680,
-                "y": 160,
-                "width": 280,
-                "height": 80,
-                "properties": {
-                  "name": "SetResumeGameBtn.CaptionToGoOn",
-                  "details": "ResumeGameBtn.caption := BlubBlub",
-                  "description": ""
-                },
-                "data": {
-                  "name": "SetResumeGameBtn.CaptionToGoOn",
-                  "type": "property",
-                  "isLinked": true
-                }
-              }
-            ],
-            "connections": [
-              {
-                "id": "conn-migrated-1",
-                "startX": 640,
-                "startY": 190,
-                "endX": 860,
-                "endY": 190,
-                "startTargetId": "node-1767088872211",
-                "endTargetId": "node-1767965677906",
-                "data": {
-                  "startAnchorType": "output",
-                  "endAnchorType": "input",
-                  "isEmbeddedInternal": false
-                }
-              },
-              {
-                "id": "conn-migrated-2",
-                "startX": 280,
-                "startY": 190,
-                "endX": 660,
-                "endY": 190,
-                "startTargetId": "node-1767088850434",
-                "endTargetId": "node-1767088872211",
-                "data": {
-                  "startAnchorType": "output",
-                  "isEmbeddedInternal": false,
-                  "endAnchorType": "input"
-                }
-              }
-            ]
-          }
+          "triggerMode": "local-sync"
         },
         {
           "name": "ResumeGame",
           "actionSequence": [
             {
-              "name": "GetGameStatus",
-              "type": "action"
+              "type": "action",
+              "name": "GetGameStatus"
+            },
+            {
+              "type": "condition",
+              "condition": {
+                "value": "paused",
+                "variable": "curGameStatus",
+                "operator": "=="
+              },
+              "then": [
+                {
+                  "type": "task",
+                  "name": "GoOnGame"
+                }
+              ],
+              "else": [
+                {
+                  "type": "task",
+                  "name": "PauseGame"
+                }
+              ]
             }
           ],
           "description": "Resumes the game loop, re-enabling physics and inputs.",
@@ -2800,12 +1991,12 @@
           "name": "SendStartMessage",
           "actionSequence": [
             {
-              "name": "setStatusLabelToRunning",
-              "type": "action"
+              "type": "action",
+              "name": "setStartMessageToToast"
             },
             {
-              "name": "setStartMessageToToast",
-              "type": "action"
+              "type": "action",
+              "name": "setStatusLabelToRunning"
             }
           ],
           "description": "Updates UI elements to inform players that the game has begun.",
@@ -2816,102 +2007,16 @@
           "name": "GoOnGame",
           "actionSequence": [
             {
-              "name": "SetGameState.spritesMovingToTrue",
-              "type": "action"
+              "type": "action",
+              "name": "SetGameState.spritesMovingToTrue"
             },
             {
-              "name": "SetResumeGameBtn.captionToGoOn",
-              "type": "action"
+              "type": "action",
+              "name": "SetResumeGameBtn.captionToGoOn"
             }
           ],
           "params": [],
-          "triggerMode": "local-sync",
-          "flowChart": {
-            "elements": [
-              {
-                "id": "node-1767965910713",
-                "type": "task",
-                "x": 140,
-                "y": 180,
-                "width": 140,
-                "height": 60,
-                "properties": {
-                  "name": "GoOnGame",
-                  "details": "",
-                  "description": "",
-                  "text": "GoOnGame"
-                },
-                "data": {
-                  "showDetails": false,
-                  "name": "GoOnGame"
-                }
-              },
-              {
-                "id": "node-1767965919290",
-                "type": "action",
-                "x": 380,
-                "y": 180,
-                "width": 300,
-                "height": 60,
-                "properties": {
-                  "name": "SetGameState.spritesMovingToTrue",
-                  "details": "GameState.spritesMoving := true; GameState.state := playing",
-                  "description": ""
-                },
-                "data": {
-                  "name": "SetGameState.spritesMovingToTrue",
-                  "type": "property",
-                  "isLinked": true
-                }
-              },
-              {
-                "id": "node-1767965991087",
-                "type": "action",
-                "x": 800,
-                "y": 180,
-                "width": 320,
-                "height": 60,
-                "properties": {
-                  "name": "SetResumeGameBtn.captionToGoOn",
-                  "details": "ResumeGameBtn.caption := BlaBla",
-                  "description": ""
-                },
-                "data": {
-                  "name": "SetResumeGameBtn.captionToGoOn",
-                  "type": "property",
-                  "isLinked": true
-                }
-              }
-            ],
-            "connections": [
-              {
-                "id": "conn-migrated-1",
-                "startX": 300,
-                "startY": 210,
-                "endX": 440,
-                "endY": 210,
-                "startTargetId": "node-1767965910713",
-                "endTargetId": "node-1767965919290",
-                "data": {
-                  "startAnchorType": "output",
-                  "endAnchorType": "input"
-                }
-              },
-              {
-                "id": "conn-migrated-2",
-                "startX": 720,
-                "startY": 210,
-                "endX": 860,
-                "endY": 210,
-                "startTargetId": "node-1767965919290",
-                "endTargetId": "node-1767965991087",
-                "data": {
-                  "startAnchorType": "output",
-                  "endAnchorType": "input"
-                }
-              }
-            ]
-          }
+          "triggerMode": "local-sync"
         },
         {
           "name": "HandlePeerJoined",
@@ -2919,12 +2024,6 @@
           "actionSequence": [
             {
               "type": "action",
-              "target": "Toast",
-              "method": "success",
-              "params": [
-                "Ein Spieler ist beigetreten!"
-              ],
-              "hostOnly": false,
               "name": "ShowPlayerJoinedToast"
             }
           ],
@@ -2937,12 +2036,6 @@
           "actionSequence": [
             {
               "type": "action",
-              "target": "Toast",
-              "method": "success",
-              "params": [
-                "Erfolgreich beigetreten!"
-              ],
-              "hostOnly": false,
               "name": "ShowJoinSuccessToast"
             }
           ],
@@ -2954,8 +2047,8 @@
           "description": "Zeigt Toast-Benachrichtigung wenn ein Spieler das Spiel verlässt.",
           "actionSequence": [
             {
-              "name": "ShowPlayerLeftToast",
-              "type": "action"
+              "type": "action",
+              "name": "ShowPlayerLeftToast"
             }
           ],
           "params": [],
@@ -2965,8 +2058,8 @@
           "name": "SwitchToImpressum",
           "actionSequence": [
             {
-              "name": "StageController.gotoStageImpressum",
-              "type": "action"
+              "type": "action",
+              "name": "StageController.gotoStageImpressum"
             }
           ],
           "params": [],
@@ -3084,18 +2177,15 @@
               "type": "task",
               "x": 200,
               "y": 160,
-              "width": 160,
+              "width": 150,
               "height": 60,
               "properties": {
                 "name": "StopLeftPaddle",
                 "details": "",
-                "description": "Stops the left paddle by setting Y velocity to zero.",
-                "text": "StopLeftPaddle"
+                "description": "Stops the left paddle by setting Y velocity to zero."
               },
               "data": {
-                "description": "Stops the left paddle by setting Y velocity to zero.",
-                "name": "StopLeftPaddle",
-                "showDetails": false
+                "description": "Stops the left paddle by setting Y velocity to zero."
               }
             },
             {
@@ -3103,30 +2193,40 @@
               "type": "action",
               "x": 460,
               "y": 160,
-              "width": 200,
+              "width": 220,
               "height": 60,
               "properties": {
                 "name": "setVelocityY_To_zero",
-                "details": "",
-                "description": ""
+                "details": ""
               },
               "data": {
-                "name": "setVelocityY_To_zero",
+                "name": "Action",
                 "type": "property",
-                "isLinked": true
+                "target": "LeftPaddle",
+                "changes": {
+                  "velocityY": 0
+                },
+                "_formValues": {
+                  "PropertySelect": "velocityY",
+                  "PropertyValueInput": "0",
+                  "NameInput": "Action",
+                  "ActionTypeSelect": "📝 Property Change (Set)",
+                  "TargetObjectSelect": "LeftPaddle"
+                },
+                "taskName": "Action",
+                "actionName": "Action"
               }
             }
           ],
           "connections": [
             {
-              "id": "conn-migrated-1",
+              "startTargetId": "node-1766940237783",
+              "endTargetId": "node-1766940256448",
               "startX": 347.77778339385986,
               "startY": 190.0000123977661,
               "endX": 462.22224140167236,
               "endY": 190.0000123977661,
-              "startTargetId": "node-1766940237783",
-              "endTargetId": "node-1766940256448",
-              "data": {}
+              "id": "conn-migrated-1"
             }
           ]
         },
@@ -3208,12 +2308,10 @@
               "properties": {
                 "name": "GoOnGame",
                 "details": "",
-                "description": "",
-                "text": "GoOnGame"
+                "description": ""
               },
               "data": {
-                "showDetails": false,
-                "name": "GoOnGame"
+                "showDetails": false
               }
             },
             {
@@ -3221,7 +2319,7 @@
               "type": "action",
               "x": 380,
               "y": 180,
-              "width": 300,
+              "width": 320,
               "height": 60,
               "properties": {
                 "name": "SetGameState.spritesMovingToTrue",
@@ -3230,8 +2328,7 @@
               },
               "data": {
                 "name": "SetGameState.spritesMovingToTrue",
-                "type": "property",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3248,37 +2345,36 @@
               },
               "data": {
                 "name": "SetResumeGameBtn.captionToGoOn",
-                "type": "property",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
           "connections": [
             {
-              "id": "conn-migrated-1",
+              "startTargetId": "node-1767965910713",
+              "endTargetId": "node-1767965919290",
               "startX": 300,
               "startY": 210,
               "endX": 440,
               "endY": 210,
-              "startTargetId": "node-1767965910713",
-              "endTargetId": "node-1767965919290",
               "data": {
                 "startAnchorType": "output",
                 "endAnchorType": "input"
-              }
+              },
+              "id": "conn-migrated-1"
             },
             {
-              "id": "conn-migrated-2",
+              "startTargetId": "node-1767965919290",
+              "endTargetId": "node-1767965991087",
               "startX": 720,
               "startY": 210,
               "endX": 860,
               "endY": 210,
-              "startTargetId": "node-1767965919290",
-              "endTargetId": "node-1767965991087",
               "data": {
                 "startAnchorType": "output",
                 "endAnchorType": "input"
-              }
+              },
+              "id": "conn-migrated-2"
             }
           ]
         },
@@ -3414,13 +2510,11 @@
               "properties": {
                 "name": "HandlePaddleHit",
                 "details": "",
-                "description": "Calculates the bounce angle based on relative impact position and reverses horizontal direction.",
-                "text": "HandlePaddleHit"
+                "description": "Calculates the bounce angle based on relative impact position and reverses horizontal direction."
               },
               "data": {
                 "description": "Calculates the bounce angle based on relative impact position and reverses horizontal direction.",
-                "showDetails": false,
-                "name": "HandlePaddleHit"
+                "showDetails": false
               }
             },
             {
@@ -3437,8 +2531,7 @@
               },
               "data": {
                 "name": "Get Paddle Y",
-                "type": "calculate",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3455,8 +2548,7 @@
               },
               "data": {
                 "name": "Get Paddle H",
-                "type": "calculate",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3473,8 +2565,7 @@
               },
               "data": {
                 "name": "Get Ball Y",
-                "type": "calculate",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3491,8 +2582,7 @@
               },
               "data": {
                 "name": "Get Ball H",
-                "type": "calculate",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3500,7 +2590,7 @@
               "type": "action",
               "x": 300,
               "y": 200,
-              "width": 160,
+              "width": 180,
               "height": 60,
               "properties": {
                 "name": "Calc Paddle Half",
@@ -3509,8 +2599,7 @@
               },
               "data": {
                 "name": "Calc Paddle Half",
-                "type": "calculate",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3527,8 +2616,7 @@
               },
               "data": {
                 "name": "Calc Ball Half",
-                "type": "calculate",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3545,8 +2633,7 @@
               },
               "data": {
                 "name": "Paddle Center Y",
-                "type": "calculate",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3563,8 +2650,7 @@
               },
               "data": {
                 "name": "Ball Center Y",
-                "type": "calculate",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3581,8 +2667,7 @@
               },
               "data": {
                 "name": "Calc Diff Y",
-                "type": "calculate",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3599,8 +2684,7 @@
               },
               "data": {
                 "name": "Calc Factor",
-                "type": "calculate",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3617,8 +2701,7 @@
               },
               "data": {
                 "name": "Calc New VY",
-                "type": "calculate",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3626,7 +2709,7 @@
               "type": "action",
               "x": 1060,
               "y": 360,
-              "width": 140,
+              "width": 160,
               "height": 60,
               "properties": {
                 "name": "Set Velocity Y",
@@ -3635,8 +2718,7 @@
               },
               "data": {
                 "name": "Set Velocity Y",
-                "type": "property",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -3653,150 +2735,149 @@
               },
               "data": {
                 "name": "Negate Velocity X",
-                "type": "negate",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
           "connections": [
             {
-              "id": "conn-migrated-1",
+              "startTargetId": "task-start",
+              "endTargetId": "act-1",
               "startX": 250,
               "startY": 80,
               "endX": 300,
               "endY": 80,
-              "startTargetId": "task-start",
-              "endTargetId": "act-1",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-1"
             },
             {
-              "id": "conn-migrated-2",
-              "startX": 500,
-              "startY": 90,
-              "endX": 550,
-              "endY": 90,
               "startTargetId": "act-1",
               "endTargetId": "act-2",
-              "data": {}
+              "startX": 500,
+              "startY": 90,
+              "endX": 550,
+              "endY": 90,
+              "data": {},
+              "id": "conn-migrated-2"
             },
             {
-              "id": "conn-migrated-3",
-              "startX": 750,
-              "startY": 90,
-              "endX": 800,
-              "endY": 90,
               "startTargetId": "act-2",
               "endTargetId": "act-3",
-              "data": {}
+              "startX": 750,
+              "startY": 90,
+              "endX": 800,
+              "endY": 90,
+              "data": {},
+              "id": "conn-migrated-3"
             },
             {
-              "id": "conn-migrated-4",
+              "startTargetId": "act-3",
+              "endTargetId": "act-4",
               "startX": 1000,
               "startY": 90,
               "endX": 1050,
               "endY": 90,
-              "startTargetId": "act-3",
-              "endTargetId": "act-4",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-4"
             },
             {
-              "id": "conn-migrated-5",
+              "startTargetId": "act-4",
+              "endTargetId": "act-5",
               "startX": 1250,
               "startY": 90,
               "endX": 300,
               "endY": 240,
-              "startTargetId": "act-4",
-              "endTargetId": "act-5",
               "data": {
                 "startAnchorType": "right",
                 "endAnchorType": "left"
-              }
+              },
+              "id": "conn-migrated-5"
             },
             {
-              "id": "conn-migrated-6",
+              "startTargetId": "act-5",
+              "endTargetId": "act-6",
               "startX": 500,
               "startY": 240,
               "endX": 550,
               "endY": 240,
-              "startTargetId": "act-5",
-              "endTargetId": "act-6",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-6"
             },
             {
-              "id": "conn-migrated-7",
+              "startTargetId": "act-6",
+              "endTargetId": "act-7",
               "startX": 750,
               "startY": 240,
               "endX": 800,
               "endY": 240,
-              "startTargetId": "act-6",
-              "endTargetId": "act-7",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-7"
             },
             {
-              "id": "conn-migrated-8",
+              "startTargetId": "act-7",
+              "endTargetId": "act-8",
               "startX": 1000,
               "startY": 240,
               "endX": 1050,
               "endY": 240,
-              "startTargetId": "act-7",
-              "endTargetId": "act-8",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-8"
             },
             {
-              "id": "conn-migrated-9",
+              "startTargetId": "act-8",
+              "endTargetId": "act-9",
               "startX": 1250,
               "startY": 240,
               "endX": 300,
               "endY": 390,
-              "startTargetId": "act-8",
-              "endTargetId": "act-9",
               "data": {
                 "startAnchorType": "right",
                 "endAnchorType": "left"
-              }
+              },
+              "id": "conn-migrated-9"
             },
             {
-              "id": "conn-migrated-10",
+              "startTargetId": "act-9",
+              "endTargetId": "act-10",
               "startX": 500,
               "startY": 390,
               "endX": 550,
               "endY": 390,
-              "startTargetId": "act-9",
-              "endTargetId": "act-10",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-10"
             },
             {
-              "id": "conn-migrated-11",
+              "startTargetId": "act-10",
+              "endTargetId": "act-11",
               "startX": 750,
               "startY": 390,
               "endX": 800,
               "endY": 390,
-              "startTargetId": "act-10",
-              "endTargetId": "act-11",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-11"
             },
             {
-              "id": "conn-migrated-12",
+              "startTargetId": "act-11",
+              "endTargetId": "act-12",
               "startX": 1000,
               "startY": 390,
               "endX": 1050,
               "endY": 390,
-              "startTargetId": "act-11",
-              "endTargetId": "act-12",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-12"
             },
             {
-              "id": "conn-migrated-13",
+              "startTargetId": "act-12",
+              "endTargetId": "act-13",
               "startX": 1150,
               "startY": 430,
               "endX": 1150,
               "endY": 500,
-              "startTargetId": "act-12",
-              "endTargetId": "act-13",
               "data": {
                 "startAnchorType": "bottom",
                 "endAnchorType": "top"
-              }
+              },
+              "id": "conn-migrated-13"
             }
           ]
         },
@@ -4223,13 +3304,11 @@
               "properties": {
                 "name": "PauseGame",
                 "details": "",
-                "description": "Pauses the game loop, stopping usage of physics and inputs.",
-                "text": "PauseGame"
+                "description": "Pauses the game loop, stopping usage of physics and inputs."
               },
               "data": {
                 "description": "Pauses the game loop, stopping usage of physics and inputs.",
-                "showDetails": true,
-                "name": "PauseGame"
+                "showDetails": false
               }
             },
             {
@@ -4237,8 +3316,8 @@
               "type": "action",
               "x": 380,
               "y": 160,
-              "width": 280,
-              "height": 80,
+              "width": 220,
+              "height": 60,
               "properties": {
                 "name": "setGameStatusToPaused",
                 "details": "GameState.spritesMoving := false; GameState.sync := true (+1)",
@@ -4246,8 +3325,7 @@
               },
               "data": {
                 "name": "setGameStatusToPaused",
-                "type": "property",
-                "isLinked": true
+                "isLinked": false
               }
             },
             {
@@ -4255,8 +3333,8 @@
               "type": "action",
               "x": 680,
               "y": 160,
-              "width": 280,
-              "height": 80,
+              "width": 320,
+              "height": 60,
               "properties": {
                 "name": "SetResumeGameBtn.CaptionToGoOn",
                 "details": "ResumeGameBtn.caption := BlubBlub",
@@ -4264,39 +3342,38 @@
               },
               "data": {
                 "name": "SetResumeGameBtn.CaptionToGoOn",
-                "type": "property",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
           "connections": [
             {
-              "id": "conn-migrated-1",
+              "startTargetId": "node-1767088872211",
+              "endTargetId": "node-1767965677906",
               "startX": 640,
               "startY": 190,
               "endX": 860,
               "endY": 190,
-              "startTargetId": "node-1767088872211",
-              "endTargetId": "node-1767965677906",
               "data": {
                 "startAnchorType": "output",
                 "endAnchorType": "input",
                 "isEmbeddedInternal": false
-              }
+              },
+              "id": "conn-migrated-1"
             },
             {
-              "id": "conn-migrated-2",
+              "startTargetId": "node-1767088850434",
+              "endTargetId": "node-1767088872211",
               "startX": 280,
               "startY": 190,
               "endX": 660,
               "endY": 190,
-              "startTargetId": "node-1767088850434",
-              "endTargetId": "node-1767088872211",
               "data": {
                 "startAnchorType": "output",
                 "isEmbeddedInternal": false,
                 "endAnchorType": "input"
-              }
+              },
+              "id": "conn-migrated-2"
             }
           ]
         },
@@ -4528,13 +3605,11 @@
               "properties": {
                 "name": "StartGame",
                 "details": "",
-                "description": "Orchestrates the game start: initializes elements, serves the ball, sends start message, and enables movement/collisions.",
-                "text": "StartGame"
+                "description": "Orchestrates the game start: initializes elements, serves the ball, sends start message, and enables movement/collisions."
               },
               "data": {
                 "description": "Orchestrates the game start: initializes elements, serves the ball, sends start message, and enables movement/collisions.",
-                "showDetails": true,
-                "name": "StartGame"
+                "showDetails": false
               }
             },
             {
@@ -4542,20 +3617,19 @@
               "type": "task",
               "x": 440,
               "y": 140,
-              "width": 200,
+              "width": 220,
               "height": 60,
               "properties": {
                 "name": "InitialAllGameElements",
                 "details": "",
-                "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
-                "text": "InitialAllGameElements"
+                "description": "Resets the score, ball position, and synchronizes the ball for Player 1."
               },
               "data": {
                 "isLinked": false,
                 "isExpanded": false,
                 "sourceTaskName": "InitialAllGameElements",
                 "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
-                "showDetails": true,
+                "showDetails": false,
                 "paramValues": {},
                 "originalId": "node-1766860995380",
                 "ghostPositions": {
@@ -4588,8 +3662,7 @@
                     "endOriginalId": "node-1766861136279",
                     "originalStartAnchorType": "output"
                   }
-                ],
-                "name": "InitialAllGameElements"
+                ]
               }
             },
             {
@@ -4597,8 +3670,8 @@
               "type": "action",
               "x": 420,
               "y": 500,
-              "width": 260,
-              "height": 80,
+              "width": 220,
+              "height": 60,
               "properties": {
                 "name": "SetSpriteMovingToTrue",
                 "details": "GameState.spritesMoving := true",
@@ -4606,10 +3679,7 @@
               },
               "data": {
                 "name": "SetSpriteMovingToTrue",
-                "type": "property",
-                "isLinked": true,
-                "description": "Sets GameState.spritesMoving to true to enable physics.",
-                "showDetails": true
+                "isLinked": false
               }
             },
             {
@@ -4617,8 +3687,8 @@
               "type": "action",
               "x": 420,
               "y": 600,
-              "width": 300,
-              "height": 80,
+              "width": 200,
+              "height": 60,
               "properties": {
                 "name": "SetCollisionsToTrue",
                 "details": "GameState.collisionsEnabled := true",
@@ -4626,10 +3696,7 @@
               },
               "data": {
                 "name": "SetCollisionsToTrue",
-                "type": "property",
-                "isLinked": true,
-                "description": "Enables collision detection in the GameState.",
-                "showDetails": true
+                "isLinked": false
               }
             },
             {
@@ -4642,15 +3709,14 @@
               "properties": {
                 "name": "ServeBall",
                 "details": "",
-                "description": "Sets the initial velocity for the ball to start the rally.",
-                "text": "ServeBall"
+                "description": "Sets the initial velocity for the ball to start the rally."
               },
               "data": {
                 "isLinked": false,
                 "isExpanded": false,
                 "sourceTaskName": "ServeBall",
                 "description": "Sets the initial velocity for the ball to start the rally.",
-                "showDetails": true,
+                "showDetails": false,
                 "paramValues": {},
                 "originalId": "node-1767002081311",
                 "ghostPositions": {
@@ -4670,8 +3736,7 @@
                     "endOriginalId": "node-1767002095432",
                     "originalStartAnchorType": "output"
                   }
-                ],
-                "name": "ServeBall"
+                ]
               }
             },
             {
@@ -4679,19 +3744,18 @@
               "type": "task",
               "x": 440,
               "y": 380,
-              "width": 160,
+              "width": 200,
               "height": 60,
               "properties": {
                 "name": "SendStartMessage",
                 "details": "",
-                "description": "Updates UI elements to inform players that the game has begun.",
-                "text": "SendStartMessage"
+                "description": "Updates UI elements to inform players that the game has begun."
               },
               "data": {
                 "isExpanded": false,
                 "sourceTaskName": "SendStartMessage",
                 "description": "Updates UI elements to inform players that the game has begun.",
-                "showDetails": true,
+                "showDetails": false,
                 "paramValues": {},
                 "originalId": "node-1767266331527",
                 "ghostPositions": {
@@ -4723,64 +3787,113 @@
                     "originalStartAnchorType": "output",
                     "startAnchorType": "output"
                   }
-                ],
-                "name": "SendStartMessage"
+                ]
               }
             }
           ],
           "connections": [
             {
-              "id": "conn-migrated-1",
+              "startTargetId": "node-1766900099148",
+              "endTargetId": "imported-1766900123333-879",
               "startX": 227.77778339385986,
               "startY": 190.00000476837158,
               "endX": 482.22224140167236,
               "endY": 190.00000476837158,
-              "startTargetId": "node-1766900099148",
-              "endTargetId": "imported-1766900123333-879",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-1"
             },
             {
-              "id": "conn-migrated-2",
+              "startTargetId": "node-1766900099148",
+              "endTargetId": "node-1766943844265",
               "startX": 247.77778339385986,
               "startY": 350.0000123977661,
               "endX": 482.22224140167236,
               "endY": 490.0000123977661,
-              "startTargetId": "node-1766900099148",
-              "endTargetId": "node-1766943844265",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-2"
             },
             {
-              "id": "conn-migrated-3",
+              "startTargetId": "node-1766900099148",
+              "endTargetId": "node-1766943898453",
               "startX": 247.77778339385986,
               "startY": 350.0000123977661,
               "endX": 502.22224140167236,
               "endY": 630.0000123977661,
-              "startTargetId": "node-1766900099148",
-              "endTargetId": "node-1766943898453",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-3"
             },
             {
-              "id": "conn-migrated-4",
+              "startTargetId": "node-1766900099148",
+              "endTargetId": "imported-1767002278164-192",
               "startX": 147.77778339385986,
               "startY": 470.0000123977661,
               "endX": 482.22224140167236,
               "endY": 310.0000123977661,
-              "startTargetId": "node-1766900099148",
-              "endTargetId": "imported-1767002278164-192",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-4"
             },
             {
-              "id": "conn-migrated-5",
+              "startTargetId": "node-1766900099148",
+              "endTargetId": "node-1767266909599",
               "startX": 150,
               "startY": 470,
               "endX": 520,
               "endY": 450,
-              "startTargetId": "node-1766900099148",
-              "endTargetId": "node-1767266909599",
               "data": {
                 "startAnchorType": "output",
                 "endAnchorType": "input"
+              },
+              "id": "conn-migrated-5"
+            }
+          ]
+        },
+        "ServeBall": {
+          "elements": [
+            {
+              "id": "node-1767002081311",
+              "type": "task",
+              "x": 160,
+              "y": 140,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "ServeBall",
+                "details": "",
+                "description": "Sets the initial velocity for the ball to start the rally."
+              },
+              "data": {
+                "description": "Sets the initial velocity for the ball to start the rally.",
+                "showDetails": false
               }
+            },
+            {
+              "id": "node-1767002095432",
+              "type": "action",
+              "x": 420,
+              "y": 140,
+              "width": 140,
+              "height": 60,
+              "properties": {
+                "name": "SetSpeed",
+                "details": "BallSprite.velocityX := 0.3; BallSprite.velocityY := 0.3",
+                "description": ""
+              },
+              "data": {
+                "name": "SetSpeed",
+                "isLinked": false
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "node-1767002081311",
+              "endTargetId": "node-1767002095432",
+              "startX": 287.77778339385986,
+              "startY": 170.0000123977661,
+              "endX": 422.22224140167236,
+              "endY": 109.99999713897705,
+              "data": {},
+              "id": "conn-migrated-1"
             }
           ]
         },
@@ -5273,14 +4386,12 @@
               "properties": {
                 "name": "InitialAllGameElements",
                 "details": "",
-                "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
-                "text": "InitialAllGameElements"
+                "description": "Resets the score, ball position, and synchronizes the ball for Player 1."
               },
               "data": {
                 "description": "Resets the score, ball position, and synchronizes the ball for Player 1.",
                 "showDetails": false,
-                "paramValues": {},
-                "name": "InitialAllGameElements"
+                "paramValues": {}
               }
             },
             {
@@ -5293,8 +4404,7 @@
               "properties": {
                 "name": "ResetScore",
                 "details": "",
-                "description": "Resets the scores of both players to zero.",
-                "text": "ResetScore"
+                "description": "Resets the scores of both players to zero."
               },
               "data": {
                 "isLinked": false,
@@ -5302,10 +4412,34 @@
                 "sourceTaskName": "ResetScore",
                 "description": "Resets the scores of both players to zero.",
                 "originalId": "node-1766861136279",
-                "ghostPositions": {},
-                "ghostConnections": [],
-                "showDetails": false,
-                "name": "ResetScore"
+                "ghostPositions": {
+                  "node-1766861164201": {
+                    "x": 760,
+                    "y": 140
+                  },
+                  "node-1766861191210": {
+                    "x": 760,
+                    "y": 240
+                  }
+                },
+                "ghostConnections": [
+                  {
+                    "startOriginalId": "node-1766861136279",
+                    "endOriginalId": "node-1766861164201",
+                    "originalStartAnchorType": "output"
+                  },
+                  {
+                    "startOriginalId": "node-1766861136279",
+                    "endOriginalId": "node-1766861191210",
+                    "originalStartAnchorType": "output"
+                  },
+                  {
+                    "startOriginalId": "node-1766861136279",
+                    "endOriginalId": "node-1766861164201",
+                    "originalStartAnchorType": "output"
+                  }
+                ],
+                "showDetails": false
               }
             },
             {
@@ -5322,31 +4456,30 @@
               },
               "data": {
                 "name": "stopBall",
-                "type": "property",
-                "isLinked": true
+                "isLinked": false
               }
             }
           ],
           "connections": [
             {
-              "id": "conn-migrated-1",
+              "startTargetId": "node-1766860995380",
+              "endTargetId": "imported-1766861382527-401",
               "startX": 357.77778339385986,
               "startY": 190.00000476837158,
               "endX": 502.22224140167236,
               "endY": 190.00000476837158,
-              "startTargetId": "node-1766860995380",
-              "endTargetId": "imported-1766861382527-401",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-1"
             },
             {
-              "id": "conn-migrated-2",
+              "startTargetId": "node-1766860995380",
+              "endTargetId": "node-1766861408042",
               "startX": 357.77778339385986,
               "startY": 190.00000476837158,
               "endX": 562.2222414016724,
               "endY": 310.0000047683716,
-              "startTargetId": "node-1766860995380",
-              "endTargetId": "node-1766861408042",
-              "data": {}
+              "data": {},
+              "id": "conn-migrated-2"
             }
           ]
         },
@@ -5640,59 +4773,6 @@
         "ImpressumGoesBackMain": {
           "elements": [],
           "connections": []
-        },
-        "ServeBall": {
-          "elements": [
-            {
-              "id": "node-1767002081311",
-              "type": "task",
-              "x": 160,
-              "y": 140,
-              "width": 140,
-              "height": 60,
-              "properties": {
-                "name": "ServeBall",
-                "details": "",
-                "description": "Sets the initial velocity for the ball to start the rally.",
-                "text": "ServeBall"
-              },
-              "data": {
-                "description": "Sets the initial velocity for the ball to start the rally.",
-                "showDetails": false,
-                "name": "ServeBall"
-              }
-            },
-            {
-              "id": "node-1767002095432",
-              "type": "action",
-              "x": 420,
-              "y": 140,
-              "width": 140,
-              "height": 60,
-              "properties": {
-                "name": "SetSpeed",
-                "details": "BallSprite.velocityX := 0.3; BallSprite.velocityY := 0.3",
-                "description": ""
-              },
-              "data": {
-                "name": "SetSpeed",
-                "type": "property",
-                "isLinked": true
-              }
-            }
-          ],
-          "connections": [
-            {
-              "id": "conn-migrated-1",
-              "startX": 287.77778339385986,
-              "startY": 170.0000123977661,
-              "endX": 422.22224140167236,
-              "endY": 109.99999713897705,
-              "startTargetId": "node-1767002081311",
-              "endTargetId": "node-1767002095432",
-              "data": {}
-            }
-          ]
         }
       },
       "events": {},
@@ -5703,13 +4783,7 @@
         "player2Controls": "wasd",
         "player2Target": "",
         "player2Speed": 0.2
-      },
-      "_supportedEvents": [
-        "onClick",
-        "onDragStart",
-        "onDragEnd",
-        "onDrop"
-      ]
+      }
     },
     {
       "id": "stage-1768721254041",
@@ -5719,36 +4793,31 @@
         {
           "className": "TButton",
           "id": "obj_1768729122368_m61br1bgf",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
+          "name": "goBackBtn",
+          "Tasks": {
             "onClick": "ImpressumGoesBackMain"
           },
-          "name": "goBackBtn",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
           "x": 2,
           "y": 1,
           "width": 6,
           "height": 2,
           "zIndex": 0,
+          "visible": true,
           "align": "NONE",
           "style": {
-            "color": "#ffffff",
+            "visible": true,
             "backgroundColor": "#007bff",
             "borderColor": "#000000",
             "borderWidth": 1,
             "fontSize": 14,
+            "color": "#ffffff",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
             "fontFamily": "Arial"
           },
-          "text": "zurück",
+          "caption": "zurück",
+          "color": "#007bff",
           "icon": ""
         }
       ],
@@ -5761,7 +4830,87 @@
         "backgroundColor": "#4a489d"
       },
       "description": "Notwendige Informationen über den Author des Spiels",
-      "flowCharts": {},
+      "flowCharts": {
+        "ImpressumGoesBackMain": {
+          "elements": [
+            {
+              "id": "start-1768729209923",
+              "type": "Start",
+              "x": 60,
+              "y": 60,
+              "width": 160,
+              "height": 60,
+              "properties": {
+                "name": "Start",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "showDetails": false
+              }
+            },
+            {
+              "id": "task-root-1768729209923",
+              "type": "Task",
+              "x": 320,
+              "y": 60,
+              "width": 240,
+              "height": 60,
+              "properties": {
+                "name": "SwitchToMainStage",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "taskName": "ImpressumGoesBackMain",
+                "showDetails": false,
+                "paramValues": {}
+              }
+            },
+            {
+              "id": "node-1768729233419",
+              "type": "Action",
+              "x": 700,
+              "y": 60,
+              "width": 280,
+              "height": 60,
+              "properties": {
+                "name": "StageController.goToMainStage",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "StageController.goToMainStage",
+                "isLinked": false
+              }
+            }
+          ],
+          "connections": [
+            {
+              "startTargetId": "start-1768729209923",
+              "endTargetId": "task-root-1768729209923",
+              "startX": 0,
+              "startY": 0,
+              "endX": 0,
+              "endY": 0,
+              "data": {}
+            },
+            {
+              "startTargetId": "task-root-1768729209923",
+              "endTargetId": "node-1768729233419",
+              "startX": 560,
+              "startY": 90,
+              "endX": 700,
+              "endY": 90,
+              "data": {
+                "startAnchorType": "output",
+                "isEmbeddedInternal": false,
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        }
+      },
       "tasks": [],
       "actions": [],
       "variables": [],

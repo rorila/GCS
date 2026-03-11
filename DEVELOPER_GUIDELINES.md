@@ -128,3 +128,14 @@ Letzte Aktualisierung: v3.9.6 (E2E-Stability & Hydration Fix)
 - `initialOutgoing = connections.filter(c => c.startTargetId === startNode.id)` → alle ausgehenden Verbindungen
 - Von jedem Ziel wird `buildSequence(targetId)` aufgerufen → fügt Actions zur Sequenz hinzu
 - `actionName = node.data?.name || node.properties?.name` für Action-Knoten
+
+## Architektur-Hinweise (Sync-Strategie)
+
+> [!IMPORTANT]
+> **JSON ist die einzige Wahrheit (SSoT).** Alle Editoren (Flow, Inspector, Pascal) schreiben Änderungen in die JSON-Daten. Aus JSON werden Stages und Flow-Diagramme beim Laden erzeugt. Ein Teil der JSON-Daten dient dem Standalone-Player und der Game-Engine.
+
+- **Aktueller Zustand (2026-03-10):** Bidirektionaler Sync zwischen Flow-Graph-Objekten ↔ JSON (`FlowSyncManager.ts`, 48KB). Funktioniert, war aber in der Vergangenheit fehleranfällig (Action-Typen, Namen, Duplikate).
+- **Ziel-Architektur (bei zukünftigem Refactoring):** Unidirektionaler Datenfluss — Editoren schreiben direkt JSON-Patches, Views rendern nur aus JSON. Dadurch entfällt die Rück-Synchronisation.
+- **Analysebericht:** Siehe Artefakt `implementation_plan.md` vom 2026-03-10 (Verwaister Code, Redundanzen, Vereinfachungsvorschläge).
+- **Pragmatik:** Solange Sync stabil läuft → nicht anfassen. Tests (`npm run test`) sind das Sicherheitsnetz. Bei erneuten Sync-Problemen → unidirektionalen Umbau priorisieren.
+

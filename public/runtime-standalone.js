@@ -3680,6 +3680,8 @@
     /**
      * Main game loop - NORMAL METHOD, not arrow function
      * OPTIMIZATION: Only renders when something has changed to avoid endless log spam
+     * PERF: Sprites are rendered directly via CSS position updates (not through full StageRenderer)
+     *       CSS transitions on sprite elements provide smooth browser interpolation.
      */
     loop() {
       if (this.state !== "running") {
@@ -3701,15 +3703,42 @@
         this.updateSprites(deltaTime, spritesMoving);
         AnimationManager.getInstance().update();
         this.collidedThisFrame.clear();
+        let hadCollisionOrBoundary = false;
         if (spritesMoving) {
+          const collBefore = this.collidedThisFrame.size;
           this.checkCollisions();
           this.checkBoundaries();
+          hadCollisionOrBoundary = this.collidedThisFrame.size > collBefore;
         }
-        if (this.renderCallback) {
-          this.renderCallback();
+        this.updateSpritePositions();
+        if (hadCollisionOrBoundary || hasActiveAnimations) {
+          if (this.renderCallback) {
+            this.renderCallback();
+          }
         }
       }
       this.animationFrameId = requestAnimationFrame(this.loop);
+    }
+    /**
+     * Lightweight direct DOM update for sprite positions.
+     * Uses CSS transitions for smooth browser interpolation between frames.
+     * This is MUCH faster than going through StageRenderer.renderObjects().
+     */
+    updateSpritePositions() {
+      const grid = this.gridConfig;
+      const cellSize = grid?.cellSize || grid?.grid?.cellSize || 20;
+      this.sprites.forEach((sprite) => {
+        const el = document.querySelector(`[data-id="${sprite.id}"]`);
+        if (el) {
+          if (!el.dataset.glmTransition) {
+            el.style.transition = "left 16ms linear, top 16ms linear";
+            el.style.willChange = "left, top";
+            el.dataset.glmTransition = "1";
+          }
+          el.style.left = `${sprite.x * cellSize}px`;
+          el.style.top = `${sprite.y * cellSize}px`;
+        }
+      });
     }
     /**
      * Update all sprites based on velocity
@@ -4250,7 +4279,11 @@
         { name: "style.borderColor", label: "Rahmenfarbe", type: "color", group: "STIL" },
         { name: "style.borderWidth", label: "Rahmenbreite", type: "number", group: "STIL", min: 0, step: 1 },
         { name: "style.borderRadius", label: "Abrundung", type: "number", group: "STIL", min: 0, step: 1 },
-        { name: "style.opacity", label: "Deckkraft", type: "number", group: "STIL", min: 0, max: 1, step: 0.1 }
+        { name: "style.opacity", label: "Deckkraft", type: "number", group: "STIL", min: 0, max: 1, step: 0.1 },
+        { name: "style.glowColor", label: "Glow Farbe", type: "color", group: "GLOW-EFFEKT" },
+        { name: "style.glowBlur", label: "Glow Unsch\xE4rfe", type: "number", group: "GLOW-EFFEKT", min: 0, max: 100, step: 1 },
+        { name: "style.glowSpread", label: "Glow Ausbreitung", type: "number", group: "GLOW-EFFEKT", min: 0, max: 50, step: 1 },
+        { name: "style.boxShadow", label: "Box-Shadow (CSS)", type: "string", group: "GLOW-EFFEKT" }
       ];
     }
   };
@@ -4887,6 +4920,8 @@
       return super.toJSON();
     }
     onRuntimeStart() {
+      console.log(`[TGameLoop] onRuntimeStart() - starting game loop with ${this.sprites.length} sprites`);
+      this.start();
     }
     initRuntime(callbacks) {
       this.init(
@@ -4926,11 +4961,8 @@
       this._isRunning = true;
       console.log(`[TGameLoop] _isRunning set to: ${this._isRunning}`);
       this.lastTime = performance.now();
-      if (this.eventCallback) {
-        this.eventCallback(this.id, "onStart");
-      }
-      console.log(`[TGameLoop] Starting loop with ${this.sprites.length} sprites`);
-      this.loop();
+      console.log(`[TGameLoop] Starting loop with ${this.sprites.length} sprites via requestAnimationFrame`);
+      this.animationFrameId = requestAnimationFrame(() => this.loop());
     }
     /**
      * Stop the game loop
@@ -10992,7 +11024,12 @@
             this.reactiveRuntime.setVariable("isHost", true);
           }
           if (options.onRender) {
-            this.reactiveRuntime.getWatcher().addGlobalListener(() => options.onRender());
+            this.reactiveRuntime.getWatcher().addGlobalListener((obj, prop) => {
+              if (obj?.className === "TSprite" && ["x", "y", "velocityX", "velocityY", "errorX", "errorY"].includes(prop)) {
+                return;
+              }
+              options.onRender();
+            });
           }
           this.objects = this.reactiveRuntime.getObjects();
           this.initializeReactiveBindings();
@@ -11089,6 +11126,15 @@
         obj.initRuntime?.(runtimeCallbacks);
         obj.onRuntimeStart?.();
       });
+      const glm = GameLoopManager.getInstance();
+      glm.init(
+        this.objects,
+        gridConfig,
+        this.options.onRender || (() => {
+        }),
+        (id, ev, data) => this.handleEvent(id, ev, data)
+      );
+      glm.start();
       this.initMultiplayer();
       this.objects.filter((o) => o.className === "TSplashScreen").forEach((splash) => {
         setTimeout(() => {
@@ -11161,7 +11207,12 @@
         this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
         this.reactiveRuntime.setVariable("isSplashActive", false);
         if (this.options.onRender) {
-          this.reactiveRuntime.getWatcher().addGlobalListener(() => this.options.onRender());
+          this.reactiveRuntime.getWatcher().addGlobalListener((obj, prop) => {
+            if (obj?.className === "TSprite" && ["x", "y", "velocityX", "velocityY", "errorX", "errorY"].includes(prop)) {
+              return;
+            }
+            this.options.onRender();
+          });
         }
         this.objects = this.reactiveRuntime.getObjects();
         this.initializeReactiveBindings();
@@ -12146,7 +12197,7 @@
       this.host = host;
     }
     renderObjects(objects) {
-      const objectHash = objects.map((o) => `${o.id}@${o.x?.toFixed(1)},${o.y?.toFixed(1)}`).join("|");
+      const objectHash = objects.map((o) => `${o.id}@${Number(o.x || 0).toFixed(1)},${Number(o.y || 0).toFixed(1)}`).join("|");
       if (this.host.runMode) {
         this.host.lastObjectHash = objectHash;
         const gridConfig2 = this.host.grid;
@@ -12319,6 +12370,15 @@
           if (obj.style.fontSize) el.style.fontSize = typeof obj.style.fontSize === "number" ? `${obj.style.fontSize}px` : obj.style.fontSize;
           if (obj.style.fontWeight) el.style.fontWeight = obj.style.fontWeight;
           if (obj.style.borderRadius) el.style.borderRadius = typeof obj.style.borderRadius === "number" ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
+          if (obj.style.boxShadow) {
+            el.style.boxShadow = obj.style.boxShadow;
+          } else if (obj.style.glowColor && (obj.style.glowBlur || obj.style.glowSpread)) {
+            const blur = obj.style.glowBlur || 20;
+            const spread = obj.style.glowSpread || 5;
+            el.style.boxShadow = `0 0 ${blur}px ${spread}px ${obj.style.glowColor}`;
+          } else {
+            el.style.boxShadow = "";
+          }
           if (obj.zIndex !== void 0) {
             el.style.zIndex = String(obj.zIndex);
           } else if (obj.name && (obj.name.startsWith("Overlay") || obj.name.startsWith("Btn") || obj.name.startsWith("Input") || obj.name.startsWith("Status"))) {

@@ -87,9 +87,9 @@ export class TGameLoop extends TWindow implements IRuntimeComponent {
     }
 
     public onRuntimeStart(): void {
-        // Die eigentliche start-Logik bleibt vorerst im GameLoopManager,
-        // da dieser die Abhängigkeiten (objects, callbacks) kennt.
-        // Der GameLoopManager wird in Zukunft die IRuntimeComponent-Signale nutzen.
+        // Start the game loop after initRuntime() has been called
+        console.log(`[TGameLoop] onRuntimeStart() - starting game loop with ${this.sprites.length} sprites`);
+        this.start();
     }
 
     public initRuntime(callbacks: { handleEvent: any; render: any; gridConfig: any; objects: any[] }): void {
@@ -145,13 +145,15 @@ export class TGameLoop extends TWindow implements IRuntimeComponent {
         console.log(`[TGameLoop] _isRunning set to: ${this._isRunning}`);
         this.lastTime = performance.now();
 
-        // Trigger onStart event when the loop starts
-        if (this.eventCallback) {
-            this.eventCallback(this.id, 'onStart');
-        }
+        // NOTE: Do NOT call eventCallback('onStart') here!
+        // GameRuntime.initMainGame() already fires onStart events for all objects.
+        // Calling it here causes a synchronous re-entry into handleEvent→render
+        // which resets _isRunning before loop() can execute.
 
-        console.log(`[TGameLoop] Starting loop with ${this.sprites.length} sprites`);
-        this.loop();
+        console.log(`[TGameLoop] Starting loop with ${this.sprites.length} sprites via requestAnimationFrame`);
+        // Use requestAnimationFrame to start the loop asynchronously
+        // This ensures _isRunning remains true when loop() actually executes
+        this.animationFrameId = requestAnimationFrame(() => this.loop());
     }
 
     /**

@@ -251,7 +251,7 @@ export class GameLoopManager {
                 this.checkBoundaries();
             }
 
-            // Render only when something changed
+            // Render — StageRenderer uses CSS transitions on sprites for smooth interpolation
             if (this.renderCallback) {
                 this.renderCallback();
             }

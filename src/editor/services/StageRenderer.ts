@@ -27,7 +27,7 @@ export class StageRenderer {
 
     public renderObjects(objects: any[]) {
         // Update object hash for internal bookkeeping
-        const objectHash = objects.map(o => `${o.id}@${o.x?.toFixed(1)},${o.y?.toFixed(1)}`).join('|');
+        const objectHash = objects.map(o => `${o.id}@${Number(o.x || 0).toFixed(1)},${Number(o.y || 0).toFixed(1)}`).join('|');
 
         if (this.host.runMode) {
             (this.host as any).lastObjectHash = objectHash;
@@ -184,6 +184,14 @@ export class StageRenderer {
             el.style.top = `${finalY}px`;
             el.style.width = `${finalW}px`;
             el.style.height = `${finalH}px`;
+
+            // SMOOTH SPRITE MOVEMENT: CSS transition for sprites in run mode
+            // The browser interpolates between physics positions for silky-smooth movement
+            if (this.host.runMode && className === 'TSprite' && !el.dataset.spriteSmooth) {
+                el.style.transition = 'left 33ms linear, top 33ms linear';
+                el.style.willChange = 'left, top';
+                el.dataset.spriteSmooth = '1';
+            }
 
             if (this.host.runMode) {
                 // Log all objects in Run-Mode to trace layout issues

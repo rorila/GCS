@@ -127,20 +127,29 @@ export class PropertyWatcher {
         // List of internal properties that are not relevant for the user workflow
         const INTERNAL_PROPERTIES = new Set(['eventCallback', 'onEvent', 'events', 'Tasks', 'id', 'className']);
 
-        // Log to DebugLogService
+        // HIGH-FREQUENCY sprite properties: updated 60x/sec by game loop, logging them
+        // floods the debug output and blocks the main thread (exponential log growth!)
+        const HIGH_FREQ_SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
+
+        // Log to DebugLogService — but ONLY for user-relevant, low-frequency changes.
+        // CRITICAL: We must NOT use `return` here! The old code aborted the ENTIRE notify()
+        // function, preventing globalListeners and specific watchers from being called.
         if (DebugLogService.getInstance().isEnabled()) {
-            if (INTERNAL_PROPERTIES.has(propertyPath)) return; // Skip noise
+            const isInternal = INTERNAL_PROPERTIES.has(propertyPath);
+            const isHighFreqSprite = HIGH_FREQ_SPRITE_PROPS.has(propertyPath) && target?.className === 'TSprite';
 
-            const displayNew = typeof newValue === 'object' ? JSON.stringify(newValue)?.substring(0, 50) : newValue;
-            const displayOld = typeof oldValue === 'object' ? JSON.stringify(oldValue)?.substring(0, 50) : oldValue;
+            if (!isInternal && !isHighFreqSprite) {
+                const displayNew = typeof newValue === 'object' ? JSON.stringify(newValue)?.substring(0, 50) : newValue;
+                const displayOld = typeof oldValue === 'object' ? JSON.stringify(oldValue)?.substring(0, 50) : oldValue;
 
-            DebugLogService.getInstance().log('Variable',
-                `${objName}.${propertyPath} changed: ${displayOld} -> ${displayNew}`,
-                {
-                    objectName: objName,
-                    data: { newValue, oldValue }
-                }
-            );
+                DebugLogService.getInstance().log('Variable',
+                    `${objName}.${propertyPath} changed: ${displayOld} -> ${displayNew}`,
+                    {
+                        objectName: objName,
+                        data: { newValue, oldValue }
+                    }
+                );
+            }
         }
 
         if (!objectWatchers) {

@@ -2487,7 +2487,9 @@
             "backgroundColor": "#1a1a3e",
             "borderColor": "#6c63ff",
             "borderWidth": 2,
-            "borderRadius": 50
+            "borderRadius": 50,
+            "glowColor": "#d8c5c5",
+            "glowSpread": 0
           },
           "caption": "",
           "showGrid": false,
@@ -3432,7 +3434,7 @@
       "flowCharts": {}
     }
   ],
-  "activeStageId": "stage_login",
+  "activeStageId": "roomAdminStage",
   "flowCharts": {
     "global": {
       "elements": [],

@@ -97,9 +97,19 @@ export class GameRuntime implements IVariableHost {
                     this.reactiveRuntime.setVariable('isHost', true);
                 }
 
-                // Register global render listener
+                // Register global render listener — FILTERED!
+                // Sprite position properties (x, y, velocityX, velocityY, errorX, errorY)
+                // are updated 60x/sec by the GameLoopManager which already calls renderCallback.
+                // Without this filter, EACH sprite.x and sprite.y change triggers an ADDITIONAL
+                // full StageRenderer.renderObjects() = 3+ full renders per frame instead of 1.
                 if (options.onRender) {
-                    this.reactiveRuntime.getWatcher().addGlobalListener(() => options.onRender!());
+                    const SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
+                    this.reactiveRuntime.getWatcher().addGlobalListener(
+                        (obj: any, prop: string) => {
+                            if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') return;
+                            options.onRender!();
+                        }
+                    );
                 }
 
                 this.objects = this.reactiveRuntime.getObjects();
@@ -209,6 +219,19 @@ export class GameRuntime implements IVariableHost {
             obj.onRuntimeStart?.();
         });
 
+        // START GAME LOOP via GameLoopManager Singleton
+        // The GameLoopManager is NOT a stage object and NOT proxied by ReactiveRuntime.
+        // This completely bypasses all Proxy issues that prevent TGameLoop from working.
+        // The GameLoopManager reads TGameLoop config (boundsOffset etc.) from the objects.
+        const glm = GameLoopManager.getInstance();
+        glm.init(
+            this.objects,
+            gridConfig,
+            this.options.onRender || (() => { }),
+            (id: string, ev: string, data?: any) => this.handleEvent(id, ev, data)
+        );
+        glm.start();
+
         this.initMultiplayer();
 
         // Splash screens in main game
@@ -301,9 +324,16 @@ export class GameRuntime implements IVariableHost {
             this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
             this.reactiveRuntime.setVariable('isSplashActive', false);
 
-            // Re-register global render listener after clear
+            // Re-register global render listener after clear — FILTERED!
+            // Same filtering as in constructor to prevent redundant renders for sprite positions.
             if (this.options.onRender) {
-                this.reactiveRuntime.getWatcher().addGlobalListener(() => this.options.onRender!());
+                const SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
+                this.reactiveRuntime.getWatcher().addGlobalListener(
+                    (obj: any, prop: string) => {
+                        if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') return;
+                        this.options.onRender!();
+                    }
+                );
             }
 
             this.objects = this.reactiveRuntime.getObjects();
