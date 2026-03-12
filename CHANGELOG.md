@@ -24,6 +24,10 @@
   - Behoben: `TypeError: Cannot read properties of undefined (reading 'toString')` — der Generator erwartete `cond.value`, aber nach dem FlowSyncManager-Fix wurden Conditions mit `leftValue`/`rightValue` exportiert. Beide Formate werden jetzt unterstützt, mit durchgehender Null-Safety (`String()` statt `.toString()`).
   - Neu: `negate`-Actions werden als Pascal-Zuweisungen dargestellt (`Target.Prop := -Target.Prop;`).
   - Neu: Actions aus der Blueprint-Stage werden jetzt korrekt bei der Suche berücksichtigt.
+- **Stage Start-Animation Fix**:
+  - `GameRuntime.triggerStartAnimation()` unterstützt jetzt alle 12 TStage Fly-Patterns (UpLeft, BottomLeft, ChaosIn, Matrix, Random, etc.).
+  - Vorher wurden nur `fade-in` und `slide-up` erkannt — alle Inspector-konfigurierten Patterns (z.B. `BottomLeft`) wurden ignoriert.
+  - Easing-Konfiguration (`startAnimationEasing`) wird jetzt korrekt aus der Stage-Config gelesen.
 - **DebugLogService Performance-Fix**:
   - `maxChildren=50` pro Parent-Log verhindert unbegrenztes Speicherwachstum bei verschachtelten Logs.
   - `scheduleNotify()` via `requestAnimationFrame` reduziert Listener-Benachrichtigungen von hunderten/sec auf max. 1/Frame.

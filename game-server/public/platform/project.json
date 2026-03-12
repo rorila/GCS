@@ -472,9 +472,9 @@
           "dragMode": "move",
           "visible": true,
           "x": 3,
-          "y": 2,
+          "y": 17,
           "width": 1,
-          "height": 36,
+          "height": 6,
           "zIndex": 0,
           "align": "NONE",
           "style": {
@@ -505,9 +505,9 @@
           "dragMode": "move",
           "visible": true,
           "x": 60,
-          "y": 3,
+          "y": 17,
           "width": 1,
-          "height": 35,
+          "height": 6,
           "zIndex": 0,
           "align": "NONE",
           "style": {
@@ -1701,8 +1701,7 @@
                   "name": "HandleBallBoundary"
                 },
                 "data": {
-                  "name": "HandleBallBoundary",
-                  "showDetails": false
+                  "name": "HandleBallBoundary"
                 }
               },
               {
@@ -1725,8 +1724,7 @@
                     "rightValue": "top",
                     "leftType": "variable",
                     "rightType": "literal"
-                  },
-                  "name": "If Top"
+                  }
                 }
               },
               {
@@ -1740,8 +1738,7 @@
                 "data": {
                   "name": "NegateBallY",
                   "type": "negate",
-                  "isLinked": true,
-                  "showDetails": false
+                  "isLinked": true
                 }
               },
               {
@@ -1764,8 +1761,7 @@
                     "rightValue": "bottom",
                     "leftType": "variable",
                     "rightType": "literal"
-                  },
-                  "name": "If Bottom"
+                  }
                 }
               },
               {
@@ -1779,8 +1775,7 @@
                 "data": {
                   "name": "NegateBallY",
                   "type": "negate",
-                  "isLinked": true,
-                  "showDetails": false
+                  "isLinked": true
                 }
               },
               {
@@ -1803,8 +1798,7 @@
                     "rightValue": "left",
                     "leftType": "variable",
                     "rightType": "literal"
-                  },
-                  "name": "If Left"
+                  }
                 }
               },
               {
@@ -1818,8 +1812,7 @@
                 "data": {
                   "name": "ResetBall",
                   "type": "property",
-                  "isLinked": true,
-                  "showDetails": false
+                  "isLinked": true
                 }
               },
               {
@@ -1842,8 +1835,7 @@
                     "rightValue": "right",
                     "leftType": "variable",
                     "rightType": "literal"
-                  },
-                  "name": "If Right"
+                  }
                 }
               },
               {
@@ -1857,8 +1849,7 @@
                 "data": {
                   "name": "ResetBall",
                   "type": "property",
-                  "isLinked": true,
-                  "showDetails": false
+                  "isLinked": true
                 }
               }
             ],

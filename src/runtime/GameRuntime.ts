@@ -237,9 +237,6 @@ export class GameRuntime implements IVariableHost {
 
     private initMainGame() {
         let stageConfig = this.stage || this.project.stage || this.project.grid;
-        if (stageConfig?.startAnimation && stageConfig.startAnimation !== 'none') {
-            this.triggerStartAnimation(stageConfig);
-        }
 
         const gridConfig = (this.stage && this.stage.grid) || this.project.stage?.grid || this.project.grid;
         const runtimeCallbacks = {
@@ -269,6 +266,12 @@ export class GameRuntime implements IVariableHost {
         glm.start();
 
         this.initMultiplayer();
+
+        // Start-Animation NACH glm.start(): Tweens werden erst erstellt wenn die
+        // Game Loop bereits läuft und AnimationManager.update() pro Frame aufgerufen wird.
+        if (stageConfig?.startAnimation && stageConfig.startAnimation !== 'none') {
+            this.triggerStartAnimation(stageConfig);
+        }
 
         // Splash screens in main game
         this.objects.filter(o => o.className === 'TSplashScreen').forEach(splash => {
@@ -471,22 +474,107 @@ export class GameRuntime implements IVariableHost {
     }
 
     private triggerStartAnimation(stageConfig: any) {
-        let animationType = stageConfig.startAnimation || 'fade-in';
-        let duration = stageConfig.startAnimationDuration || 1000;
+        const animationType = stageConfig.startAnimation || 'fade-in';
+        const duration = stageConfig.startAnimationDuration || 1000;
+        const easing = stageConfig.startAnimationEasing || 'easeOut';
+        const am = AnimationManager.getInstance();
 
-        this.objects.forEach(obj => {
-            if (obj.visible !== false) {
-                if (animationType === 'fade-in') {
+        // Bühnen-Dimensionen aus Grid ermitteln
+        const grid = stageConfig.grid || stageConfig;
+        const stageWidth = (grid.cols || 64) * (grid.cellSize || 20);
+        const stageHeight = (grid.rows || 40) * (grid.cellSize || 20);
+        const outsideMargin = 50;
+
+        // Legacy-Animationen (fade-in, slide-up)
+        if (animationType === 'fade-in') {
+            this.objects.forEach(obj => {
+                if (obj.visible !== false) {
                     const originalOpacity = obj.opacity !== undefined ? obj.opacity : 1;
                     obj.opacity = 0;
-                    AnimationManager.getInstance().animate(obj, { opacity: originalOpacity }, duration);
-                } else if (animationType === 'slide-up') {
+                    am.animate(obj, { opacity: originalOpacity }, duration, easing);
+                }
+            });
+            return;
+        }
+
+        if (animationType === 'slide-up') {
+            this.objects.forEach(obj => {
+                if (obj.visible !== false) {
                     const originalY = obj.y;
                     obj.y += 100;
-                    AnimationManager.getInstance().animate(obj, { y: originalY }, duration);
+                    am.addTween(obj, 'y', originalY, duration, easing);
                 }
-            }
+            });
+            return;
+        }
+
+        // TStage Fly-Patterns: Objekte von Startposition zu Zielposition animieren
+        const simplePatterns = ['UpLeft', 'UpMiddle', 'UpRight', 'Left', 'Right', 'BottomLeft', 'BottomMiddle', 'BottomRight'];
+
+        this.objects.forEach((obj, index) => {
+            if (obj.visible === false) return;
+
+            const targetX = obj.x;
+            const targetY = obj.y;
+            const start = this.getPatternStartPosition(animationType, targetX, targetY, index, stageWidth, stageHeight, outsideMargin, simplePatterns);
+
+            if (!start) return; // Unbekanntes Pattern → keine Animation
+
+            // Objekt zur Startposition setzen
+            obj.x = start.x;
+            obj.y = start.y;
+
+            // Zum Ziel animieren
+            am.addTween(obj, 'x', targetX, duration, easing);
+            am.addTween(obj, 'y', targetY, duration, easing);
         });
+    }
+
+    /**
+     * Berechnet die Startposition eines Objekts basierend auf dem Fly-In-Pattern.
+     * Spiegelt die Logik aus TStage.getPatternStartPosition().
+     */
+    private getPatternStartPosition(
+        pattern: string, targetX: number, targetY: number, index: number,
+        stageWidth: number, stageHeight: number, outsideMargin: number,
+        simplePatterns: string[]
+    ): { x: number; y: number } | null {
+        switch (pattern) {
+            case 'UpLeft':
+                return { x: -outsideMargin, y: -outsideMargin };
+            case 'UpMiddle':
+                return { x: stageWidth / 2, y: -outsideMargin };
+            case 'UpRight':
+                return { x: stageWidth + outsideMargin, y: -outsideMargin };
+            case 'Left':
+                return { x: -outsideMargin, y: targetY };
+            case 'Right':
+                return { x: stageWidth + outsideMargin, y: targetY };
+            case 'BottomLeft':
+                return { x: -outsideMargin, y: stageHeight + outsideMargin };
+            case 'BottomMiddle':
+                return { x: stageWidth / 2, y: stageHeight + outsideMargin };
+            case 'BottomRight':
+                return { x: stageWidth + outsideMargin, y: stageHeight + outsideMargin };
+            case 'ChaosIn': {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.max(stageWidth, stageHeight) + outsideMargin;
+                return {
+                    x: stageWidth / 2 + Math.cos(angle) * distance,
+                    y: stageHeight / 2 + Math.sin(angle) * distance
+                };
+            }
+            case 'ChaosOut':
+                return { x: stageWidth / 2, y: stageHeight / 2 };
+            case 'Matrix':
+                return { x: targetX, y: -outsideMargin - (index * 20) };
+            case 'Random': {
+                const randomPattern = simplePatterns[Math.floor(Math.random() * simplePatterns.length)];
+                return this.getPatternStartPosition(randomPattern, targetX, targetY, index, stageWidth, stageHeight, outsideMargin, simplePatterns);
+            }
+            default:
+                return null;
+        }
     }
 
     public handleEvent(objectId: string, eventName: string, data: any = {}) {
