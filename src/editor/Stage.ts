@@ -105,6 +105,14 @@ export class Stage implements StageHost, StageInteractionHost {
         this.renderer.renderObjects(this.lastRenderedObjects);
     }
 
+    /**
+     * FAST PATH: Nur Sprite-Positionen im DOM aktualisieren.
+     * Delegiert an StageRenderer.updateSpritePositions().
+     */
+    public updateSpritePositions(sprites: { id: string; x: number; y: number }[]): void {
+        this.renderer.updateSpritePositions(sprites);
+    }
+
     public clearSelection() {
         this.selectedIds.clear();
         this._selectedObject = null;

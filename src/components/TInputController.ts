@@ -1,11 +1,14 @@
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
+import { Logger } from '../utils/Logger';
 
 /**
  * TInputController - A stage-placeable component that handles keyboard input.
  * Place on stage, configure target sprites in Inspector, and it will handle player controls.
  */
 export class TInputController extends TWindow implements IRuntimeComponent {
+    private static logger = Logger.get('TInputController', 'Input_Handling');
+
     // Input settings
     public enabled: boolean = true;
 
@@ -13,6 +16,9 @@ export class TInputController extends TWindow implements IRuntimeComponent {
     private keysPressed: Set<string> = new Set();
     private isActive: boolean = false;
     private eventCallback: ((id: string, event: string, data?: any) => void) | null = null;
+
+    // 🔍 Debug: Instance-ID um mehrere Instanzen zu unterscheiden
+    private _instanceId = Math.random().toString(36).substr(2, 5);
 
     // Event handlers (bound for proper removal)
     private handleKeyDown: (e: KeyboardEvent) => void;
@@ -33,6 +39,8 @@ export class TInputController extends TWindow implements IRuntimeComponent {
         // Visibility & Scoping Meta-Flags
         this.isService = true;
         this.isHiddenInRun = true;
+
+        TInputController.logger.info(`[IC-${this._instanceId}] CONSTRUCTOR: name=${name}`);
     }
 
     public getInspectorProperties(): TPropertyDef[] {
@@ -48,6 +56,9 @@ export class TInputController extends TWindow implements IRuntimeComponent {
 
     public initRuntime(callbacks: { handleEvent: any, objects: any[] }): void {
         this.init(callbacks.objects, callbacks.handleEvent);
+        // Store globally so instances can self-heal if HMR breaks the reference
+        (window as any).__inputControllerCallback = callbacks.handleEvent;
+        (window as any).__inputControllerObjects = callbacks.objects;
     }
 
     public onRuntimeStart(): void {
@@ -62,21 +73,21 @@ export class TInputController extends TWindow implements IRuntimeComponent {
      * Initialize with game objects and event callback
      */
     public init(_objects: TWindow[], eventCallback?: (id: string, event: string, data?: any) => void): void {
-        // this.sprites = objects.filter(obj =>
-        //     (obj as any).className === 'TSprite' || obj.constructor.name === 'TSprite'
-        // ) as TSprite[];
         this.eventCallback = eventCallback || null;
+        TInputController.logger.info(`[IC-${this._instanceId}] INIT: hasCallback=${!!this.eventCallback}`);
     }
 
     /**
      * Start listening for keyboard events
      */
     public start(): void {
+        TInputController.logger.info(`[IC-${this._instanceId}] START called: isActive=${this.isActive}, enabled=${this.enabled}`);
         if (this.isActive || !this.enabled) return;
 
         window.addEventListener('keydown', this.handleKeyDown);
         window.addEventListener('keyup', this.handleKeyUp);
         this.isActive = true;
+        TInputController.logger.info(`[IC-${this._instanceId}] START done: isActive=${this.isActive}`);
     }
 
     /**
@@ -95,6 +106,16 @@ export class TInputController extends TWindow implements IRuntimeComponent {
      * Handle keydown event
      */
     private onKeyDown(e: KeyboardEvent): void {
+        // Self-healing: Falls kein Callback gesetzt, versuche globalen Callback zu holen
+        if (!this.eventCallback && (window as any).__inputControllerCallback) {
+            this.eventCallback = (window as any).__inputControllerCallback;
+            this.isActive = true;
+            TInputController.logger.warn(`[IC-${this._instanceId}] 🔧 SELF-HEAL: Callback aus window.__inputControllerCallback geholt!`);
+        }
+
+        // 🔍 DEBUG: Tastendruck sichtbar machen
+        TInputController.logger.info(`[IC-${this._instanceId}] 🎮 KEY DOWN: ${e.code} | isActive=${this.isActive} | hasCallback=${!!this.eventCallback}`);
+
         // Prevent default for game keys to avoid scrolling
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) {
             e.preventDefault();
@@ -111,7 +132,10 @@ export class TInputController extends TWindow implements IRuntimeComponent {
 
             // TRIGGER TASK SIGNAL
             if (this.eventCallback) {
+                TInputController.logger.info(`[InputController] ➡️ CALLBACK: id=${this.id}, event=onKeyDown_${e.code}`);
                 this.eventCallback(this.id, `onKeyDown_${e.code}`, { keyCode: e.code });
+            } else {
+                TInputController.logger.warn(`[InputController] ❌ KEIN CALLBACK! Event onKeyDown_${e.code} geht verloren!`);
             }
         }
     }

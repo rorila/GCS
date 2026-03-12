@@ -307,20 +307,20 @@ export class EditorDataManager {
         }
 
         // 3. CENTRAL UPDATE (Replaces reference and notifies managers)
-        EditorDataManager.logger.info('Calling this.host.setProject(data)', {
-            host: !!this.host,
-            hasSetProject: this.host && typeof (this.host as any).setProject === 'function',
-            hostType: this.host?.constructor?.name
-        });
-
-        if (this.host && typeof (this.host as any).setProject === 'function') {
+        // Use try-catch because in some Vite HMR/rebuild scenarios, prototype methods
+        // may not be available on the host instance
+        try {
             this.host.setProject(data);
-        } else {
-            EditorDataManager.logger.error('CRITICAL: this.host.setProject is NOT a function!', {
-                host: this.host,
-                hostType: this.host?.constructor?.name
-            });
-            throw new TypeError('this.host.setProject is not a function. Host type: ' + (this.host?.constructor?.name || 'unknown'));
+        } catch (err) {
+            EditorDataManager.logger.warn('setProject() unavailable, using direct assignment:', err);
+            // Essential fallback: set project reference directly
+            (this.host as any).project = data;
+            projectRegistry.setProject(data);
+            // Update managers that are accessible
+            if (this.host.stageManager) this.host.stageManager.setProject(data);
+            if (this.host.dialogManager) this.host.dialogManager.setProject(data);
+            if ((this.host as any).inspector?.setProject) (this.host as any).inspector.setProject(data);
+            if (this.host.flowEditor?.setProject) this.host.flowEditor.setProject(data);
         }
 
         // 4. MIGRATIONS (Acts on the new project reference)
@@ -411,7 +411,7 @@ export class EditorDataManager {
             fetch('/api/dev/save-project', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.host.project)
+                body: JSON.stringify(this.host.project, ProjectPersistenceService.safeReplacer())
             }).then(res => res.json())
                 .then(data => {
                     if (data.success) {

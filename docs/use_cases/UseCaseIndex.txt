@@ -1,4 +1,57 @@
-﻿- [2026-03-10] Feature: Speichern unter Dialog:
+- [2026-03-12] UseCase: Ball-Reset bei Spielfeld-Aus (PingPong.json):
+  - Komplexe Task-Flows mit if/else Bedingungen (`hitSide == 'left'` / `hitSide == 'right'`)
+  - Dateien:
+    - demos/PingPong.json (Global Action: ResetBall; MainStage Task: HandleBallBoundary)
+    - src/runtime/executor/TaskConditionEvaluator.ts (wird intern von TaskExecutor verwendet)
+    - src/runtime/TaskExecutor.ts (lädt hitSide aus dem Boundary-Event durch GameLoopManager)
+    - src/editor/PascalCodeGenerator.ts (rendert conditions als Pascal `IF x = y THEN`)
+- [2026-03-12] UseCase: Ball-Paddle Kollision (PingPong.json) & Collision Event Handling:
+  - Dateien:
+    - demos/PingPong.json (Action NegateBallX, Task HandlePaddleCollision, BallSprite Event onCollision)
+    - src/runtime/actions/StandardActions.ts (negate Action)
+    - src/runtime/GameLoopManager.ts (checkCollisions: L283-356)
+  - Methoden:
+    - GameLoopManager.checkCollisions(): Prüft `getCollisionOverlap()`, drückt Sprites physisch auseinander (± overlap.depth) und feuert dann `onCollision` mit `hitSide` und `other`.
+  - Details: Da der GameLoopManager die Sprites bereits physisch bei Kollision trennt, reicht es für den Pong-Abprall aus, beim `onCollision` Event einfach die X-Geschwindigkeit (`velocityX`) via `negate`-Action umzukehren.
+
+- [2026-03-12] UseCase: Ball-Abprall (PingPong.json) & Boundary Hit Handling:
+  - Dateien:
+    - demos/PingPong.json (Actions, Tasks: L?, BallSprite Events: L?)
+    - src/runtime/actions/StandardActions.ts (negate Action: L315-345)
+    - src/runtime/GameLoopManager.ts (triggerBoundaryEvent: L415-432)
+  - Methoden:
+    - actionRegistry.register('negate'): Negiert numerische Properties. Spezialfall: Wenn `value === 0`, wird auf `_prev{Prop}` zurückgegriffen, falls vorhanden.
+    - GameLoopManager.triggerBoundaryEvent(): Setzt bei 'top'/'bottom' Hit die `velocityY` auf 0, speichert den alten Wert in `_prevVelocityY` und feuert `onBoundaryHit`.
+  - Details: Da der GameLoopManager die Geschwindigkeit beim Rand-Treffer auf 0 setzt (um das Rausfliegen zu verhindern), greift die Negate-Action für den Abprall (`NegateBallY`) auf den intern gespeicherten vorherigen Wert `_prevVelocityY` zu und kehrt diesen um.
+
+    - src/editor/services/EditorRunManager.ts (setupKeyboardListeners: L302-351, removeKeyboardListeners: L356-367, _keydownHandler/_keyupHandler: L28-30)
+    - src/runtime/GameRuntime.ts (initInputControllers: L222-237, start: L204 Aufruf)
+    - src/editor/inspector/InspectorContextBuilder.ts (availableTasks: L162 getTasks('all'))
+    - src/components/TInputController.ts (Self-Healing onKeyDown: L105-111, initRuntime global: L56-58)
+  - Methoden:
+    - EditorRunManager.setupKeyboardListeners(): Registriert window.keydown/keyup, leitet Game-Keys an handleRuntimeEvent
+    - EditorRunManager.removeKeyboardListeners(): Entfernt Listener bei stopRuntime()
+    - GameRuntime.initInputControllers(): Initialisiert IC vor Splash-Check
+    - InspectorContextBuilder.build(): availableTasks mit getTasks('all') statt getTasks('active')
+  - Details: IC's start()/stop() ist im Editor unzuverlässig (HMR, Splash blockiert initMainGame). Fix: Direkte
+    Keyboard-Verwaltung im EditorRunManager. Events-Dropdown nutzt getTasks('all') für Cross-Stage-Sichtbarkeit.
+
+- [2026-03-11] Performance: Editor-Rendering-Optimierung (60fps Sprite-Bewegung):
+  - Dateien:
+    - src/runtime/GameLoopManager.ts (spriteRenderCallback: L43, init: L80-88, loop: L247-258, stop: L161-163)
+    - src/editor/services/StageRenderer.ts (updateSpritePositions: L1043-1057, CSS-Transition entfernt: L188-189)
+    - src/runtime/GameRuntime.ts (RuntimeOptions.onSpriteRender: L20, glm.init: L227-234)
+    - src/editor/services/EditorRunManager.ts (renderSpritesOnly: L260-268, handleRuntimeEvent: L243-251, onSpriteRender: L116)
+    - src/editor/Stage.ts (renderer public: L11)
+  - Methoden:
+    - StageRenderer.updateSpritePositions(sprites): Direkte style.left/top Aktualisierung ohne volles Render
+    - EditorRunManager.renderSpritesOnly(): Filtert TSprite-Objekte und ruft Fast-Path auf
+    - GameLoopManager.loop(): Nutzt spriteRenderCallback statt renderCallback im Fast-Path
+  - Details: Separater Rendering-Pfad für Sprite-Positionen eliminiert 2-3 volle DOM-Render-Zyklen pro Frame.
+    CSS-Transition entfernt (kollidierte mit requestAnimationFrame). handleRuntimeEvent() kein doppeltes render().
+    QA-Report: 81/82 Tests Pass (1 vorexistierender Fehler: Inline-Actions in stage_main).
+
+- [2026-03-10] Feature: Speichern unter Dialog:
   - Dateien:
     - src/editor/SaveAsDialog.ts (L1-210) [NEU]
     - src/editor/services/EditorDataManager.ts (saveProjectAs: L222-250, currentSavePath: L46)

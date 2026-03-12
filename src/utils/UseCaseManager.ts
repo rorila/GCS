@@ -39,6 +39,7 @@ export const USE_CASES: UseCaseDefinition[] = [
     { id: 'Runtime_Execution', category: UseCaseCategory.RUNTIME, description: 'Der Prozess des Task-Durchlaufs' },
     { id: 'Variable_Handling', category: UseCaseCategory.RUNTIME, description: 'Auflösung von Tokens und Proxy-Sync' },
     { id: 'Condition_Loop', category: UseCaseCategory.RUNTIME, description: 'Bedingungen und Schleifenlogik' },
+    { id: 'Input_Handling', category: UseCaseCategory.RUNTIME, description: 'Verarbeitung von Keyboard und Gamepad Inputs' },
 
     // Code Engineering
     { id: 'Pascal_Generation', category: UseCaseCategory.CODE, description: 'Umwandlung Modell -> Pascal' },

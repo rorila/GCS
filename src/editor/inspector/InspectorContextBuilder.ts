@@ -77,13 +77,51 @@ export class InspectorContextBuilder {
                 });
 
                 return acc;
-            }, []),
+            }, (() => {
+                const initialAcc: any[] = [];
+                // Füge Task Parameter als Basis-Tokens hinzu
+                const activeStage = ProjectRegistry.getInstance().getActiveStage();
+                if (activeStage && activeStage.tasks) {
+                    activeStage.tasks.forEach((t: any) => {
+                        if (t.params && Array.isArray(t.params)) {
+                            t.params.forEach((p: any) => {
+                                initialAcc.push({
+                                    text: `📎 ${p.name} (Task: ${t.name})`,
+                                    value: `\${${p.name}}`
+                                });
+                            });
+                        }
+                    });
+                }
+                return initialAcc;
+            })()),
 
             // Liste der Variablen mit Scope-Emoji für Dropdowns (für Ziel-Variablen)
-            availableVariablesWithScope: allVars.map(v => ({
-                text: `${v.uiEmoji || ''} ${v.name}`,
-                value: v.id
-            })),
+            availableVariablesWithScope: (() => {
+                const vars = allVars.map(v => ({
+                    text: `${v.uiEmoji || ''} ${v.name}`,
+                    value: v.id
+                }));
+                
+                // Füge Task Parameter aus der aktuellen Stage hinzu
+                const activeStage = registry.getActiveStage();
+                if (activeStage && activeStage.tasks) {
+                    activeStage.tasks.forEach((t: any) => {
+                        if (t.params && Array.isArray(t.params)) {
+                            t.params.forEach((p: any) => {
+                                // Vermeide Duplikate
+                                if (!vars.find(v => v.text.includes(p.name))) {
+                                    vars.push({
+                                        text: `📎 ${p.name} (${t.name})`,
+                                        value: p.name
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+                return vars;
+            })(),
 
             // Beibehalten der Struktur für andere Komponenten, die nur die Feldliste benötigen
             availableVariableFields: allVars.reduce((acc, v: any) => {
@@ -158,10 +196,10 @@ export class InspectorContextBuilder {
                 'text', 'value', 'caption', 'width', 'height', 'top', 'left', 'visible', 'checked', 'progress', 'enabled', 'src'
             ],
 
-            // Liste der verfügbaren Tasks (Global + Aktive Stage)
-            availableTasks: registry.getTasks('active').map(t => ({
+            // Liste der verfügbaren Tasks (ALLE Stages, damit globale Objekte Cross-Stage-Tasks sehen)
+            availableTasks: registry.getTasks('all').map(t => ({
                 value: t.name,
-                label: `${t.uiEmoji || '📍'} ${t.name}`
+                label: `${t.uiEmoji || (t.uiScope === 'global' ? '🌎' : '🎭')} ${t.name}`
             })),
 
             // UseCase Diagnostic System

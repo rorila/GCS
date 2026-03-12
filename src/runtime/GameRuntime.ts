@@ -17,6 +17,7 @@ export interface RuntimeOptions {
     initialGlobalVars?: Record<string, any>;
     makeReactive?: boolean;
     onRender?: () => void;
+    onSpriteRender?: (sprites: any[]) => void;
     startStageId?: string;
     onStageSwitch?: (stageId: string) => void;
 }
@@ -104,10 +105,19 @@ export class GameRuntime implements IVariableHost {
                 // full StageRenderer.renderObjects() = 3+ full renders per frame instead of 1.
                 if (options.onRender) {
                     const SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
+                    let renderScheduled = false;
                     this.reactiveRuntime.getWatcher().addGlobalListener(
                         (obj: any, prop: string) => {
                             if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') return;
-                            options.onRender!();
+                            // RAF-Debounce: Egal wie viele Properties sich ändern,
+                            // nur EIN render() pro Animation-Frame.
+                            if (!renderScheduled) {
+                                renderScheduled = true;
+                                requestAnimationFrame(() => {
+                                    renderScheduled = false;
+                                    options.onRender!();
+                                });
+                            }
                         }
                     );
                 }
@@ -190,6 +200,10 @@ export class GameRuntime implements IVariableHost {
         if (this.options.onRender) this.options.onRender();
         this.objects.forEach(obj => this.handleEvent(obj.id, 'onStart'));
 
+        // InputController MUSS vor dem Splash-Check initialisiert werden,
+        // damit Keyboard-Events bereits während/nach dem Splash funktionieren.
+        this.initInputControllers();
+
         if (this.isSplashActive) {
             if (this.project.splashAutoHide) {
                 const duration = (this.stage as any)?.duration || this.project.splashDuration || 3000;
@@ -198,6 +212,27 @@ export class GameRuntime implements IVariableHost {
             return;
         }
         this.initMainGame();
+    }
+
+    /**
+     * Initialisiert alle InputController mit handleEvent-Callback und startet sie.
+     * Wird VOR dem Splash-Check aufgerufen, damit Keyboard-Input sofort funktioniert.
+     */
+    private initInputControllers(): void {
+        const handleEventCb = (id: string, ev: string, data?: any) => this.handleEvent(id, ev, data);
+        this.objects.forEach(obj => {
+            if ((obj as any).className === 'TInputController' || obj.constructor?.name === 'TInputController') {
+                // Raw-Objekt holen (Proxy umgehen!) damit Properties direkt gesetzt werden
+                const rawObj = (obj as any).__raw__ || (obj as any).__v_raw || obj;
+                if (typeof rawObj.init === 'function') {
+                    rawObj.init(this.objects, handleEventCb);
+                }
+                if (typeof rawObj.start === 'function') {
+                    rawObj.start();
+                    console.log(`[GameRuntime] InputController "${rawObj.name}" initialized and started`);
+                }
+            }
+        });
     }
 
     private initMainGame() {
@@ -228,7 +263,8 @@ export class GameRuntime implements IVariableHost {
             this.objects,
             gridConfig,
             this.options.onRender || (() => { }),
-            (id: string, ev: string, data?: any) => this.handleEvent(id, ev, data)
+            (id: string, ev: string, data?: any) => this.handleEvent(id, ev, data),
+            this.options.onSpriteRender
         );
         glm.start();
 
@@ -328,10 +364,19 @@ export class GameRuntime implements IVariableHost {
             // Same filtering as in constructor to prevent redundant renders for sprite positions.
             if (this.options.onRender) {
                 const SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
+                let renderScheduled = false;
                 this.reactiveRuntime.getWatcher().addGlobalListener(
                     (obj: any, prop: string) => {
                         if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') return;
-                        this.options.onRender!();
+                        // RAF-Debounce: Egal wie viele Properties sich ändern,
+                        // nur EIN render() pro Animation-Frame.
+                        if (!renderScheduled) {
+                            renderScheduled = true;
+                            requestAnimationFrame(() => {
+                                renderScheduled = false;
+                                this.options.onRender!();
+                            });
+                        }
                     }
                 );
             }
@@ -445,17 +490,17 @@ export class GameRuntime implements IVariableHost {
     }
 
     public handleEvent(objectId: string, eventName: string, data: any = {}) {
-        console.info(`[DIAGNOSTIC] handleEvent entry: objId=${objectId}, event=${eventName}`);
+        // console.info(`[DIAGNOSTIC] handleEvent entry: objId=${objectId}, event=${eventName}`);
         const obj = this.objects.find(o => o.id === objectId);
         if (!obj) {
-            console.warn(`[DIAGNOSTIC] Object not found: ${objectId}`);
+            // console.warn(`[DIAGNOSTIC] Object not found: ${objectId}`);
             return;
         }
 
         const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
         const hasTaskMap = (obj.events && obj.events[eventName]) || ((obj as any).Tasks && (obj as any).Tasks[eventName]);
 
-        console.info(`[DIAGNOSTIC] Object found: ${obj.name}. hasOnEventMap=${!!hasOnEventMap}, hasTaskMap=${!!hasTaskMap}`);
+        // console.info(`[DIAGNOSTIC] Object found: ${obj.name}. hasOnEventMap=${!!hasOnEventMap}, hasTaskMap=${!!hasTaskMap}`);
 
         let eventLogId: string | undefined = undefined;
 

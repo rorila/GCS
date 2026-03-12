@@ -16,6 +16,8 @@ export class TDebugLog {
     private project: any | null = null;
     private isVisible: boolean = false;
 
+    private renderRafId: number | null = null;
+
     constructor() {
         TDebugLog.logger.info('Initializing...');
         // Add a toggle button to the page with a small delay to ensure DOM is ready
@@ -47,7 +49,15 @@ export class TDebugLog {
 
         this.createUI();
         this.loadFilters();
-        this.unsubscribe = this.service.subscribe(logs => this.renderLogs(logs));
+        // RAF-Debounce: subscribe feuert bei JEDEM neuen Log-Eintrag.
+        // Ohne Debounce wird renderLogs() 60+ mal/sec aufgerufen.
+        this.unsubscribe = this.service.subscribe(logs => {
+            if (this.renderRafId !== null) return;
+            this.renderRafId = requestAnimationFrame(() => {
+                this.renderRafId = null;
+                this.renderLogs(logs);
+            });
+        });
         document.body.appendChild(this.element);
     }
 
@@ -441,9 +451,9 @@ export class TDebugLog {
         // 4. Check children
         const childMatch = e.children.some(child => this.shouldShowRecursive(child, effectiveMatched));
 
-        if (showSelf) {
-            console.log(`[TDebugLog] Match found: [${e.type}] ${e.message.substring(0, 30)}...`);
-        }
+        // console.log hier entfernt — war Performance-Killer!
+        // shouldShowRecursive wird rekursiv für ALLE Log-Einträge aufgerufen,
+        // bei jedem renderLogs() → exponentielles Wachstum des Console-Output.
 
         return showSelf || childMatch;
     }

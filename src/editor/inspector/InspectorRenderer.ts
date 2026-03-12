@@ -383,6 +383,195 @@ export class InspectorRenderer {
             } else {
                 switch (param.type) {
                     case 'json': {
+                        // ═══════════════════════════════════════════════════
+                        // SPECIAL: Key-Value-Editor für property-Actions
+                        // Statt rohem JSON → dynamische Zeilen mit Property-Dropdown
+                        // ═══════════════════════════════════════════════════
+                        if (type === 'property' && param.name === 'changes') {
+                            // Lookup: Bestehende Daten von der Action-Definition im Projekt holen
+                            const actionName = selectedObject.Name || selectedObject.name || '';
+                            let resolvedChanges = currentValue;
+                            let resolvedTarget = selectedObject.target || '';
+
+                            // Falls changes leer/fehlt → von der echten Action-Definition laden
+                            if (!resolvedChanges || (typeof resolvedChanges === 'object' && Object.keys(resolvedChanges).length === 0)) {
+                                const actionDef = projectRegistry.findOriginalAction(actionName);
+                                if (actionDef) {
+                                    resolvedChanges = (actionDef as any).changes || {};
+                                    if (!resolvedTarget) resolvedTarget = (actionDef as any).target || '';
+                                }
+                            }
+
+                            const changesObj = (typeof resolvedChanges === 'object' && resolvedChanges !== null) ? resolvedChanges : {};
+                            const targetName = resolvedTarget;
+
+                            // Hole Properties des Ziel-Objekts
+                            const targetObjDef = projectRegistry.getObjects().find((o: any) => o.name === targetName);
+                            let availableProps: string[] = [];
+                            if (targetObjDef && typeof targetObjDef.getInspectorProperties === 'function') {
+                                availableProps = targetObjDef.getInspectorProperties()
+                                    .map((p: any) => p.name)
+                                    .filter((n: string) => n && !['name', 'id', 'className'].includes(n));
+                            }
+                            // Fallback: bekannte Standard-Properties je nach className
+                            if (availableProps.length === 0 && targetObjDef) {
+                                const cn = targetObjDef.className || '';
+                                if (cn === 'TSprite') {
+                                    availableProps = ['velocityX', 'velocityY', 'x', 'y', 'width', 'height', 'visible', 'collisionEnabled', 'collisionGroup', 'lerpSpeed', 'spriteColor', 'shape'];
+                                } else if (cn === 'TGameState') {
+                                    availableProps = ['spritesMoving', 'collisionsEnabled', 'state', 'value'];
+                                } else if (cn === 'TLabel' || cn === 'TNumberLabel') {
+                                    availableProps = ['text', 'value', 'visible', 'fontSize', 'color', 'startValue'];
+                                } else if (cn === 'TButton') {
+                                    availableProps = ['caption', 'visible', 'enabled'];
+                                } else if (cn === 'TTimer') {
+                                    availableProps = ['interval', 'enabled', 'value'];
+                                } else {
+                                    // Generischer Fallback: alle eigenen Properties auflisten
+                                    availableProps = Object.keys(targetObjDef)
+                                        .filter(k => !['name', 'id', 'className', 'style', 'events', 'Tasks', 'children'].includes(k));
+                                }
+                            }
+
+                            const kvContainer = document.createElement('div');
+                            kvContainer.style.display = 'flex';
+                            kvContainer.style.flexDirection = 'column';
+                            kvContainer.style.gap = '6px';
+                            kvContainer.style.padding = '8px';
+                            kvContainer.style.backgroundColor = '#1a1a2e';
+                            kvContainer.style.borderRadius = '6px';
+                            kvContainer.style.border = '1px solid #333';
+
+                            const entries = Object.entries(changesObj);
+
+                            // Render-Funktion für eine einzelne Key-Value-Zeile
+                            const renderEntry = (key: string, val: any) => {
+                                const row = document.createElement('div');
+                                row.style.display = 'flex';
+                                row.style.gap = '4px';
+                                row.style.alignItems = 'center';
+
+                                // Property-Dropdown
+                                const propSelect = document.createElement('select');
+                                propSelect.style.cssText = 'flex: 1; background-color: #222; color: #fff; border: 1px solid #444; border-radius: 3px; padding: 4px; font-size: 12px;';
+                                // Leere Option
+                                const emptyOpt = document.createElement('option');
+                                emptyOpt.value = '';
+                                emptyOpt.text = '--- Eigenschaft ---';
+                                propSelect.appendChild(emptyOpt);
+                                // Verfügbare Properties
+                                availableProps.forEach(p => {
+                                    const opt = document.createElement('option');
+                                    opt.value = p;
+                                    opt.text = p;
+                                    if (p === key) opt.selected = true;
+                                    propSelect.appendChild(opt);
+                                });
+                                // Falls aktueller key nicht in der Liste → trotzdem anzeigen
+                                if (key && !availableProps.includes(key)) {
+                                    const opt = document.createElement('option');
+                                    opt.value = key;
+                                    opt.text = `${key} (custom)`;
+                                    opt.selected = true;
+                                    propSelect.appendChild(opt);
+                                }
+
+                                // Wert-Eingabe (Typ-sensitiv)
+                                let valInput: HTMLInputElement;
+                                if (typeof val === 'boolean') {
+                                    valInput = document.createElement('input');
+                                    valInput.type = 'checkbox';
+                                    valInput.checked = val;
+                                    valInput.style.cssText = 'width: 20px; height: 20px; cursor: pointer;';
+                                } else if (typeof val === 'number') {
+                                    valInput = document.createElement('input');
+                                    valInput.type = 'number';
+                                    valInput.value = String(val);
+                                    valInput.step = '0.1';
+                                    valInput.style.cssText = 'flex: 1; background-color: #222; color: #4fc3f7; border: 1px solid #444; border-radius: 3px; padding: 4px; font-size: 12px;';
+                                } else {
+                                    valInput = document.createElement('input');
+                                    valInput.type = 'text';
+                                    valInput.value = String(val ?? '');
+                                    valInput.style.cssText = 'flex: 1; background-color: #222; color: #fff; border: 1px solid #444; border-radius: 3px; padding: 4px; font-size: 12px;';
+                                }
+
+                                // Lösch-Button
+                                const delBtn = document.createElement('button');
+                                delBtn.innerText = '🗑';
+                                delBtn.title = 'Eigenschaft entfernen';
+                                delBtn.style.cssText = 'width: 28px; padding: 2px; background: #3d1515; border: 1px solid #662222; border-radius: 3px; cursor: pointer; font-size: 12px;';
+                                delBtn.onmouseover = () => delBtn.style.backgroundColor = '#662222';
+                                delBtn.onmouseout = () => delBtn.style.backgroundColor = '#3d1515';
+
+                                // Event: Property-Name geändert
+                                propSelect.onchange = () => {
+                                    const newChanges = { ...changesObj };
+                                    if (key) delete newChanges[key];
+                                    if (propSelect.value) {
+                                        newChanges[propSelect.value] = typeof val === 'boolean' ? valInput.checked : PropertyHelper.autoConvert(valInput.value);
+                                    }
+                                    onUpdate(param.name, newChanges);
+                                };
+
+                                // Event: Wert geändert
+                                valInput.onchange = () => {
+                                    const newChanges = { ...changesObj };
+                                    if (typeof val === 'boolean') {
+                                        newChanges[key] = (valInput as HTMLInputElement).checked;
+                                    } else {
+                                        newChanges[key] = PropertyHelper.autoConvert(valInput.value);
+                                    }
+                                    onUpdate(param.name, newChanges);
+                                };
+
+                                // Event: Eintrag löschen
+                                delBtn.onclick = () => {
+                                    const newChanges = { ...changesObj };
+                                    delete newChanges[key];
+                                    onUpdate(param.name, newChanges);
+                                };
+
+                                row.appendChild(propSelect);
+                                row.appendChild(valInput);
+                                row.appendChild(delBtn);
+                                return row;
+                            };
+
+                            // Bestehende Einträge rendern
+                            if (entries.length > 0) {
+                                entries.forEach(([k, v]) => {
+                                    kvContainer.appendChild(renderEntry(k, v));
+                                });
+                            } else {
+                                const hint = document.createElement('div');
+                                hint.innerText = 'Keine Änderungen definiert';
+                                hint.style.cssText = 'color: #666; font-style: italic; font-size: 11px; padding: 4px;';
+                                kvContainer.appendChild(hint);
+                            }
+
+                            // "+ Eigenschaft hinzufügen" Button
+                            const addBtn = document.createElement('button');
+                            addBtn.innerText = '+ Eigenschaft hinzufügen';
+                            addBtn.style.cssText = 'padding: 4px 8px; background-color: #1e3a5f; color: #4fc3f7; border: 1px solid #2a5a8f; border-radius: 3px; cursor: pointer; font-size: 11px; margin-top: 4px;';
+                            addBtn.onmouseover = () => addBtn.style.backgroundColor = '#2a5a8f';
+                            addBtn.onmouseout = () => addBtn.style.backgroundColor = '#1e3a5f';
+                            addBtn.onclick = () => {
+                                // Finde erste nicht-verwendete Property
+                                const usedKeys = Object.keys(changesObj);
+                                const nextProp = availableProps.find(p => !usedKeys.includes(p)) || '';
+                                const newChanges = { ...changesObj, [nextProp || `prop${usedKeys.length + 1}`]: '' };
+                                onUpdate(param.name, newChanges);
+                            };
+                            kvContainer.appendChild(addBtn);
+
+                            input = kvContainer;
+                            break;
+                        }
+
+                        // ═══════════════════════════════════════════════════
+                        // Standard JSON-Feld (für NICHT-property Actions)
+                        // ═══════════════════════════════════════════════════
                         let displayValue = '';
                         if (typeof currentValue === 'object' && currentValue !== null) {
                             const keys = Object.keys(currentValue);

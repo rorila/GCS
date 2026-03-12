@@ -185,13 +185,8 @@ export class StageRenderer {
             el.style.width = `${finalW}px`;
             el.style.height = `${finalH}px`;
 
-            // SMOOTH SPRITE MOVEMENT: CSS transition for sprites in run mode
-            // The browser interpolates between physics positions for silky-smooth movement
-            if (this.host.runMode && className === 'TSprite' && !el.dataset.spriteSmooth) {
-                el.style.transition = 'left 33ms linear, top 33ms linear';
-                el.style.willChange = 'left, top';
-                el.dataset.spriteSmooth = '1';
-            }
+            // NOTE: CSS transitions für Sprites wurden entfernt.
+            // Direkte DOM-Updates über updateSpritePositions() ersetzen sie für flüssigere 60fps Bewegung.
 
             if (this.host.runMode) {
                 // Log all objects in Run-Mode to trace layout issues
@@ -1039,5 +1034,21 @@ export class StageRenderer {
 
     public static renderEmojiPicker(el: HTMLElement, obj: any, cellSize: number, onEvent?: (id: string, event: string, data?: any) => void): void {
         EmojiPickerRenderer.renderEmojiPicker(el, obj, cellSize, onEvent);
+    }
+    // ─────────────────────────────────────────────────────────────────
+    // FAST PATH: Sprite-Positionen direkt im DOM aktualisieren
+    // Wird 60×/sec vom GameLoopManager aufgerufen, OHNE volles Render.
+    // Kein Dock-Recalc, kein Element-Create/Remove, keine Style-Updates.
+    // ─────────────────────────────────────────────────────────────────
+    public updateSpritePositions(sprites: { id: string; x: number; y: number }[]): void {
+        const cellSize = this.host.grid.cellSize;
+        for (const sprite of sprites) {
+            const el = this.host.element.querySelector(
+                `[data-id="${sprite.id}"]`
+            ) as HTMLElement;
+            if (!el) continue;
+            el.style.left = `${(sprite.x || 0) * cellSize}px`;
+            el.style.top = `${(sprite.y || 0) * cellSize}px`;
+        }
     }
 }

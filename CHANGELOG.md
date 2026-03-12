@@ -1,3 +1,66 @@
+## [3.12.3] - 2026-03-12
+### Added (Editor / Debugging)
+- **Keyboard- & Runtime-Logs via UseCaseManager**: Neuer UseCase `Input_Handling` in `UseCaseManager.ts` hinzugefügt. `TInputController` wurde darauf umgestellt. `TaskExecutor` (`[TaskExecutor] EXECUTING: ...`) und `EditorRunManager` (`[RunManager] handleRuntimeEvent: ...`) verwenden nun ebenfalls konsequent die Logger-API (`Logger.get(..., 'Runtime_Execution')`). Alle störenden Event- und Ausführungs-Logs lassen sich nun gezielt im Inspector "Logs"-Tab de- und aktivieren.
+
+### Added (Game Logic / PingPong)
+- **Regelkonforme Event-Actions (`PingPong.json`)**:
+  - Sämtliche vormals "inline" oder fehlerhaft referenzierten `negate`-Verhaltensweisen für den Abprall wurden zu korrekten, globalen Actions konvertiert (Regel: *Keine Inline-Actions*).
+  - Die Action `NegateBallY` (Abprallen an oberer/unterer Begrenzung) ist nun als globales Element vom Typ `negate` für `BallSprite` (`velocityY: true`) in der Blueprint-Stage verankert.
+- **Ball-Reset bei Aus (`PingPong.json`)**: Implementierung der Fehler-Bedingung (Ball berührt linken oder rechten Spielfeldrand).
+  - Globale Action `ResetBall` vom Typ `property` erstellt, die den Ball zentriert (Grid-Koordinaten x: 32, y: 19) und die X/Y-Geschwindigkeit zurücksetzt.
+  - Task `HandleBallBoundary` zu einem komplexen Ablauf umgebaut, welcher die `hitSide` Eigenschaft per konditionalen Verzweigungen testet: `top`/`bottom` führen wie bisher zu Abprallern (`NegateBallY`), `left`/`right` führen zum Aufruf von `ResetBall`.
+
+### Fixed
+- **FlowSyncManager (Condition-Nodes Bug)**:
+  - Behoben: Beim Speichern (FlowChart -> actionSequence) und Parsen (actionSequence -> FlowChart) von `condition` Nodes wurden strukturierte Objektdaten (`data.condition`) zu einem platten String `text` reduziert, was zum vollständigen Verlust der Bedingungs-Logik führte.
+  - Das Serialisieren/Deserialisieren unterstützt nun korrekt die Erhaltung von `data.condition` für die Editor-Anzeige und die Laufzeitauswertung.
+- **Inspector Dropdowns (Variablen)**:
+  - Behoben: Bislang wurden Task-bezogene Parameter (Eingangsparameter wie `hitSide`) im Variablen-Dropdown des Inspectors (z.B. in der Condition-Node) nicht angezeigt, wodurch man als User nicht sehen konnte, auf welche Laufzeit-Variablen man Zugriff hat. Der `InspectorContextBuilder` liest nun dynamisch die `params` aller Tasks in der aktuellen Stage und führt sie mit Büroklammer-Icon (📎) regulär in der Dropdown-Liste.
+- **FlowCondition Text-Anzeige im Flow-Diagramm**:
+  - Behoben: FlowCondition-Nodes (lila Rauten) zeigten nach dem Laden eines Projekts keinen Bedingungstext an (z.B. "hitSide == top"). Ursache: `refreshVisuals()` wurde für Condition-Nodes im `FlowSyncManager.restoreNode()` nicht aufgerufen. Der Fix ist eine einzige Zeile, die sicherstellt, dass `updateText()` nach dem Laden der `data.condition` Daten getriggert wird.
+- **FlowSyncManager Connection-Matching (ROOT CAUSE BOUNCING-BUG)**:
+  - Behoben: `syncToProject()` suchte true-branch Connections ausschließlich via `startAnchorType === 'true'`. FlowCondition-Connections nutzen jedoch `startAnchorType: 'right'` mit dem Flag `isTrueBranch: true`. Die Connection wurde dadurch nie gefunden, das generierte `body`-Array blieb leer und keine Action wurde bei Boundary-Hits ausgelöst. Fix: Connection-Erkennung erweitert um `'right'`/`'bottom'` Anchor-Typen und `isTrueBranch`/`isFalseBranch` Flags.
+- **Paddle Collision Bounce (`PingPong.json`)**: Implementierung des Abpralls an den Paddles (X-Achse).
+  - Globale Action `NegateBallX` vom Typ `negate` erstellt, welche `velocityX` umkehrt.
+  - Neuer Task `HandlePaddleCollision` auf `stage_main` angelegt, der `NegateBallX` aufruft.
+  - Event-Binding `onCollision` auf dem `BallSprite` konfiguriert, sodass der Task bei jeder Sprite-Kollision (hier: Paddles) automatisch triggert.
+- **Top/Bottom Ball Bounce (`PingPong.json`)**: Implementierung des Abpralls an der oberen und unteren Begrenzung.
+  - Globale Action `NegateBallY` vom Typ `negate` erstellt, welche `velocityY` umkehrt. (Nutzt die automatische Fallback-Logik in `StandardActions.ts`, die `_prevVelocityY` heranzieht, wenn `velocityY` durch die Engine temporär auf 0 gesetzt wurde).
+  - Neuer Task `HandleBallBoundary` auf `stage_main` angelegt, der `NegateBallY` aufruft.
+  - Event-Binding `onBoundaryHit` auf dem `BallSprite` konfiguriert, sodass der Task bei Randerkennung automatisch triggert.
+
+### Fixed (Performance / Stottern)
+- **Kollisions-Lags behoben (`GameRuntime.ts`, `GameLoopManager.ts`, `StandardActions.ts`)**: Stark frequentierte Debug-Logs (`console.info`, `console.warn` bei Event-Routing) und speicherintensive `DebugLogService`-Aufrufe in der `negate`-Action auskommentiert, da diese bei jeder Ball-Paddle/Wand Berührung synchrone Time-Gaps (Stottern) verursachten.
+
+### Fixed (Paddle-Steuerung / InputController)
+- **Direkte Keyboard-Verwaltung** (`EditorRunManager.ts`): Keyboard-Listener werden jetzt direkt im EditorRunManager via `setupKeyboardListeners()`/`removeKeyboardListeners()` verwaltet, statt über `TInputController.start()`/`stop()`. Behebt: IC's interne Methoden griffen nicht zuverlässig (Splash-Screen verhindert `initMainGame()`, HMR-Instanz-Inkonsistenzen).
+- **InputController-Initialisierung vor Splash-Check** (`GameRuntime.ts`): Neue Methode `initInputControllers()` wird VOR dem Splash-Check in `start()` aufgerufen, damit Keyboard-Events sofort nach Spielstart funktionieren.
+- **Events-Dropdown zeigt alle Tasks** (`InspectorContextBuilder.ts`): `availableTasks` nutzt jetzt `getTasks('all')` statt `getTasks('active')`, damit globale Objekte (InputController auf Blueprint-Stage) auch Spielfeld-Tasks im Dropdown sehen.
+
+## [3.12.2] - 2026-03-12
+### Fixed (Abwärtskompatibilität älterer Spiele)
+- **`self`/`other` Auflösung in Actions** (`StandardActions.ts`): `resolveTarget()` löst jetzt `self` und `other` korrekt über `eventData` auf. Bei Kollisionen enthält eventData `{self, other, hitSide}`. Vorher wurde `self`/`other` nie aufgelöst → alle `variable`-Actions mit `source: 'self'/'other'` scheiterten.
+- **`calcSteps`-Auswertung im `calculate`-Handler** (`StandardActions.ts`): Wenn `formula`/`expression` fehlt aber `calcSteps` vorhanden sind, werden die Steps sequentiell ausgewertet. Unterstützt `operandType: 'variable'`, `'objectProperty'` und `constant` mit Operatoren `+`, `-`, `*`, `/`.
+- **`self`/`other` im Evaluationskontext**: Der `calculate`-Handler injiziert jetzt `self`/`other` aus `eventData` in den `evalContext`, damit Formeln wie `self.y` oder `other.height` funktionieren.
+- **`negate`-Action hinzugefügt** (`StandardActions.ts`): Negiert numerische Properties (z.B. `velocityX * -1`). Wird in Arkanoid/Tennis für Ball-Richtungsänderung bei Kollision verwendet.
+- **Alle Action-Handler konsistent**: `property`, `variable`, `animate`, `move_to`, `call_method` verwenden jetzt `context.eventData` für Target-Auflösung.
+
+## [3.12.1] - 2026-03-11
+### Performance (Runde 2 — Smooth 60fps)
+- **Direkte Sprite-Referenzen statt stale Copies** (`GameLoopManager.ts`, `EditorRunManager.ts`): `spriteRenderCallback` übergibt jetzt `this.sprites` (aktuelle Referenzen vom GameLoopManager) direkt an `renderSpritesOnly()`. Vorher wurden stale Deep-Copies aus `getObjects()` genutzt — Positionen blieben beim Startwert.
+- **RAF-Debounce für GlobalListener** (`GameRuntime.ts`): Der `onRender`-Callback wird jetzt per `requestAnimationFrame` debounced. Egal wie viele Properties sich pro Frame ändern (Score + Label + Toast + ...), es gibt nur EIN `editor.render()` pro Frame.
+- **TDebugLog console.log-Spam eliminiert** (`TDebugLog.ts`): `shouldShowRecursive()` loggte bei JEDEM `renderLogs()`-Aufruf für ALLE matching Einträge → exponentielles Wachstum. `subscribe`-Callback jetzt ebenfalls per RAF debounced.
+- **AnimationManager Logging bereinigt** (`AnimationManager.ts`): `update()` loggte 60x/sec in die Console. Alle High-Frequency-Logs auskommentiert, `Tween completed`-Log beibehalten.
+
+## [3.12.0] - 2026-03-11
+### Performance
+- **Editor-Rendering-Optimierung (60fps Sprite-Bewegung)**: Separater Fast-Path für Sprite-Positionen im Editor Run-Modus implementiert. Sprites werden jetzt direkt per `style.left/top` aktualisiert (ähnlich dem Standalone-Player), statt den gesamten DOM-Render-Zyklus zu durchlaufen.
+  - `GameLoopManager.ts`: Neuer `spriteRenderCallback` als Fast-Path — nur Sprite-Positionen statt volles DOM-Rebuild.
+  - `StageRenderer.ts`: Neue Methode `updateSpritePositions()` für direkte Pixel-Positionierung. CSS-Transition (`left 33ms linear`) entfernt, da sie mit `requestAnimationFrame`-Timing kollidiert.
+  - `GameRuntime.ts`: Neues `onSpriteRender` Feld in `RuntimeOptions`, durchgereicht an `GameLoopManager`.
+  - `EditorRunManager.ts`: Neue Methode `renderSpritesOnly()` filtert Sprites und ruft Fast-Path auf. `handleRuntimeEvent()` ruft kein doppeltes `editor.render()` mehr auf.
+  - `Stage.ts`: `updateSpritePositions()` Delegierungsmethode (renderer bleibt private).
+
 ## [3.11.9] - 2026-03-10
 ### Added
 - **Glow/Shadow-Effekt für alle Komponenten** (`src/components/TWindow.ts`, `src/editor/services/StageRenderer.ts`): Neue Properties `glowColor`, `glowBlur`, `glowSpread` und `boxShadow` (CSS-String) im Inspector unter Gruppe "GLOW-EFFEKT". Wirkt auf alle TWindow-Ableitungen (TPanel, TButton, TLabel, etc.).

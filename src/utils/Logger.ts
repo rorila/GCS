@@ -109,7 +109,21 @@ export class Logger {
         const prefix = `${timestamp} ${this.prefix}`;
 
         if (Logger.logHandler) {
-            Logger.logHandler(level, this.prefix, args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '), this.useCase);
+            const safeStringify = (a: any): string => {
+                if (typeof a !== 'object' || a === null) return String(a);
+                try {
+                    const seen = new WeakSet();
+                    return JSON.stringify(a, (key, value) => {
+                        if (['renderer', 'host', 'parent', 'stage', 'editor', '_listeners', '_eventTarget'].includes(key)) return undefined;
+                        if (typeof value === 'object' && value !== null) {
+                            if (seen.has(value)) return '[Circular]';
+                            seen.add(value);
+                        }
+                        return value;
+                    });
+                } catch { return '[Object]'; }
+            };
+            Logger.logHandler(level, this.prefix, args.map(safeStringify).join(' '), this.useCase);
         }
 
         switch (level) {

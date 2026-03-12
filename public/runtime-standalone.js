@@ -90,21 +90,17 @@
          * @param onComplete Optionaler Callback nach Abschluss
          */
         addTween(target, property, to, duration, easingName = "easeOut", onComplete) {
-          console.log(`[AnimationManager.addTween] START: target=${target?.name || target?.id}, property=${property}, to=${to}, duration=${duration}, easing=${easingName}`);
           const previousCount = this.activeTweens.length;
           this.cancelTween(target, property);
           if (this.activeTweens.length !== previousCount) {
-            console.log(`[AnimationManager.addTween] Cancelled existing tween for ${property}, tweens: ${previousCount} -> ${this.activeTweens.length}`);
           }
           const from = this.getPropertyValue(target, property);
-          console.log(`[AnimationManager.addTween] Current value of ${property}: ${from}`);
           const easing = Easing[easingName] || Easing.easeOut;
           if (!Easing[easingName]) {
             console.warn(`[AnimationManager.addTween] Unknown easing "${easingName}", falling back to easeOut`);
           }
           if (property === "x" || property === "y") {
             target.isAnimating = true;
-            console.log(`[AnimationManager.addTween] Set isAnimating=true on ${target?.name || target?.id}`);
           }
           const tween = {
             target,
@@ -117,7 +113,6 @@
             onComplete
           };
           this.activeTweens.push(tween);
-          console.log(`[AnimationManager.addTween] END: Added tween, total active tweens: ${this.activeTweens.length}`);
           return tween;
         }
         /**
@@ -167,7 +162,6 @@
           const now = performance.now();
           const completedTweens = [];
           if (this.activeTweens.length > 0) {
-            console.log(`[AnimationManager.update] Updating ${this.activeTweens.length} active tweens at t=${now.toFixed(0)}`);
           }
           for (const tween of this.activeTweens) {
             try {
@@ -388,7 +382,23 @@
       const timestamp = (/* @__PURE__ */ new Date()).toISOString().split("T")[1].split("Z")[0];
       const prefix = `${timestamp} ${this.prefix}`;
       if (_Logger.logHandler) {
-        _Logger.logHandler(level, this.prefix, args.map((a) => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" "), this.useCase);
+        const safeStringify = (a) => {
+          if (typeof a !== "object" || a === null) return String(a);
+          try {
+            const seen = /* @__PURE__ */ new WeakSet();
+            return JSON.stringify(a, (key, value) => {
+              if (["renderer", "host", "parent", "stage", "editor", "_listeners", "_eventTarget"].includes(key)) return void 0;
+              if (typeof value === "object" && value !== null) {
+                if (seen.has(value)) return "[Circular]";
+                seen.add(value);
+              }
+              return value;
+            });
+          } catch {
+            return "[Object]";
+          }
+        };
+        _Logger.logHandler(level, this.prefix, args.map(safeStringify).join(" "), this.useCase);
       }
       switch (level) {
         case 0 /* DEBUG */:
@@ -1002,18 +1012,22 @@
       const objectWatchers = this.watchers.get(target);
       const objName = target.name || target.id || "Unknown";
       const INTERNAL_PROPERTIES = /* @__PURE__ */ new Set(["eventCallback", "onEvent", "events", "Tasks", "id", "className"]);
+      const HIGH_FREQ_SPRITE_PROPS = /* @__PURE__ */ new Set(["x", "y", "velocityX", "velocityY", "errorX", "errorY"]);
       if (DebugLogService.getInstance().isEnabled()) {
-        if (INTERNAL_PROPERTIES.has(propertyPath)) return;
-        const displayNew = typeof newValue === "object" ? JSON.stringify(newValue)?.substring(0, 50) : newValue;
-        const displayOld = typeof oldValue === "object" ? JSON.stringify(oldValue)?.substring(0, 50) : oldValue;
-        DebugLogService.getInstance().log(
-          "Variable",
-          `${objName}.${propertyPath} changed: ${displayOld} -> ${displayNew}`,
-          {
-            objectName: objName,
-            data: { newValue, oldValue }
-          }
-        );
+        const isInternal = INTERNAL_PROPERTIES.has(propertyPath);
+        const isHighFreqSprite = HIGH_FREQ_SPRITE_PROPS.has(propertyPath) && target?.className === "TSprite";
+        if (!isInternal && !isHighFreqSprite) {
+          const displayNew = typeof newValue === "object" ? JSON.stringify(newValue)?.substring(0, 50) : newValue;
+          const displayOld = typeof oldValue === "object" ? JSON.stringify(oldValue)?.substring(0, 50) : oldValue;
+          DebugLogService.getInstance().log(
+            "Variable",
+            `${objName}.${propertyPath} changed: ${displayOld} -> ${displayNew}`,
+            {
+              objectName: objName,
+              data: { newValue, oldValue }
+            }
+          );
+        }
       }
       if (!objectWatchers) {
         this.notifyGlobal(target, propertyPath, newValue, oldValue);
@@ -2010,8 +2024,17 @@
   // src/runtime/actions/StandardActions.ts
   var runtimeLogger = Logger.get("Action", "Runtime_Execution");
   var dataLogger = Logger.get("Action", "DataStore_Sync");
-  function resolveTarget(targetName, objects, vars, _contextObj) {
+  function resolveTarget(targetName, objects, vars, eventData) {
     if (!targetName) return null;
+    if (targetName === "self") {
+      if (eventData?.self) return eventData.self;
+      if (eventData && eventData.name) return eventData;
+      return null;
+    }
+    if (targetName === "other") {
+      if (eventData?.other) return eventData.other;
+      return null;
+    }
     let actualName = targetName;
     if (targetName.startsWith("${") && targetName.endsWith("}")) {
       const varName = targetName.substring(2, targetName.length - 1);
@@ -2021,7 +2044,7 @@
   }
   function registerStandardActions() {
     actionRegistry.register("property", (action, context) => {
-      const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
+      const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (target && action.changes) {
         Object.keys(action.changes).forEach((prop) => {
@@ -2048,7 +2071,7 @@
       let val = void 0;
       const sourceName = action.source;
       const variableName = action.variableName;
-      const srcObj = resolveTarget(sourceName, context.objects, context.vars, context.contextVars);
+      const srcObj = resolveTarget(sourceName, context.objects, context.vars, context.eventData);
       if (srcObj) {
         if (action.sourceProperty) {
           val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
@@ -2108,19 +2131,114 @@
       ]
     });
     actionRegistry.register("calculate", (action, context) => {
-      const formula = action.formula || action.expression;
+      if (action.source && action.sourceProperty && action.variableName) {
+        const srcObj = resolveTarget(action.source, context.objects, context.vars, context.eventData);
+        let val = void 0;
+        if (srcObj) {
+          val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
+        }
+        if (val === void 0) {
+          const varVal = context.vars[action.source] !== void 0 ? context.vars[action.source] : context.contextVars[action.source];
+          if (varVal !== void 0 && typeof varVal === "object" && varVal !== null) {
+            val = PropertyHelper.getPropertyValue(varVal, action.sourceProperty);
+          }
+        }
+        runtimeLogger.info(`Variable-Read (via calculate): ${action.variableName} := ${action.source}.${action.sourceProperty} = ${val}`);
+        if (action.variableName) {
+          context.contextVars[action.variableName] = val;
+          if (context.vars) {
+            context.vars[action.variableName] = val;
+          }
+        }
+        return;
+      }
+      const objectMap = context.objects.reduce((acc, obj) => {
+        if (obj.id) acc[obj.id] = obj;
+        if (obj.name) acc[obj.name] = obj;
+        return acc;
+      }, {});
+      const evalContext = {
+        ...objectMap,
+        ...context.contextVars,
+        ...context.vars,
+        $eventData: context.eventData
+      };
+      if (context.eventData && typeof context.eventData === "object") {
+        if (!evalContext["self"] || typeof evalContext["self"] !== "object") {
+          evalContext["self"] = context.vars?.sender || context.eventData;
+        }
+        if (!evalContext["other"] || typeof evalContext["other"] !== "object") {
+          const otherObj = context.vars?.otherSprite;
+          if (otherObj && typeof otherObj === "object") {
+            evalContext["other"] = otherObj;
+          } else if (typeof evalContext["other"] === "string" && objectMap[evalContext["other"]]) {
+            evalContext["other"] = objectMap[evalContext["other"]];
+          }
+        }
+      }
+      let formula = action.formula || action.expression;
+      if (!formula && action.calcSteps && Array.isArray(action.calcSteps) && action.calcSteps.length > 0) {
+        try {
+          let result = 0;
+          for (let i = 0; i < action.calcSteps.length; i++) {
+            const step = action.calcSteps[i];
+            let operandValue = 0;
+            if (step.constant !== void 0 && !step.variable) {
+              operandValue = Number(step.constant);
+            } else if ((step.operandType === "variable" || !step.operandType) && step.variable) {
+              if (step.variable.includes(".")) {
+                const parts = step.variable.split(".");
+                const rootName = parts[0];
+                const propPath = parts.slice(1).join(".");
+                const rootObj = evalContext[rootName];
+                if (rootObj && typeof rootObj === "object") {
+                  operandValue = Number(PropertyHelper.getPropertyValue(rootObj, propPath)) || 0;
+                } else {
+                  operandValue = NaN;
+                }
+              } else {
+                const v = evalContext[step.variable];
+                operandValue = v !== void 0 ? Number(v) : NaN;
+              }
+            } else if (step.operandType === "objectProperty" && step.source && step.property) {
+              const srcObj = resolveTarget(step.source, context.objects, context.vars, context.eventData);
+              operandValue = srcObj ? Number(PropertyHelper.getPropertyValue(srcObj, step.property)) : NaN;
+            }
+            if (i === 0) {
+              result = operandValue;
+            } else {
+              switch (step.operator) {
+                case "+":
+                  result += operandValue;
+                  break;
+                case "-":
+                  result -= operandValue;
+                  break;
+                case "*":
+                  result *= operandValue;
+                  break;
+                case "/":
+                  result = operandValue !== 0 ? result / operandValue : NaN;
+                  break;
+                default:
+                  result = operandValue;
+                  break;
+              }
+            }
+          }
+          runtimeLogger.info(`CalcSteps result for "${action.name}": ${result} (Target: ${action.resultVariable})`);
+          if (action.resultVariable) {
+            context.contextVars[action.resultVariable] = result;
+            if (context.vars) {
+              context.vars[action.resultVariable] = result;
+            }
+          }
+        } catch (err2) {
+          runtimeLogger.error(`Error evaluating calcSteps for "${action.name}":`, err2);
+        }
+        return;
+      }
       if (formula) {
-        const objectMap = context.objects.reduce((acc, obj) => {
-          if (obj.id) acc[obj.id] = obj;
-          if (obj.name) acc[obj.name] = obj;
-          return acc;
-        }, {});
-        const evalContext = {
-          ...objectMap,
-          ...context.contextVars,
-          ...context.vars,
-          $eventData: context.eventData
-        };
         try {
           const result = ExpressionParser.evaluate(formula, evalContext);
           runtimeLogger.info(`Result of "${formula}" -> ${JSON.stringify(result)} (Target: ${action.resultVariable})`);
@@ -2134,7 +2252,7 @@
           runtimeLogger.error(`Error evaluating "${formula}":`, err2);
         }
       } else {
-        runtimeLogger.warn("No formula/expression provided in action:", action);
+        runtimeLogger.warn("No formula/expression/calcSteps provided in action:", action);
       }
     }, {
       type: "calculate",
@@ -2145,8 +2263,44 @@
         { name: "formula", label: "Formel", type: "string", placeholder: "z.B. score + 10" }
       ]
     });
+    actionRegistry.register("negate", (action, context) => {
+      const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
+      if (target && action.changes) {
+        Object.keys(action.changes).forEach((prop) => {
+          const currentValue = PropertyHelper.getPropertyValue(target, prop);
+          if (typeof currentValue === "number") {
+            let valueToNegate = currentValue;
+            if (currentValue === 0) {
+              const prevKey = `_prev${prop.charAt(0).toUpperCase()}${prop.slice(1)}`;
+              const prevVal = target[prevKey];
+              if (typeof prevVal === "number" && prevVal !== 0) {
+                valueToNegate = prevVal;
+                runtimeLogger.info(`Negate: Using saved previous ${prop}: ${prevVal} (current was 0)`);
+              }
+            }
+            const negated = valueToNegate * -1;
+            PropertyHelper.setPropertyValue(target, prop, negated);
+            runtimeLogger.info(`Negate: ${target.name || target.id}.${prop}: ${currentValue} -> ${negated}`);
+            DebugLogService.getInstance().log("Variable", `${target.name || target.id}.${prop} negiert: ${currentValue} \u2192 ${negated}`, {
+              objectName: target.name || target.id,
+              flatten: true
+            });
+          } else {
+            runtimeLogger.warn(`Negate: ${target.name || target.id}.${prop} ist kein numerischer Wert (${typeof currentValue}: ${currentValue})`);
+          }
+        });
+      }
+    }, {
+      type: "negate",
+      label: "Wert negieren",
+      description: "Negiert (multipliziert mit -1) numerische Eigenschaften eines Objekts. Typisch f\xFCr Richtungsumkehr (z.B. velocityX).",
+      parameters: [
+        { name: "target", label: "Ziel-Objekt", type: "object", source: "objects" },
+        { name: "changes", label: "Properties (JSON)", type: "json", hint: 'z.B. { "velocityX": true }' }
+      ]
+    });
     actionRegistry.register("animate", (action, context) => {
-      const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
+      const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (target) {
         const toValue = Number(PropertyHelper.interpolate(String(action.to), combinedContext, context.objects));
@@ -2165,7 +2319,7 @@
       ]
     });
     actionRegistry.register("move_to", (action, context) => {
-      const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
+      const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
       const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
       if (target) {
         const toX = Number(PropertyHelper.interpolate(String(action.x), combinedContext, context.objects));
@@ -2547,7 +2701,7 @@
       const resolvedParams = rawParams.map(
         (p) => PropertyHelper.interpolate(String(p), combinedContext, context.objects)
       );
-      const targetObj = resolveTarget(targetName, context.objects, context.vars, context.contextVars);
+      const targetObj = resolveTarget(targetName, context.objects, context.vars, context.eventData);
       if (targetObj && typeof targetObj[methodName] === "function") {
         const result = await targetObj[methodName](...resolvedParams);
         if (action.resultVariable) {
@@ -3057,7 +3211,7 @@
       const isMultiplayer = !!this.multiplayerManager;
       const isEnabled = DebugLogService.getInstance().isEnabled();
       if (isEnabled) {
-        console.error(`[TaskExecutor] EXECUTING: ${taskName} (depth: ${depth}, context: ${contextObj?.name || "none"})`);
+        console.log(`[TaskExecutor] EXECUTING: ${taskName} (depth: ${depth}, context: ${contextObj?.name || "none"})`);
       }
       const taskLogId = DebugLogService.getInstance().log("Task", `START: ${taskName}`, {
         parentId,
@@ -3554,6 +3708,7 @@
       __publicField(this, "inputControllers", []);
       // Callbacks
       __publicField(this, "renderCallback", null);
+      __publicField(this, "spriteRenderCallback", null);
       __publicField(this, "eventCallback", null);
       // Cooldowns and tracking
       __publicField(this, "collisionCooldowns", /* @__PURE__ */ new Map());
@@ -3581,11 +3736,12 @@
     /**
      * Initialize the game loop with objects, grid config, and callbacks
      */
-    init(objects, gridConfig, renderCallback, eventCallback) {
+    init(objects, gridConfig, renderCallback, eventCallback, spriteRenderCallback) {
       console.log(`[GameLoopManager] init() called with ${objects.length} objects`);
       this.stop();
       this.gridConfig = gridConfig;
       this.renderCallback = renderCallback;
+      this.spriteRenderCallback = spriteRenderCallback || null;
       this.eventCallback = eventCallback || null;
       this.sprites = objects.filter(
         (obj) => obj.className === "TSprite" || obj.constructor.name === "TSprite"
@@ -3641,6 +3797,7 @@
       this.sprites = [];
       this.inputControllers = [];
       this.renderCallback = null;
+      this.spriteRenderCallback = null;
       this.eventCallback = null;
       this.gameState = null;
       this.gridConfig = null;
@@ -3680,8 +3837,6 @@
     /**
      * Main game loop - NORMAL METHOD, not arrow function
      * OPTIMIZATION: Only renders when something has changed to avoid endless log spam
-     * PERF: Sprites are rendered directly via CSS position updates (not through full StageRenderer)
-     *       CSS transitions on sprite elements provide smooth browser interpolation.
      */
     loop() {
       if (this.state !== "running") {
@@ -3703,42 +3858,17 @@
         this.updateSprites(deltaTime, spritesMoving);
         AnimationManager.getInstance().update();
         this.collidedThisFrame.clear();
-        let hadCollisionOrBoundary = false;
         if (spritesMoving) {
-          const collBefore = this.collidedThisFrame.size;
           this.checkCollisions();
           this.checkBoundaries();
-          hadCollisionOrBoundary = this.collidedThisFrame.size > collBefore;
         }
-        this.updateSpritePositions();
-        if (hadCollisionOrBoundary || hasActiveAnimations) {
-          if (this.renderCallback) {
-            this.renderCallback();
-          }
+        if (this.spriteRenderCallback) {
+          this.spriteRenderCallback(this.sprites);
+        } else if (this.renderCallback) {
+          this.renderCallback();
         }
       }
       this.animationFrameId = requestAnimationFrame(this.loop);
-    }
-    /**
-     * Lightweight direct DOM update for sprite positions.
-     * Uses CSS transitions for smooth browser interpolation between frames.
-     * This is MUCH faster than going through StageRenderer.renderObjects().
-     */
-    updateSpritePositions() {
-      const grid = this.gridConfig;
-      const cellSize = grid?.cellSize || grid?.grid?.cellSize || 20;
-      this.sprites.forEach((sprite) => {
-        const el = document.querySelector(`[data-id="${sprite.id}"]`);
-        if (el) {
-          if (!el.dataset.glmTransition) {
-            el.style.transition = "left 16ms linear, top 16ms linear";
-            el.style.willChange = "left, top";
-            el.dataset.glmTransition = "1";
-          }
-          el.style.left = `${sprite.x * cellSize}px`;
-          el.style.top = `${sprite.y * cellSize}px`;
-        }
-      });
     }
     /**
      * Update all sprites based on velocity
@@ -3847,8 +3977,14 @@
       if (side === "top" && sprite.velocityY >= 0) return;
       if (side === "bottom" && sprite.velocityY <= 0) return;
       this.boundaryCooldowns.set(cooldownKey, now);
-      if (side === "left" || side === "right") sprite.velocityX = 0;
-      if (side === "top" || side === "bottom") sprite.velocityY = 0;
+      if (side === "left" || side === "right") {
+        sprite._prevVelocityX = sprite.velocityX;
+        sprite.velocityX = 0;
+      }
+      if (side === "top" || side === "bottom") {
+        sprite._prevVelocityY = sprite.velocityY;
+        sprite.velocityY = 0;
+      }
       const EPSILON = 0.01;
       if (side === "left") sprite.x = EPSILON;
       if (side === "right") sprite.x = this.boundsWidth - sprite.width - EPSILON;
@@ -5137,6 +5273,8 @@
       __publicField(this, "keysPressed", /* @__PURE__ */ new Set());
       __publicField(this, "isActive", false);
       __publicField(this, "eventCallback", null);
+      // 🔍 Debug: Instance-ID um mehrere Instanzen zu unterscheiden
+      __publicField(this, "_instanceId", Math.random().toString(36).substr(2, 5));
       // Event handlers (bound for proper removal)
       __publicField(this, "handleKeyDown");
       __publicField(this, "handleKeyUp");
@@ -5148,6 +5286,7 @@
       this.handleKeyUp = this.onKeyUp.bind(this);
       this.isService = true;
       this.isHiddenInRun = true;
+      console.log(`%c[IC-${this._instanceId}] CONSTRUCTOR: name=${name}`, "color: #f0f; background: #222; padding: 2px 6px;");
     }
     getInspectorProperties() {
       return [
@@ -5160,6 +5299,8 @@
     }
     initRuntime(callbacks) {
       this.init(callbacks.objects, callbacks.handleEvent);
+      window.__inputControllerCallback = callbacks.handleEvent;
+      window.__inputControllerObjects = callbacks.objects;
     }
     onRuntimeStart() {
       this.start();
@@ -5172,15 +5313,18 @@
      */
     init(_objects, eventCallback) {
       this.eventCallback = eventCallback || null;
+      console.log(`%c[IC-${this._instanceId}] INIT: hasCallback=${!!this.eventCallback}`, "color: #0ff; background: #222; padding: 2px 6px;");
     }
     /**
      * Start listening for keyboard events
      */
     start() {
+      console.log(`%c[IC-${this._instanceId}] START called: isActive=${this.isActive}, enabled=${this.enabled}`, "color: #0f0; background: #222; padding: 2px 6px;");
       if (this.isActive || !this.enabled) return;
       window.addEventListener("keydown", this.handleKeyDown);
       window.addEventListener("keyup", this.handleKeyUp);
       this.isActive = true;
+      console.log(`%c[IC-${this._instanceId}] START done: isActive=${this.isActive}`, "color: #0f0; background: #222; padding: 2px 6px;");
     }
     /**
      * Stop listening for keyboard events
@@ -5196,6 +5340,12 @@
      * Handle keydown event
      */
     onKeyDown(e) {
+      if (!this.eventCallback && window.__inputControllerCallback) {
+        this.eventCallback = window.__inputControllerCallback;
+        this.isActive = true;
+        console.log(`%c[IC-${this._instanceId}] \u{1F527} SELF-HEAL: Callback aus window.__inputControllerCallback geholt!`, "color: #f90; background: #222; padding: 2px 6px; font-weight: bold;");
+      }
+      console.log(`%c[IC-${this._instanceId}] \u{1F3AE} KEY DOWN: ${e.code} | isActive=${this.isActive} | hasCallback=${!!this.eventCallback}`, "color: #ff0; background: #333; padding: 2px 6px; font-weight: bold;");
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyW", "KeyS", "KeyA", "KeyD"].includes(e.code)) {
         e.preventDefault();
       }
@@ -5205,7 +5355,10 @@
           window.__multiplayerInputCallback(e.code, "down");
         }
         if (this.eventCallback) {
+          console.log(`%c[InputController] \u27A1\uFE0F CALLBACK: id=${this.id}, event=onKeyDown_${e.code}`, "color: #0f0; background: #333; padding: 2px 6px;");
           this.eventCallback(this.id, `onKeyDown_${e.code}`, { keyCode: e.code });
+        } else {
+          console.warn(`[InputController] \u274C KEIN CALLBACK! Event onKeyDown_${e.code} geht verloren!`);
         }
       }
     }
@@ -11024,12 +11177,20 @@
             this.reactiveRuntime.setVariable("isHost", true);
           }
           if (options.onRender) {
-            this.reactiveRuntime.getWatcher().addGlobalListener((obj, prop) => {
-              if (obj?.className === "TSprite" && ["x", "y", "velocityX", "velocityY", "errorX", "errorY"].includes(prop)) {
-                return;
+            const SPRITE_PROPS = /* @__PURE__ */ new Set(["x", "y", "velocityX", "velocityY", "errorX", "errorY"]);
+            let renderScheduled = false;
+            this.reactiveRuntime.getWatcher().addGlobalListener(
+              (obj, prop) => {
+                if (SPRITE_PROPS.has(prop) && obj?.className === "TSprite") return;
+                if (!renderScheduled) {
+                  renderScheduled = true;
+                  requestAnimationFrame(() => {
+                    renderScheduled = false;
+                    options.onRender();
+                  });
+                }
               }
-              options.onRender();
-            });
+            );
           }
           this.objects = this.reactiveRuntime.getObjects();
           this.initializeReactiveBindings();
@@ -11100,6 +11261,7 @@
     start() {
       if (this.options.onRender) this.options.onRender();
       this.objects.forEach((obj) => this.handleEvent(obj.id, "onStart"));
+      this.initInputControllers();
       if (this.isSplashActive) {
         if (this.project.splashAutoHide) {
           const duration = this.stage?.duration || this.project.splashDuration || 3e3;
@@ -11108,6 +11270,25 @@
         return;
       }
       this.initMainGame();
+    }
+    /**
+     * Initialisiert alle InputController mit handleEvent-Callback und startet sie.
+     * Wird VOR dem Splash-Check aufgerufen, damit Keyboard-Input sofort funktioniert.
+     */
+    initInputControllers() {
+      const handleEventCb = (id, ev, data) => this.handleEvent(id, ev, data);
+      this.objects.forEach((obj) => {
+        if (obj.className === "TInputController" || obj.constructor?.name === "TInputController") {
+          const rawObj = obj.__raw__ || obj.__v_raw || obj;
+          if (typeof rawObj.init === "function") {
+            rawObj.init(this.objects, handleEventCb);
+          }
+          if (typeof rawObj.start === "function") {
+            rawObj.start();
+            console.log(`[GameRuntime] InputController "${rawObj.name}" initialized and started`);
+          }
+        }
+      });
     }
     initMainGame() {
       let stageConfig = this.stage || this.project.stage || this.project.grid;
@@ -11132,7 +11313,8 @@
         gridConfig,
         this.options.onRender || (() => {
         }),
-        (id, ev, data) => this.handleEvent(id, ev, data)
+        (id, ev, data) => this.handleEvent(id, ev, data),
+        this.options.onSpriteRender
       );
       glm.start();
       this.initMultiplayer();
@@ -11207,12 +11389,20 @@
         this.objects.forEach((obj) => this.reactiveRuntime.registerObject(obj.name, obj, true));
         this.reactiveRuntime.setVariable("isSplashActive", false);
         if (this.options.onRender) {
-          this.reactiveRuntime.getWatcher().addGlobalListener((obj, prop) => {
-            if (obj?.className === "TSprite" && ["x", "y", "velocityX", "velocityY", "errorX", "errorY"].includes(prop)) {
-              return;
+          const SPRITE_PROPS = /* @__PURE__ */ new Set(["x", "y", "velocityX", "velocityY", "errorX", "errorY"]);
+          let renderScheduled = false;
+          this.reactiveRuntime.getWatcher().addGlobalListener(
+            (obj, prop) => {
+              if (SPRITE_PROPS.has(prop) && obj?.className === "TSprite") return;
+              if (!renderScheduled) {
+                renderScheduled = true;
+                requestAnimationFrame(() => {
+                  renderScheduled = false;
+                  this.options.onRender();
+                });
+              }
             }
-            this.options.onRender();
-          });
+          );
         }
         this.objects = this.reactiveRuntime.getObjects();
         this.initializeReactiveBindings();
@@ -13071,6 +13261,22 @@
     }
     static renderEmojiPicker(el, obj, cellSize, onEvent) {
       EmojiPickerRenderer.renderEmojiPicker(el, obj, cellSize, onEvent);
+    }
+    // ─────────────────────────────────────────────────────────────────
+    // FAST PATH: Sprite-Positionen direkt im DOM aktualisieren
+    // Wird 60×/sec vom GameLoopManager aufgerufen, OHNE volles Render.
+    // Kein Dock-Recalc, kein Element-Create/Remove, keine Style-Updates.
+    // ─────────────────────────────────────────────────────────────────
+    updateSpritePositions(sprites) {
+      const cellSize = this.host.grid.cellSize;
+      for (const sprite of sprites) {
+        const el = this.host.element.querySelector(
+          `[data-id="${sprite.id}"]`
+        );
+        if (!el) continue;
+        el.style.left = `${(sprite.x || 0) * cellSize}px`;
+        el.style.top = `${(sprite.y || 0) * cellSize}px`;
+      }
     }
   };
 

@@ -315,7 +315,9 @@ export class FlowSyncManager {
                 }
 
                 const branchItem: any = {
-                    ...(isData ? nodeData : { condition: node.properties?.text || '' }),
+                    ...(isData ? nodeData : { 
+                        condition: node.data?.condition ? node.data.condition : (node.properties?.text || '') 
+                    }),
                     type: branchType, // Ensure correct type, overwrite if data.type was wrong
                     [isData ? 'successBody' : 'body']: [],
                     [isData ? 'errorBody' : 'elseBody']: []
@@ -325,8 +327,18 @@ export class FlowSyncManager {
                 const trueAnchor = isData ? 'success' : 'true';
                 const falseAnchor = isData ? 'error' : 'false';
 
-                const trueConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === trueAnchor || (isData && c.data?.startAnchorType === 'true')));
-                const falseConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === falseAnchor || (isData && c.data?.startAnchorType === 'false')));
+                const trueConn = connections.find(c => c.startTargetId === nodeId && (
+                    c.data?.startAnchorType === trueAnchor || 
+                    c.data?.startAnchorType === 'right' ||
+                    c.data?.isTrueBranch === true ||
+                    (isData && c.data?.startAnchorType === 'true')
+                ));
+                const falseConn = connections.find(c => c.startTargetId === nodeId && (
+                    c.data?.startAnchorType === falseAnchor || 
+                    c.data?.startAnchorType === 'bottom' ||
+                    c.data?.isFalseBranch === true ||
+                    (isData && c.data?.startAnchorType === 'false')
+                ));
 
                 if (isData) {
                     FlowSyncManager.logger.debug(`DataAction ${node.id} connections: success=${trueConn?.endTargetId || 'none'}, error=${falseConn?.endTargetId || 'none'}`);
@@ -500,7 +512,18 @@ export class FlowSyncManager {
             sequence.forEach(item => {
                 const id = getNewId(item.type || 'action');
                 if (item.type === 'condition') {
-                    elements.push({ id, type: 'condition', x: startX, y: currentY, properties: { text: item.condition || item.expression || '' } });
+                    elements.push({ 
+                        id, 
+                        type: 'condition', 
+                        x: startX, 
+                        y: currentY, 
+                        properties: { 
+                            text: typeof item.condition === 'string' ? item.condition : (item.expression || '') 
+                        },
+                        data: {
+                            condition: typeof item.condition === 'object' ? { ...item.condition } : undefined
+                        }
+                    });
                     connections.push({
                         startTargetId: lastId, endTargetId: id,
                         data: { startAnchorType: lastAnchor, endAnchorType: 'input' }
@@ -687,6 +710,7 @@ export class FlowSyncManager {
 
             if (node instanceof FlowVariable) (node as any).updateVisuals?.();
             if (node instanceof FlowLoop) (node as any).updateVisuals?.();
+            if (node instanceof FlowCondition) (node as any).refreshVisuals?.();
 
             // SINGLE SOURCE OF TRUTH: For Action nodes, load data from project.actions
             // FIX (v3.3.15): Wenn die globale Def type:'data_action' ist, Knoten auf FlowDataAction upgraden

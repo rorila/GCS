@@ -41,6 +41,7 @@ export class GameLoopManager {
 
     // Callbacks
     private renderCallback: (() => void) | null = null;
+    private spriteRenderCallback: ((objects: any[]) => void) | null = null;
     private eventCallback: ((spriteId: string, eventName: string, data?: any) => void) | null = null;
 
     // Cooldowns and tracking
@@ -81,7 +82,8 @@ export class GameLoopManager {
         objects: TWindow[],
         gridConfig: GridConfig,
         renderCallback: () => void,
-        eventCallback?: (spriteId: string, eventName: string, data?: any) => void
+        eventCallback?: (spriteId: string, eventName: string, data?: any) => void,
+        spriteRenderCallback?: (sprites: any[]) => void
     ): void {
         console.log(`[GameLoopManager] init() called with ${objects.length} objects`);
 
@@ -90,6 +92,7 @@ export class GameLoopManager {
 
         this.gridConfig = gridConfig;
         this.renderCallback = renderCallback;
+        this.spriteRenderCallback = spriteRenderCallback || null;
         this.eventCallback = eventCallback || null;
 
         // Filter sprites and input controllers from objects
@@ -164,6 +167,7 @@ export class GameLoopManager {
         this.sprites = [];
         this.inputControllers = [];
         this.renderCallback = null;
+        this.spriteRenderCallback = null;
         this.eventCallback = null;
         this.gameState = null;
         this.gridConfig = null;
@@ -251,8 +255,12 @@ export class GameLoopManager {
                 this.checkBoundaries();
             }
 
-            // Render — StageRenderer uses CSS transitions on sprites for smooth interpolation
-            if (this.renderCallback) {
+            // Render: Fast-Path für Sprite-Positionen (kein volles DOM-Rebuild)
+            // Der spriteRenderCallback aktualisiert nur style.left/top der Sprites.
+            // Der volle renderCallback wird nur bei strukturellen Änderungen benötigt.
+            if (this.spriteRenderCallback) {
+                this.spriteRenderCallback(this.sprites);
+            } else if (this.renderCallback) {
                 this.renderCallback();
             }
         }
@@ -401,10 +409,15 @@ export class GameLoopManager {
 
         this.boundaryCooldowns.set(cooldownKey, now);
 
-        // Stop sprite - but ONLY the component relevant to the boundary
-        // We'll reset it to 0 so the task can then set it to a new value
-        if (side === 'left' || side === 'right') sprite.velocityX = 0;
-        if (side === 'top' || side === 'bottom') sprite.velocityY = 0;
+        // Save previous velocity before zeroing (needed for collision-negate in same frame)
+        if (side === 'left' || side === 'right') {
+            (sprite as any)._prevVelocityX = sprite.velocityX;
+            sprite.velocityX = 0;
+        }
+        if (side === 'top' || side === 'bottom') {
+            (sprite as any)._prevVelocityY = sprite.velocityY;
+            sprite.velocityY = 0;
+        }
 
         const EPSILON = 0.01; // Small offset to move away from boundary
 
@@ -415,7 +428,7 @@ export class GameLoopManager {
         if (side === 'bottom') sprite.y = this.boundsHeight - this.boundsOffsetBottom - sprite.height - EPSILON;
 
         if (this.eventCallback) {
-            console.log(`[GameLoopManager] Boundary Hit: ${sprite.name} on ${side}. Task should handle bounce.`);
+            // console.log(`[GameLoopManager] Boundary Hit: ${sprite.name} on ${side}. Task should handle bounce.`);
             this.eventCallback(sprite.id, 'onBoundaryHit', { hitSide: side });
         }
     }

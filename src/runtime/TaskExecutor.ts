@@ -57,9 +57,9 @@ export class TaskExecutor {
 
         // 2. Logging (ZENTRAL: Ganz am Anfang, damit E2E-Tests JEDEM Startversuch sehen)
         const isEnabled = DebugLogService.getInstance().isEnabled();
-        // console.error for extra visibility in Playwright!
+        // Fallback für E2E Sichtbarkeit und UseCase Routing
         if (isEnabled) {
-            console.error(`[TaskExecutor] EXECUTING: ${taskName} (depth: ${depth}, context: ${contextObj?.name || 'none'})`);
+            logger.info(`[TaskExecutor] EXECUTING: ${taskName} (depth: ${depth}, context: ${contextObj?.name || 'none'})`);
         }
 
         const taskLogId = DebugLogService.getInstance().log('Task', `START: ${taskName}`, {

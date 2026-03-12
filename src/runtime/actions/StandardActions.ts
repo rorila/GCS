@@ -13,8 +13,21 @@ const dataLogger = Logger.get('Action', 'DataStore_Sync');
 /**
  * Hilfsfunktion zum Auflösen von Targets
  */
-function resolveTarget(targetName: string, objects: any[], vars: Record<string, any>, _contextObj?: any): any {
+function resolveTarget(targetName: string, objects: any[], vars: Record<string, any>, eventData?: any): any {
     if (!targetName) return null;
+
+    // Resolve 'self' and 'other' from event context (collision events provide {self, other, hitSide})
+    if (targetName === 'self') {
+        if (eventData?.self) return eventData.self;
+        // Fallback: eventData IS the context object itself
+        if (eventData && eventData.name) return eventData;
+        return null;
+    }
+    if (targetName === 'other') {
+        if (eventData?.other) return eventData.other;
+        return null;
+    }
+
     let actualName = targetName;
     if (targetName.startsWith('${') && targetName.endsWith('}')) {
         const varName = targetName.substring(2, targetName.length - 1);
@@ -30,7 +43,7 @@ export function registerStandardActions() {
 
     // 1. Property ändern
     actionRegistry.register('property', (action, context) => {
-        const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
+        const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (target && action.changes) {
             Object.keys(action.changes).forEach(prop => {
@@ -62,7 +75,7 @@ export function registerStandardActions() {
         const variableName = action.variableName;
 
         // 1. Quelle auflösen (Objekt oder Variable)
-        const srcObj = resolveTarget(sourceName, context.objects, context.vars, context.contextVars);
+        const srcObj = resolveTarget(sourceName, context.objects, context.vars, context.eventData);
 
         if (srcObj) {
             // Falls Objekt gefunden, Eigenschaft lesen
@@ -140,22 +153,135 @@ export function registerStandardActions() {
 
     // 3. Berechnung
     actionRegistry.register('calculate', (action, context) => {
-        const formula = action.formula || action.expression;
+        // COMPATIBILITY FIX: Detect misclassified variable actions
+        // Some older projects save variable-type actions (source/sourceProperty/variableName)
+        // as type 'calculate'. Detect and handle them correctly.
+        if (action.source && action.sourceProperty && action.variableName) {
+            const srcObj = resolveTarget(action.source, context.objects, context.vars, context.eventData);
+            let val: any = undefined;
+            if (srcObj) {
+                val = PropertyHelper.getPropertyValue(srcObj, action.sourceProperty);
+            }
+            if (val === undefined) {
+                // Fallback: check vars/contextVars
+                const varVal = context.vars[action.source] !== undefined ? context.vars[action.source] : context.contextVars[action.source];
+                if (varVal !== undefined && typeof varVal === 'object' && varVal !== null) {
+                    val = PropertyHelper.getPropertyValue(varVal, action.sourceProperty);
+                }
+            }
+            runtimeLogger.info(`Variable-Read (via calculate): ${action.variableName} := ${action.source}.${action.sourceProperty} = ${val}`);
+            if (action.variableName) {
+                context.contextVars[action.variableName] = val;
+                if (context.vars) {
+                    context.vars[action.variableName] = val;
+                }
+            }
+            return;
+        }
+
+        // Build evalContext with objects, vars, and self/other from eventData
+        const objectMap = context.objects.reduce((acc: Record<string, any>, obj: any) => {
+            if (obj.id) acc[obj.id] = obj;
+            if (obj.name) acc[obj.name] = obj;
+            return acc;
+        }, {});
+
+        const evalContext: Record<string, any> = {
+            ...objectMap,
+            ...context.contextVars,
+            ...context.vars,
+            $eventData: context.eventData
+        };
+
+        // Inject self/other for collision context
+        // context.eventData = contextObj (the triggering TWindow, e.g. BallSprite)
+        // context.vars.sender = contextObj (same as eventData)
+        // context.vars.otherSprite = the collision partner object (e.g. RightPaddle)
+        // context.vars.other = STRING name of collision partner (e.g. "RightPaddle")
+        if (context.eventData && typeof context.eventData === 'object') {
+            // self = the object that triggered the event
+            if (!evalContext['self'] || typeof evalContext['self'] !== 'object') {
+                evalContext['self'] = context.vars?.sender || context.eventData;
+            }
+            // other = the collision partner (otherSprite is the actual object, other is just a name string)
+            if (!evalContext['other'] || typeof evalContext['other'] !== 'object') {
+                const otherObj = context.vars?.otherSprite;
+                if (otherObj && typeof otherObj === 'object') {
+                    evalContext['other'] = otherObj;
+                } else if (typeof evalContext['other'] === 'string' && objectMap[evalContext['other']]) {
+                    // Resolve string name to actual object from objectMap
+                    evalContext['other'] = objectMap[evalContext['other']];
+                }
+            }
+        }
+
+        let formula = action.formula || action.expression;
+
+        // Fallback: If no formula but calcSteps exist, evaluate calcSteps
+        if (!formula && action.calcSteps && Array.isArray(action.calcSteps) && action.calcSteps.length > 0) {
+            try {
+                let result: number = 0;
+
+                for (let i = 0; i < action.calcSteps.length; i++) {
+                    const step = action.calcSteps[i];
+
+                    // Resolve the operand value
+                    let operandValue: number = 0;
+
+                    if (step.constant !== undefined && !step.variable) {
+                        operandValue = Number(step.constant);
+                    } else if ((step.operandType === 'variable' || !step.operandType) && step.variable) {
+                        // Handle dot-notation: "other.y", "self.height" → resolve as property path
+                        if (step.variable.includes('.')) {
+                            const parts = step.variable.split('.');
+                            const rootName = parts[0];  // e.g. "other", "self"
+                            const propPath = parts.slice(1).join('.'); // e.g. "y", "height"
+                            const rootObj = evalContext[rootName];
+                            if (rootObj && typeof rootObj === 'object') {
+                                operandValue = Number(PropertyHelper.getPropertyValue(rootObj, propPath)) || 0;
+                            } else {
+                                operandValue = NaN;
+                            }
+                        } else {
+                            const v = evalContext[step.variable];
+                            operandValue = v !== undefined ? Number(v) : NaN;
+                        }
+                    } else if (step.operandType === 'objectProperty' && step.source && step.property) {
+                        // Read property from an object (self/other/named)
+                        const srcObj = resolveTarget(step.source, context.objects, context.vars, context.eventData);
+                        operandValue = srcObj ? Number(PropertyHelper.getPropertyValue(srcObj, step.property)) : NaN;
+                    }
+
+                    if (i === 0) {
+                        // First step: set initial value
+                        result = operandValue;
+                    } else {
+                        // Apply operator
+                        switch (step.operator) {
+                            case '+': result += operandValue; break;
+                            case '-': result -= operandValue; break;
+                            case '*': result *= operandValue; break;
+                            case '/': result = operandValue !== 0 ? result / operandValue : NaN; break;
+                            default: result = operandValue; break;
+                        }
+                    }
+                }
+
+                runtimeLogger.info(`CalcSteps result for "${action.name}": ${result} (Target: ${action.resultVariable})`);
+
+                if (action.resultVariable) {
+                    context.contextVars[action.resultVariable] = result;
+                    if (context.vars) {
+                        context.vars[action.resultVariable] = result;
+                    }
+                }
+            } catch (err) {
+                runtimeLogger.error(`Error evaluating calcSteps for "${action.name}":`, err);
+            }
+            return;
+        }
+
         if (formula) {
-            // Add objects to context to allow access to component properties (e.g. PinPicker.selectedEmoji)
-            const objectMap = context.objects.reduce((acc: Record<string, any>, obj: any) => {
-                if (obj.id) acc[obj.id] = obj;
-                if (obj.name) acc[obj.name] = obj;
-                return acc;
-            }, {});
-
-            const evalContext = {
-                ...objectMap,
-                ...context.contextVars,
-                ...context.vars,
-                $eventData: context.eventData
-            };
-
             try {
                 const result = ExpressionParser.evaluate(formula, evalContext);
 
@@ -163,7 +289,6 @@ export function registerStandardActions() {
 
                 if (action.resultVariable) {
                     context.contextVars[action.resultVariable] = result;
-                    // Also update local vars to ensure visibility in the same task chain
                     if (context.vars) {
                         context.vars[action.resultVariable] = result;
                     }
@@ -172,7 +297,7 @@ export function registerStandardActions() {
                 runtimeLogger.error(`Error evaluating "${formula}":`, err);
             }
         } else {
-            runtimeLogger.warn('No formula/expression provided in action:', action);
+            runtimeLogger.warn('No formula/expression/calcSteps provided in action:', action);
         }
     }, {
         type: 'calculate',
@@ -184,9 +309,53 @@ export function registerStandardActions() {
         ]
     });
 
+    // 3b. Negate – Negiert numerische Properties eines Objekts (z.B. velocityX * -1)
+    // Verwendet in Arkanoid/Tennis für Ball-Richtungsänderung bei Kollision.
+    // Format: { type: 'negate', target: 'self'/'other'/Name, changes: { velocityX: true/1 } }
+    actionRegistry.register('negate', (action, context) => {
+        const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
+        if (target && action.changes) {
+            Object.keys(action.changes).forEach(prop => {
+                const currentValue = PropertyHelper.getPropertyValue(target, prop);
+                if (typeof currentValue === 'number') {
+                    // If velocity is 0, check for _prevVelocityX/Y saved by triggerBoundaryEvent
+                    // This handles the case where boundary hit zeros velocity in the same frame as a collision
+                    let valueToNegate = currentValue;
+                    if (currentValue === 0) {
+                        const prevKey = `_prev${prop.charAt(0).toUpperCase()}${prop.slice(1)}`;
+                        const prevVal = (target as any)[prevKey];
+                        if (typeof prevVal === 'number' && prevVal !== 0) {
+                            valueToNegate = prevVal;
+                            runtimeLogger.info(`Negate: Using saved previous ${prop}: ${prevVal} (current was 0)`);
+                        }
+                    }
+                    const negated = valueToNegate * -1;
+                    PropertyHelper.setPropertyValue(target, prop, negated);
+                    runtimeLogger.info(`Negate: ${target.name || target.id}.${prop}: ${currentValue} -> ${negated}`);
+
+                    // DebugLogService triggert Reactivity und kann bei 60fps / schnellen Kollisionen Framedrops verursachen
+                    // DebugLogService.getInstance().log('Variable', `${target.name || target.id}.${prop} negiert: ${currentValue} → ${negated}`, {
+                    //    objectName: target.name || target.id,
+                    //    flatten: true
+                    // });
+                } else {
+                    runtimeLogger.warn(`Negate: ${target.name || target.id}.${prop} ist kein numerischer Wert (${typeof currentValue}: ${currentValue})`);
+                }
+            });
+        }
+    }, {
+        type: 'negate',
+        label: 'Wert negieren',
+        description: 'Negiert (multipliziert mit -1) numerische Eigenschaften eines Objekts. Typisch für Richtungsumkehr (z.B. velocityX).',
+        parameters: [
+            { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects' },
+            { name: 'changes', label: 'Properties (JSON)', type: 'json', hint: 'z.B. { "velocityX": true }' }
+        ]
+    });
+
     // 4. Animation
     actionRegistry.register('animate', (action, context) => {
-        const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
+        const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (target) {
             const toValue = Number(PropertyHelper.interpolate(String(action.to), combinedContext, context.objects));
@@ -207,7 +376,7 @@ export function registerStandardActions() {
 
     // 5. Bewegen zu
     actionRegistry.register('move_to', (action, context) => {
-        const target = resolveTarget(action.target, context.objects, context.vars, context.contextVars);
+        const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
         const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
         if (target) {
             const toX = Number(PropertyHelper.interpolate(String(action.x), combinedContext, context.objects));
@@ -679,7 +848,7 @@ export function registerStandardActions() {
         );
 
         // 1. Ziel-Objekt im Projekt suchen
-        const targetObj = resolveTarget(targetName, context.objects, context.vars, context.contextVars);
+        const targetObj = resolveTarget(targetName, context.objects, context.vars, context.eventData);
         if (targetObj && typeof (targetObj as any)[methodName] === 'function') {
             const result = await (targetObj as any)[methodName](...resolvedParams);
             if (action.resultVariable) {

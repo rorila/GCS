@@ -69,18 +69,19 @@ export class AnimationManager {
         easingName: string = 'easeOut',
         onComplete?: () => void
     ): Tween {
-        console.log(`[AnimationManager.addTween] START: target=${target?.name || target?.id}, property=${property}, to=${to}, duration=${duration}, easing=${easingName}`);
+        // Nur bei Debug-Bedarf einkommentieren, NICHT im Normalbetrieb:
+        // console.log(`[AnimationManager.addTween] target=${target?.name}, prop=${property}, to=${to}, dur=${duration}, easing=${easingName}`);
 
         // Vorherigen Tween auf dasselbe Property abbrechen
         const previousCount = this.activeTweens.length;
         this.cancelTween(target, property);
         if (this.activeTweens.length !== previousCount) {
-            console.log(`[AnimationManager.addTween] Cancelled existing tween for ${property}, tweens: ${previousCount} -> ${this.activeTweens.length}`);
+            // cancelled existing tween
         }
 
         // Aktuellen Wert auslesen
         const from = this.getPropertyValue(target, property);
-        console.log(`[AnimationManager.addTween] Current value of ${property}: ${from}`);
+        // console.log(`[AnimationManager.addTween] Current value of ${property}: ${from}`);
 
         // Easing-Funktion bestimmen
         const easing = (Easing as any)[easingName] || Easing.easeOut;
@@ -91,7 +92,7 @@ export class AnimationManager {
         // Flag setzen, um Physik zu pausieren (falls vorhanden)
         if (property === 'x' || property === 'y') {
             target.isAnimating = true;
-            console.log(`[AnimationManager.addTween] Set isAnimating=true on ${target?.name || target?.id}`);
+            // console.log(`[AnimationManager.addTween] Set isAnimating=true on ${target?.name}`);
         }
 
         const tween: Tween = {
@@ -106,7 +107,7 @@ export class AnimationManager {
         };
 
         this.activeTweens.push(tween);
-        console.log(`[AnimationManager.addTween] END: Added tween, total active tweens: ${this.activeTweens.length}`);
+        // console.log(`[AnimationManager.addTween] Added tween, total active: ${this.activeTweens.length}`);
         return tween;
     }
 
@@ -170,7 +171,8 @@ export class AnimationManager {
         const completedTweens: Tween[] = [];
 
         if (this.activeTweens.length > 0) {
-            console.log(`[AnimationManager.update] Updating ${this.activeTweens.length} active tweens at t=${now.toFixed(0)}`);
+            // HIGH-FREQ LOG ENTFERNT — wurde 60x/sec aufgerufen, blockierte Main-Thread
+            // console.log(`[AnimationManager.update] Updating ${this.activeTweens.length} active tweens at t=${now.toFixed(0)}`);
         }
 
         for (const tween of this.activeTweens) {
