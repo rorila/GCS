@@ -43,6 +43,7 @@ export class EditorViewManager {
     public workingProjectData: any = null;
     public isProjectDirty: boolean = false;
     public selectedManager: string = 'VisualObjects';
+    public selectedPascalTask: string | null = null;
 
     constructor(private host: IViewHost) {
         this.initMediator();
@@ -91,7 +92,7 @@ export class EditorViewManager {
 
         // Sync flow editor changes back to project before switching views
         if (this.currentView === 'flow' && h.flowEditor) {
-            h.flowEditor.syncToProject();
+            h.flowEditor.syncToProjectIfDirty();
             h.flowEditor.syncAllTasksFromFlow(h.project);
         }
 
@@ -315,6 +316,18 @@ export class EditorViewManager {
         };
 
         toolbar.appendChild(sourceSelect);
+
+        // Task-Filter Dropdown
+        const taskSelect = document.createElement('select');
+        taskSelect.id = 'pascal-task-select';
+        taskSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer;`;
+        this.updateTaskSelectOptions(taskSelect);
+        taskSelect.onchange = () => {
+            this.selectedPascalTask = taskSelect.value === '__all__' ? null : taskSelect.value;
+            this.switchView('code');
+        };
+        toolbar.appendChild(taskSelect);
+
         return toolbar;
     }
 
@@ -330,6 +343,12 @@ export class EditorViewManager {
                 sourceSelect.options[0].text = `Stage: ${sName}`;
                 sourceSelect.value = this.useStageIsolatedView ? 'stage' : 'project';
             }
+        }
+
+        // Update Task-Filter Dropdown
+        const taskSelect = toolbar.querySelector('#pascal-task-select') as HTMLSelectElement;
+        if (taskSelect) {
+            this.updateTaskSelectOptions(taskSelect);
         }
     }
 
@@ -350,11 +369,58 @@ export class EditorViewManager {
         });
     }
 
+    private updateTaskSelectOptions(select: HTMLSelectElement) {
+        select.innerHTML = '';
+        const h = this.host;
+
+        // "Alle Tasks" Option
+        const allOpt = document.createElement('option');
+        allOpt.value = '__all__';
+        allOpt.textContent = '📋 Alle Tasks';
+        allOpt.selected = this.selectedPascalTask === null;
+        select.appendChild(allOpt);
+
+        // Sammle alle Tasks
+        const taskNames = new Set<string>();
+        const activeStage = h.getActiveStage();
+
+        // Blueprint-Stage (globale Tasks)
+        const blueprint = h.project.stages?.find(s => s.type === 'blueprint');
+        if (blueprint?.tasks) {
+            blueprint.tasks.forEach((t: any) => { if (t.name) taskNames.add(t.name); });
+        }
+
+        // Aktive Stage Tasks
+        if (activeStage?.tasks) {
+            activeStage.tasks.forEach((t: any) => { if (t.name) taskNames.add(t.name); });
+        }
+
+        // Projekt-Tasks
+        if (h.project.tasks) {
+            h.project.tasks.forEach((t: any) => { if (t.name) taskNames.add(t.name); });
+        }
+
+        // FlowChart Task-Keys
+        if (activeStage && (activeStage as any).flowCharts) {
+            Object.keys((activeStage as any).flowCharts).forEach(key => taskNames.add(key));
+        }
+
+        Array.from(taskNames).sort().forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = `⚡ ${name}`;
+            opt.selected = this.selectedPascalTask === name;
+            select.appendChild(opt);
+        });
+    }
+
     private renderPascalEditor(codePanel: HTMLElement) {
         const h = this.host;
         const activeStage = h.getActiveStage();
         const stageToUse = (this.useStageIsolatedView && activeStage) ? activeStage : undefined;
-        const plainCode = PascalGenerator.generateFullProgram(h.project, false, stageToUse);
+        const plainCode = this.selectedPascalTask
+            ? PascalGenerator.generateForTask(h.project, this.selectedPascalTask, false, stageToUse)
+            : PascalGenerator.generateFullProgram(h.project, false, stageToUse);
 
         const oldContainer = document.getElementById('pascal-editor-container');
         if (oldContainer) oldContainer.remove();
@@ -423,7 +489,9 @@ export class EditorViewManager {
 
         const activeStage = h.getActiveStage();
         const stageToUse = (this.useStageIsolatedView && activeStage) ? activeStage : undefined;
-        const plainCode = PascalGenerator.generateFullProgram(h.project, false, stageToUse);
+        const plainCode = this.selectedPascalTask
+            ? PascalGenerator.generateForTask(h.project, this.selectedPascalTask, false, stageToUse)
+            : PascalGenerator.generateFullProgram(h.project, false, stageToUse);
         const highlightedCode = PascalHighlighter.highlight(plainCode);
         content.innerHTML = `<pre style="margin: 0; white-space: pre; color: #d4d4d4;" translate="no">${highlightedCode}</pre>`;
     }

@@ -21,11 +21,14 @@ export type LogListener = (logs: LogEntry[]) => void;
 export class DebugLogService {
     private static logger = Logger.get('DebugLogService', 'Editor_Diagnostics');
     private logs: LogEntry[] = [];
+    private entryMap: Map<string, LogEntry> = new Map(); // O(1) Lookup statt rekursiver Baumsuche
     private listeners: LogListener[] = [];
     private maxLogs = 1000;
+    private maxChildren = 50;
     private counter = 0;
     private contextStack: string[] = [];
     private enabled = false;
+    private notifyScheduled = false;
 
     private constructor() {
         // Register bridge to central Logger
@@ -104,29 +107,37 @@ export class DebugLogService {
         };
 
         if (parentId) {
-            const parent = this.findEntry(this.logs, parentId);
+            const parent = this.entryMap.get(parentId);
             if (parent) {
                 parent.children.push(entry);
-                this.notify();
+                // Children-Limit: älteste Kinder entfernen
+                if (parent.children.length > this.maxChildren) {
+                    const removed = parent.children.shift()!;
+                    this.entryMap.delete(removed.id);
+                }
+                this.entryMap.set(id, entry);
+                this.scheduleNotify();
                 return id;
             }
         }
 
         this.logs.push(entry);
+        this.entryMap.set(id, entry);
         if (this.logs.length > this.maxLogs) {
-            this.logs.shift();
+            const removed = this.logs.shift()!;
+            // Entferne Entry + alle Children aus der Map
+            this.removeFromMap(removed);
         }
-        this.notify();
+        this.scheduleNotify();
         return id;
     }
 
-    private findEntry(list: LogEntry[], id: string): LogEntry | undefined {
-        for (const entry of list) {
-            if (entry.id === id) return entry;
-            const found = this.findEntry(entry.children, id);
-            if (found) return found;
+    /** Entfernt einen Entry und alle seine Children rekursiv aus der entryMap */
+    private removeFromMap(entry: LogEntry): void {
+        this.entryMap.delete(entry.id);
+        for (const child of entry.children) {
+            this.removeFromMap(child);
         }
-        return undefined;
     }
 
     public getLogs(): LogEntry[] {
@@ -135,6 +146,7 @@ export class DebugLogService {
 
     public clear(): void {
         this.logs = [];
+        this.entryMap.clear();
         this.notify();
     }
 
@@ -147,11 +159,23 @@ export class DebugLogService {
     }
 
     private notify(): void {
+        this.isNotifying = true;
         this.listeners.forEach(l => l(this.logs));
+        this.isNotifying = false;
+    }
+
+    /** Throttled notify: sammelt Log-Aufrufe und benachrichtigt max. alle 200ms */
+    private scheduleNotify(): void {
+        if (this.notifyScheduled) return;
+        this.notifyScheduled = true;
+        requestAnimationFrame(() => {
+            this.notifyScheduled = false;
+            this.notify();
+        });
     }
 
     public toggleExpand(id: string): void {
-        const entry = this.findEntry(this.logs, id);
+        const entry = this.entryMap.get(id);
         if (entry) {
             entry.isExpanded = !entry.isExpanded;
             this.notify();

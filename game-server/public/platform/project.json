@@ -365,9 +365,7 @@
             "velocityY": true
           },
           "scope": "global",
-          "description": "Kehrt die Y-Richtung des Balls um (Abprall oben/unten)",
-          "details": "",
-          "showDetails": false
+          "description": "Kehrt die Y-Richtung des Balls um (Abprall oben/unten)"
         },
         {
           "name": "NegateBallX",
@@ -390,9 +388,7 @@
             "velocityY": 0
           },
           "scope": "global",
-          "description": "Setzt den Ball zurück in die Mitte bei Punktverlust",
-          "details": "",
-          "showDetails": false
+          "description": "Setzt den Ball zurück in die Mitte bei Punktverlust"
         }
       ],
       "variables": [],
@@ -476,9 +472,9 @@
           "dragMode": "move",
           "visible": true,
           "x": 3,
-          "y": 17,
+          "y": 2,
           "width": 1,
-          "height": 6,
+          "height": 36,
           "zIndex": 0,
           "align": "NONE",
           "style": {
@@ -509,9 +505,9 @@
           "dragMode": "move",
           "visible": true,
           "x": 60,
-          "y": 17,
+          "y": 3,
           "width": 1,
-          "height": 6,
+          "height": 35,
           "zIndex": 0,
           "align": "NONE",
           "style": {
@@ -1099,16 +1095,16 @@
           "description": "Startet das Spiel bei Klick auf StartBtn",
           "actionSequence": [
             {
-              "name": "EnableSpriteMoving",
-              "type": "action"
+              "type": "action",
+              "name": "EnableSpriteMoving"
             },
             {
-              "name": "EnableCollisions",
-              "type": "action"
+              "type": "action",
+              "name": "EnableCollisions"
             },
             {
-              "name": "SetBallVelocity",
-              "type": "action"
+              "type": "action",
+              "name": "SetBallVelocity"
             }
           ],
           "triggerMode": "local-sync",
@@ -1647,93 +1643,62 @@
           "description": "Prüft ob Ball abprallt (oben/unten) oder resettelt wird (links/rechts)",
           "actionSequence": [
             {
-              "condition": {
-                "leftValue": "hitSide",
-                "operator": "==",
-                "rightValue": "top",
-                "leftType": "variable",
-                "rightType": "literal"
-              },
               "type": "condition",
-              "body": [
-                {
-                  "name": "NegateBallY",
-                  "type": "action"
-                }
-              ],
-              "elseBody": [
-                {
-                  "condition": {
-                    "leftValue": "hitSide",
-                    "operator": "==",
-                    "rightValue": "bottom",
-                    "leftType": "variable",
-                    "rightType": "literal"
-                  },
-                  "type": "condition",
-                  "body": [
-                    {
-                      "name": "NegateBallY",
-                      "type": "action"
-                    }
-                  ],
-                  "elseBody": [
-                    {
-                      "condition": {
-                        "leftValue": "hitSide",
-                        "operator": "==",
-                        "rightValue": "left",
-                        "leftType": "variable",
-                        "rightType": "literal"
-                      },
-                      "type": "condition",
-                      "body": [
-                        {
-                          "name": "ResetBall",
-                          "type": "action"
-                        }
-                      ],
-                      "elseBody": [
-                        {
-                          "condition": {
-                            "leftValue": "hitSide",
-                            "operator": "==",
-                            "rightValue": "right",
-                            "leftType": "variable",
-                            "rightType": "literal"
-                          },
-                          "type": "condition",
-                          "body": [
-                            {
-                              "name": "ResetBall",
-                              "type": "action"
-                            }
-                          ],
-                          "elseBody": []
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+              "name": "CheckTop",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "top"
+              },
+              "thenAction": "NegateBallY"
+            },
+            {
+              "type": "condition",
+              "name": "CheckBottom",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "bottom"
+              },
+              "thenAction": "NegateBallY"
+            },
+            {
+              "type": "condition",
+              "name": "CheckLeft",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "left"
+              },
+              "thenAction": "ResetBall"
+            },
+            {
+              "type": "condition",
+              "name": "CheckRight",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "right"
+              },
+              "thenAction": "ResetBall"
             }
           ],
           "triggerMode": "local-sync",
-          "params": [],
+          "params": [
+            {
+              "name": "hitSide",
+              "type": "string"
+            }
+          ],
           "flowChart": {
             "elements": [
               {
                 "id": "node-hb-start",
                 "type": "task",
                 "x": 300,
-                "y": 60,
-                "width": 200,
-                "height": 60,
+                "y": 50,
                 "properties": {
-                  "name": "HandleBallBoundary",
-                  "details": "",
-                  "description": "Prüft ob Ball abprallt (oben/unten) oder resettelt wird (links/rechts)",
-                  "text": "HandleBallBoundary"
+                  "name": "HandleBallBoundary"
                 },
                 "data": {
                   "name": "HandleBallBoundary",
@@ -1744,13 +1709,9 @@
                 "id": "node-hb-if-top",
                 "type": "condition",
                 "x": 300,
-                "y": 160,
-                "width": 160,
-                "height": 60,
+                "y": 150,
                 "properties": {
                   "name": "If Top",
-                  "details": "",
-                  "description": "",
                   "text": "hitSide == top"
                 },
                 "data": {
@@ -1758,6 +1719,13 @@
                   "leftValue": "hitSide",
                   "rightValue": "top",
                   "isLinked": true,
+                  "condition": {
+                    "leftValue": "hitSide",
+                    "operator": "==",
+                    "rightValue": "top",
+                    "leftType": "variable",
+                    "rightType": "literal"
+                  },
                   "name": "If Top"
                 }
               },
@@ -1765,31 +1733,24 @@
                 "id": "node-hb-act-top",
                 "type": "action",
                 "x": 500,
-                "y": 160,
-                "width": 140,
-                "height": 60,
+                "y": 150,
                 "properties": {
-                  "name": "NegateBallY",
-                  "details": "",
-                  "description": ""
+                  "name": "NegateBallY"
                 },
                 "data": {
                   "name": "NegateBallY",
                   "type": "negate",
-                  "isLinked": true
+                  "isLinked": true,
+                  "showDetails": false
                 }
               },
               {
                 "id": "node-hb-if-bot",
                 "type": "condition",
                 "x": 300,
-                "y": 260,
-                "width": 180,
-                "height": 60,
+                "y": 250,
                 "properties": {
                   "name": "If Bottom",
-                  "details": "",
-                  "description": "",
                   "text": "hitSide == bottom"
                 },
                 "data": {
@@ -1797,6 +1758,13 @@
                   "leftValue": "hitSide",
                   "rightValue": "bottom",
                   "isLinked": true,
+                  "condition": {
+                    "leftValue": "hitSide",
+                    "operator": "==",
+                    "rightValue": "bottom",
+                    "leftType": "variable",
+                    "rightType": "literal"
+                  },
                   "name": "If Bottom"
                 }
               },
@@ -1804,31 +1772,24 @@
                 "id": "node-hb-act-bot",
                 "type": "action",
                 "x": 500,
-                "y": 260,
-                "width": 140,
-                "height": 60,
+                "y": 250,
                 "properties": {
-                  "name": "NegateBallY",
-                  "details": "",
-                  "description": ""
+                  "name": "NegateBallY"
                 },
                 "data": {
                   "name": "NegateBallY",
                   "type": "negate",
-                  "isLinked": true
+                  "isLinked": true,
+                  "showDetails": false
                 }
               },
               {
                 "id": "node-hb-if-left",
                 "type": "condition",
                 "x": 300,
-                "y": 360,
-                "width": 160,
-                "height": 60,
+                "y": 350,
                 "properties": {
                   "name": "If Left",
-                  "details": "",
-                  "description": "",
                   "text": "hitSide == left"
                 },
                 "data": {
@@ -1836,6 +1797,13 @@
                   "leftValue": "hitSide",
                   "rightValue": "left",
                   "isLinked": true,
+                  "condition": {
+                    "leftValue": "hitSide",
+                    "operator": "==",
+                    "rightValue": "left",
+                    "leftType": "variable",
+                    "rightType": "literal"
+                  },
                   "name": "If Left"
                 }
               },
@@ -1843,31 +1811,24 @@
                 "id": "node-hb-act-left",
                 "type": "action",
                 "x": 500,
-                "y": 360,
-                "width": 140,
-                "height": 60,
+                "y": 350,
                 "properties": {
-                  "name": "ResetBall",
-                  "details": "",
-                  "description": ""
+                  "name": "ResetBall"
                 },
                 "data": {
                   "name": "ResetBall",
                   "type": "property",
-                  "isLinked": true
+                  "isLinked": true,
+                  "showDetails": false
                 }
               },
               {
                 "id": "node-hb-if-right",
                 "type": "condition",
                 "x": 300,
-                "y": 460,
-                "width": 180,
-                "height": 60,
+                "y": 450,
                 "properties": {
                   "name": "If Right",
-                  "details": "",
-                  "description": "",
                   "text": "hitSide == right"
                 },
                 "data": {
@@ -1875,6 +1836,13 @@
                   "leftValue": "hitSide",
                   "rightValue": "right",
                   "isLinked": true,
+                  "condition": {
+                    "leftValue": "hitSide",
+                    "operator": "==",
+                    "rightValue": "right",
+                    "leftType": "variable",
+                    "rightType": "literal"
+                  },
                   "name": "If Right"
                 }
               },
@@ -1882,28 +1850,21 @@
                 "id": "node-hb-act-right",
                 "type": "action",
                 "x": 500,
-                "y": 460,
-                "width": 140,
-                "height": 60,
+                "y": 450,
                 "properties": {
-                  "name": "ResetBall",
-                  "details": "",
-                  "description": ""
+                  "name": "ResetBall"
                 },
                 "data": {
                   "name": "ResetBall",
                   "type": "property",
-                  "isLinked": true
+                  "isLinked": true,
+                  "showDetails": false
                 }
               }
             ],
             "connections": [
               {
                 "id": "conn-1",
-                "startX": 0,
-                "startY": 0,
-                "endX": 0,
-                "endY": 0,
                 "startTargetId": "node-hb-start",
                 "endTargetId": "node-hb-if-top",
                 "data": {
@@ -1913,10 +1874,6 @@
               },
               {
                 "id": "conn-1t",
-                "startX": 0,
-                "startY": 0,
-                "endX": 0,
-                "endY": 0,
                 "startTargetId": "node-hb-if-top",
                 "endTargetId": "node-hb-act-top",
                 "data": {
@@ -1927,10 +1884,6 @@
               },
               {
                 "id": "conn-1f",
-                "startX": 0,
-                "startY": 0,
-                "endX": 0,
-                "endY": 0,
                 "startTargetId": "node-hb-if-top",
                 "endTargetId": "node-hb-if-bot",
                 "data": {
@@ -1941,10 +1894,6 @@
               },
               {
                 "id": "conn-2t",
-                "startX": 0,
-                "startY": 0,
-                "endX": 0,
-                "endY": 0,
                 "startTargetId": "node-hb-if-bot",
                 "endTargetId": "node-hb-act-bot",
                 "data": {
@@ -1955,10 +1904,6 @@
               },
               {
                 "id": "conn-2f",
-                "startX": 0,
-                "startY": 0,
-                "endX": 0,
-                "endY": 0,
                 "startTargetId": "node-hb-if-bot",
                 "endTargetId": "node-hb-if-left",
                 "data": {
@@ -1969,10 +1914,6 @@
               },
               {
                 "id": "conn-3t",
-                "startX": 0,
-                "startY": 0,
-                "endX": 0,
-                "endY": 0,
                 "startTargetId": "node-hb-if-left",
                 "endTargetId": "node-hb-act-left",
                 "data": {
@@ -1983,10 +1924,6 @@
               },
               {
                 "id": "conn-3f",
-                "startX": 0,
-                "startY": 0,
-                "endX": 0,
-                "endY": 0,
                 "startTargetId": "node-hb-if-left",
                 "endTargetId": "node-hb-if-right",
                 "data": {
@@ -1997,10 +1934,6 @@
               },
               {
                 "id": "conn-4t",
-                "startX": 0,
-                "startY": 0,
-                "endX": 0,
-                "endY": 0,
                 "startTargetId": "node-hb-if-right",
                 "endTargetId": "node-hb-act-right",
                 "data": {

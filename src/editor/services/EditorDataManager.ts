@@ -68,7 +68,7 @@ export class EditorDataManager {
 
     public async saveProject() {
         if (this.host.flowEditor) {
-            this.host.flowEditor.syncToProject();
+            this.host.flowEditor.syncToProjectIfDirty();
             this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
         }
 
@@ -167,7 +167,7 @@ export class EditorDataManager {
         // Im E2E-Test-Modus (overwriteConfirmed !== undefined) syncToProject() überspringen,
         // um keine DATA_CHANGED Events auszulösen, die isProjectDirty wieder auf true setzen
         if (overwriteConfirmed === undefined && this.host.flowEditor) {
-            this.host.flowEditor.syncToProject();
+            this.host.flowEditor.syncToProjectIfDirty();
             this.host.flowEditor.syncAllTasksFromFlow(this.host.project);
         }
         this.host.syncStageObjectsToProject();

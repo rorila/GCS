@@ -17,6 +17,14 @@ export class PascalGenerator {
     }
 
     /**
+     * Generates Pascal code filtered for a specific task and its related procedures.
+     * Delegates to PascalCodeGenerator.
+     */
+    public static generateForTask(project: GameProject, taskName: string, asHtml: boolean = true, activeStage?: any): string {
+        return PascalCodeGenerator.generateForTask(project, taskName, asHtml, activeStage);
+    }
+
+    /**
      * Generates a single Pascal procedure for a task.
      * Delegates to PascalCodeGenerator.
      */

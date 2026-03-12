@@ -20,6 +20,24 @@
   - Behoben: FlowCondition-Nodes (lila Rauten) zeigten nach dem Laden eines Projekts keinen Bedingungstext an (z.B. "hitSide == top"). Ursache: `refreshVisuals()` wurde für Condition-Nodes im `FlowSyncManager.restoreNode()` nicht aufgerufen. Der Fix ist eine einzige Zeile, die sicherstellt, dass `updateText()` nach dem Laden der `data.condition` Daten getriggert wird.
 - **FlowSyncManager Connection-Matching (ROOT CAUSE BOUNCING-BUG)**:
   - Behoben: `syncToProject()` suchte true-branch Connections ausschließlich via `startAnchorType === 'true'`. FlowCondition-Connections nutzen jedoch `startAnchorType: 'right'` mit dem Flag `isTrueBranch: true`. Die Connection wurde dadurch nie gefunden, das generierte `body`-Array blieb leer und keine Action wurde bei Boundary-Hits ausgelöst. Fix: Connection-Erkennung erweitert um `'right'`/`'bottom'` Anchor-Typen und `isTrueBranch`/`isFalseBranch` Flags.
+- **PascalCodeGenerator TypeError & Action-Support**:
+  - Behoben: `TypeError: Cannot read properties of undefined (reading 'toString')` — der Generator erwartete `cond.value`, aber nach dem FlowSyncManager-Fix wurden Conditions mit `leftValue`/`rightValue` exportiert. Beide Formate werden jetzt unterstützt, mit durchgehender Null-Safety (`String()` statt `.toString()`).
+  - Neu: `negate`-Actions werden als Pascal-Zuweisungen dargestellt (`Target.Prop := -Target.Prop;`).
+  - Neu: Actions aus der Blueprint-Stage werden jetzt korrekt bei der Suche berücksichtigt.
+- **DebugLogService Performance-Fix**:
+  - `maxChildren=50` pro Parent-Log verhindert unbegrenztes Speicherwachstum bei verschachtelten Logs.
+  - `scheduleNotify()` via `requestAnimationFrame` reduziert Listener-Benachrichtigungen von hunderten/sec auf max. 1/Frame.
+  - `isNotifying`-Guard verhindert rekursive Log-Kaskaden.
+  - O(1) `entryMap` HashMap ersetzt rekursive `findEntry()` Baumsuche — bei 1000 Logs mit je 50 Kindern wurde der Baum bei JEDEM `log()`-Aufruf komplett durchsucht, was progressives Stottern verursachte.
+  - **TDebugLog Visibility-Guard:** Der Subscribe-Callback und `renderLogs()` prüfen jetzt `isVisible` — kein DOM-Rebuild wenn das Panel unsichtbar ist. Vorher wurden 1000+ DOM-Elemente bei JEDEM Frame neu erstellt, obwohl das Panel per `translateX(100%)` ausgeblendet war.
+- **FlowEditor isDirty-Guard (Robustheit)**:
+  - `syncToProject()` wird jetzt NUR ausgeführt wenn tatsächlich Änderungen im Flow-Editor vorgenommen wurden (`isFlowDirty`-Flag).
+  - Beim bloßen View-Wechsel (Flow → Code/Run) oder Speichern ohne Änderungen wird `syncToProjectIfDirty()` aufgerufen, das den Guard prüft.
+  - Verhindert, dass korrupte `actionSequence`-Daten im LocalStorage/Autosave landen, wenn die Connection-Matching-Logik Edge-Cases nicht abfängt.
+- **Pascal-Code Task-Filter (NEU)**:
+  - In der Code-View (Pascal-Tab) gibt es nun ein Task-Dropdown, mit dem ein einzelner Task ausgewählt werden kann.
+  - Bei Auswahl werden nur die relevanten Prozeduren angezeigt: der Task als Hauptprozedur, alle referenzierten Actions als Sub-Prozeduren, Task-Parameter als VAR-Deklarationen und Event-Auslöser als Kommentare.
+  - `PascalCodeGenerator.generateForTask()` sammelt Actions rekursiv aus `actionSequence` (inkl. `body`, `elseBody`, `thenAction`, `elseAction`).
 - **Paddle Collision Bounce (`PingPong.json`)**: Implementierung des Abpralls an den Paddles (X-Achse).
   - Globale Action `NegateBallX` vom Typ `negate` erstellt, welche `velocityX` umkehrt.
   - Neuer Task `HandlePaddleCollision` auf `stage_main` angelegt, der `NegateBallX` aufruft.

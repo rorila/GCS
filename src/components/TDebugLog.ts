@@ -52,6 +52,8 @@ export class TDebugLog {
         // RAF-Debounce: subscribe feuert bei JEDEM neuen Log-Eintrag.
         // Ohne Debounce wird renderLogs() 60+ mal/sec aufgerufen.
         this.unsubscribe = this.service.subscribe(logs => {
+            // PERFORMANCE: Kein Rendering wenn Panel unsichtbar
+            if (!this.isVisible) return;
             if (this.renderRafId !== null) return;
             this.renderRafId = requestAnimationFrame(() => {
                 this.renderRafId = null;
@@ -412,10 +414,8 @@ export class TDebugLog {
     }
 
     private renderLogs(logs: LogEntry[]) {
-        if (this.isPaused) return;
+        if (this.isPaused || !this.isVisible) return;
 
-        // Use console.debug directly to avoid recursive logging loops via central Logger
-        console.debug(`[TDebugLog] Rendering ${logs.length} logs...`);
         this.updateObjectDropdown();
         this.updateEventDropdown();
         this.logList.innerHTML = '';

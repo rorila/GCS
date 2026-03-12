@@ -68,6 +68,8 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     // Interaction State
     public isDraggingHandle: boolean = false;
     public isLoading: boolean = false;
+    /** Guard: Nur true wenn der User tatsächlich Flow-Elemente geändert hat */
+    public isFlowDirty: boolean = false;
     public activeHandle: HTMLElement | null = null;
     public activeConnection: FlowConnection | null = null;
 
@@ -823,8 +825,20 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             FlowEditor.logger.info("Skipping syncToProject: isLoading is true");
             return;
         }
+        this.isFlowDirty = true; // Interne Aufrufe implizieren immer eine Änderung
         FlowEditor.logger.info(`syncToProject triggered for context: ${this.currentFlowContext}`);
         this.syncManager.syncToProject(this.currentFlowContext);
+    }
+
+    /** Nur synchronisieren wenn tatsächlich Änderungen vorgenommen wurden.
+     *  Wird von switchView() aufgerufen, NICHT von internen Service-Managern. */
+    public syncToProjectIfDirty() {
+        if (!this.isFlowDirty) {
+            FlowEditor.logger.info("Skipping syncToProject: keine Änderungen im Flow-Editor (isFlowDirty=false)");
+            return;
+        }
+        this.syncToProject();
+        this.isFlowDirty = false;
     }
 
     // syncTaskParameters, syncTaskParamValues, syncVariablesFromFlow, syncTaskFromFlow sind nun im SyncManager.

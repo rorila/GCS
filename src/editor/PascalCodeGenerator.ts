@@ -122,6 +122,128 @@ export class PascalCodeGenerator {
         return lines.join('\n');
     }
 
+    /**
+     * Generates Pascal code filtered for a single task and its related actions.
+     * Shows: the task as main procedure + each referenced action as sub-procedure.
+     */
+    public static generateForTask(project: GameProject, taskName: string, asHtml: boolean = true, activeStage?: any): string {
+        const lines: string[] = [];
+
+        // Header
+        lines.push(`${this.span('PROGRAM', '#c586c0', asHtml)} ${this.span('Task_' + taskName.replace(/\s+/g, '_'), '#dcdcaa', asHtml)};`);
+        lines.push('');
+
+        // Finde den Task
+        let task = project.tasks?.find(t => t.name === taskName);
+        if (!task && activeStage) task = activeStage.tasks?.find((t: any) => t.name === taskName);
+        // Blueprint-Stage durchsuchen
+        if (!task && project.stages) {
+            for (const stage of project.stages) {
+                const found = stage.tasks?.find((t: any) => t.name === taskName);
+                if (found) { task = found as any; break; }
+            }
+        }
+
+        if (!task) {
+            lines.push(`${this.span('{ Task nicht gefunden: ' + taskName + ' }', '#6a9955', asHtml)}`);
+            lines.push(`${this.span('END', '#c586c0', asHtml)}.`);
+            return lines.join('\n');
+        }
+
+        // Sammle alle referenzierten Action-Namen rekursiv aus der actionSequence
+        const referencedActions = new Set<string>();
+        this.collectActionNames(task.actionSequence || [], referencedActions);
+
+        // Sammle alle manipulierten Targets aus den referenzierten Actions
+        const targetNames = new Set<string>();
+        referencedActions.forEach(actionName => {
+            const blueprintStage = project.stages?.find((s: any) => s.type === 'blueprint');
+            const action = (
+                project.actions?.find(a => a.name === actionName) ||
+                blueprintStage?.actions?.find((a: any) => a.name === actionName) ||
+                activeStage?.actions?.find((a: any) => a.name === actionName)
+            ) as any;
+            if (action?.target) targetNames.add(action.target);
+        });
+
+        // VAR-Sektion: Task-Parameter + manipulierte Komponenten
+        const params = (task as any).params || [];
+        const hasVars = params.length > 0 || targetNames.size > 0;
+
+        if (hasVars) {
+            lines.push(`${this.span('VAR', '#c586c0', asHtml)}`);
+
+            // Task-Parameter
+            if (params.length > 0) {
+                lines.push(`  ${this.span('{ Task-Parameter }', '#6a9955', asHtml)}`);
+                params.forEach((p: any) => {
+                    const pascalType = (p.type || 'string').charAt(0).toUpperCase() + (p.type || 'string').slice(1);
+                    lines.push(`  ${this.span(p.name, '#9cdcfe', asHtml)}: ${this.span(pascalType, '#4ec9b0', asHtml)};`);
+                });
+            }
+
+            // Manipulierte Komponenten
+            if (targetNames.size > 0) {
+                lines.push(`  ${this.span('{ Manipulierte Komponenten }', '#6a9955', asHtml)}`);
+                const allObjects = [
+                    ...(activeStage?.objects || []),
+                    ...(project.stages?.find((s: any) => s.type === 'blueprint')?.objects || [])
+                ];
+                targetNames.forEach(targetName => {
+                    const obj = allObjects.find((o: any) => o.name === targetName);
+                    const className = obj?.className || obj?.constructor?.name || 'TComponent';
+                    lines.push(`  ${this.span(targetName, '#9cdcfe', asHtml)}: ${this.span(className, '#4ec9b0', asHtml)};`);
+                });
+            }
+
+            lines.push('');
+        }
+
+        // Der Task als Hauptprozedur
+        lines.push(this.generateProcedure(project, taskName, 0, undefined, asHtml, activeStage));
+        lines.push('');
+
+        // Event-Handler, die diesen Task referenzieren
+        const eventHandlers: string[] = [];
+        const stagesToCheck = activeStage ? [activeStage] : (project.stages || []);
+        stagesToCheck.forEach((stage: any) => {
+            (stage.objects || []).forEach((obj: any) => {
+                const tasks = obj.Tasks || {};
+                Object.entries(tasks).forEach(([event, tName]) => {
+                    if (tName === taskName) {
+                        eventHandlers.push(`${this.span('// Auslöser:', '#6a9955', asHtml)} ${this.span(obj.name, '#9cdcfe', asHtml)}.${this.span(event, '#dcdcaa', asHtml)}`);
+                    }
+                });
+            });
+        });
+
+        if (eventHandlers.length > 0) {
+            lines.push(`${this.span('{ ─── Event-Auslöser ─── }', '#6a9955', asHtml)}`);
+            eventHandlers.forEach(h => lines.push(h));
+            lines.push('');
+        }
+
+        lines.push(`${this.span('END', '#c586c0', asHtml)}.`);
+        return lines.join('\n');
+    }
+
+    /**
+     * Sammelt rekursiv alle Action-Namen aus einer actionSequence.
+     */
+    private static collectActionNames(sequence: SequenceItem[], result: Set<string>) {
+        if (!sequence) return;
+        sequence.forEach(item => {
+            if ((item.type === 'action' || !item.type) && item.name) {
+                result.add(item.name);
+            }
+            if (item.thenAction) result.add(item.thenAction);
+            if (item.elseAction) result.add(item.elseAction);
+            if (item.body) this.collectActionNames(item.body, result);
+            if ((item as any).elseBody) this.collectActionNames((item as any).elseBody, result);
+        });
+    }
+
+
     public static generateProcedure(project: GameProject, taskName: string, indent: number = 0, sequenceOverride?: SequenceItem[], asHtml: boolean = true, activeStage?: any): string {
         let task = project.tasks.find(t => t.name === taskName);
         if (!task && activeStage) task = activeStage.tasks?.find((t: any) => t.name === taskName);
@@ -155,13 +277,16 @@ export class PascalCodeGenerator {
             } else if (item.type === 'condition') {
                 const cond = item.condition;
                 if (cond) {
-                    const op = cond.operator === '==' ? '=' : (cond.operator === '!=' ? '<>' : cond.operator);
-                    const val = typeof cond.value === 'string' ? ("'" + cond.value + "'") : cond.value;
-                    const valColor = typeof cond.value === 'string' ? '#ce9178' : '#b5cea8';
+                    // Unterstütze beide Formate: alt (variable/value) und neu (leftValue/rightValue)
+                    const leftVar = cond.variable || (cond as any).leftValue || '?';
+                    const rightVal = cond.value ?? (cond as any).rightValue ?? '?';
+                    const op = cond.operator === '==' ? '=' : (cond.operator === '!=' ? '<>' : (cond.operator || '='));
+                    const val = typeof rightVal === 'string' ? ("'" + rightVal + "'") : String(rightVal);
+                    const valColor = typeof rightVal === 'string' ? '#ce9178' : '#b5cea8';
 
-                    lines.push(`${space}${this.span('IF', '#c586c0', asHtml)} ${this.span(cond.variable, '#9cdcfe', asHtml)} ${op} ${this.span(val.toString(), valColor, asHtml)} ${this.span('THEN', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
+                    lines.push(`${space}${this.span('IF', '#c586c0', asHtml)} ${this.span(leftVar, '#9cdcfe', asHtml)} ${op} ${this.span(val, valColor, asHtml)} ${this.span('THEN', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)}`);
 
-                    if (item.body) {
+                    if (item.body && item.body.length > 0) {
                         this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
                     } else if (item.thenAction) {
                         lines.push(`${space}  ${this.getActionPascalCode(project, item.thenAction, asHtml, activeStage)} `);
@@ -182,9 +307,11 @@ export class PascalCodeGenerator {
             } else if (item.type === 'while') {
                 const cond = item.condition;
                 if (cond) {
-                    const op = cond.operator === '==' ? '=' : (cond.operator === '!=' ? '<>' : cond.operator);
-                    const val = typeof cond.value === 'string' ? ("'" + cond.value + "'") : cond.value;
-                    lines.push(`${space}${this.span('WHILE', '#c586c0', asHtml)} ${this.span(cond.variable, '#9cdcfe', asHtml)} ${op} ${this.span(val.toString(), '#ce9178', asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)} `);
+                    const leftVar = cond.variable || (cond as any).leftValue || '?';
+                    const rightVal = cond.value ?? (cond as any).rightValue ?? '?';
+                    const op = cond.operator === '==' ? '=' : (cond.operator === '!=' ? '<>' : (cond.operator || '='));
+                    const val = typeof rightVal === 'string' ? ("'" + rightVal + "'") : String(rightVal);
+                    lines.push(`${space}${this.span('WHILE', '#c586c0', asHtml)} ${this.span(leftVar, '#9cdcfe', asHtml)} ${op} ${this.span(val, '#ce9178', asHtml)} ${this.span('DO', '#c586c0', asHtml)} ${this.span('BEGIN', '#c586c0', asHtml)} `);
                     if (item.body) this.renderSequenceToPascal(project, item.body, lines, indent + 2, asHtml, activeStage);
                     lines.push(`${space}${this.span('END', '#c586c0', asHtml)}; `);
                 }
@@ -197,7 +324,12 @@ export class PascalCodeGenerator {
     }
 
     private static getActionPascalCode(project: GameProject, actionName: string, asHtml: boolean, activeStage?: any, embeddedData?: any): string {
-        const action = (embeddedData || project.actions.find(a => a.name === actionName) || (activeStage?.actions?.find((a: any) => a.name === actionName))) as any;
+        // Suche Action: Blueprint-Stage (global) > project.actions > activeStage.actions
+        const blueprintStage = project.stages?.find((s: any) => s.type === 'blueprint');
+        const action = (embeddedData || 
+            project.actions?.find(a => a.name === actionName) || 
+            blueprintStage?.actions?.find((a: any) => a.name === actionName) ||
+            activeStage?.actions?.find((a: any) => a.name === actionName)) as any;
         if (!action) return `${this.span(actionName, '#dcdcaa', asHtml)} (); `;
 
         let code = '';
@@ -205,8 +337,9 @@ export class PascalCodeGenerator {
             const parts: string[] = [];
             Object.keys(action.changes).forEach(key => {
                 const value = action.changes[key];
+                if (value === undefined || value === null) return;
                 const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-                let valStr = value.toString();
+                let valStr = String(value);
                 let color = '#ce9178';
 
                 if (typeof value === 'string') {
@@ -223,6 +356,11 @@ export class PascalCodeGenerator {
                 parts.push(`${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := ${this.span(valStr, color, asHtml)}; `);
             });
             code = parts.join(' ');
+        } else if (action.type === 'negate' && action.target) {
+            // Negate: Invertiert den Wert einer Eigenschaft
+            const prop = action.property || 'velocityX';
+            const capitalizedProp = prop.charAt(0).toUpperCase() + prop.slice(1);
+            code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedProp, '#9cdcfe', asHtml)} := ${this.span('-', '#d4d4d4', asHtml)}${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedProp, '#9cdcfe', asHtml)}; ${this.span('{ Negate }', '#6a9955', asHtml)} `;
         } else if (action.type === 'calculate' && action.resultVariable) {
             const expr = action.formula ? this.span(action.formula, '#ce9178', asHtml) : this.span('0', '#b5cea8', asHtml);
             code = `${this.span(action.resultVariable, '#9cdcfe', asHtml)} := ${expr}; `;
@@ -230,13 +368,14 @@ export class PascalCodeGenerator {
             const key = Object.keys(action.changes)[0] || 'value';
             const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
             const amount = action.changes[key] || 1;
-            code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := ${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} + ${this.span(amount.toString(), '#b5cea8', asHtml)}; `;
+            code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := ${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} + ${this.span(String(amount), '#b5cea8', asHtml)}; `;
         } else if (action.type === 'navigate_stage') {
             code = `${this.span('Application', '#4ec9b0', asHtml)}.${this.span('GoToStage', '#dcdcaa', asHtml)} (${this.span("'" + (action.params?.stageId || action.target || '?') + "'", '#ce9178', asHtml)}); `;
         } else if (action.type === 'call_method' && action.target && action.method) {
             code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(action.method, '#dcdcaa', asHtml)} (); `;
         } else {
-            code = `${this.span(actionName, '#dcdcaa', asHtml)} (); `;
+            // Fallback: Unbekannter Typ als Prozedur-Aufruf darstellen
+            code = `${this.span(actionName, '#dcdcaa', asHtml)} (); ${this.span('{ ' + (action.type || 'unknown') + ' }', '#6a9955', asHtml)} `;
         }
 
         return code;

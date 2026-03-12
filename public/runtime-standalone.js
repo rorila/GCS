@@ -2281,10 +2281,6 @@
             const negated = valueToNegate * -1;
             PropertyHelper.setPropertyValue(target, prop, negated);
             runtimeLogger.info(`Negate: ${target.name || target.id}.${prop}: ${currentValue} -> ${negated}`);
-            DebugLogService.getInstance().log("Variable", `${target.name || target.id}.${prop} negiert: ${currentValue} \u2192 ${negated}`, {
-              objectName: target.name || target.id,
-              flatten: true
-            });
           } else {
             runtimeLogger.warn(`Negate: ${target.name || target.id}.${prop} ist kein numerischer Wert (${typeof currentValue}: ${currentValue})`);
           }
@@ -3211,7 +3207,7 @@
       const isMultiplayer = !!this.multiplayerManager;
       const isEnabled = DebugLogService.getInstance().isEnabled();
       if (isEnabled) {
-        console.log(`[TaskExecutor] EXECUTING: ${taskName} (depth: ${depth}, context: ${contextObj?.name || "none"})`);
+        logger3.info(`[TaskExecutor] EXECUTING: ${taskName} (depth: ${depth}, context: ${contextObj?.name || "none"})`);
       }
       const taskLogId = DebugLogService.getInstance().log("Task", `START: ${taskName}`, {
         parentId,
@@ -3991,7 +3987,6 @@
       if (side === "top") sprite.y = this.boundsOffsetTop + EPSILON;
       if (side === "bottom") sprite.y = this.boundsHeight - this.boundsOffsetBottom - sprite.height - EPSILON;
       if (this.eventCallback) {
-        console.log(`[GameLoopManager] Boundary Hit: ${sprite.name} on ${side}. Task should handle bounce.`);
         this.eventCallback(sprite.id, "onBoundaryHit", { hitSide: side });
       }
     }
@@ -5264,7 +5259,7 @@
   };
 
   // src/components/TInputController.ts
-  var TInputController = class extends TWindow {
+  var _TInputController = class _TInputController extends TWindow {
     constructor(name, x = 0, y = 0) {
       super(name, x, y, 3, 1);
       // Input settings
@@ -5286,7 +5281,7 @@
       this.handleKeyUp = this.onKeyUp.bind(this);
       this.isService = true;
       this.isHiddenInRun = true;
-      console.log(`%c[IC-${this._instanceId}] CONSTRUCTOR: name=${name}`, "color: #f0f; background: #222; padding: 2px 6px;");
+      _TInputController.logger.info(`[IC-${this._instanceId}] CONSTRUCTOR: name=${name}`);
     }
     getInspectorProperties() {
       return [
@@ -5313,18 +5308,18 @@
      */
     init(_objects, eventCallback) {
       this.eventCallback = eventCallback || null;
-      console.log(`%c[IC-${this._instanceId}] INIT: hasCallback=${!!this.eventCallback}`, "color: #0ff; background: #222; padding: 2px 6px;");
+      _TInputController.logger.info(`[IC-${this._instanceId}] INIT: hasCallback=${!!this.eventCallback}`);
     }
     /**
      * Start listening for keyboard events
      */
     start() {
-      console.log(`%c[IC-${this._instanceId}] START called: isActive=${this.isActive}, enabled=${this.enabled}`, "color: #0f0; background: #222; padding: 2px 6px;");
+      _TInputController.logger.info(`[IC-${this._instanceId}] START called: isActive=${this.isActive}, enabled=${this.enabled}`);
       if (this.isActive || !this.enabled) return;
       window.addEventListener("keydown", this.handleKeyDown);
       window.addEventListener("keyup", this.handleKeyUp);
       this.isActive = true;
-      console.log(`%c[IC-${this._instanceId}] START done: isActive=${this.isActive}`, "color: #0f0; background: #222; padding: 2px 6px;");
+      _TInputController.logger.info(`[IC-${this._instanceId}] START done: isActive=${this.isActive}`);
     }
     /**
      * Stop listening for keyboard events
@@ -5343,9 +5338,9 @@
       if (!this.eventCallback && window.__inputControllerCallback) {
         this.eventCallback = window.__inputControllerCallback;
         this.isActive = true;
-        console.log(`%c[IC-${this._instanceId}] \u{1F527} SELF-HEAL: Callback aus window.__inputControllerCallback geholt!`, "color: #f90; background: #222; padding: 2px 6px; font-weight: bold;");
+        _TInputController.logger.warn(`[IC-${this._instanceId}] \u{1F527} SELF-HEAL: Callback aus window.__inputControllerCallback geholt!`);
       }
-      console.log(`%c[IC-${this._instanceId}] \u{1F3AE} KEY DOWN: ${e.code} | isActive=${this.isActive} | hasCallback=${!!this.eventCallback}`, "color: #ff0; background: #333; padding: 2px 6px; font-weight: bold;");
+      _TInputController.logger.info(`[IC-${this._instanceId}] \u{1F3AE} KEY DOWN: ${e.code} | isActive=${this.isActive} | hasCallback=${!!this.eventCallback}`);
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyW", "KeyS", "KeyA", "KeyD"].includes(e.code)) {
         e.preventDefault();
       }
@@ -5355,10 +5350,10 @@
           window.__multiplayerInputCallback(e.code, "down");
         }
         if (this.eventCallback) {
-          console.log(`%c[InputController] \u27A1\uFE0F CALLBACK: id=${this.id}, event=onKeyDown_${e.code}`, "color: #0f0; background: #333; padding: 2px 6px;");
+          _TInputController.logger.info(`[InputController] \u27A1\uFE0F CALLBACK: id=${this.id}, event=onKeyDown_${e.code}`);
           this.eventCallback(this.id, `onKeyDown_${e.code}`, { keyCode: e.code });
         } else {
-          console.warn(`[InputController] \u274C KEIN CALLBACK! Event onKeyDown_${e.code} geht verloren!`);
+          _TInputController.logger.warn(`[InputController] \u274C KEIN CALLBACK! Event onKeyDown_${e.code} geht verloren!`);
         }
       }
     }
@@ -5428,6 +5423,8 @@
       ];
     }
   };
+  __publicField(_TInputController, "logger", Logger.get("TInputController", "Input_Handling"));
+  var TInputController = _TInputController;
 
   // src/components/TTimer.ts
   var TTimer = class extends TWindow {
@@ -11497,15 +11494,12 @@
       });
     }
     handleEvent(objectId, eventName, data = {}) {
-      console.info(`[DIAGNOSTIC] handleEvent entry: objId=${objectId}, event=${eventName}`);
       const obj = this.objects.find((o) => o.id === objectId);
       if (!obj) {
-        console.warn(`[DIAGNOSTIC] Object not found: ${objectId}`);
         return;
       }
       const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
       const hasTaskMap = obj.events && obj.events[eventName] || obj.Tasks && obj.Tasks[eventName];
-      console.info(`[DIAGNOSTIC] Object found: ${obj.name}. hasOnEventMap=${!!hasOnEventMap}, hasTaskMap=${!!hasTaskMap}`);
       let eventLogId = void 0;
       if (hasOnEventMap || hasTaskMap) {
         eventLogId = DebugLogService.getInstance().log("Event", `Triggered: ${obj.name}.${eventName}`, {
