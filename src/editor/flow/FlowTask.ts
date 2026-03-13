@@ -3,6 +3,8 @@ import { GameProject } from '../../model/types';
 import { FlowElement } from './FlowElement';
 import { libraryService } from '../../services/LibraryService';
 import { projectRegistry } from '../../services/ProjectRegistry';
+import { InspectorSection } from '../inspector/types';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
 
 export class FlowTask extends FlowElement {
     public getType(): string { return 'task'; }
@@ -87,24 +89,95 @@ export class FlowTask extends FlowElement {
     }
 
     public getInspectorProperties(): any[] {
-        // We only want basic info and the export button for Tasks.
-        // Geometry and dynamic parameters are excluded as they belong in Actions.
-        const props: any[] = [
-            { name: 'Type', type: 'string', label: 'Object Type', readOnly: true },
-            { name: 'Name', type: 'string', label: 'Name' },
-            { name: 'Description', type: 'string', label: 'Beschreibung' }
-        ];
+        const sections = this.getInspectorSections();
+        const props: any[] = [];
+        for (const section of sections) {
+            for (const prop of section.properties) {
+                props.push({ ...prop, group: section.label });
+            }
+        }
+        return props;
+    }
 
-        // Add Export to Library button at the end
-        props.push({
-            name: 'exportBtn',
-            type: 'button',
-            label: '📚 In Library exportieren',
-            action: 'exportToLibrary',
-            style: { backgroundColor: '#2e7d32', color: '#fff', marginTop: 16 }
+    // =====================================================================
+    // IInspectable Implementation (Component-Owned Inspector)
+    // =====================================================================
+
+    public getInspectorSections(): InspectorSection[] {
+        const sections: InspectorSection[] = [];
+
+        // --- Sektion 1: Allgemein ---
+        sections.push({
+            id: 'allgemein',
+            label: 'Allgemein',
+            icon: '⚡',
+            properties: [
+                { name: 'Type', type: 'string', label: 'Object Type', readonly: true },
+                { name: 'Name', type: 'string', label: 'Name' },
+                { name: 'Description', type: 'string', label: 'Beschreibung' }
+            ]
         });
 
-        return props;
+        // --- Sektion 2: Konfiguration ---
+        const konfProps: any[] = [
+            {
+                name: 'triggerMode', label: 'Ausführungsmodus', type: 'select',
+                options: [
+                    { value: 'local-sync', label: 'Lokal (synchron)' },
+                    { value: 'local-async', label: 'Lokal (asynchron)' },
+                    { value: 'server', label: 'Server-seitig' }
+                ]
+            },
+            {
+                name: 'uiScope', label: 'Scope', type: 'select',
+                options: [
+                    { value: 'global', label: 'Global' },
+                    { value: 'local', label: 'Stage-lokal' }
+                ]
+            }
+        ];
+        sections.push({ id: 'konfiguration', label: 'Konfiguration', icon: '⚙️', properties: konfProps });
+
+        // --- Sektion 3: Aktionen ---
+        sections.push({
+            id: 'aktionen',
+            label: 'Aktionen',
+            icon: '📦',
+            collapsed: true,
+            properties: [
+                {
+                    name: 'exportBtn', type: 'button',
+                    label: '📚 In Library exportieren',
+                    action: 'exportToLibrary',
+                    style: { backgroundColor: '#2e7d32', color: '#fff', marginTop: 16 }
+                },
+                {
+                    name: 'deleteBtn', label: 'Löschen', type: 'button',
+                    action: 'delete', style: { backgroundColor: '#d11a2a' }
+                }
+            ]
+        });
+
+        return sections;
+    }
+
+    /**
+     * Wendet eine Property-Änderung an und synchronisiert mit der Task-Definition.
+     */
+    public applyChange(propertyName: string, newValue: any, _oldValue?: any): boolean {
+        // 1. Über Setter anwenden (FlowTask Setter schreibt in taskDefinition + data)
+        PropertyHelper.setPropertyValue(this, propertyName, newValue);
+
+        // 2. Zusätzlich in die Task-Definition schreiben (SSoT)
+        const taskDef = this.getTaskDefinition();
+        if (taskDef) {
+            PropertyHelper.setPropertyValue(taskDef, propertyName, newValue);
+        }
+
+        // 3. Visuelles Update
+        this.refreshVisuals();
+
+        return false; // Kein Re-Render nötig (Tasks haben keine dynamischen Sektionen)
     }
 
     public get triggerMode(): string {

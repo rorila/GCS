@@ -16,6 +16,7 @@
   - `type: "color"`: Zeigt einen Farbwähler (🎨-Icon) an.
   - `inline: true`: Gruppiert aufeinanderfolgende Eigenschaften horizontal (ideal für Checkboxen wie Fett/Kursiv).
 - **FlowAction Proxy-Regel**: Wenn neue Felder in `StandardActions.ts` oder `action_rules.json` hinzugefügt werden (z.B. für neue Aktions-Typen), MÜSSEN diese auch als Getter/Setter in `FlowAction.ts` implementiert werden, damit der Inspector sie bearbeiten kann.
+- **IInspectable Pattern (v3.14.0)**: Flow-Objekte (`FlowAction`, `FlowTask`) implementieren `getInspectorSections()` zur Deklaration der Inspector-UI. Änderungen werden weiterhin über `eventHandler.handleControlChange()` delegiert (nicht über `applyChange()` im onchange-Handler). `applyChange()` wird nur für Re-Render-Checks (z.B. Typ-Wechsel) verwendet. Neue Flow-Objekte MÜSSEN `getInspectorSections()` implementieren. Für E2E-Tests: Input name=`{propName}Input`, Select name=`controlName || propName`.
 - **Sync-Blacklist**: Die `taskFields` Liste in `FlowSyncManager.ts` darf keine Felder enthalten, die für Aktionen (Global oder Embedded) essentiell sind (z.B. `value`, `params`, `body`, `source`).
 
 ## Synchronisation von Inspector und Flow-Editor

@@ -16,6 +16,7 @@ import { componentRegistry } from '../../services/ComponentRegistry';
 import { InspectorContextBuilder } from './InspectorContextBuilder';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { Logger } from '../../utils/Logger';
+import { isInspectable, IInspectable } from './types';
 
 /**
  * InspectorHost - The main entry point for the new modular Inspector.
@@ -212,6 +213,17 @@ export class InspectorHost {
     }
 
     private async renderPropertiesContent(obj: any, parent: HTMLElement): Promise<void> {
+        // =====================================================================
+        // NEU: IInspectable-Pfad (Component-Owned Inspector)
+        // =====================================================================
+        if (isInspectable(obj)) {
+            this.renderInspectableSections(obj, parent);
+            return;
+        }
+
+        // =====================================================================
+        // LEGACY: JSON-Template-Pfad (bestehende Komponenten ohne IInspectable)
+        // =====================================================================
         // 1. Determine Template
         let inspectorFile = './inspector.json';
 
@@ -239,6 +251,143 @@ export class InspectorHost {
             const el = this.renderUIDefinition(def, obj);
             if (el) parent.appendChild(el);
         });
+    }
+
+    /**
+     * Rendert Inspector-Sektionen für IInspectable Objekte.
+     * Jede Sektion wird als einklappbare Gruppe dargestellt.
+     */
+    private renderInspectableSections(obj: IInspectable, parent: HTMLElement): void {
+        const sections = obj.getInspectorSections();
+
+        sections.forEach(section => {
+            // --- Sektion-Header (einklappbar) ---
+            const sectionHeader = document.createElement('div');
+            sectionHeader.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 8px;margin-top:8px;cursor:pointer;background:rgba(255,255,255,0.03);border-radius:4px;user-select:none;';
+            sectionHeader.innerHTML = `
+                <span style="font-size:12px">${section.icon || '📋'}</span>
+                <span style="font-size:11px;font-weight:600;color:#ccc;flex:1">${section.label}</span>
+                <span style="font-size:10px;color:#666" data-collapse-icon>${section.collapsed ? '▶' : '▼'}</span>
+            `;
+
+            const sectionBody = document.createElement('div');
+            sectionBody.style.cssText = 'display:flex;flex-direction:column;gap:6px;padding:4px 0;';
+            if (section.collapsed) sectionBody.style.display = 'none';
+
+            sectionHeader.onclick = () => {
+                const isCollapsed = sectionBody.style.display === 'none';
+                sectionBody.style.display = isCollapsed ? 'flex' : 'none';
+                const icon = sectionHeader.querySelector('[data-collapse-icon]');
+                if (icon) icon.textContent = isCollapsed ? '▼' : '▶';
+            };
+
+            parent.appendChild(sectionHeader);
+            parent.appendChild(sectionBody);
+
+            // --- Properties in der Sektion rendern ---
+            section.properties.forEach(propDef => {
+                const el = this.renderInspectableProperty(propDef, obj);
+                if (el) sectionBody.appendChild(el);
+            });
+        });
+    }
+
+    /**
+     * Rendert eine einzelne Property-Definition für ein IInspectable Objekt.
+     * Nutzt die bestehende Renderer-Infrastruktur, aber delegiert Änderungen
+     * an obj.applyChange() statt an die Handler-Kette.
+     */
+    private renderInspectableProperty(propDef: any, obj: any): HTMLElement | null {
+        const container = document.createElement('div');
+        container.style.marginBottom = '4px';
+
+        // Button-Typ: spezieller Render-Pfad
+        if (propDef.type === 'button') {
+            const btn = document.createElement('button');
+            btn.innerText = propDef.label;
+            btn.style.cssText = 'width:100%;padding:6px 12px;border:none;border-radius:4px;cursor:pointer;color:#fff;font-size:11px;' +
+                (propDef.style ? Object.entries(propDef.style).map(([k, v]) => `${k.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}:${v}`).join(';') : 'background:#444');
+            btn.onclick = () => {
+                if (propDef.action && this.actionHandler) {
+                    (this.actionHandler as any).handleAction(propDef, obj);
+                }
+            };
+            container.appendChild(btn);
+            return container;
+        }
+
+        // Label
+        if (propDef.label) {
+            const label = this.renderer.renderLabel(propDef.label);
+            container.appendChild(label);
+        }
+
+        // Wert lesen
+        const currentValue = PropertyHelper.getPropertyValue(obj, propDef.name) ?? propDef.defaultValue ?? '';
+
+        // Control rendern basierend auf Typ
+        if (propDef.type === 'select') {
+            let options = propDef.options || [];
+            if (!Array.isArray(options) || options.length === 0) {
+                if (propDef.source) {
+                    options = this.renderer.getOptionsFromSource(propDef);
+                }
+            }
+            const select = this.renderer.renderSelect(Array.isArray(options) ? options : [], currentValue, propDef.placeholder);
+            // Konvention: Select name = controlName || propDef.name (E2E-Kompatibilität)
+            const selectName = propDef.controlName || propDef.name || '';
+            if (selectName) select.name = selectName;
+            select.onchange = async () => {
+                // Delegiere an Handler-Kette (FlowNodeHandler etc.)
+                // Handler macht: PropertyHelper.setPropertyValue + Refactoring + Mediator
+                if (this.eventHandler) {
+                    this.eventHandler.handleControlChange(
+                        selectName, select.value, obj,
+                        { ...propDef, property: propDef.name }
+                    );
+                }
+                // Prüfe ob Sektionen sich ändern (z.B. Typ-Wechsel)
+                if (typeof obj.applyChange === 'function') {
+                    const needsReRender = obj.applyChange(propDef.name, select.value, currentValue);
+                    if (needsReRender) {
+                        this.update(obj);
+                    }
+                }
+            };
+            container.appendChild(select);
+        } else if (propDef.type === 'boolean' || propDef.type === 'checkbox') {
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = !!currentValue;
+            cb.onchange = () => {
+                if (this.eventHandler) {
+                    this.eventHandler.handleControlChange(
+                        propDef.name, cb.checked, obj,
+                        { ...propDef, property: propDef.name }
+                    );
+                }
+            };
+            container.appendChild(cb);
+        } else {
+            // Text / Number / String Input
+            const input = this.renderer.renderEdit(String(currentValue));
+            if (propDef.readonly) input.readOnly = true;
+            // Konvention: Input name = '{propertyName}Input' (E2E-Kompatibilität)
+            if (propDef.name) input.name = propDef.name + 'Input';
+            input.onchange = () => {
+                const newVal = propDef.type === 'number' ? Number(input.value) : input.value;
+                // Delegiere an Handler-Kette (FlowNodeHandler → Refactoring, PropertyHelper etc.)
+                if (this.eventHandler) {
+                    this.eventHandler.handleControlChange(
+                        input.name, newVal, obj,
+                        { ...propDef, property: propDef.name }
+                    );
+                }
+            };
+            container.appendChild(input);
+        }
+
+        return container;
     }
 
     private renderUIDefinition(def: any, obj: any): HTMLElement | null {

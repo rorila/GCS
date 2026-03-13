@@ -3,6 +3,9 @@ import { FlowElement } from './FlowElement';
 import { GameAction, GameProject } from '../../model/types';
 import { ExpressionParser } from '../../runtime/ExpressionParser';
 import { projectRegistry } from '../../services/ProjectRegistry';
+import { InspectorSection } from '../inspector/types';
+import { actionRegistry } from '../../runtime/ActionRegistry';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
 
 export class FlowAction extends FlowElement {
     public getType(): string {
@@ -428,105 +431,140 @@ export class FlowAction extends FlowElement {
         }
     }
 
-    // Remove getInspectorProperties so JSON takes precedence
-    // We only return geometry if we call super, but JSON inspector merges.
-    // Actually, if we remove it, the JSON inspector logic 'typeof object.getInspectorProperties === "function"' might fail 
-    // if I check strictly.
-    // InspectorHost handles type checks and merging.
-    // So if I return [] here, I get JSON only. 
-    // If I return super(), I get geometry + JSON. This is good!
-    public getInspectorProperties(): any[] {
-        const props: any[] = [];
-        const type = this.data?.type || 'property';
+    // =====================================================================
+    // IInspectable Implementation (Component-Owned Inspector)
+    // =====================================================================
+
+    /**
+     * Deklariert Inspector-Sektionen dynamisch basierend auf dem Action-Typ.
+     * Dies ersetzt die externen JSON-Templates (inspector_action.json).
+     */
+    public getInspectorSections(): InspectorSection[] {
+        const type = this.type;
         const isInternal = this.data?.isEmbeddedInternal;
+        const sections: InspectorSection[] = [];
 
-        // Base Information Group
-        props.push({ name: 'Name', label: 'Action Name', type: 'string', variable: 'Name', group: 'Allgemein', readonly: isInternal });
-
+        // --- Sektion 1: Allgemein (immer sichtbar) ---
+        const allgemeinProps: any[] = [
+            { name: 'Name', label: 'Action Name', type: 'string', readonly: isInternal }
+        ];
         if (!isInternal) {
-            props.push({
-                name: 'actionType',
+            allgemeinProps.push({
+                name: 'type',
+                controlName: 'ActionTypeSelect',
                 label: 'Aktions-Typ',
                 type: 'select',
-                variable: 'type', // Map to this.data.type
-                group: 'Allgemein',
-                options: [
-                    { value: 'property', label: 'Objekt-Eigenschaft (Property)' },
-                    { value: 'method', label: 'Objekt-Methode (Method)' },
-                    { value: 'event', label: 'Event feuern' },
-                    { value: 'variable', label: 'Variable auslesen' },
-                    { value: 'calculate', label: 'Berechnung (Calculate)' }
-                ]
+                options: actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }))
             });
         }
+        sections.push({ id: 'allgemein', label: 'Allgemein', icon: '📋', properties: allgemeinProps });
 
-        const detailsGroup = 'Konfiguration';
+        // --- Sektion 2: Konfiguration (typ-spezifisch) ---
+        const konfProps: any[] = [];
 
-        // Target Object Selection (used by most action types)
         if (['property', 'method'].includes(type) && !isInternal) {
-            props.push({
-                name: 'target',
-                label: 'Ziel-Objekt',
-                type: 'select',
-                variable: 'target',
-                group: detailsGroup,
-                source: 'objects', // Needs InspectorRenderer to resolve 'objects' source
-                hint: 'Das Objekt, dessen Zustand geändert wird.'
+            konfProps.push({
+                name: 'target', label: 'Ziel-Objekt', type: 'select',
+                source: 'objects', hint: 'Das Objekt, dessen Zustand geändert wird.'
             });
         }
 
-        // Show properties based on type
         if (type === 'property') {
-            // Property Change specifics
-            props.push({ name: 'property', label: 'Eigenschaft', type: 'string', variable: 'property', group: detailsGroup });
-            props.push({ name: 'changes', label: 'Neuer Wert (changes)', type: 'string', variable: 'changes', group: detailsGroup });
-            // Button to inject variables into 'changes'
-            props.push({
-                name: 'btn_var_changes',
-                label: 'Variable einfügen...',
-                type: 'button',
-                variable: 'btn_var_changes',
-                group: detailsGroup,
-                buttonType: 'secondary',
-                actionData: { property: 'changes' },
-                action: 'pickVariable'
+            konfProps.push({ name: 'property', label: 'Eigenschaft', type: 'string' });
+            konfProps.push({ name: 'changes', label: 'Neuer Wert (changes)', type: 'string' });
+            konfProps.push({
+                name: 'btn_var_changes', label: 'Variable einfügen...', type: 'button',
+                actionData: { property: 'changes' }, action: 'pickVariable'
             });
         } else if (type === 'method') {
-            // Method Call specifics
-            props.push({ name: 'method', label: 'Methode', type: 'string', variable: 'method', group: detailsGroup });
-            props.push({ name: 'params', label: 'Parameter-Liste (params)', type: 'string', variable: 'params', group: detailsGroup, hint: 'Kommagetrennt' });
+            konfProps.push({ name: 'method', label: 'Methode', type: 'string' });
+            konfProps.push({ name: 'params', label: 'Parameter-Liste', type: 'string', hint: 'Kommagetrennt' });
         } else if (type === 'event') {
-            // Event Fire specifics
-            props.push({ name: 'eventName', label: 'Event-Name', type: 'string', variable: 'eventName', group: detailsGroup });
-            props.push({ name: 'eventPayload', label: 'Payload (JSON/Token)', type: 'string', variable: 'eventPayload', group: detailsGroup });
+            konfProps.push({ name: 'eventName', label: 'Event-Name', type: 'string' });
+            konfProps.push({ name: 'eventPayload', label: 'Payload (JSON/Token)', type: 'string' });
         } else {
-            // Fallback for registry-based actions (e.g., http, service)
-            try {
-                const registry = (window as any).actionRegistry || (window as any).ActionRegistry;
-                const meta = registry?.getMetadata?.(type);
-
-                if (meta && meta.parameters) {
-                    meta.parameters.forEach((param: any) => {
-                        const field: any = {
-                            name: param.name,
-                            label: param.label,
-                            variable: param.name,
-                            type: this.mapParameterTypeToInspector(param.type),
-                            hint: param.hint,
-                            group: `Erweitert: ${meta.label}`
-                        };
-
-                        if (param.options) field.options = param.options.map((o: string) => ({ value: o, label: o }));
-                        else if (param.source) field.source = param.source;
-
-                        props.push(field);
-                    });
-                }
-            } catch (e) {
-                console.error('[FlowAction] Registry lookup failed:', e);
+            // Registry-basierte Action-Typen (http, service, navigate_stage, etc.)
+            const meta = actionRegistry.getMetadata(type);
+            if (meta?.parameters) {
+                meta.parameters.forEach((param: any) => {
+                    const field: any = {
+                        name: param.name, label: param.label,
+                        type: this.mapParameterTypeToInspector(param.type),
+                        hint: param.hint
+                    };
+                    if (param.options) field.options = param.options.map((o: string) => ({ value: o, label: o }));
+                    else if (param.source) field.source = param.source;
+                    konfProps.push(field);
+                });
             }
         }
 
+        if (konfProps.length > 0) {
+            const meta = actionRegistry.getMetadata(type);
+            sections.push({
+                id: 'konfiguration',
+                label: meta?.label || 'Konfiguration',
+                icon: '⚙️',
+                properties: konfProps
+            });
+        }
+
+        // --- Sektion 3: Aktionen (Löschen etc.) ---
+        sections.push({
+            id: 'aktionen',
+            label: 'Aktionen',
+            icon: '🗑️',
+            collapsed: true,
+            properties: [
+                {
+                    name: 'deleteBtn', label: 'Löschen', type: 'button',
+                    action: 'delete', style: { backgroundColor: '#d11a2a' }
+                }
+            ]
+        });
+
+        return sections;
+    }
+
+    /**
+     * Wendet eine Property-Änderung an und synchronisiert mit der Projekt-JSON.
+     * Dies ist die Single Source of Truth für Action-Datenänderungen.
+     *
+     * @returns true wenn ein vollständiger Inspector-Re-Render nötig ist (z.B. bei Typ-Wechsel)
+     */
+    public applyChange(propertyName: string, newValue: any, _oldValue?: any): boolean {
+        // 1. Über Setter anwenden (FlowAction Setter schreibt in actionDefinition + data)
+        PropertyHelper.setPropertyValue(this, propertyName, newValue);
+
+        // 2. Zusätzlich direkt in die Action-Definition schreiben (SSoT)
+        const actionDef = this.getActionDefinition();
+        if (actionDef && actionDef !== this.data) {
+            PropertyHelper.setPropertyValue(actionDef, propertyName, newValue);
+        }
+
+        // 3. Visuelles Update
+        this.refreshVisuals();
+
+        // 4. Bei Typ-Wechsel: Re-Render des gesamten Inspectors auslösen
+        if (propertyName === 'type' || propertyName === 'actionType') {
+            return true; // Inspector muss mit neuen Sektionen neu gerendert werden
+        }
+
+        return false;
+    }
+
+    /**
+     * Legacy-Kompatibilität: getInspectorProperties() aus den Sektionen ableiten.
+     * Wird von altem Code und Tests noch verwendet.
+     */
+    public getInspectorProperties(): any[] {
+        const sections = this.getInspectorSections();
+        const props: any[] = [];
+        for (const section of sections) {
+            for (const prop of section.properties) {
+                props.push({ ...prop, group: section.label });
+            }
+        }
         return props;
     }
 

@@ -1,4 +1,6 @@
 import { GameProject } from '../../model/types';
+import { InspectorSection } from '../inspector/types';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
 
 export abstract class FlowElement {
     public abstract getType(): string;
@@ -519,6 +521,38 @@ export abstract class FlowElement {
             { name: 'Name', type: 'string', label: 'Name' },
             { name: 'Description', type: 'string', label: 'Beschreibung' }
         ];
+    }
+
+    // =====================================================================
+    // IInspectable Implementation (Component-Owned Inspector)
+    // =====================================================================
+
+    /**
+     * Deklariert die Inspector-Sektionen. Subklassen überschreiben dies
+     * um typ-spezifische Sektionen hinzuzufügen.
+     */
+    public getInspectorSections(): InspectorSection[] {
+        return [
+            {
+                id: 'allgemein',
+                label: 'Allgemein',
+                icon: '📋',
+                properties: this.getInspectorProperties()
+            }
+        ];
+    }
+
+    /**
+     * Wendet eine Property-Änderung an. Standardverhalten:
+     * 1. Setzt den Wert über PropertyHelper (nutzt Setter wenn vorhanden)
+     * 2. Gibt false zurück (kein Re-Render nötig)
+     *
+     * Subklassen überschreiben dies für komplexe Sync-Logik.
+     * @returns true wenn ein vollständiger Inspector-Re-Render nötig ist
+     */
+    public applyChange(propertyName: string, newValue: any, _oldValue?: any): boolean {
+        PropertyHelper.setPropertyValue(this, propertyName, newValue);
+        return false;
     }
 
     // Generic data storage for logic details (Phase 2)

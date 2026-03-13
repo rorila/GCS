@@ -1,3 +1,24 @@
+## [3.14.0] - 2026-03-13
+### Added (Inspector Refactoring: Component-Owned Inspector)
+- **`IInspectable` Interface** (`src/editor/inspector/types.ts`):
+  - Neues Interface für selbstbeschreibende Inspectoren: `getInspectorSections()` und `applyChange()`
+  - `InspectorSection` Typ mit einklappbaren Sektionen, Icons und Properties
+  - `isInspectable()` Type Guard für polymorphe Erkennung
+- **`FlowElement.ts`**: Default `getInspectorSections()` und `applyChange()` als Basis-Implementierung
+- **`FlowAction.ts`**: Dynamische Sektionen basierend auf Action-Typ (property/method/event/registry)
+  - `applyChange()` gibt `true` für Typ-Wechsel zurück → triggert Inspector Re-Render
+  - Legacy `getInspectorProperties()` leitet aus Sektionen ab
+- **`FlowTask.ts`**: 3 Sektionen (Allgemein/Konfiguration/Aktionen) mit Ausführungsmodus und Scope
+- **`InspectorHost.ts`**: Neuer IInspectable-Render-Pfad mit einklappbaren Sektionen
+  - `renderInspectableSections()` rendert Sektionen mit Icons und Collapse-Toggle
+  - `renderInspectableProperty()` delegiert Änderungen an `eventHandler.handleControlChange()`
+  - Fallback auf JSON-Template-Pfad für Objekte ohne IInspectable
+  - E2E-Kompatibilität: Input name=`{prop}Input`, Select name=`controlName || propName`
+
+### Changed
+- **Inspector Rendering**: FlowAction/FlowTask rendern jetzt über IInspectable-Pfad statt JSON-Templates
+- **Handler-Delegation**: Änderungen laufen weiterhin über `FlowNodeHandler` für Refactoring-Kompatibilität
+
 ## [3.13.0] - 2026-03-13
 ### Added (API-Realisierung Phase 1-5)
 - **API-Referenzdokument** (`docs/AgentAPI.md`):
