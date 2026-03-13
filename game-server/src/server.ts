@@ -176,6 +176,23 @@ app.post('/api/platform/login', (req, res) => {
 });
 
 /**
+ * Backup-Rotation: Benennt eine vorhandene Datei in .bakN um (hochzählend).
+ * Beispiel: project.json → project.json.bak1, .bak2, .bak3, ...
+ */
+function rotateBackup(filePath: string): string | null {
+    if (!fs.existsSync(filePath)) return null;
+
+    let bakIndex = 1;
+    while (fs.existsSync(`${filePath}.bak${bakIndex}`)) {
+        bakIndex++;
+    }
+    const bakPath = `${filePath}.bak${bakIndex}`;
+    fs.renameSync(filePath, bakPath);
+    console.log(`[Backup] ${path.basename(filePath)} → ${path.basename(bakPath)}`);
+    return bakPath;
+}
+
+/**
  * POST /api/dev/save-project - Speichert die project.json auf Disk
  * NUR FÜR ENTWICKLUNGSZWECKE (Dev-Mode)
  */
@@ -200,6 +217,14 @@ app.post('/api/dev/save-project', (req, res) => {
 
         console.log(`[TRACE] [API] Saving project to ${projectPath}`);
         console.log(`[TRACE] [API] Data summary: Actions=${actionCount}, Tasks=${taskCount}, Stages=${stageCount}`);
+
+        // _sourcePath in Metadaten schreiben (damit loadProject den Quellpfad kennt)
+        if (projectData.meta) {
+            projectData.meta._sourcePath = 'game-server/public/platform/project.json';
+        }
+
+        // KEIN rotateBackup hier! save-project ist AutoSave und wird ständig aufgerufen.
+        // Backup-Rotation nur beim expliziten Speichern via save-custom.
 
         fs.writeFileSync(projectPath, JSON.stringify(projectData, null, 2), 'utf-8');
         console.log(`[TRACE] [API] Project saved successfully.`);
@@ -848,12 +873,13 @@ app.post('/api/dev/save-custom', (req, res) => {
             return res.status(400).json({ error: 'Ungültige Parameter' });
         }
 
-        // Sicherheits-Check: Nur Dateien im game-builder-v1/projects zulassen
+        // Sicherheits-Check: Dateien im projects/ ODER game-server/public/ Ordner zulassen
         const absolutePath = path.resolve(__dirname, '../../', filePath);
         const projectsRoot = path.resolve(__dirname, '../../projects');
+        const publicRoot = path.resolve(__dirname, '../public');
 
-        if (!absolutePath.startsWith(projectsRoot)) {
-            return res.status(403).json({ error: 'Zugriff verweigert: Pfad außerhalb des Projekt-Ordners' });
+        if (!absolutePath.startsWith(projectsRoot) && !absolutePath.startsWith(publicRoot)) {
+            return res.status(403).json({ error: 'Zugriff verweigert: Pfad außerhalb des erlaubten Bereichs' });
         }
 
         // Verzeichnis sicherstellen
@@ -861,6 +887,14 @@ app.post('/api/dev/save-custom', (req, res) => {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
+
+        // _sourcePath in Metadaten schreiben (damit loadProject den Quellpfad kennt)
+        if (projectData.meta) {
+            projectData.meta._sourcePath = filePath;
+        }
+
+        // Backup-Rotation: Vorhandene Datei umbenennen
+        rotateBackup(absolutePath);
 
         fs.writeFileSync(absolutePath, JSON.stringify(projectData, null, 2));
         console.log(`[Dev] Project saved to custom path: ${filePath}`);

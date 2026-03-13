@@ -113,9 +113,10 @@ export class ProjectPersistenceService {
     }
 
     /**
-     * Triggers file input and returns the parsed JSON data.
+     * Triggers file input and returns the parsed JSON data along with the filename.
+     * @returns {{ data: any, filename: string } | null}
      */
-    public async triggerLoad(): Promise<any> {
+    public async triggerLoad(): Promise<{ data: any; filename: string } | null> {
         return new Promise((resolve, reject) => {
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
@@ -135,12 +136,13 @@ export class ProjectPersistenceService {
                     resolve(null);
                     return;
                 }
+                const fileName = file.name;
                 const reader = new FileReader();
                 reader.onload = (evt) => {
                     cleanup();
                     try {
                         const json = JSON.parse(evt.target?.result as string);
-                        resolve(json);
+                        resolve({ data: json, filename: fileName });
                     } catch (err) {
                         reject(err);
                     }

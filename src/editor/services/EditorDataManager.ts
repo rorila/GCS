@@ -45,6 +45,8 @@ export class EditorDataManager {
     private host: EditorDataHost;
     /** Aktueller Speicherpfad (relativ, z.B. 'projects/master_test/MeinSpiel.json') */
     public currentSavePath: string | null = null;
+    /** Zeitpunkt des letzten Projekt-Ladens — autoSave ignoriert die ersten 2s danach. */
+    private _loadedAt: number = 0;
 
     constructor(host: EditorDataHost) {
         this.host = host;
@@ -57,9 +59,12 @@ export class EditorDataManager {
             }
         }
         try {
-            const json = await projectPersistenceService.triggerLoad();
-            if (json) {
-                this.loadProject(json);
+            const result = await projectPersistenceService.triggerLoad();
+            if (result) {
+                // KEIN expliziter sourcePath → loadProject liest meta._sourcePath aus dem JSON.
+                // Der Browser-File-Dialog gibt keinen Ordnerpfad preis.
+                EditorDataManager.logger.info(`[triggerLoad] Datei geladen: ${result.filename}`);
+                this.loadProject(result.data);
             }
         } catch (err) {
             alert("Error loading project: " + err);
@@ -109,9 +114,13 @@ export class EditorDataManager {
      */
     public async saveProjectToFile(overwriteConfirmed?: boolean): Promise<{ success: boolean; message: string }> {
         // --- Schritt 1: Änderungsstatus prüfen ---
-        const blueprint = this.host.project.stages?.find((s: any) => s.id === 'blueprint' || s.type === 'blueprint');
+        // FIX: Sowohl Blueprint-Variable ALS AUCH isProjectDirty prüfen (OR-Verknüpfung).
+        // isProjectDirty wird bei jeder UI-Änderung gesetzt (z.B. Objekt hinzufügen).
+        // isProjectChangeAvailable wird via Mediator-Event gesetzt.
+        const blueprint = this.host.project.stages?.find((s: any) => s.id === 'blueprint' || s.id === 'stage_blueprint' || s.type === 'blueprint');
         const changeVar = blueprint?.variables?.find((v: any) => v.name === 'isProjectChangeAvailable');
-        const hasChanges = changeVar ? !!(changeVar.defaultValue || (changeVar as any).value) : this.host.isProjectDirty;
+        const blueprintChanged = changeVar ? !!(changeVar.defaultValue || (changeVar as any).value) : false;
+        const hasChanges = blueprintChanged || this.host.isProjectDirty;
 
         if (!hasChanges) {
             const msg = 'Daten haben sich nicht geändert';
@@ -146,16 +155,8 @@ export class EditorDataManager {
             const existsData = await existsRes.json();
 
             if (existsData.exists) {
-                // Datei existiert bereits → Überschreiben-Dialog
-                let doOverwrite = overwriteConfirmed;
-                if (doOverwrite === undefined) {
-                    doOverwrite = confirm(`Die Datei "${safeGameName}.json" ist schon vorhanden, soll diese überschrieben werden?`);
-                }
-                if (!doOverwrite) {
-                    const msg = 'Speichervorgang abgebrochen (Überschreiben verweigert)';
-                    EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
-                    return { success: false, message: msg };
-                }
+                // Datei existiert → Server erstellt automatisch ein Backup (.bakN)
+                EditorDataManager.logger.info(`[UseCase: Projekt speichern] Datei existiert bereits, Server erstellt Backup: ${targetFilePath}`);
             }
         } catch (err) {
             EditorDataManager.logger.warn('[UseCase: Projekt speichern] check-exists fehlgeschlagen (Server nicht erreichbar?), fahre fort mit Speichern:', err);
@@ -274,8 +275,28 @@ export class EditorDataManager {
         await projectPersistenceService.exportJSONCompressed(this.host.project);
     }
 
-    public loadProject(data: any) {
+    public loadProject(data: any, sourcePath?: string) {
         if (!data) return;
+
+        // Lade-Zeitpunkt merken: autoSaveToLocalStorage ignoriert die ersten 2s danach
+        this._loadedAt = Date.now();
+
+        // Quellpfad setzen — Priorität:
+        // 1. Expliziter sourcePath-Parameter (höchste Priorität)
+        // 2. _sourcePath aus Projekt-Metadaten (wurde beim letzten Speichern geschrieben)
+        // 3. Fallback aus meta.name (letzte Option)
+        if (sourcePath) {
+            this.currentSavePath = sourcePath;
+            EditorDataManager.logger.info(`[LoadProject] Quellpfad gesetzt (explizit): ${sourcePath}`);
+        } else if (data.meta?._sourcePath) {
+            this.currentSavePath = data.meta._sourcePath;
+            EditorDataManager.logger.info(`[LoadProject] Quellpfad aus _sourcePath: ${this.currentSavePath}`);
+        } else if (data.meta?.name) {
+            // Letzter Fallback: Pfad aus Projektnamen konstruieren
+            const safeName = data.meta.name.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
+            this.currentSavePath = `projects/master_test/${safeName}.json`;
+            EditorDataManager.logger.info(`[LoadProject] Quellpfad aus meta.name abgeleitet: ${this.currentSavePath}`);
+        }
 
         // Reset dirty flag after successful load
         this.host.isProjectDirty = false;
@@ -368,6 +389,8 @@ export class EditorDataManager {
         // setProject() und autoSaveToLocalStorage() lösen DATA_CHANGED aus → isProjectDirty=true
         // Muss deshalb NACH diesen Aufrufen zurückgesetzt werden
         this.host.isProjectDirty = false;
+        // Lade-Zeitpunkt aktualisieren → 2s-Cooldown beginnt JETZT (nach allen sync Events)
+        this._loadedAt = Date.now();
         setTimeout(() => { this.host.isProjectDirty = false; }, 100);
 
         setTimeout(() => {
@@ -389,6 +412,14 @@ export class EditorDataManager {
     public autoSaveToLocalStorage() {
         this.host.syncStageObjectsToProject();
         this.updateProjectJSON();
+
+        // Dirty-Markierung: Nur wenn seit dem Laden mehr als 2 Sekunden vergangen sind.
+        // Post-Load-Events (Render, Inspector) feuern in den ersten ~1s nach loadProject.
+        // Echte User-Änderungen (Drag, Property-Edit) kommen erst danach.
+        const timeSinceLoad = Date.now() - this._loadedAt;
+        if (timeSinceLoad > 2000) {
+            this.host.isProjectDirty = true;
+        }
 
         const globalVarCount = (this.host.project.variables || []).length;
         const totalStageVarCount = (this.host.project.stages || []).reduce((acc, s) => acc + (s.variables?.length || 0), 0);

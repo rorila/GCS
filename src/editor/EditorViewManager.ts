@@ -59,7 +59,7 @@ export class EditorViewManager {
 
             // set global change variable in blueprint stage
             if (originator !== 'editor-load' && this.host.project.stages) {
-                const blueprint = this.host.project.stages.find(s => s.id === 'blueprint');
+                const blueprint = this.host.project.stages.find(s => s.id === 'blueprint' || s.id === 'stage_blueprint' || s.type === 'blueprint');
                 if (blueprint && blueprint.variables) {
                     const changeVar = blueprint.variables.find(v => v.name === 'isProjectChangeAvailable');
                     if (changeVar) {

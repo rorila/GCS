@@ -108,7 +108,8 @@
             from,
             to,
             duration,
-            startTime: performance.now(),
+            startTime: -1,
+            // Lazy-Init: wird beim ersten update() auf performance.now() gesetzt
             easing,
             onComplete
           };
@@ -165,6 +166,9 @@
           }
           for (const tween of this.activeTweens) {
             try {
+              if (tween.startTime < 0) {
+                tween.startTime = now;
+              }
               const elapsed = now - tween.startTime;
               let progress = Math.min(elapsed / tween.duration, 1);
               const easedProgress = tween.easing(progress);
@@ -789,11 +793,15 @@
   var _DebugLogService = class _DebugLogService {
     constructor() {
       __publicField(this, "logs", []);
+      __publicField(this, "entryMap", /* @__PURE__ */ new Map());
+      // O(1) Lookup statt rekursiver Baumsuche
       __publicField(this, "listeners", []);
       __publicField(this, "maxLogs", 1e3);
+      __publicField(this, "maxChildren", 50);
       __publicField(this, "counter", 0);
       __publicField(this, "contextStack", []);
       __publicField(this, "enabled", false);
+      __publicField(this, "notifyScheduled", false);
       __publicField(this, "isNotifying", false);
       Logger.setLogHandler((level, prefix, message, useCase) => {
         this.log("System", `${prefix}${message}`, {
@@ -844,33 +852,40 @@
         eventName: options.eventName
       };
       if (parentId) {
-        const parent = this.findEntry(this.logs, parentId);
+        const parent = this.entryMap.get(parentId);
         if (parent) {
           parent.children.push(entry);
-          this.notify();
+          if (parent.children.length > this.maxChildren) {
+            const removed = parent.children.shift();
+            this.entryMap.delete(removed.id);
+          }
+          this.entryMap.set(id, entry);
+          this.scheduleNotify();
           return id;
         }
       }
       this.logs.push(entry);
+      this.entryMap.set(id, entry);
       if (this.logs.length > this.maxLogs) {
-        this.logs.shift();
+        const removed = this.logs.shift();
+        this.removeFromMap(removed);
       }
-      this.notify();
+      this.scheduleNotify();
       return id;
     }
-    findEntry(list, id) {
-      for (const entry of list) {
-        if (entry.id === id) return entry;
-        const found = this.findEntry(entry.children, id);
-        if (found) return found;
+    /** Entfernt einen Entry und alle seine Children rekursiv aus der entryMap */
+    removeFromMap(entry) {
+      this.entryMap.delete(entry.id);
+      for (const child of entry.children) {
+        this.removeFromMap(child);
       }
-      return void 0;
     }
     getLogs() {
       return [...this.logs];
     }
     clear() {
       this.logs = [];
+      this.entryMap.clear();
       this.notify();
     }
     subscribe(listener) {
@@ -881,10 +896,21 @@
       };
     }
     notify() {
+      this.isNotifying = true;
       this.listeners.forEach((l) => l(this.logs));
+      this.isNotifying = false;
+    }
+    /** Throttled notify: sammelt Log-Aufrufe und benachrichtigt max. alle 200ms */
+    scheduleNotify() {
+      if (this.notifyScheduled) return;
+      this.notifyScheduled = true;
+      requestAnimationFrame(() => {
+        this.notifyScheduled = false;
+        this.notify();
+      });
     }
     toggleExpand(id) {
-      const entry = this.findEntry(this.logs, id);
+      const entry = this.entryMap.get(id);
       if (entry) {
         entry.isExpanded = !entry.isExpanded;
         this.notify();
@@ -11289,9 +11315,6 @@
     }
     initMainGame() {
       let stageConfig = this.stage || this.project.stage || this.project.grid;
-      if (stageConfig?.startAnimation && stageConfig.startAnimation !== "none") {
-        this.triggerStartAnimation(stageConfig);
-      }
       const gridConfig = this.stage && this.stage.grid || this.project.stage?.grid || this.project.grid;
       const runtimeCallbacks = {
         handleEvent: (id, ev, data) => this.handleEvent(id, ev, data),
@@ -11315,6 +11338,10 @@
       );
       glm.start();
       this.initMultiplayer();
+      console.log(`[GameRuntime.initMainGame] startAnimation="${stageConfig?.startAnimation}", id="${stageConfig?.id}", objects: ${this.objects.length}`);
+      if (stageConfig?.startAnimation && stageConfig.startAnimation !== "none") {
+        this.triggerStartAnimation(stageConfig);
+      }
       this.objects.filter((o) => o.className === "TSplashScreen").forEach((splash) => {
         setTimeout(() => {
           this.handleEvent(splash.id, "onFinish");
@@ -11477,21 +11504,88 @@
       });
     }
     triggerStartAnimation(stageConfig) {
-      let animationType = stageConfig.startAnimation || "fade-in";
-      let duration = stageConfig.startAnimationDuration || 1e3;
-      this.objects.forEach((obj) => {
-        if (obj.visible !== false) {
-          if (animationType === "fade-in") {
+      const animationType = stageConfig.startAnimation || "fade-in";
+      const duration = stageConfig.startAnimationDuration || 1e3;
+      const easing = stageConfig.startAnimationEasing || "easeOut";
+      const am = AnimationManager.getInstance();
+      const grid = stageConfig.grid || stageConfig;
+      const stageWidth = grid.cols || 64;
+      const stageHeight = grid.rows || 40;
+      const outsideMargin = 10;
+      if (animationType === "fade-in") {
+        this.objects.forEach((obj) => {
+          if (obj.visible !== false) {
             const originalOpacity = obj.opacity !== void 0 ? obj.opacity : 1;
             obj.opacity = 0;
-            AnimationManager.getInstance().animate(obj, { opacity: originalOpacity }, duration);
-          } else if (animationType === "slide-up") {
+            am.animate(obj, { opacity: originalOpacity }, duration, easing);
+          }
+        });
+        return;
+      }
+      if (animationType === "slide-up") {
+        this.objects.forEach((obj) => {
+          if (obj.visible !== false) {
             const originalY = obj.y;
             obj.y += 100;
-            AnimationManager.getInstance().animate(obj, { y: originalY }, duration);
+            am.addTween(obj, "y", originalY, duration, easing);
           }
-        }
+        });
+        return;
+      }
+      const simplePatterns = ["UpLeft", "UpMiddle", "UpRight", "Left", "Right", "BottomLeft", "BottomMiddle", "BottomRight"];
+      this.objects.forEach((obj, index) => {
+        if (obj.visible === false) return;
+        const targetX = obj.x;
+        const targetY = obj.y;
+        const start = this.getPatternStartPosition(animationType, targetX, targetY, index, stageWidth, stageHeight, outsideMargin, simplePatterns);
+        if (!start) return;
+        obj.x = start.x;
+        obj.y = start.y;
+        am.addTween(obj, "x", targetX, duration, easing);
+        am.addTween(obj, "y", targetY, duration, easing);
       });
+    }
+    /**
+     * Berechnet die Startposition eines Objekts basierend auf dem Fly-In-Pattern.
+     * Spiegelt die Logik aus TStage.getPatternStartPosition().
+     */
+    getPatternStartPosition(pattern, targetX, targetY, index, stageWidth, stageHeight, outsideMargin, simplePatterns) {
+      switch (pattern) {
+        case "UpLeft":
+          return { x: -outsideMargin, y: -outsideMargin };
+        case "UpMiddle":
+          return { x: stageWidth / 2, y: -outsideMargin };
+        case "UpRight":
+          return { x: stageWidth + outsideMargin, y: -outsideMargin };
+        case "Left":
+          return { x: -outsideMargin, y: targetY };
+        case "Right":
+          return { x: stageWidth + outsideMargin, y: targetY };
+        case "BottomLeft":
+          return { x: -outsideMargin, y: stageHeight + outsideMargin };
+        case "BottomMiddle":
+          return { x: stageWidth / 2, y: stageHeight + outsideMargin };
+        case "BottomRight":
+          return { x: stageWidth + outsideMargin, y: stageHeight + outsideMargin };
+        case "ChaosIn": {
+          const angle = Math.random() * Math.PI * 2;
+          const distance = Math.max(stageWidth, stageHeight) + outsideMargin;
+          return {
+            x: stageWidth / 2 + Math.cos(angle) * distance,
+            y: stageHeight / 2 + Math.sin(angle) * distance
+          };
+        }
+        case "ChaosOut":
+          return { x: stageWidth / 2, y: stageHeight / 2 };
+        case "Matrix":
+          return { x: targetX, y: -outsideMargin - index * 20 };
+        case "Random": {
+          const randomPattern = simplePatterns[Math.floor(Math.random() * simplePatterns.length)];
+          return this.getPatternStartPosition(randomPattern, targetX, targetY, index, stageWidth, stageHeight, outsideMargin, simplePatterns);
+        }
+        default:
+          return null;
+      }
     }
     handleEvent(objectId, eventName, data = {}) {
       const obj = this.objects.find((o) => o.id === objectId);

@@ -271,28 +271,28 @@ export class Editor implements IViewHost {
                 const choice = await this.showRestoreDialog(localName, serverName, timeStr);
 
                 if (choice === 'local') {
-                    this.loadProject(localProject);
+                    this.loadProject(localProject, 'game-server/public/platform/project.json');
                     Editor.logger.info(`Restored local project: "${localName}"`);
                 } else {
                     localStorage.setItem('gcs_last_project', JSON.stringify(serverProject));
                     localStorage.removeItem('gcs_last_save_time');
-                    this.loadProject(serverProject);
+                    this.loadProject(serverProject, 'game-server/public/platform/project.json');
                     Editor.logger.info(`Loaded server project: "${serverName}"`);
                 }
             } else {
                 // Identisch → Server-Version laden (frisch)
                 localStorage.setItem('gcs_last_project', JSON.stringify(serverProject));
-                this.loadProject(serverProject);
+                this.loadProject(serverProject, 'game-server/public/platform/project.json');
                 Editor.logger.info('Projects identical, loaded server version');
             }
         } else if (localProject) {
             // Nur LocalStorage vorhanden
-            this.loadProject(localProject);
+            this.loadProject(localProject, 'game-server/public/platform/project.json');
             Editor.logger.info('Restored from LocalStorage (no server available)');
         } else if (serverProject) {
             // Nur Server vorhanden
             localStorage.setItem('gcs_last_project', JSON.stringify(serverProject));
-            this.loadProject(serverProject);
+            this.loadProject(serverProject, 'game-server/public/platform/project.json');
             Editor.logger.info('Loaded from server (no LocalStorage)');
         } else {
             // Nichts vorhanden
@@ -528,7 +528,7 @@ export class Editor implements IViewHost {
     public handleRewind() { this.undoManager.handleRewind(); }
     public handleForward() { this.undoManager.handleForward(); }
     public applyRecordedAction(action: any, dir: 'rewind' | 'forward') { this.undoManager.applyRecordedAction(action, dir); }
-    public loadProject(data: any) { this.dataManager.loadProject(data); }
+    public loadProject(data: any, sourcePath?: string) { this.dataManager.loadProject(data, sourcePath); }
 
     /**
      * ZENTRAL: Ersetzt das gesamte Projekt-Objekt und informiert alle Manager.
