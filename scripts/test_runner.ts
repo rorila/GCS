@@ -19,6 +19,7 @@ import { runTests as runActionCRUDTests } from '../tests/action_crud.test.js';
 import { runTests as runCoordinateTests } from '../src/runtime/CoordinateBinding.test.js';
 import { runTests as runAgentControllerTests } from '../tests/agent_controller.test.js';
 import { runSyncValidatorTests } from '../tests/sync_validator.test.js';
+import { runSnapshotTests } from '../tests/snapshot_manager.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -144,7 +145,16 @@ async function main() {
         console.log('🏃 Starte SyncValidator Tests...');
         allResults.push(...await runSyncValidatorTests());
 
-        // 🌐 12. Browser E2E Tests (Playwright)
+        // 13. SnapshotManager Tests
+        console.log('🏃 Starte SnapshotManager Tests...');
+        try {
+            runSnapshotTests();
+            allResults.push({ name: 'SnapshotManager Tests', passed: true, type: 'Undo/Redo', expectedSuccess: true, actualSuccess: true });
+        } catch (e: any) {
+            allResults.push({ name: 'SnapshotManager Tests', passed: false, type: 'Undo/Redo', expectedSuccess: true, actualSuccess: false, details: e.message });
+        }
+
+        // 🌐 14. Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');
 
         // Check if Game Server (Port 8080) is running

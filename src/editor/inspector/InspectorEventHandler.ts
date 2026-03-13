@@ -5,6 +5,7 @@ import { InspectorRegistry } from './InspectorRegistry';
 import { PropertyChangeEvent } from './types';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { Logger } from '../../utils/Logger';
+import { snapshotManager } from '../services/SnapshotManager';
 
 export class InspectorEventHandler {
     private static logger = Logger.get('InspectorEventHandler', 'Inspector_Update');
@@ -83,6 +84,9 @@ export class InspectorEventHandler {
         };
 
         InspectorEventHandler.logger.info(`[INSPECTOR-TRACE] Property change: ${propertyPath} = ${newValue} (was ${oldValue})`);
+
+        // 3.5 Snapshot VOR der Änderung nehmen (Undo-Support)
+        snapshotManager.pushSnapshot(this.project, `${propertyPath}: ${oldValue} → ${newValue}`);
 
         // 4. Delegate to specialized handler if available
         const handler = InspectorRegistry.getHandler(selectedObject);

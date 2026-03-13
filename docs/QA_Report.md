@@ -1,12 +1,12 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 13.3.2026, 21:24:36
+**Generiert am**: 13.3.2026, 21:32:04
 **Status**: ✅ ALLE TESTS BESTANDEN
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 106)
-    "Bestanden ✅" : 106
+pie title Test-Status (Gesamt: 107)
+    "Bestanden ✅" : 107
     "Fehlgeschlagen ❌" : 0
 ```
 
@@ -104,6 +104,7 @@ pie title Test-Status (Gesamt: 106)
 | R6: FlowChart Split-Brain erkennen<br><small>Erkannt: FlowChart "BlueprintTask" existiert sowohl in Root als auch in Stage "Blueprint" — Split-Brain!</small> | SyncValidator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | R6: Auto-Repair entfernt Root-Duplikat<br><small>Root-FlowChart entfernt, Stage-Version behalten</small> | SyncValidator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Spot-Validierung: Konsistentes Objekt → 0 Verletzungen<br><small>Keine Desync</small> | SyncValidator | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| SnapshotManager Tests | Undo/Redo | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Erzeugen, Bewegen und Umbenennen eines Tasks<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Erzeugen und Umbenennen einer Action via Inspector UI<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |

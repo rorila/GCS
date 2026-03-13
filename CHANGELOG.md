@@ -1,3 +1,11 @@
+## [3.14.4] - 2026-03-13
+### Added (Undo/Redo Snapshots)
+- **`SnapshotManager`** (`src/editor/services/SnapshotManager.ts`) [NEU]:
+  - Projekt-Level Undo/Redo via Deep-Copy Snapshots (ergänzt den bestehenden ChangeRecorder)
+  - Integration in `InspectorEventHandler`: Snapshot VOR jeder Property-Änderung
+  - Stack-Limit (30), Throttling (500ms), isRestoring Guard
+  - 10 Unit-Tests (Stack-Lifecycle, Deep Copy, Throttle, Restore-Callback, clear)
+
 ## [3.14.3] - 2026-03-13
 ### Added (IInspectable für UI-Komponenten)
 - **`TComponent` implementiert `IInspectable`** (`src/components/TComponent.ts`):
