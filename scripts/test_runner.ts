@@ -17,6 +17,7 @@ import { runRenamingRobustnessTests } from '../tests/renaming_robustness.test.js
 import { runTests as runActionRegistrationTests } from '../tests/action_registration.test.js';
 import { runTests as runActionCRUDTests } from '../tests/action_crud.test.js';
 import { runTests as runCoordinateTests } from '../src/runtime/CoordinateBinding.test.js';
+import { runTests as runAgentControllerTests } from '../tests/agent_controller.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -109,6 +110,10 @@ async function main() {
         // 15. Coordinate Binding Tests
         console.log('🏃 Starte Coordinate Binding Tests...');
         allResults.push(...await runCoordinateTests());
+
+        // 16. AgentController Tests
+        console.log('🏃 Starte AgentController Tests...');
+        allResults.push(...await runAgentControllerTests());
 
         // 6. Serialization Tests
         console.log('🏃 Starte Serialization Tests...');

@@ -104,6 +104,7 @@ export class ProjectPersistenceService {
         try {
             const json = JSON.stringify(targetProject, ProjectPersistenceService.safeReplacer());
             localStorage.setItem('gcs_last_project', json);
+            localStorage.setItem('gcs_last_save_time', Date.now().toString());
 
             ProjectPersistenceService.logger.debug(`Auto-save. Size: ${(json.length / 1024).toFixed(2)} KB`);
         } catch (err) {

@@ -101,7 +101,7 @@ export class AnimationManager {
             from,
             to,
             duration,
-            startTime: performance.now(),
+            startTime: -1, // Lazy-Init: wird beim ersten update() auf performance.now() gesetzt
             easing,
             onComplete
         };
@@ -177,6 +177,11 @@ export class AnimationManager {
 
         for (const tween of this.activeTweens) {
             try {
+                // Lazy-Init: startTime beim ersten update()-Aufruf setzen
+                // Verhindert Timing-Bug wenn Tweens zwischen Game-Loop-Zyklen erstellt werden
+                if (tween.startTime < 0) {
+                    tween.startTime = now;
+                }
                 const elapsed = now - tween.startTime;
                 let progress = Math.min(elapsed / tween.duration, 1);
 

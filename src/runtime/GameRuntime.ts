@@ -269,6 +269,7 @@ export class GameRuntime implements IVariableHost {
 
         // Start-Animation NACH glm.start(): Tweens werden erst erstellt wenn die
         // Game Loop bereits läuft und AnimationManager.update() pro Frame aufgerufen wird.
+        console.log(`[GameRuntime.initMainGame] startAnimation="${stageConfig?.startAnimation}", id="${stageConfig?.id}", objects: ${this.objects.length}`);
         if (stageConfig?.startAnimation && stageConfig.startAnimation !== 'none') {
             this.triggerStartAnimation(stageConfig);
         }
@@ -481,9 +482,10 @@ export class GameRuntime implements IVariableHost {
 
         // Bühnen-Dimensionen aus Grid ermitteln
         const grid = stageConfig.grid || stageConfig;
-        const stageWidth = (grid.cols || 64) * (grid.cellSize || 20);
-        const stageHeight = (grid.rows || 40) * (grid.cellSize || 20);
-        const outsideMargin = 50;
+        // Objekt-Positionen sind in Grid-Zellen (nicht Pixeln!) → Bühnenmaße auch in Grid-Zellen
+        const stageWidth = grid.cols || 64;
+        const stageHeight = grid.rows || 40;
+        const outsideMargin = 10; // Grid-Zellen knapp außerhalb der Bühne
 
         // Legacy-Animationen (fade-in, slide-up)
         if (animationType === 'fade-in') {

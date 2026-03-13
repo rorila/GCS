@@ -17,7 +17,8 @@ export type ClientMessage =
     | { type: 'sync_project', project: any }  // Master sends project JSON
     | { type: 'trigger_task', taskName: string, params?: any }  // triggerMode: broadcast
     | { type: 'sync_task', taskName: string, params?: any }     // triggerMode: local-sync
-    | { type: 'ping', timestamp: number };                       // Heartbeat ping
+    | { type: 'ping', timestamp: number }                        // Heartbeat ping
+    | { type: 'agent_call', method: string, params?: any[], requestId?: string };  // Agent API call
 
 // Server → Client messages
 export type ServerMessage =
@@ -34,6 +35,7 @@ export type ServerMessage =
     | { type: 'remote_task', player: 1 | 2, taskName: string, params?: any, mode: 'broadcast' | 'sync' }
     | { type: 'pong', timestamp: number, serverTime: number }    // Heartbeat pong response
     | { type: 'player_timeout', playerNumber: 1 | 2, reason: 'heartbeat' | 'disconnect' }  // Timeout notification
+    | { type: 'agent_result', requestId?: string, success: boolean, data?: any, error?: string }  // Agent API result
     | { type: 'error', message: string };
 
 // Helper to send typed messages

@@ -1,3 +1,38 @@
+## [3.13.0] - 2026-03-13
+### Added (API-Realisierung Phase 1-5)
+- **API-Referenzdokument** (`docs/AgentAPI.md`):
+  - Vollständige Referenz aller 45+ Methoden mit Signatur, Parametern, Rückgabewerten
+  - **Action-Typ-Katalog**: Alle 22 Typen mit Pflichtfeldern und Beispielen
+  - **Event-Katalog**: onClick, onCollision, onBoundaryHit, onStart, onKeyDown etc.
+  - **Komponenten-Katalog**: TSprite, TLabel, TButton, TPanel, TInputController
+  - **Batch-API Doku**: Transaktionen mit Rollback-Semantik
+  - **WebSocket-API Doku**: agent_call/agent_result Echtzeit-Protokoll
+  - **KI-Prompt-Template** für externe KI-Agenten
+  - **Vollständiges PingPong-Beispiel** zur Demonstration aller API-Methoden
+- **AgentController.ts** — 5 neue Methoden:
+  - `addTaskCall(taskName, calledTaskName)` — Task-Referenz in Sequenz
+  - `setTaskTriggerMode(taskName, mode)` — broadcast/local-sync/local setzen
+  - `addTaskParam(taskName, paramName, type, defaultValue)` — Task-Parameter
+  - `moveActionInSequence(taskName, fromIndex, toIndex)` — Reihenfolge ändern
+  - `executeBatch(operations[])` — Batch-API mit Rollback
+- **AgentShortcuts.ts** [NEU] — Convenience-Layer:
+  - `createSprite()`, `createLabel()`, `createButton()`, `setSpriteCollision()`, `setSpriteVelocity()`
+  - `createBounceLogic()`, `createScoreSystem()`, `createPaddleControls()`
+- **HTTP-Endpoints** in `game-server/src/server.ts`:
+  - `POST /api/agent/:method` — Einzeln-Aufrufe
+  - `POST /api/agent/batch` — Batch/Transaktionen mit Rollback
+- **WebSocket-Kanal** `agent_call` / `agent_result` in `Protocol.ts` + `server.ts`
+- **Tests** (`tests/agent_controller.test.ts`): 12 Tests (PingPong + Tennis-Batch + Rollback)
+
+## [3.12.4] - 2026-03-13
+### Added
+- **F5-Reload Dialog (Session-Wiederherstellung)**:
+  - Bei F5/Reload vergleicht der Editor jetzt LocalStorage-Projekt mit Server-Datei (`project.json`).
+  - Wenn sich die Projekte unterscheiden → modaler Dialog: "📂 Lokale Version laden" vs. "🌐 Server-Version laden".
+  - Zeigt Projektname und letzten Speicherzeitpunkt der lokalen Version.
+  - `autoSaveToLocalStorage()` schreibt jetzt Zeitstempel (`gcs_last_save_time`).
+  - Vorher: Immer hardcoded `./platform/project.json` geladen — lokale Änderungen gingen bei F5 verloren.
+
 ## [3.12.3] - 2026-03-12
 ### Added (Editor / Debugging)
 - **Keyboard- & Runtime-Logs via UseCaseManager**: Neuer UseCase `Input_Handling` in `UseCaseManager.ts` hinzugefügt. `TInputController` wurde darauf umgestellt. `TaskExecutor` (`[TaskExecutor] EXECUTING: ...`) und `EditorRunManager` (`[RunManager] handleRuntimeEvent: ...`) verwenden nun ebenfalls konsequent die Logger-API (`Logger.get(..., 'Runtime_Execution')`). Alle störenden Event- und Ausführungs-Logs lassen sich nun gezielt im Inspector "Logs"-Tab de- und aktivieren.
@@ -28,6 +63,8 @@
   - `GameRuntime.triggerStartAnimation()` unterstützt jetzt alle 12 TStage Fly-Patterns (UpLeft, BottomLeft, ChaosIn, Matrix, Random, etc.).
   - Vorher wurden nur `fade-in` und `slide-up` erkannt — alle Inspector-konfigurierten Patterns (z.B. `BottomLeft`) wurden ignoriert.
   - Easing-Konfiguration (`startAnimationEasing`) wird jetzt korrekt aus der Stage-Config gelesen.
+  - **Lazy-Init Fix in AnimationManager**: `startTime` wird erst beim ersten `update()`-Aufruf gesetzt (statt bei Tween-Erstellung). Behebt Timing-Bug wo Tweens sofort als "completed" markiert wurden weil sie zwischen Game-Loop-Zyklen erstellt wurden.
+  - **Einheiten-Bug behoben**: Startpositionen wurden in Pixeln (1152×720) statt Grid-Zellen (64×40) berechnet → Objekte starteten 97% der Dauer unsichtbar. `outsideMargin` auf 10 Grid-Zellen reduziert.
 - **DebugLogService Performance-Fix**:
   - `maxChildren=50` pro Parent-Log verhindert unbegrenztes Speicherwachstum bei verschachtelten Logs.
   - `scheduleNotify()` via `requestAnimationFrame` reduziert Listener-Benachrichtigungen von hunderten/sec auf max. 1/Frame.

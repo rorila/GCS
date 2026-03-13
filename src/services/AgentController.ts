@@ -251,6 +251,99 @@ export class AgentController {
     }
 
 
+    /**
+     * Fügt einen Task-Aufruf in die Sequenz eines anderen Tasks ein.
+     * Damit kann ein Task einen anderen Task als Sub-Routine aufrufen.
+     */
+    public addTaskCall(taskName: string, calledTaskName: string): void {
+        this.validateProjectLoaded();
+
+        const task = this.getTaskByName(taskName);
+        if (!task) throw new Error(`Task '${taskName}' not found.`);
+
+        const calledTask = this.getTaskByName(calledTaskName);
+        if (!calledTask) throw new Error(`Called task '${calledTaskName}' not found. Create it first with createTask().`);
+
+        task.actionSequence.push({
+            type: 'task',
+            name: calledTaskName
+        } as any);
+
+        this.invalidateTaskFlow(taskName);
+        AgentController.logger.info(`Added task call '${calledTaskName}' to '${taskName}'.`);
+        this.notifyChange();
+    }
+
+    /**
+     * Setzt den Ausführungsmodus eines Tasks.
+     * @param mode - 'local-sync' (Standard), 'local-async', 'broadcast'
+     */
+    public setTaskTriggerMode(taskName: string, mode: 'local-sync' | 'local' | 'broadcast'): void {
+        this.validateProjectLoaded();
+
+        const task = this.getTaskByName(taskName);
+        if (!task) throw new Error(`Task '${taskName}' not found.`);
+
+        const validModes = ['local-sync', 'local', 'broadcast'];
+        if (!validModes.includes(mode)) {
+            throw new Error(`Invalid trigger mode '${mode}'. Valid: ${validModes.join(', ')}`);
+        }
+
+        task.triggerMode = mode;
+        AgentController.logger.info(`Task '${taskName}' trigger mode set to '${mode}'.`);
+        this.notifyChange();
+    }
+
+    /**
+     * Definiert einen Eingangsparameter für einen Task.
+     * Parameter werden beim Event-Auslöser über eventData übergeben (z.B. hitSide bei onBoundaryHit).
+     */
+    public addTaskParam(taskName: string, paramName: string, type: string = 'string', defaultValue: any = ''): void {
+        this.validateProjectLoaded();
+
+        const task = this.getTaskByName(taskName);
+        if (!task) throw new Error(`Task '${taskName}' not found.`);
+
+        if (!task.params) task.params = [];
+
+        // Prüfe ob Parameter bereits existiert
+        const existing = task.params.find((p: any) => p.name === paramName);
+        if (existing) {
+            existing.type = type;
+            existing.defaultValue = defaultValue;
+            AgentController.logger.info(`Updated param '${paramName}' on task '${taskName}'.`);
+        } else {
+            task.params.push({ name: paramName, type, defaultValue } as any);
+            AgentController.logger.info(`Added param '${paramName}' (${type}) to task '${taskName}'.`);
+        }
+
+        this.notifyChange();
+    }
+
+    /**
+     * Ändert die Reihenfolge einer Action/Element in der Sequenz eines Tasks.
+     * @param fromIndex - Aktuelle Position (0-basiert)
+     * @param toIndex - Neue Position (0-basiert)
+     */
+    public moveActionInSequence(taskName: string, fromIndex: number, toIndex: number): void {
+        this.validateProjectLoaded();
+
+        const task = this.getTaskByName(taskName);
+        if (!task) throw new Error(`Task '${taskName}' not found.`);
+
+        const seq = task.actionSequence;
+        if (fromIndex < 0 || fromIndex >= seq.length) throw new Error(`fromIndex ${fromIndex} out of bounds (0-${seq.length - 1}).`);
+        if (toIndex < 0 || toIndex >= seq.length) throw new Error(`toIndex ${toIndex} out of bounds (0-${seq.length - 1}).`);
+
+        const [item] = seq.splice(fromIndex, 1);
+        seq.splice(toIndex, 0, item);
+
+        this.invalidateTaskFlow(taskName);
+        AgentController.logger.info(`Moved action in '${taskName}' from index ${fromIndex} to ${toIndex}.`);
+        this.notifyChange();
+    }
+
+
     // ─────────────────────────────────────────────
     // 3. Branch Management
     // ─────────────────────────────────────────────
@@ -900,6 +993,50 @@ export class AgentController {
 
         AgentController.logger.info(`Validation complete: ${issues.filter(i => i.level === 'error').length} errors, ${issues.filter(i => i.level === 'warning').length} warnings`);
         return issues;
+    }
+    // ─────────────────────────────────────────────
+    // 10. Batch-API (Transaktionen)
+    // ─────────────────────────────────────────────
+
+    /**
+     * Führt mehrere API-Aufrufe als Batch/Transaktion aus.
+     * Bei Fehler: Rollback auf den Zustand vor dem Batch.
+     * @param operations - Array von {method, params} Objekten
+     * @returns Array von {method, success, data, error} Ergebnissen
+     */
+    public executeBatch(operations: Array<{ method: string; params: any[] }>): Array<{ method: string; success: boolean; data: any; error: string | null }> {
+        this.validateProjectLoaded();
+
+        // Snapshot für Rollback
+        const snapshot = JSON.stringify(this.project);
+        const results: Array<{ method: string; success: boolean; data: any; error: string | null }> = [];
+        let rollback = false;
+
+        for (const op of operations) {
+            try {
+                const fn = (this as any)[op.method];
+                if (typeof fn !== 'function') {
+                    throw new Error(`Methode '${op.method}' existiert nicht auf AgentController.`);
+                }
+                const result = fn.apply(this, op.params || []);
+                results.push({ method: op.method, success: true, data: result ?? null, error: null });
+            } catch (e: any) {
+                results.push({ method: op.method, success: false, data: null, error: e.message });
+                rollback = true;
+                break;
+            }
+        }
+
+        if (rollback) {
+            // Rollback: Projekt auf Snapshot zurücksetzen
+            const restored = JSON.parse(snapshot);
+            Object.assign(this.project!, restored);
+            AgentController.logger.warn(`Batch rolled back after error in '${results[results.length - 1]?.method}'.`);
+        } else {
+            AgentController.logger.info(`Batch executed: ${operations.length} operations OK.`);
+        }
+
+        return results;
     }
 
     // ─────────────────────────────────────────────
