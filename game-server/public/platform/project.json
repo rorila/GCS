@@ -798,7 +798,7 @@
         },
         {
           "className": "TButton",
-          "id": "obj_1773433922530_txk6zv82c",
+          "id": "obj_1773434959056_9yc6mo4wo",
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
@@ -1188,7 +1188,7 @@
           "flowChart": {
             "elements": [
               {
-                "id": "node-1773433915177",
+                "id": "node-1773434951671",
                 "type": "task",
                 "x": 400,
                 "y": 200,
@@ -1207,7 +1207,7 @@
                 }
               },
               {
-                "id": "node-1773433916176",
+                "id": "node-1773434952672",
                 "type": "action",
                 "x": 500,
                 "y": 420,
@@ -3629,7 +3629,7 @@
           "children": [
             {
               "className": "TPanel",
-              "id": "obj_1773433924194_x8om94dap",
+              "id": "obj_1773434960735_hxt59okl4",
               "isVariable": false,
               "isService": false,
               "isHiddenInRun": false,
@@ -3658,7 +3658,7 @@
             },
             {
               "className": "TPanel",
-              "id": "obj_1773433923381_2upgsbn52",
+              "id": "obj_1773434959924_yxs8sacax",
               "isVariable": false,
               "isService": false,
               "isHiddenInRun": false,
@@ -3687,7 +3687,7 @@
             },
             {
               "className": "TPanel",
-              "id": "obj_1773433923036_uvj9wsck0",
+              "id": "obj_1773434959572_a7zsewq8m",
               "isVariable": false,
               "isService": false,
               "isHiddenInRun": false,
@@ -3716,7 +3716,7 @@
             },
             {
               "className": "TPanel",
-              "id": "obj_1773433913842_sacnjjr94",
+              "id": "obj_1773434950330_tcbbht69w",
               "isVariable": false,
               "isService": false,
               "isHiddenInRun": false,

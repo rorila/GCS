@@ -1,3 +1,12 @@
+## [3.15.0] - 2026-03-13
+### Added (Unidirektionaler Datenfluss — Phase 1)
+- **`ProjectStore`** (`src/services/ProjectStore.ts`) [NEU]:
+  - Zentraler State-Manager mit dispatch/reduce/onChange Pattern
+  - 11 Mutations-Typen: SET_PROPERTY, RENAME_ACTION/TASK, ADD/REMOVE ACTION/TASK/OBJECT, SET_STAGE, BATCH
+  - Automatischer Snapshot vor jeder Mutation (SnapshotManager-Integration)
+  - Guard gegen verschachtelte Dispatches
+  - 10 Unit-Tests (SET_PROPERTY, RENAME, ADD/REMOVE, onChange, BATCH)
+
 ## [3.14.4] - 2026-03-13
 ### Added (Undo/Redo Snapshots)
 - **`SnapshotManager`** (`src/editor/services/SnapshotManager.ts`) [NEU]:

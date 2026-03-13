@@ -20,6 +20,7 @@
 - **SyncValidator (v3.14.1)**: Nach jeder `syncToProject()`-Operation prüft `SyncValidator.validate()` automatisch 6 Konsistenzregeln. Verletzungen werden über den Logger geloggt. Bei neuen Sync-relevanten Datenstrukturen: entsprechende Validierungsregel in `SyncValidator.ts` ergänzen.
 - **TComponent IInspectable (v3.14.3)**: Alle UI-Komponenten (TButton, TLabel, etc.) implementieren automatisch `IInspectable` über TComponent. `getInspectorSections()` konvertiert `getInspectorProperties()` Gruppen zu Sektionen. Neue Gruppen-Icons in `GROUP_ICONS` Map in `TComponent.ts` hinzufügen.
 - **SnapshotManager (v3.14.4)**: Projekt-Level Undo/Redo via `snapshotManager.pushSnapshot()` vor Property-Änderungen. Ergänzt den bestehenden `ChangeRecorder` (feingranulares Action-Undo). Bei neuen Daten-Mutationspunkten: `snapshotManager.pushSnapshot(project, label)` aufrufen.
+- **ProjectStore (v3.15.0)**: Zentraler State-Manager. Alle Datenänderungen SOLLTEN über `projectStore.dispatch()` laufen. Views registrieren sich über `projectStore.onChange()`. Neue Mutations-Typen in `ProjectMutation` hinzufügen und `reduce()` erweitern.
 - **Sync-Blacklist**: Die `taskFields` Liste in `FlowSyncManager.ts` darf keine Felder enthalten, die für Aktionen (Global oder Embedded) essentiell sind (z.B. `value`, `params`, `body`, `source`).
 
 ## Synchronisation von Inspector und Flow-Editor
