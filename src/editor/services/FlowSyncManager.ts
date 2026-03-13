@@ -15,6 +15,7 @@ import { FlowRandomVariable } from '../flow/FlowRandomVariable';
 import { FlowConnection } from '../flow/FlowConnection';
 import { FlowDataAction } from '../flow/FlowDataAction';
 import { Logger } from '../../utils/Logger';
+import { SyncValidator } from './SyncValidator';
 
 export interface FlowSyncHost {
     project: any;
@@ -185,6 +186,17 @@ export class FlowSyncManager {
         }
         this.host.updateFlowSelector();
         mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
+
+        // Konsistenzprüfung nach Sync
+        const violations = SyncValidator.validate(this.host.project, currentContext);
+        if (violations.length > 0) {
+            SyncValidator.logger.warn(`${violations.length} Konsistenz-Verletzung(en) nach Sync von "${currentContext}":`);
+            violations.forEach(v => {
+                SyncValidator.logger[v.severity](
+                    `  [${v.rule}] ${v.message}${v.autoRepaired ? ' ✅ (auto-repariert)' : ''}`
+                );
+            });
+        }
     }
 
     /**

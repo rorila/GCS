@@ -6,6 +6,7 @@ import { PropertyHelper } from '../../../runtime/PropertyHelper';
 import { projectRegistry } from '../../../services/ProjectRegistry';
 import { RefactoringManager } from '../../RefactoringManager';
 import { mediatorService } from '../../../services/MediatorService';
+import { SyncValidator } from '../../services/SyncValidator';
 
 export class FlowNodeHandler implements IInspectorHandler {
     private static logger = Logger.get('FlowNodeHandler', 'Task_Management');
@@ -132,6 +133,9 @@ export class FlowNodeHandler implements IInspectorHandler {
             FlowNodeHandler.logger.debug(`[FLOW-CHANGE-TRACE] Refreshing node view...`);
             object.setShowDetails(object.showDetails || true, project);
         }
+
+        // Spot-Validierung: Prüfe ob die Änderung korrekt persistiert wurde
+        SyncValidator.validateSinglePropertySync(object, propertyName, project);
 
         return true;
     }

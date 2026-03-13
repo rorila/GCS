@@ -1,3 +1,12 @@
+## [3.14.1] - 2026-03-13
+### Added (Sync-Robustheit)
+- **`SyncValidator`** (`src/editor/services/SyncValidator.ts`) [NEU]:
+  - Automatische Konsistenzprüfung nach jeder `syncToProject()`-Operation
+  - 6 Validierungsregeln: R1 (Action-Referenzen), R2 (FlowChart-Task-Konsistenz), R3 (Connection-Validität), R4 (Property-Sync), R5 (Duplikate), R6 (FlowChart-Speicherort)
+  - Auto-Repair für unkritische Fälle (verwaiste Referenzen, FlowChart-Duplikate)
+  - Spot-Validierung in `FlowNodeHandler.handlePropertyChange()` für sofortige Desync-Erkennung
+  - 10 Unit-Tests (Gutfall, Erkennung und Auto-Repair für R1/R2/R3/R5/R6, Spot-Validierung)
+
 ## [3.14.0] - 2026-03-13
 ### Added (Inspector Refactoring: Component-Owned Inspector)
 - **`IInspectable` Interface** (`src/editor/inspector/types.ts`):

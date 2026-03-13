@@ -18,6 +18,7 @@ import { runTests as runActionRegistrationTests } from '../tests/action_registra
 import { runTests as runActionCRUDTests } from '../tests/action_crud.test.js';
 import { runTests as runCoordinateTests } from '../src/runtime/CoordinateBinding.test.js';
 import { runTests as runAgentControllerTests } from '../tests/agent_controller.test.js';
+import { runSyncValidatorTests } from '../tests/sync_validator.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -138,6 +139,10 @@ async function main() {
         // 11. Renaming Robustness Tests
         console.log('🏃 Starte Renaming Robustness Tests...');
         allResults.push(...await runRenamingRobustnessTests());
+
+        // 12. SyncValidator Tests
+        console.log('🏃 Starte SyncValidator Tests...');
+        allResults.push(...await runSyncValidatorTests());
 
         // 🌐 12. Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');
