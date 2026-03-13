@@ -423,8 +423,10 @@ export class StageRenderer {
             this.renderButton(el, obj, isNew);
         } else if (className === 'TEmojiPicker') {
             this.renderEmojiPickerInternal(el, obj);
-        } else if (className === 'TTable' || className === 'TObjectList' || className === 'TDataList') {
+        } else if (className === 'TTable' || className === 'TObjectList') {
             StageRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host), this.host.grid.cellSize);
+        } else if (className === 'TDataList') {
+            this.renderDataList(el, obj);
         } else if (className === 'TStringVariable' || className === 'TObjectVariable' || className === 'TIntegerVariable' || className === 'TBooleanVariable' || className === 'TListVariable' || obj.isVariable || obj.isService) {
             this.renderSystemComponent(el, obj, className);
         } else if (className === 'TLabel' || className === 'TNumberLabel') {
@@ -1026,6 +1028,198 @@ export class StageRenderer {
             if (handleStyles[dir].transform) handle.style.transform = handleStyles[dir].transform;
             el.appendChild(handle);
         });
+    }
+
+    /**
+     * Rendert eine TDataList: Im Editor das Template, im Run-Modus die geklonten Karten
+     */
+    private renderDataList(el: HTMLElement, obj: any): void {
+        const isRunMode = this.host.runMode;
+
+        // Container-Styling
+        el.style.display = 'flex';
+        el.style.flexDirection = 'column';
+        el.style.overflow = 'auto';
+        el.style.alignItems = 'stretch';
+        el.style.justifyContent = 'flex-start';
+        el.style.padding = '4px';
+        el.style.gap = `${obj.rowGap || 4}px`;
+
+        if (isRunMode && obj._runtimeRows && obj._runtimeRows.length > 0) {
+            // --- RUN-MODUS: Geklonte Karten rendern ---
+            const existingCards = el.querySelectorAll('.datalist-row');
+            
+            // Nur neu rendern wenn Anzahl sich geändert hat
+            if (existingCards.length !== obj._runtimeRows.length) {
+                el.innerHTML = '';
+                
+                for (let i = 0; i < obj._runtimeRows.length; i++) {
+                    const rowData = obj._runtimeRows[i];
+                    const card = document.createElement('div');
+                    card.className = 'datalist-row';
+                    card.setAttribute('data-row-index', String(i));
+                    card.style.minHeight = `${obj.rowHeight || 60}px`;
+                    card.style.display = 'flex';
+                    card.style.alignItems = 'center';
+                    card.style.gap = '8px';
+                    card.style.padding = '8px 12px';
+                    card.style.borderRadius = `${rowData.style?.borderRadius || 8}px`;
+                    card.style.backgroundColor = rowData.style?.backgroundColor || '#1a1a3e';
+                    card.style.border = `${rowData.style?.borderWidth || 1}px solid ${rowData.style?.borderColor || '#2a2a5e'}`;
+                    card.style.cursor = 'pointer';
+                    card.style.transition = 'background 0.2s';
+                    card.style.flexShrink = '0';
+
+                    // Hover-Effekt
+                    card.onmouseenter = () => card.style.backgroundColor = '#252555';
+                    card.onmouseleave = () => card.style.backgroundColor = rowData.style?.backgroundColor || '#1a1a3e';
+
+                    // Children der Karte rendern
+                    if (rowData.children && Array.isArray(rowData.children)) {
+                        for (const child of rowData.children) {
+                            const childEl = this.renderDataListChild(child, obj, i);
+                            if (childEl) card.appendChild(childEl);
+                        }
+                    } else {
+                        // Fallback: Zeige Rohtext der Zeile
+                        const item = rowData._rowItem;
+                        if (item) {
+                            const text = typeof item === 'object' ? JSON.stringify(item) : String(item);
+                            card.innerText = text.substring(0, 100);
+                            card.style.color = '#ccc';
+                            card.style.fontSize = '12px';
+                        }
+                    }
+
+                    // Zeilen-Klick Event
+                    card.onclick = (e) => {
+                        e.stopPropagation();
+                        if (this.host.onEvent) {
+                            this.host.onEvent(obj.id, 'onRowClick', {
+                                item: rowData._rowItem,
+                                rowIndex: i
+                            });
+                        }
+                    };
+
+                    el.appendChild(card);
+                }
+            }
+        } else {
+            // --- EDITOR-MODUS: Template-Vorschau ---
+            const templatePanel = obj.children?.[0];
+            const childCount = templatePanel?.children?.length || 0;
+
+            // Info-Bar
+            let infoBar = el.querySelector('.datalist-info') as HTMLElement;
+            if (!infoBar) {
+                el.innerHTML = '';
+                infoBar = document.createElement('div');
+                infoBar.className = 'datalist-info';
+                infoBar.style.fontSize = '10px';
+                infoBar.style.color = '#4da6ff';
+                infoBar.style.padding = '4px 8px';
+                infoBar.style.textAlign = 'center';
+                infoBar.style.borderBottom = '1px solid #2a2a5e';
+                infoBar.style.flexShrink = '0';
+                el.appendChild(infoBar);
+            }
+
+            const actionInfo = obj.dataAction ? `📊 ${obj.dataAction}` : '⚠️ Keine DataAction';
+            infoBar.innerText = `🔄 Repeater | ${actionInfo} | ${childCount} Kinder im Template`;
+
+            // Template-Vorschau (1 Karte)
+            if (templatePanel) {
+                let previewCard = el.querySelector('.datalist-preview') as HTMLElement;
+                if (!previewCard) {
+                    previewCard = document.createElement('div');
+                    previewCard.className = 'datalist-preview';
+                    previewCard.style.minHeight = `${obj.rowHeight || 60}px`;
+                    previewCard.style.display = 'flex';
+                    previewCard.style.alignItems = 'center';
+                    previewCard.style.gap = '8px';
+                    previewCard.style.padding = '8px 12px';
+                    previewCard.style.borderRadius = `${templatePanel.style?.borderRadius || 8}px`;
+                    previewCard.style.backgroundColor = templatePanel.style?.backgroundColor || '#1a1a3e';
+                    previewCard.style.border = `1px dashed ${templatePanel.style?.borderColor || '#4da6ff'}`;
+                    el.appendChild(previewCard);
+                }
+
+                // Zeige Children-Namen als Preview
+                const childNames = (templatePanel.children || []).map((c: any) => {
+                    const className = c.className || '?';
+                    const text = c.text || c.caption || c.name || '';
+                    return `[${className}] ${text}`;
+                }).join(' | ');
+
+                previewCard.innerText = childNames || 'Leeres Template — ziehe Komponenten hinein';
+                previewCard.style.color = childNames ? '#aaa' : '#666';
+                previewCard.style.fontSize = '11px';
+            }
+        }
+    }
+
+    /**
+     * Rendert ein einzelnes Kind-Element einer DataList-Karte
+     */
+    private renderDataListChild(childData: any, parentObj: any, rowIndex: number): HTMLElement | null {
+        const className = childData.className;
+        const childEl = document.createElement('span');
+
+        if (className === 'TLabel' || className === 'TNumberLabel') {
+            childEl.innerText = childData.text || '';
+            childEl.style.color = childData.style?.color || '#ccc';
+            if (childData.style?.fontSize) childEl.style.fontSize = typeof childData.style.fontSize === 'number' ? `${childData.style.fontSize}px` : childData.style.fontSize;
+            if (childData.style?.fontWeight === 'bold' || childData.style?.fontWeight === true) childEl.style.fontWeight = 'bold';
+            if (childData.style?.fontStyle === 'italic' || childData.style?.fontStyle === true) childEl.style.fontStyle = 'italic';
+            if (childData.style?.fontFamily) childEl.style.fontFamily = childData.style.fontFamily;
+        } else if (className === 'TButton') {
+            childEl.innerText = childData.caption || childData.name || '?';
+            childEl.style.cursor = 'pointer';
+            childEl.style.padding = '4px 8px';
+            childEl.style.borderRadius = '4px';
+            childEl.style.backgroundColor = childData.style?.backgroundColor || '#333';
+            childEl.style.color = childData.style?.color || '#fff';
+            childEl.style.border = 'none';
+            childEl.style.fontSize = childData.style?.fontSize ? `${childData.style.fontSize}px` : '12px';
+            
+            childEl.onclick = (e) => {
+                e.stopPropagation();
+                if (this.host.onEvent) {
+                    this.host.onEvent(parentObj.id, 'onClick', {
+                        item: childData._rowItem,
+                        rowIndex: rowIndex,
+                        buttonName: childData.name
+                    });
+                }
+            };
+        } else if (className === 'TImage' || className === 'TAvatar' || className === 'TShape') {
+            const img = document.createElement('img');
+            const src = childData.src || childData.backgroundImage || '';
+            if (src) {
+                img.src = src.startsWith('http') || src.startsWith('/') || src.startsWith('data:') ? src : `/images/${src}`;
+            }
+            img.style.width = '40px';
+            img.style.height = '40px';
+            img.style.borderRadius = className === 'TAvatar' || className === 'TShape' ? '50%' : `${childData.style?.borderRadius || 4}px`;
+            img.style.objectFit = 'cover';
+            img.onerror = () => { img.style.display = 'none'; };
+            return img;
+        } else if (className === 'TBadge') {
+            childEl.innerText = childData.text || childData.value || '';
+            childEl.style.padding = '2px 8px';
+            childEl.style.borderRadius = '12px';
+            childEl.style.fontSize = '10px';
+            childEl.style.fontWeight = 'bold';
+            childEl.style.backgroundColor = childData.style?.backgroundColor || '#4caf50';
+            childEl.style.color = childData.style?.color || '#fff';
+        } else {
+            // Fallback: Text anzeigen
+            childEl.innerText = childData.text || childData.caption || childData.name || '';
+            childEl.style.color = childData.style?.color || '#aaa';
+        }
+
+        return childEl;
     }
 
     public static renderTable(el: HTMLElement, obj: any, onEvent?: (id: string, event: string, data?: any) => void, cellSize: number = 20): void {

@@ -333,7 +333,7 @@ export class InspectorHost {
 
                 const select = this.renderer.renderSelect(Array.isArray(options) ? options : [], value, def.placeholder);
                 if (def.name) select.name = def.name;
-                select.onchange = () => {
+                select.onchange = async () => {
                     InspectorHost.logger.info(`[UI-TRACE] Control="${def.name}" onchange: NewValue="${select.value}"`);
                     const event = this.eventHandler.handleControlChange(def.name, select.value, obj, def);
 
@@ -346,12 +346,15 @@ export class InspectorHost {
                         }, 'inspector');
                     }
 
-                    // --- NEW: Handle optional action trigger ---
+                    // --- Handle optional action trigger (z.B. changeActionType) ---
+                    // WICHTIG: handleAction ist async und ruft intern host.update() auf.
+                    // Deshalb KEIN separates this.update() wenn eine Action ausgeführt wird,
+                    // sonst Race-Condition: der zweite update() überschreibt mit alten Daten.
                     if (def.action) {
-                        (this.actionHandler as any).handleAction(def, obj, select.value);
+                        await (this.actionHandler as any).handleAction(def, obj, select.value);
+                    } else {
+                        this.update(obj); // Re-render nur wenn keine Action das übernimmt
                     }
-
-                    this.update(obj); // Immediate re-render
                     if (this.onObjectUpdate) this.onObjectUpdate(event);
                 };
                 return select;

@@ -61,6 +61,7 @@ export class FlowNodeFactory {
                 }
                 break;
             }
+            case 'dataaction':
             case 'data_action': {
                 node = new FlowDataAction(id, x, y, this.host.canvas, cellSize);
                 if (initialName && initialName !== 'DataAction' && initialName !== 'Daten-Aktion') {
@@ -68,6 +69,21 @@ export class FlowNodeFactory {
                 } else {
                     node.Name = FlowNamingService.generateUniqueActionName(this.host.project, this.host.nodes, initialName || 'DataAction');
                 }
+                // Standard-Felder für eine vollständige DataAction setzen
+                node.data = {
+                    ...node.data,
+                    type: 'data_action',
+                    details: '(data_action)',
+                    showDetails: false,
+                    dataStore: '',
+                    queryProperty: '',
+                    queryValue: '',
+                    url: '',
+                    method: 'GET',
+                    requestJWT: false,
+                    resultVariable: '',
+                    selectFields: '*'
+                };
                 if (this.host.project) {
                     (node as FlowAction).setProjectRef(this.host.project);
                 }

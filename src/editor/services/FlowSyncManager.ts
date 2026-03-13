@@ -854,6 +854,53 @@ export class FlowSyncManager {
                 Object.assign(existingAction, newAction, { type: newType });
             }
         } else {
+            // Neue Action: Typ-spezifische Standard-Felder sicherstellen
+            const typeDefaults: Record<string, Record<string, any>> = {
+                'data_action': {
+                    details: '(data_action)',
+                    url: '',
+                    method: 'GET',
+                    requestJWT: false,
+                    queryValue: '',
+                    resultVariable: '',
+                    selectFields: '*'
+                },
+                'navigate_stage': {
+                    actionType: 'navigate_stage',
+                    stageId: ''
+                },
+                'navigate': {
+                    target: ''
+                },
+                'property': {
+                    target: '',
+                    changes: {}
+                },
+                'service': {
+                    service: '',
+                    method: '',
+                    serviceParams: [],
+                    resultVariable: ''
+                },
+                'calculate': {
+                    resultVariable: '',
+                    formula: ''
+                }
+            };
+
+            const defaults = typeDefaults[newAction.type];
+            if (defaults) {
+                Object.entries(defaults).forEach(([key, defaultVal]) => {
+                    if (newAction[key] === undefined) {
+                        newAction[key] = defaultVal;
+                    }
+                });
+            }
+
+            // Wizard-Artefakte entfernen, die nicht persistiert werden sollen
+            if (newAction.AddFieldDropdown !== undefined) {
+                delete newAction.AddFieldDropdown;
+            }
             FlowSyncManager.lifecycleLogger.info(`Neue Action "${name}" registriert (Typ: ${newAction.type || 'property'}).`);
             targetCollection.push(newAction);
         }

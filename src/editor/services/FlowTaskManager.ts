@@ -29,30 +29,22 @@ export class FlowTaskManager {
         // 1. Generate unique Name via Service
         const name = FlowNamingService.generateUniqueTaskName(this.host.project, this.host.nodes, "ANewTask");
 
-        // 2. Create Task
-        const targetCollection = this.host.editor ? this.host.editor.getTargetTaskCollection(name) : (this.host.project.tasks || (this.host.project.tasks = []));
-        targetCollection.push({
-            name: name,
-            actionSequence: []
-        });
-
-        // 3. Initialize flowChart for this task
+        // 2. FlowChart-Platz reservieren (Definition kommt via createNode)
         const targetCharts = this.getTargetFlowCharts(name);
         targetCharts[name] = { elements: [], connections: [] };
 
-        // 4. Update UI
-        this.host.updateFlowSelector();
+        // 3. Switch to new Task (skipSync: alter Flow braucht keinen Sync)
+        this.host.switchActionFlow(name, true, true);
 
-        // Notify Mediator
-        mediatorService.notifyDataChanged(this.host.project, 'flow-editor');
-
-        // 5. Switch to new Task
-        this.host.switchActionFlow(name);
-
-        // 6. Automatically insert a task node
+        // 4. Task-Knoten erstellen — EINZIGE Stelle für Task-Definition.
+        //    setTimeout nötig: Canvas muss nach switchActionFlow gerendert sein.
         setTimeout(() => {
             this.host.createNode('Task', 400, 200, name);
-        }, 100);
+
+            // 5. Update UI NACH Node-Erstellung (Task muss existieren)
+            this.host.updateFlowSelector();
+            mediatorService.notifyDataChanged(this.host.project!, 'flow-editor');
+        }, 150);
     }
 
     public getTargetFlowCharts(taskName?: string): any {

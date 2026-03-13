@@ -39,6 +39,186 @@
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
+  // src/utils/LogTypes.ts
+  var init_LogTypes = __esm({
+    "src/utils/LogTypes.ts"() {
+      "use strict";
+    }
+  });
+
+  // src/config.ts
+  function parseLogLevel(val) {
+    if (!val) return 0 /* DEBUG */;
+    switch (val.toUpperCase()) {
+      case "DEBUG":
+        return 0 /* DEBUG */;
+      case "INFO":
+        return 1 /* INFO */;
+      case "WARN":
+        return 2 /* WARN */;
+      case "ERROR":
+        return 3 /* ERROR */;
+      case "NONE":
+        return 4 /* NONE */;
+      default:
+        return 0 /* DEBUG */;
+    }
+  }
+  function parsePrefixLogLevels(env2) {
+    const levels = {};
+    const prefix = "VITE_LOG_LEVEL_";
+    for (const key in env2) {
+      if (key.startsWith(prefix)) {
+        const moduleName = key.substring(prefix.length);
+        if (moduleName && moduleName !== "LEVEL") {
+          levels[moduleName] = parseLogLevel(env2[key]);
+        }
+      }
+    }
+    return levels;
+  }
+  var import_meta, env, Config;
+  var init_config = __esm({
+    "src/config.ts"() {
+      "use strict";
+      init_LogTypes();
+      import_meta = {};
+      env = import_meta.env || {};
+      Config = {
+        APP_TITLE: env.VITE_APP_TITLE || "GCS Game Builder",
+        // Globales Log-Level
+        LOG_LEVEL: parseLogLevel(env.VITE_LOG_LEVEL),
+        // Spezifische Log-Level für einzelne Präfixe/Klassen
+        // Beispiel in .env: VITE_LOG_LEVEL_StageRenderer=DEBUG
+        PREFIX_LOG_LEVELS: parsePrefixLogLevels(env)
+      };
+    }
+  });
+
+  // src/utils/Logger.ts
+  var _Logger, Logger;
+  var init_Logger = __esm({
+    "src/utils/Logger.ts"() {
+      "use strict";
+      init_config();
+      init_LogTypes();
+      _Logger = class _Logger {
+        constructor(prefix = "", useCase, level) {
+          __publicField(this, "prefix");
+          __publicField(this, "level");
+          __publicField(this, "useCase");
+          this.prefix = prefix ? `[${prefix}] ` : "";
+          this.useCase = useCase;
+          if (level !== void 0) {
+            this.level = level;
+          } else if (prefix && Config.PREFIX_LOG_LEVELS[prefix] !== void 0) {
+            this.level = Config.PREFIX_LOG_LEVELS[prefix];
+          } else {
+            this.level = _Logger.globalLevel;
+          }
+        }
+        /**
+         * Sets the global log level.
+         */
+        static setGlobalLevel(level) {
+          this.globalLevel = level;
+        }
+        /**
+         * Sets the log handler callback.
+         */
+        static setLogHandler(handler) {
+          this.logHandler = handler;
+        }
+        /**
+         * Sets the filter function for UseCases.
+         */
+        static setUseCaseFilter(filter) {
+          this.useCaseFilter = filter;
+        }
+        /**
+         * Sets the provider function for UseCase labels.
+         */
+        static setUseCaseLabelProvider(provider) {
+          this.useCaseLabelProvider = provider;
+        }
+        /**
+         * Creates a new logger instance with a prefix and optional useCase.
+         */
+        static get(prefix, useCase) {
+          return new _Logger(prefix, useCase);
+        }
+        debug(...args) {
+          this.log(0 /* DEBUG */, ...args);
+        }
+        info(...args) {
+          this.log(1 /* INFO */, ...args);
+        }
+        warn(...args) {
+          this.log(2 /* WARN */, ...args);
+        }
+        error(...args) {
+          this.log(3 /* ERROR */, ...args);
+        }
+        log(level, ...args) {
+          if (level < this.level || level < _Logger.globalLevel) return;
+          if (level < 3 /* ERROR */ && this.useCase && !_Logger.useCaseFilter(this.useCase)) {
+            return;
+          }
+          if (this.useCase && level < 3 /* ERROR */ && this.useCase !== _Logger.lastUseCaseId) {
+            const label = _Logger.useCaseLabelProvider(this.useCase);
+            console.log(
+              `%c
+--- UseCase: '${label}' ---`,
+              "color: #673ab7; font-weight: bold; border-top: 1px solid #ddd; padding-top: 8px; margin-top: 8px;"
+            );
+            _Logger.lastUseCaseId = this.useCase;
+          }
+          const timestamp = (/* @__PURE__ */ new Date()).toISOString().split("T")[1].split("Z")[0];
+          const prefix = `${timestamp} ${this.prefix}`;
+          if (_Logger.logHandler) {
+            const safeStringify = (a) => {
+              if (typeof a !== "object" || a === null) return String(a);
+              try {
+                const seen = /* @__PURE__ */ new WeakSet();
+                return JSON.stringify(a, (key, value) => {
+                  if (["renderer", "host", "parent", "stage", "editor", "_listeners", "_eventTarget"].includes(key)) return void 0;
+                  if (typeof value === "object" && value !== null) {
+                    if (seen.has(value)) return "[Circular]";
+                    seen.add(value);
+                  }
+                  return value;
+                });
+              } catch {
+                return "[Object]";
+              }
+            };
+            _Logger.logHandler(level, this.prefix, args.map(safeStringify).join(" "), this.useCase);
+          }
+          switch (level) {
+            case 0 /* DEBUG */:
+              console.debug(prefix, ...args);
+              break;
+            case 1 /* INFO */:
+              console.info(prefix, ...args);
+              break;
+            case 2 /* WARN */:
+              console.warn(prefix, ...args);
+              break;
+            case 3 /* ERROR */:
+              console.error(prefix, ...args);
+              break;
+          }
+        }
+      };
+      __publicField(_Logger, "logHandler");
+      __publicField(_Logger, "globalLevel", Config.LOG_LEVEL);
+      __publicField(_Logger, "useCaseFilter", () => false);
+      __publicField(_Logger, "useCaseLabelProvider", (id) => id);
+      __publicField(_Logger, "lastUseCaseId");
+      Logger = _Logger;
+    }
+  });
+
   // src/runtime/AnimationManager.ts
   var AnimationManager_exports = {};
   __export(AnimationManager_exports, {
@@ -269,165 +449,981 @@
     }
   });
 
-  // src/config.ts
-  var import_meta = {};
-  var env = import_meta.env || {};
-  var Config = {
-    APP_TITLE: env.VITE_APP_TITLE || "GCS Game Builder",
-    // Globales Log-Level
-    LOG_LEVEL: parseLogLevel(env.VITE_LOG_LEVEL),
-    // Spezifische Log-Level für einzelne Präfixe/Klassen
-    // Beispiel in .env: VITE_LOG_LEVEL_StageRenderer=DEBUG
-    PREFIX_LOG_LEVELS: parsePrefixLogLevels(env)
-  };
-  function parseLogLevel(val) {
-    if (!val) return 0 /* DEBUG */;
-    switch (val.toUpperCase()) {
-      case "DEBUG":
-        return 0 /* DEBUG */;
-      case "INFO":
-        return 1 /* INFO */;
-      case "WARN":
-        return 2 /* WARN */;
-      case "ERROR":
-        return 3 /* ERROR */;
-      case "NONE":
-        return 4 /* NONE */;
-      default:
-        return 0 /* DEBUG */;
-    }
-  }
-  function parsePrefixLogLevels(env2) {
-    const levels = {};
-    const prefix = "VITE_LOG_LEVEL_";
-    for (const key in env2) {
-      if (key.startsWith(prefix)) {
-        const moduleName = key.substring(prefix.length);
-        if (moduleName && moduleName !== "LEVEL") {
-          levels[moduleName] = parseLogLevel(env2[key]);
+  // src/services/LibraryService.ts
+  var LibraryService, libraryService;
+  var init_LibraryService = __esm({
+    "src/services/LibraryService.ts"() {
+      "use strict";
+      init_Logger();
+      LibraryService = class {
+        constructor() {
+          __publicField(this, "logger", Logger.get("LibraryService", "Project_Save_Load"));
+          __publicField(this, "libraryTasks", []);
+          __publicField(this, "libraryTemplates", []);
+          __publicField(this, "isLoaded", false);
         }
-      }
-    }
-    return levels;
-  }
-
-  // src/utils/Logger.ts
-  var _Logger = class _Logger {
-    constructor(prefix = "", useCase, level) {
-      __publicField(this, "prefix");
-      __publicField(this, "level");
-      __publicField(this, "useCase");
-      this.prefix = prefix ? `[${prefix}] ` : "";
-      this.useCase = useCase;
-      if (level !== void 0) {
-        this.level = level;
-      } else if (prefix && Config.PREFIX_LOG_LEVELS[prefix] !== void 0) {
-        this.level = Config.PREFIX_LOG_LEVELS[prefix];
-      } else {
-        this.level = _Logger.globalLevel;
-      }
-    }
-    /**
-     * Sets the global log level.
-     */
-    static setGlobalLevel(level) {
-      this.globalLevel = level;
-    }
-    /**
-     * Sets the log handler callback.
-     */
-    static setLogHandler(handler) {
-      this.logHandler = handler;
-    }
-    /**
-     * Sets the filter function for UseCases.
-     */
-    static setUseCaseFilter(filter) {
-      this.useCaseFilter = filter;
-    }
-    /**
-     * Sets the provider function for UseCase labels.
-     */
-    static setUseCaseLabelProvider(provider) {
-      this.useCaseLabelProvider = provider;
-    }
-    /**
-     * Creates a new logger instance with a prefix and optional useCase.
-     */
-    static get(prefix, useCase) {
-      return new _Logger(prefix, useCase);
-    }
-    debug(...args) {
-      this.log(0 /* DEBUG */, ...args);
-    }
-    info(...args) {
-      this.log(1 /* INFO */, ...args);
-    }
-    warn(...args) {
-      this.log(2 /* WARN */, ...args);
-    }
-    error(...args) {
-      this.log(3 /* ERROR */, ...args);
-    }
-    log(level, ...args) {
-      if (level < this.level || level < _Logger.globalLevel) return;
-      if (level < 3 /* ERROR */ && this.useCase && !_Logger.useCaseFilter(this.useCase)) {
-        return;
-      }
-      if (this.useCase && level < 3 /* ERROR */ && this.useCase !== _Logger.lastUseCaseId) {
-        const label = _Logger.useCaseLabelProvider(this.useCase);
-        console.log(
-          `%c
---- UseCase: '${label}' ---`,
-          "color: #673ab7; font-weight: bold; border-top: 1px solid #ddd; padding-top: 8px; margin-top: 8px;"
-        );
-        _Logger.lastUseCaseId = this.useCase;
-      }
-      const timestamp = (/* @__PURE__ */ new Date()).toISOString().split("T")[1].split("Z")[0];
-      const prefix = `${timestamp} ${this.prefix}`;
-      if (_Logger.logHandler) {
-        const safeStringify = (a) => {
-          if (typeof a !== "object" || a === null) return String(a);
+        async loadLibrary() {
+          if (this.isLoaded) return;
           try {
-            const seen = /* @__PURE__ */ new WeakSet();
-            return JSON.stringify(a, (key, value) => {
-              if (["renderer", "host", "parent", "stage", "editor", "_listeners", "_eventTarget"].includes(key)) return void 0;
-              if (typeof value === "object" && value !== null) {
-                if (seen.has(value)) return "[Circular]";
-                seen.add(value);
-              }
-              return value;
-            });
-          } catch {
-            return "[Object]";
+            const response = await fetch("/library.json");
+            const data = await response.json();
+            this.libraryTasks = data.tasks || [];
+            this.libraryTemplates = data.templates || [];
+            this.isLoaded = true;
+            this.logger.info(`Loaded ${this.libraryTasks.length} tasks and ${this.libraryTemplates.length} templates.`);
+          } catch (err2) {
+            this.logger.error("Failed to load library.json:", err2);
           }
-        };
-        _Logger.logHandler(level, this.prefix, args.map(safeStringify).join(" "), this.useCase);
-      }
-      switch (level) {
-        case 0 /* DEBUG */:
-          console.debug(prefix, ...args);
-          break;
-        case 1 /* INFO */:
-          console.info(prefix, ...args);
-          break;
-        case 2 /* WARN */:
-          console.warn(prefix, ...args);
-          break;
-        case 3 /* ERROR */:
-          console.error(prefix, ...args);
-          break;
-      }
+        }
+        getTasks() {
+          return this.libraryTasks;
+        }
+        getTask(name) {
+          return this.libraryTasks.find((t) => t.name === name);
+        }
+        getTemplates() {
+          return this.libraryTemplates;
+        }
+        getTemplate(id) {
+          return this.libraryTemplates.find((t) => t.id === id);
+        }
+        /**
+         * Saves a template to the library via the API.
+         * Updates local cache if successful.
+         */
+        async saveTemplate(template) {
+          try {
+            const response = await fetch("/api/library/templates", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(template)
+            });
+            if (response.ok) {
+              const existingIdx = this.libraryTemplates.findIndex((t) => t.name === template.name);
+              if (existingIdx !== -1) {
+                this.libraryTemplates[existingIdx] = template;
+              } else {
+                this.libraryTemplates.push(template);
+              }
+              this.logger.info(`Template "${template.name}" saved successfully.`);
+              return true;
+            } else {
+              this.logger.error("Failed to save template:", await response.text());
+              return false;
+            }
+          } catch (err2) {
+            this.logger.error("Error saving template:", err2);
+            return false;
+          }
+        }
+      };
+      libraryService = new LibraryService();
     }
-  };
-  __publicField(_Logger, "logHandler");
-  __publicField(_Logger, "globalLevel", Config.LOG_LEVEL);
-  __publicField(_Logger, "useCaseFilter", () => false);
-  __publicField(_Logger, "useCaseLabelProvider", (id) => id);
-  __publicField(_Logger, "lastUseCaseId");
-  var Logger = _Logger;
+  });
+
+  // src/services/ProjectRegistry.ts
+  var ProjectRegistry_exports = {};
+  __export(ProjectRegistry_exports, {
+    ProjectRegistry: () => ProjectRegistry,
+    projectRegistry: () => projectRegistry
+  });
+  var _ProjectRegistry, ProjectRegistry, projectRegistry;
+  var init_ProjectRegistry = __esm({
+    "src/services/ProjectRegistry.ts"() {
+      "use strict";
+      init_LibraryService();
+      init_Logger();
+      _ProjectRegistry = class _ProjectRegistry {
+        constructor() {
+          __publicField(this, "project", null);
+          // =========================================================================================
+          //  Objects (Stage)
+          // =========================================================================================
+          __publicField(this, "activeStageId", null);
+        }
+        static getInstance() {
+          if (!_ProjectRegistry.instance) {
+            _ProjectRegistry.instance = new _ProjectRegistry();
+          }
+          return _ProjectRegistry.instance;
+        }
+        setProject(project) {
+          this.project = project;
+          if (project.activeStageId) {
+            this.activeStageId = project.activeStageId;
+          }
+        }
+        getProject() {
+          return this.project;
+        }
+        getStages() {
+          return this.project?.stages || [];
+        }
+        // =========================================================================================
+        //  Variables
+        // =========================================================================================
+        /**
+         * Retrieves variables visible in a specific context.
+         * Hierarchy: Global > Stage (if active) > Task (if in task) > Action (if in action)
+         */
+        getVariables(context, resolveUsage = true, scopeFilter) {
+          if (!this.project) return [];
+          let visibleVars = [];
+          const rootGlobals = (this.project.variables || []).filter((v) => !v.scope || String(v.scope).toLowerCase() === "global").map((v) => {
+            const sv = v;
+            sv.uiScope = "global";
+            sv.uiEmoji = "\u{1F30E}";
+            return sv;
+          });
+          const blueprintStage = this.project.stages?.find((s) => s.type === "blueprint");
+          const bpGlobals = (blueprintStage?.variables || []).filter((v) => String(v.scope || "").toLowerCase() === "global").map((v) => {
+            const sv = v;
+            sv.uiScope = "global";
+            sv.uiEmoji = "\u{1F30E}";
+            return sv;
+          });
+          visibleVars = [...rootGlobals];
+          bpGlobals.forEach((bv) => {
+            const idx = visibleVars.findIndex((v) => v.id === bv.id);
+            if (idx !== -1) {
+              visibleVars[idx] = bv;
+            } else {
+              visibleVars.push(bv);
+            }
+          });
+          if (this.activeStageId && this.project.stages) {
+            const activeStage = this.project.stages.find((s) => s.id === this.activeStageId);
+            if (activeStage && activeStage.variables) {
+              const isBlueprint = activeStage.type === "blueprint";
+              const stageVars = activeStage.variables.filter((v) => !isBlueprint || String(v.scope || "").toLowerCase() !== "global").map((v) => {
+                const sv = v;
+                sv.uiScope = "stage";
+                sv.uiEmoji = "\u{1F3AD}";
+                return sv;
+              });
+              stageVars.forEach((sv) => {
+                const existingGlobalIndex = visibleVars.findIndex((ev) => ev.id === sv.id && ev.uiScope === "global");
+                if (existingGlobalIndex === -1) {
+                  visibleVars.push(sv);
+                } else {
+                  _ProjectRegistry.logger.warn(`Suppressing stage-local duplicate of global variable: ${sv.name} (${sv.id})`);
+                }
+              });
+            }
+          }
+          if (context?.taskName) {
+            const taskVars = this.project.variables.filter((v) => v.scope === context.taskName || v.scope === `task:${context.taskName}`).map((v) => {
+              const sv = v;
+              sv.uiScope = "local";
+              sv.uiEmoji = "\u{1F4CD}";
+              return sv;
+            });
+            visibleVars = [...visibleVars, ...taskVars];
+          }
+          if (context?.actionId) {
+            const actionVars = this.project.variables.filter((v) => v.scope === `action:${context.actionId}`).map((v) => {
+              const sv = v;
+              sv.uiScope = "local";
+              sv.uiEmoji = "\u26A1";
+              return sv;
+            });
+            visibleVars = [...visibleVars, ...actionVars];
+          }
+          if (scopeFilter === "stage-only") {
+            visibleVars = visibleVars.filter((v) => v.uiScope === "stage" || v.uiScope === "local");
+          }
+          if (!resolveUsage) return visibleVars;
+          visibleVars.forEach((v) => {
+            v.usageCount = this.getVariableUsage(v.name).length;
+          });
+          return visibleVars;
+        }
+        validateVariableName(name, context) {
+          if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) {
+            return { valid: false, error: "Variablen m\xFCssen mit einem Kleinbuchstaben beginnen (camelCase)." };
+          }
+          const visibleVars = this.getVariables(context);
+          if (visibleVars.some((v) => v.name === name)) {
+            return { valid: false, error: "Name bereits vergeben." };
+          }
+          return { valid: true };
+        }
+        // =========================================================================================
+        //  Tasks
+        // =========================================================================================
+        /**
+         * Gets tasks. By default returns Global + Active Stage tasks.
+         * Set stageId to 'all' to get everything.
+         * @param includeUnusedLibrary If true, returns all library tasks even if not used in project.
+         */
+        getTasks(stageId = "active", resolveUsage = true, includeUnusedLibrary = false) {
+          if (!this.project) return [];
+          const rootTasks = (this.project.tasks || []).map((t) => ({ ...t, uiScope: "global" }));
+          const blueprintStage = this.project.stages?.find((s) => s.type === "blueprint");
+          const bpTasks = (blueprintStage?.tasks || []).map((t) => ({ ...t, uiScope: "global" }));
+          let globalTasks = [...rootTasks];
+          bpTasks.forEach((bt) => {
+            const idx = globalTasks.findIndex((t) => t.name === bt.name);
+            if (idx === -1) globalTasks.push(bt);
+            else globalTasks[idx] = bt;
+          });
+          const libTasks = libraryService.getTasks().map((t) => ({ ...t, uiScope: "library" }));
+          const combineAndDedup = (tasks) => {
+            const unique = /* @__PURE__ */ new Map();
+            tasks.forEach((t) => {
+              if (!unique.has(t.name)) {
+                unique.set(t.name, t);
+              }
+            });
+            let finalTasks = Array.from(unique.values()).map((t) => ({
+              ...t,
+              usageCount: resolveUsage ? this.getTaskUsage(t.name).length : 0
+            }));
+            if (!includeUnusedLibrary && resolveUsage) {
+              finalTasks = finalTasks.filter((t) => t.uiScope !== "library" || (t.usageCount || 0) > 0);
+            }
+            return finalTasks;
+          };
+          if (stageId === "all") {
+            let all = [...globalTasks, ...libTasks];
+            if (this.project.stages) {
+              this.project.stages.forEach((stage) => {
+                if (stage.type === "blueprint") return;
+                if (stage.tasks) {
+                  all = [...all, ...stage.tasks.map((t) => ({ ...t, uiScope: "stage" }))];
+                }
+              });
+            }
+            return combineAndDedup(all);
+          }
+          const targetStageId = stageId === "active" ? this.activeStageId : stageId;
+          if (targetStageId && this.project.stages) {
+            const stage = this.project.stages.find((s) => s.id === targetStageId);
+            if (stage && stage.type !== "blueprint" && stage.tasks) {
+              const stageTasks = stage.tasks.map((t) => ({ ...t, uiScope: "stage" }));
+              return combineAndDedup([...globalTasks, ...stageTasks, ...libTasks]);
+            }
+          }
+          return combineAndDedup([...globalTasks, ...libTasks]);
+        }
+        /**
+         * Findet den Container (Stage oder Global), dem ein Task angehört.
+         */
+        getTaskContainer(taskName) {
+          if (!this.project) return { type: "none" };
+          if (this.project.tasks && this.project.tasks.some((t) => t.name === taskName)) {
+            return { type: "global" };
+          }
+          if (this.project.stages) {
+            for (const stage of this.project.stages) {
+              if (stage.tasks && stage.tasks.some((t) => t.name === taskName)) {
+                return { type: "stage", stageId: stage.id };
+              }
+            }
+          }
+          return { type: "none" };
+        }
+        validateTaskName(name) {
+          if (!/^[A-Z][a-zA-Z0-9]*$/.test(name)) {
+            return { valid: false, error: "Tasks m\xFCssen mit einem Gro\xDFbuchstaben beginnen (PascalCase)." };
+          }
+          if (this.getTasks().some((t) => t.name === name)) {
+            return { valid: false, error: "Task-Name bereits vergeben (global oder in einer Stage)." };
+          }
+          return { valid: true };
+        }
+        // =========================================================================================
+        //  Actions
+        // =========================================================================================
+        /**
+         * Gets actions. By default returns Global + Active Stage actions.
+         */
+        getActions(stageId = "active", resolveUsage = true) {
+          if (!this.project) return [];
+          const rootActions = (this.project.actions || []).map((a) => ({ ...a, uiScope: "global" }));
+          const blueprintStage = this.project.stages?.find((s) => s.type === "blueprint");
+          const bpActions = (blueprintStage?.actions || []).map((a) => ({ ...a, uiScope: "global" }));
+          let globalActions = [...rootActions];
+          bpActions.forEach((ba) => {
+            const idx = globalActions.findIndex((a) => a.name === ba.name);
+            if (idx === -1) globalActions.push(ba);
+            else globalActions[idx] = ba;
+          });
+          if (stageId === "all") {
+            let allActions = [...globalActions];
+            if (this.project.stages) {
+              this.project.stages.forEach((stage) => {
+                if (stage.type === "blueprint") return;
+                if (stage.actions) {
+                  allActions = [...allActions, ...stage.actions.map((a) => ({ ...a, uiScope: "stage" }))];
+                }
+              });
+            }
+            return allActions.map((a) => ({ ...a, usageCount: resolveUsage ? this.getActionUsage(a.name).length : 0 }));
+          }
+          const targetStageId = stageId === "active" ? this.activeStageId : stageId;
+          if (targetStageId && this.project.stages) {
+            const stage = this.project.stages.find((s) => s.id === targetStageId);
+            if (stage && stage.type !== "blueprint" && stage.actions) {
+              const stageActions = stage.actions.map((a) => ({ ...a, uiScope: "stage" }));
+              return [...globalActions, ...stageActions].map((a) => ({ ...a, usageCount: resolveUsage ? this.getActionUsage(a.name).length : 0 }));
+            }
+          }
+          return globalActions.map((a) => ({
+            ...a,
+            uiScope: "global",
+            usageCount: resolveUsage ? this.getActionUsage(a.name).length : 0
+          }));
+        }
+        /**
+         * SSoT-Lookup: Findet die ORIGINAL-Instanz einer Aktion im Projekt-Modell.
+         * Dies ist kritisch für die Referenz-Stabilität im Inspector und Flow-Editor.
+         */
+        findOriginalAction(nameOrId) {
+          if (!this.project) return null;
+          const isMatch = (a) => a.name === nameOrId || a.id === nameOrId || a.actionName === nameOrId || a.data && (a.data.name === nameOrId || a.data.actionName === nameOrId) || a.properties && (a.properties.name === nameOrId || a.properties.text === nameOrId);
+          const globalAction = (this.project.actions || []).find(isMatch);
+          if (globalAction) return globalAction;
+          if (this.project.stages) {
+            for (const stage of this.project.stages) {
+              const stageAction = (stage.actions || []).find(isMatch);
+              if (stageAction) return stageAction;
+            }
+          }
+          return null;
+        }
+        /**
+         * SSoT-Lookup: Findet die ORIGINAL-Instanz eines Tasks.
+         */
+        findOriginalTask(name) {
+          if (!this.project) return null;
+          const globalTask = (this.project.tasks || []).find((t) => t.name === name);
+          if (globalTask) return globalTask;
+          if (this.project.stages) {
+            for (const stage of this.project.stages) {
+              const stageTask = (stage.tasks || []).find((t) => t.name === name);
+              if (stageTask) return stageTask;
+            }
+          }
+          return null;
+        }
+        setActiveStageId(id) {
+          this.activeStageId = id;
+        }
+        getActiveStageId() {
+          return this.activeStageId;
+        }
+        getActiveStage() {
+          if (!this.project || !this.activeStageId) return null;
+          return this.project.stages?.find((s) => s.id === this.activeStageId) || null;
+        }
+        getObjects(scopeFilter) {
+          if (!this.project) return [];
+          const globalServiceClasses = [
+            "TStageController",
+            "TGameLoop",
+            "TGameState",
+            "TGameServer",
+            "TInputController",
+            "THandshake",
+            "THeartbeat",
+            "TToast",
+            "TStatusBar",
+            "TAPIServer",
+            "TDataStore"
+          ];
+          const isService = (obj) => obj.isService === true || globalServiceClasses.includes(obj.className);
+          const allObjects = [];
+          const objectIds = /* @__PURE__ */ new Set();
+          const activeStage = this.activeStageId ? this.project.stages?.find((s) => s.id === this.activeStageId) : null;
+          const isBlueprint = activeStage?.type === "blueprint";
+          if (this.project.stages && this.project.stages.length > 0) {
+            if (activeStage) {
+              const stageItems = [
+                ...activeStage.objects || [],
+                ...activeStage.variables || []
+              ];
+              stageItems.forEach((obj) => {
+                if (!objectIds.has(obj.id)) {
+                  allObjects.push(obj);
+                  objectIds.add(obj.id);
+                }
+              });
+            }
+            this.project.stages.forEach((stage) => {
+              if (stage.id === this.activeStageId) return;
+              const stageGlobals = [
+                ...(stage.objects || []).filter((obj) => obj.scope === "global" || isService(obj)),
+                ...(stage.variables || []).filter((v) => v.scope === "global")
+              ];
+              stageGlobals.forEach((obj) => {
+                if (!objectIds.has(obj.id)) {
+                  const inheritedObj = { ...obj, isInherited: true };
+                  allObjects.push(inheritedObj);
+                  objectIds.add(obj.id);
+                }
+              });
+            });
+            if (scopeFilter === "stage-only") {
+              const activeStage2 = this.project.stages.find((s) => s.id === this.activeStageId);
+              return [
+                ...activeStage2?.objects || [],
+                ...activeStage2?.variables || []
+              ];
+            }
+          }
+          if (isBlueprint) {
+            const rootGlobals = [
+              ...(this.project.objects || []).filter((obj) => obj.scope === "global"),
+              ...(this.project.variables || []).filter((v) => v.scope === "global")
+            ];
+            rootGlobals.forEach((gObj) => {
+              if (!objectIds.has(gObj.id)) {
+                allObjects.push(gObj);
+                objectIds.add(gObj.id);
+              }
+            });
+          }
+          if (allObjects.length === 0 && (!this.project.stages || this.project.stages.length === 0)) {
+            const legacyItems = [
+              ...this.project.objects || [],
+              ...this.project.variables || []
+            ];
+            return legacyItems;
+          }
+          return allObjects;
+        }
+        getFlowObjects() {
+          return this.project?.flow?.elements || [];
+        }
+        getObjectsWithMetadata(resolveUsage = true) {
+          const objects = this.getObjects();
+          return objects.map((obj) => {
+            const usage = resolveUsage ? this.getObjectUsage(obj.name) : [];
+            const isGlobal = this.project?.objects.some((o) => o.name === obj.name);
+            const scopedObj = { ...obj };
+            scopedObj.uiScope = isGlobal ? "global" : "stage";
+            scopedObj.usageCount = usage.length;
+            return scopedObj;
+          });
+        }
+        validateObjectName(name) {
+          if (!/^[A-Z][a-zA-Z0-9_]*$/.test(name)) {
+            return { valid: false, error: "Objekt-Namen m\xFCssen mit einem Gro\xDFbuchstaben beginnen." };
+          }
+          const objects = this.getObjects();
+          if (objects.some((o) => o.name === name)) {
+            return { valid: false, error: "Objekt-Name existiert bereits auf der Stage." };
+          }
+          const checkFlows = (charts) => {
+            if (!charts) return false;
+            return Object.values(charts).some(
+              (chart) => chart.elements && chart.elements.some((e) => e.name === name)
+            );
+          };
+          if (checkFlows(this.project.flowCharts)) {
+            return { valid: false, error: "Objekt-Name wird bereits im Flow verwendet." };
+          }
+          if (this.project.stages) {
+            for (const stage of this.project.stages) {
+              if (checkFlows(stage.flowCharts)) {
+                return { valid: false, error: `Objekt-Name wird bereits im Flow der Stage '${stage.name}' verwendet.` };
+              }
+            }
+          }
+          return { valid: true };
+        }
+        // =========================================================================================
+        //  Reference Tracking
+        // =========================================================================================
+        findReferences(name) {
+          const refs = [];
+          if (!this.project) return refs;
+          const taskRefs = this.getTaskUsage(name);
+          const actionRefs = this.getActionUsage(name);
+          const varRefs = this.getVariableUsage(name);
+          const objRefs = this.getObjectUsage(name);
+          return [...taskRefs, ...actionRefs, ...varRefs, ...objRefs].filter((v, i, a) => a.indexOf(v) === i);
+        }
+        getObjectUsage(name) {
+          const refs = [];
+          if (!this.project) return refs;
+          this.getActions("all", false).forEach((action) => {
+            const anyAction = action;
+            if (anyAction.target === name) refs.push(`Aktion: ${action.name} -> Target ist Objekt: ${name}`);
+            if (anyAction.source === name) refs.push(`Aktion: ${action.name} -> Source ist Objekt: ${name}`);
+            if (anyAction.changes) {
+              const str = JSON.stringify(anyAction.changes);
+              if (str.includes(`\${${name}.`)) refs.push(`Aktion: ${action.name} -> Referenziert Objekt: ${name}`);
+            }
+          });
+          const checkInput = (input, source) => {
+            if (input.player1Target === name) refs.push(`${source} -> Player 1 Target ist: ${name}`);
+            if (input.player2Target === name) refs.push(`${source} -> Player 2 Target ist: ${name}`);
+          };
+          if (this.project.input) checkInput(this.project.input, "Global Input");
+          this.project.stages?.forEach((stage) => {
+            if (stage.input) checkInput(stage.input, `Stage: ${stage.name} Input`);
+          });
+          const objRegex = new RegExp(`\\$\\{${name}\\.`, "g");
+          this.getTasks("all", false).forEach((task) => {
+            const str = JSON.stringify(task.actionSequence);
+            if (objRegex.test(str)) refs.push(`Task: ${task.name} -> Referenziert Objekt: ${name}`);
+          });
+          this.getAllObjectsWithSource().forEach(({ obj, source }) => {
+            const str = JSON.stringify(obj);
+            if (objRegex.test(str)) refs.push(`${source} Objekt: ${obj.name} -> Binding auf Objekt: ${name}`);
+          });
+          return refs;
+        }
+        getAllReferencedTaskNames() {
+          const referenced = /* @__PURE__ */ new Set();
+          if (!this.project) return referenced;
+          this.getTasks("all", false).forEach((task) => {
+            const scanSeq = (seq) => {
+              if (!seq || !Array.isArray(seq)) return;
+              seq.forEach((item) => {
+                if (item.type === "task" && item.name) referenced.add(item.name);
+                if (item.thenTask) referenced.add(item.thenTask);
+                if (item.elseTask) referenced.add(item.elseTask);
+                if (item.body) scanSeq(item.body);
+              });
+            };
+            scanSeq(task.actionSequence);
+          });
+          const allPotentialHolders = [];
+          this.getAllObjectsWithSource().forEach(({ obj }) => allPotentialHolders.push(obj));
+          if (this.project.variables) this.project.variables.forEach((v) => allPotentialHolders.push(v));
+          if (this.project.stages) {
+            this.project.stages.forEach((s) => {
+              if (s.variables) s.variables.forEach((v) => allPotentialHolders.push(v));
+            });
+          }
+          allPotentialHolders.forEach((item) => {
+            const checkProps = (target) => {
+              if (!target || typeof target !== "object") return;
+              Object.entries(target).forEach(([key, val]) => {
+                if (typeof val === "string" && (key.startsWith("on") || key === "onChange" || key === "onValueTrue" || key === "onValueFalse")) {
+                  referenced.add(val);
+                }
+                if (key === "Tasks" || key === "events" || key === "properties") checkProps(val);
+              });
+            };
+            checkProps(item);
+          });
+          return referenced;
+        }
+        getTaskUsage(name) {
+          const refs = [];
+          if (!this.project) return refs;
+          this.getTasks("all", false).forEach((task) => {
+            if (task.name === name) return;
+            const scanSeq = (seq) => {
+              if (!seq || !Array.isArray(seq)) return;
+              seq.forEach((item) => {
+                if (item.type === "task" && item.name === name) refs.push(`\u27A1\uFE0F Wird aufgerufen von Task: "${task.name}"`);
+                if (item.thenTask === name) refs.push(`\u27A1\uFE0F Aufruf (Folge-Task) in: "${task.name}"`);
+                if (item.elseTask === name) refs.push(`\u27A1\uFE0F Aufruf (Else-Zweig) in: "${task.name}"`);
+                if (item.resultTask === name) refs.push(`\u27A1\uFE0F Aufruf (Ergebnis-Zweig) in: "${task.name}"`);
+                if (item.body) scanSeq(item.body);
+              });
+            };
+            scanSeq(task.actionSequence);
+          });
+          const allPotentialHolders = [];
+          this.getAllObjectsWithSource().forEach(({ obj, source }) => {
+            allPotentialHolders.push({ item: obj, source: `Objekt: ${obj.name} (${source})` });
+          });
+          if (this.project.variables) this.project.variables.forEach((v) => allPotentialHolders.push({ item: v, source: `Glb-Variable: ${v.name}` }));
+          if (this.project.stages) {
+            this.project.stages.forEach((s) => {
+              if (s.variables) s.variables.forEach((v) => allPotentialHolders.push({ item: v, source: `Stage-Variable: ${v.name} (${s.name || s.id})` }));
+            });
+          }
+          allPotentialHolders.forEach(({ item, source }) => {
+            const checkProps = (target, path = "") => {
+              if (!target || typeof target !== "object") return;
+              Object.entries(target).forEach(([key, val]) => {
+                if (val === name) {
+                  const isLikelyEvent = key.startsWith("on") || key === "onValueTrue" || key === "onValueFalse" || key === "onChange";
+                  const cleanKey = key.replace(/^on/, "");
+                  if (isLikelyEvent) {
+                    refs.push(`\u26A1 Gestartet durch Event "${cleanKey}" von ${source}`);
+                  } else {
+                    refs.push(`\u{1F517} Referenziert in Eigenschaft "${path}${key}" von ${source}`);
+                  }
+                }
+                if (key === "Tasks" || key === "events" || key === "properties") checkProps(val, `${key}.`);
+              });
+            };
+            checkProps(item);
+          });
+          return refs;
+        }
+        getActionUsage(name) {
+          const refs = [];
+          if (!this.project) return refs;
+          this.getTasks("all", false).forEach((task) => {
+            const scanSeq = (seq) => {
+              if (!seq || !Array.isArray(seq)) return;
+              seq.forEach((item) => {
+                if (item.type === "action" && item.name === name) refs.push(`\u{1F3AC} Wird ausgef\xFChrt von Task: "${task.name}"`);
+                if (item.thenAction === name) refs.push(`\u{1F3AC} Aufruf (Folge-Aktion) in: "${task.name}"`);
+                if (item.elseAction === name) refs.push(`\u{1F3AC} Aufruf (Else-Zweig) in: "${task.name}"`);
+                if (item.body) scanSeq(item.body);
+              });
+            };
+            scanSeq(task.actionSequence);
+          });
+          const scanFlow = (flow, sourceName) => {
+            if (!flow || !flow.elements || !Array.isArray(flow.elements)) return;
+            flow.elements.forEach((el) => {
+              const type = (el.type || "").toLowerCase();
+              if (type === "action" || type === "data_action" || type === "httpaction") {
+                const elName = el.Name || el.data?.name || el.data?.actionName || el.properties?.name || el.properties?.text;
+                if (elName === name) {
+                  refs.push(`\u{1F3A8} Visuell verwendet im Flow: "${sourceName}"`);
+                }
+              }
+            });
+          };
+          if (this.project.flow) scanFlow(this.project.flow, "Global Flow");
+          if (this.project.flowCharts) {
+            Object.entries(this.project.flowCharts).forEach(([key, flow]) => {
+              scanFlow(flow, `Flow: ${key}`);
+            });
+          }
+          this.getTasks("all", false).forEach((task) => {
+            if (task.flowChart) scanFlow(task.flowChart, `Task Flow: "${task.name}"`);
+          });
+          return [...new Set(refs)];
+        }
+        getVariableUsage(name) {
+          const refs = [];
+          if (!this.project) return refs;
+          const varRegex = new RegExp(`\\$\\{${name}([.}]|$)`);
+          this.getTasks("all", false).forEach((task) => {
+            const scanSeq = (seq) => {
+              if (!seq || !Array.isArray(seq)) return;
+              seq.forEach((item) => {
+                if (varRegex.test(JSON.stringify(item))) refs.push(`\u{1F4E6} Referenziert in Task: "${task.name}"`);
+                if (item.type === "action") {
+                  const action = item;
+                  if (action.variableName === name || action.resultVariable === name) {
+                    refs.push(`\u{1F4E6} Genutzt als Ziel/Quelle in Aktion von Task: "${task.name}"`);
+                  }
+                }
+                if (item.condition && item.condition.variable === name) {
+                  refs.push(`\u{1F4E6} Genutzt in Bedingung von Task: "${task.name}"`);
+                }
+                if (item.body) scanSeq(item.body);
+              });
+            };
+            scanSeq(task.actionSequence);
+          });
+          this.getAllObjectsWithSource().forEach(({ obj, source }) => {
+            if (varRegex.test(JSON.stringify(obj))) refs.push(`\u{1F517} Gebunden an Objekt "${obj.name}" (${source})`);
+          });
+          return refs;
+        }
+        getAllObjectsWithSource() {
+          const results = [];
+          if (!this.project) return results;
+          (this.project.objects || []).forEach((obj) => results.push({ obj, source: "Global" }));
+          if (this.project.stages) {
+            this.project.stages.forEach((s) => {
+              (s.objects || []).forEach((obj) => results.push({ obj, source: `Stage: ${s.name || s.id}` }));
+            });
+          }
+          return results;
+        }
+        /**
+         * Performs a project-wide Static Deep-Scan analysis to find all logically reachable
+         * Tasks, Actions, and Variables.
+         */
+        getLogicalUsage() {
+          if (!this.project) return { tasks: /* @__PURE__ */ new Set(), actions: /* @__PURE__ */ new Set(), variables: /* @__PURE__ */ new Set() };
+          const proj = this.project;
+          const usedTasks = /* @__PURE__ */ new Set();
+          const usedActions = /* @__PURE__ */ new Set();
+          const usedVariables = /* @__PURE__ */ new Set();
+          _ProjectRegistry.logger.info(`Starting Static Deep-Scan for Project: ${proj.meta.name}`);
+          const allTasks = this.getTasks("all", false).map((t) => t.name.trim());
+          const allActions = this.getActions("all", false).map((a) => a.name.trim());
+          const allVars = [];
+          (proj.variables || []).forEach((v) => {
+            if (v.name) allVars.push(v.name.trim());
+          });
+          proj.stages?.forEach((s) => {
+            (s.variables || []).forEach((v) => {
+              if (v.name) allVars.push(v.name.trim());
+            });
+            (s.objects || []).forEach((obj) => {
+              if ((obj.isVariable || obj.type === "TVariable" || obj.type === "TTimer" || obj.type === "TWindow") && obj.name) {
+                const trimmed = obj.name.trim();
+                if (!allVars.includes(trimmed)) allVars.push(trimmed);
+              }
+            });
+          });
+          _ProjectRegistry.logger.info(`Inventory: ${allTasks.length} Tasks, ${allActions.length} Actions, ${allVars.length} Variables`);
+          const definitionObjects = /* @__PURE__ */ new Set();
+          proj.tasks?.forEach((t) => definitionObjects.add(t));
+          proj.actions?.forEach((a) => definitionObjects.add(a));
+          proj.variables?.forEach((v) => definitionObjects.add(v));
+          proj.stages?.forEach((s) => {
+            s.tasks?.forEach((t) => definitionObjects.add(t));
+            s.actions?.forEach((a) => definitionObjects.add(a));
+            s.variables?.forEach((v) => definitionObjects.add(v));
+            s.objects?.forEach((o) => {
+              if (o.isVariable || o.type === "TVariable" || o.type === "TTimer" || o.type === "TWindow") {
+                definitionObjects.add(o);
+              }
+            });
+          });
+          const scanValue = (val, path = "", parentObj = null) => {
+            if (val === null || val === void 0) return;
+            if (typeof val === "string") {
+              const trimmed = val.trim();
+              const key = path.split(".").pop() || "";
+              if ((key === "name" || key === "taskName") && definitionObjects.has(parentObj)) {
+                return;
+              }
+              if (allTasks.includes(trimmed)) {
+                if (!usedTasks.has(trimmed)) {
+                  _ProjectRegistry.logger.debug(`Found Task: "${trimmed}" at ${path}`);
+                  usedTasks.add(trimmed);
+                }
+              } else if (allActions.includes(trimmed)) {
+                if (!usedActions.has(trimmed)) {
+                  _ProjectRegistry.logger.debug(`Found Action: "${trimmed}" at ${path}`);
+                  usedActions.add(trimmed);
+                }
+              } else if (allVars.includes(trimmed)) {
+                if (!usedVariables.has(trimmed)) {
+                  _ProjectRegistry.logger.debug(`Found Variable: "${trimmed}" at ${path}`);
+                  usedVariables.add(trimmed);
+                }
+              }
+              if (trimmed.includes("${")) {
+                const regex = /\$\{([^}.]+)[}.]/g;
+                let match;
+                while ((match = regex.exec(trimmed)) !== null) {
+                  const varName = match[1].trim();
+                  if (allVars.includes(varName) && !usedVariables.has(varName)) {
+                    usedVariables.add(varName);
+                  }
+                }
+              }
+              return;
+            }
+            if (Array.isArray(val)) {
+              val.forEach((item, i) => scanValue(item, `${path}[${i}]`, val));
+              return;
+            }
+            if (typeof val === "object") {
+              Object.entries(val).forEach(([k, subVal]) => {
+                scanValue(subVal, path ? `${path}.${k}` : k, val);
+              });
+            }
+          };
+          scanValue(proj);
+          _ProjectRegistry.logger.info(`Finished. Marked as used: ${usedTasks.size} Tasks, ${usedActions.size} Actions, ${usedVariables.size} Variables.`);
+          return { tasks: usedTasks, actions: usedActions, variables: usedVariables };
+        }
+        renameVariable(oldName, newName) {
+          if (!this.project || !this.validateVariableName(newName).valid) return false;
+          const variable = this.project.variables.find((v) => v.name === oldName);
+          if (variable) {
+            variable.name = newName;
+          } else {
+            return false;
+          }
+          this.updateReferencesInProperties(oldName, newName);
+          this.updateReferencesInActions(oldName, newName);
+          return true;
+        }
+        renameTask(oldName, newName) {
+          if (!this.project || !this.validateTaskName(newName).valid) return false;
+          let task = this.getTasks().find((t) => t.name === oldName);
+          if (task) {
+            task.name = newName;
+          } else {
+            return false;
+          }
+          this.getTasks().forEach((t) => {
+            if (t.actionSequence) {
+              t.actionSequence.forEach((item) => {
+                if (item.type === "task" && item.name === oldName) item.name = newName;
+                if (item.thenTask === oldName) item.thenTask = newName;
+                if (item.elseTask === oldName) item.elseTask = newName;
+              });
+            }
+          });
+          this.getAllObjectsWithSource().forEach(({ obj }) => {
+            if (obj.Tasks) {
+              Object.keys(obj.Tasks).forEach((key) => {
+                if (obj.Tasks[key] === oldName) obj.Tasks[key] = newName;
+              });
+            }
+          });
+          if (this.project.flowCharts && this.project.flowCharts[oldName]) {
+            this.project.flowCharts[newName] = this.project.flowCharts[oldName];
+            delete this.project.flowCharts[oldName];
+          }
+          if (this.project.stages) {
+            this.project.stages.forEach((stage) => {
+              if (stage.flowCharts && stage.flowCharts[oldName]) {
+                stage.flowCharts[newName] = stage.flowCharts[oldName];
+                delete stage.flowCharts[oldName];
+              }
+            });
+          }
+          return true;
+        }
+        deleteTask(name) {
+          if (!this.project) return false;
+          const task = this.getTasks().find((t) => t.name === name);
+          if (!task) return false;
+          const actionsToCleanup = (task.actionSequence || []).filter((item) => item.type === "action").map((item) => item.name);
+          this.project.tasks = this.project.tasks.filter((t) => t.name !== name);
+          if (this.project.stages) {
+            this.project.stages.forEach((s) => {
+              if (s.tasks) s.tasks = s.tasks.filter((t) => t.name !== name);
+              if (s.flowCharts && s.flowCharts[name]) delete s.flowCharts[name];
+            });
+          }
+          if (this.project.flowCharts && this.project.flowCharts[name]) delete this.project.flowCharts[name];
+          actionsToCleanup.forEach((actionName) => {
+            if (this.getActionUsage(actionName).length === 0) this.deleteAction(actionName);
+          });
+          this.getTasks().forEach((t) => {
+            if (t.actionSequence) {
+              t.actionSequence.forEach((item) => {
+                if (item.type === "task" && item.name === name) item.name = "";
+                if (item.thenTask === name) item.thenTask = "";
+                if (item.elseTask === name) item.elseTask = "";
+              });
+            }
+          });
+          this.getAllObjectsWithSource().forEach(({ obj }) => {
+            if (obj.Tasks) {
+              Object.keys(obj.Tasks).forEach((evt) => {
+                if (obj.Tasks[evt] === name) delete obj.Tasks[evt];
+              });
+            }
+          });
+          return true;
+        }
+        deleteAction(name) {
+          if (!this.project) return false;
+          this.project.actions = this.project.actions.filter((a) => a.name !== name);
+          if (this.project.stages) {
+            this.project.stages.forEach((s) => {
+              if (s.actions) s.actions = s.actions.filter((a) => a.name !== name);
+            });
+          }
+          return true;
+        }
+        getNextSmartActionName(action) {
+          const target = (action.target || "global").replace(/[^a-zA-Z0-9]/g, "");
+          let propPart = "action";
+          if (action.changes) {
+            const keys = Object.keys(action.changes);
+            if (keys.length > 0) {
+              const firstKey = keys[0];
+              const val = action.changes[firstKey];
+              let valStr = String(val).replace(/[^a-zA-Z0-9]/g, "");
+              if (valStr.length > 8) valStr = valStr.substring(0, 8);
+              propPart = `${firstKey}_${valStr}`;
+            }
+          }
+          const baseName = `${target}_${propPart}`;
+          let finalName = baseName, counter = 1;
+          const allActionNames = new Set(this.getActions().map((a) => a.name));
+          while (allActionNames.has(finalName)) {
+            finalName = `${baseName}_${counter++}`;
+          }
+          return finalName;
+        }
+        renameAction(oldName, newName) {
+          if (!this.project) return false;
+          let action = this.project.actions.find((a) => a.name === oldName);
+          if (!action && this.project.stages) {
+            for (const stage of this.project.stages) {
+              if (stage.actions) {
+                action = stage.actions.find((a) => a.name === oldName);
+                if (action) break;
+              }
+            }
+          }
+          if (action) {
+            action.name = newName;
+          } else {
+            return false;
+          }
+          this.getTasks().forEach((t) => {
+            if (t.actionSequence) {
+              t.actionSequence.forEach((item) => {
+                if (item.type === "action" && item.name === oldName) item.name = newName;
+                if (item.thenAction === oldName) item.thenAction = newName;
+                if (item.elseAction === oldName) item.elseAction = newName;
+              });
+            }
+          });
+          return true;
+        }
+        updateReferencesInProperties(oldName, newName) {
+          const regex = new RegExp(`\\$\\{${oldName}\\}`, "g");
+          const regexNested = new RegExp(`\\$\\{${oldName}\\.`, "g");
+          const replaceInString = (str) => str.replace(regex, `\${${newName}}`).replace(regexNested, `\${${newName}.`);
+          const traverseAndReplace = (obj) => {
+            if (!obj || typeof obj !== "object") return;
+            Object.keys(obj).forEach((key) => {
+              const val = obj[key];
+              if (typeof val === "string") {
+                obj[key] = replaceInString(val);
+              } else if (typeof val === "object") {
+                traverseAndReplace(val);
+              }
+            });
+          };
+          const allObjects = [...this.project.objects || []];
+          if (this.project.stages) this.project.stages.forEach((s) => {
+            if (s.objects) allObjects.push(...s.objects);
+          });
+          allObjects.forEach((obj) => traverseAndReplace(obj));
+          this.project.actions.forEach((act) => traverseAndReplace(act));
+          if (this.project.stages) this.project.stages.forEach((stage) => {
+            if (stage.actions) stage.actions.forEach((act) => traverseAndReplace(act));
+          });
+          this.getTasks().forEach((t) => traverseAndReplace(t));
+        }
+        updateReferencesInActions(oldName, newName) {
+          this.project.tasks.forEach((task) => {
+            task.actionSequence.forEach((item) => {
+              if (item.type === "action") {
+                const action = item;
+                if (action.variableName === oldName) action.variableName = newName;
+                if (action.resultVariable === oldName) action.resultVariable = newName;
+                if (action.calcSteps) action.calcSteps.forEach((step) => {
+                  if (step.operandType === "variable" && step.variable === oldName) step.variable = newName;
+                });
+              } else if (item.type === "condition" || item.type === "while") {
+                if (item.condition && item.condition.variable === oldName) item.condition.variable = newName;
+              }
+            });
+          });
+        }
+      };
+      __publicField(_ProjectRegistry, "logger", Logger.get("ProjectRegistry", "Project_Validation"));
+      __publicField(_ProjectRegistry, "instance");
+      ProjectRegistry = _ProjectRegistry;
+      projectRegistry = ProjectRegistry.getInstance();
+    }
+  });
 
   // src/runtime/PropertyHelper.ts
+  init_Logger();
   var logger = Logger.get("PropertyHelper", "Variable_Handling");
   var PropertyHelper = class _PropertyHelper {
     /**
@@ -790,6 +1786,7 @@
   };
 
   // src/services/DebugLogService.ts
+  init_Logger();
   var _DebugLogService = class _DebugLogService {
     constructor() {
       __publicField(this, "logs", []);
@@ -946,6 +1943,7 @@
   globalScope._globalDebugLogService = debugLogService;
 
   // src/runtime/PropertyWatcher.ts
+  init_Logger();
   var _PropertyWatcher = class _PropertyWatcher {
     constructor() {
       // Map: Object -> Map: PropertyPath -> Set of Callbacks
@@ -1132,6 +2130,7 @@
   var PropertyWatcher = _PropertyWatcher;
 
   // src/runtime/ReactiveProperty.ts
+  init_Logger();
   var logger2 = Logger.get("Proxy", "Variable_Management");
   function makeReactive(obj, watcher, path = "", root = null) {
     if (obj === null || typeof obj !== "object") {
@@ -1623,6 +2622,7 @@
   init_AnimationManager();
 
   // src/services/ServiceRegistry.ts
+  init_Logger();
   var _ServiceRegistryClass = class _ServiceRegistryClass {
     constructor() {
       __publicField(this, "id", Math.random().toString(36).substr(2, 9));
@@ -1747,6 +2747,7 @@
   ServiceRegistryClass.logger.info(`Singleton bound to window. ID: ${serviceRegistry.id}`);
 
   // src/services/DataService.ts
+  init_Logger();
   var _DataService = class _DataService {
     constructor() {
     }
@@ -2048,6 +3049,7 @@
   };
 
   // src/runtime/actions/StandardActions.ts
+  init_Logger();
   var runtimeLogger = Logger.get("Action", "Runtime_Execution");
   var dataLogger = Logger.get("Action", "DataStore_Sync");
   function resolveTarget(targetName, objects, vars, eventData) {
@@ -2886,6 +3888,7 @@
   }
 
   // src/runtime/ActionExecutor.ts
+  init_Logger();
   var _ActionExecutor = class _ActionExecutor {
     constructor(objects, multiplayerManager, onNavigate) {
       this.objects = objects;
@@ -2972,72 +3975,11 @@
   __publicField(_ActionExecutor, "logger", Logger.get("ActionExecutor", "Runtime_Execution"));
   var ActionExecutor = _ActionExecutor;
 
-  // src/services/LibraryService.ts
-  var LibraryService = class {
-    constructor() {
-      __publicField(this, "logger", Logger.get("LibraryService", "Project_Save_Load"));
-      __publicField(this, "libraryTasks", []);
-      __publicField(this, "libraryTemplates", []);
-      __publicField(this, "isLoaded", false);
-    }
-    async loadLibrary() {
-      if (this.isLoaded) return;
-      try {
-        const response = await fetch("/library.json");
-        const data = await response.json();
-        this.libraryTasks = data.tasks || [];
-        this.libraryTemplates = data.templates || [];
-        this.isLoaded = true;
-        this.logger.info(`Loaded ${this.libraryTasks.length} tasks and ${this.libraryTemplates.length} templates.`);
-      } catch (err2) {
-        this.logger.error("Failed to load library.json:", err2);
-      }
-    }
-    getTasks() {
-      return this.libraryTasks;
-    }
-    getTask(name) {
-      return this.libraryTasks.find((t) => t.name === name);
-    }
-    getTemplates() {
-      return this.libraryTemplates;
-    }
-    getTemplate(id) {
-      return this.libraryTemplates.find((t) => t.id === id);
-    }
-    /**
-     * Saves a template to the library via the API.
-     * Updates local cache if successful.
-     */
-    async saveTemplate(template) {
-      try {
-        const response = await fetch("/api/library/templates", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(template)
-        });
-        if (response.ok) {
-          const existingIdx = this.libraryTemplates.findIndex((t) => t.name === template.name);
-          if (existingIdx !== -1) {
-            this.libraryTemplates[existingIdx] = template;
-          } else {
-            this.libraryTemplates.push(template);
-          }
-          this.logger.info(`Template "${template.name}" saved successfully.`);
-          return true;
-        } else {
-          this.logger.error("Failed to save template:", await response.text());
-          return false;
-        }
-      } catch (err2) {
-        this.logger.error("Error saving template:", err2);
-        return false;
-      }
-    }
-  };
-  var libraryService = new LibraryService();
+  // src/runtime/TaskExecutor.ts
+  init_LibraryService();
 
   // src/runtime/executor/TaskConditionEvaluator.ts
+  init_Logger();
   var _TaskConditionEvaluator = class _TaskConditionEvaluator {
     static evaluateCondition(condition, vars, globalVars) {
       if (!condition) return false;
@@ -3132,6 +4074,7 @@
   var TaskConditionEvaluator = _TaskConditionEvaluator;
 
   // src/runtime/executor/TaskLoopHandler.ts
+  init_Logger();
   var _TaskLoopHandler = class _TaskLoopHandler {
     static async handleWhile(item, vars, globalVars, contextObj, depth, parentId, executeBody) {
       if (!item.condition || !item.body) {
@@ -3202,6 +4145,7 @@
   var TaskLoopHandler = _TaskLoopHandler;
 
   // src/runtime/TaskExecutor.ts
+  init_Logger();
   var logger3 = Logger.get("TaskExecutor", "Runtime_Execution");
   var _TaskExecutor = class _TaskExecutor {
     constructor(project, actions, actionExecutor, flowCharts, multiplayerManager, tasks) {
@@ -4021,6 +4965,7 @@
   var GameLoopManager = _GameLoopManager;
 
   // src/runtime/RuntimeVariableManager.ts
+  init_Logger();
   var _RuntimeVariableManager = class _RuntimeVariableManager {
     constructor(host, initialGlobalVars = {}) {
       this.host = host;
@@ -4493,6 +5438,7 @@
   };
 
   // src/components/TPanel.ts
+  init_Logger();
   var _TPanel = class _TPanel extends TWindow {
     constructor(name, x, y, width, height) {
       super(name, x, y, width, height);
@@ -5285,6 +6231,7 @@
   };
 
   // src/components/TInputController.ts
+  init_Logger();
   var _TInputController = class _TInputController extends TWindow {
     constructor(name, x = 0, y = 0) {
       super(name, x, y, 3, 1);
@@ -8967,6 +9914,7 @@
   };
 
   // src/components/TStageController.ts
+  init_Logger();
   var _TStageController = class _TStageController extends TWindow {
     constructor(name = "StageController", x = 0, y = 0) {
       super(name, x, y, 5, 2);
@@ -9349,6 +10297,7 @@
   };
 
   // src/components/TVariable.ts
+  init_Logger();
   var _TVariable = class _TVariable extends TWindow {
     constructor(name, x, y) {
       super(name, x, y, 6, 2);
@@ -9488,9 +10437,6 @@
         { name: "showHeader", label: "Kopfzeile zeigen", type: "boolean", group: "Tabelle" },
         { name: "striped", label: "Zebra-Streifen", type: "boolean", group: "Tabelle" }
       ];
-    }
-    getInspectorFile() {
-      return "./inspector_table.json";
     }
     toJSON() {
       return {
@@ -10172,6 +11118,7 @@
   };
 
   // src/components/TDataStore.ts
+  init_Logger();
   var _TDataStore = class _TDataStore extends TPanel {
     constructor(name = "DataStore", x = 0, y = 0) {
       super(name, x, y, 6, 4);
@@ -10494,6 +11441,9 @@
     }
   };
 
+  // src/utils/Serialization.ts
+  init_Logger();
+
   // src/components/TAPIServer.ts
   var TAPIServer = class extends TPanel {
     constructor(name = "APIServer", x = 0, y = 0) {
@@ -10603,19 +11553,42 @@
   };
 
   // src/components/TDataList.ts
+  init_Logger();
   var _TDataList = class _TDataList extends TPanel {
-    constructor(name = "DataList", x = 0, y = 0, width = 200, height = 300) {
+    constructor(name = "DataList", x = 0, y = 0, width = 20, height = 15) {
       super(name, x, y, width, height);
-      // Name der DataAction, von der Daten bezogen werden
+      __publicField(this, "className", "TDataList");
+      /** Name der DataAction, von der Daten bezogen werden */
       __publicField(this, "dataAction", "");
-      this.style.backgroundColor = "#1e1e1e";
-      this.style.borderColor = "#4da6ff";
+      /** Höhe einer einzelnen Karten-Zeile in Pixeln */
+      __publicField(this, "rowHeight", 60);
+      /** Abstand zwischen den Karten in Pixeln */
+      __publicField(this, "rowGap", 4);
+      /** Runtime-Only: Geklonte Zeilen-Daten (wird NICHT serialisiert) */
+      __publicField(this, "_runtimeRows", []);
+      this.style.backgroundColor = "#0d0d2b";
+      this.style.borderColor = "#1a1a3e";
       this.style.borderWidth = 2;
+      this.style.borderRadius = 12;
       this.style.overflow = "auto";
+      if (this.children.length === 0) {
+        const rowTemplate = new TPanel("Zeile", 0, 0, width - 2, 3);
+        rowTemplate.style.backgroundColor = "#1a1a3e";
+        rowTemplate.style.borderColor = "#2a2a5e";
+        rowTemplate.style.borderWidth = 1;
+        rowTemplate.style.borderRadius = 8;
+        this.addChild(rowTemplate);
+      }
       _TDataList.listLogger.info(`TDataList Constructor: name=${this.name}`);
     }
     /**
-     * Erweitert die Inspector-Eigenschaften um die dataSource
+     * Gibt die verfügbaren Events zurück
+     */
+    getEvents() {
+      return ["onRowClick", "onRowDoubleClick", ...super.getEvents()];
+    }
+    /**
+     * Erweitert die Inspector-Eigenschaften um DataAction, rowHeight, rowGap
      */
     getInspectorProperties() {
       const baseProps = super.getInspectorProperties();
@@ -10627,22 +11600,149 @@
           type: "select",
           source: "dataActions",
           group: "DATENBINDUNG",
-          hint: "Name der DataAction"
+          hint: "Name der DataAction, die die Daten liefert"
+        },
+        {
+          name: "rowHeight",
+          label: "Kartenh\xF6he (px)",
+          type: "number",
+          group: "LAYOUT",
+          min: 20,
+          max: 500,
+          hint: "H\xF6he einer einzelnen Karte in Pixeln"
+        },
+        {
+          name: "rowGap",
+          label: "Kartenabstand (px)",
+          type: "number",
+          group: "LAYOUT",
+          min: 0,
+          max: 50,
+          hint: "Abstand zwischen den Karten"
         }
       ];
     }
     /**
-     * Bereitet die Serialisierung für project.json vor
+     * Serialisiert die Komponente — _runtimeRows wird NICHT gespeichert
      */
     toJSON() {
       return {
         ...super.toJSON(),
-        dataAction: this.dataAction
+        dataAction: this.dataAction,
+        rowHeight: this.rowHeight,
+        rowGap: this.rowGap
       };
     }
     // --- IRuntimeComponent Implementation ---
-    initRuntime(_callbacks) {
+    /**
+     * Wird beim Start des Run-Modus aufgerufen.
+     * Liest die DataAction aus, findet die Ziel-Variable (resultVariable),
+     * und klont das Karten-Template pro Datensatz.
+     */
+    initRuntime(callbacks) {
       _TDataList.listLogger.info(`TDataList initRuntime: dataAction=${this.dataAction}`);
+      if (!this.dataAction) {
+        _TDataList.listLogger.warn(`TDataList "${this.name}": Keine dataAction konfiguriert`);
+        return;
+      }
+      const allObjects = callbacks.objects || [];
+      const allActions = this.findAllActions(allObjects);
+      const action = allActions.find(
+        (a) => a.name === this.dataAction || a.id === this.dataAction
+      );
+      if (!action) {
+        _TDataList.listLogger.warn(`TDataList "${this.name}": DataAction "${this.dataAction}" nicht gefunden`);
+        return;
+      }
+      const resultVarName = action.resultVariable;
+      if (!resultVarName) {
+        _TDataList.listLogger.warn(`TDataList "${this.name}": DataAction "${this.dataAction}" hat keine resultVariable (INTO)`);
+        return;
+      }
+      const variable = allObjects.find(
+        (o) => o.isVariable && o.name === resultVarName
+      );
+      if (variable) {
+        _TDataList.listLogger.info(`TDataList "${this.name}": Beobachte Variable "${resultVarName}"`);
+        this.buildRuntimeRows(variable);
+      }
+    }
+    /**
+     * Wird bei jedem Frame aufgerufen — prüft ob sich die Daten geändert haben
+     */
+    onRuntimeUpdate(_deltaTime) {
+    }
+    /**
+     * Baut die Runtime-Zeilen aus dem Template und den Daten auf
+     */
+    buildRuntimeRows(variable) {
+      const data = variable.value || variable.items || [];
+      if (!Array.isArray(data)) {
+        _TDataList.listLogger.warn(`TDataList "${this.name}": Daten sind kein Array:`, typeof data);
+        this._runtimeRows = [];
+        return;
+      }
+      const templatePanel = this.children[0];
+      if (!templatePanel) {
+        _TDataList.listLogger.warn(`TDataList "${this.name}": Kein Karten-Template (erstes Kind) vorhanden`);
+        this._runtimeRows = [];
+        return;
+      }
+      const templateJSON = typeof templatePanel.toJSON === "function" ? templatePanel.toJSON() : JSON.parse(JSON.stringify(templatePanel));
+      this._runtimeRows = [];
+      for (let index = 0; index < data.length; index++) {
+        const dataItem = data[index];
+        const rowClone = JSON.parse(JSON.stringify(templateJSON));
+        this.resolveItemBindings(rowClone, dataItem, index);
+        this._runtimeRows.push(rowClone);
+      }
+      _TDataList.listLogger.info(`TDataList "${this.name}": ${this._runtimeRows.length} Zeilen aus ${data.length} Datens\xE4tzen generiert`);
+    }
+    /**
+     * Löst ${item.xyz} Bindings rekursiv in einem geklonten Objekt auf
+     */
+    resolveItemBindings(obj, item, rowIndex) {
+      if (!obj || typeof obj !== "object") return;
+      obj._rowIndex = rowIndex;
+      obj._rowItem = item;
+      for (const key of Object.keys(obj)) {
+        const val = obj[key];
+        if (typeof val === "string" && val.includes("${item.")) {
+          obj[key] = val.replace(/\$\{item\.(\w+)\}/g, (_match, prop) => {
+            const resolved = item[prop];
+            return resolved !== void 0 ? String(resolved) : "";
+          });
+        } else if (Array.isArray(val)) {
+          val.forEach((child) => this.resolveItemBindings(child, item, rowIndex));
+        } else if (typeof val === "object" && val !== null && key !== "_rowItem") {
+          this.resolveItemBindings(val, item, rowIndex);
+        }
+      }
+    }
+    /**
+     * Sucht alle Actions im Projekt (globale + stage-lokale)
+     */
+    findAllActions(objects) {
+      const actions = [];
+      for (const obj of objects) {
+        if (obj.className === "TVariable" || obj.isVariable) continue;
+        if (obj.type === "data_action" || obj.type === "http") {
+          actions.push(obj);
+        }
+      }
+      try {
+        const { projectRegistry: projectRegistry2 } = (init_ProjectRegistry(), __toCommonJS(ProjectRegistry_exports));
+        const allActions = projectRegistry2.getActions("all");
+        if (Array.isArray(allActions)) {
+          for (const a of allActions) {
+            if (!actions.find((existing) => existing.name === a.name)) {
+              actions.push(a);
+            }
+          }
+        }
+      } catch (e) {
+      }
+      return actions;
     }
   };
   __publicField(_TDataList, "listLogger", Logger.get("TDataList", "Component_Manipulation"));
@@ -11143,6 +12243,7 @@
   };
 
   // src/runtime/GameRuntime.ts
+  init_Logger();
   var logger5 = Logger.get("GameRuntime", "Runtime_Execution");
   var GameRuntime = class {
     constructor(project, objects, options = {}) {
@@ -12284,7 +13385,11 @@
   } catch (e) {
   }
 
+  // src/editor/services/StageRenderer.ts
+  init_Logger();
+
   // src/editor/services/EmojiPickerRenderer.ts
+  init_Logger();
   var logger6 = Logger.get("EmojiPickerRenderer", "Inspector_Update");
   var EmojiPickerRenderer = class {
     /**
@@ -12333,6 +13438,7 @@
   };
 
   // src/editor/services/TableRenderer.ts
+  init_Logger();
   var logger7 = Logger.get("TableRenderer", "Inspector_Update");
   var TableRenderer = class {
     /**
@@ -12786,8 +13892,10 @@
         this.renderButton(el, obj, isNew);
       } else if (className === "TEmojiPicker") {
         this.renderEmojiPickerInternal(el, obj);
-      } else if (className === "TTable" || className === "TObjectList" || className === "TDataList") {
+      } else if (className === "TTable" || className === "TObjectList") {
         _StageRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host), this.host.grid.cellSize);
+      } else if (className === "TDataList") {
+        this.renderDataList(el, obj);
       } else if (className === "TStringVariable" || className === "TObjectVariable" || className === "TIntegerVariable" || className === "TBooleanVariable" || className === "TListVariable" || obj.isVariable || obj.isService) {
         this.renderSystemComponent(el, obj, className);
       } else if (className === "TLabel" || className === "TNumberLabel") {
@@ -13343,6 +14451,170 @@
         if (handleStyles[dir].transform) handle.style.transform = handleStyles[dir].transform;
         el.appendChild(handle);
       });
+    }
+    /**
+     * Rendert eine TDataList: Im Editor das Template, im Run-Modus die geklonten Karten
+     */
+    renderDataList(el, obj) {
+      const isRunMode = this.host.runMode;
+      el.style.display = "flex";
+      el.style.flexDirection = "column";
+      el.style.overflow = "auto";
+      el.style.alignItems = "stretch";
+      el.style.justifyContent = "flex-start";
+      el.style.padding = "4px";
+      el.style.gap = `${obj.rowGap || 4}px`;
+      if (isRunMode && obj._runtimeRows && obj._runtimeRows.length > 0) {
+        const existingCards = el.querySelectorAll(".datalist-row");
+        if (existingCards.length !== obj._runtimeRows.length) {
+          el.innerHTML = "";
+          for (let i = 0; i < obj._runtimeRows.length; i++) {
+            const rowData = obj._runtimeRows[i];
+            const card = document.createElement("div");
+            card.className = "datalist-row";
+            card.setAttribute("data-row-index", String(i));
+            card.style.minHeight = `${obj.rowHeight || 60}px`;
+            card.style.display = "flex";
+            card.style.alignItems = "center";
+            card.style.gap = "8px";
+            card.style.padding = "8px 12px";
+            card.style.borderRadius = `${rowData.style?.borderRadius || 8}px`;
+            card.style.backgroundColor = rowData.style?.backgroundColor || "#1a1a3e";
+            card.style.border = `${rowData.style?.borderWidth || 1}px solid ${rowData.style?.borderColor || "#2a2a5e"}`;
+            card.style.cursor = "pointer";
+            card.style.transition = "background 0.2s";
+            card.style.flexShrink = "0";
+            card.onmouseenter = () => card.style.backgroundColor = "#252555";
+            card.onmouseleave = () => card.style.backgroundColor = rowData.style?.backgroundColor || "#1a1a3e";
+            if (rowData.children && Array.isArray(rowData.children)) {
+              for (const child of rowData.children) {
+                const childEl = this.renderDataListChild(child, obj, i);
+                if (childEl) card.appendChild(childEl);
+              }
+            } else {
+              const item = rowData._rowItem;
+              if (item) {
+                const text = typeof item === "object" ? JSON.stringify(item) : String(item);
+                card.innerText = text.substring(0, 100);
+                card.style.color = "#ccc";
+                card.style.fontSize = "12px";
+              }
+            }
+            card.onclick = (e) => {
+              e.stopPropagation();
+              if (this.host.onEvent) {
+                this.host.onEvent(obj.id, "onRowClick", {
+                  item: rowData._rowItem,
+                  rowIndex: i
+                });
+              }
+            };
+            el.appendChild(card);
+          }
+        }
+      } else {
+        const templatePanel = obj.children?.[0];
+        const childCount = templatePanel?.children?.length || 0;
+        let infoBar = el.querySelector(".datalist-info");
+        if (!infoBar) {
+          el.innerHTML = "";
+          infoBar = document.createElement("div");
+          infoBar.className = "datalist-info";
+          infoBar.style.fontSize = "10px";
+          infoBar.style.color = "#4da6ff";
+          infoBar.style.padding = "4px 8px";
+          infoBar.style.textAlign = "center";
+          infoBar.style.borderBottom = "1px solid #2a2a5e";
+          infoBar.style.flexShrink = "0";
+          el.appendChild(infoBar);
+        }
+        const actionInfo = obj.dataAction ? `\u{1F4CA} ${obj.dataAction}` : "\u26A0\uFE0F Keine DataAction";
+        infoBar.innerText = `\u{1F504} Repeater | ${actionInfo} | ${childCount} Kinder im Template`;
+        if (templatePanel) {
+          let previewCard = el.querySelector(".datalist-preview");
+          if (!previewCard) {
+            previewCard = document.createElement("div");
+            previewCard.className = "datalist-preview";
+            previewCard.style.minHeight = `${obj.rowHeight || 60}px`;
+            previewCard.style.display = "flex";
+            previewCard.style.alignItems = "center";
+            previewCard.style.gap = "8px";
+            previewCard.style.padding = "8px 12px";
+            previewCard.style.borderRadius = `${templatePanel.style?.borderRadius || 8}px`;
+            previewCard.style.backgroundColor = templatePanel.style?.backgroundColor || "#1a1a3e";
+            previewCard.style.border = `1px dashed ${templatePanel.style?.borderColor || "#4da6ff"}`;
+            el.appendChild(previewCard);
+          }
+          const childNames = (templatePanel.children || []).map((c) => {
+            const className = c.className || "?";
+            const text = c.text || c.caption || c.name || "";
+            return `[${className}] ${text}`;
+          }).join(" | ");
+          previewCard.innerText = childNames || "Leeres Template \u2014 ziehe Komponenten hinein";
+          previewCard.style.color = childNames ? "#aaa" : "#666";
+          previewCard.style.fontSize = "11px";
+        }
+      }
+    }
+    /**
+     * Rendert ein einzelnes Kind-Element einer DataList-Karte
+     */
+    renderDataListChild(childData, parentObj, rowIndex) {
+      const className = childData.className;
+      const childEl = document.createElement("span");
+      if (className === "TLabel" || className === "TNumberLabel") {
+        childEl.innerText = childData.text || "";
+        childEl.style.color = childData.style?.color || "#ccc";
+        if (childData.style?.fontSize) childEl.style.fontSize = typeof childData.style.fontSize === "number" ? `${childData.style.fontSize}px` : childData.style.fontSize;
+        if (childData.style?.fontWeight === "bold" || childData.style?.fontWeight === true) childEl.style.fontWeight = "bold";
+        if (childData.style?.fontStyle === "italic" || childData.style?.fontStyle === true) childEl.style.fontStyle = "italic";
+        if (childData.style?.fontFamily) childEl.style.fontFamily = childData.style.fontFamily;
+      } else if (className === "TButton") {
+        childEl.innerText = childData.caption || childData.name || "?";
+        childEl.style.cursor = "pointer";
+        childEl.style.padding = "4px 8px";
+        childEl.style.borderRadius = "4px";
+        childEl.style.backgroundColor = childData.style?.backgroundColor || "#333";
+        childEl.style.color = childData.style?.color || "#fff";
+        childEl.style.border = "none";
+        childEl.style.fontSize = childData.style?.fontSize ? `${childData.style.fontSize}px` : "12px";
+        childEl.onclick = (e) => {
+          e.stopPropagation();
+          if (this.host.onEvent) {
+            this.host.onEvent(parentObj.id, "onClick", {
+              item: childData._rowItem,
+              rowIndex,
+              buttonName: childData.name
+            });
+          }
+        };
+      } else if (className === "TImage" || className === "TAvatar" || className === "TShape") {
+        const img = document.createElement("img");
+        const src = childData.src || childData.backgroundImage || "";
+        if (src) {
+          img.src = src.startsWith("http") || src.startsWith("/") || src.startsWith("data:") ? src : `/images/${src}`;
+        }
+        img.style.width = "40px";
+        img.style.height = "40px";
+        img.style.borderRadius = className === "TAvatar" || className === "TShape" ? "50%" : `${childData.style?.borderRadius || 4}px`;
+        img.style.objectFit = "cover";
+        img.onerror = () => {
+          img.style.display = "none";
+        };
+        return img;
+      } else if (className === "TBadge") {
+        childEl.innerText = childData.text || childData.value || "";
+        childEl.style.padding = "2px 8px";
+        childEl.style.borderRadius = "12px";
+        childEl.style.fontSize = "10px";
+        childEl.style.fontWeight = "bold";
+        childEl.style.backgroundColor = childData.style?.backgroundColor || "#4caf50";
+        childEl.style.color = childData.style?.color || "#fff";
+      } else {
+        childEl.innerText = childData.text || childData.caption || childData.name || "";
+        childEl.style.color = childData.style?.color || "#aaa";
+      }
+      return childEl;
     }
     static renderTable(el, obj, onEvent, cellSize = 20) {
       TableRenderer.renderTable(el, obj, onEvent, cellSize);

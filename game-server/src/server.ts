@@ -165,10 +165,13 @@ app.post('/api/platform/login', (req, res) => {
         // Generate JWT
         const token = jwt.sign({ id: user.id, role: user.role, name: user.name }, JWT_SECRET);
 
+        // Alle User-Felder zurückgeben AUSSER authCode (sensibel)
+        const { authCode: _pin, ...safeUser } = user;
+
         res.json({
             success: true,
             token, // Send token to client
-            user: { name: user.name, role: user.role }
+            user: safeUser
         });
     } else {
         res.status(401).json({ message: 'Ungültiger PIN' });

@@ -957,7 +957,7 @@ export class InspectorRenderer {
             return projectRegistry.getActions().map(a => ({ value: a.name, label: a.name }));
         }
         if (prop.source === 'dataActions') {
-            return projectRegistry.getActions().filter(a => a.type === 'data_action' || a.type === 'http').map(a => ({ value: a.name, label: a.name }));
+            return projectRegistry.getActions('all').filter((a: any) => a.type === 'data_action' || a.type === 'http').map((a: any) => ({ value: a.name, label: a.name }));
         }
         if (prop.source === 'variables') {
             return projectRegistry.getVariables().map(v => ({ value: v.name, label: v.name }));

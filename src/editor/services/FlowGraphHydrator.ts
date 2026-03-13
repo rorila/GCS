@@ -96,6 +96,10 @@ export class FlowGraphHydrator {
                     delete (task as any).flowGraph;
                 } else if (task) {
                     sourceData = this.host.syncManager.generateFlowFromActionSequence(task);
+                } else if (stageFlowChart || globalFlowChart || fallbackStageChart) {
+                    // FlowChart-Eintrag existiert, aber ist leer (z.B. von createNewTaskFlow reserviert).
+                    // Kein automatischer Start-Knoten — der Flow wird vom Aufrufer befüllt.
+                    sourceData = stageFlowChart || globalFlowChart || fallbackStageChart;
                 } else {
                     sourceData = { elements: [], connections: [] };
                     setTimeout(() => {

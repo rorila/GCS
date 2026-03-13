@@ -26,6 +26,7 @@ export class MenuBar {
     private config: MenuBarConfig | null = null;
     private activeMenu: HTMLElement | null = null;
     private activeDropdown: HTMLElement | null = null;
+    private infoLabel: HTMLElement;
 
     // Callbacks for actions
     public onAction?: (action: string) => void;
@@ -37,6 +38,20 @@ export class MenuBar {
         }
         this.container = el;
         this.setupStyles();
+
+        // Info-Label rechts in der Menüleiste (z.B. Projektpfad)
+        this.infoLabel = document.createElement('span');
+        this.infoLabel.style.cssText = `
+            margin-left: auto;
+            color: #aaa;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 600px;
+            padding-right: 12px;
+        `;
+        this.container.appendChild(this.infoLabel);
 
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
@@ -97,6 +112,9 @@ export class MenuBar {
             const menuEl = this.createMenuButton(menu);
             this.container.appendChild(menuEl);
         });
+
+        // Info-Label wieder an das Ende anhängen (nach re-render)
+        this.container.appendChild(this.infoLabel);
     }
 
     /**
@@ -258,5 +276,13 @@ export class MenuBar {
             menu.items = newItems;
             this.render();
         }
+    }
+
+    /**
+     * Setzt einen Info-Text rechts in der Menüleiste (z.B. Projektpfad)
+     */
+    public setInfoText(text: string): void {
+        this.infoLabel.textContent = text;
+        this.infoLabel.title = text;
     }
 }

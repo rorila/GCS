@@ -55,7 +55,7 @@
       "flowChart": {
         "elements": [
           {
-            "id": "root_task_1773402441201",
+            "id": "root_task_1773427986343",
             "type": "task",
             "x": 400,
             "y": 60,
@@ -73,7 +73,7 @@
             }
           },
           {
-            "id": "node-1773402441712",
+            "id": "node-1773427986853",
             "type": "action",
             "x": 500,
             "y": 200,
@@ -99,8 +99,8 @@
             "startY": 90,
             "endX": 500,
             "endY": 230,
-            "startTargetId": "root_task_1773402441201",
-            "endTargetId": "node-1773402441712",
+            "startTargetId": "root_task_1773427986343",
+            "endTargetId": "node-1773427986853",
             "data": {
               "startAnchorType": "output",
               "endAnchorType": "input"
@@ -198,7 +198,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1773402456206_cm3mt0v2e",
+          "id": "obj_1773428001383_5xztxm58d",
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
@@ -235,7 +235,7 @@
           "details": "",
           "type": "navigate_stage",
           "showDetails": false,
-          "stageId": "stage-1773402448606"
+          "stageId": "stage-1773427993734"
         }
       ],
       "tasks": [],
@@ -251,7 +251,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1773402448606",
+      "id": "stage-1773427993734",
       "name": "HighscoreStage",
       "type": "standard",
       "objects": [],

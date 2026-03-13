@@ -52,6 +52,17 @@ export class EditorDataManager {
         this.host = host;
     }
 
+    /**
+     * Aktualisiert die Pfad-Anzeige in der Menüleiste
+     */
+    public updateProjectPathDisplay(): void {
+        const menuBar = (this.host as any).menuBar;
+        if (menuBar && typeof menuBar.setInfoText === 'function') {
+            const path = this.currentSavePath || '(nicht gespeichert)';
+            menuBar.setInfoText(`Aktueller Projektpfad: ${path}`);
+        }
+    }
+
     public async triggerLoad() {
         if (this.host.isProjectDirty) {
             if (!confirm("Sie haben ungespeicherte Änderungen am aktuellen Projekt. Möchten Sie wirklich ein anderes Projekt laden? (Nicht gespeicherte Änderungen gehen verloren)")) {
@@ -195,6 +206,7 @@ export class EditorDataManager {
 
                 const msg = `Projekt erfolgreich gespeichert: ${targetFilePath}`;
                 EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
+                this.updateProjectPathDisplay();
                 if (overwriteConfirmed === undefined) alert(msg);
                 return { success: true, message: msg };
             } else {
@@ -406,7 +418,10 @@ export class EditorDataManager {
 
         // Stage-Menü nach allen Post-Load-Operationen aktualisieren
         // setProject() ruft updateStagesMenu() auf, aber zu früh (vor async Ops)
-        setTimeout(() => { this.host.updateStagesMenu(); }, 200);
+        setTimeout(() => {
+            this.host.updateStagesMenu();
+            this.updateProjectPathDisplay();
+        }, 200);
     }
 
     public autoSaveToLocalStorage() {
