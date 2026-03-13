@@ -1,3 +1,12 @@
+## [3.14.3] - 2026-03-13
+### Added (IInspectable für UI-Komponenten)
+- **`TComponent` implementiert `IInspectable`** (`src/components/TComponent.ts`):
+  - Auto-Konvertierung: `getInspectorProperties()` Gruppen werden automatisch zu `InspectorSection[]`
+  - Alle 66 UI-Komponenten (TButton, TLabel, TPanel, etc.) bekommen IInspectable ohne Änderung
+  - Icon-Mapping für 13 bekannte Gruppen (IDENTITÄT, GEOMETRIE, DARSTELLUNG, etc.)
+  - `applyChange()` signalisiert Re-Render bei Name/Scope-Änderungen
+  - `getInspectorEvents()` exportiert Event-Bindings für den Inspector
+
 ## [3.14.2] - 2026-03-13
 ### Added (Sync-Robustheit)
 - **E2E Roundtrip-Test** (`tests/e2e/09_SyncRoundtrip.spec.ts`) [NEU]:

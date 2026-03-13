@@ -1,3 +1,5 @@
+import { IInspectable, InspectorSection } from '../editor/inspector/types';
+
 export interface TPropertyDef {
     name: string;      // Property key or path (e.g. 'x', 'style.backgroundColor')
     label: string;     // Display label
@@ -44,7 +46,24 @@ export interface IRuntimeComponent {
     onRuntimeStop?(): void;
 }
 
-export abstract class TComponent {
+/** Icon-Mapping für bekannte Gruppen-Namen in InspectorSections */
+const GROUP_ICONS: Record<string, string> = {
+    'IDENTITÄT': '🏷️',
+    'GEOMETRIE': '📐',
+    'DARSTELLUNG': '🎨',
+    'STIL': '🎨',
+    'INHALT': '📝',
+    'TYPOGRAFIE': '🔤',
+    'ICON': '🖼️',
+    'INTERAKTION': '🖱️',
+    'KONFIGURATION': '⚙️',
+    'DATEN': '📊',
+    'ANIMATION': '🎬',
+    'NETZWERK': '🌐',
+    'SICHERHEIT': '🔒',
+};
+
+export abstract class TComponent implements IInspectable {
     public id: string;
     public name: string;
     public className: string; // Explicit className for production builds
@@ -82,6 +101,71 @@ export abstract class TComponent {
             { name: 'dragMode', label: 'Drag Mode', type: 'select', group: 'INTERAKTION', options: ['move', 'copy'], editorOnly: true }
         ];
     }
+
+    // =========================================================================
+    // IInspectable: Component-Owned Inspector
+    // =========================================================================
+
+    /**
+     * Auto-Konvertierung: Gruppiert getInspectorProperties() nach 'group'
+     * und erzeugt daraus InspectorSection[].
+     * 
+     * Unterklassen können diese Methode überschreiben um eigene Sektionen zu definieren.
+     */
+    public getInspectorSections(): InspectorSection[] {
+        const props = this.getInspectorProperties();
+        const groupMap = new Map<string, TPropertyDef[]>();
+        const groupOrder: string[] = [];
+
+        for (const prop of props) {
+            const group = prop.group || 'ALLGEMEIN';
+            if (!groupMap.has(group)) {
+                groupMap.set(group, []);
+                groupOrder.push(group);
+            }
+            groupMap.get(group)!.push(prop);
+        }
+
+        return groupOrder.map(groupName => ({
+            id: groupName.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+            label: groupName,
+            icon: GROUP_ICONS[groupName] || '📋',
+            collapsed: false,
+            properties: groupMap.get(groupName)!
+        }));
+    }
+
+    /**
+     * Property-Änderung anwenden.
+     * Wird vom InspectorHost aufgerufen um zu prüfen ob ein Re-Render nötig ist.
+     * Die eigentliche Persistierung läuft über eventHandler.handleControlChange().
+     * 
+     * @returns true wenn ein vollständiger Inspector-Re-Render nötig ist
+     */
+    public applyChange(propertyName: string, _newValue: any, _oldValue?: any): boolean {
+        // Name-Änderungen erfordern Re-Render (Header ändert sich)
+        if (propertyName === 'name') return true;
+        // Scope-Änderungen erfordern Re-Render (könnte Sektionen beeinflussen)
+        if (propertyName === 'scope') return true;
+        return false;
+    }
+
+    /**
+     * Events-Tab: Exportiert die Event-Bindings für den Inspector.
+     */
+    public getInspectorEvents(): { name: string; label: string; mappedTask?: string }[] {
+        if (!this.events) return [];
+        const standardEvents = ['onClick', 'onDoubleClick', 'onMouseEnter', 'onMouseLeave', 'onDragStart', 'onDragEnd', 'onDrop'];
+        return standardEvents.map(eventName => ({
+            name: eventName,
+            label: eventName.replace(/^on/, ''),
+            mappedTask: this.events?.[eventName] || undefined
+        }));
+    }
+
+    // =========================================================================
+    // Serialization
+    // =========================================================================
 
     /**
      * Generisches toJSON, das die Metadaten aus getInspectorProperties nutzt.
@@ -198,3 +282,4 @@ export abstract class TComponent {
         return String(val ?? '');
     }
 }
+
