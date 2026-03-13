@@ -1,3 +1,10 @@
+## [3.14.2] - 2026-03-13
+### Added (Sync-Robustheit)
+- **E2E Roundtrip-Test** (`tests/e2e/09_SyncRoundtrip.spec.ts`) [NEU]:
+  - Szenario A: Action-Typ-Änderung (navigate_stage) → prüft JSON + Flow-Node + Pascal + JSON-View
+  - Szenario B: Action-Umbenennung → prüft JSON + Flow-Node + ActionSequence + JSON-View
+  - Beide Tests mit automatischem Cleanup (Zurückbenennen + Speichern)
+
 ## [3.14.1] - 2026-03-13
 ### Added (Sync-Robustheit)
 - **`SyncValidator`** (`src/editor/services/SyncValidator.ts`) [NEU]:
