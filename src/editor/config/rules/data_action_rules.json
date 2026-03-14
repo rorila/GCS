@@ -7,93 +7,39 @@
             "propName": "name",
             "type": "string",
             "required": true,
-            "next": "ask_method"
+            "next": "ask_datastore"
         },
-        "ask_method": {
-            "id": "ask_method",
-            "prompt": "Welche HTTP-Methode soll verwendet werden?",
-            "propName": "method",
+        "ask_datastore": {
+            "id": "ask_datastore",
+            "prompt": "Welcher DataStore soll als Datenquelle verwendet werden?",
+            "propName": "dataStore",
             "type": "select",
-            "options": [
-                {
-                    "value": "GET",
-                    "label": "GET (Lesen)",
-                    "description": "Lädt Daten vom Server herunter."
-                },
-                {
-                    "value": "POST",
-                    "label": "POST (Erstellen)",
-                    "description": "Sendet neue Daten zum Server."
-                },
-                {
-                    "value": "PUT",
-                    "label": "PUT (Aktualisieren)",
-                    "description": "Aktualisiert bestehende Daten auf dem Server."
-                },
-                {
-                    "value": "DELETE",
-                    "label": "DELETE (Löschen)",
-                    "description": "Löscht Daten vom Server."
-                }
-            ],
-            "required": true,
-            "next": "ask_is_jwt"
-        },
-        "ask_is_jwt": {
-            "id": "ask_is_jwt",
-            "prompt": "Ist dies ein Login-Request (Platform JWT Request)?",
-            "propName": "requestJWT",
-            "type": "boolean",
-            "required": true,
-            "next": {
-                "requestJWT": {
-                    "true": "ask_body",
-                    "false": "ask_resource"
-                }
-            }
+            "options": "@dataStores",
+            "required": false,
+            "next": "ask_resource"
         },
         "ask_resource": {
             "id": "ask_resource",
-            "prompt": "Auf welche Backend-Ressource soll zugegriffen werden (z.B. 'users' oder 'highscores')? Leer lassen für absolute URL.",
+            "prompt": "Auf welche Ressource / Collection soll zugegriffen werden (z.B. 'users', 'highscores')? Leer lassen für Standard-Collection.",
             "propName": "resource",
             "type": "string",
             "required": false,
-            "next": {
-                "method": {
-                    "GET": "ask_query_prop",
-                    "default": "ask_body"
-                }
-            }
+            "next": "ask_select_fields"
         },
-        "ask_query_prop": {
-            "id": "ask_query_prop",
-            "prompt": "Soll das Ergebnis gefiltert werden? Falls ja, nach welchem Feld (z.B. 'id')? Sonst leer lassen.",
-            "propName": "queryProperty",
-            "type": "string",
-            "required": false,
-            "next": "ask_query_value"
-        },
-        "ask_query_value": {
-            "id": "ask_query_value",
-            "prompt": "Nach welchem Wert soll gefiltert werden?",
-            "propName": "queryValue",
-            "type": "string",
-            "required": false,
-            "next": "ask_result_var"
-        },
-        "ask_body": {
-            "id": "ask_body",
-            "prompt": "Welcher JSON-Payload (Body) soll gesendet werden? (Optional, als JSON-String eingeben)",
-            "propName": "body",
+        "ask_select_fields": {
+            "id": "ask_select_fields",
+            "prompt": "Welche Felder sollen abgerufen werden? (* = alle)",
+            "propName": "selectFields",
             "type": "string",
             "required": false,
             "next": "ask_result_var"
         },
         "ask_result_var": {
             "id": "ask_result_var",
-            "prompt": "In welcher Variable soll die Server-Antwort gespeichert werden?",
+            "prompt": "In welcher Variable soll das Ergebnis gespeichert werden?",
             "propName": "resultVariable",
-            "type": "string",
+            "type": "select",
+            "options": "@variables",
             "required": false,
             "next": "ask_result_path"
         },
@@ -101,6 +47,46 @@
             "id": "ask_result_path",
             "prompt": "Welcher Pfad aus der Payload soll extrahiert werden (z.B. 'data' oder 'data.token')? Leer lassen für alles.",
             "propName": "resultPath",
+            "type": "string",
+            "required": false,
+            "next": "ask_query_prop"
+        },
+        "ask_query_prop": {
+            "id": "ask_query_prop",
+            "prompt": "Soll das Ergebnis gefiltert werden? Falls ja, nach welchem Feld (z.B. 'id')? Sonst leer lassen.",
+            "propName": "queryProperty",
+            "type": "select",
+            "options": "@dataStoreFields",
+            "required": false,
+            "next": {
+                "queryProperty": {
+                    "": null,
+                    "default": "ask_query_op"
+                }
+            }
+        },
+        "ask_query_op": {
+            "id": "ask_query_op",
+            "prompt": "Welcher Vergleichs-Operator soll verwendet werden?",
+            "propName": "queryOperator",
+            "type": "select",
+            "options": [
+                { "value": "==", "label": "Gleich (==)" },
+                { "value": "!=", "label": "Ungleich (!=)" },
+                { "value": ">", "label": "Größer (>)" },
+                { "value": "<", "label": "Kleiner (<)" },
+                { "value": ">=", "label": "Größer-Gleich (>=)" },
+                { "value": "<=", "label": "Kleiner-Gleich (<=)" },
+                { "value": "CONTAINS", "label": "Enthält (CONTAINS)" },
+                { "value": "IN", "label": "Ist einer von (IN)" }
+            ],
+            "required": true,
+            "next": "ask_query_value"
+        },
+        "ask_query_value": {
+            "id": "ask_query_value",
+            "prompt": "Nach welchem Wert soll gefiltert werden? (Tipp: ${variablenName} für Variablen-Referenz)",
+            "propName": "queryValue",
             "type": "string",
             "required": false,
             "next": null

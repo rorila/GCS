@@ -222,10 +222,16 @@ export class ExpertDialog {
             this.inputContainer.appendChild(container);
             this.inputContainer.appendChild(hidden);
         } else {
+            // String-Eingabe (optional mit Variablen-Picker "V"-Button)
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.gap = '6px';
+            wrapper.style.alignItems = 'center';
+
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'expert-input';
-            input.style.width = '100%';
+            input.style.flex = '1';
             input.style.padding = '10px';
             input.style.backgroundColor = '#1e1e1e';
             input.style.color = '#fff';
@@ -237,8 +243,47 @@ export class ExpertDialog {
             const existingVal = expertRuleEngine.getSessionPayload()[node.propName];
             if (existingVal) input.value = existingVal;
 
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') this.handleNext();
+                if (e.key === 'Escape') this.handleCancel();
+            });
+
+            wrapper.appendChild(input);
+
+            // Variablen-Picker-Button für Hybrid-Felder
+            const varBtn = document.createElement('button');
+            varBtn.textContent = 'V';
+            varBtn.title = 'Variable einsetzen (${variablenName})';
+            varBtn.style.cssText = 'padding:8px 12px;background:#2d2d2d;color:#4da6ff;border:1px solid #555;border-radius:4px;cursor:pointer;font-weight:bold;font-size:14px;transition:all 0.2s;';
+            varBtn.onmouseover = () => { varBtn.style.backgroundColor = '#363636'; varBtn.style.borderColor = '#4da6ff'; };
+            varBtn.onmouseout = () => { varBtn.style.backgroundColor = '#2d2d2d'; varBtn.style.borderColor = '#555'; };
+            varBtn.onclick = () => {
+                // Variablen-Auswahl per einfachem Dropdown
+                const vars = (expertRuleEngine as any).dynamicResolvers?.get?.('@variables')?.({}) || [];
+                if (vars.length === 0) {
+                    input.value += '${}';
+                    input.focus();
+                    return;
+                }
+                const varSelect = document.createElement('select');
+                varSelect.style.cssText = 'position:absolute;z-index:10000;padding:6px;background:#2d2d2d;color:#fff;border:1px solid #4da6ff;border-radius:4px;';
+                varSelect.innerHTML = '<option value="">-- Variable wählen --</option>' +
+                    vars.map((v: any) => `<option value="${v.value}">${v.label}</option>`).join('');
+                varSelect.onchange = () => {
+                    if (varSelect.value) {
+                        input.value += '${' + varSelect.value + '}';
+                    }
+                    varSelect.remove();
+                    input.focus();
+                };
+                varSelect.onblur = () => varSelect.remove();
+                varBtn.parentElement!.appendChild(varSelect);
+                varSelect.focus();
+            };
+            wrapper.appendChild(varBtn);
+
             this.inputField = input;
-            this.inputContainer.appendChild(input);
+            this.inputContainer.appendChild(wrapper);
         }
 
         setTimeout(() => this.inputField.focus(), 100);
@@ -264,7 +309,9 @@ export class ExpertDialog {
 
     private handleNext() {
         const val = this.inputField.value;
-        if (!val.trim()) return; // Simple validation
+        // Optionale Felder dürfen leer bleiben
+        const currentNode = expertRuleEngine.getCurrentNode();
+        if (!val.trim() && currentNode?.required) return;
 
         const nextNode = expertRuleEngine.submitAnswer(val);
 

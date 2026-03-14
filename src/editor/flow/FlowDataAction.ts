@@ -1,5 +1,6 @@
 import { FlowAction } from './FlowAction';
 import { GameProject } from '../../model/types';
+import { actionRegistry } from '../../runtime/ActionRegistry';
 
 export class FlowDataAction extends FlowAction {
     public getType(): string { return 'data_action'; }
@@ -334,72 +335,112 @@ export class FlowDataAction extends FlowAction {
         if (action && action !== this.data) action.resultPath = v;
     }
 
-    public getInspectorProperties(): any[] {
-        const props: any[] = [];
+    /**
+     * Override: Liefert DataAction-spezifische Sektionen mit SQL-Gruppen.
+     * Überschreibt FlowAction.getInspectorSections() für farbige Karten.
+     */
+    public getInspectorSections(): import('../inspector/types').InspectorSection[] {
         const isInternal = this.data?.isEmbeddedInternal;
+        const sections: import('../inspector/types').InspectorSection[] = [];
 
-        props.push({ name: 'Name', label: 'Action Name', type: 'string', variable: 'Name', group: 'Allgemein', readonly: isInternal });
+        // ═══════════════ ALLGEMEIN ═══════════════
+        const allgemeinProps: any[] = [
+            { name: 'Name', label: 'Action Name', type: 'string', readonly: isInternal }
+        ];
+        if (!isInternal) {
+            allgemeinProps.push({
+                name: 'type',
+                controlName: 'ActionTypeSelect',
+                label: 'Aktions-Typ',
+                type: 'select',
+                options: actionRegistry.getAllMetadata().map((m: any) => ({ value: m.type, label: m.label }))
+            });
+        }
+        sections.push({ id: 'allgemein', label: 'Allgemein', icon: '📋', properties: allgemeinProps });
 
-        const reqGroup = 'HTTP / Request';
-        props.push({
-            name: 'requestJWT',
-            label: 'Ist Login/JWT Request?',
-            type: 'boolean',
-            variable: 'requestJWT',
-            group: reqGroup
-        });
-
-        // URL / Resource
-        props.push({ name: 'url', label: 'Absolute URL (optional)', type: 'string', variable: 'url', group: reqGroup });
-        props.push({ name: 'dataStore', label: 'DataStore / Service', type: 'select', variable: 'dataStore', source: 'objects', group: reqGroup });
-        props.push({ name: 'resource', label: 'REST Ressource / Collection', type: 'string', variable: 'resource', group: reqGroup });
-
-        props.push({
-            name: 'method',
-            label: 'HTTP Methode',
-            type: 'select',
-            variable: 'method',
-            group: reqGroup,
-            options: [
-                { value: 'GET', label: 'GET (Lesen)' },
-                { value: 'POST', label: 'POST (Erstellen)' },
-                { value: 'PUT', label: 'PUT (Aktualisieren)' },
-                { value: 'DELETE', label: 'DELETE (Löschen)' }
+        // ═══════════════ FROM / Datenquelle ═══════════════
+        sections.push({
+            id: 'from', label: 'FROM / Datenquelle', icon: '📦',
+            properties: [
+                { name: 'dataStore', label: 'Data Store (Komponente)', type: 'select', source: 'dataStores' },
+                { name: 'resource', label: 'REST Ressource / Collection', type: 'string' }
             ]
         });
 
-        const qGroup = 'Query / Filter';
-        props.push({ name: 'queryProperty', label: 'Filter-Feld', type: 'string', variable: 'queryProperty', group: qGroup });
-        props.push({
-            name: 'queryOperator',
-            label: 'Operator',
-            type: 'select',
-            variable: 'queryOperator',
-            group: qGroup,
-            options: [
-                { value: '==', label: 'Gleich (==)' },
-                { value: '!=', label: 'Ungleich (!=)' },
-                { value: '>', label: 'Größer (>)' },
-                { value: '<', label: 'Kleiner (<)' }
+        // ═══════════════ SELECT / Felder ═══════════════
+        sections.push({
+            id: 'select', label: 'SELECT / Felder', icon: '🔍',
+            properties: [
+                { name: 'selectFields', label: 'Felder (SELECT)', type: 'string', placeholder: '* (alle Felder)' }
             ]
         });
-        props.push({ name: 'queryValue', label: 'Filter-Wert', type: 'string', variable: 'queryValue', group: qGroup });
-        props.push({
-            name: 'btn_var_query',
-            label: 'Variable für Wert...',
-            type: 'button',
-            variable: 'btn_var_query',
-            group: qGroup,
-            buttonType: 'secondary',
-            actionData: { property: 'queryValue' },
-            action: 'pickVariable'
+
+        // ═══════════════ INTO / Ergebnis ═══════════════
+        sections.push({
+            id: 'into', label: 'INTO / Ergebnis', icon: '💾',
+            properties: [
+                { name: 'resultVariable', label: 'Speichern in Variable', type: 'select', source: 'variables' },
+                { name: 'resultPath', label: 'Pfad im Resultat (z.B. data.token)', type: 'string' }
+            ]
         });
 
-        const rGroup = 'Response / Resultat';
-        props.push({ name: 'resultVariable', label: 'Speichern in Variable', type: 'select', variable: 'resultVariable', source: 'variables', group: rGroup });
-        props.push({ name: 'resultPath', label: 'Pfad im Resultat (z.B. data.user)', type: 'string', variable: 'resultPath', group: rGroup });
+        // ═══════════════ WHERE / Filter ═══════════════
+        sections.push({
+            id: 'where', label: 'WHERE / Filter', icon: '🔎',
+            properties: [
+                { name: 'queryProperty', label: 'Filter-Feld (WHERE)', type: 'select', source: 'dataStoreFields' },
+                {
+                    name: 'queryOperator', label: 'Operator', type: 'select',
+                    options: [
+                        { value: '==', label: 'Gleich (==)' },
+                        { value: '!=', label: 'Ungleich (!=)' },
+                        { value: '>', label: 'Größer (>)' },
+                        { value: '<', label: 'Kleiner (<)' },
+                        { value: '>=', label: 'Größer-Gleich (>=)' },
+                        { value: '<=', label: 'Kleiner-Gleich (<=)' },
+                        { value: 'CONTAINS', label: 'Enthält (CONTAINS)' },
+                        { value: 'IN', label: 'Ist einer von (IN)' }
+                    ]
+                },
+                { name: 'queryValue', label: 'Filter-Wert', type: 'string' },
+                {
+                    name: 'btn_var_query', label: 'Variable für Wert...', type: 'button',
+                    buttonType: 'secondary',
+                    actionData: { property: 'queryValue' },
+                    action: 'pickVariable'
+                }
+            ]
+        });
 
-        return props;
+        // ═══════════════ HTTP / Request ═══════════════
+        sections.push({
+            id: 'http', label: 'HTTP / Request', icon: '⚙️',
+            collapsed: true,
+            properties: [
+                {
+                    name: 'method', label: 'HTTP Methode', type: 'select',
+                    options: [
+                        { value: 'GET', label: 'GET (Lesen)' },
+                        { value: 'POST', label: 'POST (Erstellen)' },
+                        { value: 'PUT', label: 'PUT (Aktualisieren)' },
+                        { value: 'DELETE', label: 'DELETE (Löschen)' }
+                    ]
+                },
+                { name: 'requestJWT', label: 'Ist Login/JWT Request?', type: 'boolean' },
+                { name: 'url', label: 'Absolute URL (optional)', type: 'string' }
+            ]
+        });
+
+        // ═══════════════ Aktionen ═══════════════
+        sections.push({
+            id: 'aktionen', label: 'Aktionen', icon: '🗑️',
+            collapsed: true,
+            properties: [
+                { name: 'deleteBtn', label: 'Löschen', type: 'button', action: 'delete', style: { backgroundColor: '#d11a2a' } }
+            ]
+        });
+
+        return sections;
     }
 
     protected createRoot(): HTMLElement {

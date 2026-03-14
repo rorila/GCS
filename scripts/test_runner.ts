@@ -21,6 +21,7 @@ import { runTests as runAgentControllerTests } from '../tests/agent_controller.t
 import { runSyncValidatorTests } from '../tests/sync_validator.test.js';
 import { runSnapshotTests } from '../tests/snapshot_manager.test.js';
 import { runProjectStoreTests } from '../tests/project_store.test.js';
+import { runFlowDataActionTests } from '../tests/flow_data_action.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -163,6 +164,10 @@ async function main() {
         } catch (e: any) {
             allResults.push({ name: 'ProjectStore Tests', passed: false, type: 'State-Management', expectedSuccess: true, actualSuccess: false, details: e.message });
         }
+
+        // 15. FlowDataAction Inspector Tests
+        console.log('🏃 Starte FlowDataAction Inspector Tests...');
+        allResults.push(...await runFlowDataActionTests());
 
         // 🌐 15. Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');

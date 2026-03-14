@@ -8,6 +8,7 @@ import { InspectorActionHandler } from './InspectorActionHandler';
 import { GameObjectHandler } from './handlers/GameObjectHandler';
 import { FlowConditionHandler } from './handlers/FlowConditionHandler';
 import { FlowNodeHandler } from './handlers/FlowNodeHandler';
+import { GROUP_COLORS } from '../../components/TComponent';
 import { VariableHandler } from './handlers/VariableHandler';
 import { StageHandler } from './handlers/StageHandler';
 import { ExpressionParser } from '../../runtime/ExpressionParser';
@@ -258,36 +259,56 @@ export class InspectorHost {
      * Jede Sektion wird als einklappbare Gruppe dargestellt.
      */
     private renderInspectableSections(obj: IInspectable, parent: HTMLElement): void {
+        const groupColors = GROUP_COLORS;
+
         const sections = obj.getInspectorSections();
 
         sections.forEach(section => {
-            // --- Sektion-Header (einklappbar) ---
-            const sectionHeader = document.createElement('div');
-            sectionHeader.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 8px;margin-top:8px;cursor:pointer;background:rgba(255,255,255,0.03);border-radius:4px;user-select:none;';
-            sectionHeader.innerHTML = `
-                <span style="font-size:12px">${section.icon || '📋'}</span>
-                <span style="font-size:11px;font-weight:600;color:#ccc;flex:1">${section.label}</span>
-                <span style="font-size:10px;color:#666" data-collapse-icon>${section.collapsed ? '▶' : '▼'}</span>
+            // Farbe für diese Gruppe ermitteln (Key = Label in UPPERCASE)
+            const colorKey = section.label.replace(/^[^\w]*/, '').trim().toUpperCase();
+            const accentColor = groupColors[colorKey] || '';
+
+            // --- Card-Container ---
+            const card = document.createElement('div');
+            const borderStyle = accentColor ? `border-left:4px solid ${accentColor};` : 'border-left:4px solid rgba(255,255,255,0.08);';
+            const bgTint = accentColor ? `background:linear-gradient(135deg, ${accentColor}12 0%, rgba(30,30,40,0.95) 100%);` : 'background:rgba(30,30,40,0.85);';
+            card.style.cssText = `${borderStyle}${bgTint}margin:8px 0;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.3);overflow:hidden;`;
+
+            // --- Card-Header (einklappbar) ---
+            const header = document.createElement('div');
+            header.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;user-select:none;transition:background 0.15s;';
+            header.onmouseenter = () => { header.style.background = 'rgba(255,255,255,0.05)'; };
+            header.onmouseleave = () => { header.style.background = ''; };
+
+            const headerColor = accentColor || '#aaa';
+            header.innerHTML = `
+                <span style="font-size:14px">${section.icon || '📋'}</span>
+                <span style="font-size:12px;font-weight:700;color:${headerColor};flex:1;letter-spacing:0.3px;text-transform:uppercase">${section.label}</span>
+                <span style="font-size:9px;color:#555;transition:transform 0.2s" data-collapse-icon>${section.collapsed ? '▶' : '▼'}</span>
             `;
 
-            const sectionBody = document.createElement('div');
-            sectionBody.style.cssText = 'display:flex;flex-direction:column;gap:6px;padding:4px 0;';
-            if (section.collapsed) sectionBody.style.display = 'none';
+            // --- Card-Body ---
+            const body = document.createElement('div');
+            body.style.cssText = 'display:flex;flex-direction:column;gap:6px;padding:6px 12px 10px;';
+            if (section.collapsed) body.style.display = 'none';
 
-            sectionHeader.onclick = () => {
-                const isCollapsed = sectionBody.style.display === 'none';
-                sectionBody.style.display = isCollapsed ? 'flex' : 'none';
-                const icon = sectionHeader.querySelector('[data-collapse-icon]');
-                if (icon) icon.textContent = isCollapsed ? '▼' : '▶';
+            header.onclick = () => {
+                const isCollapsed = body.style.display === 'none';
+                body.style.display = isCollapsed ? 'flex' : 'none';
+                const icon = header.querySelector('[data-collapse-icon]');
+                if (icon) {
+                    icon.textContent = isCollapsed ? '▼' : '▶';
+                }
             };
 
-            parent.appendChild(sectionHeader);
-            parent.appendChild(sectionBody);
+            card.appendChild(header);
+            card.appendChild(body);
+            parent.appendChild(card);
 
-            // --- Properties in der Sektion rendern ---
+            // --- Properties in der Card rendern ---
             section.properties.forEach(propDef => {
                 const el = this.renderInspectableProperty(propDef, obj);
-                if (el) sectionBody.appendChild(el);
+                if (el) body.appendChild(el);
             });
         });
     }

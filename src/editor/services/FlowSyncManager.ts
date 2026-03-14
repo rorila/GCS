@@ -119,12 +119,6 @@ export class FlowSyncManager {
         const persistentConnections = this.host.connections.filter(c => !c.data?.isEmbeddedInternal && !c.data?.parentProxyId);
         const connections = persistentConnections.map(c => c.toJSON());
 
-        // Use currentFlowContext if contextName is not directly accessible or use contextName from parameter
-        console.log(`%c[FlowSync:PROJECT_WRITE] Nodes=${elements.length} Conns=${connections.length}`, 'background: #004400; color: #fff; font-weight: bold;');
-        connections.forEach((c, i) => {
-            const status = (c.startTargetId && c.endTargetId) ? 'attached' : 'floating';
-            console.log(`  Conn ${i} (${status}): ${c.id} | ${c.startTargetId || '(' + c.startX + ',' + c.startY + ')'} -> ${c.endTargetId || '(' + c.endX + ',' + c.endY + ')'}`);
-        });
 
         this.host.nodes.forEach(node => {
             const nodeType = node.getType().toLowerCase();
@@ -138,6 +132,7 @@ export class FlowSyncManager {
 
             if (nodeType === 'task' && node.data && !node.data.isEmbeddedInternal) {
                 const taskName = node.Name || node.data.taskName;
+
                 if (taskName) {
                     const isRefactoring = (this.host as any).editor?.commandManager?.isRefactoring;
                     FlowSyncManager.logger.debug(`[TRACE] syncToProject: Prüfe Task "${taskName}" (isRefactoring=${isRefactoring})`);
@@ -149,6 +144,7 @@ export class FlowSyncManager {
         });
 
         const targetCharts = this.host.getTargetFlowCharts(currentContext);
+
         if (currentContext === 'global') {
             if (this.host.project.flowCharts) {
                 this.host.project.flowCharts.global = { elements, connections };
@@ -162,6 +158,7 @@ export class FlowSyncManager {
 
                 let task = this.host.getTaskDefinitionByName(currentContext);
 
+
                 // GHOST TASK FIX: If task exists in flow but not in definitions, ensure it exists
                 if (!task && currentContext !== 'global') {
                     FlowSyncManager.logger.info(`[TRACE] syncToProject: Ghost task detected for "${currentContext}". Creating definition.`);
@@ -170,6 +167,7 @@ export class FlowSyncManager {
                 }
 
                 if (task) {
+
                     FlowSyncManager.logger.info(`[TRACE] syncToProject: Synchronisiere Task-Logik für "${currentContext}". Elemente: ${elements.length}`);
                     this.syncTaskFromFlow(task, elements, connections);
                     task.flowChart = chartData;
@@ -276,7 +274,22 @@ export class FlowSyncManager {
             }
             FlowSyncManager.logger.debug(`buildSequence: processing node ${node.id} (${node.type})`);
 
-            const nodeType = (node.type || '').toLowerCase();
+            let nodeType = (node.type || '').toLowerCase();
+
+            // Upgrade: action -> data_action wenn data.type dies anzeigt (z.B. verlinkte Actions)
+            if (nodeType === 'action' && (node.data?.type === 'data_action' || node.data?.isLinked)) {
+                const actionName = node.data?.name || node.properties?.name;
+                if (node.data?.type === 'data_action') {
+                    nodeType = 'data_action';
+                } else if (node.data?.isLinked && actionName) {
+                    const stage = this.host.getActiveStage();
+                    const globalDef = (this.host.project?.actions || []).find((a: any) => a.name === actionName)
+                        || (stage?.actions || []).find((a: any) => a.name === actionName);
+                    if (globalDef?.type === 'data_action') nodeType = 'data_action';
+                }
+            }
+
+
 
             if (nodeType === 'action') {
                 const actionName = node.data?.name || node.data?.actionName || node.properties?.name || node.properties?.text;
@@ -342,6 +355,7 @@ export class FlowSyncManager {
                 const trueConn = connections.find(c => c.startTargetId === nodeId && (
                     c.data?.startAnchorType === trueAnchor || 
                     c.data?.startAnchorType === 'right' ||
+                    c.data?.startAnchorType === 'output' ||
                     c.data?.isTrueBranch === true ||
                     (isData && c.data?.startAnchorType === 'true')
                 ));
@@ -1010,6 +1024,7 @@ export class FlowSyncManager {
             this.host.project.stages?.some((s: any) => s.tasks?.some((t: any) => t.name === name));
 
         if (!exists) {
+
             const newTask = { name, description, params: [], actionSequence: [] };
             const activeStage = this.host.getActiveStage();
             if (activeStage) {

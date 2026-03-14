@@ -111,6 +111,41 @@ export class FlowContextMenuProvider {
                 description: `Methode ${m} aufrufen`
             }));
         });
+
+        // Resolver for DataStores (nur TDataStore-Objekte)
+        expertRuleEngine.registerDynamicResolver('@dataStores', () => {
+            return projectRegistry.getObjects()
+                .filter(o => o.className === 'TDataStore')
+                .map(o => ({ value: o.name, label: o.name, description: 'DataStore' }));
+        });
+
+        // Resolver for DataStore-Felder (abhängig vom gewählten DataStore in der Session)
+        expertRuleEngine.registerDynamicResolver('@dataStoreFields', (state) => {
+            const dsName = state.collectedData.dataStore;
+            if (dsName) {
+                try {
+                    const { dataService } = require('../../services/DataService');
+                    const allObjects = projectRegistry.getObjects();
+                    const dsObj = allObjects.find(o => o.name === dsName || o.id === dsName);
+                    const collection = (dsObj as any)?.defaultCollection || '';
+                    if (collection) {
+                        const fields = dataService.getModelFieldsSync('db.json', collection);
+                        if (fields.length > 0) {
+                            return fields.map((f: string) => ({ value: f, label: f }));
+                        }
+                    }
+                } catch { /* Fallback */ }
+            }
+            // Fallback: Standard-Felder
+            return ['id', 'name', 'text', 'value', 'email', 'score']
+                .map(f => ({ value: f, label: f }));
+        });
+
+        // Resolver for Variables
+        expertRuleEngine.registerDynamicResolver('@variables', () => {
+            return projectRegistry.getVariables()
+                .map(v => ({ value: v.name, label: v.name, description: (v as any).type || '' }));
+        });
     }
 
     public handleNodeContextMenu(e: MouseEvent, node: FlowElement): void {

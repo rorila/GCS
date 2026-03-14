@@ -1,3 +1,39 @@
+- [2026-03-14] Inspector-Farben & Flow-Sync Fix:
+  - Dateien:
+    - src/editor/inspector/InspectorHost.ts (Import GROUP_COLORS: L11, renderInspectableSections: L261)
+    - src/editor/services/FlowSyncManager.ts (buildSequence nodeType-Upgrade: L280-296, output-Anker: L364)
+    - src/editor/flow/FlowDataAction.ts (actionRegistry Import: L1-5)
+  - Methoden:
+    - InspectorHost.renderInspectableSections(): Statischer Import GROUP_COLORS statt require()
+    - FlowSyncManager.buildSequence(): nodeType upgrade action→data_action + output-Anker als success-Branch
+  - Fixes:
+    - Inspector-Farben nicht sichtbar wegen require() in ESM → statischer Import
+    - DataAction→Action Kette: output-Anker wurde nicht als success-Branch erkannt
+    - Verlinkte Actions: data.type Prüfung für korrekte Branching-Behandlung
+
+- [2026-03-14] DataAction Inspector SQL-Gruppen & Expert-Wizard & LLM-Training:
+  - Dateien:
+    - src/editor/flow/FlowDataAction.ts (getInspectorProperties: L337-420)
+    - src/components/TComponent.ts (GROUP_COLORS: L73-80, GROUP_ICONS: L63-69)
+    - src/editor/inspector/InspectorHost.ts (renderInspectableSections: L260-306)
+    - src/editor/inspector/InspectorRenderer.ts (getOptionsFromSource: L971-1004)
+    - src/editor/config/rules/data_action_rules.json (kompletter Flow)
+    - src/editor/services/FlowContextMenuProvider.ts (initializeResolvers: L113-147)
+    - src/components/ExpertDialog.ts (renderNode Hybrid-Feld: L224-281, handleNext: L310-314)
+    - docs/AgentAPI.md (data_action Sektion: L519-533)
+    - src/tools/TrainingDataExporter.ts [NEU]
+    - src/tools/agent-api-schema.json [NEU]
+    - src/tools/prompt-templates/login.jsonl [NEU]
+    - src/tools/prompt-templates/crud_list.jsonl [NEU]
+    - tests/flow_data_action.test.ts [NEU] (8 Tests)
+    - scripts/test_runner.ts (Import + Aufruf: L24, L165-167)
+  - Methoden:
+    - FlowDataAction.getInspectorProperties(): SQL-Gruppen FROM→SELECT→INTO→WHERE→HTTP
+    - InspectorHost.renderInspectableSections(): Farbige Bordüren via GROUP_COLORS
+    - InspectorRenderer.getOptionsFromSource(): Sources 'dataStores', 'dataStoreFields'
+    - ExpertDialog.renderNode(): Hybrid-Button 'V' für Variablen-Picker
+    - TrainingDataExporter.exportFromProject(): project.json → JSONL-Paare
+
 - [2026-03-12] UseCase: Ball-Reset bei Spielfeld-Aus (PingPong.json):
   - Komplexe Task-Flows mit if/else Bedingungen (`hitSide == 'left'` / `hitSide == 'right'`)
   - Dateien:

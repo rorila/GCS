@@ -971,6 +971,34 @@ export class InspectorRenderer {
         if (prop.source === 'stages') {
             return projectRegistry.getStages().map((s: any) => ({ value: s.id, label: s.name || s.id }));
         }
+        if (prop.source === 'dataStores') {
+            return projectRegistry.getObjects()
+                .filter(o => o.className === 'TDataStore')
+                .map(o => ({ value: o.name, label: o.name }));
+        }
+        if (prop.source === 'dataStoreFields') {
+            // Felder des gewählten DataStores dynamisch auflösen
+            try {
+                const { dataService } = require('../../services/DataService');
+                const allObjects = projectRegistry.getObjects();
+                // Den DataStore-Namen vom aktuell selektierten Objekt lesen
+                const dsName = prop._context?.dataStore;
+                if (dsName) {
+                    const dsObj = allObjects.find(o => o.name === dsName || o.id === dsName);
+                    const collection = (dsObj as any)?.defaultCollection || '';
+                    if (collection) {
+                        const fields = dataService.getModelFieldsSync('db.json', collection);
+                        if (fields.length > 0) {
+                            return fields.map((f: string) => ({ value: f, label: f }));
+                        }
+                    }
+                }
+                // Fallback: Standard-Felder
+                return ['id', 'name', 'text', 'value', 'email', 'score'].map(f => ({ value: f, label: f }));
+            } catch {
+                return ['id', 'name', 'text', 'value'].map(f => ({ value: f, label: f }));
+            }
+        }
         if (prop.source === 'easing-functions') {
             return ['linear', 'easeIn', 'easeOut', 'easeInOut'].map(e => ({ value: e, label: e }));
         }

@@ -1,3 +1,45 @@
+## [3.16.1] - 2026-03-14
+### Fixed (Inspector-Farben & Flow-Sync)
+- **Inspector-Farben sichtbar** (`InspectorHost.ts`):
+  - `require()` → statischer ESM-Import für `GROUP_COLORS` — Farben werden jetzt im Inspector angezeigt
+- **Flow-Sync: DataAction→Action Kette** (`FlowSyncManager.ts`):
+  - `output`-Anker wird jetzt als success-Branch erkannt (Fix für Task→DataAction→Action Sequenz)
+  - `buildSequence()`: Action-Knoten mit `data.type='data_action'` werden korrekt als DataAction-Branching behandelt
+  - Verlinkte Actions prüfen globale Definition auf `type: 'data_action'`
+- **ESM-Import-Fixes** (`FlowDataAction.ts`):
+  - `actionRegistry` Import von `require()` auf statischen Import umgestellt
+
+## [3.16.0] - 2026-03-14
+### Added (DataAction Inspector & Expert-Wizard Enhancements)
+- **Inspector SQL-Gruppen** (`FlowDataAction.ts`):
+  - Neue Gruppen-Reihenfolge: ALLGEMEIN → FROM → SELECT → INTO → WHERE → HTTP
+  - Neues `selectFields`-Property (SELECT-Felder) mit Platzhalter `* (alle Felder)`
+  - `queryProperty` (WHERE-Feld) ist jetzt Select-Dropdown mit `source: 'dataStoreFields'`
+  - `dataStore` (FROM) verwendet neuen `source: 'dataStores'` (filtert nur TDataStore-Objekte)
+  - Erweiterte Operatoren: `>=`, `<=`, `CONTAINS`, `IN`
+- **Farbige Inspector-Gruppen** (`TComponent.ts`, `InspectorHost.ts`):
+  - `GROUP_COLORS` Mapping: FROM (blau #2980b9), SELECT (grün #27ae60), INTO (orange #e67e22), WHERE (rot #c0392b), HTTP (grau #7f8c8d)
+  - Sektionen mit 3px farbiger Bordüre, getöntem Hintergrund und farbigem Header-Text
+- **InspectorRenderer** neue Sources: `'dataStores'` und `'dataStoreFields'` mit dynamischer Feld-Erkennung
+- **Expert-Wizard Redesign** (`data_action_rules.json`):
+  - Neuer Flow: Name → DataStore → Resource → SELECT → INTO → WHERE (mit bedingter Verzweigung)
+  - HTTP/JWT/Body aus dem Wizard-Flow entfernt (nur noch im Inspector)
+  - Optionale Felder dürfen leer bleiben
+- **Hybrid-Felder** (`ExpertDialog.ts`):
+  - String-Eingabe mit „V"-Button für Variablen-Picker (`${variablenName}`)
+  - Dynamisches Dropdown zur Variablen-Auswahl
+- **Dynamic Resolver** (`FlowContextMenuProvider.ts`):
+  - `@dataStores` — nur TDataStore-Objekte
+  - `@dataStoreFields` — DataStore-Felder abhängig vom gewählten DataStore
+  - `@variables` — Projekt-Variablen für den Expert-Wizard
+- **AgentAPI.md**: `data_action`-Sektion aktualisiert (FROM/SELECT/INTO/WHERE Parameter)
+- **LLM-Training-Infrastruktur** [NEU]:
+  - `src/tools/TrainingDataExporter.ts` — project.json → JSONL Exporter
+  - `src/tools/agent-api-schema.json` — JSON-Schema für Constrained Decoding
+  - `src/tools/prompt-templates/` — JSONL-Vorlagen (Login, CRUD)
+  - Regel 11 in `DEVELOPER_GUIDELINES.md` für Trainingsdaten-Pflicht
+- **Unit-Test** (`tests/flow_data_action.test.ts`): 8 Tests (Gruppen-Reihenfolge, Sources, Colors, Operatoren)
+
 ## [3.15.0] - 2026-03-13
 ### Added (Unidirektionaler Datenfluss — Phase 1)
 - **`ProjectStore`** (`src/services/ProjectStore.ts`) [NEU]:

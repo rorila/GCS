@@ -517,13 +517,18 @@ Führt einen REST/JSON API-Call aus.
 ---
 
 ### `data_action` — Datenbank-Operation
-Führt eine Daten-Aktion aus (HTTP, SQL, etc.).
+Führt eine Daten-Aktion aus (SQL-ähnlich: FROM → SELECT → INTO → WHERE).
 
 | Parameter | Typ | Pflicht | Beschreibung |
 |-----------|-----|---------|-------------|
-| `source` | `string` | ✅ | Datenquelle |
-| `operation` | `string` | ✅ | `'read'`, `'write'`, `'delete'` |
-| `resultVariable` | `string` | — | Variable für Ergebnis |
+| `dataStore` | `string` | ✅ | Name des DataStore-Objekts (FROM) |
+| `resource` | `string` | — | REST-Ressource / Collection |
+| `selectFields` | `string` | — | Komma-getrennte Feldliste oder `*` (SELECT) |
+| `resultVariable` | `string` | — | Variable für Ergebnis (INTO) |
+| `resultPath` | `string` | — | Pfad im Resultat (z.B. `data.token`) |
+| `queryProperty` | `string` | — | Filter-Feld (WHERE) |
+| `queryOperator` | `string` | — | `==`, `!=`, `>`, `<`, `>=`, `<=`, `CONTAINS`, `IN` |
+| `queryValue` | `string` | — | Vergleichswert (kann `${variable}` sein) |
 
 ---
 

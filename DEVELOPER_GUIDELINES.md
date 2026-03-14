@@ -153,3 +153,19 @@ Letzte Aktualisierung: v3.9.6 (E2E-Stability & Hydration Fix)
 - **Analysebericht:** Siehe Artefakt `implementation_plan.md` vom 2026-03-10 (Verwaister Code, Redundanzen, Vereinfachungsvorschläge).
 - **Pragmatik:** Solange Sync stabil läuft → nicht anfassen. Tests (`npm run test`) sind das Sicherheitsnetz. Bei erneuten Sync-Problemen → unidirektionalen Umbau priorisieren.
 
+## 11. LLM-TRAININGSDATEN-PFLICHT
+
+> [!IMPORTANT]
+> Ziel: Ein lokales kleines LLM (3-7B Parameter) finetunen, das aus natürlicher Sprache GCS-Komponenten über die `AgentController`-API erzeugt.
+
+- **Export-Trigger:** Nach jeder Feature-Implementierung, die neue Komponenten, Tasks oder Actions erzeugt, MUSS der `TrainingDataExporter` (`src/tools/TrainingDataExporter.ts`) ausgeführt werden.
+- **Format:** JSONL mit Paaren aus natürlichsprachigem Input und AgentController-API-Aufrufen:
+  ```jsonl
+  {"input": "Erstelle ein Login-Formular", "output": [{"method":"addObject","params":[...]}]}
+  ```
+- **Speicherort:** `data/training/` Verzeichnis im Projektroot.
+- **Varianten:** Pro Use Case mindestens 3 natürlichsprachige Varianten des Inputs erzeugen.
+- **Validierung:** Jeder Output muss gegen `src/tools/agent-api-schema.json` validierbar sein.
+- **Constrained Decoding:** Bei der Inferenz wird das JSON-Schema genutzt, um nur gültige API-Aufrufe zu erzeugen (z.B. via llama.cpp Grammar oder Outlines).
+- **Tooling:** QLoRA-Finetuning mit [Unsloth](https://github.com/unslothai/unsloth), Modelle: Phi-3-mini (3.8B) oder Qwen2.5-7B.
+

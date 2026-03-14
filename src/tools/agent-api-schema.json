@@ -1,0 +1,89 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "AgentController API Call Schema",
+    "description": "JSON-Schema für AgentController-Aufrufe. Wird für Constrained Decoding beim LLM-Finetuning verwendet (z.B. llama.cpp Grammar, Outlines).",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": ["method", "params"],
+        "properties": {
+            "method": {
+                "type": "string",
+                "enum": [
+                    "createStage",
+                    "deleteStage",
+                    "addObject",
+                    "deleteObject",
+                    "setProperty",
+                    "createTask",
+                    "deleteTask",
+                    "addAction",
+                    "addDataAction",
+                    "deleteAction",
+                    "addVariable",
+                    "deleteVariable",
+                    "setVariable",
+                    "connectEvent",
+                    "disconnectEvent",
+                    "createSprite",
+                    "createBounceLogic"
+                ]
+            },
+            "params": {
+                "type": "array",
+                "description": "Methoden-Parameter in der Reihenfolge der Funktionssignatur",
+                "items": {}
+            }
+        },
+        "additionalProperties": false
+    },
+
+    "definitions": {
+        "StageType": {
+            "type": "string",
+            "enum": ["standard", "blueprint", "splash", "main"]
+        },
+        "ActionType": {
+            "type": "string",
+            "enum": [
+                "set_property",
+                "navigate",
+                "method_call",
+                "audio",
+                "http",
+                "data_action",
+                "broadcast",
+                "service",
+                "conditional",
+                "loop",
+                "wait"
+            ]
+        },
+        "DataActionParams": {
+            "type": "object",
+            "properties": {
+                "dataStore": { "type": "string", "description": "Name des DataStore-Objekts (FROM)" },
+                "resource": { "type": "string", "description": "REST-Ressource / Collection" },
+                "selectFields": { "type": "string", "description": "Komma-getrennte Feldliste oder '*'" },
+                "resultVariable": { "type": "string", "description": "Variable für Ergebnis (INTO)" },
+                "resultPath": { "type": "string", "description": "Pfad im Resultat (z.B. 'data.token')" },
+                "queryProperty": { "type": "string", "description": "Filter-Feld (WHERE)" },
+                "queryOperator": { 
+                    "type": "string", 
+                    "enum": ["==", "!=", ">", "<", ">=", "<=", "CONTAINS", "IN"],
+                    "description": "Vergleichs-Operator"
+                },
+                "queryValue": { "type": "string", "description": "Vergleichswert (kann ${variable} sein)" }
+            },
+            "required": ["dataStore"]
+        },
+        "ComponentClass": {
+            "type": "string",
+            "enum": [
+                "TButton", "TLabel", "TEdit", "TPanel", "TImage",
+                "TSprite", "TProgressBar", "TCheckbox", "TTable",
+                "TDataStore", "TDataList", "TTimer", "TObjectList"
+            ]
+        }
+    }
+}

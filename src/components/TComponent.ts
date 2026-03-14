@@ -3,7 +3,7 @@ import { IInspectable, InspectorSection } from '../editor/inspector/types';
 export interface TPropertyDef {
     name: string;      // Property key or path (e.g. 'x', 'style.backgroundColor')
     label: string;     // Display label
-    type: 'string' | 'number' | 'boolean' | 'color' | 'select' | 'checkbox' | 'image_picker' | 'json' | 'button';
+    type: 'string' | 'number' | 'boolean' | 'color' | 'select' | 'checkbox' | 'image_picker' | 'json' | 'button' | 'text' | 'textarea' | 'TVariableSelect' | 'TObjectSelect';
     group?: string;    // 'Geometry', 'Style', 'Identity' etc.
     readonly?: boolean;
     serializable?: boolean; // Ob die Property gespeichert werden soll (default: true)
@@ -12,7 +12,7 @@ export interface TPropertyDef {
     step?: number | string; // for number inputs
     min?: number;      // for number inputs
     max?: number;      // for number inputs
-    options?: string[]; // for select type - available options
+    options?: (string | { value: string; label: string })[]; // for select type
     selectedValue?: any; // Explicitly set value (overrides binding)
     source?: string;    // for select type - dynamic source name (e.g. 'availableModels')
     hint?: string;      // Tooltip or hint text
@@ -21,6 +21,9 @@ export interface TPropertyDef {
     action?: string;   // For button type: internal action name
     actionData?: any;  // For button type: payload for action
     inline?: boolean;  // Display horizontally if possible
+    controlName?: string; // Custom control name attribute for E2E selectors
+    buttonType?: string;  // Button variant: 'primary', 'secondary' etc.
+    variable?: string;    // Bound variable name for proxy getters/setters
 }
 
 /** 
@@ -61,6 +64,22 @@ const GROUP_ICONS: Record<string, string> = {
     'ANIMATION': '🎬',
     'NETZWERK': '🌐',
     'SICHERHEIT': '🔒',
+    // DataAction SQL-Gruppen
+    'FROM / DATENQUELLE': '📦',
+    'SELECT / FELDER': '🔍',
+    'INTO / ERGEBNIS': '💾',
+    'WHERE / FILTER': '🔎',
+    'HTTP / REQUEST': '⚙️',
+};
+
+/** Farb-Mapping für Inspector-Gruppen (farbige Bordüren & Header) */
+export const GROUP_COLORS: Record<string, string> = {
+    'ALLGEMEIN': '#666666',
+    'FROM / DATENQUELLE': '#2980b9',
+    'SELECT / FELDER': '#27ae60',
+    'INTO / ERGEBNIS': '#e67e22',
+    'WHERE / FILTER': '#c0392b',
+    'HTTP / REQUEST': '#7f8c8d',
 };
 
 export abstract class TComponent implements IInspectable {
