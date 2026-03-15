@@ -4,6 +4,8 @@ import { ExpressionParser } from './runtime/ExpressionParser';
 import { gunzipSync } from 'fflate';
 import { StageRenderer, StageHost } from './editor/services/StageRenderer';
 import { GridConfig } from './model/types';
+import { GameLoopManager } from './runtime/GameLoopManager';
+import { AnimationManager } from './runtime/AnimationManager';
 // HeadlessRuntime and HeadlessServer are Node.js-only (use express)
 // They should NOT be imported in the browser bundle
 
@@ -278,6 +280,7 @@ class UniversalPlayer implements StageHost {
         // 2. Initialize new Runtime
         this.runtime = new GameRuntime(project, undefined, {
             onRender: () => this.render(),
+            makeReactive: true,
             multiplayerManager: network,
             onNavigate: (target: string) => this.handleNavigation(target),
             onStageSwitch: (stageId: string) => {
@@ -420,14 +423,22 @@ class UniversalPlayer implements StageHost {
         const tick = () => {
             if (!this.isStarted) return;
 
-            // 1. Advance animations via AnimationManager
-            const am = (window as any).AnimationManager || this.getAnimationManager();
-            if (am) am.getInstance().update();
+            // Wenn der GameLoopManager bereits läuft, macht ER das Physik-Update
+            // und Rendering. Der AnimationTicker wäre dann nur doppelt.
+            const glm = GameLoopManager.getInstance();
+            if (glm.isRunning()) {
+                // GameLoopManager aktiv → nichts tun, nur Loop am Leben halten
+                this.animationTickerId = requestAnimationFrame(tick);
+                return;
+            }
 
-            // 2. Continuous render if animating to ensure fluidity
-            // If we have a TGameLoop it might also trigger onRender, but doing it here 
-            // ensures it works even for start-animations before GameLoop is fully busy.
-            this.render();
+            // Fallback: Kein GameLoopManager → AnimationManager manuell updaten
+            AnimationManager.getInstance().update();
+
+            // Nur rendern wenn Animationen aktiv sind
+            if (AnimationManager.getInstance().hasActiveTweens()) {
+                this.render();
+            }
 
             this.animationTickerId = requestAnimationFrame(tick);
         };
@@ -441,17 +452,6 @@ class UniversalPlayer implements StageHost {
         }
     }
 
-    // Helper to get AnimationManager from bundle if needed
-    private getAnimationManager(): any {
-        // In the standalone bundle, AnimationManager should be included.
-        // We can try to get it from the runtime context or global window.
-        try {
-            const { AnimationManager } = require('./runtime/AnimationManager');
-            return AnimationManager;
-        } catch (e) {
-            return (window as any).AnimationManager;
-        }
-    }
 
     private render() {
         if (!this.runtime) return;

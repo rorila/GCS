@@ -219,236 +219,6 @@
     }
   });
 
-  // src/runtime/AnimationManager.ts
-  var AnimationManager_exports = {};
-  __export(AnimationManager_exports, {
-    AnimationManager: () => AnimationManager,
-    Easing: () => Easing
-  });
-  var Easing, _AnimationManager, AnimationManager;
-  var init_AnimationManager = __esm({
-    "src/runtime/AnimationManager.ts"() {
-      "use strict";
-      Easing = {
-        linear: (t) => t,
-        easeIn: (t) => t * t,
-        easeOut: (t) => t * (2 - t),
-        easeInOut: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-        bounce: (t) => {
-          if (t < 1 / 2.75) {
-            return 7.5625 * t * t;
-          } else if (t < 2 / 2.75) {
-            return 7.5625 * (t -= 1.5 / 2.75) * t + 0.75;
-          } else if (t < 2.5 / 2.75) {
-            return 7.5625 * (t -= 2.25 / 2.75) * t + 0.9375;
-          } else {
-            return 7.5625 * (t -= 2.625 / 2.75) * t + 0.984375;
-          }
-        },
-        elastic: (t) => {
-          if (t === 0 || t === 1) return t;
-          return Math.pow(2, -10 * t) * Math.sin((t - 0.1) * 5 * Math.PI) + 1;
-        }
-      };
-      _AnimationManager = class _AnimationManager {
-        constructor() {
-          __publicField(this, "activeTweens", []);
-        }
-        static getInstance() {
-          if (!_AnimationManager.instance) {
-            _AnimationManager.instance = new _AnimationManager();
-          }
-          return _AnimationManager.instance;
-        }
-        /**
-         * Fügt einen neuen Tween hinzu.
-         * @param target Das Zielobjekt (z.B. ein TSprite)
-         * @param property Der Property-Pfad (z.B. 'x', 'y', 'style.opacity')
-         * @param to Der Zielwert
-         * @param duration Dauer in Millisekunden
-         * @param easingName Name der Easing-Funktion (default: 'easeOut')
-         * @param onComplete Optionaler Callback nach Abschluss
-         */
-        addTween(target, property, to, duration, easingName = "easeOut", onComplete) {
-          const previousCount = this.activeTweens.length;
-          this.cancelTween(target, property);
-          if (this.activeTweens.length !== previousCount) {
-          }
-          const from = this.getPropertyValue(target, property);
-          const easing = Easing[easingName] || Easing.easeOut;
-          if (!Easing[easingName]) {
-            console.warn(`[AnimationManager.addTween] Unknown easing "${easingName}", falling back to easeOut`);
-          }
-          if (property === "x" || property === "y") {
-            target.isAnimating = true;
-          }
-          const tween = {
-            target,
-            property,
-            from,
-            to,
-            duration,
-            startTime: -1,
-            // Lazy-Init: wird beim ersten update() auf performance.now() gesetzt
-            easing,
-            onComplete
-          };
-          this.activeTweens.push(tween);
-          return tween;
-        }
-        /**
-         * Animiert mehrere Eigenschaften eines Objekts gleichzeitig.
-         */
-        animate(target, properties, duration, easingName = "easeOut", onComplete) {
-          const keys = Object.keys(properties);
-          let completedCount = 0;
-          keys.forEach((prop) => {
-            this.addTween(target, prop, properties[prop], duration, easingName, () => {
-              completedCount++;
-              if (completedCount === keys.length && onComplete) {
-                onComplete();
-              }
-            });
-          });
-        }
-        /**
-         * Bricht einen laufenden Tween ab.
-         */
-        cancelTween(target, property) {
-          this.activeTweens = this.activeTweens.filter(
-            (t) => !(t.target === target && t.property === property)
-          );
-          if (property === "x" || property === "y") {
-            const hasMore = this.activeTweens.some(
-              (t) => t.target === target && (t.property === "x" || t.property === "y")
-            );
-            if (!hasMore && target.isAnimating !== void 0) {
-              target.isAnimating = false;
-            }
-          }
-        }
-        /**
-         * Bricht alle Tweens eines Objekts ab.
-         */
-        cancelAllTweens(target) {
-          this.activeTweens = this.activeTweens.filter((t) => t.target !== target);
-          if (target.isAnimating !== void 0) {
-            target.isAnimating = false;
-          }
-        }
-        /**
-         * Aktualisiert alle aktiven Tweens. Muss pro Frame aufgerufen werden.
-         */
-        update() {
-          const now = performance.now();
-          const completedTweens = [];
-          if (this.activeTweens.length > 0) {
-          }
-          for (const tween of this.activeTweens) {
-            try {
-              if (tween.startTime < 0) {
-                tween.startTime = now;
-              }
-              const elapsed = now - tween.startTime;
-              let progress = Math.min(elapsed / tween.duration, 1);
-              const easedProgress = tween.easing(progress);
-              const newValue = tween.from + (tween.to - tween.from) * easedProgress;
-              this.setPropertyValue(tween.target, tween.property, newValue);
-              if (progress >= 1) {
-                this.setPropertyValue(tween.target, tween.property, tween.to);
-                console.log(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property} (Forced to ${tween.to})`);
-                completedTweens.push(tween);
-              }
-            } catch (error) {
-              console.error(`[AnimationManager] Error updating tween for ${tween.target.name || tween.target.id}.${tween.property}:`, error);
-              completedTweens.push(tween);
-            }
-          }
-          for (const tween of completedTweens) {
-            this.activeTweens = this.activeTweens.filter((t) => t !== tween);
-            if (tween.property === "x" || tween.property === "y") {
-              const hasMorePositionTweens = this.activeTweens.some(
-                (t) => t.target === tween.target && (t.property === "x" || t.property === "y")
-              );
-              if (!hasMorePositionTweens && tween.target.isAnimating !== void 0) {
-                tween.target.isAnimating = false;
-              }
-            }
-            if (tween.onComplete) {
-              tween.onComplete();
-            }
-          }
-        }
-        /**
-         * Gibt zurück, ob aktuell Animationen laufen.
-         */
-        hasActiveTweens() {
-          return this.activeTweens.length > 0;
-        }
-        /**
-         * Bricht alle aktiven Tweens ab und leert die Liste.
-         */
-        clear() {
-          this.activeTweens = [];
-        }
-        /**
-         * Gibt die Anzahl aktiver Tweens zurück.
-         */
-        getActiveTweenCount() {
-          return this.activeTweens.length;
-        }
-        // Hilfsfunktionen für Property-Zugriff (unterstützt Pfade wie 'style.opacity')
-        getPropertyValue(target, path) {
-          const parts = path.split(".");
-          let value = target;
-          for (const part of parts) {
-            value = value?.[part];
-          }
-          return Number(value) || 0;
-        }
-        setPropertyValue(target, path, value) {
-          const parts = path.split(".");
-          let obj = target;
-          for (let i = 0; i < parts.length - 1; i++) {
-            obj = obj?.[parts[i]];
-          }
-          if (obj) {
-            obj[parts[parts.length - 1]] = value;
-          }
-        }
-        /**
-         * Erzeugt einen Schütteleffekt (Shake) auf einem Objekt.
-         * @param target Das Zielobjekt
-         * @param intensity Intensität des Schüttelns in Pixeln (default: 5)
-         * @param duration Gesamtdauer in Millisekunden (default: 500)
-         */
-        shake(target, intensity = 5, duration = 500) {
-          const originalX = target.x;
-          const originalY = target.y;
-          const startTime = performance.now();
-          const shakeInterval = 50;
-          const performShake = () => {
-            const now = performance.now();
-            const elapsed = now - startTime;
-            if (elapsed < duration) {
-              const offsetX = (Math.random() - 0.5) * intensity * 2;
-              const offsetY = (Math.random() - 0.5) * intensity * 2;
-              target.x = originalX + offsetX;
-              target.y = originalY + offsetY;
-              setTimeout(performShake, shakeInterval);
-            } else {
-              target.x = originalX;
-              target.y = originalY;
-            }
-          };
-          performShake();
-        }
-      };
-      __publicField(_AnimationManager, "instance", null);
-      AnimationManager = _AnimationManager;
-    }
-  });
-
   // src/services/LibraryService.ts
   var LibraryService, libraryService;
   var init_LibraryService = __esm({
@@ -2695,8 +2465,224 @@
   var ActionRegistry = _ActionRegistry;
   var actionRegistry = ActionRegistry.getInstance();
 
-  // src/runtime/actions/StandardActions.ts
-  init_AnimationManager();
+  // src/runtime/AnimationManager.ts
+  var Easing = {
+    linear: (t) => t,
+    easeIn: (t) => t * t,
+    easeOut: (t) => t * (2 - t),
+    easeInOut: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+    bounce: (t) => {
+      if (t < 1 / 2.75) {
+        return 7.5625 * t * t;
+      } else if (t < 2 / 2.75) {
+        return 7.5625 * (t -= 1.5 / 2.75) * t + 0.75;
+      } else if (t < 2.5 / 2.75) {
+        return 7.5625 * (t -= 2.25 / 2.75) * t + 0.9375;
+      } else {
+        return 7.5625 * (t -= 2.625 / 2.75) * t + 0.984375;
+      }
+    },
+    elastic: (t) => {
+      if (t === 0 || t === 1) return t;
+      return Math.pow(2, -10 * t) * Math.sin((t - 0.1) * 5 * Math.PI) + 1;
+    }
+  };
+  var _AnimationManager = class _AnimationManager {
+    constructor() {
+      __publicField(this, "activeTweens", []);
+    }
+    static getInstance() {
+      if (!_AnimationManager.instance) {
+        _AnimationManager.instance = new _AnimationManager();
+      }
+      return _AnimationManager.instance;
+    }
+    /**
+     * Fügt einen neuen Tween hinzu.
+     * @param target Das Zielobjekt (z.B. ein TSprite)
+     * @param property Der Property-Pfad (z.B. 'x', 'y', 'style.opacity')
+     * @param to Der Zielwert
+     * @param duration Dauer in Millisekunden
+     * @param easingName Name der Easing-Funktion (default: 'easeOut')
+     * @param onComplete Optionaler Callback nach Abschluss
+     */
+    addTween(target, property, to, duration, easingName = "easeOut", onComplete) {
+      const previousCount = this.activeTweens.length;
+      this.cancelTween(target, property);
+      if (this.activeTweens.length !== previousCount) {
+      }
+      const from = this.getPropertyValue(target, property);
+      const easing = Easing[easingName] || Easing.easeOut;
+      if (!Easing[easingName]) {
+        console.warn(`[AnimationManager.addTween] Unknown easing "${easingName}", falling back to easeOut`);
+      }
+      if (property === "x" || property === "y") {
+        target.isAnimating = true;
+      }
+      const tween = {
+        target,
+        property,
+        from,
+        to,
+        duration,
+        startTime: -1,
+        // Lazy-Init: wird beim ersten update() auf performance.now() gesetzt
+        easing,
+        onComplete
+      };
+      this.activeTweens.push(tween);
+      return tween;
+    }
+    /**
+     * Animiert mehrere Eigenschaften eines Objekts gleichzeitig.
+     */
+    animate(target, properties, duration, easingName = "easeOut", onComplete) {
+      const keys = Object.keys(properties);
+      let completedCount = 0;
+      keys.forEach((prop) => {
+        this.addTween(target, prop, properties[prop], duration, easingName, () => {
+          completedCount++;
+          if (completedCount === keys.length && onComplete) {
+            onComplete();
+          }
+        });
+      });
+    }
+    /**
+     * Bricht einen laufenden Tween ab.
+     */
+    cancelTween(target, property) {
+      this.activeTweens = this.activeTweens.filter(
+        (t) => !(t.target === target && t.property === property)
+      );
+      if (property === "x" || property === "y") {
+        const hasMore = this.activeTweens.some(
+          (t) => t.target === target && (t.property === "x" || t.property === "y")
+        );
+        if (!hasMore && target.isAnimating !== void 0) {
+          target.isAnimating = false;
+        }
+      }
+    }
+    /**
+     * Bricht alle Tweens eines Objekts ab.
+     */
+    cancelAllTweens(target) {
+      this.activeTweens = this.activeTweens.filter((t) => t.target !== target);
+      if (target.isAnimating !== void 0) {
+        target.isAnimating = false;
+      }
+    }
+    /**
+     * Aktualisiert alle aktiven Tweens. Muss pro Frame aufgerufen werden.
+     */
+    update() {
+      const now = performance.now();
+      const completedTweens = [];
+      if (this.activeTweens.length > 0) {
+      }
+      for (const tween of this.activeTweens) {
+        try {
+          if (tween.startTime < 0) {
+            tween.startTime = now;
+          }
+          const elapsed = now - tween.startTime;
+          let progress = Math.min(elapsed / tween.duration, 1);
+          const easedProgress = tween.easing(progress);
+          const newValue = tween.from + (tween.to - tween.from) * easedProgress;
+          this.setPropertyValue(tween.target, tween.property, newValue);
+          if (progress >= 1) {
+            this.setPropertyValue(tween.target, tween.property, tween.to);
+            console.log(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property} (Forced to ${tween.to})`);
+            completedTweens.push(tween);
+          }
+        } catch (error) {
+          console.error(`[AnimationManager] Error updating tween for ${tween.target.name || tween.target.id}.${tween.property}:`, error);
+          completedTweens.push(tween);
+        }
+      }
+      for (const tween of completedTweens) {
+        this.activeTweens = this.activeTweens.filter((t) => t !== tween);
+        if (tween.property === "x" || tween.property === "y") {
+          const hasMorePositionTweens = this.activeTweens.some(
+            (t) => t.target === tween.target && (t.property === "x" || t.property === "y")
+          );
+          if (!hasMorePositionTweens && tween.target.isAnimating !== void 0) {
+            tween.target.isAnimating = false;
+          }
+        }
+        if (tween.onComplete) {
+          tween.onComplete();
+        }
+      }
+    }
+    /**
+     * Gibt zurück, ob aktuell Animationen laufen.
+     */
+    hasActiveTweens() {
+      return this.activeTweens.length > 0;
+    }
+    /**
+     * Bricht alle aktiven Tweens ab und leert die Liste.
+     */
+    clear() {
+      this.activeTweens = [];
+    }
+    /**
+     * Gibt die Anzahl aktiver Tweens zurück.
+     */
+    getActiveTweenCount() {
+      return this.activeTweens.length;
+    }
+    // Hilfsfunktionen für Property-Zugriff (unterstützt Pfade wie 'style.opacity')
+    getPropertyValue(target, path) {
+      const parts = path.split(".");
+      let value = target;
+      for (const part of parts) {
+        value = value?.[part];
+      }
+      return Number(value) || 0;
+    }
+    setPropertyValue(target, path, value) {
+      const parts = path.split(".");
+      let obj = target;
+      for (let i = 0; i < parts.length - 1; i++) {
+        obj = obj?.[parts[i]];
+      }
+      if (obj) {
+        obj[parts[parts.length - 1]] = value;
+      }
+    }
+    /**
+     * Erzeugt einen Schütteleffekt (Shake) auf einem Objekt.
+     * @param target Das Zielobjekt
+     * @param intensity Intensität des Schüttelns in Pixeln (default: 5)
+     * @param duration Gesamtdauer in Millisekunden (default: 500)
+     */
+    shake(target, intensity = 5, duration = 500) {
+      const originalX = target.x;
+      const originalY = target.y;
+      const startTime = performance.now();
+      const shakeInterval = 50;
+      const performShake = () => {
+        const now = performance.now();
+        const elapsed = now - startTime;
+        if (elapsed < duration) {
+          const offsetX = (Math.random() - 0.5) * intensity * 2;
+          const offsetY = (Math.random() - 0.5) * intensity * 2;
+          target.x = originalX + offsetX;
+          target.y = originalY + offsetY;
+          setTimeout(performShake, shakeInterval);
+        } else {
+          target.x = originalX;
+          target.y = originalY;
+        }
+      };
+      performShake();
+    }
+  };
+  __publicField(_AnimationManager, "instance", null);
+  var AnimationManager = _AnimationManager;
 
   // src/services/ServiceRegistry.ts
   init_Logger();
@@ -4729,11 +4715,7 @@
   __publicField(_TaskExecutor, "MAX_DEPTH", 10);
   var TaskExecutor = _TaskExecutor;
 
-  // src/runtime/GameRuntime.ts
-  init_AnimationManager();
-
   // src/runtime/GameLoopManager.ts
-  init_AnimationManager();
   var _GameLoopManager = class _GameLoopManager {
     constructor() {
       // State
@@ -5348,7 +5330,6 @@
   var RuntimeVariableManager = _RuntimeVariableManager;
 
   // src/components/TWindow.ts
-  init_AnimationManager();
   var TWindow = class extends TComponent {
     constructor(name, x, y, width, height) {
       super(name);
@@ -6009,7 +5990,6 @@
   };
 
   // src/components/TGameLoop.ts
-  init_AnimationManager();
   var TGameLoop = class extends TWindow {
     constructor(name, x = 0, y = 0) {
       super(name, x, y, 3, 1);
@@ -6100,8 +6080,7 @@
       return super.toJSON();
     }
     onRuntimeStart() {
-      console.log(`[TGameLoop] onRuntimeStart() - starting game loop with ${this.sprites.length} sprites`);
-      this.start();
+      console.log(`[TGameLoop] onRuntimeStart() - skipped (GameLoopManager handles the loop)`);
     }
     initRuntime(callbacks) {
       this.init(
@@ -14926,6 +14905,7 @@
       this.currentProject = project;
       this.runtime = new GameRuntime(project, void 0, {
         onRender: () => this.render(),
+        makeReactive: true,
         multiplayerManager: network,
         onNavigate: (target) => this.handleNavigation(target),
         onStageSwitch: (stageId) => {
@@ -15037,9 +15017,15 @@
       if (this.animationTickerId) return;
       const tick = () => {
         if (!this.isStarted) return;
-        const am = window.AnimationManager || this.getAnimationManager();
-        if (am) am.getInstance().update();
-        this.render();
+        const glm = GameLoopManager.getInstance();
+        if (glm.isRunning()) {
+          this.animationTickerId = requestAnimationFrame(tick);
+          return;
+        }
+        AnimationManager.getInstance().update();
+        if (AnimationManager.getInstance().hasActiveTweens()) {
+          this.render();
+        }
         this.animationTickerId = requestAnimationFrame(tick);
       };
       this.animationTickerId = requestAnimationFrame(tick);
@@ -15048,15 +15034,6 @@
       if (this.animationTickerId) {
         cancelAnimationFrame(this.animationTickerId);
         this.animationTickerId = null;
-      }
-    }
-    // Helper to get AnimationManager from bundle if needed
-    getAnimationManager() {
-      try {
-        const { AnimationManager: AnimationManager2 } = (init_AnimationManager(), __toCommonJS(AnimationManager_exports));
-        return AnimationManager2;
-      } catch (e) {
-        return window.AnimationManager;
       }
     }
     render() {

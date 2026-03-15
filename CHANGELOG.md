@@ -1,3 +1,33 @@
+## [3.17.0] - 2026-03-15
+### Fixed (HTML-Export Runtime)
+- **Splash-Stage bleibt stehen** (`GameExporter.ts`):
+  - `splashAutoHide` und `splashDuration` zur Export-Whitelist hinzugefügt — ohne diese Properties startet kein Timer und der Splash bleibt ewig
+  - `objects` und `flowCharts` zur Whitelist für Legacy-Format-Kompatibilität
+- **Ball bewegt sich doppelt so schnell** (`player-standalone.ts`):
+  - `AnimationTicker` lief parallel zum `GameLoopManager` → doppeltes `AnimationManager.update()` und Rendering
+  - Fix: Ticker prüft jetzt `GameLoopManager.isRunning()` und überspringt eigenes Update/Render
+  - Veraltete `getAnimationManager()` Methode entfernt, direkte Imports verwendet
+- **Reactive Bindings fehlten** (`player-standalone.ts`):
+  - `makeReactive: true` in `UniversalPlayer.startProject()` hinzugefügt — ohne dieses Flag funktionieren keine Variablen-Bindings, Expressions oder automatische Re-Renders
+- **Build-Pipeline** (`vite.runtime.config.ts`, `src/stubs/node-stub.ts`):
+  - Separater Vite-Build als IIFE-Bundle (293 KB minifiziert) erstellt
+  - Node.js-Module (fs, path, express) per `resolve.alias` auf Stub-Datei umgeleitet
+
+## [3.16.2] - 2026-03-14
+### Improved (Inspector Layout & Rasterfarbe)
+- **Inspector horizontales Layout** (`InspectorHost.ts`):
+  - Labels werden links neben den Eingabefeldern angezeigt (Flexbox) statt darüber
+  - Inline-Properties: Konsekutive `inline: true` Properties werden paarweise in einer Zeile gruppiert (max. 2 pro Zeile)
+  - Inline-Labels werden dynamisch schmal gehalten, normale Labels haben feste Breite (70-90px)
+- **Fett/Kursiv als Boolean-Checkboxen** (`TWindow.ts`, `InspectorHost.ts`):
+  - `style.fontWeight` und `style.fontStyle` werden als Checkboxen (statt Select-Dropdowns) gerendert
+  - Automatische CSS-Wert-Konvertierung: checked → `bold`/`italic`, unchecked → `normal`
+  - Fett/Kursiv Duplikat behoben: Properties nur in `TTextControl` deklariert, nicht zusätzlich in `TWindow`
+- **Stage-Rasterfarbe konfigurierbar** (`Stage.ts`, `inspector_stage.json`):
+  - Hardcoded `#ddd` durch `gridConfig.gridColor` ersetzt (Fallback: `#dddddd`)
+  - Neues Farbpicker-Feld "Rasterfarbe" im Stage-Inspector (RASTER-Sektion, nach Checkboxen)
+  - Raster wird im Run-Mode nicht angezeigt (`visible && !runMode`)
+
 ## [3.16.1] - 2026-03-14
 ### Fixed (Inspector-Farben & Flow-Sync)
 - **Inspector-Farben sichtbar** (`InspectorHost.ts`):

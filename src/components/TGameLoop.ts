@@ -87,9 +87,12 @@ export class TGameLoop extends TWindow implements IRuntimeComponent {
     }
 
     public onRuntimeStart(): void {
-        // Start the game loop after initRuntime() has been called
-        console.log(`[TGameLoop] onRuntimeStart() - starting game loop with ${this.sprites.length} sprites`);
-        this.start();
+        // NICHT starten! Der GameLoopManager (Singleton) übernimmt den Loop.
+        // TGameLoop dient nur als Konfigurations-Container (boundsOffset, targetFPS).
+        // Der GameLoopManager liest diese Werte bei GameRuntime.initMainGame().
+        // Ein eigener Loop hier würde TSprite.update(deltaTime) DOPPELT pro Frame
+        // aufrufen → doppelte Ball-Geschwindigkeit.
+        console.log(`[TGameLoop] onRuntimeStart() - skipped (GameLoopManager handles the loop)`);
     }
 
     public initRuntime(callbacks: { handleEvent: any; render: any; gridConfig: any; objects: any[] }): void {

@@ -262,7 +262,7 @@ primary_region = "fra"
      */
     private getCleanProject(project: GameProject): any {
         // 1. Whitelist for top-level keys
-        const whitelist = ['meta', 'stages', 'activeStageId', 'variables', 'tasks', 'actions', 'stage'];
+        const whitelist = ['meta', 'stages', 'activeStageId', 'variables', 'tasks', 'actions', 'stage', 'objects', 'flowCharts', 'splashAutoHide', 'splashDuration'];
 
         const clean: any = {};
         whitelist.forEach(key => {
@@ -311,7 +311,10 @@ primary_region = "fra"
             return;
         }
 
-        const editorOnlyKeys = ['flow', 'flowCharts', 'flowGraph', 'description', 'details', 'showDetails', 'nodePositions', 'connections'];
+        // ACHTUNG: flowCharts, tasks und connections sind RUNTIME-RELEVANT!
+        // Sie enthalten die Task-Sequenzen für Spiel-Logik (Bounce, Score, Navigation).
+        // Nur echte Editor-Metadaten entfernen:
+        const editorOnlyKeys = ['flow', 'flowGraph', 'nodePositions', 'description', 'details', 'showDetails'];
 
         Object.keys(obj).forEach(key => {
             // Remove keys starting with _ (internal state) or in editor-only list
@@ -362,7 +365,7 @@ primary_region = "fra"
             align-items: center;
             overflow: hidden;
         }
-        #stage {
+        #run-stage {
             position: relative;
             width: ${stageWidth}px;
             height: ${stageHeight}px;
@@ -386,7 +389,7 @@ primary_region = "fra"
 </head>
 <body>
     <div id="stage-container">
-        <div id="stage"></div>
+        <div id="run-stage"></div>
     </div>
     
     <script>
@@ -452,7 +455,7 @@ primary_region = "fra"
             align-items: center;
             overflow: hidden;
         }
-        #stage {
+        #run-stage {
             position: relative;
             width: ${stageWidth}px;
             height: ${stageHeight}px;
@@ -476,7 +479,7 @@ primary_region = "fra"
 </head>
 <body>
     <div id="stage-container">
-        <div id="stage"></div>
+        <div id="run-stage"></div>
     </div>
     
     <script>
