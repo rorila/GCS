@@ -53,10 +53,22 @@
                     "icon": "🌐"
                 },
                 {
+                    "id": "export-html-gzip",
+                    "label": "Export als HTML (komprimiert)",
+                    "action": "export-html-gzip",
+                    "icon": "📦"
+                },
+                {
                     "id": "export-json",
                     "label": "Export als JSON",
                     "action": "export-json",
                     "icon": "📄"
+                },
+                {
+                    "id": "export-json-gzip",
+                    "label": "Export als JSON (komprimiert)",
+                    "action": "export-json-gzip",
+                    "icon": "📦"
                 }
             ]
         },

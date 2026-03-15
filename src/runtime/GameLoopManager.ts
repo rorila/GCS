@@ -85,7 +85,7 @@ export class GameLoopManager {
         eventCallback?: (spriteId: string, eventName: string, data?: any) => void,
         spriteRenderCallback?: (sprites: any[]) => void
     ): void {
-        console.log(`[GameLoopManager] init() called with ${objects.length} objects`);
+
 
         // Stop any existing loop
         this.stop();
@@ -118,33 +118,31 @@ export class GameLoopManager {
         if (gameLoopObj) {
             this.boundsOffsetTop = gameLoopObj.boundsOffsetTop || 0;
             this.boundsOffsetBottom = gameLoopObj.boundsOffsetBottom || 0;
-            if (gameLoopObj.targetFPS) {
-                console.log(`[GameLoopManager] Target FPS: ${gameLoopObj.targetFPS} (not currently used for capping)`);
-            }
+
         }
 
         // Clear cooldowns on init
         this.collisionCooldowns.clear();
         this.boundaryCooldowns.clear();
 
-        console.log(`[GameLoopManager] Initialized with ${this.sprites.length} sprites, ${this.inputControllers.length} input controllers, gameState: ${this.gameState?.name || 'null'}`);
+
     }
 
     /**
      * Start the game loop
      */
     public start(): void {
-        console.log(`[GameLoopManager] start() called. Current state: ${this.state}`);
+
 
         if (this.state === 'running') {
-            console.log(`[GameLoopManager] Already running, returning.`);
+
             return;
         }
 
         this.state = 'running';
         this.lastTime = performance.now();
 
-        console.log(`[GameLoopManager] Starting loop with ${this.sprites.length} sprites`);
+
         this.loop();
     }
 
@@ -152,7 +150,7 @@ export class GameLoopManager {
      * Stop the game loop
      */
     public stop(): void {
-        console.log(`[GameLoopManager] stop() called. Current state: ${this.state}`);
+
 
         this.state = 'stopped';
         if (this.animationFrameId !== null) {

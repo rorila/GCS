@@ -1,3 +1,21 @@
+## [3.18.0] - 2026-03-15
+### Improved (Runtime-Optimierung)
+- **Bundle-Größe halbiert** (`package.json`):
+  - `--minify` zum esbuild-Befehl hinzugefügt: 580 KB → 294 KB (-50%)
+- **TGameLoop stark reduziert** (`TGameLoop.ts`):
+  - Von 412 auf 95 Zeilen — nur noch Konfigurations-Container (boundsOffset, targetFPS)
+  - Kompletter eigener Game-Loop entfernt (war Duplikat vom GameLoopManager)
+- **Sprite Fast-Path** (`player-standalone.ts`):
+  - `onSpriteRender` Callback: Pro Frame nur `style.left/top` der Sprites statt Full-DOM-Rebuild
+  - Deutlich bessere 60fps-Stabilität bei vielen Sprites
+- **Console-Logs entfernt** (`GameLoopManager.ts`):
+  - Alle Debug-Logs aus dem Game-Loop entfernt (liefen 60×/sec)
+### Added (Export-Menü)
+- **Komprimierte Export-Optionen** (`menu_bar.json`):
+  - "Export als HTML (komprimiert)" im Plattform-Menü
+  - "Export als JSON (komprimiert)" im Plattform-Menü
+  - Nutzt gzip+Base64 Komprimierung (70-80% kleiner)
+
 ## [3.17.0] - 2026-03-15
 ### Fixed (HTML-Export Runtime)
 - **Splash-Stage bleibt stehen** (`GameExporter.ts`):

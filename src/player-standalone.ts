@@ -280,12 +280,12 @@ class UniversalPlayer implements StageHost {
         // 2. Initialize new Runtime
         this.runtime = new GameRuntime(project, undefined, {
             onRender: () => this.render(),
+            onSpriteRender: (sprites: any[]) => this.renderSpritesOnly(sprites),
             makeReactive: true,
             multiplayerManager: network,
             onNavigate: (target: string) => this.handleNavigation(target),
             onStageSwitch: (stageId: string) => {
-                console.log(`[UniversalPlayer] Stage switched to: ${stageId}`);
-                this.setupScaling(); // Re-scaling for new stage dimensions
+                this.setupScaling();
                 this.render();
             }
         });
@@ -453,10 +453,29 @@ class UniversalPlayer implements StageHost {
     }
 
 
+    /**
+     * Full Render: Komplettes DOM-Rebuild aller Objekte.
+     * Wird bei Stage-Switch, neuen Objekten und Property-Änderungen aufgerufen.
+     */
     private render() {
         if (!this.runtime) return;
         const objects = this.runtime.getObjects().filter(obj => !this.techClasses.includes(obj.className));
         this.renderer.renderObjects(objects);
+    }
+
+    /**
+     * FAST PATH: Nur Sprite-Positionen im DOM aktualisieren.
+     * Wird 60×/sec vom GameLoopManager aufgerufen (via onSpriteRender).
+     * Kein getObjects(), kein DOM-Rebuild — nur style.left/top der Sprites.
+     */
+    private renderSpritesOnly(sprites: any[]): void {
+        const cellSize = this.grid.cellSize;
+        for (const sprite of sprites) {
+            const el = this.element.querySelector(`[data-id="${sprite.id}"]`) as HTMLElement;
+            if (!el) continue;
+            el.style.left = `${(sprite.x || 0) * cellSize}px`;
+            el.style.top = `${(sprite.y || 0) * cellSize}px`;
+        }
     }
 
     private showOverlay(text: string, subtext?: string) {
