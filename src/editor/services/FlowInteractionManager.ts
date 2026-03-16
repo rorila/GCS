@@ -38,6 +38,11 @@ export class FlowInteractionManager {
     private host: FlowInteractionHost;
     private tooltipEl: HTMLElement | null = null;
 
+    // Rubber-Band Selektion
+    private rubberBandEl: HTMLElement | null = null;
+    private isRubberBanding: boolean = false;
+    private rubberBandStart = { x: 0, y: 0 };
+
     constructor(host: FlowInteractionHost) {
         this.host = host;
     }
@@ -54,12 +59,103 @@ export class FlowInteractionManager {
     }
 
     public handleCanvasClick(e: MouseEvent) {
-        if (e.target === this.host.canvas) {
-            this.host.deselectAll(false);
-            if (this.host.onObjectSelect) {
-                this.host.onObjectSelect(this.host as any);
+        if (e.target !== this.host.canvas) return;
+
+        // Nur Rubber-Band starten wenn KEIN Connection-Handle gedraggt wird
+        if (this.host.isDraggingHandle) return;
+
+        // Rubber-Band starten
+        const rect = this.host.canvas.getBoundingClientRect();
+        this.rubberBandStart = {
+            x: e.clientX - rect.left + this.host.canvas.scrollLeft,
+            y: e.clientY - rect.top + this.host.canvas.scrollTop
+        };
+        this.isRubberBanding = true;
+
+        // Visuelles Rechteck erstellen
+        this.rubberBandEl = document.createElement('div');
+        this.rubberBandEl.style.cssText = `
+            position: absolute;
+            border: 2px dashed rgba(0, 255, 255, 0.7);
+            background: rgba(0, 255, 255, 0.08);
+            pointer-events: none;
+            z-index: 999;
+        `;
+        this.host.canvas.appendChild(this.rubberBandEl);
+
+        const onMouseMove = (moveEvt: MouseEvent) => {
+            if (!this.isRubberBanding || !this.rubberBandEl) return;
+            const curX = moveEvt.clientX - rect.left + this.host.canvas.scrollLeft;
+            const curY = moveEvt.clientY - rect.top + this.host.canvas.scrollTop;
+
+            const left = Math.min(this.rubberBandStart.x, curX);
+            const top = Math.min(this.rubberBandStart.y, curY);
+            const width = Math.abs(curX - this.rubberBandStart.x);
+            const height = Math.abs(curY - this.rubberBandStart.y);
+
+            this.rubberBandEl.style.left = `${left}px`;
+            this.rubberBandEl.style.top = `${top}px`;
+            this.rubberBandEl.style.width = `${width}px`;
+            this.rubberBandEl.style.height = `${height}px`;
+        };
+
+        const onMouseUp = (upEvt: MouseEvent) => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+
+            if (!this.isRubberBanding || !this.rubberBandEl) return;
+
+            // Rubber-Band auswerten
+            const curX = upEvt.clientX - rect.left + this.host.canvas.scrollLeft;
+            const curY = upEvt.clientY - rect.top + this.host.canvas.scrollTop;
+
+            const selLeft = Math.min(this.rubberBandStart.x, curX);
+            const selTop = Math.min(this.rubberBandStart.y, curY);
+            const selRight = Math.max(this.rubberBandStart.x, curX);
+            const selBottom = Math.max(this.rubberBandStart.y, curY);
+
+            const selWidth = selRight - selLeft;
+            const selHeight = selBottom - selTop;
+
+            // Aufzieh-Rahmen entfernen
+            this.rubberBandEl.remove();
+            this.rubberBandEl = null;
+            this.isRubberBanding = false;
+
+            // Mindestgröße: Wenn Rahmen zu klein, als normaler Klick behandeln
+            if (selWidth < 5 && selHeight < 5) {
+                if (!upEvt.shiftKey) {
+                    this.host.deselectAll(false);
+                    if (this.host.onObjectSelect) {
+                        this.host.onObjectSelect(this.host as any);
+                    }
+                }
+                return;
             }
-        }
+
+            // Alle Nodes im Rahmen finden
+            const nodesInRect = this.host.nodes.filter(node => {
+                const nx = node.X;
+                const ny = node.Y;
+                const nw = node.Width;
+                const nh = node.Height;
+                // Node muss teilweise im Rahmen liegen
+                return nx + nw > selLeft && nx < selRight &&
+                       ny + nh > selTop && ny < selBottom;
+            });
+
+            if (nodesInRect.length > 0) {
+                this.host.selectionManager.selectMultiple(nodesInRect);
+            } else if (!upEvt.shiftKey) {
+                this.host.deselectAll(false);
+                if (this.host.onObjectSelect) {
+                    this.host.onObjectSelect(this.host as any);
+                }
+            }
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
     }
 
     public handleCanvasContextMenu(e: MouseEvent) {
@@ -109,27 +205,50 @@ export class FlowInteractionManager {
 
         node.getElement().addEventListener('mousedown', (e) => {
             e.stopPropagation();
+
+            // Shift+Klick: Toggle Selektion
+            if (e.shiftKey) {
+                this.host.selectionManager.toggleSelection(node);
+                return;
+            }
+
+            const selectedNodes = this.host.selectionManager.getSelectedNodes();
+            const isPartOfSelection = this.host.selectionManager.isSelected(node);
+
+            // Wenn Node NICHT Teil der Multi-Selektion ist: nur diesen Node selektieren
+            if (!isPartOfSelection || selectedNodes.length <= 1) {
+                this.host.selectionManager.selectNode(node);
+            }
+
+            // --- Drag-Logik ---
             const startX = e.clientX;
             const startY = e.clientY;
-            const startNodeX = node.X;
-            const startNodeY = node.Y;
+
+            // Gruppen-Drag: Startpositionen ALLER selektierten Nodes merken
+            const dragNodes = isPartOfSelection && selectedNodes.length > 1
+                ? selectedNodes
+                : [node];
+            const startPositions = dragNodes.map((n: FlowElement) => ({ node: n, x: n.X, y: n.Y }));
 
             const onMouseMove = (moveEvt: MouseEvent) => {
                 const dx = moveEvt.clientX - startX;
                 const dy = moveEvt.clientY - startY;
-                let newX = startNodeX + dx;
-                let newY = startNodeY + dy;
 
-                if (this.host.flowStage.snapToGrid) {
-                    const snapped = this.host.flowStage.snapToGridPosition(newX, newY);
-                    newX = snapped.x;
-                    newY = snapped.y;
-                }
+                startPositions.forEach((sp: { node: FlowElement, x: number, y: number }) => {
+                    let newX = sp.x + dx;
+                    let newY = sp.y + dy;
 
-                node.X = newX;
-                node.Y = newY;
-                node.updatePosition();
-                if (node.onMove) node.onMove();
+                    if (this.host.flowStage.snapToGrid) {
+                        const snapped = this.host.flowStage.snapToGridPosition(newX, newY);
+                        newX = snapped.x;
+                        newY = snapped.y;
+                    }
+
+                    sp.node.X = newX;
+                    sp.node.Y = newY;
+                    sp.node.updatePosition();
+                    if (sp.node.onMove) sp.node.onMove();
+                });
             };
 
             const onMouseUp = () => {
@@ -140,7 +259,6 @@ export class FlowInteractionManager {
 
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
-            this.host.selectionManager.selectNode(node);
         });
 
         node.onMove = () => {

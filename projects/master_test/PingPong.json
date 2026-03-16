@@ -1,0 +1,1496 @@
+{
+  "meta": {
+    "name": "PingPong",
+    "version": "1.0.0",
+    "author": "RoRiLa",
+    "_sourcePath": "projects/master_test/PingPong.json"
+  },
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TGameState",
+          "id": "obj_1766761345082_edswzt2cj",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "GameState",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 9,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#4caf50",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "state": "playing",
+          "spritesMoving": false,
+          "collisionsEnabled": false
+        },
+        {
+          "className": "TTimer",
+          "id": "obj_1766761437072_vxhsjao1q",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "SynchronTimer",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 11,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "align": "",
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 200,
+          "enabled": "${isMultiplayer}",
+          "maxInterval": 0,
+          "currentInterval": 0
+        },
+        {
+          "className": "TTimer",
+          "id": "obj_1768324032417_h7nn1j1yj",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "PauseTimer",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 13,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 2000,
+          "enabled": false,
+          "maxInterval": 1,
+          "currentInterval": 0
+        },
+        {
+          "className": "TInputController",
+          "id": "obj_1766761331624_j984qpwvt",
+          "isVariable": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "events": {
+            "onKeyDown_KeyW": "MoveLeftPaddleUp",
+            "onKeyDown_KeyS": "MoveLeftPaddleDown",
+            "onKeyUp_KeyW": "StopLeftPaddleUp",
+            "onKeyUp_KeyS": "StopLeftPaddleDown",
+            "onKeyDown_ArrowUp": "MoveRightPaddleUp",
+            "onKeyDown_ArrowDown": "MoveRightPaddleDown",
+            "onKeyUp_ArrowUp": "StopRightPaddleUp",
+            "onKeyUp_ArrowDown": "StopRightPaddleDown"
+          },
+          "name": "InputController",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 7,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TGameLoop",
+          "id": "obj_1766761409695_4e4rv62ig",
+          "isVariable": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "GameLoop",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 5,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "boundsOffsetTop": 4,
+          "boundsOffsetBottom": 4
+        },
+        {
+          "className": "THeartbeat",
+          "id": "obj_1768406871452_45jpkqbr6",
+          "isVariable": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "Heartbeat",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 17,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#e91e63",
+            "borderColor": "#c2185b",
+            "borderWidth": 2
+          },
+          "pingInterval": 5000,
+          "timeoutThreshold": 3,
+          "latencyWarningThreshold": 500,
+          "enabled": "${isMultiplayer}",
+          "latency": 0,
+          "missedPongs": 0,
+          "status": "inactive"
+        },
+        {
+          "className": "THandshake",
+          "id": "obj_1768406910807_73vk7ohq8",
+          "isVariable": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "Handshake",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 15,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#5c6bc0",
+            "borderColor": "#3949ab",
+            "borderWidth": 2
+          },
+          "protocolVersion": "1.0",
+          "enabled": "${isMultiplayer}",
+          "status": "disconnected",
+          "roomCode": "",
+          "playerNumber": 0,
+          "isHost": false,
+          "peerVersion": ""
+        },
+        {
+          "className": "TStageController",
+          "id": "obj_1768642087440_0rwyr1wr9",
+          "isVariable": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "StageController",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 19,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        }
+      ],
+      "tasks": [],
+      "actions": [
+        {
+          "name": "EnableSpriteMoving",
+          "details": "",
+          "type": "action",
+          "showDetails": false
+        },
+        {
+          "name": "EnableCollisions",
+          "details": "",
+          "type": "action",
+          "showDetails": false
+        },
+        {
+          "name": "SetBallVelocity",
+          "details": "",
+          "type": "action",
+          "showDetails": false
+        },
+        {
+          "name": "SetLeftPaddleVelUp",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": -0.5
+          },
+          "scope": "global"
+        },
+        {
+          "name": "SetLeftPaddleVelDown",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0.5
+          },
+          "scope": "global"
+        },
+        {
+          "name": "StopLeftPaddleVelUp",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0
+          },
+          "scope": "global"
+        },
+        {
+          "name": "StopLeftPaddleVelDown",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0
+          },
+          "scope": "global"
+        },
+        {
+          "name": "SetRightPaddleVelUp",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": -0.5
+          },
+          "scope": "global"
+        },
+        {
+          "name": "SetRightPaddleVelDown",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0.5
+          },
+          "scope": "global"
+        },
+        {
+          "name": "StopRightPaddleVelUp",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0
+          },
+          "scope": "global"
+        },
+        {
+          "name": "StopRightPaddleVelDown",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0
+          },
+          "scope": "global"
+        },
+        {
+          "name": "NegateBallY",
+          "type": "negate",
+          "target": "BallSprite",
+          "changes": {
+            "velocityY": true
+          },
+          "scope": "global",
+          "description": "Kehrt die Y-Richtung des Balls um (Abprall oben/unten)"
+        },
+        {
+          "name": "NegateBallX",
+          "type": "negate",
+          "target": "BallSprite",
+          "changes": {
+            "velocityX": true
+          },
+          "scope": "global",
+          "description": "Kehrt die X-Richtung des Balls um (Paddle-Treffer)"
+        },
+        {
+          "name": "ResetBall",
+          "type": "property",
+          "target": "BallSprite",
+          "changes": {
+            "x": 32,
+            "y": 19,
+            "velocityX": 0,
+            "velocityY": 0
+          },
+          "scope": "global",
+          "description": "Setzt den Ball zurück in die Mitte bei Punktverlust"
+        }
+      ],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#2d865f"
+      }
+    },
+    {
+      "id": "stage_splash",
+      "name": "Splash",
+      "type": "splash",
+      "objects": [
+        {
+          "className": "TImage",
+          "id": "obj_1768673710977_nobw1qy8q",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "Image_1",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 40,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#2a2a2a",
+            "borderColor": "#999999",
+            "borderWidth": 0
+          },
+          "src": "backgrounds/Modernes Pong-Design mit lebendigen Farben.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a"
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#2d865f"
+      },
+      "duration": 1000,
+      "autoHide": true,
+      "flowCharts": {},
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "events": {}
+    },
+    {
+      "id": "stage_main",
+      "name": "Spielfeld",
+      "type": "main",
+      "objects": [
+        {
+          "className": "TSprite",
+          "id": "obj_1766753853667_zhfdyqr29",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "LeftPaddle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 3,
+          "y": 17,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#10148e",
+            "borderColor": "#4b4fbe",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ec0909",
+          "backgroundImage": "",
+          "objectFit": "contain"
+        },
+        {
+          "className": "TSprite",
+          "id": "7b42a974-a229-4918-9ba5-1283a337ea03",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "RightPaddle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 60,
+          "y": 17,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#3ed06a",
+            "borderColor": "#17401a",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#0feb8c",
+          "backgroundImage": "",
+          "objectFit": "contain"
+        },
+        {
+          "className": "TGameHeader",
+          "id": "obj_1766753944753_ph0i01i8j",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "GameHeader",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 4,
+          "zIndex": 0,
+          "align": "TOP",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2c3e50",
+            "borderColor": "#34495e",
+            "borderWidth": 0,
+            "fontSize": 18,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Segoe UI, sans-serif"
+          },
+          "text": "New Tennis",
+          "title": "New Tennis"
+        },
+        {
+          "className": "TStatusBar",
+          "id": "obj_1766753993735_zup1nxzg9",
+          "isVariable": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "StatusBar",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 36,
+          "width": 64,
+          "height": 4,
+          "zIndex": 0,
+          "align": "BOTTOM",
+          "style": {
+            "backgroundColor": "#1a1a2e",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "text": "",
+          "textColor": "#ffffff",
+          "fontSize": 12,
+          "paddingX": 12,
+          "paddingY": 6,
+          "sectionGap": 16,
+          "separatorColor": "#444444",
+          "showSeparators": true,
+          "sections": [
+            {
+              "id": "status",
+              "text": "Ready",
+              "icon": "●",
+              "width": "auto",
+              "align": "left"
+            }
+          ]
+        },
+        {
+          "className": "TToast",
+          "id": "obj_1766754019555_x3h3ygkpm",
+          "isVariable": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "Toast",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 44,
+          "y": 32,
+          "width": 20,
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "animation": "slide-left",
+          "position": "bottom-left",
+          "duration": 3000,
+          "maxVisible": 3,
+          "infoColor": "#2196F3",
+          "successColor": "#4CAF50",
+          "warningColor": "#FF9800",
+          "errorColor": "#F44336",
+          "textColor": "#ffffff",
+          "fontSize": 14,
+          "borderRadius": 8,
+          "padding": 12
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1766754427094_eva7t9y7p",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "Panel_6",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 32,
+          "y": 5,
+          "width": 1,
+          "height": 30,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#1b552a",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Panel_6",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_1766754456369_dmh8grz0p",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "events": {
+            "onBoundaryHit": "HandleBallBoundary",
+            "onCollision": "HandlePaddleCollision"
+          },
+          "name": "BallSprite",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 32,
+          "y": 19,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#6bff84",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "circle",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1766765262504_4f29ef7uz",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "StaticStatusLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 48,
+          "y": 37,
+          "width": 3,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#588d7c",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 14,
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "fontFamily": "Arial"
+          },
+          "text": "Status:"
+        },
+        {
+          "className": "TLabel",
+          "id": "1f535da9-766d-4081-a6c4-dd2233f68063",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "StatusLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 51,
+          "y": 37,
+          "width": 7,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#588d7c",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 14,
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "fontFamily": "Arial"
+          },
+          "text": "gestoppt"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1766861595312_98ymsbf45",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "events": {
+            "onClick": "StartTheGame"
+          },
+          "name": "StartBtn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 9,
+          "y": 37,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1,
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial"
+          },
+          "text": "Spiel starten",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "37b384ed-5573-4d08-823a-bc0692fc016a",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "PauseGameBtn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 20,
+          "y": 37,
+          "width": 10,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1,
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial"
+          },
+          "text": "Spiel pausieren",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1767094196869_s5kxtbodl",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "ResumeGameBtn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 37,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1,
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial"
+          },
+          "text": "Spiel fortsetzen",
+          "icon": ""
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1768123181726_f8lxvpnwv",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "Panel_19",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 5,
+          "width": 1,
+          "height": 30,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Panel_19",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TPanel",
+          "id": "ce79a17f-d6c1-44ef-9dab-deee1883c68d",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "Panel_19",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 63,
+          "y": 5,
+          "width": 1,
+          "height": 30,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Panel_19",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1768123224409_wo5809ewc",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "Panel_21",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 4,
+          "width": 64,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Panel_21",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TPanel",
+          "id": "a815d2e0-0753-480c-8a0e-7eb026e5d4ef",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "Panel_21",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 35,
+          "width": 64,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Panel_21",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TNumberLabel",
+          "id": "obj_1768307659013_6ccbjgywj",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "ScoreLblLeft",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 20,
+          "y": 1,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#f0ebeb",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 36,
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial"
+          },
+          "text": "",
+          "startValue": 0,
+          "value": 0,
+          "maxValue": 5,
+          "step": 1
+        },
+        {
+          "className": "TNumberLabel",
+          "id": "f5eb5ec2-c70b-4309-b441-f0d9543d8806",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "ScoreLblRight",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 37,
+          "y": 1,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#f4f1f1",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 36,
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial"
+          },
+          "text": "",
+          "startValue": 0,
+          "value": 0,
+          "maxValue": 5,
+          "step": 1
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1768721373068_dx29k460k",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "ImpressumBtn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 57,
+          "y": 37,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1,
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial"
+          },
+          "text": "Impressum",
+          "icon": ""
+        }
+      ],
+      "gameName": "NewTennis",
+      "author": "RoRiLa",
+      "description": "",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#4b1b1b"
+      },
+      "startAnimation": "BottomLeft",
+      "startAnimationDuration": 1001,
+      "startAnimationEasing": "linear",
+      "tasks": [
+        {
+          "name": "StartTheGame",
+          "description": "Startet das Spiel bei Klick auf StartBtn",
+          "actionSequence": [
+            {
+              "name": "EnableSpriteMoving",
+              "type": "action"
+            },
+            {
+              "name": "EnableCollisions",
+              "type": "action"
+            },
+            {
+              "name": "SetBallVelocity",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "StartTheGame": {
+              "x": 400,
+              "y": 60
+            },
+            "EnableSpriteMoving": {
+              "x": 400,
+              "y": 200
+            },
+            "EnableCollisions": {
+              "x": 400,
+              "y": 320
+            },
+            "SetBallVelocity": {
+              "x": 640,
+              "y": 320
+            }
+          }
+        },
+        {
+          "name": "MoveLeftPaddleUp",
+          "actionSequence": [
+            {
+              "name": "SetLeftPaddleVelUp",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowLayout": {
+            "MoveLeftPaddleUp": {
+              "x": 300,
+              "y": 100
+            },
+            "SetLeftPaddleVelUp": {
+              "x": 300,
+              "y": 280
+            }
+          }
+        },
+        {
+          "name": "MoveLeftPaddleDown",
+          "actionSequence": [
+            {
+              "name": "SetLeftPaddleVelDown",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowLayout": {
+            "MoveLeftPaddleDown": {
+              "x": 300,
+              "y": 100
+            },
+            "SetLeftPaddleVelDown": {
+              "x": 300,
+              "y": 280
+            }
+          }
+        },
+        {
+          "name": "StopLeftPaddleUp",
+          "actionSequence": [
+            {
+              "name": "StopLeftPaddleVelUp",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowLayout": {
+            "StopLeftPaddleUp": {
+              "x": 300,
+              "y": 100
+            },
+            "StopLeftPaddleVelUp": {
+              "x": 300,
+              "y": 280
+            }
+          }
+        },
+        {
+          "name": "StopLeftPaddleDown",
+          "actionSequence": [
+            {
+              "name": "StopLeftPaddleVelDown",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowLayout": {
+            "StopLeftPaddleDown": {
+              "x": 300,
+              "y": 100
+            },
+            "StopLeftPaddleVelDown": {
+              "x": 300,
+              "y": 280
+            }
+          }
+        },
+        {
+          "name": "MoveRightPaddleUp",
+          "actionSequence": [
+            {
+              "name": "SetRightPaddleVelUp",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowLayout": {
+            "MoveRightPaddleUp": {
+              "x": 300,
+              "y": 100
+            },
+            "SetRightPaddleVelUp": {
+              "x": 300,
+              "y": 280
+            }
+          }
+        },
+        {
+          "name": "MoveRightPaddleDown",
+          "actionSequence": [
+            {
+              "name": "SetRightPaddleVelDown",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowLayout": {
+            "MoveRightPaddleDown": {
+              "x": 300,
+              "y": 100
+            },
+            "SetRightPaddleVelDown": {
+              "x": 300,
+              "y": 280
+            }
+          }
+        },
+        {
+          "name": "StopRightPaddleUp",
+          "actionSequence": [
+            {
+              "name": "StopRightPaddleVelUp",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowLayout": {
+            "StopRightPaddleUp": {
+              "x": 300,
+              "y": 100
+            },
+            "StopRightPaddleVelUp": {
+              "x": 300,
+              "y": 280
+            }
+          }
+        },
+        {
+          "name": "StopRightPaddleDown",
+          "actionSequence": [
+            {
+              "name": "StopRightPaddleVelDown",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "description": "",
+          "flowLayout": {
+            "StopRightPaddleDown": {
+              "x": 300,
+              "y": 100
+            },
+            "StopRightPaddleVelDown": {
+              "x": 300,
+              "y": 280
+            }
+          }
+        },
+        {
+          "name": "HandleBallBoundary",
+          "description": "Prüft ob Ball abprallt (oben/unten) oder resettelt wird (links/rechts)",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "CheckTop",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "top"
+              },
+              "thenAction": "NegateBallY"
+            },
+            {
+              "type": "condition",
+              "name": "CheckBottom",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "bottom"
+              },
+              "thenAction": "NegateBallY"
+            },
+            {
+              "type": "condition",
+              "name": "CheckLeft",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "left"
+              },
+              "thenAction": "ResetBall"
+            },
+            {
+              "type": "condition",
+              "name": "CheckRight",
+              "condition": {
+                "variable": "hitSide",
+                "operator": "==",
+                "value": "right"
+              },
+              "thenAction": "ResetBall"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [
+            {
+              "name": "hitSide",
+              "type": "string"
+            }
+          ],
+          "flowLayout": {
+            "HandleBallBoundary": {
+              "x": 300,
+              "y": 50
+            },
+            "If Top": {
+              "x": 300,
+              "y": 150
+            },
+            "NegateBallY": {
+              "x": 500,
+              "y": 250
+            },
+            "If Bottom": {
+              "x": 300,
+              "y": 250
+            },
+            "If Left": {
+              "x": 300,
+              "y": 350
+            },
+            "ResetBall": {
+              "x": 500,
+              "y": 450
+            },
+            "If Right": {
+              "x": 300,
+              "y": 450
+            }
+          }
+        },
+        {
+          "name": "HandlePaddleCollision",
+          "description": "Lässt den Ball vom Paddle abprallen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "NegateBallX"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [
+            {
+              "name": "hitSide",
+              "type": "string"
+            },
+            {
+              "name": "other",
+              "type": "string"
+            }
+          ],
+          "flowLayout": {
+            "HandlePaddleCollision": {
+              "x": 300,
+              "y": 100
+            },
+            "NegateBallX": {
+              "x": 300,
+              "y": 280
+            }
+          }
+        }
+      ],
+      "actions": [],
+      "variables": [],
+      "flowCharts": {},
+      "events": {},
+      "input": {
+        "player1Controls": "arrows",
+        "player1Target": "",
+        "player1Speed": 0.2,
+        "player2Controls": "wasd",
+        "player2Target": "",
+        "player2Speed": 0.2
+      }
+    },
+    {
+      "id": "stage-1768721254041",
+      "name": "Impressum",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TButton",
+          "id": "obj_1768729122368_m61br1bgf",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "goBackBtn",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 1,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1,
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "fontFamily": "Arial"
+          },
+          "text": "zurück",
+          "icon": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 18,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#4a489d"
+      },
+      "description": "Notwendige Informationen über den Author des Spiels",
+      "flowCharts": {},
+      "tasks": [],
+      "actions": [],
+      "variables": [],
+      "events": {}
+    }
+  ],
+  "objects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "activeStageId": "stage_main"
+}

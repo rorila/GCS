@@ -17,6 +17,9 @@ export interface FlowSelectionHost {
 }
 
 export class FlowSelectionManager {
+    // Multi-Selektion: Menge aller aktuell selektierten Nodes
+    private selectedNodes: Set<FlowElement> = new Set();
+
     constructor(private host: FlowSelectionHost) { }
 
     public selectNode(node: FlowElement | null) {
@@ -46,6 +49,54 @@ export class FlowSelectionManager {
         if (this.host.onObjectSelect) {
             this.host.onObjectSelect(node);
         }
+    }
+
+    // =====================================================================
+    // Multi-Selektion
+    // =====================================================================
+
+    /** Node zur Multi-Selektion hinzufügen (z.B. Shift+Klick) */
+    public addToSelection(node: FlowElement): void {
+        this.selectedNodes.add(node);
+        node.getElement().style.outline = '2px solid cyan';
+    }
+
+    /** Node aus Multi-Selektion entfernen */
+    public removeFromSelection(node: FlowElement): void {
+        this.selectedNodes.delete(node);
+        node.getElement().style.outline = 'none';
+    }
+
+    /** Toggle: Shift+Klick — hinzufügen oder entfernen */
+    public toggleSelection(node: FlowElement): void {
+        if (this.selectedNodes.has(node)) {
+            this.removeFromSelection(node);
+        } else {
+            this.addToSelection(node);
+        }
+    }
+
+    /** Mehrere Nodes selektieren (nach Rubber-Band) */
+    public selectMultiple(nodes: FlowElement[]): void {
+        this.deselectAll(false);
+        nodes.forEach(n => {
+            this.selectedNodes.add(n);
+            n.getElement().style.outline = '2px solid cyan';
+        });
+        // Inspector: Ersten Node anzeigen (falls gewünscht)
+        if (nodes.length > 0 && this.host.onObjectSelect) {
+            this.host.onObjectSelect(nodes[0]);
+        }
+    }
+
+    /** Gibt alle selektierten Nodes zurück */
+    public getSelectedNodes(): FlowElement[] {
+        return Array.from(this.selectedNodes);
+    }
+
+    /** Prüft ob ein Node selektiert ist */
+    public isSelected(node: FlowElement): boolean {
+        return this.selectedNodes.has(node);
     }
 
     public selectNodeById(nodeId: string | null): void {
@@ -108,6 +159,10 @@ export class FlowSelectionManager {
             selectedNode.getElement().style.outline = 'none';
             this.host.stateManager.selectNode(null);
         }
+
+        // Multi-Selektion aufräumen
+        this.selectedNodes.forEach(n => n.getElement().style.outline = 'none');
+        this.selectedNodes.clear();
 
         // Notify null selection
         if (emitEvent && this.host.onObjectSelect) {

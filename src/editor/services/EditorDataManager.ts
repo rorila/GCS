@@ -370,6 +370,10 @@ export class EditorDataManager {
             });
         }
 
+        // MIGRATION: flowChart/flowGraph → flowLayout (Dynamische FlowChart-Generierung)
+        // Bestehende FlowChart-Daten werden in kompakte Layout-Positionen konvertiert
+        this.migrateFlowChartsToLayout(data);
+
         // 5. POST-LOAD FIXES
         if (this.host.flowEditor) {
             this.host.flowEditor.cleanCorruptTaskData();
@@ -624,6 +628,60 @@ export class EditorDataManager {
 
             // Notify Mediator that project data has changed via JSON Editor
             mediatorService.notifyDataChanged(this.host.project, 'json-editor');
+        }
+    }
+
+    /**
+     * MIGRATION: Konvertiert bestehende flowChart/flowGraph-Daten in kompakte flowLayout.
+     * Wird einmalig beim Laden aufgerufen und entfernt dann die alten Daten.
+     */
+    private migrateFlowChartsToLayout(data: any): void {
+        if (!data.stages) return;
+
+        let migrated = 0;
+
+        data.stages.forEach((stage: any) => {
+            // Tasks mit flowChart/flowGraph → flowLayout konvertieren
+            if (stage.tasks) {
+                stage.tasks.forEach((task: any) => {
+                    const source = task.flowChart || task.flowGraph;
+                    if (source && source.elements?.length > 0 && !task.flowLayout) {
+                        task.flowLayout = {};
+                        source.elements.forEach((el: any) => {
+                            const name = el.properties?.name || el.data?.name || el.data?.taskName;
+                            if (name) {
+                                task.flowLayout[name] = { x: el.x, y: el.y };
+                            }
+                        });
+                        migrated++;
+                    }
+                    // Legacy-Daten entfernen
+                    delete task.flowChart;
+                    delete task.flowGraph;
+                });
+            }
+
+            // Stage-Level flowCharts bereinigen (außer 'global')
+            if (stage.flowCharts) {
+                Object.keys(stage.flowCharts).forEach(key => {
+                    if (key !== 'global') {
+                        delete stage.flowCharts[key];
+                    }
+                });
+            }
+        });
+
+        // Project-Root flowCharts bereinigen (außer 'global')
+        if (data.flowCharts) {
+            Object.keys(data.flowCharts).forEach((key: string) => {
+                if (key !== 'global') {
+                    delete data.flowCharts[key];
+                }
+            });
+        }
+
+        if (migrated > 0) {
+            EditorDataManager.logger.info(`[Migration] ${migrated} FlowCharts → flowLayout konvertiert.`);
         }
     }
 }

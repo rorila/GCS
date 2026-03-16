@@ -294,6 +294,22 @@
                 },
                 {
                     "className": "TLabel",
+                    "name": "GridColorLabel",
+                    "text": "Rasterfarbe:",
+                    "style": {
+                        "fontSize": 12,
+                        "color": "#aaa"
+                    }
+                },
+                {
+                    "className": "TColorInput",
+                    "name": "activeStage.grid.gridColorInput",
+                    "value": "${(activeStage && activeStage.grid && activeStage.grid.gridColor) || '#dddddd'}",
+                    "width": 30,
+                    "height": 2
+                },
+                {
+                    "className": "TLabel",
                     "name": "BackgroundColorLabel",
                     "text": "Hintergrundfarbe:",
                     "style": {

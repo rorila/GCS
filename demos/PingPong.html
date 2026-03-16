@@ -28,7 +28,7 @@
             align-items: center;
             overflow: hidden;
         }
-        #stage {
+        #run-stage {
             position: relative;
             width: 1152px;
             height: 720px;
@@ -52,7 +52,7 @@
 </head>
 <body>
     <div id="stage-container">
-        <div id="stage"></div>
+        <div id="run-stage"></div>
     </div>
     
     <script>
@@ -277,236 +277,6 @@
       __publicField(_Logger, "useCaseLabelProvider", (id) => id);
       __publicField(_Logger, "lastUseCaseId");
       Logger = _Logger;
-    }
-  });
-
-  // src/runtime/AnimationManager.ts
-  var AnimationManager_exports = {};
-  __export(AnimationManager_exports, {
-    AnimationManager: () => AnimationManager,
-    Easing: () => Easing
-  });
-  var Easing, _AnimationManager, AnimationManager;
-  var init_AnimationManager = __esm({
-    "src/runtime/AnimationManager.ts"() {
-      "use strict";
-      Easing = {
-        linear: (t) => t,
-        easeIn: (t) => t * t,
-        easeOut: (t) => t * (2 - t),
-        easeInOut: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-        bounce: (t) => {
-          if (t < 1 / 2.75) {
-            return 7.5625 * t * t;
-          } else if (t < 2 / 2.75) {
-            return 7.5625 * (t -= 1.5 / 2.75) * t + 0.75;
-          } else if (t < 2.5 / 2.75) {
-            return 7.5625 * (t -= 2.25 / 2.75) * t + 0.9375;
-          } else {
-            return 7.5625 * (t -= 2.625 / 2.75) * t + 0.984375;
-          }
-        },
-        elastic: (t) => {
-          if (t === 0 || t === 1) return t;
-          return Math.pow(2, -10 * t) * Math.sin((t - 0.1) * 5 * Math.PI) + 1;
-        }
-      };
-      _AnimationManager = class _AnimationManager {
-        constructor() {
-          __publicField(this, "activeTweens", []);
-        }
-        static getInstance() {
-          if (!_AnimationManager.instance) {
-            _AnimationManager.instance = new _AnimationManager();
-          }
-          return _AnimationManager.instance;
-        }
-        /**
-         * Fügt einen neuen Tween hinzu.
-         * @param target Das Zielobjekt (z.B. ein TSprite)
-         * @param property Der Property-Pfad (z.B. 'x', 'y', 'style.opacity')
-         * @param to Der Zielwert
-         * @param duration Dauer in Millisekunden
-         * @param easingName Name der Easing-Funktion (default: 'easeOut')
-         * @param onComplete Optionaler Callback nach Abschluss
-         */
-        addTween(target, property, to, duration, easingName = "easeOut", onComplete) {
-          const previousCount = this.activeTweens.length;
-          this.cancelTween(target, property);
-          if (this.activeTweens.length !== previousCount) {
-          }
-          const from = this.getPropertyValue(target, property);
-          const easing = Easing[easingName] || Easing.easeOut;
-          if (!Easing[easingName]) {
-            console.warn(`[AnimationManager.addTween] Unknown easing "${easingName}", falling back to easeOut`);
-          }
-          if (property === "x" || property === "y") {
-            target.isAnimating = true;
-          }
-          const tween = {
-            target,
-            property,
-            from,
-            to,
-            duration,
-            startTime: -1,
-            // Lazy-Init: wird beim ersten update() auf performance.now() gesetzt
-            easing,
-            onComplete
-          };
-          this.activeTweens.push(tween);
-          return tween;
-        }
-        /**
-         * Animiert mehrere Eigenschaften eines Objekts gleichzeitig.
-         */
-        animate(target, properties, duration, easingName = "easeOut", onComplete) {
-          const keys = Object.keys(properties);
-          let completedCount = 0;
-          keys.forEach((prop) => {
-            this.addTween(target, prop, properties[prop], duration, easingName, () => {
-              completedCount++;
-              if (completedCount === keys.length && onComplete) {
-                onComplete();
-              }
-            });
-          });
-        }
-        /**
-         * Bricht einen laufenden Tween ab.
-         */
-        cancelTween(target, property) {
-          this.activeTweens = this.activeTweens.filter(
-            (t) => !(t.target === target && t.property === property)
-          );
-          if (property === "x" || property === "y") {
-            const hasMore = this.activeTweens.some(
-              (t) => t.target === target && (t.property === "x" || t.property === "y")
-            );
-            if (!hasMore && target.isAnimating !== void 0) {
-              target.isAnimating = false;
-            }
-          }
-        }
-        /**
-         * Bricht alle Tweens eines Objekts ab.
-         */
-        cancelAllTweens(target) {
-          this.activeTweens = this.activeTweens.filter((t) => t.target !== target);
-          if (target.isAnimating !== void 0) {
-            target.isAnimating = false;
-          }
-        }
-        /**
-         * Aktualisiert alle aktiven Tweens. Muss pro Frame aufgerufen werden.
-         */
-        update() {
-          const now = performance.now();
-          const completedTweens = [];
-          if (this.activeTweens.length > 0) {
-          }
-          for (const tween of this.activeTweens) {
-            try {
-              if (tween.startTime < 0) {
-                tween.startTime = now;
-              }
-              const elapsed = now - tween.startTime;
-              let progress = Math.min(elapsed / tween.duration, 1);
-              const easedProgress = tween.easing(progress);
-              const newValue = tween.from + (tween.to - tween.from) * easedProgress;
-              this.setPropertyValue(tween.target, tween.property, newValue);
-              if (progress >= 1) {
-                this.setPropertyValue(tween.target, tween.property, tween.to);
-                console.log(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property} (Forced to ${tween.to})`);
-                completedTweens.push(tween);
-              }
-            } catch (error) {
-              console.error(`[AnimationManager] Error updating tween for ${tween.target.name || tween.target.id}.${tween.property}:`, error);
-              completedTweens.push(tween);
-            }
-          }
-          for (const tween of completedTweens) {
-            this.activeTweens = this.activeTweens.filter((t) => t !== tween);
-            if (tween.property === "x" || tween.property === "y") {
-              const hasMorePositionTweens = this.activeTweens.some(
-                (t) => t.target === tween.target && (t.property === "x" || t.property === "y")
-              );
-              if (!hasMorePositionTweens && tween.target.isAnimating !== void 0) {
-                tween.target.isAnimating = false;
-              }
-            }
-            if (tween.onComplete) {
-              tween.onComplete();
-            }
-          }
-        }
-        /**
-         * Gibt zurück, ob aktuell Animationen laufen.
-         */
-        hasActiveTweens() {
-          return this.activeTweens.length > 0;
-        }
-        /**
-         * Bricht alle aktiven Tweens ab und leert die Liste.
-         */
-        clear() {
-          this.activeTweens = [];
-        }
-        /**
-         * Gibt die Anzahl aktiver Tweens zurück.
-         */
-        getActiveTweenCount() {
-          return this.activeTweens.length;
-        }
-        // Hilfsfunktionen für Property-Zugriff (unterstützt Pfade wie 'style.opacity')
-        getPropertyValue(target, path) {
-          const parts = path.split(".");
-          let value = target;
-          for (const part of parts) {
-            value = value?.[part];
-          }
-          return Number(value) || 0;
-        }
-        setPropertyValue(target, path, value) {
-          const parts = path.split(".");
-          let obj = target;
-          for (let i = 0; i < parts.length - 1; i++) {
-            obj = obj?.[parts[i]];
-          }
-          if (obj) {
-            obj[parts[parts.length - 1]] = value;
-          }
-        }
-        /**
-         * Erzeugt einen Schütteleffekt (Shake) auf einem Objekt.
-         * @param target Das Zielobjekt
-         * @param intensity Intensität des Schüttelns in Pixeln (default: 5)
-         * @param duration Gesamtdauer in Millisekunden (default: 500)
-         */
-        shake(target, intensity = 5, duration = 500) {
-          const originalX = target.x;
-          const originalY = target.y;
-          const startTime = performance.now();
-          const shakeInterval = 50;
-          const performShake = () => {
-            const now = performance.now();
-            const elapsed = now - startTime;
-            if (elapsed < duration) {
-              const offsetX = (Math.random() - 0.5) * intensity * 2;
-              const offsetY = (Math.random() - 0.5) * intensity * 2;
-              target.x = originalX + offsetX;
-              target.y = originalY + offsetY;
-              setTimeout(performShake, shakeInterval);
-            } else {
-              target.x = originalX;
-              target.y = originalY;
-            }
-          };
-          performShake();
-        }
-      };
-      __publicField(_AnimationManager, "instance", null);
-      AnimationManager = _AnimationManager;
     }
   });
 
@@ -2756,8 +2526,224 @@
   var ActionRegistry = _ActionRegistry;
   var actionRegistry = ActionRegistry.getInstance();
 
-  // src/runtime/actions/StandardActions.ts
-  init_AnimationManager();
+  // src/runtime/AnimationManager.ts
+  var Easing = {
+    linear: (t) => t,
+    easeIn: (t) => t * t,
+    easeOut: (t) => t * (2 - t),
+    easeInOut: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+    bounce: (t) => {
+      if (t < 1 / 2.75) {
+        return 7.5625 * t * t;
+      } else if (t < 2 / 2.75) {
+        return 7.5625 * (t -= 1.5 / 2.75) * t + 0.75;
+      } else if (t < 2.5 / 2.75) {
+        return 7.5625 * (t -= 2.25 / 2.75) * t + 0.9375;
+      } else {
+        return 7.5625 * (t -= 2.625 / 2.75) * t + 0.984375;
+      }
+    },
+    elastic: (t) => {
+      if (t === 0 || t === 1) return t;
+      return Math.pow(2, -10 * t) * Math.sin((t - 0.1) * 5 * Math.PI) + 1;
+    }
+  };
+  var _AnimationManager = class _AnimationManager {
+    constructor() {
+      __publicField(this, "activeTweens", []);
+    }
+    static getInstance() {
+      if (!_AnimationManager.instance) {
+        _AnimationManager.instance = new _AnimationManager();
+      }
+      return _AnimationManager.instance;
+    }
+    /**
+     * Fügt einen neuen Tween hinzu.
+     * @param target Das Zielobjekt (z.B. ein TSprite)
+     * @param property Der Property-Pfad (z.B. 'x', 'y', 'style.opacity')
+     * @param to Der Zielwert
+     * @param duration Dauer in Millisekunden
+     * @param easingName Name der Easing-Funktion (default: 'easeOut')
+     * @param onComplete Optionaler Callback nach Abschluss
+     */
+    addTween(target, property, to, duration, easingName = "easeOut", onComplete) {
+      const previousCount = this.activeTweens.length;
+      this.cancelTween(target, property);
+      if (this.activeTweens.length !== previousCount) {
+      }
+      const from = this.getPropertyValue(target, property);
+      const easing = Easing[easingName] || Easing.easeOut;
+      if (!Easing[easingName]) {
+        console.warn(`[AnimationManager.addTween] Unknown easing "${easingName}", falling back to easeOut`);
+      }
+      if (property === "x" || property === "y") {
+        target.isAnimating = true;
+      }
+      const tween = {
+        target,
+        property,
+        from,
+        to,
+        duration,
+        startTime: -1,
+        // Lazy-Init: wird beim ersten update() auf performance.now() gesetzt
+        easing,
+        onComplete
+      };
+      this.activeTweens.push(tween);
+      return tween;
+    }
+    /**
+     * Animiert mehrere Eigenschaften eines Objekts gleichzeitig.
+     */
+    animate(target, properties, duration, easingName = "easeOut", onComplete) {
+      const keys = Object.keys(properties);
+      let completedCount = 0;
+      keys.forEach((prop) => {
+        this.addTween(target, prop, properties[prop], duration, easingName, () => {
+          completedCount++;
+          if (completedCount === keys.length && onComplete) {
+            onComplete();
+          }
+        });
+      });
+    }
+    /**
+     * Bricht einen laufenden Tween ab.
+     */
+    cancelTween(target, property) {
+      this.activeTweens = this.activeTweens.filter(
+        (t) => !(t.target === target && t.property === property)
+      );
+      if (property === "x" || property === "y") {
+        const hasMore = this.activeTweens.some(
+          (t) => t.target === target && (t.property === "x" || t.property === "y")
+        );
+        if (!hasMore && target.isAnimating !== void 0) {
+          target.isAnimating = false;
+        }
+      }
+    }
+    /**
+     * Bricht alle Tweens eines Objekts ab.
+     */
+    cancelAllTweens(target) {
+      this.activeTweens = this.activeTweens.filter((t) => t.target !== target);
+      if (target.isAnimating !== void 0) {
+        target.isAnimating = false;
+      }
+    }
+    /**
+     * Aktualisiert alle aktiven Tweens. Muss pro Frame aufgerufen werden.
+     */
+    update() {
+      const now = performance.now();
+      const completedTweens = [];
+      if (this.activeTweens.length > 0) {
+      }
+      for (const tween of this.activeTweens) {
+        try {
+          if (tween.startTime < 0) {
+            tween.startTime = now;
+          }
+          const elapsed = now - tween.startTime;
+          let progress = Math.min(elapsed / tween.duration, 1);
+          const easedProgress = tween.easing(progress);
+          const newValue = tween.from + (tween.to - tween.from) * easedProgress;
+          this.setPropertyValue(tween.target, tween.property, newValue);
+          if (progress >= 1) {
+            this.setPropertyValue(tween.target, tween.property, tween.to);
+            console.log(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property} (Forced to ${tween.to})`);
+            completedTweens.push(tween);
+          }
+        } catch (error) {
+          console.error(`[AnimationManager] Error updating tween for ${tween.target.name || tween.target.id}.${tween.property}:`, error);
+          completedTweens.push(tween);
+        }
+      }
+      for (const tween of completedTweens) {
+        this.activeTweens = this.activeTweens.filter((t) => t !== tween);
+        if (tween.property === "x" || tween.property === "y") {
+          const hasMorePositionTweens = this.activeTweens.some(
+            (t) => t.target === tween.target && (t.property === "x" || t.property === "y")
+          );
+          if (!hasMorePositionTweens && tween.target.isAnimating !== void 0) {
+            tween.target.isAnimating = false;
+          }
+        }
+        if (tween.onComplete) {
+          tween.onComplete();
+        }
+      }
+    }
+    /**
+     * Gibt zurück, ob aktuell Animationen laufen.
+     */
+    hasActiveTweens() {
+      return this.activeTweens.length > 0;
+    }
+    /**
+     * Bricht alle aktiven Tweens ab und leert die Liste.
+     */
+    clear() {
+      this.activeTweens = [];
+    }
+    /**
+     * Gibt die Anzahl aktiver Tweens zurück.
+     */
+    getActiveTweenCount() {
+      return this.activeTweens.length;
+    }
+    // Hilfsfunktionen für Property-Zugriff (unterstützt Pfade wie 'style.opacity')
+    getPropertyValue(target, path) {
+      const parts = path.split(".");
+      let value = target;
+      for (const part of parts) {
+        value = value?.[part];
+      }
+      return Number(value) || 0;
+    }
+    setPropertyValue(target, path, value) {
+      const parts = path.split(".");
+      let obj = target;
+      for (let i = 0; i < parts.length - 1; i++) {
+        obj = obj?.[parts[i]];
+      }
+      if (obj) {
+        obj[parts[parts.length - 1]] = value;
+      }
+    }
+    /**
+     * Erzeugt einen Schütteleffekt (Shake) auf einem Objekt.
+     * @param target Das Zielobjekt
+     * @param intensity Intensität des Schüttelns in Pixeln (default: 5)
+     * @param duration Gesamtdauer in Millisekunden (default: 500)
+     */
+    shake(target, intensity = 5, duration = 500) {
+      const originalX = target.x;
+      const originalY = target.y;
+      const startTime = performance.now();
+      const shakeInterval = 50;
+      const performShake = () => {
+        const now = performance.now();
+        const elapsed = now - startTime;
+        if (elapsed < duration) {
+          const offsetX = (Math.random() - 0.5) * intensity * 2;
+          const offsetY = (Math.random() - 0.5) * intensity * 2;
+          target.x = originalX + offsetX;
+          target.y = originalY + offsetY;
+          setTimeout(performShake, shakeInterval);
+        } else {
+          target.x = originalX;
+          target.y = originalY;
+        }
+      };
+      performShake();
+    }
+  };
+  __publicField(_AnimationManager, "instance", null);
+  var AnimationManager = _AnimationManager;
 
   // src/services/ServiceRegistry.ts
   init_Logger();
@@ -4790,11 +4776,7 @@
   __publicField(_TaskExecutor, "MAX_DEPTH", 10);
   var TaskExecutor = _TaskExecutor;
 
-  // src/runtime/GameRuntime.ts
-  init_AnimationManager();
-
   // src/runtime/GameLoopManager.ts
-  init_AnimationManager();
   var _GameLoopManager = class _GameLoopManager {
     constructor() {
       // State
@@ -5409,7 +5391,6 @@
   var RuntimeVariableManager = _RuntimeVariableManager;
 
   // src/components/TWindow.ts
-  init_AnimationManager();
   var TWindow = class extends TComponent {
     constructor(name, x, y, width, height) {
       super(name);
@@ -6070,7 +6051,6 @@
   };
 
   // src/components/TGameLoop.ts
-  init_AnimationManager();
   var TGameLoop = class extends TWindow {
     constructor(name, x = 0, y = 0) {
       super(name, x, y, 3, 1);
@@ -6161,8 +6141,7 @@
       return super.toJSON();
     }
     onRuntimeStart() {
-      console.log(`[TGameLoop] onRuntimeStart() - starting game loop with ${this.sprites.length} sprites`);
-      this.start();
+      console.log(`[TGameLoop] onRuntimeStart() - skipped (GameLoopManager handles the loop)`);
     }
     initRuntime(callbacks) {
       this.init(
@@ -14987,6 +14966,7 @@
       this.currentProject = project;
       this.runtime = new GameRuntime(project, void 0, {
         onRender: () => this.render(),
+        makeReactive: true,
         multiplayerManager: network,
         onNavigate: (target) => this.handleNavigation(target),
         onStageSwitch: (stageId) => {
@@ -15098,9 +15078,15 @@
       if (this.animationTickerId) return;
       const tick = () => {
         if (!this.isStarted) return;
-        const am = window.AnimationManager || this.getAnimationManager();
-        if (am) am.getInstance().update();
-        this.render();
+        const glm = GameLoopManager.getInstance();
+        if (glm.isRunning()) {
+          this.animationTickerId = requestAnimationFrame(tick);
+          return;
+        }
+        AnimationManager.getInstance().update();
+        if (AnimationManager.getInstance().hasActiveTweens()) {
+          this.render();
+        }
         this.animationTickerId = requestAnimationFrame(tick);
       };
       this.animationTickerId = requestAnimationFrame(tick);
@@ -15109,15 +15095,6 @@
       if (this.animationTickerId) {
         cancelAnimationFrame(this.animationTickerId);
         this.animationTickerId = null;
-      }
-    }
-    // Helper to get AnimationManager from bundle if needed
-    getAnimationManager() {
-      try {
-        const { AnimationManager: AnimationManager2 } = (init_AnimationManager(), __toCommonJS(AnimationManager_exports));
-        return AnimationManager2;
-      } catch (e) {
-        return window.AnimationManager;
       }
     }
     render() {
@@ -15257,7 +15234,7 @@
     "name": "NewTennis",
     "version": "1.0.0",
     "author": "RoRiLa",
-    "exportedAt": "2026-03-14T14:30:22.639Z",
+    "exportedAt": "2026-03-15T20:16:32.905Z",
     "type": "standalone_game",
     "runtimeVersion": "1.5.0"
   },
@@ -15559,6 +15536,7 @@
         }
       ],
       "variables": [],
+      "flowCharts": {},
       "events": {},
       "grid": {
         "cols": 64,
@@ -15614,6 +15592,7 @@
       },
       "duration": 1000,
       "autoHide": true,
+      "flowCharts": {},
       "tasks": [],
       "actions": [],
       "variables": [],
@@ -15757,7 +15736,7 @@
             {
               "id": "status",
               "text": "Ready",
-              "icon": "data:text/html;base64,PCFkb2N0eXBlIGh0bWw+DQo8aHRtbCBsYW5nPSJlbiI+DQoNCjxoZWFkPgogIDxzY3JpcHQgdHlwZT0ibW9kdWxlIiBzcmM9Ii9Adml0ZS9jbGllbnQiPjwvc2NyaXB0PgoNCiAgPG1ldGEgY2hhcnNldD0iVVRGLTgiIC8+DQogIDxsaW5rIHJlbD0iaWNvbiIgdHlwZT0iaW1hZ2Uvc3ZnK3htbCIgaHJlZj0iL3ZpdGUuc3ZnIiAvPg0KICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCIgLz4NCiAgPHRpdGxlPkdhbWUgQnVpbGRlciB2MTwvdGl0bGU+DQo8L2hlYWQ+DQoNCjxib2R5Pg0KICA8ZGl2IGlkPSJhcHAiPjwvZGl2Pg0KICA8c2NyaXB0IHR5cGU9Im1vZHVsZSIgc3JjPSIvc3JjL21haW4udHM/dD0xNzczNDkxMDA1OTU1JnY9MTczNzI4ODY0NyI+PC9zY3JpcHQ+DQo8L2JvZHk+DQoNCjwvaHRtbD4=",
+              "icon": "data:text/html;base64,PCFkb2N0eXBlIGh0bWw+DQo8aHRtbCBsYW5nPSJlbiI+DQoNCjxoZWFkPgogIDxzY3JpcHQgdHlwZT0ibW9kdWxlIiBzcmM9Ii9Adml0ZS9jbGllbnQiPjwvc2NyaXB0PgoNCiAgPG1ldGEgY2hhcnNldD0iVVRGLTgiIC8+DQogIDxsaW5rIHJlbD0iaWNvbiIgdHlwZT0iaW1hZ2Uvc3ZnK3htbCIgaHJlZj0iL3ZpdGUuc3ZnIiAvPg0KICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCIgLz4NCiAgPHRpdGxlPkdhbWUgQnVpbGRlciB2MTwvdGl0bGU+DQo8L2hlYWQ+DQoNCjxib2R5Pg0KICA8ZGl2IGlkPSJhcHAiPjwvZGl2Pg0KICA8c2NyaXB0IHR5cGU9Im1vZHVsZSIgc3JjPSIvc3JjL21haW4udHM/dD0xNzczNjA1NzI5NDEwJnY9MTczNzI4ODY0NyI+PC9zY3JpcHQ+DQo8L2JvZHk+DQoNCjwvaHRtbD4=",
               "width": "auto",
               "align": "left"
             }
@@ -16313,6 +16292,21 @@
                   "isLinked": true
                 }
               }
+            ],
+            "connections": [
+              {
+                "id": "conn-1773313036445-paddle-0",
+                "startX": 380,
+                "startY": 160,
+                "endX": 380,
+                "endY": 280,
+                "startTargetId": "node-1773313036445-paddle-0",
+                "endTargetId": "node-1773313036445-paddle-1",
+                "data": {
+                  "startAnchorType": "output",
+                  "endAnchorType": "input"
+                }
+              }
             ]
           },
           "triggerMode": "local-sync",
@@ -16356,6 +16350,21 @@
                   "name": "SetLeftPaddleVelDown",
                   "type": "property",
                   "isLinked": true
+                }
+              }
+            ],
+            "connections": [
+              {
+                "id": "conn-1773313036445-paddle-1",
+                "startX": 380,
+                "startY": 160,
+                "endX": 380,
+                "endY": 280,
+                "startTargetId": "node-1773313036445-paddle-2",
+                "endTargetId": "node-1773313036445-paddle-3",
+                "data": {
+                  "startAnchorType": "output",
+                  "endAnchorType": "input"
                 }
               }
             ]
@@ -16403,6 +16412,21 @@
                   "isLinked": true
                 }
               }
+            ],
+            "connections": [
+              {
+                "id": "conn-1773313036445-paddle-2",
+                "startX": 380,
+                "startY": 160,
+                "endX": 380,
+                "endY": 280,
+                "startTargetId": "node-1773313036445-paddle-4",
+                "endTargetId": "node-1773313036445-paddle-5",
+                "data": {
+                  "startAnchorType": "output",
+                  "endAnchorType": "input"
+                }
+              }
             ]
           },
           "triggerMode": "local-sync",
@@ -16446,6 +16470,21 @@
                   "name": "StopLeftPaddleVelDown",
                   "type": "property",
                   "isLinked": true
+                }
+              }
+            ],
+            "connections": [
+              {
+                "id": "conn-1773313036445-paddle-3",
+                "startX": 380,
+                "startY": 160,
+                "endX": 380,
+                "endY": 280,
+                "startTargetId": "node-1773313036445-paddle-6",
+                "endTargetId": "node-1773313036445-paddle-7",
+                "data": {
+                  "startAnchorType": "output",
+                  "endAnchorType": "input"
                 }
               }
             ]
@@ -16493,6 +16532,21 @@
                   "isLinked": true
                 }
               }
+            ],
+            "connections": [
+              {
+                "id": "conn-1773313036445-paddle-4",
+                "startX": 380,
+                "startY": 160,
+                "endX": 380,
+                "endY": 280,
+                "startTargetId": "node-1773313036445-paddle-8",
+                "endTargetId": "node-1773313036445-paddle-9",
+                "data": {
+                  "startAnchorType": "output",
+                  "endAnchorType": "input"
+                }
+              }
             ]
           },
           "triggerMode": "local-sync",
@@ -16536,6 +16590,21 @@
                   "name": "SetRightPaddleVelDown",
                   "type": "property",
                   "isLinked": true
+                }
+              }
+            ],
+            "connections": [
+              {
+                "id": "conn-1773313036445-paddle-5",
+                "startX": 380,
+                "startY": 160,
+                "endX": 380,
+                "endY": 280,
+                "startTargetId": "node-1773313036445-paddle-10",
+                "endTargetId": "node-1773313036445-paddle-11",
+                "data": {
+                  "startAnchorType": "output",
+                  "endAnchorType": "input"
                 }
               }
             ]
@@ -16583,6 +16652,21 @@
                   "isLinked": true
                 }
               }
+            ],
+            "connections": [
+              {
+                "id": "conn-1773313036445-paddle-6",
+                "startX": 380,
+                "startY": 160,
+                "endX": 380,
+                "endY": 280,
+                "startTargetId": "node-1773313036445-paddle-12",
+                "endTargetId": "node-1773313036445-paddle-13",
+                "data": {
+                  "startAnchorType": "output",
+                  "endAnchorType": "input"
+                }
+              }
             ]
           },
           "triggerMode": "local-sync",
@@ -16626,6 +16710,21 @@
                   "name": "StopRightPaddleVelDown",
                   "type": "property",
                   "isLinked": true
+                }
+              }
+            ],
+            "connections": [
+              {
+                "id": "conn-1773313036445-paddle-7",
+                "startX": 380,
+                "startY": 160,
+                "endX": 380,
+                "endY": 280,
+                "startTargetId": "node-1773313036445-paddle-14",
+                "endTargetId": "node-1773313036445-paddle-15",
+                "data": {
+                  "startAnchorType": "output",
+                  "endAnchorType": "input"
                 }
               }
             ]
@@ -16846,6 +16945,87 @@
                   "isLinked": true
                 }
               }
+            ],
+            "connections": [
+              {
+                "id": "conn-1",
+                "startTargetId": "node-hb-start",
+                "endTargetId": "node-hb-if-top",
+                "data": {
+                  "startAnchorType": "bottom",
+                  "endAnchorType": "top"
+                }
+              },
+              {
+                "id": "conn-1t",
+                "startTargetId": "node-hb-if-top",
+                "endTargetId": "node-hb-act-top",
+                "data": {
+                  "startAnchorType": "right",
+                  "endAnchorType": "left",
+                  "isTrueBranch": true
+                }
+              },
+              {
+                "id": "conn-1f",
+                "startTargetId": "node-hb-if-top",
+                "endTargetId": "node-hb-if-bot",
+                "data": {
+                  "startAnchorType": "bottom",
+                  "endAnchorType": "top",
+                  "isFalseBranch": true
+                }
+              },
+              {
+                "id": "conn-2t",
+                "startTargetId": "node-hb-if-bot",
+                "endTargetId": "node-hb-act-bot",
+                "data": {
+                  "startAnchorType": "right",
+                  "endAnchorType": "left",
+                  "isTrueBranch": true
+                }
+              },
+              {
+                "id": "conn-2f",
+                "startTargetId": "node-hb-if-bot",
+                "endTargetId": "node-hb-if-left",
+                "data": {
+                  "startAnchorType": "bottom",
+                  "endAnchorType": "top",
+                  "isFalseBranch": true
+                }
+              },
+              {
+                "id": "conn-3t",
+                "startTargetId": "node-hb-if-left",
+                "endTargetId": "node-hb-act-left",
+                "data": {
+                  "startAnchorType": "right",
+                  "endAnchorType": "left",
+                  "isTrueBranch": true
+                }
+              },
+              {
+                "id": "conn-3f",
+                "startTargetId": "node-hb-if-left",
+                "endTargetId": "node-hb-if-right",
+                "data": {
+                  "startAnchorType": "bottom",
+                  "endAnchorType": "top",
+                  "isFalseBranch": true
+                }
+              },
+              {
+                "id": "conn-4t",
+                "startTargetId": "node-hb-if-right",
+                "endTargetId": "node-hb-act-right",
+                "data": {
+                  "startAnchorType": "right",
+                  "endAnchorType": "left",
+                  "isTrueBranch": true
+                }
+              }
             ]
           }
         },
@@ -16900,12 +17080,129 @@
                   "isLinked": true
                 }
               }
+            ],
+            "connections": [
+              {
+                "id": "conn-auto-paddle-0",
+                "startTargetId": "node-auto-paddle-0",
+                "endTargetId": "node-auto-paddle-1",
+                "startX": 380,
+                "startY": 160,
+                "endX": 380,
+                "endY": 280,
+                "data": {
+                  "startAnchorType": "bottom",
+                  "endAnchorType": "top"
+                }
+              }
             ]
           }
         }
       ],
       "actions": [],
       "variables": [],
+      "flowCharts": {
+        "StartTheGame": {
+          "elements": [
+            {
+              "id": "node-1773309386360-1",
+              "type": "task",
+              "x": 400,
+              "y": 50,
+              "properties": {
+                "name": "StartTheGame",
+                "text": "StartTheGame"
+              },
+              "data": {
+                "name": "StartTheGame"
+              }
+            },
+            {
+              "id": "node-1773309386360-2",
+              "type": "action",
+              "x": 400,
+              "y": 180,
+              "properties": {
+                "name": "EnableSpriteMoving",
+                "text": "EnableSpriteMoving"
+              },
+              "data": {
+                "name": "EnableSpriteMoving",
+                "isLinked": true
+              }
+            },
+            {
+              "id": "node-1773309386360-3",
+              "type": "action",
+              "x": 400,
+              "y": 310,
+              "properties": {
+                "name": "EnableCollisions",
+                "text": "EnableCollisions"
+              },
+              "data": {
+                "name": "EnableCollisions",
+                "isLinked": true
+              }
+            },
+            {
+              "id": "node-1773309386360-4",
+              "type": "action",
+              "x": 400,
+              "y": 440,
+              "properties": {
+                "name": "SetBallVelocity",
+                "text": "SetBallVelocity"
+              },
+              "data": {
+                "name": "SetBallVelocity",
+                "isLinked": true
+              }
+            }
+          ],
+          "connections": [
+            {
+              "id": "conn-1773309386360-1",
+              "startTargetId": "node-1773309386360-1",
+              "endTargetId": "node-1773309386360-2",
+              "startX": 450,
+              "startY": 110,
+              "endX": 450,
+              "endY": 180,
+              "data": {
+                "startAnchorType": "output",
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "id": "conn-1773309386360-2",
+              "startTargetId": "node-1773309386360-2",
+              "endTargetId": "node-1773309386360-3",
+              "startX": 450,
+              "startY": 240,
+              "endX": 450,
+              "endY": 310,
+              "data": {
+                "startAnchorType": "output",
+                "endAnchorType": "input"
+              }
+            },
+            {
+              "id": "conn-1773309386360-3",
+              "startTargetId": "node-1773309386360-3",
+              "endTargetId": "node-1773309386360-4",
+              "startX": 450,
+              "startY": 370,
+              "endX": 450,
+              "endY": 440,
+              "data": {
+                "startAnchorType": "output",
+                "endAnchorType": "input"
+              }
+            }
+          ]
+        }
+      },
       "events": {},
       "input": {
         "player1Controls": "arrows",
@@ -16962,6 +17259,7 @@
         "visible": true,
         "backgroundColor": "#4a489d"
       },
+      "flowCharts": {},
       "tasks": [],
       "actions": [],
       "variables": [],
@@ -16981,7 +17279,10 @@
       "visible": true,
       "backgroundColor": "#2d865f"
     }
-  }
+  },
+  "objects": [],
+  "splashAutoHide": true,
+  "splashDuration": 3000
 };
     
     document.addEventListener('DOMContentLoaded', () => {

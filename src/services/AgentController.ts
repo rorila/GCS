@@ -532,109 +532,95 @@ export class AgentController {
     }
 
     /**
-     * Generiert ein visuelles FlowChart Diagramm aus der actionSequence des Tasks.
-     * Dies garantiert, dass der Task im Editor sofort mit richtigem Layout erscheint.
-     * INVARIANTEN:
-     * - Connections haben IDs und Koordinaten (für FlowGraphManager.restoreConnection)
-     * - Typen sind kleingeschrieben ('task', 'action', 'condition')
+     * Generiert Layout-Positionen für die Flow-Darstellung aus der actionSequence.
+     * Orthogonales Layout: Alle Nodes gleiche Breite, zentriert, kein Überlappen.
      */
     public generateTaskFlow(taskName: string) {
         this.validateProjectLoaded();
         const task = this.getTaskByName(taskName);
         if (!task) throw new Error(`Task '${taskName}' not found.`);
 
-        const elements: any[] = [];
-        const connections: any[] = [];
-        let nextId = 1;
-        let nextConnId = 1;
-        const getId = () => `node-${Date.now()}-${nextId++}`;
-        const getConnId = () => `conn-${Date.now()}-${nextConnId++}`;
+        // --- Layout-Konstanten (identisch mit FlowSyncManager) ---
+        const CHAR_WIDTH = 9;
+        const MIN_NODE_WIDTH = 140;
+        const NODE_HEIGHT = 50;
+        const NODE_PADDING = 40;
+        const Y_SPACING = NODE_HEIGHT + 30;
+        const BRANCH_GAP = 40;
+        const CENTER_X = 400;
 
-        // Helper: Connection mit vollständigen Daten erzeugen
-        const addConnection = (fromId: string, toId: string, fromEl: any, toEl: any, anchorStart = 'output', anchorEnd = 'input') => {
-            connections.push({
-                id: getConnId(),
-                startTargetId: fromId,
-                endTargetId: toId,
-                startX: fromEl.x + 50,
-                startY: fromEl.y + 60,
-                endX: toEl.x + 50,
-                endY: toEl.y,
-                data: { startAnchorType: anchorStart, endAnchorType: anchorEnd }
+        // Einheitliche Breite berechnen
+        const allLabels: string[] = [task.name];
+        const collectLabels = (seq: any[]) => {
+            seq?.forEach(item => {
+                allLabels.push(item.name || item.type || 'Aktion');
+                if (item.then) collectLabels(item.then);
+                if (item.else) collectLabels(item.else);
+                if (item.body) collectLabels(item.body);
             });
         };
+        collectLabels(task.actionSequence || []);
+        const NODE_WIDTH = Math.max(MIN_NODE_WIDTH, Math.max(...allLabels.map(l => l.length)) * CHAR_WIDTH + NODE_PADDING);
+        const BRANCH_OFFSET = NODE_WIDTH + BRANCH_GAP;
+
+        const elements: any[] = [];
+        let nextId = 1;
+        const getId = () => `node-${Date.now()}-${nextId++}`;
 
         // Root Node (Task)
-        const rootEl = { id: getId(), type: 'task', x: 400, y: 50, properties: { name: task.name, text: task.name, description: task.description }, data: { name: task.name } };
-        elements.push(rootEl);
+        elements.push({
+            id: getId(), type: 'task',
+            x: CENTER_X, y: 50,
+            width: NODE_WIDTH, height: NODE_HEIGHT,
+            properties: { name: task.name, text: task.name, description: task.description },
+            data: { name: task.name }
+        });
 
-        let currentY = 180;
-        const SPACING = 130;
-
-        const processItems = (sequence: any[], startEl: any, startY: number, startX: number = 400): { lastEl: any, lastY: number } => {
+        const processItems = (sequence: any[], startY: number, centerX: number = CENTER_X): number => {
             let y = startY;
-            let prevEl = startEl;
-
             for (const item of sequence) {
                 if (item.type === 'condition') {
-                    const condEl = { id: getId(), type: 'condition', x: startX, y, properties: { text: item.name || `${item.condition?.variable} ${item.condition?.operator} ${item.condition?.value}` } };
-                    elements.push(condEl);
-                    addConnection(prevEl.id, condEl.id, prevEl, condEl);
-
-                    const branchY = y + SPACING;
-
-                    // THEN Branch
+                    elements.push({
+                        id: getId(), type: 'condition',
+                        x: centerX, y,
+                        width: NODE_WIDTH, height: NODE_HEIGHT,
+                        properties: { text: item.name || `${item.condition?.variable} ${item.condition?.operator} ${item.condition?.value}` }
+                    });
+                    const branchY = y + Y_SPACING;
+                    let thenMaxY = branchY, elseMaxY = branchY;
                     if (item.then?.length > 0) {
-                        const thenX = startX - 250;
-                        const firstThenEl = { id: getId(), type: item.then[0].type === 'task' ? 'task' : 'action', x: thenX, y: branchY, properties: { name: item.then[0].name, text: item.then[0].name }, data: { name: item.then[0].name, isLinked: true } };
-                        elements.push(firstThenEl);
-                        addConnection(condEl.id, firstThenEl.id, condEl, firstThenEl, 'true', 'input');
-                        if (item.then.length > 1) {
-                            processItems(item.then.slice(1), firstThenEl, branchY + SPACING, thenX);
-                        }
+                        thenMaxY = processItems(item.then, branchY, centerX - BRANCH_OFFSET);
                     }
-
-                    // ELSE Branch
                     if (item.else?.length > 0) {
-                        const elseX = startX + 250;
-                        const firstElseEl = { id: getId(), type: item.else[0].type === 'task' ? 'task' : 'action', x: elseX, y: branchY, properties: { name: item.else[0].name, text: item.else[0].name }, data: { name: item.else[0].name, isLinked: true } };
-                        elements.push(firstElseEl);
-                        addConnection(condEl.id, firstElseEl.id, condEl, firstElseEl, 'false', 'input');
-                        if (item.else.length > 1) {
-                            processItems(item.else.slice(1), firstElseEl, branchY + SPACING, elseX);
-                        }
+                        elseMaxY = processItems(item.else, branchY, centerX + BRANCH_OFFSET);
                     }
-
-                    y = branchY + (Math.max(item.then?.length || 0, item.else?.length || 0) * SPACING) + 50;
-                    prevEl = condEl;
+                    y = Math.max(thenMaxY, elseMaxY) + Y_SPACING;
                 } else {
-                    // Action oder Task-Referenz — Typ IMMER kleingeschrieben!
-                    const nodeEl = { id: getId(), type: item.type === 'task' ? 'task' : 'action', x: startX, y, properties: { name: item.name, text: item.name }, data: { name: item.name, isLinked: true } };
-                    elements.push(nodeEl);
-                    addConnection(prevEl.id, nodeEl.id, prevEl, nodeEl);
-                    prevEl = nodeEl;
-                    y += SPACING;
+                    elements.push({
+                        id: getId(), type: item.type === 'task' ? 'task' : 'action',
+                        x: centerX, y,
+                        width: NODE_WIDTH, height: NODE_HEIGHT,
+                        properties: { name: item.name, text: item.name },
+                        data: { name: item.name, isLinked: true }
+                    });
+                    y += Y_SPACING;
                 }
             }
-            return { lastEl: prevEl, lastY: y };
+            return y;
         };
 
-        processItems(task.actionSequence, rootEl, currentY);
+        processItems(task.actionSequence || [], 50 + Y_SPACING);
 
-        // Speichere in der entsprechenden Stage
-        const container = projectRegistry.getTaskContainer(taskName);
-        if (container.type === 'stage' && container.stageId) {
-            const stage = this.project!.stages?.find(s => s.id === container.stageId);
-            if (stage) {
-                if (!stage.flowCharts) stage.flowCharts = {};
-                stage.flowCharts[taskName] = { elements, connections };
-                AgentController.logger.info(`Generated FlowChart for '${taskName}' in '${container.stageId}' (${elements.length} nodes, ${connections.length} connections)`);
+        // NUR flowLayout speichern
+        task.flowLayout = {};
+        elements.forEach(el => {
+            const name = el.properties?.name || el.data?.name;
+            if (name) {
+                task.flowLayout![name] = { x: el.x, y: el.y };
             }
-        } else {
-            if (!this.project!.flowCharts) this.project!.flowCharts = {};
-            this.project!.flowCharts[taskName] = { elements, connections };
-            AgentController.logger.info(`Generated GLOBAL FlowChart for '${taskName}' (${elements.length} nodes, ${connections.length} connections)`);
-        }
+        });
+
+        AgentController.logger.info(`Generated flowLayout for '${taskName}' (${Object.keys(task.flowLayout).length} Positionen, NODE_WIDTH=${NODE_WIDTH})`);
     }
 
     // ─────────────────────────────────────────────

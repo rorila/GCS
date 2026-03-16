@@ -5168,7 +5168,1288 @@
       "tasks": [],
       "actions": [],
       "flowCharts": {}
+    },
+{
+      "id": "stage_torbens",
+      "name": "TorbensStage",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "backgroundColor": "#0a0a0c",
+        "visible": false
+      },
+      "events": {},
+      "variables": [],
+      "objects": [
+        {
+          "className": "TPanel",
+          "id": "ts_nav_bar",
+          "name": "NavBar",
+          "scope": "stage",
+          "visible": true,
+          "x": 0, "y": 0, "width": 5, "height": 40,
+          "zIndex": 10,
+          "style": {
+            "backgroundColor": "#0a0a0c",
+            "borderColor": "#1e293b",
+            "borderWidth": 1,
+            "borderRadius": "0"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_nav_icon",
+          "name": "NavLogo",
+          "scope": "stage",
+          "visible": true,
+          "x": 0.5, "y": 1.5, "width": 4, "height": 2,
+          "zIndex": 11,
+          "style": {
+            "color": "#00f3ff",
+            "backgroundColor": "linear-gradient(135deg, #00f3ff 0%, #bc13fe 100%)",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "borderRadius": "12px",
+            "fontSize": 20,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "text": "⚙️"
+        },
+        {
+          "className": "TButton",
+          "id": "ts_nav_btn_dash",
+          "name": "NavDashboard",
+          "scope": "stage",
+          "visible": true,
+          "x": 0.5, "y": 5, "width": 4, "height": 2,
+          "zIndex": 11,
+          "style": {
+            "color": "#475569",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 14,
+            "fontWeight": "normal",
+            "textAlign": "center"
+          },
+          "text": "📊"
+        },
+        {
+          "className": "TButton",
+          "id": "ts_nav_btn_layers",
+          "name": "NavLayers",
+          "scope": "stage",
+          "visible": true,
+          "x": 0.5, "y": 7.5, "width": 4, "height": 2,
+          "zIndex": 11,
+          "style": {
+            "color": "#00f3ff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "text": "📑"
+        },
+        {
+          "className": "TButton",
+          "id": "ts_nav_btn_users",
+          "name": "NavUsers",
+          "scope": "stage",
+          "visible": true,
+          "x": 0.5, "y": 10, "width": 4, "height": 2,
+          "zIndex": 11,
+          "style": {
+            "color": "#475569",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 14,
+            "fontWeight": "normal",
+            "textAlign": "center"
+          },
+          "text": "👥"
+        },
+        {
+          "className": "TButton",
+          "id": "ts_nav_btn_stats",
+          "name": "NavStats",
+          "scope": "stage",
+          "visible": true,
+          "x": 0.5, "y": 12.5, "width": 4, "height": 2,
+          "zIndex": 11,
+          "style": {
+            "color": "#475569",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 14,
+            "fontWeight": "normal",
+            "textAlign": "center"
+          },
+          "text": "📈"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_sidebar",
+          "name": "GamesSidebar",
+          "scope": "stage",
+          "visible": true,
+          "x": 5, "y": 0, "width": 20, "height": 40,
+          "zIndex": 5,
+          "style": {
+            "backgroundColor": "#121217",
+            "borderColor": "#1e293b",
+            "borderWidth": 1,
+            "borderRadius": "0"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_sidebar_title",
+          "name": "SidebarTitle",
+          "scope": "stage",
+          "visible": true,
+          "x": 6, "y": 1.5, "width": 14, "height": 2,
+          "zIndex": 6,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 18,
+            "fontWeight": "900",
+            "textAlign": "left",
+            "fontFamily": "Inter, sans-serif"
+          },
+          "text": "AVAILABLE GAMES"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_sidebar_badge",
+          "name": "SidebarBadge",
+          "scope": "stage",
+          "visible": true,
+          "x": 20, "y": 1.5, "width": 4, "height": 1.5,
+          "zIndex": 6,
+          "style": {
+            "color": "#94a3b8",
+            "backgroundColor": "#1e293b",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "borderRadius": "4px",
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "text": "12 TOTAL"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_game_card_1",
+          "name": "GameCard1",
+          "scope": "stage",
+          "visible": true,
+          "x": 6, "y": 5.5, "width": 18, "height": 4,
+          "zIndex": 6,
+          "style": {
+            "backgroundColor": "#1a1a24",
+            "borderColor": "#1e293b",
+            "borderWidth": 1,
+            "borderRadius": "12px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game1_name",
+          "name": "Game1Name",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 5.8, "width": 12, "height": 1.2,
+          "zIndex": 7,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 13,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Cyber Strike: Neo"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game1_genre",
+          "name": "Game1Genre",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 7, "width": 8, "height": 1,
+          "zIndex": 7,
+          "style": {
+            "color": "#00f3ff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "900",
+            "textAlign": "left"
+          },
+          "text": "BATTLE ROYALE"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game1_version",
+          "name": "Game1Version",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 8, "width": 8, "height": 1,
+          "zIndex": 7,
+          "style": {
+            "color": "#64748b",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "normal",
+            "textAlign": "left"
+          },
+          "text": "v2.4.1 • Active"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_game1_thumb",
+          "name": "Game1Thumb",
+          "scope": "stage",
+          "visible": true,
+          "x": 6.5, "y": 5.8, "width": 3.5, "height": 3.5,
+          "zIndex": 7,
+          "style": {
+            "backgroundColor": "#2d2d39",
+            "borderColor": "#374151",
+            "borderWidth": 1,
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_game_card_2",
+          "name": "GameCard2",
+          "scope": "stage",
+          "visible": true,
+          "x": 6, "y": 10.5, "width": 18, "height": 4,
+          "zIndex": 6,
+          "style": {
+            "backgroundColor": "#1a1a24",
+            "borderColor": "#1e293b",
+            "borderWidth": 1,
+            "borderRadius": "12px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game2_name",
+          "name": "Game2Name",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 10.8, "width": 12, "height": 1.2,
+          "zIndex": 7,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 13,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Starfall Tactics"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game2_genre",
+          "name": "Game2Genre",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 12, "width": 8, "height": 1,
+          "zIndex": 7,
+          "style": {
+            "color": "#bc13fe",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "900",
+            "textAlign": "left"
+          },
+          "text": "RTS ARENA"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game2_version",
+          "name": "Game2Version",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 13, "width": 8, "height": 1,
+          "zIndex": 7,
+          "style": {
+            "color": "#64748b",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "normal",
+            "textAlign": "left"
+          },
+          "text": "v1.0.8 • Updated"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_game2_thumb",
+          "name": "Game2Thumb",
+          "scope": "stage",
+          "visible": true,
+          "x": 6.5, "y": 10.8, "width": 3.5, "height": 3.5,
+          "zIndex": 7,
+          "style": {
+            "backgroundColor": "#2d2d39",
+            "borderColor": "#374151",
+            "borderWidth": 1,
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_game_card_3",
+          "name": "GameCard3",
+          "scope": "stage",
+          "visible": true,
+          "x": 6, "y": 15.5, "width": 18, "height": 4,
+          "zIndex": 6,
+          "style": {
+            "backgroundColor": "#1a1a24",
+            "borderColor": "#1e293b",
+            "borderWidth": 1,
+            "borderRadius": "12px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game3_name",
+          "name": "Game3Name",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 15.8, "width": 12, "height": 1.2,
+          "zIndex": 7,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 13,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Neon Velocity"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game3_genre",
+          "name": "Game3Genre",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 17, "width": 8, "height": 1,
+          "zIndex": 7,
+          "style": {
+            "color": "#f59e0b",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "900",
+            "textAlign": "left"
+          },
+          "text": "RACING"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game3_version",
+          "name": "Game3Version",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 18, "width": 8, "height": 1,
+          "zIndex": 7,
+          "style": {
+            "color": "#64748b",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "normal",
+            "textAlign": "left"
+          },
+          "text": "v3.2.0 • Hotfix"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_game3_thumb",
+          "name": "Game3Thumb",
+          "scope": "stage",
+          "visible": true,
+          "x": 6.5, "y": 15.8, "width": 3.5, "height": 3.5,
+          "zIndex": 7,
+          "style": {
+            "backgroundColor": "#2d2d39",
+            "borderColor": "#374151",
+            "borderWidth": 1,
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_game_card_4",
+          "name": "GameCard4",
+          "scope": "stage",
+          "visible": true,
+          "x": 6, "y": 20.5, "width": 18, "height": 4,
+          "zIndex": 6,
+          "style": {
+            "backgroundColor": "#1a1a24",
+            "borderColor": "#1e293b",
+            "borderWidth": 1,
+            "borderRadius": "12px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game4_name",
+          "name": "Game4Name",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 20.8, "width": 12, "height": 1.2,
+          "zIndex": 7,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 13,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Void Hunter"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game4_genre",
+          "name": "Game4Genre",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 22, "width": 8, "height": 1,
+          "zIndex": 7,
+          "style": {
+            "color": "#10b981",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "900",
+            "textAlign": "left"
+          },
+          "text": "RPG"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_game4_version",
+          "name": "Game4Version",
+          "scope": "stage",
+          "visible": true,
+          "x": 10.5, "y": 23, "width": 8, "height": 1,
+          "zIndex": 7,
+          "style": {
+            "color": "#64748b",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "normal",
+            "textAlign": "left"
+          },
+          "text": "v0.9.4 • Beta"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_game4_thumb",
+          "name": "Game4Thumb",
+          "scope": "stage",
+          "visible": true,
+          "x": 6.5, "y": 20.8, "width": 3.5, "height": 3.5,
+          "zIndex": 7,
+          "style": {
+            "backgroundColor": "#2d2d39",
+            "borderColor": "#374151",
+            "borderWidth": 1,
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_main_area",
+          "name": "MainArea",
+          "scope": "stage",
+          "visible": true,
+          "x": 25, "y": 0, "width": 39, "height": 40,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#0a0a0c",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "borderRadius": "0"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_main_title",
+          "name": "MainTitle",
+          "scope": "stage",
+          "visible": true,
+          "x": 26, "y": 1.5, "width": 20, "height": 2,
+          "zIndex": 2,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 24,
+            "fontWeight": "900",
+            "textAlign": "left",
+            "fontFamily": "Inter, sans-serif"
+          },
+          "text": "ROOM ASSIGNMENT"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_main_subtitle",
+          "name": "MainSubtitle",
+          "scope": "stage",
+          "visible": true,
+          "x": 26, "y": 3.5, "width": 28, "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "color": "#94a3b8",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 11,
+            "fontWeight": "normal",
+            "textAlign": "left"
+          },
+          "text": "Drag a game from the library to a room to reassign its active instance."
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_live_badge",
+          "name": "LiveSyncBadge",
+          "scope": "stage",
+          "visible": true,
+          "x": 52, "y": 1.5, "width": 10, "height": 2,
+          "zIndex": 3,
+          "style": {
+            "backgroundColor": "#0f172a",
+            "borderColor": "#1e293b",
+            "borderWidth": 1,
+            "borderRadius": "10px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_live_text",
+          "name": "LiveSyncText",
+          "scope": "stage",
+          "visible": true,
+          "x": 52.5, "y": 1.5, "width": 9, "height": 2,
+          "zIndex": 4,
+          "style": {
+            "color": "#10b981",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "text": "🟢 LIVE SYNC ACTIVE"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_room_alpha",
+          "name": "RoomAlpha",
+          "scope": "stage",
+          "visible": true,
+          "x": 26, "y": 6, "width": 18, "height": 13,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1a1a24",
+            "borderColor": "#1e293b",
+            "borderWidth": 2,
+            "borderRadius": "16px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_alpha_name",
+          "name": "RoomAlphaName",
+          "scope": "stage",
+          "visible": true,
+          "x": 27, "y": 6.5, "width": 10, "height": 1.5,
+          "zIndex": 3,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 16,
+            "fontWeight": "900",
+            "textAlign": "left"
+          },
+          "text": "Room Alpha"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_alpha_cap",
+          "name": "RoomAlphaCap",
+          "scope": "stage",
+          "visible": true,
+          "x": 27, "y": 8, "width": 8, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#00f3ff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Capacity: 64/100"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_alpha_status",
+          "name": "RoomAlphaStatus",
+          "scope": "stage",
+          "visible": true,
+          "x": 38, "y": 6.5, "width": 5, "height": 1.4,
+          "zIndex": 3,
+          "style": {
+            "color": "#10b981",
+            "backgroundColor": "rgba(16, 185, 129, 0.1)",
+            "borderColor": "rgba(16, 185, 129, 0.2)",
+            "borderWidth": 1,
+            "borderRadius": "12px",
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "text": "Online"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_room_alpha_game",
+          "name": "RoomAlphaGame",
+          "scope": "stage",
+          "visible": true,
+          "x": 27, "y": 9.5, "width": 16, "height": 4.5,
+          "zIndex": 3,
+          "style": {
+            "backgroundColor": "rgba(10, 10, 12, 0.5)",
+            "borderColor": "#1e293b",
+            "borderWidth": 1,
+            "borderRadius": "12px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_alpha_game_label",
+          "name": "RoomAlphaGameLabel",
+          "scope": "stage",
+          "visible": true,
+          "x": 31.5, "y": 9.8, "width": 10, "height": 1,
+          "zIndex": 4,
+          "style": {
+            "color": "#64748b",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "CURRENT GAME"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_alpha_game_name",
+          "name": "RoomAlphaGameName",
+          "scope": "stage",
+          "visible": true,
+          "x": 31.5, "y": 10.8, "width": 10, "height": 1.2,
+          "zIndex": 4,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 12,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Cyber Strike: Neo"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_alpha_server",
+          "name": "RoomAlphaServer",
+          "scope": "stage",
+          "visible": true,
+          "x": 31.5, "y": 12, "width": 10, "height": 1,
+          "zIndex": 4,
+          "style": {
+            "color": "#94a3b8",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "normal",
+            "textAlign": "left"
+          },
+          "text": "Server: US-East-1"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_alpha_region",
+          "name": "RoomAlphaRegion",
+          "scope": "stage",
+          "visible": true,
+          "x": 27, "y": 15.5, "width": 8, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#64748b",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Region: NA"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_alpha_id",
+          "name": "RoomAlphaId",
+          "scope": "stage",
+          "visible": true,
+          "x": 38, "y": 15.5, "width": 5, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#94a3b8",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "right"
+          },
+          "text": "ID: 001-A"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_room_delta",
+          "name": "RoomDelta",
+          "scope": "stage",
+          "visible": true,
+          "x": 45, "y": 6, "width": 18, "height": 13,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1a1a24",
+            "borderColor": "#1e293b",
+            "borderWidth": 2,
+            "borderRadius": "16px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_delta_name",
+          "name": "RoomDeltaName",
+          "scope": "stage",
+          "visible": true,
+          "x": 46, "y": 6.5, "width": 10, "height": 1.5,
+          "zIndex": 3,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 16,
+            "fontWeight": "900",
+            "textAlign": "left"
+          },
+          "text": "Room Delta"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_delta_cap",
+          "name": "RoomDeltaCap",
+          "scope": "stage",
+          "visible": true,
+          "x": 46, "y": 8, "width": 8, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#00f3ff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Capacity: 12/24"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_delta_status",
+          "name": "RoomDeltaStatus",
+          "scope": "stage",
+          "visible": true,
+          "x": 57, "y": 6.5, "width": 5, "height": 1.4,
+          "zIndex": 3,
+          "style": {
+            "color": "#10b981",
+            "backgroundColor": "rgba(16, 185, 129, 0.1)",
+            "borderColor": "rgba(16, 185, 129, 0.2)",
+            "borderWidth": 1,
+            "borderRadius": "12px",
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "text": "Online"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_delta_region",
+          "name": "RoomDeltaRegion",
+          "scope": "stage",
+          "visible": true,
+          "x": 46, "y": 15.5, "width": 8, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#64748b",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Region: EU"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_delta_id",
+          "name": "RoomDeltaId",
+          "scope": "stage",
+          "visible": true,
+          "x": 57, "y": 15.5, "width": 5, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#94a3b8",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "right"
+          },
+          "text": "ID: 004-D"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_room_zeta",
+          "name": "RoomZeta",
+          "scope": "stage",
+          "visible": true,
+          "x": 26, "y": 20, "width": 18, "height": 13,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1a1a24",
+            "borderColor": "#1e293b",
+            "borderWidth": 2,
+            "borderRadius": "16px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_zeta_name",
+          "name": "RoomZetaName",
+          "scope": "stage",
+          "visible": true,
+          "x": 27, "y": 20.5, "width": 10, "height": 1.5,
+          "zIndex": 3,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 16,
+            "fontWeight": "900",
+            "textAlign": "left"
+          },
+          "text": "Room Zeta"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_zeta_cap",
+          "name": "RoomZetaCap",
+          "scope": "stage",
+          "visible": true,
+          "x": 27, "y": 22, "width": 8, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#f59e0b",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Capacity: 0/100"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_zeta_status",
+          "name": "RoomZetaStatus",
+          "scope": "stage",
+          "visible": true,
+          "x": 38, "y": 20.5, "width": 5, "height": 1.4,
+          "zIndex": 3,
+          "style": {
+            "color": "#94a3b8",
+            "backgroundColor": "#1e293b",
+            "borderColor": "#374151",
+            "borderWidth": 1,
+            "borderRadius": "12px",
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "text": "Maintenance"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_room_zeta_drop",
+          "name": "RoomZetaDrop",
+          "scope": "stage",
+          "visible": true,
+          "x": 27, "y": 24, "width": 16, "height": 4,
+          "zIndex": 3,
+          "droppable": true,
+          "style": {
+            "backgroundColor": "rgba(10, 10, 12, 0.5)",
+            "borderColor": "#1e293b",
+            "borderWidth": 2,
+            "borderRadius": "12px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_zeta_drop_text",
+          "name": "RoomZetaDropText",
+          "scope": "stage",
+          "visible": true,
+          "x": 27, "y": 25, "width": 16, "height": 2,
+          "zIndex": 4,
+          "style": {
+            "color": "#475569",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "text": "➕ Drop game to assign"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_zeta_region",
+          "name": "RoomZetaRegion",
+          "scope": "stage",
+          "visible": true,
+          "x": 27, "y": 29.5, "width": 8, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#64748b",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Region: ASIA"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_zeta_id",
+          "name": "RoomZetaId",
+          "scope": "stage",
+          "visible": true,
+          "x": 38, "y": 29.5, "width": 5, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#94a3b8",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "right"
+          },
+          "text": "ID: 006-Z"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_room_sigma",
+          "name": "RoomSigma",
+          "scope": "stage",
+          "visible": true,
+          "x": 45, "y": 20, "width": 18, "height": 13,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1a1a24",
+            "borderColor": "#00f3ff",
+            "borderWidth": 2,
+            "borderRadius": "16px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_sigma_name",
+          "name": "RoomSigmaName",
+          "scope": "stage",
+          "visible": true,
+          "x": 46, "y": 20.5, "width": 10, "height": 1.5,
+          "zIndex": 3,
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 16,
+            "fontWeight": "900",
+            "textAlign": "left"
+          },
+          "text": "Room Sigma"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_sigma_cap",
+          "name": "RoomSigmaCap",
+          "scope": "stage",
+          "visible": true,
+          "x": 46, "y": 22, "width": 8, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#00f3ff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Capacity: 18/50"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_sigma_status",
+          "name": "RoomSigmaStatus",
+          "scope": "stage",
+          "visible": true,
+          "x": 57, "y": 20.5, "width": 5, "height": 1.4,
+          "zIndex": 3,
+          "style": {
+            "color": "#10b981",
+            "backgroundColor": "rgba(16, 185, 129, 0.1)",
+            "borderColor": "rgba(16, 185, 129, 0.2)",
+            "borderWidth": 1,
+            "borderRadius": "12px",
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "text": "Online"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_room_sigma_drop",
+          "name": "RoomSigmaDrop",
+          "scope": "stage",
+          "visible": true,
+          "x": 46, "y": 24, "width": 16, "height": 4,
+          "zIndex": 3,
+          "droppable": true,
+          "style": {
+            "backgroundColor": "rgba(0, 243, 255, 0.05)",
+            "borderColor": "rgba(0, 243, 255, 0.5)",
+            "borderWidth": 2,
+            "borderRadius": "12px"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_sigma_drop_text",
+          "name": "RoomSigmaDropText",
+          "scope": "stage",
+          "visible": true,
+          "x": 46, "y": 25, "width": 16, "height": 2,
+          "zIndex": 4,
+          "style": {
+            "color": "#00f3ff",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "text": "⬇️ Ready to swap"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_sigma_region",
+          "name": "RoomSigmaRegion",
+          "scope": "stage",
+          "visible": true,
+          "x": 46, "y": 29.5, "width": 8, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#64748b",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "left"
+          },
+          "text": "Region: NA"
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_room_sigma_id",
+          "name": "RoomSigmaId",
+          "scope": "stage",
+          "visible": true,
+          "x": 57, "y": 29.5, "width": 5, "height": 1,
+          "zIndex": 3,
+          "style": {
+            "color": "#94a3b8",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "textAlign": "right"
+          },
+          "text": "ID: 018-S"
+        },
+        {
+          "className": "TPanel",
+          "id": "ts_action_bar",
+          "name": "ActionBar",
+          "scope": "stage",
+          "visible": true,
+          "x": 25, "y": 35, "width": 39, "height": 5,
+          "zIndex": 8,
+          "style": {
+            "backgroundColor": "rgba(18, 18, 23, 0.8)",
+            "borderColor": "#1e293b",
+            "borderWidth": 1,
+            "borderRadius": "0"
+          }
+        },
+        {
+          "className": "TLabel",
+          "id": "ts_pending_text",
+          "name": "PendingText",
+          "scope": "stage",
+          "visible": true,
+          "x": 26, "y": 36.5, "width": 22, "height": 1.5,
+          "zIndex": 9,
+          "style": {
+            "color": "#cbd5e1",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 11,
+            "fontWeight": "normal",
+            "textAlign": "left"
+          },
+          "text": "1 Pending change: Room Sigma → Neon Velocity"
+        },
+        {
+          "className": "TButton",
+          "id": "ts_btn_discard",
+          "name": "DiscardBtn",
+          "scope": "stage",
+          "visible": true,
+          "x": 50, "y": 36, "width": 6, "height": 2.5,
+          "zIndex": 9,
+          "style": {
+            "color": "#94a3b8",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "textAlign": "center"
+          },
+          "text": "DISCARD"
+        },
+        {
+          "className": "TButton",
+          "id": "ts_btn_apply",
+          "name": "ApplyBtn",
+          "scope": "stage",
+          "visible": true,
+          "x": 56, "y": 36, "width": 7, "height": 2.5,
+          "zIndex": 9,
+          "style": {
+            "color": "#0a0a0c",
+            "backgroundColor": "#00f3ff",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "borderRadius": "10px",
+            "fontSize": 10,
+            "fontWeight": "900",
+            "textAlign": "center"
+          },
+          "text": "APPLY CHANGES"
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "flowCharts": {}
     }
+
   ],
   "activeStageId": "roomAdminStage",
   "flowCharts": {

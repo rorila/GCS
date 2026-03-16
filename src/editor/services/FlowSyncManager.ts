@@ -143,38 +143,40 @@ export class FlowSyncManager {
             }
         });
 
-        const targetCharts = this.host.getTargetFlowCharts(currentContext);
-
         if (currentContext === 'global') {
+            // Global-Kontext: weiterhin FlowChart speichern (kein Task-basierter Flow)
             if (this.host.project.flowCharts) {
                 this.host.project.flowCharts.global = { elements, connections };
             } else {
                 this.host.project.flow = { elements, connections };
             }
         } else {
-            if (targetCharts) {
-                const chartData = { elements, connections };
-                targetCharts[currentContext] = chartData;
+            // =====================================================================
+            // DYNAMISCHE FLOW-GENERIERUNG: Nur actionSequence + flowLayout speichern
+            // Kein flowChart mehr persistieren!
+            // =====================================================================
+            let task = this.host.getTaskDefinitionByName(currentContext);
 
-                let task = this.host.getTaskDefinitionByName(currentContext);
+            // GHOST TASK FIX: If task exists in flow but not in definitions, ensure it exists
+            if (!task && currentContext !== 'global') {
+                FlowSyncManager.logger.info(`[TRACE] syncToProject: Ghost task detected for "${currentContext}". Creating definition.`);
+                this.ensureTaskExists(currentContext, "");
+                task = this.host.getTaskDefinitionByName(currentContext);
+            }
 
+            if (task) {
+                FlowSyncManager.logger.info(`[TRACE] syncToProject: Synchronisiere Task-Logik für "${currentContext}". Elemente: ${elements.length}`);
+                this.syncTaskFromFlow(task, elements, connections);
 
-                // GHOST TASK FIX: If task exists in flow but not in definitions, ensure it exists
-                if (!task && currentContext !== 'global') {
-                    FlowSyncManager.logger.info(`[TRACE] syncToProject: Ghost task detected for "${currentContext}". Creating definition.`);
-                    this.ensureTaskExists(currentContext, "");
-                    task = this.host.getTaskDefinitionByName(currentContext);
-                }
+                // NUR Layout-Positionen speichern (statt volles FlowChart)
+                task.flowLayout = this.extractLayoutOverrides(persistentNodes);
 
-                if (task) {
+                // Legacy-Daten bereinigen
+                delete task.flowChart;
+                if ((task as any).flowGraph) delete (task as any).flowGraph;
+                this.cleanupLegacyFlowData(currentContext);
 
-                    FlowSyncManager.logger.info(`[TRACE] syncToProject: Synchronisiere Task-Logik für "${currentContext}". Elemente: ${elements.length}`);
-                    this.syncTaskFromFlow(task, elements, connections);
-                    task.flowChart = chartData;
-                    if ((task as any).flowGraph) delete (task as any).flowGraph;
-
-                    this.cleanupRedundantFlowCharts(currentContext, targetCharts);
-                }
+                FlowSyncManager.logger.info(`[TRACE] syncToProject: flowLayout gespeichert für "${currentContext}" (${Object.keys(task.flowLayout).length} Positionen)`);
             }
         }
 
@@ -198,31 +200,43 @@ export class FlowSyncManager {
     }
 
     /**
-     * Removes flowChart entries from other collections if they exist elsewhere.
-     * Prevents split-brain scenarios.
+     * Entfernt alle Legacy-flowChart-Einträge für einen Task aus dem gesamten Projekt.
+     * Seit der dynamischen FlowChart-Generierung werden Flows nicht mehr persistiert.
      */
-    private cleanupRedundantFlowCharts(taskName: string, primaryCollection: any) {
+    private cleanupLegacyFlowData(taskName: string) {
         if (!this.host.project) return;
 
-        // 1. Check Root
-        if (this.host.project.flowCharts && this.host.project.flowCharts !== primaryCollection) {
-            if (this.host.project.flowCharts[taskName]) {
-                FlowSyncManager.logger.info(`Cleanup: Removed redundant flowChart for ${taskName} from project-root.`);
-                delete this.host.project.flowCharts[taskName];
-            }
+        // Project-Root flowCharts bereinigen
+        if (this.host.project.flowCharts?.[taskName]) {
+            delete this.host.project.flowCharts[taskName];
         }
 
-        // 2. Check All Stages
+        // Alle Stages bereinigen
         if (this.host.project.stages) {
             this.host.project.stages.forEach((stage: any) => {
-                if (stage.flowCharts && stage.flowCharts !== primaryCollection) {
-                    if (stage.flowCharts[taskName]) {
-                        FlowSyncManager.logger.info(`Cleanup: Removed redundant flowChart for ${taskName} from stage ${stage.name}.`);
-                        delete stage.flowCharts[taskName];
-                    }
+                if (stage.flowCharts?.[taskName]) {
+                    delete stage.flowCharts[taskName];
                 }
             });
         }
+    }
+
+    /**
+     * Extrahiert die Positionen aller persistenten Nodes als kompakte Layout-Map.
+     * Nur Node-Name → {x, y} — kein Typ, keine Labels, keine Connections.
+     */
+    private extractLayoutOverrides(nodes: any[]): Record<string, { x: number, y: number }> {
+        const layout: Record<string, { x: number, y: number }> = {};
+        nodes.forEach(n => {
+            const key = n.Name || n.name || n.data?.name || n.data?.taskName;
+            if (key) {
+                // Support sowohl FlowElement-Instanzen als auch JSON-Objekte
+                const x = typeof n.X === 'number' ? n.X : (n.x ?? 0);
+                const y = typeof n.Y === 'number' ? n.Y : (n.y ?? 0);
+                layout[key] = { x, y };
+            }
+        });
+        return layout;
     }
 
     public syncVariablesFromFlow() {
@@ -314,7 +328,7 @@ export class FlowSyncManager {
 
                     targetSeq.push(actionItem);
                 }
-                const nextConns = connections.filter(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'output');
+                const nextConns = connections.filter(c => c.startTargetId === nodeId && (c.data?.startAnchorType === 'output' || c.data?.startAnchorType === 'bottom'));
                 if (nextConns.length > 0) {
                     nextConns.forEach(nc => buildSequence(nc.endTargetId, targetSeq, stopSet));
                 }
@@ -416,7 +430,7 @@ export class FlowSyncManager {
                 if (nodeType === 'repeat') loop.count = parseInt(node.properties?.text) || 1;
                 targetSeq.push(loop);
 
-                const bodyConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'output');
+                const bodyConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === 'output' || c.data?.startAnchorType === 'bottom'));
                 const nextConn = connections.find(c => c.startTargetId === nodeId && c.data?.startAnchorType === 'bottom');
 
                 if (bodyConn) {
@@ -511,40 +525,84 @@ export class FlowSyncManager {
         const elements: any[] = [];
         const connections: any[] = [];
 
-        // --- NEW: Use the Task itself as the root instead of a generic Start node ---
+        // =====================================================================
+        // ORTHOGONALES LAYOUT: Alle Nodes zentriert, gleiche Breite,
+        // Connections nur senkrecht/waagerecht, kein Überlappen
+        // =====================================================================
+
+        // --- Layout-Konstanten ---
+        const CHAR_WIDTH = 9;           // Geschätzte Pixel pro Zeichen
+        const MIN_NODE_WIDTH = 160;     // Minimale Node-Breite
+        const NODE_HEIGHT = 60;         // Einheitliche Node-Höhe
+        const NODE_PADDING = 50;        // Padding innerhalb des Nodes (links+rechts)
+        const Y_SPACING = NODE_HEIGHT + 40; // Vertikaler Abstand (Node + Gap)
+        const BRANCH_GAP = 40;          // Horizontaler Mindestabstand zwischen Branches
+
+        // --- Schritt 1: Alle Labels sammeln um einheitliche Breite zu berechnen ---
+        const allLabels: string[] = [task.name || 'Unbenannter Task'];
+        const collectLabels = (seq: any[]) => {
+            seq?.forEach(item => {
+                const name = item.name || item.taskName || item.action || item.type || 'Aktion';
+                allLabels.push(name);
+                if (item.then) collectLabels(item.then);
+                if (item.else || item.elseBody) collectLabels(item.else || item.elseBody);
+                if (item.body) collectLabels(item.body);
+            });
+        };
+        collectLabels(task.actionSequence || []);
+
+        const maxLabelLength = Math.max(...allLabels.map(l => l.length));
+        const NODE_WIDTH = Math.max(MIN_NODE_WIDTH, maxLabelLength * CHAR_WIDTH + NODE_PADDING);
+
+        // --- Schritt 2: Root-Node (Task) ---
         const rootId = 'root_task_' + Date.now();
         const taskName = task.name || 'Unbenannter Task';
+        const CENTER_X = 400;  // Alle Haupt-Nodes zentriert auf dieser X-Position
 
         elements.push({
             id: rootId,
             type: 'task',
-            x: 400,
+            x: CENTER_X,
             y: 50,
-            properties: {
-                name: taskName,
-                text: taskName
-            },
+            width: NODE_WIDTH,
+            height: NODE_HEIGHT,
+            properties: { name: taskName, text: taskName },
             data: { taskName: taskName }
         });
 
+        // --- Schritt 3: Rekursive Positionierung ---
         let nextNodeId = 0;
         const getNewId = (type: string) => `auto_${type}_${nextNodeId++}_${Date.now()}`;
 
-        const process = (sequence: any[], startNodeId: string, startAnchor: string = 'output', _branch?: 'true' | 'false', startX: number = 400, startY: number = 200): { lastId: string, endY: number } => {
+        // Branch-Offset: Genug Abstand damit sich Then/Else-Branches nicht überlappen
+        const BRANCH_OFFSET = NODE_WIDTH + BRANCH_GAP;
+
+        const process = (
+            sequence: any[],
+            startNodeId: string,
+            startAnchor: string = 'bottom',
+            centerX: number = CENTER_X,
+            startY: number = 50 + Y_SPACING,
+            firstEndAnchor: string = 'top'  // Erster Node im Branch bekommt diesen End-Anchor
+        ): { lastId: string, endY: number } => {
             let currentY = startY;
             let lastId = startNodeId;
             let lastAnchor = startAnchor;
+            let nextEndAnchor = firstEndAnchor; // Nur für den ERSTEN Node relevant
 
             sequence.forEach(item => {
                 const id = getNewId(item.type || 'action');
+
                 if (item.type === 'condition') {
-                    elements.push({ 
-                        id, 
-                        type: 'condition', 
-                        x: startX, 
-                        y: currentY, 
-                        properties: { 
-                            text: typeof item.condition === 'string' ? item.condition : (item.expression || '') 
+                    // --- Condition-Node: zentriert ---
+                    elements.push({
+                        id, type: 'condition',
+                        x: centerX, y: currentY,
+                        width: NODE_WIDTH, height: NODE_HEIGHT,
+                        properties: {
+                            text: typeof item.condition === 'string'
+                                ? item.condition
+                                : (item.expression || item.name || '')
                         },
                         data: {
                             condition: typeof item.condition === 'object' ? { ...item.condition } : undefined
@@ -552,49 +610,106 @@ export class FlowSyncManager {
                     });
                     connections.push({
                         startTargetId: lastId, endTargetId: id,
-                        data: { startAnchorType: lastAnchor, endAnchorType: 'input' }
+                        data: { startAnchorType: lastAnchor, endAnchorType: nextEndAnchor }
                     });
-                    const thenRes = process(item.body || item.then || [], id, 'true', 'true', startX - 250, currentY + 120);
-                    const elseRes = process(item.elseBody || item.else || [], id, 'false', 'false', startX + 250, currentY + 120);
-                    currentY = Math.max(thenRes.endY, elseRes.endY) + 50;
-                    const mergeId = getNewId('merge');
-                    elements.push({ id: mergeId, type: 'action', x: startX - 80, y: currentY, properties: { name: 'Merge', text: 'Merge' } });
-                    connections.push({ startTargetId: thenRes.lastId, endTargetId: mergeId, data: { startAnchorType: 'output', endAnchorType: 'input' } });
-                    connections.push({ startTargetId: elseRes.lastId, endTargetId: mergeId, data: { startAnchorType: 'output', endAnchorType: 'input' } });
-                    lastId = mergeId; lastAnchor = 'output'; currentY += 120;
-                } else if (['while', 'for', 'repeat'].includes(item.type)) {
+                    nextEndAnchor = 'top'; // Ab dem zweiten Node immer top
+
+                    // =====================================================
+                    // TRUE-Branch (grüner Anchor = RECHTS): nach RECHTS
+                    // FALSE-Branch (roter Anchor = UNTEN): nach UNTEN
+                    // =====================================================
+                    const thenX = centerX + BRANCH_OFFSET;
+                    const thenY = currentY;                   // Gleiche Höhe = horizontal
+                    const falseY = currentY + Y_SPACING;      // Darunter = vertikal
+
+                    // --- TRUE-Branch: nach RECHTS (horizontal) ---
+                    const thenSeq = item.body || item.then || [];
+
+                    // --- FALSE/Else-Branch: nach UNTEN (Hauptfluss) ---
+                    const elseSeq = item.elseBody || item.else || [];
+
+                    // --- TRUE: Sequenz oder einzelne thenAction → RECHTS ---
+                    if (thenSeq.length > 0) {
+                        process(thenSeq, id, 'true', thenX, thenY, 'input');
+                    } else if (item.thenAction) {
+                        const thenId = getNewId('action');
+                        elements.push({
+                            id: thenId, type: 'Action',
+                            x: thenX, y: thenY,
+                            width: NODE_WIDTH, height: NODE_HEIGHT,
+                            properties: { name: item.thenAction, text: item.thenAction },
+                            data: { name: item.thenAction, isLinked: true }
+                        });
+                        connections.push({
+                            startTargetId: id, endTargetId: thenId,
+                            data: { startAnchorType: 'true', endAnchorType: 'input' }
+                        });
+                    }
+
+                    // --- FALSE: Sequenz oder einzelne elseAction → UNTEN ---
+                    if (elseSeq.length > 0) {
+                        const elseRes = process(elseSeq, id, 'false', centerX, falseY, 'top');
+                        currentY = elseRes.endY;
+                        lastId = elseRes.lastId;
+                    } else if (item.elseAction) {
+                        const elseId = getNewId('action');
+                        elements.push({
+                            id: elseId, type: 'Action',
+                            x: centerX, y: falseY,
+                            width: NODE_WIDTH, height: NODE_HEIGHT,
+                            properties: { name: item.elseAction, text: item.elseAction },
+                            data: { name: item.elseAction, isLinked: true }
+                        });
+                        connections.push({
+                            startTargetId: id, endTargetId: elseId,
+                            data: { startAnchorType: 'false', endAnchorType: 'top' }
+                        });
+                        currentY = falseY + Y_SPACING;
+                        lastId = elseId;
+                    } else {
+                        // Kein Else → Hauptfluss geht direkt weiter
+                        currentY = falseY;
+                        lastId = id;
+                    }
+                    lastAnchor = 'bottom';
+
+                } else if (['while', 'for', 'repeat', 'foreach'].includes(item.type)) {
+                    // --- Loop-Node ---
                     elements.push({
                         id, type: item.type.charAt(0).toUpperCase() + item.type.slice(1) as any,
-                        x: startX, y: currentY,
-                        properties: { text: item.condition || item.count || '' }
+                        x: centerX, y: currentY,
+                        width: NODE_WIDTH, height: NODE_HEIGHT,
+                        properties: { text: item.condition || item.count || item.name || '' }
                     });
                     connections.push({
                         startTargetId: lastId, endTargetId: id,
-                        data: { startAnchorType: lastAnchor, endAnchorType: 'input' }
+                        data: { startAnchorType: lastAnchor, endAnchorType: 'top' }
                     });
-                    const bodyRes = process(item.body || [], id, 'output', undefined, startX, currentY + 120);
-                    lastId = id; lastAnchor = 'bottom'; currentY = bodyRes.endY + 100;
+                    const bodyRes = process(item.body || [], id, 'output', centerX, currentY + Y_SPACING);
+                    lastId = id; lastAnchor = 'bottom';
+                    currentY = bodyRes.endY + Y_SPACING;
+
                 } else {
+                    // --- Action/Task/DataAction-Node: zentriert ---
                     const isTask = item.type === 'execute_task' || item.type === 'task';
-                    // FIX (v3.3.15): data_action Items als 'DataAction'-Knoten rendern
                     const isDataAction = item.type === 'data_action';
                     const itemName = item.name || item.taskName || item.action || item.type || 'Aktion';
                     const nodeType = isTask ? 'Task' : (isDataAction ? 'DataAction' : 'Action');
 
                     elements.push({
                         id, type: nodeType,
-                        x: startX, y: currentY,
-                        properties: {
-                            name: itemName,
-                            text: itemName
-                        },
+                        x: centerX, y: currentY,
+                        width: NODE_WIDTH, height: NODE_HEIGHT,
+                        properties: { name: itemName, text: itemName },
                         data: { ...item }
                     });
                     connections.push({
                         startTargetId: lastId, endTargetId: id,
-                        data: { startAnchorType: lastAnchor, endAnchorType: 'input' }
+                        data: { startAnchorType: lastAnchor, endAnchorType: nextEndAnchor }
                     });
-                    lastId = id; lastAnchor = 'output'; currentY += 120;
+                    lastId = id; lastAnchor = 'bottom';
+                    nextEndAnchor = 'top'; // Ab dem zweiten Node immer top
+                    currentY += Y_SPACING;
                 }
             });
             return { lastId, endY: currentY };
@@ -724,6 +839,10 @@ export class FlowSyncManager {
             if (node instanceof FlowTask || node instanceof FlowAction || node instanceof FlowDataAction) {
                 (node as any).setShowDetails?.(this.host.showDetails || false, this.host.project);
             }
+
+            // Breite wird NICHT mehr in restoreNode erzwungen.
+            // Post-Processing in FlowGraphHydrator.formatOrthogonalLayout()
+            // kümmert sich um einheitliche Breiten und Positionierung.
 
             // Ensure project reference is set for Action, Task and Variable nodes
             if (this.host.project && (

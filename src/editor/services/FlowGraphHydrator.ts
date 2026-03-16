@@ -58,58 +58,35 @@ export class FlowGraphHydrator {
         const activeStage = this.host.getActiveStage();
 
         if (this.host.currentFlowContext === 'global') {
+            // Global-Kontext: Bestehende Logik beibehalten
             const blueprintStage = this.host.project.stages?.find((s: any) => s.type === 'blueprint' || s.id === 'stage_blueprint');
             const blueprintFlowIdx = blueprintStage?.flowCharts?.global;
             const stageFlowIdx = activeStage?.flowCharts?.global;
             const projectFlowIdx = (this.host.project.flowCharts?.global) || (this.host.project as any).flow;
-
-            // Priority: Stage Local -> Blueprint -> Project Root (Legacy)
             sourceData = stageFlowIdx || blueprintFlowIdx || projectFlowIdx;
         } else {
-            const stageFlowChart = activeStage?.flowCharts?.[this.host.currentFlowContext];
-            const globalFlowChart = this.host.project.flowCharts?.[this.host.currentFlowContext];
-
-            let fallbackStageChart = null;
-            if (!stageFlowChart && !globalFlowChart && this.host.project.stages) {
-                for (const s of this.host.project.stages) {
-                    if (s.flowCharts?.[this.host.currentFlowContext]) {
-                        fallbackStageChart = s.flowCharts[this.host.currentFlowContext];
-                        break;
+            // =====================================================================
+            // DYNAMISCHE FLOW-GENERIERUNG: FlowCharts aus actionSequence erzeugen
+            // Layout-Overrides (flowLayout) werden nachträglich angewendet
+            // =====================================================================
+            const task = this.host.getTaskDefinitionByName(this.host.currentFlowContext);
+            if (task && task.actionSequence?.length > 0) {
+                sourceData = this.host.syncManager.generateFlowFromActionSequence(task);
+                // Layout-Overrides anwenden (User-Positionen)
+                this.applyLayoutOverrides(sourceData!, task.flowLayout);
+                FlowGraphHydrator.logger.info(`Flow dynamisch generiert für "${task.name}" (${sourceData!.elements.length} Nodes). Layout-Overrides: ${task.flowLayout ? Object.keys(task.flowLayout).length : 0}`);
+            } else if (task) {
+                // Task existiert aber hat leere actionSequence → leerer Flow
+                sourceData = { elements: [], connections: [] };
+                setTimeout(() => {
+                    if (this.host.nodes.length === 0) {
+                        const startNode = new FlowStart('start-' + Date.now(), 50, 50, this.host.canvas, this.host.flowStage.cellSize);
+                        startNode.Text = "Start";
+                        this.host.nodes.push(startNode);
                     }
-                }
-            }
-
-            if (stageFlowChart && stageFlowChart.elements?.length > 0) {
-                sourceData = stageFlowChart;
-            } else if (globalFlowChart && globalFlowChart.elements?.length > 0) {
-                sourceData = globalFlowChart;
-            } else if (fallbackStageChart && fallbackStageChart.elements?.length > 0) {
-                sourceData = fallbackStageChart;
+                }, 100);
             } else {
-                let task = this.host.getTaskDefinitionByName(this.host.currentFlowContext);
-                if (task?.flowChart && task.flowChart.elements?.length > 0) {
-                    sourceData = task.flowChart;
-                } else if (task?.flowGraph && task.flowGraph.elements?.length > 0) {
-                    sourceData = task.flowGraph;
-                    const targetCharts = this.host.getTargetFlowCharts(this.host.currentFlowContext);
-                    targetCharts[this.host.currentFlowContext] = task.flowGraph;
-                    delete (task as any).flowGraph;
-                } else if (task) {
-                    sourceData = this.host.syncManager.generateFlowFromActionSequence(task);
-                } else if (stageFlowChart || globalFlowChart || fallbackStageChart) {
-                    // FlowChart-Eintrag existiert, aber ist leer (z.B. von createNewTaskFlow reserviert).
-                    // Kein automatischer Start-Knoten — der Flow wird vom Aufrufer befüllt.
-                    sourceData = stageFlowChart || globalFlowChart || fallbackStageChart;
-                } else {
-                    sourceData = { elements: [], connections: [] };
-                    setTimeout(() => {
-                        if (this.host.nodes.length === 0) {
-                            const startNode = new FlowStart('start-' + Date.now(), 50, 50, this.host.canvas, this.host.flowStage.cellSize);
-                            startNode.Text = "Start";
-                            this.host.nodes.push(startNode);
-                        }
-                    }, 100);
-                }
+                sourceData = { elements: [], connections: [] };
             }
         }
 
@@ -142,6 +119,166 @@ export class FlowGraphHydrator {
         this.host.updateScrollArea();
         this.host.updateActionDetails();
         this.host.isLoading = false;
+
+        // =====================================================================
+        // POST-PROCESSING: Orthogonales Layout formatieren
+        // Muss NACH allen autoSize()-Aufrufen laufen.
+        // setTimeout garantiert, dass dies NACH allen synchronen Calls passiert.
+        // =====================================================================
+        if (this.host.currentFlowContext !== 'global' && this.host.nodes.length > 1) {
+            // Nodes off-screen nach links verschieben (unsichtbar für User)
+            this.host.nodes.forEach(n => {
+                const el = (n as any).element;
+                if (el) {
+                    el.style.transform = 'translateX(-2000px)';
+                    el.style.transition = 'none'; // Kein Übergang beim Verstecken
+                }
+            });
+            // Connections verstecken (kein translateX möglich bei SVG-Lines)
+            (this.host.connections || []).forEach((c: any) => {
+                if (c.element) {
+                    c.element.style.opacity = '0';
+                    c.element.style.transition = 'none';
+                }
+            });
+
+            setTimeout(() => {
+                this.formatOrthogonalLayout();
+
+                // Nach Formatierung: Nodes sanft in den sichtbaren Bereich schieben
+                requestAnimationFrame(() => {
+                    this.host.nodes.forEach(n => {
+                        const el = (n as any).element;
+                        if (el) {
+                            el.style.transition = 'transform 0.5s ease-out';
+                            el.style.transform = 'translateX(0)';
+                        }
+                    });
+                    // Connections sanft einblenden
+                    (this.host.connections || []).forEach((c: any) => {
+                        if (c.element) {
+                            c.element.style.transition = 'opacity 0.5s ease-out';
+                            c.element.style.opacity = '1';
+                        }
+                    });
+                });
+            }, 50);
+        }
+    }
+
+    /**
+     * POST-PROCESSING: Orthogonales Layout formatieren.
+     * Wird NACH allen autoSize()-Aufrufen ausgeführt.
+     */
+    private formatOrthogonalLayout(): void {
+        const nodes = this.host.nodes;
+        const connections = this.host.connections || [];
+        if (nodes.length < 2) return;
+
+        const cellSize = this.host.flowStage?.cellSize || 20;
+        const Y_GAP = 40;
+        const X_GAP = 40;
+        const MAIN_X = 40;
+
+        // --- Schritt 1: Vertikale Kette (Root → bottom/false → top) ---
+        const rootNode = nodes.find(n =>
+            n.getType().toLowerCase() === 'task' && !n.data?.isEmbeddedInternal
+        ) || nodes[0];
+
+        const verticalChain: any[] = [rootNode];
+        const horizontalNodes: { node: any, sourceNode: any }[] = [];
+        const visited = new Set<string>();
+        visited.add(rootNode.id);
+
+        let current = rootNode;
+        let safety = 0;
+        while (safety++ < 50) {
+            // Finde ausgehende vertikale Connections (bottom, output, false)
+            const verticalConn = connections.find((c: any) =>
+                c.startTarget === current && (
+                    c.data?.startAnchorType === 'bottom' ||
+                    c.data?.startAnchorType === 'output' ||
+                    c.data?.startAnchorType === 'false'
+                ) && c.endTarget && (
+                    c.data?.endAnchorType === 'top' ||
+                    c.data?.endAnchorType === 'input'
+                )
+            );
+            if (!verticalConn || !verticalConn.endTarget) break;
+
+            const nextNode = verticalConn.endTarget;
+            if (visited.has(nextNode.id)) break;
+            visited.add(nextNode.id);
+
+            verticalChain.push(nextNode);
+            current = nextNode;
+        }
+
+        // --- Schritt 1b: Horizontale Branch-Nodes (true/right/success) ---
+        connections.forEach((c: any) => {
+            if (c.data?.startAnchorType === 'true' ||
+                c.data?.startAnchorType === 'right' ||
+                c.data?.startAnchorType === 'success') {
+                if (c.startTarget && c.endTarget) {
+                    const endNodeId = c.endTarget.id;
+                    if (!visited.has(endNodeId)) {
+                        horizontalNodes.push({ node: c.endTarget, sourceNode: c.startTarget });
+                        visited.add(endNodeId);
+                    }
+                }
+            }
+        });
+
+        FlowGraphHydrator.logger.info(
+            `formatOrthogonalLayout: ${verticalChain.length} vertikal, ${horizontalNodes.length} horizontal`
+        );
+
+        // --- Schritt 2: Breite der vertikalen Nodes vereinheitlichen ---
+        const maxWidth = Math.max(...verticalChain.map(n => n.width));
+        const normalizedWidth = Math.ceil(maxWidth / cellSize) * cellSize;
+
+        // --- Schritt 3: Vertikale Positionen ---
+        let currentY = MAIN_X;
+        verticalChain.forEach(node => {
+            node.x = MAIN_X;
+            node.y = currentY;
+            node.width = normalizedWidth;
+            node.updatePosition();
+            currentY += node.height + Y_GAP;
+        });
+
+        // --- Schritt 4: Horizontale Nodes positionieren ---
+        horizontalNodes.forEach(({ node, sourceNode }) => {
+            node.x = MAIN_X + normalizedWidth + X_GAP;
+            node.y = sourceNode.y;
+            node.width = Math.ceil(node.width / cellSize) * cellSize;
+            node.updatePosition();
+        });
+
+        // --- Schritt 5: Connections aktualisieren ---
+        connections.forEach((c: any) => c.updatePosition?.());
+
+        FlowGraphHydrator.logger.info(
+            `formatOrthogonalLayout fertig: Breite=${normalizedWidth}px, Nodes=${nodes.length}`
+        );
+    }
+
+    /**
+     * Wendet gespeicherte Layout-Positionen auf dynamisch generierte Flow-Elemente an.
+     * Jeder Node wird über seinen Namen identifiziert (statt generierter ID).
+     */
+    private applyLayoutOverrides(
+        data: { elements: any[], connections: any[] },
+        layout?: Record<string, { x: number, y: number }>
+    ): void {
+        if (!layout || !data.elements) return;
+        data.elements.forEach(el => {
+            const key = el.properties?.name || el.data?.name || el.data?.taskName;
+            if (key && layout[key]) {
+                el.x = layout[key].x;
+                el.y = layout[key].y;
+            }
+        });
     }
 
     public refreshEmbeddedTask(proxyNode: FlowElement) {

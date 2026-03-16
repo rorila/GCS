@@ -1,3 +1,21 @@
+- [2026-03-14] Inspector-Layout & Stage-Rasterfarbe:
+  - Dateien:
+    - src/editor/inspector/InspectorHost.ts (renderInspectableProperty: L344-385, renderInspectableSections inline-Gruppierung: L308-336, Boolean fontWeight/fontStyle Konvertierung: L421-458)
+    - src/components/TWindow.ts (getInspectorProperties: L148-171, Fett/Kursiv aus TWindow entfernt)
+    - src/components/TTextControl.ts (fontWeight/fontStyle deklariert: L31-35)
+    - src/editor/Stage.ts (updategrid gridColor: L163-169, runMode-Guard: L163)
+    - public/inspector_stage.json (Rasterfarbe TColorInput: L295-310)
+  - Methoden:
+    - InspectorHost.renderInspectableProperty(): Horizontales Flex-Layout (Label links, Input rechts), inline-responsive Labels
+    - InspectorHost.renderInspectableSections(): Konsekutive inline:true Properties werden paarweise in Flex-Zeilen gruppiert (max 2 pro Zeile)
+    - Stage.updategrid(): Liest gridConfig.gridColor (Fallback #dddddd), Raster nur im Editor-Modus
+  - Fixes:
+    - Inspector-Labels: Von vertikal (über Input) auf horizontal (neben Input) umgestellt
+    - Fett/Kursiv Duplikat: Properties nur in TTextControl, nicht in TWindow
+    - fontWeight/fontStyle Checkbox: CSS-Wert-Konvertierung (bold/normal, italic/normal)
+    - Stage-Raster: Hardcoded #ddd durch konfigurierbare Rasterfarbe ersetzt
+    - Run-Mode: Raster wird ausgeblendet
+
 - [2026-03-14] Inspector-Farben & Flow-Sync Fix:
   - Dateien:
     - src/editor/inspector/InspectorHost.ts (Import GROUP_COLORS: L11, renderInspectableSections: L261)

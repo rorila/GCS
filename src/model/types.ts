@@ -205,7 +205,7 @@ export interface GameTask {
     usedVariables?: string[];        // Names of variables this task uses
     scope?: VariableScope;           // Visibility: global (Project) or local (Stage)
     flowChart?: FlowChart;           // Optional visual representation (used in library)
-    // flowGraph is now stored separately in project.flowCharts[taskName]
+    flowLayout?: Record<string, { x: number, y: number }>;  // User-definierte Node-Positionen (dynamische Flow-Generierung)
 }
 
 // ─────────────────────────────────────────────

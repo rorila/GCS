@@ -160,10 +160,11 @@ export class Stage implements StageHost, StageInteractionHost {
             this.container.style.minWidth = '';
         }
 
-        if (visible) {
+        if (visible && !this.runMode) {
+            const gridColor = (this.gridConfig as any).gridColor || '#dddddd';
             this.element.style.backgroundImage = `
-                linear-gradient(to right, #ddd 1px, transparent 1px),
-                linear-gradient(to bottom, #ddd 1px, transparent 1px)
+                linear-gradient(to right, ${gridColor} 1px, transparent 1px),
+                linear-gradient(to bottom, ${gridColor} 1px, transparent 1px)
             `;
             this.element.style.backgroundSize = `${cellSize}px ${cellSize}px`;
         } else {
