@@ -92,8 +92,25 @@ export class EditorDataManager {
 
         this.host.syncStageObjectsToProject();
 
+        // Erstes Speichern: Projektname abfragen wenn noch kein _sourcePath
+        const project = this.host.project;
+        if (!project.meta?._sourcePath) {
+            const defaultName = project.meta?.name || 'MeinProjekt';
+            const projectName = prompt('Projektname für das Speichern:', defaultName);
+            if (!projectName) {
+                EditorDataManager.logger.info('[SaveProject] Speichern abgebrochen (kein Name eingegeben)');
+                return;
+            }
+            // Sicheren Dateinamen erstellen
+            const safeName = projectName.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
+            if (!project.meta) (project as any).meta = {};
+            project.meta._sourcePath = `projects/${safeName}.json`;
+            project.meta.name = projectName;
+            EditorDataManager.logger.info(`[SaveProject] Neuer Projektpfad: ${project.meta._sourcePath}`);
+        }
+
         // 1. Lokaler Download / Storage Sync
-        await projectPersistenceService.saveProject(this.host.project);
+        await projectPersistenceService.saveProject(project);
 
         // 2. Server-seitige Persistenz (Disk)
         try {

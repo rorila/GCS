@@ -23,6 +23,7 @@ export interface ProjectMetadata {
     version: string;
     author: string;
     description?: string;  // Optionale Spielbeschreibung
+    _sourcePath?: string;   // Interner Speicherpfad (z.B. "projects/MeinSpiel.json")
 }
 
 // Deprecated: Old interface, moving to class-based TWindow

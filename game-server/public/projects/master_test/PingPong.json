@@ -3,7 +3,7 @@
     "name": "PingPong",
     "version": "1.0.0",
     "author": "RoRiLa",
-    "_sourcePath": "game-server/public/platform/project.json"
+    "_sourcePath": "projects/master_test/PingPong.json"
   },
   "stages": [
     {

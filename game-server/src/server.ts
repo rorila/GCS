@@ -206,7 +206,9 @@ app.post('/api/dev/save-project', (req, res) => {
             return res.status(400).json({ error: 'Ungültige Projektdaten' });
         }
 
-        const projectPath = path.join(PUBLIC_DIR, 'platform/project.json');
+        // Speicherpfad aus _sourcePath der Metadaten (vom Client gesetzt)
+        const relativePath = projectData.meta?._sourcePath || 'projects/project.json';
+        const projectPath = path.join(PUBLIC_DIR, relativePath);
 
         // Sicherheits-Check: Verzeichnis sicherstellen
         const dir = path.dirname(projectPath);
@@ -221,9 +223,9 @@ app.post('/api/dev/save-project', (req, res) => {
         console.log(`[TRACE] [API] Saving project to ${projectPath}`);
         console.log(`[TRACE] [API] Data summary: Actions=${actionCount}, Tasks=${taskCount}, Stages=${stageCount}`);
 
-        // _sourcePath in Metadaten schreiben (damit loadProject den Quellpfad kennt)
-        if (projectData.meta) {
-            projectData.meta._sourcePath = 'game-server/public/platform/project.json';
+        // _sourcePath aktualisieren falls noch nicht gesetzt
+        if (projectData.meta && !projectData.meta._sourcePath) {
+            projectData.meta._sourcePath = relativePath;
         }
 
         // KEIN rotateBackup hier! save-project ist AutoSave und wird ständig aufgerufen.
