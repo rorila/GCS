@@ -22,6 +22,7 @@ import { runSyncValidatorTests } from '../tests/sync_validator.test.js';
 import { runSnapshotTests } from '../tests/snapshot_manager.test.js';
 import { runProjectStoreTests } from '../tests/project_store.test.js';
 import { runFlowDataActionTests } from '../tests/flow_data_action.test.js';
+import { runExportIntegrityTests } from '../tests/export_integrity.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -169,7 +170,11 @@ async function main() {
         console.log('🏃 Starte FlowDataAction Inspector Tests...');
         allResults.push(...await runFlowDataActionTests());
 
-        // 🌐 15. Browser E2E Tests (Playwright)
+        // 16. Export Integrity Tests
+        console.log('🏃 Starte Export Integrity Tests...');
+        allResults.push(...runExportIntegrityTests());
+
+        // 🌐 Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');
 
         // Check if Game Server (Port 8080) is running

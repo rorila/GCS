@@ -1,3 +1,10 @@
+## [3.18.1] - 2026-03-16
+### Added (Export-Integrität)
+- **Checksummen-Test** (`tests/export_integrity.test.ts`):
+  - SHA-256-Prüfung von 5 Export-Dateien (GameExporter, PersistenceService, player-standalone, GameRuntime, GameLoopManager)
+  - Baseline in `tests/export_checksums.json`
+  - Aktualisierung bei bewussten Änderungen: `npx tsx tests/export_integrity.test.ts --update`
+
 ## [3.18.0] - 2026-03-15
 ### Improved (Runtime-Optimierung)
 - **Bundle-Größe halbiert** (`package.json`):
