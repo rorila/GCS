@@ -22,7 +22,7 @@ test.describe('Deep Integration: Editor & Engine', () => {
 
         // 3. Load project state from the freshly reset file into browser memory
         await page.evaluate(async () => {
-            const res = await fetch('platform/project.json');
+            const res = await fetch('projects/master_test/PingPong.json');
             const project = await res.json();
             // Use loadProject instead of setProject to ensure objects are hydrated (class instances)
             (window as any).editor.loadProject(project);

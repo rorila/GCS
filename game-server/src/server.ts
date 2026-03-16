@@ -246,8 +246,8 @@ app.post('/api/dev/save-project', (req, res) => {
  */
 app.post('/api/dev/reset-project', (req, res) => {
     try {
-        const projectPath = path.join(PUBLIC_DIR, 'platform/project.json');
-        const templatePath = path.join(PUBLIC_DIR, 'platform/project_template.json');
+        const projectPath = path.join(PUBLIC_DIR, 'projects/master_test/PingPong.json');
+        const templatePath = path.join(PUBLIC_DIR, 'projects/project_template.json');
 
         if (!fs.existsSync(templatePath)) {
             console.error(`[TRACE] [API] Reset failed: Template not found at ${templatePath}`);

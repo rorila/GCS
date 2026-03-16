@@ -6,25 +6,7 @@
     "description": "Das ist mein cooles Spiel",
     "_sourcePath": "projects/Neues_Spiel.json"
   },
-  "stage": {
-    "grid": {
-      "cols": 64,
-      "rows": 40,
-      "cellSize": 20,
-      "snapToGrid": true,
-      "visible": true,
-      "backgroundColor": "#ffffff"
-    }
-  },
   "flow": {
-    "stage": {
-      "cols": 100,
-      "rows": 100,
-      "cellSize": 20,
-      "snapToGrid": true,
-      "visible": true,
-      "backgroundColor": "#1e1e1e"
-    },
     "elements": [],
     "connections": []
   },
@@ -127,8 +109,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         }
       ],

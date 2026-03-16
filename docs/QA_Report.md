@@ -1,13 +1,13 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 16.3.2026, 11:58:14
+**Generiert am**: 16.3.2026, 15:03:14
 **Status**: ❌ FEHLER GEFUNDEN
 
 ## 📊 Visuelle Übersicht
 ```mermaid
 pie title Test-Status (Gesamt: 121)
-    "Bestanden ✅" : 114
-    "Fehlgeschlagen ❌" : 7
+    "Bestanden ✅" : 113
+    "Fehlgeschlagen ❌" : 8
 ```
 
 ## 🧪 Test-Details
@@ -153,7 +153,19 @@ Call log:
 [2m  - waiting for locator('.flow-node:has-text("ShowTheHighscoreStage")').first()[22m
 </small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | E2E: Roundtrip B: Action-Umbenennung propagiert durch alle Ebenen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
-| E2E: Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete)<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete)<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).not.[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator:  locator('#stage-viewport .game-object').filter({ hasText: 'Panel' }).first()
+Expected: not visible
+Received: visible
+Timeout:  5000ms
+
+Call log:
+[2m  - Expect "not toBeVisible" with timeout 5000ms[22m
+[2m  - waiting for locator('#stage-viewport .game-object').filter({ hasText: 'Panel' }).first()[22m
+[2m    9 × locator resolved to <div data-align="NONE" class="game-object TPanel" data-id="obj_1768123181726_f8lxvpnwv">Panel_19</div>[22m
+[2m      - unexpected value "visible"[22m
+</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | E2E: Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON)<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | E2E: sollte den Editor korrekt laden<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: sollte zwischen Views umschalten können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |

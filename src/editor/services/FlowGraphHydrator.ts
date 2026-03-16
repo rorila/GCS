@@ -126,43 +126,49 @@ export class FlowGraphHydrator {
         // setTimeout garantiert, dass dies NACH allen synchronen Calls passiert.
         // =====================================================================
         if (this.host.currentFlowContext !== 'global' && this.host.nodes.length > 1) {
-            // Nodes off-screen nach links verschieben (unsichtbar für User)
-            this.host.nodes.forEach(n => {
-                const el = (n as any).element;
-                if (el) {
-                    el.style.transform = 'translateX(-2000px)';
-                    el.style.transition = 'none'; // Kein Übergang beim Verstecken
-                }
-            });
-            // Connections verstecken (kein translateX möglich bei SVG-Lines)
-            (this.host.connections || []).forEach((c: any) => {
-                if (c.element) {
-                    c.element.style.opacity = '0';
-                    c.element.style.transition = 'none';
-                }
-            });
+            // E2E-Modus: Keine Animation, nur Layout formatieren
+            const isE2E = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('e2e') === 'true';
 
-            setTimeout(() => {
-                this.formatOrthogonalLayout();
-
-                // Nach Formatierung: Nodes sanft in den sichtbaren Bereich schieben
-                requestAnimationFrame(() => {
-                    this.host.nodes.forEach(n => {
-                        const el = (n as any).element;
-                        if (el) {
-                            el.style.transition = 'transform 0.5s ease-out';
-                            el.style.transform = 'translateX(0)';
-                        }
-                    });
-                    // Connections sanft einblenden
-                    (this.host.connections || []).forEach((c: any) => {
-                        if (c.element) {
-                            c.element.style.transition = 'opacity 0.5s ease-out';
-                            c.element.style.opacity = '1';
-                        }
-                    });
+            if (isE2E) {
+                setTimeout(() => this.formatOrthogonalLayout(), 50);
+            } else {
+                // Nodes off-screen nach links verschieben (unsichtbar für User)
+                this.host.nodes.forEach(n => {
+                    const el = (n as any).element;
+                    if (el) {
+                        el.style.transform = 'translateX(-2000px)';
+                        el.style.transition = 'none';
+                    }
                 });
-            }, 50);
+                // Connections verstecken
+                (this.host.connections || []).forEach((c: any) => {
+                    if (c.element) {
+                        c.element.style.opacity = '0';
+                        c.element.style.transition = 'none';
+                    }
+                });
+
+                setTimeout(() => {
+                    this.formatOrthogonalLayout();
+
+                    // Nach Formatierung: Nodes sanft in den sichtbaren Bereich schieben
+                    requestAnimationFrame(() => {
+                        this.host.nodes.forEach(n => {
+                            const el = (n as any).element;
+                            if (el) {
+                                el.style.transition = 'transform 0.5s ease-out';
+                                el.style.transform = 'translateX(0)';
+                            }
+                        });
+                        (this.host.connections || []).forEach((c: any) => {
+                            if (c.element) {
+                                c.element.style.transition = 'opacity 0.5s ease-out';
+                                c.element.style.opacity = '1';
+                            }
+                        });
+                    });
+                }, 50);
+            }
         }
     }
 

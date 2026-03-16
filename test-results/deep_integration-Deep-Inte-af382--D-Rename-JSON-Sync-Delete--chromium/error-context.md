@@ -1,0 +1,248 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - button "Datei" [ref=e6] [cursor=pointer]
+      - button "Plattform" [ref=e8] [cursor=pointer]
+      - button "Stages" [ref=e10] [cursor=pointer]
+      - button "Werkzeuge" [ref=e12] [cursor=pointer]
+      - 'generic "Aktueller Projektpfad: projects/master_test/PingPong.json" [ref=e13]'
+    - generic [ref=e14]:
+      - complementary [ref=e15]:
+        - heading "Toolbox ⇄" [level=2] [ref=e16]:
+          - text: Toolbox
+          - generic "Toggle Horizontal/Vertical Layout" [ref=e17] [cursor=pointer]: ⇄
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - generic [ref=e20] [cursor=pointer]:
+              - generic [ref=e21]: ▼
+              - generic [ref=e22]: Standard
+              - generic [ref=e23]: "6"
+            - generic [ref=e24]:
+              - generic [ref=e25]:
+                - generic [ref=e26]: ⬜
+                - generic [ref=e27]: Panel
+              - generic [ref=e28]:
+                - generic [ref=e29]: 🔘
+                - generic [ref=e30]: Button
+              - generic [ref=e31]:
+                - generic [ref=e32]: 📝
+                - generic [ref=e33]: Label
+              - generic [ref=e34]:
+                - generic [ref=e35]: 🔢
+                - generic [ref=e36]: Number Label
+              - generic [ref=e37]:
+                - generic [ref=e38]: ✏️
+                - generic [ref=e39]: Edit
+              - generic [ref=e40]:
+                - generic [ref=e41]: 😃
+                - generic [ref=e42]: Emoji Picker
+          - generic [ref=e44] [cursor=pointer]:
+            - generic [ref=e45]: ▶
+            - generic [ref=e46]: Media
+            - generic [ref=e47]: "2"
+          - generic [ref=e49] [cursor=pointer]:
+            - generic [ref=e50]: ▶
+            - generic [ref=e51]: Erweitert
+            - generic [ref=e52]: "7"
+          - generic [ref=e54] [cursor=pointer]:
+            - generic [ref=e55]: ▶
+            - generic [ref=e56]: Game
+            - generic [ref=e57]: "5"
+          - generic [ref=e59] [cursor=pointer]:
+            - generic [ref=e60]: ▶
+            - generic [ref=e61]: Variablen
+            - generic [ref=e62]: "9"
+          - generic [ref=e64] [cursor=pointer]:
+            - generic [ref=e65]: ▶
+            - generic [ref=e66]: System
+            - generic [ref=e67]: "9"
+          - generic [ref=e68]:
+            - generic [ref=e69] [cursor=pointer]:
+              - generic [ref=e70]: ▼
+              - generic [ref=e71]: Daten & Auth
+              - generic [ref=e72]: "3"
+            - generic [ref=e73]:
+              - generic [ref=e74]:
+                - generic [ref=e75]: 🗄️
+                - generic [ref=e76]: Database
+              - generic [ref=e77]:
+                - generic [ref=e78]: 🔐
+                - generic [ref=e79]: Auth Service
+              - generic [ref=e80]:
+                - generic [ref=e81]: 👥
+                - generic [ref=e82]: User Manager
+          - generic [ref=e84] [cursor=pointer]:
+            - generic [ref=e85]: ▶
+            - generic [ref=e86]: Dialogs
+            - generic [ref=e87]: "5"
+      - main [ref=e89]:
+        - generic [ref=e90]:
+          - button "Stage" [ref=e91] [cursor=pointer]
+          - button "Run" [ref=e92] [cursor=pointer]
+          - button "JSON" [ref=e93] [cursor=pointer]
+          - button "Flow" [ref=e94] [cursor=pointer]
+          - button "Pascal" [ref=e95] [cursor=pointer]
+          - button "Manager" [ref=e96] [cursor=pointer]
+        - generic [ref=e100]:
+          - generic [ref=e101]: LeftPaddle
+          - generic [ref=e102]: RightPaddle
+          - generic [ref=e103]: New Tennis
+          - generic [ref=e104]: StatusBar
+          - generic [ref=e105]: Toast
+          - generic [ref=e106]: BallSprite
+          - generic [ref=e107]: "Status:"
+          - generic [ref=e108]: gestoppt
+          - generic [ref=e109]: Spiel starten
+          - generic [ref=e110]: Spiel pausieren
+          - generic [ref=e111]: Spiel fortsetzen
+          - generic [ref=e112]: Panel_19
+          - generic [ref=e113]: Panel_19
+          - generic [ref=e114]: Panel_21
+          - generic [ref=e115]: Panel_21
+          - generic [ref=e118]: Impressum
+          - generic [ref=e119]: TestButton1
+          - generic [ref=e120]: Panel_29
+      - complementary [ref=e122]:
+        - heading "Inspector" [level=2] [ref=e123]
+        - generic [ref=e124]:
+          - generic [ref=e125]:
+            - generic [ref=e126]: Spielfeld
+            - generic [ref=e127]: Object
+            - button "🗑️" [ref=e128] [cursor=pointer]
+          - generic [ref=e129]:
+            - generic [ref=e130] [cursor=pointer]: Eigenschaften
+            - generic [ref=e131] [cursor=pointer]: Events
+            - generic [ref=e132] [cursor=pointer]: Logs
+          - generic [ref=e133]:
+            - generic [ref=e134]:
+              - generic [ref=e135] [cursor=pointer]:
+                - generic [ref=e136]: 📋
+                - generic [ref=e137]: Basis
+                - generic [ref=e138]: ▼
+              - generic [ref=e139]:
+                - generic [ref=e140]:
+                  - generic [ref=e141]: Typ
+                  - combobox [ref=e142] [cursor=pointer]:
+                    - option "standard"
+                    - option "splash"
+                    - option "main" [selected]
+                    - option "template"
+                - generic [ref=e143]:
+                  - generic [ref=e144]: Stage Name
+                  - textbox [ref=e145]: Spielfeld
+                - generic [ref=e146]:
+                  - generic [ref=e147]: Spielname
+                  - textbox [ref=e148]: NewTennis
+                - generic [ref=e149]:
+                  - generic [ref=e150]: Autor
+                  - textbox [ref=e151]: RoRiLa
+                - generic [ref=e152]:
+                  - generic [ref=e153]: Beschreibung
+                  - textbox [ref=e154]
+            - generic [ref=e155]:
+              - generic [ref=e156] [cursor=pointer]:
+                - generic [ref=e157]: 🔲
+                - generic [ref=e158]: Raster
+                - generic [ref=e159]: ▼
+              - generic [ref=e160]:
+                - generic [ref=e161]:
+                  - generic [ref=e162]:
+                    - generic [ref=e163]: Spalten
+                    - textbox [ref=e164]: "64"
+                  - generic [ref=e165]:
+                    - generic [ref=e166]: Zeilen
+                    - textbox [ref=e167]: "40"
+                - generic [ref=e168]:
+                  - generic [ref=e169]: Zellgröße
+                  - textbox [ref=e170]: "18"
+                - generic [ref=e171]:
+                  - generic [ref=e172]:
+                    - generic [ref=e173]: Rasterlinien
+                    - checkbox [checked] [ref=e174]
+                  - generic [ref=e175]:
+                    - generic [ref=e176]: Am Raster
+                    - checkbox [checked] [ref=e177]
+                - generic [ref=e178]:
+                  - generic [ref=e179]: Rasterfarbe
+                  - generic [ref=e180]:
+                    - textbox [ref=e181] [cursor=pointer]: "#dddddd"
+                    - textbox [ref=e182]: "#dddddd"
+                - generic [ref=e183]:
+                  - generic [ref=e184]: Hintergrund
+                  - generic [ref=e185]:
+                    - textbox [ref=e186] [cursor=pointer]: "#4b1b1b"
+                    - textbox [ref=e187]: "#4b1b1b"
+            - generic [ref=e188]:
+              - generic [ref=e189] [cursor=pointer]:
+                - generic [ref=e190]: 🎬
+                - generic [ref=e191]: Animation
+                - generic [ref=e192]: ▼
+              - generic [ref=e193]:
+                - generic [ref=e194]:
+                  - generic [ref=e195]: Start
+                  - combobox [ref=e196] [cursor=pointer]:
+                    - option "none"
+                    - option "UpLeft"
+                    - option "UpMiddle"
+                    - option "UpRight"
+                    - option "Left"
+                    - option "Right"
+                    - option "BottomLeft" [selected]
+                    - option "BottomMiddle"
+                    - option "BottomRight"
+                    - option "ChaosIn"
+                    - option "ChaosOut"
+                    - option "Matrix"
+                    - option "Random"
+                - generic [ref=e197]:
+                  - generic [ref=e198]:
+                    - generic [ref=e199]: Dauer (ms)
+                    - textbox [ref=e200]: "1001"
+                  - generic [ref=e201]:
+                    - generic [ref=e202]: Easing
+                    - combobox [ref=e203] [cursor=pointer]:
+                      - option "linear" [selected]
+                      - option "easeIn"
+                      - option "easeOut"
+                      - option "easeInOut"
+                      - option "bounce"
+                      - option "elastic"
+  - generic [ref=e204]:
+    - generic [ref=e205]:
+      - generic [ref=e206]: DEBUG LOG VIEWER
+      - button "✕" [ref=e207] [cursor=pointer]
+    - generic [ref=e208]:
+      - generic [ref=e209]:
+        - generic [ref=e210] [cursor=pointer]:
+          - checkbox "Event" [checked] [ref=e211]
+          - text: Event
+        - generic [ref=e212] [cursor=pointer]:
+          - checkbox "Task" [checked] [ref=e213]
+          - text: Task
+        - generic [ref=e214] [cursor=pointer]:
+          - checkbox "Action" [checked] [ref=e215]
+          - text: Action
+        - generic [ref=e216] [cursor=pointer]:
+          - checkbox "Variable" [checked] [ref=e217]
+          - text: Variable
+        - generic [ref=e218] [cursor=pointer]:
+          - checkbox "Condition" [checked] [ref=e219]
+          - text: Condition
+        - generic [ref=e220] [cursor=pointer]:
+          - checkbox "System" [checked] [ref=e221]
+          - text: System
+        - generic [ref=e222] [cursor=pointer]:
+          - checkbox "Details" [checked] [ref=e223]
+          - text: Details
+      - generic [ref=e224]:
+        - combobox [ref=e225]:
+          - option "All Objects" [selected]
+        - combobox [ref=e226]:
+          - option "All Events" [selected]
+      - generic [ref=e227]:
+        - button "Clear All" [ref=e228] [cursor=pointer]
+        - button "Pause" [ref=e229] [cursor=pointer]
+```

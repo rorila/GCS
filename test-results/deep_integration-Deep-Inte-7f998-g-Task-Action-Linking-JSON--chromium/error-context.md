@@ -1,0 +1,139 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - button "Datei" [ref=e6] [cursor=pointer]
+      - button "Plattform" [ref=e8] [cursor=pointer]
+      - button "Stages" [ref=e10] [cursor=pointer]
+      - button "Werkzeuge" [ref=e12] [cursor=pointer]
+      - 'generic "Aktueller Projektpfad: projects/master_test/PingPong.json" [ref=e13]'
+    - generic [ref=e14]:
+      - complementary [ref=e15]:
+        - heading "Toolbox ⇄" [level=2] [ref=e16]:
+          - text: Toolbox
+          - generic "Toggle Horizontal/Vertical Layout" [ref=e17] [cursor=pointer]: ⇄
+        - generic [ref=e18]:
+          - heading "Flow Logic" [level=3] [ref=e19]
+          - generic [ref=e20]:
+            - generic [ref=e21]:
+              - generic [ref=e22]: 📦
+              - generic [ref=e23]: Variable
+            - generic [ref=e24]:
+              - generic [ref=e25]: ⚡
+              - generic [ref=e26]: Task
+            - generic [ref=e27]:
+              - generic [ref=e28]: 🎬
+              - generic [ref=e29]: Action
+            - generic [ref=e30]:
+              - generic [ref=e31]: 🌐
+              - generic [ref=e32]: HTTP Request
+            - generic [ref=e33]:
+              - generic [ref=e34]: 🔑
+              - generic [ref=e35]: Store Token
+            - generic [ref=e36]:
+              - generic [ref=e37]: 📦
+              - generic [ref=e38]: Variable Set
+            - generic [ref=e39]:
+              - generic [ref=e40]: ❓
+              - generic [ref=e41]: If Condition
+            - generic [ref=e42]:
+              - generic [ref=e43]: 🔄
+              - generic [ref=e44]: For Loop
+            - generic [ref=e45]:
+              - generic [ref=e46]: 💫
+              - generic [ref=e47]: While Loop
+            - generic [ref=e48]:
+              - generic [ref=e49]: 🔁
+              - generic [ref=e50]: Repeat Until
+            - generic [ref=e51]:
+              - generic [ref=e52]: 🔗
+              - generic [ref=e53]: Pfeil
+            - generic [ref=e54]:
+              - generic [ref=e55]: 🏁
+              - generic [ref=e56]: Start
+            - generic [ref=e57]:
+              - generic [ref=e58]: 🛑
+              - generic [ref=e59]: End
+      - main [ref=e61]:
+        - generic [ref=e62]:
+          - button "Stage" [ref=e63] [cursor=pointer]
+          - button "Run" [ref=e64] [cursor=pointer]
+          - button "JSON" [ref=e65] [cursor=pointer]
+          - button "Flow" [ref=e66] [cursor=pointer]
+          - button "Pascal" [ref=e67] [cursor=pointer]
+          - button "Manager" [ref=e68] [cursor=pointer]
+        - generic [ref=e70]:
+          - generic [ref=e71]:
+            - combobox [ref=e72]:
+              - option "🗺️ Landkarte (Events/Links)"
+              - option "📊 Elementenübersicht"
+              - option "Main Flow (Stage)"
+              - 'option "Task: StartTheGame"'
+              - 'option "Task: MoveLeftPaddleUp"'
+              - 'option "Task: MoveLeftPaddleDown"'
+              - 'option "Task: StopLeftPaddleUp"'
+              - 'option "Task: StopLeftPaddleDown"'
+              - 'option "Task: MoveRightPaddleUp"'
+              - 'option "Task: MoveRightPaddleDown"'
+              - 'option "Task: StopRightPaddleUp"'
+              - 'option "Task: StopRightPaddleDown"'
+              - 'option "Task: HandleBallBoundary"'
+              - 'option "Task: HandlePaddleCollision"'
+              - option "Main Flow (Blueprint)"
+              - 'option "Task: MainTask" [selected]'
+            - button "← Zurück" [ref=e73] [cursor=pointer]
+            - button "+" [ref=e74] [cursor=pointer]
+            - button "-" [ref=e75] [cursor=pointer]
+            - button "Detail-Ansicht" [ref=e77] [cursor=pointer]: Detail-Ansicht
+          - generic [ref=e80]:
+            - generic: Start
+      - complementary [ref=e86]:
+        - heading "Inspector" [level=2] [ref=e87]
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - generic [ref=e90]: Unbenannt
+            - generic [ref=e91]: Object
+            - button "🗑️" [ref=e92] [cursor=pointer]
+          - generic [ref=e93]:
+            - generic [ref=e94] [cursor=pointer]: Eigenschaften
+            - generic [ref=e95] [cursor=pointer]: Events
+            - generic [ref=e96] [cursor=pointer]: Logs
+          - generic [ref=e98]: PingPong
+  - generic [ref=e99]:
+    - generic [ref=e100]:
+      - generic [ref=e101]: DEBUG LOG VIEWER
+      - button "✕" [ref=e102] [cursor=pointer]
+    - generic [ref=e103]:
+      - generic [ref=e104]:
+        - generic [ref=e105] [cursor=pointer]:
+          - checkbox "Event" [checked] [ref=e106]
+          - text: Event
+        - generic [ref=e107] [cursor=pointer]:
+          - checkbox "Task" [checked] [ref=e108]
+          - text: Task
+        - generic [ref=e109] [cursor=pointer]:
+          - checkbox "Action" [checked] [ref=e110]
+          - text: Action
+        - generic [ref=e111] [cursor=pointer]:
+          - checkbox "Variable" [checked] [ref=e112]
+          - text: Variable
+        - generic [ref=e113] [cursor=pointer]:
+          - checkbox "Condition" [checked] [ref=e114]
+          - text: Condition
+        - generic [ref=e115] [cursor=pointer]:
+          - checkbox "System" [checked] [ref=e116]
+          - text: System
+        - generic [ref=e117] [cursor=pointer]:
+          - checkbox "Details" [checked] [ref=e118]
+          - text: Details
+      - generic [ref=e119]:
+        - combobox [ref=e120]:
+          - option "All Objects" [selected]
+        - combobox [ref=e121]:
+          - option "All Events" [selected]
+      - generic [ref=e122]:
+        - button "Clear All" [ref=e123] [cursor=pointer]
+        - button "Pause" [ref=e124] [cursor=pointer]
+```

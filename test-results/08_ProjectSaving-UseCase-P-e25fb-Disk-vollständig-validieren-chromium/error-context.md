@@ -1,0 +1,105 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - button "Datei" [ref=e6] [cursor=pointer]
+      - button "Plattform" [ref=e8] [cursor=pointer]
+      - button "Stages" [ref=e10] [cursor=pointer]
+      - button "Werkzeuge" [ref=e12] [cursor=pointer]
+    - generic [ref=e13]:
+      - complementary [ref=e14]:
+        - heading "Toolbox ⇄" [level=2] [ref=e15]:
+          - text: Toolbox
+          - generic "Toggle Horizontal/Vertical Layout" [ref=e16] [cursor=pointer]: ⇄
+        - generic [ref=e17]:
+          - generic [ref=e19] [cursor=pointer]:
+            - generic [ref=e20]: ▶
+            - generic [ref=e21]: Standard
+            - generic [ref=e22]: "6"
+          - generic [ref=e24] [cursor=pointer]:
+            - generic [ref=e25]: ▶
+            - generic [ref=e26]: Media
+            - generic [ref=e27]: "2"
+          - generic [ref=e29] [cursor=pointer]:
+            - generic [ref=e30]: ▶
+            - generic [ref=e31]: Erweitert
+            - generic [ref=e32]: "7"
+          - generic [ref=e34] [cursor=pointer]:
+            - generic [ref=e35]: ▶
+            - generic [ref=e36]: Game
+            - generic [ref=e37]: "5"
+          - generic [ref=e39] [cursor=pointer]:
+            - generic [ref=e40]: ▶
+            - generic [ref=e41]: Variablen
+            - generic [ref=e42]: "9"
+          - generic [ref=e44] [cursor=pointer]:
+            - generic [ref=e45]: ▶
+            - generic [ref=e46]: System
+            - generic [ref=e47]: "9"
+          - generic [ref=e48]:
+            - generic [ref=e49] [cursor=pointer]:
+              - generic [ref=e50]: ▼
+              - generic [ref=e51]: Daten & Auth
+              - generic [ref=e52]: "3"
+            - generic [ref=e53]:
+              - generic [ref=e54]:
+                - generic [ref=e55]: 🗄️
+                - generic [ref=e56]: Database
+              - generic [ref=e57]:
+                - generic [ref=e58]: 🔐
+                - generic [ref=e59]: Auth Service
+              - generic [ref=e60]:
+                - generic [ref=e61]: 👥
+                - generic [ref=e62]: User Manager
+          - generic [ref=e64] [cursor=pointer]:
+            - generic [ref=e65]: ▶
+            - generic [ref=e66]: Dialogs
+            - generic [ref=e67]: "5"
+      - main [ref=e69]:
+        - generic [ref=e70]:
+          - button "Stage" [ref=e71] [cursor=pointer]
+          - button "Run" [ref=e72] [cursor=pointer]
+          - button "JSON" [ref=e73] [cursor=pointer]
+          - button "Flow" [ref=e74] [cursor=pointer]
+          - button "Pascal" [ref=e75] [cursor=pointer]
+          - button "Manager" [ref=e76] [cursor=pointer]
+      - complementary [ref=e82]:
+        - heading "Inspector" [level=2] [ref=e83]
+  - generic [ref=e84]:
+    - generic [ref=e85]:
+      - generic [ref=e86]: DEBUG LOG VIEWER
+      - button "✕" [ref=e87] [cursor=pointer]
+    - generic [ref=e88]:
+      - generic [ref=e89]:
+        - generic [ref=e90] [cursor=pointer]:
+          - checkbox "Event" [checked] [ref=e91]
+          - text: Event
+        - generic [ref=e92] [cursor=pointer]:
+          - checkbox "Task" [checked] [ref=e93]
+          - text: Task
+        - generic [ref=e94] [cursor=pointer]:
+          - checkbox "Action" [checked] [ref=e95]
+          - text: Action
+        - generic [ref=e96] [cursor=pointer]:
+          - checkbox "Variable" [checked] [ref=e97]
+          - text: Variable
+        - generic [ref=e98] [cursor=pointer]:
+          - checkbox "Condition" [checked] [ref=e99]
+          - text: Condition
+        - generic [ref=e100] [cursor=pointer]:
+          - checkbox "System" [checked] [ref=e101]
+          - text: System
+        - generic [ref=e102] [cursor=pointer]:
+          - checkbox "Details" [checked] [ref=e103]
+          - text: Details
+      - generic [ref=e104]:
+        - combobox [ref=e105]:
+          - option "All Objects" [selected]
+        - combobox [ref=e106]:
+          - option "All Events" [selected]
+      - generic [ref=e107]:
+        - button "Clear All" [ref=e108] [cursor=pointer]
+        - button "Pause" [ref=e109] [cursor=pointer]
+```

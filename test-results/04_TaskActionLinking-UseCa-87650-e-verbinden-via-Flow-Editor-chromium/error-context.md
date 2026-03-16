@@ -8,7 +8,7 @@
       - button "Plattform" [ref=e8] [cursor=pointer]
       - button "Stages" [ref=e10] [cursor=pointer]
       - button "Werkzeuge" [ref=e12] [cursor=pointer]
-      - 'generic "Aktueller Projektpfad: projects/master_test/MyCoolGame.json" [ref=e13]'
+      - 'generic "Aktueller Projektpfad: projects/Neues_Spiel.json" [ref=e13]'
     - generic [ref=e14]:
       - complementary [ref=e15]:
         - heading "Toolbox ⇄" [level=2] [ref=e16]:

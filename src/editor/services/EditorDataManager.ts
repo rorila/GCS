@@ -95,8 +95,11 @@ export class EditorDataManager {
         // Erstes Speichern: Projektname abfragen wenn noch kein _sourcePath
         const project = this.host.project;
         if (!project.meta?._sourcePath) {
+            const isE2E = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('e2e') === 'true';
             const defaultName = project.meta?.name || 'MeinProjekt';
-            const projectName = prompt('Projektname für das Speichern:', defaultName);
+            
+            // Im E2E-Modus: kein Dialog, automatisch Projektname setzen
+            const projectName = isE2E ? defaultName : prompt('Projektname für das Speichern:', defaultName);
             if (!projectName) {
                 EditorDataManager.logger.info('[SaveProject] Speichern abgebrochen (kein Name eingegeben)');
                 return;
