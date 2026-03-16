@@ -223,13 +223,38 @@ export class InspectorHost {
         }
 
         // =====================================================================
+        // NEU: Handler-Sektionen-Pfad (z.B. StageHandler)
+        // Handler liefert InspectorSection[] → gleicher Rendering-Pfad wie IInspectable
+        // =====================================================================
+        const handler = InspectorRegistry.getHandler(obj);
+        if (handler && typeof (handler as any).getSections === 'function') {
+            const sections = (handler as any).getSections(obj, this.project);
+            if (sections && sections.length > 0) {
+                // Proxy: Alle Properties vom Original-Objekt durchreichen,
+                // aber getInspectorSections/applyChange injizieren
+                const stageObj = obj;
+                const proxy = new Proxy(stageObj, {
+                    get(target: any, prop: string) {
+                        if (prop === 'getInspectorSections') return () => sections;
+                        if (prop === 'applyChange') return (propertyName: string, newValue: any) => {
+                            PropertyHelper.setPropertyValue(target, propertyName, newValue);
+                            return propertyName === 'type';
+                        };
+                        return target[prop];
+                    }
+                });
+                this.renderInspectableSections(proxy as any, parent);
+                return;
+            }
+        }
+
+        // =====================================================================
         // LEGACY: JSON-Template-Pfad (bestehende Komponenten ohne IInspectable)
         // =====================================================================
         // 1. Determine Template
         let inspectorFile = './inspector.json';
 
         // A. Priority: Specialized Handler
-        const handler = InspectorRegistry.getHandler(obj);
         if (handler && typeof handler.getInspectorTemplate === 'function') {
             const customTemplate = handler.getInspectorTemplate(obj);
             if (customTemplate) inspectorFile = customTemplate;
@@ -266,7 +291,7 @@ export class InspectorHost {
         sections.forEach(section => {
             // Farbe für diese Gruppe ermitteln (Key = Label in UPPERCASE)
             const colorKey = section.label.replace(/^[^\w]*/, '').trim().toUpperCase();
-            const accentColor = groupColors[colorKey] || '';
+            const accentColor = groupColors[colorKey] || '#4da6ff';
 
             // --- Card-Container ---
             const card = document.createElement('div');
@@ -305,11 +330,36 @@ export class InspectorHost {
             card.appendChild(body);
             parent.appendChild(card);
 
-            // --- Properties in der Card rendern ---
-            section.properties.forEach(propDef => {
-                const el = this.renderInspectableProperty(propDef, obj);
-                if (el) body.appendChild(el);
-            });
+            // --- Properties in der Card rendern (mit Inline-Gruppierung) ---
+            const props = section.properties;
+            let i = 0;
+            while (i < props.length) {
+                const propDef = props[i];
+
+                // Prüfe ob eine Gruppe von inline-Properties beginnt
+                if (propDef.inline && i + 1 < props.length && props[i + 1].inline) {
+                    // Sammle max. 2 aufeinanderfolgende inline-Properties pro Zeile
+                    const inlineRow = document.createElement('div');
+                    inlineRow.style.cssText = 'display:flex;gap:8px;margin-bottom:4px;';
+
+                    let count = 0;
+                    while (i < props.length && props[i].inline && count < 2) {
+                        const el = this.renderInspectableProperty(props[i], obj);
+                        if (el) {
+                            el.style.flex = '1';
+                            el.style.marginBottom = '0';
+                            inlineRow.appendChild(el);
+                        }
+                        i++;
+                        count++;
+                    }
+                    body.appendChild(inlineRow);
+                } else {
+                    const el = this.renderInspectableProperty(propDef, obj);
+                    if (el) body.appendChild(el);
+                    i++;
+                }
+            }
         });
     }
 
@@ -320,10 +370,13 @@ export class InspectorHost {
      */
     private renderInspectableProperty(propDef: any, obj: any): HTMLElement | null {
         const container = document.createElement('div');
-        container.style.marginBottom = '4px';
+        const isInline = !!propDef.inline;
+        // Horizontales Layout: Label links, Eingabefeld rechts
+        container.style.cssText = `display:flex;align-items:center;gap:${isInline ? '4' : '8'}px;margin-bottom:4px;`;
 
-        // Button-Typ: spezieller Render-Pfad
+        // Button-Typ: spezieller Render-Pfad (volle Breite, kein Label daneben)
         if (propDef.type === 'button') {
+            container.style.display = 'block'; // Buttons nehmen volle Breite
             const btn = document.createElement('button');
             btn.innerText = propDef.label;
             btn.style.cssText = 'width:100%;padding:6px 12px;border:none;border-radius:4px;cursor:pointer;color:#fff;font-size:11px;' +
@@ -337,9 +390,22 @@ export class InspectorHost {
             return container;
         }
 
-        // Label
+        // Label (links, Breite abhängig von inline-Flag)
         if (propDef.label) {
             const label = this.renderer.renderLabel(propDef.label);
+            label.style.marginBottom = '0';
+            label.style.flexShrink = '0';
+            if (isInline) {
+                // Inline: Label nur so breit wie nötig
+                label.style.whiteSpace = 'nowrap';
+            } else {
+                // Normal: Label feste Breite
+                label.style.minWidth = '70px';
+                label.style.maxWidth = '90px';
+                label.style.whiteSpace = 'nowrap';
+                label.style.overflow = 'hidden';
+                label.style.textOverflow = 'ellipsis';
+            }
             container.appendChild(label);
         }
 
@@ -362,10 +428,19 @@ export class InspectorHost {
                 // Delegiere an Handler-Kette (FlowNodeHandler etc.)
                 // Handler macht: PropertyHelper.setPropertyValue + Refactoring + Mediator
                 if (this.eventHandler) {
-                    this.eventHandler.handleControlChange(
+                    const event = this.eventHandler.handleControlChange(
                         selectName, select.value, obj,
                         { ...propDef, property: propDef.name }
                     );
+                    if (event) {
+                        mediatorService.notifyDataChanged({
+                            property: event.propertyName,
+                            value: event.newValue,
+                            oldValue: event.oldValue,
+                            object: event.object
+                        }, 'inspector');
+                        if (this.onObjectUpdate) this.onObjectUpdate(event);
+                    }
                 }
                 // Prüfe ob Sektionen sich ändern (z.B. Typ-Wechsel)
                 if (typeof obj.applyChange === 'function') {
@@ -375,23 +450,92 @@ export class InspectorHost {
                     }
                 }
             };
+            select.style.flex = '1';
             container.appendChild(select);
         } else if (propDef.type === 'boolean' || propDef.type === 'checkbox') {
             const cb = document.createElement('input');
             cb.type = 'checkbox';
-            cb.checked = !!currentValue;
+
+            // CSS-String-Properties: fontWeight ('bold'/'normal'), fontStyle ('italic'/'normal')
+            const isFontWeight = propDef.name === 'style.fontWeight';
+            const isFontStyle = propDef.name === 'style.fontStyle';
+
+            if (isFontWeight) {
+                cb.checked = currentValue === 'bold' || currentValue === '700' || currentValue === '800' || currentValue === '900';
+            } else if (isFontStyle) {
+                cb.checked = currentValue === 'italic';
+            } else {
+                cb.checked = !!currentValue;
+            }
+
             cb.onchange = () => {
+                let newValue: any = cb.checked;
+                if (isFontWeight) newValue = cb.checked ? 'bold' : 'normal';
+                if (isFontStyle) newValue = cb.checked ? 'italic' : 'normal';
+
                 if (this.eventHandler) {
-                    this.eventHandler.handleControlChange(
-                        propDef.name, cb.checked, obj,
+                    const event = this.eventHandler.handleControlChange(
+                        propDef.name, newValue, obj,
                         { ...propDef, property: propDef.name }
                     );
+                    if (event) {
+                        mediatorService.notifyDataChanged({
+                            property: event.propertyName,
+                            value: event.newValue,
+                            oldValue: event.oldValue,
+                            object: event.object
+                        }, 'inspector');
+                        if (this.onObjectUpdate) this.onObjectUpdate(event);
+                    }
                 }
             };
             container.appendChild(cb);
+        } else if (propDef.type === 'color') {
+            // Farbpicker: Nativer HTML5-Farbwähler + Textfeld
+            const colorContainer = this.renderer.renderColorInput(String(currentValue || '#000000'));
+            const colorInput = (colorContainer as any).colorInput as HTMLInputElement;
+            const textInput = (colorContainer as any).textInput as HTMLInputElement;
+
+            const updateColorValue = (newValue: string) => {
+                if (this.eventHandler) {
+                    const event = this.eventHandler.handleControlChange(
+                        propDef.name, newValue, obj,
+                        { ...propDef, property: propDef.name }
+                    );
+                    if (event) {
+                        mediatorService.notifyDataChanged({
+                            property: event.propertyName,
+                            value: event.newValue,
+                            oldValue: event.oldValue,
+                            object: event.object
+                        }, 'inspector');
+                        if (this.onObjectUpdate) this.onObjectUpdate(event);
+                    }
+                }
+            };
+
+            colorInput.oninput = () => {
+                textInput.value = colorInput.value;
+                updateColorValue(colorInput.value);
+            };
+
+            textInput.oninput = () => {
+                if (textInput.value.startsWith('#') && textInput.value.length === 7) {
+                    colorInput.value = textInput.value;
+                    updateColorValue(textInput.value);
+                }
+            };
+
+            textInput.onchange = () => {
+                updateColorValue(textInput.value);
+            };
+
+            colorContainer.style.flex = '1';
+            container.appendChild(colorContainer);
         } else {
             // Text / Number / String Input
             const input = this.renderer.renderEdit(String(currentValue));
+            input.style.flex = '1';
             if (propDef.readonly) input.readOnly = true;
             // Konvention: Input name = '{propertyName}Input' (E2E-Kompatibilität)
             if (propDef.name) input.name = propDef.name + 'Input';
@@ -399,10 +543,19 @@ export class InspectorHost {
                 const newVal = propDef.type === 'number' ? Number(input.value) : input.value;
                 // Delegiere an Handler-Kette (FlowNodeHandler → Refactoring, PropertyHelper etc.)
                 if (this.eventHandler) {
-                    this.eventHandler.handleControlChange(
+                    const event = this.eventHandler.handleControlChange(
                         input.name, newVal, obj,
                         { ...propDef, property: propDef.name }
                     );
+                    if (event) {
+                        mediatorService.notifyDataChanged({
+                            property: event.propertyName,
+                            value: event.newValue,
+                            oldValue: event.oldValue,
+                            object: event.object
+                        }, 'inspector');
+                        if (this.onObjectUpdate) this.onObjectUpdate(event);
+                    }
                 }
             };
             container.appendChild(input);

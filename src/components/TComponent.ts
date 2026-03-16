@@ -75,11 +75,39 @@ const GROUP_ICONS: Record<string, string> = {
 /** Farb-Mapping für Inspector-Gruppen (farbige Bordüren & Header) */
 export const GROUP_COLORS: Record<string, string> = {
     'ALLGEMEIN': '#666666',
+    // Komponenten-Inspector Sektionen
+    'IDENTITÄT': '#89b4fa',
+    'INTERAKTION': '#fab387',
+    'GEOMETRIE': '#a6e3a1',
+    'TYPOGRAFIE': '#cba6f7',
+    'STIL': '#f38ba8',
+    'GLOW-EFFEKT': '#f5c2e7',
+    'DARSTELLUNG': '#f9e2af',
+    'INHALT': '#94e2d5',
+    'KONFIGURATION': '#74c7ec',
+    'DATEN': '#89dceb',
+    'ANIMATION': '#e67e22',
+    'NETZWERK': '#7f8c8d',
+    'SICHERHEIT': '#eba0ac',
+    // Sprite-spezifische Sektionen
+    'MOTION': '#f9e2af',
+    'INTERPOLATION': '#b4befe',
+    'COLLISION': '#f38ba8',
+    'APPEARANCE': '#94e2d5',
+    // Weitere Komponenten-Sektionen
+    'BILD': '#89dceb',
+    'ICON': '#cba6f7',
+    'TIMER': '#fab387',
+    // DataAction SQL-Gruppen
     'FROM / DATENQUELLE': '#2980b9',
     'SELECT / FELDER': '#27ae60',
     'INTO / ERGEBNIS': '#e67e22',
     'WHERE / FILTER': '#c0392b',
     'HTTP / REQUEST': '#7f8c8d',
+    // Stage-Inspector Sektionen
+    'BASIS': '#4da6ff',
+    'RASTER': '#e6a817',
+    'SPLASH SCREEN': '#a855f7',
 };
 
 export abstract class TComponent implements IInspectable {

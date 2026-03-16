@@ -15,7 +15,7 @@ import { FlowEditor } from './FlowEditor';
 import { FlowToolbox } from './FlowToolbox';
 import { MenuBar } from './MenuBar';
 import { EditorStageManager } from './EditorStageManager';
-import { projectPersistenceService } from '../services/ProjectPersistenceService';
+// projectPersistenceService wird via EditorDataManager genutzt (saveProject, exportHTML etc.)
 import { projectRegistry } from '../services/ProjectRegistry';
 
 import { libraryService } from '../services/LibraryService';
@@ -233,7 +233,6 @@ export class Editor implements IViewHost {
 
         // 1. LocalStorage-Projekt lesen
         const localJson = localStorage.getItem('gcs_last_project');
-        const localSaveTime = localStorage.getItem('gcs_last_save_time');
         let localProject: any = null;
         if (localJson) {
             try {
@@ -243,133 +242,17 @@ export class Editor implements IViewHost {
             }
         }
 
-        // 2. Server-Projekt versuchen zu fetchen
-        let serverProject: any = null;
-        try {
-            serverProject = await projectPersistenceService.fetchProjectFromServer();
-        } catch (err) {
-            Editor.logger.warn('Server fetch failed, using LocalStorage only', err);
-        }
-
-        // 3. Entscheidung treffen
-        if (localProject && serverProject) {
-            // Beide vorhanden → vergleichen
-            const localName = localProject.meta?.name || 'Unbenannt';
-            const serverName = serverProject.meta?.name || 'Unbenannt';
-            const localStageCount = localProject.stages?.length || 0;
-            const serverStageCount = serverProject.stages?.length || 0;
-
-            // Prüfe ob sich die Projekte unterscheiden
-            const sameProject = (localName === serverName && localStageCount === serverStageCount);
-
-            if (!sameProject || localSaveTime) {
-                // Unterschiedliche Projekte ODER lokale Änderungen vorhanden → Dialog
-                const timeStr = localSaveTime
-                    ? new Date(parseInt(localSaveTime)).toLocaleString('de-DE')
-                    : 'unbekannt';
-
-                const choice = await this.showRestoreDialog(localName, serverName, timeStr);
-
-                if (choice === 'local') {
-                    this.loadProject(localProject, 'game-server/public/platform/project.json');
-                    Editor.logger.info(`Restored local project: "${localName}"`);
-                } else {
-                    localStorage.setItem('gcs_last_project', JSON.stringify(serverProject));
-                    localStorage.removeItem('gcs_last_save_time');
-                    this.loadProject(serverProject, 'game-server/public/platform/project.json');
-                    Editor.logger.info(`Loaded server project: "${serverName}"`);
-                }
-            } else {
-                // Identisch → Server-Version laden (frisch)
-                localStorage.setItem('gcs_last_project', JSON.stringify(serverProject));
-                this.loadProject(serverProject, 'game-server/public/platform/project.json');
-                Editor.logger.info('Projects identical, loaded server version');
-            }
-        } else if (localProject) {
-            // Nur LocalStorage vorhanden
+        // 2. LocalStorage vorhanden → direkt laden (Priorität!)
+        if (localProject) {
+            const name = localProject.meta?.name || 'Unbenannt';
             this.loadProject(localProject, 'game-server/public/platform/project.json');
-            Editor.logger.info('Restored from LocalStorage (no server available)');
-        } else if (serverProject) {
-            // Nur Server vorhanden
-            localStorage.setItem('gcs_last_project', JSON.stringify(serverProject));
-            this.loadProject(serverProject, 'game-server/public/platform/project.json');
-            Editor.logger.info('Loaded from server (no LocalStorage)');
-        } else {
-            // Nichts vorhanden
-            this.switchView('stage');
+            Editor.logger.info(`Projekt aus LocalStorage geladen: "${name}"`);
+            return;
         }
-    }
 
-    /**
-     * Zeigt einen modalen Dialog zur Auswahl zwischen LocalStorage- und Server-Projekt.
-     * Gibt 'local' oder 'server' zurück.
-     */
-    private showRestoreDialog(localName: string, serverName: string, localSaveTime: string): Promise<'local' | 'server'> {
-        return new Promise((resolve) => {
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.6); z-index: 99999;
-                display: flex; align-items: center; justify-content: center;
-            `;
-
-            const dialog = document.createElement('div');
-            dialog.style.cssText = `
-                background: #1e1e2e; color: #cdd6f4; border-radius: 12px;
-                padding: 28px 32px; max-width: 480px; width: 90%;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-family: 'Segoe UI', sans-serif;
-            `;
-
-            dialog.innerHTML = `
-                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: #89b4fa;">
-                    🔄 Projekt wiederherstellen
-                </h3>
-                <p style="margin: 0 0 8px 0; font-size: 14px; line-height: 1.5;">
-                    Es wurde eine <strong>lokale Version</strong> im Browser gefunden, die sich von der
-                    Server-Datei unterscheidet.
-                </p>
-                <div style="background: #313244; border-radius: 8px; padding: 12px 16px; margin: 16px 0; font-size: 13px;">
-                    <div style="margin-bottom: 6px;">
-                        <span style="color: #a6adc8;">📂 Lokal:</span>
-                        <strong style="color: #a6e3a1;">${localName}</strong>
-                        <span style="color: #6c7086; margin-left: 8px;">(${localSaveTime})</span>
-                    </div>
-                    <div>
-                        <span style="color: #a6adc8;">🌐 Server:</span>
-                        <strong style="color: #89b4fa;">${serverName}</strong>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 12px; margin-top: 20px;">
-                    <button id="gcs-restore-local" style="
-                        flex: 1; padding: 10px 16px; border: none; border-radius: 8px;
-                        background: #a6e3a1; color: #1e1e2e; font-weight: 600;
-                        cursor: pointer; font-size: 14px; transition: opacity 0.2s;
-                    ">📂 Lokale Version laden</button>
-                    <button id="gcs-restore-server" style="
-                        flex: 1; padding: 10px 16px; border: none; border-radius: 8px;
-                        background: #89b4fa; color: #1e1e2e; font-weight: 600;
-                        cursor: pointer; font-size: 14px; transition: opacity 0.2s;
-                    ">🌐 Server-Version laden</button>
-                </div>
-            `;
-
-            overlay.appendChild(dialog);
-            document.body.appendChild(overlay);
-
-            const cleanup = () => {
-                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-            };
-
-            dialog.querySelector('#gcs-restore-local')!.addEventListener('click', () => {
-                cleanup();
-                resolve('local');
-            });
-
-            dialog.querySelector('#gcs-restore-server')!.addEventListener('click', () => {
-                cleanup();
-                resolve('server');
-            });
-        });
+        // 3. Kein LocalStorage → leeres Projekt (User hat Cache gelöscht)
+        Editor.logger.info('Kein LocalStorage-Projekt gefunden → neues leeres Projekt');
+        this.switchView('stage');
     }
 
 

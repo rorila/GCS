@@ -421,6 +421,12 @@ export class EditorDataManager {
         setTimeout(() => {
             this.host.updateStagesMenu();
             this.updateProjectPathDisplay();
+
+            // Stage-Eigenschaften im Inspector anzeigen (nach Projekt-Laden)
+            const activeStage = this.host.getActiveStage();
+            if (activeStage && this.host.inspector) {
+                this.host.inspector.update(activeStage);
+            }
         }, 200);
     }
 
