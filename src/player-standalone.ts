@@ -161,7 +161,7 @@ class UniversalPlayer implements StageHost {
             // Default: Show Platform UI
             console.log('[UniversalPlayer] No game selected, loading platform UI...');
             const baseUrl = network.getHttpUrl();
-            await this.loadProjectFromUrl(`${baseUrl}/platform/project.json`);
+            await this.loadProjectFromUrl(`${baseUrl}/projects/project.json`);
         }
     }
 

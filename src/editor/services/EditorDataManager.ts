@@ -72,10 +72,12 @@ export class EditorDataManager {
         try {
             const result = await projectPersistenceService.triggerLoad();
             if (result) {
-                // KEIN expliziter sourcePath → loadProject liest meta._sourcePath aus dem JSON.
-                // Der Browser-File-Dialog gibt keinen Ordnerpfad preis.
-                EditorDataManager.logger.info(`[triggerLoad] Datei geladen: ${result.filename}`);
-                this.loadProject(result.data);
+                // Beim Laden über File-Dialog: IMMER den Dateinamen als Pfad verwenden.
+                // Der _sourcePath in der Datei kann veraltet sein (Datei wurde kopiert/verschoben).
+                // Fester Speicherort: projects/<Dateiname>
+                const sourcePath = `projects/${result.filename}`;
+                EditorDataManager.logger.info(`[triggerLoad] Datei geladen: ${result.filename}, Pfad: ${sourcePath}`);
+                this.loadProject(result.data, sourcePath);
             }
         } catch (err) {
             alert("Error loading project: " + err);
@@ -306,8 +308,15 @@ export class EditorDataManager {
         } else if (data.meta?.name) {
             // Letzter Fallback: Pfad aus Projektnamen konstruieren
             const safeName = data.meta.name.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
-            this.currentSavePath = `projects/master_test/${safeName}.json`;
+            this.currentSavePath = `projects/${safeName}.json`;
             EditorDataManager.logger.info(`[LoadProject] Quellpfad aus meta.name abgeleitet: ${this.currentSavePath}`);
+        }
+
+        // _sourcePath in Metadaten zurückschreiben, damit er im LocalStorage erhalten bleibt
+        if (this.currentSavePath) {
+            if (!data.meta) data.meta = {};
+            data.meta._sourcePath = this.currentSavePath;
+            EditorDataManager.logger.info(`[LoadProject] _sourcePath in Metadaten gesetzt: ${this.currentSavePath}`);
         }
 
         // Reset dirty flag after successful load

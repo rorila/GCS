@@ -1,6 +1,6 @@
 {
   "meta": {
-    "name": "PingPong2",
+    "name": "PingPong",
     "version": "1.0.0",
     "author": "RoRiLa",
     "_sourcePath": "game-server/public/platform/project.json"
@@ -257,21 +257,34 @@
       "actions": [
         {
           "name": "EnableSpriteMoving",
-          "details": "",
-          "type": "action",
-          "showDetails": false
+          "type": "property",
+          "target": "GameState",
+          "changes": {
+            "spritesMoving": true
+          },
+          "description": "Aktiviert die Physik-Engine im GameLoopManager",
+          "hostOnly": true
         },
         {
           "name": "EnableCollisions",
-          "details": "",
-          "type": "action",
-          "showDetails": false
+          "type": "property",
+          "target": "GameState",
+          "changes": {
+            "collisionsEnabled": true
+          },
+          "description": "Aktiviert Kollisionserkennung zwischen Sprites",
+          "hostOnly": true
         },
         {
           "name": "SetBallVelocity",
-          "details": "",
-          "type": "action",
-          "showDetails": false
+          "type": "property",
+          "target": "BallSprite",
+          "changes": {
+            "velocityX": 0.3,
+            "velocityY": 0.3
+          },
+          "description": "Ball bewegt sich diagonal nach rechts-unten",
+          "hostOnly": true
         },
         {
           "name": "SetLeftPaddleVelUp",
@@ -1083,50 +1096,20 @@
           "description": "Startet das Spiel bei Klick auf StartBtn",
           "actionSequence": [
             {
-              "name": "EnableSpriteMoving",
-              "type": "action"
+              "type": "action",
+              "name": "EnableSpriteMoving"
             },
             {
-              "condition": "Bedingung",
-              "type": "condition",
-              "body": [
-                {
-                  "name": "EnableCollisions",
-                  "type": "action"
-                }
-              ],
-              "elseBody": [
-                {
-                  "name": "SetBallVelocity",
-                  "type": "action"
-                }
-              ]
+              "type": "action",
+              "name": "EnableCollisions"
+            },
+            {
+              "type": "action",
+              "name": "SetBallVelocity"
             }
           ],
           "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "StartTheGame": {
-              "x": 440,
-              "y": 80
-            },
-            "EnableSpriteMoving": {
-              "x": 300,
-              "y": 200
-            },
-            "EnableCollisions": {
-              "x": 740,
-              "y": 320
-            },
-            "SetBallVelocity": {
-              "x": 380,
-              "y": 480
-            },
-            "condition": {
-              "x": 460,
-              "y": 320
-            }
-          }
+          "params": []
         },
         {
           "name": "MoveLeftPaddleUp",

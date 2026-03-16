@@ -245,8 +245,9 @@ export class Editor implements IViewHost {
         // 2. LocalStorage vorhanden → direkt laden (Priorität!)
         if (localProject) {
             const name = localProject.meta?.name || 'Unbenannt';
-            this.loadProject(localProject, 'game-server/public/platform/project.json');
-            Editor.logger.info(`Projekt aus LocalStorage geladen: "${name}"`);
+            const sourcePath = localProject.meta?._sourcePath || `projects/${(localProject.meta?.name || 'Unbenannt').replace(/[^a-zA-Z0-9_\\-]/g, '_')}.json`;
+            this.loadProject(localProject, sourcePath);
+            Editor.logger.info(`Projekt aus LocalStorage geladen: "${name}" (Pfad: ${sourcePath})`);
             return;
         }
 
