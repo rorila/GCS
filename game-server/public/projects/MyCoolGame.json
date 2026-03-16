@@ -4,17 +4,7 @@
     "version": "1.0.0",
     "author": "GCS-Team",
     "description": "Das ist mein cooles Spiel",
-    "_sourcePath": "projects/Neues_Spiel.json"
-  },
-  "stage": {
-    "grid": {
-      "cols": 64,
-      "rows": 40,
-      "cellSize": 20,
-      "snapToGrid": true,
-      "visible": true,
-      "backgroundColor": "#ffffff"
-    }
+    "_sourcePath": "projects/MyCoolGame.json"
   },
   "flow": {
     "elements": [],
@@ -101,8 +91,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         }
       ],
@@ -119,40 +109,7 @@
       "id": "main",
       "name": "MainStage",
       "type": "main",
-      "objects": [
-        {
-          "className": "TButton",
-          "id": "obj_1773686171014_8c22befo2",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "name": "Button_3",
-          "scope": "global",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1,
-            "fontSize": 14,
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "fontFamily": "Arial"
-          },
-          "text": "Button_3",
-          "icon": ""
-        }
-      ],
+      "objects": [],
       "actions": [
         {
           "name": "ShowTheHighscoreStage",
@@ -198,7 +155,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1773686164114",
+      "id": "stage-1773685660117",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],

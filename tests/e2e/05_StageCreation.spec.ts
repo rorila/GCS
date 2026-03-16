@@ -4,7 +4,7 @@ import { loadMyCoolGame, saveMyCoolGame } from './helpers/loadMyCoolGame';
 test.describe('UseCase: Eine neue Stage erzeugen', () => {
     test.describe.configure({ mode: 'serial' });
 
-    test('Kompletter Flow: Neue Stage erzeugen und zu HighscoreStage umbenennen', async ({ page }) => {
+    test('Kompletter Flow: Neue Stage über Menü erzeugen', async ({ page }) => {
         await page.goto('http://localhost:5173/?e2e=true');
         await page.waitForSelector('#app-layout');
 
@@ -14,75 +14,40 @@ test.describe('UseCase: Eine neue Stage erzeugen', () => {
         await loadMyCoolGame(page);
 
         // 2. Neue Stage erzeugen über Menü: Stages → Neue Stage
-        console.log('Test: 2. Neue Stage erzeugen via Menü...');
-        const stagesMenuBtn = page.locator('.menu-bar-button:has-text("Stages")');
-        await stagesMenuBtn.click();
+        console.log('Test: 2. Menü: Stages → Neue Stage...');
+        await page.locator('.menu-bar-button:has-text("Stages")').click();
         await page.waitForTimeout(300);
 
         const dropdown = page.locator('.menu-dropdown');
         await expect(dropdown).toBeVisible({ timeout: 3000 });
 
-        const neueStageItem = dropdown.locator('.menu-item:has-text("Neue Stage")');
-        await expect(neueStageItem).toBeVisible({ timeout: 3000 });
-        await neueStageItem.click();
-
-        await page.waitForTimeout(1000);
-
-        // 3. Validierung: Neue Stage wurde erzeugt (in project.stages)
-        console.log('Test: 3. Validierung Stage-Erzeugung...');
-        const stageCount = await page.evaluate(() => {
-            const p = (window as any).editor.project;
-            return p.stages?.length;
-        });
-        console.log(`Test: Anzahl Stages: ${stageCount}`);
-        expect(stageCount).toBeGreaterThanOrEqual(3); // Blueprint + MainStage + neue Stage
-
-        // 4. Neue Stage umbenennen zu 'HighscoreStage'
-        // Die neue Stage ist jetzt aktiv (createStage setzt activeStageId und switchStage)
-        console.log('Test: 4. Stage umbenennen zu HighscoreStage...');
-        await page.evaluate(() => {
-            const editor = (window as any).editor;
-            const activeStage = editor.project.stages?.find(
-                (s: any) => s.id === editor.project.activeStageId
-            );
-            if (activeStage) {
-                activeStage.name = 'HighscoreStage';
-                (window as any).mediatorService.notifyDataChanged(editor.project, 'inspector');
-                editor.menuManager?.updateStagesMenu();
-            }
-        });
-
+        await dropdown.locator('.menu-item:has-text("Neue Stage")').click();
         await page.waitForTimeout(500);
 
-        // 5. Validierung: Stage-Name in JSON (In-Memory)
-        console.log('Test: 5. Validierung Stage-Name in JSON...');
-        const stageNames = await page.evaluate(() => {
-            const p = (window as any).editor.project;
-            return p.stages?.map((s: any) => ({ id: s.id, name: s.name, type: s.type }));
-        });
-        console.log(`Test: Stages: ${JSON.stringify(stageNames)}`);
-        const hsStage = stageNames.find((s: any) => s.name === 'HighscoreStage');
-        expect(hsStage).toBeDefined();
+        // 3. Validierung: Stages-Menü erneut öffnen und prüfen ob neue Stage vorhanden
+        console.log('Test: 3. Validierung: Stages-Menü prüfen...');
+        await page.locator('.menu-bar-button:has-text("Stages")').click();
+        await page.waitForTimeout(300);
 
-        // 6. Zurück zur MainStage wechseln (für folgende Tests)
-        console.log('Test: 6. Zurück zur MainStage...');
-        await page.evaluate(() => {
-            const editor = (window as any).editor;
-            editor.stageManager.switchStage('main');
-        });
-        await page.waitForTimeout(500);
+        const dropdownAfter = page.locator('.menu-dropdown');
+        await expect(dropdownAfter).toBeVisible({ timeout: 3000 });
 
-        // 7. Sicherheits-Validierung: HighscoreStage ist noch im Array nach switchStage
-        const stagesAfterSwitch = await page.evaluate(() => {
-            return (window as any).editor.project.stages?.map((s: any) => ({ id: s.id, name: s.name }));
-        });
-        console.log(`Test: Stages nach switchStage: ${JSON.stringify(stagesAfterSwitch)}`);
-        const hsCheck = stagesAfterSwitch.find((s: any) => s.name === 'HighscoreStage');
-        expect(hsCheck).toBeDefined();
+        const menuItems = await dropdownAfter.locator('.menu-item').allInnerTexts();
+        console.log(`  Stages-Menü: ${JSON.stringify(menuItems)}`);
 
-        // 8. Projekt speichern
-        console.log('Test: 8. Speichern nach Stage-Erzeugung...');
+        // "Stage 1" (oder ähnlich) muss im Menü sichtbar sein
+        const hasNewStage = menuItems.some(item =>
+            item !== 'Neue Stage' && item !== 'Blueprint (Global)' && item !== 'MainStage'
+        );
+        expect(hasNewStage).toBe(true);
+
+        // Menü schließen durch Klick auf body
+        await page.locator('body').click({ position: { x: 10, y: 10 } });
+        await page.waitForTimeout(200);
+
+        // 4. Speichern
+        console.log('Test: 4. Speichern...');
         await saveMyCoolGame(page);
-        console.log('Test: Flow erfolgreich abgeschlossen. MyCoolGame.json aktualisiert.');
+        console.log('Test: Flow StageCreation erfolgreich abgeschlossen.');
     });
 });

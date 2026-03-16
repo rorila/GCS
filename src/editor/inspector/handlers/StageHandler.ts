@@ -109,6 +109,25 @@ export class StageHandler implements IInspectorHandler {
     handlePropertyChange(event: PropertyChangeEvent, _project: GameProject, _runtime: ReactiveRuntime): boolean {
         let { propertyName, newValue, object } = event;
 
+        // META-FELDER: gameName, author, description → project.meta umleiten
+        if (propertyName === 'gameName' && _project?.meta) {
+            _project.meta.name = newValue as string;
+            return true;
+        }
+        if (propertyName === 'author' && _project?.meta) {
+            _project.meta.author = newValue as string;
+            return true;
+        }
+        if (propertyName === 'description') {
+            // description kann Stage-Beschreibung oder Meta-Beschreibung sein
+            // Bei main-Stage: auch in meta.description schreiben
+            if (object?.type === 'main' && _project?.meta) {
+                _project.meta.description = newValue as string;
+            }
+            PropertyHelper.setPropertyValue(object, propertyName, newValue);
+            return true;
+        }
+
         // FIX: Strip 'activeStage.' prefix if present (template artifact)
         if (propertyName.startsWith('activeStage.')) {
             propertyName = propertyName.replace('activeStage.', '');

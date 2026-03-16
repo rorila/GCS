@@ -490,14 +490,6 @@ h2 {
   transform: translateY(-50%) scale(1.5) !important;
 }
 
-.flow-node-glass.pulse-glow {
-  animation: pulse-glass 3s infinite ease-in-out !important;
-}
-
-/* Blue/White Glass (Start) */
-.glass-node-start {
-  box-shadow: 0 8px 32px 0 rgba(0, 50, 100, 0.4) !important;
-}
 
 /* Green Glass (Task) */
 .glass-node-task {
@@ -556,9 +548,6 @@ h2 {
 }
 
 /* Color specific Halo (optional fine-tuning) */
-.glass-node-start::before {
-  border-color: rgba(255, 255, 255, 0.45);
-}
 
 .glass-node-task::before {
   border-color: rgba(46, 139, 87, 0.4);
@@ -597,29 +586,6 @@ h2 {
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
 }
 
-.start-icon-modern {
-  font-size: 24px;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
-  margin-top: -2px;
-}
-
-@keyframes pulse-glass {
-  0% {
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 0 0 5px rgba(255, 255, 255, 0.1);
-  }
-
-  50% {
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.3);
-  }
-
-  100% {
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 0 0 5px rgba(255, 255, 255, 0.1);
-  }
-}
-
-.glass-node-start.pulse-glow {
-  animation: pulse-glass 3s infinite ease-in-out !important;
-}
 
 /* Hatched pattern for linked library tasks */
 .is-linked::after {

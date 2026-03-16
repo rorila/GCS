@@ -15,6 +15,10 @@ export class InspectorEventHandler {
         private project: GameProject
     ) { }
 
+    public setProject(project: GameProject): void {
+        this.project = project;
+    }
+
     /**
      * Handles a change from an inspector input/control
      * @param controlName The 'name' property of the HTML control (e.g. "NameInput")

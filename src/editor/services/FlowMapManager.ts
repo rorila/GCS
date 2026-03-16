@@ -4,7 +4,7 @@ import { FlowAction } from '../flow/FlowAction';
 import { FlowTask } from '../flow/FlowTask';
 import { FlowComponent } from '../flow/FlowComponent';
 import { FlowVariable } from '../flow/FlowVariable';
-import { FlowStart } from '../flow/FlowStart';
+
 import { FlowConnection } from '../flow/FlowConnection';
 import { libraryService } from '../../services/LibraryService';
 import { projectRegistry } from '../../services/ProjectRegistry';
@@ -286,7 +286,7 @@ export class FlowMapManager {
         // 2. Render Headers
         const headerY = Math.round(20 / gridSize) * gridSize;
         const createHeader = (id: string, x: number, text: string, color: string, width: number) => {
-            const header = new FlowStart(id, x, headerY, this.host.canvas, gridSize);
+            const header = new FlowTask(id, x, headerY, this.host.canvas, gridSize);
             header.Text = text;
             header.Width = width;
             header.Height = 40;

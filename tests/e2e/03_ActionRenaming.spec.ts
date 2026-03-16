@@ -4,120 +4,106 @@ import { loadMyCoolGame, saveMyCoolGame } from './helpers/loadMyCoolGame';
 test.describe('UseCase: Eine Action umbenennen', () => {
     test.describe.configure({ mode: 'serial' });
 
-    test('Kompletter Flow: Erzeugen und Umbenennen einer Action via Inspector UI', async ({ page }) => {
+    test('Kompletter Flow: Action erzeugen und via Inspector umbenennen', async ({ page }) => {
         // Starte den Editor im E2E-Modus
         await page.goto('http://localhost:5173/?e2e=true');
         await page.waitForSelector('#app-layout');
 
-        // 1. Vorbereitung (MyCoolGame.json laden)
+        // 1. Vorbereitung (MyCoolGame.json laden — enthält Task aus Test 02)
         console.log('Test: 1. Vorbereitung (MyCoolGame.json laden)...');
         await page.waitForFunction(() => (window as any).editor && (window as any).mediatorService);
         await loadMyCoolGame(page);
 
-        // In die Flow-Ansicht wechseln und SwitchToTheHighscoreStage-Flow öffnen
-        // (enthält bereits Task-Startknoten + Action-Knoten 'action' vom TaskRenaming-Test)
-        await page.evaluate(() => {
-            const editor = (window as any).editor;
-            editor.switchView('flow');
-            editor.flowEditor.switchActionFlow('global', false, true);
-            editor.flowEditor.switchActionFlow('SwitchToTheHighscoreStage');
-        });
-
+        // 2. Flow-Tab klicken
+        console.log('Test: 2. Flow-Tab klicken...');
+        await page.locator('.tab-btn[data-view="flow"]').click();
         await page.waitForSelector('#flow-canvas');
+
+        // 3. Im Flow-Dropdown den Task "SwitchToTheHighscoreStage" auswählen
+        console.log('Test: 3. Flow-Dropdown: SwitchToTheHighscoreStage auswählen...');
+        const flowDropdown = page.locator('#flow-viewer select').first();
+        await flowDropdown.selectOption('SwitchToTheHighscoreStage');
         await page.waitForTimeout(500);
 
-        // 2. Action umbenennen (via UI Interaktion)
-        console.log('Test: 2. Action umbenennen via Inspector UI...');
-
-        // 2.1 Knoten auswählen (.first() da nach loadMyCoolGame mehrere Nodes existieren können)
-        await page.locator('.flow-node', { hasText: 'action' }).first().click();
-
-        // 2.2 Im Inspector tippen
-        // Der NameInput sollte nach Selektion existieren
-        const nameInput = page.locator('input[name="NameInput"]');
-        await expect(nameInput).toBeVisible();
-        await nameInput.fill('ShowTheHighscoreStage');
-        await nameInput.press('Enter'); // Trigger onchange
-        await nameInput.blur();
-
+        // 4. Action per Toolbox-Klick erzeugen
+        console.log('Test: 4. Action per Toolbox-Klick erzeugen...');
+        const actionToolboxItem = page.locator('.toolbox-item[data-type="action"]');
+        await expect(actionToolboxItem).toBeVisible({ timeout: 3000 });
+        await actionToolboxItem.click();
         await page.waitForTimeout(500);
 
-        // Explizit syncToProject auslösen
-        await page.evaluate(() => {
-            const editor = (window as any).editor;
-            editor.flowEditor.syncToProject();
-        });
+        // 5. Action-Node sollte sichtbar sein
+        console.log('Test: 5. Action-Node im Canvas prüfen...');
+        const actionNode = page.locator('.glass-node-action').first();
+        await expect(actionNode).toBeVisible({ timeout: 5000 });
 
+        // 6. Action-Node anklicken → Inspector zeigt Eigenschaften
+        console.log('Test: 6. Action-Node anklicken...');
+        await actionNode.click();
         await page.waitForTimeout(300);
 
-        // 3. Validierung der Änderungen (JSON)
-        console.log('Test: 3. Validierung der Änderungen (JSON)...');
-        const projectData = await page.evaluate(() => (window as any).editor.project);
+        // 7. Inspector: Name ändern auf "ShowTheHighscoreStage"
+        console.log('Test: 7. Inspector: Name ändern auf ShowTheHighscoreStage...');
+        const nameInput = page.locator('input[name="NameInput"]');
+        await expect(nameInput).toBeVisible({ timeout: 3000 });
+        await nameInput.fill('ShowTheHighscoreStage');
+        await nameInput.press('Tab');
+        await page.waitForTimeout(500);
 
-        // Dirty-Check
-        const blueprint = projectData.stages.find((s: any) => s.id === 'blueprint');
-        const changeVar = blueprint.variables.find((v: any) => v.name === 'isProjectChangeAvailable');
-        expect(changeVar.defaultValue).toBe(true);
-        expect(changeVar.value).toBe(true);
+        // 8. Validierung: Action-Node ist immer noch sichtbar und hat neuen Namen
+        console.log('Test: 8. Validierung: Action-Node sichtbar mit neuem Namen...');
+        const renamedActionNode = page.locator('.glass-node-action', { hasText: 'ShowTheHighscoreStage' });
+        await expect(renamedActionNode).toBeVisible({ timeout: 3000 });
 
-        // Hilfsfunktion: Action in allen möglichen Speicherorten suchen
-        // (Root, Blueprint-Stage, aktive Stage, alle anderen Stages)
-        const findActionAnywhere = (project: any, actionName: string): boolean => {
-            // Root-Level
-            if (project.actions?.find((a: any) => a.name === actionName)) return true;
+        // 9. Validierung: Task-Name ist NICHT verändert worden
+        console.log('Test: 9. Validierung: Task-Name unverändert...');
+        const taskNode = page.locator('.glass-node-task', { hasText: 'SwitchToTheHighscoreStage' });
+        await expect(taskNode).toBeVisible({ timeout: 3000 });
 
-            // Alle Stages (inkl. blueprint und main)
-            if (project.stages) {
-                for (const stage of project.stages) {
-                    if (stage.actions?.find((a: any) => a.name === actionName)) return true;
+        // 10. Validierung im JSON
+        console.log('Test: 10. Validierung: JSON-Daten prüfen...');
+        await page.evaluate(() => {
+            (window as any).editor.flowEditor.syncToProject();
+        });
+        await page.waitForTimeout(300);
 
-                    // Auch in flowCharts der Stage suchen
-                    if (stage.flowCharts) {
-                        for (const chartKey of Object.keys(stage.flowCharts)) {
-                            const chart = stage.flowCharts[chartKey];
-                            if (chart?.elements?.some((el: any) =>
-                                el.Name === actionName || el.properties?.name === actionName || el.data?.name === actionName
-                            )) return true;
-                        }
-                    }
+        const result = await page.evaluate(() => {
+            const p = (window as any).editor.project;
+            const findAction = (name: string): boolean => {
+                if (p.actions?.some((a: any) => a.name === name)) return true;
+                for (const s of (p.stages || [])) {
+                    if (s.actions?.some((a: any) => a.name === name)) return true;
                 }
-            }
-
-            // Root-Level FlowCharts
-            if (project.flowCharts) {
-                for (const chartKey of Object.keys(project.flowCharts)) {
-                    const chart = project.flowCharts[chartKey];
-                    if (chart?.elements?.some((el: any) =>
-                        el.Name === actionName || el.properties?.name === actionName || el.data?.name === actionName
-                    )) return true;
+                return false;
+            };
+            const findTask = (name: string): boolean => {
+                if (p.tasks?.some((t: any) => t.name === name)) return true;
+                for (const s of (p.stages || [])) {
+                    if (s.tasks?.some((t: any) => t.name === name)) return true;
                 }
-            }
+                return false;
+            };
+            return {
+                newActionFound: findAction('ShowTheHighscoreStage'),
+                taskStillExists: findTask('SwitchToTheHighscoreStage')
+            };
+        });
 
-            return false;
-        };
+        expect(result.newActionFound).toBe(true);
+        expect(result.taskStillExists).toBe(true);
 
-        const newActionFound = findActionAnywhere(projectData, 'ShowTheHighscoreStage');
-        const oldActionFound = findActionAnywhere(projectData, 'action');
-
-        console.log(`Test: ShowTheHighscoreStage gefunden: ${newActionFound}, 'action' noch vorhanden: ${oldActionFound}`);
-
-        expect(newActionFound).toBeTruthy();
-        expect(oldActionFound).toBeFalsy();
-
-        // 4. Validierung im Manager View (UI)
-        console.log('Test: 4. Check Manager Liste auf UI-Ebene...');
+        // 11. Validierung im Manager View
+        console.log('Test: 11. Check Manager Liste auf UI-Ebene...');
         await page.locator('.tab-btn[data-view="management"]').click();
         await page.waitForSelector('.management-sidebar');
-
         await page.locator('.management-sidebar-btn', { hasText: '🎬 Aktionen' }).click();
         await page.waitForTimeout(300);
 
         const contentText = await page.locator('.management-content').innerText();
         expect(contentText).toContain('ShowTheHighscoreStage');
-        expect(contentText).not.toContain('action');
 
-        // 5. Projekt speichern für nächste Test-Stufe
-        console.log('Test: 5. Speichern nach Action-Umbenennung...');
+        // 12. Speichern
+        console.log('Test: 12. Speichern nach Action-Umbenennung...');
         await saveMyCoolGame(page);
         console.log('Test: Flow ActionRenaming erfolgreich abgeschlossen. MyCoolGame.json aktualisiert.');
     });

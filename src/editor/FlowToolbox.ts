@@ -2,6 +2,7 @@ import { DnDHelper } from './utils/DnDHelper';
 
 export class FlowToolbox {
     private container: HTMLElement;
+    public onItemClick: ((type: string) => void) | null = null;
 
     constructor(containerId: string) {
         const el = document.getElementById(containerId);
@@ -28,9 +29,7 @@ export class FlowToolbox {
             { label: 'For Loop', icon: '🔄', type: 'For' },
             { label: 'While Loop', icon: '💫', type: 'While' },
             { label: 'Repeat Until', icon: '🔁', type: 'Repeat' },
-            { label: 'Pfeil', icon: '🔗', type: 'Connection' },
-            { label: 'Start', icon: '🏁', type: 'start' },
-            { label: 'End', icon: '🛑', type: 'End' }
+            { label: 'Pfeil', icon: '🔗', type: 'Connection' }
         ];
 
         const list = document.createElement('div');
@@ -65,6 +64,13 @@ export class FlowToolbox {
             // Hover effect
             btn.onmouseenter = () => { btn.style.backgroundColor = '#444'; btn.style.borderColor = '#666'; };
             btn.onmouseleave = () => { btn.style.backgroundColor = '#333'; btn.style.borderColor = '#444'; };
+
+            // Click-Handler: Erzeugt Node direkt auf dem Canvas (Alternative zu Drag&Drop)
+            btn.onclick = () => {
+                if (this.onItemClick) {
+                    this.onItemClick(item.type);
+                }
+            };
 
             list.appendChild(btn);
 

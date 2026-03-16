@@ -248,8 +248,10 @@ export class EditorCommandManager {
             // 1. Notify FlowEditor BEFORE refactoring. 
             if (this.editor.flowEditor) {
                 const type = (obj.getType?.() || obj.type || '').toLowerCase();
-                const isFlowNode = obj.className === 'TTask' || type === 'task' || obj.className === 'TAction' || type === 'action';
-                if (isFlowNode) {
+                const isTask = obj.className === 'TTask' || type === 'task';
+                // renameContext NUR für Tasks — es ändert den Flow-Kontext (Task-Name).
+                // Für Actions darf es NICHT aufgerufen werden, sonst wird der Task mit umbenannt.
+                if (isTask) {
                     this.editor.flowEditor.renameContext(oldName, newName);
                 }
             }
@@ -275,7 +277,10 @@ export class EditorCommandManager {
 
             // 4. Update UI & Notify (Manager-Liste, Dropdown, etc.)
             // Trigger View-Updates (Flow-Dropdown, Stage, Inspector)
-            this.editor.renderManager.refreshAllViews('editor');
+            // WICHTIG: 'inspector' Originator verwenden, damit der FlowEditor
+            // NICHT per setProject() komplett neu geladen wird.
+            // Der Flow-Canvas wurde bereits durch renameContext() korrekt aktualisiert.
+            this.editor.renderManager.refreshAllViews('inspector');
 
             // Trigger Management-View Refresh (Manager-Liste) via Mediator
             mediatorService.notifyDataChanged(this.editor.project, 'editor');

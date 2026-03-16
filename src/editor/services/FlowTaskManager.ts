@@ -176,7 +176,7 @@ export class FlowTaskManager {
         };
 
         const activeStage = this.host.getActiveStage();
-        if (activeStage && activeStage.type !== 'main') {
+        if (activeStage) {
             if (!activeStage.tasks) activeStage.tasks = [];
             activeStage.tasks.push(newTask);
         } else {

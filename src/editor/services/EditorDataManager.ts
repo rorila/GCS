@@ -176,8 +176,18 @@ export class EditorDataManager {
         // --- Schritt 3: Pfad-Konstruktion und Datei-Existenz-Prüfung ---
         // Spielname bereinigen (Sonderzeichen entfernen, für Dateiname geeignet)
         const safeGameName = gameName.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim().replace(/\s+/g, '_');
-        // Dynamischer Pfad: nutze currentSavePath oder Fallback
-        const targetFilePath = this.currentSavePath || `projects/master_test/${safeGameName}.json`;
+        // Pfad: Ordner aus currentSavePath übernehmen, Dateiname IMMER aus aktuellem meta.name
+        let targetFilePath: string;
+        if (this.currentSavePath) {
+            // Ordner-Anteil beibehalten, Dateiname aus meta.name
+            const folder = this.currentSavePath.substring(0, this.currentSavePath.lastIndexOf('/'));
+            targetFilePath = `${folder}/${safeGameName}.json`;
+            // currentSavePath aktualisieren damit er konsistent bleibt
+            this.currentSavePath = targetFilePath;
+        } else {
+            targetFilePath = `projects/master_test/${safeGameName}.json`;
+            this.currentSavePath = targetFilePath;
+        }
 
         try {
             const existsRes = await fetch('/api/dev/check-exists', {

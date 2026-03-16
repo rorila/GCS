@@ -20,6 +20,7 @@ export interface FlowInteractionHost {
     deleteNode(node: FlowElement): void;
     deleteConnection(conn: FlowConnection): void;
     syncToProject(): void;
+    formatLayout?(): void;
     syncManager?: any;
     deselectAll(emitEvent?: boolean): void;
     selectConnection(conn: FlowConnection | null): void;
@@ -482,6 +483,10 @@ export class FlowInteractionManager {
             // Trigger immediate logic sync for connections
             if (this.host.syncManager) {
                 this.host.syncManager.syncToProject(this.host.currentFlowContext);
+            }
+            // Auto-Formatierung nach Verbindungsherstellung
+            if (this.host.formatLayout) {
+                setTimeout(() => this.host.formatLayout!(), 50);
             }
 
             // Re-select to update Inspector with final attachment state

@@ -429,6 +429,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     }
 
     public setProject(project: GameProject) {
+        console.warn('[DEBUG-RENAME] >>> setProject() aufgerufen!', new Error().stack);
         this.project = project;
         if (!this.project.actions) this.project.actions = [];
         if (!this.project.tasks) this.project.tasks = [];
@@ -830,6 +831,16 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         this.syncManager.syncToProject(this.currentFlowContext);
     }
 
+    /**
+     * Formatiert das Layout des aktuellen Flow-Diagramms.
+     * Wird nach Verbindungsherstellung automatisch aufgerufen.
+     */
+    public formatLayout() {
+        if (this.currentFlowContext !== 'global' && this.nodes.length > 1) {
+            this.hydrationManager.formatOrthogonalLayout();
+        }
+    }
+
     /** Nur synchronisieren wenn tatsächlich Änderungen vorgenommen wurden.
      *  Wird von switchView() aufgerufen, NICHT von internen Service-Managern. */
     public syncToProjectIfDirty() {
@@ -844,6 +855,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     // syncTaskParameters, syncTaskParamValues, syncVariablesFromFlow, syncTaskFromFlow sind nun im SyncManager.
 
     public loadFromProject(contextName?: string) {
+        console.warn('[DEBUG-RENAME] >>> loadFromProject() aufgerufen! context=', contextName, new Error().stack);
         this.hydrationManager.loadFromProject(contextName);
     }
 

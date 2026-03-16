@@ -12,7 +12,7 @@ import { FlowRangeVariable } from '../flow/FlowRangeVariable';
 import { FlowListVariable } from '../flow/FlowListVariable';
 import { FlowRandomVariable } from '../flow/FlowRandomVariable';
 import { FlowLoop } from '../flow/FlowLoop';
-import { FlowStart } from '../flow/FlowStart';
+
 import { GameProject } from '../../model/types';
 import { RefactoringManager } from '../RefactoringManager';
 import { projectRegistry } from '../../services/ProjectRegistry';
@@ -157,10 +157,7 @@ export class FlowGraphManager {
                 (node as FlowLoop).updateVisuals?.();
                 break;
             }
-            case 'start':
-                node = new FlowStart(id, x, y, this.host.canvas, this.host.flowStage.cellSize);
-                node.Name = 'Start';
-                break;
+
             case 'Connection': {
                 const conn = new FlowConnection(this.host.canvas, x, y, x + 100, y + 50);
                 conn.setGridConfig(this.host.flowStage.cellSize);

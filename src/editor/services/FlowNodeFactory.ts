@@ -1,7 +1,7 @@
 import { FlowElement } from '../flow/FlowElement';
 import { FlowAction } from '../flow/FlowAction';
 import { FlowTask } from '../flow/FlowTask';
-import { FlowStart } from '../flow/FlowStart';
+
 import { FlowCondition } from '../flow/FlowCondition';
 import { FlowDataAction } from '../flow/FlowDataAction';
 import { FlowConnection } from '../flow/FlowConnection';
@@ -158,10 +158,7 @@ export class FlowNodeFactory {
                 node.Name = type;
                 (node as FlowLoop).updateVisuals?.();
                 break;
-            case 'start':
-                node = new FlowStart(id, x, y, this.host.canvas, cellSize);
-                node.Name = 'Start';
-                break;
+
             case 'connection': {
                 console.log(`[FlowEditor] Erstelle freifliegende Connection bei ${x}, ${y}`);
                 const conn = new FlowConnection(this.host.canvas, x, y, x + 100, y + 50);

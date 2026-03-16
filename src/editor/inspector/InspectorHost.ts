@@ -968,6 +968,10 @@ export class InspectorHost {
      */
     public setProject(project: GameProject): void {
         this.project = project;
+        // KRITISCH: EventHandler muss die neue Projekt-Referenz bekommen,
+        // sonst zeigt er auf das alte Projekt (z.B. nach newProject/loadProject).
+        // Ohne diesen Fix werden Meta-Felder (gameName, author) auf dem alten Projekt gesetzt.
+        if (this.eventHandler) this.eventHandler.setProject(project);
     }
 
     // Handlers/Callbacks for Editor.ts

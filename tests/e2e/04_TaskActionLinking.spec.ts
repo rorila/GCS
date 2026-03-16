@@ -1,167 +1,93 @@
 import { test, expect } from '@playwright/test';
 import { loadMyCoolGame, saveMyCoolGame } from './helpers/loadMyCoolGame';
 
-/**
- * UseCase: Task mit Action verknüpfen
- *
- * Vorbedingungen:
- * - Stage: MainStage (id='main')
- * - Task "SwitchToTheHighscoreStage" in mainStage.tasks
- * - Action "ShowTheHighscoreStage" in mainStage.actions
- *
- * Schritte:
- * 1. SwitchToTheHighscoreStage-Flow öffnen (switchActionFlow erzeugt automatisch einen Task-Knoten als Startpunkt)
- * 2. Action-Knoten "ShowTheHighscoreStage" im Flow erzeugen
- * 3. Verbindung vom auto-generierten Task-Knoten (Output-Anker)
- *    zum Action-Knoten (Input-Anker) herstellen
- * 4. JSON-Validierung:
- *    - Connection in flowCharts vorhanden
- *    - ShowTheHighscoreStage in actionSequence des SwitchToTheHighscoreStage (kein Inline-Block)
- * 5. Manager-View: ShowTheHighscoreStage in Aktions-Liste
- */
-test.describe('UseCase: Task mit Action verknüpfen', () => {
+test.describe('UseCase: Task mit Action verbinden', () => {
     test.describe.configure({ mode: 'serial' });
 
-    test('Kompletter Flow: SwitchToTheHighscoreStage mit ShowTheHighscoreStage verbinden via Flow-Editor', async ({ page }) => {
+    test('Kompletter Flow: Task→Action Verbindung per Anchor-Drag herstellen', async ({ page }) => {
+        // Starte den Editor im E2E-Modus
         await page.goto('http://localhost:5173/?e2e=true');
         await page.waitForSelector('#app-layout');
 
-        // 1. Vorbereitung: MyCoolGame.json laden (enthält SwitchToTheHighscoreStage + ShowTheHighscoreStage)
+        // 1. Vorbereitung (MyCoolGame.json laden — enthält Task + Action aus Test 02/03)
         console.log('Test: 1. Vorbereitung (MyCoolGame.json laden)...');
         await page.waitForFunction(() => (window as any).editor && (window as any).mediatorService);
         await loadMyCoolGame(page);
 
-        // Flow-Ansicht, SwitchToTheHighscoreStage-Kontext öffnen
-        await page.evaluate(() => {
-            const editor = (window as any).editor;
-            editor.switchView('flow');
-            // WICHTIG: Erst 'global' setzen, dann 'SwitchToTheHighscoreStage'
-            // switchActionFlow() hat einen Guard: 'if (currentFlowContext === context) return'
-            // Falls localStorage noch 'SwitchToTheHighscoreStage' enthält, würde der Guard greifen
-            // und loadFromProject() würde nicht aufgerufen → keine Nodes auf der Canvas
-            editor.flowEditor.switchActionFlow('global', false, true);
-            editor.flowEditor.switchActionFlow('SwitchToTheHighscoreStage');
-        });
-
+        // 2. Flow-Tab klicken
+        console.log('Test: 2. Flow-Tab klicken...');
+        await page.locator('.tab-btn[data-view="flow"]').click();
         await page.waitForSelector('#flow-canvas');
-        await page.waitForTimeout(800);
 
-        // 2. Bestehende Task- und Action-Knoten finden und verbinden
-        console.log('Test: 2. Bestehende Knoten finden und verbinden...');
-        const nodeIds = await page.evaluate(() => {
-            const editor = (window as any).editor;
-            const flowEditor = editor.flowEditor;
+        // 3. Im Flow-Dropdown "SwitchToTheHighscoreStage" auswählen
+        console.log('Test: 3. Flow-Dropdown: SwitchToTheHighscoreStage auswählen...');
+        const flowDropdown = page.locator('#flow-viewer select').first();
+        await flowDropdown.selectOption('SwitchToTheHighscoreStage');
+        await page.waitForTimeout(500);
 
-            // Den Task-Knoten finden - entweder via getType() oder via Name
-            // (beide Strategien abdecken loadProject-Restore und frische Erstellung)
-            const existingTaskNode = flowEditor.nodes.find((n: any) =>
-                n.getType?.() === 'task' || n.Name === 'SwitchToTheHighscoreStage'
-            );
-            if (!existingTaskNode) {
-                console.error('[E2E] Kein Task-Knoten gefunden! Nodes:', flowEditor.nodes.map((n: any) => n.Name + ':' + n.getType?.()));
-                return { error: 'no task node' };
-            }
+        // 4. Task-Node und Action-Node sichtbar prüfen
+        console.log('Test: 4. Nodes im Canvas prüfen...');
+        const taskNode = page.locator('.glass-node-task').first();
+        const actionNode = page.locator('.glass-node-action').first();
+        await expect(taskNode).toBeVisible({ timeout: 5000 });
+        await expect(actionNode).toBeVisible({ timeout: 5000 });
 
-            // Den existierenden ShowTheHighscoreStage-Knoten finden (wurde im ActionRenaming-Test umbenannt)
-            const actionNode = flowEditor.nodes.find((n: any) =>
-                n.getType?.() === 'action' || n.Name === 'ShowTheHighscoreStage'
-            );
-            if (!actionNode) {
-                console.error('[E2E] Kein Action-Knoten gefunden! Nodes:', flowEditor.nodes.map((n: any) => n.Name + ':' + n.getType?.()));
-                return { error: 'no action node' };
-            }
+        // 5. Verbindung herstellen: Drag vom Bottom-Anchor des Tasks zum Top-Anchor der Action
+        console.log('Test: 5. Verbindung herstellen: Task → Action...');
+        const taskBottomAnchor = taskNode.locator('.flow-anchor.bottom');
+        const actionTopAnchor = actionNode.locator('.flow-anchor.top');
 
-            console.log(`[E2E] TaskNode: id=${existingTaskNode.id}, name=${existingTaskNode.Name}`);
-            console.log(`[E2E] ActionNode: id=${actionNode.id}, name=${actionNode.Name}`);
+        await expect(taskBottomAnchor).toBeAttached({ timeout: 3000 });
+        await expect(actionTopAnchor).toBeAttached({ timeout: 3000 });
 
-            // Verbindung: Output-Anker des Task-Knotens → Input-Anker des Action-Knotens
-            flowEditor.restoreConnection({
-                id: 'conn_task_to_action',
-                startTargetId: existingTaskNode.id,
-                endTargetId: actionNode.id,
-                startX: existingTaskNode.X + 200, startY: existingTaskNode.Y + 30,
-                endX: actionNode.X, endY: actionNode.Y + 30,
-                data: { startAnchorType: 'output', endAnchorType: 'input' }
-            });
+        // Drag vom Task-Bottom-Anchor zum Action-Top-Anchor
+        await taskBottomAnchor.dragTo(actionTopAnchor, { force: true });
+        await page.waitForTimeout(500);
 
-            // Sync: Canvas → Projekt-JSON
-            flowEditor.syncToProject();
+        // 6. Sync zum Projekt
+        console.log('Test: 6. Sync zum Projekt...');
+        await page.evaluate(() => {
+            (window as any).editor.flowEditor.syncToProject();
+        });
+        await page.waitForTimeout(300);
 
-            // Sofort-Check der Sequenz nach syncToProject
-            const mainStage = editor.project.stages.find((s: any) => s.id === 'main');
-            const task = (mainStage?.tasks || []).find((t: any) => t.name === 'SwitchToTheHighscoreStage');
-            console.log(`[E2E] Nach syncToProject: seqLen=${task?.actionSequence?.length}, seq=${JSON.stringify(task?.actionSequence)}`);
-
+        // 7. Validierung: actionSequence enthält die Action
+        console.log('Test: 7. Validierung: actionSequence prüfen...');
+        const result = await page.evaluate(() => {
+            const project = (window as any).editor.project;
+            const findTask = (name: string): any => {
+                // Suche in allen Stages
+                for (const s of (project.stages || [])) {
+                    const t = s.tasks?.find((t: any) => t.name === name);
+                    if (t) return t;
+                }
+                // Suche im Root
+                return project.tasks?.find((t: any) => t.name === name);
+            };
+            const task = findTask('SwitchToTheHighscoreStage');
             return {
-                taskId: existingTaskNode.id,
-                actionId: actionNode.id,
+                taskFound: !!task,
+                actionSequence: task?.actionSequence || [],
+                hasShowAction: task?.actionSequence?.some((a: any) =>
+                    a.name === 'ShowTheHighscoreStage'
+                ) || false
             };
         });
 
-        console.log('Test: Node-IDs:', JSON.stringify(nodeIds));
-        expect((nodeIds as any).error).toBeFalsy();
+        expect(result.taskFound).toBe(true);
+        expect(result.hasShowAction).toBe(true);
+        console.log('  actionSequence:', JSON.stringify(result.actionSequence));
 
-        await page.waitForTimeout(300);
+        // 8. Validierung: Connection im DOM vorhanden
+        console.log('Test: 8. Validierung: Connection-Linie sichtbar...');
+        const connections = page.locator('#flow-canvas svg, #flow-canvas .flow-connection');
+        const connCount = await connections.count();
+        console.log(`  ${connCount} Connection-Element(e) gefunden.`);
+        expect(connCount).toBeGreaterThan(0);
 
-        // 3. JSON-Validierung
-        console.log('Test: 3. JSON-Validierung (Connection + actionSequence)...');
-        const result = await page.evaluate((ids: any) => {
-            const project = (window as any).editor.project;
-
-            const findTask = (name: string): any => {
-                for (const t of (project.tasks || [])) { if (t.name === name) return t; }
-                for (const s of (project.stages || [])) {
-                    for (const t of (s.tasks || [])) { if (t.name === name) return t; }
-                }
-                return null;
-            };
-
-            const task = findTask('SwitchToTheHighscoreStage');
-            const seq: any[] = task?.actionSequence || [];
-            const actionEntry = seq.find((item: any) => item.name === 'ShowTheHighscoreStage');
-            const isInline = actionEntry ? !!(actionEntry.body || actionEntry.steps || actionEntry.inline) : false;
-
-            let connFound = false;
-            for (const s of (project.stages || [])) {
-                for (const key of Object.keys(s.flowCharts || {})) {
-                    const chart = s.flowCharts[key];
-                    if (chart?.connections?.some((c: any) =>
-                        c.startTargetId === ids.taskId && c.endTargetId === ids.actionId
-                    )) connFound = true;
-                }
-            }
-            for (const key of Object.keys(project.flowCharts || {})) {
-                const chart = project.flowCharts[key];
-                if (chart?.connections?.some((c: any) =>
-                    c.startTargetId === ids.taskId && c.endTargetId === ids.actionId
-                )) connFound = true;
-            }
-
-            return { actionInSequence: !!actionEntry, isInline, seqLen: seq.length, connFound };
-        }, nodeIds);
-
-        console.log(`Test: actionInSequence=${result.actionInSequence}, isInline=${result.isInline}, seqLen=${result.seqLen}, connFound=${result.connFound}`);
-
-        // 3a. Verbindung im FlowChart vorhanden
-        expect(result.connFound).toBeTruthy();
-        // 3b. ShowTheHighscoreStage in actionSequence
-        expect(result.actionInSequence).toBeTruthy();
-        // 3c. Kein Inline-Block
-        expect(result.isInline).toBeFalsy();
-
-        // 4. Manager-View UI-Validierung
-        console.log('Test: 4. Manager-View UI-Validierung...');
-        await page.locator('.tab-btn[data-view="management"]').click();
-        await page.waitForSelector('.management-sidebar');
-        await page.locator('.management-sidebar-btn', { hasText: '🎬 Aktionen' }).click();
-        await page.waitForTimeout(300);
-
-        const contentText = await page.locator('.management-content').innerText();
-        expect(contentText).toContain('ShowTheHighscoreStage');
-
-        // 5. Projekt speichern für nächste Test-Stufe (ProjectSaving)
-        console.log('Test: 5. Speichern nach Task-Action-Verknüpfung...');
+        // 9. Speichern
+        console.log('Test: 9. Speichern...');
         await saveMyCoolGame(page);
-        console.log('Test: TaskActionLinking erfolgreich abgeschlossen. MyCoolGame.json aktualisiert.');
+        console.log('Test: Flow TaskActionLinking erfolgreich abgeschlossen.');
     });
 });

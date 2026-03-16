@@ -4,17 +4,7 @@
     "version": "1.0.0",
     "author": "GCS-Team",
     "description": "Das ist mein cooles Spiel",
-    "_sourcePath": "projects/Neues_Spiel.json"
-  },
-  "stage": {
-    "grid": {
-      "cols": 64,
-      "rows": 40,
-      "cellSize": 20,
-      "snapToGrid": true,
-      "visible": true,
-      "backgroundColor": "#ffffff"
-    }
+    "_sourcePath": "projects/MyCoolGame.json"
   },
   "flow": {
     "elements": [],
@@ -119,68 +109,19 @@
       "id": "main",
       "name": "MainStage",
       "type": "main",
-      "objects": [
-        {
-          "className": "TButton",
-          "id": "obj_1773686171014_8c22befo2",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "name": "Button_3",
-          "scope": "global",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1,
-            "fontSize": 14,
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "fontFamily": "Arial"
-          },
-          "text": "Button_3",
-          "icon": ""
-        }
-      ],
-      "actions": [
-        {
-          "name": "ShowTheHighscoreStage",
-          "details": "",
-          "type": "navigate_stage",
-          "showDetails": false
-        }
-      ],
+      "objects": [],
+      "actions": [],
       "tasks": [
         {
           "name": "SwitchToTheHighscoreStage",
           "description": "",
-          "actionSequence": [
-            {
-              "name": "ShowTheHighscoreStage",
-              "type": "action"
-            }
-          ],
+          "actionSequence": [],
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
             "SwitchToTheHighscoreStage": {
-              "x": 40,
-              "y": 40
-            },
-            "ShowTheHighscoreStage": {
-              "x": 40,
-              "y": 140
+              "x": 400,
+              "y": 60
             }
           }
         }
@@ -195,24 +136,6 @@
         "backgroundColor": "#16da36"
       },
       "description": "Das ist mein cooles Spiel",
-      "flowCharts": {}
-    },
-    {
-      "id": "stage-1773686164114",
-      "name": "Stage 1",
-      "type": "standard",
-      "objects": [],
-      "actions": [],
-      "tasks": [],
-      "variables": [],
-      "grid": {
-        "cols": 64,
-        "rows": 40,
-        "cellSize": 20,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#ffffff"
-      },
       "flowCharts": {}
     }
   ],

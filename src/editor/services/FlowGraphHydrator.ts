@@ -1,7 +1,7 @@
 import { FlowElement } from '../flow/FlowElement';
 import { FlowAction } from '../flow/FlowAction';
 import { FlowConnection } from '../flow/FlowConnection';
-import { FlowStart } from '../flow/FlowStart';
+
 import { libraryService } from '../../services/LibraryService';
 import { Logger } from '../../utils/Logger';
 
@@ -70,22 +70,18 @@ export class FlowGraphHydrator {
             // Layout-Overrides (flowLayout) werden nachträglich angewendet
             // =====================================================================
             const task = this.host.getTaskDefinitionByName(this.host.currentFlowContext);
-            if (task && task.actionSequence?.length > 0) {
+            if (task) {
                 sourceData = this.host.syncManager.generateFlowFromActionSequence(task);
                 // Layout-Overrides anwenden (User-Positionen)
                 this.applyLayoutOverrides(sourceData!, task.flowLayout);
-                FlowGraphHydrator.logger.info(`Flow dynamisch generiert für "${task.name}" (${sourceData!.elements.length} Nodes). Layout-Overrides: ${task.flowLayout ? Object.keys(task.flowLayout).length : 0}`);
-            } else if (task) {
-                // Task existiert aber hat leere actionSequence → leerer Flow
-                sourceData = { elements: [], connections: [] };
-                setTimeout(() => {
-                    if (this.host.nodes.length === 0) {
-                        const startNode = new FlowStart('start-' + Date.now(), 50, 50, this.host.canvas, this.host.flowStage.cellSize);
-                        startNode.Text = "Start";
-                        this.host.nodes.push(startNode);
-                    }
-                }, 100);
+                // Standalone-Nodes nachladen (nicht in actionSequence, z.B. unverbundene Actions)
+                if (task.standaloneNodes && task.standaloneNodes.length > 0) {
+                    sourceData!.elements.push(...task.standaloneNodes);
+                    FlowGraphHydrator.logger.info(`${task.standaloneNodes.length} standalone Node(s) nachgeladen f\u00fcr "${task.name}"`);
+                }
+                FlowGraphHydrator.logger.info(`Flow dynamisch generiert f\u00fcr "${task.name}" (${sourceData!.elements.length} Nodes). Layout-Overrides: ${task.flowLayout ? Object.keys(task.flowLayout).length : 0}`);
             } else {
+                // Task existiert nicht → leerer Flow
                 sourceData = { elements: [], connections: [] };
             }
         }
@@ -176,7 +172,7 @@ export class FlowGraphHydrator {
      * POST-PROCESSING: Orthogonales Layout formatieren.
      * Wird NACH allen autoSize()-Aufrufen ausgeführt.
      */
-    private formatOrthogonalLayout(): void {
+    public formatOrthogonalLayout(): void {
         const nodes = this.host.nodes;
         const connections = this.host.connections || [];
         if (nodes.length < 2) return;

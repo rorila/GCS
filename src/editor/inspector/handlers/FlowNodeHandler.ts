@@ -5,7 +5,7 @@ import { ReactiveRuntime } from '../../../runtime/ReactiveRuntime';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
 import { projectRegistry } from '../../../services/ProjectRegistry';
 import { RefactoringManager } from '../../RefactoringManager';
-import { mediatorService } from '../../../services/MediatorService';
+
 import { SyncValidator } from '../../services/SyncValidator';
 
 export class FlowNodeHandler implements IInspectorHandler {
@@ -51,12 +51,14 @@ export class FlowNodeHandler implements IInspectorHandler {
                     if (nodeType === 'task') {
                         FlowNodeHandler.logger.info(`Triggere Task-Refactoring: ${oldValue} -> ${newValue}`);
                         RefactoringManager.renameTask(currentProject, oldValue, newValue);
-                        // Benachrichtige den FlowEditor, falls dieser Task gerade editiert wird
-                        mediatorService.notifyDataChanged(currentProject, 'flow-node-handler');
+                        // KEIN notifyDataChanged hier! RefactoringManager feuert TASK_RENAMED,
+                        // was den FlowEditor gezielt aktualisiert (renameContext).
+                        // notifyDataChanged würde einen destruktiven Canvas-Rebuild triggern.
                     } else if (['action', 'dataaction', 'data_action'].includes(nodeType)) {
                         FlowNodeHandler.logger.info(`Triggere Action-Refactoring: ${oldValue} -> ${newValue}`);
                         RefactoringManager.renameAction(currentProject, oldValue, newValue);
-                        mediatorService.notifyDataChanged(currentProject, 'flow-node-handler');
+                        // KEIN notifyDataChanged hier! Die visuelle Aktualisierung erfolgt
+                        // über PropertyHelper.setPropertyValue weiter unten.
                     }
                 } else {
                     FlowNodeHandler.logger.error("Refactoring fehlgeschlagen: Kein aktives Projekt gefunden.");

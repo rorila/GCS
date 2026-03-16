@@ -53,11 +53,15 @@ export async function saveMyCoolGame(page: Page): Promise<void> {
     });
 
     // Projekt-JSON aus dem Browser lesen
-    // NICHT syncToProject() aufrufen! Die Tests rufen sync bereits im korrekten
-    // FlowEditor-Kontext auf. Ein erneuter sync hier würde flowCharts überschreiben
-    // weil der FlowEditor-Kontext möglicherweise gewechselt hat (z.B. nach Management-Tab).
+    // FlowEditor-Sync analog zu EditorDataManager.saveProject():
+    // syncToProjectIfDirty() + syncAllTasksFromFlow() sicherstellen,
+    // dass ALLE FlowCharts (inkl. Action-Nodes) korrekt ins Projekt geschrieben werden.
     const projectData = await page.evaluate(() => {
         const editor = (window as any).editor;
+        if (editor.flowEditor) {
+            editor.flowEditor.syncToProjectIfDirty();
+            editor.flowEditor.syncAllTasksFromFlow(editor.project);
+        }
         editor.syncStageObjectsToProject?.();
         return JSON.parse(JSON.stringify(editor.project));
     });

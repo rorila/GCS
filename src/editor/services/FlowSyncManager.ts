@@ -5,7 +5,7 @@ import { FlowTask } from '../flow/FlowTask';
 import { FlowCondition } from '../flow/FlowCondition';
 import { FlowVariable } from '../flow/FlowVariable';
 import { FlowLoop } from '../flow/FlowLoop';
-import { FlowStart } from '../flow/FlowStart';
+
 import { FlowThresholdVariable } from '../flow/FlowThresholdVariable';
 import { FlowTriggerVariable } from '../flow/FlowTriggerVariable';
 import { FlowTimerVariable } from '../flow/FlowTimerVariable';
@@ -171,6 +171,33 @@ export class FlowSyncManager {
                 // NUR Layout-Positionen speichern (statt volles FlowChart)
                 task.flowLayout = this.extractLayoutOverrides(persistentNodes);
 
+                // Standalone-Nodes speichern: Nodes die NICHT in der actionSequence enthalten sind
+                // (z.B. Actions die auf dem Canvas liegen, aber noch nicht verbunden wurden)
+                const sequenceNames = new Set<string>();
+                const collectSeqNames = (seq: any[]) => {
+                    seq?.forEach((item: any) => {
+                        if (item.name) sequenceNames.add(item.name);
+                        if (item.taskName) sequenceNames.add(item.taskName);
+                        if (item.then) collectSeqNames(item.then);
+                        if (item.else || item.elseBody) collectSeqNames(item.else || item.elseBody);
+                        if (item.body) collectSeqNames(item.body);
+                    });
+                };
+                collectSeqNames(task.actionSequence || []);
+                sequenceNames.add(task.name);
+
+                const standaloneElements = elements.filter((el: any) => {
+                    const nodeName = el.properties?.name || el.data?.name || el.data?.taskName;
+                    return nodeName && !sequenceNames.has(nodeName);
+                });
+
+                if (standaloneElements.length > 0) {
+                    task.standaloneNodes = standaloneElements;
+                    FlowSyncManager.logger.info(`[TRACE] syncToProject: ${standaloneElements.length} standalone Node(s) gespeichert für "${currentContext}"`);
+                } else {
+                    delete task.standaloneNodes;
+                }
+
                 // Legacy-Daten bereinigen
                 delete task.flowChart;
                 if ((task as any).flowGraph) delete (task as any).flowGraph;
@@ -265,7 +292,7 @@ export class FlowSyncManager {
 
         const startNode = elements.find(e => {
             const t = (e.type || '').toLowerCase();
-            return t === 'task' || (t === 'start' && e.properties?.text?.toLowerCase() === 'start');
+            return t === 'task';
         });
         if (!startNode) {
             FlowSyncManager.logger.debug(`No start node found for task ${task.name}. Skipping sequence sync.`);
@@ -786,9 +813,7 @@ export class FlowSyncManager {
 
         const type = (data.type || '').toLowerCase();
         switch (type) {
-            case 'start':
-                node = new FlowStart(data.id, data.x, data.y, canvas, cellSize);
-                break;
+
             case 'action':
                 node = new FlowAction(data.id, data.x, data.y, canvas, cellSize);
                 break;

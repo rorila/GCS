@@ -1405,6 +1405,23 @@
               "y": 280
             }
           }
+        },
+        {
+          "name": "MainTask",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "Start": {
+              "x": 50,
+              "y": 50
+            },
+            "action": {
+              "x": 500,
+              "y": 420
+            }
+          }
         }
       ],
       "actions": [
@@ -1482,25 +1499,7 @@
   ],
   "objects": [],
   "actions": [],
-  "tasks": [
-    {
-      "name": "MainTask",
-      "description": "",
-      "actionSequence": [],
-      "triggerMode": "local-sync",
-      "params": [],
-      "flowLayout": {
-        "Start": {
-          "x": 50,
-          "y": 50
-        },
-        "action": {
-          "x": 500,
-          "y": 420
-        }
-      }
-    }
-  ],
+  "tasks": [],
   "variables": [],
   "flow": {
     "elements": [],
