@@ -156,7 +156,11 @@ export class EditorStageManager {
             actions: [],
             tasks: [],
             variables: [],
-            grid: JSON.parse(JSON.stringify(this.project.stage.grid))
+            grid: JSON.parse(JSON.stringify(
+                this.project.stage?.grid
+                || this.project.stages?.[0]?.grid
+                || { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#1a1a2e' }
+            ))
         };
 
         if (type === 'splash') {
@@ -254,7 +258,58 @@ export class EditorStageManager {
     public getResolvedInheritanceObjects(): any[] {
         const activeStage = this.getActiveStage();
         if (!activeStage) return [];
-        return [...(activeStage.objects || []), ...(activeStage.variables || [])];
+
+        const stageObjects = [...(activeStage.objects || []), ...(activeStage.variables || [])];
+
+        // Blueprint-Vererbung: Wenn aktive Stage NICHT die Blueprint-Stage ist,
+        // Blueprint-Objekte als geisterhaft/schemenhaft hinzufügen
+        if (activeStage.type !== 'blueprint') {
+            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+            if (blueprintStage) {
+                const stageIds = new Set(stageObjects.map(o => o.id));
+                const excludedIds = new Set(activeStage.excludedBlueprintIds || []);
+                const blueprintObjs = [...(blueprintStage.objects || [])];
+                for (const bpObj of blueprintObjs) {
+                    // Nur visuelle Komponenten vererben, keine Variablen/Services/Controller
+                    if (bpObj.isVariable || bpObj.isService || bpObj.isTransient) continue;
+                    if (bpObj.className?.includes('Variable') || bpObj.className === 'TStageController') continue;
+                    if (stageIds.has(bpObj.id)) continue;
+                    // Exclude-Liste: User hat dieses Objekt auf dieser Stage ausgeblendet
+                    if (excludedIds.has(bpObj.id)) continue;
+
+                    // Shallow-Copy mit Vererbungs-Flags (Original nicht verändern)
+                    const inherited = Object.create(Object.getPrototypeOf(bpObj));
+                    Object.assign(inherited, bpObj);
+                    inherited.isInherited = true;
+                    inherited.isFromBlueprint = true;
+                    stageObjects.push(inherited);
+                }
+            }
+        }
+
+        return stageObjects;
+    }
+
+    /**
+     * Blueprint-Objekt auf der aktiven Stage ein-/ausblenden.
+     * Fügt die ID zur excludedBlueprintIds hinzu oder entfernt sie.
+     */
+    public toggleBlueprintExclusion(objectId: string): boolean {
+        const activeStage = this.getActiveStage();
+        if (!activeStage || activeStage.type === 'blueprint') return false;
+
+        if (!activeStage.excludedBlueprintIds) activeStage.excludedBlueprintIds = [];
+
+        const idx = activeStage.excludedBlueprintIds.indexOf(objectId);
+        if (idx >= 0) {
+            // Wieder einblenden
+            activeStage.excludedBlueprintIds.splice(idx, 1);
+            return true; // jetzt sichtbar
+        } else {
+            // Ausblenden
+            activeStage.excludedBlueprintIds.push(objectId);
+            return false; // jetzt ausgeblendet
+        }
     }
 
     public deleteCurrentStage(): void {

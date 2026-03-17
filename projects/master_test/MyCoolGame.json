@@ -122,7 +122,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1773753463180_czobqg3tl",
+          "id": "obj_1773756294216_ellfgzqwz",
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
@@ -140,14 +140,14 @@
           "align": "NONE",
           "style": {
             "color": "#ffffff",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1,
             "fontSize": 14,
+            "fontFamily": "Arial",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
-            "fontFamily": "Arial"
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
           },
           "text": "Button_3",
           "icon": ""
@@ -198,7 +198,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1773753456313",
+      "id": "stage-1773756287317",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],

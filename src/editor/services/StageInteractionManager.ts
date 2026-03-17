@@ -229,6 +229,10 @@ export class StageInteractionManager {
         if (hitObject && !isClientPanel) {
             const id = hitObject.getAttribute('data-id');
             if (id) {
+                // Prüfen ob dieses Objekt ein geerbtes Blueprint-Objekt ist
+                const obj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === id);
+                const isInherited = obj && obj.isInherited;
+
                 if (e.shiftKey) {
                     if (this.host.selectedIds.has(id)) this.host.selectedIds.delete(id);
                     else this.host.selectedIds.add(id);
@@ -239,11 +243,14 @@ export class StageInteractionManager {
                     }
                 }
 
-                this.isDragging = true;
-                this.dragObjId = id;
-                this.dragStart = { x: e.clientX, y: e.clientY };
-                const coords = this.getRelativeCoordinates(e);
-                this.dragStartRel = { x: coords.x, y: coords.y };
+                // Geerbte Objekte: Selektion erlauben, aber KEIN Drag/Move
+                if (!isInherited) {
+                    this.isDragging = true;
+                    this.dragObjId = id;
+                    this.dragStart = { x: e.clientX, y: e.clientY };
+                    const coords = this.getRelativeCoordinates(e);
+                    this.dragStartRel = { x: coords.x, y: coords.y };
+                }
 
                 this.dragElements.clear();
                 this.initialPositions.clear();
@@ -534,6 +541,13 @@ export class StageInteractionManager {
         if (obj) {
             if (obj.isGhost) this.addContextItem('📌 In Stage anzeigen', '#4fc3f7', () => { if (this.host.onEvent) this.host.onEvent(objectId, 'pinGlobal'); });
             else if (obj.scope === 'global' && !this.host.isBlueprint) this.addContextItem('🚫 Aus Stage entfernen', '#ffab91', () => { if (this.host.onEvent) this.host.onEvent(objectId, 'unpinGlobal'); });
+
+            // Blueprint-Vererbung: Geerbtes Objekt auf dieser Stage ausblenden
+            if (obj.isInherited && obj.isFromBlueprint && !this.host.isBlueprint) {
+                this.addContextItem('👻 Auf dieser Stage ausblenden', '#ffab91', () => {
+                    if (this.host.onEvent) this.host.onEvent(objectId, 'excludeBlueprint');
+                });
+            }
         }
 
         this.addContextItem('📋 Kopieren', '#fff', () => {

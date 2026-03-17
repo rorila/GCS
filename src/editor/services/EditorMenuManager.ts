@@ -81,11 +81,33 @@ export class EditorMenuManager {
                 const lobby = document.getElementById('multiplayer-lobby');
                 if (lobby) lobby.style.display = 'flex';
                 break;
-            case 'new-stage': this.host.createStage('standard'); break;
-            case 'new-splash': this.host.createStage('splash'); break;
-            case 'delete-stage': this.host.deleteCurrentStage(); break;
+            case 'new-stage':
+                this.host.createStage('standard');
+                this.host.selectObject(null);
+                if (this.host.inspector) {
+                    const ns = this.host.getActiveStage();
+                    if (ns) this.host.inspector.update(ns);
+                }
+                break;
+            case 'new-splash':
+                this.host.createStage('splash');
+                this.host.selectObject(null);
+                if (this.host.inspector) {
+                    const ss = this.host.getActiveStage();
+                    if (ss) this.host.inspector.update(ss);
+                }
+                break;
+            case 'delete-stage':
+                this.host.deleteCurrentStage();
+                this.host.selectObject(null);
+                if (this.host.inspector) {
+                    const ds = this.host.getActiveStage();
+                    if (ds) this.host.inspector.update(ds);
+                }
+                break;
             case 'new-from-template': this.host.createStageFromTemplate(); break;
             case 'save-as-template': this.host.saveStageAsTemplate(); break;
+            case 'show-excluded': this.showExcludedBlueprintDialog(); break;
             case 'stage-settings':
                 this.host.selectObject(null);
                 if (this.host.inspector) {
@@ -185,7 +207,8 @@ export class EditorMenuManager {
         const baseItems: MenuItem[] = [
             { id: 'new-stage', label: 'Neue Stage', action: 'new-stage', icon: '📄' },
             { id: 'new-splash', label: 'Neuer Splashscreen', action: 'new-splash', icon: '🚀' },
-            { id: 'delete-stage', label: 'Stage löschen', action: 'delete-stage', icon: '🗑️' }
+            { id: 'delete-stage', label: 'Stage löschen', action: 'delete-stage', icon: '🗑️' },
+            { id: 'show-excluded', label: 'Ausgeblendete Objekte einblenden', action: 'show-excluded', icon: '👁️' }
         ];
 
         // Dynamic stage list
@@ -197,5 +220,135 @@ export class EditorMenuManager {
         }));
 
         this.host.menuBar.updateMenu('stages', [...baseItems, ...stageItems]);
+    }
+
+    /**
+     * Zeigt einen Dark-Theme Modal-Dialog mit Checkboxen für alle ausgeblendeten
+     * Blueprint-Objekte der aktuellen Stage.
+     */
+    private showExcludedBlueprintDialog(): void {
+        const activeStage = this.host.getActiveStage();
+        if (!activeStage || !activeStage.excludedBlueprintIds || activeStage.excludedBlueprintIds.length === 0) {
+            alert('Keine ausgeblendeten Objekte auf dieser Stage.');
+            return;
+        }
+
+        const blueprintStage = this.host.project.stages?.find((s: any) => s.type === 'blueprint');
+        if (!blueprintStage) return;
+
+        const allBpObjs = [...(blueprintStage.objects || [])];
+
+        // Overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:20000;display:flex;align-items:center;justify-content:center;';
+
+        // Dialog
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background:#252526; border:1px solid #555; border-radius:8px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.6); min-width:340px; max-width:480px;
+            color:#ccc; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+        `;
+
+        // Header
+        const header = document.createElement('div');
+        header.style.cssText = 'padding:16px 20px 12px;border-bottom:1px solid #444;font-size:15px;font-weight:600;color:#fff;';
+        header.textContent = `👁️ Ausgeblendete Objekte — ${activeStage.name}`;
+        dialog.appendChild(header);
+
+        // Checkbox-Liste
+        const list = document.createElement('div');
+        list.style.cssText = 'padding:12px 20px;max-height:300px;overflow-y:auto;';
+
+        const checkboxes: { id: string, cb: HTMLInputElement }[] = [];
+        for (const excludedId of activeStage.excludedBlueprintIds) {
+            const obj = allBpObjs.find((o: any) => o.id === excludedId);
+            const name = obj?.name || obj?.caption || excludedId;
+            const className = obj?.className || '';
+            const icon = className === 'TPanel' ? '🖼️' : className === 'TLabel' ? '🏷️' : className === 'TButton' ? '🔘' : className === 'TImage' ? '🖼️' : '📦';
+
+            const row = document.createElement('label');
+            row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-radius:4px;transition:background 0.15s;';
+            row.onmouseenter = () => row.style.background = '#333';
+            row.onmouseleave = () => row.style.background = 'transparent';
+
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.style.cssText = 'width:16px;height:16px;accent-color:#4fc3f7;cursor:pointer;';
+            row.appendChild(cb);
+
+            const iconEl = document.createElement('span');
+            iconEl.textContent = icon;
+            iconEl.style.fontSize = '16px';
+            row.appendChild(iconEl);
+
+            const label = document.createElement('span');
+            label.textContent = name;
+            label.style.cssText = 'flex:1;font-size:13px;';
+            row.appendChild(label);
+
+            const typeEl = document.createElement('span');
+            typeEl.textContent = className.replace('T', '');
+            typeEl.style.cssText = 'font-size:11px;color:#888;';
+            row.appendChild(typeEl);
+
+            list.appendChild(row);
+            checkboxes.push({ id: excludedId, cb });
+        }
+        dialog.appendChild(list);
+
+        // Footer mit Buttons
+        const footer = document.createElement('div');
+        footer.style.cssText = 'padding:12px 20px;border-top:1px solid #444;display:flex;gap:8px;justify-content:flex-end;';
+
+        const btnAll = document.createElement('button');
+        btnAll.textContent = 'Alle einblenden';
+        btnAll.style.cssText = 'padding:6px 14px;border:1px solid #555;background:#333;color:#4fc3f7;border-radius:4px;cursor:pointer;font-size:13px;';
+        btnAll.onmouseenter = () => btnAll.style.background = '#444';
+        btnAll.onmouseleave = () => btnAll.style.background = '#333';
+
+        const btnApply = document.createElement('button');
+        btnApply.textContent = 'Markierte einblenden';
+        btnApply.style.cssText = 'padding:6px 14px;border:none;background:#094771;color:#fff;border-radius:4px;cursor:pointer;font-size:13px;';
+        btnApply.onmouseenter = () => btnApply.style.background = '#0b5d99';
+        btnApply.onmouseleave = () => btnApply.style.background = '#094771';
+
+        const btnCancel = document.createElement('button');
+        btnCancel.textContent = 'Abbrechen';
+        btnCancel.style.cssText = 'padding:6px 14px;border:1px solid #555;background:#333;color:#ccc;border-radius:4px;cursor:pointer;font-size:13px;';
+        btnCancel.onmouseenter = () => btnCancel.style.background = '#444';
+        btnCancel.onmouseleave = () => btnCancel.style.background = '#333';
+
+        footer.appendChild(btnAll);
+        footer.appendChild(btnApply);
+        footer.appendChild(btnCancel);
+        dialog.appendChild(footer);
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        // Event-Handler
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        btnCancel.onclick = close;
+
+        btnAll.onclick = () => {
+            activeStage.excludedBlueprintIds = [];
+            close();
+            if ((this.host as any).render) (this.host as any).render();
+        };
+
+        btnApply.onclick = () => {
+            const toRestore = checkboxes.filter(c => c.cb.checked).map(c => c.id);
+            if (toRestore.length === 0) { close(); return; }
+            activeStage.excludedBlueprintIds = activeStage.excludedBlueprintIds!.filter(
+                (id: string) => !toRestore.includes(id)
+            );
+            close();
+            if ((this.host as any).render) (this.host as any).render();
+        };
+
+        // ESC schließt den Dialog
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { close(); window.removeEventListener('keydown', onKey); } };
+        window.addEventListener('keydown', onKey);
     }
 }

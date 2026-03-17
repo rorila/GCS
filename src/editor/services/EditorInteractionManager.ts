@@ -204,6 +204,9 @@ export class EditorInteractionManager {
                     this.host.removeObjectWithConfirm(id);
                 } else if (eventName === 'deleteMultiple' && Array.isArray(data)) {
                     this.host.removeMultipleObjectsWithConfirm(data);
+                } else if (eventName === 'excludeBlueprint') {
+                    (this.host as any).stageManager.toggleBlueprintExclusion(id);
+                    this.host.render();
                 }
             }
         };

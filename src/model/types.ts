@@ -362,6 +362,7 @@ export interface StageDefinition {
     variables?: ProjectVariable[];
     input?: InputConfig;       // Stage-lokale Input-Konfiguration
     events?: Record<string, string>; // Event-Handler (z.B. onRuntimeStart -> TaskName)
+    excludedBlueprintIds?: string[]; // IDs von Blueprint-Objekten, die auf dieser Stage ausgeblendet sind
 }
 
 // ─────────────────────────────────────────────

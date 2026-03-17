@@ -244,7 +244,9 @@ export class StageRenderer {
             // Inherited/Ghosted State
             if (isInherited) {
                 el.classList.add('inherited-object');
-                el.style.pointerEvents = 'none';
+                el.style.pointerEvents = 'auto';
+                el.style.cursor = 'default';
+                el.draggable = false;
             } else {
                 el.classList.remove('inherited-object');
                 el.style.pointerEvents = 'auto';
@@ -788,18 +790,18 @@ export class StageRenderer {
         const textValue = obj.caption || (this.host.runMode ? '' : obj.name);
         if (el.innerText !== textValue) el.innerText = textValue;
 
-        if (!this.host.runMode) {
-            el.style.color = obj.style?.color || '#777';
-            el.style.fontSize = '12px';
-            el.style.justifyContent = 'center';
-            el.style.alignItems = 'center';
-        } else {
-            if (obj.style?.color) el.style.color = obj.style.color;
-            if (obj.style?.fontSize) el.style.fontSize = typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize;
-            const align = obj.style?.textAlign || 'center';
-            el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
-            el.style.alignItems = 'center';
-        }
+        const color = obj.style?.color || (!this.host.runMode ? '#777' : '');
+        if (color) el.style.color = color;
+        const fontSize = obj.style?.fontSize ? (typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize) : (!this.host.runMode ? '12px' : '');
+        if (fontSize) el.style.fontSize = fontSize;
+        const fw = obj.style?.fontWeight;
+        el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : (fw || 'normal');
+        const fs = obj.style?.fontStyle;
+        el.style.fontStyle = (fs === true || fs === 'italic') ? 'italic' : 'normal';
+        if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+        const align = obj.style?.textAlign || 'center';
+        el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
+        el.style.alignItems = 'center';
     }
 
     private renderGameHeader(el: HTMLElement, obj: any) {
