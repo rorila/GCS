@@ -803,27 +803,6 @@ export class InspectorHost {
                     if (def.action) {
                         await (this.actionHandler as any).handleAction(def, obj, select.value);
                     } else {
-                        // Bei align-Änderung: Position sofort berechnen, bevor Inspector re-rendert
-                        if (def.name === 'align' && select.value !== 'NONE') {
-                            const ed = (window as any).editor;
-                            if (ed?.stage?.grid) {
-                                const grid = ed.stage.grid;
-                                const stageCols = grid.cols || 40;
-                                const stageRows = grid.rows || 30;
-                                const align = select.value;
-                                if (align === 'TOP') {
-                                    obj.x = 0; obj.y = 0; obj.width = stageCols;
-                                } else if (align === 'BOTTOM') {
-                                    obj.x = 0; obj.y = stageRows - (obj.height || 2); obj.width = stageCols;
-                                } else if (align === 'LEFT') {
-                                    obj.x = 0; obj.y = 0; obj.height = stageRows;
-                                } else if (align === 'RIGHT') {
-                                    obj.x = stageCols - (obj.width || 4); obj.y = 0; obj.height = stageRows;
-                                } else if (align === 'CLIENT') {
-                                    obj.x = 0; obj.y = 0; obj.width = stageCols; obj.height = stageRows;
-                                }
-                            }
-                        }
                         this.update(obj);
                     }
                     if (this.onObjectUpdate) this.onObjectUpdate(event);

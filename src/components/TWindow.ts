@@ -42,14 +42,26 @@ export class TWindow extends TComponent {
 
     set align(value: TAlign) {
         this._align = value;
-        // Enforce position based on alignment
+        if (value === 'NONE') return;
+
+        // Stage-Grid-Dimensionen holen (Guard für Hydration: Grid noch nicht verfügbar)
+        const ed = (window as any).editor;
+        const grid = ed?.stage?.grid;
+        if (!grid) return; // Fallback: StageRenderer berechnet beim ersten Render
+
+        const stageCols = grid.cols || 40;
+        const stageRows = grid.rows || 30;
+
         if (value === 'TOP') {
-            this.y = 0;
-        }
-        // Note: BOTTOM alignment would need stage height, which isn't available here
-        // LEFT would set x = 0, RIGHT would need stage width
-        if (value === 'LEFT') {
-            this.x = 0;
+            this.x = 0; this.y = 0; this.width = stageCols;
+        } else if (value === 'BOTTOM') {
+            this.x = 0; this.y = stageRows - (this.height || 2); this.width = stageCols;
+        } else if (value === 'LEFT') {
+            this.x = 0; this.y = 0; this.height = stageRows;
+        } else if (value === 'RIGHT') {
+            this.x = stageCols - (this.width || 4); this.y = 0; this.height = stageRows;
+        } else if (value === 'CLIENT') {
+            this.x = 0; this.y = 0; this.width = stageCols; this.height = stageRows;
         }
     }
 
@@ -143,6 +155,15 @@ export class TWindow extends TComponent {
      */
     public getEvents(): string[] {
         return ['onClick', 'onFocus', 'onBlur', 'onDragStart', 'onDragEnd', 'onDrop'];
+    }
+
+    /**
+     * Align-Änderungen erfordern einen vollständigen Inspector-Re-Render,
+     * weil der Setter x/y/width/height beeinflusst.
+     */
+    public applyChange(propertyName: string, newValue: any, oldValue?: any): boolean {
+        if (propertyName === 'align') return true;
+        return super.applyChange(propertyName, newValue, oldValue);
     }
 
     public getInspectorProperties(): TPropertyDef[] {
