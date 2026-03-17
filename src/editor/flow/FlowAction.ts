@@ -462,29 +462,48 @@ export class FlowAction extends FlowElement {
         // --- Sektion 2: Konfiguration (typ-spezifisch) ---
         const konfProps: any[] = [];
 
-        if (['property', 'method'].includes(type) && !isInternal) {
+        // 'action' ist ein generischer Fallback-Typ → wie 'property' behandeln
+        const effectiveType = (type === 'action') ? 'property' : type;
+
+        if (['property', 'method', 'negate', 'increment'].includes(effectiveType) && !isInternal) {
             konfProps.push({
                 name: 'target', label: 'Ziel-Objekt', type: 'select',
                 source: 'objects', hint: 'Das Objekt, dessen Zustand geändert wird.'
             });
         }
 
-        if (type === 'property') {
-            konfProps.push({ name: 'property', label: 'Eigenschaft', type: 'string' });
-            konfProps.push({ name: 'changes', label: 'Neuer Wert (changes)', type: 'string' });
+        if (effectiveType === 'property') {
+            // Key-Value-Editor: Zeigt jede Eigenschafts-Änderung als eigene Zeile
+            const action = this.getActionDefinition();
+            const changes = action?.changes || action?.propertyChanges || {};
             konfProps.push({
-                name: 'btn_var_changes', label: 'Variable einfügen...', type: 'button',
-                actionData: { property: 'changes' }, action: 'pickVariable'
+                name: 'changes',
+                label: 'Eigenschafts-Änderungen',
+                type: 'keyvalue',
+                value: changes,
+                hint: 'Eigenschaften des Ziel-Objekts die geändert werden'
             });
-        } else if (type === 'method') {
+        } else if (effectiveType === 'negate') {
+            konfProps.push({ name: 'property', label: 'Eigenschaft', type: 'string', hint: 'z.B. velocityX' });
+        } else if (effectiveType === 'increment') {
+            const action = this.getActionDefinition();
+            const changes = action?.changes || {};
+            konfProps.push({
+                name: 'changes',
+                label: 'Increment-Werte',
+                type: 'keyvalue',
+                value: changes,
+                hint: 'Werte die zum aktuellen Wert addiert werden'
+            });
+        } else if (effectiveType === 'method') {
             konfProps.push({ name: 'method', label: 'Methode', type: 'string' });
             konfProps.push({ name: 'params', label: 'Parameter-Liste', type: 'string', hint: 'Kommagetrennt' });
-        } else if (type === 'event') {
+        } else if (effectiveType === 'event') {
             konfProps.push({ name: 'eventName', label: 'Event-Name', type: 'string' });
             konfProps.push({ name: 'eventPayload', label: 'Payload (JSON/Token)', type: 'string' });
         } else {
             // Registry-basierte Action-Typen (http, service, navigate_stage, etc.)
-            const meta = actionRegistry.getMetadata(type);
+            const meta = actionRegistry.getMetadata(effectiveType);
             if (meta?.parameters) {
                 meta.parameters.forEach((param: any) => {
                     const field: any = {
@@ -500,7 +519,7 @@ export class FlowAction extends FlowElement {
         }
 
         if (konfProps.length > 0) {
-            const meta = actionRegistry.getMetadata(type);
+            const meta = actionRegistry.getMetadata(effectiveType);
             sections.push({
                 id: 'konfiguration',
                 label: meta?.label || 'Konfiguration',
@@ -533,6 +552,29 @@ export class FlowAction extends FlowElement {
      * @returns true wenn ein vollständiger Inspector-Re-Render nötig ist (z.B. bei Typ-Wechsel)
      */
     public applyChange(propertyName: string, newValue: any, _oldValue?: any): boolean {
+        // Spezialbehandlung: 'changes' als Objekt direkt schreiben (Key-Value-Editor)
+        if (propertyName === 'changes' && typeof newValue === 'object' && newValue !== null) {
+            const actionDef = this.getActionDefinition();
+            if (actionDef) {
+                // Direkt in die Action-Definition schreiben
+                if (actionDef.propertyChanges && !actionDef.changes) {
+                    actionDef.propertyChanges = newValue;
+                } else {
+                    actionDef.changes = newValue;
+                }
+                // Auch in lokale data spiegeln
+                if (this.data) {
+                    if ((this.data as any).propertyChanges && !(this.data as any).changes) {
+                        (this.data as any).propertyChanges = newValue;
+                    } else {
+                        (this.data as any).changes = newValue;
+                    }
+                }
+            }
+            this.refreshVisuals();
+            return false;
+        }
+
         // 1. Über Setter anwenden (FlowAction Setter schreibt in actionDefinition + data)
         PropertyHelper.setPropertyValue(this, propertyName, newValue);
 

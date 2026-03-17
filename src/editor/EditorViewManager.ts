@@ -41,7 +41,30 @@ export class EditorViewManager {
     public jsonMode: 'viewer' | 'editor' = 'viewer';
     public useStageIsolatedView: boolean = true;
     public workingProjectData: any = null;
-    public isProjectDirty: boolean = false;
+    /**
+     * isProjectDirty delegiert auf die Blueprint-Variable 'isProjectChangeAvailable'.
+     * Diese Variable ist JSON-persistent und überlebt Browser-Reloads.
+     */
+    public get isProjectDirty(): boolean {
+        const changeVar = this.findChangeVar();
+        if (changeVar) {
+            return !!(changeVar.defaultValue || (changeVar as any).value);
+        }
+        return false;
+    }
+    public set isProjectDirty(v: boolean) {
+        const changeVar = this.findChangeVar();
+        if (changeVar) {
+            changeVar.defaultValue = v;
+            (changeVar as any).value = v;
+        }
+    }
+    private findChangeVar(): any {
+        const blueprint = this.host.project?.stages?.find(s =>
+            s.id === 'blueprint' || s.id === 'stage_blueprint' || s.type === 'blueprint'
+        );
+        return blueprint?.variables?.find((v: any) => v.name === 'isProjectChangeAvailable') || null;
+    }
     public selectedManager: string = 'VisualObjects';
     public selectedPascalTask: string | null = null;
 
@@ -55,20 +78,6 @@ export class EditorViewManager {
             const isLoadEvent = originator === 'editor-load' || originator === 'autosave';
             if (!isLoadEvent) {
                 this.isProjectDirty = true;
-            }
-
-            // set global change variable in blueprint stage
-            if (originator !== 'editor-load' && this.host.project.stages) {
-                const blueprint = this.host.project.stages.find(s => s.id === 'blueprint' || s.id === 'stage_blueprint' || s.type === 'blueprint');
-                if (blueprint && blueprint.variables) {
-                    const changeVar = blueprint.variables.find(v => v.name === 'isProjectChangeAvailable');
-                    if (changeVar) {
-                        changeVar.defaultValue = true;
-                        if ((changeVar as any).value !== undefined) {
-                            (changeVar as any).value = true;
-                        }
-                    }
-                }
             }
 
             // Always refresh management data if panel is present

@@ -257,139 +257,16 @@
       "actions": [
         {
           "name": "EnableSpriteMoving",
-          "type": "property",
-          "target": "GameState",
-          "changes": {
-            "spritesMoving": true
-          },
-          "description": "Aktiviert die Physik-Engine im GameLoopManager",
-          "hostOnly": true
+          "details": "",
+          "type": "action",
+          "showDetails": false,
+          "target": "GameState"
         },
         {
           "name": "EnableCollisions",
-          "type": "property",
-          "target": "GameState",
-          "changes": {
-            "collisionsEnabled": true
-          },
-          "description": "Aktiviert Kollisionserkennung zwischen Sprites",
-          "hostOnly": true
-        },
-        {
-          "name": "SetBallVelocity",
-          "type": "property",
-          "target": "BallSprite",
-          "changes": {
-            "velocityX": 0.3,
-            "velocityY": 0.3
-          },
-          "description": "Ball bewegt sich diagonal nach rechts-unten",
-          "hostOnly": true
-        },
-        {
-          "name": "SetLeftPaddleVelUp",
-          "type": "property",
-          "target": "LeftPaddle",
-          "changes": {
-            "velocityY": -0.5
-          },
-          "scope": "global"
-        },
-        {
-          "name": "SetLeftPaddleVelDown",
-          "type": "property",
-          "target": "LeftPaddle",
-          "changes": {
-            "velocityY": 0.5
-          },
-          "scope": "global"
-        },
-        {
-          "name": "StopLeftPaddleVelUp",
-          "type": "property",
-          "target": "LeftPaddle",
-          "changes": {
-            "velocityY": 0
-          },
-          "scope": "global"
-        },
-        {
-          "name": "StopLeftPaddleVelDown",
-          "type": "property",
-          "target": "LeftPaddle",
-          "changes": {
-            "velocityY": 0
-          },
-          "scope": "global"
-        },
-        {
-          "name": "SetRightPaddleVelUp",
-          "type": "property",
-          "target": "RightPaddle",
-          "changes": {
-            "velocityY": -0.5
-          },
-          "scope": "global"
-        },
-        {
-          "name": "SetRightPaddleVelDown",
-          "type": "property",
-          "target": "RightPaddle",
-          "changes": {
-            "velocityY": 0.5
-          },
-          "scope": "global"
-        },
-        {
-          "name": "StopRightPaddleVelUp",
-          "type": "property",
-          "target": "RightPaddle",
-          "changes": {
-            "velocityY": 0
-          },
-          "scope": "global"
-        },
-        {
-          "name": "StopRightPaddleVelDown",
-          "type": "property",
-          "target": "RightPaddle",
-          "changes": {
-            "velocityY": 0
-          },
-          "scope": "global"
-        },
-        {
-          "name": "NegateBallY",
-          "type": "negate",
-          "target": "BallSprite",
-          "changes": {
-            "velocityY": true
-          },
-          "scope": "global",
-          "description": "Kehrt die Y-Richtung des Balls um (Abprall oben/unten)"
-        },
-        {
-          "name": "NegateBallX",
-          "type": "negate",
-          "target": "BallSprite",
-          "changes": {
-            "velocityX": true
-          },
-          "scope": "global",
-          "description": "Kehrt die X-Richtung des Balls um (Paddle-Treffer)"
-        },
-        {
-          "name": "ResetBall",
-          "type": "property",
-          "target": "BallSprite",
-          "changes": {
-            "x": 32,
-            "y": 19,
-            "velocityX": 0,
-            "velocityY": 0
-          },
-          "scope": "global",
-          "description": "Setzt den Ball zurück in die Mitte bei Punktverlust"
+          "details": "",
+          "type": "action",
+          "showDetails": false
         }
       ],
       "variables": [],
@@ -1096,20 +973,38 @@
           "description": "Startet das Spiel bei Klick auf StartBtn",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "EnableSpriteMoving"
+              "name": "EnableSpriteMoving",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "EnableCollisions"
+              "name": "EnableCollisions",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "SetBallVelocity"
+              "name": "SetBallVelocity",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
-          "params": []
+          "params": [],
+          "flowLayout": {
+            "StartTheGame": {
+              "x": 40,
+              "y": 40
+            },
+            "EnableSpriteMoving": {
+              "x": 40,
+              "y": 140
+            },
+            "EnableCollisions": {
+              "x": 40,
+              "y": 240
+            },
+            "SetBallVelocity": {
+              "x": 40,
+              "y": 340
+            }
+          }
         },
         {
           "name": "MoveLeftPaddleUp",
@@ -1402,7 +1297,119 @@
           }
         }
       ],
-      "actions": [],
+      "actions": [
+        {
+          "name": "SetBallVelocity",
+          "details": "",
+          "type": "action",
+          "showDetails": false
+        },
+        {
+          "name": "SetLeftPaddleVelUp",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": -0.5
+          },
+          "scope": "stage"
+        },
+        {
+          "name": "SetLeftPaddleVelDown",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0.5
+          },
+          "scope": "stage"
+        },
+        {
+          "name": "StopLeftPaddleVelUp",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0
+          },
+          "scope": "stage"
+        },
+        {
+          "name": "StopLeftPaddleVelDown",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0
+          },
+          "scope": "stage"
+        },
+        {
+          "name": "SetRightPaddleVelUp",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": -0.5
+          },
+          "scope": "stage"
+        },
+        {
+          "name": "SetRightPaddleVelDown",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0.5
+          },
+          "scope": "stage"
+        },
+        {
+          "name": "StopRightPaddleVelUp",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0
+          },
+          "scope": "stage"
+        },
+        {
+          "name": "StopRightPaddleVelDown",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0
+          },
+          "scope": "stage"
+        },
+        {
+          "name": "NegateBallY",
+          "type": "negate",
+          "target": "BallSprite",
+          "changes": {
+            "velocityY": true
+          },
+          "scope": "stage",
+          "description": "Kehrt die Y-Richtung des Balls um (Abprall oben/unten)"
+        },
+        {
+          "name": "NegateBallX",
+          "type": "negate",
+          "target": "BallSprite",
+          "changes": {
+            "velocityX": true
+          },
+          "scope": "stage",
+          "description": "Kehrt die X-Richtung des Balls um (Paddle-Treffer)"
+        },
+        {
+          "name": "ResetBall",
+          "type": "property",
+          "target": "BallSprite",
+          "changes": {
+            "x": 32,
+            "y": 19,
+            "velocityX": 0,
+            "velocityY": 0
+          },
+          "scope": "stage",
+          "description": "Setzt den Ball zurück in die Mitte bei Punktverlust"
+        }
+      ],
       "variables": [],
       "flowCharts": {},
       "events": {},

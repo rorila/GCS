@@ -220,14 +220,56 @@ body {
 
 #flow-viewer {
   flex: 1;
-  padding: 1rem;
+  padding: 0;
   background-color: #1e1e1e;
-  overflow: auto;
+  overflow: hidden;
   box-sizing: border-box;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
 }
+
+/* Pascal-Panel */
+.flow-pascal-panel {
+  background: rgba(20, 12, 35, 0.95);
+  overflow-y: auto;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.pascal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #3a1d6e, #5c2d91);
+  color: #e0d4f5;
+  font-size: 11px;
+  font-weight: bold;
+  font-family: 'Segoe UI', sans-serif;
+  border-bottom: 1px solid #7c4dbd;
+}
+
+.pascal-pos-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  cursor: pointer;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+}
+.pascal-pos-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.pascal-body {
+  padding: 6px 10px;
+  white-space: pre-wrap;
+  color: #d4d4d4;
+}
+
 
 #flow-viewer svg {
   max-width: 100%;

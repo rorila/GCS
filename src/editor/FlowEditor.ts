@@ -1,4 +1,6 @@
 import { GameProject, StageDefinition } from '../model/types';
+import { PascalCodeGenerator } from './PascalCodeGenerator';
+
 
 import { FlowElement } from './flow/FlowElement';
 import { FlowAction } from './flow/FlowAction';
@@ -80,6 +82,13 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     public backButton!: HTMLButtonElement; // Zurück-Button
     public currentSelectedStageObjectId: string | null = null;
     public suggestedTaskName: string | null = null; // Für automatische Namensübernahme bei Drop
+
+    // Pascal-Panel
+    private pascalPanel!: HTMLElement;
+    private pascalToggleBtn!: HTMLButtonElement;
+    private pascalPosition: 'bottom' | 'right' = 'bottom';
+    private pascalVisible: boolean = false;
+
 
     // Navigation History
     private contextHistory: string[] = [];
@@ -358,10 +367,32 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         };
         toolbar.appendChild(this.filterInput);
 
+        // Separator vor Pascal-Button
+        const sep3 = document.createElement('div');
+        sep3.style.cssText = 'width:1px;height:24px;background:#555;margin:0 10px';
+        toolbar.appendChild(sep3);
+
+        // Pascal-Toggle-Button
+        this.pascalVisible = localStorage.getItem('gcs_flow_pascal_visible') === 'true';
+        this.pascalPosition = (localStorage.getItem('gcs_flow_pascal_position') as 'bottom' | 'right') || 'bottom';
+        this.pascalToggleBtn = document.createElement('button');
+        this.pascalToggleBtn.innerText = '🔤 Pascal';
+        this.pascalToggleBtn.title = 'Pascal-Sequenz ein-/ausblenden (Klick: Toggle, Rechtsklick: Position wechseln)';
+        this.pascalToggleBtn.style.cssText = `padding:5px 10px;color:white;border:1px solid #666;border-radius:4px;cursor:pointer;background:${this.pascalVisible ? '#5c2d91' : '#444'}`;
+        this.pascalToggleBtn.onclick = () => this.togglePascalPanel();
+        this.pascalToggleBtn.oncontextmenu = (e) => { e.preventDefault(); this.togglePascalPosition(); };
+        toolbar.appendChild(this.pascalToggleBtn);
+
         this.container.appendChild(toolbar);
+
+        // Canvas Wrapper (für side-by-side Layout bei rechts-Position)
+        const canvasWrapper = document.createElement('div');
+        canvasWrapper.id = 'flow-canvas-wrapper';
+        canvasWrapper.style.cssText = 'flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0';
 
         // Canvas (Drop Area)
         this.canvas = document.createElement('div');
+
         this.canvas.id = 'flow-canvas';
         this.canvas.style.cssText = 'flex:1;background:#1e1e1e;position:relative;overflow:auto;width:100%;height:calc(100% - 40px);background-image:radial-gradient(#333 1px, transparent 1px);background-size:20px 20px';
 
@@ -374,7 +405,17 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         // Events logic unified in InteractionManager
         this.interactionManager.bindEvents();
 
-        this.container.appendChild(this.canvas);
+        canvasWrapper.appendChild(this.canvas);
+
+        // Pascal-Panel
+        this.pascalPanel = document.createElement('div');
+        this.pascalPanel.id = 'flow-pascal-panel';
+        this.pascalPanel.className = 'flow-pascal-panel';
+        this.pascalPanel.style.display = this.pascalVisible ? 'block' : 'none';
+        canvasWrapper.appendChild(this.pascalPanel);
+
+        this.container.appendChild(canvasWrapper);
+
 
         // Global interaction listener for handle dragging
         document.addEventListener('mousemove', (e) => this.interactionManager.handleGlobalMove(e));
@@ -722,6 +763,8 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
 
         // 5. Load new state
         this.loadFromProject();
+        this.updatePascalPanel();
+
 
         // cleanup
 
@@ -829,7 +872,9 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         this.isFlowDirty = true; // Interne Aufrufe implizieren immer eine Änderung
         FlowEditor.logger.info(`syncToProject triggered for context: ${this.currentFlowContext}`);
         this.syncManager.syncToProject(this.currentFlowContext);
+        this.updatePascalPanel();
     }
+
 
     /**
      * Formatiert das Layout des aktuellen Flow-Diagramms.
@@ -840,6 +885,77 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             this.hydrationManager.formatOrthogonalLayout();
         }
     }
+
+    // ─────────────────────────────────────────────
+    // Pascal-Panel Methoden
+    // ─────────────────────────────────────────────
+
+    private togglePascalPanel() {
+        this.pascalVisible = !this.pascalVisible;
+        localStorage.setItem('gcs_flow_pascal_visible', String(this.pascalVisible));
+        this.pascalToggleBtn.style.background = this.pascalVisible ? '#5c2d91' : '#444';
+        this.pascalPanel.style.display = this.pascalVisible ? 'block' : 'none';
+        this.applyPascalLayout();
+        if (this.pascalVisible) this.updatePascalPanel();
+    }
+
+    private togglePascalPosition() {
+        this.pascalPosition = this.pascalPosition === 'bottom' ? 'right' : 'bottom';
+        localStorage.setItem('gcs_flow_pascal_position', this.pascalPosition);
+        this.applyPascalLayout();
+    }
+
+    private applyPascalLayout() {
+        const wrapper = document.getElementById('flow-canvas-wrapper');
+        if (!wrapper) return;
+
+        if (this.pascalVisible && this.pascalPosition === 'right') {
+            wrapper.style.flexDirection = 'row';
+            this.pascalPanel.style.width = '320px';
+            this.pascalPanel.style.height = '100%';
+            this.pascalPanel.style.maxHeight = 'none';
+            this.pascalPanel.style.borderTop = 'none';
+            this.pascalPanel.style.borderLeft = '1px solid #5c2d91';
+            this.canvas.style.flex = '1';
+        } else {
+            wrapper.style.flexDirection = 'column';
+            this.pascalPanel.style.width = '100%';
+            this.pascalPanel.style.height = 'auto';
+            this.pascalPanel.style.maxHeight = '200px';
+            this.pascalPanel.style.borderLeft = 'none';
+            this.pascalPanel.style.borderTop = '1px solid #5c2d91';
+            this.canvas.style.flex = '1';
+        }
+    }
+
+    public updatePascalPanel() {
+        if (!this.pascalVisible || !this.pascalPanel || !this.project) return;
+
+        const ctx = this.currentFlowContext;
+        // Nur bei Task-Kontexten anzeigen (nicht bei global, event-map, element-overview)
+        if (ctx === 'global' || ctx === 'event-map' || ctx === 'element-overview') {
+            this.pascalPanel.innerHTML = '<div class="pascal-header">🔤 Pascal-Sequenz</div><div class="pascal-body"><em style="color:#888">Kein Task ausgewählt</em></div>';
+            return;
+        }
+
+        const activeStage = this.getActiveStage();
+        const code = PascalCodeGenerator.generateSequenceOnly(this.project, ctx, true, activeStage || undefined);
+
+        this.pascalPanel.innerHTML = `
+            <div class="pascal-header">
+                <span>🔤 ${ctx}</span>
+                <button class="pascal-pos-btn" title="Position wechseln (unten/rechts)">${this.pascalPosition === 'bottom' ? '⬅️' : '⬇️'}</button>
+            </div>
+            <div class="pascal-body">${code}</div>
+        `;
+
+        // Position-Button Event
+        const posBtn = this.pascalPanel.querySelector('.pascal-pos-btn');
+        if (posBtn) {
+            posBtn.addEventListener('click', () => this.togglePascalPosition());
+        }
+    }
+
 
     /** Nur synchronisieren wenn tatsächlich Änderungen vorgenommen wurden.
      *  Wird von switchView() aufgerufen, NICHT von internen Service-Managern. */
@@ -857,7 +973,9 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     public loadFromProject(contextName?: string) {
         console.warn('[DEBUG-RENAME] >>> loadFromProject() aufgerufen! context=', contextName, new Error().stack);
         this.hydrationManager.loadFromProject(contextName);
+        this.updatePascalPanel();
     }
+
 
     // restoreNode wurde in den FlowSyncManager verschoben.
 

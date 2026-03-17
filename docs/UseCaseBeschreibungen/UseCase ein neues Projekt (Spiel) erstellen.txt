@@ -4,6 +4,8 @@ Bemerkungen: Ein neues Projekt wird über das Menü angelegt. Dabei werden Stand
 1. Schritt: Erzeugung
 - Menü: Datei -> Neues Projekt auswählen.
 - Falls ungespeicherte Änderungen vorliegen: Bestätigungs-Dialog ("Möchten Sie wirklich ein neues Projekt starten?").
+- Der LocalStorage wird komplett geleert (localStorage.clear()), um alte Projekt-Daten, Panel-Einstellungen und sonstige gespeicherte Zustände zu entfernen.
+- Ein frisches Standard-Projekt wird über createDefaultProject() erzeugt und via loadProject() geladen.
 
 2. Schritt: Validierung Initial-Zustand (JSON/Manager)
 - Testen: Die Liste der Objekte, Actions, Tasks und Variablen in der Main-Stage ('Haupt-Level') ist leer.
@@ -11,6 +13,7 @@ Bemerkungen: Ein neues Projekt wird über das Menü angelegt. Dabei werden Stand
 - Testen: In der Blueprint-Stage ist das Objekt 'StageController' vorhanden.
 - Testen: In der Blueprint-Stage ist die Variable 'isProjectChangeAvailable' (Typ: boolean) mit dem Wert 'false' vorhanden.
 - Testen: Die Projekt-Metadaten (Autor, Beschreibung) sind leere Strings.
+- Testen: Der LocalStorage enthält keine Einträge aus dem vorherigen Projekt.
 
 3. Schritt: Projekt umbenennen
 - Im Inspector den Spielnamen von leeren String auf 'MyCoolGame' ändern.
@@ -38,7 +41,27 @@ Bemerkungen: Ein neues Projekt wird über das Menü angelegt. Dabei werden Stand
 - Testen: Die visuellen Änderungen werden sofort in der Stage gerendert.
 - Testen: Die JSON-Daten der aktiven Stage enthalten die korrekten Grid-Werte.
 
+7. Schritt: Flow-Editor Validierung
+- Zum Flow-Tab wechseln (data-view="flow").
+- Testen: Das Flow-Dropdown zeigt keine Tasks an (Projekt ist leer).
+- Testen: Das Pascal-Panel (🔤 Pascal Button) zeigt "Kein Task ausgewählt" an.
+- Testen: Der Canvas ist leer, keine Nodes oder Verbindungen sichtbar.
 
+8. Schritt: Manager-Ansicht Validierung
+- Zum Manager-Tab wechseln (data-view="manager").
+- Testen: Die Tabs "Actions", "Tasks" und "Variablen" sind leer (keine Einträge).
+- Testen: Die Objekt-Liste zeigt nur den 'StageController' aus der Blueprint-Stage.
 
+9. Schritt: Speichern und Laden (Roundtrip)
+- Projekt über Menü: Datei -> Projekt speichern als Datei speichern.
+- Testen: Die gespeicherte JSON-Datei enthält alle vorgenommenen Änderungen (Name, Autor, Beschreibung, Grid-Werte).
+- Testen: Nach erneutem Laden der Datei (Datei -> Projekt laden) sind alle Werte korrekt wiederhergestellt.
+- Testen: 'isProjectChangeAvailable' ist nach dem Laden 'false' (kein Dirty-State).
 
+--- Beteiligte Dateien & Methoden ---
+- src/editor/Editor.ts: newProject() (Zeile 454), createDefaultProject(), loadProject()
+- src/editor/services/EditorMenuManager.ts: handleMenuAction('new-project') (Zeile 70)
+- src/editor/services/EditorDataManager.ts: autoSaveToLocalStorage(), saveProjectToFile()
+- src/editor/FlowEditor.ts: updatePascalPanel(), switchActionFlow()
+- src/editor/inspector/InspectorHost.ts: renderPropertiesContent()
 

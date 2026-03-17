@@ -103,6 +103,8 @@ export class EditorInteractionManager {
 
             this.host.render();
             this.host.autoSaveToLocalStorage();
+            // Inspector-Refresh: DATA_CHANGED auslösen damit x/y-Felder aktualisiert werden
+            mediatorService.notifyDataChanged('object-drag');
         };
 
         stage.onObjectResize = (id: string, newWidth: number, newHeight: number) => {
@@ -120,6 +122,8 @@ export class EditorInteractionManager {
 
             this.host.render();
             this.host.autoSaveToLocalStorage();
+            // Inspector-Refresh: DATA_CHANGED auslösen damit width/height-Felder aktualisiert werden
+            mediatorService.notifyDataChanged('object-resize');
         };
 
         stage.onCopyCallback = (id: string) => {

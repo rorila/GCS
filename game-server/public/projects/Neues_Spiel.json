@@ -1,9 +1,9 @@
 {
   "meta": {
-    "name": "MyCoolGame",
+    "name": "Tutor_1",
     "version": "1.0.0",
-    "author": "GCS-Team",
-    "description": "Das ist mein cooles Spiel",
+    "author": "RolloRie",
+    "description": "Anwendungsfall: Ein neues Projekt (Spiel) beginnen",
     "_sourcePath": "projects/Neues_Spiel.json"
   },
   "flow": {
@@ -43,8 +43,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 2,
-          "y": 2,
+          "x": 56,
+          "y": 36,
           "width": 8,
           "height": 4,
           "zIndex": 0,
@@ -61,6 +61,34 @@
           "stageCount": 0,
           "isOnMainStage": false,
           "isOnSplashStage": false
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1773743018369_drfn17gfx",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "Tutor 1",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 21,
+          "y": 0,
+          "width": 64,
+          "height": 5,
+          "zIndex": 0,
+          "align": "TOP",
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Tutor 1",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
         }
       ],
       "actions": [],
@@ -78,8 +106,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 12,
-          "y": 2,
+          "x": 3,
+          "y": 11,
           "width": 10,
           "height": 4,
           "zIndex": 0,
@@ -107,90 +135,8 @@
     },
     {
       "id": "main",
-      "name": "MainStage",
+      "name": "Testseite1",
       "type": "main",
-      "objects": [
-        {
-          "className": "TButton",
-          "id": "obj_1773686171014_8c22befo2",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "name": "Button_3",
-          "scope": "global",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1,
-            "fontSize": 14,
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "fontFamily": "Arial"
-          },
-          "text": "Button_3",
-          "icon": ""
-        }
-      ],
-      "actions": [
-        {
-          "name": "ShowTheHighscoreStage",
-          "details": "",
-          "type": "navigate_stage",
-          "showDetails": false
-        }
-      ],
-      "tasks": [
-        {
-          "name": "SwitchToTheHighscoreStage",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "ShowTheHighscoreStage",
-              "type": "action"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "SwitchToTheHighscoreStage": {
-              "x": 40,
-              "y": 40
-            },
-            "ShowTheHighscoreStage": {
-              "x": 40,
-              "y": 140
-            }
-          }
-        }
-      ],
-      "variables": [],
-      "grid": {
-        "cols": 60,
-        "rows": 38,
-        "cellSize": 22,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#16da36"
-      },
-      "description": "Das ist mein cooles Spiel",
-      "flowCharts": {}
-    },
-    {
-      "id": "stage-1773686164114",
-      "name": "Stage 1",
-      "type": "standard",
       "objects": [],
       "actions": [],
       "tasks": [],
@@ -203,8 +149,8 @@
         "visible": true,
         "backgroundColor": "#ffffff"
       },
-      "flowCharts": {}
+      "description": "Anwendungsfall: Ein neues Projekt (Spiel) beginnen"
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "blueprint"
 }

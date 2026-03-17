@@ -457,6 +457,10 @@ export class Editor implements IViewHost {
                 return;
             }
         }
+        // LocalStorage komplett leeren (alte Projekt-Daten, Panel-Einstellungen etc.)
+        localStorage.clear();
+        Editor.logger.info('LocalStorage geleert für neues Projekt');
+
         const freshProject = this.createDefaultProject();
         this.loadProject(freshProject);
         Editor.logger.info('Neues Projekt initialisiert');

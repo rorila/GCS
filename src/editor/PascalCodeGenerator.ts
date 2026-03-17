@@ -244,6 +244,29 @@ export class PascalCodeGenerator {
     }
 
 
+    /**
+     * Generiert nur die Action-Anweisungen eines Tasks — ohne PROGRAM/VAR/PROCEDURE Wrapper.
+     * Zeigt z.B.:  LeftPaddle.VelocityY := -0.5;
+     */
+    public static generateSequenceOnly(project: GameProject, taskName: string, asHtml: boolean = true, activeStage?: any): string {
+        let task = (project.tasks || []).find(t => t.name === taskName) as any;
+        if (!task && activeStage) task = activeStage.tasks?.find((t: any) => t.name === taskName);
+        if (!task && project.stages) {
+            for (const stage of project.stages) {
+                const found = stage.tasks?.find((t: any) => t.name === taskName);
+                if (found) { task = found; break; }
+            }
+        }
+
+        if (!task || !task.actionSequence || task.actionSequence.length === 0) {
+            return this.span('{ Keine Actions }', '#6a9955', asHtml);
+        }
+
+        const lines: string[] = [];
+        this.renderSequenceToPascal(project, task.actionSequence, lines, 0, asHtml, activeStage);
+        return lines.join('\n');
+    }
+
     public static generateProcedure(project: GameProject, taskName: string, indent: number = 0, sequenceOverride?: SequenceItem[], asHtml: boolean = true, activeStage?: any): string {
         let task = project.tasks.find(t => t.name === taskName);
         if (!task && activeStage) task = activeStage.tasks?.find((t: any) => t.name === taskName);
@@ -260,6 +283,7 @@ export class PascalCodeGenerator {
         lines.push(`${space}${this.span('END', '#c586c0', asHtml)}; `);
         return lines.join('\n');
     }
+
 
     private static renderSequenceToPascal(project: GameProject, sequence: SequenceItem[], lines: string[], indent: number, asHtml: boolean, activeStage?: any) {
         const space = ' '.repeat(indent);

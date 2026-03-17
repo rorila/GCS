@@ -147,15 +147,8 @@ export class EditorDataManager {
      */
     public async saveProjectToFile(overwriteConfirmed?: boolean): Promise<{ success: boolean; message: string }> {
         // --- Schritt 1: Änderungsstatus prüfen ---
-        // FIX: Sowohl Blueprint-Variable ALS AUCH isProjectDirty prüfen (OR-Verknüpfung).
-        // isProjectDirty wird bei jeder UI-Änderung gesetzt (z.B. Objekt hinzufügen).
-        // isProjectChangeAvailable wird via Mediator-Event gesetzt.
-        const blueprint = this.host.project.stages?.find((s: any) => s.id === 'blueprint' || s.id === 'stage_blueprint' || s.type === 'blueprint');
-        const changeVar = blueprint?.variables?.find((v: any) => v.name === 'isProjectChangeAvailable');
-        const blueprintChanged = changeVar ? !!(changeVar.defaultValue || (changeVar as any).value) : false;
-        const hasChanges = blueprintChanged || this.host.isProjectDirty;
-
-        if (!hasChanges) {
+        // isProjectDirty delegiert auf die Blueprint-Variable 'isProjectChangeAvailable' (SSoT)
+        if (!this.host.isProjectDirty) {
             const msg = 'Daten haben sich nicht geändert';
             EditorDataManager.logger.info(`[UseCase: Projekt speichern] Abbruch: ${msg}`);
             if (overwriteConfirmed === undefined) alert(msg);
@@ -216,12 +209,8 @@ export class EditorDataManager {
         }
         this.host.syncStageObjectsToProject();
 
-        // KRITISCH: isProjectChangeAvailable und isProjectDirty VOR dem JSON.stringify auf false setzen,
+        // KRITISCH: isProjectDirty (→ isProjectChangeAvailable) VOR dem JSON.stringify auf false setzen,
         // damit der gespeicherte JSON-Snapshot den korrekten "gespeichert"-Zustand enthält
-        if (changeVar) {
-            changeVar.defaultValue = false;
-            (changeVar as any).value = false;
-        }
         this.host.isProjectDirty = false;
 
         try {
@@ -243,7 +232,6 @@ export class EditorDataManager {
                 return { success: true, message: msg };
             } else {
                 // Falls Speichern fehl schlägt: Zustand zurücksetzen
-                if (changeVar) { changeVar.defaultValue = true; (changeVar as any).value = true; }
                 this.host.isProjectDirty = true;
                 const msg = 'Fehler beim Speichern: ' + (saveData.error || 'Unbekannter Fehler');
                 EditorDataManager.logger.error(`[UseCase: Projekt speichern] ${msg}`);
@@ -252,7 +240,6 @@ export class EditorDataManager {
             }
         } catch (err) {
             // Falls Speichern fehl schlägt: Zustand zurücksetzen
-            if (changeVar) { changeVar.defaultValue = true; (changeVar as any).value = true; }
             this.host.isProjectDirty = true;
             const msg = 'Kritischer Fehler beim Speichern (Server nicht erreichbar)';
             EditorDataManager.logger.error(`[UseCase: Projekt speichern] ${msg}:`, err);
@@ -283,12 +270,6 @@ export class EditorDataManager {
 
         // Dirty-Flag forcieren, damit saveProjectToFile den Änderungs-Check übergeht
         this.host.isProjectDirty = true;
-        const blueprint = this.host.project.stages?.find((s: any) => s.type === 'blueprint');
-        const changeVar = blueprint?.variables?.find((v: any) => v.name === 'isProjectChangeAvailable');
-        if (changeVar) {
-            changeVar.defaultValue = true;
-            (changeVar as any).value = true;
-        }
 
         // An bestehende Speicher-Logik delegieren
         return this.saveProjectToFile();
@@ -430,10 +411,6 @@ export class EditorDataManager {
                 dataService.seedFromUrl(path, `/api/dev/data/${path}`).then(() => {
                     if (this.host.inspector) this.host.inspector.update();
                 });
-            });
-
-            dataService.seedFromUrl('db.json', '/api/dev/data/db.json').then(() => {
-                if (this.host.inspector) this.host.inspector.update();
             });
         }
 

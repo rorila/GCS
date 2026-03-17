@@ -532,6 +532,133 @@ export class InspectorHost {
 
             colorContainer.style.flex = '1';
             container.appendChild(colorContainer);
+        } else if (propDef.type === 'keyvalue') {
+            // ─────────────────────────────────────────────
+            // Key-Value-Editor: Eigenschafts-Änderungen
+            // ─────────────────────────────────────────────
+            container.style.display = 'block'; // Volle Breite, kein inline
+            container.style.marginBottom = '8px';
+
+            // Header mit Label
+            const headerLabel = document.createElement('div');
+            headerLabel.style.cssText = 'font-size:11px;color:#aaa;margin-bottom:6px;font-weight:bold;';
+            headerLabel.textContent = propDef.label || 'Eigenschafts-Änderungen';
+            container.appendChild(headerLabel);
+
+            // Hint
+            if (propDef.hint) {
+                const hint = document.createElement('div');
+                hint.style.cssText = 'font-size:10px;color:#666;margin-bottom:6px;font-style:italic;';
+                hint.textContent = propDef.hint;
+                container.appendChild(hint);
+            }
+
+            // Aktuelles changes-Objekt lesen (direkt übergeben oder aus obj auslesen)
+            const changes: Record<string, any> = propDef.value || {};
+            const entries = Object.entries(changes);
+
+            // Rows-Container
+            const rowsContainer = document.createElement('div');
+            rowsContainer.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
+
+            const self = this;
+
+            // Hilfsfunktion: Changes in Action schreiben + Inspector aktualisieren
+            const applyChanges = (newChanges: Record<string, any>) => {
+                // Schreibe in den SSoT (Action-Definition)
+                if (typeof obj.applyChange === 'function') {
+                    obj.applyChange('changes', newChanges);
+                } else {
+                    PropertyHelper.setPropertyValue(obj, 'changes', newChanges);
+                }
+                // Visuelles Update triggern
+                if (typeof obj.refreshVisuals === 'function') obj.refreshVisuals();
+                // Inspector komplett neu rendern
+                self.update(obj);
+            };
+
+            if (entries.length === 0) {
+                const emptyHint = document.createElement('div');
+                emptyHint.style.cssText = 'font-size:10px;color:#666;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:4px;text-align:center;font-style:italic;';
+                emptyHint.textContent = 'Keine Eigenschafts-Änderungen definiert';
+                rowsContainer.appendChild(emptyHint);
+            } else {
+                entries.forEach(([key, value]) => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:4px 6px;background:rgba(255,255,255,0.04);border-radius:4px;border:1px solid rgba(255,255,255,0.08);';
+
+                    // Property-Name (editierbar)
+                    const keyInput = document.createElement('input');
+                    keyInput.type = 'text';
+                    keyInput.value = key;
+                    keyInput.title = 'Eigenschafts-Name';
+                    keyInput.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;';
+
+                    // Wert (editierbar)
+                    const valInput = document.createElement('input');
+                    valInput.type = 'text';
+                    valInput.value = String(value);
+                    valInput.title = 'Wert';
+                    valInput.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#4fc3f7;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;';
+
+                    // Doppelpunkt-Trenner
+                    const sep = document.createElement('span');
+                    sep.textContent = ':';
+                    sep.style.cssText = 'color:#888;font-size:11px;font-weight:bold;flex-shrink:0;';
+
+                    // Löschen-Button
+                    const delBtn = document.createElement('button');
+                    delBtn.textContent = '🗑️';
+                    delBtn.title = 'Diese Eigenschaft entfernen';
+                    delBtn.style.cssText = 'padding:2px 4px;background:#d11a2a;color:white;border:none;border-radius:3px;cursor:pointer;font-size:10px;flex-shrink:0;';
+                    delBtn.onclick = () => {
+                        const newChanges = { ...changes };
+                        delete newChanges[key];
+                        applyChanges(newChanges);
+                    };
+
+                    // Änderungen bei Blur anwenden
+                    keyInput.onchange = () => {
+                        const newKey = keyInput.value.trim();
+                        if (!newKey || newKey === key) return;
+                        const newChanges: Record<string, any> = {};
+                        for (const [k, v] of Object.entries(changes)) {
+                            newChanges[k === key ? newKey : k] = v;
+                        }
+                        applyChanges(newChanges);
+                    };
+
+                    valInput.onchange = () => {
+                        const newChanges = { ...changes };
+                        // Auto-Typ-Erkennung: Zahl vs String
+                        const raw = valInput.value.trim();
+                        const num = Number(raw);
+                        newChanges[key] = (!isNaN(num) && raw !== '') ? num : raw;
+                        applyChanges(newChanges);
+                    };
+
+                    row.appendChild(keyInput);
+                    row.appendChild(sep);
+                    row.appendChild(valInput);
+                    row.appendChild(delBtn);
+                    rowsContainer.appendChild(row);
+                });
+            }
+
+            container.appendChild(rowsContainer);
+
+            // Add-Button
+            const addBtn = document.createElement('button');
+            addBtn.textContent = '+ Eigenschaft hinzufügen';
+            addBtn.style.cssText = 'margin-top:6px;width:100%;padding:5px 10px;background:#2e7d32;color:white;border:none;border-radius:4px;cursor:pointer;font-size:11px;';
+            addBtn.onclick = () => {
+                // Neue leere Eigenschaft hinzufügen
+                const newChanges = { ...changes, '': '' };
+                applyChanges(newChanges);
+            };
+            container.appendChild(addBtn);
+
+            return container;
         } else {
             // Text / Number / String Input
             const input = this.renderer.renderEdit(String(currentValue));
@@ -676,7 +803,28 @@ export class InspectorHost {
                     if (def.action) {
                         await (this.actionHandler as any).handleAction(def, obj, select.value);
                     } else {
-                        this.update(obj); // Re-render nur wenn keine Action das übernimmt
+                        // Bei align-Änderung: Position sofort berechnen, bevor Inspector re-rendert
+                        if (def.name === 'align' && select.value !== 'NONE') {
+                            const ed = (window as any).editor;
+                            if (ed?.stage?.grid) {
+                                const grid = ed.stage.grid;
+                                const stageCols = grid.cols || 40;
+                                const stageRows = grid.rows || 30;
+                                const align = select.value;
+                                if (align === 'TOP') {
+                                    obj.x = 0; obj.y = 0; obj.width = stageCols;
+                                } else if (align === 'BOTTOM') {
+                                    obj.x = 0; obj.y = stageRows - (obj.height || 2); obj.width = stageCols;
+                                } else if (align === 'LEFT') {
+                                    obj.x = 0; obj.y = 0; obj.height = stageRows;
+                                } else if (align === 'RIGHT') {
+                                    obj.x = stageCols - (obj.width || 4); obj.y = 0; obj.height = stageRows;
+                                } else if (align === 'CLIENT') {
+                                    obj.x = 0; obj.y = 0; obj.width = stageCols; obj.height = stageRows;
+                                }
+                            }
+                        }
+                        this.update(obj);
                     }
                     if (this.onObjectUpdate) this.onObjectUpdate(event);
                 };

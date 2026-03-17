@@ -122,6 +122,29 @@ export class StageRenderer {
             });
         });
 
+        // 1c. Rück-Sync: Dock-Positionen auf Objekt-Properties zurückschreiben (Grid-Einheiten)
+        // Damit Inspector und JSON konsistent mit der visuellen Darstellung bleiben.
+        objects.forEach(obj => {
+            const objId = obj.id || obj.name;
+            if (!objId) return;
+            const dockPos = dockPositions.get(objId);
+            if (!dockPos) return;
+
+            // TStatusBar verwendet Pixel direkt, keine Grid-Konvertierung
+            const isPixelBased = obj.className === 'TStatusBar' || obj.name?.startsWith('Status');
+            if (isPixelBased) {
+                obj.x = dockPos.left;
+                obj.y = dockPos.top;
+                obj.width = dockPos.width;
+                obj.height = dockPos.height;
+            } else {
+                obj.x = dockPos.left / gridConfig.cellSize;
+                obj.y = dockPos.top / gridConfig.cellSize;
+                obj.width = dockPos.width / gridConfig.cellSize;
+                obj.height = dockPos.height / gridConfig.cellSize;
+            }
+        });
+
         const currentIds = this.collectAllIds(objects);
         const renderedElements = Array.from(this.host.element.querySelectorAll('.game-object')) as HTMLElement[];
 
