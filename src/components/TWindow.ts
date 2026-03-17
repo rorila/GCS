@@ -44,10 +44,13 @@ export class TWindow extends TComponent {
         this._align = value;
         if (value === 'NONE') return;
 
-        // Stage-Grid-Dimensionen holen (Guard für Hydration: Grid noch nicht verfügbar)
+        // Guard: Nicht feuern während Object.assign (resolveObjectPreview) oder Hydration.
+        if (!(this as any)._initialized) return;
+
+        // Stage-Grid-Dimensionen holen
         const ed = (window as any).editor;
         const grid = ed?.stage?.grid;
-        if (!grid) return; // Fallback: StageRenderer berechnet beim ersten Render
+        if (!grid) return;
 
         const stageCols = grid.cols || 40;
         const stageRows = grid.rows || 30;
@@ -83,11 +86,11 @@ export class TWindow extends TComponent {
         this.visible = true;
         this.text = "";
         this.style = {
-            // visible: true, // Do NOT force true here, let it be undefined so it falls back to this.visible
             backgroundColor: 'transparent',
             borderColor: 'transparent',
             borderWidth: 0
         };
+        (this as any)._initialized = true; // Flag: Konstruktor abgeschlossen
     }
 
     // Alias for backward compatibility (JSON loading)

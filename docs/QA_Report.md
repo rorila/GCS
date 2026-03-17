@@ -1,6 +1,6 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 17.3.2026, 12:50:19
+**Generiert am**: 17.3.2026, 14:17:51
 **Status**: ❌ FEHLER GEFUNDEN
 
 ## 📊 Visuelle Übersicht

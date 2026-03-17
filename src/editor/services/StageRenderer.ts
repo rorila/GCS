@@ -81,7 +81,7 @@ export class StageRenderer {
             let actualHeight = objHeight;
             let actualWidth = objWidth;
 
-            if (obj.className === 'TStatusBar' || obj.name?.startsWith('Status')) {
+            if (obj.className === 'TStatusBar') {
                 actualHeight = (obj.height || 0); // Use pixels directly
                 actualWidth = (obj.width || 0);
             }
@@ -131,7 +131,7 @@ export class StageRenderer {
             if (!dockPos) return;
 
             // TStatusBar verwendet Pixel direkt, keine Grid-Konvertierung
-            const isPixelBased = obj.className === 'TStatusBar' || obj.name?.startsWith('Status');
+            const isPixelBased = obj.className === 'TStatusBar';
             if (isPixelBased) {
                 obj.x = dockPos.left;
                 obj.y = dockPos.top;
@@ -291,7 +291,7 @@ export class StageRenderer {
 
                 if (obj.zIndex !== undefined) {
                     el.style.zIndex = String(obj.zIndex);
-                } else if (obj.name && (obj.name.startsWith('Overlay') || obj.name.startsWith('Btn') || obj.name.startsWith('Input') || obj.name.startsWith('Status'))) {
+                } else if (obj.name && (obj.name.startsWith('Overlay') || obj.name.startsWith('Btn') || obj.name.startsWith('Input')) || obj.className === 'TStatusBar') {
                     el.style.zIndex = '2000';
                 }
             }
