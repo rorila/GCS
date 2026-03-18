@@ -299,3 +299,14 @@ UC-123: Layout-Fixes & Container-Isolation | main.ts, EditorViewManager.ts, play
     * Tasks und Actions gehören in stage.tasks / stage.actions der aktiven Stage (nicht Root-Level project.tasks)
     * getTargetFlowCharts: priorisiert Stage-Tasks bei activeStage-Kontext
 
+
+[Task: Overviews (Landkarte & Elementenübersicht) Reparieren]
+Beteiligte Dateien:
+- src/editor/services/FlowMapManager.ts (generateElementOverview:205, createMapTaskNode:402)
+- src/editor/FlowEditor.ts (getAllVariables:241)
+
+
+[Task: Landkarte (Event Map) um .events Property erweitert]
+Beteiligte Dateien:
+- src/editor/services/FlowMapManager.ts (generateEventMap:54)
+

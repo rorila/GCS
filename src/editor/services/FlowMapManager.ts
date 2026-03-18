@@ -63,7 +63,7 @@ export class FlowMapManager {
         const cellSize = this.host.flowStage.cellSize;
 
         const objectsWithTasks = this.host.getCurrentObjects().filter(obj => {
-            const tasks = (obj as any).Tasks;
+            const tasks = (obj as any).events || (obj as any).Tasks;
             const hasTasks = tasks && Object.keys(tasks).length > 0;
 
             let hasBindings = false;
@@ -95,14 +95,14 @@ export class FlowMapManager {
 
         const variablesWithTasks = this.host.getAllVariables().filter(v => {
             const topLevelEvents = Object.keys(v).filter(k => k.startsWith('on') && (v as any)[k]);
-            const taskEvents = (v as any).Tasks ? Object.keys((v as any).Tasks).filter(k => k.startsWith('on') && (v as any).Tasks[k]) : [];
+            const taskEvents = (v as any).events || (v as any).Tasks ? Object.keys((v as any).events || (v as any).Tasks).filter(k => k.startsWith('on') && ((v as any).events?.[k] || (v as any).Tasks?.[k])) : [];
             const hasTasks = topLevelEvents.length > 0 || taskEvents.length > 0;
 
             if (!hasTasks) return false;
 
             if (this.host.filterText) {
                 const nameMatches = v.name.toLowerCase().includes(this.host.filterText);
-                const taskMatches = [...topLevelEvents.map(e => (v as any)[e]), ...taskEvents.map(e => (v as any).Tasks[e])]
+                const taskMatches = [...topLevelEvents.map(e => (v as any)[e]), ...taskEvents.map(e => (v as any).events?.[e] || (v as any).Tasks?.[e])]
                     .some(t => String(t).toLowerCase().includes(this.host.filterText));
                 const eventMatches = [...topLevelEvents, ...taskEvents].some(e => e.toLowerCase().includes(this.host.filterText));
                 return nameMatches || taskMatches || eventMatches;
@@ -145,7 +145,7 @@ export class FlowMapManager {
             this.host.nodes.push(objNode);
             this.host.setupNodeListeners(objNode);
 
-            const taskMappings = (obj as any).Tasks || {};
+            const taskMappings = (obj as any).events || (obj as any).Tasks || {};
             const events = Object.entries(taskMappings);
             events.forEach(([eventName, taskName], idx) => {
                 if (typeof taskName !== 'string' || !taskName) return;
@@ -174,7 +174,7 @@ export class FlowMapManager {
 
             const topLevelEvents = Object.entries(variable)
                 .filter(([k, v]) => k.startsWith('on') && typeof v === 'string' && v) as [string, string][];
-            const taskEvents = (variable as any).Tasks ? Object.entries((variable as any).Tasks)
+            const taskEvents = (variable as any).events || (variable as any).Tasks ? Object.entries((variable as any).events || (variable as any).Tasks)
                 .filter(([k, v]) => k.startsWith('on') && typeof v === 'string' && v) as [string, string][] : [];
 
             const eventMap = new Map<string, string>();
@@ -225,7 +225,7 @@ export class FlowMapManager {
         };
 
         const activeStage = this.host.getActiveStage();
-        const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint';
+        const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint' || activeStage?.id === 'blueprint';
         const usage = projectRegistry.getLogicalUsage();
 
         // 1. Prepare Widths and Maps
@@ -233,7 +233,8 @@ export class FlowMapManager {
         const actionMap = new Map<string, any>();
 
         if (isBlueprint) {
-            // Blueprint: Nur globale Actions
+            // Blueprint: Globale Actions (aus der Stage, plus Legacy Fallback)
+            (activeStage?.actions || []).forEach((a: any) => actionMap.set(a.name, a));
             (project.actions || []).forEach((a: any) => actionMap.set(a.name, a));
         } else if (activeStage) {
             // Standard-Stage: Nur lokale Actions
@@ -250,7 +251,8 @@ export class FlowMapManager {
         const taskMap = new Map<string, any>();
 
         if (isBlueprint) {
-            // Blueprint: Nur globale Tasks
+            // Blueprint: Globale Tasks
+            (activeStage?.tasks || []).forEach((t: any) => taskMap.set(t.name, t));
             (project.tasks || []).forEach((t: any) => taskMap.set(t.name, t));
         } else if (activeStage) {
             // Standard-Stage: Nur lokale Tasks
@@ -269,7 +271,8 @@ export class FlowMapManager {
         const varMap = new Map<string, any>();
 
         if (isBlueprint) {
-            // Blueprint: Nur globale Variablen
+            // Blueprint: Globale Variablen
+            (activeStage?.variables || []).forEach((v: any) => varMap.set(v.name, v));
             (project.variables || []).forEach((v: any) => varMap.set(v.name, v));
         } else if (activeStage) {
             // Standard-Stage: Nur lokale Variablen
@@ -404,14 +407,25 @@ export class FlowMapManager {
         taskNode.Text = taskName;
         taskNode.autoSize();
 
-        const taskDef = this.host.project!.tasks.find((t: any) => t.name === taskName);
+        const tasks = projectRegistry.getTasks('all');
+        const taskDef = tasks.find((t: any) => t.name === taskName);
+        
         if (taskDef && taskDef.description) {
             taskNode.Description = taskDef.description;
         }
 
         let usedLibraryTaskName: string | null = null;
-        const flowData = (taskDef as any)?.flowChart || (taskDef as any)?.flowGraph ||
-            this.host.project!.flowCharts?.[taskName];
+        let flowData = (taskDef as any)?.flowChart || (taskDef as any)?.flowGraph;
+        
+        if (!flowData && this.host.project) {
+             // Fallback to active stage or blueprint or project root
+             const activeStage = this.host.getActiveStage();
+             const blueprintStage = this.host.project.stages?.find((s: any) => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
+             
+             flowData = activeStage?.flowCharts?.[taskName] || 
+                        blueprintStage?.flowCharts?.[taskName] || 
+                        this.host.project.flowCharts?.[taskName];
+        }
 
         if (flowData?.elements) {
             for (const el of flowData.elements) {

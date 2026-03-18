@@ -241,7 +241,15 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     public getAllVariables(): any[] {
         if (!this.project) return [];
         const activeStage = this.getActiveStage();
-        const globalVars = this.project.variables || [];
+        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
+        
+        const globalVars = blueprintStage?.variables || this.project.variables || [];
+        
+        // Wenn current stage die blueprint stage ist, nicht verdoppeln
+        if (activeStage && blueprintStage && activeStage.id === blueprintStage.id) {
+            return [...globalVars];
+        }
+        
         const stageVars = activeStage?.variables || [];
         return [...globalVars, ...stageVars];
     }

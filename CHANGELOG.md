@@ -10,6 +10,14 @@
   - Fehler behoben: Die Ausblend-Bedingung für `isBlueprint` wurde entspannt (unterstützt nun Fallback auf ID `blueprint`), um zu garantieren, dass Blueprint-Tasks im Blueprint-Editor-Modus sicher angezeigt werden.
   - Fallback-Rendering für verwaiste Root-Tasks (`project.tasks`) in der Blueprint-Stage wiederhergestellt, für Legacy-Projekte, bei denen die Migration noch aussteht.
   - **Fix:** Der hartcodierte Eintrag "Main Flow (Stage)" (intern 'global') wurde für reguläre Stages aus dem Dropdown entfernt, da er irritierte und von Benutzern als globaler Task verstanden wurde.
+### Fixes
+- **FlowEditor (3.19.1):** StageLabel in der Top-Menu-Bar ergänzt (Update bei Projekt-Setup und Stage-Switching).
+- **FlowEditor (3.19.1):** Blueprint-Tasks sind nun exklusiv in der Blueprint-Stage im Dropdown sichtbar.
+- **FlowEditor (3.19.1):** Entfernung der verwirrenden Option `Main Flow (Stage)` in Non-Blueprint Stages.
+- **FlowEditor (3.19.1):** Ghosting-Bug beim Stage-Switching (`switchActionFlow`) behoben, indem nicht existierende Tasks einen expliziten Fallback in die "Elementenübersicht" durchführen.
+- **Inspector (3.19.1):** Dropdowns für Tasks und Actions beziehen globale Elemente nun einheitlich über `ProjectRegistry.getTasks('all')` anstatt der veralteten Root-Level Collection.
+- **FlowEditor (3.19.1):** Bugfix für die "Landkarte (Events/Links)" und die "Elementenübersicht", welche in der Blueprint-Stage leere Graphen dargestellt hatten. Beide Übersichten beziehen globale Ressourcen nun fehlerfrei aus den Stage-Daten via ProjectRegistry.
+- **FlowEditor (3.19.1):** Bugfix für die "Landkarte", da diese Events von Objekten über die veraltete Property `.Tasks` geholt hat anstatt der neuen Standard-Property `.events`.
 - **Inspector-Task- und Action-Dropdowns** (`InspectorRenderer.ts`):
   - Für Ereignis-Inputs und Eigenschafts-Dropdowns (Tasks, Actions) wird nun projektübergreifend `projectRegistry.getTasks('all')` genutzt, damit Aufgaben der Blueprint-Stage auch als Zielaktionen abgebildet und nicht ausgeblendet werden.
 - **Fehlerbehebung nach Stage-Wechsel ("Ghosting" von globalen Tasks)** (`FlowEditor.ts`):
