@@ -135,7 +135,7 @@ export class PropertyWatcher {
         // CRITICAL: We must NOT use `return` here! The old code aborted the ENTIRE notify()
         // function, preventing globalListeners and specific watchers from being called.
         if (DebugLogService.getInstance().isEnabled()) {
-            const isInternal = INTERNAL_PROPERTIES.has(propertyPath);
+            const isInternal = INTERNAL_PROPERTIES.has(propertyPath) || propertyPath.startsWith('_');
             const isHighFreqSprite = HIGH_FREQ_SPRITE_PROPS.has(propertyPath) && target?.className === 'TSprite';
 
             if (!isInternal && !isHighFreqSprite) {

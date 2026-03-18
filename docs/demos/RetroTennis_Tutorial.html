@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Tennis - Entwickler Dokumentation</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --text-color: #c9d1d9;
+            --accent: #58a6ff;
+            --accent-glow: rgba(88, 166, 255, 0.4);
+            --border: #30363d;
+            --code-bg: #010409;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            margin: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 3em;
+            margin: 0 0 10px 0;
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        h2 {
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #e6edf3;
+        }
+
+        p, li {
+            font-size: 1.1em;
+        }
+
+        .card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        code {
+            background-color: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "Courier New", Courier, monospace;
+            color: #ff7b72;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            color: #e6edf3;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .badge.blueprint { background: rgba(163, 113, 247, 0.2); color: #a371f7; border: 1px solid #a371f7; }
+        .badge.stage { background: rgba(88, 166, 255, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+
+        .diagram {
+            background: linear-gradient(135deg, #161b22, #0d1117);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .node {
+            background: rgba(35, 134, 54, 0.1);
+            border: 1px solid #238636;
+            color: #3fb950;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .arrow {
+            color: var(--border);
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Retro Tennis</h1>
+        <p>Ein architektonisches Demo-Projekt f&uuml;r den Game Builder MVC</p>
+    </header>
+
+    <div class="card">
+        <h2>Einf&uuml;hrung</h2>
+        <p>
+            Willkommen beim <strong>Retro Tennis</strong> Demo! Dieses Projekt ist (aus Gr&uuml;nden des Markenschutzes 😉) eine liebevolle Hommage an die fr&uuml;hesten Videospiele der Geschichte.
+        </p>
+        <p>
+            Anhand dieses Projektes kannst du live im Game-Builder sehen, wie <strong>Sprites</strong>, kontinuierliche <strong>Game-Loops</strong> (`onFrame`) und <strong>physikalische Grundgesetze</strong> (Abpraller/Bounces) mithilfe des visuellen Flow-Editors perfekt ineinandergreifen.
+        </p>
+    </div>
+
+    <div class="card">
+        <span class="badge blueprint">Blueprint Stage</span>
+        <h2>Globale Werkzeuge & Manager (Blueprint)</h2>
+        <p>
+            Wir nutzen die <strong>Blueprint-Stage</strong>, um unsere gesamte grundlegende Architektur global sichtbar abzulegen. Wir nutzen echte technische System-Klassen (Components), um den Flow zu lenken:
+        </p>
+        <ul>
+            <li><strong>GameLoop (Klasse: <code>TGameLoop</code>)</strong>: Konfiguriert den Loop (<code>targetFPS</code>) und triggert jeden Frame den <code>MainGameLoop</code> Task.</li>
+            <li><strong>InputController (Klasse: <code>TInputController</code>)</strong>: B&uuml;ndelt alle nativen Tastatur-Eingaben (<code>onKeyDown</code> ruft <code>HandleInput</code> auf).</li>
+            <li><strong>GameState (Klasse: <code>TGameState</code>)</strong>: Die zentrale Zustandsmaschine als Komponente (Status: <code>'menu' | 'playing'</code>). Alle Loops pr&uuml;fen ihren Wert.</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <span class="badge stage">Main Stage</span>
+        <h2>Der 100% visuelle Spielfluss (Keine versteckte Logik!)</h2>
+        <p>Auf dem <strong>Spielfeld</strong> (Main Stage) liegen die Darsteller (Paddles, Ball) und ein gro&szlig;er gr&uuml;ner <strong>StartButton</strong> (<code>TButton</code>).</p>
+        
+        <p>Anstatt das Spiel "unsichtbar" &uuml;ber ein System-Event zu starten, ist der Start eine logische, vom Nutzer visuell nachvollziehbare Kette im Flow-Editor:</p>
+
+        <div class="diagram" style="flex-direction: column;">
+            <div class="node" style="margin-bottom: 10px;">StartButton.onClick ➔ StartGameTask</div>
+            <div>⬇</div>
+            <div class="node" style="background: rgba(88, 166, 255, 0.1); border-color: var(--accent); color: #c9d1d9; font-size: 0.9em; text-align: left;">
+                <strong>Action: </strong> SetStatePlaying (Setzt GameState.state = 'playing')<br>
+                <strong>Action: </strong> StartBallX (Gibt dem Ball velocityX)<br>
+                <strong>Action: </strong> StartBallY (Gibt dem Ball velocityY)<br>
+                <strong>Action: </strong> HideStartButton (Macht den Button unsichtbar)
+            </div>
+        </div>
+
+        <p>Sobald <code>GameState.state == 'playing'</code> ist, beginnt der globale <strong>GameLoop</strong> (aus dem Blueprint) zu greifen, weil seine <code>Condition</code> nun erbracht ist. Der Loop ruft jeden Frame <code>PlayStateLoop</code> &gt; <code>CheckWallCollisions</code> auf.</p>
+        
+        <p>Dort greifen dann die Abpraller-Actions (<code>BounceX</code> und <code>BounceY</code>), welche simpel die Geschwindigkeit invertieren (<code>type: "negate"</code>).</p>
+    </div>
+
+    <div class="card">
+        <h2>Der Pascal-Code Beweis</h2>
+        <p>
+            Im Flow Editor generiert der Pascal Code Generator aus dieser sauberen Top-Down-Architektur Folgendes:
+        </p>
+<pre><code>PROGRAM RetroTennis;
+
+VAR { STAGE COMPONENTS }
+  GameManager: TComponent;
+  InputController: TComponent;
+  Ball: TSprite;
+  GameState: Integer; { 0=Menu, 1=Play, 2=Gameover }
+
+PROCEDURE MainGameLoop; 
+BEGIN 
+  IF GameState = 1 THEN BEGIN
+    PlayStateLoop (); 
+  END; 
+END; 
+
+PROCEDURE HandleInput; 
+BEGIN 
+  IF GameState = 1 THEN BEGIN
+    ProcessPaddleMovement (); 
+  END; 
+END; 
+
+{ OBJECT EVENT HANDLERS }
+PROCEDURE GameManager.onFrame();
+BEGIN
+  MainGameLoop();
+END;
+
+PROCEDURE InputController.onKeyDown();
+BEGIN
+  HandleInput();
+END;
+</code></pre>
+        <p>Daran erkennst du: Wahre Spiele-Entwicklung basiert auf sauberen Zust&auml;nden und Managern, die Aufgaben delegieren.</p>
+    </div>
+
+    <div class="card">
+        <h2>Next Steps f&uuml;r dich (DIY)</h2>
+        <p>Lade diese JSON in den Editor. Als n&auml;chstes kannst du das Spiel erweitern:</p>
+        <ul>
+            <li>🔥 <strong>Aufgabe 1:</strong> Bef&uuml;lle den <code>ProcessPaddleMovement</code> Task mit Conditions, die abfragen ob "W" oder "S" (bzw. Pfeil hoch/runter) gedr&uuml;ckt wurden!</li>
+            <li>🔥 <strong>Aufgabe 2:</strong> F&uuml;ge eine Abfrage hinzu (<code>BounceX</code>), wenn der Ball die Paddles kreuzt.</li>
+            <li>🔥 <strong>Aufgabe 3:</strong> Bei X &lt; 0 erh&ouml;ht sich die Variable <code>ScorePlayer2</code> um 1 und der Ball wird in die Mitte zur&uuml;ckgesetzt.</li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

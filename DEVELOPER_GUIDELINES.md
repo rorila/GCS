@@ -116,7 +116,11 @@ Letzte Aktualisierung: v3.9.6 (E2E-Stability & Hydration Fix)
 - **Rename-Vakuum**: NIEMALS Namen im Inspector ändern, ohne den `RefactoringManager` für die systemweite Synchronisation zu triggern.
 - **ID-Instabilität**: NIEMALS Namen als Primärschlüssel für Flow-Diagramme verwenden, wenn eine Umbenennung droht (Sync-Bridge nutzen).
 - **Placeholder**: KEINE "// ... restlicher Code" Kommentare hinterlassen. Jede Datei muss vollständig sein.
-
+- **JSON Syntax & Validation**: NIEMALS manuell generierte oder modifizierte JSON-Dateien ungetestet übergeben. IMMER mit `node -e "require('./path.json')"` validieren, um versehentliche Skript-Killer (wie `]` statt `}`) zu vermeiden.
+- **Action Scopes (Blueprint vs Main)**: Actions MÜSSEN zwingend in demselben `actions`-Array der Stage liegen wie die Tasks, die sie verwenden. Ruft ein Blueprint-Task eine Main-Stage-Action auf, findet der FlowEditor diese nicht und generiert kaputte Fallback-Dummys (`auto_action_0...`).
+- **Property-Action Format**: Die `changes`-Eigenschaft einer `type: "property"` Action speichert die Änderungen als klassisches Schlüssel-Wert-Objekt (z.B. `changes: { "velocityY": 0.5 }`). Als `target` wird der visuelle **Name** des Zielobjekts (z.B. `"LeftPaddle"`) gespeichert, was der FlowAction Parser voraussetzt!
+- **Ghost-Sprites (Kollision)**: `collisionEnabled` ist standardmäßig `false`. Will man Bounce- oder Hit-Events, MUSS explizit `"collisionEnabled": true` im JSON (unter `properties`) gesetzt sein, andernfalls fliegen Objekte wie Geister nacheinander durch und bleiben ggf. am Map-Rand kleben.
+- **Object-Conditions vs String-Conditions**: Nutze bevorzugt nativ geparste String-Conditions (z.B. `"condition": "${hitSide} == 'top'"`) anstatt nackter Objekt-Conditions. Bei Objekt-Conditions werden Literal-Werte (`"rightValue": "'top'"`) im `TaskConditionEvaluator` NICHT von ihren Single-Quotes bereinigt, was zu stillschweigenden Evaluierungs-Fehlern (`"top" === "'top'" -> false`) und unleserlichen Debug-Logs (`undefined == "undefined"`) führt!
 ## 9. BEST PRACTICES (NEU)
 - **Interface Konsistenz**: Host-Objekte für Manager-Klassen (z.B. `EditorDataManager`) müssen ihre Anforderungen in einem dedizierten Interface definieren. Stellen Sie sicher, dass der `Editor` (oder andere Hosts) dieses Interface vollständig implementiert, um Laufzeitfehler wie `TypeError` zu vermeiden. Siehe Fix in `EditorViewManager.ts` (`IViewHost`).
 

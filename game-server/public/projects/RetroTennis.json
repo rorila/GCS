@@ -1,0 +1,539 @@
+{
+  "version": "3.19.1",
+  "meta": {
+    "id": "demo_retro_tennis",
+    "name": "Retro Tennis",
+    "version": "1.5.0",
+    "author": "Game Builder Studio",
+    "description": "Vollständige Demo: Paddles steuerbar, Kollisionen laufen.",
+    "_sourcePath": "projects/RetroTennis.json"
+  },
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "grid": {
+        "cols": 40,
+        "rows": 30,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "objects": [
+        {
+          "className": "TGameLoop",
+          "id": "obj_game_loop",
+          "isVariable": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "events": {
+            "onFrame": "MainGameLoop"
+          },
+          "name": "GameLoop",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "boundsOffsetTop": 0,
+          "boundsOffsetBottom": 0
+        },
+        {
+          "className": "TInputController",
+          "id": "obj_input_controller",
+          "isVariable": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "events": {
+            "onKeyDown_KeyW": "MoveP1Up",
+            "onKeyDown_KeyS": "MoveP1Down",
+            "onKeyDown_ArrowUp": "MoveP2Up",
+            "onKeyDown_ArrowDown": "MoveP2Down",
+            "onKeyUp_KeyW": "StopP1",
+            "onKeyUp_KeyS": "StopP1",
+            "onKeyUp_ArrowUp": "StopP2",
+            "onKeyUp_ArrowDown": "StopP2"
+          },
+          "name": "InputController",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "#6a1b9a",
+            "borderWidth": 2
+          },
+          "enabled": true
+        },
+        {
+          "className": "TGameState",
+          "id": "obj_game_state",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "GameState",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 2,
+          "width": 4,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#4caf50",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "state": "menu",
+          "spritesMoving": false,
+          "collisionsEnabled": false
+        }
+      ],
+      "tasks": [
+        {
+          "name": "MainGameLoop",
+          "description": "Game-Loop Takt vom TGameLoop-Controller.",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": {
+                "leftValue": "GameState.state",
+                "operator": "==",
+                "rightValue": "'playing'"
+              },
+              "thenAction": "PlayStateLoop"
+            }
+          ]
+        },
+        {
+          "name": "MoveP1Up",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP1Up"
+            }
+          ]
+        },
+        {
+          "name": "MoveP1Down",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP1Down"
+            }
+          ]
+        },
+        {
+          "name": "StopP1",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP1Stop"
+            }
+          ]
+        },
+        {
+          "name": "MoveP2Up",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP2Up"
+            }
+          ]
+        },
+        {
+          "name": "MoveP2Down",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP2Down"
+            }
+          ]
+        },
+        {
+          "name": "StopP2",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP2Stop"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "act_p1_up",
+          "name": "SetP1Up",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": -0.5
+          }
+        },
+        {
+          "id": "act_p1_down",
+          "name": "SetP1Down",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0.5
+          }
+        },
+        {
+          "id": "act_p1_stop",
+          "name": "SetP1Stop",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0
+          }
+        },
+        {
+          "id": "act_p2_up",
+          "name": "SetP2Up",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": -0.5
+          }
+        },
+        {
+          "id": "act_p2_down",
+          "name": "SetP2Down",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0.5
+          }
+        },
+        {
+          "id": "act_p2_stop",
+          "name": "SetP2Stop",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0
+          }
+        }
+      ],
+      "flowCharts": {},
+      "variables": []
+    },
+    {
+      "id": "stage_main",
+      "name": "Spielfeld",
+      "type": "main",
+      "gameName": "Retro Tennis",
+      "backgroundColor": "#1a1a2e",
+      "grid": {
+        "cols": 40,
+        "rows": 30,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#1a1a2e"
+      },
+      "objects": [
+        {
+          "className": "TButton",
+          "id": "obj_start_btn",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "events": {
+            "onClick": "StartGameTask"
+          },
+          "name": "StartButton",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 16,
+          "y": 10,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "StartButton",
+          "icon": ""
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_paddle1",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "LeftPaddle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 12,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain"
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_paddle2",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "RightPaddle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 38,
+          "y": 12,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain"
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_ball",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "events": {
+            "onBoundaryHit": "CheckWallCollisions",
+            "onCollision": "BallHitPaddle"
+          },
+          "name": "Ball",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 19,
+          "y": 14,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "StartGameTask",
+          "description": "Wird durch den StartButton getriggert.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetStatePlaying"
+            },
+            {
+              "type": "action",
+              "name": "EnablePhysics"
+            },
+            {
+              "type": "action",
+              "name": "StartBallX"
+            },
+            {
+              "type": "action",
+              "name": "StartBallY"
+            },
+            {
+              "type": "action",
+              "name": "HideStartButton"
+            }
+          ]
+        },
+        {
+          "name": "PlayStateLoop",
+          "description": "Die Spiellogik, die jeden Frame aufgerufen wird.",
+          "actionSequence": []
+        },
+        {
+          "name": "CheckWallCollisions",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "condition": "${hitSide} == 'top'",
+              "thenAction": "BounceY"
+            },
+            {
+              "type": "condition",
+              "condition": "${hitSide} == 'bottom'",
+              "thenAction": "BounceY"
+            }
+          ]
+        },
+        {
+          "name": "BallHitPaddle",
+          "description": "Wenn der Ball kollidiert (z.B. mit dem Paddle), springt er ab.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "BounceX"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "act_set_state",
+          "name": "SetStatePlaying",
+          "type": "property",
+          "target": "GameState",
+          "changes": {
+            "state": "playing"
+          }
+        },
+        {
+          "id": "act_enable_physics",
+          "name": "EnablePhysics",
+          "type": "property",
+          "target": "GameState",
+          "changes": {
+            "spritesMoving": true,
+            "collisionsEnabled": true
+          }
+        },
+        {
+          "id": "act_start_box",
+          "name": "StartBallX",
+          "type": "property",
+          "target": "Ball",
+          "changes": {
+            "velocityX": 0.3
+          }
+        },
+        {
+          "id": "act_start_boy",
+          "name": "StartBallY",
+          "type": "property",
+          "target": "Ball",
+          "changes": {
+            "velocityY": 0.3
+          }
+        },
+        {
+          "id": "act_hide_btn",
+          "name": "HideStartButton",
+          "type": "property",
+          "target": "StartButton",
+          "changes": {
+            "visible": false
+          }
+        },
+        {
+          "id": "act_bounce_y",
+          "name": "BounceY",
+          "type": "negate",
+          "target": "Ball",
+          "changes": {
+            "velocityY": true
+          }
+        },
+        {
+          "id": "act_bounce_x",
+          "name": "BounceX",
+          "type": "negate",
+          "target": "Ball",
+          "changes": {
+            "velocityX": true
+          }
+        }
+      ],
+      "flowCharts": {}
+    }
+  ],
+  "tasks": [],
+  "actions": [],
+  "objects": [],
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "activeStageId": "stage_main"
+}

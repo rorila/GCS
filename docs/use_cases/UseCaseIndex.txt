@@ -1,5 +1,13 @@
-- [2026-03-17] UX: Blueprint-Tasks in Nicht-Blueprint-Stages ausblenden & Dropdown Fixes:
+- [2026-03-18] Fix: Retro Tennis Physics & Engine Logs (RetroTennis.json):
+  - Komplexe Task-Flows mit onBoundaryHit und nativem Engine-Bouncing.
   - Dateien:
+    - demos/RetroTennis.json (Ball, Paddles `collisionEnabled` -> `true`, string-conditions `${hitSide} == 'top'`)
+    - src/runtime/PropertyWatcher.ts (Exclusion von `_` Variablen wie `_prevVelocityX` im Debugger)
+    - src/runtime/executor/TaskConditionEvaluator.ts (String vs Literal Evaluierung)
+  - Details: Fehlkonfigurationen im JSON führten dazu, dass Sprites von der Engine wie Geister behandelt wurden. Der GameLoopManager hat korrekt Objekte randgestoppt, aber eine falsch strukturierte Objekt-Condition führte zu Evaluierungsfehlern (Literal-Quotes wurden nicht entfernt: `"top" === "'top'"` -> FALSE).
+  - Lösungsansatz: Einsatz von nativen String-Conditions und expliziter Aktivierung von `collisionEnabled: true`.
+
+- [2026-03-17] UX: Blueprint-Tasks in Nicht-Blueprint-Stages ausblenden & Dropdown Fixes:
     - src/editor/FlowEditor.ts (updateFlowSelector: L630-745)
     - src/editor/inspector/InspectorRenderer.ts (getOptionsFromSource: L954)
   - Details: Das "showGlobalAnyway"-Flag im Flow-Editor Dropdown wurde entfernt. Blueprint-Tasks 
