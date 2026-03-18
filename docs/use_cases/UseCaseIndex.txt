@@ -336,3 +336,8 @@ Beteiligte Dateien:
 Beteiligte Dateien:
 - src/editor/FlowEditor.ts (toggleDetailsView:1236)
 
+
+[Task: Pascal Code - Deklaration verlinkter Tasks anzeigen]
+Beteiligte Dateien:
+- src/editor/PascalCodeGenerator.ts (generateFullProgram: 80-100)
+

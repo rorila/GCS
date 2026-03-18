@@ -359,6 +359,44 @@ export class FlowContextMenuProvider {
             }
         ];
 
+        // Vorhandene Actions einfügen (Link)
+        const allActions = projectRegistry.getActions('all');
+        const insertActionItems: ContextMenuItem[] = allActions.map(a => ({
+            label: a.name,
+            action: () => {
+                const node = this.host.createNode('Action', x, y, a.name);
+                if (node) this.linkActionToNode(node, a);
+            }
+        }));
+
+        if (insertActionItems.length > 0) {
+            items.push({ separator: true, label: '' });
+            items.push({
+                label: '🔗 Vorhandene Aktion einfügen',
+                submenu: insertActionItems
+            });
+        }
+
+        // Vorhandene Globale Tasks einfügen
+        const allTasks = projectRegistry.getTasks('all');
+        const globalTasks = allTasks.filter(t => t.uiScope === 'global' || (t as any).scope === 'global');
+        
+        const insertTaskItems: ContextMenuItem[] = globalTasks.map(t => ({
+            label: t.name,
+            action: () => {
+                const node = this.host.createNode('Task', x, y, t.name);
+                if (node) this.assignTaskToNode(node, t);
+            }
+        }));
+
+        if (insertTaskItems.length > 0) {
+            if (insertActionItems.length === 0) items.push({ separator: true, label: '' });
+            items.push({
+                label: '🔗 Globalen Task einfügen',
+                submenu: insertTaskItems
+            });
+        }
+
         this.host.contextMenu.show(e.clientX, e.clientY, items);
     }
 

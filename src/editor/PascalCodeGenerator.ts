@@ -78,6 +78,32 @@ export class PascalCodeGenerator {
                 });
             });
 
+            // Neu: Rekursiv alle Tasks sammeln, die von den bereits erfassten Tasks aufgerufen werden
+            let addedNew = true;
+            while (addedNew) {
+                addedNew = false;
+                allTasks.forEach(t => {
+                    if (relevantTaskNames.has(t.name) && t.actionSequence) {
+                        const checkSequence = (seq: SequenceItem[]) => {
+                            if (!seq) return;
+                            seq.forEach(item => {
+                                if (item.type === 'task' && item.name && !relevantTaskNames.has(item.name)) {
+                                    relevantTaskNames.add(item.name);
+                                    addedNew = true; // Found a new called task, repeat loop to check its sequence too
+                                }
+                                if ((item as any).elseTask && !relevantTaskNames.has((item as any).elseTask)) {
+                                    relevantTaskNames.add((item as any).elseTask);
+                                    addedNew = true;
+                                }
+                                if (item.body) checkSequence(item.body);
+                                if ((item as any).elseBody) checkSequence((item as any).elseBody);
+                            });
+                        };
+                        checkSequence(t.actionSequence);
+                    }
+                });
+            }
+
             tasksToShow = allTasks.filter(t => t && t.name && relevantTaskNames.has(t.name));
         }
 
@@ -270,8 +296,14 @@ export class PascalCodeGenerator {
     }
 
     public static generateProcedure(project: GameProject, taskName: string, indent: number = 0, sequenceOverride?: SequenceItem[], asHtml: boolean = true, activeStage?: any): string {
-        let task = project.tasks.find(t => t.name === taskName);
+        let task = (project.tasks || []).find(t => t.name === taskName) as any;
         if (!task && activeStage) task = activeStage.tasks?.find((t: any) => t.name === taskName);
+        if (!task && project.stages) {
+            for (const stage of project.stages) {
+                const found = stage.tasks?.find((t: any) => t.name === taskName);
+                if (found) { task = found; break; }
+            }
+        }
 
         const sequence = sequenceOverride || task?.actionSequence || [];
         const lines: string[] = [];

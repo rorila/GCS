@@ -23,6 +23,7 @@ import { runSnapshotTests } from '../tests/snapshot_manager.test.js';
 import { runProjectStoreTests } from '../tests/project_store.test.js';
 import { runFlowDataActionTests } from '../tests/flow_data_action.test.js';
 import { runExportIntegrityTests } from '../tests/export_integrity.test.js';
+import { runPascalGeneratorTests } from '../tests/logic/PascalCodeGenerator.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -170,9 +171,13 @@ async function main() {
         console.log('🏃 Starte FlowDataAction Inspector Tests...');
         allResults.push(...await runFlowDataActionTests());
 
-        // 16. Export Integrity Tests
+        // 17. Export Integrity Tests
         console.log('🏃 Starte Export Integrity Tests...');
-        allResults.push(...runExportIntegrityTests());
+        allResults.push(...await runExportIntegrityTests());
+
+        // 18. Pascal Code Generator Tests
+        console.log('🏃 Starte Pascal Code Generator Tests...');
+        allResults.push(...await runPascalGeneratorTests());
 
         // 🌐 Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');

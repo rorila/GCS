@@ -245,8 +245,14 @@ export class FlowTask extends FlowElement {
             return 'local'; // "Stage" scope
         }
 
-        // Check global
-        if (this.projectRef.tasks.find(t => t.name === taskName)) {
+        // Check global (Blueprint Stage)
+        const blueprint = this.projectRef.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
+        if (blueprint && blueprint.tasks?.find(t => t.name === taskName)) {
+            return 'global';
+        }
+
+        // Legacy Fallback
+        if (this.projectRef.tasks?.find(t => t.name === taskName)) {
             return 'global';
         }
 
@@ -264,37 +270,60 @@ export class FlowTask extends FlowElement {
 
         const stageId = this.projectRef.activeStageId;
         const stage = this.projectRef.stages?.find(s => s.id === stageId);
+        const blueprint = this.projectRef.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
 
         if (!stage) {
             console.error('[FlowTask] No active stage found for scope change');
             return;
         }
+        if (!blueprint) {
+            console.error('[FlowTask] No blueprint stage found for scope change');
+            return;
+        }
 
-        // Move from Local (Stage) to Global
+        if (!blueprint.tasks) blueprint.tasks = [];
+        if (!stage.tasks) stage.tasks = [];
+
+        // Move from Local (Stage) to Global (Blueprint)
         if (currentScope === 'local' && newScope === 'global') {
-            const taskIndex = stage.tasks ? stage.tasks.findIndex(t => t.name === taskName) : -1;
-            if (taskIndex >= 0 && stage.tasks) {
+            const taskIndex = stage.tasks.findIndex(t => t.name === taskName);
+            if (taskIndex >= 0) {
                 const taskDef = stage.tasks[taskIndex];
 
                 // Check if global already exists
-                if (this.projectRef.tasks.some(t => t.name === taskName)) {
+                if (blueprint.tasks.some(t => t.name === taskName)) {
                     console.error(`[FlowTask] Cannot move to global: Task '${taskName}' already exists globally.`);
                     return;
                 }
 
-                // Move
+                // Move task
                 stage.tasks.splice(taskIndex, 1);
-                this.projectRef.tasks.push(taskDef);
+                blueprint.tasks.push(taskDef);
+                
+                // ALSO move the flowchart!
+                if (stage.flowCharts?.[taskName]) {
+                    if (!blueprint.flowCharts) blueprint.flowCharts = {};
+                    blueprint.flowCharts[taskName] = stage.flowCharts[taskName];
+                    delete stage.flowCharts[taskName];
+                }
             }
         }
-        // Move from Global to Local (Stage)
+        // Move from Global (Blueprint) to Local (Stage)
         else if (currentScope === 'global' && newScope === 'local') {
-            const taskIndex = this.projectRef.tasks.findIndex(t => t.name === taskName);
-            if (taskIndex >= 0) {
-                const taskDef = this.projectRef.tasks[taskIndex];
+            // Check Blueprint first
+            let taskIndex = blueprint.tasks.findIndex(t => t.name === taskName);
+            let sourceContainer = blueprint;
+            
+            // Legacy Fallback checking
+            if (taskIndex < 0 && this.projectRef.tasks) {
+                taskIndex = this.projectRef.tasks.findIndex(t => t.name === taskName);
+                if (taskIndex >= 0) sourceContainer = this.projectRef as any; // Using project root temporarily
+            }
 
-                // Init active stage tasks if needed
-                if (!stage.tasks) stage.tasks = [];
+            if (!sourceContainer.tasks) sourceContainer.tasks = [];
+
+            if (taskIndex >= 0) {
+                const taskDef = sourceContainer.tasks[taskIndex];
 
                 // Check if local already exists
                 if (stage.tasks.some(t => t.name === taskName)) {
@@ -302,9 +331,16 @@ export class FlowTask extends FlowElement {
                     return;
                 }
 
-                // Move
-                this.projectRef.tasks.splice(taskIndex, 1);
+                // Move task
+                sourceContainer.tasks.splice(taskIndex, 1);
                 stage.tasks.push(taskDef);
+                
+                // ALSO move the flowchart!
+                if (sourceContainer.flowCharts?.[taskName]) {
+                    if (!stage.flowCharts) stage.flowCharts = {};
+                    stage.flowCharts[taskName] = sourceContainer.flowCharts[taskName];
+                    delete sourceContainer.flowCharts[taskName];
+                }
             }
         }
     }

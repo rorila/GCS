@@ -14,8 +14,11 @@
 - **FlowEditor (3.19.1):** Ein neues, einklappbares und in der Breite ziehbares ("resizable") Sidepanel für Pascal-Code integriert. Es dockt sich rechtsbündig im Canvas an, verfügt über ein modernes Glas-Design (`backdrop-filter: blur(12px)`) und zeigt in Echtzeit den generierten Pascal-Code der gewählten Stage oder Node.
 - **FlowEditor (3.19.1):** Layout-Bug behoben, der das Pascal-Panel beim Initial-Laden als durchgehendes Band am unteren Rand statt andockend positionierte. Code wird zudem dauerhaft für das komplette Programm aus der Stage (`generateFullProgram`) gerendert.
 - **FlowEditor (3.19.1):** Automatischer Formatierungsschritt hinzugefügt: Beim Umschalten zwischen Kompakt- und Detail-Ansicht formatiert sich der Flow-Graph nun automatisch neu, um schräge Verbindungslinien durch geänderte Knotengrößen zu korrigieren.
+- **FlowEditor (3.19.1):** Kontextmenü auf dem Canvas erweitert: Nutzer können nun über einen Rechtsklick auf den Canvas bestehende Actions (`Vorhandene Aktion einfügen`) und globale Tasks (`Globalen Task einfügen`) direkt als verlinkte ("Linked") Knoten in den Flow einhängen.
 
 ### Fixes
+- **PascalCodeGenerator (3.19.1):** Fehler behoben, bei dem die eigentliche Prozedur-Deklaration (`PROCEDURE MyTask;`) für global aufgerufene Tasks (z.B. `BackToMainStage`) im generierten Code fehlte, wenn diese nur "verlinkt" waren. Der Generator löst Tasks nun rekursiv anhand der ActionSequences auf.
+- **FlowTask (3.19.1):** Scope-Wechsel im Inspector (von "Stage-lokal" auf "Global") umgestellt: Das Heraufstufen von Tasks in den globalen Bereich nutzt nun korrekterweise die moderne "Blueprint-Stage" als Target, verschiebt saubere Referenzen und inkludiert die dazugehörigen Flowcharts des Tasks beim Umzug.
 - **FlowEditor (3.19.1):** StageLabel in der Top-Menu-Bar ergänzt (Update bei Projekt-Setup und Stage-Switching).
 - **FlowEditor (3.19.1):** Blueprint-Tasks sind nun exklusiv in der Blueprint-Stage im Dropdown sichtbar.
 - **FlowEditor (3.19.1):** Entfernung der verwirrenden Option `Main Flow (Stage)` in Non-Blueprint Stages.

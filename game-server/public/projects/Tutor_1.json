@@ -206,8 +206,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         }
       ],
@@ -251,9 +251,68 @@
       "id": "stage-1773775228030",
       "name": "Stage 1",
       "type": "standard",
-      "objects": [],
+      "objects": [
+        {
+          "className": "TButton",
+          "id": "obj_1773849381053_iere0ye1t",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "events": {
+            "onClick": "Stage1TestTask"
+          },
+          "name": "Button_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 7,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "Button_4",
+          "icon": ""
+        }
+      ],
       "actions": [],
-      "tasks": [],
+      "tasks": [
+        {
+          "name": "Stage1TestTask",
+          "description": "",
+          "actionSequence": [
+            {
+              "type": "task",
+              "name": "BackToMainStage"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "Stage1TestTask": {
+              "x": 40,
+              "y": 40
+            },
+            "BackToMainStage": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        }
+      ],
       "variables": [],
       "grid": {
         "cols": 64,
@@ -262,9 +321,10 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#ffffff"
-      }
+      },
+      "flowCharts": {}
     }
   ],
-  "activeStageId": "blueprint",
+  "activeStageId": "stage-1773775228030",
   "flowCharts": {}
 }
