@@ -1,4 +1,5 @@
 import { GameProject, SequenceItem, GameTask } from '../model/types';
+import { actionRegistry } from '../runtime/ActionRegistry';
 
 /**
  * PascalCodeGenerator - Encapsulates the logic for generating Pascal code from a GameProject.
@@ -72,7 +73,7 @@ export class PascalCodeGenerator {
 
             // Collect usages by objects
             activeStage.objects?.forEach((obj: any) => {
-                Object.values(obj.Tasks || {}).forEach((t: any) => {
+                Object.values(obj.events || obj.Tasks || {}).forEach((t: any) => {
                     if (typeof t === 'string' && t) relevantTaskNames.add(t);
                 });
             });
@@ -91,7 +92,7 @@ export class PascalCodeGenerator {
         if (activeStage && activeStage.objects) {
             lines.push(`${this.span('{ OBJECT EVENT HANDLERS }', '#6a9955', asHtml)}`);
             activeStage.objects.forEach((obj: any) => {
-                const tasksMap = obj.Tasks || {};
+                const tasksMap = obj.events || obj.Tasks || {};
                 Object.keys(tasksMap).forEach(event => {
                     const targetTask = tasksMap[event];
                     if (targetTask) {
@@ -111,7 +112,8 @@ export class PascalCodeGenerator {
 
         const startTasks: string[] = [];
         (activeStage ? activeStage.objects : project.objects || []).forEach((obj: any) => {
-            if (obj.Tasks?.onStart) startTasks.push(obj.Tasks.onStart);
+            const onStartTask = obj.events?.onStart || obj.Tasks?.onStart;
+            if (onStartTask) startTasks.push(onStartTask);
         });
 
         [...new Set(startTasks)].forEach(taskName => {
@@ -208,7 +210,7 @@ export class PascalCodeGenerator {
         const stagesToCheck = activeStage ? [activeStage] : (project.stages || []);
         stagesToCheck.forEach((stage: any) => {
             (stage.objects || []).forEach((obj: any) => {
-                const tasks = obj.Tasks || {};
+                const tasks = obj.events || obj.Tasks || {};
                 Object.entries(tasks).forEach(([event, tName]) => {
                     if (tName === taskName) {
                         eventHandlers.push(`${this.span('// Auslöser:', '#6a9955', asHtml)} ${this.span(obj.name, '#9cdcfe', asHtml)}.${this.span(event, '#dcdcaa', asHtml)}`);
@@ -394,12 +396,27 @@ export class PascalCodeGenerator {
             const amount = action.changes[key] || 1;
             code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} := ${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(capitalizedKey, '#9cdcfe', asHtml)} + ${this.span(String(amount), '#b5cea8', asHtml)}; `;
         } else if (action.type === 'navigate_stage') {
-            code = `${this.span('Application', '#4ec9b0', asHtml)}.${this.span('GoToStage', '#dcdcaa', asHtml)} (${this.span("'" + (action.params?.stageId || action.target || '?') + "'", '#ce9178', asHtml)}); `;
+            const sid = action.stageId || action.params?.stageId || action.target || '?';
+            code = `${this.span('Application', '#4ec9b0', asHtml)}.${this.span('GoToStage', '#dcdcaa', asHtml)} (${this.span("'" + sid + "'", '#ce9178', asHtml)}); `;
         } else if (action.type === 'call_method' && action.target && action.method) {
             code = `${this.span(action.target, '#9cdcfe', asHtml)}.${this.span(action.method, '#dcdcaa', asHtml)} (); `;
         } else {
-            // Fallback: Unbekannter Typ als Prozedur-Aufruf darstellen
-            code = `${this.span(actionName, '#dcdcaa', asHtml)} (); ${this.span('{ ' + (action.type || 'unknown') + ' }', '#6a9955', asHtml)} `;
+            // --- Dynamic Registry Fallback ---
+            const meta = actionRegistry.getMetadata(action.type);
+            if (meta && meta.parameters && meta.parameters.length > 0) {
+                const parts: string[] = [];
+                meta.parameters.forEach(p => {
+                    const val = action[p.name] ?? (action.params && action.params[p.name]);
+                    if (val !== undefined && val !== null && val !== '') {
+                        parts.push(`${p.name}: ${this.span(String(val), '#ce9178', asHtml)}`);
+                    }
+                });
+                const paramsStr = parts.join(', ');
+                code = `${this.span(action.type, '#dcdcaa', asHtml)} (${paramsStr}); `;
+            } else {
+                // Fallback: Unbekannter Typ als Prozedur-Aufruf darstellen
+                code = `${this.span(actionName, '#dcdcaa', asHtml)} (); ${this.span('{ ' + (action.type || 'unknown') + ' }', '#6a9955', asHtml)} `;
+            }
         }
 
         return code;

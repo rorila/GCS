@@ -134,6 +134,12 @@
           "type": "navigate_stage",
           "showDetails": false,
           "stageId": "main"
+        },
+        {
+          "name": "action",
+          "details": "",
+          "type": "action",
+          "showDetails": false
         }
       ],
       "tasks": [
@@ -143,6 +149,14 @@
           "actionSequence": [
             {
               "name": "SwitchToMainStage",
+              "type": "action"
+            },
+            {
+              "name": "action",
+              "type": "action"
+            },
+            {
+              "name": "action",
               "type": "action"
             }
           ],
@@ -156,6 +170,10 @@
             "SwitchToMainStage": {
               "x": 40,
               "y": 140
+            },
+            "action": {
+              "x": 40,
+              "y": 340
             }
           },
           "Description": "Bei Klick wird zur Mainstage umgeschaltet",
@@ -248,10 +266,5 @@
     }
   ],
   "activeStageId": "blueprint",
-  "flowCharts": {
-    "global": {
-      "elements": [],
-      "connections": []
-    }
-  }
+  "flowCharts": {}
 }

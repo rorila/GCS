@@ -10,6 +10,11 @@
   - Fehler behoben: Die Ausblend-Bedingung für `isBlueprint` wurde entspannt (unterstützt nun Fallback auf ID `blueprint`), um zu garantieren, dass Blueprint-Tasks im Blueprint-Editor-Modus sicher angezeigt werden.
   - Fallback-Rendering für verwaiste Root-Tasks (`project.tasks`) in der Blueprint-Stage wiederhergestellt, für Legacy-Projekte, bei denen die Migration noch aussteht.
   - **Fix:** Der hartcodierte Eintrag "Main Flow (Stage)" (intern 'global') wurde für reguläre Stages aus dem Dropdown entfernt, da er irritierte und von Benutzern als globaler Task verstanden wurde.
+### Features
+- **FlowEditor (3.19.1):** Ein neues, einklappbares und in der Breite ziehbares ("resizable") Sidepanel für Pascal-Code integriert. Es dockt sich rechtsbündig im Canvas an, verfügt über ein modernes Glas-Design (`backdrop-filter: blur(12px)`) und zeigt in Echtzeit den generierten Pascal-Code der gewählten Stage oder Node.
+- **FlowEditor (3.19.1):** Layout-Bug behoben, der das Pascal-Panel beim Initial-Laden als durchgehendes Band am unteren Rand statt andockend positionierte. Code wird zudem dauerhaft für das komplette Programm aus der Stage (`generateFullProgram`) gerendert.
+- **FlowEditor (3.19.1):** Automatischer Formatierungsschritt hinzugefügt: Beim Umschalten zwischen Kompakt- und Detail-Ansicht formatiert sich der Flow-Graph nun automatisch neu, um schräge Verbindungslinien durch geänderte Knotengrößen zu korrigieren.
+
 ### Fixes
 - **FlowEditor (3.19.1):** StageLabel in der Top-Menu-Bar ergänzt (Update bei Projekt-Setup und Stage-Switching).
 - **FlowEditor (3.19.1):** Blueprint-Tasks sind nun exklusiv in der Blueprint-Stage im Dropdown sichtbar.
@@ -18,6 +23,8 @@
 - **Inspector (3.19.1):** Dropdowns für Tasks und Actions beziehen globale Elemente nun einheitlich über `ProjectRegistry.getTasks('all')` anstatt der veralteten Root-Level Collection.
 - **FlowEditor (3.19.1):** Bugfix für die "Landkarte (Events/Links)" und die "Elementenübersicht", welche in der Blueprint-Stage leere Graphen dargestellt hatten. Beide Übersichten beziehen globale Ressourcen nun fehlerfrei aus den Stage-Daten via ProjectRegistry.
 - **FlowEditor (3.19.1):** Bugfix für die "Landkarte", da diese Events von Objekten über die veraltete Property `.Tasks` geholt hat anstatt der neuen Standard-Property `.events`.
+- **FlowEditor & PascalCodeGenerator (3.19.1):** Unbekannte oder Plugin-Actions (wie `navigate_stage`) zeigen in der Node-Ansicht und im generierten Pascal-Code nun ihre echten Parameter-Werte (dynamisch aus der `ActionRegistry` bezogen) anstatt nur ihre Typ-Bezeichnung an.
+- **PascalCodeGenerator (3.19.1):** Fehlende Event-Handler (z.B. `onClick`) von Stage-Komponenten wurden durch Umstellung auf die moderne `.events` Property wiederhergestellt.
 - **Inspector-Task- und Action-Dropdowns** (`InspectorRenderer.ts`):
   - Für Ereignis-Inputs und Eigenschafts-Dropdowns (Tasks, Actions) wird nun projektübergreifend `projectRegistry.getTasks('all')` genutzt, damit Aufgaben der Blueprint-Stage auch als Zielaktionen abgebildet und nicht ausgeblendet werden.
 - **Fehlerbehebung nach Stage-Wechsel ("Ghosting" von globalen Tasks)** (`FlowEditor.ts`):

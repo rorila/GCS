@@ -775,6 +775,22 @@ export class FlowAction extends FlowElement {
             return `${op} Token [${key}]`;
         }
 
+        // --- Dynamic Registry Fallback ---
+        const meta = actionRegistry.getMetadata(displayAction.type);
+        if (meta && meta.parameters && meta.parameters.length > 0) {
+            const parts: string[] = [];
+            meta.parameters.forEach(p => {
+                // Determine defined value, check directly on object or within params object
+                const val = (displayAction as any)[p.name] ?? ((displayAction as any).params && (displayAction as any).params[p.name]);
+                if (val !== undefined && val !== null && val !== '') {
+                    parts.push(`${p.name}: ${this.formatValue(val)}`);
+                }
+            });
+            if (parts.length > 0) {
+                return parts.join(', ');
+            }
+        }
+
         return `(${displayAction.type})`;
     }
 

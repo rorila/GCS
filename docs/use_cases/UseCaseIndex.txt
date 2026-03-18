@@ -310,3 +310,29 @@ Beteiligte Dateien:
 Beteiligte Dateien:
 - src/editor/services/FlowMapManager.ts (generateEventMap:54)
 
+
+[Task: Dynamische Action Parameter in Flow Details & Pascal Code]
+Beteiligte Dateien:
+- src/editor/flow/FlowAction.ts (getActionDetails:778)
+- src/editor/PascalCodeGenerator.ts (getActionPascalCode:404)
+
+
+[Task: Resizable Modern Pascal Preview Panel]
+Beteiligte Dateien:
+- src/editor/FlowEditor.ts (applyPascalLayout:970, updatePascalPanel:996)
+
+
+[Task: Pascal Panel Full Program View]
+Beteiligte Dateien:
+- src/editor/FlowEditor.ts (updatePascalPanel:1010)
+
+
+[Task: Layout Initialisierung für Pascal Panel Side-by-Side repariert]
+Beteiligte Dateien:
+- src/editor/FlowEditor.ts (constructor:422)
+
+
+[Task: Automatisches Layout nach Detail-Ansicht-Wechsel]
+Beteiligte Dateien:
+- src/editor/FlowEditor.ts (toggleDetailsView:1236)
+
