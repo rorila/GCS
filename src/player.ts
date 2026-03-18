@@ -80,15 +80,15 @@ export class Player {
                     ic.start();
                 });
 
-                // Initialize and start GameLoop
+                // Initialize GameLoop (Konfigurations-Container)
+                // Der GameLoopManager (Singleton) übernimmt den eigentlichen Loop.
                 if (this.gameLoop) {
-                    this.gameLoop.init(
-                        this.objects,
-                        this.project.stage.grid,
-                        () => this.stage.renderObjects(this.objects),
-                        (id, eventName, data) => this.handleGameLoopEvent(id, eventName, data)
-                    );
-                    this.gameLoop.start();
+                    this.gameLoop.initRuntime({
+                        objects: this.objects,
+                        gridConfig: this.project.stage.grid,
+                        render: () => this.stage.renderObjects(this.objects),
+                        handleEvent: (id: string, eventName: string, data?: any) => this.handleGameLoopEvent(id, eventName, data)
+                    });
                 }
 
                 // Initial render

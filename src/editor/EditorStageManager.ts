@@ -78,62 +78,64 @@ export class EditorStageManager {
 
     public getTargetActionCollection(actionName?: string, action?: GameAction): GameAction[] {
         const activeStage = this.getActiveStage();
+        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
 
         // 1. Explicit Scope Check
         if (action?.scope === 'global') {
-            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
             if (blueprintStage) return blueprintStage.actions || (blueprintStage.actions = []);
-            return this.project.actions || (this.project.actions = []);
+            // Kein Root-Fallback — Blueprint ist Pflicht
+            return activeStage?.actions || [];
         }
         if (action?.scope === 'stage' && activeStage) return activeStage.actions || (activeStage.actions = []);
 
-        if (!activeStage) return this.project.actions || (this.project.actions = []);
+        // Ohne activeStage → Blueprint-Stage (NICHT project.actions Root)
+        if (!activeStage) {
+            if (blueprintStage) return blueprintStage.actions || (blueprintStage.actions = []);
+            return [];
+        }
 
-        // 2. Existence Check
+        // 2. Existence Check — nur in Stages suchen
         if (activeStage.actions && activeStage.actions.find(a => a.name === actionName)) {
             return activeStage.actions;
         }
 
-        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
         if (blueprintStage?.actions && blueprintStage.actions.find(a => a.name === actionName)) {
             return blueprintStage.actions;
         }
 
-        if (this.project.actions && this.project.actions.find(a => a.name === actionName)) {
-            return this.project.actions;
-        }
-
-        // Default to stage
+        // Default to active stage
         if (!activeStage.actions) activeStage.actions = [];
         return activeStage.actions;
     }
 
     public getTargetTaskCollection(taskName?: string, task?: GameTask): GameTask[] {
         const activeStage = this.getActiveStage();
+        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
 
         // 1. Explicit Scope Check
         if (task?.scope === 'global') {
-            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
             if (blueprintStage) return blueprintStage.tasks || (blueprintStage.tasks = []);
-            return this.project.tasks || (this.project.tasks = []);
+            // Kein Root-Fallback — Blueprint ist Pflicht
+            return activeStage?.tasks || [];
         }
         if (task?.scope === 'stage' && activeStage) return activeStage.tasks || (activeStage.tasks = []);
 
-        if (!activeStage) return this.project.tasks || (this.project.tasks = []);
+        // Ohne activeStage → Blueprint-Stage (NICHT project.tasks Root)
+        if (!activeStage) {
+            if (blueprintStage) return blueprintStage.tasks || (blueprintStage.tasks = []);
+            return [];
+        }
 
+        // 2. Existence Check — nur in Stages suchen
         if (activeStage.tasks && activeStage.tasks.find(t => t.name === taskName)) {
             return activeStage.tasks;
         }
 
-        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
         if (blueprintStage?.tasks && blueprintStage.tasks.find(t => t.name === taskName)) {
             return blueprintStage.tasks;
         }
 
-        if (this.project.tasks && this.project.tasks.find(t => t.name === taskName)) {
-            return this.project.tasks;
-        }
-
+        // Default to active stage
         if (!activeStage.tasks) activeStage.tasks = [];
         return activeStage.tasks;
     }

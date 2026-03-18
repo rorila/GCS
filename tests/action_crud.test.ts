@@ -34,6 +34,16 @@ export async function runTests(): Promise<TestResult[]> {
         variables: [],
         stages: [
             {
+                id: 'blueprint',
+                name: 'Blueprint (Global)',
+                type: 'blueprint',
+                objects: [],
+                actions: [],
+                tasks: [],
+                variables: [],
+                flowCharts: {}
+            },
+            {
                 id: 'stage_1',
                 name: 'Stage 1',
                 type: 'standard',
@@ -54,10 +64,12 @@ export async function runTests(): Promise<TestResult[]> {
         activeStageId: 'stage_1'
     } as any;
 
+    const blueprintStage = project.stages![0];
+
     const mockHost = {
         project: project,
-        getActiveStage: () => project.stages![0],
-        getTargetActionCollection: (name?: string) => project.actions,
+        getActiveStage: () => project.stages![1],
+        getTargetActionCollection: (name?: string) => blueprintStage.actions,
         updateFlowSelector: () => { },
         onProjectChange: () => { }
     };
@@ -74,16 +86,16 @@ export async function runTests(): Promise<TestResult[]> {
         };
         syncManager.updateGlobalActionDefinition(createData);
 
-        const created = project.actions.find(a => a.name === 'NewAction');
+        const created = blueprintStage.actions.find(a => a.name === 'NewAction');
         const ok = !!created && (created as any).target === 'AnyObject';
-        addResult('Action Create', ok, ok ? 'Action erfolgreich in Projekt-Liste erstellt.' : 'Action wurde nicht erstellt.');
+        addResult('Action Create', ok, ok ? 'Action erfolgreich in Blueprint-Stage erstellt.' : 'Action wurde nicht erstellt.');
     } catch (e: any) {
         addResult('Action Create', false, `Fehler: ${e.message}`);
     }
 
     // --- 2. READ Test ---
     try {
-        const action = project.actions.find(a => a.name === 'NewAction');
+        const action = blueprintStage.actions.find(a => a.name === 'NewAction');
         const ok = !!action && action.type === 'property';
         addResult('Action Read', ok, ok ? 'Action-Eigenschaften korrekt gelesen.' : 'Action konnte nicht korrekt gelesen werden.');
     } catch (e: any) {
@@ -98,7 +110,7 @@ export async function runTests(): Promise<TestResult[]> {
         // Check in Tasks
         const taskMatch = project.tasks[0].actionSequence.some((item: any) => item.name === 'RenamedAction');
         // Check in FlowCharts
-        const flowMatch = project.stages![0].flowCharts!['TestTask'].elements.some((el: any) => el.data.name === 'RenamedAction');
+        const flowMatch = project.stages![1].flowCharts!['TestTask'].elements.some((el: any) => el.data.name === 'RenamedAction');
 
         const ok = taskMatch && flowMatch;
         addResult('Action Update (Rename)', ok, ok ? 'Refactoring erfolgreich: Task & FlowChart aktualisiert.' : `Fehler: TaskMatch=${taskMatch}, FlowMatch=${flowMatch}`);
@@ -110,11 +122,11 @@ export async function runTests(): Promise<TestResult[]> {
     try {
         // Lösche die neu erstellte 'NewAction' (Typ: property/action)
         ActionRefactoringService.deleteAction(project, 'NewAction');
-        const existsAfterDelete = project.actions.some(a => a.name === 'NewAction');
+        const existsAfterDelete = blueprintStage.actions!.some(a => a.name === 'NewAction');
 
         // Teste Löschung einer DataAction (Bugfix-Verifizierung)
         const dataActionName = 'DataActionToDelete';
-        const stage = project.stages![0];
+        const stage = project.stages![1];
         stage.flowCharts!['TestTask'].elements.push({
             id: 'node_data',
             type: 'DataAction',

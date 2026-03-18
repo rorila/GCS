@@ -1,3 +1,40 @@
+- [2026-03-17] UX: Blueprint-Tasks in Nicht-Blueprint-Stages ausblenden & Dropdown Fixes:
+  - Dateien:
+    - src/editor/FlowEditor.ts (updateFlowSelector: L630-745)
+    - src/editor/inspector/InspectorRenderer.ts (getOptionsFromSource: L954)
+  - Details: Das "showGlobalAnyway"-Flag im Flow-Editor Dropdown wurde entfernt. Blueprint-Tasks 
+    werden jetzt nur noch zur Auswahl angeboten, wenn die aktuell bearbeitete Stage die Blueprint-Stage ist.
+    Die "isBlueprint"-Erkennung wurde um einen Fallback auf die ID "blueprint" erweitert und für alte Legacy-Root-Tasks
+    ein Fallback-Rendering innerhalb der Blueprint-Stage wiederhergestellt. Der hartcodierte "Main Flow (Stage)"
+    Eintrag wurde für reguläre Stages entfernt. In den Inspector-Eigenschaften-Dropdowns können nun alle globalen
+    Tasks via `projectRegistry.getTasks('all')` korrekt ausgewählt werden, auch wenn man sich in der Blueprint-Stage befindet.
+
+- [2026-03-17] UX: Aktuelle Stage in Menüzeile anzeigen:
+  - Dateien:
+    - src/editor/MenuBar.ts (stageLabel: L42-57, setStageLabel: L292-298)
+    - src/editor/Editor.ts (updateStageLabel: L415-421, switchStage: L410, setProject: L453)
+  - Methoden:
+    - MenuBar.setStageLabel(stageName): Setzt Text im stageLabel-Element
+    - Editor.updateStageLabel(): Liest aktive Stage und ruft MenuBar.setStageLabel auf
+  - Details: Prominentes Label mittig in der Menüleiste zeigt die aktuelle Stage an.
+    Aktualisierung bei switchStage(), setProject() und loadProject().
+
+- [2026-03-17] Architecture: Root-Level Collections eliminieren:
+  - Dateien:
+    - src/editor/FlowEditor.ts (setProject: L472-520, migrateRootToBlueprint: L530-570, updateFlowSelector: L738-740)
+    - src/editor/services/FlowSyncManager.ts (ensureTaskExists: L1170-1190, updateGlobalActionDefinition: L960-970, syncVariablesFromFlow: L268-280, getBlueprintStage: L1192-1197)
+    - src/editor/EditorStageManager.ts (getTargetActionCollection: L79-109, getTargetTaskCollection: L111-142)
+    - src/editor/services/FlowTaskManager.ts (ensureTaskExists: L154-192)
+    - tests/action_crud.test.ts (Blueprint-Stage-Setup: L35-44, Mock: L56-66, Assertions: L89, L98, L113, L125, L129)
+  - Methoden:
+    - FlowEditor.migrateRootToBlueprint(): Migriert project.tasks/actions/variables/flowCharts in Blueprint-Stage
+    - FlowSyncManager.getBlueprintStage(): Helper-Methode findet Blueprint via type/id
+    - EditorStageManager.getTargetActionCollection(): Fallback Blueprint statt Root
+    - EditorStageManager.getTargetTaskCollection(): Fallback Blueprint statt Root
+  - Details: Vollständige Eliminierung der Root-Level Collections (project.tasks, project.actions, project.variables).
+    Phase 1: Migration beim Laden. Phase 2: 6 Fallback-Stellen bereinigt. Phase 3: Flow-Dropdown Legacy-Block entfernt.
+    Alle 118 Tests grün. ActionCRUD-Test auf Blueprint-Stage angepasst.
+
 - [2026-03-14] Inspector-Layout & Stage-Rasterfarbe:
   - Dateien:
     - src/editor/inspector/InspectorHost.ts (renderInspectableProperty: L344-385, renderInspectableSections inline-Gruppierung: L308-336, Boolean fontWeight/fontStyle Konvertierung: L421-458)

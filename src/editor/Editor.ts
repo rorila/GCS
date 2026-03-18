@@ -407,8 +407,19 @@ export class Editor implements IViewHost {
         if (!keepView) {
             this.switchView('stage');
         }
+        this.updateStageLabel();
     }
     public updateStagesMenu() { this.menuManager.updateStagesMenu(); }
+
+    /**
+     * Aktualisiert das Stage-Label in der Menüleiste mit dem Namen der aktiven Stage.
+     */
+    public updateStageLabel(): void {
+        if (!this.menuBar) return;
+        const activeStage = this.getActiveStage();
+        const stageName = activeStage?.name || this.project.activeStageId || '–';
+        this.menuBar.setStageLabel(stageName);
+    }
     public handleRewind() { this.undoManager.handleRewind(); }
     public handleForward() { this.undoManager.handleForward(); }
     public applyRecordedAction(action: any, dir: 'rewind' | 'forward') { this.undoManager.applyRecordedAction(action, dir); }
@@ -449,6 +460,7 @@ export class Editor implements IViewHost {
         // 5. Visual Refresh
         this.render();
         this.updateStagesMenu();
+        this.updateStageLabel();
     }
 
     public newProject() {

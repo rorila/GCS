@@ -472,8 +472,13 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     public setProject(project: GameProject) {
         console.warn('[DEBUG-RENAME] >>> setProject() aufgerufen!', new Error().stack);
         this.project = project;
-        if (!this.project.actions) this.project.actions = [];
-        if (!this.project.tasks) this.project.tasks = [];
+
+        // ================================================================
+        // MIGRATION: Root-Level → Blueprint-Stage (Einmalig beim Laden)
+        // project.tasks/actions/variables gehören in die Blueprint-Stage.
+        // Root-Level-Arrays sind Legacy und werden hier bereinigt.
+        // ================================================================
+        this.migrateRootToBlueprint();
 
         // Bereinigung korrupter Daten beim Laden
         this.cleanCorruptTaskData();
@@ -499,11 +504,12 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         this.flowStage.style.backgroundColor = this.project.flow.stage?.backgroundColor || '#1e1e1e';
 
         const savedContext = localStorage.getItem('gcs_last_flow_context');
-        const isValidGlobalTask = this.project.tasks.some(t => t.name === savedContext);
+        const blueprint = this.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
+        const isValidBlueprintTask = blueprint?.tasks?.some(t => t.name === savedContext);
         const isValidStageTask = this.getActiveStage()?.tasks?.some(t => t.name === savedContext);
         const isStaticContext = savedContext === 'global';
 
-        if (savedContext && (isStaticContext || isValidGlobalTask || isValidStageTask)) {
+        if (savedContext && (isStaticContext || isValidBlueprintTask || isValidStageTask)) {
             this.currentFlowContext = savedContext;
         } else {
             this.currentFlowContext = 'global';
@@ -516,6 +522,80 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         this.updateGrid();
 
         this.rebuildActionRegistry();
+    }
+
+    /**
+     * Migriert Legacy Root-Level-Daten (project.tasks/actions/variables/flowCharts)
+     * in die Blueprint-Stage. Root-Arrays werden danach geleert.
+     */
+    private migrateRootToBlueprint() {
+        if (!this.project) return;
+        const blueprint = this.project.stages?.find(s =>
+            s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint'
+        );
+        if (!blueprint) return; // Ohne Blueprint-Stage keine Migration möglich
+
+        if (!blueprint.tasks) blueprint.tasks = [];
+        if (!blueprint.actions) blueprint.actions = [];
+        if (!blueprint.variables) blueprint.variables = [];
+        if (!blueprint.flowCharts) blueprint.flowCharts = {};
+
+        let migrated = false;
+
+        // Tasks migrieren
+        if (this.project.tasks && this.project.tasks.length > 0) {
+            const existingNames = new Set(blueprint.tasks.map(t => t.name));
+            for (const task of this.project.tasks) {
+                if (!existingNames.has(task.name)) {
+                    blueprint.tasks.push(task);
+                    FlowEditor.logger.info(`[MIGRATION] Task "${task.name}" von Root nach Blueprint-Stage verschoben.`);
+                    migrated = true;
+                }
+            }
+            this.project.tasks = [];
+        }
+
+        // Actions migrieren
+        if (this.project.actions && this.project.actions.length > 0) {
+            const existingNames = new Set(blueprint.actions.map(a => a.name));
+            for (const action of this.project.actions) {
+                if (!existingNames.has(action.name)) {
+                    blueprint.actions.push(action);
+                    FlowEditor.logger.info(`[MIGRATION] Action "${action.name}" von Root nach Blueprint-Stage verschoben.`);
+                    migrated = true;
+                }
+            }
+            this.project.actions = [];
+        }
+
+        // Variables migrieren
+        if (this.project.variables && this.project.variables.length > 0) {
+            const existingNames = new Set(blueprint.variables.map((v: any) => v.name));
+            for (const variable of this.project.variables) {
+                if (!existingNames.has((variable as any).name)) {
+                    blueprint.variables.push(variable);
+                    FlowEditor.logger.info(`[MIGRATION] Variable "${(variable as any).name}" von Root nach Blueprint-Stage verschoben.`);
+                    migrated = true;
+                }
+            }
+            this.project.variables = [];
+        }
+
+        // FlowCharts migrieren
+        if (this.project.flowCharts) {
+            for (const [key, chart] of Object.entries(this.project.flowCharts)) {
+                if (!blueprint.flowCharts![key]) {
+                    blueprint.flowCharts![key] = chart;
+                    FlowEditor.logger.info(`[MIGRATION] FlowChart "${key}" von Root nach Blueprint-Stage verschoben.`);
+                    migrated = true;
+                }
+            }
+            this.project.flowCharts = {};
+        }
+
+        if (migrated) {
+            FlowEditor.logger.info('[MIGRATION] Root-Level-Daten erfolgreich in Blueprint-Stage migriert.');
+        }
     }
 
     public syncActionsFromProject(): void {
@@ -560,17 +640,12 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
 
         this.flowSelect.appendChild(optOverviewGroup);
 
-        const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint';
+        const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint' || activeStage?.id === 'blueprint';
 
         // --- Current Stage Section ---
         if (activeStage && !isBlueprint) {
             const stageGroup = document.createElement('optgroup');
             stageGroup.label = `Stage: ${activeStage.name}`;
-
-            const globalOpt = document.createElement('option');
-            globalOpt.value = 'global';
-            globalOpt.text = 'Main Flow (Stage)';
-            stageGroup.appendChild(globalOpt);
 
             // Tasks in this stage
             const stageTasksFound = new Set<string>();
@@ -583,6 +658,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
                         const opt = document.createElement('option');
                         opt.value = key;
                         opt.text = `Task: ${key}`;
+                        opt.selected = this.currentFlowContext === key;
                         stageGroup.appendChild(opt);
                         stageTasksFound.add(key);
                     }
@@ -596,6 +672,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
                         const opt = document.createElement('option');
                         opt.value = task.name;
                         opt.text = `Task: ${task.name}`;
+                        opt.selected = this.currentFlowContext === task.name;
                         stageGroup.appendChild(opt);
                         stageTasksFound.add(task.name);
                     }
@@ -606,14 +683,13 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         }
 
         // --- Global Section ---
-        // FIX: IMMER ANZEIGEN, damit man von anderen Stages aus auf globale Tasks springen kann
-        const showGlobalAnyway = true;
-        if (!activeStage || isBlueprint || showGlobalAnyway) {
+        // Blueprint-Tasks nur anzeigen wenn die aktive Stage die Blueprint-Stage ist
+        if (isBlueprint) {
             const globalGroup = document.createElement('optgroup');
-            globalGroup.label = isBlueprint ? '🔷 Blueprint / Global' : 'Global / Projekt (Infrastruktur)';
+            globalGroup.label = '🔷 Blueprint / Global';
 
             // 0. Blueprint Main Flow (SSoT für Infrastructure)
-            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint');
+            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
             if (blueprintStage) {
                 const bpGlobalOpt = document.createElement('option');
                 bpGlobalOpt.value = 'global';
@@ -655,28 +731,15 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
                 });
             }
 
-            const stageTaskKeys = new Set<string>(globalTasksFound);
 
-            // 1. Global tasks with flowchart (projekt-root, Legacy)
-            if (this.project.flowCharts) {
-                Object.keys(this.project.flowCharts).forEach(key => {
-                    if (key !== 'global' && !stageTaskKeys.has(key)) {
-                        const opt = document.createElement('option');
-                        opt.value = key;
-                        opt.text = `Task: ${key}`;
-                        globalGroup.appendChild(opt);
-                        globalTasksFound.add(key);
-                    }
-                });
-            }
-
-            // 2. Global tasks without flowchart (projekt-root, Legacy)
+            // 3. Legacy Root-Level project.tasks/flowCharts Fallback
             if (this.project.tasks) {
                 this.project.tasks.forEach(task => {
-                    if (!globalTasksFound.has(task.name) && !stageTaskKeys.has(task.name)) {
+                    if (!globalTasksFound.has(task.name)) {
                         const opt = document.createElement('option');
                         opt.value = task.name;
                         opt.text = `Task: ${task.name}`;
+                        opt.selected = this.currentFlowContext === task.name;
                         globalGroup.appendChild(opt);
                         globalTasksFound.add(task.name);
                     }
@@ -701,18 +764,13 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             }
 
             if (!found) {
-                FlowEditor.logger.warn(`Current context "${this.currentFlowContext}" missing from dropdown options. Force-adding it.`, { activeStage: activeStage?.id });
-
-                // Try to determine where it belongs
-                const isInGlobal = this.project.tasks?.find(t => t.name === this.currentFlowContext);
-                const isInStage = activeStage?.tasks?.find(t => t.name === this.currentFlowContext);
-
-                const opt = document.createElement('option');
-                opt.value = this.currentFlowContext;
-                opt.text = `Task: ${this.currentFlowContext} ${isInGlobal ? '(Global)' : ''} ${isInStage ? '(Stage)' : ''}`;
-
-                // Append to the end (safe default)
-                this.flowSelect.appendChild(opt);
+                FlowEditor.logger.warn(`Current context "${this.currentFlowContext}" nicht im Dropdown gefunden (falsche Stage?). Wechsle zur Übersicht.`, { activeStage: activeStage?.id });
+                this.currentFlowContext = 'element-overview';
+                
+                // Asynchron den Flow wechseln, damit das UI nicht blockiert/Schleifen erzeugt
+                setTimeout(() => {
+                    this.switchActionFlow('element-overview', false, true);
+                }, 10);
             }
         }
 

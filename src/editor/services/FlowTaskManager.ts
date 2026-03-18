@@ -154,7 +154,6 @@ export class FlowTaskManager {
     public ensureTaskExists(taskName: string, description?: string) {
         if (!this.host.project) return;
         FlowTaskManager.logger.info(`[TRACE] ensureTaskExists: "${taskName}"`);
-        if (!this.host.project.tasks) this.host.project.tasks = [];
 
         const existingTask = this.host.getTaskDefinitionByName(taskName);
         if (existingTask) {
@@ -180,7 +179,14 @@ export class FlowTaskManager {
             if (!activeStage.tasks) activeStage.tasks = [];
             activeStage.tasks.push(newTask);
         } else {
-            this.host.project.tasks.push(newTask);
+            // Fallback: Blueprint-Stage (NICHT project.tasks Root)
+            const blueprint = this.host.project.stages?.find((s: any) =>
+                s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint'
+            );
+            if (blueprint) {
+                if (!blueprint.tasks) blueprint.tasks = [];
+                blueprint.tasks.push(newTask);
+            }
         }
     }
 }

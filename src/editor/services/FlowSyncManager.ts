@@ -266,13 +266,21 @@ export class FlowSyncManager {
         return layout;
     }
 
+    private getBlueprintStage(): any {
+        return this.host.project?.stages?.find((s: any) =>
+            s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint'
+        ) || null;
+    }
+
     public syncVariablesFromFlow() {
         if (!this.host.project) return;
         this.host.nodes.forEach(node => {
             if (node.getType() === 'VariableDecl' && node.data?.variable) {
                 const varData = node.data.variable;
+                // Globale Variablen → Blueprint-Stage (NICHT project.variables)
+                const blueprint = this.getBlueprintStage();
                 const targetCollection = varData.scope === 'global' ?
-                    (this.host.project.variables || (this.host.project.variables = [])) :
+                    (blueprint ? (blueprint.variables || (blueprint.variables = [])) : (this.host.getActiveStage()?.variables || [])) :
                     (this.host.getActiveStage()?.variables || []);
 
                 const existingIndex = targetCollection.findIndex((v: any) => v.name === varData.name);
@@ -964,7 +972,9 @@ export class FlowSyncManager {
         const isMinimalLink = actionData.isLinked && !actionData.type && !actionData.target && !actionData.service;
         if (isMinimalLink) return;
 
-        if (!this.host.project.actions) this.host.project.actions = [];
+        // Actions-Array auf Blueprint-Stage sicherstellen (NICHT project.actions Root)
+        const blueprintForActions = this.getBlueprintStage();
+        if (blueprintForActions && !blueprintForActions.actions) blueprintForActions.actions = [];
         const taskFields = ['taskName', 'isMapLink', 'isProxy', 'stageObjectId', 'embeddedGroupId', 'parentProxyId', 'isLinked', 'isEmbeddedInternal', 'isExpanded', 'sourceTaskName', '_formValues', 'section', 'property'];
         const cleanedData = { ...actionData };
 
@@ -999,7 +1009,9 @@ export class FlowSyncManager {
         }
 
         if (newAction.actionName) delete newAction.actionName;
-        const targetCollection = (this.host as any).editor ? (this.host as any).editor.getTargetActionCollection(name) : (this.host.project.actions || []);
+        const blueprintStageForAction = this.getBlueprintStage();
+        const fallbackCollection = blueprintStageForAction ? (blueprintStageForAction.actions || (blueprintStageForAction.actions = [])) : [];
+        const targetCollection = (this.host as any).editor ? (this.host as any).editor.getTargetActionCollection(name) : fallbackCollection;
         const idx = targetCollection.findIndex((a: any) => a.name === name);
 
         if (idx !== -1) {
@@ -1164,19 +1176,22 @@ export class FlowSyncManager {
 
     private ensureTaskExists(name: string, description: string) {
         if (!this.host.project) return;
-        const exists = this.host.project.tasks.some((t: any) => t.name === name) ||
-            this.host.project.stages?.some((s: any) => s.tasks?.some((t: any) => t.name === name));
+        // Prüfe ob Task in irgendeiner Stage existiert (NICHT project.tasks Root)
+        const exists = this.host.project.stages?.some((s: any) => s.tasks?.some((t: any) => t.name === name));
 
         if (!exists) {
-
             const newTask = { name, description, params: [], actionSequence: [] };
             const activeStage = this.host.getActiveStage();
             if (activeStage) {
                 if (!activeStage.tasks) activeStage.tasks = [];
                 activeStage.tasks.push(newTask);
             } else {
-                if (!this.host.project.tasks) this.host.project.tasks = [];
-                this.host.project.tasks.push(newTask);
+                // Fallback: Blueprint-Stage (NICHT project.tasks Root)
+                const blueprint = this.getBlueprintStage();
+                if (blueprint) {
+                    if (!blueprint.tasks) blueprint.tasks = [];
+                    blueprint.tasks.push(newTask);
+                }
             }
             FlowSyncManager.logger.info(`Pre-registered new task: ${name}`);
         }

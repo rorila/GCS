@@ -211,7 +211,8 @@ export class FlowContextMenuProvider {
 
         // 2. Assign Actions (Reuse)
         if (node.getType() === 'task') {
-            const linkItems: ContextMenuItem[] = proj.tasks.map(t => ({
+            const allTasks = projectRegistry.getTasks('all');
+            const linkItems: ContextMenuItem[] = allTasks.map(t => ({
                 label: t.name,
                 action: () => this.assignTaskToNode(node, t)
             }));
@@ -223,7 +224,7 @@ export class FlowContextMenuProvider {
                 });
             }
 
-            const importItems: ContextMenuItem[] = proj.tasks.map(t => ({
+            const importItems: ContextMenuItem[] = allTasks.map(t => ({
                 label: t.name,
                 action: () => this.host.importTaskGraph(node, t)
             }));
@@ -247,7 +248,8 @@ export class FlowContextMenuProvider {
                 });
             }
         } else if (node.getType() === 'action') {
-            const linkItems: ContextMenuItem[] = proj.actions.map(a => ({
+            const allActions = projectRegistry.getActions('all');
+            const linkItems: ContextMenuItem[] = allActions.map(a => ({
                 label: a.name,
                 action: () => this.linkActionToNode(node, a)
             }));
@@ -259,7 +261,7 @@ export class FlowContextMenuProvider {
                 });
             }
 
-            const copyItems: ContextMenuItem[] = proj.actions.map(a => ({
+            const copyItems: ContextMenuItem[] = allActions.map(a => ({
                 label: a.name,
                 action: () => this.copyActionToNode(node, a)
             }));

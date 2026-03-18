@@ -241,8 +241,8 @@ export class StageRenderer {
 
             el.style.display = isVisible ? 'flex' : 'none';
 
-            // Inherited/Ghosted State
-            if (isInherited) {
+            // Inherited/Ghosted State — nur im Design-Mode schemenhaft
+            if (isInherited && !this.host.runMode) {
                 el.classList.add('inherited-object');
                 el.style.pointerEvents = 'auto';
                 el.style.cursor = 'default';
@@ -255,7 +255,7 @@ export class StageRenderer {
             const opacity = (obj.style && obj.style.opacity !== undefined && obj.style.opacity !== null) ? obj.style.opacity : (obj.imageOpacity !== undefined ? obj.imageOpacity : undefined);
             if (opacity !== undefined && opacity !== null) {
                 el.style.opacity = String(opacity);
-            } else if (isInherited) {
+            } else if (isInherited && !this.host.runMode) {
                 el.style.opacity = '0.4';
             } else {
                 el.style.opacity = '1';

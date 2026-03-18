@@ -27,6 +27,7 @@ export class MenuBar {
     private activeMenu: HTMLElement | null = null;
     private activeDropdown: HTMLElement | null = null;
     private infoLabel: HTMLElement;
+    private stageLabel: HTMLElement;
 
     // Callbacks for actions
     public onAction?: (action: string) => void;
@@ -38,6 +39,23 @@ export class MenuBar {
         }
         this.container = el;
         this.setupStyles();
+
+        // Stage-Label mittig in der Menüleiste (prominente Anzeige der aktiven Stage)
+        this.stageLabel = document.createElement('span');
+        this.stageLabel.id = 'menu-stage-label';
+        this.stageLabel.style.cssText = `
+            margin-left: auto;
+            color: #e0e0e0;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            padding: 2px 14px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 4px;
+            letter-spacing: 0.3px;
+        `;
+        this.stageLabel.textContent = '🎭 Aktuelle Stage: –';
+        this.container.appendChild(this.stageLabel);
 
         // Info-Label rechts in der Menüleiste (z.B. Projektpfad)
         this.infoLabel = document.createElement('span');
@@ -113,7 +131,8 @@ export class MenuBar {
             this.container.appendChild(menuEl);
         });
 
-        // Info-Label wieder an das Ende anhängen (nach re-render)
+        // Stage-Label und Info-Label wieder an das Ende anhängen (nach re-render)
+        this.container.appendChild(this.stageLabel);
         this.container.appendChild(this.infoLabel);
     }
 
@@ -284,5 +303,13 @@ export class MenuBar {
     public setInfoText(text: string): void {
         this.infoLabel.textContent = text;
         this.infoLabel.title = text;
+    }
+
+    /**
+     * Setzt den Stage-Namen prominent in der Mitte der Menüleiste
+     */
+    public setStageLabel(stageName: string): void {
+        this.stageLabel.textContent = `🎭 Aktuelle Stage: ${stageName}`;
+        this.stageLabel.title = `Aktive Bearbeitungs-Stage: ${stageName}`;
     }
 }

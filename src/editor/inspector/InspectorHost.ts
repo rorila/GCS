@@ -577,6 +577,31 @@ export class InspectorHost {
                 self.update(obj);
             };
 
+            // Ziel-Objekt Properties auflösen (für Dropdown)
+            let targetPropertyOptions: { name: string, label: string, type: string, options?: any[] }[] = [];
+            if (obj.target && (obj as any).projectRef) {
+                const project = (obj as any).projectRef;
+                // Ziel-Objekt in allen Stages suchen
+                let targetObj: any = null;
+                for (const stage of (project.stages || [])) {
+                    const found = (stage.objects || []).find((o: any) => o.name === obj.target || o.id === obj.target);
+                    if (found) { targetObj = found; break; }
+                    const foundVar = (stage.variables || []).find((v: any) => v.name === obj.target || v.id === obj.target);
+                    if (foundVar) { targetObj = foundVar; break; }
+                }
+                if (targetObj?.className) {
+                    const props = componentRegistry.getInspectorProperties({ className: targetObj.className });
+                    targetPropertyOptions = props
+                        .filter((p: any) => p.name && p.name !== 'name' && p.name !== 'id')
+                        .map((p: any) => ({
+                            name: p.name,
+                            label: p.label || p.name,
+                            type: p.type || 'string',
+                            options: p.options
+                        }));
+                }
+            }
+
             if (entries.length === 0) {
                 const emptyHint = document.createElement('div');
                 emptyHint.style.cssText = 'font-size:10px;color:#666;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:4px;text-align:center;font-style:italic;';
@@ -587,24 +612,176 @@ export class InspectorHost {
                     const row = document.createElement('div');
                     row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:4px 6px;background:rgba(255,255,255,0.04);border-radius:4px;border:1px solid rgba(255,255,255,0.08);';
 
-                    // Property-Name (editierbar)
-                    const keyInput = document.createElement('input');
-                    keyInput.type = 'text';
-                    keyInput.value = key;
-                    keyInput.title = 'Eigenschafts-Name';
-                    keyInput.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;';
+                    // Property-Typ-Info auflösen
+                    const propInfo = targetPropertyOptions.find(p => p.name === key);
+                    const propType = propInfo?.type || 'string';
 
-                    // Wert (editierbar)
-                    const valInput = document.createElement('input');
-                    valInput.type = 'text';
-                    valInput.value = String(value);
-                    valInput.title = 'Wert';
-                    valInput.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#4fc3f7;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;';
+                    // Property-Name (Dropdown wenn Properties verfügbar, sonst Freitext)
+                    let keyElement: HTMLSelectElement | HTMLInputElement;
+                    if (targetPropertyOptions.length > 0) {
+                        const keySelect = document.createElement('select');
+                        keySelect.title = 'Eigenschafts-Name';
+                        keySelect.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;cursor:pointer;';
+                        for (const propOpt of targetPropertyOptions) {
+                            const opt = document.createElement('option');
+                            opt.value = propOpt.name;
+                            opt.textContent = `${propOpt.label} (${propOpt.name})`;
+                            if (propOpt.name === key) opt.selected = true;
+                            keySelect.appendChild(opt);
+                        }
+                        if (key && !targetPropertyOptions.find(p => p.name === key)) {
+                            const customOpt = document.createElement('option');
+                            customOpt.value = key;
+                            customOpt.textContent = `${key} (benutzerdefiniert)`;
+                            customOpt.selected = true;
+                            keySelect.insertBefore(customOpt, keySelect.firstChild);
+                        }
+                        keySelect.onchange = () => {
+                            const newKey = keySelect.value.trim();
+                            if (!newKey || newKey === key) return;
+                            const newChanges: Record<string, any> = {};
+                            for (const [k, v] of Object.entries(changes)) {
+                                newChanges[k === key ? newKey : k] = v;
+                            }
+                            applyChanges(newChanges);
+                        };
+                        keyElement = keySelect;
+                    } else {
+                        const keyInput = document.createElement('input');
+                        keyInput.type = 'text';
+                        keyInput.value = key;
+                        keyInput.title = 'Eigenschafts-Name';
+                        keyInput.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#e0d4f5;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;';
+                        keyInput.onchange = () => {
+                            const newKey = keyInput.value.trim();
+                            if (!newKey || newKey === key) return;
+                            const newChanges: Record<string, any> = {};
+                            for (const [k, v] of Object.entries(changes)) {
+                                newChanges[k === key ? newKey : k] = v;
+                            }
+                            applyChanges(newChanges);
+                        };
+                        keyElement = keyInput;
+                    }
 
                     // Doppelpunkt-Trenner
                     const sep = document.createElement('span');
                     sep.textContent = ':';
                     sep.style.cssText = 'color:#888;font-size:11px;font-weight:bold;flex-shrink:0;';
+
+                    // --- Value-Feld: typ-abhängig ---
+                    let valElement: HTMLElement;
+
+                    if (propType === 'boolean') {
+                        // Boolean → Checkbox-Toggle
+                        const cbLabel = document.createElement('label');
+                        cbLabel.style.cssText = 'flex:1;display:flex;align-items:center;gap:6px;cursor:pointer;padding:2px 6px;';
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.checked = value === true || value === 'true';
+                        cb.style.cssText = 'width:14px;height:14px;accent-color:#4fc3f7;cursor:pointer;';
+                        const cbText = document.createElement('span');
+                        cbText.textContent = cb.checked ? 'Ja' : 'Nein';
+                        cbText.style.cssText = 'font-size:11px;color:#4fc3f7;';
+                        cb.onchange = () => {
+                            cbText.textContent = cb.checked ? 'Ja' : 'Nein';
+                            const newChanges = { ...changes };
+                            newChanges[key] = cb.checked;
+                            applyChanges(newChanges);
+                        };
+                        cbLabel.appendChild(cb);
+                        cbLabel.appendChild(cbText);
+                        valElement = cbLabel;
+
+                    } else if (propType === 'select' && propInfo?.options) {
+                        // Select → Dropdown
+                        const valSelect = document.createElement('select');
+                        valSelect.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#4fc3f7;border:1px solid #444;border-radius:3px;font-size:11px;cursor:pointer;';
+                        for (const opt of propInfo.options) {
+                            const optEl = document.createElement('option');
+                            if (typeof opt === 'object' && opt.value !== undefined) {
+                                optEl.value = opt.value;
+                                optEl.textContent = opt.label || opt.value;
+                            } else {
+                                optEl.value = String(opt);
+                                optEl.textContent = String(opt);
+                            }
+                            if (String(opt?.value ?? opt) === String(value)) optEl.selected = true;
+                            valSelect.appendChild(optEl);
+                        }
+                        // Falls aktueller Wert nicht in Optionen
+                        if (value && !propInfo.options.find((o: any) => String(o?.value ?? o) === String(value))) {
+                            const customOpt = document.createElement('option');
+                            customOpt.value = String(value);
+                            customOpt.textContent = `${value} (aktuell)`;
+                            customOpt.selected = true;
+                            valSelect.insertBefore(customOpt, valSelect.firstChild);
+                        }
+                        valSelect.onchange = () => {
+                            const newChanges = { ...changes };
+                            newChanges[key] = valSelect.value;
+                            applyChanges(newChanges);
+                        };
+                        valElement = valSelect;
+
+                    } else if (propType === 'color') {
+                        // Color → Farbwähler
+                        const colorRow = document.createElement('div');
+                        colorRow.style.cssText = 'flex:1;display:flex;align-items:center;gap:4px;';
+                        const colorInput = document.createElement('input');
+                        colorInput.type = 'color';
+                        colorInput.value = String(value || '#000000');
+                        colorInput.style.cssText = 'width:24px;height:20px;border:none;cursor:pointer;background:transparent;';
+                        const colorText = document.createElement('input');
+                        colorText.type = 'text';
+                        colorText.value = String(value || '');
+                        colorText.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#4fc3f7;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;';
+                        colorInput.oninput = () => {
+                            colorText.value = colorInput.value;
+                            const newChanges = { ...changes };
+                            newChanges[key] = colorInput.value;
+                            applyChanges(newChanges);
+                        };
+                        colorText.onchange = () => {
+                            colorInput.value = colorText.value;
+                            const newChanges = { ...changes };
+                            newChanges[key] = colorText.value;
+                            applyChanges(newChanges);
+                        };
+                        colorRow.appendChild(colorInput);
+                        colorRow.appendChild(colorText);
+                        valElement = colorRow;
+
+                    } else if (propType === 'number') {
+                        // Number → Number-Input
+                        const numInput = document.createElement('input');
+                        numInput.type = 'number';
+                        numInput.value = String(value ?? '');
+                        numInput.title = 'Numerischer Wert';
+                        numInput.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#4fc3f7;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;';
+                        numInput.onchange = () => {
+                            const newChanges = { ...changes };
+                            newChanges[key] = Number(numInput.value) || 0;
+                            applyChanges(newChanges);
+                        };
+                        valElement = numInput;
+
+                    } else {
+                        // String (Default) → Text-Input
+                        const valInput = document.createElement('input');
+                        valInput.type = 'text';
+                        valInput.value = String(value);
+                        valInput.title = 'Wert';
+                        valInput.style.cssText = 'flex:1;padding:3px 6px;background:#2a2a3e;color:#4fc3f7;border:1px solid #444;border-radius:3px;font-size:11px;font-family:Consolas,monospace;min-width:60px;';
+                        valInput.onchange = () => {
+                            const newChanges = { ...changes };
+                            const raw = valInput.value.trim();
+                            const num = Number(raw);
+                            newChanges[key] = (!isNaN(num) && raw !== '') ? num : raw;
+                            applyChanges(newChanges);
+                        };
+                        valElement = valInput;
+                    }
 
                     // Löschen-Button
                     const delBtn = document.createElement('button');
@@ -617,29 +794,9 @@ export class InspectorHost {
                         applyChanges(newChanges);
                     };
 
-                    // Änderungen bei Blur anwenden
-                    keyInput.onchange = () => {
-                        const newKey = keyInput.value.trim();
-                        if (!newKey || newKey === key) return;
-                        const newChanges: Record<string, any> = {};
-                        for (const [k, v] of Object.entries(changes)) {
-                            newChanges[k === key ? newKey : k] = v;
-                        }
-                        applyChanges(newChanges);
-                    };
-
-                    valInput.onchange = () => {
-                        const newChanges = { ...changes };
-                        // Auto-Typ-Erkennung: Zahl vs String
-                        const raw = valInput.value.trim();
-                        const num = Number(raw);
-                        newChanges[key] = (!isNaN(num) && raw !== '') ? num : raw;
-                        applyChanges(newChanges);
-                    };
-
-                    row.appendChild(keyInput);
+                    row.appendChild(keyElement);
                     row.appendChild(sep);
-                    row.appendChild(valInput);
+                    row.appendChild(valElement);
                     row.appendChild(delBtn);
                     rowsContainer.appendChild(row);
                 });
@@ -652,8 +809,11 @@ export class InspectorHost {
             addBtn.textContent = '+ Eigenschaft hinzufügen';
             addBtn.style.cssText = 'margin-top:6px;width:100%;padding:5px 10px;background:#2e7d32;color:white;border:none;border-radius:4px;cursor:pointer;font-size:11px;';
             addBtn.onclick = () => {
-                // Neue leere Eigenschaft hinzufügen
-                const newChanges = { ...changes, '': '' };
+                // Erste freie Property als Default wählen
+                const usedKeys = Object.keys(changes);
+                const freeOpt = targetPropertyOptions.find(p => !usedKeys.includes(p.name));
+                const defaultKey = freeOpt ? freeOpt.name : '';
+                const newChanges = { ...changes, [defaultKey]: '' };
                 applyChanges(newChanges);
             };
             container.appendChild(addBtn);

@@ -1,3 +1,39 @@
+## [3.19.1] - 2026-03-17
+### Added (UX: Stage-Anzeige)
+- **Aktuelle Stage in Menüzeile** (`MenuBar.ts`, `Editor.ts`):
+  - Prominentes Label „🎭 Aktuelle Stage: \<name\>" mittig in der Menüleiste
+  - Aktualisiert sich bei Stage-Wechsel, Projekt-Laden und Projekt-Reset
+  - Styling: halbtransparenter Hintergrund, fetter Text, dezenter Rahmen
+### Changed (UX: Flow-Editor & Inspector)
+- **Blueprint-Tasks im Flow-Dropdown** (`FlowEditor.ts`):
+  - Blueprint-Tasks (globale Tasks) werden im Flow-Dropdown nun *ausschließlich* angezeigt, wenn die aktive Stage die Blueprint-Stage ist.
+  - Fehler behoben: Die Ausblend-Bedingung für `isBlueprint` wurde entspannt (unterstützt nun Fallback auf ID `blueprint`), um zu garantieren, dass Blueprint-Tasks im Blueprint-Editor-Modus sicher angezeigt werden.
+  - Fallback-Rendering für verwaiste Root-Tasks (`project.tasks`) in der Blueprint-Stage wiederhergestellt, für Legacy-Projekte, bei denen die Migration noch aussteht.
+  - **Fix:** Der hartcodierte Eintrag "Main Flow (Stage)" (intern 'global') wurde für reguläre Stages aus dem Dropdown entfernt, da er irritierte und von Benutzern als globaler Task verstanden wurde.
+- **Inspector-Task- und Action-Dropdowns** (`InspectorRenderer.ts`):
+  - Für Ereignis-Inputs und Eigenschafts-Dropdowns (Tasks, Actions) wird nun projektübergreifend `projectRegistry.getTasks('all')` genutzt, damit Aufgaben der Blueprint-Stage auch als Zielaktionen abgebildet und nicht ausgeblendet werden.
+- **Fehlerbehebung nach Stage-Wechsel ("Ghosting" von globalen Tasks)** (`FlowEditor.ts`):
+  - Wenn ein globaler Task wie `BackToMainStage` im Blueprint gezeichnet wird und man in eine reguläre Stage wechselt, schaltet der Flow-Editor nun zwingend auf die "Elementenübersicht" dieser Stage um. Zuvor wurde der Task über einen fehlerhaften Safety-Check wieder ans Ende des Dropdowns gedrückt, selbst wenn er nicht zur Stage gehörte.
+
+## [3.19.0] - 2026-03-17
+### Architecture (Root-Level Collections eliminiert)
+- **Migration bei Projektladen** (`FlowEditor.ts`):
+  - Neue Methode `migrateRootToBlueprint()` migriert beim Laden Root-Level `project.tasks`, `project.actions`, `project.variables`, `project.flowCharts` automatisch in die Blueprint-Stage
+  - Root-Arrays werden nach Migration geleert
+- **6 Root-Fallbacks entfernt**:
+  - `FlowSyncManager.ensureTaskExists()`: Blueprint-Stage statt `project.tasks`
+  - `FlowSyncManager.updateGlobalActionDefinition()`: Blueprint-Stage statt `project.actions`
+  - `FlowSyncManager.syncVariablesFromFlow()`: Blueprint-Stage statt `project.variables`
+  - `EditorStageManager.getTargetActionCollection()`: Blueprint-Stage statt `project.actions`
+  - `EditorStageManager.getTargetTaskCollection()`: Blueprint-Stage statt `project.tasks`
+  - `FlowTaskManager.ensureTaskExists()`: Blueprint-Stage statt `project.tasks`
+- **Flow-Dropdown bereinigt** (`FlowEditor.ts`):
+  - Legacy-Block entfernt der Root-Level `project.tasks`/`project.flowCharts` im Dropdown anzeigte
+  - Nur noch Blueprint-Stage-Tasks im Global-Bereich
+- **Test-Anpassung** (`action_crud.test.ts`):
+  - Blueprint-Stage zum Test-Projekt hinzugefügt
+  - Assertions prüfen `blueprintStage.actions` statt `project.actions`
+
 ## [3.18.1] - 2026-03-16
 ### Added (Export-Integrität)
 - **Checksummen-Test** (`tests/export_integrity.test.ts`):

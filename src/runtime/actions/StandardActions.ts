@@ -68,6 +68,17 @@ export function registerStandardActions() {
         ]
     });
 
+    // 1b. Alias: 'action' → identisch mit 'property' (auto-generierte Actions nutzen diesen Typ)
+    actionRegistry.register('action', actionRegistry.getHandler('property')!, {
+        type: 'action',
+        label: 'Eigenschaft ändern',
+        description: 'Alias für property — ändert eine oder mehrere Eigenschaften eines Objekts.',
+        parameters: [
+            { name: 'target', label: 'Ziel-Objekt', type: 'object', source: 'objects' },
+            { name: 'changes', label: 'Änderungen (JSON)', type: 'json', hint: 'Beispiel: { "text": "Hallo", "visible": true }' }
+        ]
+    });
+
     // 2. Variable lesen / setzen (Read Variable)
     actionRegistry.register('variable', (action, context) => {
         let val: any = undefined;

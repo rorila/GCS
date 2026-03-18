@@ -55,6 +55,13 @@ export class EditorMenuManager {
             this.host.menuBar = menuBar;
             this.updateStagesMenu();
 
+            // Stage-Label initial setzen (initMenuBar ist async, daher wird
+            // updateStageLabel() beim ersten setProject() übersprungen weil menuBar noch null ist)
+            const activeStage = this.host.getActiveStage();
+            if (activeStage) {
+                menuBar.setStageLabel(activeStage.name || this.host.project.activeStageId || '–');
+            }
+
             menuBar.onAction = (action: string) => {
                 this.handleMenuAction(action);
             };

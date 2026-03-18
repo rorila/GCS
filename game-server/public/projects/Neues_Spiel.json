@@ -103,7 +103,8 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#f5f5f5"
-      }
+      },
+      "flowCharts": {}
     },
     {
       "id": "main",
@@ -112,7 +113,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1773756294216_ellfgzqwz",
+          "id": "obj_1773781455121_363v4y4s3",
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
@@ -188,7 +189,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1773756287317",
+      "id": "stage-1773781448204",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],

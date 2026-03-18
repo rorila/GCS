@@ -203,6 +203,8 @@ async function main() {
                         suite.specs.forEach((spec: any) => {
                             spec.tests.forEach((test: any) => {
                                 const result = test.results[0];
+                                // Übersprungene Tests ignorieren (z.B. test.describe.skip)
+                                if (result.status === 'skipped') return;
                                 allResults.push({
                                     name: `E2E: ${spec.title}`,
                                     type: 'E2E Browser',
@@ -234,6 +236,8 @@ async function main() {
                                 suite.specs.forEach((spec: any) => {
                                     spec.tests.forEach((testItem: any) => {
                                         const result = testItem.results[0];
+                                        // Übersprungene Tests ignorieren (z.B. test.describe.skip)
+                                        if (result.status === 'skipped') return;
                                         allResults.push({
                                             name: `E2E: ${spec.title}`,
                                             type: 'E2E Browser',

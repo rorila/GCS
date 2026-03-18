@@ -951,10 +951,10 @@ export class InspectorRenderer {
         if (!prop.source) return [];
 
         if (prop.source === 'tasks') {
-            return projectRegistry.getTasks().map(t => ({ value: t.name, label: t.name }));
+            return projectRegistry.getTasks('all').map(t => ({ value: t.name, label: t.name }));
         }
         if (prop.source === 'actions') {
-            return projectRegistry.getActions().map(a => ({ value: a.name, label: a.name }));
+            return projectRegistry.getActions('all').map(a => ({ value: a.name, label: a.name }));
         }
         if (prop.source === 'dataActions') {
             return projectRegistry.getActions('all').filter((a: any) => a.type === 'data_action' || a.type === 'http').map((a: any) => ({ value: a.name, label: a.name }));

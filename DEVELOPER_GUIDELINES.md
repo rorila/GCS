@@ -129,8 +129,10 @@ Letzte Aktualisierung: v3.9.6 (E2E-Stability & Hydration Fix)
 
 ### Task/Action Speicherort
 - Tasks und Actions gehören in `stage.tasks` / `stage.actions` der **aktiven Stage** (z. B. `mainStage`).
-- NICHT in `project.tasks` (Root-Level) — außer Blueprint-globale Elemente.
-- `ensureTaskExists` speichert in Root wenn `activeStage.type === 'main'`. Daher explizit `mainStage.tasks.push(...)` nutzen.
+- Globale Elemente gehören in die **Blueprint-Stage** (`s.type === 'blueprint'` oder `s.id === 'stage_blueprint'` oder `s.id === 'blueprint'`).
+- **DO NOT**: Niemals `project.tasks`, `project.actions` oder `project.variables` (Root-Level) verwenden. Diese Arrays existieren zwar noch im Type, dürfen aber nicht mehr beschrieben werden.
+- `migrateRootToBlueprint()` (FlowEditor) migriert beim Laden automatisch Legacy-Daten von Root in die Blueprint-Stage.
+- Fallback-Logik: Wenn keine `activeStage` vorhanden, immer `getBlueprintStage()` statt Root-Level nutzen.
 
 ### restoreConnection API
 - `restoreConnection({ id, startTargetId, endTargetId, startX, startY, endX, endY, data: { startAnchorType, endAnchorType } })`

@@ -152,22 +152,8 @@ export class EditorRunManager {
                 this.startAnimationTicker();
             } else if (typeof this.activeGameLoop.initRuntime !== 'function') {
                 // Safety fallback: Object exists but is not properly hydrated (HMR/Proxy issue)
-                console.warn(`[RunManager] TGameLoop found but initRuntime is not a function. Falling back to init().`);
-                if (typeof (this.activeGameLoop as any).init === 'function') {
-                    (this.activeGameLoop as any).init(
-                        this.runtimeObjects!,
-                        this.runStage?.grid || this.editor.project.stage?.grid,
-                        () => this.editor.render(),
-                        (spriteId: string, eventName: string, data?: any) => {
-                            this.handleRuntimeEvent(spriteId, eventName, data);
-                        }
-                    );
-                    console.log(`[RunManager] Used init() fallback. Calling start().`);
-                    this.activeGameLoop.start();
-                } else {
-                    console.warn(`[RunManager] TGameLoop has neither initRuntime() nor init(). Using AnimationTicker fallback.`);
-                    this.startAnimationTicker();
-                }
+                console.warn(`[RunManager] TGameLoop found but initRuntime is not a function. Using AnimationTicker fallback.`);
+                this.startAnimationTicker();
             } else {
                 // Initialize and start TGameLoop with runtime objects
                 console.log(`[RunManager] Initializing TGameLoop with ${this.runtimeObjects!.length} objects`);
@@ -179,8 +165,7 @@ export class EditorRunManager {
                         this.handleRuntimeEvent(spriteId, eventName, data);
                     }
                 });
-                console.log(`[RunManager] Calling TGameLoop.start()`);
-                this.activeGameLoop.start();
+                console.log(`[RunManager] TGameLoop initialized (GameLoopManager übernimmt den Loop)`);
             }
 
             this.initRuntimeComponents();

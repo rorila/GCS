@@ -1,0 +1,257 @@
+{
+  "meta": {
+    "name": "Tutor_1",
+    "version": "1.0.0",
+    "author": "RolloRie",
+    "description": "Anwendungsfall: Projekt neu erstellen",
+    "_sourcePath": "projects/Tutor_1.json"
+  },
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {
+    "player1Controls": "arrows",
+    "player1Target": "",
+    "player1Speed": 0.2,
+    "player2Controls": "wasd",
+    "player2Target": "",
+    "player2Speed": 0.2
+  },
+  "objects": [],
+  "splashObjects": [],
+  "splashDuration": 3000,
+  "splashAutoHide": true,
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "blueprint",
+      "name": "Blueprint (Global)",
+      "type": "blueprint",
+      "objects": [
+        {
+          "className": "TStageController",
+          "id": "stage_controller",
+          "isVariable": false,
+          "isService": true,
+          "isHiddenInRun": true,
+          "name": "StageController",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 10,
+          "width": 8,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1773774663212_5oo2dq4fd",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "name": "",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 4,
+          "zIndex": 0,
+          "align": "TOP",
+          "style": {
+            "backgroundColor": "#1a1a1a",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1773774757531_prztdnfi4",
+          "isVariable": false,
+          "isService": false,
+          "isHiddenInRun": false,
+          "events": {
+            "onClick": "BackToMainStage"
+          },
+          "name": "Button_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 1,
+          "width": 9,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#1acb5e",
+            "borderColor": "#e2d9d9",
+            "borderWidth": 1,
+            "borderRadius": 25
+          },
+          "text": "zurück zur Hauptseite",
+          "icon": ""
+        }
+      ],
+      "actions": [
+        {
+          "name": "SwitchToMainStage",
+          "details": "",
+          "type": "navigate_stage",
+          "showDetails": false,
+          "stageId": "main"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "BackToMainStage",
+          "description": "Bei Klick wird zur Mainstage umgeschaltet",
+          "actionSequence": [
+            {
+              "name": "SwitchToMainStage",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BackToMainStage": {
+              "x": 40,
+              "y": 40
+            },
+            "SwitchToMainStage": {
+              "x": 40,
+              "y": 140
+            }
+          },
+          "Description": "Bei Klick wird zur Mainstage umgeschaltet",
+          "uiScope": "global"
+        }
+      ],
+      "variables": [
+        {
+          "className": "TVariable",
+          "id": "var_project_change",
+          "isVariable": true,
+          "isService": false,
+          "isHiddenInRun": true,
+          "name": "isProjectChangeAvailable",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 14,
+          "width": 8,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": true,
+          "value": true,
+          "objectModel": ""
+        }
+      ],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#f5f5f5"
+      },
+      "flowCharts": {
+        "global": {
+          "elements": [],
+          "connections": []
+        }
+      }
+    },
+    {
+      "id": "main",
+      "name": "HauptSpielStage",
+      "type": "main",
+      "objects": [],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "description": "Anwendungsfall: Projekt neu erstellen",
+      "excludedBlueprintIds": [
+        "obj_1773774757531_prztdnfi4"
+      ]
+    },
+    {
+      "id": "stage-1773775228030",
+      "name": "Stage 1",
+      "type": "standard",
+      "objects": [],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
+    }
+  ],
+  "activeStageId": "blueprint",
+  "flowCharts": {
+    "global": {
+      "elements": [],
+      "connections": []
+    }
+  }
+}

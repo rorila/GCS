@@ -284,7 +284,7 @@ class UniversalPlayer implements StageHost {
             makeReactive: true,
             multiplayerManager: network,
             onNavigate: (target: string) => this.handleNavigation(target),
-            onStageSwitch: (stageId: string) => {
+            onStageSwitch: (_stageId: string) => {
                 this.setupScaling();
                 this.render();
             }
