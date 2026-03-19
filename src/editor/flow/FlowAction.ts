@@ -484,7 +484,15 @@ export class FlowAction extends FlowElement {
                 hint: 'Eigenschaften des Ziel-Objekts die geändert werden'
             });
         } else if (effectiveType === 'negate') {
-            konfProps.push({ name: 'property', label: 'Eigenschaft', type: 'string', hint: 'z.B. velocityX' });
+            const action = this.getActionDefinition();
+            const changes = action?.changes || {};
+            konfProps.push({
+                name: 'changes',
+                label: 'Eigenschaften (Key-Value)',
+                type: 'keyvalue',
+                value: changes,
+                hint: 'Schlüssel: velocityX, Wert: true'
+            });
         } else if (effectiveType === 'increment') {
             const action = this.getActionDefinition();
             const changes = action?.changes || {};

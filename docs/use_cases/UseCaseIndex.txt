@@ -1,5 +1,8 @@
+- [2026-03-19] Fix: Inspector UI für Negate Actions ('Wert negieren'):
+  - Datei: src/editor/flow/FlowAction.ts (Inspector-Sektion)
+  - Detail: Die FlowAction generierte für 'negate' Actions fälschlicherweise ein einfaches String-Eingabefeld ('Eigenschaft'), während das zugrundeliegende JSON Format der Engine (StandardActions/GameLoopManager) zwingend ein Key-Value-Dictionary 'changes' (z.B. { velocityX: true }) forderte. Dadurch war das Feld in der UI leer. Fix: Umstellung auf den nativen 'keyvalue'-Editor Typ in FlowAction.ts, synonym zu Property/Increment.
+
 - [2026-03-18] Fix: Retro Tennis Physics & Engine Logs (RetroTennis.json):
-  - Komplexe Task-Flows mit onBoundaryHit und nativem Engine-Bouncing.
   - Dateien:
     - demos/RetroTennis.json (Ball, Paddles `collisionEnabled` -> `true`, string-conditions `${hitSide} == 'top'`)
     - src/runtime/PropertyWatcher.ts (Exclusion von `_` Variablen wie `_prevVelocityX` im Debugger)

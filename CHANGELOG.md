@@ -23,6 +23,7 @@
 - **FlowEditor (3.19.1):** Blueprint-Tasks sind nun exklusiv in der Blueprint-Stage im Dropdown sichtbar.
 - **FlowEditor (3.19.1):** Entfernung der verwirrenden Option `Main Flow (Stage)` in Non-Blueprint Stages.
 - **FlowEditor (3.19.1):** Ghosting-Bug beim Stage-Switching (`switchActionFlow`) behoben, indem nicht existierende Tasks einen expliziten Fallback in die "Elementenübersicht" durchführen.
+- **Inspector (3.19.1):** Die Action-UI für "Wert negieren" (negate) von einfachem String zu einem 'keyvalue'-Dictionary (`changes`) umgebaut, da Eigenschaften sonst unsichtbar und inkompatibel zur Engine blieben.
 - **Physics Engine (3.19.1):** Fehler behoben, bei dem die Retro Tennis Demo nicht funktionierte, da Kollisionen implizit im JSON deaktiviert waren und Boundary-Events durch fehlerhafte Objekt-Conditions geloggt wurden. Fehlerhafte Conditions wurden durch nativ verarbeitete String-Conditions ersetzt (`${hitSide} == 'top'`).
 - **Inspector (3.19.1):** Dropdowns für Tasks und Actions beziehen globale Elemente nun einheitlich über `ProjectRegistry.getTasks('all')` anstatt der veralteten Root-Level Collection.
 - **FlowEditor (3.19.1):** Bugfix für die "Landkarte (Events/Links)" und die "Elementenübersicht", welche in der Blueprint-Stage leere Graphen dargestellt hatten. Beide Übersichten beziehen globale Ressourcen nun fehlerfrei aus den Stage-Daten via ProjectRegistry.
