@@ -256,6 +256,20 @@ primary_region = "fra"
         return btoa(binary);
     }
 
+    /** Helfer zum sicheren Serialisieren von Objekten mit zirkulären Referenzen (z.B. Editor-Instanzen) */
+    private safeStringify(obj: any): string {
+        const seen = new WeakSet();
+        const SKIP_KEYS = new Set(['renderer', 'host', 'parent', 'stage', 'editor', '__rawSource', '_listeners', '_eventTarget']);
+        return JSON.stringify(obj, (key: string, value: any) => {
+            if (SKIP_KEYS.has(key)) return undefined;
+            if (typeof value === 'object' && value !== null) {
+                if (seen.has(value)) return undefined;
+                seen.add(value);
+            }
+            return value;
+        });
+    }
+
     /**
      * Removes all editor-only properties (flow editor, node positions, etc.)
      * to keep the game file small and clean for the platform.
@@ -267,7 +281,8 @@ primary_region = "fra"
         const clean: any = {};
         whitelist.forEach(key => {
             if ((project as any)[key] !== undefined) {
-                clean[key] = JSON.parse(JSON.stringify((project as any)[key]));
+                // Nutze safeStringify, um TypeError bei zirkulären Laufzeit-Referenzen (parent, editor) zu verhindern
+                clean[key] = JSON.parse(this.safeStringify((project as any)[key]));
             }
         });
 

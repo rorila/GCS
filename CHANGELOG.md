@@ -449,14 +449,11 @@
 - **Orphaned Action Cleanup**: Automatische Bereinigung von verwaisten Action-Referenzen in `actionSequence`-Listen durch den `SanitizationService`.
 - **Flow-Synchronisation**: Korrekte Typ-Behandlung (`actionType` -> `type`) und Synchronisation verlinkter Actions im `FlowSyncManager`.
 
-## [3.10.1] - 2026-03-08
+## [3.20.1] - 2026-03-20
 ### Fixed
-- **Legacy-Ladefehler**: `TypeError: this.host.setProject is not a function` beim Laden von Projekten behoben.
-- **Interface-Konsistenz**: `IViewHost` wurde um `setProject` erweitert.
+- **HTML Export Crash:** Fehler bei `exportHTML` und `exportHTMLCompressed` behoben, der durch einen TypeError (Zirkuläre Struktur in `JSON.stringify`) verursacht wurde, indem ein spezieller `safeStringify`-Filter in den `GameExporter` integriert wurde.
 
-Alle relevanten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
-
-## [3.10.0] - 2026-03-07
+## [3.20.0] - 2026-03-20
 ### Added
 - **Intelligentes Speichermanagement**: Einführung eines `isProjectDirty` Flags zur Erkennung ungespeicherter Änderungen.
 - **Browser-Schutz**: `window.onbeforeunload` Guard warnt vor dem Verlassen der Seite bei ungespeicherten Daten.

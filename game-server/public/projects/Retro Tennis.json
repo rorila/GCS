@@ -6,7 +6,7 @@
     "version": "1.5.0",
     "author": "Game Builder Studio",
     "description": "Vollständige Demo: Paddles steuerbar, Kollisionen laufen.",
-    "_sourcePath": "projects/RetroTennis.json"
+    "_sourcePath": "projects/Retro Tennis.json"
   },
   "variables": [],
   "stages": [
@@ -233,8 +233,8 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "isGlobal": true,
           "description": "System internal flag to track unsaved changes"
         }
@@ -424,34 +424,119 @@
           "name": "CheckWallCollisions",
           "actionSequence": [
             {
-              "type": "condition",
               "condition": {
                 "leftValue": "${hitSide}",
                 "operator": "==",
                 "rightValue": "top"
               },
-              "thenAction": "BounceY"
-            },
-            {
               "type": "condition",
-              "condition": {
-                "leftValue": "${hitSide}",
-                "operator": "==",
-                "rightValue": "bottom"
-              },
-              "thenAction": "BounceY"
+              "body": [
+                {
+                  "name": "BounceY",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "leftValue": "${hitSide}",
+                    "operator": "==",
+                    "rightValue": "bottom"
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "BounceY",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "condition": {
+                        "leftValue": "${hitSide}",
+                        "rightValue": "left"
+                      },
+                      "type": "condition",
+                      "body": [
+                        {
+                          "name": "BounceX",
+                          "type": "action"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "condition": {
+                            "leftValue": "${hitSide}",
+                            "rightValue": "right"
+                          },
+                          "type": "condition",
+                          "body": [
+                            {
+                              "name": "BounceX",
+                              "type": "action"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             }
-          ]
+          ],
+          "params": [],
+          "flowLayout": {
+            "CheckWallCollisions": {
+              "x": 40,
+              "y": 40
+            },
+            "${hitSide} == top": {
+              "x": 40,
+              "y": 140
+            },
+            "BounceY": {
+              "x": 280,
+              "y": 240
+            },
+            "${hitSide} == bottom": {
+              "x": 40,
+              "y": 240
+            },
+            "${hitSide} == left": {
+              "x": 40,
+              "y": 340
+            },
+            "BounceX": {
+              "x": 280,
+              "y": 440
+            },
+            "${hitSide} == right": {
+              "x": 40,
+              "y": 440
+            }
+          }
         },
         {
           "name": "BallHitPaddle",
           "description": "Wenn der Ball kollidiert (z.B. mit dem Paddle), springt er ab.",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "BounceX"
+              "name": "BounceX",
+              "type": "action"
             }
-          ]
+          ],
+          "params": [],
+          "flowLayout": {
+            "BallHitPaddle": {
+              "x": 40,
+              "y": 40
+            },
+            "BounceX": {
+              "x": 40,
+              "y": 140
+            }
+          }
         }
       ],
       "actions": [
@@ -508,7 +593,9 @@
           "target": "Ball",
           "changes": {
             "velocityY": true
-          }
+          },
+          "details": "",
+          "showDetails": false
         },
         {
           "id": "act_bounce_x",
@@ -517,7 +604,9 @@
           "target": "Ball",
           "changes": {
             "velocityX": true
-          }
+          },
+          "details": "",
+          "showDetails": false
         }
       ],
       "flowCharts": {}
