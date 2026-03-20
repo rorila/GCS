@@ -6,6 +6,16 @@
     "description": "Das ist mein cooles Spiel",
     "_sourcePath": "projects/Neues_Spiel.json"
   },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
   "flow": {
     "elements": [],
     "connections": []
@@ -111,7 +121,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1774029124495_5bxx9fqyt",
+          "id": "obj_1774030018742_cjzy0f3bl",
           "name": "Button_3",
           "scope": "global",
           "draggable": false,
@@ -183,7 +193,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1774029117545",
+      "id": "stage-1774030011810",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],

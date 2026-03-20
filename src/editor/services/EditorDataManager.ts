@@ -1,6 +1,6 @@
 import { GameProject } from '../../model/types';
 import { ViewType } from '../EditorViewManager';
-import { projectPersistenceService, ProjectPersistenceService } from '../../services/ProjectPersistenceService';
+import { projectPersistenceService } from '../../services/ProjectPersistenceService';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { mediatorService } from '../../services/MediatorService';
 import { dataService } from '../../services/DataService';
@@ -127,7 +127,7 @@ export class EditorDataManager {
             const res = await fetch('/api/dev/save-project', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.host.project, ProjectPersistenceService.safeReplacer())
+                body: JSON.stringify(this.host.project)
             });
             const data = await res.json();
             if (data.success) {
@@ -224,7 +224,7 @@ export class EditorDataManager {
         if (this.currentFileHandle && overwriteConfirmed === undefined) {
             try {
                 const writable = await (this.currentFileHandle as any).createWritable();
-                await writable.write(JSON.stringify(this.host.project, ProjectPersistenceService.safeReplacer(), 2));
+                await writable.write(JSON.stringify(this.host.project, null, 2));
                 await writable.close();
                 
                 setTimeout(() => { this.host.isProjectDirty = false; }, 0);
@@ -247,7 +247,7 @@ export class EditorDataManager {
             const saveRes = await fetch('/api/dev/save-custom', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filePath: targetFilePath, projectData: this.host.project }, ProjectPersistenceService.safeReplacer())
+                body: JSON.stringify({ filePath: targetFilePath, projectData: this.host.project })
             });
             const saveData = await saveRes.json();
 
@@ -548,7 +548,7 @@ export class EditorDataManager {
             fetch('/api/dev/save-project', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.host.project, ProjectPersistenceService.safeReplacer())
+                body: JSON.stringify(this.host.project)
             }).then(res => res.json())
                 .then(data => {
                     if (data.success) {

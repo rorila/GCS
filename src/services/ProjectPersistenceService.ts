@@ -13,7 +13,11 @@ export class ProjectPersistenceService {
 
     private constructor() { }
 
-    /** Erzeugt einen JSON.stringify-Replacer der zirkuläre Referenzen filtert */
+    /**
+     * @deprecated Seit v3.22.0 (CleanCode Phase 2): Nicht mehr nötig, da TComponent.toJSON()
+     * an toDTO() delegiert und nur serialisierbare Properties ausgibt.
+     * Wird beibehalten für mögliche Drittanbieter-Nutzung.
+     */
     public static safeReplacer(): (key: string, value: any) => any {
         const seen = new WeakSet();
         const SKIP_KEYS = new Set(['renderer', 'host', 'parent', 'stage', 'editor', '__rawSource', '_listeners', '_eventTarget', '_gridCols', '_gridRows']);
