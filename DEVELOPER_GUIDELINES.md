@@ -3,6 +3,13 @@
 > [!CAUTION]
 > **MANDATORY AI AGENT RULE**: Every code modification MUST be followed by executing `npm run test` (oder `run_tests.bat`, falls PowerShell blockiert). Verification of the `docs/QA_Report.md` is required for the "Definition of Done". Do NOT notify the user before running tests.
 
+> [!IMPORTANT]
+> **MANDATORY AI AGENT RULE - AKTUELLER FOKUS: CleanCode Transformation**
+> Wir befinden uns derzeit mitten im Architektur-Refactoring auf CleanCode.
+> Bei jedem Start einer neuen Session und vor jeder Aufgabenbearbeitung MUSS zwingend die Datei `docs/CleanCodeTransformation.md` gelesen werden! 
+> Der Fortschritt der Phasen ist dort fortlaufend zu pflegen (Checkboxen abhaken). 
+> Priorisiere diese Architektur-Umbauten über die Entwicklung neuer Features.
+
 ## Schnellstart & Kernregeln
 - **Sprache**: Die gesamte Kommunikation und Dokumentation erfolgt auf Deutsch.
 - **GCS Dashboard Pattern**: Für moderne Dashboards (z.B. `roomDashboard`) die `TTable` im `displayMode: "cards"` verwenden. Datenquellen dafür sind bevorzugt `TObjectList`-Variablen in der `stage_blueprint`.
