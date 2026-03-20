@@ -452,6 +452,7 @@
 ## [3.20.1] - 2026-03-20
 ### Fixed
 - **HTML Export Crash:** Fehler bei `exportHTML` und `exportHTMLCompressed` behoben, der durch einen TypeError (Zirkuläre Struktur in `JSON.stringify`) verursacht wurde, indem ein spezieller `safeStringify`-Filter in den `GameExporter` integriert wurde.
+- **HTML Export Crash:** Fehler bei Projekt-Objekten ohne veraltetes `project.stage` Objekt behoben, indem auf die modernen `project.stages[0]` Fallbacks zurückgegriffen wird.
 
 ## [3.20.0] - 2026-03-20
 ### Added

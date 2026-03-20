@@ -346,7 +346,8 @@ primary_region = "fra"
      */
     private generateStandaloneHTML(project: any, runtimeJS: string): string {
         const projectJSON = JSON.stringify(project, null, 2);
-        const gridConfig = project.stage.grid;
+        const mainStage = project.stages?.find((s: any) => s.type === 'main') || project.stages?.[0] || project.stage;
+        const gridConfig = mainStage?.grid || { cols: 20, rows: 15, cellSize: 32, backgroundColor: '#ffffff' };
         const stageWidth = gridConfig.cols * gridConfig.cellSize;
         const stageHeight = gridConfig.rows * gridConfig.cellSize;
 
@@ -436,7 +437,8 @@ primary_region = "fra"
      */
     private generateCompressedHTML(project: any, runtimeJS: string): string {
         const compressedData = this.compressProject(project);
-        const gridConfig = project.stage.grid;
+        const mainStage = project.stages?.find((s: any) => s.type === 'main') || project.stages?.[0] || project.stage;
+        const gridConfig = mainStage?.grid || { cols: 20, rows: 15, cellSize: 32, backgroundColor: '#ffffff' };
         const stageWidth = gridConfig.cols * gridConfig.cellSize;
         const stageHeight = gridConfig.rows * gridConfig.cellSize;
 

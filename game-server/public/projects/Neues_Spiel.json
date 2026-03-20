@@ -113,7 +113,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1773994829753_bxb0y14tb",
+          "id": "obj_1773995588156_gw261zk5t",
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
@@ -189,7 +189,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1773994822737",
+      "id": "stage-1773995581173",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],
