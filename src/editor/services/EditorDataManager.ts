@@ -407,6 +407,16 @@ export class EditorDataManager {
                 if (s.objects) s.objects = hydrateObjects(s.objects);
                 if (s.variables) s.variables = hydrateObjects(s.variables);
 
+                // CleanCode Phase 2: Grid-Dimensionen an Objekte vererben (für TWindow.align-Setter)
+                const gridCols = s.grid?.cols || data.stage?.grid?.cols || 64;
+                const gridRows = s.grid?.rows || data.stage?.grid?.rows || 40;
+                if (s.objects) {
+                    s.objects.forEach((obj: any) => {
+                        obj._gridCols = gridCols;
+                        obj._gridRows = gridRows;
+                    });
+                }
+
                 // Fix: Clean up accidentally saved global variables from non-blueprint stages
                 if (s.type !== 'blueprint' && s.variables) {
                     s.variables = s.variables.filter((v: any) => v.scope !== 'global');

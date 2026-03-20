@@ -1,3 +1,15 @@
+## [3.21.0] - 2026-03-20
+### Changed (CleanCode Phase 2: Domain Model Trennung)
+- **Slice 2.1 – IInspectable aus Runtime extrahiert** (`src/model/InspectorTypes.ts` [NEU]):
+  - `TPropertyDef`, `InspectorSection`, `IInspectable` und `isInspectable` leben jetzt im Model-Layer.
+  - `TComponent.ts` importiert nicht mehr aus `src/editor/inspector/types.ts` (Editor-Modul), sondern aus `src/model/InspectorTypes.ts`.
+  - `src/editor/inspector/types.ts` re-exportiert die Typen für Abwärtskompatibilität.
+- **Slice 2.2 – TWindow.align vom Editor entkoppelt** (`TWindow.ts`, `EditorDataManager.ts`):
+  - `TWindow.align`-Setter greift nicht mehr auf `window.editor` zu.
+  - Grid-Dimensionen werden über `_gridCols`/`_gridRows`-Properties bereitgestellt.
+  - `EditorDataManager.loadProject()` injiziert Grid-Werte beim Hydratisieren.
+  - `safeReplacer` in `ProjectPersistenceService.ts` filtert die neuen internen Properties.
+
 ## [3.20.1] - 2026-03-20
 ### Fixed (CleanCode Phase 1: Unidirektionaler Datenfluss)
 - **ProjectStore-Referenz-Fix** (`Editor.ts`):

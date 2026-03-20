@@ -1,30 +1,9 @@
-import { IInspectable, InspectorSection } from '../editor/inspector/types';
+import { IInspectable, InspectorSection, TPropertyDef } from '../model/InspectorTypes';
 
-export interface TPropertyDef {
-    name: string;      // Property key or path (e.g. 'x', 'style.backgroundColor')
-    label: string;     // Display label
-    type: 'string' | 'number' | 'boolean' | 'color' | 'select' | 'checkbox' | 'image_picker' | 'json' | 'button' | 'text' | 'textarea' | 'TVariableSelect' | 'TObjectSelect';
-    group?: string;    // 'Geometry', 'Style', 'Identity' etc.
-    readonly?: boolean;
-    serializable?: boolean; // Ob die Property gespeichert werden soll (default: true)
-    editorOnly?: boolean;   // Ob die Property nur im Editor relevant ist (default: false)
-    defaultValue?: any;     // Standardwert
-    step?: number | string; // for number inputs
-    min?: number;      // for number inputs
-    max?: number;      // for number inputs
-    options?: (string | { value: string; label: string })[]; // for select type
-    selectedValue?: any; // Explicitly set value (overrides binding)
-    source?: string;    // for select type - dynamic source name (e.g. 'availableModels')
-    hint?: string;      // Tooltip or hint text
-    placeholder?: string; // Input placeholder
-    style?: any;       // For button type: custom CSS styles
-    action?: string;   // For button type: internal action name
-    actionData?: any;  // For button type: payload for action
-    inline?: boolean;  // Display horizontally if possible
-    controlName?: string; // Custom control name attribute for E2E selectors
-    buttonType?: string;  // Button variant: 'primary', 'secondary' etc.
-    variable?: string;    // Bound variable name for proxy getters/setters
-}
+// Re-Export für Abwärtskompatibilität: Andere Dateien, die TPropertyDef aus TComponent importieren
+export type { TPropertyDef } from '../model/InspectorTypes';
+
+// TPropertyDef wird nun aus model/InspectorTypes.ts importiert und re-exportiert (siehe oben)
 
 /** 
  * Symbol to store original formula/expressions (Design Values) 

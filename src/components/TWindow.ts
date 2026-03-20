@@ -47,13 +47,9 @@ export class TWindow extends TComponent {
         // Guard: Nicht feuern während Object.assign (resolveObjectPreview) oder Hydration.
         if (!(this as any)._initialized) return;
 
-        // Stage-Grid-Dimensionen holen
-        const ed = (window as any).editor;
-        const grid = ed?.stage?.grid;
-        if (!grid) return;
-
-        const stageCols = grid.cols || 40;
-        const stageRows = grid.rows || 30;
+        // Grid-Dimensionen: Über lokale Properties oder Defaults
+        const stageCols = (this as any)._gridCols || 64;
+        const stageRows = (this as any)._gridRows || 40;
 
         if (value === 'TOP') {
             this.x = 0; this.y = 0; this.width = stageCols;

@@ -16,7 +16,7 @@ export class ProjectPersistenceService {
     /** Erzeugt einen JSON.stringify-Replacer der zirkuläre Referenzen filtert */
     public static safeReplacer(): (key: string, value: any) => any {
         const seen = new WeakSet();
-        const SKIP_KEYS = new Set(['renderer', 'host', 'parent', 'stage', 'editor', '__rawSource', '_listeners', '_eventTarget']);
+        const SKIP_KEYS = new Set(['renderer', 'host', 'parent', 'stage', 'editor', '__rawSource', '_listeners', '_eventTarget', '_gridCols', '_gridRows']);
         return (key: string, value: any) => {
             if (SKIP_KEYS.has(key)) return undefined;
             if (typeof value === 'object' && value !== null) {
