@@ -59,7 +59,11 @@ export class EditorDataManager {
     public updateProjectPathDisplay(): void {
         const menuBar = (this.host as any).menuBar;
         if (menuBar && typeof menuBar.setInfoText === 'function') {
-            const path = this.currentSavePath || '(nicht gespeichert)';
+            let path = this.currentSavePath || '(nicht gespeichert)';
+            // Nativer Datei-Handle? Zeige "[Lokal]" Präfix im UI an
+            if (this.currentFileHandle) {
+                path = `[Lokal] ${this.currentFileHandle.name}`;
+            }
             menuBar.setInfoText(`Aktueller Projektpfad: ${path}`);
         }
     }
@@ -79,9 +83,6 @@ export class EditorDataManager {
                 // Der _sourcePath in der Datei kann veraltet sein (Datei wurde kopiert/verschoben).
                 // Fester Speicherort: projects/<Dateiname>
                 let sourcePath = `projects/${result.filename}`;
-                if (this.currentFileHandle) {
-                    sourcePath = `[Lokal] ${result.filename}`;
-                }
                 EditorDataManager.logger.info(`[triggerLoad] Datei geladen: ${result.filename}, Pfad: ${sourcePath}`);
                 this.loadProject(result.data, sourcePath);
             }
@@ -229,9 +230,9 @@ export class EditorDataManager {
                 setTimeout(() => { this.host.isProjectDirty = false; }, 0);
                 const msg = `Nativ gespeichert: ${this.currentFileHandle.name}`;
                 EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
-                // Aktualisiere source_path
+                // Aktualisiere source_path für Fallback-Backup im Server
                 if (!this.host.project.meta) (this.host.project as any).meta = {};
-                (this.host.project.meta as any)._sourcePath = `[Lokal] ${this.currentFileHandle.name}`;
+                (this.host.project.meta as any)._sourcePath = `projects/${this.currentFileHandle.name}`;
                 this.updateProjectPathDisplay();
                 if (overwriteConfirmed === undefined) alert(msg);
                 return { success: true, message: msg };
@@ -297,8 +298,8 @@ export class EditorDataManager {
                 const fileBaseName = handle.name.replace('.json', '');
                 if (!this.host.project.meta) (this.host.project as any).meta = {};
                 (this.host.project.meta as any).name = fileBaseName;
-                (this.host.project.meta as any)._sourcePath = `[Lokal] ${handle.name}`;
-                this.currentSavePath = `[Lokal] ${handle.name}`;
+                (this.host.project.meta as any)._sourcePath = `projects/${handle.name}`;
+                this.currentSavePath = `projects/${handle.name}`;
                 
                 this.host.isProjectDirty = true; // erzwingt Check-Bypass in saveProjectToFile
                 return this.saveProjectToFile();
