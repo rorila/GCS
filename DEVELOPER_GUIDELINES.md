@@ -4,11 +4,10 @@
 > **MANDATORY AI AGENT RULE**: Every code modification MUST be followed by executing `npm run test` (oder `run_tests.bat`, falls PowerShell blockiert). Verification of the `docs/QA_Report.md` is required for the "Definition of Done". Do NOT notify the user before running tests.
 
 > [!IMPORTANT]
-> **MANDATORY AI AGENT RULE - AKTUELLER FOKUS: CleanCode Transformation**
-> Wir befinden uns derzeit mitten im Architektur-Refactoring auf CleanCode.
-> Bei jedem Start einer neuen Session und vor jeder Aufgabenbearbeitung MUSS zwingend die Datei `docs/CleanCodeTransformation.md` gelesen werden! 
-> Der Fortschritt der Phasen ist dort fortlaufend zu pflegen (Checkboxen abhaken). 
-> Priorisiere diese Architektur-Umbauten über die Entwicklung neuer Features.
+> **CleanCode Transformation — Phase 1-3 abgeschlossen (v3.22.0)**
+> Phase 1 (Unidirektionaler Datenfluss), Phase 2 (Domain Model Trennung) und Phase 3 (Hexagonale Architektur) sind abgeschlossen.
+> Phase 4 (E2E-Test-Netz) steht noch aus. Details in `docs/CleanCodeTransformation.md`.
+> Bei neuen I/O-Features: `IStorageAdapter` nutzen (`src/ports/IStorageAdapter.ts`). Electron-Kompatibilität prüfen.
 
 ## Schnellstart & Kernregeln
 - **Sprache**: Die gesamte Kommunikation und Dokumentation erfolgt auf Deutsch.
@@ -39,7 +38,7 @@
 ## Synchronisation von Inspector und Flow-Editor
 - **Persistenz von Flow-Nodes**: Beim Bearbeiten von Action-Nodes im Inspector muss der `FlowNodeHandler` nicht nur globale Listen (`project.actions`), sondern auch die `flowCharts` des Projekts durchsuchen, um "unlinked" / lokale Actions zu finden und zu aktualisieren.
 - **Typ-Wechsel**: Bei Änderungen des Aktions-Typs im Inspector muss `mediatorService.notifyDataChanged` aufgerufen werden, damit der Flow-Editor die Sequenzen neu berechnet und der Inspector passende Parameter-Felder einblendet.
-- **Server-Sync**: `EditorDataManager.updateProjectJSON` sollte bei Inspector-Änderungen einen Server-Dateisystem-Sync auslösen, um Konsistenz zwischen UI-State und JSON-View zu wahren.
+- **Server-Sync (v3.22.0)**: `EditorDataManager.updateProjectJSON` nutzt `JSON.stringify()` direkt (kein `safeReplacer` mehr). Der Server-Sync erfolgt über die Adapter-Architektur (`IStorageAdapter`).
 
 ## DO NOT
 - **Expert-Wizard Prompts**: Prompts unterstützen Platzhalter in geschweiften Klammern (z.B. `"Wert für {target}.{property}?"`). Diese werden automatisch durch bereits gesammelte Werte aus der Session ersetzt.
@@ -111,13 +110,14 @@ Ausführliche Details findest du in den spezialisierten Dokumenten:
 
 - **Stattdessen**: Editoren (wie EditorInteractionManager) müssen über Hilfsfunktionen wie getOriginalObject auf das originale JSON-Objekt im Speicher zugreifen und nur dort spezifische Eigenschaften (wie x, y, width, height) aktualisieren, **bevor** der Autosave angestoßen wird.
 
-- **Speichermanagement (v3.10.x)**:
-  - **Kein automatischer Disk-Save**: `EditorDataManager.updateProjectJSON` sichert Änderungen NUR noch im `LocalStorage` (Crash-Schutz). Das echte Speichern auf Disk (Server-Fetch) erfolgt AUSSCHLIESSLICH manuell durch den Nutzer über `saveProject()`.
+- **Speichermanagement (v3.10.x, aktualisiert v3.22.0)**:
+  - **Adapter-basiert**: Seit v3.22.0 delegiert `ProjectPersistenceService` an `IStorageAdapter`-Implementierungen. Kein direkter `fetch()`- oder `localStorage`-Zugriff in Persistenz-Logik.
+  - **Auto-Save**: `EditorDataManager.updateProjectJSON` nutzt `JSON.stringify()` für Server-Sync. `safeReplacer` ist seit v3.22.0 `@deprecated` (nicht mehr nötig dank `toDTO()`).
   - **Dirty-Flag Pflicht**: Jede Änderung am Projekt MUSS das `isProjectDirty` Flag des ViewManagers (oder Hosts) auf `true` setzen. Dies geschieht in der Regel automatisch über das `MediatorEvents.DATA_CHANGED` Event.
   - **Zustands-Reset**: Nach erfolgreichem `saveProject` (auf Disk) oder `loadProject` MUSS das `isProjectDirty` Flag zwingend wieder auf `false` gesetzt werden.
   - **Initial-Load Originator**: Beim ersten Laden eines Projekts (oder Erstellen eines Default-Projekts) muss `mediatorService.notifyDataChanged(project, 'editor-load')` aufgerufen werden. Der Originator `editor-load` verhindert, dass das Dirty-Flag fälschlicherweise sofort auf `true` springt (v3.11.4).
 
-Letzte Aktualisierung: v3.9.6 (E2E-Stability & Hydration Fix)
+Letzte Aktualisierung: v3.22.0 (CleanCode Phase 1-3 abgeschlossen, Hexagonale Architektur + Electron-Vorbereitung)
 
 ## Flow-Editor & Verbindungen (v3.9.7)
 - **Floating Connections**: Verbindungen ohne startTargetId / endTargetId müssen unterstützt werden. Der FlowGraphHydrator nutzt die Koordinaten (startX, startY) als Fallback, wenn keine Node-Zuweisung existiert.

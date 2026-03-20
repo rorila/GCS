@@ -1,3 +1,12 @@
+## [3.23.0] - 2026-03-20
+### Added (CleanCode Phase 4: E2E-Test-Netz)
+- `10_PlayModeLifecycle.spec.ts` [NEU]: Run-Start/Stop/Restart E2E-Test.
+- `11_StageSwitching.spec.ts` [NEU]: Stage-Menü, Blueprint-Wechsel, Hin-und-Zurück.
+- 13 E2E-Tests insgesamt (vorher 11).
+
+### Fixed
+- `DEVELOPER_GUIDELINES.md`: 5 Widersprüche nach CleanCode-Transformation bereinigt (CleanCode-Status, Server-Sync, Speichermanagement, Versionsnummer, Adapter-Hinweise).
+
 ## [3.22.0] - 2026-03-20
 ### Added (CleanCode Phase 3: Hexagonale Architektur)
 - **Slice 3.1 – Port-Interfaces** (`src/ports/IStorageAdapter.ts` [NEU]):

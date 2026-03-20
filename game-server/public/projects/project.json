@@ -6,7 +6,25 @@
     "description": "",
     "_sourcePath": "projects/project.json"
   },
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#ffffff"
+    }
+  },
   "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
     "elements": [],
     "connections": []
   },
@@ -26,6 +44,25 @@
   "tasks": [],
   "variables": [],
   "stages": [
+    {
+      "id": "splash",
+      "name": "Splash",
+      "type": "splash",
+      "objects": [],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "duration": 3000,
+      "autoHide": true
+    },
     {
       "id": "blueprint",
       "name": "Blueprint (Global)",
@@ -87,7 +124,24 @@
         "visible": true,
         "backgroundColor": "#ffffff"
       }
+    },
+    {
+      "id": "stage-1774032062427",
+      "name": "Stage 1",
+      "type": "standard",
+      "objects": [],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": true,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      }
     }
   ],
-  "activeStageId": "blueprint"
+  "activeStageId": "stage-1774032062427"
 }

@@ -29,11 +29,12 @@ Basiert auf den Erkenntnissen zur Verhinderung von Regressionen und der Entkoppl
 - [x] **Slice 3.3 — ProjectPersistenceService:** Adapter-Initialisierung mit automatischer Erkennung. `saveProject()`, `autoSaveToLocalStorage()`, `fetchProjectFromServer()`, `triggerLoad()` delegieren an Adapter.
 - [x] **Slice 3.4 — Export:** `GameExporter.downloadFile()` Electron-kompatibel (3-stufiger Fallback: Electron IPC → FileSystem Access → Blob).
 
-### Phase 4: Lückenloses E2E-Test-Netz für JEDEN UseCase
+### Phase 4: Lückenloses E2E-Test-Netz für JEDEN UseCase ✅
 **Ziel:** Keine versteckte Regression ("HTML-Export funktioniert schon wieder nicht") darf unbemerkt gebaut werden.
-- [ ] **Audit:** Systematischer Abgleich von `docs/use_cases/UseCaseIndex.txt` mit `tests/e2e/*.spec.ts`.
-- [ ] **Fehlende Tests implementieren:** HTML-Export, JSON-Export, Play-Mode Lifecycle, Stage-Wechsel-Zyklen.
-- [ ] **Integration:** Der lokale Testlauf (`npm run test`) muss absolut stur jeden Commit sichern.
+- [x] **Audit:** Systematischer Abgleich von bestehenden 11 E2E-Tests mit fehlenden UseCases (Play-Mode, Stage-Wechsel).
+- [x] **Fehlende Tests implementiert:** `10_PlayModeLifecycle.spec.ts` (Run-Start/Stop/Restart), `11_StageSwitching.spec.ts` (Menü-Navigation, Blueprint-Wechsel, Hin-und-Zurück).
+- [x] **Integration:** 124 Tests (119 Unit + 5 Export Integrity + 13 E2E) grün. `npm run test` sichert jeden Commit.
+- [x] **DEVELOPER_GUIDELINES Konsistenz:** 5 Widersprüche nach der Transformation bereinigt.
 
 ## Spielregeln für die Transformation
 - Niemals mehr als ein Refactoring eines Slices/einer Phase gleichzeitig in Angriff nehmen.

@@ -231,8 +231,8 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "isGlobal": true,
           "description": "System internal flag to track unsaved changes"
         }
@@ -249,7 +249,8 @@
         "rows": 30,
         "cellSize": 20,
         "visible": true,
-        "backgroundColor": "#1a1a2e"
+        "backgroundColor": "#1a1a2e",
+        "snapToGrid": true
       },
       "objects": [
         {
@@ -264,8 +265,8 @@
             "onClick": "StartGameTask"
           },
           "visible": true,
-          "x": 16,
-          "y": 10,
+          "x": 8,
+          "y": 6,
           "width": 8,
           "height": 2,
           "zIndex": 0,

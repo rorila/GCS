@@ -394,7 +394,7 @@
     "name": "Retro Tennis",
     "version": "1.5.0",
     "author": "Game Builder Studio",
-    "exportedAt": "2026-03-20T15:18:00.601Z",
+    "exportedAt": "2026-03-20T18:32:20.466Z",
     "type": "standalone_game",
     "runtimeVersion": "1.5.0"
   },
@@ -414,11 +414,10 @@
         {
           "className": "TGameLoop",
           "id": "obj_game_loop",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
           "name": "GameLoop",
           "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -442,9 +441,13 @@
         {
           "className": "TInputController",
           "id": "obj_input_controller",
-          "isVariable": false,
+          "name": "InputController",
+          "scope": "stage",
           "isService": true,
           "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
           "events": {
             "onKeyDown_KeyW": "MoveP1Up",
             "onKeyDown_KeyS": "MoveP1Down",
@@ -455,11 +458,6 @@
             "onKeyUp_ArrowUp": "StopP2",
             "onKeyUp_ArrowDown": "StopP2"
           },
-          "name": "InputController",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
           "visible": true,
           "x": 6,
           "y": 2,
@@ -594,8 +592,8 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "isGlobal": true
         }
       ]
@@ -611,26 +609,24 @@
         "rows": 30,
         "cellSize": 20,
         "visible": true,
-        "backgroundColor": "#1a1a2e"
+        "backgroundColor": "#1a1a2e",
+        "snapToGrid": true
       },
       "objects": [
         {
           "className": "TButton",
           "id": "obj_start_btn",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
-            "onClick": "StartGameTask"
-          },
           "name": "StartButton",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onClick": "StartGameTask"
+          },
           "visible": true,
-          "x": 16,
-          "y": 10,
+          "x": 8,
+          "y": 6,
           "width": 8,
           "height": 2,
           "zIndex": 0,
@@ -652,9 +648,6 @@
         {
           "className": "TSprite",
           "id": "obj_paddle1",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "LeftPaddle",
           "scope": "stage",
           "draggable": false,
@@ -685,9 +678,6 @@
         {
           "className": "TSprite",
           "id": "obj_paddle2",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "RightPaddle",
           "scope": "stage",
           "draggable": false,
@@ -718,18 +708,15 @@
         {
           "className": "TSprite",
           "id": "obj_ball",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
-            "onBoundaryHit": "CheckWallCollisions",
-            "onCollision": "BallHitPaddle"
-          },
           "name": "Ball",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckWallCollisions",
+            "onCollision": "BallHitPaddle"
+          },
           "visible": true,
           "x": 19,
           "y": 14,
@@ -758,26 +745,53 @@
           "name": "StartGameTask",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "SetStatePlaying"
+              "name": "SetStatePlaying",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "EnablePhysics"
+              "name": "EnablePhysics",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "StartBallX"
+              "name": "StartBallX",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "StartBallY"
+              "name": "StartBallY",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "HideStartButton"
+              "name": "HideStartButton",
+              "type": "action"
             }
-          ]
+          ],
+          "params": [],
+          "flowLayout": {
+            "StartGameTask": {
+              "x": 40,
+              "y": 40
+            },
+            "SetStatePlaying": {
+              "x": 40,
+              "y": 140
+            },
+            "EnablePhysics": {
+              "x": 40,
+              "y": 240
+            },
+            "StartBallX": {
+              "x": 40,
+              "y": 340
+            },
+            "StartBallY": {
+              "x": 40,
+              "y": 440
+            },
+            "HideStartButton": {
+              "x": 40,
+              "y": 540
+            }
+          }
         },
         {
           "name": "CheckWallCollisions",
