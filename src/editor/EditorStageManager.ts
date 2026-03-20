@@ -1,6 +1,5 @@
-import { GameProject, StageDefinition, GameAction, GameTask, ProjectVariable, StageType } from '../model/types';
+import { GameProject, StageDefinition, GameAction, GameTask, ProjectVariable, StageType, ComponentData } from '../model/types';
 import { Stage } from './Stage';
-import { TWindow } from '../components/TWindow';
 import { TObjectList } from '../components/TObjectList';
 import { mediatorService } from '../services/MediatorService';
 import { ProjectRegistry } from '../services/ProjectRegistry';
@@ -23,11 +22,11 @@ export class EditorStageManager {
         this.project = project;
     }
 
-    public currentObjects(): TWindow[] {
+    public currentObjects(): ComponentData[] {
         return ProjectRegistry.getInstance().getObjects();
     }
 
-    public setCurrentObjects(objs: TWindow[]) {
+    public setCurrentObjects(objs: ComponentData[]) {
         const activeStage = this.getActiveStage();
         if (activeStage) {
             const localObjs = objs.filter(obj => {

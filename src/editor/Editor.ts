@@ -1,7 +1,6 @@
 import { Stage } from './Stage';
-import { GameProject, StageType, StageDefinition, GameAction, GameTask, ProjectVariable } from '../model/types';
+import { GameProject, StageType, StageDefinition, GameAction, GameTask, ProjectVariable, ComponentData } from '../model/types';
 import { RefactoringManager } from './RefactoringManager';
-import { TWindow } from '../components/TWindow';
 import { TDebugLog } from '../components/TDebugLog';
 import { ReactiveRuntime } from '../runtime/ReactiveRuntime';
 import { InspectorHost } from './inspector/InspectorHost';
@@ -259,8 +258,8 @@ export class Editor implements IViewHost {
 
 
     // --- GETTERS ---
-    public get currentObjects(): TWindow[] { return this.stageManager.currentObjects(); }
-    public set currentObjects(objs: TWindow[]) { this.stageManager.setCurrentObjects(objs); }
+    public get currentObjects(): ComponentData[] { return this.stageManager.currentObjects(); }
+    public set currentObjects(objs: ComponentData[]) { this.stageManager.setCurrentObjects(objs); }
     public get currentActions(): GameAction[] { return this.stageManager.currentActions(); }
     public get currentTasks(): GameTask[] { return this.stageManager.currentTasks(); }
     public get currentVariables(): ProjectVariable[] { return this.stageManager.currentVariables(); }

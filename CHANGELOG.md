@@ -9,6 +9,11 @@
   - Grid-Dimensionen werden über `_gridCols`/`_gridRows`-Properties bereitgestellt.
   - `EditorDataManager.loadProject()` injiziert Grid-Werte beim Hydratisieren.
   - `safeReplacer` in `ProjectPersistenceService.ts` filtert die neuen internen Properties.
+- **Slice 2.3 – ComponentData DTO eingeführt** (`types.ts`, `ProjectRegistry.ts`, `EditorStageManager.ts`, `Editor.ts`):
+  - Neues `ComponentData`-Interface als reine Datenstruktur für Komponenten im Projekt-JSON.
+  - `StageDefinition.objects`, `GameProject.objects/splashObjects` verwenden `ComponentData[]` statt `TWindow[]`.
+  - `ProjectRegistry.getObjects()`, `EditorStageManager.currentObjects()`, `Editor.currentObjects` auf `ComponentData[]` umgestellt.
+  - `TWindow`-Import aus `Editor.ts` und `ProjectRegistry.ts` entfernt.
 
 ## [3.20.1] - 2026-03-20
 ### Fixed (CleanCode Phase 1: Unidirektionaler Datenfluss)

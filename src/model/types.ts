@@ -1,4 +1,48 @@
-import { TWindow } from '../components/TWindow';
+import { ComponentStyle } from '../components/TWindow';
+
+// ─────────────────────────────────────────────
+// ComponentData: Reine Daten-Repräsentation einer Komponente
+// (CleanCode Phase 2, Slice 2.3)
+// ─────────────────────────────────────────────
+
+/**
+ * ComponentData beschreibt die serialisierbare Datenstruktur einer Komponente.
+ * Im Gegensatz zu TWindow/TComponent ist dies ein reines Daten-Interface
+ * ohne Verhalten, Methoden oder Zirkelreferenzen.
+ * 
+ * Nach dem Laden (hydrateObjects) werden diese zu TWindow-Instanzen,
+ * aber im Datenmodell (types.ts) und bei der Serialisierung arbeiten wir
+ * mit diesem Interface.
+ */
+export interface ComponentData {
+    id: string;
+    name: string;
+    className: string;
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    zIndex?: number;
+    visible?: boolean;
+    text?: string;
+    style?: ComponentStyle;
+    events?: Record<string, string>;
+    scope?: 'global' | 'stage' | string;
+    isVariable?: boolean;
+    isService?: boolean;
+    isHiddenInRun?: boolean;
+    isTransient?: boolean;
+    draggable?: boolean;
+    droppable?: boolean;
+    dragMode?: 'move' | 'copy';
+    children?: ComponentData[];
+    // Variablen-spezifische Felder
+    value?: any;
+    defaultValue?: any;
+    type?: string;
+    // Erweiterbarkeit: Zusätzliche Felder je nach className
+    [key: string]: any;
+}
 
 export interface GridConfig {
     cols: number;
@@ -335,7 +379,7 @@ export interface StageDefinition {
     name: string;             // Anzeigename
     type: StageType;          // Art der Stage: 'main' (HauptStage), 'standard', 'splash', 'template'
     inheritsFrom?: string;    // ID einer anderen Stage (Template), von der geerbt wird
-    objects: TWindow[];       // Objekte auf dieser Stage
+    objects: ComponentData[];       // Objekte auf dieser Stage
 
     // Nur bei type: 'main' (HauptStage - es gibt nur eine pro Projekt)
     gameName?: string;        // Spielname
@@ -387,8 +431,8 @@ export interface GameProject {
     activeStageId?: string;       // Aktuell im Editor angezeigte Stage
 
     // Legacy (wird bei Migration nach stages übertragen)
-    objects: TWindow[];           // Hauptspiel-Objekte (Legacy, wird zu main-Stage)
-    splashObjects?: TWindow[];    // Splash-Objekte (Legacy, wird zu splash-Stage)
+    objects: ComponentData[];           // Hauptspiel-Objekte (Legacy, wird zu main-Stage)
+    splashObjects?: ComponentData[];    // Splash-Objekte (Legacy, wird zu splash-Stage)
     splashDuration?: number;      // Legacy
     splashAutoHide?: boolean;     // Legacy
 

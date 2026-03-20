@@ -19,6 +19,12 @@ Basiert auf den Erkenntnissen zur Verhinderung von Regressionen und der Entkoppl
 - [ ] **GameRenderer:** Schicht für die echte, leichtgewichtige Spiel-Ausführung, die dieselben sauberen DTOs liest.
 - [ ] **Refactoring ProjectPersistence:** Die "safeReplacer"-Hacks und `cleanProject`-Schleifen können entfernt werden, da das Serialisierungs-Modell von Natur aus zirkelfrei wird.
 
+**Bisherige Vorarbeiten (v3.21.0):**
+- ✅ `TPropertyDef`, `InspectorSection`, `IInspectable` in `src/model/InspectorTypes.ts` extrahiert → `TComponent` importiert nicht mehr aus dem Editor-Modul.
+- ✅ `TWindow.align`-Setter entkoppelt — nutzt `_gridCols`/`_gridRows` statt `window.editor`.
+- ✅ `ComponentData`-Interface in `types.ts` eingeführt — `StageDefinition.objects`, `GameProject.objects` verwenden `ComponentData[]` statt `TWindow[]`.
+- ⏸️ `safeReplacer`-Keys können noch nicht reduziert werden, da zur Laufzeit weiterhin hydratisierte TWindow-Instanzen vorliegen. Voraussetzung: DTO-Konvertierung vor Serialisierung.
+
 ### Phase 3: Hexagonale Architektur (Ports & Adapters für I/O)
 **Ziel:** Die Business-Logik (GameBuilder) ist völlig losgelöst von Browser- oder Backend-APIs (FileSystem Access, LocalStorage, Fetch).
 - [ ] **Adapter für Storage definieren:** Abstraktes Interface `IStorageAdapter` bauen (`save`, `load`).

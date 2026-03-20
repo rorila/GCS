@@ -1,13 +1,12 @@
-import { GameProject, ProjectVariable, GameTask, GameAction } from '../model/types';
+import { GameProject, ProjectVariable, GameTask, GameAction, ComponentData } from '../model/types';
 
 import { libraryService } from './LibraryService';
-import { TWindow } from '../components/TWindow';
 import { Logger } from '../utils/Logger';
 
 export type ScopedVariable = ProjectVariable & { uiScope?: 'global' | 'stage' | 'local', uiEmoji?: string, usageCount?: number };
 export type ScopedTask = GameTask & { uiScope?: 'global' | 'stage' | 'library', uiEmoji?: string, usageCount?: number };
 export type ScopedAction = GameAction & { uiScope?: 'global' | 'stage' | 'library', uiEmoji?: string, usageCount?: number };
-export type ScopedObject = TWindow & { uiScope?: 'global' | 'stage', usageCount?: number };
+export type ScopedObject = ComponentData & { uiScope?: 'global' | 'stage', usageCount?: number };
 
 export type VariableScopeContext = {
     taskName?: string;
@@ -417,7 +416,7 @@ export class ProjectRegistry {
         return this.project.stages?.find(s => s.id === this.activeStageId) || null;
     }
 
-    public getObjects(scopeFilter?: 'stage-only' | 'all'): TWindow[] {
+    public getObjects(scopeFilter?: 'stage-only' | 'all'): ComponentData[] {
         if (!this.project) return [];
 
         const globalServiceClasses = [
@@ -428,7 +427,7 @@ export class ProjectRegistry {
 
         const isService = (obj: any) => (obj as any).isService === true || globalServiceClasses.includes(obj.className);
 
-        const allObjects: TWindow[] = [];
+        const allObjects: ComponentData[] = [];
         const objectIds = new Set<string>();
 
         const activeStage = this.activeStageId ? this.project.stages?.find((s: any) => s.id === this.activeStageId) : null;
@@ -440,7 +439,7 @@ export class ProjectRegistry {
                 // Include Stage Objects and Stage Variables
                 const stageItems = [
                     ...(activeStage.objects || []),
-                    ...(activeStage.variables || []) as unknown as TWindow[]
+                    ...(activeStage.variables || []) as unknown as ComponentData[]
                 ];
                 stageItems.forEach((obj: any) => {
                     if (!objectIds.has(obj.id)) {
@@ -456,7 +455,7 @@ export class ProjectRegistry {
 
                 const stageGlobals = [
                     ...(stage.objects || []).filter((obj: any) => (obj as any).scope === 'global' || isService(obj)),
-                    ...(stage.variables || []).filter((v: any) => (v as any).scope === 'global') as unknown as TWindow[]
+                    ...(stage.variables || []).filter((v: any) => (v as any).scope === 'global') as unknown as ComponentData[]
                 ];
 
                 stageGlobals.forEach((obj: any) => {
@@ -473,7 +472,7 @@ export class ProjectRegistry {
                 const activeStage = this.project.stages.find((s: any) => s.id === this.activeStageId);
                 return [
                     ...(activeStage?.objects || []),
-                    ...(activeStage?.variables || []) as unknown as TWindow[]
+                    ...(activeStage?.variables || []) as unknown as ComponentData[]
                 ];
             }
         }
@@ -483,7 +482,7 @@ export class ProjectRegistry {
         if (isBlueprint) {
             const rootGlobals = [
                 ...(this.project.objects || []).filter(obj => (obj as any).scope === 'global'),
-                ...(this.project.variables || []).filter(v => (v as any).scope === 'global') as unknown as TWindow[]
+                ...(this.project.variables || []).filter(v => (v as any).scope === 'global') as unknown as ComponentData[]
             ];
             rootGlobals.forEach(gObj => {
                 if (!objectIds.has(gObj.id)) {
@@ -497,7 +496,7 @@ export class ProjectRegistry {
         if (allObjects.length === 0 && (!this.project.stages || this.project.stages.length === 0)) {
             const legacyItems = [
                 ...(this.project.objects || []),
-                ...(this.project.variables || []) as unknown as TWindow[]
+                ...(this.project.variables || []) as unknown as ComponentData[]
             ];
             return legacyItems;
         }

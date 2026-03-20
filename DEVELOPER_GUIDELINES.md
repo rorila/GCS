@@ -31,6 +31,7 @@
 - **ProjectStore – setProject() Pflicht (v3.20.1)**: Bei JEDEM Projektwechsel (`Editor.setProject()`, Fallback-Pfad in `EditorDataManager.loadProject()`) MUSS `projectStore.setProject(project)` aufgerufen werden. Ohne diesen Aufruf arbeitet der Store mit einer veralteten Referenz, was dazu führt, dass `dispatch()`-Aufrufe das **alte** Projekt mutieren (Inspector-Werte gehen verloren, Drag-Objekte springen zurück).
 - **Inspector-Typen im Model-Layer (v3.21.0)**: `TPropertyDef`, `InspectorSection`, `IInspectable` leben in `src/model/InspectorTypes.ts`. Neue Komponenten importieren diese aus `../model/InspectorTypes`, NICHT aus `../editor/inspector/types`. Die Editor-Datei re-exportiert sie nur für Abwärtskompatibilität.
 - **Kein window.editor in Komponenten (v3.21.0)**: Laufzeit-Komponenten (`TWindow`, `TSprite`, etc.) dürfen NICHT auf `(window as any).editor` zugreifen. Benötigte Context-Daten (z.B. Grid-Dimensionen) werden als Properties injiziert (z.B. `_gridCols`, `_gridRows`).
+- **ComponentData vs TWindow (v3.21.0)**: Im Datenmodell (`types.ts`, `StageDefinition.objects`) wird `ComponentData[]` verwendet. `TWindow` ist der Klassen-Typ für hydratisierte Instanzen — nur dort verwenden, wo Methoden aufgerufen werden (`Serialization.ts`, `GameRuntime.ts`, `player.ts`).
 - **Sync-Blacklist**: Die `taskFields` Liste in `FlowSyncManager.ts` darf keine Felder enthalten, die für Aktionen (Global oder Embedded) essentiell sind (z.B. `value`, `params`, `body`, `source`).
 
 ## Synchronisation von Inspector und Flow-Editor
