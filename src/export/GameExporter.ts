@@ -634,10 +634,22 @@ primary_region = "fra"
     }
 
     /**
-     * Trigger file download with File System Access API
+     * Trigger file download.
+     * Unterstützt: Electron (window.electronFS) > FileSystem Access API > Blob-Download.
      */
     private async downloadFile(content: string, filename: string, mimeType: string): Promise<void> {
-        // Try File System Access API (modern browsers)
+        // 1. Electron-Modus (IPC-Bridge)
+        if ((window as any).electronFS) {
+            try {
+                await (window as any).electronFS.writeFile(filename, content);
+                alert(`Game exported!\n\nFile: ${filename}`);
+                return;
+            } catch (err) {
+                console.warn('Electron FS failed, falling back:', err);
+            }
+        }
+
+        // 2. FileSystem Access API (modern browsers)
         if ('showSaveFilePicker' in window) {
             try {
                 const handle = await (window as any).showSaveFilePicker({
@@ -653,13 +665,12 @@ primary_region = "fra"
                 alert(`Game exported successfully!\n\nFile: ${handle.name}\n\nOpen it in any browser to play.`);
                 return;
             } catch (err: any) {
-                // User cancelled or error - fall through to legacy method
                 if (err.name === 'AbortError') return;
                 console.warn('File System Access API failed, using fallback:', err);
             }
         }
 
-        // Fallback for browsers without File System Access API
+        // 3. Fallback: Blob-Download
         const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

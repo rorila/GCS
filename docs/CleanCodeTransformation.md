@@ -21,14 +21,13 @@ Basiert auf den Erkenntnissen zur Verhinderung von Regressionen und der Entkoppl
 - [x] **Slice 2.6 — safeReplacer eliminiert:** Alle 4 Nutzungen in `EditorDataManager.ts` entfernt. `saveProject()` nutzt `JSON.stringify(null, 2)`.
 - [x] **Slice 2.7 — GameRenderer:** Analyse bestätigt: `StageRenderer` ist bereits DTO-kompatibel (`any[]`-Signatur, keine Objekt-Verunreinigung). `UniversalPlayer` implementiert `StageHost` ohne Editor-Import. Kein separater Renderer nötig.
 
-### Phase 3: Hexagonale Architektur (Ports & Adapters für I/O)
+### Phase 3: Hexagonale Architektur (Ports & Adapters für I/O) ✅
 **Ziel:** Die Business-Logik (GameBuilder) ist völlig losgelöst von Browser- oder Backend-APIs (FileSystem Access, LocalStorage, Fetch).
 **Hinweis:** Geplante Electron-Migration erfordert Adapter-basierte Architektur. `NativeFileAdapter` (Node.js `fs`) wird primärer Adapter in Electron.
-- [ ] **Adapter für Storage definieren:** Abstraktes Interface `IStorageAdapter` bauen (`save`, `load`, `list`).
-- [ ] **Implementierung LocalStorage:** `LocalStorageAdapter` (Browser-Fallback, nicht primär für Electron).
-- [ ] **Implementierung Native FS:** `NativeFileAdapter` (FileSystem Access API im Browser / Node.js `fs` in Electron).
-- [ ] **Implementierung Server:** `ServerBackupAdapter` (Express API für Auto-Saves im Hintergrund).
-- [ ] **Refactoring Exporter:** Interface `IExportAdapter` und Entkopplung vom rohen Projekt-Dschungel. Ein UseCase "Export" diktiert die Parameter.
+- [x] **Slice 3.1 — Interfaces:** `IStorageAdapter` (`save`, `load`, `list`, `isAvailable`) und `IExportAdapter` in `src/ports/IStorageAdapter.ts`.
+- [x] **Slice 3.2 — 3 Adapter:** `ServerStorageAdapter`, `LocalStorageAdapter`, `NativeFileAdapter` (mit Electron IPC-Bridge `window.electronFS`).
+- [x] **Slice 3.3 — ProjectPersistenceService:** Adapter-Initialisierung mit automatischer Erkennung. `saveProject()`, `autoSaveToLocalStorage()`, `fetchProjectFromServer()`, `triggerLoad()` delegieren an Adapter.
+- [x] **Slice 3.4 — Export:** `GameExporter.downloadFile()` Electron-kompatibel (3-stufiger Fallback: Electron IPC → FileSystem Access → Blob).
 
 ### Phase 4: Lückenloses E2E-Test-Netz für JEDEN UseCase
 **Ziel:** Keine versteckte Regression ("HTML-Export funktioniert schon wieder nicht") darf unbemerkt gebaut werden.

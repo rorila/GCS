@@ -7,6 +7,12 @@
   - `ServerStorageAdapter`: Express Dev-API (`/api/dev/save-project`).
   - `LocalStorageAdapter`: Browser-Fallback (nicht primär für Electron).
   - `NativeFileAdapter`: FileSystem Access API (Browser) + Electron IPC-Bridge (`window.electronFS`).
+- **Slice 3.3 – ProjectPersistenceService refactored:**
+  - Adapter-Initialisierung mit automatischer Erkennung (Electron > FS API > Server > LocalStorage).
+  - `saveProject()`, `autoSaveToLocalStorage()`, `fetchProjectFromServer()`, `triggerLoad()` delegieren an Adapter.
+  - Neue Methode `saveToServer()` für expliziten Server-Sync.
+- **Slice 3.4 – Export Electron-kompatibel:**
+  - `GameExporter.downloadFile()` 3-stufiger Fallback: Electron IPC → FileSystem Access → Blob.
 - Letzter `safeReplacer()`-Aufruf in `autoSaveToLocalStorage()` eliminiert.
 
 ## [3.21.0] - 2026-03-20
