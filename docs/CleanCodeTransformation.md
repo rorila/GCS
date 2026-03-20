@@ -12,24 +12,21 @@ Basiert auf den Erkenntnissen zur Verhinderung von Regressionen und der Entkoppl
 - [x] **Refactoring Editor-Canvas (Drag & Drop):** Verschieben und Skalieren von UI-Objekten sendet Actions.
 - [x] **Tests:** Verifizieren der bestehenden E2E-Tests nach der Umstellung. (119/119 Unit + alle E2E grün, v3.20.1)
 
-### Phase 2: Trennung von Editor- und Laufzeit-Datenstrukturen (Domain Model)
+### Phase 2: Trennung von Editor- und Laufzeit-Datenstrukturen (Domain Model) ✅
 **Ziel:** Die Runtime-Objekte (z.B. `TSprite`, `TButton`) wissen nichts von der Arbeitsumgebung Editor. (Behebt dauerhaft Zirkelreferenz-Bugs wie im GameExporter).
-- [ ] **Dumb Data Objects (DTOs):** Komponenten im `project` JSON sind reine Datenstrukturen (keine Zirkelreferenzen auf `editor`, `stage`, DOM-Elemente).
-- [ ] **EditorRenderer:** Völlig neue Schicht, die DTOs liest und sie mit Editor-Griffen (Resize, Move, Hover) zeichnet, ohne das DTO zu verunreinigen.
-- [ ] **GameRenderer:** Schicht für die echte, leichtgewichtige Spiel-Ausführung, die dieselben sauberen DTOs liest.
-- [ ] **Refactoring ProjectPersistence:** Die "safeReplacer"-Hacks und `cleanProject`-Schleifen können entfernt werden, da das Serialisierungs-Modell von Natur aus zirkelfrei wird.
-
-**Bisherige Vorarbeiten (v3.21.0):**
-- ✅ `TPropertyDef`, `InspectorSection`, `IInspectable` in `src/model/InspectorTypes.ts` extrahiert → `TComponent` importiert nicht mehr aus dem Editor-Modul.
-- ✅ `TWindow.align`-Setter entkoppelt — nutzt `_gridCols`/`_gridRows` statt `window.editor`.
-- ✅ `ComponentData`-Interface in `types.ts` eingeführt — `StageDefinition.objects`, `GameProject.objects` verwenden `ComponentData[]` statt `TWindow[]`.
-- ⏸️ `safeReplacer`-Keys können noch nicht reduziert werden, da zur Laufzeit weiterhin hydratisierte TWindow-Instanzen vorliegen. Voraussetzung: DTO-Konvertierung vor Serialisierung.
+- [x] **Slice 2.1 — Inspector-Types extrahiert:** `TPropertyDef`, `InspectorSection`, `IInspectable` nach `src/model/InspectorTypes.ts`.
+- [x] **Slice 2.2 — TWindow.align entkoppelt:** Nutzt `_gridCols`/`_gridRows` statt `window.editor`.
+- [x] **Slice 2.3 — ComponentData DTO:** Interface in `types.ts`, StageDefinition/GameProject, ProjectRegistry, Editor umgestellt.
+- [x] **Slice 2.5 — toDTO() Konvertierung:** `TComponent.toDTO(): ComponentData` extrahiert nur serialisierbare Properties. `toJSON()` delegiert an `toDTO()`.
+- [x] **Slice 2.6 — safeReplacer eliminiert:** Alle 4 Nutzungen in `EditorDataManager.ts` entfernt. `saveProject()` nutzt `JSON.stringify(null, 2)`.
+- [x] **Slice 2.7 — GameRenderer:** Analyse bestätigt: `StageRenderer` ist bereits DTO-kompatibel (`any[]`-Signatur, keine Objekt-Verunreinigung). `UniversalPlayer` implementiert `StageHost` ohne Editor-Import. Kein separater Renderer nötig.
 
 ### Phase 3: Hexagonale Architektur (Ports & Adapters für I/O)
 **Ziel:** Die Business-Logik (GameBuilder) ist völlig losgelöst von Browser- oder Backend-APIs (FileSystem Access, LocalStorage, Fetch).
-- [ ] **Adapter für Storage definieren:** Abstraktes Interface `IStorageAdapter` bauen (`save`, `load`).
-- [ ] **Implementierung LocalStorage:** `LocalStorageAdapter` (für schnelle Fallbacks im Browser).
-- [ ] **Implementierung Native FS:** `NativeFileAdapter` (FileSystem Access API für Desktop-Feeling/Electron).
+**Hinweis:** Geplante Electron-Migration erfordert Adapter-basierte Architektur. `NativeFileAdapter` (Node.js `fs`) wird primärer Adapter in Electron.
+- [ ] **Adapter für Storage definieren:** Abstraktes Interface `IStorageAdapter` bauen (`save`, `load`, `list`).
+- [ ] **Implementierung LocalStorage:** `LocalStorageAdapter` (Browser-Fallback, nicht primär für Electron).
+- [ ] **Implementierung Native FS:** `NativeFileAdapter` (FileSystem Access API im Browser / Node.js `fs` in Electron).
 - [ ] **Implementierung Server:** `ServerBackupAdapter` (Express API für Auto-Saves im Hintergrund).
 - [ ] **Refactoring Exporter:** Interface `IExportAdapter` und Entkopplung vom rohen Projekt-Dschungel. Ein UseCase "Export" diktiert die Parameter.
 

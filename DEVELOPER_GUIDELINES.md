@@ -32,6 +32,8 @@
 - **Inspector-Typen im Model-Layer (v3.21.0)**: `TPropertyDef`, `InspectorSection`, `IInspectable` leben in `src/model/InspectorTypes.ts`. Neue Komponenten importieren diese aus `../model/InspectorTypes`, NICHT aus `../editor/inspector/types`. Die Editor-Datei re-exportiert sie nur für Abwärtskompatibilität.
 - **Kein window.editor in Komponenten (v3.21.0)**: Laufzeit-Komponenten (`TWindow`, `TSprite`, etc.) dürfen NICHT auf `(window as any).editor` zugreifen. Benötigte Context-Daten (z.B. Grid-Dimensionen) werden als Properties injiziert (z.B. `_gridCols`, `_gridRows`).
 - **ComponentData vs TWindow (v3.21.0)**: Im Datenmodell (`types.ts`, `StageDefinition.objects`) wird `ComponentData[]` verwendet. `TWindow` ist der Klassen-Typ für hydratisierte Instanzen — nur dort verwenden, wo Methoden aufgerufen werden (`Serialization.ts`, `GameRuntime.ts`, `player.ts`).
+- **Storage über IStorageAdapter (v3.22.0)**: Neuer I/O-Code MUSS über `IStorageAdapter` implementiert werden (`src/ports/IStorageAdapter.ts`). Adapter-Implementierungen in `src/adapters/`. Kein direkter `fetch()`- oder `localStorage`-Zugriff in Business-Logik.
+- **Electron-Vorbereitung (v3.22.0)**: `NativeFileAdapter` erwartet `window.electronFS`-IPC-Bridge. Bei neuen I/O-Features prüfen, ob sie Electron-kompatibel sind (kein `showSaveFilePicker` ohne Fallback).
 - **Sync-Blacklist**: Die `taskFields` Liste in `FlowSyncManager.ts` darf keine Felder enthalten, die für Aktionen (Global oder Embedded) essentiell sind (z.B. `value`, `params`, `body`, `source`).
 
 ## Synchronisation von Inspector und Flow-Editor

@@ -121,7 +121,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1774030018742_cjzy0f3bl",
+          "id": "obj_1774030705283_6vgdx0df8",
           "name": "Button_3",
           "scope": "global",
           "draggable": false,
@@ -193,7 +193,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1774030011810",
+      "id": "stage-1774030698314",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],

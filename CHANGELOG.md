@@ -1,3 +1,14 @@
+## [3.22.0] - 2026-03-20
+### Added (CleanCode Phase 3: Hexagonale Architektur)
+- **Slice 3.1 – Port-Interfaces** (`src/ports/IStorageAdapter.ts` [NEU]):
+  - `IStorageAdapter`: `save()`, `load()`, `list()`, `isAvailable()`.
+  - `IExportAdapter`: `export()` mit `formatName` und `fileExtension`.
+- **Slice 3.2 – Storage-Adapter** (3 neue Dateien):
+  - `ServerStorageAdapter`: Express Dev-API (`/api/dev/save-project`).
+  - `LocalStorageAdapter`: Browser-Fallback (nicht primär für Electron).
+  - `NativeFileAdapter`: FileSystem Access API (Browser) + Electron IPC-Bridge (`window.electronFS`).
+- Letzter `safeReplacer()`-Aufruf in `autoSaveToLocalStorage()` eliminiert.
+
 ## [3.21.0] - 2026-03-20
 ### Changed (CleanCode Phase 2: Domain Model Trennung)
 - **Slice 2.1 – IInspectable aus Runtime extrahiert** (`src/model/InspectorTypes.ts` [NEU]):

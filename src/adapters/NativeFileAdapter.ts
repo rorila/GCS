@@ -1,0 +1,118 @@
+import { GameProject } from '../model/types';
+import { IStorageAdapter } from '../ports/IStorageAdapter';
+import { Logger } from '../utils/Logger';
+
+/**
+ * Storage-Adapter für das native Dateisystem.
+ * 
+ * Unterstützt zwei Modi:
+ * 1. **Browser**: FileSystem Access API (showSaveFilePicker/showOpenFilePicker)
+ * 2. **Electron**: Node.js `fs`-Modul über contextBridge/preload
+ * 
+ * In Electron wird erwartet, dass `window.electronFS` ein IPC-Bridge bereitstellt:
+ * ```ts
+ * window.electronFS = {
+ *   readFile: (path: string) => Promise<string>,
+ *   writeFile: (path: string, content: string) => Promise<void>,
+ *   listFiles: (dir: string, ext: string) => Promise<string[]>
+ * }
+ * ```
+ * 
+ * @since v3.22.0 (CleanCode Phase 3)
+ */
+export class NativeFileAdapter implements IStorageAdapter {
+    private static logger = Logger.get('NativeFileAdapter', 'Project_Save_Load');
+    readonly name = 'NativeFile';
+
+    /** Aktiver FileHandle (Browser-Modus, für "Speichern" ohne erneuten Dialog) */
+    private currentHandle: FileSystemFileHandle | null = null;
+
+    isAvailable(): boolean {
+        // Browser: FileSystem Access API verfügbar?
+        if ('showSaveFilePicker' in window) return true;
+        // Electron: IPC-Bridge verfügbar?
+        if ((window as any).electronFS) return true;
+        return false;
+    }
+
+    async save(project: GameProject, filename?: string): Promise<void> {
+        const json = JSON.stringify(project, null, 2);
+        const defaultName = filename || this.generateFilename(project);
+
+        // Electron-Modus
+        if ((window as any).electronFS) {
+            await (window as any).electronFS.writeFile(defaultName, json);
+            NativeFileAdapter.logger.info(`Electron: Gespeichert als ${defaultName}`);
+            return;
+        }
+
+        // Browser: FileSystem Access API
+        if (this.currentHandle) {
+            try {
+                const writable = await this.currentHandle.createWritable();
+                await writable.write(json);
+                await writable.close();
+                NativeFileAdapter.logger.info(`Nativ gespeichert: ${this.currentHandle.name}`);
+                return;
+            } catch (err) {
+                NativeFileAdapter.logger.warn('Vorheriger FileHandle ungültig, öffne Dialog.', err);
+                this.currentHandle = null;
+            }
+        }
+
+        // Neuer Dialog
+        const handle = await (window as any).showSaveFilePicker({
+            suggestedName: defaultName,
+            types: [{
+                description: 'JSON Project File',
+                accept: { 'application/json': ['.json'] }
+            }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        this.currentHandle = handle;
+        NativeFileAdapter.logger.info(`Nativ gespeichert: ${handle.name}`);
+    }
+
+    async load(_filename?: string): Promise<GameProject | null> {
+        // Electron-Modus
+        if ((window as any).electronFS && _filename) {
+            const content = await (window as any).electronFS.readFile(_filename);
+            return JSON.parse(content);
+        }
+
+        // Browser: FileSystem Access API
+        const [handle] = await (window as any).showOpenFilePicker({
+            types: [{
+                description: 'JSON Project File',
+                accept: { 'application/json': ['.json'] }
+            }]
+        });
+        const file = await handle.getFile();
+        const text = await file.text();
+        this.currentHandle = handle;
+        return JSON.parse(text);
+    }
+
+    async list(): Promise<string[]> {
+        // Electron-Modus
+        if ((window as any).electronFS) {
+            return (window as any).electronFS.listFiles('.', '.json');
+        }
+
+        // Browser hat kein Verzeichnis-Listing
+        return [];
+    }
+
+    /** Setzt den aktiven FileHandle (z.B. nach dem Laden eines Projekts) */
+    public setHandle(handle: FileSystemFileHandle): void {
+        this.currentHandle = handle;
+    }
+
+    private generateFilename(project: GameProject): string {
+        const name = project.stages?.find((s: any) => s.type === 'main')?.gameName
+            || project.meta?.name || 'New Game';
+        return `project_${name.replace(/\s+/g, '_')}.json`;
+    }
+}

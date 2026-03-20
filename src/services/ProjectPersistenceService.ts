@@ -108,7 +108,7 @@ export class ProjectPersistenceService {
         if (!targetProject) return;
 
         try {
-            const json = JSON.stringify(targetProject, ProjectPersistenceService.safeReplacer());
+            const json = JSON.stringify(targetProject);
             localStorage.setItem('gcs_last_project', json);
             localStorage.setItem('gcs_last_save_time', Date.now().toString());
 
