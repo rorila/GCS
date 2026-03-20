@@ -25,11 +25,10 @@
         {
           "className": "TGameLoop",
           "id": "obj_game_loop",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
           "name": "GameLoop",
           "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -53,9 +52,13 @@
         {
           "className": "TInputController",
           "id": "obj_input_controller",
-          "isVariable": false,
+          "name": "InputController",
+          "scope": "stage",
           "isService": true,
           "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
           "events": {
             "onKeyDown_KeyW": "MoveP1Up",
             "onKeyDown_KeyS": "MoveP1Down",
@@ -66,11 +69,6 @@
             "onKeyUp_ArrowUp": "StopP2",
             "onKeyUp_ArrowDown": "StopP2"
           },
-          "name": "InputController",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
           "visible": true,
           "x": 6,
           "y": 2,
@@ -89,11 +87,11 @@
         {
           "className": "TGameState",
           "id": "obj_game_state",
+          "name": "GameState",
+          "scope": "stage",
           "isVariable": true,
           "isService": true,
           "isHiddenInRun": true,
-          "name": "GameState",
-          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -257,17 +255,14 @@
         {
           "className": "TButton",
           "id": "obj_start_btn",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
-            "onClick": "StartGameTask"
-          },
           "name": "StartButton",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onClick": "StartGameTask"
+          },
           "visible": true,
           "x": 16,
           "y": 10,
@@ -292,9 +287,6 @@
         {
           "className": "TSprite",
           "id": "obj_paddle1",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "LeftPaddle",
           "scope": "stage",
           "draggable": false,
@@ -325,9 +317,6 @@
         {
           "className": "TSprite",
           "id": "obj_paddle2",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "RightPaddle",
           "scope": "stage",
           "draggable": false,
@@ -358,18 +347,15 @@
         {
           "className": "TSprite",
           "id": "obj_ball",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
-            "onBoundaryHit": "CheckWallCollisions",
-            "onCollision": "BallHitPaddle"
-          },
           "name": "Ball",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckWallCollisions",
+            "onCollision": "BallHitPaddle"
+          },
           "visible": true,
           "x": 19,
           "y": 14,
@@ -609,7 +595,8 @@
           "showDetails": false
         }
       ],
-      "flowCharts": {}
+      "flowCharts": {},
+      "variables": []
     }
   ],
   "tasks": [],

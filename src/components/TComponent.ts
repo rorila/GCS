@@ -1,4 +1,5 @@
 import { IInspectable, InspectorSection, TPropertyDef } from '../model/InspectorTypes';
+import { ComponentData } from '../model/types';
 
 // Re-Export für Abwärtskompatibilität: Andere Dateien, die TPropertyDef aus TComponent importieren
 export type { TPropertyDef } from '../model/InspectorTypes';
@@ -194,21 +195,33 @@ export abstract class TComponent implements IInspectable {
     // =========================================================================
 
     /**
-     * Generisches toJSON, das die Metadaten aus getInspectorProperties nutzt.
-     * Unterstützt verschachtelte Property-Pfade (z.B. 'style.backgroundColor').
+     * Konvertiert die Komponente in ein reines Daten-Objekt (DTO) ohne
+     * Zirkelreferenzen, Methoden oder Runtime-Properties.
+     * 
+     * Nutzt die Inspector-Metadaten (getInspectorProperties) um nur
+     * serialisierbare Properties zu extrahieren. Bevorzugt DESIGN_VALUES
+     * (Formeln) gegenüber aktuellen Runtime-Werten.
+     * 
+     * @since v3.22.0 (CleanCode Phase 2, Slice 2.5)
      */
-    public toJSON(): any {
-        const json: any = {
+    public toDTO(): ComponentData {
+        const dto: any = {
             className: (this as any).className || this.constructor.name,
             id: this.id,
-            isVariable: this.isVariable,
-            isService: this.isService,
-            isHiddenInRun: this.isHiddenInRun
+            name: this.name,
+            scope: this.scope,
+            isVariable: this.isVariable || undefined,
+            isService: this.isService || undefined,
+            isHiddenInRun: this.isHiddenInRun || undefined,
+            isTransient: this.isTransient || undefined,
+            draggable: this.draggable || undefined,
+            droppable: this.droppable || undefined,
+            dragMode: this.dragMode !== 'move' ? this.dragMode : undefined,
         };
 
         // Events separat behandeln
         if (this.events && Object.keys(this.events).length > 0) {
-            json.events = this.events;
+            dto.events = { ...this.events };
         }
 
         // Alle Properties aus dem Inspector durchgehen
@@ -224,11 +237,11 @@ export abstract class TComponent implements IInspectable {
 
             if (value !== undefined) {
                 if (!p.name.includes('.')) {
-                    json[p.name] = value;
+                    dto[p.name] = value;
                 } else {
                     // Handle nested paths (e.g. style.backgroundColor)
                     const parts = p.name.split('.');
-                    let current = json;
+                    let current = dto;
                     for (let i = 0; i < parts.length - 1; i++) {
                         const part = parts[i];
                         if (!current[part]) current[part] = {};
@@ -239,11 +252,12 @@ export abstract class TComponent implements IInspectable {
             }
         });
 
-        // Kinder rekursiv serialisieren
+        // Kinder rekursiv konvertieren
         if (this.children.length > 0) {
-            json.children = this.children.map(child => {
-                // Sicherheit: Falls ein Child nur ein rohes JSON-Objekt ist (z.B. nach Copy-Paste),
-                // hat es keine toJSON()-Methode. In dem Fall direkt zurückgeben.
+            dto.children = this.children.map(child => {
+                if (typeof child.toDTO === 'function') {
+                    return child.toDTO();
+                }
                 if (typeof child.toJSON === 'function') {
                     return child.toJSON();
                 }
@@ -251,7 +265,20 @@ export abstract class TComponent implements IInspectable {
             });
         }
 
-        return json;
+        // undefined-Werte entfernen (saubereres JSON)
+        Object.keys(dto).forEach(key => {
+            if (dto[key] === undefined) delete dto[key];
+        });
+
+        return dto as ComponentData;
+    }
+
+    /**
+     * Abwärtskompatibilität: JSON.stringify() ruft toJSON() automatisch auf.
+     * Delegiert an toDTO().
+     */
+    public toJSON(): any {
+        return this.toDTO();
     }
 
     /**

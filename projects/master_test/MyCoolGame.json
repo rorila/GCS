@@ -44,11 +44,10 @@
         {
           "className": "TStageController",
           "id": "stage_controller",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
           "name": "StageController",
           "scope": "global",
+          "isService": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -79,11 +78,10 @@
         {
           "className": "TVariable",
           "id": "var_project_change",
-          "isVariable": true,
-          "isService": false,
-          "isHiddenInRun": true,
           "name": "isProjectChangeAvailable",
           "scope": "global",
+          "isVariable": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -123,10 +121,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1774027874379_t9rdi8j91",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
+          "id": "obj_1774029124495_5bxx9fqyt",
           "name": "Button_3",
           "scope": "global",
           "draggable": false,
@@ -198,7 +193,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1774027867428",
+      "id": "stage-1774029117545",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],

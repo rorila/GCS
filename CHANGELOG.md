@@ -14,6 +14,10 @@
   - `StageDefinition.objects`, `GameProject.objects/splashObjects` verwenden `ComponentData[]` statt `TWindow[]`.
   - `ProjectRegistry.getObjects()`, `EditorStageManager.currentObjects()`, `Editor.currentObjects` auf `ComponentData[]` umgestellt.
   - `TWindow`-Import aus `Editor.ts` und `ProjectRegistry.ts` entfernt.
+- **Slice 2.5 – toDTO() Konvertierung** (`TComponent.ts`, `ProjectPersistenceService.ts`):
+  - `TComponent.toDTO(): ComponentData` extrahiert nur serialisierbare Properties (keine Zirkelreferenzen).
+  - `toJSON()` delegiert an `toDTO()` für Abwärtskompatibilität.
+  - `saveProject()` nutzt `JSON.stringify(null, 2)` statt `safeReplacer` — erster Schritt zur Eliminierung der Serialisierungs-Hacks.
 
 ## [3.20.1] - 2026-03-20
 ### Fixed (CleanCode Phase 1: Unidirektionaler Datenfluss)

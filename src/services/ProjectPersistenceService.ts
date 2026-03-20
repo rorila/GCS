@@ -56,7 +56,9 @@ export class ProjectPersistenceService {
             return;
         }
 
-        const json = JSON.stringify(targetProject, ProjectPersistenceService.safeReplacer(), 2);
+        // CleanCode Phase 2 (Slice 2.5): toDTO() konvertiert Objekte automatisch
+        // über TComponent.toJSON() → toDTO(). Kein safeReplacer mehr nötig.
+        const json = JSON.stringify(targetProject, null, 2);
 
         // Get game name for filename
         const projName = targetProject.stages?.find((s: any) => s.type === 'main')?.gameName ||
