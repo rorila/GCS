@@ -5,7 +5,7 @@ import { InspectorRegistry } from './InspectorRegistry';
 import { PropertyChangeEvent } from './types';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { Logger } from '../../utils/Logger';
-import { snapshotManager } from '../services/SnapshotManager';
+import { projectStore } from '../../services/ProjectStore';
 
 export class InspectorEventHandler {
     private static logger = Logger.get('InspectorEventHandler', 'Inspector_Update');
@@ -89,8 +89,8 @@ export class InspectorEventHandler {
 
         InspectorEventHandler.logger.info(`[INSPECTOR-TRACE] Property change: ${propertyPath} = ${newValue} (was ${oldValue})`);
 
-        // 3.5 Snapshot VOR der Änderung nehmen (Undo-Support)
-        snapshotManager.pushSnapshot(this.project, `${propertyPath}: ${oldValue} → ${newValue}`);
+        // 3.5 Snapshot wird nun vom Store übernommen
+        // snapshotManager.pushSnapshot(this.project, `${propertyPath}: ${oldValue} → ${newValue}`);
 
         // 4. Delegate to specialized handler if available
         const handler = InspectorRegistry.getHandler(selectedObject);
@@ -108,11 +108,12 @@ export class InspectorEventHandler {
             if (oldValue !== newValue) {
                 // NEW: Use autoConvert to handle JSON, numbers, booleans from UI inputs
                 const convertedValue = PropertyHelper.autoConvert(newValue);
-                PropertyHelper.setPropertyValue(selectedObject, propertyPath, convertedValue);
+                
+                // Single Source of Truth via Store dispatch
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: selectedObject, path: propertyPath, value: convertedValue });
 
                 // ARC-FIX: Ensure original JSON object is also updated for persistence!
-                // Priority 1: Direct reference (__rawSource)
-                // Priority 2: Lookup via ID/Name (getOriginalObject)
+                // Wenn das selectedObject nur ein Proxy/Clone in der Stage ist.
                 let originalObj = (selectedObject as any).__rawSource;
                 if (!originalObj) {
                     const objectIdentifier = selectedObject?.id || selectedObject?.name;
@@ -122,11 +123,9 @@ export class InspectorEventHandler {
                 }
 
                 if (originalObj && originalObj !== selectedObject) {
-                    PropertyHelper.setPropertyValue(originalObj, propertyPath, convertedValue);
+                    projectStore.dispatch({ type: 'SET_PROPERTY', target: originalObj, path: propertyPath, value: convertedValue });
                     InspectorEventHandler.logger.debug(`Synchronized update with original project JSON object.`);
                 }
-
-                InspectorEventHandler.logger.debug(`Applied update to ${propertyPath}:`, convertedValue);
             }
         }
 

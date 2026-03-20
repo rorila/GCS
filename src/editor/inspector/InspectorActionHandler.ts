@@ -8,6 +8,7 @@ import { UseCaseManager } from '../../utils/UseCaseManager';
 import { mediatorService, MediatorEvents } from '../../services/MediatorService';
 import { Logger } from '../../utils/Logger';
 import { VariablePickerDialog } from './VariablePickerDialog';
+import { projectStore } from '../../services/ProjectStore';
 
 /**
  * InspectorActionHandler - Handles complex button-driven actions in the Inspector.
@@ -121,7 +122,12 @@ export class InspectorActionHandler {
         }
 
         // Notify Mediator explicitly if no host handler was present
-        this.notifyChange(obj, 'deletion', null, obj);
+        mediatorService.notifyDataChanged({
+            property: 'deletion',
+            value: null,
+            oldValue: obj,
+            object: obj
+        }, 'inspector');
     }
 
     private handleGenericDelete(obj: any): void {
@@ -147,9 +153,9 @@ export class InspectorActionHandler {
         // Simple prompt for now, will integrate with DialogManager in next phase
         const newPath = prompt('Bildpfad eingeben:', obj[propName] || '');
         if (newPath !== null) {
-            obj[propName] = newPath;
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: newPath });
             if (propName === 'src' && 'backgroundImage' in obj) {
-                obj.backgroundImage = newPath;
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'backgroundImage', value: newPath });
             }
         }
     }
@@ -227,22 +233,17 @@ export class InspectorActionHandler {
         }
 
         // Wert in das Objekt schreiben
-        let currentVal: any;
         let newValue: any;
 
         if (index !== undefined && propName === 'params') {
             const params = PropertyHelper.getPropertyValue(obj, 'params') || [];
-            currentVal = (Array.isArray(params) ? params[index] : '') || '';
             newValue = `\${${varNameInput}}`;
             const newParams = Array.isArray(params) ? [...params] : [];
             newParams[index] = newValue;
-            PropertyHelper.setPropertyValue(obj, 'params', newParams);
-            this.notifyChange(obj, 'params', newParams, params);
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'params', value: newParams });
         } else {
-            currentVal = PropertyHelper.getPropertyValue(obj, propName) || '';
             newValue = `\${${varNameInput}}`;
-            PropertyHelper.setPropertyValue(obj, propName, newValue);
-            this.notifyChange(obj, propName, newValue, currentVal);
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: newValue });
         }
 
         this.host.update(obj);
@@ -269,8 +270,7 @@ export class InspectorActionHandler {
         }
 
         if (newValue !== currentVal) {
-            PropertyHelper.setPropertyValue(obj, propName, newValue);
-            this.notifyChange(obj, propName, newValue, currentVal);
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: newValue });
             this.host.update(obj);
         }
     }
@@ -279,22 +279,11 @@ export class InspectorActionHandler {
         const eventName = def.property ? def.property.replace('events.', '') : (def.name || '').substring(6).replace('Select', '').replace('Input', '');
         InspectorActionHandler.logger.info(`Mapping event ${eventName} to task: ${value}`);
 
-        if (!obj.events) obj.events = {};
-        const oldVal = obj.events[eventName];
-        obj.events[eventName] = value;
+        const oldVal = obj.events ? obj.events[eventName] : undefined;
 
         if (oldVal !== value) {
-            this.notifyChange(obj, `events.${eventName}`, value, oldVal);
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: `events.${eventName}`, value });
             this.host.update(obj);
         }
-    }
-
-    private notifyChange(obj: any, prop: string, val: any, old: any) {
-        mediatorService.notifyDataChanged({
-            property: prop,
-            value: val,
-            oldValue: old,
-            object: obj
-        }, 'inspector');
     }
 }

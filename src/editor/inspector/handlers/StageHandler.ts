@@ -2,7 +2,7 @@
 import { IInspectorHandler, PropertyChangeEvent, InspectorSection } from '../types';
 import { GameProject } from '../../../model/types';
 import { ReactiveRuntime } from '../../../runtime/ReactiveRuntime';
-import { PropertyHelper } from '../../../runtime/PropertyHelper';
+import { projectStore } from '../../../services/ProjectStore';
 
 export class StageHandler implements IInspectorHandler {
 
@@ -111,20 +111,21 @@ export class StageHandler implements IInspectorHandler {
 
         // META-FELDER: gameName, author, description → project.meta umleiten
         if (propertyName === 'gameName' && _project?.meta) {
-            _project.meta.name = newValue as string;
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: _project.meta, path: 'name', value: newValue });
             return true;
         }
         if (propertyName === 'author' && _project?.meta) {
-            _project.meta.author = newValue as string;
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: _project.meta, path: 'author', value: newValue });
             return true;
         }
         if (propertyName === 'description') {
             // description kann Stage-Beschreibung oder Meta-Beschreibung sein
             // Bei main-Stage: auch in meta.description schreiben
             if (object?.type === 'main' && _project?.meta) {
-                _project.meta.description = newValue as string;
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: _project.meta, path: 'description', value: newValue });
+            } else {
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: object, path: propertyName, value: newValue });
             }
-            PropertyHelper.setPropertyValue(object, propertyName, newValue);
             return true;
         }
 
@@ -133,19 +134,20 @@ export class StageHandler implements IInspectorHandler {
             propertyName = propertyName.replace('activeStage.', '');
             event.propertyName = propertyName; // Update event for subsequent logic
 
-            // Apply the property change directly to avoid fälschliche "activeStage" property insertion
-            PropertyHelper.setPropertyValue(object, propertyName, newValue);
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: object, path: propertyName, value: newValue });
             return true;
         }
 
         // Handle event changes specially if they are prefixed with 'on'
         if (propertyName.startsWith('on')) {
-            if (!object.events) object.events = {};
-            object.events[propertyName] = newValue;
-
-            // Sync to legacy Tasks object if needed (GameRuntime uses both)
-            if (!object.Tasks) object.Tasks = {};
-            object.Tasks[propertyName] = newValue;
+            projectStore.dispatch({
+                type: 'BATCH',
+                label: `Update Event ${propertyName}`,
+                mutations: [
+                    { type: 'SET_PROPERTY', target: object, path: `events.${propertyName}`, value: newValue },
+                    { type: 'SET_PROPERTY', target: object, path: `Tasks.${propertyName}`, value: newValue }
+                ]
+            });
 
             return true;
         }

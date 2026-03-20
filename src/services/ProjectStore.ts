@@ -2,6 +2,7 @@ import { GameProject } from '../model/types';
 import { snapshotManager } from '../editor/services/SnapshotManager';
 import { Logger } from '../utils/Logger';
 import { PropertyHelper } from '../runtime/PropertyHelper';
+import { mediatorService } from './MediatorService';
 
 // ─────────────────────────────────────────────
 // Mutation-Typen
@@ -108,6 +109,19 @@ export class ProjectStore {
                 ProjectStore.logger.error(`Listener-Fehler: ${e.message}`);
             }
         });
+
+        // --- BRIDGE ZUM ALTEN MEDIATOR-SYSTEM (PHASE 1) ---
+        // Übergangsweise triggern wir die ollen Listener via Mediator.
+        // Sobald alle Views auf projectStore.onChange umgebaut sind, kann dies raus.
+        if (mutation.type === 'SET_PROPERTY') {
+            mediatorService.notifyDataChanged({
+                property: mutation.path,
+                value: mutation.value,
+                object: mutation.target
+            }, 'store-dispatch');
+        } else {
+            mediatorService.notifyDataChanged(this.project, 'store-dispatch');
+        }
     }
 
     // =========================================================================

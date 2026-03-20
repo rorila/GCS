@@ -123,7 +123,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1773995588156_gw261zk5t",
+          "id": "obj_1774018331296_0wau9w418",
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
@@ -195,11 +195,10 @@
         "visible": true,
         "backgroundColor": "#16da36"
       },
-      "description": "Das ist mein cooles Spiel",
       "flowCharts": {}
     },
     {
-      "id": "stage-1773995581173",
+      "id": "stage-1774018324376",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],

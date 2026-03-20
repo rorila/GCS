@@ -1,6 +1,7 @@
 import { GameProject } from '../../model/types';
 import { mediatorService } from '../../services/MediatorService';
 import { componentRegistry } from '../../services/ComponentRegistry';
+import { projectStore, ProjectMutation } from '../../services/ProjectStore';
 
 export interface EditorInteractionHost {
     project: GameProject;
@@ -89,41 +90,57 @@ export class EditorInteractionManager {
                 return;
             }
 
+            const mutations: ProjectMutation[] = [];
             const obj = this.host.findObjectById(id);
             if (obj) {
-                obj.x = newX;
-                obj.y = newY;
+                mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'x', value: newX });
+                mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'y', value: newY });
             }
 
             const rawObj = this.getOriginalObject(id);
-            if (rawObj) {
-                rawObj.x = newX;
-                rawObj.y = newY;
+            if (rawObj && rawObj !== obj) {
+                mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'x', value: newX });
+                mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'y', value: newY });
+            }
+
+            if (mutations.length > 0) {
+                projectStore.dispatch({
+                    type: 'BATCH',
+                    label: `Move ${id}`,
+                    mutations
+                });
             }
 
             this.host.render();
             this.host.autoSaveToLocalStorage();
             // Inspector-Refresh: DATA_CHANGED auslösen damit x/y-Felder aktualisiert werden
-            mediatorService.notifyDataChanged('object-drag');
+            // --- Dies passiert nun implizit über die Store-Bridge! ---
         };
 
         stage.onObjectResize = (id: string, newWidth: number, newHeight: number) => {
+            const mutations: ProjectMutation[] = [];
             const obj = this.host.findObjectById(id);
             if (obj) {
-                obj.width = newWidth;
-                obj.height = newHeight;
+                mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'width', value: newWidth });
+                mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'height', value: newHeight });
             }
 
             const rawObj = this.getOriginalObject(id);
-            if (rawObj) {
-                rawObj.width = newWidth;
-                rawObj.height = newHeight;
+            if (rawObj && rawObj !== obj) {
+                mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'width', value: newWidth });
+                mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'height', value: newHeight });
+            }
+
+            if (mutations.length > 0) {
+                projectStore.dispatch({
+                    type: 'BATCH',
+                    label: `Resize ${id}`,
+                    mutations
+                });
             }
 
             this.host.render();
             this.host.autoSaveToLocalStorage();
-            // Inspector-Refresh: DATA_CHANGED auslösen damit width/height-Felder aktualisiert werden
-            mediatorService.notifyDataChanged('object-resize');
         };
 
         stage.onCopyCallback = (id: string) => {

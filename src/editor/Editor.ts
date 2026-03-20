@@ -20,6 +20,7 @@ import { projectRegistry } from '../services/ProjectRegistry';
 
 import { libraryService } from '../services/LibraryService';
 import { EditorViewManager, IViewHost, ViewType } from './EditorViewManager';
+import { projectStore } from '../services/ProjectStore';
 import { mediatorService, MediatorEvents } from '../services/MediatorService';
 import { EditorCommandManager } from './services/EditorCommandManager';
 import { EditorRunManager } from './services/EditorRunManager';
@@ -435,6 +436,7 @@ export class Editor implements IViewHost {
 
         // 1. Registry & Services
         projectRegistry.setProject(project);
+        projectStore.setProject(project);
 
         // 2. Specialized Managers
         this.stageManager.setProject(project);

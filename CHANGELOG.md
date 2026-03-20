@@ -1,3 +1,12 @@
+## [3.20.1] - 2026-03-20
+### Fixed (CleanCode Phase 1: Unidirektionaler Datenfluss)
+- **ProjectStore-Referenz-Fix** (`Editor.ts`):
+  - `projectStore.setProject(project)` fehlte in `Editor.setProject()`. Dadurch arbeitete der Store nach einem Projektwechsel (Neues Projekt / Laden) mit einer veralteten Referenz.
+  - Auswirkungen: Inspector-Änderungen (gameName, author) wurden auf dem alten Projekt-Objekt geschrieben. Canvas-Drag-Operationen (Move, Resize) wurden zwar dispatched, aber auf dem falschen Objekt angewandt, weshalb Komponenten nach dem Loslassen zurücksprangen.
+- **E2E-Test-Fix** (`01_ProjectCreation.spec.ts`):
+  - Fehlerhafter `evaluate`-Block entfernt, der auf nicht-existierendes `ed.inspectorEventHandler` zugriff und den Test crashte.
+- **Debug-Cleanup**: Alle temporären `console.log`/`console.warn`-Trace-Ausgaben aus `StageHandler.ts` und `EditorInteractionManager.ts` entfernt.
+
 ## [3.20.0] - 2026-03-20
 ### Added (Native Dateiverwaltung)
 - **File System Access API (Desktop/Electron Modus)** (`ProjectPersistenceService.ts`, `EditorDataManager.ts`):

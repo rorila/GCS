@@ -14,6 +14,7 @@ import * as fs from 'fs';
  */
 test.describe('UseCase: Ein neues Projekt (Spiel) erzeugen', () => {
     test('Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid', async ({ page }) => {
+        page.on('console', msg => console.log('BROWSER:', msg.text()));
         // 0. Cleanup: Alte Projektdatei löschen (sauberer Start)
         if (fs.existsSync(FILE_PATH)) {
             fs.unlinkSync(FILE_PATH);
@@ -88,6 +89,11 @@ test.describe('UseCase: Ein neues Projekt (Spiel) erzeugen', () => {
         // onchange wird bei blur/Enter ausgelöst
         await gameNameInput.press('Tab');
         await page.waitForTimeout(400);
+
+        await page.evaluate(() => {
+            const ed = (window as any).editor;
+            console.log(`[E2E-DEBUG] editor.project.meta.name = "${ed.project.meta.name}"`);
+        });
 
         // Validierung: meta.name wurde aktualisiert
         projectData = await page.evaluate(() => (window as any).editor.project);

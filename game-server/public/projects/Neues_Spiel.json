@@ -1,9 +1,9 @@
 {
   "meta": {
-    "name": "MyCoolGame",
+    "name": "Neues Spiel",
     "version": "1.0.0",
-    "author": "GCS-Team",
-    "description": "Das ist mein cooles Spiel",
+    "author": "",
+    "description": "",
     "_sourcePath": "projects/Neues_Spiel.json"
   },
   "flow": {
@@ -108,12 +108,12 @@
     },
     {
       "id": "main",
-      "name": "MainStage",
+      "name": "Haupt-Level",
       "type": "main",
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1773995588156_gw261zk5t",
+          "id": "obj_1774019683556_l574zrf0p",
           "isVariable": false,
           "isService": false,
           "isHiddenInRun": false,
@@ -123,7 +123,7 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 10,
+          "x": 8,
           "y": 10,
           "width": 6,
           "height": 2,
@@ -144,55 +144,6 @@
           "icon": ""
         }
       ],
-      "actions": [
-        {
-          "name": "ShowTheHighscoreStage",
-          "details": "",
-          "type": "navigate_stage",
-          "showDetails": false
-        }
-      ],
-      "tasks": [
-        {
-          "name": "SwitchToTheHighscoreStage",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "ShowTheHighscoreStage",
-              "type": "action"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "SwitchToTheHighscoreStage": {
-              "x": 40,
-              "y": 40
-            },
-            "ShowTheHighscoreStage": {
-              "x": 40,
-              "y": 140
-            }
-          }
-        }
-      ],
-      "variables": [],
-      "grid": {
-        "cols": 60,
-        "rows": 38,
-        "cellSize": 22,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#16da36"
-      },
-      "description": "Das ist mein cooles Spiel",
-      "flowCharts": {}
-    },
-    {
-      "id": "stage-1773995581173",
-      "name": "Stage 1",
-      "type": "standard",
-      "objects": [],
       "actions": [],
       "tasks": [],
       "variables": [],
@@ -203,8 +154,7 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#ffffff"
-      },
-      "flowCharts": {}
+      }
     }
   ],
   "activeStageId": "main"

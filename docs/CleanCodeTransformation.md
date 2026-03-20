@@ -4,13 +4,13 @@ Basiert auf den Erkenntnissen zur Verhinderung von Regressionen und der Entkoppl
 
 ## Phasenübersicht
 
-### Phase 1: Unidirektionaler Datenfluss (ProjectStore vollenden)
+### Phase 1: Unidirektionaler Datenfluss (ProjectStore vollenden) ✅
 **Ziel:** Keine direkten Mutationen mehr an Objekten oder dem State kreuz und quer aus Inspector, Stage und Editor. Alles läuft transparent über Actions und den `ProjectStore`.
-- [ ] **Audit:** Identifikation aller stillen direkten State-Mutationen (z. B. `this.host.component.color = ...`).
-- [ ] **Action-Katalog:** Erstellen/Dokumentieren aller fehlenden Actions (z. B. `ACTION_UPDATE_UI_PROPERTY`, `ACTION_REORDER_OBJECT`).
-- [ ] **Refactoring Inspector:** Der ActionHandler des Inspectors sendet nur noch Store-Actions, ändert nie direkt das DOM/Objekt.
-- [ ] **Refactoring Editor-Canvas (Drag & Drop):** Verschieben und Skalieren von UI-Objekten sendet Actions.
-- [ ] **Tests:** Verifizieren der bestehenden E2E-Tests nach der Umstellung.
+- [x] **Audit:** Identifikation aller stillen direkten State-Mutationen (z. B. `this.host.component.color = ...`).
+- [x] **Action-Katalog:** Erstellen/Dokumentieren aller fehlenden Actions (z. B. `ACTION_UPDATE_UI_PROPERTY`, `ACTION_REORDER_OBJECT`).
+- [x] **Refactoring Inspector:** Der ActionHandler des Inspectors sendet nur noch Store-Actions, ändert nie direkt das DOM/Objekt.
+- [x] **Refactoring Editor-Canvas (Drag & Drop):** Verschieben und Skalieren von UI-Objekten sendet Actions.
+- [x] **Tests:** Verifizieren der bestehenden E2E-Tests nach der Umstellung. (119/119 Unit + alle E2E grün, v3.20.1)
 
 ### Phase 2: Trennung von Editor- und Laufzeit-Datenstrukturen (Domain Model)
 **Ziel:** Die Runtime-Objekte (z.B. `TSprite`, `TButton`) wissen nichts von der Arbeitsumgebung Editor. (Behebt dauerhaft Zirkelreferenz-Bugs wie im GameExporter).
