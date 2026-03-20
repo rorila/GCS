@@ -265,8 +265,8 @@
             "onClick": "StartGameTask"
           },
           "visible": true,
-          "x": 8,
-          "y": 6,
+          "x": 9,
+          "y": 8,
           "width": 8,
           "height": 2,
           "zIndex": 0,
@@ -633,7 +633,8 @@
           "showDetails": false
         }
       ],
-      "flowCharts": {}
+      "flowCharts": {},
+      "startAnimation": "UpRight"
     }
   ],
   "tasks": [],
