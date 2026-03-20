@@ -85,6 +85,11 @@ export class TGameLoop extends TWindow {
     }
 
     public getEvents(): string[] {
-        return super.getEvents();
+        const baseEvents = super.getEvents();
+        if (!baseEvents.includes('onFrame')) {
+            baseEvents.push('onFrame');
+        }
+        return baseEvents;
     }
+
 }

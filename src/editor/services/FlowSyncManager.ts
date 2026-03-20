@@ -166,29 +166,15 @@ export class FlowSyncManager {
 
             if (task) {
                 FlowSyncManager.logger.info(`[TRACE] syncToProject: Synchronisiere Task-Logik für "${currentContext}". Elemente: ${elements.length}`);
-                this.syncTaskFromFlow(task, elements, connections);
+                const visitedSet = this.syncTaskFromFlow(task, elements, connections);
 
                 // NUR Layout-Positionen speichern (statt volles FlowChart)
                 task.flowLayout = this.extractLayoutOverrides(persistentNodes);
 
-                // Standalone-Nodes speichern: Nodes die NICHT in der actionSequence enthalten sind
-                // (z.B. Actions die auf dem Canvas liegen, aber noch nicht verbunden wurden)
-                const sequenceNames = new Set<string>();
-                const collectSeqNames = (seq: any[]) => {
-                    seq?.forEach((item: any) => {
-                        if (item.name) sequenceNames.add(item.name);
-                        if (item.taskName) sequenceNames.add(item.taskName);
-                        if (item.then) collectSeqNames(item.then);
-                        if (item.else || item.elseBody) collectSeqNames(item.else || item.elseBody);
-                        if (item.body) collectSeqNames(item.body);
-                    });
-                };
-                collectSeqNames(task.actionSequence || []);
-                sequenceNames.add(task.name);
-
+                // Standalone-Nodes speichern: Nodes die NICHT erreichbar (nicht in visited) sind.
+                // Dadurch wird verhindert, dass Condition-Nodes, die intern 'Bedingung' heißen, fälschlicherweise als standalone dupliziert werden.
                 const standaloneElements = elements.filter((el: any) => {
-                    const nodeName = el.properties?.name || el.data?.name || el.data?.taskName;
-                    return nodeName && !sequenceNames.has(nodeName);
+                    return !visitedSet.has(el.id);
                 });
 
                 if (standaloneElements.length > 0) {
@@ -293,9 +279,9 @@ export class FlowSyncManager {
         });
     }
 
-    private syncTaskFromFlow(task: any, elements: any[], connections: any[]) {
+    private syncTaskFromFlow(task: any, elements: any[], connections: any[]): Set<string> {
         if (this.host.currentFlowContext === 'event-map' || this.host.currentFlowContext === 'element-overview') {
-            return;
+            return new Set();
         }
 
         const startNode = elements.find(e => {
@@ -304,7 +290,7 @@ export class FlowSyncManager {
         });
         if (!startNode) {
             FlowSyncManager.logger.debug(`No start node found for task ${task.name}. Skipping sequence sync.`);
-            return;
+            return new Set();
         }
 
         const sequence: any[] = [];
@@ -479,6 +465,8 @@ export class FlowSyncManager {
             }
         };
 
+        visited.add(startNode.id); // WICHTIGER FIX: Root-Node darf nie als Standalone Node gelten
+
         const initialOutgoing = connections.filter(c => c.startTargetId === startNode.id);
         FlowSyncManager.logger.debug(`Initial outgoing from ${startNode.id}: ${initialOutgoing.length} connections found.`);
         // Robustness: Sort to keep 'output' anchor first, but process ALL outgoing connections
@@ -503,6 +491,8 @@ export class FlowSyncManager {
         // --- NEW: Sync Parameters and their values ---
         this.syncTaskParameters(task, elements);
         this.syncTaskParamValues(task, elements);
+
+        return visited;
     }
 
     private syncTaskParameters(task: any, elements: any[]) {

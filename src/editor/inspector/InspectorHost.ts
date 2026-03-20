@@ -612,9 +612,9 @@ export class InspectorHost {
                     const row = document.createElement('div');
                     row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:4px 6px;background:rgba(255,255,255,0.04);border-radius:4px;border:1px solid rgba(255,255,255,0.08);';
 
-                    // Property-Typ-Info auflösen
+                    // Property-Typ-Info auflösen (mit Fallback auf propDef.valueType für spezielle Renderer wie negate)
                     const propInfo = targetPropertyOptions.find(p => p.name === key);
-                    const propType = propInfo?.type || 'string';
+                    const propType = propDef.valueType || propInfo?.type || 'string';
 
                     // Property-Name (Dropdown wenn Properties verfügbar, sonst Freitext)
                     let keyElement: HTMLSelectElement | HTMLInputElement;

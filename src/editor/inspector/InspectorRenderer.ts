@@ -102,6 +102,8 @@ export class InspectorRenderer {
             select.appendChild(opt);
         }
 
+        let foundSelected = false;
+
         options.forEach(opt => {
             const option = document.createElement('option');
             let val: string;
@@ -120,9 +122,20 @@ export class InspectorRenderer {
 
             if (val === selectedValue) {
                 option.selected = true;
+                foundSelected = true;
             }
             select.appendChild(option);
         });
+
+        // FIX: Falls der gewählte Wert nicht in der Liste ist (z.B. cross-stage object reference)
+        // fügen wir ihn künstlich als erste Option hinzu, damit der HTML-Select nicht falschen Text anzeigt.
+        if (selectedValue !== undefined && selectedValue !== null && selectedValue !== '' && !foundSelected) {
+            const missingOpt = document.createElement('option');
+            missingOpt.value = String(selectedValue);
+            missingOpt.text = `${selectedValue} (nicht in Stage)`;
+            missingOpt.selected = true;
+            select.insertBefore(missingOpt, select.firstChild);
+        }
 
         return select;
     }
@@ -387,7 +400,8 @@ export class InspectorRenderer {
                         // SPECIAL: Key-Value-Editor für property-Actions
                         // Statt rohem JSON → dynamische Zeilen mit Property-Dropdown
                         // ═══════════════════════════════════════════════════
-                        if (type === 'property' && param.name === 'changes') {
+                        const isKeyValueAction = ['property', 'negate', 'increment', 'decrement', 'toggle'].includes(type);
+                        if (isKeyValueAction && param.name === 'changes') {
                             // Lookup: Bestehende Daten von der Action-Definition im Projekt holen
                             const actionName = selectedObject.Name || selectedObject.name || '';
                             let resolvedChanges = currentValue;

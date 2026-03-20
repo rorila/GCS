@@ -6,7 +6,7 @@
     "version": "1.5.0",
     "author": "Game Builder Studio",
     "description": "Vollständige Demo: Paddles steuerbar, Kollisionen laufen.",
-    "_sourcePath": "projects/RetroTennis.json"
+    "_sourcePath": "projects/Retro_Tennis.json"
   },
   "variables": [],
   "stages": [
@@ -233,8 +233,8 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "isGlobal": true,
           "description": "System internal flag to track unsaved changes"
         }
@@ -463,7 +463,22 @@
                           "type": "action"
                         }
                       ],
-                      "elseBody": []
+                      "elseBody": [
+                        {
+                          "condition": {
+                            "leftValue": "${hitSide}",
+                            "rightValue": "right"
+                          },
+                          "type": "condition",
+                          "body": [
+                            {
+                              "name": "BounceX",
+                              "type": "action"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ]
                     }
                   ]
                 }
@@ -488,13 +503,17 @@
               "x": 40,
               "y": 240
             },
-            "Bedingung": {
+            "${hitSide} == left": {
               "x": 40,
               "y": 340
             },
             "BounceX": {
               "x": 280,
-              "y": 340
+              "y": 440
+            },
+            "${hitSide} == right": {
+              "x": 40,
+              "y": 440
             }
           }
         },
@@ -503,10 +522,21 @@
           "description": "Wenn der Ball kollidiert (z.B. mit dem Paddle), springt er ab.",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "BounceX"
+              "name": "BounceX",
+              "type": "action"
             }
-          ]
+          ],
+          "params": [],
+          "flowLayout": {
+            "BallHitPaddle": {
+              "x": 40,
+              "y": 40
+            },
+            "BounceX": {
+              "x": 40,
+              "y": 140
+            }
+          }
         }
       ],
       "actions": [

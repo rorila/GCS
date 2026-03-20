@@ -417,20 +417,20 @@
           "visible": true,
           "x": 0,
           "y": 0,
-          "width": 64,
+          "width": 40,
           "height": 4,
           "zIndex": 0,
           "align": "TOP",
           "style": {
             "color": "#ffffff",
-            "backgroundColor": "#2c3e50",
-            "borderColor": "#34495e",
-            "borderWidth": 0,
             "fontSize": 18,
+            "fontFamily": "Segoe UI, sans-serif",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
-            "fontFamily": "Segoe UI, sans-serif"
+            "backgroundColor": "#2c3e50",
+            "borderColor": "#34495e",
+            "borderWidth": 0
           },
           "text": "New Tennis",
           "title": "New Tennis"
@@ -448,8 +448,8 @@
           "dragMode": "move",
           "visible": true,
           "x": 0,
-          "y": 36,
-          "width": 64,
+          "y": 26,
+          "width": 40,
           "height": 4,
           "zIndex": 0,
           "align": "BOTTOM",
@@ -597,14 +597,14 @@
           "align": "NONE",
           "style": {
             "color": "#588d7c",
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0,
             "fontSize": 14,
+            "fontFamily": "Arial",
             "fontWeight": "normal",
             "fontStyle": "normal",
             "textAlign": "left",
-            "fontFamily": "Arial"
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
           },
           "text": "Status:"
         },
@@ -628,14 +628,14 @@
           "align": "NONE",
           "style": {
             "color": "#588d7c",
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0,
             "fontSize": 14,
+            "fontFamily": "Arial",
             "fontWeight": "normal",
             "fontStyle": "normal",
             "textAlign": "left",
-            "fontFamily": "Arial"
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
           },
           "text": "gestoppt"
         },
@@ -662,14 +662,14 @@
           "align": "NONE",
           "style": {
             "color": "#ffffff",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1,
             "fontSize": 14,
+            "fontFamily": "Arial",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
-            "fontFamily": "Arial"
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
           },
           "text": "Spiel starten",
           "icon": ""
@@ -694,14 +694,14 @@
           "align": "NONE",
           "style": {
             "color": "#ffffff",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1,
             "fontSize": 14,
+            "fontFamily": "Arial",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
-            "fontFamily": "Arial"
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
           },
           "text": "Spiel pausieren",
           "icon": ""
@@ -726,14 +726,14 @@
           "align": "NONE",
           "style": {
             "color": "#ffffff",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1,
             "fontSize": 14,
+            "fontFamily": "Arial",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
-            "fontFamily": "Arial"
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
           },
           "text": "Spiel fortsetzen",
           "icon": ""
@@ -870,14 +870,14 @@
           "align": "NONE",
           "style": {
             "color": "#f0ebeb",
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0,
             "fontSize": 36,
+            "fontFamily": "Arial",
             "fontWeight": "normal",
             "fontStyle": "normal",
             "textAlign": "center",
-            "fontFamily": "Arial"
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
           },
           "text": "",
           "startValue": 0,
@@ -905,14 +905,14 @@
           "align": "NONE",
           "style": {
             "color": "#f4f1f1",
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0,
             "fontSize": 36,
+            "fontFamily": "Arial",
             "fontWeight": "normal",
             "fontStyle": "normal",
             "textAlign": "center",
-            "fontFamily": "Arial"
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
           },
           "text": "",
           "startValue": 0,
@@ -940,14 +940,14 @@
           "align": "NONE",
           "style": {
             "color": "#ffffff",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1,
             "fontSize": 14,
+            "fontFamily": "Arial",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
-            "fontFamily": "Arial"
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
           },
           "text": "Impressum",
           "icon": ""
@@ -1447,14 +1447,14 @@
           "align": "NONE",
           "style": {
             "color": "#ffffff",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1,
             "fontSize": 14,
+            "fontFamily": "Arial",
             "fontWeight": "bold",
             "fontStyle": "normal",
             "textAlign": "center",
-            "fontFamily": "Arial"
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
           },
           "text": "zurück",
           "icon": ""

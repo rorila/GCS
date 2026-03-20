@@ -315,10 +315,10 @@ export class TaskExecutor {
                                     resolvedParams[key] = vars.eventData ?? contextObj;
                                 } else if (value.startsWith('${') && value.endsWith('}')) {
                                     const varName = value.slice(2, -1);
-                                    resolvedParams[key] = vars[varName] ?? globalVars[varName];
+                                    resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
                                 } else if (value.startsWith('$')) {
                                     const varName = value.slice(1);
-                                    resolvedParams[key] = vars[varName] ?? globalVars[varName];
+                                    resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
                                 } else {
                                     resolvedParams[key] = value;
                                 }
@@ -588,9 +588,10 @@ export class TaskExecutor {
             conditionExpr = item.condition;
             logData.expression = item.condition;
         } else {
-            const varName = item.condition.variable;
-            const varValue = vars[varName] !== undefined ? vars[varName] : globalVars[varName];
-            const compareValue = item.condition.value;
+            const varName = item.condition.leftValue || item.condition.variable || '???';
+            // Variable resolves either against vars or globalVars
+            const varValue = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
+            const compareValue = item.condition.rightValue || item.condition.value || '???';
             const operator = item.condition.operator || '==';
             conditionExpr = `${varName} ${operator} "${compareValue}"`;
             logData = { variable: varName, value: varValue, expected: compareValue, result };

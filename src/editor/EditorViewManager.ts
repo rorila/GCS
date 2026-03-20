@@ -53,7 +53,28 @@ export class EditorViewManager {
         return false;
     }
     public set isProjectDirty(v: boolean) {
-        const changeVar = this.findChangeVar();
+        let changeVar = this.findChangeVar();
+        if (!changeVar) {
+            // Fallback: If the variable doesn't exist (e.g., in a newly created or imported project), create it!
+            const blueprint = this.host.project?.stages?.find(s =>
+                s.id === 'blueprint' || s.id === 'stage_blueprint' || s.type === 'blueprint'
+            );
+            if (blueprint) {
+                if (!blueprint.variables) blueprint.variables = [];
+                changeVar = {
+                    id: 'var_isProjectChangeAvailable',
+                    name: 'isProjectChangeAvailable',
+                    type: 'boolean',
+                    defaultValue: false,
+                    value: false,
+                    isGlobal: true,
+                    description: 'System internal flag to track unsaved changes'
+                };
+                blueprint.variables.push(changeVar);
+                EditorViewManager.logger.info("Auto-created missing 'isProjectChangeAvailable' variable in blueprint stage.");
+            }
+        }
+        
         if (changeVar) {
             changeVar.defaultValue = v;
             (changeVar as any).value = v;

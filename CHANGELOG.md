@@ -1,3 +1,13 @@
+## [3.20.0] - 2026-03-20
+### Added (Native Dateiverwaltung)
+- **File System Access API (Desktop/Electron Modus)** (`ProjectPersistenceService.ts`, `EditorDataManager.ts`):
+  - Komplett überarbeitetes Lade- und Speicherverhalten für einen nativen "Desktop App"-Workflow.
+  - Projekte werden nun über `showOpenFilePicker()` geladen, wodurch der Editor ein echtes Datei-Handle behält.
+  - Klicks auf "Speichern" schreiben nun *direkt auf die Originaldatei* auf der Festplatte zurück (z. B. im \`demos\`-Ordner), anstatt sie blind an das \`game-server\`-Backend (\`projects/\` Verzeichnis) zu senden.
+  - "Speichern unter" (`saveProjectAs`) nutzt `showSaveFilePicker()` und merkt sich den neuen Pfad/das neue File Handle.
+  - Erhöhte UX-Transparenz: Die Projekt-Pfade werden jetzt mit "[Lokal] Dateiname" statt "projects/Dateiname" im Editor tituliert, wenn sie lokal bezogen wurden.
+  - Fallback für den Dev-Server-Ordner (\`/api/dev/save-custom\`) sowie Standard-HTML-Dialoge bleibt für Browser ohne API-Support aktiv.
+
 ## [3.19.1] - 2026-03-17
 ### Added (UX: Stage-Anzeige)
 - **Aktuelle Stage in Menüzeile** (`MenuBar.ts`, `Editor.ts`):
@@ -23,8 +33,16 @@
 - **FlowEditor (3.19.1):** Blueprint-Tasks sind nun exklusiv in der Blueprint-Stage im Dropdown sichtbar.
 - **FlowEditor (3.19.1):** Entfernung der verwirrenden Option `Main Flow (Stage)` in Non-Blueprint Stages.
 - **FlowEditor (3.19.1):** Ghosting-Bug beim Stage-Switching (`switchActionFlow`) behoben, indem nicht existierende Tasks einen expliziten Fallback in die "Elementenübersicht" durchführen.
+- **Inspector (3.19.1):** Schwerwiegenden Anzeige-Bug im Dropdown behoben: Wenn das Ziel-Objekt einer Action in der aktuellen Stage (z.B. Blueprint) nicht sichtbar war, fiel das HTML-Select stumm auf den ersten Eintrag ('GameLoop' etc.) zurück. Die UI zeigt fehlende Referenzen nun explizit als "[Wert] (ausgeblendet / nicht in Stage)" an.
+- **Inspector (3.19.1):** Das `onFrame`-Event des `TGameLoop`-Objekts wurde im Inspector freigeschaltet. Zuvor war es zwar engine-seitig funktional, aber für Anwender im UI unsichtbar.
+- **Demo Projekt (3.19.1):** Die leeren und fehlerhaften Tasks `MainGameLoop` und `PlayStateLoop` wurden aus der `RetroTennis.json` komplett entfernt, um 60-FPS-Leidlauf zu verhindern. Das Demo-Spiel nutzt für Ballbewegung und Kollision ohnehin die nativen Engine-Funktionen.
+- **Demo Projekt (3.19.1):** Fehlerhaftes UI-Rendering im Task `CheckWallCollisions` behoben. Conditions waren als native Strings abgelegt, weshalb der Flow-Editor den Text nicht ins UI-Element mappen konnte und Fallback-Beschriftungen ("Bedingung") erzeugte. Die Einträge wurden ins korrekte Objektformat (`leftValue`, `operator`, `rightValue`) übersetzt.
+- **Inspector (3.19.1):** Bugfix für leere/unsichtbare Werte bei Key-Value-Eigenschaften vom Typ Boolean (z.B. in der `negate` Action). Der Key-Value-Renderer schränkte das Rendering auf den Action-Typ `property` ein, woraufhin ein Fallback-Renderer fälschlicherweise ein statisches Number-Feld aufspannte.
+- **Flow Editor (3.19.1):** Bugfix für die Text-Auflösung auf Action-Knoten (Detail-Ansicht). Objekte (wie z.B. das `changes`-Objekt) wurden bei der Zusammenführung implizit zu `[object Object]` stringifiziert. Die Text-Engine parst sie nun sauber als kompaktes JSON.
 - **Inspector (3.19.1):** Die Action-UI für "Wert negieren" (negate) von einfachem String zu einem 'keyvalue'-Dictionary (`changes`) umgebaut, da Eigenschaften sonst unsichtbar und inkompatibel zur Engine blieben.
 - **Physics Engine (3.19.1):** Fehler behoben, bei dem die Retro Tennis Demo nicht funktionierte, da Kollisionen implizit im JSON deaktiviert waren und Boundary-Events durch fehlerhafte Objekt-Conditions geloggt wurden. Fehlerhafte Conditions wurden durch nativ verarbeitete String-Conditions ersetzt (`${hitSide} == 'top'`).
+- **Engine Runtime (3.19.1):** Autoresolve-Fallback für Event-Variablen eingebaut. Condition-Parameter wie `${hitSide}` grasen nun automatisch das `eventData`-Root-Objekt des Call-Contexts ab, falls sie nicht direkt im `vars`-Root des Scopes existieren, wodurch User das `eventData.`-Präfix nicht zwingend kennen/schreiben müssen.
+- **Logging (3.19.1):** Der `TaskExecutor` formatiert Condition-Logs bei strukturierten Bedingungen (`leftValue`/`rightValue`) wieder sauber mit echten Variablen-Namen, anstatt `undefined == undefined` auszugeben.
 - **Inspector (3.19.1):** Dropdowns für Tasks und Actions beziehen globale Elemente nun einheitlich über `ProjectRegistry.getTasks('all')` anstatt der veralteten Root-Level Collection.
 - **FlowEditor (3.19.1):** Bugfix für die "Landkarte (Events/Links)" und die "Elementenübersicht", welche in der Blueprint-Stage leere Graphen dargestellt hatten. Beide Übersichten beziehen globale Ressourcen nun fehlerfrei aus den Stage-Daten via ProjectRegistry.
 - **FlowEditor (3.19.1):** Bugfix für die "Landkarte", da diese Events von Objekten über die veraltete Property `.Tasks` geholt hat anstatt der neuen Standard-Property `.events`.

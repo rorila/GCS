@@ -116,7 +116,25 @@ export class ProjectPersistenceService {
      * Triggers file input and returns the parsed JSON data along with the filename.
      * @returns {{ data: any, filename: string } | null}
      */
-    public async triggerLoad(): Promise<{ data: any; filename: string } | null> {
+    public async triggerLoad(): Promise<{ data: any; filename: string; fileHandle?: any } | null> {
+        if ('showOpenFilePicker' in window) {
+            try {
+                const [fileHandle] = await (window as any).showOpenFilePicker({
+                    types: [{
+                        description: 'JSON Project File',
+                        accept: { 'application/json': ['.json'] }
+                    }]
+                });
+                const file = await fileHandle.getFile();
+                const text = await file.text();
+                const json = JSON.parse(text);
+                return { data: json, filename: file.name, fileHandle };
+            } catch (err: any) {
+                if (err.name === 'AbortError') return null; // Use cancelled
+                ProjectPersistenceService.logger.warn('File System Access API failed, fallback to input', err);
+            }
+        }
+
         return new Promise((resolve, reject) => {
             const fileInput = document.createElement('input');
             fileInput.type = 'file';

@@ -98,6 +98,13 @@ export class TaskConditionEvaluator {
             lookup = lookup.substring(6);
         }
 
-        return PropertyHelper.getPropertyValue(root, lookup);
+        let val = PropertyHelper.getPropertyValue(root, lookup);
+        
+        // Auto-Fallback für Event-Variablen: Wenn nicht gefunden, suche in eventData
+        if (val === undefined && root && root.eventData && typeof root.eventData === 'object') {
+            val = PropertyHelper.getPropertyValue(root.eventData, lookup);
+        }
+
+        return val;
     }
 }

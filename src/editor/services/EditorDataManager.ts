@@ -43,8 +43,9 @@ export interface EditorDataHost {
 export class EditorDataManager {
     private static logger = Logger.get('EditorDataManager', 'Project_Save_Load');
     private host: EditorDataHost;
-    /** Aktueller Speicherpfad (relativ, z.B. 'projects/master_test/MeinSpiel.json') */
     public currentSavePath: string | null = null;
+    /** FileSystemFileHandle für nativen Speicher-/Lesezugriff */
+    public currentFileHandle: any | null = null;
     /** Zeitpunkt des letzten Projekt-Ladens — autoSave ignoriert die ersten 2s danach. */
     private _loadedAt: number = 0;
 
@@ -72,10 +73,15 @@ export class EditorDataManager {
         try {
             const result = await projectPersistenceService.triggerLoad();
             if (result) {
+                this.currentFileHandle = result.fileHandle || null;
+
                 // Beim Laden über File-Dialog: IMMER den Dateinamen als Pfad verwenden.
                 // Der _sourcePath in der Datei kann veraltet sein (Datei wurde kopiert/verschoben).
                 // Fester Speicherort: projects/<Dateiname>
-                const sourcePath = `projects/${result.filename}`;
+                let sourcePath = `projects/${result.filename}`;
+                if (this.currentFileHandle) {
+                    sourcePath = `[Lokal] ${result.filename}`;
+                }
                 EditorDataManager.logger.info(`[triggerLoad] Datei geladen: ${result.filename}, Pfad: ${sourcePath}`);
                 this.loadProject(result.data, sourcePath);
             }
@@ -213,6 +219,29 @@ export class EditorDataManager {
         // damit der gespeicherte JSON-Snapshot den korrekten "gespeichert"-Zustand enthält
         this.host.isProjectDirty = false;
 
+        // Native File System Access API (Desktop/Electron Modus)
+        if (this.currentFileHandle && overwriteConfirmed === undefined) {
+            try {
+                const writable = await (this.currentFileHandle as any).createWritable();
+                await writable.write(JSON.stringify(this.host.project, ProjectPersistenceService.safeReplacer(), 2));
+                await writable.close();
+                
+                setTimeout(() => { this.host.isProjectDirty = false; }, 0);
+                const msg = `Nativ gespeichert: ${this.currentFileHandle.name}`;
+                EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
+                // Aktualisiere source_path
+                if (!this.host.project.meta) (this.host.project as any).meta = {};
+                (this.host.project.meta as any)._sourcePath = `[Lokal] ${this.currentFileHandle.name}`;
+                this.updateProjectPathDisplay();
+                if (overwriteConfirmed === undefined) alert(msg);
+                return { success: true, message: msg };
+            } catch (err) {
+                EditorDataManager.logger.warn('[UseCase: Projekt speichern] Fehler beim nativen Speichern. Fallback auf Server.', err);
+                this.host.isProjectDirty = true;
+                // Weiter im Code mit Fallback auf Fetch Server API...
+            }
+        }
+
         try {
             const saveRes = await fetch('/api/dev/save-custom', {
                 method: 'POST',
@@ -255,6 +284,30 @@ export class EditorDataManager {
         const meta = (this.host.project as any).meta || {};
         const currentName = meta.name || 'MeinSpiel';
 
+        // 1. Native File System Access API
+        if ('showSaveFilePicker' in window) {
+            try {
+                const handle = await (window as any).showSaveFilePicker({
+                    suggestedName: `${currentName}.json`,
+                    types: [{ description: 'JSON Project File', accept: { 'application/json': ['.json'] } }]
+                });
+                
+                this.currentFileHandle = handle;
+                
+                const fileBaseName = handle.name.replace('.json', '');
+                if (!this.host.project.meta) (this.host.project as any).meta = {};
+                (this.host.project.meta as any).name = fileBaseName;
+                (this.host.project.meta as any)._sourcePath = `[Lokal] ${handle.name}`;
+                this.currentSavePath = `[Lokal] ${handle.name}`;
+                
+                this.host.isProjectDirty = true; // erzwingt Check-Bypass in saveProjectToFile
+                return this.saveProjectToFile();
+            } catch (err: any) {
+                if (err.name === 'AbortError') return { success: false, message: 'Speichern abgebrochen' };
+                EditorDataManager.logger.warn('FS SaveAPI fehlgeschlagen:', err);
+            }
+        }
+
         const result = await SaveAsDialog.show(currentName);
         if (!result) {
             return { success: false, message: 'Speichern abgebrochen' };
@@ -266,6 +319,7 @@ export class EditorDataManager {
         (this.host.project.meta as any).name = fileBaseName;
 
         // Neuen Speicherpfad setzen
+        this.currentFileHandle = null; // Auf Server gespeichert, lokales Handle verwerfen
         this.currentSavePath = `projects/${result.folder}/${result.filename}`;
 
         // Dirty-Flag forcieren, damit saveProjectToFile den Änderungs-Check übergeht

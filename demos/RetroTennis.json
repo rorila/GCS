@@ -45,9 +45,7 @@
           "properties": {
              "targetFPS": 60
           },
-          "events": {
-             "onFrame": "MainGameLoop"
-          }
+          "events": {}
         },
         {
           "id": "obj_input_controller",
@@ -80,21 +78,6 @@
         }
       ],
       "tasks": [
-        {
-          "name": "MainGameLoop",
-          "description": "Game-Loop Takt vom TGameLoop-Controller.",
-          "actionSequence": [
-            {
-              "type": "condition",
-              "condition": {
-                "leftValue": "GameState.state",
-                "operator": "==",
-                "rightValue": "'playing'"
-              },
-              "thenAction": "PlayStateLoop"
-            }
-          ]
-        },
         {
           "name": "MoveP1Up",
           "actionSequence": [ { "type": "action", "name": "SetP1Up" } ]
@@ -258,22 +241,26 @@
             { "type": "action", "name": "HideStartButton" }
           ]
         },
-        {
-          "name": "PlayStateLoop",
-          "description": "Die Spiellogik, die jeden Frame aufgerufen wird.",
-          "actionSequence": []
-        },
+
         {
           "name": "CheckWallCollisions",
           "actionSequence": [
             {
               "type": "condition",
-              "condition": "${hitSide} == 'top'",
+              "condition": {
+                "leftValue": "${hitSide}",
+                "operator": "==",
+                "rightValue": "top"
+              },
               "thenAction": "BounceY"
             },
             {
               "type": "condition",
-              "condition": "${hitSide} == 'bottom'",
+              "condition": {
+                "leftValue": "${hitSide}",
+                "operator": "==",
+                "rightValue": "bottom"
+              },
               "thenAction": "BounceY"
             }
           ]

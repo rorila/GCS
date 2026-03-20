@@ -490,6 +490,7 @@ export class FlowAction extends FlowElement {
                 name: 'changes',
                 label: 'Eigenschaften (Key-Value)',
                 type: 'keyvalue',
+                valueType: 'boolean',
                 value: changes,
                 hint: 'Schlüssel: velocityX, Wert: true'
             });
@@ -809,6 +810,13 @@ export class FlowAction extends FlowElement {
                 return value.substring(0, 97) + '...';
             }
             return value;
+        }
+        if (typeof value === 'object' && value !== null) {
+            try {
+                return JSON.stringify(value).replace(/["']/g, '');
+            } catch (e) {
+                return '[object]';
+            }
         }
         return String(value);
     }
