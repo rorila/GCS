@@ -2,16 +2,64 @@ import { GameProject } from '../model/types';
 import { GameExporter } from '../export/GameExporter';
 import { projectRegistry } from './ProjectRegistry';
 import { Logger } from '../utils/Logger';
+import { IStorageAdapter } from '../ports/IStorageAdapter';
+import { ServerStorageAdapter } from '../adapters/ServerStorageAdapter';
+import { LocalStorageAdapter } from '../adapters/LocalStorageAdapter';
+import { NativeFileAdapter } from '../adapters/NativeFileAdapter';
 
 /**
  * Service for project persistence operations: Loading, Saving, Exporting.
- * Centralizes data access via ProjectRegistry.
+ * 
+ * Seit v3.22.0 (CleanCode Phase 3) delegiert dieser Service an IStorageAdapter-
+ * Implementierungen. Die Adapter-Auswahl erfolgt automatisch basierend auf der
+ * verfügbaren Umgebung (Electron > FileSystem Access > Server > LocalStorage).
  */
 export class ProjectPersistenceService {
     private static logger = Logger.get('ProjectPersistenceService', 'Project_Save_Load');
     private static instance: ProjectPersistenceService;
 
-    private constructor() { }
+    /** Registrierte Adapter in Prioritätsreihenfolge */
+    private adapters: IStorageAdapter[] = [];
+
+    /** Autostart-Adapter (LocalStorage für schnelle Fallback-Saves) */
+    private autoSaveAdapter: IStorageAdapter | null = null;
+
+    /** Server-Adapter (für Dev-Modus Persistenz auf Disk) */
+    private serverAdapter: IStorageAdapter | null = null;
+
+    /** Nativer File-Adapter (für Save/Load-Dialoge) */
+    private nativeAdapter: NativeFileAdapter | null = null;
+
+    private constructor() {
+        this.initAdapters();
+    }
+
+    /**
+     * Initialisiert die verfügbaren Adapter basierend auf der Umgebung.
+     */
+    private initAdapters(): void {
+        const native = new NativeFileAdapter();
+        const server = new ServerStorageAdapter();
+        const local = new LocalStorageAdapter();
+
+        // Registriere verfügbare Adapter in Prioritätsreihenfolge
+        if (native.isAvailable()) {
+            this.adapters.push(native);
+            this.nativeAdapter = native;
+        }
+        if (server.isAvailable()) {
+            this.adapters.push(server);
+            this.serverAdapter = server;
+        }
+        if (local.isAvailable()) {
+            this.adapters.push(local);
+            this.autoSaveAdapter = local;
+        }
+
+        ProjectPersistenceService.logger.info(
+            `Adapter initialisiert: ${this.adapters.map(a => a.name).join(', ') || 'keine'}`
+        );
+    }
 
     /**
      * @deprecated Seit v3.22.0 (CleanCode Phase 2): Nicht mehr nötig, da TComponent.toJSON()
@@ -33,8 +81,14 @@ export class ProjectPersistenceService {
 
     /**
      * Fetches the current project.json from the server.
+     * Delegiert an ServerStorageAdapter.
      */
     public async fetchProjectFromServer(): Promise<GameProject> {
+        if (this.serverAdapter) {
+            const project = await this.serverAdapter.load('./projects/project.json');
+            if (project) return project;
+        }
+        // Legacy-Fallback
         const response = await fetch('./projects/project.json?t=' + Date.now());
         if (!response.ok) {
             throw new Error(`Failed to fetch project from server: ${response.statusText}`);
@@ -51,7 +105,8 @@ export class ProjectPersistenceService {
 
     /**
      * Saves the project to a JSON file.
-     * @param project Optional project data. If not provided, uses the project from projectRegistry.
+     * Delegiert an NativeFileAdapter (FileSystem Access / Electron).
+     * Fallback: Blob-Download im Browser.
      */
     public async saveProject(project?: GameProject) {
         const targetProject = project || projectRegistry.getProject();
@@ -60,35 +115,23 @@ export class ProjectPersistenceService {
             return;
         }
 
-        // CleanCode Phase 2 (Slice 2.5): toDTO() konvertiert Objekte automatisch
-        // über TComponent.toJSON() → toDTO(). Kein safeReplacer mehr nötig.
-        const json = JSON.stringify(targetProject, null, 2);
+        // Versuch über NativeFileAdapter (FileSystem Access API / Electron)
+        if (this.nativeAdapter) {
+            try {
+                await this.nativeAdapter.save(targetProject);
+                return;
+            } catch (err: any) {
+                if (err.name === 'AbortError') return; // User hat abgebrochen
+                ProjectPersistenceService.logger.warn('NativeFileAdapter failed, using fallback:', err);
+            }
+        }
 
-        // Get game name for filename
+        // Fallback: Blob-Download
+        const json = JSON.stringify(targetProject, null, 2);
         const projName = targetProject.stages?.find((s: any) => s.type === 'main')?.gameName ||
             targetProject.meta.name || 'New Game';
         const filename = `project_${projName.replace(/\s+/g, '_')}.json`;
 
-        if ('showSaveFilePicker' in window) {
-            try {
-                const handle = await (window as any).showSaveFilePicker({
-                    suggestedName: filename,
-                    types: [{
-                        description: 'JSON Project File',
-                        accept: { 'application/json': ['.json'] }
-                    }]
-                });
-                const writable = await handle.createWritable();
-                await writable.write(json);
-                await writable.close();
-                return;
-            } catch (err: any) {
-                if (err.name === 'AbortError') return;
-                ProjectPersistenceService.logger.warn('File System Access API failed, using fallback:', err);
-            }
-        }
-
-        // Fallback
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -102,45 +145,38 @@ export class ProjectPersistenceService {
 
     /**
      * Persists the project to browser's LocalStorage.
+     * Delegiert an LocalStorageAdapter.
      */
     public autoSaveToLocalStorage(project?: GameProject) {
         const targetProject = project || projectRegistry.getProject();
         if (!targetProject) return;
 
-        try {
-            const json = JSON.stringify(targetProject);
-            localStorage.setItem('gcs_last_project', json);
-            localStorage.setItem('gcs_last_save_time', Date.now().toString());
-
-            ProjectPersistenceService.logger.debug(`Auto-save. Size: ${(json.length / 1024).toFixed(2)} KB`);
-        } catch (err) {
-            ProjectPersistenceService.logger.error('Auto-save to localStorage failed:', err);
+        if (this.autoSaveAdapter) {
+            this.autoSaveAdapter.save(targetProject).catch(err => {
+                ProjectPersistenceService.logger.error('Auto-save failed:', err);
+            });
         }
     }
 
     /**
      * Triggers file input and returns the parsed JSON data along with the filename.
-     * @returns {{ data: any, filename: string } | null}
+     * Delegiert an NativeFileAdapter für FileSystem Access / Electron.
      */
     public async triggerLoad(): Promise<{ data: any; filename: string; fileHandle?: any } | null> {
-        if ('showOpenFilePicker' in window) {
+        // NativeFileAdapter (FileSystem Access / Electron)
+        if (this.nativeAdapter) {
             try {
-                const [fileHandle] = await (window as any).showOpenFilePicker({
-                    types: [{
-                        description: 'JSON Project File',
-                        accept: { 'application/json': ['.json'] }
-                    }]
-                });
-                const file = await fileHandle.getFile();
-                const text = await file.text();
-                const json = JSON.parse(text);
-                return { data: json, filename: file.name, fileHandle };
+                const project = await this.nativeAdapter.load();
+                if (project) {
+                    return { data: project, filename: 'loaded_project.json' };
+                }
             } catch (err: any) {
-                if (err.name === 'AbortError') return null; // Use cancelled
-                ProjectPersistenceService.logger.warn('File System Access API failed, fallback to input', err);
+                if (err.name === 'AbortError') return null;
+                ProjectPersistenceService.logger.warn('NativeFileAdapter load failed, fallback to input', err);
             }
         }
 
+        // Fallback: HTML File Input
         return new Promise((resolve, reject) => {
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
@@ -182,6 +218,27 @@ export class ProjectPersistenceService {
             fileInput.click();
         });
     }
+
+    /**
+     * Speichert das Projekt auf dem Dev-Server (für Auto-Sync).
+     * Delegiert an ServerStorageAdapter.
+     */
+    public async saveToServer(project?: GameProject): Promise<boolean> {
+        const targetProject = project || projectRegistry.getProject();
+        if (!targetProject || !this.serverAdapter) return false;
+
+        try {
+            await this.serverAdapter.save(targetProject);
+            return true;
+        } catch (err) {
+            ProjectPersistenceService.logger.warn('Server save failed:', err);
+            return false;
+        }
+    }
+
+    // =========================================================================
+    // Export-Methoden (Slice 3.4: IExportAdapter-Migration steht noch aus)
+    // =========================================================================
 
     public async exportHTML(project?: GameProject) {
         const targetProject = project || projectRegistry.getProject();

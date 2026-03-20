@@ -231,8 +231,8 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "isGlobal": true,
           "description": "System internal flag to track unsaved changes"
         }
@@ -385,26 +385,53 @@
           "description": "Wird durch den StartButton getriggert.",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "SetStatePlaying"
+              "name": "SetStatePlaying",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "EnablePhysics"
+              "name": "EnablePhysics",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "StartBallX"
+              "name": "StartBallX",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "StartBallY"
+              "name": "StartBallY",
+              "type": "action"
             },
             {
-              "type": "action",
-              "name": "HideStartButton"
+              "name": "HideStartButton",
+              "type": "action"
             }
-          ]
+          ],
+          "params": [],
+          "flowLayout": {
+            "StartGameTask": {
+              "x": 40,
+              "y": 40
+            },
+            "SetStatePlaying": {
+              "x": 40,
+              "y": 140
+            },
+            "EnablePhysics": {
+              "x": 40,
+              "y": 240
+            },
+            "StartBallX": {
+              "x": 40,
+              "y": 340
+            },
+            "StartBallY": {
+              "x": 40,
+              "y": 440
+            },
+            "HideStartButton": {
+              "x": 40,
+              "y": 540
+            }
+          }
         },
         {
           "name": "CheckWallCollisions",
@@ -533,7 +560,9 @@
           "target": "GameState",
           "changes": {
             "state": "playing"
-          }
+          },
+          "details": "",
+          "showDetails": false
         },
         {
           "id": "act_enable_physics",
@@ -543,7 +572,9 @@
           "changes": {
             "spritesMoving": true,
             "collisionsEnabled": true
-          }
+          },
+          "details": "",
+          "showDetails": false
         },
         {
           "id": "act_start_box",
@@ -552,7 +583,9 @@
           "target": "Ball",
           "changes": {
             "velocityX": 0.3
-          }
+          },
+          "details": "",
+          "showDetails": false
         },
         {
           "id": "act_start_boy",
@@ -561,7 +594,9 @@
           "target": "Ball",
           "changes": {
             "velocityY": 0.3
-          }
+          },
+          "details": "",
+          "showDetails": false
         },
         {
           "id": "act_hide_btn",
@@ -570,7 +605,9 @@
           "target": "StartButton",
           "changes": {
             "visible": false
-          }
+          },
+          "details": "",
+          "showDetails": false
         },
         {
           "id": "act_bounce_y",
