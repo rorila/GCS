@@ -52,7 +52,11 @@ export class EditorCommandManager {
         // Scoping Rules
         const activeStage = this.editor.getActiveStage();
         newObj.scope = (activeStage && activeStage.type === 'main') ? 'global' : 'stage';
-        (newObj as any).className = `T${type}`;
+        // className: Instanz hat bereits den korrekten className aus dem Konstruktor
+        // (z.B. 'TThresholdVariable'). Nur setzen wenn die Instanz keinen hat.
+        if (!(newObj as any).className) {
+            (newObj as any).className = `T${type}`;
+        }
         newObj.x = Math.max(0, x);
         newObj.y = Math.max(0, y);
 
