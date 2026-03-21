@@ -25,11 +25,10 @@
         {
           "className": "TGameLoop",
           "id": "obj_game_loop",
-          "isVariable": false,
-          "isService": true,
-          "isHiddenInRun": true,
           "name": "GameLoop",
           "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -53,9 +52,13 @@
         {
           "className": "TInputController",
           "id": "obj_input_controller",
-          "isVariable": false,
+          "name": "InputController",
+          "scope": "stage",
           "isService": true,
           "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
           "events": {
             "onKeyDown_KeyW": "MoveP1Up",
             "onKeyDown_KeyS": "MoveP1Down",
@@ -66,11 +69,6 @@
             "onKeyUp_ArrowUp": "StopP2",
             "onKeyUp_ArrowDown": "StopP2"
           },
-          "name": "InputController",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
           "visible": true,
           "x": 6,
           "y": 2,
@@ -89,11 +87,11 @@
         {
           "className": "TGameState",
           "id": "obj_game_state",
+          "name": "GameState",
+          "scope": "stage",
           "isVariable": true,
           "isService": true,
           "isHiddenInRun": true,
-          "name": "GameState",
-          "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
@@ -233,8 +231,8 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "isGlobal": true,
           "description": "System internal flag to track unsaved changes"
         }
@@ -257,17 +255,14 @@
         {
           "className": "TButton",
           "id": "obj_start_btn",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
-            "onClick": "StartGameTask"
-          },
           "name": "StartButton",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onClick": "StartGameTask"
+          },
           "visible": true,
           "x": 16,
           "y": 10,
@@ -292,9 +287,6 @@
         {
           "className": "TSprite",
           "id": "obj_paddle1",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "LeftPaddle",
           "scope": "stage",
           "draggable": false,
@@ -325,9 +317,6 @@
         {
           "className": "TSprite",
           "id": "obj_paddle2",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
           "name": "RightPaddle",
           "scope": "stage",
           "draggable": false,
@@ -358,18 +347,15 @@
         {
           "className": "TSprite",
           "id": "obj_ball",
-          "isVariable": false,
-          "isService": false,
-          "isHiddenInRun": false,
-          "events": {
-            "onBoundaryHit": "CheckWallCollisions",
-            "onCollision": "BallHitPaddle"
-          },
           "name": "Ball",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckWallCollisions",
+            "onCollision": "BallHitPaddle"
+          },
           "visible": true,
           "x": 19,
           "y": 14,
@@ -424,34 +410,119 @@
           "name": "CheckWallCollisions",
           "actionSequence": [
             {
-              "type": "condition",
               "condition": {
                 "leftValue": "${hitSide}",
                 "operator": "==",
                 "rightValue": "top"
               },
-              "thenAction": "BounceY"
-            },
-            {
               "type": "condition",
-              "condition": {
-                "leftValue": "${hitSide}",
-                "operator": "==",
-                "rightValue": "bottom"
-              },
-              "thenAction": "BounceY"
+              "body": [
+                {
+                  "name": "BounceY",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "leftValue": "${hitSide}",
+                    "operator": "==",
+                    "rightValue": "bottom"
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "BounceY",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "condition": {
+                        "leftValue": "${hitSide}",
+                        "rightValue": "left"
+                      },
+                      "type": "condition",
+                      "body": [
+                        {
+                          "name": "BounceX",
+                          "type": "action"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "condition": {
+                            "leftValue": "${hitSide}",
+                            "rightValue": "right"
+                          },
+                          "type": "condition",
+                          "body": [
+                            {
+                              "name": "BounceX",
+                              "type": "action"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             }
-          ]
+          ],
+          "params": [],
+          "flowLayout": {
+            "CheckWallCollisions": {
+              "x": 40,
+              "y": 40
+            },
+            "${hitSide} == top": {
+              "x": 40,
+              "y": 140
+            },
+            "BounceY": {
+              "x": 280,
+              "y": 240
+            },
+            "${hitSide} == bottom": {
+              "x": 40,
+              "y": 240
+            },
+            "${hitSide} == left": {
+              "x": 40,
+              "y": 340
+            },
+            "BounceX": {
+              "x": 280,
+              "y": 440
+            },
+            "${hitSide} == right": {
+              "x": 40,
+              "y": 440
+            }
+          }
         },
         {
           "name": "BallHitPaddle",
           "description": "Wenn der Ball kollidiert (z.B. mit dem Paddle), springt er ab.",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "BounceX"
+              "name": "BounceX",
+              "type": "action"
             }
-          ]
+          ],
+          "params": [],
+          "flowLayout": {
+            "BallHitPaddle": {
+              "x": 40,
+              "y": 40
+            },
+            "BounceX": {
+              "x": 40,
+              "y": 140
+            }
+          }
         }
       ],
       "actions": [
@@ -508,7 +579,9 @@
           "target": "Ball",
           "changes": {
             "velocityY": true
-          }
+          },
+          "details": "target: Ball, changes: {velocityY:true}",
+          "showDetails": false
         },
         {
           "id": "act_bounce_x",
@@ -517,7 +590,9 @@
           "target": "Ball",
           "changes": {
             "velocityX": true
-          }
+          },
+          "details": "target: Ball, changes: {velocityX:true}",
+          "showDetails": false
         }
       ],
       "flowCharts": {}

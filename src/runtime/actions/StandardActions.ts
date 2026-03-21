@@ -285,6 +285,20 @@ export function registerStandardActions() {
                     if (context.vars) {
                         context.vars[action.resultVariable] = result;
                     }
+
+                    // FIX: Auch das TVariable-Objekt aktualisieren (identisch zum formula-Pfad)
+                    const varObj = context.objects.find((o: any) =>
+                        (o.name === action.resultVariable || o.id === action.resultVariable) &&
+                        (o.isVariable === true || o.className?.includes('Variable'))
+                    );
+                    if (varObj) {
+                        varObj.value = result;
+                        DebugLogService.getInstance().log('Variable',
+                            `${action.resultVariable}.value changed: ${result}`, {
+                            objectName: action.resultVariable,
+                            flatten: true
+                        });
+                    }
                 }
             } catch (err) {
                 runtimeLogger.error(`Error evaluating calcSteps for "${action.name}":`, err);
@@ -302,6 +316,23 @@ export function registerStandardActions() {
                     context.contextVars[action.resultVariable] = result;
                     if (context.vars) {
                         context.vars[action.resultVariable] = result;
+                    }
+
+                    // FIX: Auch das TVariable-Objekt in context.objects aktualisieren,
+                    // damit der PropertyWatcher das Binding-Update triggert.
+                    // Ohne dies bleibt ReactiveRuntime.variables unverändert und
+                    // Bindings wie ${Countdown} zeigen den alten Wert.
+                    const varObj = context.objects.find((o: any) =>
+                        (o.name === action.resultVariable || o.id === action.resultVariable) &&
+                        (o.isVariable === true || o.className?.includes('Variable'))
+                    );
+                    if (varObj) {
+                        varObj.value = result;
+                        DebugLogService.getInstance().log('Variable',
+                            `${action.resultVariable}.value changed: ${result}`, {
+                            objectName: action.resultVariable,
+                            flatten: true
+                        });
                     }
                 }
             } catch (err) {

@@ -18,6 +18,7 @@ import { runTests as runActionRegistrationTests } from '../tests/action_registra
 import { runTests as runActionCRUDTests } from '../tests/action_crud.test.js';
 import { runTests as runCoordinateTests } from '../src/runtime/CoordinateBinding.test.js';
 import { runTests as runAgentControllerTests } from '../tests/agent_controller.test.js';
+import { runTests as runRocketCountdownTests } from '../tests/rocket_countdown.test.js';
 import { runSyncValidatorTests } from '../tests/sync_validator.test.js';
 import { runSnapshotTests } from '../tests/snapshot_manager.test.js';
 import { runProjectStoreTests } from '../tests/project_store.test.js';
@@ -120,6 +121,10 @@ async function main() {
         // 16. AgentController Tests
         console.log('🏃 Starte AgentController Tests...');
         allResults.push(...await runAgentControllerTests());
+
+        // 17. Raketen-Countdown Demo Tests
+        console.log('🏃 Starte Raketen-Countdown Tests...');
+        allResults.push(...await runRocketCountdownTests());
 
         // 6. Serialization Tests
         console.log('🏃 Starte Serialization Tests...');

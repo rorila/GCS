@@ -107,7 +107,12 @@ export class AnimationManager {
         };
 
         this.activeTweens.push(tween);
-        // console.log(`[AnimationManager.addTween] Added tween, total active: ${this.activeTweens.length}`);
+
+        // Auto-Sleep: GameLoop aufwecken, falls er im Sleep-Zustand ist
+        // Lazy import um zirkuläre Abhängigkeiten zu vermeiden
+        const { GameLoopManager } = require('./GameLoopManager');
+        GameLoopManager.getInstance().wakeUp();
+
         return tween;
     }
 

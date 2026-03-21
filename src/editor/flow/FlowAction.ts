@@ -180,6 +180,24 @@ export class FlowAction extends FlowElement {
         if (action) action.target = v;
     }
 
+    // Direct changes accessor — CRITICAL: Der Inspector ruft
+    // PropertyHelper.getPropertyValue(obj, 'changes') auf und braucht
+    // das Objekt direkt (nicht als JSON-String).
+    public get changes(): Record<string, any> {
+        const action = this.getActionDefinition();
+        return action?.changes || action?.propertyChanges || {};
+    }
+    public set changes(v: Record<string, any>) {
+        const action = this.getActionDefinition();
+        if (action) {
+            if (action.propertyChanges && !action.changes) {
+                action.propertyChanges = v;
+            } else {
+                action.changes = v;
+            }
+        }
+    }
+
     // JSON Helper for 'changes' object
     public get changesJSON(): string {
         const action = this.getActionDefinition();

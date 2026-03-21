@@ -125,8 +125,16 @@ export class FlowSyncManager {
             if ((nodeType === 'action' || nodeType === 'data_action') && node.data && !node.data.isEmbeddedInternal) {
                 const actionName = node.Name || node.data.name || node.data.actionName;
                 if (actionName) {
-                    FlowSyncManager.logger.debug(`[TRACE] syncToProject: Aktualisiere Model-Definition für "${actionName}" (isLinked=${!!node.data.isLinked})`);
-                    this.updateGlobalActionDefinition({ details: (node as any).Details, ...node.data, name: actionName });
+                    // FIX: Verlinkte Actions sind Read-Only Referenzen auf die globale Definition (SSoT).
+                    // Sie dürfen NICHT zurückgeschrieben werden, weil node.data oft nur
+                    // { name, type: 'action', isLinked: true } enthält — OHNE target/changes.
+                    // Das Zurückschreiben würde die korrekte Definition mit leeren Daten überschreiben.
+                    if (node.data.isLinked) {
+                        FlowSyncManager.logger.debug(`[TRACE] syncToProject: SKIP linked action "${actionName}" (SSoT is project.actions).`);
+                    } else {
+                        FlowSyncManager.logger.debug(`[TRACE] syncToProject: Aktualisiere Model-Definition für "${actionName}" (isLinked=${!!node.data.isLinked})`);
+                        this.updateGlobalActionDefinition({ details: (node as any).Details, ...node.data, name: actionName });
+                    }
                 }
             }
 

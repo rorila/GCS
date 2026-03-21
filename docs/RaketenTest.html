@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Raketen-Countdown Demo — Projektplan</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .hero {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(180deg, rgba(255,107,53,0.15) 0%, transparent 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(255,107,53,0.2);
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '🚀';
+            position: absolute;
+            font-size: 120px;
+            opacity: 0.08;
+            top: -10px;
+            right: 30px;
+            transform: rotate(-15deg);
+        }
+        .hero h1 {
+            font-size: 2.4em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff6b35, #f7c948, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+        .hero p {
+            font-size: 1.1em;
+            color: #aaa;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Stage Info */
+        .stage-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .stage-chip {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 14px 24px;
+            text-align: center;
+        }
+        .stage-chip .label { font-size: 0.75em; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .stage-chip .value { font-size: 1.4em; font-weight: 600; color: #f7c948; margin-top: 4px; }
+
+        /* Section */
+        .section {
+            margin-bottom: 36px;
+        }
+        .section-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title .icon { font-size: 1.3em; }
+
+        .section-title.components { border-color: #4ecdc4; color: #4ecdc4; }
+        .section-title.tasks { border-color: #ff6b35; color: #ff6b35; }
+        .section-title.actions { border-color: #a78bfa; color: #a78bfa; }
+        .section-title.workflow { border-color: #f7c948; color: #f7c948; }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        thead th {
+            background: rgba(255,255,255,0.06);
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #999;
+            font-weight: 500;
+        }
+        tbody td {
+            padding: 12px 16px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.92em;
+            vertical-align: top;
+        }
+        tbody tr:hover {
+            background: rgba(255,255,255,0.04);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.82em;
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+        }
+        .badge-sprite { background: rgba(78,205,196,0.15); color: #4ecdc4; border: 1px solid rgba(78,205,196,0.3); }
+        .badge-button { background: rgba(0,120,212,0.15); color: #5bb8ff; border: 1px solid rgba(0,120,212,0.3); }
+        .badge-label { background: rgba(247,201,72,0.15); color: #f7c948; border: 1px solid rgba(247,201,72,0.3); }
+        .badge-timer { background: rgba(76,175,80,0.15); color: #66bb6a; border: 1px solid rgba(76,175,80,0.3); }
+        .badge-variable { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
+        .badge-action { background: rgba(255,107,53,0.15); color: #ff6b35; border: 1px solid rgba(255,107,53,0.3); }
+
+        /* Workflow Diagram */
+        .workflow-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 30px 20px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+        }
+        .flow-step {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 16px 20px;
+            text-align: center;
+            min-width: 140px;
+            transition: transform 0.2s;
+        }
+        .flow-step:hover { transform: translateY(-4px); }
+        .flow-step .step-icon { font-size: 1.8em; margin-bottom: 6px; }
+        .flow-step .step-label { font-size: 0.85em; font-weight: 500; }
+        .flow-step .step-detail { font-size: 0.72em; color: #888; margin-top: 4px; }
+        .flow-arrow { font-size: 1.5em; color: #555; }
+
+        .flow-step.highlight {
+            border-color: rgba(255,107,53,0.4);
+            background: rgba(255,107,53,0.08);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #555;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Hero -->
+        <div class="hero">
+            <h1>Raketen-Countdown Demo</h1>
+            <p>Ein Tutorial-Projekt für Neu-User: Variablentypen, Timer und Events kennenlernen.</p>
+        </div>
+
+        <!-- Stage Info -->
+        <div class="stage-info">
+            <div class="stage-chip">
+                <div class="label">Stage</div>
+                <div class="value">MainStage</div>
+            </div>
+            <div class="stage-chip">
+                <div class="label">Auflösung</div>
+                <div class="value">1280 × 800</div>
+            </div>
+            <div class="stage-chip">
+                <div class="label">Komponenten</div>
+                <div class="value">5</div>
+            </div>
+        </div>
+
+        <!-- Workflow Visualization -->
+        <div class="section">
+            <div class="section-title workflow">
+                <span class="icon">⚡</span> Workflow
+            </div>
+            <div class="workflow-flow">
+                <div class="flow-step">
+                    <div class="step-icon">👆</div>
+                    <div class="step-label">Button klicken</div>
+                    <div class="step-detail">„🚀 Start"</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">
+                    <div class="step-icon">⏱️</div>
+                    <div class="step-label">Timer startet</div>
+                    <div class="step-detail">1s Intervall</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step highlight">
+                    <div class="step-icon">🔢</div>
+                    <div class="step-label">Countdown</div>
+                    <div class="step-detail">10 → 9 → … → 0</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step highlight">
+                    <div class="step-icon">🚀</div>
+                    <div class="step-label">Rakete startet!</div>
+                    <div class="step-detail">velocityY = -5</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Komponenten -->
+        <div class="section">
+            <div class="section-title components">
+                <span class="icon">🧩</span> Komponenten
+            </div>
+            <table>
+                <thead>
+                    <tr><th>#</th><th>Typ</th><th>Name</th><th>Details</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td><span class="badge badge-sprite">TSprite</span></td>
+                        <td><strong>Rakete</strong></td>
+                        <td>Schmales Rechteck (30×80), unten Mitte, <code>velocityY: 0</code> → wird <code>-5</code>. Platzhalter für späteres Image.</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><span class="badge badge-button">TButton</span></td>
+                        <td><strong>StartButton</strong></td>
+                        <td>Beschriftung „🚀 Start", löst den Countdown aus</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><span class="badge badge-label">TLabel</span></td>
+                        <td><strong>CountdownLabel</strong></td>
+                        <td>Binding: <code>${Countdown}</code>, große Schrift, zeigt den aktuellen Zählerstand</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><span class="badge badge-timer">TTimer</span></td>
+                        <td><strong>CountdownTimer</strong></td>
+                        <td><code>interval: 1000ms</code>, <code>maxInterval: 10</code>, <code>enabled: false</code> (startet per Action)</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td><span class="badge badge-variable">TIntegerVariable</span></td>
+                        <td><strong>Countdown</strong></td>
+                        <td>Startwert <code>10</code>, jede Sekunde <code>-1</code>. Global (Blueprint-Stage).</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tasks & Events -->
+        <div class="section">
+            <div class="section-title tasks">
+                <span class="icon">📋</span> Tasks &amp; Events
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Task</th><th>Auslöser</th><th>Was passiert</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>StartCountdown</strong></td>
+                        <td><code>StartButton.onClick</code></td>
+                        <td>Timer starten + Button deaktivieren</td>
+                    </tr>
+                    <tr>
+                        <td><strong>OnTimerTick</strong></td>
+                        <td><code>CountdownTimer.onTimer</code></td>
+                        <td>Countdown -= 1</td>
+                    </tr>
+                    <tr>
+                        <td><strong>OnCountdownFinish</strong></td>
+                        <td><code>CountdownTimer.onMaxIntervalReached</code></td>
+                        <td>Rakete velocityY = -5 (Flug startet)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Actions -->
+        <div class="section">
+            <div class="section-title actions">
+                <span class="icon">⚙️</span> Actions (Blueprint-Stage)
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Action</th><th>Typ</th><th>Parameter</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-action">TimerStarten</span></td>
+                        <td><code>call_method</code></td>
+                        <td>target: <code>CountdownTimer</code>, method: <code>timerStart</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-action">ButtonDeaktivieren</span></td>
+                        <td><code>set_property</code></td>
+                        <td>target: <code>StartButton</code>, property: <code>enabled</code>, value: <code>false</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-action">CountdownReduzieren</span></td>
+                        <td><code>set_property</code></td>
+                        <td>target: <code>Countdown</code>, property: <code>value</code>, value: <code>${Countdown} - 1</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-action">RaketeStarten</span></td>
+                        <td><code>set_property</code></td>
+                        <td>target: <code>Rakete</code>, property: <code>velocityY</code>, value: <code>-5</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            GCS Game Builder · Raketen-Countdown Demo Projektplan · 2026
+        </div>
+
+    </div>
+</body>
+</html>

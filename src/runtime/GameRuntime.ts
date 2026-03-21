@@ -634,6 +634,10 @@ export class GameRuntime implements IVariableHost {
                 this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
             }
         } finally {
+            // Auto-Sleep: GameLoop aufwecken, falls Event zu Aktivität geführt hat
+            // (z.B. PhysikAktivieren setzt spritesMoving=true, Countdown startet Animationen)
+            GameLoopManager.getInstance().wakeUp();
+
             if (eventLogId) {
                 DebugLogService.getInstance().popContext();
             }

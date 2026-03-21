@@ -315,8 +315,13 @@ export class InspectorRenderer {
             row.style.flexDirection = 'column';
             row.style.gap = '2px';
 
-            const label = this.renderLabel(param.label);
-            row.appendChild(label);
+            // Label: Nicht für Key-Value-Editor rendern (dort hat der Container einen eigenen Header)
+            const isKeyValueParam = ['property', 'negate', 'increment', 'decrement', 'toggle'].includes(type)
+                && param.name === 'changes';
+            if (!isKeyValueParam) {
+                const label = this.renderLabel(param.label);
+                row.appendChild(label);
+            }
 
             let input: HTMLElement | null = null;
             const currentValue = PropertyHelper.getPropertyValue(selectedObject, param.name) ?? (param.defaultValue || '');
@@ -455,6 +460,12 @@ export class InspectorRenderer {
                             kvContainer.style.backgroundColor = '#1a1a2e';
                             kvContainer.style.borderRadius = '6px';
                             kvContainer.style.border = '1px solid #333';
+
+                            // Header
+                            const kvHeader = document.createElement('div');
+                            kvHeader.style.cssText = 'font-size:11px;color:#4da6ff;font-weight:bold;margin-bottom:2px;';
+                            kvHeader.textContent = 'Eigenschafts-Änderungen';
+                            kvContainer.appendChild(kvHeader);
 
                             const entries = Object.entries(changesObj);
 

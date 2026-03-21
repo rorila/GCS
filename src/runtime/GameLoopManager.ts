@@ -17,7 +17,7 @@ import { TWindow } from '../components/TWindow';
 import { GridConfig } from '../model/types';
 import { AnimationManager } from './AnimationManager';
 
-export type GameLoopState = 'stopped' | 'running' | 'paused';
+export type GameLoopState = 'stopped' | 'running' | 'paused' | 'sleeping';
 
 export class GameLoopManager {
     private static instance: GameLoopManager | null = null;
@@ -50,6 +50,10 @@ export class GameLoopManager {
     private collidedThisFrame: Set<string> = new Set();
     private readonly COLLISION_COOLDOWN_MS = 200;
     private readonly BOUNDARY_COOLDOWN_MS = 500;
+
+    // Auto-Sleep: Nach N aufeinanderfolgenden Idle-Frames wird der rAF-Loop gestoppt
+    private idleFrameCount: number = 0;
+    private readonly IDLE_THRESHOLD = 3;
 
     private constructor() {
         // Private constructor for singleton
@@ -141,7 +145,7 @@ export class GameLoopManager {
 
         this.state = 'running';
         this.lastTime = performance.now();
-
+        this.idleFrameCount = 0;
 
         this.loop();
     }
@@ -201,10 +205,25 @@ export class GameLoopManager {
     }
 
     /**
-     * Check if running
+     * Check if running (includes sleeping state — loop is initialized but idle)
      */
     public isRunning(): boolean {
-        return this.state === 'running';
+        return this.state === 'running' || this.state === 'sleeping';
+    }
+
+    /**
+     * Weckt den Loop aus dem Sleep-Zustand auf.
+     * Wird aufgerufen wenn Events eintreten, Animationen starten
+     * oder spritesMoving auf true wechselt.
+     */
+    public wakeUp(): void {
+        if (this.state === 'sleeping') {
+            this.state = 'running';
+            this.lastTime = performance.now();
+            this.idleFrameCount = 0;
+            console.log(`[GameLoopManager] Woke up from sleep`);
+            this.loop();
+        }
     }
 
     /**
@@ -238,6 +257,8 @@ export class GameLoopManager {
         const needsUpdate = hasActiveAnimations || hasMovingSprites;
 
         if (needsUpdate) {
+            this.idleFrameCount = 0;
+
             // Update all sprites
             this.updateSprites(deltaTime, spritesMoving);
 
@@ -261,9 +282,20 @@ export class GameLoopManager {
             } else if (this.renderCallback) {
                 this.renderCallback();
             }
+        } else {
+            // Idle-Frame: Nichts zu tun
+            this.idleFrameCount++;
+
+            // Auto-Sleep: Nach IDLE_THRESHOLD aufeinanderfolgenden Idle-Frames
+            // den rAF-Loop stoppen um CPU/Batterie zu sparen
+            if (this.idleFrameCount >= this.IDLE_THRESHOLD) {
+                this.state = 'sleeping';
+                console.log(`[GameLoopManager] Entering sleep (${this.idleFrameCount} idle frames)`);
+                return; // Kein requestAnimationFrame → Loop stoppt
+            }
         }
 
-        // Schedule next frame - always continue the loop to catch new activity
+        // Schedule next frame — nur wenn noch running (nicht sleeping)
         this.animationFrameId = requestAnimationFrame(this.loop);
     }
 

@@ -1,0 +1,420 @@
+{
+  "version": "3.9.1",
+  "meta": {
+    "id": "demo_raketen_countdown",
+    "name": "Raketen Countdown",
+    "version": "1.0.0",
+    "author": "AgentController",
+    "description": "Tutorial-Demo: Variablentypen, Timer und Events. Button drücken → Countdown 10→0 → Rakete startet.",
+    "_sourcePath": "projects/Raketen_Countdown.json"
+  },
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#1e1e2e"
+      },
+      "objects": [
+        {
+          "className": "TGameLoop",
+          "id": "obj_game_loop",
+          "name": "GameLoop",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "boundsOffsetTop": 0,
+          "boundsOffsetBottom": 0
+        },
+        {
+          "className": "TGameState",
+          "id": "obj_game_state",
+          "name": "GameState",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 2,
+          "width": 4,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#4caf50",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "state": "idle",
+          "spritesMoving": false,
+          "collisionsEnabled": false
+        }
+      ],
+      "tasks": [],
+      "actions": [
+        {
+          "id": "act_enable_physics",
+          "name": "PhysikAktivieren",
+          "type": "property",
+          "target": "GameState",
+          "changes": {
+            "spritesMoving": true
+          }
+        },
+        {
+          "id": "act_set_state_playing",
+          "name": "SpielStarten",
+          "type": "property",
+          "target": "GameState",
+          "changes": {
+            "state": "playing"
+          }
+        }
+      ],
+      "flowCharts": {},
+      "variables": [
+        {
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "isGlobal": true,
+          "description": "System internal flag to track unsaved changes",
+          "uiScope": "stage",
+          "uiEmoji": "🎭",
+          "usageCount": 0
+        }
+      ]
+    },
+    {
+      "id": "stage_main",
+      "name": "MainStage",
+      "type": "main",
+      "gameName": "Raketen Countdown",
+      "backgroundColor": "#0f0c29",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#0f0c29"
+      },
+      "objects": [
+        {
+          "className": "TSprite",
+          "id": "obj_rakete",
+          "name": "Rakete",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 31,
+          "y": 34,
+          "width": 2,
+          "height": 4,
+          "zIndex": 10,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b35",
+            "borderColor": "#ff4500",
+            "borderWidth": 2
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0,
+          "collisionEnabled": false,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b35",
+          "backgroundImage": "",
+          "objectFit": "contain"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_start_btn",
+          "name": "StartButton",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "StartCountdown"
+          },
+          "visible": true,
+          "x": 27,
+          "y": 2,
+          "width": 10,
+          "height": 2,
+          "zIndex": 5,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 16,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#0078d4",
+            "borderColor": "#005a9e",
+            "borderWidth": 1,
+            "borderRadius": 8
+          },
+          "text": "🚀 Start",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_countdown_label",
+          "name": "CountdownLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 29,
+          "y": 18,
+          "width": 6,
+          "height": 4,
+          "zIndex": 5,
+          "align": "NONE",
+          "style": {
+            "color": "#f7c948",
+            "fontSize": 72,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "${Countdown}"
+        },
+        {
+          "className": "TTimer",
+          "id": "obj_countdown_timer",
+          "name": "CountdownTimer",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "OnTimerTick",
+            "onMaxIntervalReached": "OnCountdownFinish"
+          },
+          "visible": true,
+          "x": 9.050338058057125,
+          "y": 1.200221674258442,
+          "width": 5.9495,
+          "height": 1.749795,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 1000,
+          "enabled": false,
+          "maxInterval": 10,
+          "currentInterval": 0
+        }
+      ],
+      "tasks": [
+        {
+          "name": "StartCountdown",
+          "description": "Timer starten und Button deaktivieren",
+          "actionSequence": [
+            {
+              "name": "SpielStarten",
+              "type": "action"
+            },
+            {
+              "name": "TimerStarten",
+              "type": "action"
+            },
+            {
+              "name": "ButtonDeaktivieren",
+              "type": "action"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "StartCountdown": {
+              "x": 40,
+              "y": 40
+            },
+            "SpielStarten": {
+              "x": 40,
+              "y": 140
+            },
+            "TimerStarten": {
+              "x": 40,
+              "y": 240
+            },
+            "ButtonDeaktivieren": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        },
+        {
+          "name": "OnTimerTick",
+          "description": "Countdown um 1 reduzieren",
+          "actionSequence": [
+            {
+              "name": "CountdownReduzieren",
+              "type": "action"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "OnTimerTick": {
+              "x": 40,
+              "y": 40
+            },
+            "CountdownReduzieren": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "OnCountdownFinish",
+          "description": "Rakete starten",
+          "actionSequence": [
+            {
+              "name": "PhysikAktivieren",
+              "type": "action"
+            },
+            {
+              "name": "RaketeStarten",
+              "type": "action"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "OnCountdownFinish": {
+              "x": 40,
+              "y": 40
+            },
+            "PhysikAktivieren": {
+              "x": 40,
+              "y": 140
+            },
+            "RaketeStarten": {
+              "x": 40,
+              "y": 240
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "act_timer_start",
+          "name": "TimerStarten",
+          "type": "call_method",
+          "target": "CountdownTimer",
+          "method": "timerStart"
+        },
+        {
+          "id": "act_button_disable",
+          "name": "ButtonDeaktivieren",
+          "type": "property",
+          "target": "StartButton",
+          "changes": {
+            "enabled": false
+          }
+        },
+        {
+          "id": "act_countdown_dec",
+          "name": "CountdownReduzieren",
+          "type": "calculate",
+          "formula": "Countdown - 1",
+          "resultVariable": "Countdown"
+        },
+        {
+          "id": "act_rocket_launch",
+          "name": "RaketeStarten",
+          "type": "property",
+          "target": "Rakete",
+          "changes": {
+            "velocityY": -5
+          }
+        }
+      ],
+      "variables": [
+        {
+          "className": "TIntegerVariable",
+          "id": "var_countdown",
+          "name": "Countdown",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2.2499566592234457,
+          "y": 1.1008035691868525,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 10,
+          "value": 10,
+          "objectModel": ""
+        }
+      ],
+      "flowCharts": {}
+    }
+  ],
+  "tasks": [],
+  "actions": [],
+  "objects": [],
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "activeStageId": "stage_blueprint"
+}
