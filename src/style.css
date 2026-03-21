@@ -547,6 +547,13 @@ h2 {
   box-shadow: 0 8px 32px 0 rgba(100, 50, 0, 0.6) !important;
 }
 
+/* Blue/Indigo Glass (Global Action — from Blueprint) */
+.glass-node-action-global {
+  background: rgba(63, 81, 181, 0.45) !important;
+  border-color: rgba(63, 81, 181, 0.8) !important;
+  box-shadow: 0 8px 32px 0 rgba(30, 40, 90, 0.6) !important;
+}
+
 /* Purple Glass (Condition) */
 .glass-node-condition {
   background: rgba(74, 20, 140, 0.45) !important;
@@ -597,6 +604,10 @@ h2 {
 
 .glass-node-action::before {
   border-color: rgba(210, 105, 30, 0.4);
+}
+
+.glass-node-action-global::before {
+  border-color: rgba(63, 81, 181, 0.4);
 }
 
 .glass-node-condition::before {

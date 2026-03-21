@@ -256,7 +256,9 @@
           "actionSequence": [
             {
               "type": "action",
-              "name": "SpielStarten"
+              "name": "SpielStarten",
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
             },
             {
               "type": "action",
@@ -284,7 +286,9 @@
           "actionSequence": [
             {
               "type": "action",
-              "name": "PhysikAktivieren"
+              "name": "PhysikAktivieren",
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
             },
             {
               "type": "action",

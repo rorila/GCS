@@ -309,6 +309,29 @@ export class InspectorRenderer {
         container.style.gap = '8px';
         container.style.marginTop = '4px';
 
+        // Badge für globale Actions (aus Blueprint-Stage)
+        // Robuste Erkennung: Prüfe ob Action in der aktuellen Stage definiert ist
+        const actionName = selectedObject.Name || selectedObject.name || selectedObject.data?.name;
+        if (actionName) {
+            const project = projectRegistry.getProject();
+            if (project) {
+                const activeStage = project.stages?.find((s: any) => s.id === project.activeStageId);
+                const inActiveStage = activeStage && (activeStage.actions || []).some(
+                    (a: any) => a.name === actionName
+                );
+                const blueprintStage = project.stages?.find((s: any) => s.type === 'blueprint');
+                const inBlueprint = blueprintStage && (blueprintStage.actions || []).some(
+                    (a: any) => a.name === actionName
+                );
+                if (!inActiveStage && inBlueprint && activeStage?.type !== 'blueprint') {
+                    const badge = document.createElement('div');
+                    badge.textContent = `🌐 Globale Action (${blueprintStage!.name || 'Blueprint'})`;
+                    badge.style.cssText = 'background:rgba(63,81,181,0.3);color:#8c9eff;padding:4px 8px;border-radius:4px;font-size:11px;border:1px solid rgba(63,81,181,0.5);margin-bottom:4px';
+                    container.appendChild(badge);
+                }
+            }
+        }
+
         meta.parameters.forEach((param: any) => {
             const row = document.createElement('div');
             row.style.display = 'flex';
@@ -461,11 +484,8 @@ export class InspectorRenderer {
                             kvContainer.style.borderRadius = '6px';
                             kvContainer.style.border = '1px solid #333';
 
-                            // Header
-                            const kvHeader = document.createElement('div');
-                            kvHeader.style.cssText = 'font-size:11px;color:#4da6ff;font-weight:bold;margin-bottom:2px;';
-                            kvHeader.textContent = 'Eigenschafts-Änderungen';
-                            kvContainer.appendChild(kvHeader);
+                            // Header wird bereits von InspectorHost.ts gerendert (propDef.label)
+                            // Kein zusätzlicher Header nötig
 
                             const entries = Object.entries(changesObj);
 

@@ -390,12 +390,32 @@ export class InspectorHost {
             return container;
         }
 
+        // Info-Typ: Reines Anzeige-Element (z.B. Badge für globale Actions)
+        if (propDef.type === 'info') {
+            container.style.display = 'block';
+            const info = document.createElement('div');
+            info.textContent = propDef.label || '';
+            // Custom Style oder Fallback
+            if (propDef.style) {
+                info.style.cssText = Object.entries(propDef.style)
+                    .map(([k, v]) => `${k.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}:${v}`)
+                    .join(';');
+            } else {
+                info.style.cssText = 'font-size:11px;color:#8c9eff;padding:4px 8px;border-radius:4px;background:rgba(63,81,181,0.3);border:1px solid rgba(63,81,181,0.5)';
+            }
+            container.appendChild(info);
+            return container;
+        }
+
         // Label (links, Breite abhängig von inline-Flag)
         if (propDef.label) {
             const label = this.renderer.renderLabel(propDef.label);
             label.style.marginBottom = '0';
             label.style.flexShrink = '0';
-            if (isInline) {
+            if (propDef.type === 'keyvalue') {
+                // keyvalue: Label als Header in voller Breite (kein Truncation)
+                label.style.whiteSpace = 'normal';
+            } else if (isInline) {
                 // Inline: Label nur so breit wie nötig
                 label.style.whiteSpace = 'nowrap';
             } else {
@@ -539,11 +559,8 @@ export class InspectorHost {
             container.style.display = 'block'; // Volle Breite, kein inline
             container.style.marginBottom = '8px';
 
-            // Header mit Label
-            const headerLabel = document.createElement('div');
-            headerLabel.style.cssText = 'font-size:11px;color:#aaa;margin-bottom:6px;font-weight:bold;';
-            headerLabel.textContent = propDef.label || 'Eigenschafts-Änderungen';
-            container.appendChild(headerLabel);
+            // Header: Label wird bereits von der Section-Property-Iteration gerendert,
+            // daher hier KEINEN zusätzlichen Header setzen.
 
             // Hint
             if (propDef.hint) {

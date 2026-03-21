@@ -257,7 +257,9 @@
           "actionSequence": [
             {
               "name": "SpielStarten",
-              "type": "action"
+              "type": "action",
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
             },
             {
               "name": "TimerStarten",
@@ -293,50 +295,26 @@
           "description": "Countdown um 1 reduzieren",
           "actionSequence": [
             {
-              "name": "CountdownReduzieren",
-              "type": "action"
+              "type": "action",
+              "name": "CountdownReduzieren"
             }
-          ],
-          "params": [],
-          "flowLayout": {
-            "OnTimerTick": {
-              "x": 40,
-              "y": 40
-            },
-            "CountdownReduzieren": {
-              "x": 40,
-              "y": 140
-            }
-          }
+          ]
         },
         {
           "name": "OnCountdownFinish",
           "description": "Rakete starten",
           "actionSequence": [
             {
+              "type": "action",
               "name": "PhysikAktivieren",
-              "type": "action"
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
             },
             {
-              "name": "RaketeStarten",
-              "type": "action"
+              "type": "action",
+              "name": "RaketeStarten"
             }
-          ],
-          "params": [],
-          "flowLayout": {
-            "OnCountdownFinish": {
-              "x": 40,
-              "y": 40
-            },
-            "PhysikAktivieren": {
-              "x": 40,
-              "y": 140
-            },
-            "RaketeStarten": {
-              "x": 40,
-              "y": 240
-            }
-          }
+          ]
         }
       ],
       "actions": [

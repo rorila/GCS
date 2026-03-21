@@ -25,7 +25,11 @@ export class FlowAction extends FlowElement {
 
     private applyActionStyling() {
         // Clear and apply modern glass classes
-        this.element.classList.add('flow-element', 'flow-node-glass', 'glass-node-action');
+        // Dynamic: Global actions (from Blueprint) get blue, local actions get orange
+        const isGlobal = this.data?.scope === 'global';
+        const actionClass = isGlobal ? 'glass-node-action-global' : 'glass-node-action';
+        this.element.classList.remove('glass-node-action', 'glass-node-action-global');
+        this.element.classList.add('flow-element', 'flow-node-glass', actionClass);
 
         // Dimensions: 8 columns wide, 3 rows high (Standard)
         this.width = this.gridSize * 8;
@@ -100,6 +104,73 @@ export class FlowAction extends FlowElement {
         if (project && this.showDetails) {
             this.setShowDetails(true, project);
         }
+        // Update global action styling now that we have the project context
+        this.detectAndApplyGlobalScope();
+    }
+
+    /**
+     * Erkennt ob diese Action aus der Blueprint-Stage kommt und
+     * setzt scope/sourceStage + aktualisiert das visuelle Styling.
+     */
+    private detectAndApplyGlobalScope(): void {
+        if (!this.projectRef || !this.Name) return;
+
+        // Finde die aktive Stage (nicht-Blueprint)
+        const activeStage = this.projectRef.stages?.find(
+            (s: any) => s.id === this.projectRef!.activeStageId
+        );
+        if (!activeStage || activeStage.type === 'blueprint') return;
+
+        // Prüfe ob die Action in der aktiven Stage definiert ist
+        const inActiveStage = (activeStage.actions || []).some(
+            (a: any) => a.name === this.Name || a.id === this.Name
+        );
+
+        if (!inActiveStage) {
+            // Action ist NICHT in der aktiven Stage → muss aus Blueprint kommen
+            const blueprintStage = this.projectRef.stages?.find(
+                (s: any) => s.type === 'blueprint'
+            );
+            const inBlueprint = blueprintStage && (blueprintStage.actions || []).some(
+                (a: any) => a.name === this.Name || a.id === this.Name
+            );
+
+            if (inBlueprint && this.data) {
+                this.data.scope = 'global';
+                this.data.sourceStage = blueprintStage!.id;
+                // Styling aktualisieren (Orange → Blau)
+                this.applyActionStyling();
+            }
+        }
+    }
+
+    /**
+     * Prüft ob diese Action eine globale Action aus der Blueprint-Stage ist.
+     * Wird für das Inspector-Badge und CSS-Styling verwendet.
+     */
+    public isGlobalAction(): boolean {
+        // Schneller Check: data.scope bereits gesetzt
+        if (this.data?.scope === 'global') return true;
+
+        // Fallback: Live-Check über projectRef
+        if (!this.projectRef || !this.Name) return false;
+
+        const activeStage = this.projectRef.stages?.find(
+            (s: any) => s.id === this.projectRef!.activeStageId
+        );
+        if (!activeStage || activeStage.type === 'blueprint') return false;
+
+        const inActiveStage = (activeStage.actions || []).some(
+            (a: any) => a.name === this.Name
+        );
+        if (inActiveStage) return false;
+
+        const blueprintStage = this.projectRef.stages?.find(
+            (s: any) => s.type === 'blueprint'
+        );
+        return !!blueprintStage && (blueprintStage.actions || []).some(
+            (a: any) => a.name === this.Name
+        );
     }
 
     public getAnchorPosition(type: 'input' | 'output' | 'true' | 'false' | 'success' | 'error' | 'top' | 'bottom'): { x: number, y: number } {
@@ -136,6 +207,7 @@ export class FlowAction extends FlowElement {
                 this.data.name = action.name;
                 console.log(`[FLOW-TRACE] Action "${this.Name}" is now LINKED.`);
             }
+            // Scope-Erkennung: Wird bei Bedarf in detectAndApplyGlobalScope() gesetzt
             return action;
         }
 
@@ -463,9 +535,29 @@ export class FlowAction extends FlowElement {
         const sections: InspectorSection[] = [];
 
         // --- Sektion 1: Allgemein (immer sichtbar) ---
-        const allgemeinProps: any[] = [
+        const allgemeinProps: any[] = [];
+
+        // Badge für globale Actions (aus Blueprint-Stage)
+        if (this.isGlobalAction()) {
+            allgemeinProps.push({
+                name: '_globalBadge',
+                label: '🌐 Globale Action (Blueprint)',
+                type: 'info',
+                style: {
+                    background: 'rgba(63,81,181,0.3)',
+                    color: '#8c9eff',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    border: '1px solid rgba(63,81,181,0.5)',
+                    marginBottom: '4px'
+                }
+            });
+        }
+
+        allgemeinProps.push(
             { name: 'Name', label: 'Action Name', type: 'string', readonly: isInternal }
-        ];
+        );
         if (!isInternal) {
             allgemeinProps.push({
                 name: 'type',
@@ -864,13 +956,19 @@ export class FlowAction extends FlowElement {
         // SINGLE SOURCE OF TRUTH: If this action is linked to project.actions,
         // only store the reference, not the full data copy
         if (this.data?.isLinked) {
+            const linkedData: any = {
+                name: this.Name, // Match current Name (SSoT)
+                type: this.type, // Match current Type (SSoT)
+                isLinked: true
+            };
+            // Scope-Kennzeichnung persistieren (globale Actions aus Blueprint)
+            if (this.data.scope === 'global') {
+                linkedData.scope = 'global';
+                linkedData.sourceStage = this.data.sourceStage || 'stage_blueprint';
+            }
             return {
                 ...base,
-                data: {
-                    name: this.Name, // Match current Name (SSoT)
-                    type: this.type, // Match current Type (SSoT)
-                    isLinked: true
-                }
+                data: linkedData
             };
         }
 

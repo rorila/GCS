@@ -115,118 +115,8 @@
           "collisionsEnabled": false
         }
       ],
-      "tasks": [
-        {
-          "name": "MoveP1Up",
-          "actionSequence": [
-            {
-              "type": "action",
-              "name": "SetP1Up"
-            }
-          ]
-        },
-        {
-          "name": "MoveP1Down",
-          "actionSequence": [
-            {
-              "type": "action",
-              "name": "SetP1Down"
-            }
-          ]
-        },
-        {
-          "name": "StopP1",
-          "actionSequence": [
-            {
-              "type": "action",
-              "name": "SetP1Stop"
-            }
-          ]
-        },
-        {
-          "name": "MoveP2Up",
-          "actionSequence": [
-            {
-              "type": "action",
-              "name": "SetP2Up"
-            }
-          ]
-        },
-        {
-          "name": "MoveP2Down",
-          "actionSequence": [
-            {
-              "type": "action",
-              "name": "SetP2Down"
-            }
-          ]
-        },
-        {
-          "name": "StopP2",
-          "actionSequence": [
-            {
-              "type": "action",
-              "name": "SetP2Stop"
-            }
-          ]
-        }
-      ],
-      "actions": [
-        {
-          "id": "act_p1_up",
-          "name": "SetP1Up",
-          "type": "property",
-          "target": "LeftPaddle",
-          "changes": {
-            "velocityY": -0.5
-          }
-        },
-        {
-          "id": "act_p1_down",
-          "name": "SetP1Down",
-          "type": "property",
-          "target": "LeftPaddle",
-          "changes": {
-            "velocityY": 0.5
-          }
-        },
-        {
-          "id": "act_p1_stop",
-          "name": "SetP1Stop",
-          "type": "property",
-          "target": "LeftPaddle",
-          "changes": {
-            "velocityY": 0
-          }
-        },
-        {
-          "id": "act_p2_up",
-          "name": "SetP2Up",
-          "type": "property",
-          "target": "RightPaddle",
-          "changes": {
-            "velocityY": -0.5
-          }
-        },
-        {
-          "id": "act_p2_down",
-          "name": "SetP2Down",
-          "type": "property",
-          "target": "RightPaddle",
-          "changes": {
-            "velocityY": 0.5
-          }
-        },
-        {
-          "id": "act_p2_stop",
-          "name": "SetP2Stop",
-          "type": "property",
-          "target": "RightPaddle",
-          "changes": {
-            "velocityY": 0
-          }
-        }
-      ],
+      "tasks": [],
+      "actions": [],
       "flowCharts": {},
       "variables": [
         {
@@ -395,6 +285,60 @@
       ],
       "tasks": [
         {
+          "name": "MoveP1Up",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP1Up"
+            }
+          ]
+        },
+        {
+          "name": "MoveP1Down",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP1Down"
+            }
+          ]
+        },
+        {
+          "name": "StopP1",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP1Stop"
+            }
+          ]
+        },
+        {
+          "name": "MoveP2Up",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP2Up"
+            }
+          ]
+        },
+        {
+          "name": "MoveP2Down",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP2Down"
+            }
+          ]
+        },
+        {
+          "name": "StopP2",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP2Stop"
+            }
+          ]
+        },
+        {
           "name": "StartGameTask",
           "description": "Wird durch den StartButton getriggert.",
           "actionSequence": [
@@ -540,6 +484,60 @@
         }
       ],
       "actions": [
+        {
+          "id": "act_p1_up",
+          "name": "SetP1Up",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": -0.5
+          }
+        },
+        {
+          "id": "act_p1_down",
+          "name": "SetP1Down",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0.5
+          }
+        },
+        {
+          "id": "act_p1_stop",
+          "name": "SetP1Stop",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0
+          }
+        },
+        {
+          "id": "act_p2_up",
+          "name": "SetP2Up",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": -0.5
+          }
+        },
+        {
+          "id": "act_p2_down",
+          "name": "SetP2Down",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0.5
+          }
+        },
+        {
+          "id": "act_p2_stop",
+          "name": "SetP2Stop",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0
+          }
+        },
         {
           "id": "act_set_state",
           "name": "SetStatePlaying",
