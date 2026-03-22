@@ -42,19 +42,22 @@ Eine saubere, dokumentierte API bereitstellen, über die KI-Agenten Spiele erste
         3. Projekt ist erstellt, validiert, mit FlowCharts
   ```
 
-## Phase 2: AgentController erweitern (Prio: HOCH)
-- [ ] **Fehlende CRUD-Methoden**
+## Phase 2: AgentController erweitern (Prio: HOCH) ✅
+- [x] **Fehlende CRUD-Methoden**
   - `addTaskCall(taskName, calledTaskName)` — Task-Referenz in Sequenz
   - `setTaskTriggerMode(taskName, mode)` — broadcast, local-sync etc.
   - `addTaskParam(taskName, paramName, type, defaultValue)` — Task-Parameter
   - `duplicateTask(taskName, newName)` — Task klonen
   - `moveActionInSequence(taskName, fromIndex, toIndex)` — Reihenfolge ändern
-- [ ] **Sprite-spezifische Hilfsmethoden**
+- [x] **Sprite-spezifische Hilfsmethoden**
   - `createSprite(stageId, name, x, y, w, h, options)` — Shortcut für TSprite
   - `createLabel(stageId, name, x, y, text, options)` — Shortcut für TLabel
   - `setSpriteCollision(stageId, spriteName, enabled, group)`
   - `setSpriteVelocity(stageId, spriteName, vx, vy)`
-- [ ] **Validierungsschicht**
+- [x] **Schema-API**
+  - `getComponentSchema(className)` — Schema aus ComponentSchema.json
+  - `setComponentSchema(schema)` — Schema laden (ESM-kompatibel)
+- [ ] **Validierungsschicht** (verschoben auf Phase 3)
   - Jede Methode prüft Invarianten BEVOR Änderungen durchgeführt werden
   - Fehler werden als strukturierte Objekte zurückgegeben (nicht nur Strings)
   - Zirkuläre Task-Referenzen erkennen

@@ -170,6 +170,58 @@ agent.executeBatch([
 
 ---
 
+## Sprite-Shortcuts (Phase 2)
+
+### createSprite(stageId, name, x, y, width, height, opts?)
+Erstellt ein TSprite mit Physik-Defaults.
+```typescript
+agent.createSprite('stage_main', 'Ball', 32, 20, 2, 2, {
+  velocityX: 4, velocityY: 3, shape: 'circle',
+  spriteColor: '#ffeb3b', collisionGroup: 'ball'
+});
+```
+Opts: `velocityX`, `velocityY`, `collisionEnabled`, `collisionGroup`, `shape`, `spriteColor`, `backgroundImage`, `objectFit`, `lerpSpeed`, `style`
+
+### createLabel(stageId, name, x, y, text, opts?)
+Erstellt ein TLabel mit optionalem Variable-Binding.
+```typescript
+agent.createLabel('stage_main', 'ScoreLabel', 20, 1, '${scoreLeft}', {
+  fontSize: 32, fontWeight: 'bold', color: '#f7c948', width: 10, height: 3
+});
+```
+Opts: `fontSize`, `fontWeight`, `color`, `textAlign`, `backgroundColor`, `width`, `height`, `style`
+
+### setSpriteCollision(stageId, name, enabled, group?)
+```typescript
+agent.setSpriteCollision('stage_main', 'Ball', true, 'ball');
+```
+
+### setSpriteVelocity(stageId, name, velocityX, velocityY)
+```typescript
+agent.setSpriteVelocity('stage_main', 'Ball', 5, -3);
+```
+
+---
+
+## Schema-API
+
+### getComponentSchema(className)
+Gibt Properties, Methods, Events einer Komponente zurück.
+```typescript
+const schema = agent.getComponentSchema('TTimer');
+// → { className, description, properties, methods, events, warnings, example }
+```
+
+### AgentController.setComponentSchema(schema)
+Lädt das Schema (aus `docs/ComponentSchema.json`). Muss vor `getComponentSchema()` aufgerufen werden.
+```typescript
+import fs from 'fs';
+const schema = JSON.parse(fs.readFileSync('docs/ComponentSchema.json', 'utf-8'));
+AgentController.setComponentSchema(schema);
+```
+
+---
+
 ## ⚠️ DO / DON'T (Lessons Learned)
 
 | ❌ DON'T | ✅ DO |

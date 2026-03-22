@@ -1,3 +1,19 @@
+## [3.25.0] - 2026-03-22
+### Added (API-Realisierung Phase 2)
+- **Sprite-Shortcuts** (`AgentController.ts`):
+  - `createSprite()` — TSprite mit Physik-Defaults (velocity, collision, shape)
+  - `createLabel()` — TLabel mit Binding + Style-Shortcuts
+  - `setSpriteCollision()` — Kollisions-Konfiguration
+  - `setSpriteVelocity()` — Geschwindigkeit setzen
+- **Schema-API** (`AgentController.ts`):
+  - `getComponentSchema(className)` — Properties, Methods, Events aus ComponentSchema.json
+  - `setComponentSchema(schema)` — Schema laden (ESM-kompatibel)
+- **Tests** (`agent_controller.test.ts`): 7 neue Tests (Phase 2 Sprite-Shortcuts + Schema)
+- **Doku** (`AgentAPI.md`): Sprite-Shortcuts und Schema-API Sektionen hinzugefügt
+
+### Fixed
+- **Flow-Editor** (`FlowAction.ts`): navigate_stage zeigt jetzt Stage-Name statt roher ID
+
 ## [3.24.0] - 2026-03-22
 ### Added (Stage-Import)
 - **`EditorStageManager.importStageFromProject()`** (`EditorStageManager.ts`):

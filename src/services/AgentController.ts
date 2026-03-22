@@ -916,6 +916,131 @@ export class AgentController {
     }
 
     // ─────────────────────────────────────────────
+    // 8b. Sprite-Shortcuts & Schema
+    // ─────────────────────────────────────────────
+
+    /**
+     * Erstellt ein TSprite-Objekt mit Physik-Defaults.
+     * @param opts - Optionale Properties: velocityX, velocityY, collisionEnabled, collisionGroup, shape, spriteColor, backgroundImage, objectFit
+     */
+    public createSprite(stageId: string, name: string, x: number, y: number, width: number, height: number, opts: Record<string, any> = {}): void {
+        const spriteData: any = {
+            className: 'TSprite',
+            name,
+            x, y, width, height,
+            velocityX: opts.velocityX ?? 0,
+            velocityY: opts.velocityY ?? 0,
+            collisionEnabled: opts.collisionEnabled ?? true,
+            collisionGroup: opts.collisionGroup ?? 'default',
+            shape: opts.shape ?? 'rect',
+            spriteColor: opts.spriteColor ?? '#ff6b6b',
+            style: {
+                backgroundColor: opts.spriteColor ?? opts.style?.backgroundColor ?? '#ff6b6b',
+                borderColor: opts.style?.borderColor ?? '#333',
+                borderWidth: opts.style?.borderWidth ?? 1,
+                borderRadius: opts.shape === 'circle' ? 999 : (opts.style?.borderRadius ?? 0),
+                ...(opts.style || {})
+            }
+        };
+        // Zusätzliche Properties übernehmen
+        if (opts.backgroundImage) spriteData.backgroundImage = opts.backgroundImage;
+        if (opts.objectFit) spriteData.objectFit = opts.objectFit;
+        if (opts.lerpSpeed !== undefined) spriteData.lerpSpeed = opts.lerpSpeed;
+
+        this.addObject(stageId, spriteData);
+        AgentController.logger.info(`Sprite '${name}' created in '${stageId}' at (${x},${y}) ${width}×${height}`);
+    }
+
+    /**
+     * Erstellt ein TLabel-Objekt mit optionalem Variable-Binding.
+     * @param text - Anzeige-Text. Für Variable-Binding: ${VariablenName}
+     * @param opts - Optionale Style-Properties: fontSize, fontWeight, color, textAlign, backgroundColor
+     */
+    public createLabel(stageId: string, name: string, x: number, y: number, text: string, opts: Record<string, any> = {}): void {
+        const labelData: any = {
+            className: 'TLabel',
+            name,
+            x, y,
+            width: opts.width ?? 6,
+            height: opts.height ?? 2,
+            text,
+            style: {
+                color: opts.color ?? '#ffffff',
+                fontSize: opts.fontSize ?? 16,
+                fontWeight: opts.fontWeight ?? 'normal',
+                textAlign: opts.textAlign ?? 'center',
+                backgroundColor: opts.backgroundColor ?? 'transparent',
+                ...(opts.style || {})
+            }
+        };
+
+        this.addObject(stageId, labelData);
+        AgentController.logger.info(`Label '${name}' created in '${stageId}': "${text}"`);
+    }
+
+    /**
+     * Setzt die Kollisions-Konfiguration eines Sprites.
+     */
+    public setSpriteCollision(stageId: string, spriteName: string, enabled: boolean, group?: string): void {
+        this.setProperty(stageId, spriteName, 'collisionEnabled', enabled);
+        if (group !== undefined) {
+            this.setProperty(stageId, spriteName, 'collisionGroup', group);
+        }
+        AgentController.logger.info(`Collision config for '${spriteName}': enabled=${enabled}, group=${group ?? '(unchanged)'}`);
+    }
+
+    /**
+     * Setzt die Geschwindigkeit eines Sprites.
+     */
+    public setSpriteVelocity(stageId: string, spriteName: string, velocityX: number, velocityY: number): void {
+        this.setProperty(stageId, spriteName, 'velocityX', velocityX);
+        this.setProperty(stageId, spriteName, 'velocityY', velocityY);
+        AgentController.logger.info(`Velocity for '${spriteName}': vx=${velocityX}, vy=${velocityY}`);
+    }
+
+    /**
+     * Gibt das Schema einer Komponente zurück (Properties, Methods, Events).
+     * Schema-Daten stammen aus docs/ComponentSchema.json.
+     */
+    public getComponentSchema(className: string): any | null {
+        const schema = AgentController.componentSchema;
+        if (!schema) {
+            AgentController.logger.warn('ComponentSchema not loaded.');
+            return null;
+        }
+        const comp = schema.components?.[className];
+        if (!comp) {
+            AgentController.logger.warn(`Component '${className}' not found in schema.`);
+            return null;
+        }
+        return {
+            className,
+            description: comp.description,
+            stage: comp.stage,
+            category: comp.category,
+            properties: { ...schema.baseProperties?.properties, ...comp.properties },
+            methods: comp.methods || [],
+            events: [...(schema.baseProperties?.baseEvents || []), ...(comp.events || [])],
+            warnings: comp.warnings || [],
+            example: comp.example
+        };
+    }
+
+    /** Statisches Schema-Cache. Wird beim ersten Aufruf geladen. */
+    private static _componentSchema: any = null;
+    private static get componentSchema(): any {
+        if (!AgentController._componentSchema) {
+            AgentController.logger.warn('ComponentSchema not loaded. Call AgentController.setComponentSchema(schema) first.');
+        }
+        return AgentController._componentSchema;
+    }
+
+    /** Erlaubt das Setzen des Schemas (z.B. im Browser oder Tests). */
+    public static setComponentSchema(schema: any): void {
+        AgentController._componentSchema = schema;
+    }
+
+    // ─────────────────────────────────────────────
     // 9. Validation
     // ─────────────────────────────────────────────
 

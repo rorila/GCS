@@ -1,6 +1,12 @@
 import { AgentController } from '../src/services/AgentController';
 import { GameProject } from '../src/model/types';
 import { projectRegistry } from '../src/services/ProjectRegistry';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export interface TestResult {
     name: string;
@@ -364,6 +370,162 @@ export async function runTests(): Promise<TestResult[]> {
         );
     } catch (e: any) {
         addResult('Integration: Tennis via Batch', false, `Fehler: ${e.message}\n${e.stack}`);
+    }
+
+    // ══════════════════════════════════════════════
+    // Phase 2: Sprite-Shortcuts & Schema-Tests
+    // ══════════════════════════════════════════════
+
+    // --- createSprite: Gutfall ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        projectRegistry.setProject(project);
+
+        agent.createSprite('stage_main', 'Ball', 30, 20, 2, 2, {
+            velocityX: 3, velocityY: 3,
+            collisionGroup: 'ball',
+            shape: 'circle',
+            spriteColor: '#ffeb3b'
+        });
+
+        const stage = project.stages![1];
+        const ball = stage.objects!.find((o: any) => o.name === 'Ball');
+        const ok = ball
+            && ball.className === 'TSprite'
+            && ball.x === 30 && ball.y === 20
+            && ball.velocityX === 3 && ball.velocityY === 3
+            && ball.collisionGroup === 'ball'
+            && ball.shape === 'circle'
+            && ball.style?.borderRadius === 999;
+        addResult('createSprite — Gutfall', !!ok, ok ? 'Sprite mit Physik-Defaults korrekt erstellt.' : `Ball: ${JSON.stringify(ball)}`);
+    } catch (e: any) {
+        addResult('createSprite — Gutfall', false, `Fehler: ${e.message}`);
+    }
+
+    // --- createLabel: Gutfall mit Binding ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        projectRegistry.setProject(project);
+
+        agent.createLabel('stage_main', 'ScoreLabel', 20, 2, '${Score}', {
+            fontSize: 48, fontWeight: 'bold', color: '#f7c948', width: 10, height: 3
+        });
+
+        const stage = project.stages![1];
+        const label = stage.objects!.find((o: any) => o.name === 'ScoreLabel');
+        const ok = label
+            && label.className === 'TLabel'
+            && label.text === '${Score}'
+            && label.width === 10 && label.height === 3
+            && label.style?.fontSize === 48
+            && label.style?.fontWeight === 'bold';
+        addResult('createLabel — Gutfall', !!ok, ok ? 'Label mit Binding + Style korrekt erstellt.' : `Label: ${JSON.stringify(label)}`);
+    } catch (e: any) {
+        addResult('createLabel — Gutfall', false, `Fehler: ${e.message}`);
+    }
+
+    // --- setSpriteCollision ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        projectRegistry.setProject(project);
+
+        agent.createSprite('stage_main', 'Paddle', 5, 15, 2, 8);
+        agent.setSpriteCollision('stage_main', 'Paddle', true, 'paddle');
+
+        const paddle = project.stages![1].objects!.find((o: any) => o.name === 'Paddle');
+        const ok = paddle?.collisionEnabled === true && paddle?.collisionGroup === 'paddle';
+        addResult('setSpriteCollision — Gutfall', !!ok, ok ? 'Collision korrekt gesetzt.' : `enabled=${paddle?.collisionEnabled}, group=${paddle?.collisionGroup}`);
+    } catch (e: any) {
+        addResult('setSpriteCollision — Gutfall', false, `Fehler: ${e.message}`);
+    }
+
+    // --- setSpriteVelocity ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        projectRegistry.setProject(project);
+
+        agent.createSprite('stage_main', 'VelocityBall', 30, 20, 1, 1);
+        agent.setSpriteVelocity('stage_main', 'VelocityBall', 5, -3);
+
+        const ball = project.stages![1].objects!.find((o: any) => o.name === 'VelocityBall');
+        const ok = ball?.velocityX === 5 && ball?.velocityY === -3;
+        addResult('setSpriteVelocity — Gutfall', !!ok, ok ? 'Velocity korrekt gesetzt.' : `vx=${ball?.velocityX}, vy=${ball?.velocityY}`);
+    } catch (e: any) {
+        addResult('setSpriteVelocity — Gutfall', false, `Fehler: ${e.message}`);
+    }
+
+    // --- getComponentSchema ---
+    try {
+        const agent = AgentController.getInstance();
+        // Schema laden (ESM-kompatibel)
+        const schemaPath = path.resolve(__dirname, '../docs/ComponentSchema.json');
+        const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
+        AgentController.setComponentSchema(schema);
+
+        const spriteSchema = agent.getComponentSchema('TSprite');
+        const timerSchema = agent.getComponentSchema('TTimer');
+        const unknownSchema = agent.getComponentSchema('TUnknown');
+
+        const ok = spriteSchema
+            && spriteSchema.className === 'TSprite'
+            && spriteSchema.properties?.velocityX
+            && spriteSchema.events?.includes('onCollision')
+            && timerSchema?.methods?.some((m: any) => m.name === 'timerStart')
+            && unknownSchema === null;
+        addResult('getComponentSchema — Gutfall', !!ok,
+            ok ? `TSprite: ${Object.keys(spriteSchema.properties).length} Props, ${spriteSchema.events.length} Events. TTimer: ${timerSchema.methods.length} Methods. Unknown: null.`
+            : `spriteSchema=${!!spriteSchema}, timerSchema=${!!timerSchema}, unknown=${unknownSchema}`);
+    } catch (e: any) {
+        addResult('getComponentSchema — Gutfall', false, `Fehler: ${e.message}`);
+    }
+
+    // --- Integration: Spiel mit Shortcuts erstellen ---
+    try {
+        const project = createTestProject();
+        const agent = AgentController.getInstance();
+        agent.setProject(project);
+        projectRegistry.setProject(project);
+
+        // Infrastruktur
+        agent.addObject('stage_blueprint', { className: 'TGameLoop', name: 'GameLoop', x: 2, y: 2, width: 3, height: 1, isService: true, isHiddenInRun: true, targetFPS: 60 });
+        agent.addObject('stage_blueprint', { className: 'TGameState', name: 'GameState', x: 6, y: 2, width: 4, height: 1, isService: true, isHiddenInRun: true, state: 'idle', spritesMoving: false });
+
+        // Spielobjekte via Shortcuts
+        agent.createSprite('stage_main', 'Ball', 32, 20, 2, 2, { velocityX: 4, velocityY: 3, shape: 'circle', spriteColor: '#ffeb3b', collisionGroup: 'ball' });
+        agent.createSprite('stage_main', 'LeftPaddle', 2, 15, 2, 10, { collisionGroup: 'paddle', spriteColor: '#4ecdc4' });
+        agent.createSprite('stage_main', 'RightPaddle', 60, 15, 2, 10, { collisionGroup: 'paddle', spriteColor: '#45b7d1' });
+        agent.createLabel('stage_main', 'ScoreLeft', 20, 1, '${scoreLeft}', { fontSize: 32, fontWeight: 'bold' });
+        agent.createLabel('stage_main', 'ScoreRight', 40, 1, '${scoreRight}', { fontSize: 32, fontWeight: 'bold' });
+
+        // Variablen & Tasks
+        agent.addVariable('scoreLeft', 'number', 0);
+        agent.addVariable('scoreRight', 'number', 0);
+        agent.createTask('stage_main', 'OnBallCollision', 'Ball-Abpraller');
+        agent.addAction('OnBallCollision', 'negate', 'BounceX', { target: 'Ball', changes: { velocityX: 1 } });
+        agent.connectEvent('stage_main', 'Ball', 'onCollision', 'OnBallCollision');
+
+        const mainStage = project.stages![1];
+        const bp = project.stages![0];
+        const ok = mainStage.objects!.length === 5
+            && bp.objects!.length === 2
+            && mainStage.tasks!.length === 1
+            && project.variables!.length === 2
+            && mainStage.objects![0].className === 'TSprite'
+            && mainStage.objects![3].className === 'TLabel'
+            && mainStage.objects![0].events?.onCollision === 'OnBallCollision';
+        addResult('Integration: Spiel mit Shortcuts', ok,
+            ok ? `5 Objekte (3 Sprites + 2 Labels), 2 Variablen, 1 Task, Event gebunden.`
+            : `objs=${mainStage.objects!.length}/5, bp=${bp.objects!.length}/2, tasks=${mainStage.tasks!.length}/1`);
+    } catch (e: any) {
+        addResult('Integration: Spiel mit Shortcuts', false, `Fehler: ${e.message}`);
     }
 
     return results;

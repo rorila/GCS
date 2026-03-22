@@ -1,12 +1,12 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 22.3.2026, 18:52:46
+**Generiert am**: 22.3.2026, 19:25:08
 **Status**: ✅ ALLE TESTS BESTANDEN
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 134)
-    "Bestanden ✅" : 134
+pie title Test-Status (Gesamt: 140)
+    "Bestanden ✅" : 140
     "Fehlgeschlagen ❌" : 0
 ```
 
@@ -54,6 +54,12 @@ pie title Test-Status (Gesamt: 134)
 | executeBatch — Gutfall<br><small>4 Ops erfolgreich: Variable + Task + Action + TriggerMode.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | executeBatch — Rollback<br><small>Fehler erkannt + Variable rollbacked.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Integration: Tennis via Batch<br><small>Tennis-Spiel komplett: 20 Batch-Ops, 3 Stages, 6 Objekte, 3 Tasks, 3 Variablen, Events gebunden, Validierung OK.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| createSprite — Gutfall<br><small>Sprite mit Physik-Defaults korrekt erstellt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| createLabel — Gutfall<br><small>Label mit Binding + Style korrekt erstellt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| setSpriteCollision — Gutfall<br><small>Collision korrekt gesetzt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| setSpriteVelocity — Gutfall<br><small>Velocity korrekt gesetzt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| getComponentSchema — Gutfall<br><small>TSprite: 18 Props, 12 Events. TTimer: 3 Methods. Unknown: null.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Integration: Spiel mit Shortcuts<br><small>5 Objekte (3 Sprites + 2 Labels), 2 Variablen, 1 Task, Event gebunden.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Integration: Raketen-Countdown via Batch<br><small>Vollständiges Raketen-Demo: 20 Batch-Ops, 4 Objekte, 2 Blueprint-Objekte (GameLoop+GameState), 3 Tasks, 6 Actions, 1 Variable, 3 Events, Binding OK. Validierung: 3 Warnungen, 0 Fehler.</small> | RaketenCountdown | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Struktur: Sprite + Task + Action<br><small>Sprite mit velocityY=0, Task mit set_property Action korrekt erstellt.</small> | RaketenCountdown | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Hydrate: TButton<br><small>className=TButton, name=TestButton, caption=Klick mich</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -129,7 +135,7 @@ pie title Test-Status (Gesamt: 134)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1774201929459_28 (erwartet: stage_import_1774201929459_28), BackToLobby.stageId=stage_import_1774201929459_4e (erwartet: stage_import_1774201929459_4e)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1774203872495_ly (erwartet: stage_import_1774203872495_ly), BackToLobby.stageId=stage_import_1774203872495_ua (erwartet: stage_import_1774203872495_ua)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
