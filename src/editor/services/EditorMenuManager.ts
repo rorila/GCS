@@ -25,6 +25,7 @@ export interface EditorMenuHost {
     deleteCurrentStage(): void;
     createStageFromTemplate(): void;
     saveStageAsTemplate(): void;
+    importStageFromFile(): void;
     switchStage(stageId: string): void;
     switchView(view: ViewType): void;
     selectObject(id: string | null): void;
@@ -114,6 +115,7 @@ export class EditorMenuManager {
                 break;
             case 'new-from-template': this.host.createStageFromTemplate(); break;
             case 'save-as-template': this.host.saveStageAsTemplate(); break;
+            case 'import-stage': this.host.importStageFromFile(); break;
             case 'show-excluded': this.showExcludedBlueprintDialog(); break;
             case 'stage-settings':
                 this.host.selectObject(null);
@@ -215,7 +217,8 @@ export class EditorMenuManager {
             { id: 'new-stage', label: 'Neue Stage', action: 'new-stage', icon: '📄' },
             { id: 'new-splash', label: 'Neuer Splashscreen', action: 'new-splash', icon: '🚀' },
             { id: 'delete-stage', label: 'Stage löschen', action: 'delete-stage', icon: '🗑️' },
-            { id: 'show-excluded', label: 'Ausgeblendete Objekte einblenden', action: 'show-excluded', icon: '👁️' }
+            { id: 'show-excluded', label: 'Ausgeblendete Objekte einblenden', action: 'show-excluded', icon: '👁️' },
+            { id: 'import-stage', label: 'Stage importieren', action: 'import-stage', icon: '📥' }
         ];
 
         // Dynamic stage list

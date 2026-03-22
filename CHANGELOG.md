@@ -1,4 +1,17 @@
 ## [3.24.0] - 2026-03-22
+### Added (Stage-Import)
+- **`EditorStageManager.importStageFromProject()`** (`EditorStageManager.ts`):
+  - Importiert eine Stage aus einem externen Projekt inkl. aller Abhängigkeiten
+  - Deep-Clone mit automatischer ID-Generierung (keine Kollisionen)
+  - Blueprint-Merge: Referenzierte Actions, Tasks und Variablen aus dem Quell-Blueprint werden in den Ziel-Blueprint kopiert
+  - Transitive Dependency-Resolution: Blueprint-Action-Targets werden rekursiv aufgelöst
+  - Duplikat-Schutz: Bereits vorhandene Blueprint-Elemente werden nicht dupliziert
+- **`Editor.importStageFromFile()`** (`Editor.ts`):
+  - File-Picker für JSON-Projekte
+  - Stage-Auswahl-Dialog (Dark-Theme, Checkboxen mit Statistiken)
+  - Einzel- und Multi-Stage-Import unterstützt
+- **Menü-Eintrag** (`EditorMenuManager.ts`): "📥 Stage importieren" im Stages-Menü
+- **Tests** (`stage_import.test.ts`): 7 Tests (Basis, ID-Remap, Blueprint-Merge, Duplikat, Type-Konvertierung, Events)
 ### Added (API-Realisierung Phase 1 + 1.5)
 - **Schema-Registry** (`docs/ComponentSchema.json`) [NEU]:
   - 13 Komponenten-Schemata (TSprite, TButton, TLabel, TTimer, TGameLoop, TGameState, TInputController, TIntegerVariable, TBooleanVariable, TStringVariable, TRandomVariable, TEdit)

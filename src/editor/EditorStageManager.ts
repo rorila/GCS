@@ -358,4 +358,210 @@ export class EditorStageManager {
         this.onRefresh();
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // Stage-Import: Komplette Stage aus externem Projekt importieren
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Importiert eine Stage aus einem externen Projekt inkl. aller Abhängigkeiten.
+     * Kopiert: Objects, Variables, Tasks, Actions, FlowCharts, Events.
+     * Blueprint-Abhängigkeiten werden in die Blueprint-Stage des Zielprojekts gemergt.
+     */
+    public importStageFromProject(sourceProject: GameProject, stageId: string): StageDefinition | null {
+        const sourceStage = sourceProject.stages?.find(s => s.id === stageId);
+        if (!sourceStage) return null;
+
+        // 1. Stage deep-clonen
+        const clonedStage: StageDefinition = JSON.parse(JSON.stringify(sourceStage));
+
+        // 2. Neue IDs generieren (ID-Kollisionen vermeiden)
+        const idMap = new Map<string, string>(); // alte ID → neue ID
+        clonedStage.id = `stage_import_${Date.now()}`;
+        clonedStage.name = `${clonedStage.name} (Import)`;
+        // Type normalisieren: Blueprint-Stages werden zu Standard
+        if (clonedStage.type === 'blueprint') clonedStage.type = 'standard';
+
+        this.remapObjectIds(clonedStage.objects || [], idMap);
+        this.remapObjectIds(clonedStage.variables as any[] || [], idMap);
+
+        // 3. Blueprint-Abhängigkeiten auflösen
+        const sourceBlueprintStage = sourceProject.stages?.find(s =>
+            s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint'
+        );
+
+        if (sourceBlueprintStage) {
+            this.mergeBlueprintDependencies(clonedStage, sourceBlueprintStage, idMap);
+        }
+
+        // 4. Action-IDs in der Stage erneuern
+        if (clonedStage.actions) {
+            for (const action of clonedStage.actions) {
+                if ((action as any).id) {
+                    const oldId = (action as any).id;
+                    const newId = `act_import_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+                    idMap.set(oldId, newId);
+                    (action as any).id = newId;
+                }
+            }
+        }
+
+        // 5. FlowLayout-Referenzen belassen (die referenzieren Task/Action-Namen, nicht IDs)
+
+        // 6. Stage ins Projekt einfügen
+        if (!this.project.stages) this.project.stages = [];
+        this.project.stages.push(clonedStage);
+
+        // 7. Zur neuen Stage wechseln
+        this.switchStage(clonedStage.id);
+        this.onRefresh();
+
+        return clonedStage;
+    }
+
+    /**
+     * Generiert neue IDs für alle Objekte und baut eine ID-Map auf.
+     */
+    private remapObjectIds(objects: ComponentData[], idMap: Map<string, string>): void {
+        for (const obj of objects) {
+            if (obj.id) {
+                const oldId = obj.id;
+                const newId = `obj_import_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+                idMap.set(oldId, newId);
+                obj.id = newId;
+            }
+        }
+    }
+
+    /**
+     * Prüft welche Blueprint-Elemente (Actions, Tasks, Variablen) von der importierten
+     * Stage referenziert werden und kopiert fehlende in die Ziel-Blueprint-Stage.
+     */
+    private mergeBlueprintDependencies(
+        importedStage: StageDefinition,
+        sourceBlueprintStage: StageDefinition,
+        idMap: Map<string, string>
+    ): void {
+        const targetBlueprint = this.project.stages?.find(s =>
+            s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint'
+        );
+        if (!targetBlueprint) return;
+
+        // Sammle alle referenzierten Namen aus Tasks und Events
+        const referencedActionNames = new Set<string>();
+        const referencedTaskNames = new Set<string>();
+        const referencedTargetNames = new Set<string>();
+
+        // Aus Tasks: Action-Referenzen
+        for (const task of (importedStage.tasks || [])) {
+            this.collectSequenceRefs(task.actionSequence || [], referencedActionNames, referencedTaskNames);
+        }
+
+        // Aus Events: Task-Referenzen
+        for (const obj of [...(importedStage.objects || []), ...(importedStage.variables as any[] || [])]) {
+            if (obj.events) {
+                for (const taskName of Object.values(obj.events)) {
+                    if (typeof taskName === 'string') referencedTaskNames.add(taskName);
+                }
+            }
+        }
+
+        // Aus Actions: Target-Referenzen
+        for (const action of (importedStage.actions || [])) {
+            if ((action as any).target) referencedTargetNames.add((action as any).target);
+            if ((action as any).resultVariable) referencedTargetNames.add((action as any).resultVariable);
+        }
+
+        // Existierende Namen im Ziel sammeln
+        const existingActionNames = new Set(
+            (targetBlueprint.actions || []).map(a => a.name)
+        );
+        const existingTaskNames = new Set(
+            (targetBlueprint.tasks || []).map(t => t.name)
+        );
+        const existingVarNames = new Set(
+            (targetBlueprint.variables || []).map(v => v.name)
+        );
+
+        // Auch Namen in der importierten Stage selbst berücksichtigen
+        const stageActionNames = new Set((importedStage.actions || []).map(a => a.name));
+        const stageTaskNames = new Set((importedStage.tasks || []).map(t => t.name));
+        const stageObjNames = new Set([
+            ...(importedStage.objects || []).map(o => o.name),
+            ...((importedStage.variables as any[]) || []).map(v => v.name)
+        ]);
+
+        // Actions aus Blueprint kopieren wenn referenziert und nicht vorhanden
+        for (const bpAction of (sourceBlueprintStage.actions || [])) {
+            if (referencedActionNames.has(bpAction.name) &&
+                !existingActionNames.has(bpAction.name) &&
+                !stageActionNames.has(bpAction.name)) {
+                if (!targetBlueprint.actions) targetBlueprint.actions = [];
+                const clonedAction = JSON.parse(JSON.stringify(bpAction));
+                if (clonedAction.id) {
+                    clonedAction.id = `act_bp_import_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+                }
+                targetBlueprint.actions.push(clonedAction);
+                existingActionNames.add(clonedAction.name);
+
+                // Transitive Abhängigkeiten: Targets der Blueprint-Actions auch auflösen
+                if ((bpAction as any).target) referencedTargetNames.add((bpAction as any).target);
+                if ((bpAction as any).resultVariable) referencedTargetNames.add((bpAction as any).resultVariable);
+            }
+        }
+
+        // Tasks aus Blueprint kopieren wenn referenziert
+        for (const bpTask of (sourceBlueprintStage.tasks || [])) {
+            if (referencedTaskNames.has(bpTask.name) &&
+                !existingTaskNames.has(bpTask.name) &&
+                !stageTaskNames.has(bpTask.name)) {
+                if (!targetBlueprint.tasks) targetBlueprint.tasks = [];
+                targetBlueprint.tasks.push(JSON.parse(JSON.stringify(bpTask)));
+                existingTaskNames.add(bpTask.name);
+            }
+        }
+
+        // Variablen/Objekte aus Blueprint kopieren wenn referenziert (als Target in Actions)
+        for (const bpVar of [...(sourceBlueprintStage.variables || []), ...(sourceBlueprintStage.objects || [])]) {
+            if (referencedTargetNames.has(bpVar.name) &&
+                !existingVarNames.has(bpVar.name) &&
+                !stageObjNames.has(bpVar.name)) {
+                const clonedVar = JSON.parse(JSON.stringify(bpVar));
+                if (clonedVar.id) {
+                    const oldId = clonedVar.id;
+                    const newId = `obj_bp_import_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+                    idMap.set(oldId, newId);
+                    clonedVar.id = newId;
+                }
+                if (clonedVar.isVariable) {
+                    if (!targetBlueprint.variables) targetBlueprint.variables = [];
+                    (targetBlueprint.variables as any[]).push(clonedVar);
+                } else {
+                    if (!targetBlueprint.objects) targetBlueprint.objects = [];
+                    targetBlueprint.objects.push(clonedVar);
+                }
+                existingVarNames.add(clonedVar.name);
+            }
+        }
+    }
+
+    /**
+     * Sammelt rekursiv Action- und Task-Referenzen aus einer Task-Sequenz.
+     */
+    private collectSequenceRefs(
+        sequence: any[],
+        actionNames: Set<string>,
+        taskNames: Set<string>
+    ): void {
+        for (const item of sequence) {
+            if (item.type === 'action' && item.name) actionNames.add(item.name);
+            if (item.type === 'task' && item.name) taskNames.add(item.name);
+            if (item.thenAction) actionNames.add(item.thenAction);
+            if (item.thenTask) taskNames.add(item.thenTask);
+            if (item.elseAction) actionNames.add(item.elseAction);
+            if (item.elseTask) taskNames.add(item.elseTask);
+            if (item.then) this.collectSequenceRefs(item.then, actionNames, taskNames);
+            if (item.else) this.collectSequenceRefs(item.else, actionNames, taskNames);
+            if (item.body) this.collectSequenceRefs(item.body, actionNames, taskNames);
+        }
+    }
 }

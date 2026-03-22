@@ -493,6 +493,160 @@ export class Editor implements IViewHost {
     public deleteCurrentStage() { this.stageManager.deleteCurrentStage(); }
     public createStageFromTemplate() { this.stageManager.createStageFromTemplate(); }
     public saveStageAsTemplate() { this.stageManager.saveStageAsTemplate(); }
+
+    /**
+     * Stage-Import: Öffnet File-Picker, zeigt Stage-Auswahl-Dialog,
+     * importiert die gewählte Stage inkl. aller Abhängigkeiten.
+     */
+    public importStageFromFile(): void {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.json';
+        fileInput.onchange = (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (re) => {
+                try {
+                    const sourceProject: GameProject = JSON.parse(re.target?.result as string);
+                    if (!sourceProject.stages || sourceProject.stages.length === 0) {
+                        alert('Das gewählte Projekt enthält keine Stages.');
+                        return;
+                    }
+
+                    // Nur importierbare Stages (kein Blueprint)
+                    const importableStages = sourceProject.stages.filter(s => s.type !== 'blueprint');
+                    if (importableStages.length === 0) {
+                        alert('Das Projekt enthält nur eine Blueprint-Stage, die nicht importiert werden kann.');
+                        return;
+                    }
+
+                    // Bei nur einer Stage: direkt importieren
+                    if (importableStages.length === 1) {
+                        const imported = this.stageManager.importStageFromProject(sourceProject, importableStages[0].id);
+                        if (imported) {
+                            this.updateStagesMenu();
+                            this.updateStageLabel();
+                            mediatorService.notifyDataChanged(this.project, 'stage-import');
+                            alert(`Stage "${imported.name}" erfolgreich importiert!`);
+                        }
+                        return;
+                    }
+
+                    // Mehrere Stages: Auswahl-Dialog
+                    this.showStageSelectionDialog(sourceProject, importableStages);
+                } catch (err) {
+                    alert('Fehler beim Lesen der Projektdatei: ' + (err as Error).message);
+                }
+            };
+            reader.readAsText(file);
+        };
+        fileInput.click();
+    }
+
+    private showStageSelectionDialog(sourceProject: GameProject, stages: StageDefinition[]): void {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:20000;display:flex;align-items:center;justify-content:center;';
+
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background:#252526; border:1px solid #555; border-radius:8px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.6); min-width:380px; max-width:500px;
+            color:#ccc; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+        `;
+
+        const header = document.createElement('div');
+        header.style.cssText = 'padding:16px 20px 12px;border-bottom:1px solid #444;font-size:15px;font-weight:600;color:#fff;';
+        header.textContent = `📥 Stage importieren — ${sourceProject.meta?.name || 'Externes Projekt'}`;
+        dialog.appendChild(header);
+
+        const info = document.createElement('div');
+        info.style.cssText = 'padding:8px 20px;font-size:12px;color:#888;';
+        info.textContent = `${stages.length} importierbare Stage(s) gefunden. Wähle eine oder mehrere:`;
+        dialog.appendChild(info);
+
+        const list = document.createElement('div');
+        list.style.cssText = 'padding:8px 20px;max-height:300px;overflow-y:auto;';
+
+        const checkboxes: { id: string, name: string, cb: HTMLInputElement }[] = [];
+        for (const stage of stages) {
+            const objCount = (stage.objects || []).length;
+            const taskCount = (stage.tasks || []).length;
+            const actionCount = (stage.actions || []).length;
+
+            const row = document.createElement('label');
+            row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-radius:4px;transition:background 0.15s;';
+            row.onmouseenter = () => row.style.background = '#333';
+            row.onmouseleave = () => row.style.background = 'transparent';
+
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = true;
+            cb.style.cssText = 'width:16px;height:16px;accent-color:#4fc3f7;cursor:pointer;';
+            row.appendChild(cb);
+
+            const label = document.createElement('span');
+            label.style.cssText = 'flex:1;font-size:13px;';
+            label.textContent = `🎭 ${stage.name}`;
+            row.appendChild(label);
+
+            const details = document.createElement('span');
+            details.style.cssText = 'font-size:11px;color:#888;';
+            details.textContent = `${objCount} Obj · ${taskCount} Tasks · ${actionCount} Actions`;
+            row.appendChild(details);
+
+            list.appendChild(row);
+            checkboxes.push({ id: stage.id, name: stage.name, cb });
+        }
+        dialog.appendChild(list);
+
+        const footer = document.createElement('div');
+        footer.style.cssText = 'padding:12px 20px;border-top:1px solid #444;display:flex;gap:8px;justify-content:flex-end;';
+
+        const btnImport = document.createElement('button');
+        btnImport.textContent = 'Importieren';
+        btnImport.style.cssText = 'padding:6px 14px;border:none;background:#094771;color:#fff;border-radius:4px;cursor:pointer;font-size:13px;';
+        btnImport.onmouseenter = () => btnImport.style.background = '#0b5d99';
+        btnImport.onmouseleave = () => btnImport.style.background = '#094771';
+
+        const btnCancel = document.createElement('button');
+        btnCancel.textContent = 'Abbrechen';
+        btnCancel.style.cssText = 'padding:6px 14px;border:1px solid #555;background:#333;color:#ccc;border-radius:4px;cursor:pointer;font-size:13px;';
+        btnCancel.onmouseenter = () => btnCancel.style.background = '#444';
+        btnCancel.onmouseleave = () => btnCancel.style.background = '#333';
+
+        footer.appendChild(btnImport);
+        footer.appendChild(btnCancel);
+        dialog.appendChild(footer);
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', (ev) => { if (ev.target === overlay) close(); });
+        btnCancel.onclick = close;
+
+        const onKey = (ev: KeyboardEvent) => { if (ev.key === 'Escape') { close(); window.removeEventListener('keydown', onKey); } };
+        window.addEventListener('keydown', onKey);
+
+        btnImport.onclick = () => {
+            const selected = checkboxes.filter(c => c.cb.checked);
+            if (selected.length === 0) { alert('Keine Stage ausgewählt.'); return; }
+
+            const importedNames: string[] = [];
+            for (const sel of selected) {
+                const imported = this.stageManager.importStageFromProject(sourceProject, sel.id);
+                if (imported) importedNames.push(imported.name);
+            }
+
+            close();
+            window.removeEventListener('keydown', onKey);
+            this.updateStagesMenu();
+            this.updateStageLabel();
+            mediatorService.notifyDataChanged(this.project, 'stage-import');
+            alert(`${importedNames.length} Stage(s) importiert:\n${importedNames.join('\n')}`);
+        };
+    }
     public exportHTML() { this.dataManager.exportHTML(); }
     public exportHTMLCompressed() { this.dataManager.exportHTMLCompressed(); }
     public exportJSON() { this.dataManager.exportJSON(); }

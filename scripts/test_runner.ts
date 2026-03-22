@@ -25,6 +25,7 @@ import { runProjectStoreTests } from '../tests/project_store.test.js';
 import { runFlowDataActionTests } from '../tests/flow_data_action.test.js';
 import { runExportIntegrityTests } from '../tests/export_integrity.test.js';
 import { runPascalGeneratorTests } from '../tests/logic/PascalCodeGenerator.test.js';
+import { runStageImportTests } from '../tests/stage_import.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -183,6 +184,10 @@ async function main() {
         // 18. Pascal Code Generator Tests
         console.log('🏃 Starte Pascal Code Generator Tests...');
         allResults.push(...await runPascalGeneratorTests());
+
+        // 19. Stage-Import Tests
+        console.log('🏃 Starte Stage-Import Tests...');
+        allResults.push(...await runStageImportTests());
 
         // 🌐 Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');
