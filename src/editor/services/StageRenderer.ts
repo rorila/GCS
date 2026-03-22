@@ -18,11 +18,27 @@ export interface StageHost {
     lastRenderedObjects: any[];
 }
 
+// Referenz-CellSize für fontSize-Skalierung
+const REFERENCE_CELL_SIZE = 20;
+
 export class StageRenderer {
     private host: StageHost;
 
     constructor(host: StageHost) {
         this.host = host;
+    }
+
+    /**
+     * Skaliert eine fontSize relativ zur aktuellen cellSize.
+     * Referenz ist cellSize=20 — dort entspricht die fontSize 1:1 dem Eingabewert.
+     * Bei cellSize=10 → halbe fontSize, bei cellSize=30 → 1.5× fontSize.
+     */
+    private scaleFontSize(rawSize: number | string | undefined): string {
+        if (!rawSize) return '';
+        const numSize = typeof rawSize === 'string' ? parseFloat(rawSize) : rawSize;
+        if (isNaN(numSize)) return typeof rawSize === 'string' ? rawSize : '';
+        const scale = this.host.grid.cellSize / REFERENCE_CELL_SIZE;
+        return `${Math.round(numSize * scale)}px`;
     }
 
     public renderObjects(objects: any[]) {
@@ -276,7 +292,7 @@ export class StageRenderer {
                         // Color applied
                     }
                 }
-                if (obj.style.fontSize) el.style.fontSize = typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize;
+                if (obj.style.fontSize) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
                 if (obj.style.fontWeight) el.style.fontWeight = obj.style.fontWeight;
                 if (obj.style.borderRadius) el.style.borderRadius = typeof obj.style.borderRadius === 'number' ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
 
@@ -511,7 +527,7 @@ export class StageRenderer {
         if (textSpan) {
             textSpan.innerText = obj.label || obj.name;
             textSpan.style.color = obj.style?.color || '#000000';
-            textSpan.style.fontSize = obj.style?.fontSize ? (typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize) : '14px';
+            textSpan.style.fontSize = obj.style?.fontSize ? this.scaleFontSize(obj.style.fontSize) : this.scaleFontSize(14);
             const fw = obj.style?.fontWeight;
             textSpan.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
             const fs = obj.style?.fontStyle;
@@ -550,7 +566,7 @@ export class StageRenderer {
 
             input.style.color = obj.style?.color || '#000000';
             input.style.backgroundColor = obj.style?.backgroundColor || 'transparent';
-            input.style.fontSize = obj.style?.fontSize ? (typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize) : 'inherit';
+            input.style.fontSize = obj.style?.fontSize ? this.scaleFontSize(obj.style.fontSize) : 'inherit';
             input.style.textAlign = obj.style?.textAlign || 'left';
             const fw = obj.style?.fontWeight;
             input.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
@@ -592,7 +608,7 @@ export class StageRenderer {
                 input.style.color = obj.style?.color || '#000000';
                 input.style.backgroundColor = obj.style?.backgroundColor || 'transparent';
                 input.style.textAlign = obj.style?.textAlign || 'left';
-                input.style.fontSize = obj.style?.fontSize ? (typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize) : 'inherit';
+                input.style.fontSize = obj.style?.fontSize ? this.scaleFontSize(obj.style.fontSize) : 'inherit';
                 const fw = obj.style?.fontWeight;
                 input.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
                 const fs = obj.style?.fontStyle;
@@ -634,7 +650,7 @@ export class StageRenderer {
         el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
         const fstyle = obj.style?.fontStyle;
         el.style.fontStyle = (fstyle === true || fstyle === 'italic') ? 'italic' : 'normal';
-        if (obj.style?.fontSize) el.style.fontSize = typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize;
+        if (obj.style?.fontSize) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
         if (obj.style?.color) el.style.color = obj.style.color;
         if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
         const align = obj.style?.textAlign;
@@ -764,7 +780,7 @@ export class StageRenderer {
             (obj.value !== undefined && obj.value !== null) ? String(obj.value) : '';
         if (el.innerText !== textValue) el.innerText = textValue;
         const fs = obj.style?.fontSize || obj.fontSize;
-        if (fs) el.style.fontSize = typeof fs === 'number' ? `${fs}px` : fs;
+        if (fs) el.style.fontSize = this.scaleFontSize(fs);
         // REMOVED white fallback: Let CSS or container define the default color (usually dark grey/black)
         const color = obj.style?.color;
         if (color) {
@@ -792,7 +808,7 @@ export class StageRenderer {
 
         const color = obj.style?.color || (!this.host.runMode ? '#777' : '');
         if (color) el.style.color = color;
-        const fontSize = obj.style?.fontSize ? (typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize) : (!this.host.runMode ? '12px' : '');
+        const fontSize = obj.style?.fontSize ? this.scaleFontSize(obj.style.fontSize) : (!this.host.runMode ? this.scaleFontSize(12) : '');
         if (fontSize) el.style.fontSize = fontSize;
         const fw = obj.style?.fontWeight;
         el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : (fw || 'normal');

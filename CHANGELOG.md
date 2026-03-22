@@ -27,6 +27,14 @@
 ### Chore
 - `loaded_project.json` aus Git entfernt + `.gitignore` aktualisiert (Laufzeit-Kopie)
 
+### Improved (Rendering)
+- **Schriftgrößen-Skalierung relativ zur CellSize** (`StageRenderer.ts`):
+  - Neue `scaleFontSize()` Methode: `fontSize × (cellSize / 20)`
+  - Bei CellSize 20 (Referenz): keine Änderung
+  - Bei CellSize 10: halbe Schriftgröße, bei CellSize 30: 1.5×
+  - Betrifft alle 7 Rendering-Stellen: allgemein, Checkbox, NumberInput, TextInput, Button, Label, Panel
+  - Gespeicherte Werte im JSON bleiben unverändert (immer Referenzwerte)
+
 ### Added (CleanCode Phase 4: E2E-Test-Netz)
 - `10_PlayModeLifecycle.spec.ts` [NEU]: Run-Start/Stop/Restart E2E-Test.
 - `11_StageSwitching.spec.ts` [NEU]: Stage-Menü, Blueprint-Wechsel, Hin-und-Zurück.
