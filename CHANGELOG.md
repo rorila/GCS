@@ -1,4 +1,32 @@
-## [3.23.0] - 2026-03-20
+## [3.24.0] - 2026-03-22
+### Added (API-Realisierung Phase 1 + 1.5)
+- **Schema-Registry** (`docs/ComponentSchema.json`) [NEU]:
+  - 13 Komponenten-Schemata (TSprite, TButton, TLabel, TTimer, TGameLoop, TGameState, TInputController, TIntegerVariable, TBooleanVariable, TStringVariable, TRandomVariable, TEdit)
+  - 14 Action-Typen mit Pflichtparametern und Beispielen
+  - 15 Variable-Typen katalogisiert
+  - 7-Schritte-Semantik (Ziel → Objekte → Variablen → Actions → Tasks → Events → Test)
+  - Lessons-Learned-Regeln (DO/DON'T)
+- **API-Referenz** (`docs/AgentAPI.md`) [NEU]:
+  - Vollständige Methoden-Referenz mit Signaturen, Parametern und Beispielen
+  - Inventar-Tabellen (listStages, listTasks, listActions, etc.)
+  - DO/DON'T-Regeln aus echten Fehlern der Raketen-Countdown-Entwicklung
+- **CLI-Runner** (`scripts/agent-run.ts`) [NEU]:
+  - Headless ProjectBuilder (keine Browser-Abhängigkeiten)
+  - API-kompatible Schnittstelle: createStage, addObject, createTask, addAction, connectEvent
+  - Flow-Layout-Generierung, Validierung, JSON-Export
+  - Aufruf: `npx tsx scripts/agent-run.ts <builder> [output.json]`
+- **Builder-PoC** (`demos/builders/raketen-countdown.builder.ts`) [NEU]:
+  - Raketen Countdown komplett über ProjectBuilder-API erstellt
+  - Folgt der 7-Schritte-Semantik
+  - Erzeugt: 2 Stages, 3 Tasks, 6 Actions, 3 FlowCharts
+- **ToDoList erweitert** (`ToDoList/api_realisierung.md`):
+  - Phase 1.5 (CLI-Runner) integriert
+  - Demo-Roadmap: Mathe-Quiz als Runde 3
+  - 9 Lessons Learned dokumentiert
+
+### Chore
+- `loaded_project.json` aus Git entfernt + `.gitignore` aktualisiert (Laufzeit-Kopie)
+
 ### Added (CleanCode Phase 4: E2E-Test-Netz)
 - `10_PlayModeLifecycle.spec.ts` [NEU]: Run-Start/Stop/Restart E2E-Test.
 - `11_StageSwitching.spec.ts` [NEU]: Stage-Menü, Blueprint-Wechsel, Hin-und-Zurück.
