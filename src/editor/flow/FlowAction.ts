@@ -894,6 +894,13 @@ export class FlowAction extends FlowElement {
             return `${op} Token [${key}]`;
         }
 
+        // --- navigate_stage: Stage-Name statt ID anzeigen ---
+        if (displayAction.type === 'navigate_stage') {
+            const sid = (displayAction as any).stageId || '';
+            const stageName = this.projectRef?.stages?.find(s => s.id === sid)?.name || sid;
+            return `→ ${stageName}`;
+        }
+
         // --- Dynamic Registry Fallback ---
         const meta = actionRegistry.getMetadata(displayAction.type);
         if (meta && meta.parameters && meta.parameters.length > 0) {
