@@ -35,6 +35,22 @@
   - Betrifft alle 7 Rendering-Stellen: allgemein, Checkbox, NumberInput, TextInput, Button, Label, Panel
   - Gespeicherte Werte im JSON bleiben unverändert (immer Referenzwerte)
 
+### Added (Game Engine: Boundary-Steuerung)
+- **`TGameLoop.boundaryMode`** (`TGameLoop.ts`):
+  - Neues Property mit 3 Modi: `clamp` (Default), `event-only`, `bounce`
+  - `clamp`: Sprites werden am Rand gestoppt (bisheriges Verhalten)
+  - `event-only`: Sprites fliegen durch den Rand, nur Events werden gefeuert
+  - `bounce`: Velocity wird automatisch umgekehrt + Position korrigiert
+  - Inspector-Dropdown in der Gruppe "Boundaries"
+- **`TSprite.onStageExit`** (`TSprite.ts`):
+  - Neues Event: wird gefeuert wenn ein Sprite die Stage **komplett** verlassen hat
+  - eventData: `{ exitSide: 'top' | 'bottom' | 'left' | 'right' }`
+  - Nur relevant im Modus `event-only` (bei clamp/bounce verlässt kein Sprite die Stage)
+  - Pro Sprite nur einmal gefeuert (exitedSprites-Tracking)
+- **`GameLoopManager.checkStageExits()`** (`GameLoopManager.ts`):
+  - Prüft jeden Frame ob Sprites vollständig außerhalb der Stage-Grenzen sind
+  - exitedSprites-Set wird bei Stop/Reset geleert
+
 ### Added (CleanCode Phase 4: E2E-Test-Netz)
 - `10_PlayModeLifecycle.spec.ts` [NEU]: Run-Start/Stop/Restart E2E-Test.
 - `11_StageSwitching.spec.ts` [NEU]: Stage-Menü, Blueprint-Wechsel, Hin-und-Zurück.

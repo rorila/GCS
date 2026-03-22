@@ -3,6 +3,7 @@ import { TWindow } from './TWindow';
 import { GridConfig } from '../model/types';
 
 export type GameLoopState = 'stopped' | 'running' | 'paused';
+export type BoundaryMode = 'clamp' | 'event-only' | 'bounce';
 
 /**
  * TGameLoop - Konfigurations-Container für den Game-Loop.
@@ -22,6 +23,9 @@ export class TGameLoop extends TWindow {
     // Offset for playable area (e.g., for headers/footers)
     public boundsOffsetTop: number = 0;
     public boundsOffsetBottom: number = 0;
+
+    // Boundary behaviour for sprites
+    public boundaryMode: BoundaryMode = 'clamp';
 
     // Grid reference (set via initRuntime)
     private gridConfig: GridConfig | null = null;
@@ -55,6 +59,7 @@ export class TGameLoop extends TWindow {
         return [
             ...super.getInspectorProperties(),
             { name: 'targetFPS', label: 'Target FPS', type: 'number', group: 'Loop Settings' },
+            { name: 'boundaryMode', label: 'Boundary Mode', type: 'select', group: 'Boundaries', options: ['clamp', 'event-only', 'bounce'] },
             { name: 'boundsOffsetTop', label: 'Bounds Offset Top', type: 'number', group: 'Boundaries' },
             { name: 'boundsOffsetBottom', label: 'Bounds Offset Bottom', type: 'number', group: 'Boundaries' }
         ];

@@ -188,7 +188,8 @@ export class TSprite extends TWindow {
             'onCollisionRight',
             'onCollisionTop',
             'onCollisionBottom',
-            'onBoundaryHit'
+            'onBoundaryHit',
+            'onStageExit'
         ];
     }
 }

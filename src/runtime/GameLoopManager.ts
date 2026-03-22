@@ -16,6 +16,7 @@ import { TGameState } from '../components/TGameState';
 import { TWindow } from '../components/TWindow';
 import { GridConfig } from '../model/types';
 import { AnimationManager } from './AnimationManager';
+import { BoundaryMode } from '../components/TGameLoop';
 
 export type GameLoopState = 'stopped' | 'running' | 'paused' | 'sleeping';
 
@@ -30,6 +31,7 @@ export class GameLoopManager {
     // Configuration
     private boundsOffsetTop: number = 0;
     private boundsOffsetBottom: number = 0;
+    private boundaryMode: BoundaryMode = 'clamp';
 
     // Grid reference - bounds are derived from this
     private gridConfig: GridConfig | null = null;
@@ -48,6 +50,7 @@ export class GameLoopManager {
     private collisionCooldowns: Map<string, number> = new Map();
     private boundaryCooldowns: Map<string, number> = new Map();
     private collidedThisFrame: Set<string> = new Set();
+    private exitedSprites: Set<string> = new Set(); // Track sprites that already fired onStageExit
     private readonly COLLISION_COOLDOWN_MS = 200;
     private readonly BOUNDARY_COOLDOWN_MS = 500;
 
@@ -122,12 +125,13 @@ export class GameLoopManager {
         if (gameLoopObj) {
             this.boundsOffsetTop = gameLoopObj.boundsOffsetTop || 0;
             this.boundsOffsetBottom = gameLoopObj.boundsOffsetBottom || 0;
-
+            this.boundaryMode = gameLoopObj.boundaryMode || 'clamp';
         }
 
         // Clear cooldowns on init
         this.collisionCooldowns.clear();
         this.boundaryCooldowns.clear();
+        this.exitedSprites.clear();
 
 
     }
@@ -165,6 +169,7 @@ export class GameLoopManager {
         // Clear tracking and cooldowns to prevent memory leaks and state carryover
         this.collisionCooldowns.clear();
         this.boundaryCooldowns.clear();
+        this.exitedSprites.clear();
         this.collidedThisFrame.clear();
         this.sprites = [];
         this.inputControllers = [];
@@ -272,6 +277,7 @@ export class GameLoopManager {
             if (spritesMoving) {
                 this.checkCollisions();
                 this.checkBoundaries();
+                this.checkStageExits();
             }
 
             // Render: Fast-Path für Sprite-Positionen (kein volles DOM-Rebuild)
@@ -439,27 +445,81 @@ export class GameLoopManager {
 
         this.boundaryCooldowns.set(cooldownKey, now);
 
-        // Save previous velocity before zeroing (needed for collision-negate in same frame)
-        if (side === 'left' || side === 'right') {
-            (sprite as any)._prevVelocityX = sprite.velocityX;
-            sprite.velocityX = 0;
+        // --- Mode-abhängiges Verhalten ---
+        if (this.boundaryMode === 'clamp') {
+            // Velocity stoppen und Position clampen (bisheriges Verhalten)
+            if (side === 'left' || side === 'right') {
+                (sprite as any)._prevVelocityX = sprite.velocityX;
+                sprite.velocityX = 0;
+            }
+            if (side === 'top' || side === 'bottom') {
+                (sprite as any)._prevVelocityY = sprite.velocityY;
+                sprite.velocityY = 0;
+            }
+            const EPSILON = 0.01;
+            if (side === 'left') sprite.x = EPSILON;
+            if (side === 'right') sprite.x = this.boundsWidth - sprite.width - EPSILON;
+            if (side === 'top') sprite.y = this.boundsOffsetTop + EPSILON;
+            if (side === 'bottom') sprite.y = this.boundsHeight - this.boundsOffsetBottom - sprite.height - EPSILON;
+        } else if (this.boundaryMode === 'bounce') {
+            // Velocity umkehren
+            if (side === 'left' || side === 'right') {
+                sprite.velocityX = -sprite.velocityX;
+            }
+            if (side === 'top' || side === 'bottom') {
+                sprite.velocityY = -sprite.velocityY;
+            }
+            // Position minimal korrigieren damit kein Re-Trigger
+            const EPSILON = 0.01;
+            if (side === 'left') sprite.x = EPSILON;
+            if (side === 'right') sprite.x = this.boundsWidth - sprite.width - EPSILON;
+            if (side === 'top') sprite.y = this.boundsOffsetTop + EPSILON;
+            if (side === 'bottom') sprite.y = this.boundsHeight - this.boundsOffsetBottom - sprite.height - EPSILON;
         }
-        if (side === 'top' || side === 'bottom') {
-            (sprite as any)._prevVelocityY = sprite.velocityY;
-            sprite.velocityY = 0;
-        }
-
-        const EPSILON = 0.01; // Small offset to move away from boundary
-
-        // Clamp position with small offset to avoid immediate re-trigger
-        if (side === 'left') sprite.x = EPSILON;
-        if (side === 'right') sprite.x = this.boundsWidth - sprite.width - EPSILON;
-        if (side === 'top') sprite.y = this.boundsOffsetTop + EPSILON;
-        if (side === 'bottom') sprite.y = this.boundsHeight - this.boundsOffsetBottom - sprite.height - EPSILON;
+        // event-only: Kein Clamping, kein Bounce — Sprite fliegt weiter
 
         if (this.eventCallback) {
             // console.log(`[GameLoopManager] Boundary Hit: ${sprite.name} on ${side}. Task should handle bounce.`);
             this.eventCallback(sprite.id, 'onBoundaryHit', { hitSide: side });
         }
+    }
+    /**
+     * Prüfe ob Sprites die Stage komplett verlassen haben.
+     * Feuert onStageExit mit { exitSide } wenn das Sprite vollständig außerhalb ist.
+     * Wird nur im Modus 'event-only' relevant (bei 'clamp'/'bounce' können Sprites den Rand nicht verlassen).
+     */
+    private checkStageExits(): void {
+        if (this.boundaryMode === 'clamp' || this.boundaryMode === 'bounce') return;
+
+        this.sprites.forEach(sprite => {
+            if (sprite.isAnimating) return;
+
+            const spriteKey = sprite.id || sprite.name;
+            if (this.exitedSprites.has(spriteKey)) return; // Schon gefeuert
+
+            let exitSide: string | null = null;
+
+            // Komplett links raus: rechter Rand des Sprites < 0
+            if (sprite.x + sprite.width < 0) {
+                exitSide = 'left';
+            }
+            // Komplett rechts raus: linker Rand > Stage-Breite
+            else if (sprite.x > this.boundsWidth) {
+                exitSide = 'right';
+            }
+            // Komplett oben raus: unterer Rand < boundsOffsetTop
+            else if (sprite.y + sprite.height < this.boundsOffsetTop) {
+                exitSide = 'top';
+            }
+            // Komplett unten raus: oberer Rand > Stage-Höhe
+            else if (sprite.y > this.boundsHeight - this.boundsOffsetBottom) {
+                exitSide = 'bottom';
+            }
+
+            if (exitSide && this.eventCallback) {
+                this.exitedSprites.add(spriteKey);
+                this.eventCallback(sprite.id, 'onStageExit', { exitSide });
+            }
+        });
     }
 }
