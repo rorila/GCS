@@ -366,8 +366,9 @@ export class EditorStageManager {
      * Importiert eine Stage aus einem externen Projekt inkl. aller Abhängigkeiten.
      * Kopiert: Objects, Variables, Tasks, Actions, FlowCharts, Events.
      * Blueprint-Abhängigkeiten werden in die Blueprint-Stage des Zielprojekts gemergt.
+     * Gibt die importierte Stage und die Stage-ID-Zuordnung (alt→neu) zurück.
      */
-    public importStageFromProject(sourceProject: GameProject, stageId: string): StageDefinition | null {
+    public importStageFromProject(sourceProject: GameProject, stageId: string): { stage: StageDefinition; oldStageId: string; newStageId: string } | null {
         const sourceStage = sourceProject.stages?.find(s => s.id === stageId);
         if (!sourceStage) return null;
 
@@ -376,7 +377,8 @@ export class EditorStageManager {
 
         // 2. Neue IDs generieren (ID-Kollisionen vermeiden)
         const idMap = new Map<string, string>(); // alte ID → neue ID
-        clonedStage.id = `stage_import_${Date.now()}`;
+        const newStageId = `stage_import_${Date.now()}_${Math.random().toString(36).slice(2, 4)}`;
+        clonedStage.id = newStageId;
         clonedStage.name = `${clonedStage.name} (Import)`;
         // Type normalisieren: Blueprint-Stages werden zu Standard
         if (clonedStage.type === 'blueprint') clonedStage.type = 'standard';
@@ -415,7 +417,43 @@ export class EditorStageManager {
         this.switchStage(clonedStage.id);
         this.onRefresh();
 
-        return clonedStage;
+        return { stage: clonedStage, oldStageId: stageId, newStageId };
+    }
+
+    /**
+     * Remapped navigate_stage-Actions in allen übergebenen Stages.
+     * Verwendet die stageIdMap (alteID → neueID) um Referenzen zu korrigieren.
+     */
+    public remapStageReferences(stages: StageDefinition[], stageIdMap: Map<string, string>): void {
+        for (const stage of stages) {
+            // Actions durchsuchen
+            for (const action of (stage.actions || [])) {
+                if (action.type === 'navigate_stage' && (action as any).stageId) {
+                    const oldId = (action as any).stageId;
+                    if (stageIdMap.has(oldId)) {
+                        (action as any).stageId = stageIdMap.get(oldId);
+                    }
+                }
+            }
+            // Auch Task-Sequenzen können navigate-Referenzen enthalten (inline stageId)
+            for (const task of (stage.tasks || [])) {
+                this.remapSequenceStageRefs(task.actionSequence || [], stageIdMap);
+            }
+        }
+    }
+
+    /**
+     * Remapped Stage-IDs in Task-Sequenzen (für Condition-Branches, Loops etc.)
+     */
+    private remapSequenceStageRefs(sequence: any[], stageIdMap: Map<string, string>): void {
+        for (const item of sequence) {
+            if (item.stageId && stageIdMap.has(item.stageId)) {
+                item.stageId = stageIdMap.get(item.stageId);
+            }
+            if (item.then) this.remapSequenceStageRefs(item.then, stageIdMap);
+            if (item.else) this.remapSequenceStageRefs(item.else, stageIdMap);
+            if (item.body) this.remapSequenceStageRefs(item.body, stageIdMap);
+        }
     }
 
     /**

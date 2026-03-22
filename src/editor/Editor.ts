@@ -529,7 +529,7 @@ export class Editor implements IViewHost {
                             this.updateStagesMenu();
                             this.updateStageLabel();
                             mediatorService.notifyDataChanged(this.project, 'stage-import');
-                            alert(`Stage "${imported.name}" erfolgreich importiert!`);
+                            alert(`Stage "${imported.stage.name}" erfolgreich importiert!`);
                         }
                         return;
                     }
@@ -634,9 +634,21 @@ export class Editor implements IViewHost {
             if (selected.length === 0) { alert('Keine Stage ausgewählt.'); return; }
 
             const importedNames: string[] = [];
+            const importedStages: StageDefinition[] = [];
+            const stageIdMap = new Map<string, string>();
+
             for (const sel of selected) {
-                const imported = this.stageManager.importStageFromProject(sourceProject, sel.id);
-                if (imported) importedNames.push(imported.name);
+                const result = this.stageManager.importStageFromProject(sourceProject, sel.id);
+                if (result) {
+                    importedNames.push(result.stage.name);
+                    importedStages.push(result.stage);
+                    stageIdMap.set(result.oldStageId, result.newStageId);
+                }
+            }
+
+            // navigate_stage-Actions in allen importierten Stages auf neue IDs remappen
+            if (stageIdMap.size > 0 && importedStages.length > 1) {
+                this.stageManager.remapStageReferences(importedStages, stageIdMap);
             }
 
             close();

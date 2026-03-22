@@ -99,16 +99,17 @@ export async function runStageImportTests(): Promise<TestResult[]> {
         const target = createTargetProject();
         const source = createSourceProject();
         const sm = new EditorStageManager(target, {} as any, () => {});
-        const imported = sm.importStageFromProject(source, 'spielfeld');
+        const result = sm.importStageFromProject(source, 'spielfeld');
 
-        const ok = imported !== null
-            && imported.name.includes('Import')
-            && imported.id !== 'spielfeld'
+        const imported = result?.stage;
+        const ok = result !== null
+            && imported!.name.includes('Import')
+            && imported!.id !== 'spielfeld'
             && target.stages!.length === 3
-            && imported.objects!.length === 2
-            && imported.tasks!.length === 1
-            && imported.actions!.length === 2
-            && imported.variables!.length === 1;
+            && imported!.objects!.length === 2
+            && imported!.tasks!.length === 1
+            && imported!.actions!.length === 2
+            && imported!.variables!.length === 1;
 
         add('Basis-Import (Objekte, Tasks, Actions, Variables)', ok,
             ok ? '2 Objekte, 1 Task, 2 Actions, 1 Variable korrekt kopiert'
@@ -120,7 +121,8 @@ export async function runStageImportTests(): Promise<TestResult[]> {
         const target = createTargetProject();
         const source = createSourceProject();
         const sm = new EditorStageManager(target, {} as any, () => {});
-        const imported = sm.importStageFromProject(source, 'spielfeld')!;
+        const result = sm.importStageFromProject(source, 'spielfeld')!;
+        const imported = result.stage;
 
         const originalIds = ['obj_rakete', 'obj_button', 'var_countdown'];
         const allRemapped = [...(imported.objects || []), ...(imported.variables as any[] || [])]
@@ -169,10 +171,10 @@ export async function runStageImportTests(): Promise<TestResult[]> {
         const target = createTargetProject();
         const source = createSourceProject();
         const sm = new EditorStageManager(target, {} as any, () => {});
-        const imported = sm.importStageFromProject(source, 'blueprint')!;
+        const result = sm.importStageFromProject(source, 'blueprint')!;
 
-        add('Blueprint → Standard (Type-Konvertierung)', imported.type === 'standard',
-            `Type=${imported.type}`);
+        add('Blueprint → Standard (Type-Konvertierung)', result.stage.type === 'standard',
+            `Type=${result.stage.type}`);
     } catch (e: any) { add('Blueprint → Standard', false, e.message); }
 
     // ─── Test 6: Stage ohne Abhängigkeiten ───
@@ -182,7 +184,8 @@ export async function runStageImportTests(): Promise<TestResult[]> {
         const sm = new EditorStageManager(target, {} as any, () => {});
         const bp = target.stages!.find(s => s.type === 'blueprint')!;
 
-        const imported = sm.importStageFromProject(source, 'stage2')!;
+        const result = sm.importStageFromProject(source, 'stage2')!;
+        const imported = result.stage;
 
         const ok = imported.objects!.length === 1
             && imported.tasks!.length === 0
@@ -198,13 +201,62 @@ export async function runStageImportTests(): Promise<TestResult[]> {
         const target = createTargetProject();
         const source = createSourceProject();
         const sm = new EditorStageManager(target, {} as any, () => {});
-        const imported = sm.importStageFromProject(source, 'spielfeld')!;
-        const rakete = imported.objects!.find(o => o.name === 'Rakete');
+        const result = sm.importStageFromProject(source, 'spielfeld')!;
+        const rakete = result.stage.objects!.find(o => o.name === 'Rakete');
 
         const ok = rakete?.events?.onClick === 'StartCountdown';
         add('Events bleiben erhalten (Rakete.onClick)', ok,
             `onClick=${rakete?.events?.onClick}`);
     } catch (e: any) { add('Events bleiben erhalten', false, e.message); }
+
+    // ─── Test 8: navigate_stage Auto-Remap ───
+    try {
+        const target = createTargetProject();
+        // Quell-Projekt mit 2 Stages die aufeinander verweisen
+        const source: GameProject = {
+            meta: { name: 'Nav-Test', version: '1.0', author: 'Test' },
+            stage: { grid: { cols: 64, rows: 40, cellSize: 20, snapToGrid: true, visible: true, backgroundColor: '#fff' } },
+            objects: [], actions: [], tasks: [], variables: [],
+            stages: [
+                { id: 'bp', name: 'Blueprint', type: 'blueprint', objects: [], actions: [], tasks: [], variables: [] },
+                {
+                    id: 'lobby', name: 'Lobby', type: 'main', objects: [], tasks: [],
+                    variables: [],
+                    actions: [
+                        { name: 'GoToSpiel', type: 'navigate_stage', stageId: 'spiel' } as any
+                    ]
+                },
+                {
+                    id: 'spiel', name: 'Spielfeld', type: 'standard', objects: [], tasks: [],
+                    variables: [],
+                    actions: [
+                        { name: 'BackToLobby', type: 'navigate_stage', stageId: 'lobby' } as any
+                    ]
+                }
+            ],
+            activeStageId: 'lobby'
+        };
+
+        const sm = new EditorStageManager(target, {} as any, () => {});
+
+        // Beide Stages importieren
+        const r1 = sm.importStageFromProject(source, 'lobby')!;
+        const r2 = sm.importStageFromProject(source, 'spiel')!;
+
+        // Stage-ID-Map aufbauen und remappen
+        const stageIdMap = new Map<string, string>();
+        stageIdMap.set(r1.oldStageId, r1.newStageId);
+        stageIdMap.set(r2.oldStageId, r2.newStageId);
+        sm.remapStageReferences([r1.stage, r2.stage], stageIdMap);
+
+        // Prüfe: navigate_stage-Actions zeigen jetzt auf die neuen IDs
+        const goToSpiel = r1.stage.actions!.find(a => a.name === 'GoToSpiel') as any;
+        const backToLobby = r2.stage.actions!.find(a => a.name === 'BackToLobby') as any;
+
+        const ok = goToSpiel?.stageId === r2.newStageId && backToLobby?.stageId === r1.newStageId;
+        add('navigate_stage Auto-Remap', ok,
+            `GoToSpiel.stageId=${goToSpiel?.stageId} (erwartet: ${r2.newStageId}), BackToLobby.stageId=${backToLobby?.stageId} (erwartet: ${r1.newStageId})`);
+    } catch (e: any) { add('navigate_stage Auto-Remap', false, e.message); }
 
     const p = results.filter(r => r.passed).length;
     const f = results.length - p;
