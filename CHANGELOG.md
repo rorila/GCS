@@ -1,3 +1,10 @@
+## [3.26.1] - 2026-03-22
+### Fixed
+- **Drag-and-Drop Regression behoben** (`Editor.ts`):
+  - Objekte sprangen nach Verschieben auf Stage an alte Position zurück
+  - Root Cause: `ProjectStore.dispatch` → Mediator-Bridge `'store-dispatch'` → `refreshAllViews()` → voller `flowEditor.setProject()` Rebuild
+  - Fix: `'store-dispatch'`-Originator im `initMediator`-Listener gefiltert — nur `render()`, kein `setProject()`
+
 ## [3.26.0] - 2026-03-22
 ### Added (Demo 3: Mathe-Quiz)
 - **Mathe-Quiz Builder** (`demos/builders/mathe-quiz.builder.ts`):

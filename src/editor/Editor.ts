@@ -745,8 +745,13 @@ export class Editor implements IViewHost {
         mediatorService.on(MediatorEvents.DATA_CHANGED, (_data: any, originator?: string) => {
             // Wenn sich Daten ändern (z.B. neue Actions hinzugefügt), müssen wir die Views aktualisieren.
             // Der Originator hilft zu vermeiden, dass wir Events im Kreis schicken.
-            if (originator !== 'editor' && originator !== 'inspector') {
+            // 'store-dispatch' kommt von der ProjectStore-Bridge und darf NICHT refreshAllViews
+            // auslösen, da der aufrufende Code (z.B. onObjectMove) bereits selbst render() aufruft.
+            if (originator !== 'editor' && originator !== 'inspector' && originator !== 'store-dispatch') {
                 this.renderManager.refreshAllViews(originator);
+            } else if (originator === 'store-dispatch') {
+                // Store-Änderungen: Nur render(), KEIN flowEditor.setProject()
+                this.render();
             } else {
                 // Auch bei Inspector-Änderungen rendern wir sofort (Live-Preview)
                 this.render();
