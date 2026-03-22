@@ -46,6 +46,7 @@
             "borderWidth": 2
           },
           "targetFPS": 60,
+          "boundaryMode": "clamp",
           "boundsOffsetTop": 0,
           "boundsOffsetBottom": 0
         },
@@ -102,16 +103,41 @@
       "flowCharts": {},
       "variables": [
         {
+          "className": "TGameState",
+          "id": "obj_bp_import_1774201364499_egyc",
+          "name": "GameState",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 2,
+          "width": 4,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#4caf50",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "state": "menu",
+          "spritesMoving": false,
+          "collisionsEnabled": false
+        },
+        {
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
           "defaultValue": false,
           "value": false,
           "isGlobal": true,
-          "description": "System internal flag to track unsaved changes",
-          "uiScope": "stage",
-          "uiEmoji": "🎭",
-          "usageCount": 0
+          "description": "System internal flag to track unsaved changes"
         }
       ]
     },
@@ -221,36 +247,36 @@
           "text": "${Countdown}"
         },
         {
-          "className": "TTimer",
-          "id": "obj_countdown_timer",
-          "name": "CountdownTimer",
-          "scope": "stage",
-          "isVariable": true,
-          "isService": true,
-          "isHiddenInRun": true,
+          "className": "TButton",
+          "id": "obj_1774202151632_6cacpzs52",
+          "name": "Button_9",
+          "scope": "global",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onTimer": "OnTimerTick",
-            "onMaxIntervalReached": "OnCountdownFinish"
+            "onClick": "GoToSpielfeld"
           },
           "visible": true,
-          "x": 9.050338058057125,
-          "y": 1.200221674258442,
-          "width": 5.9495,
-          "height": 1.749795,
+          "x": 0.4487065,
+          "y": 7.81455,
+          "width": 6,
+          "height": 2,
           "zIndex": 0,
           "align": "NONE",
           "style": {
-            "backgroundColor": "#4caf50",
-            "borderColor": "#2e7d32",
-            "borderWidth": 2
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
           },
-          "interval": 1000,
-          "enabled": false,
-          "maxInterval": 10,
-          "currentInterval": 0
+          "text": "Button_9",
+          "icon": ""
         }
       ],
       "tasks": [
@@ -259,85 +285,66 @@
           "description": "Timer starten und Button deaktivieren",
           "actionSequence": [
             {
+              "type": "action",
               "name": "SpielStarten",
-              "type": "action"
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
             },
             {
-              "name": "TimerStarten",
-              "type": "action"
+              "type": "action",
+              "name": "TimerStarten"
             },
             {
-              "name": "ButtonDeaktivieren",
-              "type": "action"
+              "type": "action",
+              "name": "ButtonDeaktivieren"
             }
-          ],
-          "params": [],
-          "flowLayout": {
-            "StartCountdown": {
-              "x": 40,
-              "y": 40
-            },
-            "SpielStarten": {
-              "x": 40,
-              "y": 140
-            },
-            "TimerStarten": {
-              "x": 40,
-              "y": 240
-            },
-            "ButtonDeaktivieren": {
-              "x": 40,
-              "y": 340
-            }
-          }
+          ]
         },
         {
           "name": "OnTimerTick",
           "description": "Countdown um 1 reduzieren",
           "actionSequence": [
             {
-              "name": "CountdownReduzieren",
-              "type": "action"
+              "type": "action",
+              "name": "CountdownReduzieren"
             }
-          ],
-          "params": [],
-          "flowLayout": {
-            "OnTimerTick": {
-              "x": 40,
-              "y": 40
-            },
-            "CountdownReduzieren": {
-              "x": 40,
-              "y": 140
-            }
-          }
+          ]
         },
         {
           "name": "OnCountdownFinish",
           "description": "Rakete starten",
           "actionSequence": [
             {
+              "type": "action",
               "name": "PhysikAktivieren",
-              "type": "action"
+              "scope": "global",
+              "sourceStage": "stage_blueprint"
             },
             {
-              "name": "RaketeStarten",
+              "type": "action",
+              "name": "RaketeStarten"
+            }
+          ]
+        },
+        {
+          "name": "GoToSpielfeld",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SwitchToSpielfeld",
               "type": "action"
             }
           ],
+          "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
-            "OnCountdownFinish": {
+            "GoToSpielfeld": {
               "x": 40,
               "y": 40
             },
-            "PhysikAktivieren": {
+            "SwitchToSpielfeld": {
               "x": 40,
               "y": 140
-            },
-            "RaketeStarten": {
-              "x": 40,
-              "y": 240
             }
           }
         }
@@ -374,9 +381,48 @@
           "changes": {
             "velocityY": -5
           }
+        },
+        {
+          "details": "",
+          "name": "SwitchToSpielfeld",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage_import_1774201364499_h2"
         }
       ],
       "variables": [
+        {
+          "className": "TTimer",
+          "id": "obj_countdown_timer",
+          "name": "CountdownTimer",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "OnTimerTick",
+            "onMaxIntervalReached": "OnCountdownFinish"
+          },
+          "visible": true,
+          "x": 11,
+          "y": 2.0499861453588473,
+          "width": 4.94966,
+          "height": 1.8997499999999998,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 1000,
+          "enabled": false,
+          "maxInterval": 10,
+          "currentInterval": 0
+        },
         {
           "className": "TIntegerVariable",
           "id": "var_countdown",
@@ -388,8 +434,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 2.2499566592234457,
-          "y": 1.1008035691868525,
+          "x": 2,
+          "y": 4,
           "width": 6,
           "height": 2,
           "zIndex": 0,
@@ -406,7 +452,597 @@
           "objectModel": ""
         }
       ],
-      "flowCharts": {}
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop"
+      ]
+    },
+    {
+      "id": "stage_import_1774201364499_h2",
+      "name": "Spielfeld (Import)",
+      "type": "main",
+      "gameName": "Retro Tennis",
+      "backgroundColor": "#1a1a2e",
+      "grid": {
+        "cols": 40,
+        "rows": 30,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#1a1a2e",
+        "snapToGrid": true
+      },
+      "objects": [
+        {
+          "className": "TButton",
+          "id": "obj_import_1774201364499_nriq",
+          "name": "StartButton",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "StartGameTask"
+          },
+          "visible": true,
+          "x": 16,
+          "y": 10,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "StartButton",
+          "icon": ""
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1774201364499_bvzi",
+          "name": "LeftPaddle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 1,
+          "y": 12,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain"
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1774201364499_0obr",
+          "name": "RightPaddle",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 38,
+          "y": 12,
+          "width": 1,
+          "height": 6,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain"
+        },
+        {
+          "className": "TSprite",
+          "id": "obj_import_1774201364499_ih4h",
+          "name": "Ball",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onBoundaryHit": "CheckWallCollisions",
+            "onCollision": "BallHitPaddle"
+          },
+          "visible": true,
+          "x": 19,
+          "y": 14,
+          "width": 1,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#ff6b6b",
+            "borderColor": "#333333",
+            "borderWidth": 1
+          },
+          "velocityX": 0,
+          "velocityY": 0,
+          "lerpSpeed": 0.1,
+          "collisionEnabled": true,
+          "collisionGroup": "default",
+          "shape": "rect",
+          "spriteColor": "#ff6b6b",
+          "backgroundImage": "",
+          "objectFit": "contain"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_import_1774201364499_5k61",
+          "name": "Button_8",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "GoToStage1"
+          },
+          "visible": true,
+          "x": 0,
+          "y": 28,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "zur Stage1",
+          "icon": ""
+        }
+      ],
+      "tasks": [
+        {
+          "name": "MoveP1Up",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP1Up"
+            }
+          ]
+        },
+        {
+          "name": "MoveP1Down",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP1Down"
+            }
+          ]
+        },
+        {
+          "name": "StopP1",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP1Stop"
+            }
+          ]
+        },
+        {
+          "name": "MoveP2Up",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP2Up"
+            }
+          ]
+        },
+        {
+          "name": "MoveP2Down",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP2Down"
+            }
+          ]
+        },
+        {
+          "name": "StopP2",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetP2Stop"
+            }
+          ]
+        },
+        {
+          "name": "StartGameTask",
+          "description": "Wird durch den StartButton getriggert.",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SetStatePlaying"
+            },
+            {
+              "type": "action",
+              "name": "EnablePhysics"
+            },
+            {
+              "type": "action",
+              "name": "StartBallX"
+            },
+            {
+              "type": "action",
+              "name": "StartBallY"
+            },
+            {
+              "type": "action",
+              "name": "HideStartButton"
+            }
+          ]
+        },
+        {
+          "name": "CheckWallCollisions",
+          "actionSequence": [
+            {
+              "condition": {
+                "leftValue": "${hitSide}",
+                "operator": "==",
+                "rightValue": "top"
+              },
+              "type": "condition",
+              "body": [
+                {
+                  "name": "BounceY",
+                  "type": "action"
+                }
+              ],
+              "elseBody": [
+                {
+                  "condition": {
+                    "leftValue": "${hitSide}",
+                    "operator": "==",
+                    "rightValue": "bottom"
+                  },
+                  "type": "condition",
+                  "body": [
+                    {
+                      "name": "BounceY",
+                      "type": "action"
+                    }
+                  ],
+                  "elseBody": [
+                    {
+                      "condition": {
+                        "leftValue": "${hitSide}",
+                        "rightValue": "left"
+                      },
+                      "type": "condition",
+                      "body": [
+                        {
+                          "name": "BounceX",
+                          "type": "action"
+                        }
+                      ],
+                      "elseBody": [
+                        {
+                          "condition": {
+                            "leftValue": "${hitSide}",
+                            "rightValue": "right"
+                          },
+                          "type": "condition",
+                          "body": [
+                            {
+                              "name": "BounceX",
+                              "type": "action"
+                            }
+                          ],
+                          "elseBody": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "CheckWallCollisions": {
+              "x": 40,
+              "y": 40
+            },
+            "${hitSide} == top": {
+              "x": 40,
+              "y": 140
+            },
+            "BounceY": {
+              "x": 280,
+              "y": 240
+            },
+            "${hitSide} == bottom": {
+              "x": 40,
+              "y": 240
+            },
+            "${hitSide} == left": {
+              "x": 40,
+              "y": 340
+            },
+            "BounceX": {
+              "x": 280,
+              "y": 440
+            },
+            "${hitSide} == right": {
+              "x": 40,
+              "y": 440
+            }
+          }
+        },
+        {
+          "name": "BallHitPaddle",
+          "description": "Wenn der Ball kollidiert (z.B. mit dem Paddle), springt er ab.",
+          "actionSequence": [
+            {
+              "name": "BounceX",
+              "type": "action"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "BallHitPaddle": {
+              "x": 40,
+              "y": 40
+            },
+            "BounceX": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "GoToStage1",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SwitchToStage1",
+              "type": "action"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "GoToStage1": {
+              "x": 40,
+              "y": 40
+            },
+            "SwitchToStage1": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "act_import_1774201364499_80v4",
+          "name": "SetP1Up",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": -0.5
+          }
+        },
+        {
+          "id": "act_import_1774201364499_fi38",
+          "name": "SetP1Down",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0.5
+          }
+        },
+        {
+          "id": "act_import_1774201364499_29nv",
+          "name": "SetP1Stop",
+          "type": "property",
+          "target": "LeftPaddle",
+          "changes": {
+            "velocityY": 0
+          }
+        },
+        {
+          "id": "act_import_1774201364499_yx8z",
+          "name": "SetP2Up",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": -0.5
+          }
+        },
+        {
+          "id": "act_import_1774201364499_2yc4",
+          "name": "SetP2Down",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0.5
+          }
+        },
+        {
+          "id": "act_import_1774201364499_l7cu",
+          "name": "SetP2Stop",
+          "type": "property",
+          "target": "RightPaddle",
+          "changes": {
+            "velocityY": 0
+          }
+        },
+        {
+          "id": "act_import_1774201364499_9rez",
+          "name": "SetStatePlaying",
+          "type": "property",
+          "target": "GameState",
+          "changes": {
+            "state": "playing"
+          }
+        },
+        {
+          "id": "act_import_1774201364499_mil3",
+          "name": "EnablePhysics",
+          "type": "property",
+          "target": "GameState",
+          "changes": {
+            "spritesMoving": true,
+            "collisionsEnabled": true
+          }
+        },
+        {
+          "id": "act_import_1774201364499_4zda",
+          "name": "StartBallX",
+          "type": "property",
+          "target": "Ball",
+          "changes": {
+            "velocityX": 0.3
+          }
+        },
+        {
+          "id": "act_import_1774201364499_er0f",
+          "name": "StartBallY",
+          "type": "property",
+          "target": "Ball",
+          "changes": {
+            "velocityY": 0.3
+          }
+        },
+        {
+          "id": "act_import_1774201364499_lkdp",
+          "name": "HideStartButton",
+          "type": "property",
+          "target": "StartButton",
+          "changes": {
+            "visible": false
+          }
+        },
+        {
+          "id": "act_import_1774201364499_xj12",
+          "name": "BounceY",
+          "type": "negate",
+          "target": "Ball",
+          "changes": {
+            "velocityY": true
+          },
+          "details": "",
+          "showDetails": false
+        },
+        {
+          "id": "act_import_1774201364499_pym7",
+          "name": "BounceX",
+          "type": "negate",
+          "target": "Ball",
+          "changes": {
+            "velocityX": true
+          },
+          "details": "",
+          "showDetails": false
+        },
+        {
+          "details": "",
+          "name": "SwitchToStage1",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage_import_1774201364502_fc"
+        }
+      ],
+      "flowCharts": {},
+      "variables": [],
+      "_supportedEvents": [
+        "onClick",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop"
+      ]
+    },
+    {
+      "id": "stage_import_1774201364502_fc",
+      "name": "Stage 1 (Import)",
+      "type": "standard",
+      "objects": [
+        {
+          "className": "TPanel",
+          "id": "obj_import_1774201364502_a3uk",
+          "name": "Ich bn eine neue Stage",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 2,
+          "zIndex": 0,
+          "align": "TOP",
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "Ich bn eine neue Stage",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        }
+      ],
+      "actions": [],
+      "tasks": [],
+      "variables": [],
+      "grid": {
+        "cols": 40,
+        "rows": 30,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#ffffff"
+      },
+      "_supportedEvents": [
+        "onClick",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop"
+      ]
     }
   ],
   "tasks": [],
@@ -416,5 +1052,5 @@
     "elements": [],
     "connections": []
   },
-  "activeStageId": "stage_blueprint"
+  "activeStageId": "stage_main"
 }
