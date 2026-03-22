@@ -219,6 +219,105 @@ export class ProjectBuilder {
         return actions;
     }
 
+    // ─── Variablen ───
+    addVariable(name: string, type: string, initialValue: any, scope: string = 'global'): void {
+        const existing = this.project.variables.find((v: any) => v.name === name);
+        if (existing) {
+            existing.type = type;
+            existing.initialValue = initialValue;
+            existing.defaultValue = initialValue;
+            existing.scope = scope;
+        } else {
+            this.project.variables.push({ name, type, initialValue, defaultValue: initialValue, scope });
+        }
+    }
+
+    // ─── Properties ───
+    setProperty(stageId: string, objectName: string, property: string, value: any): void {
+        const stage = this.findStage(stageId);
+        if (!stage) throw new Error(`Stage '${stageId}' nicht gefunden`);
+        const obj = [...stage.objects, ...stage.variables].find((o: any) => o.name === objectName);
+        if (!obj) throw new Error(`Objekt '${objectName}' nicht gefunden in '${stageId}'`);
+        const parts = property.split('.');
+        let target: any = obj;
+        for (let i = 0; i < parts.length - 1; i++) {
+            if (target[parts[i]] === undefined) target[parts[i]] = {};
+            target = target[parts[i]];
+        }
+        target[parts[parts.length - 1]] = value;
+    }
+
+    // ─── Bindings ───
+    bindVariable(stageId: string, objectName: string, property: string, expression: string): void {
+        if (!expression.startsWith('${')) expression = '${' + expression + '}';
+        this.setProperty(stageId, objectName, property, expression);
+    }
+
+    // ─── Task-Aufrufe ───
+    addTaskCall(taskName: string, calledTaskName: string): void {
+        const taskInfo = this.findTask(taskName);
+        if (!taskInfo) throw new Error(`Task '${taskName}' nicht gefunden`);
+        taskInfo.task.actionSequence.push({ type: 'task', name: calledTaskName });
+    }
+
+    // ─── Branches (Verzweigungen) ───
+    addBranch(
+        taskName: string,
+        conditionVariable: string,
+        operator: string,
+        conditionValue: any,
+        thenActions: string[],
+        elseActions: string[] = []
+    ): void {
+        const taskInfo = this.findTask(taskName);
+        if (!taskInfo) throw new Error(`Task '${taskName}' nicht gefunden`);
+
+        taskInfo.task.actionSequence.push({
+            type: 'condition',
+            name: `Branch: ${conditionVariable} ${operator} ${conditionValue}`,
+            condition: { variable: conditionVariable, operator, value: conditionValue },
+            then: thenActions.map(name => ({ type: 'action', name })),
+            else: elseActions.map(name => ({ type: 'action', name }))
+        });
+    }
+
+    // ─── Sprite-Shortcuts ───
+    createSprite(stageId: string, name: string, x: number, y: number, width: number, height: number, opts: Record<string, any> = {}): void {
+        this.addObject(stageId, {
+            className: 'TSprite', name,
+            x, y, width, height,
+            velocityX: opts.velocityX ?? 0,
+            velocityY: opts.velocityY ?? 0,
+            collisionEnabled: opts.collisionEnabled ?? true,
+            collisionGroup: opts.collisionGroup ?? 'default',
+            shape: opts.shape ?? 'rect',
+            spriteColor: opts.spriteColor ?? '#ff6b6b',
+            style: {
+                backgroundColor: opts.spriteColor ?? '#ff6b6b',
+                borderColor: opts.style?.borderColor ?? '#333',
+                borderWidth: opts.style?.borderWidth ?? 1,
+                borderRadius: opts.shape === 'circle' ? 999 : 0,
+                ...(opts.style || {})
+            }
+        });
+    }
+
+    createLabel(stageId: string, name: string, x: number, y: number, text: string, opts: Record<string, any> = {}): void {
+        this.addObject(stageId, {
+            className: 'TLabel', name,
+            x, y, width: opts.width ?? 6, height: opts.height ?? 2,
+            text,
+            style: {
+                color: opts.color ?? '#ffffff',
+                fontSize: opts.fontSize ?? 16,
+                fontWeight: opts.fontWeight ?? 'normal',
+                textAlign: opts.textAlign ?? 'center',
+                backgroundColor: opts.backgroundColor ?? 'transparent',
+                ...(opts.style || {})
+            }
+        });
+    }
+
     // ─── Hilfsmethoden ───
     private findStage(id: string): StageData | undefined {
         return this.project.stages.find((s: any) => s.id === id);
@@ -242,9 +341,12 @@ export class ProjectBuilder {
 }
 
 // ═══════════════════════════════════════
-// CLI-Hauptprogramm
+// CLI-Hauptprogramm (nur bei direktem Aufruf)
 // ═══════════════════════════════════════
 
+const isMainModule = import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isMainModule) {
 const args = process.argv.slice(2);
 if (args.length < 1) {
     console.error('❌ Verwendung: npx tsx scripts/agent-run.ts <builder-datei> [ausgabe.json]');
@@ -337,3 +439,4 @@ main().catch(e => {
     console.error('❌ Unerwarteter Fehler:', e);
     process.exit(1);
 });
+} // end if (isMainModule)

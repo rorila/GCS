@@ -1,3 +1,15 @@
+## [3.26.0] - 2026-03-22
+### Added (Demo 3: Mathe-Quiz)
+- **Mathe-Quiz Builder** (`demos/builders/mathe-quiz.builder.ts`):
+  - Additions-Quiz für Klasse 1 mit TRandomVariable, Conditions, Timer, Score
+  - 5 Tasks, 26 Actions, 12 Objekte, Bindings, Event-Verkettung
+  - Verzweigungen (addBranch) für Richtig/Falsch-Prüfung
+  - TaskCalls (addTaskCall) für Task-Verkettung
+- **ProjectBuilder erweitert** (`scripts/agent-run.ts`):
+  - 8 neue Methoden: addVariable, bindVariable, setProperty, addBranch, addTaskCall, createSprite, createLabel
+  - CLI-Guard für sauberen Import (kein process.exit bei Import als Modul)
+- **Tests** (`tests/mathe_quiz.test.ts`): 10 Tests (Struktur, Objekte, Tasks, Branch, Bindings, Events, TaskCalls, Flows, Validierung)
+
 ## [3.25.0] - 2026-03-22
 ### Added (API-Realisierung Phase 2)
 - **Sprite-Shortcuts** (`AgentController.ts`):
