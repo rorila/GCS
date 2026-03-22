@@ -18,3 +18,6 @@ npm-debug.log*
 
 # Backup-Dateien (Projekt-Rotation)
 *.bak*
+
+# Laufzeit-Kopie (aktuell im Editor geladenes Projekt)
+game-server/public/projects/loaded_project.json
