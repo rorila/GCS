@@ -255,7 +255,12 @@ export class StageRenderer {
                 }
             }
 
-            el.style.display = isVisible ? 'flex' : 'none';
+            if (!this.host.runMode && !isVisible) {
+                el.style.display = 'flex';
+                el.classList.add('invisible-object-in-editor');
+            } else {
+                el.style.display = isVisible ? 'flex' : 'none';
+            }
 
             // Inherited/Ghosted State — nur im Design-Mode schemenhaft
             if (isInherited && !this.host.runMode) {
@@ -273,8 +278,13 @@ export class StageRenderer {
                 el.style.opacity = String(opacity);
             } else if (isInherited && !this.host.runMode) {
                 el.style.opacity = '0.4';
+            } else if (!isVisible && !this.host.runMode) {
+                el.style.opacity = '0.4';
+                el.style.outline = '2px dashed #ff4444';
+                el.style.outlineOffset = '-2px';
             } else {
                 el.style.opacity = '1';
+                el.style.outline = '';
             }
 
             // Styles
@@ -295,7 +305,11 @@ export class StageRenderer {
                 if (obj.style.fontSize) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
                 if (obj.style.fontWeight) el.style.fontWeight = obj.style.fontWeight;
                 if (obj.style.borderRadius) el.style.borderRadius = typeof obj.style.borderRadius === 'number' ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
-
+                if (obj.style.transform) {
+                    el.style.transform = obj.style.transform;
+                } else if (!obj.style.transform && el.style.transform) {
+                    el.style.transform = '';
+                }
                 // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor + glowBlur + glowSpread
                 if (obj.style.boxShadow) {
                     el.style.boxShadow = obj.style.boxShadow;
@@ -1273,17 +1287,27 @@ export class StageRenderer {
     // ─────────────────────────────────────────────────────────────────
     // FAST PATH: Sprite-Positionen direkt im DOM aktualisieren
     // Wird 60×/sec vom GameLoopManager aufgerufen, OHNE volles Render.
-    // Kein Dock-Recalc, kein Element-Create/Remove, keine Style-Updates.
+    // Kein Dock-Recalc, kein Element-Create/Remove.
     // ─────────────────────────────────────────────────────────────────
-    public updateSpritePositions(sprites: { id: string; x: number; y: number }[]): void {
+    public updateSpritePositions(objects: any[]): void {
         const cellSize = this.host.grid.cellSize;
-        for (const sprite of sprites) {
+        for (const obj of objects) {
             const el = this.host.element.querySelector(
-                `[data-id="${sprite.id}"]`
+                `[data-id="${obj.id}"]`
             ) as HTMLElement;
             if (!el) continue;
-            el.style.left = `${(sprite.x || 0) * cellSize}px`;
-            el.style.top = `${(sprite.y || 0) * cellSize}px`;
+            
+            // Layout
+            if (obj.x !== undefined) el.style.left = `${(obj.x || 0) * cellSize}px`;
+            if (obj.y !== undefined) el.style.top = `${(obj.y || 0) * cellSize}px`;
+            
+            // Animation Styles (von AnimationManager geschrieben)
+            if (obj.style) {
+                if (obj.style.transform !== undefined) el.style.transform = obj.style.transform;
+                if (obj.style.opacity !== undefined) el.style.opacity = String(obj.style.opacity);
+            } else if (obj.opacity !== undefined) {
+                el.style.opacity = String(obj.opacity);
+            }
         }
     }
 }

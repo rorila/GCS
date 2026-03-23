@@ -280,11 +280,11 @@ export class GameLoopManager {
                 this.checkStageExits();
             }
 
-            // Render: Fast-Path für Sprite-Positionen (kein volles DOM-Rebuild)
-            // Der spriteRenderCallback aktualisiert nur style.left/top der Sprites.
-            // Der volle renderCallback wird nur bei strukturellen Änderungen benötigt.
+            // Render: Fast-Path für Sprite-Positionen und animierte Objekte (kein volles DOM-Rebuild)
             if (this.spriteRenderCallback) {
-                this.spriteRenderCallback(this.sprites);
+                const activeObjects = new Set(this.sprites);
+                AnimationManager.getInstance().getAnimatedObjects().forEach(o => activeObjects.add(o));
+                this.spriteRenderCallback(Array.from(activeObjects));
             } else if (this.renderCallback) {
                 this.renderCallback();
             }

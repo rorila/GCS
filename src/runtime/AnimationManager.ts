@@ -14,6 +14,7 @@ export interface Tween {
     startTime: number;
     easing: EasingFunction;
     onComplete?: () => void;
+    onUpdate?: (value: number, target: any) => void;
 }
 
 // Standard Easing-Funktionen
@@ -67,7 +68,8 @@ export class AnimationManager {
         to: number,
         duration: number,
         easingName: string = 'easeOut',
-        onComplete?: () => void
+        onComplete?: () => void,
+        onUpdate?: (value: number, target: any) => void
     ): Tween {
         // Nur bei Debug-Bedarf einkommentieren, NICHT im Normalbetrieb:
         // console.log(`[AnimationManager.addTween] target=${target?.name}, prop=${property}, to=${to}, dur=${duration}, easing=${easingName}`);
@@ -79,8 +81,8 @@ export class AnimationManager {
             // cancelled existing tween
         }
 
-        // Aktuellen Wert auslesen
-        const from = this.getPropertyValue(target, property);
+        // Aktuellen Wert auslesen (außer es ist ein rein virtuelles Animations-Property)
+        const from = property === '_virtual' ? 0 : this.getPropertyValue(target, property);
         // console.log(`[AnimationManager.addTween] Current value of ${property}: ${from}`);
 
         // Easing-Funktion bestimmen
@@ -103,15 +105,17 @@ export class AnimationManager {
             duration,
             startTime: -1, // Lazy-Init: wird beim ersten update() auf performance.now() gesetzt
             easing,
-            onComplete
+            onComplete,
+            onUpdate
         };
 
         this.activeTweens.push(tween);
 
         // Auto-Sleep: GameLoop aufwecken, falls er im Sleep-Zustand ist
-        // Lazy import um zirkuläre Abhängigkeiten zu vermeiden
-        const { GameLoopManager } = require('./GameLoopManager');
-        GameLoopManager.getInstance().wakeUp();
+        // Lazy import (dynamic) um zirkuläre Abhängigkeiten zu vermeiden
+        import('./GameLoopManager').then(({ GameLoopManager }) => {
+            GameLoopManager.getInstance().wakeUp();
+        }).catch(err => console.error('[AnimationManager] Fehler beim Lazy-Import von GameLoopManager:', err));
 
         return tween;
     }
@@ -159,6 +163,15 @@ export class AnimationManager {
     }
 
     /**
+     * Gibt eine Liste aller aktuell animierten Objekte zurück.
+     */
+    public getAnimatedObjects(): any[] {
+        const objects = new Set<any>();
+        this.activeTweens.forEach(t => objects.add(t.target));
+        return Array.from(objects);
+    }
+
+    /**
      * Bricht alle Tweens eines Objekts ab.
      */
     public cancelAllTweens(target: any): void {
@@ -195,12 +208,24 @@ export class AnimationManager {
 
                 // Neuen Wert berechnen und setzen
                 const newValue = tween.from + (tween.to - tween.from) * easedProgress;
-                this.setPropertyValue(tween.target, tween.property, newValue);
+                
+                if (tween.property !== '_virtual') {
+                    this.setPropertyValue(tween.target, tween.property, newValue);
+                }
+
+                if (tween.onUpdate) {
+                    tween.onUpdate(newValue, tween.target);
+                }
 
                 // Tween abgeschlossen?
                 if (progress >= 1) {
                     // FORCE final value to avoid floating point errors or race conditions
-                    this.setPropertyValue(tween.target, tween.property, tween.to);
+                    if (tween.property !== '_virtual') {
+                        this.setPropertyValue(tween.target, tween.property, tween.to);
+                    }
+                    if (tween.onUpdate) {
+                        tween.onUpdate(tween.to, tween.target);
+                    }
                     console.log(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property} (Forced to ${tween.to})`);
                     completedTweens.push(tween);
                 }
@@ -272,40 +297,65 @@ export class AnimationManager {
             obj[parts[parts.length - 1]] = value;
         }
     }
+    // --- CORE EFFECT MACROS ---
+
     /**
-     * Erzeugt einen Schütteleffekt (Shake) auf einem Objekt.
-     * @param target Das Zielobjekt
-     * @param intensity Intensität des Schüttelns in Pixeln (default: 5)
-     * @param duration Gesamtdauer in Millisekunden (default: 500)
+     * Erzeugt einen Schütteleffekt (Shake) auf einem Objekt via CSS Transform.
      */
     public shake(target: any, intensity: number = 5, duration: number = 500): void {
-        const originalX = target.x;
-        const originalY = target.y;
-        const startTime = performance.now();
-
-        const shakeInterval = 50; //ms
-
-        const performShake = () => {
-            const now = performance.now();
-            const elapsed = now - startTime;
-
-            if (elapsed < duration) {
-                // Zufälligen Offset berechnen
+        if (!target || !target.style) return;
+        this.addTween(target, '_virtual', 1, duration, 'linear', () => {
+            target.style.transform = ''; // reset
+        }, (val) => {
+            if (val < 1) {
                 const offsetX = (Math.random() - 0.5) * intensity * 2;
                 const offsetY = (Math.random() - 0.5) * intensity * 2;
-
-                target.x = originalX + offsetX;
-                target.y = originalY + offsetY;
-
-                setTimeout(performShake, shakeInterval);
-            } else {
-                // Zurück zur Originalposition
-                target.x = originalX;
-                target.y = originalY;
+                target.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
             }
-        };
+        });
+    }
 
-        performShake();
+    /**
+     * Lässt ein Objekt kurzzeitig aufpumpen und wieder schrumpfen (Pulse).
+     */
+    public pulse(target: any, scale: number = 1.15, duration: number = 500): void {
+        if (!target || !target.style) return;
+        this.addTween(target, '_virtual', 1, duration / 2, 'easeOut', () => {
+            // Zurück animieren
+            this.addTween(target, '_virtual', 0, duration / 2, 'easeIn', () => {
+                target.style.transform = ''; // reset
+            }, (val) => {
+                const currentScale = 1 + (scale - 1) * val;
+                target.style.transform = `scale(${currentScale})`;
+            });
+        }, (val) => {
+            const currentScale = 1 + (scale - 1) * val;
+            target.style.transform = `scale(${currentScale})`;
+        });
+    }
+
+    /**
+     * Lässt ein Objekt einmal nach oben hüpfen (Bounce).
+     */
+    public bounce(target: any, heightPx: number = 20, duration: number = 500): void {
+        if (!target || !target.style) return;
+        this.addTween(target, '_virtual', 1, duration, 'linear', () => {
+            target.style.transform = ''; // reset
+        }, (val) => {
+            // Parabel-Funktion für einen Sprung: 4 * x * (1 - x)
+            const jumpProgress = 4 * val * (1 - val); 
+            target.style.transform = `translateY(-${jumpProgress * heightPx}px)`;
+        });
+    }
+
+    /**
+     * Ändert die Transparenz (Fade In / Fade Out)
+     */
+    public fade(target: any, toOpacity: number, duration: number = 500): void {
+        if (!target || !target.style) return;
+        // style.opacity is usually stored as string or number. Ensure it exists.
+        if (target.style.opacity === undefined) target.style.opacity = 1;
+        this.addTween(target, 'style.opacity', toOpacity, duration, 'linear');
     }
 }
 

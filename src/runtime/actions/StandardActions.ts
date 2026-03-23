@@ -127,6 +127,16 @@ export function registerStandardActions() {
             context.vars[variableName] = val;
             context.contextVars[variableName] = val;
 
+            // FIX: Auch das TVariable-Objekt in context.objects aktualisieren,
+            // damit PropertyWatcher greift (analog zu calculate)
+            const varObj = context.objects.find((o: any) =>
+                (o.name === variableName || o.id === variableName) &&
+                (o.isVariable === true || o.className?.includes('Variable'))
+            );
+            if (varObj) {
+                varObj.value = val;
+            }
+
             DebugLogService.getInstance().log('Variable', `Variable "${variableName}" auf "${val}" gesetzt (Quelle: ${sourceName || action.value})${action.sourceProperty ? '.' + action.sourceProperty : ''}`, {
                 data: { value: val, source: sourceName, property: action.sourceProperty }
             });
@@ -1101,5 +1111,71 @@ export function registerStandardActions() {
         label: 'API Request verarbeiten',
         description: 'Verarbeitet einen API-Request mit Datenbank-Logik und sendet die Antwort.',
         parameters: []
+    });
+    // 21. Komponenten Animation (Option 2 - Weg A)
+    actionRegistry.register('animate', (action, context) => {
+        const combinedContext = { ...context.contextVars, ...context.vars, $eventData: context.eventData };
+        // Kann ein String wie "Zahl1, Zahl2, Ergebnis" sein
+        const rawTargetStr = PropertyHelper.interpolate(String(action.target || ''), combinedContext, context.objects);
+        const effect = action.effect || 'shake';
+        const duration = Number(action.duration) || 500;
+        
+        // Multi-Target Support: Aufteilen an Kommas, leere Strings entfernen
+        const targetNames = rawTargetStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        
+        if (targetNames.length === 0) {
+            runtimeLogger.warn('[Action: animate] Kein Ziel definiert.');
+            return false;
+        }
+
+        let atLeastOneAnimated = false;
+        const animManager = AnimationManager.getInstance();
+
+        for (const targetName of targetNames) {
+            const targetObj = resolveTarget(targetName, context.objects, context.vars, context.eventData);
+            if (!targetObj) {
+                runtimeLogger.warn(`[Action: animate] Zielkomponente "${targetName}" nicht gefunden.`);
+                continue;
+            }
+
+            atLeastOneAnimated = true;
+            try {
+                // Dynamischer Aufruf des Effekt-Makros
+                if (typeof (animManager as any)[effect] === 'function') {
+                    // Standard-Aufruf mit (target, param2, duration)
+                    let param2 = undefined;
+                    if (effect === 'shake') param2 = Number(action.intensity) || 5;
+                    if (effect === 'pulse') param2 = Number(action.scale) || 1.15;
+                    if (effect === 'bounce') param2 = Number(action.height) || 20;
+                    if (effect === 'fade') param2 = Number(action.targetOpacity) !== undefined && !isNaN(Number(action.targetOpacity)) ? Number(action.targetOpacity) : 0;
+
+                    if (param2 !== undefined) {
+                        (animManager as any)[effect](targetObj, param2, duration);
+                    } else {
+                        // Fallback
+                        (animManager as any)[effect](targetObj, undefined, duration);
+                    }
+                    runtimeLogger.info(`[Action: animate] ${effect} auf ${targetName} angewendet.`);
+                } else {
+                    runtimeLogger.warn(`[Action: animate] Effekt "${effect}" ist im AnimationManager nicht definiert.`);
+                }
+            } catch (err) {
+                 runtimeLogger.error(`[Action: animate] Fehler beim Ausführen von ${effect}:`, err);
+            }
+        }
+        
+        // Blockierend für den Flow Editor (Task pausieren)?
+        // Wenn action.waitForAnimation == true, könnten wir einen Promise zurückgeben.
+        // Option für die Zukunft, vorerst asynchron auslösen.
+        return atLeastOneAnimated;
+    }, {
+        type: 'animate',
+        label: 'Komponente animieren',
+        description: 'Startet eine sofortige Animation auf einer Komponente.',
+        parameters: [
+            { name: 'target', label: 'Ziel-Objekt', type: 'select', source: 'objects', hint: 'Das zu animierende Objekt' },
+            { name: 'effect', label: 'Effekt', type: 'select', options: ['shake', 'pulse', 'bounce', 'fade'], defaultValue: 'shake' },
+            { name: 'duration', label: 'Dauer (ms)', type: 'number', defaultValue: 500, hint: 'Zeit in Millisekunden' }
+        ]
     });
 }

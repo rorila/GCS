@@ -1,3 +1,34 @@
+## [3.26.2] - 2026-03-23
+### Added (UX: Inspector & Sichtbarkeit)
+- **Inspector Dropdown für Objekt-Auswahl** (`InspectorHost.ts`):
+  - Der Inspector-Header enthält nun ein Dropdown, das alle Komponenten (Objekte & Variablen) der aktuellen Stage sowie globale (Blueprint) Komponenten auflistet.
+  - Ermöglicht das schnelle Finden und Markieren von Komponenten, insbesondere von unsichtbaren.
+- **Sichtbarkeits-Indikator im Editor** (`StageRenderer.ts`):
+  - Komponenten, deren `visible`-Eigenschaft auf `false` gesetzt ist, verschwinden im Design-Modus nicht mehr komplett von der Stage.
+  - Sie werden stattdessen halb-transparent (`opacity: 0.4`) und mit einem roten, gestrichelten Rahmen dargestellt.
+  - Im Run-Modus verhalten sie sich weiterhin korrekt und sind unsichtbar.
+### Added
+- **Neue Action: Komponenten animieren (`StandardActions.ts`)**:
+  - Neue Action `animate` hinzugefügt, mit der Komponenten (z. B. TButton, TLabel) dynamisch animiert werden können.
+  - Unterstützte Effekte: `shake`, `pulse`, `bounce`, `fade`.
+  - **Multi-Targeting:** Die Action akzeptiert als "Target" eine kommaseparierte Liste (z.B. `Zahl1, Zahl2, Ergebnis`), um mehrere Komponenten exakt synchron wackeln oder hüpfen zu lassen.
+- **Erweitertes Animations-Core (`AnimationManager.ts`)**:
+  - `addTween` unterstützt nun einen `onUpdate`-Callback für komplexe CSS-Transform-Animationen (scale, translateY).
+### Added (UX: Debug Logging)
+- **Copy-Button im Debug-Log-Viewer** (`TDebugLog.ts`):
+  - Ein neuer Button "Copy" ermöglicht das Kopieren der aktuell angezeigten Logs in die Zwischenablage.
+### Fixed (Runtime & Action-Logik)
+- **Animation Bugfix (`require is not defined`)** (`AnimationManager.ts`):
+  - In der Methode `addTween` kam es durch ein hart codiertes `require('./GameLoopManager')` in Browser-Umgebungen (wie Vite) zum Absturz, was alle Stage-Animationen blockierte.
+  - Fix: Der Aufruf wurde durch ein asynchrones, natives ESM-`import()` ersetzt. Zirkuläre Abhängigkeiten werden weiterhin lazy aufgelöst, aber nativ und crashfrei. Die Stage-Animationen laufen wieder.
+- **ExpressionParser `evaluate` Bug Fix** (`ExpressionParser.ts`):
+  - Literale Zahlen wie `"0"`, `"60"` oder `"1"` wurden fälschlicherweise als nested Properties ausgewertet (weil sie die Regex `^[\w.]+$` matchten) und lieferten `undefined` statt ihres Wertes zurück.
+  - Fix: Direkte Erkennung und Rückgabe von Zahlen sowie Booleans/Null/Undefined vor dem Regex-Match.
+  - Verhindert NaN-Kollabieren von Timern und fehlerhafte Objekt-Stringifizierungen in der UI (`{"className":"TIntegerVariable"...}`).
+- **`variable` Action: TVariable Update** (`StandardActions.ts`):
+  - Action vom Typ `variable` hat den Wert zwar ins `context.vars` geschrieben, aber das zugrundeliegende `TVariable` Objekt (anders als bei `calculate`) nicht explizit aktualisiert.
+  - Fix: Explizites Suchen und Setzen der `.value` Property des zugehörigen `TVariable` Objekts eingebaut, damit der `PropertyWatcher` zuverlässig UI-Updates feuert.
+
 ## [3.26.1] - 2026-03-22
 ### Fixed
 - **Drag-and-Drop Regression behoben** (`Editor.ts`):
