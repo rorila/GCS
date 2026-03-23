@@ -1,4 +1,19 @@
-## [3.26.2] - 2026-03-23
+## [3.26.3] - 2026-03-23
+### Fixed
+- **Inspector: Objekt-Dropdown für registry-basierte Actions** (`FlowAction.ts`):
+  - Actions wie `play_audio` und `stop_audio`, die einen `type: 'object'`-Parameter mit `source: 'objects'` verwenden, zeigten im Inspector kein Dropdown zur Auswahl der Zielkomponente (z.B. TAudio).
+  - Ursache: `mapParameterTypeToInspector()` mappte `'object'` auf `'TObjectSelect'`, einen nicht existierenden Inspector-Typ. Dadurch wurde der Parameter als Freitext-Feld statt als Select-Dropdown gerendert.
+  - Fix: Mapping von `'object'` auf `'select'` geändert. Die `source: 'objects'`-Property wird nun korrekt an `getOptionsFromSource()` weitergereicht, das alle Objekte der aktuellen Stage + Blueprint-Services auflistet.
+- **TAudio: Kein Sound bei play_audio / stop_audio** (`Serialization.ts`):
+  - `TAudio` fehlte im `case`-Block von `hydrateObjects()`. Dadurch wurde die Komponente beim Laden nicht als Klasseninstanz instanziiert, sondern blieb ein flaches JSON-Objekt ohne `play()` und `stop()` Methoden.
+  - Der `play_audio`-Handler prüft `typeof targetObj.play === 'function'`, was `false` ergab → kein Sound.
+  - Fix: `import { TAudio }` und `case 'TAudio'` im switch-Block hinzugefügt. TAudio-Properties (`src`, `volume`, `loop`, `preload`) werden automatisch durch die Generic Property Restoration wiederhergestellt.
+- **Audio-Assets: Fester Ordner `public/audio/`** (Projekt-JSON):
+  - Audio-Dateien nach `public/audio/` verschoben (Vite liefert diese automatisch als statische Assets aus).
+  - `Audio_25.src` von absolutem Windows-Pfad (`C:\Users\...`) auf relativen Web-Pfad (`/audio/ball_lost.wav`) korrigiert.
+  - Unterverzeichnisse möglich (z.B. `public/audio/Knalleffekte/`, `public/audio/Sirenen/`).
+
+
 ### Added (UX: Inspector & Sichtbarkeit)
 - **Inspector Dropdown für Objekt-Auswahl** (`InspectorHost.ts`):
   - Der Inspector-Header enthält nun ein Dropdown, das alle Komponenten (Objekte & Variablen) der aktuellen Stage sowie globale (Blueprint) Komponenten auflistet.

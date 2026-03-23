@@ -50,6 +50,11 @@
                     "label": "Image"
                 },
                 {
+                    "type": "Audio",
+                    "icon": "🔊",
+                    "label": "Audio"
+                },
+                {
                     "type": "Video",
                     "icon": "🎬",
                     "label": "Video"

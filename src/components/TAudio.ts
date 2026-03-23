@@ -11,15 +11,18 @@ export class TAudio extends TWindow implements IRuntimeComponent, IInspectable {
     public preload: boolean = true;
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 2, 2);
-        
-        // Hide in the run phase
+        super(name, x, y, 3, 1);
+        this.isVariable = true;
+
+        // Visibility & Scoping Meta-Flags
+        this.isService = true;
         this.isHiddenInRun = true;
-        
-        // Editor styling to look like a small icon
-        this.style.backgroundColor = 'transparent';
-        this.style.borderColor = 'transparent';
-        this.style.borderWidth = 0;
+
+        // Editor styling – similar to TTimer (compact service block)
+        this.style.backgroundColor = '#7e57c2';
+        this.style.borderColor = '#512da8';
+        this.style.borderWidth = 2;
+        this.style.color = '#fff';
     }
 
     public getInspectorProperties(): TPropertyDef[] {
@@ -49,25 +52,7 @@ export class TAudio extends TWindow implements IRuntimeComponent, IInspectable {
         return json;
     }
 
-    /**
-     * Editor Custom Rendering
-     * Draws a Speaker Icon on the Stage Grid (since it has transparent background)
-     */
-    public _customRender(ctx: CanvasRenderingContext2D, cellWidth: number, cellHeight: number): void {
-        const sizeX = (this.width || 2) * cellWidth;
-        const sizeY = (this.height || 2) * cellHeight;
-        
-        // Draw Speaker Emoji
-        ctx.font = `${Math.min(sizeX, sizeY) * 0.6}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = this.style.color || '#333333';
-        ctx.fillText('🔊', sizeX / 2, sizeY / 2);
-        
-        // Draw small label below
-        ctx.font = `10px Arial`;
-        ctx.fillText(this.name, sizeX / 2, sizeY - 10);
-    }
+
 
     // ----------------------------------------------------
     // Runtime Behaviour

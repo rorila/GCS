@@ -66,6 +66,7 @@ import { TAPIServer } from '../components/TAPIServer';
 import { TTextControl } from '../components/TTextControl';
 import { TTable } from '../components/TTable';
 import { TDataList } from '../components/TDataList';
+import { TAudio } from '../components/TAudio';
 
 export function hydrateObjects(objectsData: any[]): TWindow[] {
     const objects: TWindow[] = [];
@@ -287,6 +288,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 break;
             case 'TDataList':
                 newObj = new TDataList(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
+            case 'TAudio':
+                newObj = new TAudio(objData.name, objData.x, objData.y);
                 break;
             default:
                 logger.warn("Unknown class during load:", objData.className);

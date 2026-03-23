@@ -631,6 +631,10 @@
               "type": "action"
             },
             {
+              "name": "PlayBallLost",
+              "type": "action"
+            },
+            {
               "name": "ZeitReset",
               "type": "action"
             },
@@ -677,21 +681,25 @@
               "x": 40,
               "y": 640
             },
-            "ZeitReset": {
+            "PlayBallLost": {
               "x": 40,
               "y": 740
             },
-            "AufgabenNrReset": {
+            "ZeitReset": {
               "x": 40,
               "y": 840
             },
-            "TimerStarten": {
+            "AufgabenNrReset": {
               "x": 40,
               "y": 940
             },
-            "NeueAufgabe": {
+            "TimerStarten": {
               "x": 40,
               "y": 1040
+            },
+            "NeueAufgabe": {
+              "x": 40,
+              "y": 1140
             }
           }
         },
@@ -1064,6 +1072,13 @@
           },
           "type": "animate",
           "duration": 1000
+        },
+        {
+          "details": "",
+          "name": "PlayBallLost",
+          "showDetails": false,
+          "type": "play_audio",
+          "target": "Audio_24"
         }
       ],
       "variables": [
@@ -1249,8 +1264,8 @@
             "onMaxIntervalReached": "QuizBeenden"
           },
           "visible": true,
-          "x": 2,
-          "y": 10,
+          "x": 2.299949322912824,
+          "y": 10.199925178660962,
           "width": 6,
           "height": 2,
           "zIndex": 0,
@@ -1264,12 +1279,41 @@
           "enabled": false,
           "maxInterval": 60,
           "currentInterval": 0
+        },
+        {
+          "className": "TAudio",
+          "id": "obj_1774291000808_rbuwfgf0f",
+          "name": "Audio_24",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2.3541049999999997,
+          "y": 15.3125,
+          "width": 5.7995,
+          "height": 2.2496549999999997,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#7e57c2",
+            "borderColor": "#512da8",
+            "borderWidth": 2
+          },
+          "src": "audio\\ball_lost.wav",
+          "volume": 1,
+          "loop": false,
+          "preload": true
         }
       ],
       "flowCharts": {},
       "gameName": "Quiz",
       "backgroundColor": "#0f0c29",
-      "startAnimation": "BottomRight"
+      "startAnimation": "ChaosOut"
     }
   ],
   "tasks": [],

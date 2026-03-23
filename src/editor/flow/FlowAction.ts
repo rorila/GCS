@@ -737,7 +737,7 @@ export class FlowAction extends FlowElement {
             case 'json': return 'textarea';
             case 'select': return 'select';
             case 'variable': return 'TVariableSelect';
-            case 'object': return 'TObjectSelect'; // Assumed inspector type
+            case 'object': return 'select'; // Dropdown with source: 'objects'
             case 'stage': return 'select'; // Needs stage source
             default: return 'text';
         }
