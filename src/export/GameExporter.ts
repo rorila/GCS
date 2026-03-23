@@ -42,7 +42,7 @@ export class GameExporter {
 
         // Embed images as Base64 for a truly standalone file
         try {
-            await this.embedImages(cleanedProject);
+            await this.embedMedia(cleanedProject);
         } catch (e) {
             console.warn('GameExporter: Error embedding images:', e);
         }
@@ -59,7 +59,7 @@ export class GameExporter {
 
         // Embed images as Base64 for a truly standalone project file
         try {
-            await this.embedImages(cleanedProject);
+            await this.embedMedia(cleanedProject);
         } catch (e) {
             console.warn('GameExporter: Error embedding images in JSON:', e);
         }
@@ -97,7 +97,7 @@ export class GameExporter {
 
         // Embed images as Base64
         try {
-            await this.embedImages(cleanedProject);
+            await this.embedMedia(cleanedProject);
         } catch (e) {
             console.warn('GameExporter: Error embedding images:', e);
         }
@@ -114,7 +114,7 @@ export class GameExporter {
 
         // Embed images as Base64
         try {
-            await this.embedImages(cleanedProject);
+            await this.embedMedia(cleanedProject);
         } catch (e) {
             console.warn('GameExporter: Error embedding images in JSON:', e);
         }
@@ -525,21 +525,21 @@ primary_region = "fra"
     }
 
     /**
-     * Finds and embeds all image references in the project as Base64 Data URLs.
+     * Finds and embeds all media references (Images, Audio) in the project as Base64 Data URLs.
      */
-    private async embedImages(project: any): Promise<void> {
-        const imageRefs = new Map<string, string>(); // path -> dataUrl
+    private async embedMedia(project: any): Promise<void> {
+        const mediaRefs = new Map<string, string>(); // path -> dataUrl
 
-        // 1. Collect all unique image paths from the project recursively
+        // 1. Collect all unique media paths from the project recursively
         const collectPaths = (obj: any) => {
             if (!obj || typeof obj !== 'object') return;
 
-            // Common image properties
+            // Common media properties (includes TImage and TAudio)
             const props = ['backgroundImage', 'src', 'icon'];
             props.forEach(p => {
                 const val = obj[p];
                 if (val && typeof val === 'string' && val.length > 0 && !val.startsWith('data:') && !val.startsWith('http')) {
-                    imageRefs.set(val, '');
+                    mediaRefs.set(val, '');
                 }
             });
 
@@ -558,27 +558,28 @@ primary_region = "fra"
         collectPaths(project);
 
         // 2. Fetch and convert to Base64
-        console.log(`[GameExporter] Found ${imageRefs.size} unique images to embed.`);
-        for (const [path, _] of imageRefs) {
+        console.log(`[GameExporter] Found ${mediaRefs.size} unique media files to embed.`);
+        for (const [path, _] of mediaRefs) {
             try {
-                // Try absolute path first, then relative to images/
+                // Try absolute path first, then relative to images/ or audio/ (Fallback)
                 let fullPath = path;
                 if (!path.startsWith('/')) {
-                    fullPath = `/images/${path}`;
+                    // We assume it's in the root or assets folder context, try root first
+                    fullPath = `/${path}`; 
                 }
 
-                console.log(`[GameExporter] Fetching image: ${fullPath}`);
+                console.log(`[GameExporter] Fetching media: ${fullPath}`);
                 const resp = await fetch(fullPath);
                 if (resp.ok) {
                     const blob = await resp.blob();
                     const dataUrl = await this.blobToDataUrl(blob);
-                    imageRefs.set(path, dataUrl);
+                    mediaRefs.set(path, dataUrl);
                     console.log(`[GameExporter] Successfully embedded: ${path}`);
                 } else {
-                    console.warn(`[GameExporter] Failed to fetch image: ${fullPath} (Status: ${resp.status})`);
+                    console.warn(`[GameExporter] Failed to fetch media: ${fullPath} (Status: ${resp.status})`);
                 }
             } catch (e) {
-                console.warn(`[GameExporter] Network error embedding image: ${path}`, e);
+                console.warn(`[GameExporter] Network error embedding media: ${path}`, e);
             }
         }
 
@@ -589,8 +590,8 @@ primary_region = "fra"
             const props = ['backgroundImage', 'src', 'icon'];
             props.forEach(p => {
                 const val = obj[p];
-                if (val && typeof val === 'string' && imageRefs.has(val)) {
-                    const dataUrl = imageRefs.get(val);
+                if (val && typeof val === 'string' && mediaRefs.has(val)) {
+                    const dataUrl = mediaRefs.get(val);
                     if (dataUrl) obj[p] = dataUrl;
                 }
             });

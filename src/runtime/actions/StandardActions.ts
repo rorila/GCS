@@ -1178,4 +1178,38 @@ export function registerStandardActions() {
             { name: 'duration', label: 'Dauer (ms)', type: 'number', defaultValue: 500, hint: 'Zeit in Millisekunden' }
         ]
     });
+
+    // 22. Audio Play/Stop
+    actionRegistry.register('play_audio', (action, context) => {
+        const targetObj = resolveTarget(action.target, context.objects, context.vars, context.eventData);
+        if (targetObj && typeof (targetObj as any).play === 'function') {
+            (targetObj as any).play();
+            return true;
+        }
+        runtimeLogger.warn(`[Action: play_audio] Ziel "${action.target}" ist kein TAudio Element oder nicht gefunden.`);
+        return false;
+    }, {
+        type: 'play_audio',
+        label: 'Audio abspielen',
+        description: 'Spielt ein TAudio-Element (zerolatenz via WebAudio) ab.',
+        parameters: [
+            { name: 'target', label: 'Audio-Objekt', type: 'select', source: 'objects', hint: 'Das TAudio Element' }
+        ]
+    });
+
+    actionRegistry.register('stop_audio', (action, context) => {
+        const targetObj = resolveTarget(action.target, context.objects, context.vars, context.eventData);
+        if (targetObj && typeof (targetObj as any).stop === 'function') {
+            (targetObj as any).stop();
+            return true;
+        }
+        return false;
+    }, {
+        type: 'stop_audio',
+        label: 'Audio stoppen',
+        description: 'Stoppt ein laufendes TAudio-Element.',
+        parameters: [
+            { name: 'target', label: 'Audio-Objekt', type: 'select', source: 'objects', hint: 'Das TAudio Element' }
+        ]
+    });
 }

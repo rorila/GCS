@@ -10,6 +10,7 @@
 > Bei neuen I/O-Features: `IStorageAdapter` nutzen (`src/ports/IStorageAdapter.ts`). Electron-Kompatibilität prüfen.
 
 ## Schnellstart & Kernregeln
+- **GCS_FEATURE_MAP (Sicherheitsnetz):** Bevor Code gelöscht oder massiv umgebaut wird, MUSS die `docs/GCS_FEATURE_MAP.md` geprüft werden. Dort sind alle aktiven UseCases verzeichnet. Ein Feature darf nur gelöscht werden, wenn es aus der Map entfernt wurde. Jedes neue Feature muss dort dokumentiert werden.
 - **Sprache**: Die gesamte Kommunikation und Dokumentation erfolgt auf Deutsch.
 - **GCS Dashboard Pattern**: Für moderne Dashboards (z.B. `roomDashboard`) die `TTable` im `displayMode: "cards"` verwenden. Datenquellen dafür sind bevorzugt `TObjectList`-Variablen in der `stage_blueprint`.
 - **Global Hosting**: Gemäß Antigravity-Regeln MÜSSEN alle globalen Variablen und Komponenten in der `stage_blueprint` definiert sein.

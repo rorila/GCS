@@ -85,7 +85,7 @@ export interface GameObject {
 // ─────────────────────────────────────────────
 // Action: Atomic operation on a component
 // ─────────────────────────────────────────────
-export type ActionType = 'property' | 'variable' | 'increment' | 'negate' | 'animate' | 'audio' | 'navigate' | 'navigate_stage' | 'smooth_sync' | 'send_multiplayer_sync' | 'engine_control' | 'server_connect' | 'server_create_room' | 'server_join_room' | 'server_ready' | 'service' | 'calculate' | 'call_method' | 'set_variable' | 'broadcast' | 'data_action' | 'http';
+export type ActionType = 'property' | 'variable' | 'increment' | 'negate' | 'animate' | 'audio' | 'play_audio' | 'stop_audio' | 'navigate' | 'navigate_stage' | 'smooth_sync' | 'send_multiplayer_sync' | 'engine_control' | 'server_connect' | 'server_create_room' | 'server_join_room' | 'server_ready' | 'service' | 'calculate' | 'call_method' | 'set_variable' | 'broadcast' | 'data_action' | 'http';
 
 // For type: 'calculate' - expression building
 export type CalcOperator = '+' | '-' | '*' | '/' | '%';
@@ -162,6 +162,14 @@ export interface MethodAction extends BaseAction {
 }
 
 /**
+ * AudioAction - Spielt oder Stoppt ein TAudio Element
+ */
+export interface AudioAction extends BaseAction {
+    type: 'play_audio' | 'stop_audio';
+    target: string;
+}
+
+/**
  * NavigateAction - Wechselt die Stage
  */
 export interface NavigateAction extends BaseAction {
@@ -193,7 +201,7 @@ export interface HttpAction extends BaseAction {
 }
 
 // Union Type für alle Aktionen
-export type GameAction = PropertyAction | VariableAction | ServiceAction | CalculateAction | MethodAction | NavigateAction | BroadcastAction | HttpAction;
+export type GameAction = PropertyAction | VariableAction | ServiceAction | CalculateAction | MethodAction | NavigateAction | BroadcastAction | HttpAction | AudioAction;
 
 // ─────────────────────────────────────────────
 // Task: Sequence of actions and task calls

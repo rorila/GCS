@@ -520,8 +520,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 10,
-          "y": 26,
+          "x": 9.4501,
+          "y": 30.2988,
           "width": 44,
           "height": 4,
           "zIndex": 0,
@@ -627,6 +627,10 @@
               "type": "action"
             },
             {
+              "name": "TestWackeln",
+              "type": "action"
+            },
+            {
               "name": "ZeitReset",
               "type": "action"
             },
@@ -669,21 +673,25 @@
               "x": 40,
               "y": 540
             },
-            "ZeitReset": {
+            "TestWackeln": {
               "x": 40,
               "y": 640
             },
-            "AufgabenNrReset": {
+            "ZeitReset": {
               "x": 40,
               "y": 740
             },
-            "TimerStarten": {
+            "AufgabenNrReset": {
               "x": 40,
               "y": 840
             },
-            "NeueAufgabe": {
+            "TimerStarten": {
               "x": 40,
               "y": 940
+            },
+            "NeueAufgabe": {
+              "x": 40,
+              "y": 1040
             }
           }
         },
@@ -1045,6 +1053,17 @@
             "visible": true,
             "text": "🔄 Nochmal spielen!"
           }
+        },
+        {
+          "details": "",
+          "name": "TestWackeln",
+          "showDetails": false,
+          "target": "Zahl1Label",
+          "changes": {
+            "": ""
+          },
+          "type": "animate",
+          "duration": 1000
         }
       ],
       "variables": [
@@ -1249,7 +1268,8 @@
       ],
       "flowCharts": {},
       "gameName": "Quiz",
-      "backgroundColor": "#0f0c29"
+      "backgroundColor": "#0f0c29",
+      "startAnimation": "BottomRight"
     }
   ],
   "tasks": [],

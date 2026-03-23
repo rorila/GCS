@@ -1,4 +1,5 @@
 import { TWindow } from '../components/TWindow';
+import { TAudio } from '../components/TAudio';
 import { TImage } from '../components/TImage';
 import { TSprite } from '../components/TSprite';
 import { TButton } from '../components/TButton';
@@ -90,6 +91,7 @@ export class ComponentRegistry {
     private registerDefaultComponents() {
         // UI & Visuelle Objekte
         this.register('TWindow', TWindow);
+        this.register('TAudio', TAudio);
         this.register('TImage', TImage);
         this.register('TSprite', TSprite);
         this.register('TButton', TButton);
@@ -164,6 +166,7 @@ export class ComponentRegistry {
     private setupTypeMappings() {
         this.typeMapping.set('Button', 'TButton');
         this.typeMapping.set('Panel', 'TPanel');
+        this.typeMapping.set('Audio', 'TAudio');
         this.typeMapping.set('Image', 'TImage');
         this.typeMapping.set('Video', 'TVideo');
         this.typeMapping.set('SplashScreen', 'TSplashScreen');

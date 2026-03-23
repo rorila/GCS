@@ -8,6 +8,11 @@
   - Sie werden stattdessen halb-transparent (`opacity: 0.4`) und mit einem roten, gestrichelten Rahmen dargestellt.
   - Im Run-Modus verhalten sie sich weiterhin korrekt und sind unsichtbar.
 ### Added
+- **TAudio Komponente (Zero-Latency Audio)**:
+  - Komplett latenzfreie, auf der Web Audio API (`AudioContext`) basierende Audio-Lösung für GCS-Spiele.
+  - Der `AudioManager` in der Engine lädt Audio-Dateien beim Start in den RAM (`AudioBuffer`), um sofortige Starts (Polyphonie) zu ermöglichen.
+  - Zwei neue Flow-Actions (`play_audio`, `stop_audio`) zur exakten Steuerung der Wiedergabe.
+  - **Standalone Audio Export**: Der `GameExporter` konvertiert nun `TAudio.src` Pfade automatisch nativ in Base64 Data URLs, damit exportierte Spiele offline lauffähig bleiben.
 - **Neue Action: Komponenten animieren (`StandardActions.ts`)**:
   - Neue Action `animate` hinzugefügt, mit der Komponenten (z. B. TButton, TLabel) dynamisch animiert werden können.
   - Unterstützte Effekte: `shake`, `pulse`, `bounce`, `fade`.

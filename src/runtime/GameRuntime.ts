@@ -8,6 +8,7 @@ import { RuntimeStageManager } from './RuntimeStageManager';
 import { DebugLogService } from '../services/DebugLogService';
 import { hydrateObjects } from '../utils/Serialization';
 import { TStageController } from '../components/TStageController';
+import { AudioManager } from './AudioManager';
 import { Logger } from '../utils/Logger';
 
 const logger = Logger.get('GameRuntime', 'Runtime_Execution');
@@ -194,6 +195,7 @@ export class GameRuntime implements IVariableHost {
         this.objects.forEach(obj => obj.onRuntimeStop?.());
         GameLoopManager.getInstance().stop();
         AnimationManager.getInstance().clear();
+        AudioManager.getInstance().stopAll();
     }
 
     public start() {
