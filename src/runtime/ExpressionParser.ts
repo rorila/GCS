@@ -145,9 +145,21 @@ export class ExpressionParser {
      * @returns Evaluated value
      */
     static evaluate(expression: string, context: Record<string, any>): any {
+        const trimmed = expression.trim();
+
+        if (trimmed === 'true') return true;
+        if (trimmed === 'false') return false;
+        if (trimmed === 'null') return null;
+        if (trimmed === 'undefined') return undefined;
+
+        // Check if expression is just a number
+        if (!isNaN(Number(trimmed)) && trimmed !== '') {
+            return Number(trimmed);
+        }
+
         // Handle simple property access (e.g., "playerName", "player.score")
-        if (/^[\w.]+$/.test(expression)) {
-            return this.getNestedProperty(expression, context);
+        if (/^[a-zA-Z_$][\w.]*$/.test(trimmed)) {
+            return this.getNestedProperty(trimmed, context);
         }
 
         // Handle arithmetic and comparisons

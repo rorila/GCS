@@ -212,6 +212,7 @@ export class TDebugLog {
                 </select>
             </div>
             <div style="display: flex; gap: 6px;">
+                <button id="copy-logs" style="flex: 1; background: #3c3c3c; color: #ddd; border: 1px solid #4caf50; padding: 6px; cursor: pointer; border-radius: 3px; font-size: 11px;">Copy</button>
                 <button id="clear-logs" style="flex: 1; background: #3c3c3c; color: #ddd; border: 1px solid #555; padding: 6px; cursor: pointer; border-radius: 3px; font-size: 11px;">Clear All</button>
                 <button id="pause-logs" style="flex: 1; background: #3c3c3c; color: #ddd; border: 1px solid #555; padding: 6px; cursor: pointer; border-radius: 3px; font-size: 11px;">Pause</button>
             </div>
@@ -258,6 +259,26 @@ export class TDebugLog {
                 this.eventFilter = evtSelect.value;
                 this.saveFilters();
                 this.renderLogs(this.service.getLogs());
+            });
+        }
+
+        const copyBtn = this.element.querySelector('#copy-logs') as HTMLButtonElement | null;
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                const textToCopy = this.logList.innerText || 'Keine Logs vorhanden.';
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = 'Copied!';
+                    copyBtn.style.backgroundColor = '#4caf50';
+                    copyBtn.style.color = '#fff';
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                        copyBtn.style.backgroundColor = '#3c3c3c';
+                        copyBtn.style.color = '#ddd';
+                    }, 1500);
+                }).catch(err => {
+                    console.error('[TDebugLog] Failed to copy logs:', err);
+                });
             });
         }
 

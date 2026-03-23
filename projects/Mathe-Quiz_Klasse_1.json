@@ -1,0 +1,1263 @@
+{
+  "version": "3.9.1",
+  "meta": {
+    "id": "demo_mathe_quiz_klasse1",
+    "name": "Mathe-Quiz (Klasse 1)",
+    "version": "1.0.0",
+    "author": "AgentController",
+    "description": "Additions-Quiz für Erstklässler: Zufallsaufgaben, Score-System, 60-Sekunden-Timer.",
+    "_sourcePath": "projects/Mathe-Quiz_Klasse_1.json"
+  },
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "blueprint",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#1e1e2e"
+      },
+      "objects": [
+        {
+          "className": "TGameLoop",
+          "id": "obj_1774204326015_lqix6",
+          "name": "GameLoop",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 3,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "boundaryMode": "clamp",
+          "boundsOffsetTop": 0,
+          "boundsOffsetBottom": 0
+        }
+      ],
+      "tasks": [],
+      "actions": [],
+      "variables": [
+        {
+          "className": "TGameState",
+          "id": "obj_1774204326015_9tbmv",
+          "name": "GameState",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 6,
+          "y": 2,
+          "width": 4,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#fff",
+            "backgroundColor": "#4caf50",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "state": "idle",
+          "spritesMoving": false,
+          "collisionsEnabled": false
+        },
+        {
+          "id": "var_isProjectChangeAvailable",
+          "name": "isProjectChangeAvailable",
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "isGlobal": true,
+          "description": "System internal flag to track unsaved changes"
+        }
+      ],
+      "flowCharts": {}
+    },
+    {
+      "id": "stage_main",
+      "name": "Quiz",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "visible": true,
+        "backgroundColor": "#0f0c29"
+      },
+      "objects": [
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326015_k8ucu",
+          "name": "TitelLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 16,
+          "y": 1,
+          "width": 32,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#f7c948",
+            "fontSize": 36,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "🧮 Mathe-Quiz"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326015_goavt",
+          "name": "Zahl1Label",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 16,
+          "y": 8,
+          "width": 6,
+          "height": 5,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 64,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "${Zahl1}"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326015_28pqk",
+          "name": "PlusLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 23,
+          "y": 8,
+          "width": 4,
+          "height": 5,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#88ccff",
+            "fontSize": 64,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "+"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326015_nofm6",
+          "name": "Zahl2Label",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 28,
+          "y": 8,
+          "width": 6,
+          "height": 5,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 64,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "${Zahl2}"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326015_rbnox",
+          "name": "GleichLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 35,
+          "y": 8,
+          "width": 4,
+          "height": 5,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#88ccff",
+            "fontSize": 64,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "="
+        },
+        {
+          "className": "TEdit",
+          "id": "obj_1774204326015_p2m1q",
+          "name": "AntwortInput",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 40,
+          "y": 9,
+          "width": 8,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 48,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#2a2a4a",
+            "borderColor": "#5555ff",
+            "borderWidth": 2,
+            "borderRadius": 8
+          },
+          "text": "",
+          "placeholder": "?",
+          "maxLength": 100
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1774204326015_h36e8",
+          "name": "OkButton",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "AntwortPruefen"
+          },
+          "visible": true,
+          "x": 26,
+          "y": 16,
+          "width": 12,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 20,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#28a745",
+            "borderColor": "#1e7e34",
+            "borderWidth": 1,
+            "borderRadius": 12
+          },
+          "text": "✅ Prüfen",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326016_3f3v4",
+          "name": "FeedbackLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 16,
+          "y": 21,
+          "width": 32,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#888888",
+            "fontSize": 28,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326016_zdqbr",
+          "name": "ScoreTextLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 35,
+          "width": 8,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#aaaaaa",
+            "fontSize": 18,
+            "fontFamily": "Arial",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "right",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Punkte:"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326016_3jmuy",
+          "name": "ScoreLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 11,
+          "y": 35,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#4caf50",
+            "fontSize": 24,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "${Score}"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326016_vwc5k",
+          "name": "TimerTextLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 44,
+          "y": 35,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#aaaaaa",
+            "fontSize": 18,
+            "fontFamily": "Arial",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "right",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Zeit:"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326016_ka3aa",
+          "name": "TimerLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 51,
+          "y": 35,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ff6b6b",
+            "fontSize": 24,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "${Zeitlimit}"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326016_noxnb",
+          "name": "AufgabenLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 24,
+          "y": 35,
+          "width": 16,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#aaaaaa",
+            "fontSize": 18,
+            "fontFamily": "Arial",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Aufgabe: 1"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1774204326016_wo2qv",
+          "name": "StartButton",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "QuizStarten"
+          },
+          "visible": true,
+          "x": 22,
+          "y": 26,
+          "width": 20,
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 24,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#0078d4",
+            "borderColor": "#005a9e",
+            "borderWidth": 2,
+            "borderRadius": 16
+          },
+          "text": "🎮 Quiz starten!",
+          "icon": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_1774204326016_t9o4o",
+          "name": "GameOverLabel",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 10,
+          "y": 26,
+          "width": 44,
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#f7c948",
+            "fontSize": 28,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": ""
+        }
+      ],
+      "tasks": [
+        {
+          "name": "NeueAufgabe",
+          "description": "Neue Zufallsaufgabe generieren",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "Zahl1Generieren"
+            },
+            {
+              "type": "action",
+              "name": "Zahl2Generieren"
+            },
+            {
+              "type": "action",
+              "name": "ErgebnisBerechnen"
+            },
+            {
+              "type": "action",
+              "name": "AntwortLeeren"
+            },
+            {
+              "type": "action",
+              "name": "FeedbackLeeren"
+            },
+            {
+              "type": "action",
+              "name": "AufgabenAnzeige"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "NeueAufgabe": {
+              "x": 40,
+              "y": 40
+            },
+            "Zahl1Generieren": {
+              "x": 40,
+              "y": 140
+            },
+            "Zahl2Generieren": {
+              "x": 40,
+              "y": 240
+            },
+            "ErgebnisBerechnen": {
+              "x": 40,
+              "y": 340
+            },
+            "AntwortLeeren": {
+              "x": 40,
+              "y": 440
+            },
+            "FeedbackLeeren": {
+              "x": 40,
+              "y": 540
+            },
+            "AufgabenAnzeige": {
+              "x": 40,
+              "y": 640
+            }
+          }
+        },
+        {
+          "name": "QuizStarten",
+          "description": "Quiz initialisieren und starten",
+          "actionSequence": [
+            {
+              "name": "SpielStarten",
+              "type": "action"
+            },
+            {
+              "name": "StartButtonVerstecken",
+              "type": "action"
+            },
+            {
+              "name": "GameOverVerstecken",
+              "type": "action"
+            },
+            {
+              "name": "OkButtonAktivieren",
+              "type": "action"
+            },
+            {
+              "name": "ScoreReset",
+              "type": "action"
+            },
+            {
+              "name": "ZeitReset",
+              "type": "action"
+            },
+            {
+              "name": "AufgabenNrReset",
+              "type": "action"
+            },
+            {
+              "name": "TimerStarten",
+              "type": "action"
+            },
+            {
+              "type": "task",
+              "name": "NeueAufgabe"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "QuizStarten": {
+              "x": 40,
+              "y": 40
+            },
+            "SpielStarten": {
+              "x": 40,
+              "y": 140
+            },
+            "StartButtonVerstecken": {
+              "x": 40,
+              "y": 240
+            },
+            "GameOverVerstecken": {
+              "x": 40,
+              "y": 340
+            },
+            "OkButtonAktivieren": {
+              "x": 40,
+              "y": 440
+            },
+            "ScoreReset": {
+              "x": 40,
+              "y": 540
+            },
+            "ZeitReset": {
+              "x": 40,
+              "y": 640
+            },
+            "AufgabenNrReset": {
+              "x": 40,
+              "y": 740
+            },
+            "TimerStarten": {
+              "x": 40,
+              "y": 840
+            },
+            "NeueAufgabe": {
+              "x": 40,
+              "y": 940
+            }
+          }
+        },
+        {
+          "name": "OnTimerTick",
+          "description": "Countdown reduzieren",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "ZeitReduzieren"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "OnTimerTick": {
+              "x": 40,
+              "y": 40
+            },
+            "ZeitReduzieren": {
+              "x": 40,
+              "y": 140
+            }
+          }
+        },
+        {
+          "name": "AntwortPruefen",
+          "description": "Antwort auswerten",
+          "actionSequence": [
+            {
+              "type": "condition",
+              "name": "Branch: AntwortInput.text == ${Ergebnis}",
+              "condition": {
+                "variable": "AntwortInput.text",
+                "operator": "==",
+                "value": "${Ergebnis}"
+              },
+              "then": [
+                {
+                  "type": "action",
+                  "name": "ScoreErhoehen"
+                },
+                {
+                  "type": "action",
+                  "name": "FeedbackRichtig"
+                },
+                {
+                  "type": "action",
+                  "name": "FeedbackRichtigFarbe"
+                }
+              ],
+              "else": [
+                {
+                  "type": "action",
+                  "name": "FeedbackFalsch"
+                },
+                {
+                  "type": "action",
+                  "name": "FeedbackFalschFarbe"
+                }
+              ]
+            },
+            {
+              "type": "action",
+              "name": "AufgabenNrErhoehen2"
+            },
+            {
+              "type": "task",
+              "name": "NeueAufgabe"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "AntwortPruefen": {
+              "x": 40,
+              "y": 40
+            },
+            "Branch: AntwortInput.text == ${Ergebnis}": {
+              "x": 40,
+              "y": 140
+            },
+            "AufgabenNrErhoehen2": {
+              "x": 40,
+              "y": 240
+            },
+            "NeueAufgabe": {
+              "x": 40,
+              "y": 340
+            }
+          }
+        },
+        {
+          "name": "QuizBeenden",
+          "description": "Quiz beenden, Ergebnis zeigen",
+          "actionSequence": [
+            {
+              "type": "action",
+              "name": "SpielBeenden"
+            },
+            {
+              "type": "action",
+              "name": "OkButtonDeaktivieren"
+            },
+            {
+              "type": "action",
+              "name": "GameOverAnzeigen"
+            },
+            {
+              "type": "action",
+              "name": "StartButtonRestart"
+            }
+          ],
+          "params": [],
+          "flowLayout": {
+            "QuizBeenden": {
+              "x": 40,
+              "y": 40
+            },
+            "SpielBeenden": {
+              "x": 40,
+              "y": 140
+            },
+            "OkButtonDeaktivieren": {
+              "x": 40,
+              "y": 240
+            },
+            "GameOverAnzeigen": {
+              "x": 40,
+              "y": 340
+            },
+            "StartButtonRestart": {
+              "x": 40,
+              "y": 440
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "act_1_zahl1generieren",
+          "name": "Zahl1Generieren",
+          "type": "call_method",
+          "target": "Zahl1",
+          "method": "generate"
+        },
+        {
+          "id": "act_2_zahl2generieren",
+          "name": "Zahl2Generieren",
+          "type": "call_method",
+          "target": "Zahl2",
+          "method": "generate"
+        },
+        {
+          "id": "act_3_ergebnisberechnen",
+          "name": "ErgebnisBerechnen",
+          "type": "calculate",
+          "formula": "Zahl1 + Zahl2",
+          "resultVariable": "Ergebnis"
+        },
+        {
+          "id": "act_4_antwortleeren",
+          "name": "AntwortLeeren",
+          "type": "property",
+          "target": "AntwortInput",
+          "changes": {
+            "text": ""
+          }
+        },
+        {
+          "id": "act_5_feedbackleeren",
+          "name": "FeedbackLeeren",
+          "type": "property",
+          "target": "FeedbackLabel",
+          "changes": {
+            "text": ""
+          }
+        },
+        {
+          "id": "act_6_aufgabenanzeige",
+          "name": "AufgabenAnzeige",
+          "type": "property",
+          "target": "AufgabenLabel",
+          "changes": {
+            "text": "${AufgabenNr}"
+          }
+        },
+        {
+          "id": "act_7_spielstarten",
+          "name": "SpielStarten",
+          "type": "property",
+          "target": "GameState",
+          "changes": {
+            "state": "playing"
+          }
+        },
+        {
+          "id": "act_8_startbuttonverstecken",
+          "name": "StartButtonVerstecken",
+          "type": "property",
+          "target": "StartButton",
+          "changes": {
+            "visible": false
+          }
+        },
+        {
+          "id": "act_9_gameoververstecken",
+          "name": "GameOverVerstecken",
+          "type": "property",
+          "target": "GameOverLabel",
+          "changes": {
+            "text": ""
+          }
+        },
+        {
+          "id": "act_10_okbuttonaktivieren",
+          "name": "OkButtonAktivieren",
+          "type": "property",
+          "target": "OkButton",
+          "changes": {
+            "visible": true
+          }
+        },
+        {
+          "id": "act_11_scorereset",
+          "name": "ScoreReset",
+          "type": "calculate",
+          "formula": "0",
+          "resultVariable": "Score"
+        },
+        {
+          "id": "act_12_zeitreset",
+          "name": "ZeitReset",
+          "type": "calculate",
+          "formula": "60",
+          "resultVariable": "Zeitlimit"
+        },
+        {
+          "id": "act_13_aufgabennrreset",
+          "name": "AufgabenNrReset",
+          "type": "calculate",
+          "formula": "1",
+          "resultVariable": "AufgabenNr"
+        },
+        {
+          "id": "act_14_timerstarten",
+          "name": "TimerStarten",
+          "type": "call_method",
+          "target": "CountdownTimer",
+          "method": "timerStart"
+        },
+        {
+          "id": "act_15_zeitreduzieren",
+          "name": "ZeitReduzieren",
+          "type": "calculate",
+          "formula": "Zeitlimit - 1",
+          "resultVariable": "Zeitlimit"
+        },
+        {
+          "id": "act_16_scoreerhoehen",
+          "name": "ScoreErhoehen",
+          "type": "calculate",
+          "formula": "Score + 1",
+          "resultVariable": "Score"
+        },
+        {
+          "id": "act_17_feedbackrichtig",
+          "name": "FeedbackRichtig",
+          "type": "property",
+          "target": "FeedbackLabel",
+          "changes": {
+            "text": "✅ Richtig! Super!"
+          }
+        },
+        {
+          "id": "act_18_feedbackrichtigfarbe",
+          "name": "FeedbackRichtigFarbe",
+          "type": "property",
+          "target": "FeedbackLabel",
+          "changes": {
+            "style": {
+              "color": "#4caf50",
+              "fontSize": 28,
+              "fontWeight": "bold",
+              "textAlign": "center",
+              "backgroundColor": "transparent"
+            }
+          }
+        },
+        {
+          "id": "act_19_feedbackfalsch",
+          "name": "FeedbackFalsch",
+          "type": "property",
+          "target": "FeedbackLabel",
+          "changes": {
+            "text": "❌ Leider falsch!"
+          }
+        },
+        {
+          "id": "act_20_feedbackfalschfarbe",
+          "name": "FeedbackFalschFarbe",
+          "type": "property",
+          "target": "FeedbackLabel",
+          "changes": {
+            "style": {
+              "color": "#ff5252",
+              "fontSize": 28,
+              "fontWeight": "bold",
+              "textAlign": "center",
+              "backgroundColor": "transparent"
+            }
+          }
+        },
+        {
+          "id": "act_21_aufgabennrerhoehen",
+          "name": "AufgabenNrErhoehen",
+          "type": "calculate",
+          "formula": "AufgabenNr + 1",
+          "resultVariable": "AufgabenNr"
+        },
+        {
+          "id": "act_22_aufgabennrerhoehen2",
+          "name": "AufgabenNrErhoehen2",
+          "type": "calculate",
+          "formula": "AufgabenNr + 1",
+          "resultVariable": "AufgabenNr"
+        },
+        {
+          "id": "act_23_spielbeenden",
+          "name": "SpielBeenden",
+          "type": "property",
+          "target": "GameState",
+          "changes": {
+            "state": "gameover"
+          }
+        },
+        {
+          "id": "act_24_okbuttondeaktivieren",
+          "name": "OkButtonDeaktivieren",
+          "type": "property",
+          "target": "OkButton",
+          "changes": {
+            "enabled": false
+          }
+        },
+        {
+          "id": "act_25_gameoveranzeigen",
+          "name": "GameOverAnzeigen",
+          "type": "property",
+          "target": "GameOverLabel",
+          "changes": {
+            "text": "⏰ Zeit abgelaufen! Punkte: ${Score}"
+          }
+        },
+        {
+          "id": "act_26_startbuttonrestart",
+          "name": "StartButtonRestart",
+          "type": "property",
+          "target": "StartButton",
+          "changes": {
+            "visible": true,
+            "text": "🔄 Nochmal spielen!"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "className": "TRandomVariable",
+          "id": "obj_1774204326016_nes3u",
+          "name": "Zahl1",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 6,
+          "width": 4,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#607d8b",
+            "borderColor": "#455a64",
+            "borderWidth": 2
+          },
+          "min": 1,
+          "max": 10,
+          "isInteger": true,
+          "value": 0
+        },
+        {
+          "className": "TRandomVariable",
+          "id": "obj_1774204326016_wp5m0",
+          "name": "Zahl2",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 6,
+          "width": 4,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#607d8b",
+            "borderColor": "#455a64",
+            "borderWidth": 2
+          },
+          "min": 1,
+          "max": 10,
+          "isInteger": true,
+          "value": 0
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "obj_1774204326016_gvl1y",
+          "name": "Score",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 8,
+          "width": 4,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "obj_1774204326016_uqcjf",
+          "name": "Zeitlimit",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 7,
+          "y": 8,
+          "width": 4,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 60,
+          "value": 60,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "obj_1774204326016_e6oug",
+          "name": "Ergebnis",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 8,
+          "width": 4,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 0,
+          "value": 0,
+          "objectModel": ""
+        },
+        {
+          "className": "TIntegerVariable",
+          "id": "obj_1774204326016_qc6y0",
+          "name": "AufgabenNr",
+          "scope": "stage",
+          "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 17,
+          "y": 8,
+          "width": 4,
+          "height": 1,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "integer",
+          "defaultValue": 1,
+          "value": 1,
+          "objectModel": ""
+        },
+        {
+          "className": "TTimer",
+          "id": "obj_1774204326016_84i95",
+          "name": "CountdownTimer",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onTimer": "OnTimerTick",
+            "onMaxIntervalReached": "QuizBeenden"
+          },
+          "visible": true,
+          "x": 2,
+          "y": 10,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#e53935",
+            "borderColor": "#b71c1c",
+            "borderWidth": 2
+          },
+          "interval": 1000,
+          "enabled": false,
+          "maxInterval": 60,
+          "currentInterval": 0
+        }
+      ],
+      "flowCharts": {},
+      "gameName": "Quiz",
+      "backgroundColor": "#0f0c29"
+    }
+  ],
+  "tasks": [],
+  "actions": [],
+  "objects": [],
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "activeStageId": "stage_main"
+}

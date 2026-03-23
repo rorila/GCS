@@ -155,17 +155,58 @@ export class InspectorHost {
         header.style.fontWeight = 'bold';
         header.style.display = 'flex';
         header.style.justifyContent = 'space-between';
+        header.style.alignItems = 'center';
 
-        const title = document.createElement('span');
-        title.innerText = obj.name || obj.id || 'Unbenannt';
-        header.appendChild(title);
+        const selectContainer = document.createElement('div');
+        selectContainer.style.display = 'flex';
+        selectContainer.style.alignItems = 'center';
+        selectContainer.style.gap = '8px';
+        selectContainer.style.flex = '1';
 
         const type = document.createElement('span');
         type.style.color = '#888';
         type.style.fontSize = '10px';
-        type.style.marginRight = '10px';
         type.innerText = obj.className || obj.constructor?.name || 'Object';
-        header.appendChild(type);
+        
+        const select = document.createElement('select');
+        select.style.cssText = 'flex: 1; min-width: 0; padding: 4px; background: #222; color: #fff; border: 1px solid #555; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer;';
+        
+        let allObjects: any[] = [];
+        const activeStage = this.project.stages?.find(s => s.id === this.project.activeStageId);
+        if (activeStage) {
+            allObjects = [...(activeStage.objects || []), ...(activeStage.variables || [])];
+        }
+        const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint');
+        if (blueprintStage && activeStage?.type !== 'blueprint') {
+             allObjects = [...allObjects, ...(blueprintStage.objects || []), ...(blueprintStage.variables || [])];
+        }
+
+        const uniqueObjects = Array.from(new Map(allObjects.map(o => [o.id, o])).values());
+        
+        uniqueObjects.sort((a, b) => (a.name || '').localeCompare(b.name || '')).forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o.id;
+            opt.textContent = o.name || o.id || 'Unbenannt';
+            
+            if (activeStage && !activeStage.objects?.find(ao => ao.id === o.id) && !activeStage.variables?.find(av => av.id === o.id)) {
+                opt.textContent += ' (Global)';
+            }
+            if (o.id === obj.id) {
+                opt.selected = true;
+            }
+            select.appendChild(opt);
+        });
+
+        select.onchange = () => {
+            const selectedId = select.value;
+            if (selectedId && (this as any).onObjectSelect) {
+                (this as any).onObjectSelect(selectedId);
+            }
+        };
+
+        selectContainer.appendChild(select);
+        selectContainer.appendChild(type);
+        header.appendChild(selectContainer);
 
         // Papierkorb-Icon zum Löschen
         if (this.onObjectDelete) {
