@@ -131,6 +131,11 @@
                     "type": "GameState",
                     "icon": "⏯️",
                     "label": "Game State"
+                },
+                {
+                    "type": "ProgressBar",
+                    "icon": "📊",
+                    "label": "Progress Bar"
                 }
             ]
         },
@@ -202,7 +207,7 @@
                 {
                     "type": "Repeater",
                     "icon": "🔁",
-                    "label": "Repeater"
+                    "label": "Intervall-Timer"
                 },
                 {
                     "type": "SystemInfo",

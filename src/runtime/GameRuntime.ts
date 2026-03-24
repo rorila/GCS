@@ -404,6 +404,13 @@ export class GameRuntime implements IVariableHost {
 
         this.actionExecutor.setObjects(this.objects);
         this.initStageController();
+        
+        // WICHTIG: TStageController mitteilen, auf welcher Stage wir WIRKLICH sind! 
+        // (Für den Fall dass der Wechsel nicht durch ihn selbst, sondern durch eine navigate_stage Action passierte)
+        if (this.stageController && this.stage) {
+            this.stageController.setCurrentStageId(this.stage.id);
+        }
+
         this.start();
 
         // 2. AFTER Stage Change: Trigger onEnter and onRuntimeStart on the NEW stage

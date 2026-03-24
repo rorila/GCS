@@ -113,10 +113,25 @@ export class TStageController extends TWindow {
         }
 
         // Start-Stage setzen (Splash wenn vorhanden, sonst Main)
-        const splashStage = stages.find(s => s.type === 'splash');
-        this._currentStageId = splashStage?.id || this._mainStageId;
+        // Aber NUR, wenn noch keine stageId gesetzt ist, um Überschreiben bei Re-Init zu vermeiden!
+        if (!this._currentStageId) {
+            const splashStage = stages.find(s => s.type === 'splash');
+            this._currentStageId = splashStage?.id || this._mainStageId;
+        }
 
-        TStageController.logger.info(`Initialized with ${stages.length} stages. Starting at: ${this._currentStageId}`);
+        TStageController.logger.info(`Initialized with ${stages.length} stages. Current tracking: ${this._currentStageId}`);
+    }
+
+    /**
+     * Wird von extern (GameRuntime) aufgerufen, wenn sich die Stage
+     * durch eine nicht vom Controller initiierte Aktion ändert 
+     * (z.B. navigate_stage Action).
+     */
+    public setCurrentStageId(stageId: string): void {
+        const stage = this._stages.find(s => s.id === stageId);
+        if (stage) {
+            this._currentStageId = stageId;
+        }
     }
 
     // ─────────────────────────────────────────────

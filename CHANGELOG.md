@@ -1,4 +1,25 @@
-## [3.26.3] - 2026-03-23
+## [3.27.0] - 2026-03-24
+### Added
+- **TProgressBar** (`TProgressBar.ts`): Neuer Fortschrittsbalken-Baustein mit `value`, `maxValue`, `barColor`, `barBackgroundColor`, `showText`, `textTemplate`, `animateChanges`. Events: `onComplete`, `onEmpty`. Registriert in ComponentRegistry, Serialization und Toolbox (Kategorie: Game).
+- **TGameState: Spielstand-Properties** (`TGameState.ts`): `score`, `level`, `lives`, `maxLives` + Inspector-Gruppe "Spielstand". State-Option `"won"` hinzugefügt.
+- **TThresholdVariable: Vergleichs-Operator** (`TThresholdVariable.ts`): Neues Property `comparison` (>=, <=, ==, >, <, !=) + Methode `isThresholdReached()`.
+
+### Changed
+- **TRepeater → Intervall-Timer** (`toolbox.json`): Toolbox-Label von "Repeater" auf "Intervall-Timer" umbenannt. Klassenname TRepeater bleibt zur Kompatibilität.
+
+### Fixed
+- **SanitizationService: Task-Verlust durch Scope-Bleeding** (`SanitizationService.ts` -> `sanitizeProject()[L109-120]`): Behoben, dass valide, Stage-lokale Tasks (z. B. "NavNext") in Multi-Stage-Projekten nach dem Speichern vom Editor gelöscht wurden. Die Duplikat-Erkennung nutzte ein globales `seenTasks`-Set über alle Stages hinweg, was legitime gleichnamige Tasks in nachfolgenden Stages fälschlicherweise als Duplikate flaggte und eliminierte. Das Set ist nun strikt an den Iterationszyklus einer einzelnen Stage gekapselt.
+- **Inspector: Doppelte Typografie-Felder** (`TTextControl.ts`, `TWindow.ts`): TYPOGRAFIE-Gruppe wurde doppelt angezeigt da `TTextControl.getInspectorProperties()` dieselben Felder wie `TWindow` hinzufügte. Doppelte Einträge aus TTextControl entfernt. `TWindow.fontFamily` von Freitext auf Select-Dropdown geändert.
+
+## [3.26.4] - 2026-03-24
+### Changed
+- **Pascal-Panel: Task-gefilterter Code** (`FlowEditor.ts`, `PascalCodeGenerator.ts`):
+  - Das Pascal-Panel zeigt jetzt nur den Code des aktuell geöffneten Tasks (statt das gesamte Programm).
+  - VAR-Sektion zeigt nur die im Task verwendeten Variablen, Komponenten und Task-Parameter.
+  - Neue Methode `collectVariableNames()` sammelt rekursiv Variablen-Referenzen aus Conditions, Calculations, set_variable, increment und `${}`-Referenzen.
+  - Bei globaler Ansicht / Übersicht wird weiterhin das vollständige Programm angezeigt.
+
+
 ### Fixed
 - **Inspector: Objekt-Dropdown für registry-basierte Actions** (`FlowAction.ts`):
   - Actions wie `play_audio` und `stop_audio`, die einen `type: 'object'`-Parameter mit `source: 'objects'` verwenden, zeigten im Inspector kein Dropdown zur Auswahl der Zielkomponente (z.B. TAudio).

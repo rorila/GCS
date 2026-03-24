@@ -47,6 +47,7 @@ import { TGameState } from '../components/TGameState';
 import { TDialogRoot } from '../components/TDialogRoot';
 import { TInfoWindow } from '../components/TInfoWindow';
 import { TStatusBar } from '../components/TStatusBar';
+import { TProgressBar } from '../components/TProgressBar';
 import { TObjectList } from '../components/TObjectList';
 import { TTabControl } from '../components/TTabControl';
 import { TInspectorTemplate } from '../components/TInspectorTemplate';
@@ -109,6 +110,7 @@ export class ComponentRegistry {
         this.register('TTable', TTable);
         this.register('TTextControl', TTextControl);
         this.register('TVideo', TVideo);
+        this.register('TProgressBar', TProgressBar);
 
         // System Komponenten
         this.register('TSplashScreen', TSplashScreen);
@@ -194,6 +196,7 @@ export class ComponentRegistry {
         this.typeMapping.set('InfoWindow', 'TInfoWindow');
         this.typeMapping.set('Toast', 'TToast'); // TToast fehlt ggf. noch als registrierte Klasse oben? (muss nachgeholt werden falls nötig)
         this.typeMapping.set('StatusBar', 'TStatusBar');
+        this.typeMapping.set('ProgressBar', 'TProgressBar');
         this.typeMapping.set('GameState', 'TGameState');
         this.typeMapping.set('Handshake', 'THandshake');
         this.typeMapping.set('Heartbeat', 'THeartbeat');

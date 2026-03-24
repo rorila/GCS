@@ -104,17 +104,17 @@ export class SanitizationService {
             report.push(`${diffSize} doppelte globale Tasks wurden entfernt (bereits in Stages vorhanden).`);
         }
 
-        const seenTasks = new Set<string>();
         if (project.stages) {
             project.stages.forEach(s => {
                 if (s.tasks) {
+                    const seenTasksInStage = new Set<string>();
                     s.tasks = s.tasks.filter(t => {
                         const lower = t.name.toLowerCase();
-                        if (seenTasks.has(lower)) {
+                        if (seenTasksInStage.has(lower)) {
                             report.push(`Task-Duplikat "${t.name}" aus Stage "${s.name}" entfernt.`);
                             return false;
                         }
-                        seenTasks.add(lower);
+                        seenTasksInStage.add(lower);
                         return true;
                     });
                 }

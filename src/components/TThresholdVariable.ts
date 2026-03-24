@@ -1,10 +1,13 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
+export type ThresholdComparison = '>=' | '<=' | '==' | '>' | '<' | '!=';
+
 export class TThresholdVariable extends TWindow {
     public className: string = 'TThresholdVariable';
     public value: any = undefined;
     public threshold: number = 100;
+    public comparison: ThresholdComparison = '>=';
 
     constructor(name: string, x: number, y: number) {
         super(name, x, y, 3, 1);
@@ -19,8 +22,26 @@ export class TThresholdVariable extends TWindow {
         return [
             ...props,
             { name: 'value', label: 'Wert', type: 'number', group: 'Threshold' },
-            { name: 'threshold', label: 'Schwellenwert', type: 'number', group: 'Threshold' }
+            { name: 'threshold', label: 'Schwellenwert', type: 'number', group: 'Threshold' },
+            { name: 'comparison', label: 'Vergleich', type: 'select', group: 'Threshold', options: ['>=', '<=', '==', '>', '<', '!='] }
         ];
+    }
+
+    /**
+     * Prüft ob der Schwellwert gemäß comparison erreicht ist.
+     */
+    public isThresholdReached(): boolean {
+        const v = Number(this.value);
+        const t = this.threshold;
+        switch (this.comparison) {
+            case '>=': return v >= t;
+            case '<=': return v <= t;
+            case '==': return v === t;
+            case '>':  return v > t;
+            case '<':  return v < t;
+            case '!=': return v !== t;
+            default:   return v >= t;
+        }
     }
 
     public getEvents(): string[] {
@@ -36,7 +57,9 @@ export class TThresholdVariable extends TWindow {
         return {
             ...super.toJSON(),
             value: this.value,
-            threshold: this.threshold
+            threshold: this.threshold,
+            comparison: this.comparison
         };
     }
 }
+

@@ -178,25 +178,78 @@ export class PascalCodeGenerator {
             return lines.join('\n');
         }
 
-        // Sammle alle referenzierten Action-Namen rekursiv aus der actionSequence
+        // Sub-Tasks sammeln: Alle Tasks die vom Haupt-Task (rekursiv) aufgerufen werden
+        const calledTasks = new Set<string>();
+        this.collectCalledTaskNames(task.actionSequence || [], calledTasks);
+        calledTasks.delete(taskName);
+
+        // Alle verfügbaren Tasks zusammenstellen
+        const allTasks: any[] = [];
+        if (project.tasks) allTasks.push(...project.tasks);
+        if (project.stages) {
+            project.stages.forEach((s: any) => {
+                if (s.tasks) allTasks.push(...s.tasks);
+            });
+        }
+
+        // Sammle alle referenzierten Action-Namen rekursiv – aus Haupt-Task UND Sub-Tasks
         const referencedActions = new Set<string>();
         this.collectActionNames(task.actionSequence || [], referencedActions);
 
-        // Sammle alle manipulierten Targets aus den referenzierten Actions
+        // Sammle alle manipulierten Targets und verwendeten Variablen
         const targetNames = new Set<string>();
+        const usedVarNames = new Set<string>();
+
+        // Variablen des Haupt-Tasks
+        this.collectVariableNames(task.actionSequence || [], usedVarNames);
+
+        // Sub-Tasks: Deren Actions und Variablen ebenfalls sammeln
+        calledTasks.forEach(subTaskName => {
+            const subTask = allTasks.find(t => t.name === subTaskName);
+            if (subTask?.actionSequence) {
+                this.collectActionNames(subTask.actionSequence, referencedActions);
+                this.collectVariableNames(subTask.actionSequence, usedVarNames);
+            }
+        });
+
+        const blueprintStage = project.stages?.find((s: any) => s.type === 'blueprint');
+
         referencedActions.forEach(actionName => {
-            const blueprintStage = project.stages?.find((s: any) => s.type === 'blueprint');
             const action = (
                 project.actions?.find(a => a.name === actionName) ||
                 blueprintStage?.actions?.find((a: any) => a.name === actionName) ||
                 activeStage?.actions?.find((a: any) => a.name === actionName)
             ) as any;
             if (action?.target) targetNames.add(action.target);
+            // Variablen aus den referenzierten Action-Definitionen
+            if (action) {
+                if (action.variableName) usedVarNames.add(action.variableName);
+                if (action.resultVariable) usedVarNames.add(action.resultVariable);
+                if (action.changes) {
+                    Object.values(action.changes).forEach((val: any) => {
+                        if (typeof val === 'string') {
+                            const match = val.match(/^\$\{(.+)\}$/);
+                            if (match) usedVarNames.add(match[1]);
+                        }
+                    });
+                }
+                if (action.body && Array.isArray(action.body)) {
+                    this.collectVariableNames(action.body, usedVarNames);
+                }
+            }
         });
 
-        // VAR-Sektion: Task-Parameter + manipulierte Komponenten
+        // Variablen aus allen verfügbaren Quellen zusammenstellen
+        const allVars = [
+            ...(project.variables || []),
+            ...(activeStage?.variables || []),
+            ...(blueprintStage?.variables || [])
+        ];
+        const matchedVars = allVars.filter((v: any) => usedVarNames.has(v.name));
+
+        // VAR-Sektion: Task-Parameter + verwendete Variablen + manipulierte Komponenten
         const params = (task as any).params || [];
-        const hasVars = params.length > 0 || targetNames.size > 0;
+        const hasVars = params.length > 0 || matchedVars.length > 0 || targetNames.size > 0;
 
         if (hasVars) {
             lines.push(`${this.span('VAR', '#c586c0', asHtml)}`);
@@ -210,12 +263,22 @@ export class PascalCodeGenerator {
                 });
             }
 
+            // Verwendete Variablen
+            if (matchedVars.length > 0) {
+                lines.push(`  ${this.span('{ Verwendete Variablen }', '#6a9955', asHtml)}`);
+                matchedVars.forEach((v: any) => {
+                    const pascalType = (v.type || 'string').charAt(0).toUpperCase() + (v.type || 'string').slice(1);
+                    const defaultVal = v.initialValue ?? v.defaultValue ?? 'nil';
+                    lines.push(`  ${this.span(v.name, '#9cdcfe', asHtml)}: ${this.span(pascalType, '#4ec9b0', asHtml)}; ${this.span('// Default: ' + defaultVal, '#6a9955', asHtml)}`);
+                });
+            }
+
             // Manipulierte Komponenten
             if (targetNames.size > 0) {
                 lines.push(`  ${this.span('{ Manipulierte Komponenten }', '#6a9955', asHtml)}`);
                 const allObjects = [
                     ...(activeStage?.objects || []),
-                    ...(project.stages?.find((s: any) => s.type === 'blueprint')?.objects || [])
+                    ...(blueprintStage?.objects || [])
                 ];
                 targetNames.forEach(targetName => {
                     const obj = allObjects.find((o: any) => o.name === targetName);
@@ -227,28 +290,41 @@ export class PascalCodeGenerator {
             lines.push('');
         }
 
-        // Der Task als Hauptprozedur
+        // Sub-Tasks als eigene Procedures ausgeben (vor dem Haupt-Task, wie in Pascal üblich)
+        calledTasks.forEach(subTaskName => {
+            lines.push(this.generateProcedure(project, subTaskName, 0, undefined, asHtml, activeStage));
+            lines.push('');
+        });
+
+        // Der Haupt-Task als Hauptprozedur
         lines.push(this.generateProcedure(project, taskName, 0, undefined, asHtml, activeStage));
         lines.push('');
 
-        // Event-Handler, die diesen Task referenzieren
-        const eventHandlers: string[] = [];
+        // Event-Handler als echte PROCEDURE-Blöcke
         const stagesToCheck = activeStage ? [activeStage] : (project.stages || []);
+        // Blueprint-Stage immer mitprüfen
+        if (blueprintStage && !stagesToCheck.includes(blueprintStage)) {
+            stagesToCheck.push(blueprintStage);
+        }
+        const eventHandlerLines: string[] = [];
         stagesToCheck.forEach((stage: any) => {
             (stage.objects || []).forEach((obj: any) => {
                 const tasks = obj.events || obj.Tasks || {};
                 Object.entries(tasks).forEach(([event, tName]) => {
                     if (tName === taskName) {
-                        eventHandlers.push(`${this.span('// Auslöser:', '#6a9955', asHtml)} ${this.span(obj.name, '#9cdcfe', asHtml)}.${this.span(event, '#dcdcaa', asHtml)}`);
+                        eventHandlerLines.push(`${this.span('PROCEDURE', '#c586c0', asHtml)} ${this.span(obj.name, '#9cdcfe', asHtml)}.${this.span(event, '#dcdcaa', asHtml)}();`);
+                        eventHandlerLines.push(`${this.span('BEGIN', '#c586c0', asHtml)}`);
+                        eventHandlerLines.push(`  ${this.span(taskName, '#dcdcaa', asHtml)}();`);
+                        eventHandlerLines.push(`${this.span('END', '#c586c0', asHtml)};`);
+                        eventHandlerLines.push('');
                     }
                 });
             });
         });
 
-        if (eventHandlers.length > 0) {
+        if (eventHandlerLines.length > 0) {
             lines.push(`${this.span('{ ─── Event-Auslöser ─── }', '#6a9955', asHtml)}`);
-            eventHandlers.forEach(h => lines.push(h));
-            lines.push('');
+            eventHandlerLines.forEach(l => lines.push(l));
         }
 
         lines.push(`${this.span('END', '#c586c0', asHtml)}.`);
@@ -268,6 +344,61 @@ export class PascalCodeGenerator {
             if (item.elseAction) result.add(item.elseAction);
             if (item.body) this.collectActionNames(item.body, result);
             if ((item as any).elseBody) this.collectActionNames((item as any).elseBody, result);
+        });
+    }
+
+    /**
+     * Sammelt rekursiv alle Task-Namen, die aus einer actionSequence aufgerufen werden.
+     */
+    private static collectCalledTaskNames(sequence: SequenceItem[], result: Set<string>) {
+        if (!sequence) return;
+        sequence.forEach(item => {
+            if (item.type === 'task' && item.name) {
+                result.add(item.name);
+            }
+            if ((item as any).elseTask) result.add((item as any).elseTask);
+            if (item.body) this.collectCalledTaskNames(item.body, result);
+            if ((item as any).elseBody) this.collectCalledTaskNames((item as any).elseBody, result);
+        });
+    }
+
+    /**
+     * Sammelt rekursiv alle Variablen-Namen aus einer actionSequence.
+     * Durchsucht Conditions, Calculations, set_variable, increment und ${}-Referenzen.
+     */
+    private static collectVariableNames(sequence: SequenceItem[], result: Set<string>) {
+        if (!sequence) return;
+        sequence.forEach(item => {
+            // Conditions: leftValue/variable und rightValue (wenn Variable)
+            const cond = item.condition || (item as any).itemCondition;
+            if (cond && typeof cond === 'object') {
+                if (cond.variable) result.add(cond.variable);
+                if ((cond as any).leftValue) result.add((cond as any).leftValue);
+                // rightValue nur wenn es eine Variable-Referenz ist (${...})
+                const rv = (cond as any).rightValue ?? cond.value;
+                if (typeof rv === 'string' && rv.startsWith('${') && rv.endsWith('}')) {
+                    result.add(rv.slice(2, -1));
+                }
+            }
+
+            // Inline Action-Daten (bei type !== 'action')
+            const data = (item as any).data || item;
+            if (data.variableName) result.add(data.variableName);
+            if (data.resultVariable) result.add(data.resultVariable);
+            if (data.changes) {
+                Object.values(data.changes).forEach((val: any) => {
+                    if (typeof val === 'string') {
+                        const match = val.match(/^\$\{(.+)\}$/);
+                        if (match) result.add(match[1]);
+                    }
+                });
+            }
+
+            // Rekursion in Unter-Sequenzen
+            if (item.body) this.collectVariableNames(item.body, result);
+            if ((item as any).elseBody) this.collectVariableNames((item as any).elseBody, result);
+            if ((item as any).successBody) this.collectVariableNames((item as any).successBody, result);
+            if ((item as any).errorBody) this.collectVariableNames((item as any).errorBody, result);
         });
     }
 
@@ -309,7 +440,7 @@ export class PascalCodeGenerator {
         const lines: string[] = [];
         const space = ' '.repeat(indent);
 
-        lines.push(`${space}${this.span('PROCEDURE', '#c586c0', asHtml)} ${this.span(taskName, '#dcdcaa', asHtml)}; `);
+        lines.push(`${space}${this.span('PROCEDURE', '#c586c0', asHtml)} ${this.span(taskName, '#dcdcaa', asHtml)}(); `);
         lines.push(`${space}${this.span('BEGIN', '#c586c0', asHtml)} `);
 
         this.renderSequenceToPascal(project, sequence, lines, indent + 2, asHtml, activeStage);
@@ -331,7 +462,7 @@ export class PascalCodeGenerator {
             if (item.type === 'action' || !item.type) {
                 lines.push(`${space}${this.getActionPascalCode(project, item.name, asHtml, activeStage, (item as any).data)} `);
             } else if (item.type === 'task') {
-                lines.push(`${space}${this.span(item.name, '#dcdcaa', asHtml)}; ${this.span('// Task Call', '#6a9955', asHtml)} `);
+                lines.push(`${space}${this.span(item.name, '#dcdcaa', asHtml)}(); ${this.span('// Task Call', '#6a9955', asHtml)} `);
             } else if (item.type === 'condition') {
                 const cond = item.condition;
                 if (cond) {

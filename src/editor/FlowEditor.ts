@@ -1008,12 +1008,11 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
 
         if (ctx === 'global' || ctx === 'event-map' || ctx === 'element-overview') {
             title = '🔤 Stage: ' + (activeStage ? activeStage.name : 'Global');
+            code = PascalCodeGenerator.generateFullProgram(this.project, true, activeStage || undefined);
         } else {
             title = '🔤 Task: ' + ctx;
+            code = PascalCodeGenerator.generateForTask(this.project, ctx, true, activeStage || undefined);
         }
-
-        // Der Nutzer möchte IMMER das vollständige Programm (Screenshot 2) sehen
-        code = PascalCodeGenerator.generateFullProgram(this.project, true, activeStage || undefined);
 
         // Wrap inner content with LTR to fix text reading direction after RTL trick
         this.pascalPanel.innerHTML = `

@@ -66,8 +66,8 @@ export function runPascalGeneratorTests() {
         
         // Assertions
         const hasMainTaskCall = generatedCode.includes('Stage1TestTask');
-        const hasSubTaskDeclaration = generatedCode.includes('PROCEDURE BackToMainStage;');
-        const hasSubTaskCall = generatedCode.includes('BackToMainStage;');
+        const hasSubTaskDeclaration = generatedCode.includes('PROCEDURE BackToMainStage();');
+        const hasSubTaskCall = generatedCode.includes('BackToMainStage();');
 
         if (hasMainTaskCall && hasSubTaskDeclaration && hasSubTaskCall) {
             results.push({ name: 'Nested Task Declaration Generation', type: 'Pascal Generator', expectedSuccess: true, actualSuccess: true, passed: true, details: 'Recursive Tasks successfully output' });

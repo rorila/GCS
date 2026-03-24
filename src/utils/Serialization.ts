@@ -23,6 +23,7 @@ import { TDialogRoot } from '../components/TDialogRoot';
 import { TInfoWindow } from '../components/TInfoWindow';
 import { TToast } from '../components/TToast';
 import { TStatusBar } from '../components/TStatusBar';
+import { TProgressBar } from '../components/TProgressBar';
 import { TGameState } from '../components/TGameState';
 import { THandshake } from '../components/THandshake';
 import { THeartbeat } from '../components/THeartbeat';
@@ -162,6 +163,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 break;
             case 'TStatusBar':
                 newObj = new TStatusBar(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
+            case 'TProgressBar':
+                newObj = new TProgressBar(objData.name, objData.x, objData.y, objData.width, objData.height);
                 break;
             case 'TGameState':
                 newObj = new TGameState(objData.name, objData.x, objData.y);
