@@ -75,6 +75,33 @@ export class InspectorRenderer {
     }
 
     /**
+     * Renders a multi-line generic textarea
+     */
+    public renderTextArea(value: string, placeholder: string = ''): HTMLTextAreaElement {
+        const textarea = document.createElement('textarea');
+        textarea.value = value || '';
+        textarea.placeholder = placeholder;
+        textarea.className = 'inspector-textarea';
+        textarea.rows = 4; // Default anzahl für bessere Übersicht
+
+        this.applyStyle(textarea, {
+            width: '100%',
+            backgroundColor: '#222',
+            color: '#fff',
+            border: '1px solid #444',
+            borderRadius: '3px',
+            padding: '4px 6px',
+            fontSize: '12px',
+            outline: 'none',
+            boxSizing: 'border-box',
+            resize: 'vertical',
+            fontFamily: 'inherit'
+        });
+
+        return textarea;
+    }
+
+    /**
      * Renders a TSelect-like dropdown
      */
     public renderSelect(options: any[], selectedValue: string, placeholder?: string): HTMLSelectElement {

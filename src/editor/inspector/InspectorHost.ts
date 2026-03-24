@@ -449,7 +449,7 @@ export class InspectorHost {
         }
 
         // Label (links, Breite abhängig von inline-Flag)
-        if (propDef.label) {
+        if (propDef.label && propDef.type !== 'textarea') {
             const label = this.renderer.renderLabel(propDef.label);
             label.style.marginBottom = '0';
             label.style.flexShrink = '0';
@@ -878,13 +878,19 @@ export class InspectorHost {
 
             return container;
         } else {
-            // Text / Number / String Input
-            const input = this.renderer.renderEdit(String(currentValue));
+            // Text / Number / String / Textarea Input
+            let input: HTMLInputElement | HTMLTextAreaElement;
+            if (propDef.type === 'textarea') {
+                input = this.renderer.renderTextArea(String(currentValue));
+            } else {
+                input = this.renderer.renderEdit(String(currentValue));
+            }
             input.style.flex = '1';
             if (propDef.readonly) input.readOnly = true;
             // Konvention: Input name = '{propertyName}Input' (E2E-Kompatibilität)
             if (propDef.name) input.name = propDef.name + 'Input';
-            input.onchange = () => {
+            
+            const submitChange = () => {
                 const newVal = propDef.type === 'number' ? Number(input.value) : input.value;
                 // Delegiere an Handler-Kette (FlowNodeHandler → Refactoring, PropertyHelper etc.)
                 if (this.eventHandler) {
@@ -903,7 +909,28 @@ export class InspectorHost {
                     }
                 }
             };
-            container.appendChild(input);
+            
+            input.onchange = submitChange;
+            
+            if (propDef.type === 'textarea') {
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+                wrapper.style.gap = '4px';
+                wrapper.style.width = '100%';
+                
+                const btn = document.createElement('button');
+                btn.textContent = 'Übernehmen';
+                btn.title = 'Text speichern und anzeigen';
+                btn.style.cssText = 'padding: 4px 8px; background: #2e7d32; color: #fff; border: 1px solid #1b5e20; border-radius: 3px; cursor: pointer; font-size: 11px; align-self: flex-end;';
+                btn.onclick = submitChange;
+                
+                wrapper.appendChild(input);
+                wrapper.appendChild(btn);
+                container.appendChild(wrapper);
+            } else {
+                container.appendChild(input);
+            }
         }
 
         return container;

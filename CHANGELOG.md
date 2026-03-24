@@ -3,6 +3,8 @@
 - **TProgressBar** (`TProgressBar.ts`): Neuer Fortschrittsbalken-Baustein mit `value`, `maxValue`, `barColor`, `barBackgroundColor`, `showText`, `textTemplate`, `animateChanges`. Events: `onComplete`, `onEmpty`. Registriert in ComponentRegistry, Serialization und Toolbox (Kategorie: Game).
 - **TGameState: Spielstand-Properties** (`TGameState.ts`): `score`, `level`, `lives`, `maxLives` + Inspector-Gruppe "Spielstand". State-Option `"won"` hinzugefügt.
 - **TThresholdVariable: Vergleichs-Operator** (`TThresholdVariable.ts`): Neues Property `comparison` (>=, <=, ==, >, <, !=) + Methode `isThresholdReached()`.
+- **Inspector Textarea-Support** (`InspectorHost.ts`, `InspectorRenderer.ts`): native, mehrzeilige Textfelder (`type: 'textarea'`) werden im Inspector unterstützt, inkl. "Übernehmen" Button für direkte Speicher-Anwendung.
+- **TLabel Mehrzeilen-Unterstützung** (`TTextControl.ts`): Die Eigenschaft `text` nutzt nun den neuen Textarea-Typ, um lange Fließtexte in Dokumentations-Stages leichter pflegen zu können.
 
 ### Changed
 - **TRepeater → Intervall-Timer** (`toolbox.json`): Toolbox-Label von "Repeater" auf "Intervall-Timer" umbenannt. Klassenname TRepeater bleibt zur Kompatibilität.
@@ -10,6 +12,8 @@
 ### Fixed
 - **SanitizationService: Task-Verlust durch Scope-Bleeding** (`SanitizationService.ts` -> `sanitizeProject()[L109-120]`): Behoben, dass valide, Stage-lokale Tasks (z. B. "NavNext") in Multi-Stage-Projekten nach dem Speichern vom Editor gelöscht wurden. Die Duplikat-Erkennung nutzte ein globales `seenTasks`-Set über alle Stages hinweg, was legitime gleichnamige Tasks in nachfolgenden Stages fälschlicherweise als Duplikate flaggte und eliminierte. Das Set ist nun strikt an den Iterationszyklus einer einzelnen Stage gekapselt.
 - **Inspector: Doppelte Typografie-Felder** (`TTextControl.ts`, `TWindow.ts`): TYPOGRAFIE-Gruppe wurde doppelt angezeigt da `TTextControl.getInspectorProperties()` dieselben Felder wie `TWindow` hinzufügte. Doppelte Einträge aus TTextControl entfernt. `TWindow.fontFamily` von Freitext auf Select-Dropdown geändert.
+- **TPanel Rendering-Bug** (`TPanel.ts`): Die harte Verknüpfung von `get caption()` an `this.name` wurde entfernt. Panels rendern nun nicht mehr fälschlicherweise ihren Engine-Namen in GUI-Szenen und können vollständig text-los (transparent) bleiben.
+- **Inspector Textarea-Layout** (`InspectorHost.ts`): Das seitliche Label ("Inhalt") für Textareas wurde im Inspektor ausgeblendet, wodurch mehrzeilige Textfelder nun die vollen 100% Breite nutzen können.
 
 ## [3.26.4] - 2026-03-24
 ### Changed

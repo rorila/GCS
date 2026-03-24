@@ -1,11 +1,9 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
-import { Logger } from '../utils/Logger';
 
 export type TGridStyle = 'lines' | 'dots';
 
 export class TPanel extends TWindow {
-    private static logger = Logger.get('TPanel', 'Component_Manipulation');
     private _showGrid: boolean = false;
     private _gridColor: string = '#000000';
     private _gridStyle: TGridStyle = 'lines';
@@ -18,14 +16,7 @@ export class TPanel extends TWindow {
         this.style.borderWidth = 1;
     }
 
-    get caption(): string {
-        return this.name;
-    }
 
-    set caption(v: string) {
-        TPanel.logger.info(`set caption("${v}") - Renaming ${this.name} to ${v}`);
-        this.name = v;
-    }
 
     get showGrid(): boolean {
         return this._showGrid;

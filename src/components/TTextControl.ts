@@ -27,7 +27,7 @@ export class TTextControl extends TWindow {
         const props = super.getInspectorProperties();
         return [
             ...props,
-            { name: 'text', label: 'Inhalt', type: 'string', group: 'INHALT' }
+            { name: 'text', label: 'Inhalt', type: 'textarea', group: 'INHALT' }
             // TYPOGRAFIE-Felder (fontSize, fontWeight, fontStyle, textAlign, fontFamily)
             // kommen bereits von TWindow.getInspectorProperties() – NICHT doppelt hinzufügen!
         ];
