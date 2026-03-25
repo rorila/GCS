@@ -40,11 +40,19 @@ export class MenuBar {
         this.container = el;
         this.setupStyles();
 
-        // Stage-Label mittig in der Menüleiste (prominente Anzeige der aktiven Stage)
+        // Stage-Control Container
+        const stageControlWrapper = document.createElement('div');
+        stageControlWrapper.style.cssText = `
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        `;
+        
+        // Stage-Label
         this.stageLabel = document.createElement('span');
         this.stageLabel.id = 'menu-stage-label';
         this.stageLabel.style.cssText = `
-            margin-left: auto;
             color: #e0e0e0;
             font-size: 13px;
             font-weight: 600;
@@ -53,9 +61,29 @@ export class MenuBar {
             background: rgba(255,255,255,0.07);
             border-radius: 4px;
             letter-spacing: 0.3px;
+            margin-right: 4px;
         `;
         this.stageLabel.textContent = '🎭 Aktuelle Stage: –';
-        this.container.appendChild(this.stageLabel);
+        stageControlWrapper.appendChild(this.stageLabel);
+
+        const btnStyle = 'background: rgba(255,255,255,0.1); border: none; color: #fff; cursor: pointer; padding: 2px 6px; border-radius: 3px; font-size: 13px; display: flex; align-items: center; justify-content: center; height: 22px; transition: background 0.2s;';
+
+        const createNavButton = (icon: string, title: string, action: string) => {
+            const btn = document.createElement('button');
+            btn.innerHTML = icon;
+            btn.title = title;
+            btn.style.cssText = btnStyle;
+            btn.onmouseenter = () => btn.style.background = 'rgba(255,255,255,0.2)';
+            btn.onmouseleave = () => btn.style.background = 'rgba(255,255,255,0.1)';
+            btn.onclick = () => { if (this.onAction) this.onAction(action); };
+            return btn;
+        };
+
+        stageControlWrapper.appendChild(createNavButton('⬆️', 'Stage nach vorne verschieben', 'stage-move-up'));
+        stageControlWrapper.appendChild(createNavButton('⬇️', 'Stage nach hinten verschieben', 'stage-move-down'));
+        stageControlWrapper.appendChild(createNavButton('📄+', 'Diese Stage duplizieren', 'stage-duplicate'));
+
+        this.container.appendChild(stageControlWrapper);
 
         // Info-Label rechts in der Menüleiste (z.B. Projektpfad)
         this.infoLabel = document.createElement('span');
@@ -131,8 +159,14 @@ export class MenuBar {
             this.container.appendChild(menuEl);
         });
 
-        // Stage-Label und Info-Label wieder an das Ende anhängen (nach re-render)
-        this.container.appendChild(this.stageLabel);
+        // Stage-Control-Wrapper wieder anhängen
+        const stageControls = this.container.querySelector('#menu-stage-label')?.parentElement;
+        if (stageControls) {
+            this.container.appendChild(stageControls);
+        } else {
+            // Fallback (sollte nicht passieren da constructor fix im DOM verankert)
+            this.container.appendChild(this.stageLabel);
+        }
         this.container.appendChild(this.infoLabel);
     }
 

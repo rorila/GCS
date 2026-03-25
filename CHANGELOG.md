@@ -5,6 +5,8 @@
 - **TThresholdVariable: Vergleichs-Operator** (`TThresholdVariable.ts`): Neues Property `comparison` (>=, <=, ==, >, <, !=) + Methode `isThresholdReached()`.
 - **Inspector Textarea-Support** (`InspectorHost.ts`, `InspectorRenderer.ts`): native, mehrzeilige Textfelder (`type: 'textarea'`) werden im Inspector unterstützt, inkl. "Übernehmen" Button für direkte Speicher-Anwendung.
 - **TLabel Mehrzeilen-Unterstützung** (`TTextControl.ts`): Die Eigenschaft `text` nutzt nun den neuen Textarea-Typ, um lange Fließtexte in Dokumentations-Stages leichter pflegen zu können.
+- **Stage Duplikation & Reordering** (`EditorStageManager.ts`, `MenuBar.ts`): Eine komplette Stage kann per Knopfdruck inkl. Tasks und Actions tiefen-geklont werden (neue IDs, alte Namen), ohne das Projekt zu korrumpieren. Zusätzlich wurden Buttons zum Ändern der Stage-Reihenfolge (Hoch/Runter) ins UI integriert.
+- **System-Clipboard für Multi-Component Copy** (`EditorInteractionManager.ts`, `StageInteractionManager.ts`): Beim Markieren mehrerer Objekte und STRG+C wandern diese in ein globales Objekt, das Stage-übergreifend gültig ist. Beim STRG+V werden die Namen in der Ziel-Stage geprüft: wenn frei, bleibt der Originalname, sonst wird mit `_1` etc. hochgezählt.
 
 ### Changed
 - **TRepeater → Intervall-Timer** (`toolbox.json`): Toolbox-Label von "Repeater" auf "Intervall-Timer" umbenannt. Klassenname TRepeater bleibt zur Kompatibilität.

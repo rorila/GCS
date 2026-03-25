@@ -116,6 +116,17 @@ export class EditorMenuManager {
             case 'new-from-template': this.host.createStageFromTemplate(); break;
             case 'save-as-template': this.host.saveStageAsTemplate(); break;
             case 'import-stage': this.host.importStageFromFile(); break;
+            case 'stage-duplicate':
+                if ((this.host as any).stageManager) (this.host as any).stageManager.duplicateCurrentStage();
+                break;
+            case 'stage-move-up':
+                if ((this.host as any).stageManager && this.host.project.activeStageId) 
+                    (this.host as any).stageManager.moveStage(this.host.project.activeStageId, 'up');
+                break;
+            case 'stage-move-down':
+                if ((this.host as any).stageManager && this.host.project.activeStageId) 
+                    (this.host as any).stageManager.moveStage(this.host.project.activeStageId, 'down');
+                break;
             case 'show-excluded': this.showExcludedBlueprintDialog(); break;
             case 'stage-settings':
                 this.host.selectObject(null);

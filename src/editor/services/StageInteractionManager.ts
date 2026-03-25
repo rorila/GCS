@@ -509,6 +509,7 @@ export class StageInteractionManager {
             if (this.host.onSelectCallback) this.host.onSelectCallback(Array.from(this.host.selectedIds));
         }
         if (e.ctrlKey && e.key === 'c' && this.host.selectedIds.size > 0) { e.preventDefault(); this.copySelection(); }
+        if (e.ctrlKey && e.key === 'v') { e.preventDefault(); this.pasteSelection(); }
         if (e.key === 'Escape' && this.isPlacing) this.cancelPlacing();
         if (e.key === 'Delete' && this.host.selectedIds.size > 0) {
             e.preventDefault();
@@ -590,7 +591,7 @@ export class StageInteractionManager {
 
     private copySelection() {
         if (!this.host.onCopyCallback || this.host.selectedIds.size === 0) return;
-        this.clipboardObjects = [];
+        const clipboardObjects: any[] = [];
         let minX = Infinity, minY = Infinity;
         const selected = Array.from(this.host.selectedIds);
         selected.forEach(id => {
@@ -602,9 +603,21 @@ export class StageInteractionManager {
         });
         selected.forEach(id => {
             const clone = this.host.onCopyCallback!(id);
-            if (clone) this.clipboardObjects.push({ obj: clone, offsetX: (clone.x || 0) - minX, offsetY: (clone.y || 0) - minY });
+            if (clone) clipboardObjects.push({ obj: clone, offsetX: (clone.x || 0) - minX, offsetY: (clone.y || 0) - minY });
         });
-        if (this.clipboardObjects.length > 0) this.startPlacingSelection();
+        if (clipboardObjects.length > 0) {
+            // Im globalen Windows-Objekt ablegen für Stage-übergreifendes Copy-Paste
+            (window as any).__gcsClipboard = clipboardObjects;
+            console.log(`[StageInteractionManager] ${clipboardObjects.length} Objekte in Zwischenablage kopiert.`);
+        }
+    }
+
+    private pasteSelection() {
+        const globalClipboard = (window as any).__gcsClipboard;
+        if (globalClipboard && globalClipboard.length > 0) {
+            this.clipboardObjects = globalClipboard;
+            this.startPlacingSelection();
+        }
     }
 
     private startPlacingSelection() {
@@ -632,7 +645,7 @@ export class StageInteractionManager {
         const newIds: string[] = [];
         this.clipboardObjects.forEach(item => {
             const clone = JSON.parse(JSON.stringify(item.obj));
-            clone.id = crypto.randomUUID(); clone.name = `${item.obj.name}_copy`;
+            // Name und Copy-ID Vergabe wird jetzt dem onPasteCallback überlassen (siehe EditorInteractionManager)
             const nid = this.host.onPasteCallback!(clone, gridX + item.offsetX, gridY + item.offsetY);
             if (nid) newIds.push(nid);
         });

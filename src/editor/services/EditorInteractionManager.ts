@@ -177,12 +177,35 @@ export class EditorInteractionManager {
         stage.onPasteCallback = (jsonObj: any, x: number, y: number): string | null => {
             console.log('[EditorInteractionManager] onPasteCallback called', jsonObj?.className, x, y);
             const copyData = JSON.parse(JSON.stringify(jsonObj));
-            copyData.id = 'obj_' + Math.random().toString(36).substr(2, 9);
+            copyData.id = crypto.randomUUID();
             copyData.x = x;
             copyData.y = y;
-            // Eindeutigen Namen vergeben
-            const baseName = (jsonObj.name || 'Object').replace(/_copy\d*$/, '');
-            copyData.name = `${baseName}_copy`;
+            
+            const project = this.host.project;
+            let targetStage: any = null;
+            if (project.stages && project.activeStageId) {
+                targetStage = project.stages.find(s => s.id === project.activeStageId);
+            }
+            
+            // Name-Collision Detection
+            let finalName = jsonObj.name || 'Object';
+            const isNameTaken = (name: string) => {
+                if (!targetStage) return false;
+                const inObjs = (targetStage.objects || []).some((o: any) => o.name === name);
+                const inVars = (targetStage.variables || []).some((v: any) => v.name === name);
+                return inObjs || inVars;
+            };
+
+            if (isNameTaken(finalName)) {
+                const baseName = finalName.replace(/_\d+$/, '');
+                let counter = 1;
+                while (isNameTaken(`${baseName}_${counter}`)) {
+                    counter++;
+                }
+                finalName = `${baseName}_${counter}`;
+            }
+            
+            copyData.name = finalName;
 
             const newObj = componentRegistry.createInstance(copyData);
             if (!newObj) {
@@ -191,22 +214,15 @@ export class EditorInteractionManager {
             }
             console.log('[EditorInteractionManager] Created copy:', newObj.id, newObj.name);
 
-            const project = this.host.project;
-            if (project.stages && project.activeStageId) {
-                const activeStage = project.stages.find(s => s.id === project.activeStageId);
-                if (activeStage && activeStage.objects) {
-                    activeStage.objects.push(newObj as any);
-                    console.log('[EditorInteractionManager] Pushed to activeStage.objects, count:', activeStage.objects.length);
-                } else {
-                    console.error('[EditorInteractionManager] activeStage oder objects nicht gefunden');
-                    return null;
-                }
+            if (targetStage && targetStage.objects) {
+                targetStage.objects.push(newObj as any);
             } else {
                 project.objects.push(newObj as any);
             }
 
             this.host.render();
-            this.host.selectObject(newObj.id);
+            // Wir selektieren das Objekt hier nicht direkt hart als einziges Objekt,
+            // sondern host steuert das später via Array
             this.host.autoSaveToLocalStorage();
             return newObj.id;
         };

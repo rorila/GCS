@@ -358,6 +358,66 @@ export class EditorStageManager {
         this.onRefresh();
     }
 
+    public duplicateCurrentStage(): void {
+        const activeStage = this.getActiveStage();
+        if (!activeStage || !this.project.stages) return;
+
+        const clonedStage: StageDefinition = JSON.parse(JSON.stringify(activeStage));
+        const newStageId = `stage_${crypto.randomUUID()}`;
+        clonedStage.id = newStageId;
+        
+        // Finde einen freien Namen (Kopie, Kopie 2, etc.)
+        let baseName = clonedStage.name;
+        if (baseName.endsWith(' (Kopie)')) baseName = baseName.replace(' (Kopie)', '');
+        let newName = `${baseName} (Kopie)`;
+        let counter = 2;
+        while (this.project.stages.some(s => s.name === newName)) {
+            newName = `${baseName} (Kopie ${counter})`;
+            counter++;
+        }
+        clonedStage.name = newName;
+        
+        // IDs erneuern
+        const idMap = new Map<string, string>();
+        this.remapObjectIds(clonedStage.objects || [], idMap);
+        this.remapObjectIds(clonedStage.variables as any[] || [], idMap);
+
+        // Tasks und Actions identifizieren sich rein über den Namen,
+        // da sie innerhalb einer Stage nur stage-lokalen Scope haben,
+        // gibt es hier keine Kollisionen durch Duplikation der Stage.
+        
+        const currentIndex = this.project.stages.indexOf(activeStage);
+        if (currentIndex >= 0) {
+            this.project.stages.splice(currentIndex + 1, 0, clonedStage);
+        } else {
+            this.project.stages.push(clonedStage);
+        }
+
+        this.switchStage(newStageId);
+        this.onRefresh();
+        console.log(`[EditorStageManager] Stage duplicated: ${activeStage.name} -> ${newName}`);
+    }
+
+    public moveStage(stageId: string, direction: 'up' | 'down'): void {
+        if (!this.project.stages) return;
+        const index = this.project.stages.findIndex(s => s.id === stageId);
+        if (index === -1) return;
+
+        if (direction === 'up' && index > 0) {
+            const temp = this.project.stages[index - 1];
+            this.project.stages[index - 1] = this.project.stages[index];
+            this.project.stages[index] = temp;
+        } else if (direction === 'down' && index < this.project.stages.length - 1) {
+            const temp = this.project.stages[index + 1];
+            this.project.stages[index + 1] = this.project.stages[index];
+            this.project.stages[index] = temp;
+        } else {
+            return;
+        }
+
+        this.onRefresh();
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // Stage-Import: Komplette Stage aus externem Projekt importieren
     // ═══════════════════════════════════════════════════════════════
