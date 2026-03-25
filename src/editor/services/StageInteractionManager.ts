@@ -528,8 +528,11 @@ export class StageInteractionManager {
 
             e.preventDefault();
 
-            // Shift = 5 Einheiten, Normal = 1 Einheit.
-            const step = e.shiftKey ? 5 : 1; 
+            // Basis-Schrittweite: Wenn Raster-Snapping deaktiviert ist (Feinjustierung möglich), arbeiten wir in 0.1-Schritten (entspricht ca. 2 Pixeln bei CellSize=20).
+            const baseStep = this.host.grid.snapToGrid ? 1 : 0.1;
+
+            // Shift-Taste multipliziert den aktuellen Basis-Schritt
+            const step = e.shiftKey ? (baseStep * 5) : baseStep;
 
             let dx = 0; let dy = 0;
             if (e.key === 'ArrowUp') dy = -step;
