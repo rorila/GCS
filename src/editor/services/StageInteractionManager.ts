@@ -518,6 +518,34 @@ export class StageInteractionManager {
             this.host.selectedIds.clear();
             if (this.host.onSelectCallback) this.host.onSelectCallback([]);
         }
+
+        // Nudge with Arrow Keys
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) && this.host.selectedIds.size > 0) {
+            const activeEl = document.activeElement as HTMLElement | null;
+            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
+                return;
+            }
+
+            e.preventDefault();
+
+            // Shift = 5 Einheiten, Normal = 1 Einheit.
+            const step = e.shiftKey ? 5 : 1; 
+
+            let dx = 0; let dy = 0;
+            if (e.key === 'ArrowUp') dy = -step;
+            if (e.key === 'ArrowDown') dy = step;
+            if (e.key === 'ArrowLeft') dx = -step;
+            if (e.key === 'ArrowRight') dx = step;
+
+            this.host.selectedIds.forEach(id => {
+                const obj = this.host.lastRenderedObjects.find(o => o.id === id);
+                if (obj && this.host.onObjectMove) {
+                    const newX = Math.max(0, obj.x + dx);
+                    const newY = Math.max(0, obj.y + dy);
+                    this.host.onObjectMove(id, newX, newY);
+                }
+            });
+        }
     }
 
     private handleContextMenu(e: MouseEvent) {
