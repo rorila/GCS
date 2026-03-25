@@ -498,6 +498,10 @@ export class StageRenderer {
             this.renderInspectorTemplate(el, obj);
         } else if (className === 'TDialogRoot') {
             this.renderDialogRoot(el, obj);
+        } else if (className === 'TColorPicker') {
+            this.renderColorPicker(el, obj, isNew);
+        } else if (className === 'TDropdown') {
+            this.renderDropdown(el, obj, isNew);
         } else if (className !== 'TShape' && ('text' in obj || 'value' in obj)) {
             // Fallback for generic text objects
             this.renderLabel(el, obj);
@@ -631,6 +635,133 @@ export class StageRenderer {
             }
         } else {
             el.innerText = obj.text || obj.placeholder || 'Enter text...';
+        }
+    }
+
+    private renderColorPicker(el: HTMLElement, obj: any, isNew: boolean) {
+        if (isNew) {
+            el.innerHTML = '';
+            
+            // Natives HTML5 color input field, nimmt das ganze Element ein
+            const input = document.createElement('input');
+            input.type = 'color';
+            input.style.width = '100%';
+            input.style.height = '100%';
+            input.style.border = 'none';
+            input.style.padding = '0';
+            input.style.margin = '0';
+            input.style.cursor = 'pointer';
+            
+            // Der Button wird versteckt, wir wollen nur die Area klickbar machen
+            input.style.opacity = '0'; 
+            input.style.position = 'absolute';
+            input.style.top = '0';
+            input.style.left = '0';
+            
+            input.className = 'color-picker-input';
+            el.appendChild(input);
+        }
+        
+        const input = el.querySelector('.color-picker-input') as HTMLInputElement;
+        if (input) {
+            // Format validieren (#rrggbb) -> Input type=color verlangt Hex 6-stellig
+            let validHex = obj.color || '#000000';
+            if (!validHex.startsWith('#')) validHex = '#000000';
+            if (validHex.length === 4) {
+                validHex = '#' + validHex[1]+validHex[1] + validHex[2]+validHex[2] + validHex[3]+validHex[3];
+            } else if (validHex.length > 7) {
+                validHex = validHex.substring(0, 7);
+            }
+            
+            if (input.value !== validHex) {
+                input.value = validHex;
+            }
+
+            if (this.host.runMode) {
+                input.oninput = (e) => {
+                    e.stopPropagation();
+                    const newColor = input.value;
+                    obj.color = newColor;
+                    
+                    // Hintergrund der Box gleich live mitupdaten
+                    obj.style = obj.style || {};
+                    obj.style.backgroundColor = newColor;
+                    el.style.backgroundColor = newColor;
+
+                    if (this.host.onEvent) {
+                        this.host.onEvent(obj.id, 'onChange', newColor);
+                        this.host.onEvent(obj.id, 'propertyChange', { property: 'color', value: newColor });
+                    }
+                };
+            }
+        }
+    }
+
+    private renderDropdown(el: HTMLElement, obj: any, isNew: boolean) {
+        if (isNew) {
+            el.innerHTML = '';
+            const select = document.createElement('select');
+            select.style.width = '100%';
+            select.style.height = '100%';
+            select.style.border = 'none';
+            select.style.background = 'transparent';
+            select.style.outline = 'none';
+            select.style.cursor = 'pointer';
+            el.appendChild(select);
+        }
+
+        const select = el.querySelector('select') as HTMLSelectElement;
+        if (select) {
+            const currentOptionsHtml = select.innerHTML;
+            
+            let optionsList: string[] = [];
+            if (Array.isArray(obj.options)) {
+                optionsList = obj.options;
+            } else if (typeof obj.options === 'string') {
+                optionsList = obj.options.split(',').map((s: string) => s.trim());
+            } else {
+                optionsList = ['Option 1', 'Option 2', 'Option 3'];
+            }
+
+            let expectedHtml = '';
+            optionsList.forEach((opt, idx) => {
+                expectedHtml += `<option value="${idx}">${opt}</option>`;
+            });
+
+            if (currentOptionsHtml !== expectedHtml) {
+                select.innerHTML = expectedHtml;
+            }
+
+            // Sync index
+            const targetIndex = (obj.selectedIndex !== undefined && obj.selectedIndex >= 0 && obj.selectedIndex < optionsList.length) 
+                                ? obj.selectedIndex : 0;
+            if (select.selectedIndex !== targetIndex) {
+                select.selectedIndex = targetIndex;
+            }
+
+            if (this.host.runMode) {
+                select.onchange = (e) => {
+                    e.stopPropagation();
+                    const newIndex = select.selectedIndex;
+                    const newValue = optionsList[newIndex];
+                    
+                    obj.selectedIndex = newIndex;
+                    obj.selectedValue = newValue;
+
+                    if (this.host.onEvent) {
+                        this.host.onEvent(obj.id, 'onChange', newValue);
+                        this.host.onEvent(obj.id, 'propertyChange', { property: 'selectedIndex', value: newIndex });
+                        this.host.onEvent(obj.id, 'propertyChange', { property: 'selectedValue', value: newValue });
+                    }
+                };
+            }
+
+            // Styles
+            select.style.color = obj.style?.color || '#000000';
+            select.style.backgroundColor = obj.style?.backgroundColor || 'transparent';
+            select.style.fontSize = obj.style?.fontSize ? this.scaleFontSize(obj.style.fontSize) : 'inherit';
+            select.style.fontFamily = obj.style?.fontFamily || 'inherit';
+            select.style.fontWeight = (obj.style?.fontWeight === true || obj.style?.fontWeight === 'bold') ? 'bold' : 'normal';
         }
     }
 

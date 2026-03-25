@@ -105,14 +105,6 @@ export class EditorMenuManager {
                     if (ss) this.host.inspector.update(ss);
                 }
                 break;
-            case 'delete-stage':
-                this.host.deleteCurrentStage();
-                this.host.selectObject(null);
-                if (this.host.inspector) {
-                    const ds = this.host.getActiveStage();
-                    if (ds) this.host.inspector.update(ds);
-                }
-                break;
             case 'new-from-template': this.host.createStageFromTemplate(); break;
             case 'save-as-template': this.host.saveStageAsTemplate(); break;
             case 'import-stage': this.host.importStageFromFile(); break;
@@ -229,7 +221,6 @@ export class EditorMenuManager {
             { id: 'manage-stages', label: '📋 Stages verwalten...', action: 'manage-stages' },
             { id: 'new-stage', label: 'Neue Stage', action: 'new-stage', icon: '📄' },
             { id: 'new-splash', label: 'Neuer Splashscreen', action: 'new-splash', icon: '🚀' },
-            { id: 'delete-stage', label: 'Stage löschen', action: 'delete-stage', icon: '🗑️' },
             { id: 'show-excluded', label: 'Ausgeblendete Objekte einblenden', action: 'show-excluded', icon: '👁️' },
             { id: 'import-stage', label: 'Stage importieren', action: 'import-stage', icon: '📥' }
         ];
@@ -418,7 +409,9 @@ export class EditorMenuManager {
         // Render Funktion für die Liste (Aufruf bei Start und nach Änderungen)
         const renderList = () => {
             listContainer.innerHTML = '';
-            project.stages!.forEach((stage, index) => {
+            const visibleStages = project.stages!.filter(s => s.type !== 'blueprint');
+            
+            visibleStages.forEach((stage, index) => {
                 const row = document.createElement('div');
                 row.style.cssText = 'display:flex;align-items:center;padding:8px 12px;background:#1e1e1e;border:1px solid #333;margin-bottom:6px;border-radius:4px;';
                 if (stage.id === project.activeStageId) {
@@ -473,7 +466,7 @@ export class EditorMenuManager {
                 controlsCol.appendChild(createBtn('⬇️', 'Nach unten verschieben', () => {
                     const sm = (this.host as any).stageManager;
                     if (sm) { sm.moveStage(stage.id, 'down'); renderList(); }
-                }, index === project.stages!.length - 1));
+                }, index === visibleStages.length - 1));
 
                 // Clone
                 controlsCol.appendChild(createBtn('📄+', 'Duplizieren', () => {

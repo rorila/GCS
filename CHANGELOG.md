@@ -1,3 +1,9 @@
+## [3.28.0] - 2026-03-25
+### Added
+- **Inspector Visual Mockup Generator**: Ein neues Skript (`/tmp/gen_inspector_mockups_all.js`) erzeugt exakte visuelle Nachbildungen der Inspector-Ansichten (Glow, Stil, Identität, Raster, Geometrie, Typografie, Übersicht) als spielbare GCS-Stages. Diese können interaktiv zur Dokumentation im System genutzt werden.
+- **TColorPicker Native Inspector-Farbwahl**: Die Laufzeit-Komponente `TColorPicker` bettet jetzt nativ das OS-Farbauswahl-UI (HTML5 `input type='color'`) via `StageRenderer` (`opacity: 0`) ein. So können im Run-Modus System-Farbdialoge aufgerufen werden, und ihr Wert wird dem `onChange` Event der Komponente weitergeleitet.
+- **TDropdown Select Integration**: Ähnlich wie beim ColorPicker bettet die `TDropdown` Komponente nun ein funktionell nutzbares `<select>` Dropdown im Run-Modus des `StageRenderers` ein. Die `options` Property (kommagetrennter String) wird automatisch in native Html-Optionen gemappt, und bei Auswahl wird das `onChange` Event geworfen.
+
 ## [3.27.0] - 2026-03-24
 ### Added
 - **TProgressBar** (`TProgressBar.ts`): Neuer Fortschrittsbalken-Baustein mit `value`, `maxValue`, `barColor`, `barBackgroundColor`, `showText`, `textTemplate`, `animateChanges`. Events: `onComplete`, `onEmpty`. Registriert in ComponentRegistry, Serialization und Toolbox (Kategorie: Game).

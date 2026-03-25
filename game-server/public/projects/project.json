@@ -45,25 +45,6 @@
   "variables": [],
   "stages": [
     {
-      "id": "splash",
-      "name": "Splash",
-      "type": "splash",
-      "objects": [],
-      "actions": [],
-      "tasks": [],
-      "variables": [],
-      "grid": {
-        "cols": 64,
-        "rows": 40,
-        "cellSize": 20,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#ffffff"
-      },
-      "duration": 3000,
-      "autoHide": true
-    },
-    {
       "id": "blueprint",
       "name": "Blueprint (Global)",
       "type": "blueprint",
@@ -126,7 +107,7 @@
       }
     },
     {
-      "id": "stage-1774353193156",
+      "id": "stage-1774464788825",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],
@@ -143,5 +124,5 @@
       }
     }
   ],
-  "activeStageId": "stage-1774353193156"
+  "activeStageId": "stage-1774464788825"
 }

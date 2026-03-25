@@ -38,6 +38,10 @@ export class TColorPicker extends TWindow {
         ];
     }
 
+    public override getEvents(): string[] {
+        return [...super.getEvents(), 'onChange'];
+    }
+
     public toJSON(): any {
         return {
             ...super.toJSON(),

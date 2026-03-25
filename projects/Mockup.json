@@ -1,0 +1,826 @@
+{
+  "meta": {
+    "name": "Mockup Identität",
+    "version": "1.0.0",
+    "author": "Generator",
+    "description": "Exakter Nachbau der Identität Section"
+  },
+  "activeStageId": "stage_identitaet",
+  "stage": {
+    "grid": {
+      "cols": 64,
+      "rows": 40,
+      "cellSize": 20,
+      "snapToGrid": false,
+      "visible": true,
+      "backgroundColor": "#000000"
+    }
+  },
+  "flow": {
+    "elements": [],
+    "connections": []
+  },
+  "input": {},
+  "objects": [],
+  "splashObjects": [],
+  "actions": [],
+  "tasks": [],
+  "variables": [],
+  "stages": [
+    {
+      "id": "stage_blueprint",
+      "name": "Blueprint",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": false,
+        "visible": false,
+        "backgroundColor": "#000000"
+      },
+      "objects": [],
+      "tasks": [],
+      "actions": [],
+      "variables": []
+    },
+    {
+      "id": "stage_identitaet",
+      "name": "Identität",
+      "type": "standard",
+      "grid": {
+        "cols": 64,
+        "rows": 40,
+        "cellSize": 20,
+        "snapToGrid": false,
+        "visible": false,
+        "backgroundColor": "#1e1e1e"
+      },
+      "objects": [
+        {
+          "id": "obj_r68jnh4vb",
+          "className": "TPanel",
+          "name": "Section_Identität_Base",
+          "x": 2,
+          "y": 2,
+          "width": 15,
+          "height": 8.5,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#8ab4f8",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderStyle": "solid",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_2599qfwni",
+          "className": "TPanel",
+          "name": "Section_Identität_Main",
+          "x": 2.2,
+          "y": 2,
+          "width": 14.8,
+          "height": 8.5,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#333333",
+            "borderStyle": "solid",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_ue4wjphte",
+          "className": "TLabel",
+          "name": "Header_Icon",
+          "text": "🏷️",
+          "x": 2.8,
+          "y": 2.6,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "fontSize": "13px"
+          }
+        },
+        {
+          "id": "obj_drtp3qska",
+          "className": "TLabel",
+          "name": "Header_Title",
+          "text": "IDENTITÄT",
+          "x": 4,
+          "y": 2.6,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#8ab4f8",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_5e5ujchga",
+          "className": "TLabel",
+          "name": "Header_Arrow",
+          "text": "▼",
+          "x": 15.5,
+          "y": 2.6,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_asidi6yl1",
+          "className": "TLabel",
+          "name": "Label_Name",
+          "text": "Name",
+          "x": 3,
+          "y": 4.5,
+          "width": 4,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_960am727s",
+          "className": "TEdit",
+          "name": "Input_Name",
+          "text": "InputValue_0",
+          "placeholder": "Name...",
+          "maxLength": 100,
+          "x": 6.5,
+          "y": 4.3,
+          "width": 9.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_ixkmkzzes",
+          "className": "TLabel",
+          "name": "Label_Scope",
+          "text": "Scope",
+          "x": 3,
+          "y": 6.5,
+          "width": 4,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_rxv5awas8",
+          "className": "TDropdown",
+          "name": "Input_Scope",
+          "options": [
+            "stage",
+            "global",
+            "local"
+          ],
+          "selectedIndex": 0,
+          "selectedValue": "stage",
+          "x": 6.5,
+          "y": 6.3,
+          "width": 9.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_1kk5qfepq",
+          "className": "TLabel",
+          "name": "Label_Visible",
+          "text": "Sichtbar",
+          "x": 3,
+          "y": 8.5,
+          "width": 4,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_ma6vg89jv",
+          "className": "TCheckbox",
+          "name": "Checkbox_Visible",
+          "checked": true,
+          "label": "",
+          "x": 6.5,
+          "y": 8.5,
+          "width": 0.8,
+          "height": 0.8,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px"
+          }
+        },
+        {
+          "id": "obj_y34ilrt67",
+          "className": "TPanel",
+          "name": "Section_Raster_Base",
+          "x": 2,
+          "y": 11.5,
+          "width": 15,
+          "height": 12.5,
+          "zIndex": 0,
+          "style": {
+            "backgroundColor": "#ffc107",
+            "borderWidth": "0px",
+            "borderColor": "transparent",
+            "borderStyle": "solid",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_6fqezec7p",
+          "className": "TPanel",
+          "name": "Section_Raster_Main",
+          "x": 2.2,
+          "y": 11.5,
+          "width": 14.8,
+          "height": 12.5,
+          "zIndex": 1,
+          "style": {
+            "backgroundColor": "#252526",
+            "borderWidth": "1px",
+            "borderColor": "#333333",
+            "borderStyle": "solid",
+            "borderRadius": "8px"
+          }
+        },
+        {
+          "id": "obj_1vftxyoji",
+          "className": "TPanel",
+          "name": "Header_Raster_Icon",
+          "x": 3,
+          "y": 12.1,
+          "width": 0.8,
+          "height": 0.8,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#a5a5a5",
+            "borderRadius": "1px"
+          }
+        },
+        {
+          "id": "obj_lisnhi3i9",
+          "className": "TLabel",
+          "name": "Header_Raster_Title",
+          "text": "RASTER",
+          "x": 4.2,
+          "y": 12,
+          "width": 10,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#ffc107",
+            "fontSize": "12px",
+            "fontWeight": "bold",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_phdl6kw4g",
+          "className": "TLabel",
+          "name": "Header_Raster_Arrow",
+          "text": "▼",
+          "x": 15.2,
+          "y": 12,
+          "width": 1,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#666666",
+            "fontSize": "10px"
+          }
+        },
+        {
+          "id": "obj_8ov5c62c7",
+          "className": "TLabel",
+          "text": "Spalten",
+          "x": 2.8,
+          "y": 14,
+          "width": 3,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_0k05ckllq",
+          "className": "TNumberInput",
+          "value": 64,
+          "min": 1,
+          "max": 200,
+          "step": 1,
+          "x": 5.8,
+          "y": 13.8,
+          "width": 4.2,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#fff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_hqqhpi58q",
+          "className": "TLabel",
+          "text": "Zeilen",
+          "x": 10.5,
+          "y": 14,
+          "width": 2.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_55bjk3eu7",
+          "className": "TNumberInput",
+          "value": 40,
+          "min": 1,
+          "max": 200,
+          "step": 1,
+          "x": 13,
+          "y": 13.8,
+          "width": 3.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#fff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_98kmjvyb4",
+          "className": "TLabel",
+          "text": "Zellgröße",
+          "x": 2.8,
+          "y": 16,
+          "width": 3.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_c2temeewj",
+          "className": "TNumberInput",
+          "value": 20,
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "x": 6.5,
+          "y": 15.8,
+          "width": 9.5,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#fff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_n6n15kd7u",
+          "className": "TLabel",
+          "text": "Rasterlinien",
+          "x": 2.8,
+          "y": 18,
+          "width": 4,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_z689hq4c3",
+          "className": "TCheckbox",
+          "checked": false,
+          "label": "",
+          "x": 7,
+          "y": 18,
+          "width": 0.8,
+          "height": 0.8,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#444",
+            "borderWidth": "1px"
+          }
+        },
+        {
+          "id": "obj_706o42n6d",
+          "className": "TLabel",
+          "text": "Am Raster",
+          "x": 10.5,
+          "y": 18,
+          "width": 4,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_7nl5fk7hp",
+          "className": "TCheckbox",
+          "checked": false,
+          "label": "",
+          "x": 14,
+          "y": 18,
+          "width": 0.8,
+          "height": 0.8,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#444",
+            "borderWidth": "1px"
+          }
+        },
+        {
+          "id": "obj_knb3fj5eo",
+          "className": "TLabel",
+          "text": "Rasterfarbe",
+          "x": 2.8,
+          "y": 20,
+          "width": 4,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_j02fjr9as",
+          "className": "TPanel",
+          "name": "ColorBtn_Grid",
+          "x": 6.5,
+          "y": 19.9,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#dddddd",
+            "borderColor": "#666666",
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderRadius": "2px",
+            "cursor": "pointer"
+          }
+        },
+        {
+          "id": "obj_tmpvepu3w",
+          "className": "TEdit",
+          "name": "ColorText_Grid",
+          "text": "#dddddd",
+          "placeholder": "",
+          "x": 8.3,
+          "y": 19.8,
+          "width": 7.7,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_8amr7eznb",
+          "className": "TPanel",
+          "name": "CP_Base",
+          "x": 22,
+          "y": 6,
+          "width": 12,
+          "height": 13,
+          "zIndex": 99,
+          "style": {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#222",
+            "borderWidth": "1px",
+            "borderRadius": "0px"
+          }
+        },
+        {
+          "id": "obj_rbzhybfp6",
+          "className": "TPanel",
+          "name": "CP_Gradient",
+          "x": 22,
+          "y": 6,
+          "width": 12,
+          "height": 7,
+          "zIndex": 100,
+          "style": {
+            "background": "linear-gradient(to bottom, transparent, black), linear-gradient(to right, white, red)",
+            "backgroundColor": "#ff0000",
+            "borderBottom": "1px solid #ddd"
+          }
+        },
+        {
+          "id": "obj_br61hn9fv",
+          "className": "TPanel",
+          "name": "CP_ThumbGradient",
+          "x": 22.2,
+          "y": 6.2,
+          "width": 0.8,
+          "height": 0.8,
+          "zIndex": 101,
+          "style": {
+            "backgroundColor": "transparent",
+            "borderColor": "#000",
+            "borderWidth": "2px",
+            "borderRadius": "50%"
+          }
+        },
+        {
+          "id": "obj_6hhsgdm0s",
+          "className": "TLabel",
+          "name": "CP_Pipette",
+          "text": "🪄",
+          "x": 22.3,
+          "y": 13.5,
+          "width": 1.5,
+          "height": 1.5,
+          "zIndex": 100,
+          "style": {
+            "fontSize": "14px"
+          }
+        },
+        {
+          "id": "obj_phwthss69",
+          "className": "TPanel",
+          "name": "CP_Preview",
+          "x": 24,
+          "y": 13.3,
+          "width": 2,
+          "height": 2,
+          "zIndex": 100,
+          "style": {
+            "backgroundColor": "#e2e2e2",
+            "borderColor": "#aaa",
+            "borderWidth": "1px",
+            "borderRadius": "50%"
+          }
+        },
+        {
+          "id": "obj_ln99nxlg8",
+          "className": "TPanel",
+          "name": "CP_HueTrack",
+          "x": 26.5,
+          "y": 13.8,
+          "width": 6.5,
+          "height": 0.8,
+          "zIndex": 100,
+          "style": {
+            "background": "linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)",
+            "backgroundColor": "#00ccff",
+            "borderRadius": "4px"
+          }
+        },
+        {
+          "id": "obj_z6a8xjrv9",
+          "className": "TPanel",
+          "name": "CP_HueThumb",
+          "x": 27,
+          "y": 13.6,
+          "width": 1.2,
+          "height": 1.2,
+          "zIndex": 101,
+          "style": {
+            "backgroundColor": "red",
+            "borderColor": "#fff",
+            "borderWidth": "2px",
+            "borderRadius": "50%",
+            "boxShadow": "0 0 3px rgba(0,0,0,0.5)"
+          }
+        },
+        {
+          "id": "obj_fpl95dg9u",
+          "className": "TEdit",
+          "name": "CP_R_Inp",
+          "text": "221",
+          "x": 23,
+          "y": 16,
+          "width": 2.8,
+          "height": 1.5,
+          "zIndex": 100,
+          "style": {
+            "backgroundColor": "#fff",
+            "borderColor": "#ccc",
+            "borderWidth": "1px",
+            "color": "#000",
+            "fontSize": "12px",
+            "textAlign": "center"
+          }
+        },
+        {
+          "id": "obj_x9uvfqckz",
+          "className": "TLabel",
+          "text": "R",
+          "x": 23,
+          "y": 17.8,
+          "width": 2.8,
+          "height": 1,
+          "zIndex": 100,
+          "style": {
+            "color": "#000",
+            "fontSize": "11px",
+            "textAlign": "center",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_yfnhbtx72",
+          "className": "TEdit",
+          "name": "CP_G_Inp",
+          "text": "221",
+          "x": 26.3,
+          "y": 16,
+          "width": 2.8,
+          "height": 1.5,
+          "zIndex": 100,
+          "style": {
+            "backgroundColor": "#fff",
+            "borderColor": "#ccc",
+            "borderWidth": "1px",
+            "color": "#000",
+            "fontSize": "12px",
+            "textAlign": "center"
+          }
+        },
+        {
+          "id": "obj_wyribdl40",
+          "className": "TLabel",
+          "text": "G",
+          "x": 26.3,
+          "y": 17.8,
+          "width": 2.8,
+          "height": 1,
+          "zIndex": 100,
+          "style": {
+            "color": "#000",
+            "fontSize": "11px",
+            "textAlign": "center",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_qp42m3ruj",
+          "className": "TEdit",
+          "name": "CP_B_Inp",
+          "text": "221",
+          "x": 29.6,
+          "y": 16,
+          "width": 2.8,
+          "height": 1.5,
+          "zIndex": 100,
+          "style": {
+            "backgroundColor": "#fff",
+            "borderColor": "#ccc",
+            "borderWidth": "1px",
+            "color": "#000",
+            "fontSize": "12px",
+            "textAlign": "center"
+          }
+        },
+        {
+          "id": "obj_wbb4zcge5",
+          "className": "TLabel",
+          "text": "B",
+          "x": 29.6,
+          "y": 17.8,
+          "width": 2.8,
+          "height": 1,
+          "zIndex": 100,
+          "style": {
+            "color": "#000",
+            "fontSize": "11px",
+            "textAlign": "center",
+            "fontWeight": "bold"
+          }
+        },
+        {
+          "id": "obj_c54z6se6w",
+          "className": "TLabel",
+          "text": "Hintergrund",
+          "x": 2.8,
+          "y": 22,
+          "width": 4,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "color": "#cccccc",
+            "fontSize": "11px",
+            "fontFamily": "Segoe UI, sans-serif"
+          }
+        },
+        {
+          "id": "obj_udbim5b14",
+          "className": "TPanel",
+          "name": "ColorBtn_Bg",
+          "x": 6.5,
+          "y": 21.9,
+          "width": 1.5,
+          "height": 1,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#181818",
+            "borderColor": "#666666",
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderRadius": "2px"
+          }
+        },
+        {
+          "id": "obj_65ovzhez4",
+          "className": "TEdit",
+          "name": "ColorText_Bg",
+          "text": "#181818",
+          "placeholder": "",
+          "x": 8.3,
+          "y": 21.8,
+          "width": 7.7,
+          "height": 1.2,
+          "zIndex": 2,
+          "style": {
+            "backgroundColor": "#1e1e1e",
+            "borderColor": "#333333",
+            "borderWidth": "1px",
+            "color": "#ffffff",
+            "fontSize": "11px",
+            "fontWeight": "bold"
+          }
+        }
+      ],
+      "variables": [],
+      "actions": [],
+      "tasks": []
+    }
+  ]
+}
