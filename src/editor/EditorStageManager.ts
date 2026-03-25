@@ -3,6 +3,7 @@ import { Stage } from './Stage';
 import { TObjectList } from '../components/TObjectList';
 import { mediatorService } from '../services/MediatorService';
 import { ProjectRegistry } from '../services/ProjectRegistry';
+import { componentRegistry } from '../services/ComponentRegistry';
 
 /**
  * EditorStageManager handles all stage-related operations within the Editor:
@@ -358,11 +359,11 @@ export class EditorStageManager {
         this.onRefresh();
     }
 
-    public duplicateCurrentStage(): void {
-        const activeStage = this.getActiveStage();
-        if (!activeStage || !this.project.stages) return;
+    public duplicateStage(stageId?: string): void {
+        const sourceStage = stageId ? this.project.stages?.find(s => s.id === stageId) : this.getActiveStage();
+        if (!sourceStage || !this.project.stages) return;
 
-        const clonedStage: StageDefinition = JSON.parse(JSON.stringify(activeStage));
+        const clonedStage: StageDefinition = JSON.parse(JSON.stringify(sourceStage));
         const newStageId = `stage_${crypto.randomUUID()}`;
         clonedStage.id = newStageId;
         
@@ -382,11 +383,26 @@ export class EditorStageManager {
         this.remapObjectIds(clonedStage.objects || [], idMap);
         this.remapObjectIds(clonedStage.variables as any[] || [], idMap);
 
+        // Objekte in korrekte Instanzen konvertieren (Re-Hydration),
+        // damit Inspector-Properties (.getProperties) nicht fehlschlagen
+        if (clonedStage.objects) {
+            clonedStage.objects = clonedStage.objects.map(obj => {
+                const instance = componentRegistry.createInstance(obj);
+                return (instance as any) || obj;
+            });
+        }
+        if (clonedStage.variables) {
+            clonedStage.variables = clonedStage.variables.map(variable => {
+                const instance = componentRegistry.createInstance(variable);
+                return (instance as any) || variable;
+            });
+        }
+
         // Tasks und Actions identifizieren sich rein über den Namen,
         // da sie innerhalb einer Stage nur stage-lokalen Scope haben,
         // gibt es hier keine Kollisionen durch Duplikation der Stage.
         
-        const currentIndex = this.project.stages.indexOf(activeStage);
+        const currentIndex = this.project.stages.indexOf(sourceStage);
         if (currentIndex >= 0) {
             this.project.stages.splice(currentIndex + 1, 0, clonedStage);
         } else {
@@ -395,7 +411,7 @@ export class EditorStageManager {
 
         this.switchStage(newStageId);
         this.onRefresh();
-        console.log(`[EditorStageManager] Stage duplicated: ${activeStage.name} -> ${newName}`);
+        console.log(`[EditorStageManager] Stage duplicated: ${sourceStage.name} -> ${newName}`);
     }
 
     public moveStage(stageId: string, direction: 'up' | 'down'): void {
@@ -445,6 +461,20 @@ export class EditorStageManager {
 
         this.remapObjectIds(clonedStage.objects || [], idMap);
         this.remapObjectIds(clonedStage.variables as any[] || [], idMap);
+
+        // Re-Hydration der JSON-Objekte zu echten Klassen-Instanzen
+        if (clonedStage.objects) {
+            clonedStage.objects = clonedStage.objects.map(obj => {
+                const instance = componentRegistry.createInstance(obj);
+                return (instance as any) || obj;
+            });
+        }
+        if (clonedStage.variables) {
+            clonedStage.variables = clonedStage.variables.map(variable => {
+                const instance = componentRegistry.createInstance(variable);
+                return (instance as any) || variable;
+            });
+        }
 
         // 3. Blueprint-Abhängigkeiten auflösen
         const sourceBlueprintStage = sourceProject.stages?.find(s =>

@@ -116,8 +116,9 @@ export class EditorMenuManager {
             case 'new-from-template': this.host.createStageFromTemplate(); break;
             case 'save-as-template': this.host.saveStageAsTemplate(); break;
             case 'import-stage': this.host.importStageFromFile(); break;
+            case 'manage-stages': this.showStageManagerDialog(); break;
             case 'stage-duplicate':
-                if ((this.host as any).stageManager) (this.host as any).stageManager.duplicateCurrentStage();
+                if ((this.host as any).stageManager) (this.host as any).stageManager.duplicateStage();
                 break;
             case 'stage-move-up':
                 if ((this.host as any).stageManager && this.host.project.activeStageId) 
@@ -225,6 +226,7 @@ export class EditorMenuManager {
 
         // Base items for stage management
         const baseItems: MenuItem[] = [
+            { id: 'manage-stages', label: '📋 Stages verwalten...', action: 'manage-stages' },
             { id: 'new-stage', label: 'Neue Stage', action: 'new-stage', icon: '📄' },
             { id: 'new-splash', label: 'Neuer Splashscreen', action: 'new-splash', icon: '🚀' },
             { id: 'delete-stage', label: 'Stage löschen', action: 'delete-stage', icon: '🗑️' },
@@ -370,6 +372,175 @@ export class EditorMenuManager {
 
         // ESC schließt den Dialog
         const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { close(); window.removeEventListener('keydown', onKey); } };
+        window.addEventListener('keydown', onKey);
+    }
+
+    /**
+     * Zeigt einen Dark-Theme Modal-Dialog zur Verwaltung (Sortierung, Duplikation) 
+     * aller Stages im Projekt.
+     */
+    private showStageManagerDialog(): void {
+        const project = this.host.project;
+        if (!project || !project.stages) return;
+
+        // Overlay erstellen
+        const overlay = document.createElement('div');
+        overlay.id = 'stage-manager-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:20000;display:flex;align-items:center;justify-content:center;';
+
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background:#252526; border:1px solid #555; border-radius:8px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.6); width:500px; max-width:90%;
+            color:#ccc; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+            display:flex; flex-direction:column; max-height:80vh;
+        `;
+
+        // Header
+        const header = document.createElement('div');
+        header.style.cssText = 'padding:16px 20px 12px;border-bottom:1px solid #444;font-size:15px;font-weight:600;color:#fff;display:flex;justify-content:space-between;align-items:center;';
+        header.innerHTML = '<span>📋 Stages verwalten</span>';
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '✖';
+        closeBtn.style.cssText = 'background:transparent;border:none;color:#aaa;cursor:pointer;font-size:16px;';
+        closeBtn.onmouseenter = () => closeBtn.style.color = '#fff';
+        closeBtn.onmouseleave = () => closeBtn.style.color = '#aaa';
+        closeBtn.onclick = () => close();
+        header.appendChild(closeBtn);
+        dialog.appendChild(header);
+
+        // List Container
+        const listContainer = document.createElement('div');
+        listContainer.style.cssText = 'padding:10px; overflow-y:auto; flex:1;';
+        dialog.appendChild(listContainer);
+
+        // Render Funktion für die Liste (Aufruf bei Start und nach Änderungen)
+        const renderList = () => {
+            listContainer.innerHTML = '';
+            project.stages!.forEach((stage, index) => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;align-items:center;padding:8px 12px;background:#1e1e1e;border:1px solid #333;margin-bottom:6px;border-radius:4px;';
+                if (stage.id === project.activeStageId) {
+                    row.style.borderLeft = '3px solid #4fc3f7';
+                }
+
+                // Stage Info
+                const infoCol = document.createElement('div');
+                infoCol.style.cssText = 'flex:1;display:flex;flex-direction:column;';
+                
+                const nameLabel = document.createElement('span');
+                nameLabel.style.cssText = 'font-weight:600;color:#e0e0e0;font-size:13px;';
+                nameLabel.textContent = stage.name;
+                infoCol.appendChild(nameLabel);
+
+                const typeLabel = document.createElement('span');
+                typeLabel.style.cssText = 'font-size:11px;color:#888;margin-top:2px;';
+                typeLabel.textContent = `ID: ${stage.id} • Typ: ${stage.type}`;
+                infoCol.appendChild(typeLabel);
+                
+                row.appendChild(infoCol);
+
+                // Controls
+                const controlsCol = document.createElement('div');
+                controlsCol.style.cssText = 'display:flex;gap:4px;';
+
+                const btnStyle = 'background:#333;border:1px solid #444;color:#ccc;cursor:pointer;padding:4px 8px;border-radius:3px;font-size:12px;transition:background 0.2s;';
+
+                const createBtn = (icon: string, title: string, onClick: () => void, disabled = false) => {
+                    const btn = document.createElement('button');
+                    btn.innerHTML = icon;
+                    btn.title = title;
+                    btn.style.cssText = btnStyle;
+                    if (disabled) {
+                        btn.style.opacity = '0.3';
+                        btn.style.cursor = 'default';
+                    } else {
+                        btn.onmouseenter = () => btn.style.background = '#444';
+                        btn.onmouseleave = () => btn.style.background = '#333';
+                        btn.onclick = onClick;
+                    }
+                    return btn;
+                };
+
+                // Up
+                controlsCol.appendChild(createBtn('⬆️', 'Nach oben verschieben', () => {
+                    const sm = (this.host as any).stageManager;
+                    if (sm) { sm.moveStage(stage.id, 'up'); renderList(); }
+                }, index === 0));
+
+                // Down
+                controlsCol.appendChild(createBtn('⬇️', 'Nach unten verschieben', () => {
+                    const sm = (this.host as any).stageManager;
+                    if (sm) { sm.moveStage(stage.id, 'down'); renderList(); }
+                }, index === project.stages!.length - 1));
+
+                // Clone
+                controlsCol.appendChild(createBtn('📄+', 'Duplizieren', () => {
+                    const sm = (this.host as any).stageManager;
+                    if (sm) { 
+                        // duplicateStage() triggert onRefresh -> Editor baut alles neu.
+                        // Für ein flüssiges Erlebnis rendern wir den Dialog einfach neu nach kurzem Delay.
+                        sm.duplicateStage(stage.id); 
+                        setTimeout(renderList, 50);
+                    }
+                }));
+
+                // Delete
+                controlsCol.appendChild(createBtn('🗑️', 'Löschen', () => {
+                    if (confirm(`Möchtest du Stage "${stage.name}" wirklich löschen?`)) {
+                        const sm = (this.host as any).stageManager;
+                        if (project.stages!.length <= 1) {
+                            alert('Das Projekt muss mindestens eine Stage enthalten.');
+                            return;
+                        }
+                        // Wenn es die aktive Stage ist: vor dem Löschen wechseln
+                        if (project.activeStageId === stage.id) {
+                            const fallback = project.stages!.find(s => s.id !== stage.id);
+                            if (fallback) sm.switchStage(fallback.id);
+                        }
+                        const idx = project.stages!.findIndex(s => s.id === stage.id);
+                        if (idx !== -1) {
+                            project.stages!.splice(idx, 1);
+                            if (sm.onRefresh) sm.onRefresh();
+                            renderList();
+                        }
+                    }
+                }));
+
+                row.appendChild(controlsCol);
+                listContainer.appendChild(row);
+            });
+        };
+
+        renderList();
+
+        // Footer
+        const footer = document.createElement('div');
+        footer.style.cssText = 'padding:12px 20px;border-top:1px solid #444;display:flex;justify-content:flex-end;';
+        
+        const btnDone = document.createElement('button');
+        btnDone.textContent = 'Fertig';
+        btnDone.style.cssText = 'padding:6px 16px;border:none;background:#094771;color:#fff;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;';
+        btnDone.onmouseenter = () => btnDone.style.background = '#0b5d99';
+        btnDone.onmouseleave = () => btnDone.style.background = '#094771';
+        footer.appendChild(btnDone);
+        dialog.appendChild(footer);
+
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        const close = () => {
+            overlay.remove();
+            window.removeEventListener('keydown', onKey);
+            // Editor MenuBar Updates nach Schließen sicherstellen
+            this.updateStagesMenu();
+        };
+
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        btnDone.onclick = close;
+
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
         window.addEventListener('keydown', onKey);
     }
 }
