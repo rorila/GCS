@@ -27,6 +27,28 @@
       }
     },
 
+    "TSpriteTemplate": {
+      "description": "Blueprint-Komponente für das Object Pooling dynamischer Sprites (z.B. Projektile). Erzeugt beim Start N Pool-Instanzen.",
+      "stage": "blueprint",
+      "category": "game",
+      "properties": {
+        "poolSize":   { "type": "number",  "default": 10, "description": "Anzahl der vorinitialisierten Instanzen" },
+        "autoRecycle":{ "type": "boolean", "default": true, "description": "Automatisch älteste Instanz recyceln, wenn Pool voll ist" },
+        "lifetime":   { "type": "number",  "default": 0, "description": "Lebensdauer in Millisekunden (0=unendlich)" }
+      },
+      "methods": [],
+      "events": [],
+      "example": {
+        "className": "TSpriteTemplate", "name": "BulletTemplate", "x": 0, "y": 0, "width": 1, "height": 1,
+        "poolSize": 20, "autoRecycle": true, "lifetime": 3000,
+        "spriteColor": "#ffff00", "style": { "backgroundColor": "#ffff00" }
+      },
+      "warnings": [
+        "⚠️ TSpriteTemplate ist zur Laufzeit unsichtbar.",
+        "⚠️ Nutze die Action 'spawn_object', um eine Instanz zu platzieren."
+      ]
+    },
+
     "TButton": {
       "description": "Klickbarer Button mit Text und optionalem Icon",
       "stage": "main",

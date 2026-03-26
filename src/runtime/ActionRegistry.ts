@@ -5,6 +5,8 @@ export interface ActionContext {
     eventData?: any;
     multiplayerManager?: any;
     onNavigate?: (target: string, params?: any) => void;
+    spawnObject?: (templateId: string, x?: number, y?: number) => any;
+    destroyObject?: (instanceId: string) => void;
 }
 
 export interface ActionParameter {

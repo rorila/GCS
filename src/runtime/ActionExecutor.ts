@@ -12,7 +12,9 @@ export class ActionExecutor {
     constructor(
         private objects: any[],
         private multiplayerManager?: any,
-        private onNavigate?: (target: string, params?: any) => void
+        private onNavigate?: (target: string, params?: any) => void,
+        private spawnCallback?: (templateId: string, x?: number, y?: number) => any,
+        private destroyCallback?: (instanceId: string) => void
     ) {
         // Registriere Standard-Aktionen
         registerStandardActions();
@@ -52,7 +54,9 @@ export class ActionExecutor {
                     objects: this.objects,
                     eventData: contextObj,
                     multiplayerManager: this.multiplayerManager,
-                    onNavigate: this.onNavigate
+                    onNavigate: this.onNavigate,
+                    spawnObject: this.spawnCallback,
+                    destroyObject: this.destroyCallback
                 });
             }
 

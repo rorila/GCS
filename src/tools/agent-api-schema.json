@@ -81,7 +81,7 @@
             "type": "string",
             "enum": [
                 "TButton", "TLabel", "TEdit", "TPanel", "TImage",
-                "TSprite", "TProgressBar", "TCheckbox", "TTable",
+                "TSprite", "TSpriteTemplate", "TProgressBar", "TCheckbox", "TTable",
                 "TDataStore", "TDataList", "TTimer", "TObjectList"
             ]
         }

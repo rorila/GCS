@@ -515,6 +515,28 @@ export class FlowAction extends FlowElement {
         }
     }
 
+    public get formula(): string {
+        const action = this.getActionDefinition();
+        return action?.formula || action?.expression || '';
+    }
+    public set formula(v: string) {
+        const action = this.getActionDefinition();
+        if (action) {
+            action.formula = v;
+            // Clear legacy property to ensure single source of truth
+            if (action.expression !== undefined) {
+                delete action.expression;
+            }
+        }
+    }
+
+    public get expression(): string {
+        return this.formula;
+    }
+    public set expression(v: string) {
+        this.formula = v;
+    }
+
     private updateNodeDetails() {
         if (this.showDetails) {
             this.setShowDetails(true, this.projectRef);

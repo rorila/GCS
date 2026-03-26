@@ -115,9 +115,19 @@ export class AgentController {
         this.validateProjectLoaded();
         if (!this.project!.variables) this.project!.variables = [];
 
+        const classNameMap: Record<string, string> = {
+            'number': 'TIntegerVariable',
+            'boolean': 'TBooleanVariable',
+            'string': 'TStringVariable',
+            'object': 'TObjectVariable',
+            'trigger': 'TTriggerVariable'
+        };
+        const className = classNameMap[type] || 'TVariable';
+
         const existing = this.project!.variables.find(v => v.name === name);
         if (existing) {
             existing.type = type;
+            existing.className = className;
             existing.initialValue = initialValue;
             existing.defaultValue = initialValue; // Sync
             existing.scope = scope;
@@ -125,6 +135,7 @@ export class AgentController {
             this.project!.variables.push({
                 name,
                 type,
+                className,
                 initialValue,
                 defaultValue: initialValue,
                 scope

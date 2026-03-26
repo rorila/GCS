@@ -1,3 +1,23 @@
+## [3.29.0] - 2026-03-26
+### Added
+- **Object Pool Pattern für dynamische Sprites** (`TSpriteTemplate.ts`, `SpritePool.ts`):
+  - Neue Komponente `TSpriteTemplate` (Blueprint) mit Pool-Konfiguration (`poolSize`, `autoRecycle`, `lifetime`).
+  - Neue Actions `spawn_object` und `destroy_object` zur Interaktion mit dem Pool zur Laufzeit.
+  - Leistungsfähiges Instanz-Management: Alle Pool-Objekte werden beim Start vorhydriert und erhalten permanente DOM-Elemente. Dies löst das bisherige Problem "Rendering-Disconnect", bei dem Klone nicht sichtbar wurden.
+  - Unsichtbare Sprites (`visible: false`) im Leerlauf werden nun von den Physik-Checks (`updateSprites`, `checkCollisions`, `checkBoundaries`) des `GameLoopManager` ignoriert, was die CPU schont.
+- **Normalisierte Target-Auflösung** (`StandardActions.ts`):
+  - Target-Strings wie `%Self%`, `%self%` oder `%Other%` werden vor der Auflösung normalisiert.
+  - Verbesserte Unterstützung in Actions (`spawn_object`, `destroy_object`, `negate`, etc.).
+- **Intuitive Mathematische Formeln** (`ExpressionParser.ts`):
+  - `type: 'calculate'` Actions und Expressions erlauben nun die direkte Eingabe nativer Template-Strings wie `${score} + 1` oder `${health} - 10`.
+  - Die `evaluate()`-Methode wurde um einen Pre-Processor erweitert, der störende `${ }` und `%` Tags automatisch herausfiltert.
+  - **Bugfix NaN/Suspicious Result:** Unbekannte Variablen (z. B. uninitialisiert vor Spielstart) werden konsequent als echter `ReferenceError` gefangen und zu `undefined` konvertiert, anstatt fälschlicherweise als gebundene `undefined`-Parameter für die JavaScript Engine bereitgestellt zu werden. Dies verhindert das kollabieren zu `NaN`.
+  - Dadurch entfallen Type-Cast-Hacks wie `Number(score || 0) + 1` im Inspector. Die Syntax für den Benutzer wird drastisch lesbarer.
+- **Bugfixes für Variablen-Verlust zur Laufzeit** (`AgentController.ts`, `RuntimeVariableManager.ts`):
+  - **Bugfix AgentController & Serialization:** Globale Variablen, die per Skript `addVariable` oder UI angelegt werden, erhalten nun strikt einen `className` (z. B. `TIntegerVariable`) zugewiesen. Ohne diesen wurden Variablen in `hydrateObjects()` beim Laden aus der Runtime stillschweigend verworfen, was zu `ReferenceErrors` beim Zugriff führte.
+  - **Bugfix Proxy Enumeration:** Ein doppelter und teilweise fehlgeschlagener `ownKeys` Proxy-Trap im `RuntimeVariableManager` wurde korrigiert. Der Spread-Operator bei der Bildung von `evalContext` kann nun wieder korrekt über die Variablen aus den Stages iterieren.
+  - **Bugfix Inspector Rendering (Calculate Actions):** Fehlen von Formeln im FlowEditor-Inspector behoben. `FlowAction.ts` stellt nun native Getter/Setter für `formula` und das veraltete Attribut `expression` bereit, womit der Formulareditor diese Properties wieder korrekt befüllt und beim Ändern migriert.
+
 ## [3.28.0] - 2026-03-25
 ### Added
 - **Inspector Visual Mockup Generator**: Ein neues Skript (`/tmp/gen_inspector_mockups_all.js`) erzeugt exakte visuelle Nachbildungen der Inspector-Ansichten (Glow, Stil, Identität, Raster, Geometrie, Typografie, Übersicht) als spielbare GCS-Stages. Diese können interaktiv zur Dokumentation im System genutzt werden.

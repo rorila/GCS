@@ -8,6 +8,8 @@ import { RuntimeStageManager } from './RuntimeStageManager';
 import { DebugLogService } from '../services/DebugLogService';
 import { hydrateObjects } from '../utils/Serialization';
 import { TStageController } from '../components/TStageController';
+import { TSpriteTemplate } from '../components/TSpriteTemplate';
+import { SpritePool } from './SpritePool';
 import { AudioManager } from './AudioManager';
 import { Logger } from '../utils/Logger';
 
@@ -32,6 +34,7 @@ export class GameRuntime implements IVariableHost {
     private stageManager: RuntimeStageManager;
 
     private objects: any[] = [];
+    public spritePool: SpritePool = new SpritePool();
     private isSplashActive: boolean = false;
     private splashTimerId: any = null;
     public stage: any = null;
@@ -86,6 +89,18 @@ export class GameRuntime implements IVariableHost {
             this.variableManager.initializeStageVariables(activeStage);
             this.syncVariableComponents();
 
+            // ─── OBJECT POOL: TSpriteTemplate → Pool-Instanzen erzeugen ───
+            // Pool-Instanzen werden VOR dem Proxy-Wrapping in this.objects eingefügt,
+            // damit sie beim nächsten renderObjects() echte DOM-Elemente bekommen.
+            const templates = this.objects.filter(obj =>
+                obj.className === 'TSpriteTemplate' || obj.constructor?.name === 'TSpriteTemplate'
+            ) as TSpriteTemplate[];
+
+            templates.forEach(template => {
+                this.spritePool.init(template, this.objects);
+            });
+            // ─── ENDE OBJECT POOL ───────────────────────────────────────────
+
             if (options.makeReactive) {
                 this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
                 this.reactiveRuntime.setVariable('isSplashActive', this.isSplashActive);
@@ -127,7 +142,7 @@ export class GameRuntime implements IVariableHost {
                 this.initializeReactiveBindings();
             }
 
-            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate);
+            this.actionExecutor = new ActionExecutor(this.objects, options.multiplayerManager, options.onNavigate, this.spawnObject.bind(this), this.destroyObject.bind(this));
             this.taskExecutor = new TaskExecutor(project, merged.actions, this.actionExecutor, merged.flowCharts, options.multiplayerManager, merged.tasks);
         } else {
             this.objects = [];
@@ -948,5 +963,63 @@ export class GameRuntime implements IVariableHost {
                 }
             }
         });
+    }
+
+    // ─────────────────────────────────────────────
+    // Object Pool: spawn / destroy
+    // ─────────────────────────────────────────────
+
+    /**
+     * Spawnt eine Pool-Instanz aus einem TSpriteTemplate.
+     * Delegiert an SpritePool.acquire().
+     */
+    public spawnObject(templateId: string, x?: number, y?: number): any {
+        // Template-Objekt finden (für Velocity-Defaults)
+        const template = this.objects.find(o => o.id === templateId) as TSpriteTemplate | undefined;
+        if (!template) {
+            logger.warn(`spawnObject: Template "${templateId}" nicht gefunden`);
+            return null;
+        }
+
+        // Pool-basiertes Spawning
+        if (this.spritePool.hasPool(templateId)) {
+            const spawnX = x ?? template.x;
+            const spawnY = y ?? template.y;
+            const instance = this.spritePool.acquire(templateId, spawnX, spawnY, template);
+            if (instance) {
+                // Render-Callback auslösen damit das DOM-Element sichtbar wird
+                if (this.options.onRender) {
+                    this.options.onRender();
+                }
+            }
+            return instance;
+        }
+
+        logger.warn(`spawnObject: Kein Pool für Template "${templateId}" – kein Spawning möglich`);
+        return null;
+    }
+
+    /**
+     * Gibt eine Pool-Instanz zurück (macht sie unsichtbar).
+     * Delegiert an SpritePool.release().
+     */
+    public destroyObject(instanceId: string): void {
+        // Versuche nach ID
+        if (this.spritePool.release(instanceId)) {
+            if (this.options.onRender) {
+                this.options.onRender();
+            }
+            return;
+        }
+
+        // Versuche nach Name (für %Self%-Auflösung)
+        if (this.spritePool.releaseByName(instanceId)) {
+            if (this.options.onRender) {
+                this.options.onRender();
+            }
+            return;
+        }
+
+        logger.warn(`destroyObject: Instanz "${instanceId}" nicht im Pool gefunden`);
     }
 }

@@ -310,6 +310,7 @@ export class GameLoopManager {
      */
     private updateSprites(deltaTime: number, applyVelocity: boolean = true): void {
         this.sprites.forEach(sprite => {
+            if (!sprite.visible) return; // Pool-Instanz im Leerlauf
             sprite.update(deltaTime, applyVelocity);
         });
     }
@@ -322,6 +323,11 @@ export class GameLoopManager {
             for (let j = i + 1; j < this.sprites.length; j++) {
                 const spriteA = this.sprites[i];
                 const spriteB = this.sprites[j];
+
+                // Skip invisible pool instances
+                if (!spriteA.visible || !spriteB.visible) {
+                    continue;
+                }
 
                 // Skip if either sprite is currently animating
                 if (spriteA.isAnimating || spriteB.isAnimating) {
@@ -400,6 +406,11 @@ export class GameLoopManager {
      */
     private checkBoundaries(): void {
         this.sprites.forEach(sprite => {
+            // Skip invisible pool instances
+            if (!sprite.visible) {
+                return;
+            }
+
             // Skip sprites that are currently animating
             if (sprite.isAnimating) {
                 return;

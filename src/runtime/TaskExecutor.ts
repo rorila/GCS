@@ -625,6 +625,7 @@ export class TaskExecutor {
                 await this.execute(item.thenTask, vars, globalVars, contextObj, depth + 1, parentId);
             }
             if (item.body) await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+            if (item.then) await this.executeBody(item.then, vars, globalVars, contextObj, depth, parentId);
         } else {
             if (item.elseAction) {
                 const action = this.resolveAction(item.elseAction);
@@ -632,6 +633,7 @@ export class TaskExecutor {
             }
             if (item.elseTask) await this.execute(item.elseTask, vars, globalVars, contextObj, depth + 1, parentId);
             if (item.elseBody) await this.executeBody(item.elseBody, vars, globalVars, contextObj, depth, parentId);
+            if (item.else) await this.executeBody(item.else, vars, globalVars, contextObj, depth, parentId);
         }
     }
 

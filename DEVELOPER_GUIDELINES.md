@@ -146,6 +146,7 @@ Letzte Aktualisierung: v3.22.0 (CleanCode Phase 1-3 abgeschlossen, Hexagonale Ar
 - **Ghost-Sprites (Kollision)**: `collisionEnabled` ist standardmäßig `false`. Will man Bounce- oder Hit-Events, MUSS explizit `"collisionEnabled": true` im JSON (unter `properties`) gesetzt sein, andernfalls fliegen Objekte wie Geister nacheinander durch und bleiben ggf. am Map-Rand kleben.
 - **Object-Conditions vs String-Conditions**: Nutze bevorzugt nativ geparste String-Conditions (z.B. `"condition": "${hitSide} == 'top'"`) anstatt nackter Objekt-Conditions. Bei Objekt-Conditions werden Literal-Werte (`"rightValue": "'top'"`) im `TaskConditionEvaluator` NICHT von ihren Single-Quotes bereinigt, was zu stillschweigenden Evaluierungs-Fehlern (`"top" === "'top'" -> false`) und unleserlichen Debug-Logs (`undefined == "undefined"`) führt!
 - **Scope Bleeding bei globalen Filtern**: Verwende NIEMALS globale `Set`- oder `Map`-Objekte über Iterationen von Kind-Elementen (wie Stages) hinweg, um Duplikate zu entfernen. Ein `seenTasks = new Set()` außerhalb einer Schleife über alle Stages führt dazu, dass legitime, gleichnamige Tasks (z. B. lokales `NavNext`) aus allen Folgestages gelöscht werden! Sets für Stage-lokale Deduplikation müssen immer *innerhalb* der Stage-Iteratorschleife angelegt werden (`SanitizationService.ts` Bugfix).
+- **Calculate-Formeln Syntax**: Beim Berechnen von Werten via `type: "calculate"` (oder generell im ExpressionParser) kann und **sollte** direkt die intuitive Template-Syntax verwendet werden (z.B. `${score} + 1` oder `score + 1`). Der `ExpressionParser` filtert die `${ }` Klammern bei mathematischen Evaluierungen automatisch heraus. Vermeide Type-Cast-Hacks wie `Number(score || 0) + 1`, da reparierte Variablen-Properties ab Version v3.27.x den reinen primitiven Wert zurückgeben und nicht das Container-Objekt.
 ## 9. BEST PRACTICES (NEU)
 - **Interface Konsistenz**: Host-Objekte für Manager-Klassen (z.B. `EditorDataManager`) müssen ihre Anforderungen in einem dedizierten Interface definieren. Stellen Sie sicher, dass der `Editor` (oder andere Hosts) dieses Interface vollständig implementiert, um Laufzeitfehler wie `TypeError` zu vermeiden. Siehe Fix in `EditorViewManager.ts` (`IViewHost`).
 
@@ -200,3 +201,11 @@ Letzte Aktualisierung: v3.22.0 (CleanCode Phase 1-3 abgeschlossen, Hexagonale Ar
 - **Constrained Decoding:** Bei der Inferenz wird das JSON-Schema genutzt, um nur gültige API-Aufrufe zu erzeugen (z.B. via llama.cpp Grammar oder Outlines).
 - **Tooling:** QLoRA-Finetuning mit [Unsloth](https://github.com/unslothai/unsloth), Modelle: Phi-3-mini (3.8B) oder Qwen2.5-7B.
 
+## 12. OBJECT POOLING FÜR DYNAMISCHE SPRITES
+- **Problem**: In früheren Versionen verursachten `spawnObject`-Aufrufe zu "Geister-Sprites", welche zwar in der Logik existierten, aber keine DOM-Elemente vom `StageRenderer` erhielten (sogenannter "Rendering-Disconnect").
+- **Lösung:** Das Object Pool Pattern (`SpritePool.ts`). Alle Instanzen werden VOR dem Render-Start (`initMainGame`) vorhydriert.
+- **Verwendung:** 
+  1. `TSpriteTemplate` in einer Stage platzieren, `poolSize`, `autoRecycle` und `lifetime` konfigurieren.
+  2. Im Spielverlauf die Action `spawn_object` nutzen, um eine Instanz (Clone) aus dem Pool anzufragen und sichtbar zu machen. Die Position und Velocity wird temporär überschrieben.
+  3. Zum Entfernen die Action `destroy_object` (Target: `%Self%`) nutzen. Diese Action löscht das Objekt nicht aus dem Speicher, sondern blendet es nur aus und legt es in den Pool zurück (`visible: false`).
+- **Performance:** Die GameLoop ("updateSprites", "checkCollisions" etc.) überspringt automatisch alle `visible: false` Objekte. Zerstörungs-Aktionen über eine Schleife sind unnötig teuer. Nutzen Sie IMMER `destroy_object` mit Ziel auf das aktuelle Objekt (`%Self%`).

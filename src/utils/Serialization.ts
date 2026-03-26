@@ -6,6 +6,7 @@ import { TEdit } from '../components/TEdit';
 import { TSystemInfo } from '../components/TSystemInfo';
 import { TGameHeader } from '../components/TGameHeader';
 import { TSprite } from '../components/TSprite';
+import { TSpriteTemplate } from '../components/TSpriteTemplate';
 import { TGameLoop } from '../components/TGameLoop';
 import { TInputController } from '../components/TInputController';
 import { TTimer } from '../components/TTimer';
@@ -114,6 +115,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 break;
             case 'TSprite':
                 newObj = new TSprite(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
+            case 'TSpriteTemplate':
+                newObj = new TSpriteTemplate(objData.name, objData.x, objData.y, objData.width, objData.height);
                 break;
             case 'TGameLoop':
                 newObj = new TGameLoop(objData.name, objData.x, objData.y);

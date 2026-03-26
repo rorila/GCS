@@ -12,8 +12,7 @@ import { mediatorService } from '../../services/MediatorService';
 import { DebugLogService } from '../../services/DebugLogService';
 import { Logger } from '../../utils/Logger';
 
-const logger = Logger.get('RunManager', 'Runtime_Execution');
-const inputLogger = Logger.get('RunManager', 'Input_Handling');
+const logger = Logger.get('Editor', 'RunManager');
 
 export class EditorRunManager {
     public runtime: GameRuntime | null = null;
@@ -25,10 +24,6 @@ export class EditorRunManager {
     private animationTickerId: number | null = null;
     public runStage: any | null = null;
 
-    // Direct keyboard management (bypass IC start/stop issues)
-    private _keydownHandler: ((e: KeyboardEvent) => void) | null = null;
-    private _keyupHandler: ((e: KeyboardEvent) => void) | null = null;
-    private _keysPressed: Set<string> = new Set();
 
     constructor(private editor: Editor) {
         // Listen for data changes to update runtime
@@ -240,10 +235,8 @@ export class EditorRunManager {
             }
         });
 
-        // InputControllers - DIREKTE Keyboard-Listener-Verwaltung
-        // (IC's eigenes start/stop funktioniert nicht zuverlässig wegen HMR/Instanz-Problemen)
+        // InputControllers
         this.activeInputControllers = this.runtimeObjects.filter(obj => (obj as any).className === 'TInputController') as any[];
-        this.setupKeyboardListeners();
     }
 
     private stopRuntime() {
@@ -257,8 +250,7 @@ export class EditorRunManager {
             (this.activeGameLoop as any).stop();
         }
 
-        // Direkte Keyboard-Listener entfernen (statt IC.stop())
-        this.removeKeyboardListeners();
+        // TInputController wird nativ via GameRuntime.stop() -> onRuntimeStop() beendet.
 
         this.activeInputControllers.forEach(ic => (ic as any).stop?.());
         this.activeTimers.forEach(timer => (timer as any).stop?.());
@@ -285,68 +277,6 @@ export class EditorRunManager {
         }
     }
 
-    /**
-     * Direkte Keyboard-Listener registrieren.
-     * Bypasst IC's start()/stop() komplett, da diese wegen HMR/Instanz-Problemen
-     * nicht zuverlässig funktionieren. Events werden direkt an handleRuntimeEvent geleitet.
-     */
-    private setupKeyboardListeners(): void {
-        // Alte Listener entfernen (Sicherheit bei Re-Init)
-        this.removeKeyboardListeners();
-
-        const gameKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'];
-
-        this._keydownHandler = (e: KeyboardEvent) => {
-            if (!gameKeys.includes(e.code)) return;
-            e.preventDefault();
-
-            if (!this._keysPressed.has(e.code)) {
-                this._keysPressed.add(e.code);
-
-                // Finde den IC und leite das Event über die Runtime weiter
-                const ic = this.activeInputControllers[0];
-                if (ic && this.runtime) {
-                    inputLogger.info(`⌨️ KEY DOWN: ${e.code} → handleEvent(${ic.id}, onKeyDown_${e.code})`);
-                    this.handleRuntimeEvent(ic.id, `onKeyDown_${e.code}`, { keyCode: e.code });
-                }
-            }
-        };
-
-        this._keyupHandler = (e: KeyboardEvent) => {
-            if (!gameKeys.includes(e.code)) return;
-            this._keysPressed.delete(e.code);
-
-            const ic = this.activeInputControllers[0];
-            if (ic && this.runtime) {
-                this.handleRuntimeEvent(ic.id, `onKeyUp_${e.code}`, { keyCode: e.code });
-            }
-        };
-
-        window.addEventListener('keydown', this._keydownHandler);
-        window.addEventListener('keyup', this._keyupHandler);
-
-        // Global callback for self-healing (Fallback für standalone player)
-        (window as any).__inputControllerCallback = (id: string, eventName: string, data?: any) => {
-            this.handleRuntimeEvent(id, eventName, data);
-        };
-
-        logger.info(`Keyboard listeners registered for ${this.activeInputControllers.length} InputController(s)`);
-    }
-
-    /**
-     * Keyboard-Listener entfernen (beim Stoppen der Runtime).
-     */
-    private removeKeyboardListeners(): void {
-        if (this._keydownHandler) {
-            window.removeEventListener('keydown', this._keydownHandler);
-            this._keydownHandler = null;
-        }
-        if (this._keyupHandler) {
-            window.removeEventListener('keyup', this._keyupHandler);
-            this._keyupHandler = null;
-        }
-        this._keysPressed.clear();
-    }
 
     /**
      * FAST PATH: Nur Sprite-Positionen im DOM aktualisieren.

@@ -16,22 +16,28 @@ const dataLogger = Logger.get('Action', 'DataStore_Sync');
 function resolveTarget(targetName: string, objects: any[], vars: Record<string, any>, eventData?: any): any {
     if (!targetName) return null;
 
+    // Clean up Editor UI artifacts like " (nicht in Stage)"
+    const cleanTargetName = targetName.replace(/\s*\(nicht in Stage\)$/i, '');
+    
+    // Normalize %Self% / %Other% / self / Self etc.
+    const normalized = cleanTargetName.replace(/%/g, '').toLowerCase();
+
     // Resolve 'self' and 'other' from event context (collision events provide {self, other, hitSide})
-    if (targetName === 'self') {
+    if (normalized === 'self') {
         if (eventData?.self) return eventData.self;
         // Fallback: eventData IS the context object itself
         if (eventData && eventData.name) return eventData;
         return null;
     }
-    if (targetName === 'other') {
+    if (normalized === 'other') {
         if (eventData?.other) return eventData.other;
         return null;
     }
 
-    let actualName = targetName;
-    if (targetName.startsWith('${') && targetName.endsWith('}')) {
-        const varName = targetName.substring(2, targetName.length - 1);
-        actualName = String(vars[varName] || targetName);
+    let actualName = cleanTargetName;
+    if (cleanTargetName.startsWith('${') && cleanTargetName.endsWith('}')) {
+        const varName = cleanTargetName.substring(2, cleanTargetName.length - 1);
+        actualName = String(vars[varName] || cleanTargetName);
     }
     return objects.find(o => o.name === actualName || o.id === actualName);
 }
@@ -1210,6 +1216,77 @@ export function registerStandardActions() {
         description: 'Stoppt ein laufendes TAudio-Element.',
         parameters: [
             { name: 'target', label: 'Audio-Objekt', type: 'select', source: 'objects', hint: 'Das TAudio Element' }
+        ]
+    });
+
+    // ─── OBJECT POOL ACTIONS ───────────────────────────────────────
+
+    actionRegistry.register('spawn_object', (action, context) => {
+        if (!context.spawnObject) {
+            runtimeLogger.warn('spawn_object: kein spawnObject-Callback verfügbar');
+            return null;
+        }
+        
+        let templateId = action.templateId || action.target;
+        const templateObj = resolveTarget(templateId, context.objects, context.vars, context.eventData);
+        if (templateObj) {
+            templateId = templateObj.id || templateObj.name;
+        }
+
+        
+        // Entweder feste Koordinaten oder relativ zu einem Bezugsobjekt
+        let finalX = action.x;
+        let finalY = action.y;
+
+        if (action.referenceObject) {
+            const refObj = resolveTarget(action.referenceObject, context.objects, context.vars, context.eventData);
+            if (refObj) {
+                // Bei Bezugsobjekt: Objekt-Position + definierter Offset
+                const offsetX = action.offsetX !== undefined ? Number(action.offsetX) : 0;
+                const offsetY = action.offsetY !== undefined ? Number(action.offsetY) : 0;
+                finalX = (refObj.x || 0) + offsetX;
+                finalY = (refObj.y || 0) + offsetY;
+                // Zentrierung berücksichtigen? (Optional)
+            }
+        }
+
+        const x = finalX !== undefined && finalX !== '' && !isNaN(Number(finalX)) ? Number(finalX) : undefined;
+        const y = finalY !== undefined && finalY !== '' && !isNaN(Number(finalY)) ? Number(finalY) : undefined;
+        
+        return context.spawnObject(templateId, x, y);
+    }, {
+        type: 'spawn_object',
+        label: 'Objekt spawnen',
+        description: 'Holt eine Instanz aus dem Object Pool eines TSpriteTemplate.',
+        parameters: [
+            { name: 'templateId', label: 'Template', type: 'select', source: 'objects', hint: 'Das TSpriteTemplate' },
+            { name: 'referenceObject', label: 'Spawnen bei Objekt', type: 'select', source: 'objects', hint: 'Optional: Koords von diesem Objekt übernehmen' },
+            { name: 'offsetX', label: 'Offset X', type: 'number', hint: 'Verschiebung auf X-Achse (falls Objekt gewählt)' },
+            { name: 'offsetY', label: 'Offset Y', type: 'number', hint: 'Verschiebung auf Y-Achse (falls Objekt gewählt)' },
+            { name: 'x', label: 'Absolute X-Position', type: 'number', hint: 'Nur wenn kein Bezugsobjekt gewählt ist' },
+            { name: 'y', label: 'Absolute Y-Position', type: 'number', hint: 'Nur wenn kein Bezugsobjekt gewählt ist' }
+        ]
+    });
+
+    actionRegistry.register('destroy_object', (action, context) => {
+        if (!context.destroyObject) {
+            runtimeLogger.warn('destroy_object: kein destroyObject-Callback verfügbar');
+            return;
+        }
+        // Target auflösen: kann %Self%, ein Name oder eine ID sein
+        const target = resolveTarget(action.target, context.objects, context.vars, context.eventData);
+        if (target) {
+            context.destroyObject(target.id || target.name);
+        } else {
+            // Direkter ID/Name-Versuch
+            context.destroyObject(action.target);
+        }
+    }, {
+        type: 'destroy_object',
+        label: 'Objekt zerstören',
+        description: 'Gibt eine Pool-Instanz zurück (macht sie unsichtbar und verfügbar).',
+        parameters: [
+            { name: 'target', label: 'Ziel-Objekt', type: 'string', hint: 'Pool-Instanz oder %Self%' }
         ]
     });
 }

@@ -2,6 +2,7 @@ import { TWindow } from '../components/TWindow';
 import { TAudio } from '../components/TAudio';
 import { TImage } from '../components/TImage';
 import { TSprite } from '../components/TSprite';
+import { TSpriteTemplate } from '../components/TSpriteTemplate';
 import { TButton } from '../components/TButton';
 import { TCheckbox } from '../components/TCheckbox';
 import { TColorPicker } from '../components/TColorPicker';
@@ -95,6 +96,7 @@ export class ComponentRegistry {
         this.register('TAudio', TAudio);
         this.register('TImage', TImage);
         this.register('TSprite', TSprite);
+        this.register('TSpriteTemplate', TSpriteTemplate);
         this.register('TButton', TButton);
         this.register('TCheckbox', TCheckbox);
         this.register('TColorPicker', TColorPicker);
@@ -178,6 +180,7 @@ export class ComponentRegistry {
         this.typeMapping.set('SystemInfo', 'TSystemInfo');
         this.typeMapping.set('GameHeader', 'TGameHeader');
         this.typeMapping.set('Sprite', 'TSprite');
+        this.typeMapping.set('SpriteTemplate', 'TSpriteTemplate');
         this.typeMapping.set('EmojiPicker', 'TEmojiPicker');
         this.typeMapping.set('Shape', 'TShape');
         this.typeMapping.set('GameLoop', 'TGameLoop');

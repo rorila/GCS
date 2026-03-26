@@ -145,6 +145,12 @@ export class ExpressionParser {
      * @returns Evaluated value
      */
     static evaluate(expression: string, context: Record<string, any>): any {
+        // PRE-PROCESS: Strip ${ } templates if the user typed them in a pure formula context
+        // This makes the runtime highly resilient and allows users to type ${score} + 1 instead of score + 1
+        if (typeof expression === 'string' && expression.includes('${')) {
+            expression = expression.replace(/\$\{([^}]+)\}/g, '$1');
+        }
+
         const trimmed = expression.trim();
 
         if (trimmed === 'true') return true;
@@ -173,12 +179,15 @@ export class ExpressionParser {
             // This is critical when context is a Proxy that doesn't reveal all keys (e.g. contextVars)
             const deps = this.extractDependencies(expression);
 
-            // Filter only for top-level identifiers (no nested properties)
+            // Filter only for top-level identifiers
             const contextKeys = deps.filter(key => {
                 if (!validIdentifierRegex.test(key)) return false;
-                // Only use as top-level key if it's actually in context or if it's a potential root variable
-                // (Nested properties like 'selectedEmoji' in 'PinPicker.selectedEmoji' should NOT be keys)
-                return (key in context) || !expression.includes(`.${key}`);
+                
+                // Only provide the argument IF it actually exists in the context map!
+                // This ensures that unknown variables (uninitialized or typos) 
+                // throw a clear ReferenceError during 'new Function(...)' evaluation, 
+                // instead of silently binding 'undefined' to the parameter which leads to Math NaN errors.
+                return (key in context) || context[key] !== undefined;
             });
 
             // Resolve all values to their primitive/actual values before evaluation
