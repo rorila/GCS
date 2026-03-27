@@ -45,9 +45,10 @@ export class EditorRenderManager {
             const activeStage = this.host.getActiveStage();
             stage.isBlueprint = activeStage?.type === 'blueprint';
             if (activeStage?.grid) {
-                stage.grid = activeStage.grid;
+                // WICHTIG: backgroundImage VOR grid setzen, da der grid-Setter updategrid() auslöst
                 stage.backgroundImage = (activeStage as any).backgroundImage || '';
                 stage.backgroundImageMode = (activeStage as any).backgroundImageMode || 'cover';
+                stage.grid = activeStage.grid;
             }
 
             // CRITICAL: Always get fresh objects from runtime if available
