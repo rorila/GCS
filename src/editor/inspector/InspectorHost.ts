@@ -931,6 +931,48 @@ export class InspectorHost {
 
             wrapper.appendChild(input);
             wrapper.appendChild(browseBtn);
+
+            // 📋 Paste-Button (nur für image_picker)
+            if (propDef.type === 'image_picker') {
+                const pasteBtn = document.createElement('button');
+                pasteBtn.textContent = '📋';
+                pasteBtn.title = 'Bild aus Zwischenablage einfügen (Base64)';
+                pasteBtn.style.cssText = 'padding:4px 8px;background:#2a2a3e;color:#fff;border:1px solid #555;border-radius:4px;cursor:pointer;font-size:14px;flex-shrink:0;transition:all 0.15s;';
+                pasteBtn.onmouseenter = () => { pasteBtn.style.borderColor = '#a6e3a1'; pasteBtn.style.background = '#2a3e2e'; };
+                pasteBtn.onmouseleave = () => { pasteBtn.style.borderColor = '#555'; pasteBtn.style.background = '#2a2a3e'; };
+                pasteBtn.onclick = async () => {
+                    try {
+                        const clipboardItems = await navigator.clipboard.read();
+                        let imageBlob: Blob | null = null;
+                        for (const item of clipboardItems) {
+                            const imageType = item.types.find(t => t.startsWith('image/'));
+                            if (imageType) {
+                                imageBlob = await item.getType(imageType);
+                                break;
+                            }
+                        }
+                        if (!imageBlob) {
+                            alert('Kein Bild in der Zwischenablage gefunden.');
+                            return;
+                        }
+                        // Blob → Base64 Data-URL
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            const dataUrl = reader.result as string;
+                            input.value = dataUrl;
+                            input.dispatchEvent(new Event('change'));
+                            // Visuelles Feedback
+                            pasteBtn.textContent = '✅';
+                            setTimeout(() => { pasteBtn.textContent = '📋'; }, 1500);
+                        };
+                        reader.readAsDataURL(imageBlob);
+                    } catch (e: any) {
+                        alert('Fehler beim Lesen der Zwischenablage: ' + e.message);
+                    }
+                };
+                wrapper.appendChild(pasteBtn);
+            }
+
             container.appendChild(wrapper);
         } else {
             // Text / Number / String / Textarea Input
