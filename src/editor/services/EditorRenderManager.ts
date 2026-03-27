@@ -46,6 +46,7 @@ export class EditorRenderManager {
             stage.isBlueprint = activeStage?.type === 'blueprint';
             if (activeStage?.grid) {
                 stage.grid = activeStage.grid;
+                stage.backgroundImage = (activeStage as any).backgroundImage || '';
             }
 
             // CRITICAL: Always get fresh objects from runtime if available

@@ -37,6 +37,7 @@ export class Stage implements StageHost, StageInteractionHost {
     public startAnimation: string = 'none';
     public startAnimationDuration: number = 1000;
     public startAnimationEasing: string = 'easeOut';
+    public backgroundImage: string = '';
     private gridConfig: GridConfig;
     private _selectedObject: any = null; // Currently selected object (primary)
 
@@ -162,13 +163,36 @@ export class Stage implements StageHost, StageInteractionHost {
 
         if (visible && !this.runMode) {
             const gridColor = (this.gridConfig as any).gridColor || '#dddddd';
-            this.element.style.backgroundImage = `
+            const gridPattern = `
                 linear-gradient(to right, ${gridColor} 1px, transparent 1px),
                 linear-gradient(to bottom, ${gridColor} 1px, transparent 1px)
             `;
-            this.element.style.backgroundSize = `${cellSize}px ${cellSize}px`;
+            if (this.backgroundImage) {
+                // Gitter + Hintergrundbild: Grid-Pattern über dem Bild
+                const bgUrl = `url("${this.backgroundImage}")`;
+                this.element.style.backgroundImage = `${gridPattern}, ${bgUrl}`;
+                this.element.style.backgroundSize = `${cellSize}px ${cellSize}px, cover`;
+                this.element.style.backgroundPosition = 'top left, center';
+                this.element.style.backgroundRepeat = 'repeat, no-repeat';
+            } else {
+                this.element.style.backgroundImage = gridPattern;
+                this.element.style.backgroundSize = `${cellSize}px ${cellSize}px`;
+                this.element.style.backgroundPosition = '';
+                this.element.style.backgroundRepeat = '';
+            }
         } else {
-            this.element.style.backgroundImage = 'none';
+            if (this.backgroundImage) {
+                // Runtime oder kein Gitter: nur Hintergrundbild
+                this.element.style.backgroundImage = `url("${this.backgroundImage}")`;
+                this.element.style.backgroundSize = 'cover';
+                this.element.style.backgroundPosition = 'center';
+                this.element.style.backgroundRepeat = 'no-repeat';
+            } else {
+                this.element.style.backgroundImage = 'none';
+                this.element.style.backgroundSize = '';
+                this.element.style.backgroundPosition = '';
+                this.element.style.backgroundRepeat = '';
+            }
         }
 
         // Mode-based border: green for editor, red for run mode
