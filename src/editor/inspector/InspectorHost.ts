@@ -877,6 +877,61 @@ export class InspectorHost {
             container.appendChild(addBtn);
 
             return container;
+        } else if (propDef.type === 'image_picker' || propDef.type === 'audio_picker' || propDef.type === 'video_picker') {
+            // ─────────────────────────────────────────────
+            // Media-Picker: Textfeld + Browse-Button
+            // ─────────────────────────────────────────────
+            const pickerIcon = propDef.type === 'image_picker' ? '🖼️'
+                             : propDef.type === 'audio_picker' ? '🔊'
+                             : '🎬';
+            const pickerAction = propDef.type === 'image_picker' ? 'browseImage'
+                               : propDef.type === 'audio_picker' ? 'browseAudio'
+                               : 'browseVideo';
+
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'display:flex;gap:4px;flex:1;align-items:center;';
+
+            const input = this.renderer.renderEdit(String(currentValue));
+            input.style.flex = '1';
+            if (propDef.name) input.name = propDef.name + 'Input';
+            input.onchange = () => {
+                if (this.eventHandler) {
+                    const event = this.eventHandler.handleControlChange(
+                        input.name, input.value, obj,
+                        { ...propDef, property: propDef.name }
+                    );
+                    if (event) {
+                        mediatorService.notifyDataChanged({
+                            property: event.propertyName,
+                            value: event.newValue,
+                            oldValue: event.oldValue,
+                            object: event.object
+                        }, 'inspector');
+                        if (this.onObjectUpdate) this.onObjectUpdate(event);
+                    }
+                }
+            };
+
+            const browseBtn = document.createElement('button');
+            browseBtn.textContent = pickerIcon;
+            browseBtn.title = propDef.type === 'image_picker' ? 'Bild auswählen'
+                            : propDef.type === 'audio_picker' ? 'Audio auswählen'
+                            : 'Video auswählen';
+            browseBtn.style.cssText = 'padding:4px 8px;background:#2a2a3e;color:#fff;border:1px solid #555;border-radius:4px;cursor:pointer;font-size:14px;flex-shrink:0;transition:all 0.15s;';
+            browseBtn.onmouseenter = () => { browseBtn.style.borderColor = '#89b4fa'; browseBtn.style.background = '#3a3a4e'; };
+            browseBtn.onmouseleave = () => { browseBtn.style.borderColor = '#555'; browseBtn.style.background = '#2a2a3e'; };
+            browseBtn.onclick = () => {
+                if (this.actionHandler) {
+                    (this.actionHandler as any).handleAction(
+                        { action: pickerAction, property: propDef.name },
+                        obj
+                    );
+                }
+            };
+
+            wrapper.appendChild(input);
+            wrapper.appendChild(browseBtn);
+            container.appendChild(wrapper);
         } else {
             // Text / Number / String / Textarea Input
             let input: HTMLInputElement | HTMLTextAreaElement;
