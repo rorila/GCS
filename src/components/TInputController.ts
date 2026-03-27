@@ -5,6 +5,11 @@ import { Logger } from '../utils/Logger';
 /**
  * TInputController - A stage-placeable component that handles keyboard input.
  * Place on stage, configure target sprites in Inspector, and it will handle player controls.
+ * 
+ * WICHTIG (v3.29.0): Die Event-Listener auf `window` werden NICHT von dieser Komponente
+ * verwaltet, sondern von GameRuntime.initInputControllers() über ein Single-Global-Handler
+ * Pattern. Dies verhindert stale Listener, die durch hydrateObjects()-Instanzwiederverwendung
+ * entstehen können.
  */
 export class TInputController extends TWindow implements IRuntimeComponent {
     private static logger = Logger.get('TInputController', 'Input_Handling');
@@ -13,16 +18,12 @@ export class TInputController extends TWindow implements IRuntimeComponent {
     public enabled: boolean = true;
 
     // Internal state
-    private keysPressed: Set<string> = new Set();
-    private isActive: boolean = false;
-    private eventCallback: ((id: string, event: string, data?: any) => void) | null = null;
+    public keysPressed: Set<string> = new Set();
+    public isActive: boolean = false;
+    public eventCallback: ((id: string, event: string, data?: any) => void) | null = null;
 
     // 🔍 Debug: Instance-ID um mehrere Instanzen zu unterscheiden
-    private _instanceId = Math.random().toString(36).substr(2, 5);
-
-    // Event handlers (bound for proper removal)
-    private handleKeyDown: (e: KeyboardEvent) => void;
-    private handleKeyUp: (e: KeyboardEvent) => void;
+    public _instanceId = Math.random().toString(36).substr(2, 5);
 
     constructor(name: string, x: number = 0, y: number = 0) {
         super(name, x, y, 3, 1);
@@ -31,10 +32,6 @@ export class TInputController extends TWindow implements IRuntimeComponent {
         this.style.borderColor = '#6a1b9a';
         this.style.borderWidth = 2;
         this.style.color = '#ffffff';
-
-        // Bind handlers
-        this.handleKeyDown = this.onKeyDown.bind(this);
-        this.handleKeyUp = this.onKeyUp.bind(this);
 
         // Visibility & Scoping Meta-Flags
         this.isService = true;
@@ -56,17 +53,17 @@ export class TInputController extends TWindow implements IRuntimeComponent {
 
     public initRuntime(callbacks: { handleEvent: any, objects: any[] }): void {
         this.init(callbacks.objects, callbacks.handleEvent);
-        // Store globally so instances can self-heal if HMR breaks the reference
+        // Store globally for multiplayer and external reference
         (window as any).__inputControllerCallback = callbacks.handleEvent;
         (window as any).__inputControllerObjects = callbacks.objects;
     }
 
     public onRuntimeStart(): void {
-        this.start();
+        // NOOP: Listener werden von GameRuntime.initInputControllers() verwaltet
     }
 
     public onRuntimeStop(): void {
-        this.stop();
+        this.resetState();
     }
 
     /**
@@ -78,46 +75,37 @@ export class TInputController extends TWindow implements IRuntimeComponent {
     }
 
     /**
-     * Start listening for keyboard events
+     * Reset internal state (called by GameRuntime during cleanup)
      */
-    public start(): void {
-        TInputController.logger.info(`[IC-${this._instanceId}] START called: isActive=${this.isActive}, enabled=${this.enabled}`);
-        if (this.isActive || !this.enabled) return;
-
-        window.addEventListener('keydown', this.handleKeyDown);
-        window.addEventListener('keyup', this.handleKeyUp);
-        this.isActive = true;
-        TInputController.logger.info(`[IC-${this._instanceId}] START done: isActive=${this.isActive}`);
-    }
-
-    /**
-     * Stop listening for keyboard events
-     */
-    public stop(): void {
-        if (!this.isActive) return;
-
-        window.removeEventListener('keydown', this.handleKeyDown);
-        window.removeEventListener('keyup', this.handleKeyUp);
+    public resetState(): void {
         this.keysPressed.clear();
         this.isActive = false;
+        this.eventCallback = null;
     }
 
     /**
-     * Handle keydown event
+     * Mark as active (called by GameRuntime after global listener is set up)
      */
-    private onKeyDown(e: KeyboardEvent): void {
-        // Self-healing: Falls kein Callback gesetzt, versuche globalen Callback zu holen
-        if (!this.eventCallback && (window as any).__inputControllerCallback) {
-            this.eventCallback = (window as any).__inputControllerCallback;
-            this.isActive = true;
-            TInputController.logger.warn(`[IC-${this._instanceId}] 🔧 SELF-HEAL: Callback aus window.__inputControllerCallback geholt!`);
-        }
+    public start(): void {
+        this.isActive = true;
+        TInputController.logger.info(`[IC-${this._instanceId}] Marked active`);
+    }
 
-        // 🔍 DEBUG: Tastendruck sichtbar machen
-        TInputController.logger.info(`[IC-${this._instanceId}] 🎮 KEY DOWN: ${e.code} | isActive=${this.isActive} | hasCallback=${!!this.eventCallback}`);
+    /**
+     * Mark as inactive and clean up state
+     */
+    public stop(): void {
+        this.resetState();
+    }
 
-        // Prevent default for game keys to avoid scrolling
-        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) {
+    /**
+     * Handle keydown event — called by GameRuntime's global handler
+     */
+    public handleKeyDownEvent(e: KeyboardEvent): void {
+        if (!this.isActive || !this.enabled) return;
+
+        // Prevent default for game keys to avoid scrolling or button re-triggering
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD', 'Space', 'Enter'].includes(e.code)) {
             e.preventDefault();
         }
 
@@ -141,9 +129,11 @@ export class TInputController extends TWindow implements IRuntimeComponent {
     }
 
     /**
-     * Handle keyup event
+     * Handle keyup event — called by GameRuntime's global handler
      */
-    private onKeyUp(e: KeyboardEvent): void {
+    public handleKeyUpEvent(e: KeyboardEvent): void {
+        if (!this.isActive || !this.enabled) return;
+
         this.keysPressed.delete(e.code);
 
         // Notify multiplayer syncer if available

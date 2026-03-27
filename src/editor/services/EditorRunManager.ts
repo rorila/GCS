@@ -263,6 +263,8 @@ export class EditorRunManager {
         this.runtimeObjects = null;
         this.stopAnimationTicker();
         (window as any).__inputControllerCallback = null;
+        (window as any).__inputControllerObjects = null;
+        (window as any).__multiplayerInputCallback = null;
     }
 
     private handleRuntimeEvent(id: string, eventName: string, data?: any) {

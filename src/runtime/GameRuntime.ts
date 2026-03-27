@@ -40,6 +40,8 @@ export class GameRuntime implements IVariableHost {
     public stage: any = null;
     private stageController: TStageController | null = null;
     private varTimers: Map<string, any> = new Map();
+    private _globalKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
+    private _globalKeyupHandler: ((e: KeyboardEvent) => void) | null = null;
 
     public get contextVars() { return this.variableManager.contextVars; }
     public get projectVariables() { return this.variableManager.projectVariables; }
@@ -206,14 +208,49 @@ export class GameRuntime implements IVariableHost {
     }
 
     public stop() {
+        logger.info(`[GameRuntime] STOP() called, objectCount=${this.objects.length}`);
         if (this.splashTimerId) { clearTimeout(this.splashTimerId); this.splashTimerId = null; }
-        this.objects.forEach(obj => obj.onRuntimeStop?.());
+
+        // 0. Globale Keyboard-Listener SOFORT entfernen (Single-Global-Handler Pattern)
+        if (this._globalKeydownHandler) {
+            window.removeEventListener('keydown', this._globalKeydownHandler);
+            this._globalKeydownHandler = null;
+        }
+        if (this._globalKeyupHandler) {
+            window.removeEventListener('keyup', this._globalKeyupHandler);
+            this._globalKeyupHandler = null;
+        }
+
+        // 1. Sicheres Stoppen ALLER Komponenten
+        this.objects.forEach(obj => {
+            try {
+                if (typeof obj.onRuntimeStop === 'function') obj.onRuntimeStop();
+                if (typeof (obj as any).stop === 'function') (obj as any).stop();
+            } catch (e) {
+                logger.error(`Error stopping object ${obj.id}:`, e);
+            }
+        });
+
         GameLoopManager.getInstance().stop();
         AnimationManager.getInstance().clear();
         AudioManager.getInstance().stopAll();
+
+        // 2. Objekt-Pools leeren
+        if (this.spritePool) {
+            this.spritePool.destroy();
+        }
+
+        // 3. Komplettes Wipe-Out der Proxies und Context-Referenzen
+        if (this.reactiveRuntime) {
+            this.reactiveRuntime.clear(true);
+        }
+
+        this.objects = [];
+        logger.info(`[GameRuntime] STOP() done`);
     }
 
     public start() {
+        logger.info(`[GameRuntime] START() called, objectCount=${this.objects.length}, splash=${this.isSplashActive}, stage=${this.stage?.id}`);
         if (this.options.onRender) this.options.onRender();
         this.objects.forEach(obj => this.handleEvent(obj.id, 'onStart'));
 
@@ -235,21 +272,69 @@ export class GameRuntime implements IVariableHost {
      * Initialisiert alle InputController mit handleEvent-Callback und startet sie.
      * Wird VOR dem Splash-Check aufgerufen, damit Keyboard-Input sofort funktioniert.
      */
+    /**
+     * Single-Global-Handler Pattern für InputController.
+     * 
+     * Problem: hydrateObjects() gibt TWindow-Instanzen unverändert zurück.
+     * Dadurch können stale `window.addEventListener` Handler aus früheren Runs
+     * überleben, die nicht via removeEventListener entfernbar sind (andere 
+     * Funktionsreferenz). 
+     * 
+     * Lösung: GameRuntime verwaltet EIN Listener-Paar auf window und delegiert
+     * an alle aktiven TInputController. Keine Komponente hängt eigene Listener.
+     */
     private initInputControllers(): void {
+        // 1. Alte globale Handler entfernen (falls vorhanden, z.B. bei Stage-Change)
+        if (this._globalKeydownHandler) {
+            window.removeEventListener('keydown', this._globalKeydownHandler);
+            this._globalKeydownHandler = null;
+        }
+        if (this._globalKeyupHandler) {
+            window.removeEventListener('keyup', this._globalKeyupHandler);
+            this._globalKeyupHandler = null;
+        }
+
+        // 2. InputController finden, Force-Reset, init und aktivieren
         const handleEventCb = (id: string, ev: string, data?: any) => this.handleEvent(id, ev, data);
+        const activeICs: any[] = [];
+
         this.objects.forEach(obj => {
             if ((obj as any).className === 'TInputController' || obj.constructor?.name === 'TInputController') {
-                // Raw-Objekt holen (Proxy umgehen!) damit Properties direkt gesetzt werden
                 const rawObj = (obj as any).__raw__ || (obj as any).__v_raw || obj;
+
+                // Force-Reset: Zustand aus vorheigen Runs bereinigen
+                rawObj.isActive = false;
+                rawObj.eventCallback = null;
+                if (rawObj.keysPressed) rawObj.keysPressed.clear();
+
+                // Init: Callback setzen
                 if (typeof rawObj.init === 'function') {
                     rawObj.init(this.objects, handleEventCb);
                 }
-                if (typeof rawObj.start === 'function') {
-                    rawObj.start();
-                    console.log(`[GameRuntime] InputController "${rawObj.name}" initialized and started`);
-                }
+
+                // Aktivieren (setzt nur isActive=true, KEINE window.addEventListener!)
+                rawObj.isActive = true;
+                activeICs.push(rawObj);
+
+                logger.info(`[GameRuntime] InputController "${rawObj.name}" initialized (id=${rawObj._instanceId})`);
             }
         });
+
+        // 3. EIN globales Listener-Paar installieren, das an alle aktiven ICs delegiert
+        if (activeICs.length > 0) {
+            this._globalKeydownHandler = (e: KeyboardEvent) => {
+                activeICs.forEach(ic => ic.handleKeyDownEvent?.(e));
+            };
+            this._globalKeyupHandler = (e: KeyboardEvent) => {
+                activeICs.forEach(ic => ic.handleKeyUpEvent?.(e));
+            };
+            window.addEventListener('keydown', this._globalKeydownHandler);
+            window.addEventListener('keyup', this._globalKeyupHandler);
+            logger.info(`[GameRuntime] Global keyboard handler installed for ${activeICs.length} InputController(s)`);
+        }
+
+        // 4. Callback auch global speichern (für initRuntime/Multiplayer-Kompatibilität)
+        (window as any).__inputControllerCallback = handleEventCb;
     }
 
     private initMainGame() {

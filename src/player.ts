@@ -74,11 +74,19 @@ export class Player {
                     obj => (obj as any).className === 'TInputController'
                 ) as TInputController[];
 
-                // Start InputControllers
+                // Start InputControllers via Single-Global-Handler Pattern
+                // (TInputController hängt keine eigenen window-Listener mehr,
+                //  stattdessen delegiert ein globaler Handler an die aktiven ICs)
                 this.inputControllers.forEach(ic => {
                     ic.init(this.objects, (id, event, data) => this.handleEvent(id, event, data));
-                    ic.start();
+                    ic.isActive = true;
                 });
+
+                if (this.inputControllers.length > 0) {
+                    const ics = this.inputControllers;
+                    window.addEventListener('keydown', (e) => ics.forEach(ic => ic.handleKeyDownEvent(e)));
+                    window.addEventListener('keyup', (e) => ics.forEach(ic => ic.handleKeyUpEvent(e)));
+                }
 
                 // Initialize GameLoop (Konfigurations-Container)
                 // Der GameLoopManager (Singleton) übernimmt den eigentlichen Loop.
