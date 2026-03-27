@@ -47,6 +47,7 @@ export class EditorRenderManager {
             if (activeStage?.grid) {
                 stage.grid = activeStage.grid;
                 stage.backgroundImage = (activeStage as any).backgroundImage || '';
+                stage.backgroundImageMode = (activeStage as any).backgroundImageMode || 'cover';
             }
 
             // CRITICAL: Always get fresh objects from runtime if available

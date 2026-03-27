@@ -67,6 +67,7 @@ export class StageHandler implements IInspectorHandler {
                 { name: 'grid.gridColor', label: 'Rasterfarbe', type: 'color', defaultValue: '#dddddd' },
                 { name: 'grid.backgroundColor', label: 'Hintergrund', type: 'color', defaultValue: '#ffffff' },
                 { name: 'backgroundImage', label: 'Hintergrundbild', type: 'image_picker', defaultValue: '' },
+                { name: 'backgroundImageMode', label: 'Bild-Modus', type: 'select', options: ['cover', 'tile'], defaultValue: 'cover' },
             ]
         });
 

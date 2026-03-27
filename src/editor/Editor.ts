@@ -451,6 +451,7 @@ export class Editor implements IViewHost {
             if (activeStage && activeStage.grid) {
                 this.stage.grid = activeStage.grid;
                 this.stage.backgroundImage = (activeStage as any).backgroundImage || '';
+                this.stage.backgroundImageMode = (activeStage as any).backgroundImageMode || 'cover';
             } else {
                 this.stage.grid = project.stage.grid;
             }

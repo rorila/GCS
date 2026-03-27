@@ -38,6 +38,7 @@ export class Stage implements StageHost, StageInteractionHost {
     public startAnimationDuration: number = 1000;
     public startAnimationEasing: string = 'easeOut';
     public backgroundImage: string = '';
+    public backgroundImageMode: 'cover' | 'tile' = 'cover';
     private gridConfig: GridConfig;
     private _selectedObject: any = null; // Currently selected object (primary)
 
@@ -168,12 +169,16 @@ export class Stage implements StageHost, StageInteractionHost {
                 linear-gradient(to bottom, ${gridColor} 1px, transparent 1px)
             `;
             if (this.backgroundImage) {
-                // Gitter + Hintergrundbild: Grid-Pattern über dem Bild
+                // 3 CSS-Backgrounds: gradient-h, gradient-v, image
                 const bgUrl = `url("${this.backgroundImage}")`;
+                const isTile = this.backgroundImageMode === 'tile';
+                const imgSize = isTile ? `${cellSize}px ${cellSize}px` : 'cover';
+                const imgPos = isTile ? 'top left' : 'center';
+                const imgRepeat = isTile ? 'repeat' : 'no-repeat';
                 this.element.style.backgroundImage = `${gridPattern}, ${bgUrl}`;
-                this.element.style.backgroundSize = `${cellSize}px ${cellSize}px, cover`;
-                this.element.style.backgroundPosition = 'top left, center';
-                this.element.style.backgroundRepeat = 'repeat, no-repeat';
+                this.element.style.backgroundSize = `${cellSize}px ${cellSize}px, ${cellSize}px ${cellSize}px, ${imgSize}`;
+                this.element.style.backgroundPosition = `top left, top left, ${imgPos}`;
+                this.element.style.backgroundRepeat = `repeat, repeat, ${imgRepeat}`;
             } else {
                 this.element.style.backgroundImage = gridPattern;
                 this.element.style.backgroundSize = `${cellSize}px ${cellSize}px`;
@@ -182,11 +187,11 @@ export class Stage implements StageHost, StageInteractionHost {
             }
         } else {
             if (this.backgroundImage) {
-                // Runtime oder kein Gitter: nur Hintergrundbild
+                const isTile = this.backgroundImageMode === 'tile';
                 this.element.style.backgroundImage = `url("${this.backgroundImage}")`;
-                this.element.style.backgroundSize = 'cover';
-                this.element.style.backgroundPosition = 'center';
-                this.element.style.backgroundRepeat = 'no-repeat';
+                this.element.style.backgroundSize = isTile ? 'auto' : 'cover';
+                this.element.style.backgroundPosition = isTile ? 'top left' : 'center';
+                this.element.style.backgroundRepeat = isTile ? 'repeat' : 'no-repeat';
             } else {
                 this.element.style.backgroundImage = 'none';
                 this.element.style.backgroundSize = '';
