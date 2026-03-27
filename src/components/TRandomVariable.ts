@@ -9,7 +9,7 @@ export class TRandomVariable extends TWindow {
     public isInteger: boolean = true;
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 3, 1);
+        super(name, x, y, 4, 2);
         this.isVariable = true;
         this.style.backgroundColor = '#607d8b'; // Blue Grey for Random
         this.style.borderColor = '#455a64';

@@ -8,7 +8,7 @@ export class TRangeVariable extends TWindow {
     public max: number = 100;
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 3, 1);
+        super(name, x, y, 4, 2);
         this.isVariable = true;
         this.style.backgroundColor = '#2196f3'; // Blue for Range
         this.style.borderColor = '#1976d2';

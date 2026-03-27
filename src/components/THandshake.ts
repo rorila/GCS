@@ -32,7 +32,7 @@ export class THandshake extends TWindow {
     public onEvent: ((eventName: string, data?: any) => void) | null = null;
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 4, 1);
+        super(name, x, y, 4, 2);
         this.style.backgroundColor = '#5c6bc0';  // Indigo
         this.style.borderColor = '#3949ab';
         this.style.borderWidth = 2;

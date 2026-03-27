@@ -7,7 +7,7 @@ export class TTriggerVariable extends TWindow {
     public triggerValue: any = 1;
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 3, 1);
+        super(name, x, y, 4, 2);
         this.isVariable = true;
         this.style.backgroundColor = '#f44336'; // Red for Trigger
         this.style.borderColor = '#d32f2f';

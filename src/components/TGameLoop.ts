@@ -31,7 +31,7 @@ export class TGameLoop extends TWindow {
     private gridConfig: GridConfig | null = null;
 
     constructor(name: string, x: number = 0, y: number = 0) {
-        super(name, x, y, 3, 1);
+        super(name, x, y, 4, 2);
         this.style.backgroundColor = '#2196f3';
         this.style.borderColor = '#1565c0';
         this.style.borderWidth = 2;

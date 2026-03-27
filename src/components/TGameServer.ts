@@ -22,7 +22,7 @@ export class TGameServer extends TWindow implements IRuntimeComponent {
     private eventCallback: ((eventName: string, data?: any) => void) | null = null;
 
     constructor(name: string, x: number = 0, y: number = 0) {
-        super(name, x, y, 3, 1);
+        super(name, x, y, 4, 2);
 
         // Visual style - purple like multiplayer theme
         this.style.backgroundColor = '#673ab7';

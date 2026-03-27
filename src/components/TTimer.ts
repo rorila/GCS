@@ -13,7 +13,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
     public onEvent: ((eventName: string) => void) | null = null;
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 3, 1);
+        super(name, x, y, 4, 2);
         this.isVariable = true;
         this.style.backgroundColor = '#4caf50';
         this.style.borderColor = '#2e7d32';

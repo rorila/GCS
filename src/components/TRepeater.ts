@@ -26,7 +26,7 @@ export class TRepeater extends TWindow {
     private onTimeoutCallback: (() => void) | null = null;
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 3, 1);
+        super(name, x, y, 4, 2);
         this.style.backgroundColor = '#ff9800';  // Orange
         this.style.borderColor = '#e65100';
         this.style.borderWidth = 2;

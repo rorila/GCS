@@ -26,7 +26,7 @@ export class TInputController extends TWindow implements IRuntimeComponent {
     public _instanceId = Math.random().toString(36).substr(2, 5);
 
     constructor(name: string, x: number = 0, y: number = 0) {
-        super(name, x, y, 3, 1);
+        super(name, x, y, 4, 2);
         // Visual indicator style
         this.style.backgroundColor = '#9c27b0';
         this.style.borderColor = '#6a1b9a';

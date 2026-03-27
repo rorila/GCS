@@ -6,7 +6,7 @@ export class TListVariable extends TWindow {
     public items: any[] = [];
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 3, 2);
+        super(name, x, y, 4, 2);
         this.isVariable = true;
         this.style.backgroundColor = '#9c27b0'; // Purple for List
         this.style.borderColor = '#7b1fa2';

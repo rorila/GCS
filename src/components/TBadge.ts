@@ -13,7 +13,7 @@ export class TBadge extends TWindow {
 
     constructor(name: string = 'Badge', x: number = 0, y: number = 0) {
         // Standardgröße: 3 Zellen breit, 1 Zelle hoch
-        super(name, x, y, 3, 1);
+        super(name, x, y, 4, 2);
 
         this.style.borderRadius = 4;
         this.style.borderWidth = 0;

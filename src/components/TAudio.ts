@@ -11,7 +11,7 @@ export class TAudio extends TWindow implements IRuntimeComponent, IInspectable {
     public preload: boolean = true;
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 3, 1);
+        super(name, x, y, 4, 2);
         this.isVariable = true;
 
         // Visibility & Scoping Meta-Flags

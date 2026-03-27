@@ -1,3 +1,12 @@
+## [3.29.1] - 2026-03-27
+### Improved
+- **Inspector-Bereinigung für unsichtbare Komponenten** (`TComponent.ts`):
+  - Service-Komponenten und Variablen (`isHiddenInRun = true`) zeigen im Inspector keine rein visuellen Property-Gruppen mehr an (STIL, GLOW-EFFEKT, TYPOGRAFIE, INTERAKTION, GEOMETRIE). Nur noch funktional relevante Gruppen (IDENTITÄT, komponentenspezifische) werden angezeigt.
+  - Betrifft 22 Komponenten automatisch über Vererbung.
+- **Vergrößerte Darstellung unsichtbarer Komponenten**:
+  - Standardgröße von 3×1 auf 4×2 Grid-Einheiten erhöht für bessere Lesbarkeit der Komponentennamen auf der Stage.
+  - Betrifft: TTimer, TRepeater, TInputController, TGameServer, TGameLoop, TAudio, TTriggerVariable, TThresholdVariable, TRangeVariable, TRandomVariable, THeartbeat, THandshake, TListVariable, TBadge.
+
 ## [3.29.0] - 2026-03-26
 ### Added
 - **Object Pool Pattern für dynamische Sprites** (`TSpriteTemplate.ts`, `SpritePool.ts`):

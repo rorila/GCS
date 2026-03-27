@@ -39,7 +39,7 @@ export class THeartbeat extends TWindow {
     public onEvent: ((eventName: string, data?: any) => void) | null = null;
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 4, 1);
+        super(name, x, y, 4, 2);
         this.style.backgroundColor = '#e91e63';  // Pink
         this.style.borderColor = '#c2185b';
         this.style.borderWidth = 2;

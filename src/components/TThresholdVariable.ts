@@ -10,7 +10,7 @@ export class TThresholdVariable extends TWindow {
     public comparison: ThresholdComparison = '>=';
 
     constructor(name: string, x: number, y: number) {
-        super(name, x, y, 3, 1);
+        super(name, x, y, 4, 2);
         this.isVariable = true;
         this.style.backgroundColor = '#ff9800'; // Orange for Threshold
         this.style.borderColor = '#f57c00';
