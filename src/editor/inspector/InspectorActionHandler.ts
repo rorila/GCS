@@ -8,6 +8,7 @@ import { UseCaseManager } from '../../utils/UseCaseManager';
 import { mediatorService, MediatorEvents } from '../../services/MediatorService';
 import { Logger } from '../../utils/Logger';
 import { VariablePickerDialog } from './VariablePickerDialog';
+import { MediaPickerDialog } from './MediaPickerDialog';
 import { projectStore } from '../../services/ProjectStore';
 
 /**
@@ -39,6 +40,12 @@ export class InspectorActionHandler {
                 break;
             case 'browseImage':
                 await this.handleBrowseImage(buttonDef, selectedObject);
+                break;
+            case 'browseAudio':
+                await this.handleBrowseAudio(buttonDef, selectedObject);
+                break;
+            case 'browseVideo':
+                await this.handleBrowseVideo(buttonDef, selectedObject);
                 break;
             case 'openTaskEditor':
                 this.handleOpenTaskEditor(buttonDef, selectedObject);
@@ -148,15 +155,46 @@ export class InspectorActionHandler {
 
     private async handleBrowseImage(buttonDef: any, obj: any): Promise<void> {
         const propName = buttonDef.property || buttonDef.actionData?.property;
-        InspectorActionHandler.logger.info('Opening image browser for:', propName);
+        InspectorActionHandler.logger.info('Opening image picker for:', propName);
 
-        // Simple prompt for now, will integrate with DialogManager in next phase
-        const newPath = prompt('Bildpfad eingeben:', obj[propName] || '');
-        if (newPath !== null) {
-            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: newPath });
+        const chosen = await MediaPickerDialog.show({
+            mode: 'image',
+            currentValue: obj[propName] || ''
+        });
+        if (chosen !== null) {
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: chosen });
             if (propName === 'src' && 'backgroundImage' in obj) {
-                projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'backgroundImage', value: newPath });
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'backgroundImage', value: chosen });
             }
+            this.host.update(obj);
+        }
+    }
+
+    private async handleBrowseAudio(buttonDef: any, obj: any): Promise<void> {
+        const propName = buttonDef.property || buttonDef.actionData?.property;
+        InspectorActionHandler.logger.info('Opening audio picker for:', propName);
+
+        const chosen = await MediaPickerDialog.show({
+            mode: 'audio',
+            currentValue: obj[propName] || ''
+        });
+        if (chosen !== null) {
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: chosen });
+            this.host.update(obj);
+        }
+    }
+
+    private async handleBrowseVideo(buttonDef: any, obj: any): Promise<void> {
+        const propName = buttonDef.property || buttonDef.actionData?.property;
+        InspectorActionHandler.logger.info('Opening video picker for:', propName);
+
+        const chosen = await MediaPickerDialog.show({
+            mode: 'video',
+            currentValue: obj[propName] || ''
+        });
+        if (chosen !== null) {
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: propName, value: chosen });
+            this.host.update(obj);
         }
     }
 

@@ -1000,8 +1000,52 @@ export class InspectorRenderer {
                     {
                         className: 'TButton',
                         name: `${prop.name}BrowseBtn`,
-                        caption: '...',
+                        caption: '🖼️',
                         action: 'browseImage',
+                        actionData: { property: prop.name, inputName: inputName },
+                        style: { width: '32px', padding: '4px', marginTop: '0' }
+                    }
+                ]
+            });
+        } else if (prop.type === 'audio_picker') {
+            target.push({
+                className: 'TPanel',
+                name: `${prop.name}Wrapper`,
+                style: { display: 'flex', gap: '4px', marginBottom: '8px', padding: '0', flex: 1 },
+                children: [
+                    {
+                        className: 'TEdit',
+                        name: inputName,
+                        text: binding,
+                        style: { flex: 1, marginBottom: '0' }
+                    },
+                    {
+                        className: 'TButton',
+                        name: `${prop.name}BrowseBtn`,
+                        caption: '🔊',
+                        action: 'browseAudio',
+                        actionData: { property: prop.name, inputName: inputName },
+                        style: { width: '32px', padding: '4px', marginTop: '0' }
+                    }
+                ]
+            });
+        } else if (prop.type === 'video_picker') {
+            target.push({
+                className: 'TPanel',
+                name: `${prop.name}Wrapper`,
+                style: { display: 'flex', gap: '4px', marginBottom: '8px', padding: '0', flex: 1 },
+                children: [
+                    {
+                        className: 'TEdit',
+                        name: inputName,
+                        text: binding,
+                        style: { flex: 1, marginBottom: '0' }
+                    },
+                    {
+                        className: 'TButton',
+                        name: `${prop.name}BrowseBtn`,
+                        caption: '🎬',
+                        action: 'browseVideo',
                         actionData: { property: prop.name, inputName: inputName },
                         style: { width: '32px', padding: '4px', marginTop: '0' }
                     }

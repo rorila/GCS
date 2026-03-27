@@ -49,7 +49,7 @@ export class TSplashScreen extends TPanel {
             ...filtered,
             { name: 'duration', label: 'Duration (ms)', type: 'number', group: 'Splash' },
             { name: 'autoHide', label: 'Auto Hide', type: 'boolean', group: 'Splash' },
-            { name: 'videoSource', label: 'Background Video', type: 'string', group: 'Splash' },
+            { name: 'videoSource', label: 'Background Video', type: 'video_picker', group: 'Splash' },
             { name: 'fadeSpeed', label: 'Fade Speed', type: 'number', group: 'Splash' }
         ];
     }

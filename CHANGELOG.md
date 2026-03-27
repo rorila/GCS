@@ -1,4 +1,11 @@
 ## [3.29.1] - 2026-03-27
+### Added
+- **Media-Picker Dialoge** (`MediaPickerDialog.ts`):
+  - **Image-Picker:** Thumbnail-Grid (4 Spalten) mit Ordner-Navigation und Breadcrumb. Ersetzt `prompt()`.
+  - **Audio-Picker:** Dateiliste mit ▶️ Play / ⏹ Stop Buttons und Inline-Playback.
+  - **Video-Picker:** Dateiliste mit ▶️ Vorschau und Inline-Video-Player.
+  - Neues Manifest-Script: `scripts/generate-media-manifest.ts` scannt `public/images/`, `audio/`, `videos/`.
+- **Neue Property-Types** (`InspectorTypes.ts`): `audio_picker`, `video_picker` im Union-Type.
 ### Improved
 - **Inspector-Bereinigung für unsichtbare Komponenten** (`TComponent.ts`):
   - Service-Komponenten und Variablen (`isHiddenInRun = true`) zeigen im Inspector keine rein visuellen Property-Gruppen mehr an (STIL, GLOW-EFFEKT, TYPOGRAFIE, INTERAKTION, GEOMETRIE). Nur noch funktional relevante Gruppen (IDENTITÄT, komponentenspezifische) werden angezeigt.

@@ -28,7 +28,7 @@ export class TAudio extends TWindow implements IRuntimeComponent, IInspectable {
     public getInspectorProperties(): TPropertyDef[] {
         return [
             ...super.getInspectorProperties(),
-            { name: 'src', label: 'Audio Datei (URL/Base64)', type: 'string', group: 'Audio', hint: 'Pfad oder Base64 (wird beim Export eingebettet)' },
+            { name: 'src', label: 'Audio Datei', type: 'audio_picker', group: 'Audio', hint: 'Pfad oder Base64 (wird beim Export eingebettet)' },
             { name: 'volume', label: 'Lautstärke (0.0-1.0)', type: 'number', group: 'Audio' },
             { name: 'loop', label: 'Wiederholen (Loop)', type: 'boolean', group: 'Audio' },
             { name: 'preload', label: 'Preload in RAM (Zero-Latency)', type: 'boolean', group: 'Audio', hint: 'Sollte für Soundeffekte immer an sein' }

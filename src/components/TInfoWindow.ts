@@ -194,7 +194,7 @@ export class TInfoWindow extends TWindow {
             // Content
             { name: 'title', label: 'Title', type: 'string', group: 'Content' },
             { name: 'message', label: 'Message', type: 'string', group: 'Content' },
-            { name: 'icon', label: 'Icon', type: 'string', group: 'Content' },
+            { name: 'icon', label: 'Icon', type: 'image_picker', group: 'Content' },
             { name: 'iconSize', label: 'Icon Size', type: 'number', group: 'Content' },
 
             // Buttons

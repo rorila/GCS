@@ -1,0 +1,83 @@
+{
+  "images": {
+    "backgrounds": [
+      "Modernes Pong-Design mit lebendigen Farben.png"
+    ],
+    "Birnen": [
+      "Dunkle Birne.png",
+      "Helle Birne.png"
+    ],
+    "uploads/Avatars_allgemein": [
+      "Affe.png",
+      "Elefant.png",
+      "Krokodil.png",
+      "Löwe.png",
+      "Panda.png",
+      "Papagei.png",
+      "Zebra.png"
+    ],
+    "uploads/family_portrais": [
+      "Default.png",
+      "Elin.png",
+      "Helena.png",
+      "Jan.png",
+      "Leona.png",
+      "Liliy.png",
+      "Macel.png",
+      "Merle.png",
+      "Mia.png",
+      "Miria.png",
+      "Rolf.png",
+      "Ruven.png",
+      "Silvia.png",
+      "Soeren.png",
+      "Torben.png",
+      "max.png",
+      "wiebke.png"
+    ],
+    "uploads/memory Tierbilder für kleine Kinder": [
+      "ai-generated-7734145_640.jpg",
+      "ai-generated-8788519_640.jpg",
+      "ai-generated-9525907_640.jpg",
+      "animal-8936905_640.jpg",
+      "animal-9079820_640.jpg",
+      "bear-7720811_1280.jpg",
+      "bear-8001665_640.png",
+      "butterfly-5153470_640.png",
+      "cartoon-chicken-7356485_640.png",
+      "cat-5992580_640.png",
+      "cat-7178747_640.jpg",
+      "cat-7347316_640.png",
+      "cat-7563332_640.png",
+      "christmas-8380345_640.png",
+      "dog-3431913_640.jpg",
+      "dolphin-41436_640.png",
+      "elephant-6396804_640.png",
+      "elephant-7112621_640.png",
+      "hippopotamus-7112622_640.png",
+      "hornet-151003_640.png",
+      "ladybug-156624_640.png",
+      "lamb-1388937_640.png",
+      "monkey-6029608_640.jpg",
+      "parrot-1417286_640.png",
+      "penguin-150563_640.png",
+      "rattlesnake-159135_640.png",
+      "seagull-7282992_640.png",
+      "seal-150018_640.png",
+      "shark-2317422_640.png",
+      "tiger-160601_640.png",
+      "toy-8011933_640.png",
+      "zebra-6029606_640.png"
+    ],
+    "": []
+  },
+  "audio": {
+    "": [
+      "ball_lost.wav",
+      "pingpong-hit.wav"
+    ]
+  },
+  "videos": {
+    "": []
+  }
+}

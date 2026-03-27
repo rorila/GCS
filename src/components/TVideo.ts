@@ -85,7 +85,7 @@ export class TVideo extends TPanel {
 
         return [
             ...filtered,
-            { name: 'videoSource', label: 'Video Source', type: 'string', group: 'Video' },
+            { name: 'videoSource', label: 'Video Source', type: 'video_picker', group: 'Video' },
             {
                 name: 'objectFit', label: 'Object Fit', type: 'select', group: 'Video',
                 options: ['cover', 'contain', 'fill', 'none']
