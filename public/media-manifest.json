@@ -1,12 +1,5 @@
 {
   "images": {
-    "backgrounds": [
-      "Modernes Pong-Design mit lebendigen Farben.png"
-    ],
-    "Birnen": [
-      "Dunkle Birne.png",
-      "Helle Birne.png"
-    ],
     "Avatars_allgemein": [
       "Affe.png",
       "Elefant.png",
@@ -15,6 +8,13 @@
       "Panda.png",
       "Papagei.png",
       "Zebra.png"
+    ],
+    "backgrounds": [
+      "Modernes Pong-Design mit lebendigen Farben.png"
+    ],
+    "Birnen": [
+      "Dunkle Birne.png",
+      "Helle Birne.png"
     ],
     "family_portrais": [
       "Default.png",
