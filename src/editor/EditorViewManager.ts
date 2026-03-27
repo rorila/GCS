@@ -539,7 +539,8 @@ export class EditorViewManager {
             { id: 'Actions', label: 'Aktionen', emoji: '🎬' },
             { id: 'Variables', label: 'Variablen', emoji: '📊' },
             { id: 'FlowCharts', label: 'Ablaufdiagramme', emoji: '🗺️' },
-            { id: 'Stages', label: 'Stages', emoji: '🎬' }
+            { id: 'Stages', label: 'Stages', emoji: '🎬' },
+            { id: 'Import', label: 'Import', emoji: '📥' }
         ];
 
         managers.forEach(m => {
@@ -559,49 +560,218 @@ export class EditorViewManager {
         const content = document.createElement('div');
         content.className = 'management-content';
 
-        const stage = this.host.getActiveStage();
-        if (stage) {
-            const managerList = mediatorService.getManagersForStage(stage.id);
-            const activeManager = managerList.find(m => m.name === this.selectedManager);
+        // ─────────────────────────────────────────────
+        // Import-Tab: Custom-Rendering
+        // ─────────────────────────────────────────────
+        if (this.selectedManager === 'Import') {
+            this.renderImportView(content);
+        } else {
+            const stage = this.host.getActiveStage();
+            if (stage) {
+                const managerList = mediatorService.getManagersForStage(stage.id);
+                const activeManager = managerList.find(m => m.name === this.selectedManager);
 
-            if (activeManager) {
-                // We need a way to render the TTable in a regular HTML element
-                // Since TTable uses SVG/Canvas/DOM via Stage.renderTable, 
-                // we'll use a hidden stage or direct table rendering.
-                // For now, let's create a temporary container and use the Stage renderer.
+                if (activeManager) {
+                    const tableContainer = document.createElement('div');
+                    tableContainer.style.flex = '1';
+                    tableContainer.style.position = 'relative';
+                    content.appendChild(tableContainer);
 
-                const tableContainer = document.createElement('div');
-                tableContainer.style.flex = '1';
-                tableContainer.style.position = 'relative';
-                content.appendChild(tableContainer);
+                    const tableEl = document.createElement('div');
+                    tableEl.id = `mgr-${activeManager.id}`;
+                    tableEl.style.width = '100%';
+                    tableEl.style.height = '100%';
+                    tableContainer.appendChild(tableEl);
 
-                // Re-purpose the Stage rendering logic for this container
-                // We'll create a "Mini-Stage" for the table if needed, or just let Stage.renderTable handle it if we provide a parent.
-                // Actually, TTable/TObjectList are components that normally render into the main Stage.
-                // We want them here. 
+                    Stage.renderTable(tableEl, activeManager as any, (_, event, data) => {
+                        if (event === 'onSelect' && data) {
+                            this.handleManagerRowClick(this.selectedManager, data.data);
+                        }
+                    });
 
-                const tableEl = document.createElement('div');
-                tableEl.id = `mgr-${activeManager.id}`;
-                tableEl.style.width = '100%';
-                tableEl.style.height = '100%';
-                tableContainer.appendChild(tableEl);
-
-                // Render the table with event callback
-                Stage.renderTable(tableEl, activeManager as any, (_, event, data) => {
-                    if (event === 'onSelect' && data) {
-                        this.handleManagerRowClick(this.selectedManager, data.data);
-                    }
-                });
-
-                // Add title
-                const title = document.createElement('h2');
-                title.textContent = managers.find(m => m.id === this.selectedManager)?.label || '';
-                title.style.margin = '0 0 1rem 0';
-                content.insertBefore(title, tableContainer);
+                    const title = document.createElement('h2');
+                    title.textContent = managers.find(m => m.id === this.selectedManager)?.label || '';
+                    title.style.margin = '0 0 1rem 0';
+                    content.insertBefore(title, tableContainer);
+                }
             }
         }
 
         panel.appendChild(content);
+    }
+
+    /**
+     * Rendert die Import-Ansicht: Textarea + Validierung + Laden/Kopieren-Buttons
+     */
+    private renderImportView(parent: HTMLElement): void {
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'display:flex;flex-direction:column;gap:16px;padding:16px;height:100%;box-sizing:border-box;';
+
+        // Header
+        const title = document.createElement('h2');
+        title.textContent = '📥 Projekt importieren';
+        title.style.cssText = 'margin:0;color:#fff;font-size:16px;';
+        wrapper.appendChild(title);
+
+        const hint = document.createElement('div');
+        hint.textContent = 'Füge ein Projekt-JSON per Ctrl+V in das Textfeld ein, um es zu laden.';
+        hint.style.cssText = 'font-size:12px;color:#888;margin-bottom:4px;';
+        wrapper.appendChild(hint);
+
+        // Textarea
+        const textarea = document.createElement('textarea');
+        textarea.placeholder = 'Projekt-JSON hier einfügen (Ctrl+V)...\n\n{\n  "name": "MeinProjekt",\n  "stages": [...]\n}';
+        textarea.style.cssText = 'flex:1;min-height:200px;background:#1a1a2e;color:#e0e0e0;border:1px solid #444;border-radius:8px;padding:12px;font-family:Consolas,Monaco,monospace;font-size:12px;resize:none;outline:none;transition:border-color 0.2s;';
+        textarea.onfocus = () => { textarea.style.borderColor = '#89b4fa'; };
+        textarea.onblur = () => { textarea.style.borderColor = '#444'; };
+        wrapper.appendChild(textarea);
+
+        // Validierungsstatus
+        const statusBar = document.createElement('div');
+        statusBar.style.cssText = 'padding:10px 14px;border-radius:6px;font-size:12px;transition:all 0.2s;';
+        this.updateImportStatus(statusBar, 'waiting');
+        wrapper.appendChild(statusBar);
+
+        // Button-Zeile
+        const btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display:flex;gap:10px;';
+
+        // 📥 Laden-Button
+        const loadBtn = document.createElement('button');
+        loadBtn.textContent = '📥 Projekt laden';
+        loadBtn.disabled = true;
+        loadBtn.style.cssText = 'flex:1;padding:10px 16px;background:#1e3a5f;color:#4fc3f7;border:1px solid #2a5a8f;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;transition:all 0.2s;opacity:0.5;';
+        btnRow.appendChild(loadBtn);
+
+        // 📋 Kopieren-Button
+        const copyBtn = document.createElement('button');
+        copyBtn.textContent = '📋 Aktuelles Projekt kopieren';
+        copyBtn.style.cssText = 'flex:1;padding:10px 16px;background:#2a2a3e;color:#ccc;border:1px solid #444;border-radius:6px;cursor:pointer;font-size:13px;transition:all 0.2s;';
+        copyBtn.onmouseenter = () => { copyBtn.style.borderColor = '#89b4fa'; copyBtn.style.background = '#3a3a4e'; };
+        copyBtn.onmouseleave = () => { copyBtn.style.borderColor = '#444'; copyBtn.style.background = '#2a2a3e'; };
+        copyBtn.onclick = async () => {
+            try {
+                const projectJson = JSON.stringify(this.host.project, null, 2);
+                await navigator.clipboard.writeText(projectJson);
+                const origText = copyBtn.textContent;
+                copyBtn.textContent = '✅ Kopiert!';
+                copyBtn.style.borderColor = '#a6e3a1';
+                setTimeout(() => {
+                    copyBtn.textContent = origText;
+                    copyBtn.style.borderColor = '#444';
+                }, 2000);
+            } catch (e) {
+                alert('Fehler beim Kopieren: ' + e);
+            }
+        };
+        btnRow.appendChild(copyBtn);
+
+        wrapper.appendChild(btnRow);
+        parent.appendChild(wrapper);
+
+        // --- Validierungs-Logik ---
+        let parsedProject: any = null;
+        let validationTimer: number | undefined;
+
+        textarea.oninput = () => {
+            clearTimeout(validationTimer);
+            validationTimer = window.setTimeout(() => {
+                const text = textarea.value.trim();
+                if (!text) {
+                    this.updateImportStatus(statusBar, 'waiting');
+                    loadBtn.disabled = true;
+                    loadBtn.style.opacity = '0.5';
+                    parsedProject = null;
+                    return;
+                }
+
+                try {
+                    const parsed = JSON.parse(text);
+
+                    // Prüfe ob es ein GCS-Projekt ist
+                    if (!parsed.stages || !Array.isArray(parsed.stages)) {
+                        this.updateImportStatus(statusBar, 'error', 'Kein gültiges GCS-Projekt: "stages" Array fehlt.');
+                        loadBtn.disabled = true;
+                        loadBtn.style.opacity = '0.5';
+                        parsedProject = null;
+                        return;
+                    }
+
+                    // Stats sammeln
+                    const name = parsed.name || 'Unbenannt';
+                    const stageCount = parsed.stages.length;
+                    let componentCount = 0;
+                    let taskCount = 0;
+                    parsed.stages.forEach((s: any) => {
+                        componentCount += (s.objects || []).length;
+                        taskCount += (s.tasks || s.Tasks || []).length;
+                    });
+
+                    parsedProject = parsed;
+                    this.updateImportStatus(statusBar, 'valid',
+                        `Gültiges Projekt: "${name}" (${stageCount} Stage${stageCount !== 1 ? 's' : ''}, ${componentCount} Komponenten, ${taskCount} Tasks)`
+                    );
+                    loadBtn.disabled = false;
+                    loadBtn.style.opacity = '1';
+
+                } catch (e: any) {
+                    this.updateImportStatus(statusBar, 'error', `JSON-Syntaxfehler: ${e.message}`);
+                    loadBtn.disabled = true;
+                    loadBtn.style.opacity = '0.5';
+                    parsedProject = null;
+                }
+            }, 300); // Debounce 300ms
+        };
+
+        // --- Laden-Button Handler ---
+        loadBtn.onclick = () => {
+            if (!parsedProject) return;
+            const name = parsedProject.name || 'Unbenannt';
+            if (!confirm(`Achtung: Das aktuelle Projekt wird durch "${name}" ersetzt.\n\nFortfahren?`)) return;
+
+            try {
+                (this.host as any).loadProject(parsedProject);
+                textarea.value = '';
+                this.updateImportStatus(statusBar, 'loaded', `Projekt "${name}" erfolgreich geladen!`);
+                loadBtn.disabled = true;
+                loadBtn.style.opacity = '0.5';
+                parsedProject = null;
+            } catch (e: any) {
+                this.updateImportStatus(statusBar, 'error', `Fehler beim Laden: ${e.message}`);
+            }
+        };
+    }
+
+    /**
+     * Aktualisiert die Statusanzeige im Import-Tab.
+     */
+    private updateImportStatus(el: HTMLElement, status: 'waiting' | 'valid' | 'error' | 'loaded', message?: string): void {
+        switch (status) {
+            case 'waiting':
+                el.style.background = 'rgba(255,255,255,0.03)';
+                el.style.border = '1px solid #333';
+                el.style.color = '#666';
+                el.innerHTML = '⏳ Warte auf Eingabe...';
+                break;
+            case 'valid':
+                el.style.background = 'rgba(166,227,161,0.1)';
+                el.style.border = '1px solid rgba(166,227,161,0.4)';
+                el.style.color = '#a6e3a1';
+                el.innerHTML = `✅ ${message}`;
+                break;
+            case 'error':
+                el.style.background = 'rgba(243,139,168,0.1)';
+                el.style.border = '1px solid rgba(243,139,168,0.4)';
+                el.style.color = '#f38ba8';
+                el.innerHTML = `❌ ${message}`;
+                break;
+            case 'loaded':
+                el.style.background = 'rgba(137,180,250,0.1)';
+                el.style.border = '1px solid rgba(137,180,250,0.4)';
+                el.style.color = '#89b4fa';
+                el.innerHTML = `🎉 ${message}`;
+                break;
+        }
     }
 
     private handleManagerRowClick(managerId: string, row: any) {

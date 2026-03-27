@@ -1,5 +1,10 @@
 ## [3.29.1] - 2026-03-27
 ### Added
+- **Import-Tab** in der Toolbox-Sidebar (`EditorViewManager.ts`):
+  - Textarea zum Einfügen von Projekt-JSON (Ctrl+V)
+  - Live-Validierung: JSON-Syntax + GCS-Projektstruktur (Name, Stages, Komponenten, Tasks)
+  - "📥 Laden" Button (mit Bestätigungsdialog)
+  - "📋 Aktuelles Projekt kopieren" Button (JSON → Zwischenablage)
 - **Media-Picker Dialoge** (`MediaPickerDialog.ts`):
   - **Image-Picker:** Thumbnail-Grid (4 Spalten) mit Ordner-Navigation und Breadcrumb. Ersetzt `prompt()`.
   - **Audio-Picker:** Dateiliste mit ▶️ Play / ⏹ Stop Buttons und Inline-Playback.
