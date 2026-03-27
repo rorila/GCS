@@ -500,7 +500,11 @@ export class StageInteractionManager {
 
     private handleKeyDown(e: KeyboardEvent) {
         if (this.host.runMode) return;
-        if (e.ctrlKey && e.key === 'a') {
+        // Guard: Ctrl-Shortcuts nicht abfangen wenn Input/Textarea/Select fokussiert ist
+        const activeEl = document.activeElement as HTMLElement | null;
+        const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT' || activeEl.isContentEditable);
+
+        if (e.ctrlKey && e.key === 'a' && !isInputFocused) {
             e.preventDefault();
             this.host.element.querySelectorAll('.game-object').forEach(el => {
                 const id = el.getAttribute('data-id');
@@ -508,8 +512,8 @@ export class StageInteractionManager {
             });
             if (this.host.onSelectCallback) this.host.onSelectCallback(Array.from(this.host.selectedIds));
         }
-        if (e.ctrlKey && e.key === 'c' && this.host.selectedIds.size > 0) { e.preventDefault(); this.copySelection(); }
-        if (e.ctrlKey && e.key === 'v') { e.preventDefault(); this.pasteSelection(); }
+        if (e.ctrlKey && e.key === 'c' && !isInputFocused && this.host.selectedIds.size > 0) { e.preventDefault(); this.copySelection(); }
+        if (e.ctrlKey && e.key === 'v' && !isInputFocused) { e.preventDefault(); this.pasteSelection(); }
         if (e.key === 'Escape' && this.isPlacing) this.cancelPlacing();
         if (e.key === 'Delete' && this.host.selectedIds.size > 0) {
             e.preventDefault();
