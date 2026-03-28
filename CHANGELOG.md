@@ -9,6 +9,15 @@
   - `public/runtime-standalone.js` neu kompiliert: Alle Render-Optimierungen aus dem Editor (Jitter-Fix, transparente Bild-Hintergründe statt roter Artefakte, Ghost-Blink Fix bei Full Renders) greifen nun 1:1 im exportierten Spiel.
 - **Bugfix: TSpriteTemplate Sichtbarkeit**:
   - `TSpriteTemplate` tauchte im Run-Modus fehlerhaft auf der Bühne auf. Ursache war die Methode `updateSpritePositions(sprites)` im `StageRenderer`, die durch den Performance-Fast-Path das Flag `isHiddenInRun` ignorierte und das CSS `display`-Property hart auf `flex` zurücksetzte. Die Sichtbarkeitsprüfung berücksichtigt jetzt `isHiddenInRun` strikt auch im 60fps-Loop. (Bundle neu erzeugt).
+- **Feature: Konfigurierbare Hitboxen für Sprites** (`TSprite.ts`, `StageRenderer.ts`):
+  - Sprites verfügen jetzt über eine optionale, frei konfigurierbare Hitbox (`customHitbox`), die von der visuellen Größe abweichen kann.
+  - Neue Inspector-Eigenschaften: `hitboxOffsetX`, `hitboxOffsetY`, `hitboxWidth`, `hitboxHeight` sowie `hitboxShape` (`auto`, `rect`, `circle`).
+  - Eine kreisförmige Kollisionsabfrage (`circle`) berechnet echte radiale Distanzen (anstatt AABB/Rechtecke). Im Falle von `rect` vs. `circle` wird eine präzise AABB-zu-Kreis-Distanzprüfung durchgeführt.
+  - Sämtliche Boundary- (`isWithinBounds`) und Kollisions-Logik (`checkCollision`, `getCollisionOverlap`) basiert nun auf der logischen Hitbox und nicht mehr hart verdrahtet auf `x`/`width`.
+  - Im Editor (Bau-Modus) wird eine benutzerdefinierte Hitbox durch einen roten, gestrichelten Rahmen visuell dargestellt, damit der Nutzer die Offsets pixelgenau prüfen kann. Zur Laufzeit ist die Hitbox-Skizze unsichtbar. Aufgenommen in das Standalone-Bundle.
+- **Architektur & Feature: Globales Undo/Redo an UI angeschlossen**:
+  - Die im Hintergrund bereits mitlaufenden Snapshots (`SnapshotManager`) wurden systemweit ins User-Interface überführt. Dazu wurde eine neue Menü-Kategorie "Bearbeiten" generiert (`menu_bar.json`), die die Buttons "Rückgängig" (`Strg+Z`) und "Wiederholen" (`Strg+Y`) enthält.
+  - Der alte, fehleranfällige `EditorUndoManager` sowie der `ChangeRecorder` wurden abgekoppelt; das Betätigen der Buttons oder Hotkeys erzwingt nun ein exaktes Zurückladen (inkl. Neu-Rendern) von vollständigen JSON-Kopien (Project SSoT). Fehlerhafte Ansichten durch desynchronisierte Zustände gehören damit der Vergangenheit an.
 - **GPU-Textur-Compositing für Image-Sprites** (`StageRenderer.ts`):
   - Sprite-Bilder werden nicht mehr als CSS `background-image` gerendert (CPU-Rasterung bei translate3d), sondern als natives `<img class="sprite-image-layer">` Tag (eigene GPU-VRAM-Textur, hardwarebeschleunigtes Compositing).
   - `Math.round()` für translate3d-Koordinaten entfernt: Durch die <img>-Tag-Umstellung sind Subpixel-genaue Positionierungen jetzt jitterfrei möglich.

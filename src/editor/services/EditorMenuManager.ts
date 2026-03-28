@@ -32,6 +32,8 @@ export interface EditorMenuHost {
     getActiveStage(): any;
     loadFromServer(): void;
     startMultiplayer(): void;
+    handleRewind(): void;
+    handleForward(): void;
 }
 
 export class EditorMenuManager {
@@ -80,6 +82,8 @@ export class EditorMenuManager {
             case 'save-as': this.host.saveProjectAs(); break;
             case 'save-dev': this.host.saveProject(); break;
             case 'load': this.host.triggerLoad(); break;
+            case 'undo': this.host.handleRewind(); break;
+            case 'redo': this.host.handleForward(); break;
             case 'export-html': this.host.exportHTML(); break;
             case 'export-html-gzip': this.host.exportHTMLCompressed(); break;
             case 'export-json': this.host.exportJSON(); break;

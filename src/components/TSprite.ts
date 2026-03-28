@@ -26,6 +26,14 @@ export class TSprite extends TWindow {
     private errorX: number = 0;
     private errorY: number = 0;
 
+    // Hitbox Properties
+    public customHitbox: boolean = false;
+    public hitboxShape: 'auto' | 'rect' | 'circle' = 'auto'; // 'auto' means fallback to this.shape
+    public hitboxOffsetX: number = 0;
+    public hitboxOffsetY: number = 0;
+    public hitboxWidth: number = 0; // 0 bedeutet: nutzt this.width
+    public hitboxHeight: number = 0; // 0 bedeutet: nutzt this.height
+
     constructor(name: string, x: number, y: number, width: number, height: number) {
         super(name, x, y, width, height);
         // Default sprite style - visible colored rectangle
@@ -69,7 +77,14 @@ export class TSprite extends TWindow {
             { name: 'shape', label: 'Shape', type: 'select', group: 'Appearance', options: ['rect', 'circle'] },
             { name: 'spriteColor', label: 'Sprite Color', type: 'color', group: 'Appearance' },
             { name: 'backgroundImage', label: 'Sprite Image', type: 'image_picker', group: 'Appearance' },
-            { name: 'objectFit', label: 'Image Fit', type: 'select', group: 'Appearance', options: ['cover', 'contain', 'fill', 'none'] }
+            { name: 'objectFit', label: 'Image Fit', type: 'select', group: 'Appearance', options: ['cover', 'contain', 'fill', 'none'] },
+            // Hitbox group
+            { name: 'customHitbox', label: 'Custom Hitbox', type: 'boolean', group: 'Hitbox' },
+            { name: 'hitboxShape', label: 'Hitbox Shape', type: 'select', group: 'Hitbox', options: ['auto', 'rect', 'circle'], dependsOn: { property: 'customHitbox', value: true } },
+            { name: 'hitboxOffsetX', label: 'Offset X', type: 'number', group: 'Hitbox', dependsOn: { property: 'customHitbox', value: true } },
+            { name: 'hitboxOffsetY', label: 'Offset Y', type: 'number', group: 'Hitbox', dependsOn: { property: 'customHitbox', value: true } },
+            { name: 'hitboxWidth', label: 'Width (0=auto)', type: 'number', group: 'Hitbox', dependsOn: { property: 'customHitbox', value: true } },
+            { name: 'hitboxHeight', label: 'Height (0=auto)', type: 'number', group: 'Hitbox', dependsOn: { property: 'customHitbox', value: true } }
         ];
     }
 
@@ -127,17 +142,65 @@ export class TSprite extends TWindow {
 
 
     /**
-     * Check collision with another sprite using AABB
+     * Ermittelt die logische Hitbox (AABB-Maße und logische Shape).
+     */
+    public getHitbox(): { x: number, y: number, w: number, h: number, shape: 'rect' | 'circle' } {
+        const shape = (this.hitboxShape === 'auto' || !this.hitboxShape) ? this.shape : this.hitboxShape;
+        
+        if (!this.customHitbox) {
+            return { x: this.x, y: this.y, w: this.width, h: this.height, shape };
+        }
+        
+        const w = (this.hitboxWidth && this.hitboxWidth > 0) ? this.hitboxWidth : this.width;
+        const h = (this.hitboxHeight && this.hitboxHeight > 0) ? this.hitboxHeight : this.height;
+        const x = this.x + (this.hitboxOffsetX || 0);
+        const y = this.y + (this.hitboxOffsetY || 0);
+        
+        return { x, y, w, h, shape };
+    }
+
+    /**
+     * Check collision with another sprite using Hitboxes
      */
     public checkCollision(other: TSprite): boolean {
         if (!this.collisionEnabled || !other.collisionEnabled) {
             return false;
         }
 
-        return this.x < other.x + other.width &&
-            this.x + this.width > other.x &&
-            this.y < other.y + other.height &&
-            this.y + this.height > other.y;
+        const hbA = this.getHitbox();
+        const hbB = other.getHitbox();
+
+        if (hbA.shape === 'rect' && hbB.shape === 'rect') {
+            return hbA.x < hbB.x + hbB.w &&
+                   hbA.x + hbA.w > hbB.x &&
+                   hbA.y < hbB.y + hbB.h &&
+                   hbA.y + hbA.h > hbB.y;
+        } else if (hbA.shape === 'circle' && hbB.shape === 'circle') {
+            const rA = hbA.w / 2;
+            const rB = hbB.w / 2;
+            const cxA = hbA.x + rA;
+            const cyA = hbA.y + hbA.h / 2;
+            const cxB = hbB.x + rB;
+            const cyB = hbB.y + hbB.h / 2;
+            const dx = cxA - cxB;
+            const dy = cyA - cyB;
+            return (dx * dx + dy * dy) < ((rA + rB) * (rA + rB));
+        } else {
+            // Mixed: Rect vs Circle
+            const rectHb = hbA.shape === 'rect' ? hbA : hbB;
+            const circleHb = hbA.shape === 'circle' ? hbA : hbB;
+            
+            const r = circleHb.w / 2;
+            const cx = circleHb.x + r;
+            const cy = circleHb.y + circleHb.h / 2;
+            
+            const closestX = Math.max(rectHb.x, Math.min(cx, rectHb.x + rectHb.w));
+            const closestY = Math.max(rectHb.y, Math.min(cy, rectHb.y + rectHb.h));
+            
+            const dx = cx - closestX;
+            const dy = cy - closestY;
+            return (dx * dx + dy * dy) < (r * r);
+        }
     }
 
     /**
@@ -146,10 +209,13 @@ export class TSprite extends TWindow {
     public getCollisionOverlap(other: TSprite): { side: 'left' | 'right' | 'top' | 'bottom', depth: number } | null {
         if (!this.checkCollision(other)) return null;
 
-        const dx = (this.x + this.width / 2) - (other.x + other.width / 2);
-        const dy = (this.y + this.height / 2) - (other.y + other.height / 2);
-        const combinedHalfWidths = (this.width + other.width) / 2;
-        const combinedHalfHeights = (this.height + other.height) / 2;
+        const hbA = this.getHitbox();
+        const hbB = other.getHitbox();
+
+        const dx = (hbA.x + hbA.w / 2) - (hbB.x + hbB.w / 2);
+        const dy = (hbA.y + hbA.h / 2) - (hbB.y + hbB.h / 2);
+        const combinedHalfWidths = (hbA.w + hbB.w) / 2;
+        const combinedHalfHeights = (hbA.h + hbB.h) / 2;
 
         const overlapX = combinedHalfWidths - Math.abs(dx);
         const overlapY = combinedHalfHeights - Math.abs(dy);
@@ -171,11 +237,12 @@ export class TSprite extends TWindow {
      * Check if sprite is within bounds
      */
     public isWithinBounds(maxX: number, maxY: number): { left: boolean; right: boolean; top: boolean; bottom: boolean } {
+        const hb = this.getHitbox();
         return {
-            left: this.x >= 0,
-            right: this.x + this.width <= maxX,
-            top: this.y >= 0,
-            bottom: this.y + this.height <= maxY
+            left: hb.x >= 0,
+            right: hb.x + hb.w <= maxX,
+            top: hb.y >= 0,
+            bottom: hb.y + hb.h <= maxY
         };
     }
 

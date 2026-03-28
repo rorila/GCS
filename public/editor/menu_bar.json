@@ -37,6 +37,24 @@
             ]
         },
         {
+            "id": "edit",
+            "label": "Bearbeiten",
+            "items": [
+                {
+                    "id": "undo",
+                    "label": "Rückgängig (Strg+Z)",
+                    "action": "undo",
+                    "icon": "↩️"
+                },
+                {
+                    "id": "redo",
+                    "label": "Wiederholen (Strg+Y)",
+                    "action": "redo",
+                    "icon": "↪️"
+                }
+            ]
+        },
+        {
             "id": "platform",
             "label": "Plattform",
             "items": [

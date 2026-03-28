@@ -200,6 +200,7 @@ export class SnapshotManager {
 
     /** Leert beide Stacks (z.B. nach Projekt-Laden) */
     public clear(): void {
+        if (this.isRestoring) return;
         this.undoStack = [];
         this.redoStack = [];
         SnapshotManager.logger.debug('Stacks geleert.');

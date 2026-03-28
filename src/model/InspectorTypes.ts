@@ -35,6 +35,7 @@ export interface TPropertyDef {
     controlName?: string; // Custom control name attribute for E2E selectors
     buttonType?: string;  // Button variant: 'primary', 'secondary' etc.
     variable?: string;    // Bound variable name for proxy getters/setters
+    dependsOn?: { property: string; value: any }; // Conditional field visibility
 }
 
 // ─────────────────────────────────────────────

@@ -36,7 +36,6 @@ export interface EditorDataHost {
     stageManager: any;
     commandManager: any;
     menuManager: any;
-    undoManager: any;
     objectStore: any;
 }
 

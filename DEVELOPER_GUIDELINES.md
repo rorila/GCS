@@ -112,7 +112,10 @@ Ausführliche Details findest du in den spezialisierten Dokumenten:
   - **Case-Insensitivity**: Vergleiche Namen immer Case-Insensitive und verwende `.trim()`, um Tippfehler abzufangen.
   - **Bereinigung**: Verlasse dich bei der Datenintegrität auf den `SanitizationService`. Er entfernt automatisch verwaiste Action-Referenzen aus Sequenzen, falls die Definition gelöscht wurde.
 
-- **Stattdessen**: Editoren (wie EditorInteractionManager) müssen über Hilfsfunktionen wie getOriginalObject auf das originale JSON-Objekt im Speicher zugreifen und nur dort spezifische Eigenschaften (wie x, y, width, height) aktualisieren, **bevor** der Autosave angestoßen wird.
+### State & Datenfluss (WICHTIG!)
+- **Single Source of Truth:** `ProjectStore.ts` ist der einzige Weg, das GameProject zu mutieren. Keine direkte Mutation der referenzierten Objekte mehr ohne Aufruf einer `ProjectStore`-Action!
+- **Undo / Redo (Rückgängig):** Der einzige zuständige Manager für Undo/Redo ist der **`SnapshotManager`**. Der alte `ChangeRecorder` oder `EditorUndoManager` ist obsolet. Um einen Snapshot auszulösen bewirke einfach einen Dispatch im `ProjectStore`. Um programmatisch ein Undo auszulösen, verwende die Hooks im `Editor` (`handleRewind()`) oder rufe `.undo()` am `SnapshotManager` auf. Bei jeder Wiederherstellung tauscht der Editor das Projekt tiefgreifend aus (`this.loadProject(JSON)`) anstatt Properties einzeln zu flicken.
+- **Vermeidung redundanter Render-Zyklen:** Global zugewiesene `.onChange()` Listener filtern kritische Felder wie `{x, y, isEditorSelected, width, height, isMoving, isHiddenInRun}` heraus, wenn diese ohnehin zu 60FPS durch lokale Animationen oder direkten DOM-Styles geregelt werden.
 
 - **Speichermanagement (v3.10.x, aktualisiert v3.22.0)**:
   - **Adapter-basiert**: Seit v3.22.0 delegiert `ProjectPersistenceService` an `IStorageAdapter`-Implementierungen. Kein direkter `fetch()`- oder `localStorage`-Zugriff in Persistenz-Logik.

@@ -29,7 +29,7 @@ import { EditorSimulatorManager } from './services/EditorSimulatorManager';
 import { EditorRenderManager } from './services/EditorRenderManager';
 import { EditorMenuManager } from './services/EditorMenuManager';
 import { EditorKeyboardManager } from './services/EditorKeyboardManager';
-import { EditorUndoManager } from './services/EditorUndoManager';
+import { snapshotManager } from './services/SnapshotManager';
 import { EditorInteractionManager } from './services/EditorInteractionManager';
 import { ObjectStore } from './services/ObjectStore';
 import { Logger } from '../utils/Logger';
@@ -64,7 +64,7 @@ export class Editor implements IViewHost {
     public renderManager: EditorRenderManager;
     public menuManager: EditorMenuManager;
     public keyboardManager: EditorKeyboardManager;
-    public undoManager: EditorUndoManager;
+    // public undoManager: EditorUndoManager; (REMOVED)
     public interactionManager: EditorInteractionManager;
 
     // Core State
@@ -105,8 +105,12 @@ export class Editor implements IViewHost {
         this.renderManager = new EditorRenderManager(this);
         this.menuManager = new EditorMenuManager(this);
         this.keyboardManager = new EditorKeyboardManager(this);
-        this.undoManager = new EditorUndoManager(this);
         this.interactionManager = new EditorInteractionManager(this);
+
+        // Connect global Undo/Redo Engine
+        snapshotManager.setRestoreCallback((projectData) => {
+            this.loadProject(projectData);
+        });
 
         // 3. System Services Registration
         this.registerGlobalServices();
@@ -420,9 +424,8 @@ export class Editor implements IViewHost {
         const stageName = activeStage?.name || this.project.activeStageId || '–';
         this.menuBar.setStageLabel(stageName);
     }
-    public handleRewind() { this.undoManager.handleRewind(); }
-    public handleForward() { this.undoManager.handleForward(); }
-    public applyRecordedAction(action: any, dir: 'rewind' | 'forward') { this.undoManager.applyRecordedAction(action, dir); }
+    public handleRewind() { snapshotManager.undo(this.project); }
+    public handleForward() { snapshotManager.redo(this.project); }
     public loadProject(data: any, sourcePath?: string) { this.dataManager.loadProject(data, sourcePath); }
 
     /**
