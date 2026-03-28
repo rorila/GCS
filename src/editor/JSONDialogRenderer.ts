@@ -94,7 +94,7 @@ export class JSONDialogRenderer {
             return (this.project.stages || []).map(s => ({ value: s.id, label: s.name || s.id }));
         });
         this.runtime.registerVariable('getAllActionTypes', () => {
-            const registered = actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label }));
+            const registered = actionRegistry.getVisibleActionTypes(this.enrichedProject);
             if (registered.length > 0) return registered;
 
             return [

@@ -24,6 +24,9 @@ export interface ActionMetadata {
     type: string;
     label: string;
     description?: string;
+    hidden?: boolean;
+    requiresServer?: boolean;
+    requiresMultiplayer?: boolean;
     parameters: ActionParameter[];
 }
 
@@ -60,6 +63,18 @@ export class ActionRegistry {
 
     public getAllMetadata(): ActionMetadata[] {
         return Array.from(this.metadata.values());
+    }
+
+    public getVisibleActionTypes(project: any): { value: string, label: string }[] {
+        const hasServer = project ? !!(project.objects?.some((o: any) => o.className === 'TGameServer') || project.stages?.some((s: any) => s.objects?.some((o: any) => o.className === 'TGameServer'))) : false;
+        const hasMultiplayer = project ? !!(project.objects?.some((o: any) => o.className === 'TRemoteGameManager') || project.stages?.some((s: any) => s.objects?.some((o: any) => o.className === 'TRemoteGameManager'))) : false;
+
+        return this.getAllMetadata().filter(m => {
+            if (m.hidden) return false;
+            if (m.requiresServer && !hasServer) return false;
+            if (m.requiresMultiplayer && !hasMultiplayer) return false;
+            return true;
+        }).map(m => ({ value: m.type, label: m.label }));
     }
 
     public hasHandler(type: string): boolean {

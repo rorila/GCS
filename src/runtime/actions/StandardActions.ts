@@ -169,6 +169,7 @@ export function registerStandardActions() {
     actionRegistry.register('set_variable', actionRegistry.getHandler('variable')!, {
         type: 'set_variable',
         label: 'Variable setzen (Zuweisung)',
+        hidden: true,
         description: 'Liest einen Wert aus einer Quelle und speichert ihn in einer Ziel-Variable.',
         parameters: [
             { name: 'variableName', label: 'Ziel-Variable', type: 'variable', source: 'variables' },
@@ -469,6 +470,7 @@ export function registerStandardActions() {
     }, {
         type: 'navigate',
         label: 'Spiel wechseln',
+        hidden: true,
         description: 'Wechselt zu einem anderen Projekt.',
         parameters: [
             { name: 'target', label: 'Ziel-Projekt', type: 'string' }
@@ -551,6 +553,7 @@ export function registerStandardActions() {
     }, {
         type: 'create_room',
         label: 'Multiplayer-Raum erstellen',
+        requiresMultiplayer: true,
         description: 'Erstellt einen neuen Multiplayer-Raum.',
         parameters: [
             { name: 'game', label: 'Spiel-Identifikator', type: 'string' }
@@ -568,6 +571,7 @@ export function registerStandardActions() {
     }, {
         type: 'join_room',
         label: 'Multiplayer-Raum beitreten',
+        requiresMultiplayer: true,
         description: 'Tritt einem Multiplayer-Raum bei.',
         parameters: [
             { name: 'code', label: 'Raum-Code', type: 'string' }
@@ -860,6 +864,7 @@ export function registerStandardActions() {
     }, {
         type: 'store_token',
         label: 'Token speichern/löschen',
+        hidden: true,
         description: 'Verwaltet Authentifizierungs-Token (JWT) im LocalStorage.',
         parameters: [
             { name: 'operation', label: 'Operation', type: 'select', options: ['set', 'delete'], defaultValue: 'set' },
@@ -982,6 +987,7 @@ export function registerStandardActions() {
     }, {
         type: 'respond_http',
         label: 'HTTP Antwort senden',
+        requiresServer: true,
         description: 'Sendet eine Antwort auf einen eingehenden HTTP-Request (nur im Server-Modus).',
         parameters: [
             { name: 'requestId', label: 'Request ID', type: 'string', hint: 'Wird automatisch vom onRequest-Event bereitgestellt.' },
@@ -1036,6 +1042,7 @@ export function registerStandardActions() {
     }, {
         type: 'execute_login_request',
         label: 'Login Request ausführen',
+        hidden: true,
         description: 'Führt den Login-Request gegen das Backend aus.',
         parameters: []
     });
@@ -1115,6 +1122,7 @@ export function registerStandardActions() {
     }, {
         type: 'handle_api_request',
         label: 'API Request verarbeiten',
+        requiresServer: true,
         description: 'Verarbeitet einen API-Request mit Datenbank-Logik und sendet die Antwort.',
         parameters: []
     });

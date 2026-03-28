@@ -223,7 +223,10 @@ export class EditorViewManager {
                     h.inspector.setFlowContext(h.flowEditor.getNodes());
                 }
             }
-            if (h.flowToolbox) h.flowToolbox.show();
+            if (h.flowToolbox) {
+                h.flowToolbox.render();
+                h.flowToolbox.show();
+            }
         } else if (view === 'code') {
             h.setRunMode(false);
             this.renderCodeView(codePanel);

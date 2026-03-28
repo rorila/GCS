@@ -1,4 +1,5 @@
 import { DnDHelper } from './utils/DnDHelper';
+import { projectStore } from '../services/ProjectStore';
 
 export class FlowToolbox {
     private container: HTMLElement;
@@ -19,18 +20,23 @@ export class FlowToolbox {
         this.container.appendChild(title);
 
         const items = [
-            { label: 'Variable', icon: '📦', type: 'VariableDecl' }, // Stays task-local
             { label: 'Task', icon: '⚡', type: 'task' },
             { label: 'Action', icon: '🎬', type: 'action' },
-            { label: 'HTTP Request', icon: '🌐', type: 'Action:http' },
-            { label: 'Store Token', icon: '🔑', type: 'Action:store_token' },
-            { label: 'Variable Set', icon: '📦', type: 'Action:variable' },
             { label: 'If Condition', icon: '❓', type: 'condition' },
-            { label: 'For Loop', icon: '🔄', type: 'For' },
-            { label: 'While Loop', icon: '💫', type: 'While' },
-            { label: 'Repeat Until', icon: '🔁', type: 'Repeat' },
             { label: 'Pfeil', icon: '🔗', type: 'Connection' }
         ];
+
+        // HTTP-Request und DataAction nur anzeigen, wenn das Projekt einen Server enthält
+        const project = projectStore.getProject();
+        if (project) {
+            const hasServer = !!(project.objects?.some((o: any) => o.className === 'TGameServer')
+                || project.stages?.some((s: any) => s.objects?.some((o: any) => o.className === 'TGameServer')));
+
+            if (hasServer) {
+                items.splice(2, 0, { label: 'HTTP Request', icon: '🌐', type: 'Action:http' });
+                items.splice(3, 0, { label: 'Data Action', icon: '📊', type: 'data_action' });
+            }
+        }
 
         const list = document.createElement('div');
         list.style.display = 'flex';

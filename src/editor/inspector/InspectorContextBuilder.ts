@@ -34,7 +34,7 @@ export class InspectorContextBuilder {
             activeStage: registry.getActiveStage(),
 
             // Magic Functions
-            getAllActionTypes: () => actionRegistry.getAllMetadata().map(m => ({ value: m.type, label: m.label })),
+            getAllActionTypes: () => actionRegistry.getVisibleActionTypes(ProjectRegistry.getInstance().getActiveStage() ? { stages: [ProjectRegistry.getInstance().getActiveStage()], objects: registry.getObjects() } : { objects: registry.getObjects() }),
 
             // Liste der DataStore Namen (priorisiert) für Dropdowns
             availableDataStores: dataStores.map(ds => ds.name || ds.id),

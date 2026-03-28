@@ -1,8 +1,14 @@
 ## [3.29.2] - 2026-03-28
 ### Improved
+- **Flow-Editor Toolbox aufgeräumt**:
+  - Unnötige/redundante Flow-Elemente aus der Toolbox (`FlowToolbox.ts`) entfernt, um die Übersicht für den User zu maximieren: `Variable`, `Store Token`, `Variable Set`, `For Loop`, `While Loop` und `Repeat Until`.
+  - Statt dedizierter Nodes sollen Variablen und Tokens über den Action-Configurator (mit Dropdown) modifiziert werden, und Loops können über die Pfeil-Architektur / Task-Routing gelöst werden, was visuell wesentlich übersichtlicher ist.
+  - **Dynamischer Filter (Toolbox & Inspector Settings):** `HTTP Request` und `Data Action` tauchen in der Toolbox nun *nur dann* auf, wenn das Projekt einen aktiven `TGameServer` enthält. Wird dieser gelöscht, verschwinden die Actions automatisch wieder aus der Ansicht. Ebenso werden im Action-Type-Dropdown (Inspector) stark Server-bezogene Funktionen wie `HTTP Antwort senden` und `API Request verarbeiten` nur bei Server-Projekten angeboten. Multiplayer-Aktionen (`Raum erstellen/beitreten`) sind an die Existenz eines `TRemoteGameManager` gekoppelt. Redundante oder verwirrende Typen (`Variable setzen (doppelt)`, `Spiel wechseln`, `Login Request`, `Token speichern/löschen`) wurden aus den Dropdowns komplett versteckt.
 - **Standalone Export (Runtime-Bundle) & Rendering-Optimierungen aktualisiert** (`player-standalone.ts`):
   - Der `UniversalPlayer` (standalone Engine) überschrieb im 60Hz Fast-Path fälschlicherweise die GPU-Beschleunigung durch direkte DOM-Manipulation (`el.style.left/top`). Der Render-Pfad delegiert nun direkt an den performanten `StageRenderer.updateSpritePositions(sprites)`.
   - `public/runtime-standalone.js` neu kompiliert: Alle Render-Optimierungen aus dem Editor (Jitter-Fix, transparente Bild-Hintergründe statt roter Artefakte, Ghost-Blink Fix bei Full Renders) greifen nun 1:1 im exportierten Spiel.
+- **Bugfix: TSpriteTemplate Sichtbarkeit**:
+  - `TSpriteTemplate` tauchte im Run-Modus fehlerhaft auf der Bühne auf. Ursache war die Methode `updateSpritePositions(sprites)` im `StageRenderer`, die durch den Performance-Fast-Path das Flag `isHiddenInRun` ignorierte und das CSS `display`-Property hart auf `flex` zurücksetzte. Die Sichtbarkeitsprüfung berücksichtigt jetzt `isHiddenInRun` strikt auch im 60fps-Loop. (Bundle neu erzeugt).
 - **GPU-Textur-Compositing für Image-Sprites** (`StageRenderer.ts`):
   - Sprite-Bilder werden nicht mehr als CSS `background-image` gerendert (CPU-Rasterung bei translate3d), sondern als natives `<img class="sprite-image-layer">` Tag (eigene GPU-VRAM-Textur, hardwarebeschleunigtes Compositing).
   - `Math.round()` für translate3d-Koordinaten entfernt: Durch die <img>-Tag-Umstellung sind Subpixel-genaue Positionierungen jetzt jitterfrei möglich.

@@ -1529,9 +1529,10 @@ export class StageRenderer {
             if (this.host.runMode) {
                 // ── Sichtbarkeits-Sync (Pool-Sprites) ──
                 // Pool-Sprites wechseln visible im Fast-Path (acquire/release).
-                // Ohne diese Prüfung bleibt display auf dem alten Wert bis zum
-                // nächsten vollen renderObjects(), was kurzes Aufblitzen verursacht.
-                const isVisible = obj.visible !== false;
+                // Berücksichtigt `isHiddenInRun` für Templates, damit sie durch Updates nicht sichtbar werden!
+                let isVisible = obj.visible !== false;
+                if (obj.isHiddenInRun) isVisible = false;
+
                 if (isVisible) {
                     el.style.display = 'flex';
                 } else {

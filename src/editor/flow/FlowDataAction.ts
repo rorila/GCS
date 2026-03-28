@@ -353,7 +353,7 @@ export class FlowDataAction extends FlowAction {
                 controlName: 'ActionTypeSelect',
                 label: 'Aktions-Typ',
                 type: 'select',
-                options: actionRegistry.getAllMetadata().map((m: any) => ({ value: m.type, label: m.label }))
+                options: actionRegistry.getVisibleActionTypes(this.projectRef)
             });
         }
         sections.push({ id: 'allgemein', label: 'Allgemein', icon: '📋', properties: allgemeinProps });
