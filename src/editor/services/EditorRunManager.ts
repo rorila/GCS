@@ -143,25 +143,15 @@ export class EditorRunManager {
             // Event handler already set above
 
             if (!this.activeGameLoop) {
-                console.log(`[RunManager] No TGameLoop found → using AnimationTicker fallback`);
-                this.startAnimationTicker();
-            } else if (typeof this.activeGameLoop.initRuntime !== 'function') {
-                // Safety fallback: Object exists but is not properly hydrated (HMR/Proxy issue)
-                console.warn(`[RunManager] TGameLoop found but initRuntime is not a function. Using AnimationTicker fallback.`);
-                this.startAnimationTicker();
+                console.log(`[RunManager] No TGameLoop found in stage, GameRuntime will still run the Singleton Loop`);
             } else {
-                // Initialize and start TGameLoop with runtime objects
-                console.log(`[RunManager] Initializing TGameLoop with ${this.runtimeObjects!.length} objects`);
-                this.activeGameLoop.initRuntime({
-                    objects: this.runtimeObjects!,
-                    gridConfig: this.runStage?.grid || this.editor.project.stage?.grid,
-                    render: () => this.editor.render(),
-                    handleEvent: (spriteId: string, eventName: string, data?: any) => {
-                        this.handleRuntimeEvent(spriteId, eventName, data);
-                    }
-                });
-                console.log(`[RunManager] TGameLoop initialized (GameLoopManager übernimmt den Loop)`);
+                console.log(`[RunManager] TGameLoop component found, reading bounds.`);
             }
+
+            // Der GameLoopManager (Singleton) wird EXKLUSIV von GameRuntime.initMainGame() 
+            // konfiguriert und gestartet! Dieser Legacy-Fallback hier hat Physics-Jitter
+            // verursacht (Doppel-Ticker oder Fallback-Endlosschleifen).
+            this.stopAnimationTicker();
 
             this.initRuntimeComponents();
 

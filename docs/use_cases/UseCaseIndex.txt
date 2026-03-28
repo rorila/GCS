@@ -1,3 +1,6 @@
+- [2026-03-28] Bugfix: Top-Left (0,0) Ghost-Blink bei JEDEM Full Render behoben
+  - Datei: src/editor/services/StageRenderer.ts (Methode: renderObjects, L240-245, L340)
+  - Details: Der `FULL RENDER` überschrieb in `renderObjects` fälschlicherweise das hardwarebeschleunigte `translate3d(x,y,0)` mit einem leeren String (Löschung des Transforms), falls das Objekt keine benutzerdefinierte CSS-Transform besaß. Dadurch fielen alle Objekte (Player, Target, Bullets) bei jedem Render-Zyklus (z.B. Score-Update) ausnahmslos auf die logische Position (0,0) zurück, bevor der 60Hz Fast-Path sie einen Frame später wieder korrigierte. Wurde behoben, indem `obj.style.transform` direkt an das zuvor validierte `translate3d` angehängt wird und der zerstörerische Else-Block entfernt wurde.
 Use Case 92: Audio (Zero-Latency)
 - Dateien: src/runtime/AudioManager.ts, src/components/TAudio.ts, src/runtime/actions/StandardActions.ts
 - Feature: Native Web Audio API Implementierung über AudioContext. Lädt Dateien (auch Base64 encoded) direkt in den RAM für verzögerungsfreie Wiedergabe. Eingebunden via play_audio und stop_audio Actions und TAudio-Komponente.

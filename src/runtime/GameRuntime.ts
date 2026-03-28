@@ -122,7 +122,15 @@ export class GameRuntime implements IVariableHost {
                 // Without this filter, EACH sprite.x and sprite.y change triggers an ADDITIONAL
                 // full StageRenderer.renderObjects() = 3+ full renders per frame instead of 1.
                 if (options.onRender) {
-                    const SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
+                    // ── PERFORMANCE-KRITISCH: Diese TSprite-Properties werden vom
+                    // 60Hz Fast-Path (updateSpritePositions) gehandhabt und dürfen
+                    // KEINEN vollen renderObjects() triggern. Ohne 'visible' im Filter
+                    // verursacht jeder SpritePool.acquire() einen Komplett-Re-Render
+                    // aller Objekte → Bildschirm-Blink mit Ghost-Images bei (0,0).
+                    const SPRITE_PROPS = new Set([
+                        'x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY', 'visible',
+                        '_prevVelocityX', '_prevVelocityY', '_prevX', '_prevY'
+                    ]);
                     let renderScheduled = false;
                     this.reactiveRuntime.getWatcher().addGlobalListener(
                         (obj: any, prop: string) => {
@@ -1071,12 +1079,6 @@ export class GameRuntime implements IVariableHost {
             const spawnX = x ?? template.x;
             const spawnY = y ?? template.y;
             const instance = this.spritePool.acquire(templateId, spawnX, spawnY, template);
-            if (instance) {
-                // Render-Callback auslösen damit das DOM-Element sichtbar wird
-                if (this.options.onRender) {
-                    this.options.onRender();
-                }
-            }
             return instance;
         }
 
@@ -1091,17 +1093,11 @@ export class GameRuntime implements IVariableHost {
     public destroyObject(instanceId: string): void {
         // Versuche nach ID
         if (this.spritePool.release(instanceId)) {
-            if (this.options.onRender) {
-                this.options.onRender();
-            }
             return;
         }
 
         // Versuche nach Name (für %Self%-Auflösung)
         if (this.spritePool.releaseByName(instanceId)) {
-            if (this.options.onRender) {
-                this.options.onRender();
-            }
             return;
         }
 

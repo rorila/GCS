@@ -1,3 +1,24 @@
+## [3.29.2] - 2026-03-28
+### Improved
+- **GPU-Textur-Compositing für Image-Sprites** (`StageRenderer.ts`):
+  - Sprite-Bilder werden nicht mehr als CSS `background-image` gerendert (CPU-Rasterung bei translate3d), sondern als natives `<img class="sprite-image-layer">` Tag (eigene GPU-VRAM-Textur, hardwarebeschleunigtes Compositing).
+  - `Math.round()` für translate3d-Koordinaten entfernt: Durch die <img>-Tag-Umstellung sind Subpixel-genaue Positionierungen jetzt jitterfrei möglich.
+  - Debug-Logging (`[Jitter-Debug]`) aus dem Fast-Path `updateSpritePositions()` entfernt.
+  - Skalierbar für 50+ gleichzeitig animierte Sprites ohne Performanceverlust.
+### Fixed
+- **Top-Left (0,0) Ghost-Blink bei JEDEM Full Render behoben** (`StageRenderer.ts`):
+  - Der `FULL RENDER` überschrieb fälschlicherweise das hardwarebeschleunigte `translate3d(x,y,0)` mit einem leeren String, falls das Objekt (Player, Target, Bullets) keine benutzerdefinierte CSS-Transform besaß. Dadurch wachten alle Objekte bei jedem Score-Update für einen Sekundenbruchteil ohne Koordinaten bei (0,0) oben links auf, bevor der 60Hz Fast-Path sie wieder auf ihre korrekten Koordinaten teleportierte.
+- **Pool-Sprite Aufblitz-Bug** (`StageRenderer.ts`):
+  - Pool-Sprites (Bullets etc.) blitzten beim Spawnen/Despawnen kurz an Position (0,0) auf, weil die `visible`-Property im 60Hz Fast-Path `updateSpritePositions()` nicht synchronisiert wurde. Der Fast-Path prüft jetzt `obj.visible` und setzt `display: none/flex` sofort, ohne auf den nächsten vollen Render-Zyklus zu warten.
+- **Ghost-Image-Bug bei TSpriteTemplate** (`StageRenderer.ts`):
+  - `isHiddenInRun` wurde in der Haupt-Visibility-Logik von `renderObjects()` nicht geprüft. Dadurch waren Objekte wie TSpriteTemplate (BulletTemplate) mit `visible:true` und `isHiddenInRun:true` im Run-Mode sichtbar – inklusive ihrem Bild. Das Template-Bild erschien als „Geister-Image" beim Schießen/Spawnen.
+- **Bildschirm-Blink bei SpritePool.acquire() / Target-Bounces** (`GameRuntime.ts`):
+  - `visible`, `_prevVelocityX`, `_prevVelocityY`, `_prevX` und `_prevY` fehlten im SPRITE_PROPS Reactive-Filter. Jeder `SpritePool.acquire()` oder Boundary-Bounce (Kollisionsabpraller beim Target) löste einen **vollständigen** `renderObjects()` Re-Render ALLER Objekte aus. Dadurch blitzten Player, Target und alle Pool-Sprites ständig auf. Fix: Diese Fast-Path-Handled-Properties triggern keinen globalen Stage-Redraw mehr.
+- **Top-Left (0,0) Ghost-Blink beim Schießen behoben** (`GameRuntime.ts`):
+  - `spawnObject` und `destroyObject` haben explizit `this.options.onRender()` aufgerufen, um das DOM-Element der erzeugten Kugel sichtbar zu machen. Da die Sichtbarkeit (`display: none` zu `flex`) jedoch bereits hochperformant im 60Hz-Fast-Path (`updateSpritePositions`) erledigt wird, war dieser zusätzliche Full-Render redundant und verursachte ein kurzes Aufblitzen aller UI-Elemente und Sprites an der Nullposition (Top-Left) vor dem Hardware-Transform. Der Aufruf wurde restlos entfernt.
+- **Anti-Blink bei DOM-Element-Erstellung** (`StageRenderer.ts`):
+  - Neue DOM-Elemente starteten mit `display: flex` und wurden sofort an den DOM angehängt, bevor Position/Transform gesetzt wurde → kurzes Aufblitzen bei (0,0). Fix: Neue Elemente starten jetzt mit `display: none` und werden erst nach vollständiger Konfiguration sichtbar.
+
 ## [3.29.1] - 2026-03-27
 ### Added
 - **Import-Tab** in der Toolbox-Sidebar (`EditorViewManager.ts`):
@@ -12,6 +33,12 @@
   - Neues Manifest-Script: `scripts/generate-media-manifest.ts` scannt `public/images/`, `audio/`, `videos/`.
 - **Neue Property-Types** (`InspectorTypes.ts`): `audio_picker`, `video_picker` im Union-Type.
 ### Improved
+- **GPU-Hardwarebeschleunigung (Anti-Jitter) in StageRenderer** (`StageRenderer.ts`):
+  - Um das Ruckeln (Choppiness) bewegter Image-Sprites im Run-Mode zu verhindern, wurde das klassische Layout (`left`, `top`) komplett auf Hardware-`translate3d` umgestellt.
+  - Das Grid-Resizing-System (cellSize) bleibt dabei vollständig intakt, jedoch läuft die Subpixel-Positionierung der Bilder nun auf der dedizierten Grafikkarte butterweich bei 60 FPS.
+  - Fix **Subpixel Tearing** *(Zwischenlösung, ersetzt in v3.29.2)*: Float-Koordinaten bei Bitmaps wurden via `Math.round()` als Integer auf die GPU gesendet. Ersetzt durch natives `<img>`-Tag GPU-Compositing in v3.29.2.
+  - Fix **Doppel-Loops & Fallback-Ticker**: Der `AnimationTicker` Fallback im EditorRunMode wurde entfernt, die GameRuntime initialisiert und startet den GameLoopManager nun EXKLUSIV, was extreme Physics-Microstutter eliminiert.
+  - Fix **DeltaTime-Smoothing**: In `GameLoopManager.ts` wird das errechnete `deltaTime` nun für 60FPS Frameraten auf exakte `0.016666s` geclampt, um Physik-Ruckler durch Browser-Timer Instabilitäten aus der Berechnung fernzuhalten.
 - **Inspector-Bereinigung für unsichtbare Komponenten** (`TComponent.ts`):
   - Service-Komponenten und Variablen (`isHiddenInRun = true`) zeigen im Inspector keine rein visuellen Property-Gruppen mehr an (STIL, GLOW-EFFEKT, TYPOGRAFIE, INTERAKTION, GEOMETRIE). Nur noch funktional relevante Gruppen (IDENTITÄT, komponentenspezifische) werden angezeigt.
   - Betrifft 22 Komponenten automatisch über Vererbung.

@@ -241,8 +241,17 @@ export class GameLoopManager {
         }
 
         const now = performance.now();
-        const deltaTime = (now - this.lastTime) / 1000; // Convert to seconds
+        let deltaTime = (now - this.lastTime) / 1000; // Convert to seconds
         this.lastTime = now;
+
+        // 🚀 ANTI-JITTER: Smooth/Clamp Time Step
+        // Wenn die Framerate leicht schwankt, erzwinge exakte 60 FPS Physikschritte, 
+        // um stotternde Vektor-Bewegungen (Micro-Physics-Jitter) zu eliminieren.
+        if (deltaTime > 0.014 && deltaTime < 0.019) {
+            deltaTime = 0.01666666; 
+        } else if (deltaTime > 0.1) {
+            deltaTime = 0.1; // Verhindert Tunneling/Wall-Clips nach Tab-Wechsel
+        }
 
         // Update input controllers first
         this.inputControllers.forEach((ic: any) => {

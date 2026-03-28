@@ -42,6 +42,8 @@ export class StageRenderer {
     }
 
     public renderObjects(objects: any[]) {
+        if (!this.host || !this.host.element) return;
+        
         // Update object hash for internal bookkeeping
         const objectHash = objects.map(o => `${o.id}@${Number(o.x || 0).toFixed(1)},${Number(o.y || 0).toFixed(1)}`).join('|');
 
@@ -189,7 +191,10 @@ export class StageRenderer {
                 el.style.position = 'absolute';
                 el.style.boxSizing = 'border-box';
                 el.style.overflow = 'hidden'; // Wichtig für border-radius + children!
-                el.style.display = 'flex';
+                // ── Anti-Blink: Element startet unsichtbar, damit es nicht für
+                // einen Frame bei Position (0,0) aufblitzt, bevor Transform und
+                // Sichtbarkeit konfiguriert sind (Zeile ~275).
+                el.style.display = 'none';
                 el.style.alignItems = 'center';
                 el.style.justifyContent = 'center';
                 el.style.userSelect = 'none';
@@ -219,30 +224,44 @@ export class StageRenderer {
                 finalH = (obj.height || 0) * gridConfig.cellSize;
             }
 
-            el.style.left = `${finalX}px`;
-            el.style.top = `${finalY}px`;
+            // 🎮 PERFORMANTE SPIELE-SCHLEIFE (GPU COMPOSITING)
+            if (this.host.runMode) {
+                // Hardware Acceleration: Anker auf Null setzen, damit die GPU Texturen schiebt statt der CPU Layouts rechnet
+                el.style.willChange = 'transform, opacity';
+                el.style.backfaceVisibility = 'hidden';
+                el.style.left = '0px';
+                el.style.top = '0px';
+                
+                // Initiale Position als Transform (inkl. custom-Styling)
+                let finalTransform = `translate3d(${finalX}px, ${finalY}px, 0)`;
+                if (obj.style && obj.style.transform) {
+                    finalTransform += ` ${obj.style.transform}`;
+                }
+                el.style.transform = finalTransform;
+
+                // Log all objects in Run-Mode to trace layout issues (Metrics)
+                const isMetric = obj.name?.includes('Metric') || obj.id?.includes('metric');
+                if (isMetric || obj.id === 'dash_title' || obj.id === 'dash_back_btn' || obj.name?.includes('Button') || (obj.name && obj.name.includes('Emoji'))) {
+                    logger.info(`%c[HW-Layout:${this.host.element.id}] ${obj.name || obj.id} (RUN): align=${obj.align}, x=${obj.x}, y=${obj.y}, w=${obj.width}, cellSize=${gridConfig.cellSize} -> GPU_transform: ${finalX}/${finalY}`, 'color: #00ffff; font-weight: bold');
+                }
+            } else {
+                // 🖌️ DESIGN-MODUS (Klassischer DOM für Drag & Drop)
+                el.style.left = `${finalX}px`;
+                el.style.top = `${finalY}px`;
+            }
+
             el.style.width = `${finalW}px`;
             el.style.height = `${finalH}px`;
 
-            // NOTE: CSS transitions für Sprites wurden entfernt.
-            // Direkte DOM-Updates über updateSpritePositions() ersetzen sie für flüssigere 60fps Bewegung.
-
-            if (this.host.runMode) {
-                // Log all objects in Run-Mode to trace layout issues
-                const isMetric = obj.name?.includes('Metric') || obj.id?.includes('metric');
-                if (isMetric || obj.id === 'dash_title' || obj.id === 'dash_back_btn' || obj.name?.includes('Button') || (obj.name && obj.name.includes('Emoji'))) {
-                    logger.info(`%c[Layout:${this.host.element.id}] ${obj.name || obj.id} (RUN): align=${obj.align}, x=${obj.x}, y=${obj.y}, w=${obj.width}, cellSize=${gridConfig.cellSize} -> left=${finalX}, top=${finalY}`, 'color: #ff00ff; font-weight: bold');
-                }
-
-                // ⚡ GPU HARDWARE ACCELERATION (Anti-Jittering Layer)
-                // Hievt das Element (insb. Sprites mit Bildern) in eine dedizierte RAM-Textur
-                // der Grafikkarte, was Ruckeln und Paint-Lags komplett verhindert.
-                el.style.willChange = 'transform, left, top, opacity';
-                el.style.transform = 'translateZ(0)';
-                el.style.backfaceVisibility = 'hidden';
-            }
-
             let isVisible = this.checkVisible(obj.visible) && this.checkVisible(obj.style?.visible);
+
+            // ── isHiddenInRun-Fix: Templates, Services und andere Objekte mit
+            // isHiddenInRun=true MÜSSEN im Run-Mode unsichtbar sein, auch wenn
+            // visible=true gesetzt ist. Ohne diesen Check erscheinen z.B.
+            // TSpriteTemplate-Bilder als "Ghost-Images" auf der Stage.
+            if (this.host.runMode && obj.isHiddenInRun) {
+                isVisible = false;
+            }
 
             // SPECIAL FIX: Hide blueprint-only services on regular stages
             const isInherited = !!obj.isInherited;
@@ -312,10 +331,14 @@ export class StageRenderer {
                 if (obj.style.fontSize) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
                 if (obj.style.fontWeight) el.style.fontWeight = obj.style.fontWeight;
                 if (obj.style.borderRadius) el.style.borderRadius = typeof obj.style.borderRadius === 'number' ? `${obj.style.borderRadius}px` : obj.style.borderRadius;
-                if (obj.style.transform) {
-                    el.style.transform = obj.style.transform;
-                } else if (!obj.style.transform && el.style.transform) {
-                    el.style.transform = '';
+                // Transform wird jetzt zusammen mit der Positions-Zuweisung berechnet,
+                // damit das translate3d() (Basis-Positionierung) nicht zerstört wird.
+                if (!this.host.runMode) {
+                    if (obj.style && obj.style.transform) {
+                        el.style.transform = obj.style.transform;
+                    } else if (el.style.transform) {
+                        el.style.transform = '';
+                    }
                 }
                 // Glow/Shadow-Effekt: Prio 1 = expliziter boxShadow CSS-String, Prio 2 = glowColor + glowBlur + glowSpread
                 if (obj.style.boxShadow) {
@@ -443,6 +466,17 @@ export class StageRenderer {
         if (this.host.runMode && !(el as any).runModeTraceDone) {
             (el as any).lastLoggedSrc = null;
             (el as any).runModeTraceDone = true;
+        }
+
+        // ── GPU-OPTIMIERUNG: TSprite-Images werden als natives <img>-Tag im renderSprite()
+        // gerendert, NICHT als CSS background-image. CSS background-image erzwingt CPU-Rasterung
+        // bei translate3d-Animationen, ein <img>-Tag wird dagegen als eigenständige GPU-Textur
+        // composited und erlaubt jitterfreie Subpixel-Bewegungen.
+        if (bgImg && className === 'TSprite') {
+            // Nur Hintergrundfarbe setzen; das Bild wird als <img> Child gerendert
+            el.style.background = bgColor;
+            el.style.backgroundImage = 'none';
+            return;
         }
 
         if (bgImg) {
@@ -984,22 +1018,65 @@ export class StageRenderer {
     }
 
     private renderSprite(el: HTMLElement, obj: any) {
-        // ✨ Elegante Lösung für Sprites mit Bild:
-        // Wenn das physikalische Sprite (TSprite) ein Bild besitzt, wird der füllende 
-        // Placement-Hintergrund und Rand unsichtbar gemacht, damit das Image sauber freisteht.
+        // ── GPU-optimiertes Sprite-Rendering ──
+        // Sprites MIT Bild: Natives <img>-Tag als GPU-Textur-Layer (jitterfreies Compositing).
+        // Sprites OHNE Bild: Klassische CSS-Hintergrundfarbe.
         const hasImage = !!obj.backgroundImage;
         
         el.style.backgroundColor = hasImage ? 'transparent' : (obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b');
         
         if (hasImage) {
             el.style.borderColor = 'transparent';
+
+            // ── <img> GPU-Textur-Layer einfügen/aktualisieren ──
+            let imgEl = el.querySelector('.sprite-image-layer') as HTMLImageElement;
+            let bgImg = obj.backgroundImage;
+            const src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:'))
+                ? bgImg
+                : `/images/${bgImg}`;
+
+            if (!imgEl) {
+                imgEl = document.createElement('img');
+                imgEl.className = 'sprite-image-layer';
+                imgEl.style.position = 'absolute';
+                imgEl.style.top = '0';
+                imgEl.style.left = '0';
+                imgEl.style.width = '100%';
+                imgEl.style.height = '100%';
+                imgEl.style.objectFit = obj.objectFit || 'contain';
+                imgEl.style.pointerEvents = 'none';
+                imgEl.style.userSelect = 'none';
+                imgEl.draggable = false;
+                // GPU-Layer-Promotion: Eigene Compositing-Schicht für das Bild
+                imgEl.style.willChange = 'transform';
+                imgEl.style.backfaceVisibility = 'hidden';
+                imgEl.onerror = () => { imgEl.style.display = 'none'; };
+                el.appendChild(imgEl);
+            }
+
+            // Nur src aktualisieren wenn sich das Bild tatsächlich geändert hat
+            if (imgEl.getAttribute('src') !== src) {
+                imgEl.src = src;
+                imgEl.style.display = '';
+            }
+            imgEl.style.objectFit = obj.objectFit || 'contain';
+            imgEl.style.borderRadius = obj.shape === 'circle' ? '50%' : '0';
+        } else {
+            // Kein Bild: altes <img> Tag entfernen falls vorhanden
+            const oldImg = el.querySelector('.sprite-image-layer');
+            if (oldImg) oldImg.remove();
         }
 
         el.style.borderRadius = obj.shape === 'circle' ? '50%' : '0';
         if (obj.style?.color) el.style.color = obj.style.color;
 
         const textValue = obj.caption || (this.host.runMode ? '' : obj.name);
-        if (el.innerText !== textValue) el.innerText = textValue;
+        if (el.innerText !== textValue) {
+            // Text nur setzen wenn kein <img> vorhanden ist (sonst würde innerText das img löschen)
+            if (!hasImage) {
+                el.innerText = textValue;
+            }
+        }
     }
 
     private renderShape(el: HTMLElement, obj: any, isNew: boolean) {
@@ -1445,16 +1522,48 @@ export class StageRenderer {
             ) as HTMLElement;
             if (!el) continue;
             
-            // Layout (Subpixel-Restoration)
-            if (obj.x !== undefined) el.style.left = `${(obj.x || 0) * cellSize}px`;
-            if (obj.y !== undefined) el.style.top = `${(obj.y || 0) * cellSize}px`;
-            
-            // Animation Styles (von AnimationManager geschrieben)
-            if (obj.style) {
-                if (obj.style.transform !== undefined) el.style.transform = obj.style.transform;
-                if (obj.style.opacity !== undefined) el.style.opacity = String(obj.style.opacity);
-            } else if (obj.opacity !== undefined) {
-                el.style.opacity = String(obj.opacity);
+            // Hardware-Textur-Verschiebung im Subpixel-Raum
+            const transX = (obj.x || 0) * cellSize;
+            const transY = (obj.y || 0) * cellSize;
+
+            if (this.host.runMode) {
+                // ── Sichtbarkeits-Sync (Pool-Sprites) ──
+                // Pool-Sprites wechseln visible im Fast-Path (acquire/release).
+                // Ohne diese Prüfung bleibt display auf dem alten Wert bis zum
+                // nächsten vollen renderObjects(), was kurzes Aufblitzen verursacht.
+                const isVisible = obj.visible !== false;
+                if (isVisible) {
+                    el.style.display = 'flex';
+                } else {
+                    el.style.display = 'none';
+                }
+
+                // GPU Compositing: Subpixel-genaue Positionierung für butterweiche Bewegungen.
+                // Kein Math.round() mehr nötig, da Sprite-Bilder jetzt als natives <img>-Tag
+                // (eigene GPU-Textur) gerendert werden statt als CSS background-image.
+                let finalTransform = `translate3d(${transX}px, ${transY}px, 0)`;
+                
+                if (obj.style && obj.style.transform !== undefined) {
+                    finalTransform += ` ${obj.style.transform}`;
+                }
+                el.style.transform = finalTransform;
+
+                if (obj.style && obj.style.opacity !== undefined) {
+                    el.style.opacity = String(obj.style.opacity);
+                } else if (obj.opacity !== undefined) {
+                    el.style.opacity = String(obj.opacity);
+                }
+            } else {
+                // Fallback Layout für Inspektion
+                if (obj.x !== undefined) el.style.left = `${transX}px`;
+                if (obj.y !== undefined) el.style.top = `${transY}px`;
+                
+                if (obj.style) {
+                    if (obj.style.transform !== undefined) el.style.transform = obj.style.transform;
+                    if (obj.style.opacity !== undefined) el.style.opacity = String(obj.style.opacity);
+                } else if (obj.opacity !== undefined) {
+                    el.style.opacity = String(obj.opacity);
+                }
             }
         }
     }
