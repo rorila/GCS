@@ -233,6 +233,13 @@ export class StageRenderer {
                 if (isMetric || obj.id === 'dash_title' || obj.id === 'dash_back_btn' || obj.name?.includes('Button') || (obj.name && obj.name.includes('Emoji'))) {
                     logger.info(`%c[Layout:${this.host.element.id}] ${obj.name || obj.id} (RUN): align=${obj.align}, x=${obj.x}, y=${obj.y}, w=${obj.width}, cellSize=${gridConfig.cellSize} -> left=${finalX}, top=${finalY}`, 'color: #ff00ff; font-weight: bold');
                 }
+
+                // ⚡ GPU HARDWARE ACCELERATION (Anti-Jittering Layer)
+                // Hievt das Element (insb. Sprites mit Bildern) in eine dedizierte RAM-Textur
+                // der Grafikkarte, was Ruckeln und Paint-Lags komplett verhindert.
+                el.style.willChange = 'transform, left, top, opacity';
+                el.style.transform = 'translateZ(0)';
+                el.style.backfaceVisibility = 'hidden';
             }
 
             let isVisible = this.checkVisible(obj.visible) && this.checkVisible(obj.style?.visible);
@@ -977,7 +984,17 @@ export class StageRenderer {
     }
 
     private renderSprite(el: HTMLElement, obj: any) {
-        el.style.backgroundColor = obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b';
+        // ✨ Elegante Lösung für Sprites mit Bild:
+        // Wenn das physikalische Sprite (TSprite) ein Bild besitzt, wird der füllende 
+        // Placement-Hintergrund und Rand unsichtbar gemacht, damit das Image sauber freisteht.
+        const hasImage = !!obj.backgroundImage;
+        
+        el.style.backgroundColor = hasImage ? 'transparent' : (obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b');
+        
+        if (hasImage) {
+            el.style.borderColor = 'transparent';
+        }
+
         el.style.borderRadius = obj.shape === 'circle' ? '50%' : '0';
         if (obj.style?.color) el.style.color = obj.style.color;
 
@@ -1428,7 +1445,7 @@ export class StageRenderer {
             ) as HTMLElement;
             if (!el) continue;
             
-            // Layout
+            // Layout (Subpixel-Restoration)
             if (obj.x !== undefined) el.style.left = `${(obj.x || 0) * cellSize}px`;
             if (obj.y !== undefined) el.style.top = `${(obj.y || 0) * cellSize}px`;
             
