@@ -466,16 +466,10 @@ class UniversalPlayer implements StageHost {
     /**
      * FAST PATH: Nur Sprite-Positionen im DOM aktualisieren.
      * Wird 60×/sec vom GameLoopManager aufgerufen (via onSpriteRender).
-     * Kein getObjects(), kein DOM-Rebuild — nur style.left/top der Sprites.
+     * Delegiert direkt an den StageRenderer, damit GPU-Compositing (translate3d) genutzt wird.
      */
     private renderSpritesOnly(sprites: any[]): void {
-        const cellSize = this.grid.cellSize;
-        for (const sprite of sprites) {
-            const el = this.element.querySelector(`[data-id="${sprite.id}"]`) as HTMLElement;
-            if (!el) continue;
-            el.style.left = `${(sprite.x || 0) * cellSize}px`;
-            el.style.top = `${(sprite.y || 0) * cellSize}px`;
-        }
+        this.renderer.updateSpritePositions(sprites);
     }
 
     private showOverlay(text: string, subtext?: string) {
