@@ -13,7 +13,7 @@ import { TMemo } from '../components/TMemo';
 import { TNumberInput } from '../components/TNumberInput';
 import { TNumberLabel } from '../components/TNumberLabel';
 import { TPanel } from '../components/TPanel';
-import { TRepeater } from '../components/TRepeater';
+import { TIntervalTimer } from '../components/TIntervalTimer';
 import { TShape } from '../components/TShape';
 import { TTable } from '../components/TTable';
 import { TTextControl } from '../components/TTextControl';
@@ -107,7 +107,7 @@ export class ComponentRegistry {
         this.register('TNumberInput', TNumberInput);
         this.register('TNumberLabel', TNumberLabel);
         this.register('TPanel', TPanel);
-        this.register('TRepeater', TRepeater);
+        this.register('TIntervalTimer', TIntervalTimer);
         this.register('TShape', TShape);
         this.register('TTable', TTable);
         this.register('TTextControl', TTextControl);
@@ -186,7 +186,9 @@ export class ComponentRegistry {
         this.typeMapping.set('GameLoop', 'TGameLoop');
         this.typeMapping.set('InputController', 'TInputController');
         this.typeMapping.set('Timer', 'TTimer');
-        this.typeMapping.set('Repeater', 'TRepeater');
+        this.typeMapping.set('Repeater', 'TIntervalTimer');  // Legacy
+        this.typeMapping.set('IntervalTimer', 'TIntervalTimer');
+        this.typeMapping.set('TRepeater', 'TIntervalTimer');  // Legacy className
         this.typeMapping.set('GameCard', 'TGameCard');
         this.typeMapping.set('GameServer', 'TGameServer');
         this.typeMapping.set('Dropdown', 'TDropdown');

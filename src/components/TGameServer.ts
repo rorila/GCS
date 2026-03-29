@@ -50,6 +50,19 @@ export class TGameServer extends TWindow implements IRuntimeComponent {
         ];
     }
 
+    public getEvents(): string[] {
+        return [
+            'onConnected',
+            'onDisconnected',
+            'onRoomCreated',
+            'onRoomJoined',
+            'onPlayerJoined',
+            'onPlayerLeft',
+            'onGameStart',
+            'onError'
+        ];
+    }
+
     public toJSON(): any {
         return super.toJSON();
     }

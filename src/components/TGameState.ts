@@ -39,6 +39,15 @@ export class TGameState extends TWindow {
         ];
     }
 
+    public getEvents(): string[] {
+        return [
+            'onStateChanged',
+            'onGameOver',
+            'onLifeLost',
+            'onScoreChanged'
+        ];
+    }
+
     public toJSON(): any {
         return {
             ...super.toJSON(),

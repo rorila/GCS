@@ -10,7 +10,7 @@ import { TSpriteTemplate } from '../components/TSpriteTemplate';
 import { TGameLoop } from '../components/TGameLoop';
 import { TInputController } from '../components/TInputController';
 import { TTimer } from '../components/TTimer';
-import { TRepeater } from '../components/TRepeater';
+import { TIntervalTimer } from '../components/TIntervalTimer';
 import { TGameCard } from '../components/TGameCard';
 import { TGameServer } from '../components/TGameServer';
 import { TDropdown } from '../components/TDropdown';
@@ -128,8 +128,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             case 'TTimer':
                 newObj = new TTimer(objData.name, objData.x, objData.y);
                 break;
-            case 'TRepeater':
-                newObj = new TRepeater(objData.name, objData.x, objData.y);
+            case 'TRepeater':  // Legacy-Abwärtskompatibilität
+            case 'TIntervalTimer':
+                newObj = new TIntervalTimer(objData.name, objData.x, objData.y);
                 break;
             case 'TGameCard':
                 newObj = new TGameCard(objData.name, objData.x, objData.y);

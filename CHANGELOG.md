@@ -1,3 +1,26 @@
+## [3.29.3] - 2026-03-29
+### Improved
+- **Event-Aufräumung: Nicht-sichtbare Komponenten** (`TWindow.ts`):
+  - `TWindow.getEvents()` filtert jetzt UI-Events (`onClick`, `onFocus`, `onBlur`, `onDragStart`, `onDragEnd`, `onDrop`) automatisch aus, wenn die Komponente `isHiddenInRun = true` ist.
+  - Betrifft ~18 Unterklassen: TTimer, TGameLoop, TInputController, TAudio, TVariable (+ alle Variablen-Unterklassen), THeartbeat, THandshake, TStageController, TSpriteTemplate, TStatusBar, TToast, TGameServer, TGameState.
+  - Zentrale Lösung: Alle betroffenen Komponenten profitieren automatisch über Vererbung (`...super.getEvents()` liefert jetzt `[]` statt der UI-Events).
+
+### Changed
+- **TRepeater → TIntervalTimer** (`TIntervalTimer.ts` [NEU], `TRepeater.ts` [GELÖSCHT]):
+  - `TRepeater` wurde durch eine neue, saubere Komponente `TIntervalTimer` ersetzt.
+  - Neue Eigenschaften: `duration` (Intervall-Dauer in ms), `count` (Anzahl, 0=∞), `enabled`.
+  - Neue Events: `onIntervall` (pro abgelaufenem Intervall), `onTimeout` (alle Intervalle abgelaufen).
+  - Abwärtskompatibilität: Alte Projekte mit `className: "TRepeater"` werden automatisch als TIntervalTimer geladen.
+  - Migriert in: `Serialization.ts`, `ComponentRegistry.ts`, `StageRenderer.ts`, `JSONDialogRenderer.ts`, `toolbox_horizontal.json`.
+  - Toolbox: Kategorie "System", Icon ⏱️, Label "Intervall-Timer".
+
+### Added
+- **TGameServer Events** (`TGameServer.ts`):
+  - Neue `getEvents()` Methode mit 8 Events: `onConnected`, `onDisconnected`, `onRoomCreated`, `onRoomJoined`, `onPlayerJoined`, `onPlayerLeft`, `onGameStart`, `onError`.
+  - Diese Events wurden bereits programmatisch via `triggerEvent()` gefeuert – bisher fehlte nur die Deklaration für den Inspector/Flow-Editor.
+- **TGameState Events** (`TGameState.ts`):
+  - Neue `getEvents()` Methode mit 4 Events: `onStateChanged`, `onGameOver`, `onLifeLost`, `onScoreChanged`.
+
 ## [3.29.2] - 2026-03-28
 ### Improved
 - **Flow-Editor Toolbox aufgeräumt**:

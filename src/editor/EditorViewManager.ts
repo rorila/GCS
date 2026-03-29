@@ -164,9 +164,10 @@ export class EditorViewManager {
         if (jsonInspector) jsonInspector.style.display = 'none';
         if (toolboxFooter) toolboxFooter.style.display = 'none';
 
-        // Stop debug logging when switching views (focus loss), unless we are staying in 'run' view
+        // Stop debug logging and hide panel when switching away from 'run' view
         if (h.debugLog && view !== 'run') {
             h.debugLog.setRecordingActive(false);
+            h.debugLog.hide();
         }
 
         // 2. Show Selected Panel
@@ -221,6 +222,9 @@ export class EditorViewManager {
                 h.flowEditor.setProject(h.project);
                 if (h.inspector) {
                     h.inspector.setFlowContext(h.flowEditor.getNodes());
+                    // Inspector leeren – keine Stage-Daten aus dem Edit-Mode anzeigen.
+                    // Erst bei Klick auf einen Flow-Node wird der Inspector befüllt.
+                    h.inspector.update(null);
                 }
             }
             if (h.flowToolbox) {

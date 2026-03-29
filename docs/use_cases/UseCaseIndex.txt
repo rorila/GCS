@@ -1,3 +1,21 @@
+- [2026-03-29] Event-Aufräumung: UI-Events bei nicht-sichtbaren Komponenten ausblenden
+  - Datei: src/components/TWindow.ts (Methode: getEvents, L155-162)
+  - Details: isHiddenInRun-Guard eingefügt. ~18 Unterklassen zeigen keine unnötigen onClick/onFocus/onBlur/onDragStart/onDragEnd/onDrop mehr an.
+- [2026-03-29] TRepeater → TIntervalTimer Migration
+  - Datei: src/components/TIntervalTimer.ts [NEU] (Methoden: start, stop, reset, getEvents, getInspectorProperties, initRuntime, onRuntimeStart, onRuntimeStop)
+  - Datei: src/components/TRepeater.ts [GELÖSCHT]
+  - Datei: src/utils/Serialization.ts (Methode: hydrateObjects, L131-134 – Legacy-Case für TRepeater auf TIntervalTimer)
+  - Datei: src/services/ComponentRegistry.ts (Methode: registerDefaultComponents L110, setupTypeMappings L189-191)
+  - Datei: src/editor/services/StageRenderer.ts (Methode: getServiceColor L952)
+  - Datei: src/editor/JSONDialogRenderer.ts (Methode: getMethodsForObject L1279)
+  - Datei: public/editor/toolbox_horizontal.json (L182-186)
+  - Details: Neue Komponente mit Events onIntervall, onTimeout. Eigenschaften: duration, count, enabled. Abwärtskompatibilität für className TRepeater.
+- [2026-03-29] TGameServer: getEvents() ergänzt (8 Events)
+  - Datei: src/components/TGameServer.ts (Methode: getEvents, L53-65)
+  - Details: onConnected, onDisconnected, onRoomCreated, onRoomJoined, onPlayerJoined, onPlayerLeft, onGameStart, onError
+- [2026-03-29] TGameState: getEvents() ergänzt (4 Events)
+  - Datei: src/components/TGameState.ts (Methode: getEvents, L42-49)
+  - Details: onStateChanged, onGameOver, onLifeLost, onScoreChanged
 - [2026-03-28] UI Cleanup: Unnötige/Verwirrende Flow-Elemente aus Toolbox entfernt
   - Datei: src/editor/FlowToolbox.ts (Methode: render, Array: items)
   - Details: Entfernt wurden `Variable`, `Store Token`, `Variable Set`, `For Loop`, `While Loop` und `Repeat Until`. Variablen-Sachen werden stattdessen über Actions + Properties gemacht. Loops über Tasks mit Condition-Weiterleitung.
@@ -31,8 +49,8 @@ UC-3.27.0: Gap-Report Umsetzung
     Dateien: src/components/TThresholdVariable.ts (L1-65, comparison, isThresholdReached)
   - TProgressBar NEU (value, maxValue, barColor, Events)
     Dateien: src/components/TProgressBar.ts (L1-83), src/services/ComponentRegistry.ts (L50,112,198), src/utils/Serialization.ts (L26,165-167), public/editor/toolbox.json (Game-Kategorie)
-  - TRepeater umbenannt zu 'Intervall-Timer'
-    Dateien: public/editor/toolbox.json (L205-210)
+  - TRepeater ersetzt durch TIntervalTimer (siehe [2026-03-29])
+    Dateien: src/components/TIntervalTimer.ts [NEU], public/editor/toolbox_horizontal.json
   - Inspector doppelte Typografie-Felder behoben
     Dateien: src/components/TTextControl.ts (L26-34), src/components/TWindow.ts (L178-183)
 

@@ -1276,7 +1276,7 @@ export class JSONDialogRenderer {
             'TNumberLabel': ['incValue', 'decValue', 'reset'],
             'TToast': ['info', 'success', 'warning', 'error', 'clear'],
             'TTimer': ['timerStart', 'timerStop', 'reset'],
-            'TRepeater': ['start', 'stop', 'reset'],
+            'TIntervalTimer': ['start', 'stop', 'reset'],
             'TGameLoop': ['start', 'stop', 'pause', 'resume'],
             'TGameState': ['setState', 'reset'],
             'TSprite': ['moveTo', 'setVelocity', 'stop', 'reset'],

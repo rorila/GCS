@@ -153,6 +153,11 @@ export class TWindow extends TComponent {
      * Override in subclasses to add more events
      */
     public getEvents(): string[] {
+        // Nicht-sichtbare Komponenten (isHiddenInRun) können zur Laufzeit nicht
+        // angeklickt/fokussiert/gedraggt werden → UI-Events ausblenden
+        if (this.isHiddenInRun) {
+            return [];
+        }
         return ['onClick', 'onFocus', 'onBlur', 'onDragStart', 'onDragEnd', 'onDrop'];
     }
 

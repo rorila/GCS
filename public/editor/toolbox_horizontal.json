@@ -180,9 +180,9 @@
                     "label": "InputController"
                 },
                 {
-                    "type": "Repeater",
-                    "icon": "🔁",
-                    "label": "Repeater"
+                    "type": "IntervalTimer",
+                    "icon": "⏱️",
+                    "label": "Intervall-Timer"
                 },
                 {
                     "type": "SystemInfo",

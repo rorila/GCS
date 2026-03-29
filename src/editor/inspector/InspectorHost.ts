@@ -77,7 +77,11 @@ export class InspectorHost {
     public async update(obj?: any): Promise<void> {
         if (!this.container) return;
 
-        if (obj) {
+        if (obj === null) {
+            // Explizit leeren (z.B. beim Wechsel zum Flow-Editor)
+            this.selectedObject = null;
+            this.savedScrollTop = 0;
+        } else if (obj) {
             // Bei neuem Objekt (Selektion geändert) Scroll-Position zurücksetzen
             if (this.selectedObject !== obj) {
                 this.savedScrollTop = 0;

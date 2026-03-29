@@ -949,7 +949,7 @@ export class StageRenderer {
         switch (className) {
             case 'TGameLoop': return '#2196f3';
             case 'TInputController': return '#9c27b0';
-            case 'TRepeater': return '#ff9800';
+            case 'TIntervalTimer': return '#ff9800';
             case 'TGameState': return '#607d8b';
             case 'TGameServer': return '#4caf50';
             case 'THandshake': return '#5c6bc0';

@@ -143,6 +143,13 @@ export class TDebugLog {
         this.setPanelVisible(isHidden);
     }
 
+    /**
+     * Blendet das Debug-Log-Panel explizit aus (z.B. beim View-Wechsel).
+     */
+    public hide() {
+        this.setPanelVisible(false);
+    }
+
     private setPanelVisible(visible: boolean) {
         TDebugLog.logger.debug(`setPanelVisible(${visible}). Current zIndex=${this.element.style.zIndex}`);
         this.isVisible = visible;
