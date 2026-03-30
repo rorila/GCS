@@ -152,6 +152,14 @@ export class FlowContextMenuProvider {
         const proj = this.host.project;
         if (!proj) return;
 
+        // Elementübersicht: Eigenes Kontextmenü mit Lösch-Option für unbenutzte Elemente.
+        // MUSS vor dem isLinked-Check stehen, weil Overview-Nodes die Action-Daten spreizen
+        // und dadurch isLinked=true erben können.
+        if (node.data?.isOverviewLink) {
+            this.showOverviewContextMenu(e, node);
+            return;
+        }
+
         // For embedded nodes, show limited context menu
         if (node.data?.isLinked || node.data?.isEmbeddedInternal) {
             this.showEmbeddedContextMenu(e, node);
@@ -330,6 +338,90 @@ export class FlowContextMenuProvider {
         });
 
         this.host.contextMenu.show(e.clientX, e.clientY, items);
+    }
+
+    /**
+     * Kontextmenü für die Elementübersicht.
+     * Bietet Navigation, Bearbeitung und Löschung für unbenutzte Elemente.
+     */
+    private showOverviewContextMenu(e: MouseEvent, node: FlowElement): void {
+        const proj = this.host.project;
+        if (!proj) return;
+
+        const items: ContextMenuItem[] = [];
+        const elementName = node.Name || node.id;
+        const elementType = node.data?.type; // 'action', 'task', 'VariableDecl'
+        const canDelete = node.data?.canDelete === true;
+        const refs: string[] = node.data?.references || [];
+
+        // 1. Navigation: Zum Task-Flow springen (nur für Tasks)
+        if (elementType === 'task' && node.data?.taskName) {
+            items.push({
+                label: '➔ Zum Task-Flow springen',
+                action: () => this.host.switchActionFlow(node.data.taskName)
+            });
+        }
+
+        // 2. Expert-Edit
+        const expertItem = this.getExpertTaskItem(node) || this.getExpertActionItem(node);
+        if (expertItem) items.push(expertItem);
+
+        // 3. Referenzen anzeigen
+        if (refs.length > 0) {
+            items.push({
+                label: `📋 ${refs.length} Referenz${refs.length > 1 ? 'en' : ''}`,
+                action: () => {
+                    alert(`"${elementName}" wird verwendet in:\n\n${refs.join('\n')}`);
+                }
+            });
+        }
+
+        items.push({ separator: true, label: '' });
+
+        // 4. Lösch-Option: Nur wenn unbenutzt (canDelete === true)
+        if (canDelete) {
+            items.push({
+                label: `🗑️ "${elementName}" endgültig löschen`,
+                action: () => {
+                    if (!confirm(`Element "${elementName}" (${this.getTypeLabel(elementType)}) endgültig aus dem Projekt löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden.`)) {
+                        return;
+                    }
+
+                    if (elementType === 'action') {
+                        RefactoringManager.deleteAction(proj, elementName);
+                    } else if (elementType === 'task') {
+                        RefactoringManager.deleteTask(proj, elementName);
+                    } else if (elementType === 'VariableDecl') {
+                        RefactoringManager.deleteVariable(proj, elementName);
+                    }
+
+                    FlowContextMenuProvider.logger.info(`Element "${elementName}" (${elementType}) aus dem Projekt gelöscht.`);
+
+                    if (this.host.onProjectChange) this.host.onProjectChange();
+                    this.host.switchActionFlow('element-overview');
+                },
+                color: '#ff4444'
+            });
+        } else {
+            items.push({
+                label: `🔒 "${elementName}" wird noch verwendet`,
+                action: () => {
+                    alert(`"${elementName}" kann nicht gelöscht werden.\n\nVerwendet in:\n${refs.join('\n')}`);
+                },
+                color: '#888888'
+            });
+        }
+
+        this.host.contextMenu.show(e.clientX, e.clientY, items);
+    }
+
+    private getTypeLabel(type: string): string {
+        switch (type) {
+            case 'action': return 'Action';
+            case 'task': return 'Task';
+            case 'VariableDecl': return 'Variable';
+            default: return 'Element';
+        }
     }
 
     public handleCanvasContextMenu(e: MouseEvent): void {

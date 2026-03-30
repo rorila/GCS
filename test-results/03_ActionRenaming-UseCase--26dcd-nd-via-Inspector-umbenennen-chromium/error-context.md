@@ -59,8 +59,7 @@
           - generic [ref=e70]:
             - generic [ref=e71]:
               - combobox [ref=e72] [cursor=pointer]:
-                - option "Button_3" [selected]
-                - option "isProjectChangeAvailable (Global)"
+                - option "isProjectChangeAvailable (Global)" [selected]
                 - option "StageController (Global)"
               - generic [ref=e73]: Object
             - button "🗑️" [ref=e74] [cursor=pointer]
