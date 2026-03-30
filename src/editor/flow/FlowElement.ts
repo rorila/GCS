@@ -200,9 +200,23 @@ export abstract class FlowElement {
         if (isUnused) {
             this.element.style.boxShadow = '0 0 15px rgba(255, 0, 0, 0.5)';
             this.element.style.border = '2px solid #ff4444';
+            
+            // Add prominent badge for unused elements
+            if (!this.element.querySelector('.unused-warning')) {
+                const warning = document.createElement('div');
+                warning.className = 'unused-warning';
+                warning.innerText = '⚠️ UNBENUTZT';
+                warning.style.cssText = 'position:absolute;top:-20px;right:0;font-size:10px;color:#ff4444;font-weight:bold;white-space:nowrap;pointer-events:none;';
+                this.element.appendChild(warning);
+            }
         } else {
             this.element.style.boxShadow = '';
             this.element.style.border = '';
+            
+            const warning = this.element.querySelector('.unused-warning');
+            if (warning) {
+                warning.remove();
+            }
         }
     }
 
@@ -227,10 +241,36 @@ export abstract class FlowElement {
     public setUsageInfo(refs: string[]) {
         if (!this.data) this.data = {};
         this.data.references = refs;
+        
+        // 1. Create or Find custom tooltip element
+        let tooltip = this.element.querySelector('.custom-usage-tooltip') as HTMLElement;
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.className = 'custom-usage-tooltip';
+            // Styling with glassmorphism, appearing above content
+            tooltip.style.cssText = 'display:none; position:absolute; left: 105%; top: 0; min-width: 250px; max-height: 250px; overflow-y: auto; background: rgba(30,30,30,0.95); backdrop-filter: blur(8px); border: 1px solid #444; color: #fff; padding: 10px; border-radius: 6px; font-size: 11px; font-family: monospace; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.5); pointer-events: none; white-space: pre-wrap;';
+            this.element.appendChild(tooltip);
+            
+            // Show instantly on hover instead of waiting 2s for native title
+            let originalZIndex = '';
+            this.element.addEventListener('mouseenter', () => {
+                originalZIndex = this.element.style.zIndex;
+                this.element.style.zIndex = '9999';
+                tooltip.style.display = 'block';
+            });
+            this.element.addEventListener('mouseleave', () => {
+                this.element.style.zIndex = originalZIndex;
+                tooltip.style.display = 'none';
+            });
+        }
+
+        // 2. Populate Tooltip Data
         if (refs.length > 0) {
-            this.element.title = "Verwendet in:\n" + refs.join('\n');
+            tooltip.innerHTML = `<strong style="color:#00ffff; display:block; margin-bottom:5px; border-bottom:1px solid #444; padding-bottom:3px;">Verwendet in (${refs.length}):</strong>` + refs.map(r => `• ${r}`).join('<br>');
+            this.element.title = ""; // Disable native tooltip to prevent overlap
         } else {
-            this.element.title = "Nicht verwendet";
+            tooltip.innerHTML = `<strong style="color:#ff4444; display:block;">Nicht verwendet!</strong>`;
+            this.element.title = "";
         }
     }
 

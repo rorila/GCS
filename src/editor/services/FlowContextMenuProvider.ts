@@ -398,6 +398,8 @@ export class FlowContextMenuProvider {
                     FlowContextMenuProvider.logger.info(`Element "${elementName}" (${elementType}) aus dem Projekt gelöscht.`);
 
                     if (this.host.onProjectChange) this.host.onProjectChange();
+                    // Fix: currentFlowContext zurücksetzen, damit switchActionFlow nicht blockiert wird (gleicher view check)
+                    this.host.currentFlowContext = '';
                     this.host.switchActionFlow('element-overview');
                 },
                 color: '#ff4444'

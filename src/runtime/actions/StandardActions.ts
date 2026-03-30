@@ -39,7 +39,11 @@ function resolveTarget(targetName: string, objects: any[], vars: Record<string, 
         const varName = cleanTargetName.substring(2, cleanTargetName.length - 1);
         actualName = String(vars[varName] || cleanTargetName);
     }
-    return objects.find(o => o.name === actualName || o.id === actualName);
+    let foundObj = objects.find(o => o.name === actualName || o.id === actualName);
+    if (!foundObj && typeof vars === 'object' && vars[actualName]) {
+        foundObj = vars[actualName];
+    }
+    return foundObj;
 }
 
 /**

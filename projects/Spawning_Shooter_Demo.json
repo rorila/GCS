@@ -41,15 +41,7 @@
           "boundsOffsetBottom": 0
         }
       ],
-      "actions": [
-        {
-          "name": "playSchuss",
-          "type": "play_audio",
-          "showDetails": false,
-          "details": "(spawn_object)",
-          "target": "aud_schuss"
-        }
-      ],
+      "actions": [],
       "tasks": [],
       "variables": [
         {
@@ -359,20 +351,11 @@
           }
         },
         {
-          "name": "Action1",
+          "name": "PlayTreffer",
+          "type": "play_audio",
           "showDetails": false,
-          "type": "variable"
-        },
-        {
-          "name": "Action2",
-          "showDetails": false,
-          "type": "variable"
-        },
-        {
-          "details": "",
-          "name": "Action3",
-          "showDetails": false,
-          "type": "http"
+          "details": "(spawn_object)",
+          "target": "aud_Treffer"
         },
         {
           "name": "action",
@@ -386,10 +369,6 @@
           "name": "Kugel trifft Ziel",
           "description": "",
           "actionSequence": [
-            {
-              "name": "playSchuss",
-              "type": "action"
-            },
             {
               "name": "Action_DestroyBullet",
               "type": "action"
@@ -406,17 +385,13 @@
               "x": 40,
               "y": 40
             },
-            "playTreffer": {
+            "Action_DestroyBullet": {
               "x": 40,
               "y": 140
             },
-            "Action_DestroyBullet": {
-              "x": 40,
-              "y": 240
-            },
             "Action_ScoreUp": {
               "x": 40,
-              "y": 340
+              "y": 240
             }
           }
         },
@@ -425,12 +400,22 @@
           "description": "",
           "actionSequence": [
             {
-              "type": "action",
-              "name": "Action_MoveRight"
+              "name": "Action_MoveRight",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
-          "params": []
+          "params": [],
+          "flowLayout": {
+            "Bewege Rechts": {
+              "x": 40,
+              "y": 40
+            },
+            "Action_MoveRight": {
+              "x": 40,
+              "y": 140
+            }
+          }
         },
         {
           "name": "Bewege Links",
@@ -461,10 +446,6 @@
           "description": "",
           "actionSequence": [
             {
-              "name": "playSchuss",
-              "type": "action"
-            },
-            {
               "name": "Action_SpawnBullet",
               "type": "action"
             }
@@ -476,13 +457,9 @@
               "x": 40,
               "y": 40
             },
-            "playSchuss": {
-              "x": 40,
-              "y": 140
-            },
             "Action_SpawnBullet": {
               "x": 40,
-              "y": 240
+              "y": 140
             }
           }
         },
@@ -598,35 +575,6 @@
           "volume": 1,
           "loop": false,
           "preload": true
-        },
-        {
-          "className": "TAudio",
-          "id": "obj_1774797166542_p159xxbex",
-          "name": "Audio_10",
-          "scope": "stage",
-          "isVariable": true,
-          "isService": true,
-          "isHiddenInRun": true,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 4,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#fff",
-            "backgroundColor": "#7e57c2",
-            "borderColor": "#512da8",
-            "borderWidth": 2
-          },
-          "src": "",
-          "volume": 1,
-          "loop": false,
-          "preload": true
         }
       ],
       "flowCharts": {},
@@ -647,27 +595,7 @@
   "tasks": [],
   "variables": [],
   "flow": {
-    "elements": [
-      {
-        "id": "node-1774711582125",
-        "type": "action",
-        "x": 240,
-        "y": 140,
-        "width": 140,
-        "height": 60,
-        "properties": {
-          "name": "action",
-          "details": "(spawn_object)",
-          "description": ""
-        },
-        "data": {
-          "name": "action",
-          "type": "spawn_object",
-          "isLinked": true,
-          "showDetails": false
-        }
-      }
-    ],
+    "elements": [],
     "connections": []
   }
 }

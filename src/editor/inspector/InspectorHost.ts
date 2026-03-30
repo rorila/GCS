@@ -208,7 +208,18 @@ export class InspectorHost {
             }
         };
 
-        selectContainer.appendChild(select);
+        const isFlowNode = obj.isFlowNode || obj.constructor?.name === 'FlowAction' || obj.constructor?.name === 'FlowTask';
+        const objInList = uniqueObjects.find(o => o.id === obj.id);
+
+        if (objInList && !isFlowNode) {
+            selectContainer.appendChild(select);
+        } else {
+            const label = document.createElement('span');
+            label.style.cssText = 'flex: 1; min-width: 0; padding: 4px; color: #fff; font-size: 13px; font-weight: bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+            label.textContent = obj.name || obj.id || obj.className || 'Unbenannt';
+            selectContainer.appendChild(label);
+        }
+
         selectContainer.appendChild(type);
         header.appendChild(selectContainer);
 
