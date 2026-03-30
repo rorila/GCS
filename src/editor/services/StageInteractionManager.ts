@@ -252,9 +252,17 @@ export class StageInteractionManager {
                     this.dragStartRel = { x: coords.x, y: coords.y };
                 }
 
+                // Snapshot der zu ziehenden IDs VOR dem Callback sichern.
+                // Der Callback löst render() aus, was selectedIds verändern kann.
+                const dragIds = new Set(this.host.selectedIds);
+
+                if (this.host.onSelectCallback) this.host.onSelectCallback(Array.from(this.host.selectedIds));
+
+                // DOM-Referenzen NACH dem Callback/Render erfassen,
+                // aber mit dem Snapshot (dragIds) statt dem volatilen selectedIds.
                 this.dragElements.clear();
                 this.initialPositions.clear();
-                this.host.selectedIds.forEach(selectedId => {
+                dragIds.forEach(selectedId => {
                     const el = this.host.element.querySelector(`[data-id="${selectedId}"]`) as HTMLElement;
                     if (el) {
                         this.dragElements.set(selectedId, el);
@@ -265,14 +273,12 @@ export class StageInteractionManager {
                     }
                 });
 
-                if (this.host.onSelectCallback) this.host.onSelectCallback(Array.from(this.host.selectedIds));
-
                 this.dragStartTime = Date.now();
                 this.currentDragPath = [{ x: e.clientX, y: e.clientY, t: 0 }];
                 this.initialDragPositions.clear();
-                this.host.selectedIds.forEach(selectedId => {
-                    const obj = this.host.lastRenderedObjects.find(o => o.id === selectedId);
-                    if (obj) this.initialDragPositions.set(selectedId, { x: obj.x, y: obj.y });
+                dragIds.forEach(selectedId => {
+                    const obj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === selectedId);
+                    if (obj) this.initialDragPositions.set(selectedId, { x: obj.x || 0, y: obj.y || 0 });
                 });
 
                 changeRecorder.startBatch(`Objekte verschoben`);
@@ -469,7 +475,10 @@ export class StageInteractionManager {
                     if (this.host.onObjectResize) this.host.onObjectResize(this.dragObjId, Math.max(1, gW), Math.max(1, gH));
                 }
             } else if (this.isDragging) {
-                this.host.selectedIds.forEach(id => {
+                // Verwende die gesicherten Drag-IDs (initialPositions), NICHT host.selectedIds.
+                // selectedIds kann durch Callbacks verändert worden sein.
+                const draggedIds = Array.from(this.initialPositions.keys());
+                draggedIds.forEach(id => {
                     const el = this.host.element.querySelector(`[data-id="${id}"]`) as HTMLElement;
                     if (el) {
                         el.style.transform = '';
@@ -477,9 +486,9 @@ export class StageInteractionManager {
                         if (iP && iG) {
                             const gX = this.snap(iP.left + dx), gY = this.snap(iP.top + dy);
                             if (gX !== iG.x || gY !== iG.y) {
-                                const obj = this.host.lastRenderedObjects.find(o => o.id === id);
+                                const obj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === id);
                                 if (obj) {
-                                    changeRecorder.record({ type: 'drag', description: `${obj.name} verschoben nach (${gX}, ${gY})`, objectId: id, objectType: 'object', startPosition: { x: iG.x, y: iG.y }, endPosition: { x: gX, y: gY }, dragPath: [...this.currentDragPath] });
+                                    changeRecorder.record({ type: 'drag', description: `${obj.name || id} verschoben nach (${gX}, ${gY})`, objectId: id, objectType: 'object', startPosition: { x: iG.x, y: iG.y }, endPosition: { x: gX, y: gY }, dragPath: [...this.currentDragPath] });
                                     if (this.host.onObjectMove) this.host.onObjectMove(id, Math.max(0, gX), Math.max(0, gY));
                                 }
                             }

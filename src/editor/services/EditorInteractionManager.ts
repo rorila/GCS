@@ -26,14 +26,15 @@ export class EditorInteractionManager {
         this.host = host;
     }
 
-    private getOriginalObject(id: string): any {
+    private getOriginalObject(id: string, name?: string): any {
         const project = this.host.project;
         if (!project) return null;
 
         const findDeep = (objs: any[]): any => {
             if (!objs) return null;
             for (const o of objs) {
-                if (o.id === id) return o;
+                if (!!o.id && o.id === id) return o;
+                if (!o.id && name && o.name === name) return o;
                 if (o.children) {
                     const found = findDeep(o.children);
                     if (found) return found;
@@ -69,7 +70,6 @@ export class EditorInteractionManager {
         stage.onSelectCallback = (ids: string[]) => {
             if (ids.length > 0) {
                 this.host.selectObject(ids[0]);
-                console.log(`[EditorInteractionManager] Selected ${ids.length} object(s):`, ids);
             } else {
                 this.host.selectObject(null);
             }
@@ -97,7 +97,8 @@ export class EditorInteractionManager {
                 mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'y', value: newY });
             }
 
-            const rawObj = this.getOriginalObject(id);
+            const rawObj = this.getOriginalObject(id, obj?.name || id);
+
             if (rawObj && rawObj !== obj) {
                 mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'x', value: newX });
                 mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'y', value: newY });
@@ -125,7 +126,7 @@ export class EditorInteractionManager {
                 mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'height', value: newHeight });
             }
 
-            const rawObj = this.getOriginalObject(id);
+            const rawObj = this.getOriginalObject(id, obj?.name || id);
             if (rawObj && rawObj !== obj) {
                 mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'width', value: newWidth });
                 mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'height', value: newHeight });

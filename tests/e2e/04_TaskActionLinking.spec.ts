@@ -69,7 +69,7 @@ test.describe('UseCase: Task mit Action verbinden', () => {
                 taskFound: !!task,
                 actionSequence: task?.actionSequence || [],
                 hasShowAction: task?.actionSequence?.some((a: any) =>
-                    a.name === 'ShowTheHighscoreStage'
+                    a.name === 'ShowTheHighscoreStage_Unique'
                 ) || false
             };
         });

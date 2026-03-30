@@ -1,13 +1,13 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 29.3.2026, 17:04:06
-**Status**: ✅ ALLE TESTS BESTANDEN
+**Generiert am**: 29.3.2026, 19:48:08
+**Status**: ❌ FEHLER GEFUNDEN
 
 ## 📊 Visuelle Übersicht
 ```mermaid
 pie title Test-Status (Gesamt: 150)
-    "Bestanden ✅" : 150
-    "Fehlgeschlagen ❌" : 0
+    "Bestanden ✅" : 145
+    "Fehlgeschlagen ❌" : 5
 ```
 
 ## 🧪 Test-Details
@@ -145,24 +145,56 @@ pie title Test-Status (Gesamt: 150)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1774796609802_v2 (erwartet: stage_import_1774796609802_v2), BackToLobby.stageId=stage_import_1774796609802_sz (erwartet: stage_import_1774796609802_sz)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Task→Action Verbindung per Anchor-Drag herstellen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Neue Stage über Menü erzeugen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Action-Typ auf navigate_stage ändern<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Kompletter Flow: Button auf MainStage erzeugen und mit run beschriften<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: MyCoolGame.json auf Disk vollständig validieren<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: Roundtrip: Werte bleiben nach Speichern und Laden konsistent<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte den Run-Modus starten und stoppen können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte den Run-Modus erneut starten können (Restart)<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte das Stages-Menü anzeigen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte zur Blueprint-Stage wechseln können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte nach Stage-Wechsel zurückkehren können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte den Editor korrekt laden<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte zwischen Views umschalten können<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| E2E: sollte die Komponenten-Palette in der Toolbox anzeigen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1774806408612_r3 (erwartet: stage_import_1774806408612_r3), BackToLobby.stageId=stage_import_1774806408612_wf (erwartet: stage_import_1774806408612_wf)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium - [31mTest timeout of 30000ms exceeded.[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: Kompletter Flow: Task→Action Verbindung per Anchor-Drag herstellen<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('.glass-node-action').first()
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 5000ms[22m
+[2m  - waiting for locator('.glass-node-action').first()[22m
+</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: Kompletter Flow: Neue Stage über Menü erzeugen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: Kompletter Flow: Action-Typ auf navigate_stage ändern<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('.glass-node-action').filter({ hasText: 'ShowTheHighscoreStage_Unique' })
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 5000ms[22m
+[2m  - waiting for locator('.glass-node-action').filter({ hasText: 'ShowTheHighscoreStage_Unique' })[22m
+</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: Kompletter Flow: Button auf MainStage erzeugen und mit run beschriften<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: MyCoolGame.json auf Disk vollständig validieren<br><small>Browser: chromium - Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeDefined[2m()[22m
+
+Received: [31mundefined[39m</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: Roundtrip: Werte bleiben nach Speichern und Laden konsistent<br><small>Browser: chromium - Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('.glass-node-action').filter({ hasText: 'ShowTheHighscoreStage_Unique' })
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 5000ms[22m
+[2m  - waiting for locator('.glass-node-action').filter({ hasText: 'ShowTheHighscoreStage_Unique' })[22m
+</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| E2E: sollte den Run-Modus starten und stoppen können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte den Run-Modus erneut starten können (Restart)<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte das Stages-Menü anzeigen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte zur Blueprint-Stage wechseln können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte nach Stage-Wechsel zurückkehren können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte den Editor korrekt laden<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte zwischen Views umschalten können<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| E2E: sollte die Komponenten-Palette in der Toolbox anzeigen<br><small>Browser: chromium - Fehler</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 
 ---
 *Hinweis: Dieser Bericht wurde automatisch vom GCS Regression Test Runner erstellt.*

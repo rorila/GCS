@@ -47,16 +47,16 @@ test.describe('UseCase: Projekt speichern – Abschluss-Validierung', () => {
         expect(task).toBeDefined();
         console.log(`  Task gefunden ✅`);
 
-        // 6. ShowTheHighscoreStage Action
-        console.log('[Test] 6. ShowTheHighscoreStage...');
-        const action = fileContent.actions?.find((a: any) => a.name === 'ShowTheHighscoreStage')
-            || mainStage?.actions?.find((a: any) => a.name === 'ShowTheHighscoreStage');
+        // 6. ShowTheHighscoreStage_Unique Action
+        console.log('[Test] 6. ShowTheHighscoreStage_Unique...');
+        const action = fileContent.actions?.find((a: any) => a.name === 'ShowTheHighscoreStage_Unique')
+            || mainStage?.actions?.find((a: any) => a.name === 'ShowTheHighscoreStage_Unique');
         expect(action).toBeDefined();
         console.log(`  Action gefunden ✅`);
 
         // 7. actionSequence
         console.log('[Test] 7. actionSequence...');
-        const seqAction = task?.actionSequence?.find((a: any) => a.name === 'ShowTheHighscoreStage');
+        const seqAction = task?.actionSequence?.find((a: any) => a.name === 'ShowTheHighscoreStage_Unique');
         console.log(`  actionSequence: ${JSON.stringify(task?.actionSequence)}`);
         expect(seqAction).toBeDefined();
         console.log(`  Verbindung ✅`);

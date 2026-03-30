@@ -2900,6 +2900,32 @@
           "children": [
             {
               "className": "TPanel",
+              "id": "obj_1774797616079_ee8hzwewn",
+              "name": "Zeile",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 0,
+              "y": 0,
+              "width": 14,
+              "height": 3,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "backgroundColor": "#1a1a3e",
+                "borderColor": "#2a2a5e",
+                "borderWidth": 1,
+                "borderRadius": 8
+              },
+              "caption": "",
+              "showGrid": false,
+              "gridColor": "#000000",
+              "gridStyle": "lines"
+            },
+            {
+              "className": "TPanel",
               "id": "obj_1774346232648_6web96jn3",
               "name": "Zeile",
               "scope": "stage",

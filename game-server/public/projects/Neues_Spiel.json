@@ -1,9 +1,9 @@
 {
   "meta": {
-    "name": "MyCoolGame",
+    "name": "Neues Spiel",
     "version": "1.0.0",
-    "author": "GCS-Team",
-    "description": "Das ist mein cooles Spiel",
+    "author": "",
+    "description": "",
     "_sourcePath": "projects/Neues_Spiel.json"
   },
   "stage": {
@@ -17,6 +17,14 @@
     }
   },
   "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
     "elements": [],
     "connections": []
   },
@@ -54,8 +62,8 @@
           "visible": true,
           "x": 2,
           "y": 2,
-          "width": 8,
-          "height": 4,
+          "width": 4,
+          "height": 2,
           "zIndex": 0,
           "align": "NONE",
           "style": {
@@ -70,6 +78,34 @@
           "stageCount": 0,
           "isOnMainStage": false,
           "isOnSplashStage": false
+        },
+        {
+          "className": "TGameLoop",
+          "id": "obj_1774806748972_ssm13macl",
+          "name": "GameLoop_3",
+          "scope": "stage",
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 5,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#2196f3",
+            "borderColor": "#1565c0",
+            "borderWidth": 2
+          },
+          "targetFPS": 60,
+          "boundaryMode": "clamp",
+          "boundsOffsetTop": 0,
+          "boundsOffsetBottom": 0
         }
       ],
       "actions": [],
@@ -102,6 +138,34 @@
           "defaultValue": true,
           "value": true,
           "objectModel": ""
+        },
+        {
+          "className": "TTimer",
+          "id": "obj_1774806806611_t81p50f1r",
+          "name": "Timer_4",
+          "scope": "stage",
+          "isVariable": true,
+          "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 2,
+          "y": 8,
+          "width": 4,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#4caf50",
+            "borderColor": "#2e7d32",
+            "borderWidth": 2
+          },
+          "interval": 1000,
+          "enabled": true,
+          "maxInterval": 0,
+          "currentInterval": 0
         }
       ],
       "grid": {
@@ -116,86 +180,8 @@
     },
     {
       "id": "main",
-      "name": "MainStage",
+      "name": "Haupt-Level",
       "type": "main",
-      "objects": [
-        {
-          "className": "TButton",
-          "id": "obj_1774796634759_4blt4inff",
-          "name": "Button_3",
-          "scope": "global",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1
-          },
-          "text": "Button_3",
-          "icon": ""
-        }
-      ],
-      "actions": [
-        {
-          "details": "",
-          "name": "ShowTheHighscoreStage",
-          "showDetails": false,
-          "type": "navigate_stage"
-        }
-      ],
-      "tasks": [
-        {
-          "name": "SwitchToTheHighscoreStage",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "ShowTheHighscoreStage",
-              "type": "action"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "SwitchToTheHighscoreStage": {
-              "x": 40,
-              "y": 40
-            },
-            "ShowTheHighscoreStage": {
-              "x": 40,
-              "y": 140
-            }
-          }
-        }
-      ],
-      "variables": [],
-      "grid": {
-        "cols": 60,
-        "rows": 38,
-        "cellSize": 22,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#16da36"
-      },
-      "flowCharts": {}
-    },
-    {
-      "id": "stage-1774796627791",
-      "name": "Stage 1",
-      "type": "standard",
       "objects": [],
       "actions": [],
       "tasks": [],
@@ -207,9 +193,8 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#ffffff"
-      },
-      "flowCharts": {}
+      }
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "blueprint"
 }

@@ -268,6 +268,27 @@ export class InspectorHost {
         }
 
         // =====================================================================
+        // NEU: Hydration-Pfad für ObjectStore-Modelle (Raw JSON Component Data)
+        // =====================================================================
+        if (!isInspectable(obj) && obj.className) {
+            const instance = componentRegistry.createInstance(obj);
+            if (instance && isInspectable(instance)) {
+                const proxy = new Proxy(obj, {
+                    get(target: any, prop: string) {
+                        if (prop === 'getInspectorSections') return () => instance.getInspectorSections();
+                        if (prop === 'applyChange') return (propertyName: string, newValue: any) => {
+                            PropertyHelper.setPropertyValue(target, propertyName, newValue);
+                            return propertyName === 'type' || propertyName === 'className';
+                        };
+                        return target[prop];
+                    }
+                });
+                this.renderInspectableSections(proxy as any, parent);
+                return;
+            }
+        }
+
+        // =====================================================================
         // NEU: Handler-Sektionen-Pfad (z.B. StageHandler)
         // Handler liefert InspectorSection[] → gleicher Rendering-Pfad wie IInspectable
         // =====================================================================

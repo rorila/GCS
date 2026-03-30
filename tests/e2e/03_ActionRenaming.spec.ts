@@ -25,11 +25,11 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         await flowDropdown.selectOption('SwitchToTheHighscoreStage');
         await page.waitForTimeout(500);
 
-        // 4. Action per Toolbox-Klick erzeugen
-        console.log('Test: 4. Action per Toolbox-Klick erzeugen...');
-        const actionToolboxItem = page.locator('.toolbox-item[data-type="action"]');
-        await expect(actionToolboxItem).toBeVisible({ timeout: 3000 });
-        await actionToolboxItem.click();
+        // 4. Action per Kontextmenü erzeugen
+        console.log('Test: 4. Action per Kontextmenü erzeugen...');
+        await page.locator('#flow-canvas').click({ button: 'right', position: { x: 300, y: 300 } });
+        await page.waitForTimeout(300);
+        await page.locator('.context-menu-item:has-text("Aktion hinzufügen")').click();
         await page.waitForTimeout(500);
 
         // 5. Action-Node sollte sichtbar sein
@@ -42,17 +42,17 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         await actionNode.click();
         await page.waitForTimeout(300);
 
-        // 7. Inspector: Name ändern auf "ShowTheHighscoreStage"
-        console.log('Test: 7. Inspector: Name ändern auf ShowTheHighscoreStage...');
+        // 7. Inspector: Name ändern auf "ShowTheHighscoreStage_Unique"
+        console.log('Test: 7. Inspector: Name ändern auf ShowTheHighscoreStage_Unique...');
         const nameInput = page.locator('input[name="NameInput"]');
         await expect(nameInput).toBeVisible({ timeout: 3000 });
-        await nameInput.fill('ShowTheHighscoreStage');
+        await nameInput.fill('ShowTheHighscoreStage_Unique');
         await nameInput.press('Tab');
         await page.waitForTimeout(500);
 
         // 8. Validierung: Action-Node ist immer noch sichtbar und hat neuen Namen
         console.log('Test: 8. Validierung: Action-Node sichtbar mit neuem Namen...');
-        const renamedActionNode = page.locator('.glass-node-action', { hasText: 'ShowTheHighscoreStage' });
+        const renamedActionNode = page.locator('.glass-node-action', { hasText: 'ShowTheHighscoreStage_Unique' });
         await expect(renamedActionNode).toBeVisible({ timeout: 3000 });
 
         // 9. Validierung: Task-Name ist NICHT verändert worden
@@ -84,7 +84,7 @@ test.describe('UseCase: Eine Action umbenennen', () => {
                 return false;
             };
             return {
-                newActionFound: findAction('ShowTheHighscoreStage'),
+                newActionFound: findAction('ShowTheHighscoreStage_Unique'),
                 taskStillExists: findTask('SwitchToTheHighscoreStage')
             };
         });
@@ -100,10 +100,41 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         await page.waitForTimeout(300);
 
         const contentText = await page.locator('.management-content').innerText();
-        expect(contentText).toContain('ShowTheHighscoreStage');
+        expect(contentText).toContain('ShowTheHighscoreStage_Unique');
 
-        // 12. Speichern
-        console.log('Test: 12. Speichern nach Action-Umbenennung...');
+        // 13. Test Uniqueness Validation (Duplikat-Name Prüfung)
+        console.log('Test: 13. Test Uniqueness Validation (Duplikat-Name)...');
+        // Register Dialog Handler
+        let alertMessage = '';
+        page.on('dialog', dialog => {
+            alertMessage = dialog.message();
+            dialog.accept();
+        });
+
+        // Wir erzeugen eine weitere Action und versuchen sie gleich zu benennen
+        await page.locator('.tab-btn[data-view="flow"]').click();
+        await page.waitForTimeout(500);
+        
+        await page.locator('#flow-canvas').click({ button: 'right', position: { x: 300, y: 300 } });
+        await page.waitForTimeout(300);
+        await page.locator('.context-menu-item:has-text("Aktion hinzufügen")').click();
+        await page.waitForTimeout(500);
+        
+        // Die neue Action auswhlen (z.B. NewAction_2)
+        const secondActionNode = page.locator('.glass-node-action', { hasText: 'NewAction' }).first();
+        await secondActionNode.click();
+        await page.waitForTimeout(300);
+
+        // Versuchen, sie auf den bereits vergebenen Namen 'ShowTheHighscoreStage_Unique' zu taufen
+        await nameInput.fill('ShowTheHighscoreStage_Unique');
+        await nameInput.press('Tab');
+        await page.waitForTimeout(500);
+
+        // Alert MUSS gefeuert haben und validen Text enthalten
+        expect(alertMessage).toContain('blockiert');
+
+        // 14. Speichern
+        console.log('Test: 14. Speichern nach Action-Umbenennung...');
         await saveMyCoolGame(page);
         console.log('Test: Flow ActionRenaming erfolgreich abgeschlossen. MyCoolGame.json aktualisiert.');
     });

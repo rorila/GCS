@@ -50,9 +50,10 @@ export class Stage implements StageHost, StageInteractionHost {
         this._selectedObject = obj;
         // Sync selectedIds to ensure visual selection works
         if (obj) {
-            if (!this.selectedIds.has(obj.id)) {
+            const objId = obj.id || obj.name;
+            if (!this.selectedIds.has(objId)) {
                 this.selectedIds.clear();
-                this.selectedIds.add(obj.id);
+                this.selectedIds.add(objId);
             }
         } else {
             this.selectedIds.clear();

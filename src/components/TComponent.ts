@@ -145,7 +145,7 @@ export abstract class TComponent implements IInspectable {
         // Unsichtbare Service-Komponenten/Variablen: Rein visuelle Gruppen ausblenden,
         // da diese Komponenten zur Laufzeit nicht gerendert werden.
         const hiddenGroups = this.isHiddenInRun
-            ? ['STIL', 'GLOW-EFFEKT', 'TYPOGRAFIE', 'INTERAKTION', 'GEOMETRIE']
+            ? ['STIL', 'GLOW-EFFEKT', 'TYPOGRAFIE', 'INTERAKTION']
             : [];
 
         const groupMap = new Map<string, TPropertyDef[]>();

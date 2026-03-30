@@ -75,3 +75,14 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
   - GameRuntime und GameLoopManager für Sichtbarkeits-Checks erweitert
   - Resolving von '%Self%' und '%Other%' Targets standardisiert
   - Dateien: src/components/TSpriteTemplate.ts, src/runtime/SpritePool.ts, src/runtime/GameRuntime.ts, src/runtime/GameLoopManager.ts, src/runtime/actions/StandardActions.ts, src/utils/Serialization.ts
+
+ 
+ # #   2 0 2 6 - 0 3 - 2 9   E d i t o r   I n t e r a c t i o n   &   N a m i n g   V a l i d a t i o n   F i x e s 
+ -   * * A c t i o n / T a s k   N a m i n g   V a l i d a t i o n * * : 
+     D a t e i e n :   s r c / e d i t o r / s e r v i c e s / E d i t o r C o m m a n d M a n a g e r . t s   ( Z e i l e   2 4 7 ) ,   s r c / s e r v i c e s / P r o j e c t R e g i s t r y . t s 
+     M e t h o d e n :   r e n a m e O b j e c t ,   v a l i d a t e T a s k N a m e ,   v a l i d a t e A c t i o n N a m e 
+ -   * * I n s p e c t o r   H y d r a t i o n   f o r   S y s t e m   C o m p o n e n t s * * : 
+     D a t e i e n :   s r c / e d i t o r / i n s p e c t o r / I n s p e c t o r H o s t . t s   ( Z e i l e   2 7 0 ) ,   s r c / e d i t o r / i n s p e c t o r / h a n d l e r s / F l o w N o d e H a n d l e r . t s 
+     M e t h o d e n :   r e n d e r P r o p e r t i e s C o n t e n t ,   i s I n s p e c t a b l e 
+  
+ 

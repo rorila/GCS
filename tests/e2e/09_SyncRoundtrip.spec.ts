@@ -41,7 +41,7 @@ test.describe('Sync Roundtrip: Inspector → Flow → Manager → Reload', () =>
 
         // 5. Action-Node anklicken
         console.log('RT: 5. Action-Node anklicken...');
-        const actionNode = page.locator('.glass-node-action', { hasText: 'ShowTheHighscoreStage' });
+        const actionNode = page.locator('.glass-node-action', { hasText: 'ShowTheHighscoreStage_Unique' });
         await expect(actionNode).toBeVisible({ timeout: 5000 });
         await actionNode.click();
         await page.waitForTimeout(300);
@@ -62,8 +62,8 @@ test.describe('Sync Roundtrip: Inspector → Flow → Manager → Reload', () =>
         await page.waitForTimeout(300);
 
         const contentText = await page.locator('.management-content').innerText();
-        expect(contentText).toContain('ShowTheHighscoreStage');
-        console.log('  Manager zeigt ShowTheHighscoreStage ✅');
+        expect(contentText).toContain('ShowTheHighscoreStage_Unique');
+        console.log('  Manager zeigt ShowTheHighscoreStage_Unique ✅');
 
         // 8. Speichern
         console.log('RT: 8. Speichern...');
@@ -87,7 +87,7 @@ test.describe('Sync Roundtrip: Inspector → Flow → Manager → Reload', () =>
         await flowDropdown.selectOption('SwitchToTheHighscoreStage');
         await page.waitForTimeout(500);
 
-        const actionNodeReloaded = page.locator('.glass-node-action', { hasText: 'ShowTheHighscoreStage' });
+        const actionNodeReloaded = page.locator('.glass-node-action', { hasText: 'ShowTheHighscoreStage_Unique' });
         await expect(actionNodeReloaded).toBeVisible({ timeout: 5000 });
         console.log('  Action-Node nach Reload sichtbar ✅');
 

@@ -4,6 +4,7 @@ import { componentRegistry } from '../../services/ComponentRegistry';
 import { changeRecorder } from '../../services/ChangeRecorder';
 import { RefactoringManager } from '../RefactoringManager';
 import { mediatorService } from '../../services/MediatorService';
+import { projectRegistry } from '../../services/ProjectRegistry';
 
 export class EditorCommandManager {
     private editor: Editor;
@@ -245,6 +246,26 @@ export class EditorCommandManager {
         const oldName = forcedOldName || obj.name;
         if (oldName === newName) return;
 
+        const type = (obj.getType?.() || obj.type || '').toLowerCase();
+        const isTask = obj.className === 'TTask' || type === 'task';
+        const isAction = obj.className === 'TAction' || type === 'action' || type === 'data_action' || type === 'httpaction';
+
+        // 0. Name Uniqueness Validation (Verhindert Shadowing/Konflikte)
+        if (isTask) {
+            const validation = projectRegistry.validateTaskName(newName);
+            if (!validation.valid) {
+                alert(`Umbenennung blockiert:\n${validation.error}`);
+                return;
+            }
+        } else if (isAction) {
+            // Action validity check (Global scope check)
+            const exists = projectRegistry.getActions('all', false).some(a => a.name === newName);
+            if (exists) {
+                alert(`Umbenennung blockiert:\nEine Aktion mit dem Namen "${newName}" existiert bereits im Projekt.`);
+                return;
+            }
+        }
+
         // CRITICAL: Set refactoring flag to suppress intermediate syncs
         this.isRefactoring = true;
 
@@ -327,10 +348,10 @@ export class EditorCommandManager {
             // WICHTIG: Objekte im ObjectStore sind Preview-Kopien (mit aufgelösten Bindings).
             // Für den Inspector muss das ORIGINAL-Objekt (__rawSource) zurückgegeben werden,
             // damit Binding-Werte (z.B. "${currentUser.name}") erhalten bleiben.
-            if (obj.id === id) return obj.__rawSource || obj;
+            if (obj.id === id || obj.name === id) return obj.__rawSource || obj;
             if (obj.children && Array.isArray(obj.children)) {
                 for (const child of obj.children) {
-                    if (child.id === id) return child.__rawSource || child;
+                    if (child.id === id || child.name === id) return child.__rawSource || child;
                 }
             }
         }

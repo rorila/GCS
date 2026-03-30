@@ -52,9 +52,9 @@ test.describe('UseCase: Action-Typ ändern', () => {
         await flowDropdown.selectOption('SwitchToTheHighscoreStage');
         await page.waitForTimeout(500);
 
-        // 5. Action-Node "ShowTheHighscoreStage" anklicken
+        // 5. Action-Node "ShowTheHighscoreStage_Unique" anklicken
         console.log('Test: 5. Action-Node anklicken...');
-        const actionNode = page.locator('.glass-node-action', { hasText: 'ShowTheHighscoreStage' });
+        const actionNode = page.locator('.glass-node-action', { hasText: 'ShowTheHighscoreStage_Unique' });
         await expect(actionNode).toBeVisible({ timeout: 5000 });
         await actionNode.click();
         await page.waitForTimeout(300);

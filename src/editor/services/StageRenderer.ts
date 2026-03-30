@@ -281,11 +281,12 @@ export class StageRenderer {
                 }
             }
 
-            if (!this.host.runMode && !isVisible) {
+            if (!this.host.runMode && (!isVisible || obj.isHiddenInRun || isService || isBlueprintOnly)) {
                 el.style.display = 'flex';
                 el.classList.add('invisible-object-in-editor');
             } else {
                 el.style.display = isVisible ? 'flex' : 'none';
+                el.classList.remove('invisible-object-in-editor');
             }
 
             // Inherited/Ghosted State — nur im Design-Mode schemenhaft
@@ -300,11 +301,13 @@ export class StageRenderer {
             }
 
             const opacity = (obj.style && obj.style.opacity !== undefined && obj.style.opacity !== null) ? obj.style.opacity : (obj.imageOpacity !== undefined ? obj.imageOpacity : undefined);
+            const needsPlaceholder = (!isVisible || obj.isHiddenInRun || isService || isBlueprintOnly) && !this.host.runMode;
+
             if (opacity !== undefined && opacity !== null) {
                 el.style.opacity = String(opacity);
             } else if (isInherited && !this.host.runMode) {
                 el.style.opacity = '0.4';
-            } else if (!isVisible && !this.host.runMode) {
+            } else if (needsPlaceholder) {
                 el.style.opacity = '0.4';
                 el.style.outline = '2px dashed #ff4444';
                 el.style.outlineOffset = '-2px';

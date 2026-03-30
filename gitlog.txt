@@ -1,0 +1,25 @@
+﻿0fca739 feat: Event-Aufr├ñumung, TRepeaterÔåÆTIntervalTimer Migration, UX-Fixes
+dcb7262 feat(editor): Globales Undo/Redo System via SnapshotManager integriert
+008b193 Fix TSpriteTemplate visibility and cleanup FlowToolbox/Action dropdown
+f78d96f Standalone-Export: 60Hz GPU Rendering und Transparenz-Fixes
+ab41ca7 Sprites sind perfomant
+160636d feat: TSprite transparenter Hintergrund fuer freigestellte Image-Sprites (vor_GPU_rendering)
+78e8b67 vor HTML-Experiment
+8ce2564 Fix: Ctrl+A/C/V in Input/Textarea erlauben (Import-Tab Paste-Bug)
+efb809d Fix: backgroundImage VOR grid setzen, damit updategrid() sofort aktualisiert
+96d1460 Fix: CSS-Layer-Bug (3 statt 2 Werte) + backgroundImageMode (cover/tile) Auswahl
+bf3ec43 Stage-Hintergrundbild: image_picker im Inspector, CSS-Layer Rendering mit Grid-Overlay
+3648554 Clipboard-Paste: Bilder aus Zwischenablage als Base64 in image_picker einfuegen
+a48391b Vite-Plugin: Media-Manifest wird automatisch beim Dev-Server-Start generiert
+1330d34 Import-Tab: Projekt-Import per Clipboard in der Toolbox-Sidebar
+0185410 Fix: Media-Picker Buttons im Inspector sichtbar - renderInspectableProperty erweitert
+8875597 Media-Picker Dialoge: Thumbnail-Grid fuer Images, Audio-Playback, Video-Vorschau im Inspector
+82dc547 Inspector-Bereinigung: Visuelle Gruppen bei unsichtbaren Komponenten ausgeblendet, Standardgroesse auf 4x2 erhoeht
+22e6641 Run-Mode repariert: Single-Global-Handler Pattern fuer TInputController
+1ecc67f feat: Object Pooling (TSpriteTemplate), Expression Parsing & Runtime Fixes
+d83197c fix: Stage Keyboard Nudge respects snapToGrid toggle
+d341bfc feat: Stage Keyboard Nudging (Arrow Keys)
+3d1a00d feat: Inspector Mockup Generator & Native Runtime UIs (TColorPicker, TDropdown)
+25aeafe feat(editor): Stage Manager Dialog
+28013ad feat(editor): Stage Duplikation, Reordering und globales System-Clipboard
+14627b7 feat(editor): Mehrzeilige Textfelder im Inspector (Textarea) und TPanel-Caption Fix
