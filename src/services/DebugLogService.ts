@@ -23,8 +23,8 @@ export class DebugLogService {
     private logs: LogEntry[] = [];
     private entryMap: Map<string, LogEntry> = new Map(); // O(1) Lookup statt rekursiver Baumsuche
     private listeners: LogListener[] = [];
-    private maxLogs = 1000;
-    private maxChildren = 50;
+    private maxLogs = 500; // Radikal reduziert für Performance (ursprünglich 1000)
+    private maxChildren = 30; // Reduziert (ursprünglich 50)
     private counter = 0;
     private contextStack: string[] = [];
     private enabled = false;
@@ -164,14 +164,14 @@ export class DebugLogService {
         this.isNotifying = false;
     }
 
-    /** Throttled notify: sammelt Log-Aufrufe und benachrichtigt max. alle 200ms */
+    /** Throttled notify: sammelt Log-Aufrufe und benachrichtigt max. alle 250ms (echtes Batching) */
     private scheduleNotify(): void {
         if (this.notifyScheduled) return;
         this.notifyScheduled = true;
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             this.notifyScheduled = false;
             this.notify();
-        });
+        }, 250); // Nur noch 4x pro Sekunde rendern statt bei jedem Monitor-Frame
     }
 
     public toggleExpand(id: string): void {
