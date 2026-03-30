@@ -1,3 +1,7 @@
+- [2026-03-30] Elementübersicht: Lösch-Funktion für unbenutzte Actions/Tasks/Variablen & UX Visualisierung
+  - Datei: src/editor/services/FlowContextMenuProvider.ts (Methode: showOverviewContextMenu, L342-430; handleNodeContextMenu isOverviewLink-Guard: L155-162)
+  - DateI: src/editor/flow/FlowElement.ts (setUnused, setUsageInfo); src/editor/inspector/InspectorHost.ts (renderHeader, L208-218); src/editor/services/EditorCommandManager.ts (selectObject, L332-337)
+  - Details: Neues dediziertes Kontextmenü für Nodes in der Elementübersicht. Unbenutzte Elemente (canDelete: true) können direkt aus dem Projekt-JSON gelöscht werden. Fix: isOverviewLink-Check vor isLinked-Check. UI-Reload Fix (`currentFlowContext = ''`). FlowNodes erhielten einen dynamischen Badge ("⚠️ UNBENUTZT") und einen nativen Custom-HTML Tooltip mit den exakten `findReferences`-Werten, der bei Hover (`mouseenter`) sofort (!) die Referenzen (z.B. Caller-Tasks) anzeigt, statt auf das träge Browser-Tooltip zu warten. Tooltip wird durch Z-Index Toggle nicht verdeckt. Bugfix Inspector: Im Element-Overview lädt Deselect-Fallback nicht mehr irrtümlich die Stage-Properties in den Inspector. Der Objekt-Wechsel Dropdown wird für FlowNodes und System-Szenen (Stage) ausgeblendet.
 - [2026-03-29] Event-Aufräumung: UI-Events bei nicht-sichtbaren Komponenten ausblenden
   - Datei: src/components/TWindow.ts (Methode: getEvents, L155-162)
   - Details: isHiddenInRun-Guard eingefügt. ~18 Unterklassen zeigen keine unnötigen onClick/onFocus/onBlur/onDragStart/onDragEnd/onDrop mehr an.
@@ -86,3 +90,6 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
      M e t h o d e n :   r e n d e r P r o p e r t i e s C o n t e n t ,   i s I n s p e c t a b l e 
   
  
+## UseCase: Rename Validation von Actions und Elementen mit aktiven Property-Bindings
+- Grund: Two-Way-Bound Properties in Inspector-Ansichten mutieren die aktive referenzierte Object-Instanz obj.name, bevor der EditorCommandManager.renameObject Validator anschlägt, wodurch das Objekt fälschlicherweise als Kollision mit sich selbst detektiert werden konnte.
+- **Lösung:** In src/editor/services/EditorCommandManager.ts:263 wird beim some(a => a.name === newName) explizit .id !== obj.id ausgeschlossen, um denselben Knoten beim Renaming zu ignorieren.

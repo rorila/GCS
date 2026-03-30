@@ -133,7 +133,7 @@ export class FlowSyncManager {
                         FlowSyncManager.logger.debug(`[TRACE] syncToProject: SKIP linked action "${actionName}" (SSoT is project.actions).`);
                     } else {
                         FlowSyncManager.logger.debug(`[TRACE] syncToProject: Aktualisiere Model-Definition für "${actionName}" (isLinked=${!!node.data.isLinked})`);
-                        this.updateGlobalActionDefinition({ details: (node as any).Details, ...node.data, name: actionName });
+                        this.updateGlobalActionDefinition({ id: node.id, details: (node as any).Details, ...node.data, name: actionName });
                     }
                 }
             }
@@ -1114,7 +1114,7 @@ export class FlowSyncManager {
                 const name = el.properties?.name || el.data?.name || el.data?.actionName;
                 const isMeaningful = el.data?.type || el.data?.actionName || el.data?.taskName;
                 if (name && (name !== 'Action' && name !== 'Aktion' || isMeaningful)) {
-                    this.updateGlobalActionDefinition({ ...el.data, name });
+                    this.updateGlobalActionDefinition({ id: el.id, ...el.data, name });
                 }
             });
         }

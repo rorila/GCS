@@ -1,3 +1,31 @@
+## [3.29.4] - 2026-03-30
+### Added
+- **Elementübersicht: Lösch-Funktion für unbenutzte Elemente** (`FlowContextMenuProvider.ts`):
+  - Neues dediziertes Kontextmenü (`showOverviewContextMenu`) für Nodes in der Elementübersicht.
+  - **Lösch-Option** (🗑️) für unbenutzte Actions, Tasks und Variablen, die in keinem Flow-Diagramm referenziert sind.
+  - **Referenz-Info** (📋) zeigt Verwendungsorte aktiver Elemente als Alert-Dialog.
+  - **Schutzmechanismus** (🔒) für verwendete Elemente — Löschen wird mit Begründung blockiert.
+  - Navigation (➔) zum Task-Flow direkt aus der Übersicht.
+  - Löschung erfolgt direkt über `RefactoringManager.deleteAction/deleteTask/deleteVariable` mit anschließendem automatischen Reload der Übersicht (Bypass `this.host.currentFlowContext = ''`).
+
+### Fixed
+- **Rename-Validator Bug**: Behebung eines Fehlers in `EditorCommandManager.renameObject`, der das Umbenennen (z. B. einer neuen Action) mit "Name existiert bereits" blockierte. Ursache war, dass der Validator bei aktiven Two-Way-Bindings die gerade bearbeitete Node als Kollision mit sich selbst fand. Die Validierung ignoriert nun die eigene Objekt-ID. Zusätzlich merkt sich der FlowSyncManager nun die id der aus Diagrammen generierten Actions, damit diese Zuordnung zuverlässig funktioniert.
+
+### Improved
+- **Elementübersicht UX & Visualisierung** (`FlowElement.ts`, `InspectorHost.ts`):
+  - **Unbenutzte Elemente:** Neben der roten Umrandung wird nun ein deutlicher "⚠️ UNBENUTZT"-Badge an verwaisten Tasks/Actions angezeigt.
+  - **Hover Usage-Info:** Das native Browser-Tooltip (`title`) für Verwendungs-Referenzen (das eine Zeitverzögerung hatte) wurde durch einen sofort sichtbaren, benutzerdefinierten HTML-Tooltip (mit Glassmorphism-Design) ersetzt. Fährt der User über eine Aktion oder einen Task, wird sofort ein Fenster eingebunden, das explizit alle referenzierten Tasks, Target-Objekte oder Caller-Events auflistet. Tooltips überlappen jetzt durch Z-Index Elevation garantiert umliegende Knoten.
+  - **Inspector Header Dropdown:** Im Inspector-Header blendet sich das Dropdown (Komponenten/Variablen-Auswahl) bei FlowNodes. Projekt, oder globaler Stage-Selektion jetzt konsequent aus. Stattdessen wird nur das simple statische Label gerendert, da Dropdown-Wechsel in FlowNodes oder abstrakten Game Objects sinnfrei ist.
+
+### Fixed
+- **Elementübersicht: Ungewollte Stage-Fokussierung** (`EditorCommandManager.ts`):
+  - Klickte man in der Elementübersicht auf den leeren Hintergrund (Deselect All), wurde standardmäßig das globale "Active Stage"-System-Objekt in den Inspector geladen, was verwirrend war. Dies wurde unterbunden: Im Kontext `element-overview` führt ein Deselect() nun ordnungsgemäß zu einem leeren Inspector ("Kein Objekt ausgewählt").
+- **Elementübersicht: Kontextmenü zeigte falsches Embedded-Menü** (`FlowContextMenuProvider.ts`):
+  - Overview-Nodes erben `isLinked: true` durch das Spreizen der Action-Daten (`{ ...action, isOverviewLink: true }`).
+  - Der `isOverviewLink`-Check wird nun **vor** dem `isLinked`-Check ausgeführt, damit das korrekte Overview-Menü angezeigt wird.
+- **Elementübersicht: UI aktualisierte sich nicht nach Löschvorgängen** (`FlowContextMenuProvider.ts`):
+  - Der Aufruf von `switchActionFlow('element-overview')` brach frühzeitig ab (`this.currentFlowContext === context`), wodurch die Übersicht nach dem Löschen nicht re-rendert wurde. Behoben durch explizites Zurücksetzen des `currentFlowContext` auf einen leeren String vor dem Switch.
+
 ## [3.29.3] - 2026-03-29
 ### Improved
 - **Event-Aufräumung: Nicht-sichtbare Komponenten** (`TWindow.ts`):

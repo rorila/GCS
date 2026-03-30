@@ -259,7 +259,8 @@ export class EditorCommandManager {
             }
         } else if (isAction) {
             // Action validity check (Global scope check)
-            const exists = projectRegistry.getActions('all', false).some(a => a.name === newName);
+            // Fix: Ausschluss der eigenen Action-ID, damit 2-Way-Binding nicht "Existiert bereits" wirft
+            const exists = projectRegistry.getActions('all', false).some(a => a.name === newName && (a as any).id !== id && (a as any).actionName !== id);
             if (exists) {
                 alert(`Umbenennung blockiert:\nEine Aktion mit dem Namen "${newName}" existiert bereits im Projekt.`);
                 return;
@@ -329,8 +330,13 @@ export class EditorCommandManager {
         } else {
             this.editor.stage.selectedObject = null;
             if (this.editor.inspector) {
-                const activeStage = this.editor.getActiveStage();
-                this.editor.inspector.update(activeStage || this.editor.project);
+                const isOverviewContext = this.editor.flowEditor && this.editor.flowEditor.currentFlowContext === 'element-overview';
+                if (isOverviewContext) {
+                    this.editor.inspector.update(null);
+                } else {
+                    const activeStage = this.editor.getActiveStage();
+                    this.editor.inspector.update(activeStage || this.editor.project);
+                }
             }
         }
         this.editor.render();
