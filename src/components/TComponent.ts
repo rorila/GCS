@@ -122,7 +122,6 @@ export abstract class TComponent implements IInspectable {
     protected getBaseProperties(): TPropertyDef[] {
         return [
             { name: 'name', label: 'Name', type: 'string', group: 'IDENTITÄT' },
-            { name: 'scope', label: 'Scope', type: 'select', group: 'IDENTITÄT', options: ['global', 'stage'] },
             { name: 'draggable', label: 'Draggable', type: 'boolean', group: 'INTERAKTION', editorOnly: true, inline: true },
             { name: 'droppable', label: 'Droppable', type: 'boolean', group: 'INTERAKTION', editorOnly: true, inline: true },
             { name: 'dragMode', label: 'Drag Mode', type: 'select', group: 'INTERAKTION', options: ['move', 'copy'], editorOnly: true }

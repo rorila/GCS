@@ -8,10 +8,15 @@
   - Navigation (➔) zum Task-Flow direkt aus der Übersicht.
   - Löschung erfolgt direkt über `RefactoringManager.deleteAction/deleteTask/deleteVariable` mit anschließendem automatischen Reload der Übersicht (Bypass `this.host.currentFlowContext = ''`).
 
+### Added
+- **FlowCondition Inspector (If-Knoten):** Dynamisches Dropdown-Formular für *Links Wert* und *Rechts Wert* implementiert (Auswahl aus existierenden Variablen und Komponenten-Eigenschaften statt reiner Text-Eingabe).
+
 ### Fixed
-- **Rename-Validator Bug**: Behebung eines Fehlers in `EditorCommandManager.renameObject`, der das Umbenennen (z. B. einer neuen Action) mit "Name existiert bereits" blockierte. Ursache war, dass der Validator bei aktiven Two-Way-Bindings die gerade bearbeitete Node als Kollision mit sich selbst fand. Die Validierung ignoriert nun die eigene Objekt-ID. Zusätzlich merkt sich der FlowSyncManager nun die id der aus Diagrammen generierten Actions, damit diese Zuordnung zuverlässig funktioniert.
+- **MenuBar/UI-Sync:** Das Label der aktuellen Stage ("Aktuelle Stage: ...") in der horizontalen Menüleiste aktualisiert sich nun reaktiv (live), wenn eine Stage umbenannt wird.
+- **Rename-Validator Bug (Actions & Tasks)**: Behebung eines Fehlers in `EditorCommandManager.renameObject`, der das Umbenennen mit "Name existiert bereits" blockierte. Die Validierung für `validateTaskName` und Action-Umbenennungen ignoriert nun ordnungsgemäß die jeweils eigene Knoten-ID, damit Two-Way-Bindings die Prüfung nicht zerschießen.
 
 ### Improved
+- **Inspector UX - Scope-Verschlankung:** Das Property `scope` (global, stage) wurde ersatzlos aus dem Eigenschafts-Editor aller Komponenten und Variablen entfernt. Globale Elemente definieren sich von Natur aus exklusiv durch ihre physikalische Zugehörigkeit zur *Blueprint-Stage*. Globale Elemente werden nun nur noch über den Mechanismus "Verschieben/Kopieren in Blueprint Stage" orchestriert, um die Single Source of Truth aufrechtzuerhalten.
 - **Elementübersicht UX & Visualisierung** (`FlowElement.ts`, `InspectorHost.ts`):
   - **Unbenutzte Elemente:** Neben der roten Umrandung wird nun ein deutlicher "⚠️ UNBENUTZT"-Badge an verwaisten Tasks/Actions angezeigt.
   - **Hover Usage-Info:** Das native Browser-Tooltip (`title`) für Verwendungs-Referenzen (das eine Zeitverzögerung hatte) wurde durch einen sofort sichtbaren, benutzerdefinierten HTML-Tooltip (mit Glassmorphism-Design) ersetzt. Fährt der User über eine Aktion oder einen Task, wird sofort ein Fenster eingebunden, das explizit alle referenzierten Tasks, Target-Objekte oder Caller-Events auflistet. Tooltips überlappen jetzt durch Z-Index Elevation garantiert umliegende Knoten.

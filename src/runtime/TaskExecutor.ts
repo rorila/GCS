@@ -487,7 +487,13 @@ export class TaskExecutor {
                 break;
             case 'action':
                 const action = this.resolveAction(item);
+
                 if (action) {
+                    // Log the action name to DebugLogService
+                    DebugLogService.getInstance().log('Action', action.name || item.name, {
+                        parentId,
+                        data: action
+                    });
                     // If action has a body (is an action-definition), we execute its body ourselves
                     if (action.body && Array.isArray(action.body)) {
                         // Resolve params: replace $eventData, ${var} references with actual values
@@ -520,6 +526,7 @@ export class TaskExecutor {
 
                         // Execute each body item (these are direct action steps like { type: "calculate", ... })
                         for (const bodyItem of action.body) {
+
                             await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, parentId);
                         }
                     } else {
@@ -527,7 +534,7 @@ export class TaskExecutor {
                         await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
                     }
                 } else {
-                    logger.warn(`Action definition not found: ${item.name} `);
+                    logger.warn(`Action definition not found: ${item.name}`);
                 }
                 break;
             case 'while':
@@ -615,6 +622,7 @@ export class TaskExecutor {
         logger.debug(`Condition: ${conditionExpr} => ${result}`);
 
         if (result) {
+
             if (item.thenAction) {
                 const action = this.resolveAction(item.thenAction);
                 logger.debug(`Condition TRUE, executing thenAction: ${item.thenAction} `);
@@ -624,15 +632,22 @@ export class TaskExecutor {
                 logger.debug(`Condition TRUE, executing thenTask: ${item.thenTask} `);
                 await this.execute(item.thenTask, vars, globalVars, contextObj, depth + 1, parentId);
             }
-            if (item.body) await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+            if (item.body) {
+
+                await this.executeBody(item.body, vars, globalVars, contextObj, depth, parentId);
+            }
             if (item.then) await this.executeBody(item.then, vars, globalVars, contextObj, depth, parentId);
         } else {
+
             if (item.elseAction) {
                 const action = this.resolveAction(item.elseAction);
                 if (action) await this.actionExecutor.execute(action, vars, globalVars, contextObj, parentId);
             }
             if (item.elseTask) await this.execute(item.elseTask, vars, globalVars, contextObj, depth + 1, parentId);
-            if (item.elseBody) await this.executeBody(item.elseBody, vars, globalVars, contextObj, depth, parentId);
+            if (item.elseBody) {
+
+                await this.executeBody(item.elseBody, vars, globalVars, contextObj, depth, parentId);
+            }
             if (item.else) await this.executeBody(item.else, vars, globalVars, contextObj, depth, parentId);
         }
     }

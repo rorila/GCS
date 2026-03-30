@@ -278,15 +278,33 @@ export class ProjectRegistry {
     }
 
 
-    public validateTaskName(name: string): { valid: boolean; error?: string } {
+    public validateTaskName(name: string, ignoreId?: string): { valid: boolean; error?: string } {
         // Rule: PascalCase (start with uppercase)
         if (!/^[A-Z][a-zA-Z0-9]*$/.test(name)) {
             return { valid: false, error: 'Tasks müssen mit einem Großbuchstaben beginnen (PascalCase).' };
         }
 
-        // Rule: Unique across all tasks (Global and ALL Stages)
-        if (this.getTasks().some(t => t.name === name)) {
-            return { valid: false, error: 'Task-Name bereits vergeben (global oder in einer Stage).' };
+        const allTasks = this.getTasks('all');
+        const matches = allTasks.filter(t => t.name === name);
+
+        // Fall 1: Kein Konflikt
+        if (matches.length === 0) return { valid: true };
+
+        // Fall 2: Wenn ein ignoreId übergeben wurde, verzeihen wir den Treffer,
+        // wenn er DIESES Objekt IST (Two-Way Binding).
+        for (const match of matches) {
+            const mId = (match as any).id;
+            
+            // Wenn ignoreId gesetzt ist und wir EINE Übereinstimmung haben auf ID oder NAMEN
+            const isMe = ignoreId && (
+                (mId !== undefined && mId === ignoreId) || 
+                (match.name !== undefined && match.name === ignoreId)
+            );
+
+            // Wenn es NICHT ICH bin, dann kollidiert es!
+            if (!isMe) {
+                return { valid: false, error: 'Task-Name bereits vergeben (global oder in einer Stage).' };
+            }
         }
 
         return { valid: true };
@@ -431,7 +449,7 @@ export class ProjectRegistry {
         const objectIds = new Set<string>();
 
         const activeStage = this.activeStageId ? this.project.stages?.find((s: any) => s.id === this.activeStageId) : null;
-        const isBlueprint = activeStage?.type === 'blueprint';
+        const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint' || activeStage?.id === 'blueprint';
 
         // 1. First, load objects from the Active Stage (Priority: Stage Layout)
         if (this.project.stages && this.project.stages.length > 0) {
@@ -453,9 +471,10 @@ export class ProjectRegistry {
             this.project.stages.forEach((stage: any) => {
                 if (stage.id === this.activeStageId) return;
 
+                const isStageBlueprint = stage.type === 'blueprint' || stage.id === 'stage_blueprint' || stage.id === 'blueprint';
                 const stageGlobals = [
-                    ...(stage.objects || []).filter((obj: any) => (obj as any).scope === 'global' || isService(obj)),
-                    ...(stage.variables || []).filter((v: any) => (v as any).scope === 'global') as unknown as ComponentData[]
+                    ...(stage.objects || []).filter((obj: any) => (obj as any).scope === 'global' || isService(obj) || isStageBlueprint),
+                    ...(stage.variables || []).filter((v: any) => (v as any).scope === 'global' || isStageBlueprint) as unknown as ComponentData[]
                 ];
 
                 stageGlobals.forEach((obj: any) => {
@@ -473,7 +492,7 @@ export class ProjectRegistry {
                 return [
                     ...(activeStage?.objects || []),
                     ...(activeStage?.variables || []) as unknown as ComponentData[]
-                ];
+                ].filter(o => o.name);
             }
         }
 
@@ -498,10 +517,10 @@ export class ProjectRegistry {
                 ...(this.project.objects || []),
                 ...(this.project.variables || []) as unknown as ComponentData[]
             ];
-            return legacyItems;
+            return legacyItems.filter(o => o.name);
         }
 
-        return allObjects;
+        return allObjects.filter(o => o.name);
     }
 
     public getFlowObjects(): any[] {

@@ -28,7 +28,20 @@ export class ActionExecutor {
      * Executes a single action
      */
     async execute(action: any, vars: Record<string, any>, globalVars: Record<string, any> = {}, contextObj?: any, parentId?: string): Promise<any> {
-        if (!action || !action.type) return;
+        if (!action) return;
+
+        // Typ-Inferenz: Actions aus dem Flow-Editor haben oft keinen expliziten type.
+        // Erkennung anhand vorhandener Felder:
+        if (!action.type) {
+            if (action.target && action.changes) {
+                action.type = 'property';
+            } else if (action.variableName) {
+                action.type = 'variable';
+            } else {
+                ActionExecutor.logger.warn(`Action ohne type übersprungen:`, action);
+                return;
+            }
+        }
 
         const actionName = action.name || this.getDescriptiveName(action);
         const logId = DebugLogService.getInstance().log('Action', actionName, {

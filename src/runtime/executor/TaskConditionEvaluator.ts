@@ -105,6 +105,13 @@ export class TaskConditionEvaluator {
             val = PropertyHelper.getPropertyValue(root.eventData, lookup);
         }
 
+        // Auto-Fallback auf globalVars: Für Pfade wie "Button_36.visible" die
+        // Komponenten-Objekte referenzieren. Die Objekte können in globalVars
+        // liegen, wenn sie dort registriert wurden.
+        if (val === undefined && root !== globalVars && globalVars) {
+            val = PropertyHelper.getPropertyValue(globalVars, lookup);
+        }
+
         return val;
     }
 }

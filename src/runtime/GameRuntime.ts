@@ -745,9 +745,12 @@ export class GameRuntime implements IVariableHost {
                 // Priority 1: Explicit mapping (string), Priority 2: Convention (ObjectName.EventName)
                 const taskName = (typeof hasTaskMap === 'string') ? hasTaskMap : `${obj.name}.${eventName}`;
                 // Ensure eventData is available in vars even when 'data' is not an object (e.g., a string like an emoji)
-                const eventVars = typeof data === 'object' && data !== null
+                const eventVars: Record<string, any> = typeof data === 'object' && data !== null
                     ? { ...data, eventData: data, sender: obj }
                     : { eventData: data, sender: obj };
+                // Komponentenobjekte injizieren, damit Property-Conditions (z.B. Button_36.visible)
+                // vom TaskConditionEvaluator aufgelöst werden können.
+                this.objects.forEach(o => { if (o.name && !(o.name in eventVars)) eventVars[o.name] = o; });
                 this.taskExecutor.execute(taskName, eventVars, this.contextVars, obj, 0, eventLogId);
             }
         } finally {

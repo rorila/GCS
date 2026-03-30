@@ -128,7 +128,14 @@ export class FlowNodeHandler implements IInspectorHandler {
 
         } else {
             FlowNodeHandler.logger.debug(`[FLOW-CHANGE-TRACE] Generic update for type "${type}".`);
-            PropertyHelper.setPropertyValue(object, propertyName, convertedValue);
+            // Für IInspectable-Knoten (z.B. FlowCondition) den applyChange-Pfad nutzen,
+            // da PropertyHelper.setPropertyValue bei FlowNodes in this.data[prop] schreibt
+            // statt den Setter aufzurufen.
+            if (typeof object.applyChange === 'function') {
+                object.applyChange(propertyName, convertedValue);
+            } else {
+                PropertyHelper.setPropertyValue(object, propertyName, convertedValue);
+            }
         }
 
         if (typeof object.setShowDetails === 'function') {

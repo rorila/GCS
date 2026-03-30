@@ -1,5 +1,8 @@
-
 import { FlowElement } from './FlowElement';
+import { InspectorSection } from '../inspector/types';
+import { PropertyHelper } from '../../runtime/PropertyHelper';
+import { projectRegistry } from '../../services/ProjectRegistry';
+import { componentRegistry } from '../../services/ComponentRegistry';
 
 export class FlowCondition extends FlowElement {
     public getType(): string { return 'condition'; }
@@ -101,14 +104,73 @@ export class FlowCondition extends FlowElement {
     }
 
     public getInspectorProperties(): any[] {
-        return [
+        const props: any[] = [
             ...super.getInspectorProperties(),
-            { group: 'Condition', name: 'LeftOperandType', type: 'select', label: 'Links Typ', options: ['variable', 'literal', 'property'] },
-            { group: 'Condition', name: 'LeftOperandValue', type: 'string', label: 'Links Wert' },
-            { group: 'Condition', name: 'Operator', type: 'select', label: 'Operator', options: ['==', '!=', '>', '<', '>=', '<='] },
-            { group: 'Condition', name: 'RightOperandType', type: 'select', label: 'Rechts Typ', options: ['variable', 'literal', 'property'] },
-            { group: 'Condition', name: 'RightOperandValue', type: 'string', label: 'Rechts Wert' }
+            { group: 'Condition', name: 'LeftOperandType', type: 'select', label: 'Links Typ', options: ['variable', 'literal', 'property'] }
         ];
+
+        // --- LINKS OPARAND ---
+        if (this.LeftOperandType === 'variable') {
+            const legacyVars = projectRegistry.getVariables(undefined, true, 'all').map(v => v.name);
+            const compVars = projectRegistry.getObjects('all').filter(c => (c.className || c.type || '').endsWith('Variable')).map(c => c.name);
+            const allVars = Array.from(new Set([...legacyVars, ...compVars]));
+            const options = allVars.map(n => `\${${n}}`);
+            props.push({ group: 'Condition', name: 'LeftOperandValue', type: 'select', label: 'Links Variable', options: options.length ? options : ['(Keine Variable gefunden)'] });
+        } else if (this.LeftOperandType === 'property') {
+            const comps = projectRegistry.getObjects('all')
+                .filter(c => c.name)
+                .map(c => ({
+                    value: c.uiScope === 'global' ? `global.${c.name}` : c.name,
+                    label: c.uiScope === 'global' ? `${c.name} (global)` : c.name
+                }));
+            props.push({ group: 'Condition', name: 'LeftOperandBaseVar', type: 'select', label: 'Links Objekt', options: comps.length ? comps : ['(Keine Elemente)'] });
+
+            let availableProps: string[] = ['(Auswählen)'];
+            const baseVarStr = this.LeftOperandBaseVar || '';
+            const cleanTarget = baseVarStr.replace(/^global\./, '');
+            const targetObj = projectRegistry.getObjects('all').find(c => c.name === cleanTarget);
+            if (targetObj) {
+                const inspProps = componentRegistry.getInspectorProperties(targetObj) || [];
+                availableProps = inspProps.map((p: any) => p.name).filter((n: string) => n);
+            }
+            props.push({ group: 'Condition', name: 'LeftOperandSubProp', type: 'select', label: 'Links Eigenschaft', options: availableProps.length ? availableProps : ['(Keine)'] });
+        } else {
+            props.push({ group: 'Condition', name: 'LeftOperandValue', type: 'string', label: 'Links Wert' });
+        }
+
+        props.push({ group: 'Condition', name: 'Operator', type: 'select', label: 'Operator', options: ['==', '!=', '>', '<', '>=', '<='] });
+        props.push({ group: 'Condition', name: 'RightOperandType', type: 'select', label: 'Rechts Typ', options: ['variable', 'literal', 'property'] });
+
+        // --- RECHTS OPERAND ---
+        if (this.RightOperandType === 'variable') {
+            const legacyVars = projectRegistry.getVariables(undefined, true, 'all').map(v => v.name);
+            const compVars = projectRegistry.getObjects('all').filter(c => (c.className || c.type || '').endsWith('Variable')).map(c => c.name);
+            const allVars = Array.from(new Set([...legacyVars, ...compVars]));
+            const options = allVars.map(n => `\${${n}}`);
+            props.push({ group: 'Condition', name: 'RightOperandValue', type: 'select', label: 'Rechts Variable', options: options.length ? options : ['(Keine Variable gefunden)'] });
+        } else if (this.RightOperandType === 'property') {
+            const comps = projectRegistry.getObjects('all')
+                .filter(c => c.name)
+                .map(c => ({
+                    value: c.uiScope === 'global' ? `global.${c.name}` : c.name,
+                    label: c.uiScope === 'global' ? `${c.name} (global)` : c.name
+                }));
+            props.push({ group: 'Condition', name: 'RightOperandBaseVar', type: 'select', label: 'Rechts Objekt', options: comps.length ? comps : ['(Keine Elemente)'] });
+
+            let availableProps: string[] = ['(Auswählen)'];
+            const baseVarStr = this.RightOperandBaseVar || '';
+            const cleanTarget = baseVarStr.replace(/^global\./, '');
+            const targetObj = projectRegistry.getObjects('all').find(c => c.name === cleanTarget);
+            if (targetObj) {
+                const inspProps = componentRegistry.getInspectorProperties(targetObj) || [];
+                availableProps = inspProps.map((p: any) => p.name).filter((n: string) => n);
+            }
+            props.push({ group: 'Condition', name: 'RightOperandSubProp', type: 'select', label: 'Rechts Eigenschaft', options: availableProps.length ? availableProps : ['(Keine)'] });
+        } else {
+            props.push({ group: 'Condition', name: 'RightOperandValue', type: 'string', label: 'Rechts Wert' });
+        }
+
+        return props;
     }
 
     // Property Accessors
@@ -131,45 +193,45 @@ export class FlowCondition extends FlowElement {
         this.updateText();
     }
 
-    // --- Helper for Sub-Properties ---
+    // --- Helper for Sub-Properties (Property-Typ) ---
+    // Gespeichertes Format: "Button_36.visible" oder "global.Button_36.visible"
+    // BaseVar = "Button_36" oder "global.Button_36"
+    // SubProp = "visible"
+
     public get LeftOperandBaseVar(): string {
         const full = this.LeftOperandValue;
-        if (!full.includes('${')) return full;
-
+        // Erster Punkt trennt BaseVar von SubProp
         const parts = full.split('.');
-        let result = full;
-        if (parts.length >= 2) {
-            // Reconstruct ${scope.var}
-            const base = parts[0] + '.' + parts[1];
-            result = base.includes('}') ? base : base + '}';
+        if (parts[0] === 'global' && parts.length >= 2) {
+            // global.Button_36.visible → BaseVar = global.Button_36
+            return parts.slice(0, 2).join('.');
         }
-        console.log(`[FlowCondition] get LeftOperandBaseVar for "${full}" -> "${result}"`);
-        return result;
+        // Button_36.visible → BaseVar = Button_36
+        return parts[0];
     }
     public set LeftOperandBaseVar(v: string) {
-        console.log(`[FlowCondition] set LeftOperandBaseVar: "${v}"`);
         this.LeftOperandValue = v; // Resets sub-prop when base changes
     }
 
     public get LeftOperandSubProp(): string {
         const full = this.LeftOperandValue;
-        if (!full.includes('${')) return '';
-
         const parts = full.split('.');
-        if (parts.length >= 3) {
-            // Extract 'prop' from ${scope.var.prop}
-            return parts[2].replace('}', '').trim();
+        if (parts[0] === 'global' && parts.length >= 3) {
+            // global.Button_36.visible → SubProp = visible
+            return parts.slice(2).join('.');
+        }
+        if (parts.length >= 2) {
+            // Button_36.visible → SubProp = visible
+            return parts.slice(1).join('.');
         }
         return '';
     }
     public set LeftOperandSubProp(v: string) {
-        console.log(`[FlowCondition] set LeftOperandSubProp: "${v}"`);
         if (!v) {
             this.LeftOperandValue = this.LeftOperandBaseVar;
             return;
         }
-        const base = this.LeftOperandBaseVar.replace('}', '');
-        this.LeftOperandValue = `${base}.${v}}`;
+        this.LeftOperandValue = `${this.LeftOperandBaseVar}.${v}`;
     }
 
     public get RightOperandType(): string { return this.data.condition?.rightType || 'literal'; }
@@ -192,14 +254,11 @@ export class FlowCondition extends FlowElement {
 
     public get RightOperandBaseVar(): string {
         const full = this.RightOperandValue;
-        if (!full.includes('${')) return full;
-
         const parts = full.split('.');
-        if (parts.length >= 2) {
-            const base = parts[0] + '.' + parts[1];
-            return base.includes('}') ? base : base + '}';
+        if (parts[0] === 'global' && parts.length >= 2) {
+            return parts.slice(0, 2).join('.');
         }
-        return full;
+        return parts[0];
     }
     public set RightOperandBaseVar(v: string) {
         this.RightOperandValue = v;
@@ -207,11 +266,12 @@ export class FlowCondition extends FlowElement {
 
     public get RightOperandSubProp(): string {
         const full = this.RightOperandValue;
-        if (!full.includes('${')) return '';
-
         const parts = full.split('.');
-        if (parts.length >= 3) {
-            return parts[2].replace('}', '').trim();
+        if (parts[0] === 'global' && parts.length >= 3) {
+            return parts.slice(2).join('.');
+        }
+        if (parts.length >= 2) {
+            return parts.slice(1).join('.');
         }
         return '';
     }
@@ -220,8 +280,7 @@ export class FlowCondition extends FlowElement {
             this.RightOperandValue = this.RightOperandBaseVar;
             return;
         }
-        const base = this.RightOperandBaseVar.replace('}', '');
-        this.RightOperandValue = `${base}.${v}}`;
+        this.RightOperandValue = `${this.RightOperandBaseVar}.${v}`;
     }
 
     // Legacy Support (maps to LeftOperandValue)
@@ -252,5 +311,55 @@ export class FlowCondition extends FlowElement {
 
     protected refreshVisuals() {
         this.updateText();
+    }
+
+    // =====================================================================
+    // IInspectable Implementation – Dynamischer Inspector Re-Render
+    // =====================================================================
+
+    /**
+     * Packt die dynamischen Properties (inkl. Typ-abhängiger Dropdowns)
+     * in eine Inspector-Sektion.
+     */
+    public getInspectorSections(): InspectorSection[] {
+        return [
+            {
+                id: 'condition',
+                label: 'Allgemein',
+                icon: '❓',
+                properties: this.getInspectorProperties()
+            }
+        ];
+    }
+
+    /**
+     * Wendet eine Property-Änderung an.
+     * Gibt true zurück wenn LeftOperandType oder RightOperandType geändert wurde,
+     * damit der Inspector sich komplett neu rendert und die dynamischen
+     * Felder (Variable-Dropdown / Property-Objekt+Eigenschaft / Literal-Textfeld)
+     * korrekt angezeigt werden.
+     */
+    public applyChange(propertyName: string, newValue: any, _oldValue?: any): boolean {
+        // WICHTIG: Direkt über die TypeScript-Setter zuweisen!
+        // PropertyHelper.setPropertyValue() schreibt bei FlowNodes in this.data[prop]
+        // statt den Setter aufzurufen. Die Setter leiten aber korrekt nach
+        // this.data.condition.leftValue/rightValue um.
+        const knownSetters = [
+            'LeftOperandType', 'LeftOperandValue', 'LeftOperandBaseVar', 'LeftOperandSubProp',
+            'RightOperandType', 'RightOperandValue', 'RightOperandBaseVar', 'RightOperandSubProp',
+            'Operator', 'Name'
+        ];
+        if (knownSetters.includes(propertyName)) {
+            (this as any)[propertyName] = newValue;
+        } else {
+            PropertyHelper.setPropertyValue(this, propertyName, newValue);
+        }
+
+        // Bei Typ-Wechsel oder Objekt-Wechsel: vollständiger Re-Render nötig
+        const reRenderTriggers = [
+            'LeftOperandType', 'RightOperandType',
+            'LeftOperandBaseVar', 'RightOperandBaseVar'
+        ];
+        return reRenderTriggers.includes(propertyName);
     }
 }

@@ -252,15 +252,34 @@ export class EditorCommandManager {
 
         // 0. Name Uniqueness Validation (Verhindert Shadowing/Konflikte)
         if (isTask) {
-            const validation = projectRegistry.validateTaskName(newName);
-            if (!validation.valid) {
-                alert(`Umbenennung blockiert:\n${validation.error}`);
+            // Regex-Format Validierung (nur PascalCase-Check)
+            if (!/^[A-Z][a-zA-Z0-9]*$/.test(newName)) {
+                alert(`Umbenennung blockiert:\nTasks müssen mit einem Großbuchstaben beginnen (PascalCase).`);
+                return;
+            }
+
+            // Two-Way-Binding Safe-Check (Löst fehlende UUIDs von Task-JSON-Payloads):
+            // Da das Frontend den Task im Model via Binding ggf. bereits umbenannt hat,
+            // dürfen wir einfach prüfen, ob es den NEUEN Namen > 1 Mal im gesamten Projekt gibt.
+            // Wenn ja -> Echter Konflikt (ein zweiter, älterer Task blockiert den Namen).
+            // Wenn nein (0 oder 1) -> Umbenennung okay! (0 = reines API Update, 1 = Binding hat unser Target bereits aktualisiert).
+            let nameCount = 0;
+            const countList = (taskList: any[]) => {
+                if (!taskList) return;
+                nameCount += taskList.filter(t => t.name === newName).length;
+            };
+            
+            countList(this.editor.project.tasks || []);
+            this.editor.project.stages?.forEach(stage => countList(stage.tasks || []));
+
+            if (nameCount > 1) {
+                alert(`Umbenennung blockiert:\nEin Task mit dem Namen '${newName}' existiert bereits im Projekt.`);
                 return;
             }
         } else if (isAction) {
             // Action validity check (Global scope check)
             // Fix: Ausschluss der eigenen Action-ID, damit 2-Way-Binding nicht "Existiert bereits" wirft
-            const exists = projectRegistry.getActions('all', false).some(a => a.name === newName && (a as any).id !== id && (a as any).actionName !== id);
+            const exists = projectRegistry.getActions('all', false).some(a => a.name === newName && (a as any).id !== obj.id && (a as any).actionName !== obj.id);
             if (exists) {
                 alert(`Umbenennung blockiert:\nEine Aktion mit dem Namen "${newName}" existiert bereits im Projekt.`);
                 return;

@@ -25,6 +25,7 @@ export interface EditorRenderHost {
     refreshJSONView(): void;
     autoSaveToLocalStorage(): void;
     updateStagesMenu(): void;
+    updateStageLabel(): void;
     objectStore: ObjectStore;
 }
 
@@ -257,5 +258,6 @@ export class EditorRenderManager {
 
         this.host.autoSaveToLocalStorage();
         this.host.updateStagesMenu();
+        this.host.updateStageLabel();
     }
 }
