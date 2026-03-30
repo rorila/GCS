@@ -1,4 +1,10 @@
 ## [3.29.4] - 2026-03-30
+### Fixed
+- **Flow-Condition Persistenz & Action-Typ-Inferenz:**
+  - `FlowCondition.ts` nutzt nun direkte Setter in `applyChange()`, anstatt dass `PropertyHelper` die internen Datenstrukturen bypasst. `FlowNodeHandler` delegiert nun korrekt an `object.applyChange()` für Nodes, die `IInspectable` implementieren.
+  - Im `TaskConditionEvaluator` greift `resolveVarPath` nun auf `globalVars` zurück, um Komponenten-Referenzen in If-Verzweigungen aufzulösen. Die `GameRuntime` injiziert hierfür alle Komponentenobjekte direkt in die `eventVars`.
+  - Fix im `ActionExecutor`: Wenn aus dem Projekt-JSON benutzerdefinierte Actions ohne explizite `type`-Definition aber mit `target` und `changes` geladen werden (Standard-Verhalten des FlowEditors), greift nun eine automatische Typ-Inferenz (`type = 'property'`). Bisher wurden diese Actions ohne Fehler stumm vom Executor übersprungen, was dazu führte, dass visuelle Flows an dieser Stelle abbrachen.
+
 ### Added
 - **Elementübersicht: Lösch-Funktion für unbenutzte Elemente** (`FlowContextMenuProvider.ts`):
   - Neues dediziertes Kontextmenü (`showOverviewContextMenu`) für Nodes in der Elementübersicht.

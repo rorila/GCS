@@ -1,3 +1,10 @@
+- [2026-03-30] Flow-Condition Persistenz & Action-Typ-Inferenz:
+  - Datei: src/editor/flow/FlowCondition.ts (applyChange: Direkte Setter)
+  - Datei: src/editor/inspector/handlers/FlowNodeHandler.ts (handlePropertyChange: object.applyChange für IInspectable)
+  - Datei: src/runtime/executor/TaskConditionEvaluator.ts (resolveVarPath: Fallback auf globalVars)
+  - Datei: src/runtime/GameRuntime.ts (handleEvent: Injektion von Komponenten in eventVars)
+  - Datei: src/runtime/ActionExecutor.ts (execute: Typ-Inferenz für Actions ohne type)
+  - Details: If-Bedingungen auf Komponenten-Eigenschaften (z.B. visible) funktionierten im FlowChart, aber nachfolgende Actions wurden nicht referenziert/gefunden. Ursache: 1) PropertyHelper umging applyChange() Setter; 2) Komponenten waren im Runtime-Context nicht direkt über ihren Pfad auflösbar; 3) Benutzerdefinierte Flow-Actions ohne expliziten "type" wurden vom ActionExecutor stumm ignoriert. Typ-Inferenz (target+changes => property) und verbesserte Kontext-Injektion beheben diese Fehler.
 - [2026-03-30] Elementübersicht: Lösch-Funktion für unbenutzte Actions/Tasks/Variablen & UX Visualisierung
   - Datei: src/editor/services/FlowContextMenuProvider.ts (Methode: showOverviewContextMenu, L342-430; handleNodeContextMenu isOverviewLink-Guard: L155-162)
   - DateI: src/editor/flow/FlowElement.ts (setUnused, setUsageInfo); src/editor/inspector/InspectorHost.ts (renderHeader, L208-218); src/editor/services/EditorCommandManager.ts (selectObject, L332-337)
