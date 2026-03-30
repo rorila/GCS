@@ -1,3 +1,8 @@
+- [2026-03-30] Action Umbenennen E2E Fix & Two-Way-Binding Kollisionsprüfung
+  - Datei: src/editor/inspector/handlers/FlowNodeHandler.ts (handlePropertyChange)
+  - Datei: src/editor/services/EditorCommandManager.ts (renameObject)
+  - Datei: tests/e2e/03_ActionRenaming.spec.ts (Timeout Locator Fixes)
+  - Details: Das "Action Name existiert bereits"-Alert erschien fälschlicherweise bei der Eingabe im Inspector. Ursache: `FlowNodeHandler` manipulierte den Namen der Action direkt in `project.actions` (Two-Way-Binding), bevor `EditorCommandManager.renameObject` die globale Validierung (`projectRegistry.getActions()`) ausführte. Die Validierung fand dadurch die grade eben umbenannte "eigene" Action und blockierte. Fix: Vorzeitiges Überschreiben in `FlowNodeHandler` entfernt. Atomares Refactoring durch EditorCommandManager. E2E Test Locator `.context-menu-item` an aktuelle DOM-Struktur (`.context-menu div`) angepasst.
 - [2026-03-30] Flow-Condition Persistenz & Action-Typ-Inferenz:
   - Datei: src/editor/flow/FlowCondition.ts (applyChange: Direkte Setter)
   - Datei: src/editor/inspector/handlers/FlowNodeHandler.ts (handlePropertyChange: object.applyChange für IInspectable)

@@ -54,7 +54,7 @@ test.describe('UseCase: Action-Typ ändern', () => {
 
         // 5. Action-Node "ShowTheHighscoreStage_Unique" anklicken
         console.log('Test: 5. Action-Node anklicken...');
-        const actionNode = page.locator('.glass-node-action', { hasText: 'ShowTheHighscoreStage_Unique' });
+        const actionNode = page.locator('.glass-node-action', { hasText: 'ShowTheHighscoreStage_Unique' }).first();
         await expect(actionNode).toBeVisible({ timeout: 5000 });
         await actionNode.click();
         await page.waitForTimeout(300);

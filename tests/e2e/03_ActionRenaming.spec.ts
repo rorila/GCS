@@ -6,6 +6,8 @@ test.describe('UseCase: Eine Action umbenennen', () => {
 
     test('Kompletter Flow: Action erzeugen und via Inspector umbenennen', async ({ page }) => {
         // Starte den Editor im E2E-Modus
+        page.on('console', msg => console.log('BROWSER CONSOLE:', msg.text()));
+        page.on('pageerror', error => console.error('BROWSER ERROR:', error.message));
         await page.goto('http://localhost:5173/?e2e=true');
         await page.waitForSelector('#app-layout');
 
@@ -29,7 +31,7 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         console.log('Test: 4. Action per Kontextmenü erzeugen...');
         await page.locator('#flow-canvas').click({ button: 'right', position: { x: 300, y: 300 } });
         await page.waitForTimeout(300);
-        await page.locator('.context-menu-item:has-text("Aktion hinzufügen")').click();
+        await page.locator('.context-menu div:has-text("Aktion hinzufügen")').first().click();
         await page.waitForTimeout(500);
 
         // 5. Action-Node sollte sichtbar sein
@@ -117,11 +119,11 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         
         await page.locator('#flow-canvas').click({ button: 'right', position: { x: 300, y: 300 } });
         await page.waitForTimeout(300);
-        await page.locator('.context-menu-item:has-text("Aktion hinzufügen")').click();
+        await page.locator('.context-menu div:has-text("Aktion hinzufügen")').first().click();
         await page.waitForTimeout(500);
         
-        // Die neue Action auswhlen (z.B. NewAction_2)
-        const secondActionNode = page.locator('.glass-node-action', { hasText: 'NewAction' }).first();
+        // Die neue Action auswählen (Name ist standardmäßig 'Action1' oder ähnlich)
+        const secondActionNode = page.locator('.glass-node-action').filter({ hasNotText: 'ShowTheHighscoreStage_Unique' }).first();
         await secondActionNode.click();
         await page.waitForTimeout(300);
 

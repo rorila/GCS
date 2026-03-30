@@ -17,14 +17,6 @@
     }
   },
   "flow": {
-    "stage": {
-      "cols": 100,
-      "rows": 100,
-      "cellSize": 20,
-      "snapToGrid": true,
-      "visible": true,
-      "backgroundColor": "#1e1e1e"
-    },
     "elements": [],
     "connections": []
   },
@@ -129,7 +121,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1774902672690_y4cwsyjsf",
+          "id": "obj_1774905325900_dmslm0mgf",
           "name": "Button_3",
           "scope": "global",
           "draggable": false,
@@ -157,20 +149,63 @@
           "icon": ""
         }
       ],
-      "actions": [],
+      "actions": [
+        {
+          "id": "node-1774905310799",
+          "details": "",
+          "name": "ShowTheHighscoreStage_Unique",
+          "showDetails": false,
+          "type": "navigate_stage"
+        },
+        {
+          "id": "node-1774905313799",
+          "details": "",
+          "name": "Action1",
+          "showDetails": false
+        }
+      ],
       "tasks": [
         {
           "name": "SwitchToTheHighscoreStage",
           "description": "",
-          "actionSequence": [],
+          "actionSequence": [
+            {
+              "name": "ShowTheHighscoreStage_Unique",
+              "type": "action"
+            }
+          ],
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
             "SwitchToTheHighscoreStage": {
-              "x": 400,
-              "y": 200
+              "x": 40,
+              "y": 40
+            },
+            "ShowTheHighscoreStage_Unique": {
+              "x": 300,
+              "y": 300
             }
-          }
+          },
+          "standaloneNodes": [
+            {
+              "id": "node-1774905313799",
+              "type": "action",
+              "x": 300,
+              "y": 300,
+              "width": 300,
+              "height": 60,
+              "properties": {
+                "name": "ShowTheHighscoreStage_Unique",
+                "details": "",
+                "description": ""
+              },
+              "data": {
+                "name": "ShowTheHighscoreStage_Unique",
+                "type": "navigate_stage",
+                "isLinked": true
+              }
+            }
+          ]
         }
       ],
       "variables": [],
@@ -185,7 +220,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1774902660206",
+      "id": "stage-1774905318866",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],

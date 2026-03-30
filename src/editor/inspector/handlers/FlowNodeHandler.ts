@@ -40,30 +40,12 @@ export class FlowNodeHandler implements IInspectorHandler {
 
         if (propertyName === 'name' || propertyName === 'Name') {
             FlowNodeHandler.logger.info(`Renaming detected: "${oldValue}" -> "${newValue}"`);
-            const type = (typeof object.getType === 'function') ? object.getType() : 'Task';
-
-            // Handle renaming via RefactoringManager to ensure SSOT consistency
-            if (oldValue && newValue !== oldValue) {
-                const currentProject = projectRegistry.getProject(); // Get the active project
-                if (currentProject) {
-                    const nodeType = type?.toLowerCase();
-
-                    if (nodeType === 'task') {
-                        FlowNodeHandler.logger.info(`Triggere Task-Refactoring: ${oldValue} -> ${newValue}`);
-                        RefactoringManager.renameTask(currentProject, oldValue, newValue);
-                        // KEIN notifyDataChanged hier! RefactoringManager feuert TASK_RENAMED,
-                        // was den FlowEditor gezielt aktualisiert (renameContext).
-                        // notifyDataChanged würde einen destruktiven Canvas-Rebuild triggern.
-                    } else if (['action', 'dataaction', 'data_action'].includes(nodeType)) {
-                        FlowNodeHandler.logger.info(`Triggere Action-Refactoring: ${oldValue} -> ${newValue}`);
-                        RefactoringManager.renameAction(currentProject, oldValue, newValue);
-                        // KEIN notifyDataChanged hier! Die visuelle Aktualisierung erfolgt
-                        // über PropertyHelper.setPropertyValue weiter unten.
-                    }
-                } else {
-                    FlowNodeHandler.logger.error("Refactoring fehlgeschlagen: Kein aktives Projekt gefunden.");
-                }
-            }
+            
+            // HINWEIS: Wir führen hier KEIN RefactoringManager.renameTask oder renameAction aus!
+            // Das globale Refactoring bei Namensänderungen wird zentral von Editor.ts in
+            // inspector.onObjectUpdate -> EditorCommandManager.renameObject überwacht und 
+            // ausgeführt. Ein doppeltes Refactoring würde den Duplikat-Validator im 
+            // CommandManager verwirren (da der neue Name dann schon in den JSON-Daten steht).
             // The original logic for name changes just returned true.
             // We still need to update the object's name for immediate display.
             PropertyHelper.setPropertyValue(object, propertyName, newValue);

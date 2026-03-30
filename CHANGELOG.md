@@ -1,5 +1,9 @@
 ## [3.29.4] - 2026-03-30
 ### Fixed
+- **Action Umbenennen E2E Fix & Two-Way-Binding Kollisionsprüfung:**
+  - Das "Action Name existiert bereits"-Alert erschien fälschlicherweise bei der Eingabe im Inspector. Ursache: `FlowNodeHandler` manipulierte den Namen der Action direkt im Projekt (`Two-Way-Binding`), bevor `EditorCommandManager.renameObject` die globale Validierung (`projectRegistry.getActions()`) ausführte. Die Validierung fand dadurch die grade eben umbenannte "eigene" Action und blockierte. 
+  - Fix: Vorzeitiges Überschreiben in `FlowNodeHandler` entfernt. Atomares Refactoring durch `EditorCommandManager`. 
+  - E2E Test Locator `.context-menu-item` an aktuelle DOM-Struktur (`.context-menu div`) angepasst.
 - **Flow-Condition Persistenz & Action-Typ-Inferenz:**
   - `FlowCondition.ts` nutzt nun direkte Setter in `applyChange()`, anstatt dass `PropertyHelper` die internen Datenstrukturen bypasst. `FlowNodeHandler` delegiert nun korrekt an `object.applyChange()` für Nodes, die `IInspectable` implementieren.
   - Im `TaskConditionEvaluator` greift `resolveVarPath` nun auf `globalVars` zurück, um Komponenten-Referenzen in If-Verzweigungen aufzulösen. Die `GameRuntime` injiziert hierfür alle Komponentenobjekte direkt in die `eventVars`.

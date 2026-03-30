@@ -279,8 +279,10 @@ export class EditorCommandManager {
         } else if (isAction) {
             // Action validity check (Global scope check)
             // Fix: Ausschluss der eigenen Action-ID, damit 2-Way-Binding nicht "Existiert bereits" wirft
-            const exists = projectRegistry.getActions('all', false).some(a => a.name === newName && (a as any).id !== obj.id && (a as any).actionName !== obj.id);
-            if (exists) {
+            const allActions = projectRegistry.getActions('all', false);
+            const conflictingAction = allActions.find(a => a.name === newName && (a as any).id !== obj.id && (a as any).actionName !== obj.id);
+            
+            if (conflictingAction) {
                 alert(`Umbenennung blockiert:\nEine Aktion mit dem Namen "${newName}" existiert bereits im Projekt.`);
                 return;
             }
