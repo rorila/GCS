@@ -52,7 +52,6 @@ export class EditorRunManager {
         if (running) {
             this.editor.selectObject(null);
             logger.info("Starting Game Mode...");
-            DebugLogService.getInstance().setEnabled(true);
 
             const mpManager = (this.editor as any)._isMultiplayer ? network : undefined;
             const activeStage = this.editor.getActiveStage();

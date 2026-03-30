@@ -165,9 +165,12 @@ export class EditorViewManager {
         if (toolboxFooter) toolboxFooter.style.display = 'none';
 
         // Stop debug logging and hide panel when switching away from 'run' view
-        if (h.debugLog && view !== 'run') {
-            h.debugLog.setRecordingActive(false);
-            h.debugLog.hide();
+        if (h.debugLog) {
+            h.debugLog.setButtonVisible(view === 'run');
+            if (view !== 'run') {
+                h.debugLog.setRecordingActive(false);
+                h.debugLog.hide();
+            }
         }
 
         // 2. Show Selected Panel

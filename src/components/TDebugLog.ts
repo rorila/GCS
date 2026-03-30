@@ -66,7 +66,10 @@ export class TDebugLog {
     private createToggleButton() {
         const btn = document.createElement('button');
         btn.id = 'debug-log-toggle';
-        btn.innerHTML = '⚪ DEBUG LOG';
+        const active = this.service.isEnabled();
+        btn.innerHTML = active ? '🔴 <span style="color:#ff5252">LOGGING...</span>' : '⚪ DEBUG LOG';
+        btn.style.borderColor = active ? '#ff5252' : '#4fc3f7';
+        btn.style.color = active ? '#ff5252' : '#4fc3f7';
 
         // Try to find the toolbox footer area
         const footer = document.getElementById('toolbox-footer');
@@ -79,7 +82,7 @@ export class TDebugLog {
         if (inEditor && footer) {
             TDebugLog.logger.debug('Editor detected, placing button in toolbox footer');
             btn.style.cssText = `
-                display: block;
+                display: none;
                 width: calc(100% - 24px);
                 margin: 12px;
                 background: #222;
@@ -119,21 +122,10 @@ export class TDebugLog {
         }
 
         btn.onclick = () => {
-            console.log(`[TDebugLog] Button clicked. isVisible=${this.isVisible}, id=${this.element.id}, parent=${this.element.parentElement?.tagName}`);
-
-            // Critical check: if isVisible is out of sync with actual style
-            const actualTransform = this.element.style.transform;
-            console.log(`[TDebugLog] Current transform style: "${actualTransform}"`);
-
-            if (!this.isVisible) {
-                this.setPanelVisible(true);
-                if (!this.service.isEnabled()) {
-                    console.log('[TDebugLog] Enabling recording');
-                    this.setRecordingActive(true);
-                }
-            } else {
-                this.setPanelVisible(false);
-            }
+            console.log(`[TDebugLog] Toggle clicked.`);
+            const newState = !this.service.isEnabled();
+            this.setRecordingActive(newState);
+            this.setPanelVisible(newState);
         };
         TDebugLog.logger.debug('Toggle button ready');
     }
@@ -141,6 +133,13 @@ export class TDebugLog {
     public toggle() {
         const isHidden = this.element.style.transform === 'translateX(100%)';
         this.setPanelVisible(isHidden);
+    }
+
+    public setButtonVisible(visible: boolean) {
+        const btn = document.getElementById('debug-log-toggle');
+        if (btn) {
+            btn.style.display = visible ? 'block' : 'none';
+        }
     }
 
     /**
