@@ -4,7 +4,6 @@ import { GameProject } from '../../../model/types';
 import { ReactiveRuntime } from '../../../runtime/ReactiveRuntime';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
 import { projectRegistry } from '../../../services/ProjectRegistry';
-import { RefactoringManager } from '../../RefactoringManager';
 
 import { SyncValidator } from '../../services/SyncValidator';
 

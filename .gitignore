@@ -21,3 +21,9 @@ npm-debug.log*
 
 # Laufzeit-Kopie (aktuell im Editor geladenes Projekt)
 game-server/public/projects/loaded_project.json
+
+# Debug-/Temp-Artefakte (Playwright, Test-Runner)
+out_debug.txt
+playwright_out.txt
+pw_report.json
+test-results/

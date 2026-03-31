@@ -52,7 +52,7 @@ export class EditorCommandManager {
 
         // Scoping Rules
         const activeStage = this.editor.getActiveStage();
-        newObj.scope = (activeStage && activeStage.type === 'main') ? 'global' : 'stage';
+        newObj.scope = (activeStage && activeStage.type === 'blueprint') ? 'global' : 'stage';
         // className: Instanz hat bereits den korrekten className aus dem Konstruktor
         // (z.B. 'TThresholdVariable'). Nur setzen wenn die Instanz keinen hat.
         if (!(newObj as any).className) {
@@ -294,8 +294,6 @@ export class EditorCommandManager {
         try {
             // 1. Notify FlowEditor BEFORE refactoring. 
             if (this.editor.flowEditor) {
-                const type = (obj.getType?.() || obj.type || '').toLowerCase();
-                const isTask = obj.className === 'TTask' || type === 'task';
                 // renameContext NUR für Tasks — es ändert den Flow-Kontext (Task-Name).
                 // Für Actions darf es NICHT aufgerufen werden, sonst wird der Task mit umbenannt.
                 if (isTask) {
@@ -304,7 +302,6 @@ export class EditorCommandManager {
             }
 
             // 2. Perform global refactoring
-            const type = (obj.getType?.() || obj.type || '').toLowerCase();
             if (obj.className === 'TVariable' || obj.isVariable || type === 'variable') {
                 RefactoringManager.renameVariable(this.editor.project, oldName, newName);
             } else if (obj.className === 'TTask' || type === 'task') {
