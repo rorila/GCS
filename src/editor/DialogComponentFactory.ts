@@ -188,6 +188,7 @@ export class DialogComponentFactory {
                 }
 
                 case 'TPanel':
+                case 'TGroupPanel':
                     if (obj.children && Array.isArray(obj.children)) {
                         obj.children.forEach((child: any) => {
                             const childEl = ctx.renderObject(child);

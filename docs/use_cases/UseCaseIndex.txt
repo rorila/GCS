@@ -121,3 +121,4 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
 [2026-03-31] Systemweite Logging-Migration
 - src/**/*.ts: Ersetzung ALLER verbleibenden console.log/warn/error/info Aufrufe (ca. 315) durch das Logger.get() Pattern.
 \n[USE_CASE: REFACTORING] StageRenderer Modularisierung\n    - Dateien betroffen: src/editor/services/StageRenderer.ts, src/editor/services/renderers/*.ts\n    - Methode: Auslagerung der ca. 1000 Zeilen renderXXX-Methoden aus StageRenderer.ts in modularisierte Service-Renderers unter Nutzung des gemeinsamen IRenderContext.\n
+[2026-03-31] Grouping & Templating: TGroupPanel.ts, StageRenderer.ts (renderObjects, collectAllIds), ObjectPoolActions.ts, GameRuntime.ts (spawnObject, destroyObject), PropertyActions.ts (set_child_property)

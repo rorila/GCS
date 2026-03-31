@@ -80,7 +80,7 @@
         "ComponentClass": {
             "type": "string",
             "enum": [
-                "TButton", "TLabel", "TEdit", "TPanel", "TImage",
+                "TButton", "TLabel", "TEdit", "TPanel", "TGroupPanel", "TImage",
                 "TSprite", "TSpriteTemplate", "TProgressBar", "TCheckbox", "TTable",
                 "TDataStore", "TDataList", "TTimer", "TObjectList"
             ]

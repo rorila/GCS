@@ -13,6 +13,7 @@ import { TMemo } from '../components/TMemo';
 import { TNumberInput } from '../components/TNumberInput';
 import { TNumberLabel } from '../components/TNumberLabel';
 import { TPanel } from '../components/TPanel';
+import { TGroupPanel } from '../components/TGroupPanel';
 import { TIntervalTimer } from '../components/TIntervalTimer';
 import { TShape } from '../components/TShape';
 import { TTable } from '../components/TTable';
@@ -107,6 +108,7 @@ export class ComponentRegistry {
         this.register('TNumberInput', TNumberInput);
         this.register('TNumberLabel', TNumberLabel);
         this.register('TPanel', TPanel);
+        this.register('TGroupPanel', TGroupPanel);
         this.register('TIntervalTimer', TIntervalTimer);
         this.register('TShape', TShape);
         this.register('TTable', TTable);
@@ -170,6 +172,7 @@ export class ComponentRegistry {
     private setupTypeMappings() {
         this.typeMapping.set('Button', 'TButton');
         this.typeMapping.set('Panel', 'TPanel');
+        this.typeMapping.set('GroupPanel', 'TGroupPanel');
         this.typeMapping.set('Audio', 'TAudio');
         this.typeMapping.set('Image', 'TImage');
         this.typeMapping.set('Video', 'TVideo');

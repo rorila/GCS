@@ -283,7 +283,7 @@ export class EditorMenuManager {
             const obj = allBpObjs.find((o: any) => o.id === excludedId);
             const name = obj?.name || obj?.caption || excludedId;
             const className = obj?.className || '';
-            const icon = className === 'TPanel' ? '🖼️' : className === 'TLabel' ? '🏷️' : className === 'TButton' ? '🔘' : className === 'TImage' ? '🖼️' : '📦';
+            const icon = className === 'TGroupPanel' ? '📦' : className === 'TPanel' ? '🖼️' : className === 'TLabel' ? '🏷️' : className === 'TButton' ? '🔘' : className === 'TImage' ? '🖼️' : '📦';
 
             const row = document.createElement('label');
             row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-radius:4px;transition:background 0.15s;';

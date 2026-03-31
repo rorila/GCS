@@ -1,6 +1,7 @@
 import { TWindow } from '../components/TWindow';
 import { TButton } from '../components/TButton';
 import { TPanel } from '../components/TPanel';
+import { TGroupPanel } from '../components/TGroupPanel';
 import { TLabel } from '../components/TLabel';
 import { TEdit } from '../components/TEdit';
 import { TSystemInfo } from '../components/TSystemInfo';
@@ -99,6 +100,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 break;
             case 'TPanel':
                 newObj = new TPanel(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
+            case 'TGroupPanel':
+                newObj = new TGroupPanel(objData.name, objData.x, objData.y, objData.width, objData.height);
                 break;
             case 'TLabel':
                 newObj = new TLabel(objData.name, objData.x, objData.y, objData.text);
@@ -418,10 +422,11 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             if (objData.verticalOnly !== undefined) (newObj as any).verticalOnly = objData.verticalOnly;
             if (objData.horizontalOnly !== undefined) (newObj as any).horizontalOnly = objData.horizontalOnly;
 
-            // TPanel specific properties
+            // TPanel / TGroupPanel specific properties
             if (objData.showGrid !== undefined) (newObj as any).showGrid = objData.showGrid;
             if (objData.gridColor !== undefined) (newObj as any).gridColor = objData.gridColor;
             if (objData.gridStyle !== undefined) (newObj as any).gridStyle = objData.gridStyle;
+            if (objData.isHiddenInRun !== undefined) (newObj as any).isHiddenInRun = objData.isHiddenInRun;
 
             // TTimer specific properties
             if (objData.interval !== undefined) (newObj as any).interval = objData.interval;
@@ -528,7 +533,7 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             newObj.events = objData.events || objData.Tasks || {};
 
 
-            // Restore children for container components (TDialogRoot, TPanel)
+            // Restore children for container components (TDialogRoot, TPanel, TGroupPanel)
             if (objData.children && Array.isArray(objData.children) && objData.children.length > 0) {
                 const hydratedChildren = hydrateObjects(objData.children);
                 hydratedChildren.forEach((child: any) => {

@@ -15,6 +15,11 @@
                     "label": "Panel"
                 },
                 {
+                    "type": "GroupPanel",
+                    "icon": "📦",
+                    "label": "Group Container"
+                },
+                {
                     "type": "Button",
                     "icon": "🔘",
                     "label": "Button"
