@@ -105,3 +105,7 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
 ## UseCase: Rename Validation von Actions und Elementen mit aktiven Property-Bindings
 - Grund: Two-Way-Bound Properties in Inspector-Ansichten mutieren die aktive referenzierte Object-Instanz obj.name, bevor der EditorCommandManager.renameObject Validator anschlägt, wodurch das Objekt fälschlicherweise als Kollision mit sich selbst detektiert werden konnte.
 - **Lösung:** In src/editor/services/EditorCommandManager.ts:263 wird beim some(a => a.name === newName) explizit .id !== obj.id ausgeschlossen, um denselben Knoten beim Renaming zu ignorieren.
+
+## 2026-03-31 CleanCode Optimierung
+- **Verbleibende console.* Aufrufe auf Logger migriert**: GameRuntime.ts (Zeilen 382, 842), GameLoopManager.ts (190, 201, 230, 309), ReactiveRuntime.ts (43, 207, 309, 313, 314, 318, 319, 320), ExpressionParser.ts (90, 212, 226, 228, 237, 308), StandardActions.ts (955, 1100, 1119, 1124), StageRenderer.ts (60, 70, 380, 497).
+- **Syntax/Scoping**: Klammer-Syntax Fehler im StageRenderer beim .map-Call der console.table->logger.debug-Migration korrigiert (Zeile 65-68). Alle Regressionstests bestanden.

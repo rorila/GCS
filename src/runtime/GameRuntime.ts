@@ -379,7 +379,7 @@ export class GameRuntime implements IVariableHost {
 
         // Start-Animation NACH glm.start(): Tweens werden erst erstellt wenn die
         // Game Loop bereits läuft und AnimationManager.update() pro Frame aufgerufen wird.
-        console.log(`[GameRuntime.initMainGame] startAnimation="${stageConfig?.startAnimation}", id="${stageConfig?.id}", objects: ${this.objects.length}`);
+        logger.info(`initMainGame: startAnimation="${stageConfig?.startAnimation}", id="${stageConfig?.id}", objects: ${this.objects.length}`);
         if (stageConfig?.startAnimation && stageConfig.startAnimation !== 'none') {
             this.triggerStartAnimation(stageConfig);
         }
@@ -839,7 +839,7 @@ export class GameRuntime implements IVariableHost {
                 const absoluteY = parentY + ry;
 
                 if (obj.name?.includes('Button') || (obj.name && obj.name.includes('Emoji'))) {
-                    console.log(`[GameRuntime:Layout] ${obj.name}: x=${obj.x} (resolved=${rx}), parentX=${parentX} -> absoluteX=${absoluteX}`);
+                    logger.debug(`[Layout] ${obj.name}: x=${obj.x} (resolved=${rx}), parentX=${parentX} -> absoluteX=${absoluteX}`);
                 }
                 const absoluteZ = parentZ + resolveCoord(obj.zIndex);
 

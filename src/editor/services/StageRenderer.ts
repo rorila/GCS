@@ -57,7 +57,7 @@ export class StageRenderer {
                 (this.host as any).runModeLogDone = true; // Mark as done after first log
                 logger.info(`RunMode Render Start. Rendering ${objects.length} objects.`);
                 if (objects.length > 0) {
-                    console.table(objects.slice(0, 20).map(o => ({
+                    logger.debug(`RunMode objects dump:`, objects.slice(0, 20).map(o => ({
                         name: o.name,
                         class: o.className || o.constructor?.name,
                         visible: o.visible,
@@ -67,7 +67,7 @@ export class StageRenderer {
                         text: typeof o.text === 'string' ? o.text.substring(0, 60) : '-'
                     })));
                 } else {
-                    console.warn("[StageRenderer] Rendering an EMPTY stage in RunMode!");
+                    logger.warn(`Rendering an EMPTY stage in RunMode!`);
                 }
             }
         }
@@ -377,7 +377,7 @@ export class StageRenderer {
                 el.style.cursor = 'pointer';
                 el.onclick = (e) => {
                     e.stopPropagation();
-                    console.log(`[StageRenderer] Click on ${obj.name} (${obj.id}). Task: ${obj.events?.onClick || obj.Tasks?.onClick || 'none'}`);
+                    logger.debug(`Click on ${obj.name} (${obj.id}). Task: ${obj.events?.onClick || obj.Tasks?.onClick || 'none'}`);
                     if (this.host.onEvent) {
                         this.host.onEvent(obj.id, 'onClick');
                     }
@@ -494,7 +494,7 @@ export class StageRenderer {
             }
 
             if ((el as any).lastLoggedSrc !== src) {
-                console.log(`[StageRenderer] Component "${objId}" (${className}) setting image: "${src}"`);
+                logger.debug(`Component "${objId}" (${className}) setting image: "${src}"`);
                 (el as any).lastLoggedSrc = src;
             }
 

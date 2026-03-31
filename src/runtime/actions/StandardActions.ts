@@ -952,7 +952,7 @@ export function registerStandardActions() {
             return;
         }
 
-        console.warn(`[Action: call_method] Ziel "${targetName}" nicht gefunden oder Methode "${methodName}" nicht vorhanden.`);
+        runtimeLogger.warn(`call_method: Ziel "${targetName}" nicht gefunden oder Methode "${methodName}" nicht vorhanden.`);
     }, {
         type: 'call_method',
         label: 'Methode aufrufen',
@@ -1097,7 +1097,7 @@ export function registerStandardActions() {
         const eventData = context.vars?.eventData || context.eventData;
 
         if (!eventData || !eventData.requestId) {
-            console.warn('[Action: handle_api_request] Missing requestId in eventData. Is this triggered by onRequest?');
+            runtimeLogger.warn('handle_api_request: Missing requestId in eventData. Is this triggered by onRequest?');
             return false;
         }
 
@@ -1116,12 +1116,12 @@ export function registerStandardActions() {
             if (resolver) {
                 resolver(logicResponse);
                 pendingMap.delete(eventData.requestId);
-                console.log(`[Action: handle_api_request] Sent response for ${eventData.requestId}`, logicResponse);
+                runtimeLogger.info(`handle_api_request: Sent response for ${eventData.requestId}`, logicResponse);
                 return true;
             }
         }
 
-        console.warn(`[Action: handle_api_request] Could not find pending response resolver for ${eventData.requestId}`);
+        runtimeLogger.warn(`handle_api_request: Could not find pending response resolver for ${eventData.requestId}`);
         return false;
     }, {
         type: 'handle_api_request',

@@ -883,3 +883,8 @@
 - `tests/e2e/editor_smoke.spec.ts`: Erster automatisierter Browser-Smoke-Test.
 
 [... weitere Einträge siehe Archiv ...]
+
+## [3.9.1] - 2026-03-31
+### Changed
+- CleanCode: 24 verbleibende \console.*\-Aufrufe in erfolgskritischen Modulen durch \Logger\ ersetzt (StageRenderer, GameRuntime, GameLoopManager, ReactiveRuntime, ExpressionParser, StandardActions).
+- Performance: \console.table\ in \StageRenderer\ durch verschachtelten Logger-Call ausgetauscht.

@@ -2,6 +2,9 @@ import { ExpressionParser } from './ExpressionParser';
 import { PropertyWatcher } from './PropertyWatcher';
 import { makeReactive } from './ReactiveProperty';
 import { DESIGN_VALUES } from '../components/TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('ReactiveRuntime', 'Runtime_Execution');
 
 /**
  * ReactiveRuntime - Manages reactive bindings between objects and UI
@@ -40,7 +43,7 @@ export class ReactiveRuntime {
         this.objectsByName.set(name, reactiveObj);
 
         if (name === 'currentRooms' || obj.name === 'currentRooms') {
-            console.log(`%c[ReactiveRuntime] Registered currentRooms:`, 'color: #4caf50; font-weight: bold', {
+            logger.debug(`Registered currentRooms:`, {
                 scope: obj.scope,
                 isVariable: obj.isVariable,
                 className: obj.className
@@ -204,7 +207,7 @@ export class ReactiveRuntime {
                             const matchesScope = obj && (prop === 'global' ? obj.scope === 'global' : obj.scope === 'stage');
 
                             if (subProp === 'currentRooms') {
-                                console.log(`[ReactiveRuntime] Resolving ${prop}.${subProp}:`, {
+                                logger.debug(`Resolving ${prop}.${subProp}:`, {
                                     foundObj: !!obj,
                                     objScope: obj?.scope,
                                     matchesScope,
@@ -306,18 +309,18 @@ export class ReactiveRuntime {
      * Debug: Shows all active bindings
      */
     debug(): void {
-        console.log('[ReactiveRuntime] Active Bindings:');
+        logger.info('Active Bindings:');
         this.bindings.forEach((bindingList, id) => {
             bindingList.forEach(binding => {
                 const targetName = binding.targetObj.name || 'Unknown';
-                console.log(`  ${id}: ${targetName}.${binding.targetProp} ← ${binding.expression}`);
-                console.log(`    Dependencies:`, binding.dependencies);
+                logger.info(`  ${id}: ${targetName}.${binding.targetProp} ← ${binding.expression}`);
+                logger.info(`    Dependencies:`, binding.dependencies);
             });
         });
 
-        console.log('[ReactiveRuntime] Registered Objects (Names):', Array.from(this.objectsByName.keys()));
-        console.log('[ReactiveRuntime] Registered Objects (IDs):', Array.from(this.objectsById.keys()));
-        console.log('[ReactiveRuntime] Variables:', Array.from(this.variables.keys()));
+        logger.info('Registered Objects (Names):', Array.from(this.objectsByName.keys()));
+        logger.info('Registered Objects (IDs):', Array.from(this.objectsById.keys()));
+        logger.info('Variables:', Array.from(this.variables.keys()));
 
         this.watcher.debug();
     }

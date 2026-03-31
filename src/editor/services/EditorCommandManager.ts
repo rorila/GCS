@@ -5,8 +5,10 @@ import { changeRecorder } from '../../services/ChangeRecorder';
 import { RefactoringManager } from '../RefactoringManager';
 import { mediatorService } from '../../services/MediatorService';
 import { projectRegistry } from '../../services/ProjectRegistry';
+import { Logger } from '../../utils/Logger';
 
 export class EditorCommandManager {
+    private static logger = Logger.get('EditorCommandManager', 'Component_Manipulation');
     private editor: Editor;
     public isRefactoring: boolean = false;
 
@@ -15,11 +17,11 @@ export class EditorCommandManager {
     }
 
     public createObjectInstance(type: string, name: string, x: number, y: number): TWindow | null {
-        console.log(`[CommandManager] Erzeuge Instanz für Typ: ${type}, Name: ${name}`);
+        EditorCommandManager.logger.info(`Erzeuge Instanz für Typ: ${type}, Name: ${name}`);
         const instance = componentRegistry.createInstance({ type, name, x, y });
 
         if (!instance) {
-            console.error(`[CommandManager] Konnte keine Instanz für Typ "${type}" erstellen.`);
+            EditorCommandManager.logger.error(`Konnte keine Instanz für Typ "${type}" erstellen.`);
             return null;
         }
 
@@ -158,12 +160,12 @@ export class EditorCommandManager {
     }
 
     public removeObjectSilent(id: string) {
-        console.log(`[CommandManager] removeObjectSilent: ${id}`);
+        EditorCommandManager.logger.debug(`removeObjectSilent: ${id}`);
 
         // 1. Check if it's a child of another object (e.g. in a Dialog)
         const parent = this.findParentContainer(id);
         if (parent && parent.children) {
-            console.log(`[CommandManager] Removing ${id} from parent ${parent.name}`);
+            EditorCommandManager.logger.debug(`Removing ${id} from parent ${parent.name}`);
             parent.children = parent.children.filter((c: any) => c.id !== id);
             // After removing from children, we still want to check if it's in other lists
         }
@@ -183,28 +185,28 @@ export class EditorCommandManager {
             const objIdx = (stage.objects || []).findIndex(o => o.id === id);
             if (objIdx !== -1) {
                 stage.objects!.splice(objIdx, 1);
-                console.log(`[CommandManager] Removed from stage ${stage.name} (${stage.id}) objects`);
+                EditorCommandManager.logger.debug(`Removed from stage ${stage.name} (${stage.id}) objects`);
                 return;
             }
 
             const varIdx = (stage.variables || []).findIndex(v => (v as any).id === id);
             if (varIdx !== -1) {
                 stage.variables!.splice(varIdx, 1);
-                console.log(`[CommandManager] Removed from stage ${stage.name} variables`);
+                EditorCommandManager.logger.debug(`Removed from stage ${stage.name} variables`);
                 return;
             }
 
             const taskIdx = (stage.tasks || []).findIndex(t => (t as any).id === id || t.name === id);
             if (taskIdx !== -1) {
                 stage.tasks!.splice(taskIdx, 1);
-                console.log(`[CommandManager] Removed from stage ${stage.name} tasks`);
+                EditorCommandManager.logger.debug(`Removed from stage ${stage.name} tasks`);
                 return;
             }
 
             const actionIdx = (stage.actions || []).findIndex(a => (a as any).id === id || a.name === id);
             if (actionIdx !== -1) {
                 stage.actions!.splice(actionIdx, 1);
-                console.log(`[CommandManager] Removed from stage ${stage.name} actions`);
+                EditorCommandManager.logger.debug(`Removed from stage ${stage.name} actions`);
                 return;
             }
         }
@@ -213,28 +215,28 @@ export class EditorCommandManager {
         const objIdx = this.editor.project.objects.findIndex(o => o.id === id);
         if (objIdx !== -1) {
             this.editor.project.objects.splice(objIdx, 1);
-            console.log(`[CommandManager] Removed from global root objects`);
+            EditorCommandManager.logger.debug(`Removed from global root objects`);
             return;
         }
 
         const varIdx = this.editor.project.variables.findIndex(v => (v as any).id === id);
         if (varIdx !== -1) {
             this.editor.project.variables.splice(varIdx, 1);
-            console.log(`[CommandManager] Removed from global root variables`);
+            EditorCommandManager.logger.debug(`Removed from global root variables`);
             return;
         }
 
         const taskIdx = this.editor.project.tasks.findIndex(t => (t as any).id === id || t.name === id);
         if (taskIdx !== -1) {
             this.editor.project.tasks.splice(taskIdx, 1);
-            console.log(`[CommandManager] Removed from global root tasks`);
+            EditorCommandManager.logger.debug(`Removed from global root tasks`);
             return;
         }
 
         const actionIdx = this.editor.project.actions.findIndex(a => (a as any).id === id || a.name === id);
         if (actionIdx !== -1) {
             this.editor.project.actions.splice(actionIdx, 1);
-            console.log(`[CommandManager] Removed from global root actions`);
+            EditorCommandManager.logger.debug(`Removed from global root actions`);
             return;
         }
     }
@@ -331,7 +333,7 @@ export class EditorCommandManager {
 
             this.editor.autoSaveToLocalStorage();
 
-            console.log(`[CommandManager] UI-UPDATE ERFOLGREICH: Alle Listen (Dropdown & Manager) wurden synchronisiert.`);
+            EditorCommandManager.logger.info(`UI-UPDATE ERFOLGREICH: Alle Listen (Dropdown & Manager) wurden synchronisiert.`);
         } finally {
             // CRITICAL: Always release the lock
             this.isRefactoring = false;

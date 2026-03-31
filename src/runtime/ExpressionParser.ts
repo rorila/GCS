@@ -1,4 +1,7 @@
 import { PropertyHelper } from './PropertyHelper';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('ExpressionParser', 'Runtime_Execution');
 
 /**
  * ExpressionParser - Parses and evaluates expressions in strings
@@ -87,7 +90,7 @@ export class ExpressionParser {
                             result += this.valueToString(evaluated);
                         }
                     } catch (error) {
-                        console.error(`[ExpressionParser] Error evaluating expression "${expression}":`, error);
+                        logger.error(`Error evaluating expression "${expression}":`, error);
                         result += `\${${expression}}`;
                     }
                     i = j;
@@ -209,7 +212,7 @@ export class ExpressionParser {
 
             // Console Tracing for debugging (only if result is suspect or in debug mode)
             if (result === undefined || (result !== result && typeof result === 'number')) { // NaN check
-                console.log(`%c[ExpressionParser] Suspicious result for "${expression}":`, 'color: #ff9800', {
+                logger.debug(`Suspicious result for "${expression}":`, {
                     result,
                     contextKeys,
                     contextValues: contextValues.map((v: any) => typeof v === 'object' ? (v?.name || v?.className || 'Object') : v)
@@ -223,9 +226,9 @@ export class ExpressionParser {
 
             // VERY IMPORTANT: Log ReferenceErrors clearly as they indicate missing variables
             if (name === 'ReferenceError' || error instanceof ReferenceError) {
-                console.warn(`%c[ExpressionParser] ReferenceError in "${expression}": ${msg}`, 'color: #f44336; font-weight: bold');
+                logger.warn(`ReferenceError in "${expression}": ${msg}`);
                 const deps = this.extractDependencies(expression);
-                console.log(`[ExpressionParser] Available context keys:`, deps.filter((k: string) => k in context));
+                logger.debug(`Available context keys:`, deps.filter((k: string) => k in context));
                 return undefined;
             }
 
@@ -234,7 +237,7 @@ export class ExpressionParser {
                 return undefined;
             }
 
-            console.warn(`[ExpressionParser] Evaluation error for "${expression}":`, error);
+            logger.warn(`Evaluation error for "${expression}":`, error);
             return undefined;
         }
     }
@@ -305,7 +308,7 @@ export class ExpressionParser {
         }
         const result = this.evaluate(expression, context);
         if (expression.includes('BaseVar') || expression.includes('availableVariableFields')) {
-            console.log(`[ExpressionParser] evaluateRaw("${expression}") ->`, result);
+            logger.debug(`evaluateRaw("${expression}") ->`, result);
         }
         return result;
     }

@@ -17,6 +17,9 @@ import { TWindow } from '../components/TWindow';
 import { GridConfig } from '../model/types';
 import { AnimationManager } from './AnimationManager';
 import { BoundaryMode } from '../components/TGameLoop';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('GameLoopManager', 'Runtime_Execution');
 
 export type GameLoopState = 'stopped' | 'running' | 'paused' | 'sleeping';
 
@@ -186,7 +189,7 @@ export class GameLoopManager {
     public pause(): void {
         if (this.state === 'running') {
             this.state = 'paused';
-            console.log(`[GameLoopManager] Paused`);
+            logger.debug(`Paused`);
         }
     }
 
@@ -197,7 +200,7 @@ export class GameLoopManager {
         if (this.state === 'paused') {
             this.state = 'running';
             this.lastTime = performance.now();
-            console.log(`[GameLoopManager] Resumed`);
+            logger.debug(`Resumed`);
             this.loop();
         }
     }
@@ -226,7 +229,7 @@ export class GameLoopManager {
             this.state = 'running';
             this.lastTime = performance.now();
             this.idleFrameCount = 0;
-            console.log(`[GameLoopManager] Woke up from sleep`);
+            logger.debug(`Woke up from sleep`);
             this.loop();
         }
     }
@@ -305,7 +308,7 @@ export class GameLoopManager {
             // den rAF-Loop stoppen um CPU/Batterie zu sparen
             if (this.idleFrameCount >= this.IDLE_THRESHOLD) {
                 this.state = 'sleeping';
-                console.log(`[GameLoopManager] Entering sleep (${this.idleFrameCount} idle frames)`);
+                logger.debug(`Entering sleep (${this.idleFrameCount} idle frames)`);
                 return; // Kein requestAnimationFrame → Loop stoppt
             }
         }
