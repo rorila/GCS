@@ -1,3 +1,7 @@
+- [2026-03-31] FlowEditor God-Class Auflösung
+  - Datei: src/editor/FlowEditor.ts (Facade + Delegation)
+  - Dateien: src/editor/services/FlowToolbarManager.ts, src/editor/services/FlowPascalManager.ts
+  - Details: Die gigantische `FlowEditor.ts` (1273 Zeilen) wurde modularisiert und hält nun das <1000 Zeilen Limit streng ein. Die DOM-Generierung der Toolbar sowie die sehr lange Dropdown-Select Logik (`updateFlowSelector`) wurden in den `FlowToolbarManager` verschoben. Das Live-Code Panel (Pascal-Code Anzeige) wird über den separaten `FlowPascalManager` konfiguriert und gerendert.
 - [2026-03-31] JSONDialogRenderer God-Class Auflösung
   - Datei: src/editor/JSONDialogRenderer.ts (Facade)
   - Dateien: src/editor/dialogs/IDialogContext.ts, renderers/DialogDOMBuilder.ts, handlers/DialogActionHandler.ts, handlers/DialogStateManager.ts, utils/DialogExpressionEvaluator.ts, utils/DialogDomainHelper.ts

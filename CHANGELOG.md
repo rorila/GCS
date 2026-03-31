@@ -1,4 +1,7 @@
-## [3.29.5] - 2026-03-31
+## [3.29.6] - 2026-03-31
+### Refactoring & CleanCode
+- **FlowEditor God-Class weiter entschlackt:** Die Datei `FlowEditor.ts` (1273 Zeilen) wurde modularisiert und hält nun das <1000 Zeilen Limit streng ein (~900 Zeilen). DOM-Generierung für die Toolbar sowie komplexe Dropdown-Logiken (`updateFlowSelector`) wurden in `FlowToolbarManager` verschoben. Das Live-Code Overlay (Pascal) wird nun über den `FlowPascalManager` aufgebaut und gerendert.
+
 ### Refactoring & CleanCode
 - **JSONDialogRenderer God-Class aufgelöst:** Die Datei `JSONDialogRenderer.ts` (1302 Zeilen) wurde vollständig modularisiert und das Interface `IDialogContext` eingeführt. Renderer und Code-DOM-Manipulationen wurden in `DialogDOMBuilder`, `DialogActionHandler`, `DialogStateManager`, `DialogExpressionEvaluator` und `DialogDomainHelper` abstrahiert. Dadurch ist die Hauptdatei auf saubere ~230 Zeilen gesunken.
 - **StandardActions God-Class aufgelöst:** Die Datei `StandardActions.ts` (1305 Zeilen) wurde modularisiert und als Facade restrukturiert. Aktionen sind jetzt in dedizierten Dateien unter `src/runtime/actions/handlers/` gruppiert (`PropertyActions.ts`, `VariableActions.ts`, `CalculateActions.ts`, `HttpActions.ts` etc.). Die Hauptdatei hat nur noch ~20 Zeilen. Code-Duplikate (z.B. redundantes Registrieren der 'animate'-Aktion) wurden bereinigt.

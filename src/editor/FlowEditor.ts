@@ -1,6 +1,4 @@
 import { GameProject, StageDefinition } from '../model/types';
-import { PascalCodeGenerator } from './PascalCodeGenerator';
-
 
 import { FlowElement } from './flow/FlowElement';
 import { FlowAction } from './flow/FlowAction';
@@ -27,13 +25,15 @@ import { FlowGraphHydrator, FlowGraphHydrationHost } from './services/FlowGraphH
 import { FlowUIController, FlowUIHost } from './services/FlowUIController';
 import { FlowTaskManager, FlowTaskHost } from './services/FlowTaskManager';
 import { FlowNodeFactory, FlowNodeHost } from './services/FlowNodeFactory';
+import { FlowPascalManager, FlowPascalHost } from './services/FlowPascalManager';
+import { FlowToolbarManager, FlowToolbarHost } from './services/FlowToolbarManager';
 import { Editor } from './Editor';
 
 const logger = Logger.get('FlowEditor');
 
 
 
-export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHost, FlowNavigationHost, FlowGraphHydrationHost, FlowUIHost, FlowTaskHost, FlowNodeHost {
+export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHost, FlowNavigationHost, FlowGraphHydrationHost, FlowUIHost, FlowTaskHost, FlowNodeHost, FlowPascalHost, FlowToolbarHost {
     private static logger = Logger.get('FlowEditor', 'Flow_Synchronization');
     private container: HTMLElement;
     public project: GameProject | null = null;
@@ -54,10 +54,12 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     public uiController!: FlowUIController;
     public taskManager!: FlowTaskManager;
     public nodeFactory!: FlowNodeFactory;
+    public pascalManager!: FlowPascalManager;
+    public toolbarManager!: FlowToolbarManager;
+
     public actionCheckMode: boolean = false;
     public filterText: string = "";
 
-    public flowSelect!: HTMLSelectElement;
     public contextMenu: ContextMenu;
 
     public canvas: HTMLElement;
@@ -77,20 +79,16 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     public isFlowDirty: boolean = false;
     public activeHandle: HTMLElement | null = null;
     public activeConnection: FlowConnection | null = null;
-
     // UI Elements
-    public detailsToggleBtn!: HTMLButtonElement;
-    public actionCheckBtn!: HTMLButtonElement;
-    public filterInput!: HTMLInputElement;
-    public backButton!: HTMLButtonElement; // Zurück-Button
     public currentSelectedStageObjectId: string | null = null;
     public suggestedTaskName: string | null = null; // Für automatische Namensübernahme bei Drop
 
-    // Pascal-Panel
-    private pascalPanel!: HTMLElement;
-    private pascalToggleBtn!: HTMLButtonElement;
-    private pascalVisible: boolean = false;
-
+    // Getter for DOM elements managed by ToolbarManager to ensure backward compatibility
+    public get flowSelect(): HTMLSelectElement { return this.toolbarManager.flowSelect; }
+    public get detailsToggleBtn(): HTMLButtonElement { return this.toolbarManager.detailsToggleBtn; }
+    public get actionCheckBtn(): HTMLButtonElement { return this.toolbarManager.actionCheckBtn; }
+    public get filterInput(): HTMLInputElement { return this.toolbarManager.filterInput; }
+    public get backButton(): HTMLButtonElement { return this.toolbarManager.backButton; }
 
     // Navigation History
     private contextHistory: string[] = [];
@@ -301,106 +299,23 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
 
         this.contextMenu = new ContextMenu();
 
-        // Initialize default FlowStage
         this.flowStage = new TFlowStage('FlowStage', 100, 100, 20);
-
-        // Toolbar
-        const toolbar = document.createElement('div');
-        toolbar.style.cssText = 'padding:10px;border-bottom:1px solid #444;background:#252526;display:flex;gap:10px;align-items:center';
-
-        // Flow Context Selector
-        this.flowSelect = document.createElement('select');
-        this.flowSelect.style.cssText = 'padding:5px;background:#333;color:white;border:1px solid #555;border-radius:4px;min-width:150px;margin-right:5px';
-        this.flowSelect.onchange = () => this.switchActionFlow(this.flowSelect.value);
-        toolbar.appendChild(this.flowSelect);
-
-        // Back Button (Zurück)
-        this.backButton = document.createElement('button');
-        this.backButton.innerText = '← Zurück';
-        this.backButton.title = 'Zurück zur vorherigen Ansicht';
-        this.backButton.style.cssText = 'padding:5px 10px;background:#555;color:white;border:none;border-radius:4px;cursor:pointer;margin-right:5px;display:none';
-        this.backButton.onclick = () => this.goBack();
-        toolbar.appendChild(this.backButton);
-
-        // New Task Button
-        const newFlowBtn = document.createElement('button');
-        newFlowBtn.innerText = '+';
-        newFlowBtn.title = 'New Task Flow';
-        newFlowBtn.style.cssText = 'padding:5px 10px;background:#007acc;color:white;border:none;border-radius:4px;cursor:pointer;margin-right:5px';
-        newFlowBtn.onclick = () => this.createNewTaskFlow();
-        toolbar.appendChild(newFlowBtn);
-
-        // Delete Task Button
-        const delFlowBtn = document.createElement('button');
-        delFlowBtn.innerText = '-';
-        delFlowBtn.title = 'Delete Current Task';
-        delFlowBtn.style.cssText = 'padding:5px 10px;background:#ce3636;color:white;border:none;border-radius:4px;cursor:pointer;margin-right:10px';
-        delFlowBtn.onclick = () => this.deleteCurrentTaskFlow();
-        toolbar.appendChild(delFlowBtn);
-
-        // Separator
-        const sep = document.createElement('div');
-        sep.style.cssText = 'width:1px;height:24px;background:#555;margin:0 10px';
-        toolbar.appendChild(sep);
-
-        // Details Toggle Button (showDetails already loaded from storage)
-        const initialShowDetails = this.showDetails;
-        this.detailsToggleBtn = document.createElement('button');
-        this.detailsToggleBtn.innerText = initialShowDetails ? '📝 Details' : '📋 Konzept';
-        this.detailsToggleBtn.title = 'Zwischen Konzept- und Details-Ansicht wechseln';
-        this.detailsToggleBtn.style.cssText = 'padding:5px 10px;color:white;border:1px solid #666;border-radius:4px;cursor:pointer';
-        this.detailsToggleBtn.style.background = initialShowDetails ? '#007acc' : '#444';
-        this.detailsToggleBtn.onclick = () => this.toggleDetailsView();
-        toolbar.appendChild(this.detailsToggleBtn);
-
-        // Separator
-        const sep2 = document.createElement('div');
-        sep2.style.cssText = 'width:1px;height:24px;background:#555;margin:0 10px';
-        toolbar.appendChild(sep2);
-
-        // Action Check Button
-        this.actionCheckBtn = document.createElement('button');
-        this.actionCheckBtn.innerText = '🔍 Action-Check';
-        this.actionCheckBtn.title = 'Ungenutzte Elemente hervorheben';
-        this.actionCheckBtn.style.cssText = 'padding:5px 10px;background:#e65100;color:white;border:none;border-radius:4px;cursor:pointer;margin-right:10px;display:none';
-        this.actionCheckBtn.onclick = () => this.mapManager.toggleActionCheckMode();
-        toolbar.appendChild(this.actionCheckBtn);
-
-        // Filter Input
-        this.filterInput = document.createElement('input');
-        this.filterInput.type = 'text';
-        this.filterInput.placeholder = 'Filter...';
-        this.filterInput.style.cssText = 'padding:5px;background:#333;color:white;border:1px solid #555;border-radius:4px;margin-right:10px;width:120px;display:none';
-        this.filterInput.oninput = (e) => {
-            this.filterText = (e.target as HTMLInputElement).value.toLowerCase();
-            this.loadFromProject(); // Refresh view with filter
-        };
-        toolbar.appendChild(this.filterInput);
-
-        // Separator vor Pascal-Button
-        const sep3 = document.createElement('div');
-        sep3.style.cssText = 'width:1px;height:24px;background:#555;margin:0 10px';
-        toolbar.appendChild(sep3);
-
-        // Pascal-Toggle-Button
-        this.pascalVisible = localStorage.getItem('gcs_flow_pascal_visible') === 'true';
-        this.pascalToggleBtn = document.createElement('button');
-        this.pascalToggleBtn.innerText = '🔤 Pascal';
-        this.pascalToggleBtn.title = 'Pascal-Sequenz ein-/ausblenden (Klick: Toggle)';
-        this.pascalToggleBtn.style.cssText = `padding:5px 10px;color:white;border:1px solid #666;border-radius:4px;cursor:pointer;background:${this.pascalVisible ? '#5c2d91' : '#444'}`;
-        this.pascalToggleBtn.onclick = () => this.togglePascalPanel();
-        toolbar.appendChild(this.pascalToggleBtn);
-
-        this.container.appendChild(toolbar);
 
         // Canvas Wrapper (für side-by-side Layout bei rechts-Position)
         const canvasWrapper = document.createElement('div');
         canvasWrapper.id = 'flow-canvas-wrapper';
         canvasWrapper.style.cssText = 'flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0';
 
+        // Pascal Manager
+        this.pascalManager = new FlowPascalManager(this);
+        const pascalToggleBtn = this.pascalManager.buildUI(canvasWrapper);
+
+        // Toolbar Manager
+        this.toolbarManager = new FlowToolbarManager(this);
+        this.toolbarManager.buildToolbar(this.container, pascalToggleBtn);
+
         // Canvas (Drop Area)
         this.canvas = document.createElement('div');
-
         this.canvas.id = 'flow-canvas';
         this.canvas.style.cssText = 'flex:1;background:#1e1e1e;position:relative;overflow:auto;width:100%;height:calc(100% - 40px);background-image:radial-gradient(#333 1px, transparent 1px);background-size:20px 20px';
 
@@ -413,18 +328,9 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         // Events logic unified in InteractionManager
         this.interactionManager.bindEvents();
 
-        canvasWrapper.appendChild(this.canvas);
-
-        // Pascal-Panel
-        this.pascalPanel = document.createElement('div');
-        this.pascalPanel.id = 'flow-pascal-panel';
-        this.pascalPanel.className = 'flow-pascal-panel';
-        canvasWrapper.appendChild(this.pascalPanel);
-
+        canvasWrapper.insertBefore(this.canvas, canvasWrapper.firstChild); // Canvas kommt VOR das Pascal-Panel
         this.container.appendChild(canvasWrapper);
 
-        // INITIALISIERE LAYOUT KORREKT BEIM START
-        this.applyPascalLayout();
 
 
 
@@ -613,10 +519,6 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         this.syncManager.syncActionsFromProject();
     }
 
-    private createNewTaskFlow() {
-        this.taskManager.createNewTaskFlow();
-    }
-
     /**
      * Ermittelt die passende FlowCharts-Collection (Global vs Stage)
      */
@@ -624,169 +526,8 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         return this.taskManager.getTargetFlowCharts(taskName);
     }
 
-    private deleteCurrentTaskFlow() {
-        this.taskManager.deleteCurrentTaskFlow();
-    }
-
     public updateFlowSelector() {
-        if (!this.project) return;
-        this.flowSelect.innerHTML = '';
-        const activeStage = this.getActiveStage();
-
-        // --- Overviews ---
-        const optOverviewGroup = document.createElement('optgroup');
-        optOverviewGroup.label = '🗺️ OVERVIEWS';
-
-        const mapOpt = document.createElement('option');
-        mapOpt.value = 'event-map';
-        mapOpt.innerText = '🗺️ Landkarte (Events/Links)';
-        mapOpt.selected = this.currentFlowContext === 'event-map';
-        optOverviewGroup.appendChild(mapOpt);
-
-        const overOpt = document.createElement('option');
-        overOpt.value = 'element-overview';
-        overOpt.innerText = '📊 Elementenübersicht';
-        overOpt.selected = this.currentFlowContext === 'element-overview';
-        optOverviewGroup.appendChild(overOpt);
-
-        this.flowSelect.appendChild(optOverviewGroup);
-
-        const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint' || activeStage?.id === 'blueprint';
-
-        // --- Current Stage Section ---
-        if (activeStage && !isBlueprint) {
-            const stageGroup = document.createElement('optgroup');
-            stageGroup.label = `Stage: ${activeStage.name}`;
-
-            // Tasks in this stage
-            const stageTasksFound = new Set<string>();
-
-            // 1. Tasks that have a flowchart (and are actually defined in tasks)
-            if (activeStage.flowCharts) {
-                const definedTaskNames = new Set(activeStage.tasks?.map(t => t.name) || []);
-                Object.keys(activeStage.flowCharts).forEach(key => {
-                    if (key !== 'global' && definedTaskNames.has(key)) {
-                        const opt = document.createElement('option');
-                        opt.value = key;
-                        opt.text = `Task: ${key}`;
-                        opt.selected = this.currentFlowContext === key;
-                        stageGroup.appendChild(opt);
-                        stageTasksFound.add(key);
-                    }
-                });
-            }
-
-            // 2. Tasks defined in the stage but might not have a flowchart yet
-            if (activeStage.tasks) {
-                activeStage.tasks.forEach(task => {
-                    if (!stageTasksFound.has(task.name)) {
-                        const opt = document.createElement('option');
-                        opt.value = task.name;
-                        opt.text = `Task: ${task.name}`;
-                        opt.selected = this.currentFlowContext === task.name;
-                        stageGroup.appendChild(opt);
-                        stageTasksFound.add(task.name);
-                    }
-                });
-            }
-
-            this.flowSelect.appendChild(stageGroup);
-        }
-
-        // --- Global Section ---
-        // Blueprint-Tasks nur anzeigen wenn die aktive Stage die Blueprint-Stage ist
-        if (isBlueprint) {
-            const globalGroup = document.createElement('optgroup');
-            globalGroup.label = '🔷 Blueprint / Global';
-
-            // 0. Blueprint Main Flow (SSoT für Infrastructure)
-            const blueprintStage = this.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
-            if (blueprintStage) {
-                const bpGlobalOpt = document.createElement('option');
-                bpGlobalOpt.value = 'global';
-                bpGlobalOpt.text = 'Main Flow (Blueprint)';
-                // Wenn wir in einer anderen Stage sind, bezieht sich 'global' auf die Stage. 
-                // Wenn wir in Blueprint sind, bezieht sich 'global' auf Blueprint.
-                bpGlobalOpt.selected = isBlueprint && this.currentFlowContext === 'global';
-                globalGroup.appendChild(bpGlobalOpt);
-            }
-
-            const globalTasksFound = new Set<string>();
-
-            // 1. Blueprint-Stage-eigene FlowCharts (SSoT für globale Tasks)
-            if (blueprintStage?.flowCharts) {
-                const definedGlobalTaskNames = new Set(blueprintStage.tasks?.map(t => t.name) || []);
-                Object.keys(blueprintStage.flowCharts).forEach(key => {
-                    if (key !== 'global' && definedGlobalTaskNames.has(key)) {
-                        const opt = document.createElement('option');
-                        opt.value = key;
-                        opt.text = `Task: ${key}`;
-                        opt.selected = this.currentFlowContext === key;
-                        globalGroup.appendChild(opt);
-                        globalTasksFound.add(key);
-                    }
-                });
-            }
-
-            // 2. Blueprint-Stage-eigene Tasks ohne FlowChart
-            if (blueprintStage?.tasks) {
-                blueprintStage.tasks.forEach(task => {
-                    if (!globalTasksFound.has(task.name)) {
-                        const opt = document.createElement('option');
-                        opt.value = task.name;
-                        opt.text = `Task: ${task.name}`;
-                        opt.selected = this.currentFlowContext === task.name;
-                        globalGroup.appendChild(opt);
-                        globalTasksFound.add(task.name);
-                    }
-                });
-            }
-
-
-            // 3. Legacy Root-Level project.tasks/flowCharts Fallback
-            if (this.project.tasks) {
-                this.project.tasks.forEach(task => {
-                    if (!globalTasksFound.has(task.name)) {
-                        const opt = document.createElement('option');
-                        opt.value = task.name;
-                        opt.text = `Task: ${task.name}`;
-                        opt.selected = this.currentFlowContext === task.name;
-                        globalGroup.appendChild(opt);
-                        globalTasksFound.add(task.name);
-                    }
-                });
-            }
-
-            // Nur hinzufügen, wenn die Gruppe nicht leer ist
-            if (globalGroup.children.length > 0) {
-                this.flowSelect.appendChild(globalGroup);
-            }
-        }
-
-        // --- SAFETY CHECK: Ensure current context is in the list ---
-        if (this.currentFlowContext && this.currentFlowContext !== 'global' && this.currentFlowContext !== 'event-map' && this.currentFlowContext !== 'element-overview') {
-            let found = false;
-            // Check if value exists in options (recursively through optgroups)
-            for (let i = 0; i < this.flowSelect.options.length; i++) {
-                if (this.flowSelect.options[i].value === this.currentFlowContext) {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                FlowEditor.logger.warn(`Current context "${this.currentFlowContext}" nicht im Dropdown gefunden (falsche Stage?). Wechsle zur Übersicht.`, { activeStage: activeStage?.id });
-                this.currentFlowContext = 'element-overview';
-                
-                // Asynchron den Flow wechseln, damit das UI nicht blockiert/Schleifen erzeugt
-                setTimeout(() => {
-                    this.switchActionFlow('element-overview', false, true);
-                }, 10);
-            }
-        }
-
-        // Set value
-        this.flowSelect.value = this.currentFlowContext;
+        this.toolbarManager.updateFlowSelector();
     }
 
     public switchActionFlow(context: string, addToHistory: boolean = true, skipSync: boolean = false) {
@@ -838,11 +579,11 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         // cleanup
 
         // 7. Update dropdown to show current context
-        this.flowSelect.value = context;
+        this.toolbarManager.flowSelect.value = context;
         this.rebuildActionRegistry();
 
         // 7. Update back button visibility
-        this.updateBackButtonVisibility();
+        this.toolbarManager.updateBackButtonVisibility(this.contextHistory.length);
 
         // 8. Restore scroll position for new context (or reset to top)
         const savedPos = this.scrollPositions.get(context);
@@ -909,7 +650,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     /**
      * Navigate back to the previous view context
      */
-    private goBack() {
+    public onGoBack() {
         if (this.contextHistory.length === 0) return;
 
         const previousContext = this.contextHistory.pop()!;
@@ -919,11 +660,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     /**
      * Update back button visibility based on history
      */
-    private updateBackButtonVisibility() {
-        if (this.backButton) {
-            this.backButton.style.display = this.contextHistory.length > 0 ? 'block' : 'none';
-        }
-    }
+
 
     public rebuildActionRegistry() {
         this.taskManager.rebuildActionRegistry();
@@ -959,79 +696,26 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     // Pascal-Panel Methoden
     // ─────────────────────────────────────────────
 
-    private togglePascalPanel() {
-        this.pascalVisible = !this.pascalVisible;
-        localStorage.setItem('gcs_flow_pascal_visible', String(this.pascalVisible));
-        this.pascalToggleBtn.style.background = this.pascalVisible ? '#5c2d91' : '#444';
-        this.pascalPanel.style.display = this.pascalVisible ? 'block' : 'none';
-        this.applyPascalLayout();
-        if (this.pascalVisible) this.updatePascalPanel();
+    public toggleActionCheckMode() {
+        this.mapManager.toggleActionCheckMode();
+    }
+
+    public onFilterChange(text: string) {
+        this.filterText = text;
+        this.loadFromProject();
     }
 
 
-    private applyPascalLayout() {
-        const wrapper = document.getElementById('flow-canvas-wrapper');
-        if (!wrapper) return;
+    public createNewTaskFlow() {
+        this.taskManager.createNewTaskFlow();
+    }
 
-        if (this.pascalVisible) {
-            wrapper.style.flexDirection = 'row';
-            // Modern resizable glassmorphic panel
-            this.pascalPanel.style.cssText = `
-                direction: rtl; /* Trick: Resize handle on the left side */
-                resize: horizontal;
-                overflow: auto;
-                width: 400px;
-                min-width: 250px;
-                max-width: 900px;
-                background: rgba(25, 25, 25, 0.85);
-                backdrop-filter: blur(12px);
-                border-left: 1px solid rgba(255, 255, 255, 0.1);
-                border-top: none;
-                box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
-                display: flex;
-                flex-direction: column;
-                color: #e0e0e0;
-                font-family: 'Consolas', 'Courier New', monospace;
-                z-index: 100;
-            `;
-            this.canvas.style.flex = '1';
-        } else {
-            this.pascalPanel.style.display = 'none';
-        }
+    public deleteCurrentTaskFlow() {
+        this.taskManager.deleteCurrentTaskFlow();
     }
 
     public updatePascalPanel() {
-        if (!this.pascalVisible || !this.pascalPanel || !this.project) return;
-
-        const ctx = this.currentFlowContext;
-        const activeStage = this.getActiveStage();
-        
-        let code = '';
-        let title = '';
-
-        if (ctx === 'global' || ctx === 'event-map' || ctx === 'element-overview') {
-            title = '🔤 Stage: ' + (activeStage ? activeStage.name : 'Global');
-            code = PascalCodeGenerator.generateFullProgram(this.project, true, activeStage || undefined);
-        } else {
-            title = '🔤 Task: ' + ctx;
-            code = PascalCodeGenerator.generateForTask(this.project, ctx, true, activeStage || undefined);
-        }
-
-        // Wrap inner content with LTR to fix text reading direction after RTL trick
-        this.pascalPanel.innerHTML = `
-            <div style="direction: ltr; display: flex; flex-direction: column; min-width: 100%; height: 100%;">
-                <div class="pascal-header" style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="color: #4ec9b0; font-family: sans-serif;">${title}</span>
-                    <button class="pascal-close-btn" title="Panel schließen" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 16px; padding: 0 5px;">✖</button>
-                </div>
-                <div class="pascal-body" style="padding: 15px; overflow-y: auto; overflow-x: auto; flex: 1; font-size: 13px; line-height: 1.5; white-space: pre-wrap;">${code}</div>
-            </div>
-        `;
-
-        const closeBtn = this.pascalPanel.querySelector('.pascal-close-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.togglePascalPanel());
-        }
+        this.pascalManager.updatePascalPanel();
     }
 
 
@@ -1236,7 +920,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     /**
      * Wechselt zwischen Konzept- und Details-Ansicht
      */
-    private toggleDetailsView(): void {
+    public toggleDetailsView(): void {
         this.selectionManager.toggleDetailsView();
         
         // Neu: Da sich die Höhe/Breite der Knoten ändert, formatiert sich das Layout automatisch neu,
