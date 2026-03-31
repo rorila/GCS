@@ -226,8 +226,22 @@ export class StageRenderer {
                 finalW = dockPos.width;
                 finalH = dockPos.height;
             } else {
-                finalX = (obj.x || 0) * gridConfig.cellSize;
-                finalY = (obj.y || 0) * gridConfig.cellSize;
+                let absX = obj.x || 0;
+                let absY = obj.y || 0;
+                let curr = obj.parentId;
+                while (curr) {
+                    const p = objects.find(o => (o.id || o.name) === curr);
+                    if (p) {
+                        absX += p.x || 0;
+                        absY += p.y || 0;
+                        curr = p.parentId;
+                    } else {
+                        break;
+                    }
+                }
+
+                finalX = absX * gridConfig.cellSize;
+                finalY = absY * gridConfig.cellSize;
                 finalW = (obj.width || 0) * gridConfig.cellSize;
                 finalH = (obj.height || 0) * gridConfig.cellSize;
             }
@@ -513,7 +527,14 @@ export class StageRenderer {
             el.style.backgroundRepeat = 'no-repeat';
             el.style.backgroundColor = bgColor;
         } else {
-            el.style.background = bgColor;
+            // TGroupPanel: Im Editor-Modus hellgrau hinterlegen damit es sichtbar bleibt,
+            // im Run-Modus transparent.
+            if (className === 'TGroupPanel' && !this.host.runMode) {
+                el.style.background = bgColor !== 'transparent' ? bgColor : 'rgba(200, 200, 210, 0.15)';
+                el.style.border = el.style.border || '1px dashed rgba(150, 150, 170, 0.4)';
+            } else {
+                el.style.background = bgColor;
+            }
         }
     }
 

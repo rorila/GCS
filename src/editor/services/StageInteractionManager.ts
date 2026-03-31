@@ -16,7 +16,7 @@ export interface StageInteractionHost {
 
     onDropCallback: ((type: string, x: number, y: number) => void) | null;
     onSelectCallback: ((ids: string[]) => void) | null;
-    onObjectMove: ((id: string, x: number, y: number) => void) | null;
+    onObjectMove: ((id: string, x: number, y: number, parentId?: string | null) => void) | null;
     onObjectResize: ((id: string, w: number, h: number) => void) | null;
     onCopyCallback: ((id: string) => any) | null;
     onPasteCallback: ((obj: any, x: number, y: number) => string | null) | null;
@@ -117,18 +117,70 @@ export class StageInteractionManager {
         if (payload.type === 'tool-drop' && this.host.onDropCallback) {
             const coords = this.getRelativeCoordinates(e);
 
-            // NEW: Estimate tool dimensions for centering if we don't know them yet
-            // Default tools are usually 6x2 (Buttons) or 10x6 (Panels)
-            // We use a modest offset for a "centered" feel
+            // Estimate tool dimensions for centering
             let offX = 3;
             let offY = 1;
             if (payload.toolType === 'Panel' || payload.toolType === 'TDataStore') {
                 offX = 5; offY = 3;
             }
 
-            const gridX = this.snapFloor(coords.x) - offX;
-            const gridY = this.snapFloor(coords.y) - offY;
+            let gridX = this.snapFloor(coords.x) - offX;
+            let gridY = this.snapFloor(coords.y) - offY;
+            
+            // TGroupPanel-Erkennung: Pruefe ob die Drop-Position innerhalb eines Panels liegt
+            const getAbsForDrop = (tgtId: string | null) => {
+                let ax = 0, ay = 0, curr = tgtId;
+                while (curr) {
+                    const p = this.host.lastRenderedObjects.find(o => o.id === curr);
+                    if (p) { ax += p.x || 0; ay += p.y || 0; curr = p.parentId || null; }
+                    else break;
+                }
+                return { x: ax, y: ay };
+            };
+            
+            let dropPanelId: string | null = null;
+            const dropMidX = Math.max(0, gridX) + offX;
+            const dropMidY = Math.max(0, gridY) + offY;
+            
+            const candidatePanels = this.host.lastRenderedObjects.filter(o => {
+                const clsName = o.className || o.constructor?.name || '';
+                if (clsName !== 'TGroupPanel') return false;
+                const pAbs = getAbsForDrop(o.id || o.name);
+                const pW = parseFloat(o.width) || 0;
+                const pH = parseFloat(o.height) || 0;
+                return dropMidX >= pAbs.x && dropMidX <= pAbs.x + pW &&
+                       dropMidY >= pAbs.y && dropMidY <= pAbs.y + pH;
+            });
+            
+            if (candidatePanels.length > 0) {
+                dropPanelId = candidatePanels[0].id || candidatePanels[0].name;
+                const panelAbs = getAbsForDrop(dropPanelId);
+                gridX = Math.max(0, gridX) - panelAbs.x;
+                gridY = Math.max(0, gridY) - panelAbs.y;
+                console.log('[TGroupPanel Drop] Toolbox-Drop auf Panel ' + dropPanelId + ' erkannt. Relative Pos: (' + gridX + ', ' + gridY + ')');
+            }
+            
+            // Erstelle das Objekt auf Top-Level
             this.host.onDropCallback(payload.toolType, Math.max(0, gridX), Math.max(0, gridY));
+            
+            // Nach dem Erstellen: Reparenting durchfuehren falls Panel erkannt
+            if (dropPanelId && this.host.onObjectMove) {
+                const panelId = dropPanelId;
+                const relX = Math.max(0, gridX);
+                const relY = Math.max(0, gridY);
+                setTimeout(() => {
+                    const freshObjects = this.host.lastRenderedObjects;
+                    const newObj = freshObjects.find(o => {
+                        return !o.parentId &&
+                               Math.abs((o.x || 0) - relX) < 0.5 && 
+                               Math.abs((o.y || 0) - relY) < 0.5;
+                    });
+                    if (newObj && (newObj.id || newObj.name)) {
+                        console.log('[TGroupPanel Drop] Reparenting ' + (newObj.id || newObj.name) + ' -> Panel ' + panelId);
+                        this.host.onObjectMove!(newObj.id || newObj.name, relX, relY, panelId);
+                    }
+                }, 50);
+            }
         }
     }
 
@@ -400,9 +452,28 @@ export class StageInteractionManager {
             const dx = coords.x - this.dragStartRel.x;
             const dy = coords.y - this.dragStartRel.y;
 
-            this.dragElements.forEach((el) => {
+            this.dragElements.forEach((el, id) => {
                 el.style.transform = `translate(${dx}px, ${dy}px)`;
-            });
+                
+                // Kinder von TGroupPanel live mitbewegen
+                const obj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === id);
+                if (obj && (obj.className === 'TGroupPanel' || obj.constructor?.name === 'TGroupPanel')) {
+                    const findChildIds = (parentId) => {
+                        const ids = [];
+                        for (const o of this.host.lastRenderedObjects) {
+                            if (o.parentId === parentId) {
+                                ids.push(o.id || o.name);
+                                ids.push(...findChildIds(o.id || o.name));
+                            }
+                        }
+                        return ids;
+                    };
+                    for (const childId of findChildIds(id)) {
+                        const childEl = this.host.element.querySelector(`[data-id="${childId}"]`);
+                        if (childEl) childEl.style.transform = `translate(${dx}px, ${dy}px)`;
+                    }
+                }
+            })
 
             if (this.dragStartTime > 0) {
                 this.currentDragPath.push({ x: e.clientX, y: e.clientY, t: Date.now() - this.dragStartTime });
@@ -491,44 +562,108 @@ export class StageInteractionManager {
                             
                             const obj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === id);
                             if (obj) {
-                                // NEU: Check Reparenting
-                                el.style.display = 'none';
-                                const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
-                                el.style.display = '';
+                                const currentParentId = obj.parentId || null;
+                                
+                                const getAbs = (tgtId: string | null) => {
+                                    let ax = 0, ay = 0, curr = tgtId;
+                                    while (curr) {
+                                        const p = this.host.lastRenderedObjects.find(o => o.id === curr);
+                                        if (p) { ax += p.x || 0; ay += p.y || 0; curr = p.parentId || null; }
+                                        else break;
+                                    }
+                                    return { x: ax, y: ay };
+                                };
 
-                                let dropParentId = null;
-                                if (dropTarget) {
-                                    const panelEl = dropTarget.closest('.game-object[data-type="TGroupPanel"]');
-                                    if (panelEl && panelEl !== el && !el.contains(panelEl)) {
-                                        dropParentId = panelEl.getAttribute('data-id') || null;
+                                // Da der StageRenderer die Elemente flach im DOM, aber visuell absolut positioniert,
+                                // sind iP.left und damit auch gX immer ABSOLUTE Bildschirmkoordinaten (Grid-Einheiten).
+                                const absObjX = gX;
+                                const absObjY = gY;
+
+                                // NEU: Hit-Testing basierend auf Grid-Koordinaten statt DOM
+                                let dropParentId: string | null = null;
+                                
+                                // DIAGNOSE: Was ist alles in lastRenderedObjects?
+                                const allClassNames = this.host.lastRenderedObjects.map(o => `${o.id?.substring(0,12)}:${o.className||o.constructor?.name||'?'}`);
+                                console.log(`[TGroupPanel DIAG] lastRenderedObjects (${this.host.lastRenderedObjects.length}):`, allClassNames.join(', '));
+                                console.log(`[TGroupPanel DIAG] Dragged obj absPos: (${absObjX}, ${absObjY}), width=${obj.width}, height=${obj.height}`);
+                                
+                                const droppingPanels = this.host.lastRenderedObjects.filter(o => {
+                                    const clsName = o.className || o.constructor?.name || '';
+                                    if (clsName !== 'TGroupPanel') return false;
+                                    if ((o.id || o.name) === id) return false; 
+                                    
+                                    // Zirkelbezüge verhindern
+                                    let isChildOfDragged = false;
+                                    let curr = o.parentId;
+                                    while(curr) {
+                                        if (curr === id) { isChildOfDragged = true; break; }
+                                        const p = this.host.lastRenderedObjects.find(x => x.id === curr);
+                                        curr = p ? p.parentId : null;
+                                    }
+                                    if (isChildOfDragged) {
+                                        return false;
+                                    }
+                                    
+                                    const pAbs = getAbs(o.id || o.name);
+                                    // Wir nehmen den Mittelpunkt des gezogenen Objekts fürs Droppen
+                                    const objMidX = absObjX + ((parseFloat(obj.width) || 1) / 2);
+                                    const objMidY = absObjY + ((parseFloat(obj.height) || 1) / 2);
+                                    
+                                    const pWidth = parseFloat(o.width) || parseFloat(o.w) || 0;
+                                    const pHeight = parseFloat(o.height) || parseFloat(o.h) || 0;
+
+                                    const matchX = objMidX >= pAbs.x && objMidX <= pAbs.x + pWidth;
+                                    const matchY = objMidY >= pAbs.y && objMidY <= pAbs.y + pHeight;
+
+                                    console.log(`[TGroupPanel DIAG] Panel ${o.id?.substring(0,12)}: pAbs(${pAbs.x.toFixed(2)}, ${pAbs.y.toFixed(2)}), w=${pWidth.toFixed(2)}, h=${pHeight.toFixed(2)}, objMid(${objMidX.toFixed(2)}, ${objMidY.toFixed(2)}), matchX=${matchX}, matchY=${matchY}`);
+                                    
+                                    return matchX && matchY;
+                                });
+
+                                if (droppingPanels.length > 0) {
+                                    // Tiefsten Panel nehmen (höchste Verschachtelung)
+                                    droppingPanels.sort((a,b) => {
+                                        const getDepth = (oId: string) => {
+                                            let d = 0, c: string | null = oId;
+                                            while(c) { d++; const pp = this.host.lastRenderedObjects.find((x: any) => x.id === c); c = pp ? pp.parentId : null; }
+                                            return d;
+                                        };
+                                        return getDepth(b.id || b.name) - getDepth(a.id || a.name);
+                                    });
+                                    dropParentId = droppingPanels[0].id || droppingPanels[0].name;
+                                } else if (currentParentId) {
+                                    // Objekt ist bereits Kind eines Panels.
+                                    // Prüfe ob es noch innerhalb seines aktuellen Panels liegt.
+                                    const currentPanel = this.host.lastRenderedObjects.find(o => (o.id || o.name) === currentParentId);
+                                    if (currentPanel) {
+                                        const cpAbs = getAbs(currentParentId);
+                                        const cpW = parseFloat(currentPanel.width) || 0;
+                                        const cpH = parseFloat(currentPanel.height) || 0;
+                                        const objMidX = absObjX + ((parseFloat(obj.width) || 1) / 2);
+                                        const objMidY = absObjY + ((parseFloat(obj.height) || 1) / 2);
+                                        if (objMidX >= cpAbs.x && objMidX <= cpAbs.x + cpW &&
+                                            objMidY >= cpAbs.y && objMidY <= cpAbs.y + cpH) {
+                                            // Noch innerhalb des aktuellen Panels → Parent beibehalten
+                                            dropParentId = currentParentId;
+                                        }
+                                        // Sonst: dropParentId bleibt null → Kind wird aus Panel entfernt
                                     }
                                 }
 
-                                const currentParentId = obj.parentId || null;
-                                
-                                if (dropParentId !== currentParentId) {
-                                    const getAbs = (tgtId) => {
-                                        let ax = 0, ay = 0, curr = tgtId;
-                                        while (curr) {
-                                            const p = this.host.lastRenderedObjects.find(o => o.id === curr);
-                                            if (p) { ax += p.x || 0; ay += p.y || 0; curr = p.parentId || null; }
-                                            else break;
-                                        }
-                                        return { x: ax, y: ay };
-                                    };
-
-                                    const oldParentAbs = getAbs(currentParentId);
-                                    const absX = gX + oldParentAbs.x;
-                                    const absY = gY + oldParentAbs.y;
-
-                                    const newParentAbs = getAbs(dropParentId);
-                                    gX = absX - newParentAbs.x;
-                                    gY = absY - newParentAbs.y;
-                                }
+                                // Wir müssen gX und gY IMMER in relative Koordinaten des Ziel-Parents umwandeln.
+                                // Entweder in die des neuen Panels (Reparenting) oder wieder in die des alten Panels (oder der Stage, wenn null).
+                                const targetParentAbs = getAbs(dropParentId);
+                                gX = absObjX - targetParentAbs.x;
+                                gY = absObjY - targetParentAbs.y;
 
                                 if (gX !== iG.x || gY !== iG.y || dropParentId !== currentParentId) {
                                     changeRecorder.record({ type: 'drag', description: `${obj.name || id} verschoben`, objectId: id, objectType: 'object', startPosition: { x: iG.x, y: iG.y }, endPosition: { x: gX, y: gY }, dragPath: [...this.currentDragPath] });
-                                    if (this.host.onObjectMove) this.host.onObjectMove(id, Math.max(0, gX), Math.max(0, gY), dropParentId);
+                                    // parentId NUR übergeben wenn sich der Parent tatsächlich ändert
+                                    if (dropParentId !== currentParentId) {
+                                        if (this.host.onObjectMove) this.host.onObjectMove(id, Math.max(0, gX), Math.max(0, gY), dropParentId);
+                                    } else {
+                                        if (this.host.onObjectMove) this.host.onObjectMove(id, Math.max(0, gX), Math.max(0, gY));
+                                    }
                                 }
                             }
                         }

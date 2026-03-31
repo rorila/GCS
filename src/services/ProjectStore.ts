@@ -393,9 +393,10 @@ export class ProjectStore {
     }
 
     private reduceReparentObject(m: { objectId: string; targetParentId: string | null; stageId: string }): boolean {
-        if (!this.project) return false;
+        console.log('[ProjectStore] reduceReparentObject START:', m);
+        if (!this.project) { console.log('[ProjectStore] Kein Projekt'); return false; }
         const stage = this.project.stages?.find(s => s.id === m.stageId);
-        if (!stage || !stage.objects) return false;
+        if (!stage || !stage.objects) { console.log('[ProjectStore] Keine Stage/Objects gefunden'); return false; }
 
         let foundObj: any = null;
         let sourceArray: any = null;
@@ -469,8 +470,12 @@ export class ProjectStore {
         }
 
         // In Ziel-Array einfügen
-        if (targetArray) targetArray.push(foundObj);
+        if (targetArray) {
+            targetArray.push(foundObj);
+            console.log('[ProjectStore] Objekt erfolgreich zu targetArray hinzugefügt. Array Size:', targetArray.length);
+        }
 
+        console.log('[ProjectStore] reduceReparentObject DONE');
         return true;
     }
 

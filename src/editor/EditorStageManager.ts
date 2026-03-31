@@ -264,7 +264,21 @@ export class EditorStageManager {
         const activeStage = this.getActiveStage();
         if (!activeStage) return [];
 
-        const stageObjects = [...(activeStage.objects || []), ...(activeStage.variables || [])];
+        // Rekursives Flattening: Children von TGroupPanel muessen ebenfalls
+        // in die flache Render-Liste aufgenommen werden, damit der StageRenderer
+        // sie als eigenstaendige DOM-Elemente positionieren kann.
+        const flattenWithChildren = (objects: any[]): any[] => {
+            const result: any[] = [];
+            for (const obj of objects) {
+                result.push(obj);
+                if (obj.children && Array.isArray(obj.children) && obj.children.length > 0) {
+                    result.push(...flattenWithChildren(obj.children));
+                }
+            }
+            return result;
+        };
+
+        const stageObjects = flattenWithChildren([...(activeStage.objects || []), ...(activeStage.variables || [])]);
 
         // Blueprint-Vererbung: Wenn aktive Stage NICHT die Blueprint-Stage ist,
         // Blueprint-Objekte als geisterhaft/schemenhaft hinzufügen

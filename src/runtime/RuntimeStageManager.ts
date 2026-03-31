@@ -21,6 +21,24 @@ export class RuntimeStageManager {
         this.project = project;
     }
 
+    /**
+     * Rekursives Flattening: Kinder von TGroupPanel als eigenstaendige
+     * Objekte in die flache Liste aufnehmen (mit parentId-Tracking).
+     */
+    private flattenWithChildren(objects: any[]): any[] {
+        const result: any[] = [];
+        for (const obj of objects) {
+            result.push(obj);
+            if (obj.children && Array.isArray(obj.children) && obj.children.length > 0) {
+                for (const child of obj.children) {
+                    child.parentId = obj.id || obj.name;
+                }
+                result.push(...this.flattenWithChildren(obj.children));
+            }
+        }
+        return result;
+    }
+
     public getMergedStageData(stageId: string): MergedStageData {
         const stage = this.project.stages?.find((s: any) => s.id === stageId);
         const stageChain = stage ? [stage] : [];
@@ -36,7 +54,7 @@ export class RuntimeStageManager {
             if (useCache) {
                 if (!this.cachedGlobalObjects) {
                     this.cachedGlobalObjects = [];
-                    const sObjects = hydrateObjects(stage.objects || []);
+                    const sObjects = this.flattenWithChildren(hydrateObjects(stage.objects || []));
                     const sVars = hydrateObjects(stage.variables || []);
                     sVars.forEach((v: any) => v.isVariable = true);
                     this.cachedGlobalObjects.push(...sObjects, ...sVars);
@@ -50,7 +68,7 @@ export class RuntimeStageManager {
                 });
             } else {
                 // Lokale Stage -> normales Hydriern
-                const stageObjects = hydrateObjects(stage.objects || []);
+                const stageObjects = this.flattenWithChildren(hydrateObjects(stage.objects || []));
                 stageObjects.forEach(obj => {
                     mergedObjects = mergedObjects.filter(o => o.id !== obj.id);
                     mergedObjects.push(obj);
