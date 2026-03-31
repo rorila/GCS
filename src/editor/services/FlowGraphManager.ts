@@ -19,6 +19,9 @@ import { projectRegistry } from '../../services/ProjectRegistry';
 import { mediatorService } from '../../services/MediatorService';
 import { Logger } from '../../utils/Logger';
 
+const logger = Logger.get('FlowGraphManager');
+
+
 export interface FlowGraphHost {
     project: GameProject | null;
     nodes: FlowElement[];
@@ -206,7 +209,7 @@ export class FlowGraphManager {
         const nodeName = node.Name || node.name;
         const nodeType = node.getType()?.toLowerCase(); // Normalize for safety
 
-        console.log(`[TRACE] FlowGraphManager: deleteNodeSilent gestartet für "${nodeName}" (ID: ${node.id}, Typ: ${nodeType})`);
+        logger.info(`[TRACE] FlowGraphManager: deleteNodeSilent gestartet für "${nodeName}" (ID: ${node.id}, Typ: ${nodeType})`);
 
         if (nodeType === 'action' || nodeType === 'data_action' || nodeType === 'httpaction') {
             FlowGraphManager.lifecycleLogger.info(`Action "${nodeName}" wurde aus dem Flow-Diagramm entfernt.`);
@@ -284,7 +287,7 @@ export class FlowGraphManager {
     }
 
     public deleteConnection(conn: FlowConnection) {
-        console.log(`%c[FlowGraphManager:DELETE_CONN] ID=${conn.id}`, 'background: #440000; color: #fff');
+        logger.info(`%c[FlowGraphManager:DELETE_CONN] ID=${conn.id}`, 'background: #440000; color: #fff');
         const index = this.host.connections.indexOf(conn);
         if (index !== -1) {
             this.host.connections.splice(index, 1);

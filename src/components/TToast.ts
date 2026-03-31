@@ -1,5 +1,8 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TToast');
 
 /**
  * Toast notification type
@@ -98,7 +101,7 @@ export class TToast extends TWindow {
             this.removeToast(id);
         }, this.duration);
 
-        console.log(`[TToast] ${type}: ${message}`);
+        logger.info(`[TToast] ${type}: ${message}`);
     }
 
     /**

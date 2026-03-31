@@ -14,6 +14,9 @@ import { FlowListVariable } from '../flow/FlowListVariable';
 import { FlowRandomVariable } from '../flow/FlowRandomVariable';
 import { FlowLoop } from '../flow/FlowLoop';
 import { FlowNamingService } from './FlowNamingService';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('FlowNodeFactory');
 
 export interface FlowNodeHost {
     canvas: HTMLElement;
@@ -37,7 +40,7 @@ export class FlowNodeFactory {
     constructor(private host: FlowNodeHost) { }
 
     public createNode(type: string, x: number, y: number, initialName?: string): FlowElement | null {
-        console.log(`[FlowEditor] createNode: type=${type}, x=${x}, y=${y}, initialName=${initialName}`);
+        logger.info(`[FlowEditor] createNode: type=${type}, x=${x}, y=${y}, initialName=${initialName}`);
         let node: FlowElement;
         const id = 'node-' + Date.now();
         const baseType = (type.includes(':') ? type.split(':')[0] : type).toLowerCase();
@@ -160,14 +163,14 @@ export class FlowNodeFactory {
                 break;
 
             case 'connection': {
-                console.log(`[FlowEditor] Erstelle freifliegende Connection bei ${x}, ${y}`);
+                logger.info(`[FlowEditor] Erstelle freifliegende Connection bei ${x}, ${y}`);
                 const conn = new FlowConnection(this.host.canvas, x, y, x + 100, y + 50);
                 conn.setGridConfig(cellSize);
                 this.host.connections.push(conn);
                 this.host.setupConnectionListeners(conn);
                 conn.select();
                 this.host.selectedConnection = conn;
-                console.log(`[FlowEditor] Freifliegende Connection erstellt. ID: ${conn.id}`);
+                logger.info(`[FlowEditor] Freifliegende Connection erstellt. ID: ${conn.id}`);
 
                 // Mache ein Event Update, damit der Node auch registriert/gesynct werden kann
                 this.host.syncToProject();

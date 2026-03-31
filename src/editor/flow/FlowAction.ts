@@ -6,6 +6,9 @@ import { projectRegistry } from '../../services/ProjectRegistry';
 import { InspectorSection } from '../inspector/types';
 import { actionRegistry } from '../../runtime/ActionRegistry';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('FlowAction');
 
 export class FlowAction extends FlowElement {
     public getType(): string {
@@ -205,13 +208,13 @@ export class FlowAction extends FlowElement {
             if (this.data && !this.data.isLinked) {
                 this.data.isLinked = true;
                 this.data.name = action.name;
-                console.log(`[FLOW-TRACE] Action "${this.Name}" is now LINKED.`);
+                logger.info(`[FLOW-TRACE] Action "${this.Name}" is now LINKED.`);
             }
             // Scope-Erkennung: Wird bei Bedarf in detectAndApplyGlobalScope() gesetzt
             return action;
         }
 
-        console.warn(`[FLOW-TRACE] Action Definition NOT FOUND for "${this.Name}". Falling back to local data copy.`);
+        logger.warn(`[FLOW-TRACE] Action Definition NOT FOUND for "${this.Name}". Falling back to local data copy.`);
         return this.data;
     }
 
@@ -288,7 +291,7 @@ export class FlowAction extends FlowElement {
                     action.changes = JSON.parse(v);
                 }
             } catch (e) {
-                console.warn('Invalid JSON for changes:', e);
+                logger.warn('Invalid JSON for changes:', e);
             }
         }
     }
@@ -384,7 +387,7 @@ export class FlowAction extends FlowElement {
         try {
             this.params = JSON.parse(v);
         } catch (e) {
-            console.warn('Invalid JSON for params:', e);
+            logger.warn('Invalid JSON for params:', e);
         }
     }
 
@@ -439,7 +442,7 @@ export class FlowAction extends FlowElement {
             try {
                 (action as any).headers = JSON.parse(v);
             } catch (e) {
-                console.warn('Invalid JSON for headers:', e);
+                logger.warn('Invalid JSON for headers:', e);
             }
         }
     }
@@ -510,7 +513,7 @@ export class FlowAction extends FlowElement {
             try {
                 action.calcSteps = JSON.parse(v);
             } catch (e) {
-                console.warn('Invalid JSON for calcSteps:', e);
+                logger.warn('Invalid JSON for calcSteps:', e);
             }
         }
     }
@@ -860,7 +863,7 @@ export class FlowAction extends FlowElement {
 
                 displayAction = clonedAction;
             } catch (e) {
-                console.warn('[FlowAction] Failed to interpolate ghost node details:', e);
+                logger.warn('[FlowAction] Failed to interpolate ghost node details:', e);
             }
         }
 

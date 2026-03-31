@@ -2,6 +2,9 @@
 import { IInspectorHandler, PropertyChangeEvent } from '../types';
 import { GameProject } from '../../../model/types';
 import { ReactiveRuntime } from '../../../runtime/ReactiveRuntime';
+import { Logger } from '../../../utils/Logger';
+
+const logger = Logger.get('FlowConditionHandler');
 
 export class FlowConditionHandler implements IInspectorHandler {
 
@@ -10,12 +13,12 @@ export class FlowConditionHandler implements IInspectorHandler {
             obj.constructor?.name === 'FlowCondition' ||
             (typeof obj.getType === 'function' && obj.getType() === 'condition')
         );
-        if (isCondition) console.log('[FlowConditionHandler] Identified Condition node!');
+        if (isCondition) logger.info('[FlowConditionHandler] Identified Condition node!');
         return !!isCondition;
     }
 
     getInspectorTemplate(_obj: any): string | null {
-        console.log('[FlowConditionHandler] Loading ./inspector_condition.json');
+        logger.info('[FlowConditionHandler] Loading ./inspector_condition.json');
         return './inspector_condition.json';
     }
 

@@ -1,5 +1,8 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TInfoWindow');
 
 /**
  * TInfoWindow - Modal info window for feedback and waiting states
@@ -81,7 +84,7 @@ export class TInfoWindow extends TWindow {
             this.startAutoClose();
         }
 
-        console.log(`[TInfoWindow] Showing: ${this.title} - ${message}`);
+        logger.info(`[TInfoWindow] Showing: ${this.title} - ${message}`);
     }
 
     /**
@@ -100,7 +103,7 @@ export class TInfoWindow extends TWindow {
         this.cancelAutoClose();
         this.updateElement();
 
-        console.log(`[TInfoWindow] Hidden: ${this.title}`);
+        logger.info(`[TInfoWindow] Hidden: ${this.title}`);
     }
 
     /**

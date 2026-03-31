@@ -1,5 +1,8 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TDialogRoot');
 
 /**
  * TDialogRoot - Container component for dialogs
@@ -66,7 +69,7 @@ export class TDialogRoot extends TWindow {
         if (this.visible) return;
 
         this.visible = true;
-        console.log(`[TDialogRoot] Showing dialog: ${this.name}`);
+        logger.info(`[TDialogRoot] Showing dialog: ${this.name}`);
 
         // Trigger onShow task if defined
         if (this.onShowTask) {
@@ -83,7 +86,7 @@ export class TDialogRoot extends TWindow {
         if (!this.visible) return;
 
         this.visible = false;
-        console.log(`[TDialogRoot] Hiding dialog: ${this.name}`);
+        logger.info(`[TDialogRoot] Hiding dialog: ${this.name}`);
         this.updateRuntimeVisibility();
     }
 
@@ -161,7 +164,7 @@ export class TDialogRoot extends TWindow {
             objY < this.y + this.height
         );
 
-        console.log(`[TDialogRoot] containsObject check: obj(${objX},${objY}) dialog(${this.x},${this.y},${this.width},${this.height}) = ${isInside}`);
+        logger.info(`[TDialogRoot] containsObject check: obj(${objX},${objY}) dialog(${this.x},${this.y},${this.width},${this.height}) = ${isInside}`);
         return isInside;
     }
 

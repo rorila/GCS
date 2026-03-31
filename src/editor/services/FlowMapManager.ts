@@ -8,6 +8,9 @@ import { FlowVariable } from '../flow/FlowVariable';
 import { FlowConnection } from '../flow/FlowConnection';
 import { libraryService } from '../../services/LibraryService';
 import { projectRegistry } from '../../services/ProjectRegistry';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('FlowMapManager');
 
 export interface FlowMapHost {
     project: GameProject | null;
@@ -499,7 +502,7 @@ export class FlowMapManager {
                 isUnused = !usage.actions.has(name);
                 if (isUnused) {
                     unusedActionCount++;
-                    // console.log(`  [Check] Action "${name}" (ID: ${node.id}) is UNUSED. Usage Set contains:`, Array.from(usage.actions));
+                    // logger.info(`  [Check] Action "${name}" (ID: ${node.id}) is UNUSED. Usage Set contains:`, Array.from(usage.actions));
                 }
             } else if (nodeType === 'task') {
                 isUnused = !usage.tasks.has(name);
@@ -534,11 +537,11 @@ export class FlowMapManager {
             }
         });
 
-        console.log(`Found ${unusedActionCount} Actions, ${unusedTaskCount} Tasks, ${unusedVariableCount} Variables unused.`);
+        logger.info(`Found ${unusedActionCount} Actions, ${unusedTaskCount} Tasks, ${unusedVariableCount} Variables unused.`);
         if (unusedDetails.length > 0) {
             console.table(unusedDetails);
         } else {
-            console.log("Alles super! Keine ungenutzten Elemente gefunden.");
+            logger.info("Alles super! Keine ungenutzten Elemente gefunden.");
         }
         console.groupEnd();
     }

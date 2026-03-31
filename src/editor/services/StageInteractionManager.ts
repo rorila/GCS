@@ -1,6 +1,9 @@
 import { GridConfig } from '../../model/types';
 import { changeRecorder, DragPoint } from '../../services/ChangeRecorder';
 import { DnDHelper, DnDPayload } from '../utils/DnDHelper';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('StageInteractionManager');
 
 export interface StageInteractionHost {
     element: HTMLElement;
@@ -652,7 +655,7 @@ export class StageInteractionManager {
         if (clipboardObjects.length > 0) {
             // Im globalen Windows-Objekt ablegen für Stage-übergreifendes Copy-Paste
             (window as any).__gcsClipboard = clipboardObjects;
-            console.log(`[StageInteractionManager] ${clipboardObjects.length} Objekte in Zwischenablage kopiert.`);
+            logger.info(`[StageInteractionManager] ${clipboardObjects.length} Objekte in Zwischenablage kopiert.`);
         }
     }
 

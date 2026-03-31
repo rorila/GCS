@@ -1,5 +1,8 @@
 import { TPanel } from './TPanel';
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TAPIServer');
 
 /**
  * TAPIServer - Backend API Server Komponente
@@ -53,10 +56,10 @@ export class TAPIServer extends TPanel implements IRuntimeComponent {
         try {
             if (this.testBody) body = JSON.parse(this.testBody);
         } catch (e) {
-            console.error('[TAPIServer] Invalid JSON in testBody');
+            logger.error('[TAPIServer] Invalid JSON in testBody');
         }
 
-        console.log(`[TAPIServer] Simuliere Request: ${this.testMethod} ${this.testPath}`, body);
+        logger.info(`[TAPIServer] Simuliere Request: ${this.testMethod} ${this.testPath}`, body);
         this.testResponse = 'Warte auf Antwort...';
 
         // Trigger onRequest
@@ -83,7 +86,7 @@ export class TAPIServer extends TPanel implements IRuntimeComponent {
         if (this.eventCallback) {
             this.eventCallback(eventName, data);
         } else {
-            console.warn(`[TAPIServer] Event ${eventName} gefeuert, aber kein Runtime-Callback registriert.`);
+            logger.warn(`[TAPIServer] Event ${eventName} gefeuert, aber kein Runtime-Callback registriert.`);
         }
     }
 

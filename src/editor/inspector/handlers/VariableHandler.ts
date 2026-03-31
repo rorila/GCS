@@ -2,6 +2,9 @@
 import { IInspectorHandler, PropertyChangeEvent } from '../types';
 import { GameProject } from '../../../model/types';
 import { ReactiveRuntime } from '../../../runtime/ReactiveRuntime';
+import { Logger } from '../../../utils/Logger';
+
+const logger = Logger.get('VariableHandler');
 
 export class VariableHandler implements IInspectorHandler {
 
@@ -23,14 +26,14 @@ export class VariableHandler implements IInspectorHandler {
 
         // Special handling for 'value' changes in variables
         if (propertyName === 'value') {
-            console.log(`[VariableHandler] Value change for variable "${object.name}": ${oldValue} -> ${newValue}`);
+            logger.info(`[VariableHandler] Value change for variable "${object.name}": ${oldValue} -> ${newValue}`);
             // Logic for triggering onValueChanged events could go here if needed
             // (Currently handled via Proxy/PropertyWatcher in ReactiveRuntime)
         }
 
         // Special handling for 'type' changes (Morphing)
         if (propertyName === 'type') {
-            console.log(`[VariableHandler] Type change for "${object.name}": ${oldValue} -> ${newValue}`);
+            logger.info(`[VariableHandler] Type change for "${object.name}": ${oldValue} -> ${newValue}`);
             // Morphing logic is currently handled in Editor.ts, but we could migrate it here
         }
 

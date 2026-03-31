@@ -1,6 +1,9 @@
 import { FlowAction } from './FlowAction';
 import { GameProject } from '../../model/types';
 import { actionRegistry } from '../../runtime/ActionRegistry';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('FlowDataAction', 'Editor_Flow');
 
 export class FlowDataAction extends FlowAction {
     public getType(): string { return 'data_action'; }
@@ -50,7 +53,7 @@ export class FlowDataAction extends FlowAction {
         return fullUrl;
     }
     public set url(v: string) {
-        console.log(`[FlowDataAction] Setter URL: ${v}`);
+        logger.info(`[FlowDataAction] Setter URL: ${v}`);
 
         const updateObj = (obj: any) => {
             if (!obj) return;
@@ -76,7 +79,7 @@ export class FlowDataAction extends FlowAction {
         if (action && action !== this.data) {
             updateObj(action); // Global definition
         }
-        console.log(`[FlowDataAction] Resulting URL in model: ${action?.url || this.data.url}`);
+        logger.info(`[FlowDataAction] Resulting URL in model: ${action?.url || this.data.url}`);
     }
 
     protected getActionDefinition(): any | null {
@@ -125,7 +128,7 @@ export class FlowDataAction extends FlowAction {
         return action?.queryProperty || action?.property || '';
     }
     public set queryProperty(v: string) {
-        console.log(`[FlowDataAction] Setter queryProperty: ${v}`);
+        logger.info(`[FlowDataAction] Setter queryProperty: ${v}`);
         if (this.data) this.data.queryProperty = v;
         const action = this.getActionDefinition();
         if (action && action !== this.data) {
@@ -139,7 +142,7 @@ export class FlowDataAction extends FlowAction {
         return action?.queryValue || '';
     }
     public set queryValue(v: string) {
-        console.log(`[FlowDataAction] Setter queryValue: ${v}`);
+        logger.info(`[FlowDataAction] Setter queryValue: ${v}`);
         if (this.data) this.data.queryValue = v;
         const action = this.getActionDefinition();
         if (action && action !== this.data) {
@@ -153,7 +156,7 @@ export class FlowDataAction extends FlowAction {
         return action?.queryOperator || '==';
     }
     public set queryOperator(v: string) {
-        console.log(`[FlowDataAction] Setter queryOperator: ${v}`);
+        logger.info(`[FlowDataAction] Setter queryOperator: ${v}`);
         if (this.data) this.data.queryOperator = v;
         const action = this.getActionDefinition();
         if (action && action !== this.data) {
@@ -167,7 +170,7 @@ export class FlowDataAction extends FlowAction {
         return action?.selectFields || '';
     }
     public set selectFields(v: string) {
-        console.log(`[FlowDataAction] Setter selectFields: ${v}`);
+        logger.info(`[FlowDataAction] Setter selectFields: ${v}`);
         if (this.data) this.data.selectFields = v;
         const action = this.getActionDefinition();
         if (action && action !== this.data) {
@@ -206,7 +209,7 @@ export class FlowDataAction extends FlowAction {
         return '';
     }
     public set dataStore(v: string) {
-        console.log(`[FlowDataAction] Setter dataStore: ${v}`);
+        logger.info(`[FlowDataAction] Setter dataStore: ${v}`);
 
         const updateObj = (obj: any) => {
             if (!obj) return;
@@ -227,7 +230,7 @@ export class FlowDataAction extends FlowAction {
         return !!action?.requestJWT;
     }
     public set requestJWT(v: boolean) {
-        console.log(`[FlowDataAction] Setter requestJWT: ${v}`);
+        logger.info(`[FlowDataAction] Setter requestJWT: ${v}`);
 
         // Always update local data as a fallback for the actionSequence in project.json
         if (this.data) {
@@ -270,7 +273,7 @@ export class FlowDataAction extends FlowAction {
         return action?.resource || this.getAutoResource();
     }
     public set resource(v: string) {
-        console.log(`[FlowDataAction] Setter resource: ${v}`);
+        logger.info(`[FlowDataAction] Setter resource: ${v}`);
         if (this.data) {
             this.data.resource = v;
             if (v) this.data.url = `/api/data/${v}`;
@@ -287,7 +290,7 @@ export class FlowDataAction extends FlowAction {
         return action?.method || 'GET';
     }
     public set method(v: string) {
-        console.log(`[FlowDataAction] Setter method: ${v}`);
+        logger.info(`[FlowDataAction] Setter method: ${v}`);
         if (this.data) this.data.method = v;
         const action = this.getActionDefinition();
         if (action && action !== this.data) action.method = v;
@@ -300,7 +303,7 @@ export class FlowDataAction extends FlowAction {
         return typeof bodyValue === 'object' ? JSON.stringify(bodyValue, null, 2) : (bodyValue || '');
     }
     public set body(v: string) {
-        console.log(`[FlowDataAction] Setter body: ${v.substring(0, 50)}...`);
+        logger.info(`[FlowDataAction] Setter body: ${v.substring(0, 50)}...`);
         let val: any;
         try {
             val = JSON.parse(v);
@@ -318,7 +321,7 @@ export class FlowDataAction extends FlowAction {
         return action?.resultVariable || '';
     }
     public set resultVariable(v: string) {
-        console.log(`[FlowDataAction] Setter resultVariable: ${v}`);
+        logger.info(`[FlowDataAction] Setter resultVariable: ${v}`);
         if (this.data) this.data.resultVariable = v;
         const action = this.getActionDefinition();
         if (action && action !== this.data) action.resultVariable = v;
@@ -329,7 +332,7 @@ export class FlowDataAction extends FlowAction {
         return action?.resultPath || '';
     }
     public set resultPath(v: string) {
-        console.log(`[FlowDataAction] Setter resultPath: ${v}`);
+        logger.info(`[FlowDataAction] Setter resultPath: ${v}`);
         if (this.data) this.data.resultPath = v;
         const action = this.getActionDefinition();
         if (action && action !== this.data) action.resultPath = v;

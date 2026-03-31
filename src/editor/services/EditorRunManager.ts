@@ -100,7 +100,7 @@ export class EditorRunManager {
                     }
 
                     if (stageId && this.editor.project.stages?.some(s => s.id === stageId)) {
-                        console.log(`[RunManager] Navigating to stage: ${stageId}`);
+                        logger.info(`[RunManager] Navigating to stage: ${stageId}`);
 
                         // 1. Tell the RUNTIME to switch stage (preserves global variables)
                         if (this.runtime) {
@@ -135,16 +135,16 @@ export class EditorRunManager {
             if (this.runtime) {
                 this.runtimeObjects = this.runtime.getObjects();
                 this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as TGameLoop) || null;
-                console.log(`[RunManager] runtimeObjects: ${this.runtimeObjects.length}, activeGameLoop: ${this.activeGameLoop ? this.activeGameLoop.name : 'NULL'}`);
-                console.log(`[RunManager] Object classNames:`, this.runtimeObjects.map((o: any) => `${o.name}(${o.className})`).join(', '));
+                logger.info(`[RunManager] runtimeObjects: ${this.runtimeObjects.length}, activeGameLoop: ${this.activeGameLoop ? this.activeGameLoop.name : 'NULL'}`);
+                logger.info(`[RunManager] Object classNames:`, this.runtimeObjects.map((o: any) => `${o.name}(${o.className})`).join(', '));
             }
 
             // Event handler already set above
 
             if (!this.activeGameLoop) {
-                console.log(`[RunManager] No TGameLoop found in stage, GameRuntime will still run the Singleton Loop`);
+                logger.info(`[RunManager] No TGameLoop found in stage, GameRuntime will still run the Singleton Loop`);
             } else {
-                console.log(`[RunManager] TGameLoop component found, reading bounds.`);
+                logger.info(`[RunManager] TGameLoop component found, reading bounds.`);
             }
 
             // Der GameLoopManager (Singleton) wird EXKLUSIV von GameRuntime.initMainGame() 

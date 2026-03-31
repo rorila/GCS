@@ -125,7 +125,7 @@ export class BatchUpdater {
      */
     execute(): void {
         if (this.isExecuting) {
-            console.warn('[BatchUpdater] Already executing, skipping nested execution');
+            logger.warn('[BatchUpdater] Already executing, skipping nested execution');
             return;
         }
 
@@ -136,7 +136,7 @@ export class BatchUpdater {
                 try {
                     update();
                 } catch (error) {
-                    console.error('[BatchUpdater] Update error:', error);
+                    logger.error('[BatchUpdater] Update error:', error);
                 }
             });
         } finally {

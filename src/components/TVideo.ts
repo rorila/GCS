@@ -1,6 +1,9 @@
 import { TPanel } from './TPanel';
 import { TPropertyDef } from './TComponent';
 import { ImageFit } from './ImageCapable';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TVideo');
 
 /**
  * TVideo - Eigenständige Video-Komponente
@@ -58,19 +61,19 @@ export class TVideo extends TPanel {
 
     public play(): void {
         this._isPlaying = true;
-        console.log(`[TVideo] ${this.name}.play()`);
+        logger.info(`[TVideo] ${this.name}.play()`);
     }
 
     public pause(): void {
         this._isPlaying = false;
-        console.log(`[TVideo] ${this.name}.pause()`);
+        logger.info(`[TVideo] ${this.name}.pause()`);
     }
 
     public stop(): void {
         this._isPlaying = false;
         // The renderer should reset currentTime to 0 when it sees a stop transition 
         // or we could keep a separate state for reset.
-        console.log(`[TVideo] ${this.name}.stop()`);
+        logger.info(`[TVideo] ${this.name}.stop()`);
     }
 
     // ─────────────────────────────────────────────

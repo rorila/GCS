@@ -1,5 +1,8 @@
 import { TTextControl } from './TTextControl';
 import { TPropertyDef } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TNumberLabel');
 
 /**
  * TNumberLabel - A specialized component for displaying and managing numeric values.
@@ -32,15 +35,15 @@ export class TNumberLabel extends TTextControl {
     public incValue(): void {
         const oldValue = this.value;
         this.value += this.step;
-        console.log(`[TNumberLabel] incValue on ${this.name}: ${oldValue} + ${this.step} = ${this.value}, maxValue=${this.maxValue}, onEvent=${!!this.onEvent}`);
+        logger.info(`[TNumberLabel] incValue on ${this.name}: ${oldValue} + ${this.step} = ${this.value}, maxValue=${this.maxValue}, onEvent=${!!this.onEvent}`);
 
         if (this.maxValue !== null && this.value >= this.maxValue) {
-            console.log(`[TNumberLabel] ${this.name}: MaxValue reached! value=${this.value} >= maxValue=${this.maxValue}. Firing onMaxValueReached...`);
+            logger.info(`[TNumberLabel] ${this.name}: MaxValue reached! value=${this.value} >= maxValue=${this.maxValue}. Firing onMaxValueReached...`);
             if (this.onEvent) {
                 this.onEvent('onMaxValueReached');
-                console.log(`[TNumberLabel] ${this.name}: onMaxValueReached event fired!`);
+                logger.info(`[TNumberLabel] ${this.name}: onMaxValueReached event fired!`);
             } else {
-                console.warn(`[TNumberLabel] ${this.name}: onEvent callback is NOT registered! Event cannot be fired.`);
+                logger.warn(`[TNumberLabel] ${this.name}: onEvent callback is NOT registered! Event cannot be fired.`);
             }
         }
     }

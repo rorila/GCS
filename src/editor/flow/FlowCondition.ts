@@ -3,6 +3,9 @@ import { InspectorSection } from '../inspector/types';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { componentRegistry } from '../../services/ComponentRegistry';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('FlowCondition');
 
 export class FlowCondition extends FlowElement {
     public getType(): string { return 'condition'; }
@@ -183,11 +186,11 @@ export class FlowCondition extends FlowElement {
 
     public get LeftOperandValue(): string {
         const v = this.data.condition?.leftValue || this.data.condition?.variable || '';
-        console.log(`[FlowCondition] get LeftOperandValue: "${v}"`);
+        logger.info(`[FlowCondition] get LeftOperandValue: "${v}"`);
         return v;
     }
     public set LeftOperandValue(v: string) {
-        console.log(`[FlowCondition] set LeftOperandValue: "${v}"`);
+        logger.info(`[FlowCondition] set LeftOperandValue: "${v}"`);
         if (!this.data.condition) this.data.condition = {};
         this.data.condition.leftValue = v;
         this.updateText();
@@ -243,7 +246,7 @@ export class FlowCondition extends FlowElement {
 
     public get RightOperandValue(): string {
         const v = this.data.condition?.rightValue || this.data.condition?.value || '';
-        // console.log(`[FlowCondition] get RightOperandValue: "${v}"`);
+        // logger.info(`[FlowCondition] get RightOperandValue: "${v}"`);
         return v;
     }
     public set RightOperandValue(v: string) {

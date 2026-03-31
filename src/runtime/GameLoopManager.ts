@@ -502,7 +502,7 @@ export class GameLoopManager {
         // event-only: Kein Clamping, kein Bounce — Sprite fliegt weiter
 
         if (this.eventCallback) {
-            // console.log(`[GameLoopManager] Boundary Hit: ${sprite.name} on ${side}. Task should handle bounce.`);
+            // logger.info(`[GameLoopManager] Boundary Hit: ${sprite.name} on ${side}. Task should handle bounce.`);
             this.eventCallback(sprite.id, 'onBoundaryHit', { hitSide: side });
         }
     }

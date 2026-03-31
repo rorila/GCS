@@ -10,6 +10,10 @@
  * Alle Komponenten (StageInteractionManager, EditorCommandManager,
  * InspectorHost, EditorRenderManager) lesen künftig aus dem ObjectStore.
  */
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('ObjectStore');
+
 
 type ObjectStoreListener = () => void;
 
@@ -116,7 +120,7 @@ export class ObjectStore {
             try {
                 listener();
             } catch (err) {
-                console.error('[ObjectStore] Listener error:', err);
+                logger.error('[ObjectStore] Listener error:', err);
             }
         }
     }

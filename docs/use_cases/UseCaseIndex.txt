@@ -109,3 +109,6 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
 ## 2026-03-31 CleanCode Optimierung
 - **Verbleibende console.* Aufrufe auf Logger migriert**: GameRuntime.ts (Zeilen 382, 842), GameLoopManager.ts (190, 201, 230, 309), ReactiveRuntime.ts (43, 207, 309, 313, 314, 318, 319, 320), ExpressionParser.ts (90, 212, 226, 228, 237, 308), StandardActions.ts (955, 1100, 1119, 1124), StageRenderer.ts (60, 70, 380, 497).
 - **Syntax/Scoping**: Klammer-Syntax Fehler im StageRenderer beim .map-Call der console.table->logger.debug-Migration korrigiert (Zeile 65-68). Alle Regressionstests bestanden.
+
+[2026-03-31] Systemweite Logging-Migration
+- src/**/*.ts: Ersetzung ALLER verbleibenden console.log/warn/error/info Aufrufe (ca. 315) durch das Logger.get() Pattern.

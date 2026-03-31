@@ -1,5 +1,8 @@
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TTimer');
 
 export class TTimer extends TWindow implements IRuntimeComponent {
     public className: string = 'TTimer';
@@ -73,7 +76,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         if (this.name === 'SynchronTimer') {
             const mp = (window as any).multiplayerManager;
             if (!mp || !mp.isConnected) {
-                // console.log(`[TTimer] SynchronTimer suppressed (Singleplayer mode)`);
+                // logger.info(`[TTimer] SynchronTimer suppressed (Singleplayer mode)`);
                 return;
             }
         }
@@ -81,7 +84,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         if (this.enabled) {
             this.timerId = window.setInterval(() => {
                 this.currentInterval++;
-                // console.log(`[TTimer] ${this.name}: Interval ${this.currentInterval}/${this.maxInterval || '∞'}`);
+                // logger.info(`[TTimer] ${this.name}: Interval ${this.currentInterval}/${this.maxInterval || '∞'}`);
 
                 // Fire onTimer event via callback (legacy)
                 if (this.onTimerCallback) {
@@ -95,7 +98,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
 
                 // Check if max interval reached
                 if (this.maxInterval > 0 && this.currentInterval >= this.maxInterval) {
-                    console.log(`[TTimer] ${this.name}: MaxInterval reached (${this.maxInterval})`);
+                    logger.info(`[TTimer] ${this.name}: MaxInterval reached (${this.maxInterval})`);
                     this.stop();
                     if (this.onEvent) {
                         this.onEvent('onMaxIntervalReached');
@@ -119,7 +122,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
      * Start the timer (callable via call_method action)
      */
     public timerStart(): void {
-        console.log(`[TTimer] ${this.name}: timerStart() called`);
+        logger.info(`[TTimer] ${this.name}: timerStart() called`);
         this.enabled = true;
         if (this.onEvent) {
             // Re-use internal start with a wrapper that fires onEvent
@@ -134,7 +137,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
      * Stop the timer (callable via call_method action)
      */
     public timerStop(): void {
-        console.log(`[TTimer] ${this.name}: timerStop() called`);
+        logger.info(`[TTimer] ${this.name}: timerStop() called`);
         this.enabled = false;
         this.stop();
     }
@@ -143,7 +146,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
      * Reset the interval counter to 0
      */
     public reset(): void {
-        console.log(`[TTimer] ${this.name}: reset() called`);
+        logger.info(`[TTimer] ${this.name}: reset() called`);
         this.currentInterval = 0;
     }
 }

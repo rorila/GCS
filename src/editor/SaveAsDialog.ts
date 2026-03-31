@@ -2,6 +2,10 @@
  * SaveAsDialog - Modaler Dialog für "Speichern unter"
  * Zeigt vorhandene Projektordner und erlaubt Ordner-/Dateiname-Auswahl.
  */
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('SaveAsDialog');
+
 export class SaveAsDialog {
 
     /**
@@ -17,7 +21,7 @@ export class SaveAsDialog {
             const data = await res.json();
             folders = data.folders || [];
         } catch (e) {
-            console.error('Fehler beim Laden der Projektordner:', e);
+            logger.error('Fehler beim Laden der Projektordner:', e);
         }
 
         return new Promise((resolve) => {

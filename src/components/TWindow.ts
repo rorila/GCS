@@ -1,5 +1,8 @@
 import { TComponent, TPropertyDef } from './TComponent';
 import { AnimationManager } from '../runtime/AnimationManager';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TWindow');
 
 export type TAlign = 'NONE' | 'TOP' | 'BOTTOM' | 'LEFT' | 'RIGHT' | 'CLIENT';
 
@@ -134,18 +137,18 @@ export class TWindow extends TComponent {
         easing: string = 'easeOut',
         onComplete?: () => void
     ): void {
-        console.log(`[TWindow.moveTo] Called on "${this.name}": from (${this.x}, ${this.y}) to (${x}, ${y}), duration=${duration}ms, easing=${easing}`);
+        logger.info(`[TWindow.moveTo] Called on "${this.name}": from (${this.x}, ${this.y}) to (${x}, ${y}), duration=${duration}ms, easing=${easing}`);
 
         const manager = AnimationManager.getInstance();
-        console.log(`[TWindow.moveTo] AnimationManager instance obtained, activeTweens=${manager.getActiveTweenCount()}`);
+        logger.info(`[TWindow.moveTo] AnimationManager instance obtained, activeTweens=${manager.getActiveTweenCount()}`);
 
         const tweenX = manager.addTween(this, 'x', x, duration, easing);
-        console.log(`[TWindow.moveTo] Added X tween: from=${tweenX.from} to=${tweenX.to}`);
+        logger.info(`[TWindow.moveTo] Added X tween: from=${tweenX.from} to=${tweenX.to}`);
 
         const tweenY = manager.addTween(this, 'y', y, duration, easing, onComplete);
-        console.log(`[TWindow.moveTo] Added Y tween: from=${tweenY.from} to=${tweenY.to}`);
+        logger.info(`[TWindow.moveTo] Added Y tween: from=${tweenY.from} to=${tweenY.to}`);
 
-        console.log(`[TWindow.moveTo] After adding tweens, activeTweens=${manager.getActiveTweenCount()}`);
+        logger.info(`[TWindow.moveTo] After adding tweens, activeTweens=${manager.getActiveTweenCount()}`);
     }
 
     /**

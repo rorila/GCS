@@ -2,6 +2,10 @@
  * MenuBar - VS Code-style menu bar component
  * Renders a horizontal menu bar with dropdown menus
  */
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('MenuBar');
+
 
 export interface MenuItem {
     id: string;
@@ -100,7 +104,7 @@ export class MenuBar {
             this.config = await response.json();
             this.render();
         } catch (error) {
-            console.error('[MenuBar] Failed to load config:', error);
+            logger.error('[MenuBar] Failed to load config:', error);
         }
     }
 

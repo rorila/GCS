@@ -2,6 +2,9 @@ import { hydrateObjects } from '../utils/Serialization';
 import { ReactiveRuntime } from '../runtime/ReactiveRuntime';
 import { JSONDialogRenderer } from './JSONDialogRenderer';
 import { GameProject } from '../model/types';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('DialogManager');
 
 /**
  * DialogManager - Manages JSON-based modal and non-modal dialogs
@@ -31,7 +34,7 @@ export class DialogManager {
      * @returns Promise that resolves with dialog result
      */
     public async showDialog(dialogName: string, modal: boolean = true, data: any = {}): Promise<any> {
-        console.log(`[DialogManager] showDialog called for: "${dialogName}"`, data);
+        logger.info(`[DialogManager] showDialog called for: "${dialogName}"`, data);
 
         // Use JSONDialogRenderer for task_editor, action_editor, and dialog_* prefixed dialogs
         if (dialogName === 'task_editor' || dialogName === 'action_editor' ||
@@ -102,7 +105,7 @@ export class DialogManager {
                 }
             });
         } catch (error) {
-            console.error(`[DialogManager] Failed to show dialog ${dialogName}:`, error);
+            logger.error(`[DialogManager] Failed to show dialog ${dialogName}:`, error);
             throw error;
         }
     }
@@ -112,7 +115,7 @@ export class DialogManager {
      */
     private async showJSONDialog(dialogName: string, data: any): Promise<any> {
         if (!this.project) {
-            console.error('[DialogManager] Project not set!');
+            logger.error('[DialogManager] Project not set!');
             return { action: 'cancel' };
         }
 
@@ -131,7 +134,7 @@ export class DialogManager {
                 }, this); // Pass this (DialogManager)
             });
         } catch (error) {
-            console.error(`[DialogManager] Failed to show JSON dialog ${dialogName}:`, error);
+            logger.error(`[DialogManager] Failed to show JSON dialog ${dialogName}:`, error);
             return { action: 'cancel' };
         }
     }
@@ -327,7 +330,7 @@ export class DialogManager {
             // Handle variable placeholders if present (evaluates "${dialogData.json}")
             if (textarea.value && textarea.value.includes('${')) {
                 const resolved = this.runtime.evaluate(textarea.value);
-                console.log(`[DialogManager] TMemo evaluation for ${obj.name}: "${textarea.value}" ->`, resolved ? "(data present)" : "(empty/undefined)");
+                logger.info(`[DialogManager] TMemo evaluation for ${obj.name}: "${textarea.value}" ->`, resolved ? "(data present)" : "(empty/undefined)");
                 textarea.value = resolved !== undefined ? String(resolved) : textarea.value;
             }
 
@@ -460,7 +463,7 @@ export class DialogManager {
             }
         });
 
-        console.log('[DialogManager] Populated dialog fields with:', data);
+        logger.info('[DialogManager] Populated dialog fields with:', data);
     }
 
     /**

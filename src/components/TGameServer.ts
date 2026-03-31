@@ -1,6 +1,9 @@
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
 import { network } from '../multiplayer';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TGameServer');
 
 /**
  * TGameServer - A stage-placeable component that manages multiplayer server connection.
@@ -122,7 +125,7 @@ export class TGameServer extends TWindow implements IRuntimeComponent {
      */
     public createRoom(): void {
         if (!this._connected) {
-            console.warn('[TGameServer] Not connected - cannot create room');
+            logger.warn('[TGameServer] Not connected - cannot create room');
             return;
         }
 
@@ -138,7 +141,7 @@ export class TGameServer extends TWindow implements IRuntimeComponent {
      */
     public joinRoom(roomCode: string): void {
         if (!this._connected) {
-            console.warn('[TGameServer] Not connected - cannot join room');
+            logger.warn('[TGameServer] Not connected - cannot join room');
             return;
         }
 
@@ -154,7 +157,7 @@ export class TGameServer extends TWindow implements IRuntimeComponent {
      */
     public ready(): void {
         if (!this._connected || !this._roomCode) {
-            console.warn('[TGameServer] Not in a room - cannot signal ready');
+            logger.warn('[TGameServer] Not in a room - cannot signal ready');
             return;
         }
 
@@ -204,7 +207,7 @@ export class TGameServer extends TWindow implements IRuntimeComponent {
      * Trigger an event (calls the event callback)
      */
     private triggerEvent(eventName: string, data?: any): void {
-        console.log(`[TGameServer] Event: ${eventName}`, data);
+        logger.info(`[TGameServer] Event: ${eventName}`, data);
         if (this.eventCallback) {
             this.eventCallback(eventName, data);
         }

@@ -143,7 +143,7 @@ export class EditorSimulatorManager {
                             isSimulation: true
                         });
                     } else {
-                        console.warn('[ApiSimulator] No TAPIServer found for manual routing. Returning mock error.');
+                        logger.warn('[ApiSimulator] No TAPIServer found for manual routing. Returning mock error.');
                         resolve({ error: 'No API Server configured and no auto-route matched', status: 503 });
                     }
 

@@ -13,6 +13,9 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TrainingDataExporter');
 
 interface AgentCall {
     method: string;
@@ -113,7 +116,7 @@ export class TrainingDataExporter {
 
         const lines = pairs.map(p => JSON.stringify(p));
         fs.writeFileSync(outputPath, lines.join('\n'), 'utf-8');
-        console.log(`✅ ${pairs.length} Trainingspaare nach ${outputPath} exportiert.`);
+        logger.info(`✅ ${pairs.length} Trainingspaare nach ${outputPath} exportiert.`);
     }
 
     // ======== Hilfsmethoden ========
@@ -208,7 +211,7 @@ if (typeof process !== 'undefined' && process.argv && process.argv[1]?.includes(
     const outputFile = process.argv[3] || 'data/training/export.jsonl';
 
     if (!projectFile) {
-        console.error('Verwendung: npx ts-node src/tools/TrainingDataExporter.ts <project.json> [output.jsonl]');
+        logger.error('Verwendung: npx ts-node src/tools/TrainingDataExporter.ts <project.json> [output.jsonl]');
         process.exit(1);
     }
 

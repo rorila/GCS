@@ -697,17 +697,17 @@ export class GameRuntime implements IVariableHost {
     }
 
     public handleEvent(objectId: string, eventName: string, data: any = {}) {
-        // console.info(`[DIAGNOSTIC] handleEvent entry: objId=${objectId}, event=${eventName}`);
+        // logger.info(`[DIAGNOSTIC] handleEvent entry: objId=${objectId}, event=${eventName}`);
         const obj = this.objects.find(o => o.id === objectId);
         if (!obj) {
-            // console.warn(`[DIAGNOSTIC] Object not found: ${objectId}`);
+            // logger.warn(`[DIAGNOSTIC] Object not found: ${objectId}`);
             return;
         }
 
         const hasOnEventMap = obj.onEvent && obj.onEvent[eventName];
         const hasTaskMap = (obj.events && obj.events[eventName]) || ((obj as any).Tasks && (obj as any).Tasks[eventName]);
 
-        // console.info(`[DIAGNOSTIC] Object found: ${obj.name}. hasOnEventMap=${!!hasOnEventMap}, hasTaskMap=${!!hasTaskMap}`);
+        // logger.info(`[DIAGNOSTIC] Object found: ${obj.name}. hasOnEventMap=${!!hasOnEventMap}, hasTaskMap=${!!hasTaskMap}`);
 
         let eventLogId: string | undefined = undefined;
 

@@ -1,4 +1,7 @@
 import { TInspectorTemplate, PropertyLayoutConfig, GroupConfig } from '../components/TInspectorTemplate';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('InspectorDesigner');
 
 /**
  * InspectorDesigner - Visual editor for Inspector layout
@@ -261,7 +264,7 @@ export class InspectorDesigner {
             this.notifyChange();
             this.render();
         } catch (err) {
-            console.error('Drop error:', err);
+            logger.error('Drop error:', err);
         }
     }
 
@@ -286,7 +289,7 @@ export class InspectorDesigner {
             this.notifyChange();
             this.render();
         } catch (err) {
-            console.error('Drop error:', err);
+            logger.error('Drop error:', err);
         }
     }
 

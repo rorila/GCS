@@ -1,6 +1,9 @@
 import { GameProject } from '../../model/types';
 import { RecordedAction, changeRecorder } from '../../services/ChangeRecorder';
 import { componentRegistry } from '../../services/ComponentRegistry';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('EditorUndoManager');
 
 export interface EditorUndoHost {
     project: GameProject;
@@ -34,9 +37,9 @@ export class EditorUndoManager {
     }
 
     public applyRecordedAction(action: RecordedAction, direction: 'rewind' | 'forward'): void {
-        console.log(`[EditorUndoManager] Applying ${direction} for action:`, action);
+        logger.info(`[EditorUndoManager] Applying ${direction} for action:`, action);
         if (!action.objectId && action.type !== 'batch') {
-            console.warn('[EditorUndoManager] Action has no objectId:', action);
+            logger.warn('[EditorUndoManager] Action has no objectId:', action);
             return;
         }
 

@@ -211,9 +211,9 @@ export class TaskExecutor {
             const hasFlowChart = flowChart && flowChart.elements && flowChart.elements.length > 0;
             const actionSequence = task?.actionSequence || [];
 
-            // console.info(`[DIAGNOSTIC-TASK] "${taskName}": hasFlowChart=${hasFlowChart}, actionSequenceLen=${actionSequence.length}`);
+            // logger.info(`[DIAGNOSTIC-TASK] "${taskName}": hasFlowChart=${hasFlowChart}, actionSequenceLen=${actionSequence.length}`);
             // if (actionSequence.length > 0) {
-            //     console.info(`[DIAGNOSTIC-TASK] ActionSequence:`, JSON.stringify(actionSequence));
+            //     logger.info(`[DIAGNOSTIC-TASK] ActionSequence:`, JSON.stringify(actionSequence));
             // }
 
             if (hasFlowChart) {

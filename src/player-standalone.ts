@@ -6,6 +6,9 @@ import { StageRenderer, StageHost } from './editor/services/StageRenderer';
 import { GridConfig } from './model/types';
 import { GameLoopManager } from './runtime/GameLoopManager';
 import { AnimationManager } from './runtime/AnimationManager';
+import { Logger } from './utils/Logger';
+
+const logger = Logger.get('UniversalPlayer', 'Runtime_Execution');
 // HeadlessRuntime and HeadlessServer are Node.js-only (use express)
 // They should NOT be imported in the browser bundle
 
@@ -32,7 +35,7 @@ function decompressProject(data: string): any {
         const json = new TextDecoder().decode(decompressed);
         return JSON.parse(json);
     } catch (e) {
-        console.error('[UniversalPlayer] Failed to decompress project:', e);
+        logger.error('[UniversalPlayer] Failed to decompress project:', e);
         return null;
     }
 }
@@ -64,7 +67,7 @@ class UniversalPlayer implements StageHost {
     public get grid(): GridConfig {
         const activeStage = this.runtime ? (this.runtime as any).stage : (this.currentProject?.stage || this.currentProject?.stages?.[0]);
         if (!activeStage?.grid) {
-            console.warn(`%c[UniversalPlayer:Grid] Fallback to 20px because grid is missing in ${activeStage?.name || 'unknown stage'}`, 'color: red');
+            logger.warn(`%c[UniversalPlayer:Grid] Fallback to 20px because grid is missing in ${activeStage?.name || 'unknown stage'}`, 'color: red');
             return {
                 cols: 64,
                 rows: 40,
@@ -100,9 +103,9 @@ class UniversalPlayer implements StageHost {
         // 2. Connect to Network (Platform always uses network if available)
         try {
             await network.connect();
-            console.log('[UniversalPlayer] Connected to game server');
+            logger.info('[UniversalPlayer] Connected to game server');
         } catch (e) {
-            console.warn('[UniversalPlayer] Server not reachable, falling back to offline mode');
+            logger.warn('[UniversalPlayer] Server not reachable, falling back to offline mode');
         }
 
         // 3. Listen for network events (Project handshakes, Room codes)
@@ -128,12 +131,12 @@ class UniversalPlayer implements StageHost {
 
         if (roomCode) {
             // Join existing room - project will arrive via 'project_data'
-            console.log(`[UniversalPlayer] Joining room: ${roomCode}`);
+            logger.info(`[UniversalPlayer] Joining room: ${roomCode}`);
             network.joinRoom(roomCode);
             this.showOverlay('Beitritt zum Raum...', roomCode);
         } else if (gameFile && hostMode) {
             // Load game and create a multiplayer room
-            console.log(`[UniversalPlayer] Hosting multiplayer game: ${gameFile}`);
+            logger.info(`[UniversalPlayer] Hosting multiplayer game: ${gameFile}`);
             const baseUrl = network.getHttpUrl();
             await this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`);
             // Create room after project is loaded (will trigger room_created message)
@@ -141,25 +144,25 @@ class UniversalPlayer implements StageHost {
             this.showOverlay('Raum wird erstellt...', '');
         } else if (gameFile) {
             // Load specific game file from platform (single player)
-            console.log(`[UniversalPlayer] Loading game: ${gameFile}`);
+            logger.info(`[UniversalPlayer] Loading game: ${gameFile}`);
             const baseUrl = network.getHttpUrl();
             await this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`);
         } else if ((window as any).PROJECT_DATA) {
             // Use compressed embedded project (gzip + Base64)
-            console.log('[UniversalPlayer] Loading compressed embedded project');
+            logger.info('[UniversalPlayer] Loading compressed embedded project');
             const project = decompressProject((window as any).PROJECT_DATA);
             if (project) {
                 this.startProject(project);
             } else {
-                console.error('[UniversalPlayer] Failed to decompress project data');
+                logger.error('[UniversalPlayer] Failed to decompress project data');
             }
         } else if ((window as any).PROJECT) {
             // Use embedded project (Standalone HTML Export - plain JSON)
-            console.log('[UniversalPlayer] Loading embedded project');
+            logger.info('[UniversalPlayer] Loading embedded project');
             this.startProject((window as any).PROJECT);
         } else {
             // Default: Show Platform UI
-            console.log('[UniversalPlayer] No game selected, loading platform UI...');
+            logger.info('[UniversalPlayer] No game selected, loading platform UI...');
             const baseUrl = network.getHttpUrl();
             await this.loadProjectFromUrl(`${baseUrl}/projects/project.json`);
         }
@@ -168,7 +171,7 @@ class UniversalPlayer implements StageHost {
     private handleNetworkMessage(msg: any) {
         switch (msg.type) {
             case 'project_data':
-                console.log('[UniversalPlayer] Received project JSON from server');
+                logger.info('[UniversalPlayer] Received project JSON from server');
                 this.startProject(msg.project);
                 break;
 
@@ -189,14 +192,14 @@ class UniversalPlayer implements StageHost {
             case 'game_start':
                 this.hideOverlay();
                 if (this.runtime) {
-                    console.log(`[UniversalPlayer] Game Start received, triggering onGameStart`);
+                    logger.info(`[UniversalPlayer] Game Start received, triggering onGameStart`);
                     this.runtime.handleEvent('global', 'onGameStart');
                 }
                 break;
 
             case 'remote_state':
                 if (this.runtime) {
-                    console.log(`[NET] Received state for ${msg.objectId}:`, msg.state || msg);
+                    logger.info(`[NET] Received state for ${msg.objectId}:`, msg.state || msg);
                     // Pass the full state object from the new protocol
                     this.runtime.updateRemoteState(msg.objectId, msg.state || msg);
                 }
@@ -204,7 +207,7 @@ class UniversalPlayer implements StageHost {
 
             case 'remote_event':
                 if (this.runtime) {
-                    console.log(`[UniversalPlayer] Received remote_event: ${msg.objectId}.${msg.eventName}`);
+                    logger.info(`[UniversalPlayer] Received remote_event: ${msg.objectId}.${msg.eventName}`);
                     this.runtime.triggerRemoteEvent(msg.objectId, msg.eventName, msg.params);
                 }
                 break;
@@ -221,14 +224,14 @@ class UniversalPlayer implements StageHost {
 
             case 'remote_action':
                 if (this.runtime) {
-                    console.log(`[UniversalPlayer] Received remote_action from P${msg.player}:`, msg.action);
+                    logger.info(`[UniversalPlayer] Received remote_action from P${msg.player}:`, msg.action);
                     this.runtime.executeRemoteAction(msg.action);
                 }
                 break;
 
             case 'remote_task':
                 if (this.runtime) {
-                    console.log(`[UniversalPlayer] Received remote_task: ${msg.taskName} (mode: ${msg.mode})`);
+                    logger.info(`[UniversalPlayer] Received remote_task: ${msg.taskName} (mode: ${msg.mode})`);
                     this.runtime.executeRemoteTask(msg.taskName, msg.params, msg.mode);
                 }
                 break;
@@ -244,23 +247,23 @@ class UniversalPlayer implements StageHost {
                 // Check if it's a compressed project
                 let project = data;
                 if (data._compressed === true && data.data) {
-                    console.log('[UniversalPlayer] Decompressing project from URL');
+                    logger.info('[UniversalPlayer] Decompressing project from URL');
                     project = decompressProject(data.data);
                     if (!project) {
-                        console.error('[UniversalPlayer] Failed to decompress project');
+                        logger.error('[UniversalPlayer] Failed to decompress project');
                         return;
                     }
                 }
 
                 this.startProject(project);
             } else {
-                console.error(`[UniversalPlayer] Failed to load project from ${url}`);
+                logger.error(`[UniversalPlayer] Failed to load project from ${url}`);
                 if (url !== './multiplayer/lobby.json') {
                     await this.loadProjectFromUrl('./multiplayer/lobby.json');
                 }
             }
         } catch (e) {
-            console.error('[UniversalPlayer] Error fetching project:', e);
+            logger.error('[UniversalPlayer] Error fetching project:', e);
         }
     }
 
@@ -299,11 +302,11 @@ class UniversalPlayer implements StageHost {
             this.runtime.start();
             this.startAnimationTicker();
         }
-        console.log(`[UniversalPlayer] Project "${project.meta?.name}" started`);
+        logger.info(`[UniversalPlayer] Project "${project.meta?.name}" started`);
 
         // If we are in a room, signal that we are ready
         if (network.roomCode) {
-            console.log(`[UniversalPlayer] Signalling ready to server as Player ${network.playerNumber}`);
+            logger.info(`[UniversalPlayer] Signalling ready to server as Player ${network.playerNumber}`);
             network.ready();
 
             // If Master (P1), also ensure project is synced
@@ -314,7 +317,7 @@ class UniversalPlayer implements StageHost {
     }
 
     private handleNavigation(target: string) {
-        console.log(`[UniversalPlayer] Navigating to: ${target}`);
+        logger.info(`[UniversalPlayer] Navigating to: ${target}`);
         if (target.startsWith('stage:')) {
             // Stage-Navigation: Interner Stage-Wechsel
             const stageId = target.substring(6);
@@ -327,7 +330,7 @@ class UniversalPlayer implements StageHost {
             const gameFile = target.replace('host:', '');
             const baseUrl = network.getHttpUrl();
             this.loadProjectFromUrl(`${baseUrl}/platform/games/${gameFile}`).then(() => {
-                console.log(`[UniversalPlayer] Hosting game: ${gameFile}`);
+                logger.info(`[UniversalPlayer] Hosting game: ${gameFile}`);
                 network.createRoom(gameFile);
             });
         } else if (target === 'lobby') {
@@ -345,14 +348,14 @@ class UniversalPlayer implements StageHost {
      */
     private handleStageNavigation(stageId: string) {
         if (!this.runtime || !this.currentProject) {
-            console.warn(`[UniversalPlayer] Cannot navigate to stage '${stageId}': no active runtime.`);
+            logger.warn(`[UniversalPlayer] Cannot navigate to stage '${stageId}': no active runtime.`);
             return;
         }
 
         // Prüfe ob Stage existiert
         const stageExists = this.currentProject.stages?.some((s: any) => s.id === stageId);
         if (!stageExists) {
-            console.warn(`[UniversalPlayer] Stage '${stageId}' not found in project.stages.`);
+            logger.warn(`[UniversalPlayer] Stage '${stageId}' not found in project.stages.`);
             return;
         }
 
@@ -363,11 +366,11 @@ class UniversalPlayer implements StageHost {
         );
 
         if (stageController && typeof (stageController as any).goToStage === 'function') {
-            console.log(`[UniversalPlayer] Stage navigation via TStageController → ${stageId}`);
+            logger.info(`[UniversalPlayer] Stage navigation via TStageController → ${stageId}`);
             (stageController as any).goToStage(stageId);
         } else {
             // Fallback: Direkter Runtime-Aufruf
-            console.log(`[UniversalPlayer] Stage navigation via direct runtime call → ${stageId}`);
+            logger.info(`[UniversalPlayer] Stage navigation via direct runtime call → ${stageId}`);
             (this.runtime as any).handleStageChange(
                 (this.runtime as any).stage?.id || '',
                 stageId
@@ -381,7 +384,7 @@ class UniversalPlayer implements StageHost {
         // Use active stage grid from runtime if available, else fallback to project default
         const activeStage = this.runtime ? (this.runtime as any).stage : (this.currentProject.stage || this.currentProject.stages?.[0]);
         if (!activeStage || !activeStage.grid) {
-            console.warn('%c[UniversalPlayer:Layout] No active stage or grid found for scaling', 'color: orange');
+            logger.warn('%c[UniversalPlayer:Layout] No active stage or grid found for scaling', 'color: orange');
             return;
         }
 
@@ -395,7 +398,7 @@ class UniversalPlayer implements StageHost {
         const margin = 20;
         const scale = Math.min((windowWidth - margin) / stageWidth, (windowHeight - margin) / stageHeight, 1.0);
 
-        console.log(`%c[UniversalPlayer:Layout] Scaling Stage "${activeStage.name || activeStage.id}": cellSize=${cellSize}, size=${stageWidth}x${stageHeight}, scale=${scale.toFixed(3)}`, 'color: #00ff00; font-weight: bold');
+        logger.info(`%c[UniversalPlayer:Layout] Scaling Stage "${activeStage.name || activeStage.id}": cellSize=${cellSize}, size=${stageWidth}x${stageHeight}, scale=${scale.toFixed(3)}`, 'color: #00ff00; font-weight: bold');
 
         this.element.style.width = `${stageWidth}px`;
         this.element.style.height = `${stageHeight}px`;
@@ -512,7 +515,7 @@ class UniversalPlayer implements StageHost {
         const obj = this.runtime.getObjects().find(o => o.id === el.id);
         if (!obj || !obj.draggable) return;
 
-        console.log(`[Player] Start dragging: ${obj.name} (mode: ${obj.dragMode})`);
+        logger.info(`[Player] Start dragging: ${obj.name} (mode: ${obj.dragMode})`);
 
         this.isDragging = true;
 
@@ -565,7 +568,7 @@ class UniversalPlayer implements StageHost {
         }
 
         if (dropTargetObj) {
-            console.log(`[Player] Dropped ${originalTarget.name} on ${dropTargetObj.name}`);
+            logger.info(`[Player] Dropped ${originalTarget.name} on ${dropTargetObj.name}`);
             this.runtime.handleEvent(dropTargetObj.id, 'onDrop', {
                 draggedId: originalTarget.id,
                 draggedName: originalTarget.name,
@@ -617,12 +620,12 @@ if (typeof document !== 'undefined') {
 
 // For embedded projects (Standalone Export)
 (window as any).startStandalone = (project: any) => {
-    console.log('[UniversalPlayer] Standalone trigger received');
+    logger.info('[UniversalPlayer] Standalone trigger received');
     const player = (window as any).player;
 
     // If project is null, check for PROJECT_DATA (compressed)
     if (project === null && (window as any).PROJECT_DATA) {
-        console.log('[UniversalPlayer] Decompressing PROJECT_DATA');
+        logger.info('[UniversalPlayer] Decompressing PROJECT_DATA');
         project = decompressProject((window as any).PROJECT_DATA);
     }
 
@@ -632,6 +635,6 @@ if (typeof document !== 'undefined') {
         // Fallback: If player not yet ready, set global PROJECT for init()
         (window as any).PROJECT = project;
     } else {
-        console.error('[UniversalPlayer] No project data available');
+        logger.error('[UniversalPlayer] No project data available');
     }
 };

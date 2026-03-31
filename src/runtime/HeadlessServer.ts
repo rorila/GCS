@@ -3,6 +3,9 @@ import express from 'express';
 import { HeadlessRuntime } from './HeadlessRuntime';
 import { serviceRegistry } from '../services/ServiceRegistry';
 import { dataService } from '../services/DataService';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('HeadlessServer');
 
 /**
  * HeadlessServer - Express-Integration für die GCS Backend-Engine.
@@ -39,7 +42,7 @@ export class HeadlessServer {
         }
 
         if (!serverComp) {
-            console.warn('[HeadlessServer] Keine TAPIServer-Komponente im Projekt gefunden. Nutze Standardwerte.');
+            logger.warn('[HeadlessServer] Keine TAPIServer-Komponente im Projekt gefunden. Nutze Standardwerte.');
             serverComp = { port: 3000, baseUrl: '/api', cors: true };
         }
 
@@ -62,8 +65,8 @@ export class HeadlessServer {
         });
 
         this.app.listen(port, () => {
-            console.log(`[HeadlessServer] Läuft auf Port ${port}`);
-            console.log(`[HeadlessServer] API Basis-URL: ${baseUrl}`);
+            logger.info(`[HeadlessServer] Läuft auf Port ${port}`);
+            logger.info(`[HeadlessServer] API Basis-URL: ${baseUrl}`);
         });
     }
 
@@ -84,7 +87,7 @@ export class HeadlessServer {
             headers: req.headers
         };
 
-        console.log(`[HeadlessServer] Request erhalten: ${req.method} ${req.path} (ID: ${requestId})`);
+        logger.info(`[HeadlessServer] Request erhalten: ${req.method} ${req.path} (ID: ${requestId})`);
 
         // Event in der Runtime feuern
         this.runtime.getRuntime().handleEvent(apiServerId, 'onRequest', eventData);
@@ -92,7 +95,7 @@ export class HeadlessServer {
         // Timeout-Schutz: Falls der GCS-Flow nicht antwortet
         setTimeout(() => {
             if (this.pendingResponses.has(requestId)) {
-                console.warn(`[HeadlessServer] Timeout für Request ${requestId}`);
+                logger.warn(`[HeadlessServer] Timeout für Request ${requestId}`);
                 res.status(504).json({ error: 'Gateway Timeout (GCS Logic not responding)' });
                 this.pendingResponses.delete(requestId);
             }
@@ -105,11 +108,11 @@ export class HeadlessServer {
     public respond(requestId: string, statusCode: number, data: any): void {
         const res = this.pendingResponses.get(requestId);
         if (res) {
-            console.log(`[HeadlessServer] Sende Antwort für ${requestId} (Status: ${statusCode})`);
+            logger.info(`[HeadlessServer] Sende Antwort für ${requestId} (Status: ${statusCode})`);
             res.status(statusCode).json(data);
             this.pendingResponses.delete(requestId);
         } else {
-            console.warn(`[HeadlessServer] Konnte Antwort für ${requestId} nicht senden (Response-Objekt nicht gefunden)`);
+            logger.warn(`[HeadlessServer] Konnte Antwort für ${requestId} nicht senden (Response-Objekt nicht gefunden)`);
         }
     }
 }

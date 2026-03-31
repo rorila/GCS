@@ -9,6 +9,10 @@
  * 
  * @since v3.29.1
  */
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('MediaPickerDialog');
+
 
 type MediaMode = 'image' | 'audio' | 'video';
 
@@ -34,7 +38,7 @@ async function loadManifest(): Promise<MediaManifest> {
         manifestCache = await resp.json();
         return manifestCache!;
     } catch (e) {
-        console.warn('[MediaPickerDialog] Manifest nicht gefunden, verwende leeres Manifest:', e);
+        logger.warn('[MediaPickerDialog] Manifest nicht gefunden, verwende leeres Manifest:', e);
         return { images: {}, audio: {}, videos: {} };
     }
 }
@@ -423,7 +427,7 @@ export class MediaPickerDialog {
             btn.textContent = '▶️';
         };
         this.audioElement.play().catch(e => {
-            console.warn('[MediaPicker] Audio playback failed:', e);
+            logger.warn('[MediaPicker] Audio playback failed:', e);
             btn.textContent = '▶️';
             this.playingFile = null;
         });

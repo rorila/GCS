@@ -6,6 +6,9 @@ import { TGameLoop } from './components/TGameLoop';
 import { TInputController } from './components/TInputController';
 import { GameRuntime } from './runtime/GameRuntime';
 import { TDebugLog } from './components/TDebugLog';
+import { Logger } from './utils/Logger';
+
+const logger = Logger.get('Player');
 
 // Base Player Entry Point (used in Editor Preview)
 export class Player {
@@ -43,7 +46,7 @@ export class Player {
             this.project = data;
             if (this.project) {
                 if (this.debugLog) this.debugLog.setProject(this.project);
-                console.log("Game Loaded:", this.project.meta.name);
+                logger.info("Game Loaded:", this.project.meta.name);
                 this.showStatus(`Loaded: ${this.project.meta.name}`);
 
                 if (this.project.stage && this.project.stage.grid) {
@@ -62,7 +65,7 @@ export class Player {
                 // 3. Start Runtime (triggers startAnimation, etc.)
                 this.runtime.start();
 
-                console.log("Objects hydrated:", this.objects.length);
+                logger.info("Objects hydrated:", this.objects.length);
                 this.showStatus(`Running: ${this.project.meta.name}`);
 
                 // 4. Find and initialize GameLoop and InputController
@@ -104,7 +107,7 @@ export class Player {
             }
 
         } catch (e) {
-            console.error("Error starting game:", e);
+            logger.error("Error starting game:", e);
             this.showError(`Error: ${e}`);
         }
     }

@@ -1,8 +1,11 @@
 import { DataService } from '../../services/DataService';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('ActionApiHandler');
 
 export class ActionApiHandler {
     static async handle(_action: any, params: any, globalObjects: any[]): Promise<any> {
-        console.log('[ActionApiHandler] Handling API Request:', params);
+        logger.info('[ActionApiHandler] Handling API Request:', params);
 
         // 1. Determine Target DB from Params or Action Config
         // In our case, the action in project.json might typically specify the target,
@@ -19,7 +22,7 @@ export class ActionApiHandler {
             const dataStore = globalObjects.find(obj => obj.name === storeName && obj.className === 'TDataStore');
 
             if (dataStore) {
-                console.log(`[ActionApiHandler] Using TDataStore: ${storeName}`);
+                logger.info(`[ActionApiHandler] Using TDataStore: ${storeName}`);
                 // Extract query from params
                 // Note: The caller (StandardActions.ts) passes a combined object covering path/query/body.
                 // We need to support 'operation' from action definition or infer it.
@@ -31,7 +34,7 @@ export class ActionApiHandler {
                 return this.performDataQuery(storagePath, collection, query, params);
 
             } else {
-                console.warn(`[ActionApiHandler] DataStore not found: ${storeName}`);
+                logger.warn(`[ActionApiHandler] DataStore not found: ${storeName}`);
                 return { status: 500, data: { error: `DataStore component not found: ${storeName}` } };
             }
         }
@@ -56,7 +59,7 @@ export class ActionApiHandler {
         if (!requestPin && params.body?.code) requestPin = params.body.code;
         if (!requestPin && params.body?.pin) requestPin = params.body.pin;
 
-        console.log(`[ActionApiHandler] Querying ${storagePath}/${collection}. Query:`, query);
+        logger.info(`[ActionApiHandler] Querying ${storagePath}/${collection}. Query:`, query);
 
         const allItems = await DataService.getInstance().findItems(storagePath, collection, {});
 

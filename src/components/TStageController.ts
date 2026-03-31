@@ -3,6 +3,9 @@ import { TPropertyDef } from './TComponent';
 import { StageDefinition } from '../model/types';
 import { Logger } from '../utils/Logger';
 
+const logger = Logger.get('TStageController');
+
+
 /**
  * TStageController - Zentrale Komponente für Stage-Verwaltung
  * 
@@ -147,7 +150,7 @@ export class TStageController extends TWindow {
             const nextStage = this._stages[currentIndex + 1];
             this.goToStage(nextStage.id);
         } else {
-            console.log('[TStageController] Already at last stage');
+            logger.info('[TStageController] Already at last stage');
             this.triggerEvent('onAllStagesCompleted');
         }
     }
@@ -161,7 +164,7 @@ export class TStageController extends TWindow {
             const prevStage = this._stages[currentIndex - 1];
             this.goToStage(prevStage.id);
         } else {
-            console.log('[TStageController] Already at first stage');
+            logger.info('[TStageController] Already at first stage');
         }
     }
 
@@ -171,7 +174,7 @@ export class TStageController extends TWindow {
     public goToStage(stageId: string): void {
         const stage = this._stages.find(s => s.id === stageId);
         if (!stage) {
-            console.warn(`[TStageController] Stage not found: ${stageId}`);
+            logger.warn(`[TStageController] Stage not found: ${stageId}`);
             return;
         }
 

@@ -12,6 +12,9 @@ import { Stage } from './Stage';
 import { MediatorEvents } from '../services/MediatorService';
 import { JSONTreeViewer } from './JSONTreeViewer';
 
+const logger = Logger.get('EditorViewManager');
+
+
 export interface IViewHost {
     project: GameProject;
     flowEditor: FlowEditor | null;
@@ -319,7 +322,7 @@ export class EditorViewManager {
                 this.renderPascalStaticView(codePanel);
             }
         } catch (err) {
-            console.error('[EditorViewManager] Error generating Pascal code:', err);
+            logger.error('[EditorViewManager] Error generating Pascal code:', err);
             codePanel.innerHTML += `<pre style="color: red; padding: 1rem; margin: 0;" translate="no">Error generating Pascal code: ${err}</pre>`;
         }
     }
@@ -500,7 +503,7 @@ export class EditorViewManager {
                 }
                 h.autoSaveToLocalStorage();
             } catch (err) {
-                console.error('[EditorViewManager] Error parsing Pascal code:', err);
+                logger.error('[EditorViewManager] Error parsing Pascal code:', err);
             }
         };
 

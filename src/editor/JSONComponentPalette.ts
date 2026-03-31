@@ -4,6 +4,10 @@
  * Renders toolbar (action buttons) and component palette (categorized components).
  * Each component shows icon + label and supports drag & drop.
  */
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('JSONComponentPalette');
+
 
 interface ToolbarButton {
     id: string;
@@ -68,7 +72,7 @@ export class JSONComponentPalette {
         }
         this.renderToolbar();
         this.renderPalette();
-        console.log('[JSONComponentPalette] Loaded:', json.meta.name, 'v' + json.meta.version);
+        logger.info('[JSONComponentPalette] Loaded:', json.meta.name, 'v' + json.meta.version);
     }
 
     /**
@@ -123,7 +127,7 @@ export class JSONComponentPalette {
                 if (handler) {
                     handler();
                 } else {
-                    console.warn('[Palette] Unknown action:', btn.action);
+                    logger.warn('[Palette] Unknown action:', btn.action);
                 }
             };
             this.toolbarContainer.appendChild(el);

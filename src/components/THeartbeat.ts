@@ -1,5 +1,8 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('THeartbeat');
 
 /**
  * THeartbeat Component
@@ -98,7 +101,7 @@ export class THeartbeat extends TWindow {
      * Start heartbeat manually
      */
     public start(): void {
-        console.log(`[THeartbeat] ${this.name}: start() called`);
+        logger.info(`[THeartbeat] ${this.name}: start() called`);
         if (this.onEvent) {
             this.onEvent('_start');
         }
@@ -108,7 +111,7 @@ export class THeartbeat extends TWindow {
      * Stop heartbeat
      */
     public stop(): void {
-        console.log(`[THeartbeat] ${this.name}: stop() called`);
+        logger.info(`[THeartbeat] ${this.name}: stop() called`);
         this._stopTimer();
         this.status = 'inactive';
         if (this.onEvent) {
@@ -120,7 +123,7 @@ export class THeartbeat extends TWindow {
      * Send immediate ping
      */
     public forcePing(): void {
-        console.log(`[THeartbeat] ${this.name}: forcePing() called`);
+        logger.info(`[THeartbeat] ${this.name}: forcePing() called`);
         if (this.onEvent) {
             this.onEvent('_forcePing');
         }
@@ -163,7 +166,7 @@ export class THeartbeat extends TWindow {
             sendPingFn();
         }, this.pingInterval);
 
-        console.log(`[THeartbeat] ${this.name}: Timer started (interval: ${this.pingInterval}ms)`);
+        logger.info(`[THeartbeat] ${this.name}: Timer started (interval: ${this.pingInterval}ms)`);
     }
 
     public _stopTimer(): void {

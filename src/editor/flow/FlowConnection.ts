@@ -1,6 +1,9 @@
 import { FlowElement } from './FlowElement';
 import { Logger } from '../../utils/Logger';
 
+const logger = Logger.get('FlowConnection');
+
+
 export class FlowConnection {
     private static logger = Logger.get('FlowConnection', 'Flow_Sync');
     private element: HTMLElement;
@@ -26,7 +29,7 @@ export class FlowConnection {
 
     constructor(container: HTMLElement, x1: number, y1: number, x2: number, y2: number, id?: string) {
         this.id = id || `conn_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-        console.log(`%c[FlowConnection:INIT] ID=${this.id} Coords=(${x1},${y1})->(${x2},${y2})`, 'background: #222; color: #bada55');
+        logger.info(`%c[FlowConnection:INIT] ID=${this.id} Coords=(${x1},${y1})->(${x2},${y2})`, 'background: #222; color: #bada55');
         this.startX = x1;
         this.startY = y1;
         this.endX = x2;
@@ -171,13 +174,13 @@ export class FlowConnection {
     }
 
     public attachStart(target: FlowElement) {
-        console.log(`[FlowConnection:ATTACH_START] ID=${this.id} to Node=${target.Name} (ID=${target.id})`);
+        logger.info(`[FlowConnection:ATTACH_START] ID=${this.id} to Node=${target.Name} (ID=${target.id})`);
         this.startTarget = target;
         this.updatePosition();
     }
 
     public attachEnd(target: FlowElement) {
-        console.log(`[FlowConnection:ATTACH_END] ID=${this.id} to Node=${target.Name} (ID=${target.id})`);
+        logger.info(`[FlowConnection:ATTACH_END] ID=${this.id} to Node=${target.Name} (ID=${target.id})`);
         this.endTarget = target;
         this.updatePosition();
     }
@@ -208,7 +211,7 @@ export class FlowConnection {
     public get EndY(): number { return this.endY; }
 
     public destroy() {
-        console.log(`%c[FlowConnection:DESTROY] ID=${this.id}`, 'background: #222; color: #ff0000');
+        logger.info(`%c[FlowConnection:DESTROY] ID=${this.id}`, 'background: #222; color: #ff0000');
         if (this.element.parentNode) this.element.parentNode.removeChild(this.element);
         if (this.startHandle.parentNode) this.startHandle.parentNode.removeChild(this.startHandle);
         if (this.endHandle.parentNode) this.endHandle.parentNode.removeChild(this.endHandle);

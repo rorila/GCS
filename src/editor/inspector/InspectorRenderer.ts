@@ -3,6 +3,9 @@ import { serviceRegistry } from '../../services/ServiceRegistry';
 import { actionRegistry } from '../../runtime/ActionRegistry';
 import { MethodRegistry } from '../MethodRegistry';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('InspectorRenderer');
 
 /**
  * InspectorRenderer - Handles the visual generation of Inspector UI components.
@@ -686,7 +689,7 @@ export class InspectorRenderer {
                                     val = obj;
                                 }
                             } catch (e) {
-                                console.warn('Failed to parse assigned JSON', e);
+                                logger.warn('Failed to parse assigned JSON', e);
                             }
                             onUpdate(param.name, val);
                         };

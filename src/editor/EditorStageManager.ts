@@ -4,6 +4,9 @@ import { TObjectList } from '../components/TObjectList';
 import { mediatorService } from '../services/MediatorService';
 import { ProjectRegistry } from '../services/ProjectRegistry';
 import { componentRegistry } from '../services/ComponentRegistry';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('EditorStageManager');
 
 /**
  * EditorStageManager handles all stage-related operations within the Editor:
@@ -213,7 +216,7 @@ export class EditorStageManager {
 
         p.activeStageId = p.stages[0].id;
         ProjectRegistry.getInstance().setActiveStageId(p.activeStageId);
-        console.log('[EditorStageManager] Migrated legacy project to stages');
+        logger.info('[EditorStageManager] Migrated legacy project to stages');
     }
 
     public addNewStage(name: string = 'Neue Stage'): StageDefinition {
@@ -411,7 +414,7 @@ export class EditorStageManager {
 
         this.switchStage(newStageId);
         this.onRefresh();
-        console.log(`[EditorStageManager] Stage duplicated: ${sourceStage.name} -> ${newName}`);
+        logger.info(`[EditorStageManager] Stage duplicated: ${sourceStage.name} -> ${newName}`);
     }
 
     public moveStage(stageId: string, direction: 'up' | 'down'): void {

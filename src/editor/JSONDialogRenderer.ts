@@ -330,7 +330,7 @@ export class JSONDialogRenderer {
                     const fn = new Function('item', 'dialogData', 'project', 'taskName', 'actionName', 'name', 'serviceRegistry', 'getProperties', 'getMethods', `return ${obj.filter}`);
                     return fn(item, this.dialogData, this.project, this.dialogData.taskName, this.dialogData.actionName, this.dialogData.name, serviceRegistry, (name: string) => this.getPropertiesForObject(name), (name: string) => this.getMethodsForObject(name));
                 } catch (e) {
-                    console.error(`[JSONDialogRenderer] Filter evaluation error: ${obj.filter}`, e);
+                    logger.error(`[JSONDialogRenderer] Filter evaluation error: ${obj.filter}`, e);
                     return true;
                 }
             });
@@ -375,7 +375,7 @@ export class JSONDialogRenderer {
                         );
                     } catch (e) {
                         // Fallback to string replacement if evaluation fails
-                        console.warn(`[JSONDialogRenderer] Failed to evaluate full template "${target}":`, e);
+                        logger.warn(`[JSONDialogRenderer] Failed to evaluate full template "${target}":`, e);
                     }
                 }
 
@@ -396,7 +396,7 @@ export class JSONDialogRenderer {
                         );
                         return result !== undefined ? String(result) : '';
                     } catch (e) {
-                        console.warn(`[JSONDialogRenderer] Failed to evaluate template part "${match}":`, e);
+                        logger.warn(`[JSONDialogRenderer] Failed to evaluate template part "${match}":`, e);
                         return match;
                     }
                 });
@@ -445,7 +445,7 @@ export class JSONDialogRenderer {
 
             return result;
         } catch (e) {
-            console.warn(`[JSONDialogRenderer] Expression evaluation failed: "${expr}"`, e);
+            logger.warn(`[JSONDialogRenderer] Expression evaluation failed: "${expr}"`, e);
             return fallback !== undefined ? fallback : expr;
         }
     }
@@ -456,7 +456,7 @@ export class JSONDialogRenderer {
 
         // Lookup in Registry
         const signature = MethodRegistry[methodName];
-        console.log(`[JSONDialogRenderer] getMethodSignature('${_targetName}', '${methodName}'):`, signature);
+        logger.info(`[JSONDialogRenderer] getMethodSignature('${_targetName}', '${methodName}'):`, signature);
         if (signature) {
             return signature;
         }
@@ -476,7 +476,7 @@ export class JSONDialogRenderer {
 
     private handleAction(action: string, rawActionData?: any) {
         const actionData = this.evaluateActionData(rawActionData);
-        console.log('[JSONDialogRenderer] Action:', action, actionData);
+        logger.info('[JSONDialogRenderer] Action:', action, actionData);
 
         switch (action) {
             case 'save':
@@ -553,11 +553,11 @@ export class JSONDialogRenderer {
                 if (actionData && actionData.field) {
                     const sourceElement = actionData.input || 'VariableNameSelect';
                     const varName = this.getInputValue(sourceElement);
-                    console.log(`[JSONDialogRenderer] insertVariableToField: field="${actionData.field}", source="${sourceElement}", value="${varName}"`);
+                    logger.info(`[JSONDialogRenderer] insertVariableToField: field="${actionData.field}", source="${sourceElement}", value="${varName}"`);
                     if (varName && !varName.includes('wählen')) {
                         this.insertVariableToField(actionData.field, varName);
                     } else if (!varName) {
-                        console.warn(`[JSONDialogRenderer] -> Could NOT find value for source element "${sourceElement}"`);
+                        logger.warn(`[JSONDialogRenderer] -> Could NOT find value for source element "${sourceElement}"`);
                     }
                 }
                 break;
@@ -616,18 +616,18 @@ export class JSONDialogRenderer {
                 break;
 
             case 'markImage':
-                console.log('[JSONDialogRenderer] Marking image:', actionData.path);
+                logger.info('[JSONDialogRenderer] Marking image:', actionData.path);
                 this.dialogData.selectedPath = actionData.path;
                 this.render();
                 break;
 
             case 'selectImage':
-                console.log('[JSONDialogRenderer] selectImage called. Current selectedPath:', this.dialogData.selectedPath, 'actionData:', actionData);
+                logger.info('[JSONDialogRenderer] selectImage called. Current selectedPath:', this.dialogData.selectedPath, 'actionData:', actionData);
                 if (actionData && actionData.path) {
                     this.dialogData.selectedPath = actionData.path;
                 }
                 if (this.dialogData.selectedPath) {
-                    console.log('[JSONDialogRenderer] Closing with selection:', this.dialogData.selectedPath);
+                    logger.info('[JSONDialogRenderer] Closing with selection:', this.dialogData.selectedPath);
                     this.close('select');
                 } else {
                     alert('Bitte wähle zuerst ein Bild aus.');
@@ -635,7 +635,7 @@ export class JSONDialogRenderer {
                 break;
 
             default:
-                console.warn('[JSONDialogRenderer] Unknown action:', action);
+                logger.warn('[JSONDialogRenderer] Unknown action:', action);
         }
     }
 
@@ -731,15 +731,15 @@ export class JSONDialogRenderer {
         };
 
         const allowed = [...baseFields, ...(allowedFieldsMap[type] || [])];
-        console.log(`[JSONDialogRenderer] cleanupActionFields for type "${type}". Allowed:`, allowed);
+        logger.info(`[JSONDialogRenderer] cleanupActionFields for type "${type}". Allowed:`, allowed);
 
         // Clean up
         Object.keys(this.dialogData).forEach(key => {
             if (!allowed.includes(key) && !key.startsWith('_')) {
-                console.log(`[JSONDialogRenderer] -> CLEANUP: Deleting field "${key}" (not allowed for type ${type})`);
+                logger.info(`[JSONDialogRenderer] -> CLEANUP: Deleting field "${key}" (not allowed for type ${type})`);
                 delete this.dialogData[key];
             } else if (!key.startsWith('_')) {
-                console.log(`[JSONDialogRenderer] -> CLEANUP: Keeping field "${key}"`);
+                logger.info(`[JSONDialogRenderer] -> CLEANUP: Keeping field "${key}"`);
             }
         });
     }
@@ -776,7 +776,7 @@ export class JSONDialogRenderer {
     }
 
     private applyPropertyChange(prop: string, val: any) {
-        console.log(`[JSONDialogRenderer] applyPropertyChange: property="${prop}", value="${val}" (type: ${typeof val})`);
+        logger.info(`[JSONDialogRenderer] applyPropertyChange: property="${prop}", value="${val}" (type: ${typeof val})`);
         if (!prop) return;
 
         let finalValue = val;
@@ -800,16 +800,16 @@ export class JSONDialogRenderer {
         const prop = this.getInputValue('PropertySelect');
         const val = this.getInputValue('PropertyValueInput');
 
-        console.log(`[JSONDialogRenderer] addPropertyChange button clicked:`, { prop, val });
+        logger.info(`[JSONDialogRenderer] addPropertyChange button clicked:`, { prop, val });
 
         if (!prop) {
-            console.warn('[JSONDialogRenderer] addPropertyChange - no property selected!');
+            logger.warn('[JSONDialogRenderer] addPropertyChange - no property selected!');
             return;
         }
 
         this.applyPropertyChange(prop, val);
 
-        console.log(`[JSONDialogRenderer] Current changes after add:`, this.dialogData.changes);
+        logger.info(`[JSONDialogRenderer] Current changes after add:`, this.dialogData.changes);
 
         // Clear input value for next addition
         this.dialogData._formValues = this.dialogData._formValues || {};
@@ -899,7 +899,7 @@ export class JSONDialogRenderer {
 
     private collectFormData() {
         this.isCollectingData = true;
-        console.log(`[JSONDialogRenderer] collectFormData starting...`);
+        logger.info(`[JSONDialogRenderer] collectFormData starting...`);
         try {
             const namedElements = this.dialogWindow.querySelectorAll('[data-name]');
             namedElements.forEach(el => {
@@ -915,12 +915,12 @@ export class JSONDialogRenderer {
                 }
             });
 
-            console.log(`[JSONDialogRenderer] Resulting dialogData:`, JSON.stringify(this.dialogData, null, 2));
+            logger.info(`[JSONDialogRenderer] Resulting dialogData:`, JSON.stringify(this.dialogData, null, 2));
 
             // Re-run cleanup to ensure saved data is clean
             this.cleanupActionFields(this.dialogData.type);
 
-            console.log(`[JSONDialogRenderer] Resulting dialogData AFTER cleanup:`, JSON.stringify(this.dialogData, null, 2));
+            logger.info(`[JSONDialogRenderer] Resulting dialogData AFTER cleanup:`, JSON.stringify(this.dialogData, null, 2));
 
             // Regenerate details for visibility in FlowEditor
             this.dialogData.details = this.generateActionDetails(this.dialogData);
@@ -949,7 +949,7 @@ export class JSONDialogRenderer {
         // FIX: Update renderObject to add data-name attribute
         const el = this.dialogWindow.querySelector(`[data-name="${name}"]`);
         const value = (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) ? el.value : undefined;
-        console.log(`[JSONDialogRenderer] getInputValue("${name}"):`, { found: !!el, value });
+        logger.info(`[JSONDialogRenderer] getInputValue("${name}"):`, { found: !!el, value });
         return value;
     }
 
@@ -960,7 +960,7 @@ export class JSONDialogRenderer {
 
     private async handleCreateAction() {
         if (!this.dialogManager) {
-            console.warn('[JSONDialogRenderer] Cannot create action: DialogManager not available');
+            logger.warn('[JSONDialogRenderer] Cannot create action: DialogManager not available');
             return;
         }
 
@@ -1008,26 +1008,26 @@ export class JSONDialogRenderer {
 
         // 1. Check if name is a direct property or a known action property
         if (name in this.dialogData || actionProps.includes(name)) {
-            console.log(`[JSONDialogRenderer] -> Setting property "${name}" to:`, value);
+            logger.info(`[JSONDialogRenderer] -> Setting property "${name}" to:`, value);
             this.dialogData[name] = value;
         } else if (name === 'CalcResultVariableSelect' || name === 'VariableNameSelect' || name === 'ServiceSelect' || name === 'MethodSelect') {
             // These are intermediate UI helpers/selectors - they don't need to be in dialogData directly
             // unless they map to a known property.
-            console.log(`[JSONDialogRenderer] -> intermediate UI component "${name}" changed to "${value}"`);
+            logger.info(`[JSONDialogRenderer] -> intermediate UI component "${name}" changed to "${value}"`);
         } else {
-            console.warn(`[JSONDialogRenderer] -> Field "${name}" is NOT a known property and was NOT set in dialogData.`);
+            logger.warn(`[JSONDialogRenderer] -> Field "${name}" is NOT a known property and was NOT set in dialogData.`);
         }
 
         // 2. Specialized Mappings (UI names that differ from model properties)
         if (name === 'NameInput' || name === 'ActionNameInput') {
             this.dialogData.name = value;
-            console.log(`[JSONDialogRenderer] -> Synced name to: ${value}`);
+            logger.info(`[JSONDialogRenderer] -> Synced name to: ${value}`);
         }
         if (name === 'DescriptionInput') this.dialogData.description = value;
         if (name === 'TaskNameInput') this.dialogData.taskName = value;
         if (name === 'CalcResultVariable' || name === 'ResultVariableInput') {
             this.dialogData.resultVariable = value;
-            console.log(`[JSONDialogRenderer] -> Synced resultVariable to: ${value}`);
+            logger.info(`[JSONDialogRenderer] -> Synced resultVariable to: ${value}`);
         }
         if (name === 'CalcFormulaInput') this.dialogData.formula = value;
 
@@ -1047,7 +1047,7 @@ export class JSONDialogRenderer {
             const newType = types[value] || value;
 
             if (this.dialogData.type !== newType) {
-                console.log(`[JSONDialogRenderer] -> Action Type changed: ${this.dialogData.type} -> ${newType}`);
+                logger.info(`[JSONDialogRenderer] -> Action Type changed: ${this.dialogData.type} -> ${newType}`);
                 this.dialogData.type = newType;
                 this.reloadTypeDefaults();
                 if (!this.isCollectingData) this.render();
@@ -1068,7 +1068,7 @@ export class JSONDialogRenderer {
 
     private handleSelectTarget() {
         const selectedValue = this.getInputValue('TargetObjectSelect');
-        console.log('[JSONDialogRenderer] handleSelectTarget:', selectedValue);
+        logger.info('[JSONDialogRenderer] handleSelectTarget:', selectedValue);
 
         if (selectedValue === '📦 Neue Funktionsvariable...') {
             // Prompt for variable name
@@ -1076,7 +1076,7 @@ export class JSONDialogRenderer {
             if (varName && varName.trim()) {
                 const cleanName = varName.trim().replace(/\s+/g, '');
                 this.dialogData.target = `\${${cleanName}}`;
-                console.log('[JSONDialogRenderer] Created function variable target:', this.dialogData.target);
+                logger.info('[JSONDialogRenderer] Created function variable target:', this.dialogData.target);
             } else {
                 // User cancelled - reset to first object or empty
                 this.dialogData.target = projectRegistry.getObjects()[0]?.name || '';
@@ -1087,7 +1087,7 @@ export class JSONDialogRenderer {
             const match = selectedValue.match(/📦 (\$\{[^}]+\})/);
             if (match) {
                 this.dialogData.target = match[1];
-                console.log('[JSONDialogRenderer] Selected existing function variable:', this.dialogData.target);
+                logger.info('[JSONDialogRenderer] Selected existing function variable:', this.dialogData.target);
             }
         }
         // For regular objects, dialogData.target is already updated by updateModelValue
@@ -1126,19 +1126,19 @@ export class JSONDialogRenderer {
     private findVariable(objectName: string) {
         if (!objectName) return null;
 
-        console.log(`[JSONDialogRenderer] findVariable looking for: "${objectName}"`);
+        logger.info(`[JSONDialogRenderer] findVariable looking for: "${objectName}"`);
 
         // Robust lookup:
         // 1. Exact match in enrichedProject
         let allVars = this.enrichedProject?.variables || [];
         let variable = allVars.find(v => v.name === objectName);
-        if (variable) console.log(`[JSONDialogRenderer] -> Found exact match in enrichedProject:`, variable);
+        if (variable) logger.info(`[JSONDialogRenderer] -> Found exact match in enrichedProject:`, variable);
 
         // 2. Normalized match (remove emojis, trim, case-insensitive)
         if (!variable) {
             const cleanName = objectName.replace(/[^\w]/g, '').toLowerCase();
             variable = allVars.find(v => (v.name || '').replace(/[^\w]/g, '').toLowerCase() === cleanName);
-            if (variable) console.log(`[JSONDialogRenderer] -> Found normalized match in enrichedProject:`, variable);
+            if (variable) logger.info(`[JSONDialogRenderer] -> Found normalized match in enrichedProject:`, variable);
         }
 
         // 3. Fallback to Registry (full lookup)
@@ -1147,21 +1147,21 @@ export class JSONDialogRenderer {
                 taskName: this.dialogData.taskName,
                 actionId: this.dialogData.actionId || this.dialogData.name
             });
-            console.log(`[JSONDialogRenderer] -> Registry variables for context:`, regVars.length);
+            logger.info(`[JSONDialogRenderer] -> Registry variables for context:`, regVars.length);
 
             variable = regVars.find(v => v.name === objectName);
-            if (variable) console.log(`[JSONDialogRenderer] -> Found exact match in Registry:`, variable);
+            if (variable) logger.info(`[JSONDialogRenderer] -> Found exact match in Registry:`, variable);
 
             if (!variable) {
                 const cleanName = objectName.replace(/[^\w]/g, '').toLowerCase();
                 variable = regVars.find(v => (v.name || '').replace(/[^\w]/g, '').toLowerCase() === cleanName);
-                if (variable) console.log(`[JSONDialogRenderer] -> Found normalized match in Registry:`, variable);
+                if (variable) logger.info(`[JSONDialogRenderer] -> Found normalized match in Registry:`, variable);
             }
         }
 
         if (!variable) {
             // Not found as variable. This is normal if it is an object/component.
-            // console.warn(`[JSONDialogRenderer] -> FAILED to find variable "${objectName}" in any source!`);
+            // logger.warn(`[JSONDialogRenderer] -> FAILED to find variable "${objectName}" in any source!`);
         }
 
         return variable;
@@ -1169,7 +1169,7 @@ export class JSONDialogRenderer {
 
     private getPropertiesForObject(objectName: string): string[] {
         const variable = this.findVariable(objectName);
-        console.log(`[JSONDialogRenderer] getProperties for "${objectName}":`, {
+        logger.info(`[JSONDialogRenderer] getProperties for "${objectName}":`, {
             found: !!variable,
             type: variable?.type,
             fullVariable: variable
@@ -1211,7 +1211,7 @@ export class JSONDialogRenderer {
             }
 
             const uniqueProps = Array.from(new Set(props));
-            console.log(`[JSONDialogRenderer] -> Resolved properties for variable "${objectName}":`, uniqueProps);
+            logger.info(`[JSONDialogRenderer] -> Resolved properties for variable "${objectName}":`, uniqueProps);
             return uniqueProps;
         }
 
@@ -1229,7 +1229,7 @@ export class JSONDialogRenderer {
                 return Array.from(new Set(["x", "y", "width", "height", "visible", ...hProps]));
             }
         } catch (e) {
-            console.warn(`[JSONDialogRenderer] Failed to hydrate ${objectName} for properties`, e);
+            logger.warn(`[JSONDialogRenderer] Failed to hydrate ${objectName} for properties`, e);
         }
         return ["x", "y", "width", "height", "caption", "text", "style.visible"];
     }
@@ -1265,7 +1265,7 @@ export class JSONDialogRenderer {
         const objects = projectRegistry.getObjects();
         const objData = objects.find(o => o.name === objectName);
         if (!objData) {
-            console.warn(`[JSONDialogRenderer] getMethods: Object "${objectName}" not found in current stage (Objects: ${objects.length}).`);
+            logger.warn(`[JSONDialogRenderer] getMethods: Object "${objectName}" not found in current stage (Objects: ${objects.length}).`);
             return [];
         }
 

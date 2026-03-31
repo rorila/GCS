@@ -1,4 +1,7 @@
 import { ClientMessage, ServerMessage } from './Protocol';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('NetworkManager');
 
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'in_room' | 'playing';
 
@@ -44,18 +47,18 @@ export class NetworkManager {
 
             this.ws.onopen = () => {
                 this.state = 'connected';
-                console.log('[Network] Connected to server');
+                logger.info('[Network] Connected to server');
                 resolve();
             };
 
             this.ws.onerror = (error) => {
-                console.error('[Network] Connection error:', error);
+                logger.error('[Network] Connection error:', error);
                 this.state = 'disconnected';
                 reject(error);
             };
 
             this.ws.onclose = () => {
-                console.log('[Network] Disconnected from server');
+                logger.info('[Network] Disconnected from server');
                 this.state = 'disconnected';
                 this.roomCode = null;
                 this.playerNumber = null;
@@ -165,12 +168,12 @@ export class NetworkManager {
             const data = JSON.stringify(message);
             this.ws.send(data);
             if (message.type !== 'state_sync' && message.type !== 'trigger_event') { // Avoid spamming common logs
-                console.log(`[Network] SENT: ${message.type}`, message);
+                logger.info(`[Network] SENT: ${message.type}`, message);
             }
         } else if (isSyncMessage) {
             // Silently drop sync messages if not connected
         } else {
-            console.warn('[Network] Cannot send message - not connected', this.ws?.readyState);
+            logger.warn('[Network] Cannot send message - not connected', this.ws?.readyState);
         }
     }
 
@@ -182,9 +185,9 @@ export class NetworkManager {
             const message = JSON.parse(data) as ServerMessage;
 
             if (message.type === 'remote_state') {
-                console.log(`[Network] RECV remote_state for ${message.objectId} from P${message.player}`, message);
+                logger.info(`[Network] RECV remote_state for ${message.objectId} from P${message.player}`, message);
             } else if (message.type !== 'remote_input') {
-                console.log(`[Network] RECV: ${message.type}`, message);
+                logger.info(`[Network] RECV: ${message.type}`, message);
             }
 
             // Update internal state based on message
@@ -204,7 +207,7 @@ export class NetworkManager {
                     this.state = 'playing';
                     break;
                 case 'error':
-                    console.error('[Network] Server error:', message.message);
+                    logger.error('[Network] Server error:', message.message);
                     break;
             }
 
@@ -212,7 +215,7 @@ export class NetworkManager {
             this.eventHandlers.forEach(handler => handler(message));
 
         } catch (error) {
-            console.error('[Network] Failed to parse message:', error);
+            logger.error('[Network] Failed to parse message:', error);
         }
     }
 }

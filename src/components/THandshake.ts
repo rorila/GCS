@@ -1,5 +1,8 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('THandshake');
 
 /**
  * THandshake Component
@@ -90,7 +93,7 @@ export class THandshake extends TWindow {
      * Create a new room (Host)
      */
     public createRoom(): void {
-        console.log(`[THandshake] ${this.name}: createRoom() called`);
+        logger.info(`[THandshake] ${this.name}: createRoom() called`);
         if (this.onEvent) {
             this.onEvent('_createRoom');
         }
@@ -100,7 +103,7 @@ export class THandshake extends TWindow {
      * Join an existing room with a code
      */
     public joinRoom(code: string): void {
-        console.log(`[THandshake] ${this.name}: joinRoom(${code}) called`);
+        logger.info(`[THandshake] ${this.name}: joinRoom(${code}) called`);
         if (this.onEvent) {
             this.onEvent('_joinRoom', { code });
         }
@@ -110,7 +113,7 @@ export class THandshake extends TWindow {
      * Signal ready status
      */
     public ready(): void {
-        console.log(`[THandshake] ${this.name}: ready() called`);
+        logger.info(`[THandshake] ${this.name}: ready() called`);
         if (this.onEvent) {
             this.onEvent('_ready');
         }

@@ -29,6 +29,9 @@ import { FlowTaskManager, FlowTaskHost } from './services/FlowTaskManager';
 import { FlowNodeFactory, FlowNodeHost } from './services/FlowNodeFactory';
 import { Editor } from './Editor';
 
+const logger = Logger.get('FlowEditor');
+
+
 
 export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHost, FlowNavigationHost, FlowGraphHydrationHost, FlowUIHost, FlowTaskHost, FlowNodeHost {
     private static logger = Logger.get('FlowEditor', 'Flow_Synchronization');
@@ -180,7 +183,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
             (node as any).setShowDetails?.(this.showDetails, this.project);
         }
 
-        console.log(`[FlowEditor] Successfully synced visuals for node ${nodeId}`);
+        logger.info(`[FlowEditor] Successfully synced visuals for node ${nodeId}`);
     }
 
 
@@ -478,7 +481,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     }
 
     public setProject(project: GameProject) {
-        console.warn('[DEBUG-RENAME] >>> setProject() aufgerufen!', new Error().stack);
+        logger.warn('[DEBUG-RENAME] >>> setProject() aufgerufen!', new Error().stack);
         this.project = project;
 
         // ================================================================
@@ -1046,7 +1049,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     // syncTaskParameters, syncTaskParamValues, syncVariablesFromFlow, syncTaskFromFlow sind nun im SyncManager.
 
     public loadFromProject(contextName?: string) {
-        console.warn('[DEBUG-RENAME] >>> loadFromProject() aufgerufen! context=', contextName, new Error().stack);
+        logger.warn('[DEBUG-RENAME] >>> loadFromProject() aufgerufen! context=', contextName, new Error().stack);
         this.hydrationManager.loadFromProject(contextName);
         this.updatePascalPanel();
     }

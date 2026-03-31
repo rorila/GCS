@@ -3,6 +3,9 @@ import { GameProject, ProjectVariable, GameTask, GameAction, ComponentData } fro
 import { libraryService } from './LibraryService';
 import { Logger } from '../utils/Logger';
 
+const logger = Logger.get('ProjectRegistry');
+
+
 export type ScopedVariable = ProjectVariable & { uiScope?: 'global' | 'stage' | 'local', uiEmoji?: string, usageCount?: number };
 export type ScopedTask = GameTask & { uiScope?: 'global' | 'stage' | 'library', uiEmoji?: string, usageCount?: number };
 export type ScopedAction = GameAction & { uiScope?: 'global' | 'stage' | 'library', uiEmoji?: string, usageCount?: number };
@@ -721,7 +724,7 @@ export class ProjectRegistry {
     }
 
     public getActionUsage(name: string): string[] {
-        // console.log(`  [ProjectRegistry] getActionUsage('${name}')`);
+        // logger.info(`  [ProjectRegistry] getActionUsage('${name}')`);
         const refs: string[] = [];
         if (!this.project) return refs;
 
@@ -775,7 +778,7 @@ export class ProjectRegistry {
     }
 
     public getVariableUsage(name: string): string[] {
-        // console.log(`  [ProjectRegistry] getVariableUsage('${name}')`);
+        // logger.info(`  [ProjectRegistry] getVariableUsage('${name}')`);
         const refs: string[] = [];
         if (!this.project) return refs;
 
@@ -912,7 +915,7 @@ export class ProjectRegistry {
                     while ((match = regex.exec(trimmed)) !== null) {
                         const varName = match[1].trim();
                         if (allVars.includes(varName) && !usedVariables.has(varName)) {
-                            // console.log(`  [Found] Template usage: "${varName}" in ${trimmed} at ${path}`);
+                            // logger.info(`  [Found] Template usage: "${varName}" in ${trimmed} at ${path}`);
                             usedVariables.add(varName);
                         }
                     }

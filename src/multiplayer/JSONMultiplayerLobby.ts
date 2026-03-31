@@ -7,6 +7,9 @@
 
 import { network } from './NetworkManager';
 import { ServerMessage } from './Protocol';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('JSONMultiplayerLobby');
 
 interface LobbyConfig {
     meta: { name: string; version: string };
@@ -52,7 +55,7 @@ export class JSONMultiplayerLobby {
      */
     async loadFromJSON(json: LobbyConfig): Promise<void> {
         this.config = json;
-        console.log('[JSONMultiplayerLobby] Loaded:', json.meta.name, 'v' + json.meta.version);
+        logger.info('[JSONMultiplayerLobby] Loaded:', json.meta.name, 'v' + json.meta.version);
     }
 
     /**
@@ -74,7 +77,7 @@ export class JSONMultiplayerLobby {
         this.onGameStart = onGameStart;
 
         if (!this.config) {
-            console.error('[JSONMultiplayerLobby] No config loaded!');
+            logger.error('[JSONMultiplayerLobby] No config loaded!');
             return;
         }
 
@@ -85,7 +88,7 @@ export class JSONMultiplayerLobby {
             this.statusText = this.config.messages.connected;
         } catch (error) {
             this.statusText = this.config.messages.connectionFailed;
-            console.error('Connection failed:', error);
+            logger.error('Connection failed:', error);
         }
 
         this.render();
@@ -241,7 +244,7 @@ export class JSONMultiplayerLobby {
             case 'roomCodeDisplay':
                 return this.renderRoomCodeDisplay();
             default:
-                console.warn('[JSONMultiplayerLobby] Unknown element type:', el.type);
+                logger.warn('[JSONMultiplayerLobby] Unknown element type:', el.type);
                 return null;
         }
     }
@@ -360,7 +363,7 @@ export class JSONMultiplayerLobby {
                 if (handler) {
                     handler();
                 } else {
-                    console.warn('[JSONMultiplayerLobby] Unknown action:', actionName);
+                    logger.warn('[JSONMultiplayerLobby] Unknown action:', actionName);
                 }
         }
     }

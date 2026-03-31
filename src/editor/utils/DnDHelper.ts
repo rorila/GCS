@@ -1,3 +1,7 @@
+
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('DnDHelper');
 export interface DnDPayload {
     type: string;
     toolType: string;
@@ -69,7 +73,7 @@ export class DnDHelper {
                     const payload = JSON.parse(data);
                     onDrop(payload, e);
                 } catch (err) {
-                    console.error("[DnDHelper] Failed to parse drop data", err);
+                    logger.error("[DnDHelper] Failed to parse drop data", err);
                 }
             }
         };

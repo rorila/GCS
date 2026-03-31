@@ -1,6 +1,9 @@
 import { ClientMessage, ServerMessage } from '../../game-server/src/Protocol';
 import { Logger } from '../utils/Logger';
 
+const logger = Logger.get('MultiplayerManager');
+
+
 export class MultiplayerManager {
     private static logger = Logger.get('MultiplayerManager', 'Remote_Game_Sync');
     public gameName: string;
@@ -132,7 +135,7 @@ export class MultiplayerManager {
 
     public send(msg: ClientMessage) {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            // Reduce log spam: console.log('[MP] Sending:', msg.type, msg);
+            // Reduce log spam: logger.info('[MP] Sending:', msg.type, msg);
             this.ws.send(JSON.stringify(msg));
         } else {
             MultiplayerManager.logger.debug(`Queueing message (not connected yet): ${msg.type}`);
@@ -240,7 +243,7 @@ export class MultiplayerManager {
     }
 
     private handleMessage(msg: ServerMessage) {
-        // Reduce log spam: console.log('[MP] Received:', msg.type, msg);
+        // Reduce log spam: logger.info('[MP] Received:', msg.type, msg);
 
         switch (msg.type) {
             case 'room_created':

@@ -1,6 +1,9 @@
 import { FlowElement } from '../flow/FlowElement';
 import { FlowConnection } from '../flow/FlowConnection';
 import { mediatorService, MediatorEvents } from '../../services/MediatorService';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('FlowUIController');
 
 export interface FlowUIHost {
     flowStage: any;
@@ -60,11 +63,11 @@ export class FlowUIController {
 
     public initMediator() {
         mediatorService.on(MediatorEvents.DATA_CHANGED, (data: any, originator?: string) => {
-            console.warn('[DEBUG-RENAME] FlowUIController DATA_CHANGED', { originator, property: data?.property, oldValue: data?.oldValue, value: data?.value, currentContext: this.host.currentFlowContext });
+            logger.warn('[DEBUG-RENAME] FlowUIController DATA_CHANGED', { originator, property: data?.property, oldValue: data?.oldValue, value: data?.value, currentContext: this.host.currentFlowContext });
             if (originator !== 'flow-editor' && this.host.project) {
                 if (data && (data.property === 'Name' || data.property === 'name')) {
                     if (data.oldValue === this.host.currentFlowContext && data.value) {
-                        console.warn('[DEBUG-RENAME] >>> FlowUIController triggert loadFromProject!', data.oldValue, '->', data.value);
+                        logger.warn('[DEBUG-RENAME] >>> FlowUIController triggert loadFromProject!', data.oldValue, '->', data.value);
                         (this.host as any).currentFlowContext = data.value;
                         localStorage.setItem('gcs_last_flow_context', data.value);
                         this.host.loadFromProject(data.value);

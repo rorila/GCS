@@ -19,6 +19,9 @@ import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { Logger } from '../../utils/Logger';
 import { isInspectable, IInspectable } from './types';
 
+const logger = Logger.get('InspectorHost');
+
+
 /**
  * InspectorHost - The main entry point for the new modular Inspector.
  * Coordinates selection, rendering, and property changes.
@@ -1246,7 +1249,7 @@ export class InspectorHost {
                 const textInput = (container as any).textInput as HTMLInputElement;
 
                 const updateValue = (newValue: string) => {
-                    console.info(`[InspectorHost] TColorInput changed: ${newValue} for ${def.name}`);
+                    logger.info(`[InspectorHost] TColorInput changed: ${newValue} for ${def.name}`);
                     const event = this.eventHandler.handleControlChange(def.name, newValue, obj, def);
                     if (event) {
                         mediatorService.notifyDataChanged({

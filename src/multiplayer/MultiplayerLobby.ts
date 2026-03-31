@@ -4,6 +4,9 @@ import { TLabel } from '../components/TLabel';
 import { TEdit } from '../components/TEdit';
 import { network } from './NetworkManager';
 import { ServerMessage } from './Protocol';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('MultiplayerLobby');
 
 /**
  * MultiplayerLobby - Reusable lobby overlay using project components
@@ -85,7 +88,7 @@ export class MultiplayerLobby {
             this.statusLabel.text = 'Connected! Create or join a room.';
         } catch (error) {
             this.statusLabel.text = 'Failed to connect to server';
-            console.error('Connection failed:', error);
+            logger.error('Connection failed:', error);
         }
 
         this.render();

@@ -2,6 +2,9 @@ import { GameProject } from '../../model/types';
 import { mediatorService } from '../../services/MediatorService';
 import { componentRegistry } from '../../services/ComponentRegistry';
 import { projectStore, ProjectMutation } from '../../services/ProjectStore';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('EditorInteractionManager');
 
 export interface EditorInteractionHost {
     project: GameProject;
@@ -153,11 +156,11 @@ export class EditorInteractionManager {
         };
 
         stage.onDragStart = (id: string) => {
-            console.log(`[EditorInteractionManager] Drag start: ${id}`);
+            logger.info(`[EditorInteractionManager] Drag start: ${id}`);
         };
 
         stage.onObjectCopy = (id: string, x: number, y: number) => {
-            console.log(`[EditorInteractionManager] onObjectCopy called for ${id} at ${x},${y}`);
+            logger.info(`[EditorInteractionManager] onObjectCopy called for ${id} at ${x},${y}`);
             const original = this.host.findObjectById(id);
             if (!original) return;
 
@@ -176,7 +179,7 @@ export class EditorInteractionManager {
         };
 
         stage.onPasteCallback = (jsonObj: any, x: number, y: number): string | null => {
-            console.log('[EditorInteractionManager] onPasteCallback called', jsonObj?.className, x, y);
+            logger.info('[EditorInteractionManager] onPasteCallback called', jsonObj?.className, x, y);
             const copyData = JSON.parse(JSON.stringify(jsonObj));
             copyData.id = crypto.randomUUID();
             copyData.x = x;
@@ -210,10 +213,10 @@ export class EditorInteractionManager {
 
             const newObj = componentRegistry.createInstance(copyData);
             if (!newObj) {
-                console.error('[EditorInteractionManager] createInstance returned null for', copyData.className);
+                logger.error('[EditorInteractionManager] createInstance returned null for', copyData.className);
                 return null;
             }
-            console.log('[EditorInteractionManager] Created copy:', newObj.id, newObj.name);
+            logger.info('[EditorInteractionManager] Created copy:', newObj.id, newObj.name);
 
             if (targetStage && targetStage.objects) {
                 targetStage.objects.push(newObj as any);

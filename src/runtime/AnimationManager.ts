@@ -2,6 +2,10 @@
  * AnimationManager - Zentrale Verwaltung von Tween-Animationen.
  * Ermöglicht die weiche Animation beliebiger numerischer Eigenschaften.
  */
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('AnimationManager');
+
 
 export type EasingFunction = (t: number) => number;
 
@@ -72,7 +76,7 @@ export class AnimationManager {
         onUpdate?: (value: number, target: any) => void
     ): Tween {
         // Nur bei Debug-Bedarf einkommentieren, NICHT im Normalbetrieb:
-        // console.log(`[AnimationManager.addTween] target=${target?.name}, prop=${property}, to=${to}, dur=${duration}, easing=${easingName}`);
+        // logger.info(`[AnimationManager.addTween] target=${target?.name}, prop=${property}, to=${to}, dur=${duration}, easing=${easingName}`);
 
         // Vorherigen Tween auf dasselbe Property abbrechen
         const previousCount = this.activeTweens.length;
@@ -83,18 +87,18 @@ export class AnimationManager {
 
         // Aktuellen Wert auslesen (außer es ist ein rein virtuelles Animations-Property)
         const from = property === '_virtual' ? 0 : this.getPropertyValue(target, property);
-        // console.log(`[AnimationManager.addTween] Current value of ${property}: ${from}`);
+        // logger.info(`[AnimationManager.addTween] Current value of ${property}: ${from}`);
 
         // Easing-Funktion bestimmen
         const easing = (Easing as any)[easingName] || Easing.easeOut;
         if (!(Easing as any)[easingName]) {
-            console.warn(`[AnimationManager.addTween] Unknown easing "${easingName}", falling back to easeOut`);
+            logger.warn(`[AnimationManager.addTween] Unknown easing "${easingName}", falling back to easeOut`);
         }
 
         // Flag setzen, um Physik zu pausieren (falls vorhanden)
         if (property === 'x' || property === 'y') {
             target.isAnimating = true;
-            // console.log(`[AnimationManager.addTween] Set isAnimating=true on ${target?.name}`);
+            // logger.info(`[AnimationManager.addTween] Set isAnimating=true on ${target?.name}`);
         }
 
         const tween: Tween = {
@@ -115,7 +119,7 @@ export class AnimationManager {
         // Lazy import (dynamic) um zirkuläre Abhängigkeiten zu vermeiden
         import('./GameLoopManager').then(({ GameLoopManager }) => {
             GameLoopManager.getInstance().wakeUp();
-        }).catch(err => console.error('[AnimationManager] Fehler beim Lazy-Import von GameLoopManager:', err));
+        }).catch(err => logger.error('[AnimationManager] Fehler beim Lazy-Import von GameLoopManager:', err));
 
         return tween;
     }
@@ -190,7 +194,7 @@ export class AnimationManager {
 
         if (this.activeTweens.length > 0) {
             // HIGH-FREQ LOG ENTFERNT — wurde 60x/sec aufgerufen, blockierte Main-Thread
-            // console.log(`[AnimationManager.update] Updating ${this.activeTweens.length} active tweens at t=${now.toFixed(0)}`);
+            // logger.info(`[AnimationManager.update] Updating ${this.activeTweens.length} active tweens at t=${now.toFixed(0)}`);
         }
 
         for (const tween of this.activeTweens) {
@@ -226,11 +230,11 @@ export class AnimationManager {
                     if (tween.onUpdate) {
                         tween.onUpdate(tween.to, tween.target);
                     }
-                    console.log(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property} (Forced to ${tween.to})`);
+                    logger.info(`[AnimationManager] Tween completed for ${tween.target.name || tween.target.id}.${tween.property} (Forced to ${tween.to})`);
                     completedTweens.push(tween);
                 }
             } catch (error) {
-                console.error(`[AnimationManager] Error updating tween for ${tween.target.name || tween.target.id}.${tween.property}:`, error);
+                logger.error(`[AnimationManager] Error updating tween for ${tween.target.name || tween.target.id}.${tween.property}:`, error);
                 completedTweens.push(tween); // Mark as completed to remove it and prevent further errors
             }
         }

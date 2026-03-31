@@ -5,6 +5,9 @@ import { libraryService } from '../../services/LibraryService';
 import { projectRegistry } from '../../services/ProjectRegistry';
 import { InspectorSection } from '../inspector/types';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('FlowTask');
 
 export class FlowTask extends FlowElement {
     public getType(): string { return 'task'; }
@@ -199,7 +202,7 @@ export class FlowTask extends FlowElement {
         if (taskDef) {
             taskDef.triggerMode = v as any;
         } else {
-            console.warn(`[FlowTask] Could not find task definition for '${this.Name}' to update triggerMode.`);
+            logger.warn(`[FlowTask] Could not find task definition for '${this.Name}' to update triggerMode.`);
         }
     }
 
@@ -266,18 +269,18 @@ export class FlowTask extends FlowElement {
 
         if (currentScope === newScope) return;
 
-        console.log(`[FlowTask] Changing scope of ${taskName} from ${currentScope} to ${newScope}`);
+        logger.info(`[FlowTask] Changing scope of ${taskName} from ${currentScope} to ${newScope}`);
 
         const stageId = this.projectRef.activeStageId;
         const stage = this.projectRef.stages?.find(s => s.id === stageId);
         const blueprint = this.projectRef.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
 
         if (!stage) {
-            console.error('[FlowTask] No active stage found for scope change');
+            logger.error('[FlowTask] No active stage found for scope change');
             return;
         }
         if (!blueprint) {
-            console.error('[FlowTask] No blueprint stage found for scope change');
+            logger.error('[FlowTask] No blueprint stage found for scope change');
             return;
         }
 
@@ -292,7 +295,7 @@ export class FlowTask extends FlowElement {
 
                 // Check if global already exists
                 if (blueprint.tasks.some(t => t.name === taskName)) {
-                    console.error(`[FlowTask] Cannot move to global: Task '${taskName}' already exists globally.`);
+                    logger.error(`[FlowTask] Cannot move to global: Task '${taskName}' already exists globally.`);
                     return;
                 }
 
@@ -327,7 +330,7 @@ export class FlowTask extends FlowElement {
 
                 // Check if local already exists
                 if (stage.tasks.some(t => t.name === taskName)) {
-                    console.error(`[FlowTask] Cannot move to stage: Task '${taskName}' already exists in stage.`);
+                    logger.error(`[FlowTask] Cannot move to stage: Task '${taskName}' already exists in stage.`);
                     return;
                 }
 

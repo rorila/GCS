@@ -11,6 +11,9 @@ import { VariablePickerDialog } from './VariablePickerDialog';
 import { MediaPickerDialog } from './MediaPickerDialog';
 import { projectStore } from '../../services/ProjectStore';
 
+const logger = Logger.get('InspectorActionHandler');
+
+
 /**
  * InspectorActionHandler - Handles complex button-driven actions in the Inspector.
  * This class captures the "Action/Command" logic for specialized Inspector buttons.
@@ -241,7 +244,7 @@ export class InspectorActionHandler {
                     currentParent = editor.findParentContainer(currentParent.id);
                 }
             }
-        } catch (e) { console.error('Fehler beim Auflösen der Repeater-Bindings:', e); }
+        } catch (e) { logger.error('Fehler beim Auflösen der Repeater-Bindings:', e); }
 
         // Dialog anzeigen
         const chosen = await VariablePickerDialog.show({

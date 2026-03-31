@@ -1,4 +1,7 @@
 import { TComponent, TPropertyDef } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TAuthService');
 
 /**
  * TAuthService - Kapselt die Authentifizierungs-Logik (JWT Simulation).
@@ -55,13 +58,13 @@ export class TAuthService extends TComponent {
 
             const payload = JSON.parse(atob(parts[1]));
             if (payload.exp < Date.now() / 1000) {
-                console.warn('[TAuthService] Token abgelaufen');
+                logger.warn('[TAuthService] Token abgelaufen');
                 return null;
             }
 
             return payload;
         } catch (e) {
-            console.error('[TAuthService] Token Validierung fehlgeschlagen', e);
+            logger.error('[TAuthService] Token Validierung fehlgeschlagen', e);
             return null;
         }
     }

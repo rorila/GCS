@@ -1,5 +1,8 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TKeyStore');
 
 /**
  * TKeyStore - Schlüssel-Wert-Speicher Variable
@@ -202,7 +205,7 @@ export class TKeyStore extends TWindow {
         const handler = (this as any)[eventName];
         if (handler && typeof handler === 'string') {
             // Event wird vom GameRuntime/TaskExecutor aufgelöst
-            console.log(`[TKeyStore] Event ${eventName}:`, data);
+            logger.info(`[TKeyStore] Event ${eventName}:`, data);
         }
     }
 

@@ -1,3 +1,7 @@
+
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('GameBase');
 export class GameBase {
     private isRunning: boolean = false;
     private isPaused: boolean = false;
@@ -8,12 +12,12 @@ export class GameBase {
 
     public start() {
         this.isRunning = true;
-        console.log("Game Engine Started");
+        logger.info("Game Engine Started");
     }
 
     public stop() {
         this.isRunning = false;
-        console.log("Game Engine Stopped");
+        logger.info("Game Engine Stopped");
     }
 
     public pause() {

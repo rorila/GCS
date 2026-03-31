@@ -1,5 +1,8 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TRandomVariable');
 
 export class TRandomVariable extends TWindow {
     public className: string = 'TRandomVariable';
@@ -53,7 +56,7 @@ export class TRandomVariable extends TWindow {
         } else {
             this.value = Math.random() * (this.max - this.min) + this.min;
         }
-        console.log(`[TRandomVariable] ${this.name} generated: ${this.value}`);
+        logger.info(`[TRandomVariable] ${this.name} generated: ${this.value}`);
         // In a real implementation, this would fire 'onGenerated' in the runtime.
     }
 }

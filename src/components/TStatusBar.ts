@@ -1,5 +1,8 @@
 import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('TStatusBar');
 
 /**
  * Status bar section configuration
@@ -69,7 +72,7 @@ export class TStatusBar extends TWindow {
         }
 
         this.updateSectionElement(id);
-        console.log(`[TStatusBar] Section '${id}' updated: ${icon || ''} ${text}`);
+        logger.info(`[TStatusBar] Section '${id}' updated: ${icon || ''} ${text}`);
     }
 
     /**

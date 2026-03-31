@@ -2,6 +2,10 @@
  * JSONTreeViewer - Renders JSON as an interactive, collapsible tree with syntax highlighting
  * Now supports distinct Viewer/Editor modes and change tracking.
  */
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('JSONTreeViewer');
+
 export class JSONTreeViewer {
     // Colors matching VS Code dark theme
     private static readonly COLORS = {
@@ -37,7 +41,7 @@ export class JSONTreeViewer {
         this.rootData = data;
         this.isEditable = isEditable;
 
-        console.log('[JSONTreeViewer] Render called with data:', data);
+        logger.info('[JSONTreeViewer] Render called with data:', data);
 
         container.innerHTML = '';
         container.style.fontFamily = "'Fira Code', monospace";

@@ -34,6 +34,9 @@ export interface FlowInteractionHost {
 }
 
 import { DnDHelper, DnDPayload } from '../utils/DnDHelper';
+import { Logger } from '../../utils/Logger';
+
+const logger = Logger.get('FlowInteractionManager');
 
 export class FlowInteractionManager {
     private host: FlowInteractionHost;
@@ -308,7 +311,7 @@ export class FlowInteractionManager {
                 // Disable pointer events while dragging to not obscure drop targets
                 conn.getElement().style.pointerEvents = 'none';
 
-                console.log(`[FlowInteraction] Created new connection from node ${node.Name} (branch: ${branchType || 'output'}), dragging handle`);
+                logger.info(`[FlowInteraction] Created new connection from node ${node.Name} (branch: ${branchType || 'output'}), dragging handle`);
             });
         };
 
@@ -387,7 +390,7 @@ export class FlowInteractionManager {
 
         // Debug Log only every ~20 frames to avoid spam
         if (Math.random() < 0.05) {
-            console.log(`[FlowInteraction] Dragging connection (isStart=${isStart}) to (${x}, ${y})`);
+            logger.info(`[FlowInteraction] Dragging connection (isStart=${isStart}) to (${x}, ${y})`);
         }
     }
 
@@ -422,7 +425,7 @@ export class FlowInteractionManager {
                     else if (anchor.classList.contains('false')) targetAnchorType = 'false';
                     else if (anchor.dataset.branch) targetAnchorType = anchor.dataset.branch;
 
-                    console.log(`[FlowInteraction] Direct anchor hit: node=${node.Name}, type=${targetAnchorType}`);
+                    logger.info(`[FlowInteraction] Direct anchor hit: node=${node.Name}, type=${targetAnchorType}`);
                     break;
                 }
             }
@@ -460,14 +463,14 @@ export class FlowInteractionManager {
                     });
 
                     targetAnchorType = nearestType;
-                    console.log(`[FlowInteraction] Magnet hit: node=${node.Name}, nearest type=${targetAnchorType}`);
+                    logger.info(`[FlowInteraction] Magnet hit: node=${node.Name}, nearest type=${targetAnchorType}`);
                     break;
                 }
             }
         }
 
         if (targetNode) {
-            console.log(`[FlowInteraction:UP_HIT] ID=${this.host.activeConnection.id} target=${targetNode.Name} isStart=${isStart}`);
+            logger.info(`[FlowInteraction:UP_HIT] ID=${this.host.activeConnection.id} target=${targetNode.Name} isStart=${isStart}`);
             if (this.host.activeConnection) {
                 this.host.activeConnection.getElement().style.pointerEvents = 'auto';
             }
@@ -493,7 +496,7 @@ export class FlowInteractionManager {
             // and trigger the selectConnection event AFTER attach is fully complete
             this.host.selectionManager.selectConnection(this.host.activeConnection);
         } else {
-            console.log(`[FlowInteraction:UP_MISS] ID=${this.host.activeConnection.id} - Pointed into void, keeping as floating`);
+            logger.info(`[FlowInteraction:UP_MISS] ID=${this.host.activeConnection.id} - Pointed into void, keeping as floating`);
             if (this.host.activeConnection) {
                 this.host.activeConnection.getElement().style.pointerEvents = 'auto';
             }

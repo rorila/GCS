@@ -1,5 +1,8 @@
 import { GameProject } from '../model/types';
 import { gzipSync, zipSync } from 'fflate';
+import { Logger } from '../utils/Logger';
+
+const logger = Logger.get('GameExporter', 'Export_System');
 
 /**
  * Runtime version for exported games.
@@ -26,16 +29,16 @@ export class GameExporter {
                 const code = await resp.text();
                 // Safety check: If Vite returns HTML (e.g. 404 page), don't embed it!
                 if (code.trim().startsWith('<!DOCTYPE') || code.trim().startsWith('<html')) {
-                    console.error('GameExporter: Fetched runtime-standalone.js but got HTML instead of JS. Bundle might be missing.');
+                    logger.error('GameExporter: Fetched runtime-standalone.js but got HTML instead of JS. Bundle might be missing.');
                     runtimeCode = '';
                 } else {
                     runtimeCode = code;
                 }
             } else {
-                console.warn(`GameExporter: Could not fetch /runtime-standalone.js (Status: ${resp.status}). Export will lack logic.`);
+                logger.warn(`GameExporter: Could not fetch /runtime-standalone.js (Status: ${resp.status}). Export will lack logic.`);
             }
         } catch (e) {
-            console.error('GameExporter: Network error fetching runtime bundle:', e);
+            logger.error('GameExporter: Network error fetching runtime bundle:', e);
         }
 
         const cleanedProject = this.getCleanProject(project);
@@ -44,7 +47,7 @@ export class GameExporter {
         try {
             await this.embedMedia(cleanedProject);
         } catch (e) {
-            console.warn('GameExporter: Error embedding images:', e);
+            logger.warn('GameExporter: Error embedding images:', e);
         }
 
         const html = this.generateStandaloneHTML(cleanedProject, runtimeCode);
@@ -61,7 +64,7 @@ export class GameExporter {
         try {
             await this.embedMedia(cleanedProject);
         } catch (e) {
-            console.warn('GameExporter: Error embedding images in JSON:', e);
+            logger.warn('GameExporter: Error embedding images in JSON:', e);
         }
 
         const json = JSON.stringify(cleanedProject, null, 2);
@@ -90,7 +93,7 @@ export class GameExporter {
                 }
             }
         } catch (e) {
-            console.error('GameExporter: Network error fetching runtime bundle:', e);
+            logger.error('GameExporter: Network error fetching runtime bundle:', e);
         }
 
         const cleanedProject = this.getCleanProject(project);
@@ -99,7 +102,7 @@ export class GameExporter {
         try {
             await this.embedMedia(cleanedProject);
         } catch (e) {
-            console.warn('GameExporter: Error embedding images:', e);
+            logger.warn('GameExporter: Error embedding images:', e);
         }
 
         const html = this.generateCompressedHTML(cleanedProject, runtimeCode);
@@ -116,7 +119,7 @@ export class GameExporter {
         try {
             await this.embedMedia(cleanedProject);
         } catch (e) {
-            console.warn('GameExporter: Error embedding images in JSON:', e);
+            logger.warn('GameExporter: Error embedding images in JSON:', e);
         }
 
         // Mark as compressed and add the compressed data
@@ -143,7 +146,7 @@ export class GameExporter {
                 runtimeCode = await resp.text();
             }
         } catch (e) {
-            console.error('GameExporter: Error fetching runtime:', e);
+            logger.error('GameExporter: Error fetching runtime:', e);
         }
 
         const cleanedProject = this.getCleanProject(project);
@@ -194,7 +197,7 @@ const project = require('./project.json');
 const runtime = new HeadlessRuntime(project);
 const server = new HeadlessServer(runtime);
 
-console.log('--- GCS Headless Server Start ---');
+logger.info('--- GCS Headless Server Start ---');
 server.start();
 `;
     }
@@ -423,7 +426,7 @@ primary_region = "fra"
         if (typeof window.startStandalone === 'function') {
             window.startStandalone(window.PROJECT);
         } else {
-            console.error('Standalone Runtime not found! Check if runtime-standalone.js was bundled correctly.');
+            logger.error('Standalone Runtime not found! Check if runtime-standalone.js was bundled correctly.');
             document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:20%">Error: Runtime not found.</h2>';
         }
     });
@@ -515,7 +518,7 @@ primary_region = "fra"
             // Runtime will detect PROJECT_DATA and decompress automatically
             window.startStandalone(null);
         } else {
-            console.error('Standalone Runtime not found!');
+            logger.error('Standalone Runtime not found!');
             document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:20%">Error: Runtime not found.</h2>';
         }
     });
@@ -558,7 +561,7 @@ primary_region = "fra"
         collectPaths(project);
 
         // 2. Fetch and convert to Base64
-        console.log(`[GameExporter] Found ${mediaRefs.size} unique media files to embed.`);
+        logger.info(`[GameExporter] Found ${mediaRefs.size} unique media files to embed.`);
         for (const [path, _] of mediaRefs) {
             try {
                 // Try absolute path first, then relative to images/ or audio/ (Fallback)
@@ -568,18 +571,18 @@ primary_region = "fra"
                     fullPath = `/${path}`; 
                 }
 
-                console.log(`[GameExporter] Fetching media: ${fullPath}`);
+                logger.info(`[GameExporter] Fetching media: ${fullPath}`);
                 const resp = await fetch(fullPath);
                 if (resp.ok) {
                     const blob = await resp.blob();
                     const dataUrl = await this.blobToDataUrl(blob);
                     mediaRefs.set(path, dataUrl);
-                    console.log(`[GameExporter] Successfully embedded: ${path}`);
+                    logger.info(`[GameExporter] Successfully embedded: ${path}`);
                 } else {
-                    console.warn(`[GameExporter] Failed to fetch media: ${fullPath} (Status: ${resp.status})`);
+                    logger.warn(`[GameExporter] Failed to fetch media: ${fullPath} (Status: ${resp.status})`);
                 }
             } catch (e) {
-                console.warn(`[GameExporter] Network error embedding media: ${path}`, e);
+                logger.warn(`[GameExporter] Network error embedding media: ${path}`, e);
             }
         }
 
@@ -646,7 +649,7 @@ primary_region = "fra"
                 alert(`Game exported!\n\nFile: ${filename}`);
                 return;
             } catch (err) {
-                console.warn('Electron FS failed, falling back:', err);
+                logger.warn('Electron FS failed, falling back:', err);
             }
         }
 
@@ -667,7 +670,7 @@ primary_region = "fra"
                 return;
             } catch (err: any) {
                 if (err.name === 'AbortError') return;
-                console.warn('File System Access API failed, using fallback:', err);
+                logger.warn('File System Access API failed, using fallback:', err);
             }
         }
 
