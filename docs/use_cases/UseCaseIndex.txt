@@ -1,3 +1,7 @@
+- [2026-03-31] JSONDialogRenderer God-Class Auflösung
+  - Datei: src/editor/JSONDialogRenderer.ts (Facade)
+  - Dateien: src/editor/dialogs/IDialogContext.ts, renderers/DialogDOMBuilder.ts, handlers/DialogActionHandler.ts, handlers/DialogStateManager.ts, utils/DialogExpressionEvaluator.ts, utils/DialogDomainHelper.ts
+  - Details: Die gigantische `JSONDialogRenderer.ts` (1302 Zeilen) wurde vollständig modularisiert. DOM-Generierung, Event-Handling (Action-Switch-Case), Template-Parsing und Domänenwissen (Properties/Methoden) wurden in die neuen Service-Dateien abstrahiert, die über den `IDialogContext` interagieren. Letzte GUI-Hotspot aufgelöst. E2E Tests weiterhin grün.
 - [2026-03-30] Action Umbenennen E2E Fix & Two-Way-Binding Kollisionsprüfung
   - Datei: src/editor/inspector/handlers/FlowNodeHandler.ts (handlePropertyChange)
   - Datei: src/editor/services/EditorCommandManager.ts (renameObject)
