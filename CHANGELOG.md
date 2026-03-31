@@ -1,5 +1,6 @@
 ## [3.29.5] - 2026-03-31
 ### Refactoring & CleanCode
+- **StandardActions God-Class aufgelöst:** Die Datei `StandardActions.ts` (1305 Zeilen) wurde modularisiert und als Facade restrukturiert. Aktionen sind jetzt in dedizierten Dateien unter `src/runtime/actions/handlers/` gruppiert (`PropertyActions.ts`, `VariableActions.ts`, `CalculateActions.ts`, `HttpActions.ts` etc.). Die Hauptdatei hat nur noch ~20 Zeilen. Code-Duplikate (z.B. redundantes Registrieren der 'animate'-Aktion) wurden bereinigt.
 - **InspectorHost God-Class aufgelöst:** Die Datei `InspectorHost.ts` wurde von massiven 1491 Zeilen auf schlanke 196 Zeilen reduziert (Einhaltung der <1000 Zeilen Guideline).
 - **Zuständigkeits-Trennung (Module):** Komplexes Rendering in spezialisierte Klassen ausgelagert (`InspectorHeaderRenderer`, `InspectorPropertiesRenderer`, `InspectorSectionRenderer`, `InspectorLegacyRenderer`, `InspectorEventsRenderer`, `InspectorLogsRenderer`), gebunden über neues `IInspectorContext`-Interface. Das Inspector-System ist nun extrem wartbar und komponentenbasiert.
 
