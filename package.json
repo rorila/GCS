@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "predev": "npm run bundle:runtime",
-    "bundle:runtime": "esbuild src/player-standalone.ts --bundle --minify --outfile=public/runtime-standalone.js --format=iife --target=es2020",
+    "bundle:runtime": "esbuild src/player-standalone.ts --bundle --minify --outfile=public/runtime-standalone.js --format=iife --target=es2020 --define:import.meta.env=\"{}\"",
     "clean": "npm run clean:vite && npm run clean:build && npm run clean:runtime",
     "clean:vite": "if exist node_modules\\.vite rmdir /s /q node_modules\\.vite",
     "clean:build": "if exist dist rmdir /s /q dist",
@@ -24,6 +24,9 @@
     "@playwright/test": "^1.58.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.1",
+    "html-to-docx": "^1.8.0",
+    "marked": "^17.0.5",
+    "md-to-docx": "^1.6.1",
     "playwright": "^1.58.2",
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
