@@ -18,6 +18,7 @@ export type ProjectMutation =
     | { type: 'REMOVE_TASK'; name: string; stageId?: string }
     | { type: 'ADD_OBJECT'; object: any; stageId: string }
     | { type: 'REMOVE_OBJECT'; objectId: string; stageId: string }
+    | { type: 'REPARENT_OBJECT'; objectId: string; targetParentId: string | null; stageId: string }
     | { type: 'SET_STAGE'; stageId: string }
     | { type: 'BATCH'; mutations: ProjectMutation[]; label: string };
 
@@ -210,6 +211,9 @@ export class ProjectStore {
             case 'REMOVE_OBJECT':
                 return this.reduceRemoveObject(mutation);
 
+            case 'REPARENT_OBJECT':
+                return this.reduceReparentObject(mutation);
+
             case 'SET_STAGE':
                 return this.reduceSetStage(mutation);
 
@@ -369,7 +373,105 @@ export class ProjectStore {
         if (!stage?.objects) return false;
         const idx = stage.objects.findIndex((o: any) => o.id === m.objectId);
         if (idx !== -1) { stage.objects.splice(idx, 1); return true; }
-        return false;
+
+        // Hilfsfunktion für tiefes Löschen
+        let removed = false;
+        const removeDeep = (arr: any[]) => {
+            const index = arr.findIndex(o => o.id === m.objectId);
+            if (index !== -1) {
+                arr.splice(index, 1);
+                removed = true;
+                return;
+            }
+            for (const child of arr) {
+                if (child.children) removeDeep(child.children);
+                if (removed) return;
+            }
+        };
+        removeDeep(stage.objects);
+        return removed;
+    }
+
+    private reduceReparentObject(m: { objectId: string; targetParentId: string | null; stageId: string }): boolean {
+        if (!this.project) return false;
+        const stage = this.project.stages?.find(s => s.id === m.stageId);
+        if (!stage || !stage.objects) return false;
+
+        let foundObj: any = null;
+        let sourceArray: any = null;
+        let sourceIndex: number = -1;
+
+        // Hilfsfunktion: Finde Objekt und sein Eltern-Array
+        const findInArray = (arr: any[]) => {
+            const idx = arr.findIndex(o => o.id === m.objectId);
+            if (idx !== -1) {
+                foundObj = arr[idx];
+                sourceArray = arr;
+                sourceIndex = idx;
+                return true;
+            }
+            for (const child of arr) {
+                if (child.children && findInArray(child.children)) return true;
+            }
+            return false;
+        };
+
+        if (!findInArray(stage.objects) || !sourceArray) return false;
+
+        // Verhindern, dass ein Panel in sich selbst oder seine Kinder gedroppt wird
+        if (m.targetParentId) {
+            let invalidDest = false;
+            const checkNesting = (targetId: string, searchRoot: any) => {
+                if (searchRoot.id === targetId) invalidDest = true;
+                if (searchRoot.children) searchRoot.children.forEach((c: any) => checkNesting(targetId, c));
+            };
+            checkNesting(m.targetParentId, foundObj);
+            if (invalidDest) {
+                ProjectStore.logger.warn('reduceReparentObject: Ungültiges Drop-Ziel (Zirkulär)');
+                return false;
+            }
+        }
+
+        // Finde Ziel-Array
+        let targetArray: any[] | null = stage.objects;
+        if (m.targetParentId) {
+            let targetGroup: any = null;
+            const findGroup = (arr: any[]) => {
+                let g = arr.find(o => o.id === m.targetParentId);
+                if (g) return g;
+                for (const child of arr) {
+                    if (child.children) {
+                        g = findGroup(child.children);
+                        if (g) return g;
+                    }
+                }
+                return null;
+            };
+            targetGroup = findGroup(stage.objects);
+            if (!targetGroup) return false;
+            if (!targetGroup.children) targetGroup.children = [];
+            targetArray = targetGroup.children;
+        }
+
+        // Gleiches Array? Nichts zu tun was Reparenting angeht
+        if (sourceArray === targetArray) {
+            return true;
+        }
+
+        // Objekt aus Quell-Array entfernen
+        if (sourceArray) sourceArray.splice(sourceIndex, 1);
+        
+        // ParentId tracken
+        if (m.targetParentId) {
+            foundObj.parentId = m.targetParentId;
+        } else {
+            delete foundObj.parentId;
+        }
+
+        // In Ziel-Array einfügen
+        if (targetArray) targetArray.push(foundObj);
+
+        return true;
     }
 
     private reduceSetStage(m: { stageId: string }): boolean {
@@ -455,6 +557,7 @@ export class ProjectStore {
             case 'REMOVE_TASK': return `- Task: ${m.name}`;
             case 'ADD_OBJECT': return `+ Object in ${m.stageId}`;
             case 'REMOVE_OBJECT': return `- Object ${m.objectId}`;
+            case 'REPARENT_OBJECT': return `↻ Reparent ${m.objectId} -> ${m.targetParentId || 'Stage'}`;
             case 'SET_STAGE': return `Stage → ${m.stageId}`;
             case 'BATCH': return m.label;
             default: return 'Unbekannt';

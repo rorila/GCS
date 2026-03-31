@@ -81,7 +81,7 @@ export class EditorInteractionManager {
             mediatorService.notifyObjectSelected(selectedObj);
         };
 
-        stage.onObjectMove = (id: string, newX: number, newY: number) => {
+        stage.onObjectMove = (id: string, newX: number, newY: number, newParentId?: string | null) => {
             if (stage.runMode) {
                 if (this.host.runtimeObjects) {
                     const runtimeObj = this.host.runtimeObjects.find(ro => ro.id === id);
@@ -105,6 +105,15 @@ export class EditorInteractionManager {
             if (rawObj && rawObj !== obj) {
                 mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'x', value: newX });
                 mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'y', value: newY });
+            }
+
+            if (newParentId !== undefined) {
+                mutations.push({ 
+                    type: 'REPARENT_OBJECT', 
+                    objectId: id, 
+                    targetParentId: newParentId, 
+                    stageId: stage.id || this.host.project.activeStageId
+                });
             }
 
             if (mutations.length > 0) {
