@@ -481,7 +481,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     }
 
     public setProject(project: GameProject) {
-        logger.warn('[DEBUG-RENAME] >>> setProject() aufgerufen!', new Error().stack);
+
         this.project = project;
 
         // ================================================================
@@ -1049,7 +1049,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     // syncTaskParameters, syncTaskParamValues, syncVariablesFromFlow, syncTaskFromFlow sind nun im SyncManager.
 
     public loadFromProject(contextName?: string) {
-        logger.warn('[DEBUG-RENAME] >>> loadFromProject() aufgerufen! context=', contextName, new Error().stack);
+
         this.hydrationManager.loadFromProject(contextName);
         this.updatePascalPanel();
     }

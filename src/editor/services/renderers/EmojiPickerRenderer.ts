@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/Logger';
+import { Logger } from '../../../utils/Logger';
 
 const logger = Logger.get('EmojiPickerRenderer', 'Inspector_Update');
 

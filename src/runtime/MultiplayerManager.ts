@@ -1,7 +1,7 @@
 import { ClientMessage, ServerMessage } from '../../game-server/src/Protocol';
 import { Logger } from '../utils/Logger';
 
-const logger = Logger.get('MultiplayerManager');
+// const logger = Logger.get('MultiplayerManager');
 
 
 export class MultiplayerManager {

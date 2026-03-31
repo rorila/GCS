@@ -34,7 +34,7 @@ import { EditorInteractionManager } from './services/EditorInteractionManager';
 import { ObjectStore } from './services/ObjectStore';
 import { Logger } from '../utils/Logger';
 
-const logger = Logger.get('Editor');
+
 
 
 /**
@@ -684,13 +684,13 @@ export class Editor implements IViewHost {
         this.inspector = new InspectorHost(this.designRuntime, this.project);
         this.inspector.setContainer(document.getElementById('json-inspector-content')!);
         this.inspector.onObjectUpdate = (update: any) => {
-            logger.warn('[DEBUG-RENAME] Editor.onObjectUpdate aufgerufen', { propertyName: update.propertyName, oldValue: update.oldValue, newValue: update.newValue });
+
             if (update.propertyName.toLowerCase() === 'name' && update.oldValue && update.oldValue !== update.newValue) {
                 Editor.logger.info(`Name geändert: ${update.oldValue} -> ${update.newValue}. Starte Refactoring...`);
                 this.renameObjectWithRefactoring(update.object.id, update.newValue, update.oldValue);
             }
             this.autoSaveToLocalStorage(); // ARC-FIX: Persist property changes to disk!
-            logger.warn('[DEBUG-RENAME] >>> refreshAllViews(\'inspector\') wird jetzt aufgerufen');
+
             this.renderManager.refreshAllViews('inspector');
         };
         this.inspector.onProjectUpdate = () => { this.render(); this.autoSaveToLocalStorage(); this.renderManager.refreshAllViews('inspector'); };

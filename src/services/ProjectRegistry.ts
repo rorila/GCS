@@ -3,7 +3,7 @@ import { GameProject, ProjectVariable, GameTask, GameAction, ComponentData } fro
 import { libraryService } from './LibraryService';
 import { Logger } from '../utils/Logger';
 
-const logger = Logger.get('ProjectRegistry');
+// const logger = Logger.get('ProjectRegistry');
 
 
 export type ScopedVariable = ProjectVariable & { uiScope?: 'global' | 'stage' | 'local', uiEmoji?: string, usageCount?: number };

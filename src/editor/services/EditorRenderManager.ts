@@ -7,7 +7,7 @@ import { PascalGenerator } from '../PascalGenerator';
 import { PascalHighlighter } from '../PascalHighlighter';
 import { ObjectStore } from './ObjectStore';
 
-const logger = Logger.get('EditorRenderManager');
+// const logger = Logger.get('EditorRenderManager');
 
 
 export interface EditorRenderHost {
@@ -232,17 +232,11 @@ export class EditorRenderManager {
     }
 
     public refreshAllViews(originator?: string): void {
-        logger.warn('[DEBUG-RENAME] refreshAllViews aufgerufen, originator=', originator);
         this.render();
-
-        if (originator !== 'flow-editor' && originator !== 'inspector' && this.host.flowEditor) {
-            logger.warn('[DEBUG-RENAME] >>> flowEditor.setProject() wird aufgerufen (originator=' + originator + ')');
-            this.host.flowEditor.setProject(this.host.project);
-        } else if (originator === 'inspector' && this.host.flowEditor) {
-            logger.warn('[DEBUG-RENAME] Inspector-Originator: Nur updateFlowSelector, KEIN setProject');
-            // Bei Inspector-Änderungen NUR das Dropdown aktualisieren,
-            // NICHT den gesamten Flow-Canvas per setProject neu laden.
-            // setProject ruft loadFromProject() auf → Canvas-Rebuild → Nodes verschwinden.
+        if (originator !== 'flow-editor' && this.host.flowEditor) {
+            // Die UI von FlowEditor muss bei globalen Datenänderungen aktualisiert werden.
+            // ABER: Niemals setProject() aufrufen, da es den Canvas komplett zerstört!
+            // setProject wird ausschließlich durch Editor.setProject() beim ersten Laden aufgerufen.
             this.host.flowEditor.updateFlowSelector();
         }
 

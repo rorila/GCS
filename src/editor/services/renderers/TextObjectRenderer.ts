@@ -1,0 +1,108 @@
+import { IRenderContext } from './IRenderContext';
+
+export class TextObjectRenderer {
+    
+    public static renderLabel(ctx: IRenderContext, el: HTMLElement, obj: any): void {
+        const textValue = (obj.text !== undefined && obj.text !== null) ? String(obj.text) :
+            (obj.value !== undefined && obj.value !== null) ? String(obj.value) : '';
+        if (el.innerText !== textValue) el.innerText = textValue;
+        const fs = obj.style?.fontSize || obj.fontSize;
+        if (fs) el.style.fontSize = ctx.scaleFontSize(fs);
+        
+        const color = obj.style?.color;
+        if (color) {
+            el.style.color = color;
+        } else {
+            el.style.color = '';
+        }
+        const fw = obj.style?.fontWeight;
+        el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
+        const fstyle = obj.style?.fontStyle;
+        el.style.fontStyle = (fstyle === true || fstyle === 'italic') ? 'italic' : 'normal';
+        if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+        el.style.userSelect = 'text';
+        el.style.cursor = 'text';
+        const align = obj.style?.textAlign || obj.alignment;
+        if (align === 'center') el.style.justifyContent = 'center';
+        else if (align === 'right') el.style.justifyContent = 'flex-end';
+        else el.style.justifyContent = 'flex-start';
+    }
+
+    public static renderPanel(ctx: IRenderContext, el: HTMLElement, obj: any): void {
+        const textValue = obj.caption || (ctx.host.runMode ? '' : obj.name);
+        if (el.innerText !== textValue) el.innerText = textValue;
+
+        const color = obj.style?.color || (!ctx.host.runMode ? '#777' : '');
+        if (color) el.style.color = color;
+        const fontSize = obj.style?.fontSize ? ctx.scaleFontSize(obj.style.fontSize) : (!ctx.host.runMode ? ctx.scaleFontSize(12) : '');
+        if (fontSize) el.style.fontSize = fontSize;
+        const fw = obj.style?.fontWeight;
+        el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : (fw || 'normal');
+        const fs = obj.style?.fontStyle;
+        el.style.fontStyle = (fs === true || fs === 'italic') ? 'italic' : 'normal';
+        if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+        const align = obj.style?.textAlign || 'center';
+        el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
+        el.style.alignItems = 'center';
+    }
+
+    public static renderGameHeader(_ctx: IRenderContext, el: HTMLElement, obj: any): void {
+        if (el.innerText !== (obj.title || obj.caption || obj.name)) el.innerText = obj.title || obj.caption || obj.name;
+        el.style.fontSize = obj.style?.fontSize ? (typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize) : '18px';
+        if (obj.style?.color) el.style.color = obj.style.color;
+        const fw = obj.style?.fontWeight;
+        el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : (fw || 'bold');
+        const align = obj.style?.textAlign;
+        el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
+        if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+    }
+
+    public static renderGameCard(ctx: IRenderContext, el: HTMLElement, obj: any, isNew: boolean): void {
+        if (isNew) {
+            el.innerHTML = `
+                <div class="card-title" style="font-weight:bold;margin-bottom:10px"></div>
+                <div class="card-btns" style="display:flex;gap:5px">
+                    <button class="btn-single" style="padding:6px;border:none;border-radius:4px;background:#4caf50;color:#fff;cursor:pointer">▶ Single</button>
+                    <button class="btn-multi" style="padding:6px;border:none;border-radius:4px;background:#2196f3;color:#fff;cursor:pointer">👥 Multi</button>
+                </div>
+            `;
+            el.style.flexDirection = 'column';
+            el.querySelector('.btn-single')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onSingleClick');
+            });
+            el.querySelector('.btn-multi')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onMultiClick');
+            });
+        }
+        const titleEl = el.querySelector('.card-title') as HTMLElement;
+        if (titleEl && titleEl.innerText !== obj.gameName) titleEl.innerText = obj.gameName;
+    }
+
+    public static renderButton(ctx: IRenderContext, el: HTMLElement, obj: any, _isNew: boolean): void {
+        if (el.querySelector('.table-title-bar')) el.innerHTML = '';
+        if (el.innerText !== (obj.caption || obj.name)) el.innerText = obj.caption || obj.name;
+        const fw = obj.style?.fontWeight;
+        el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
+        const fstyle = obj.style?.fontStyle;
+        el.style.fontStyle = (fstyle === true || fstyle === 'italic') ? 'italic' : 'normal';
+        if (obj.style?.fontSize) el.style.fontSize = ctx.scaleFontSize(obj.style.fontSize);
+        if (obj.style?.color) el.style.color = obj.style.color;
+        if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+        const align = obj.style?.textAlign;
+        el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
+        if (ctx.host.runMode) {
+            el.onmouseenter = () => el.style.filter = 'brightness(1.1)';
+            el.onmouseleave = () => el.style.filter = 'none';
+            el.onmousedown = () => el.style.transform = 'scale(0.98)';
+            el.onmouseup = () => el.style.transform = 'none';
+            el.onclick = (e: MouseEvent) => {
+                e.stopPropagation();
+                if (ctx.host.onEvent) {
+                    ctx.host.onEvent(obj.id, 'onClick');
+                }
+            };
+        }
+    }
+}

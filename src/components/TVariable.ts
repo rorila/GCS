@@ -3,7 +3,7 @@ import { TPropertyDef } from './TComponent';
 import { VariableType } from '../model/types';
 import { Logger } from '../utils/Logger';
 
-const logger = Logger.get('TVariable');
+// const logger = Logger.get('TVariable');
 
 
 export class TVariable extends TWindow {

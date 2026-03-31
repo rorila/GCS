@@ -25,24 +25,19 @@ export class EditorCommandManager {
             return null;
         }
 
-        // Spezielle Nachbearbeitung für bestimmte Typen
-        if (type === 'Label' || type === 'NumberLabel') {
-            instance.width = 6;
-            instance.height = 1;
-        } else if (type === 'Button') {
-            instance.width = 6;
-            instance.height = 2;
-        } else if (type === 'Image') {
-            instance.width = 6;
-            instance.height = 6;
-        } else if (type === 'DataList') {
-            instance.width = 16;
-            instance.height = 12;
-        }
+        // Default-Größen für neue Komponenten
+        const DEFAULT_SIZES: Record<string, { width: number; height: number }> = {
+            'Label': { width: 6, height: 1 },
+            'NumberLabel': { width: 6, height: 1 },
+            'Button': { width: 6, height: 2 },
+            'Image': { width: 6, height: 6 },
+            'DataList': { width: 16, height: 12 },
+        };
 
-        // Globaler Fallback für Komponenten ohne explizite Größenangaben
-        if (!instance.width) instance.width = 5;
-        if (!instance.height) instance.height = 2;
+        const size = DEFAULT_SIZES[type] || { width: 5, height: 2 }; // Globaler Fallback
+
+        if (!instance.width) instance.width = size.width;
+        if (!instance.height) instance.height = size.height;
 
         return instance;
     }

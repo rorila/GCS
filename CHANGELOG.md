@@ -1,3 +1,8 @@
+## [3.29.5] - 2026-03-31
+### Refactoring & CleanCode
+- **InspectorHost God-Class aufgelöst:** Die Datei `InspectorHost.ts` wurde von massiven 1491 Zeilen auf schlanke 196 Zeilen reduziert (Einhaltung der <1000 Zeilen Guideline).
+- **Zuständigkeits-Trennung (Module):** Komplexes Rendering in spezialisierte Klassen ausgelagert (`InspectorHeaderRenderer`, `InspectorPropertiesRenderer`, `InspectorSectionRenderer`, `InspectorLegacyRenderer`, `InspectorEventsRenderer`, `InspectorLogsRenderer`), gebunden über neues `IInspectorContext`-Interface. Das Inspector-System ist nun extrem wartbar und komponentenbasiert.
+
 ## [3.29.4] - 2026-03-30
 ### Fixed
 - **Action Umbenennen E2E Fix & Two-Way-Binding Kollisionsprüfung:**
