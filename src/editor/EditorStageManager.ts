@@ -272,6 +272,9 @@ export class EditorStageManager {
             for (const obj of objects) {
                 result.push(obj);
                 if (obj.children && Array.isArray(obj.children) && obj.children.length > 0) {
+                    for (const child of obj.children) {
+                        child.parentId = obj.id || obj.name;
+                    }
                     result.push(...flattenWithChildren(obj.children));
                 }
             }

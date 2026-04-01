@@ -458,8 +458,8 @@ export class StageInteractionManager {
                 // Kinder von TGroupPanel live mitbewegen
                 const obj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === id);
                 if (obj && (obj.className === 'TGroupPanel' || obj.constructor?.name === 'TGroupPanel')) {
-                    const findChildIds = (parentId) => {
-                        const ids = [];
+                    const findChildIds = (parentId: string): string[] => {
+                        const ids: string[] = [];
                         for (const o of this.host.lastRenderedObjects) {
                             if (o.parentId === parentId) {
                                 ids.push(o.id || o.name);
@@ -469,7 +469,7 @@ export class StageInteractionManager {
                         return ids;
                     };
                     for (const childId of findChildIds(id)) {
-                        const childEl = this.host.element.querySelector(`[data-id="${childId}"]`);
+                        const childEl = this.host.element.querySelector(`[data-id="${childId}"]`) as HTMLElement;
                         if (childEl) childEl.style.transform = `translate(${dx}px, ${dy}px)`;
                     }
                 }
