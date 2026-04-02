@@ -35,9 +35,8 @@ export class TImageList extends TImage {
         super(name, x, y, width, height);
 
         // Standard-Style für ImageList
-        this.style.backgroundColor = '#1a1a2e';
-        this.style.borderWidth = 1;
-        this.style.borderColor = '#333';
+        this.style.backgroundColor = 'transparent';
+        this.style.borderWidth = 0;
     }
 
     // ─────────────────────────────────────────────

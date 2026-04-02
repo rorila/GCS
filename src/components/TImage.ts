@@ -27,7 +27,7 @@ export class TImage extends TPanel {
         super(name, x, y, width, height);
 
         // Default-Style für Bild-Container
-        this.style.backgroundColor = this.fallbackColor;
+        this.style.backgroundColor = 'transparent';
         this.style.borderWidth = 0;
     }
 

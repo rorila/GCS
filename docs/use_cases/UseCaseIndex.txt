@@ -1,3 +1,10 @@
+- [2026-04-02] Rendering-Fixes & Export-Analyse (Transparenz, Glow/Shadow, Export)
+  - Datei: src/components/TImage.ts (L29-30, backgroundColor='transparent') 
+  - Datei: src/components/TImageList.ts (L37-40, backgroundColor='transparent')
+  - Datei: src/style.css (L363, global .game-object box-shadow entfernt)
+  - Datei: src/export/GameExporter.ts (L339-343, deepClean ignoriert interne Eigenschaften)
+  - Datei: src/editor/services/renderers/TextObjectRenderer.ts (L95-103, el.style.transform += ' scale(0.98)')
+  - Details: 1. Transparente Bilder zeigten schwarzen Hintergrund wegen fest kodiertem Hintergrund -> auf 'transparent' umgestellt. 2. Unerwünschter Schatteneffekt bei Images behoben (globaler style entfernt). 3. Standalone-Export gerendert nicht (Komponenten unsichtbar): `deepClean` im Exporter hat irrtümlich alle '_' Präfix-Eigenschaften entfernt, einschließlich essentieller Vue-Reactivity Flags (`__v_isRef`) und internem State. 4. Button-Click-Animation zerstörte die globale Komponentenkoordinate (HW-Acceleration), da `scale` vor `translate3d` evaluierte -> Fix: Scale-Wert direkt an die bestehende Translation anhängen statt auf Root-Ebene zu definieren.
 - [2026-04-02] TImageList Sprite-Sheet-Komponente (Neue Komponente + Dialog)
   - Datei: src/components/TImageList.ts [NEU] (Klasse TImageList, Methoden: getInspectorProperties L98, getEvents L119, toJSON L126, Getter: maxImageCount L50, frameWidthPercent L57, frameHeightPercent L64, currentColumn L71, currentRow L78, backgroundPositionX L85, backgroundPositionY L93)
   - Datei: src/editor/inspector/ImageListEditorDialog.ts [NEU] (Klasse ImageListEditorDialog, Methoden: show L42, open L90, close L120, buildHeader L126, buildBody L148, buildLeftPanel L157, buildRightPanel L212, buildGridConfig L224, buildFramePreview L283, buildFooter L308, loadImage L340, updateAll L370, renderSheetPreview L400, renderFramePreview L460, handleSheetClick L488)

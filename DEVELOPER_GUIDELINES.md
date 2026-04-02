@@ -199,6 +199,7 @@
 - **Serialization reservedKeys**: Read-Only Properties MÜSSEN in `Serialization.ts` → `reservedKeys` stehen. Sonst: `TypeError: Cannot set property which has only a getter`.
 - **Neue Komponenten in hydrateObjects()**: IMMER den `case 'TKomponente':` hinzufügen! Sonst verschwindet die Komponente beim Laden.
 - **hydrateObjects() Instanz-Wiederverwendung**: Bei Service-Komponenten VOR `init()/start()` ein Force-Reset durchführen (`stop()` + `isActive = false`).
+- **Export DeepClean**: NIEMALS blind Properties mit Unterstrich (`_`) beim `deepClean` / Export löschen! Interne Vue / Reactivity Properties fangen ebenfalls mit `_` (wie `_backgroundImage` oder `__v_isRef`) an. Nutze stattdessen Whitelists (wie `__v_isRef`) und bereinige nur explizite Editor-Metadaten.
 
 ### Rendering & Performance
 - **console.log in Game-Loop-Pfaden**: NIEMALS in 60Hz-Funktionen (`update()`, `loop()`, `renderLogs()`). Blockiert den Main-Thread.

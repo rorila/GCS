@@ -335,8 +335,8 @@ primary_region = "fra"
         const editorOnlyKeys = ['flow', 'flowGraph', 'nodePositions', 'description', 'details', 'showDetails'];
 
         Object.keys(obj).forEach(key => {
-            // Remove keys starting with _ (internal state) or in editor-only list
-            if (key.startsWith('_') || editorOnlyKeys.includes(key)) {
+            // Remove keys in editor-only list or known noisy internal React/Vue keys
+            if (editorOnlyKeys.includes(key) || key === '__v_isRef' || key === '__v_raw') {
                 delete obj[key];
             } else {
                 this.deepClean(obj[key]);

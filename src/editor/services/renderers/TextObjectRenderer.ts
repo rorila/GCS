@@ -94,9 +94,16 @@ export class TextObjectRenderer {
         el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
         if (ctx.host.runMode) {
             el.onmouseenter = () => el.style.filter = 'brightness(1.1)';
-            el.onmouseleave = () => el.style.filter = 'none';
-            el.onmousedown = () => el.style.transform = 'scale(0.98)';
-            el.onmouseup = () => el.style.transform = 'none';
+            el.onmouseleave = () => {
+                el.style.filter = 'none';
+                el.style.transform = el.style.transform.replace(' scale(0.98)', '');
+            };
+            el.onmousedown = () => {
+                if (!el.style.transform.includes('scale(0.98)')) {
+                    el.style.transform += ' scale(0.98)';
+                }
+            };
+            el.onmouseup = () => el.style.transform = el.style.transform.replace(' scale(0.98)', '');
             el.onclick = (e: MouseEvent) => {
                 e.stopPropagation();
                 if (ctx.host.onEvent) {
