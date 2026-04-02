@@ -19,7 +19,7 @@ export class TNumberLabel extends TTextControl {
     public onEvent: ((eventName: string) => void) | null = null;
 
     constructor(name: string, x: number, y: number, startValue: number = 0) {
-        super(name, x, y, 100, 20);
+        super(name, x, y, 8, 2);
         this.startValue = startValue;
         this.value = startValue;
 

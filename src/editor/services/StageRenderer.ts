@@ -562,6 +562,7 @@ export class StageRenderer {
         else if (className === 'TInspectorTemplate') ComplexComponentRenderer.renderInspectorTemplate(ctx, el, obj);
         else if (className === 'TDialogRoot') ComplexComponentRenderer.renderDialogRoot(ctx, el, obj);
         else if (className === 'TColorPicker') InputRenderer.renderColorPicker(ctx, el, obj, isNew);
+        else if (className === 'TImageList') this.renderImageList(el, obj);
         else if (className === 'TDropdown') InputRenderer.renderDropdown(ctx, el, obj, isNew);
         else if (className !== 'TShape' && ('text' in obj || 'value' in obj)) TextObjectRenderer.renderLabel(ctx, el, obj);
     }
@@ -616,6 +617,84 @@ private updateSelectionState(el: HTMLElement, id: string) {
      * Rendert eine TDataList: Im Editor das Template, im Run-Modus die geklonten Karten
      */
     
+    /**
+     * Rendert eine TImageList: Zeigt den aktuellen Frame des Sprite-Sheets an.
+     * Nutzt CSS background-size + background-position für pixelgenaues Clipping.
+     */
+    private renderImageList(el: HTMLElement, obj: any): void {
+        const src = obj.backgroundImage || obj.src || '';
+        const hCount = obj.imageCountHorizontal || 1;
+        const vCount = obj.imageCountVertical || 1;
+        const currentFrame = obj.currentImageNumber || 0;
+
+        if (!src) {
+            // Kein Bild: Platzhalter anzeigen
+            el.style.backgroundImage = 'none';
+            el.style.display = 'flex';
+            el.style.alignItems = 'center';
+            el.style.justifyContent = 'center';
+            if (!el.querySelector('.imagelist-placeholder')) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'imagelist-placeholder';
+                placeholder.textContent = '🎞️';
+                placeholder.style.cssText = 'font-size: 24px; opacity: 0.5; pointer-events: none;';
+                el.appendChild(placeholder);
+            }
+            return;
+        }
+
+        // Platzhalter entfernen falls vorhanden
+        const existing = el.querySelector('.imagelist-placeholder');
+        if (existing) existing.remove();
+
+        // URL normalisieren
+        let imgSrc = src;
+        if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/') && !imgSrc.startsWith('data:')) {
+            imgSrc = `/images/${imgSrc}`;
+        }
+        if (!imgSrc.startsWith('data:')) {
+            const parts = imgSrc.split('/');
+            const lastPart = parts.pop() || '';
+            imgSrc = [...parts, encodeURIComponent(lastPart)].join('/');
+        }
+
+        // CSS Sprite-Sheet Clipping:
+        // background-size: H*100% V*100% → vergrößert das Bild so, dass jeder Frame exakt die Element-Größe hat
+        // background-position: berechnet den Offset zum gewünschten Frame
+        const col = currentFrame % hCount;
+        const row = Math.floor(currentFrame / hCount);
+
+        const bgSizeX = hCount * 100;
+        const bgSizeY = vCount * 100;
+        const bgPosX = hCount <= 1 ? 0 : (col / (hCount - 1)) * 100;
+        const bgPosY = vCount <= 1 ? 0 : (row / (vCount - 1)) * 100;
+
+        el.style.backgroundImage = `url("${imgSrc}")`;
+        el.style.backgroundSize = `${bgSizeX}% ${bgSizeY}%`;
+        el.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
+        el.style.backgroundRepeat = 'no-repeat';
+
+        // Im Editor-Modus: Frame-Nummer anzeigen
+        if (!this.host.runMode) {
+            let badge = el.querySelector('.imagelist-badge') as HTMLElement;
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = 'imagelist-badge';
+                badge.style.cssText = `
+                    position: absolute; top: 2px; right: 2px;
+                    background: rgba(30, 30, 46, 0.85); color: #89b4fa;
+                    font-size: 10px; font-weight: bold; padding: 2px 6px;
+                    border-radius: 3px; pointer-events: none; z-index: 10;
+                `;
+                el.appendChild(badge);
+            }
+            badge.textContent = `#${currentFrame}/${hCount * vCount}`;
+        } else {
+            // Im Run-Modus Badge entfernen
+            const badge = el.querySelector('.imagelist-badge');
+            if (badge) badge.remove();
+        }
+    }
     // ─────────────────────────────────────────────────────────────────
     // FAST PATH: Sprite-Positionen direkt im DOM aktualisieren
     // Wird 60×/sec vom GameLoopManager aufgerufen, OHNE volles Render.

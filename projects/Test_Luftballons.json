@@ -1,10 +1,10 @@
 {
   "meta": {
-    "name": "MyCoolGame",
+    "name": "Test_Luftballons",
     "version": "1.0.0",
-    "author": "GCS-Team",
-    "description": "Das ist mein cooles Spiel",
-    "_sourcePath": "projects/Neues_Spiel.json"
+    "author": "",
+    "description": "",
+    "_sourcePath": "projects/Test_Luftballons.json"
   },
   "stage": {
     "grid": {
@@ -17,6 +17,14 @@
     }
   },
   "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
     "elements": [],
     "connections": []
   },
@@ -99,8 +107,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         }
       ],
@@ -116,114 +124,66 @@
     },
     {
       "id": "main",
-      "name": "MainStage",
+      "name": "Haupt-Level",
       "type": "main",
       "objects": [
         {
-          "className": "TButton",
-          "id": "obj_1775128896472_2sgsvopj4",
-          "name": "Button_3",
+          "className": "TImageList",
+          "id": "obj_1775128699140_qv1fvbx57",
+          "name": "ImageList_3",
           "scope": "stage",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
+          "x": 9,
+          "y": 6,
+          "width": 5,
+          "height": 5,
           "zIndex": 0,
           "align": "NONE",
           "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
+            "backgroundColor": "#1a1a2e",
+            "borderColor": "#333",
             "borderWidth": 1
           },
-          "text": "Button_3",
-          "icon": ""
-        }
-      ],
-      "actions": [
-        {
-          "id": "node-1775128881491",
-          "details": "",
-          "name": "ShowTheHighscoreStage_Unique",
-          "showDetails": false,
-          "type": "navigate_stage"
+          "src": "/images/Luftballons/LuftBallonUebersicht_1.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a",
+          "imageCountHorizontal": 3,
+          "imageCountVertical": 3,
+          "currentImageNumber": 4,
+          "maxImageCount": 9
         },
         {
-          "id": "node-1775128884473",
-          "details": "",
-          "name": "Action1",
-          "showDetails": false
-        }
-      ],
-      "tasks": [
-        {
-          "name": "SwitchToTheHighscoreStage",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "ShowTheHighscoreStage_Unique",
-              "type": "action"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "SwitchToTheHighscoreStage": {
-              "x": 40,
-              "y": 40
-            },
-            "ShowTheHighscoreStage_Unique": {
-              "x": 300,
-              "y": 300
-            }
+          "className": "TImage",
+          "id": "obj_1775129048121_n840udb0h",
+          "name": "Image_4",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 11,
+          "y": 14,
+          "width": 8,
+          "height": 8,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#2a2a2a",
+            "borderColor": "#999999",
+            "borderWidth": 0
           },
-          "standaloneNodes": [
-            {
-              "id": "node-1775128884473",
-              "type": "action",
-              "x": 300,
-              "y": 300,
-              "width": 300,
-              "height": 60,
-              "properties": {
-                "name": "ShowTheHighscoreStage_Unique",
-                "details": "",
-                "description": ""
-              },
-              "data": {
-                "name": "ShowTheHighscoreStage_Unique",
-                "type": "navigate_stage",
-                "isLinked": true
-              }
-            }
-          ]
+          "src": "/images/Ufos/ufo_transparet.png",
+          "objectFit": "contain",
+          "alt": "",
+          "imageOpacity": 1,
+          "fallbackColor": "#2a2a2a"
         }
       ],
-      "variables": [],
-      "grid": {
-        "cols": 60,
-        "rows": 38,
-        "cellSize": 22,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#16da36"
-      },
-      "flowCharts": {}
-    },
-    {
-      "id": "stage-1775128889490",
-      "name": "Stage 1",
-      "type": "standard",
-      "objects": [],
       "actions": [],
       "tasks": [],
       "variables": [],
@@ -234,8 +194,7 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#ffffff"
-      },
-      "flowCharts": {}
+      }
     }
   ],
   "activeStageId": "main"

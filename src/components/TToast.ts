@@ -60,7 +60,7 @@ export class TToast extends TWindow {
     private _toastIdCounter: number = 0;
 
     constructor(name: string = 'Toast') {
-        super(name, 0, 0, 320, 60);
+        super(name, 0, 0, 16, 3);
 
         // Toast doesn't have a visible representation in editor
         this.style.backgroundColor = 'transparent';

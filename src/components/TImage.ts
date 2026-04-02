@@ -23,7 +23,7 @@ export class TImage extends TPanel {
     // Alt-Text für Barrierefreiheit
     public alt: string = '';
 
-    constructor(name: string, x: number, y: number, width: number = 100, height: number = 100) {
+    constructor(name: string, x: number, y: number, width: number = 8, height: number = 6) {
         super(name, x, y, width, height);
 
         // Default-Style für Bild-Container

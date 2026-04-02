@@ -1,3 +1,37 @@
+## [3.30.0] - 2026-04-02
+### Added
+- **TImageList — Sprite-Sheet-Komponente** (`src/components/TImageList.ts` [NEU]):
+  - Erbt von `TImage`. Zeigt ein einzelnes Teilbild aus einem Sprite-Sheet (Rasterbild) an.
+  - Properties: `imageCountHorizontal`, `imageCountVertical`, `currentImageNumber` (0-basiert).
+  - Berechnete Read-Only Properties: `maxImageCount` (H × V), `frameWidthPercent`, `frameHeightPercent`, `currentRow`, `currentColumn`, `backgroundPositionX`, `backgroundPositionY`.
+  - Inspector-Button „🎞️ Editor öffnen" startet den dedizierten ImageListEditor-Dialog.
+  - Event: `onFrameChange`.
+- **ImageListEditorDialog** (`src/editor/inspector/ImageListEditorDialog.ts` [NEU]):
+  - Modaler Dialog zur visuellen Konfiguration von Sprite-Sheets.
+  - Links: Canvas-basierte Sprite-Sheet-Vorschau mit Raster-Overlay (gestrichelte Linien), klickbare Einzelbilder.
+  - Rechts: Raster-Konfiguration (H/V), Frame-Navigation (◀ ▶), Einzelbild-Vorschau mit Schachbrett-Transparenz.
+  - Quellbild-Auswahl via MediaPickerDialog.
+  - Ähnliche Architektur wie `MediaPickerDialog` (statische `show()`-Methode, Promise-basiert).
+- **Integration**:
+  - `ComponentRegistry.ts`: Register + TypeMapping (`ImageList` → `TImageList`).
+  - `Serialization.ts`: Hydration-Case für TImageList.
+  - `toolbox.json`: Eintrag in Kategorie Media (Icon: 🎞️, Label: Image List).
+  - `StageRenderer.ts`: Rendering via CSS `background-size`/`background-position` Sprite-Clipping. Im Editor-Modus mit Frame-Nummer-Badge.
+  - `InspectorActionHandler.ts`: Action `openImageListEditor` öffnet den Dialog und wendet Ergebnisse über ProjectStore an.
+
+### Fixed
+- **Default-Größen: Pixel statt Grid-Zellen bei 10 Komponenten** — Beim Erstellen via Toolbox waren folgende Komponenten massiv zu groß, da die Konstruktoren Pixelwerte statt Grid-Zellen-Werte verwendeten:
+  - `TImage` 100×100 → **8×6**, `TImageList` 100×100 → **8×6**, `TShape` 100×100 → **4×4**
+  - `TLabel` 100×20 → **8×2**, `TNumberLabel` 100×20 → **8×2**
+  - `TGameState` 100×40 → **4×2** (Service-Komponente)
+  - `TDialogRoot` 400×300 → **20×15** (Position 100,100 → **5,5**)
+  - `TInfoWindow` 320×180 → **16×9**
+  - `TStatusBar` 800×28 → **40×2**, `TToast` 320×60 → **16×3**
+- **Drag & Drop Positionierungs-Bug (Snap-Back)** — Ein Regression-Bug, der dafür sorgte, dass gezogene Objekte auf der Stage wieder an ihre alte Position zurücksprangen oder der Inspector nicht synchron aktualisiert wurde, ist behoben.
+  - Ursache: Die strikte Regel, im `store-dispatch` Flow kein `refreshAllViews()` aufzurufen, verhinderte das Springen der DOM-Elemente, koppelte den Inspector jedoch von Live-Updates ab.
+  - Fix: `Editor.ts` ruft nun bei Store-Dispatches für das *gerade selektierte* Element gezielt `inspector.update()` auf. Der Drag ist nun performant, ohne DOM-Recreation-Blinken, und der Inspector fliegt live mit.
+- **Serialization Proxy Bug** — Ein TypeError beim Laden ("Cannot set property maxImageCount... which has only a getter") wurde gefixt, indem Getter-Only-Properties (wie das neue `maxImageCount` bei `TImageList`) in `Serialization.ts` konsistent der `reservedKeys`-Liste hinzugefügt wurden.
+
 ## [3.29.6] - 2026-03-31
 ### Refactoring & CleanCode
 - **FlowEditor God-Class weiter entschlackt:** Die Datei `FlowEditor.ts` (1273 Zeilen) wurde modularisiert und hält nun das <1000 Zeilen Limit streng ein (~900 Zeilen). DOM-Generierung für die Toolbar sowie komplexe Dropdown-Logiken (`updateFlowSelector`) wurden in `FlowToolbarManager` verschoben. Das Live-Code Overlay (Pascal) wird nun über den `FlowPascalManager` aufgebaut und gerendert.

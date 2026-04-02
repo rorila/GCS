@@ -15,7 +15,7 @@ export class TGameState extends TWindow {
     public maxLives: number = 3;
 
     constructor(name: string, x: number = 0, y: number = 0) {
-        super(name, x, y, 100, 40);
+        super(name, x, y, 4, 2);
         this.isVariable = true;
         this.style.backgroundColor = '#4caf50';
         this.style.color = '#ffffff';

@@ -760,7 +760,12 @@ export class Editor implements IViewHost {
                 this.renderManager.refreshAllViews(originator);
             } else if (originator === 'store-dispatch') {
                 // Store-Änderungen: Nur render(), KEIN flowEditor.setProject()
+                // ABER wir müssen den Inspector synchronisieren, damit verschobene/skalierte Objekte aktualisiert werden!
                 this.render();
+                if (this.inspector && this.currentSelectedId) {
+                    const obj = this.findObjectById(this.currentSelectedId);
+                    if (obj) this.inspector.update(obj);
+                }
             } else {
                 // Auch bei Inspector-Änderungen rendern wir sofort (Live-Preview)
                 this.render();

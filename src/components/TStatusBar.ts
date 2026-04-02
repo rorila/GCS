@@ -39,7 +39,7 @@ export class TStatusBar extends TWindow {
     private _element: HTMLElement | null = null;
     private _sectionElements: Map<string, HTMLElement> = new Map();
 
-    constructor(name: string, x: number = 0, y: number = 0, width: number = 800, height: number = 28) {
+    constructor(name: string, x: number = 0, y: number = 0, width: number = 40, height: number = 2) {
         super(name, x, y, width, height);
 
         // Default style

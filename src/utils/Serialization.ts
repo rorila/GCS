@@ -70,6 +70,7 @@ import { TTextControl } from '../components/TTextControl';
 import { TTable } from '../components/TTable';
 import { TDataList } from '../components/TDataList';
 import { TAudio } from '../components/TAudio';
+import { TImageList } from '../components/TImageList';
 
 export function hydrateObjects(objectsData: any[]): TWindow[] {
     const objects: TWindow[] = [];
@@ -305,6 +306,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             case 'TAudio':
                 newObj = new TAudio(objData.name, objData.x, objData.y);
                 break;
+            case 'TImageList':
+                newObj = new TImageList(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
             default:
                 logger.warn("Unknown class during load:", objData.className);
                 break;
@@ -379,6 +383,11 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             // TImage specific properties
             if (objData.alt !== undefined) (newObj as any).alt = objData.alt;
             if (objData.fallbackColor !== undefined) (newObj as any).fallbackColor = objData.fallbackColor;
+
+            // TImageList specific properties
+            if (objData.imageCountHorizontal !== undefined) (newObj as any).imageCountHorizontal = objData.imageCountHorizontal;
+            if (objData.imageCountVertical !== undefined) (newObj as any).imageCountVertical = objData.imageCountVertical;
+            if (objData.currentImageNumber !== undefined) (newObj as any).currentImageNumber = objData.currentImageNumber;
 
             // TVideo specific properties
             if (objData.videoSource !== undefined) (newObj as any).videoSource = objData.videoSource;
@@ -479,7 +488,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 // TStageController: alle computed getter (nur getter, kein setter)
                 'currentStageId', 'currentStageName', 'currentStageType',
                 'currentStageIndex', 'stageCount', 'mainStageId',
-                'isOnMainStage', 'isOnSplashStage'
+                'isOnMainStage', 'isOnSplashStage',
+                // TImageList: getter-only Properties
+                'maxImageCount'
             ];
 
             // 1. Generic assignment for all primitive properties

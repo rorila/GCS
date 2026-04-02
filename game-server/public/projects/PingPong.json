@@ -480,8 +480,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 16,
-          "y": 20,
+          "x": 3,
+          "y": 17,
           "width": 1,
           "height": 6,
           "zIndex": 0,
@@ -499,7 +499,13 @@
           "shape": "rect",
           "spriteColor": "#ec0909",
           "backgroundImage": "",
-          "objectFit": "contain"
+          "objectFit": "contain",
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
         },
         {
           "className": "TSprite",
@@ -510,8 +516,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 49,
-          "y": 10,
+          "x": 60,
+          "y": 17,
           "width": 1,
           "height": 6,
           "zIndex": 0,
@@ -529,7 +535,13 @@
           "shape": "rect",
           "spriteColor": "#0feb8c",
           "backgroundImage": "",
-          "objectFit": "contain"
+          "objectFit": "contain",
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
         },
         {
           "className": "TGameHeader",
@@ -692,7 +704,13 @@
           "shape": "circle",
           "spriteColor": "#ff6b6b",
           "backgroundImage": "",
-          "objectFit": "contain"
+          "objectFit": "contain",
+          "customHitbox": false,
+          "hitboxShape": "auto",
+          "hitboxOffsetX": 0,
+          "hitboxOffsetY": 0,
+          "hitboxWidth": 0,
+          "hitboxHeight": 0
         },
         {
           "className": "TLabel",

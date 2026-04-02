@@ -95,12 +95,14 @@ export class EditorInteractionManager {
 
             const mutations: ProjectMutation[] = [];
             const obj = this.host.findObjectById(id);
+            console.log(`[DND-FLOW 3] findObjectById returned:`, obj ? obj.id : 'null');
             if (obj) {
                 mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'x', value: newX });
                 mutations.push({ type: 'SET_PROPERTY', target: obj, path: 'y', value: newY });
             }
 
             const rawObj = this.getOriginalObject(id, obj?.name || id);
+            console.log(`[DND-FLOW 4] getOriginalObject returned for ID=${id}:`, rawObj ? `${rawObj.id} (${rawObj.className || rawObj.type}) x=${rawObj.x} y=${rawObj.y}` : 'NULL');
 
             if (rawObj && rawObj !== obj) {
                 mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: 'x', value: newX });
@@ -117,7 +119,7 @@ export class EditorInteractionManager {
             }
 
             if (mutations.length > 0) {
-                projectStore.dispatch({
+                console.log(`[DND-FLOW 5] Dispatching BATCH mutation for ${id}...`); projectStore.dispatch({
                     type: 'BATCH',
                     label: `Move ${id}`,
                     mutations

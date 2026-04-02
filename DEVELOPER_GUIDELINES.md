@@ -167,6 +167,7 @@
 
 ### Allgemein
 - **Placeholder-Code**: KEINE `// ... restlicher Code`-Kommentare. Jede Datei muss vollständig sein.
+- **Node/PowerShell String-Injection**: NIEMALS Code-Edits über `node -e "..."` in der PowerShell ausführen, da Backticks und `${...}` unvorhersehbar interpoliert werden. IMMER die nativen `replace_file_content`-Tools verwenden!
 - **JSON-Validierung**: NIEMALS manuell generierte JSON-Dateien ungetestet übergeben. Immer mit `node -e "require('./path.json')"` validieren.
 - **Dummy-Tests**: KEINE Tests, die Logik nur simulieren (Mocks). Reale Engines (`GameRuntime`, `TaskExecutor`) nutzen.
 - **Playwright-Parallelität**: KEINE parallelen Worker bei geteiltem Dev-Server/State. Immer `workers: 1`, `fullyParallel: false`.

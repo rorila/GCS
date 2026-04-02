@@ -45,7 +45,7 @@ export class TInfoWindow extends TWindow {
     private _autoCloseTimeout: number | null = null;
 
     constructor(name: string, x: number = 0, y: number = 0) {
-        super(name, x, y, 320, 180);
+        super(name, x, y, 16, 9);
 
         // Default style
         this.style.backgroundColor = '#2a2a4a';

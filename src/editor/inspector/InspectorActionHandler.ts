@@ -9,6 +9,7 @@ import { mediatorService, MediatorEvents } from '../../services/MediatorService'
 import { Logger } from '../../utils/Logger';
 import { VariablePickerDialog } from './VariablePickerDialog';
 import { MediaPickerDialog } from './MediaPickerDialog';
+import { ImageListEditorDialog } from './ImageListEditorDialog';
 import { projectStore } from '../../services/ProjectStore';
 
 const logger = Logger.get('InspectorActionHandler');
@@ -67,6 +68,9 @@ export class InspectorActionHandler {
                 break;
             case 'changeActionType':
                 this.handleChangeActionType(selectedObject, value);
+                break;
+            case 'openImageListEditor':
+                await this.handleOpenImageListEditor(selectedObject);
                 break;
             default:
                 InspectorActionHandler.logger.warn(`Unknown action: ${action}`);
@@ -324,6 +328,28 @@ export class InspectorActionHandler {
 
         if (oldVal !== value) {
             projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: `events.${eventName}`, value });
+            this.host.update(obj);
+        }
+    }
+
+    private async handleOpenImageListEditor(obj: any): Promise<void> {
+        InspectorActionHandler.logger.info('Opening ImageList Editor for:', obj.name);
+
+        const result = await ImageListEditorDialog.show({
+            src: obj.backgroundImage || obj.src || '',
+            imageCountHorizontal: obj.imageCountHorizontal || 1,
+            imageCountVertical: obj.imageCountVertical || 1,
+            currentImageNumber: obj.currentImageNumber || 0,
+        }, obj.name || 'ImageList');
+
+        if (result) {
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'imageCountHorizontal', value: result.imageCountHorizontal });
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'imageCountVertical', value: result.imageCountVertical });
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'currentImageNumber', value: result.currentImageNumber });
+            if (result.src !== (obj.backgroundImage || obj.src || '')) {
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'src', value: result.src });
+                projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'backgroundImage', value: result.src });
+            }
             this.host.update(obj);
         }
     }

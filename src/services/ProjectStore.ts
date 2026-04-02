@@ -139,6 +139,7 @@ export class ProjectStore {
      * @returns true wenn die Mutation erfolgreich war
      */
     public dispatch(mutation: ProjectMutation): boolean {
+        console.log(`[DND-FLOW 5.5] Enter dispatch: project exists=${!!this.project}, isDispatching=${this.isDispatching}`);
         if (!this.project) {
             ProjectStore.logger.warn('dispatch(): Kein Projekt geladen.');
             return false;
@@ -236,6 +237,7 @@ export class ProjectStore {
     // ─────────────────────────────────────────────
 
     private reduceSetProperty(m: { target: any; path: string; value: any }): boolean {
+        console.log(`[DND-FLOW 6] REDUCE SET_PROPERTY on ${m.target?.id}: ${m.path} = ${m.value}`);
         if (!m.target) return false;
         PropertyHelper.setPropertyValue(m.target, m.path, m.value);
         return true;

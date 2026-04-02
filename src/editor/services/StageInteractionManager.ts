@@ -657,6 +657,7 @@ export class StageInteractionManager {
                                 gY = absObjY - targetParentAbs.y;
 
                                 if (gX !== iG.x || gY !== iG.y || dropParentId !== currentParentId) {
+                                    console.log(`[DND-FLOW 1] Drag Ended for ID=${id}. Computed Grid Pos: (${gX}, ${gY}). Initiating onObjectMove.`);
                                     changeRecorder.record({ type: 'drag', description: `${obj.name || id} verschoben`, objectId: id, objectType: 'object', startPosition: { x: iG.x, y: iG.y }, endPosition: { x: gX, y: gY }, dragPath: [...this.currentDragPath] });
                                     // parentId NUR übergeben wenn sich der Parent tatsächlich ändert
                                     if (dropParentId !== currentParentId) {

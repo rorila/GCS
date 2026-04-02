@@ -1,3 +1,12 @@
+- [2026-04-02] TImageList Sprite-Sheet-Komponente (Neue Komponente + Dialog)
+  - Datei: src/components/TImageList.ts [NEU] (Klasse TImageList, Methoden: getInspectorProperties L98, getEvents L119, toJSON L126, Getter: maxImageCount L50, frameWidthPercent L57, frameHeightPercent L64, currentColumn L71, currentRow L78, backgroundPositionX L85, backgroundPositionY L93)
+  - Datei: src/editor/inspector/ImageListEditorDialog.ts [NEU] (Klasse ImageListEditorDialog, Methoden: show L42, open L90, close L120, buildHeader L126, buildBody L148, buildLeftPanel L157, buildRightPanel L212, buildGridConfig L224, buildFramePreview L283, buildFooter L308, loadImage L340, updateAll L370, renderSheetPreview L400, renderFramePreview L460, handleSheetClick L488)
+  - Datei: src/utils/Serialization.ts (hydrateObjects case 'TImageList': L308-310)
+  - Datei: src/services/ComponentRegistry.ts (register L99, typeMapping L178)
+  - Datei: public/editor/toolbox.json (Media-Kategorie: L58-62)
+  - Datei: src/editor/services/StageRenderer.ts (renderComponentContent case TImageList: L565, renderImageList: L620-698)
+  - Datei: src/editor/inspector/InspectorActionHandler.ts (handleOpenImageListEditor: L333-353, switch case L70-72)
+  - Details: Sprite-Sheet-Komponente, die ein einzelnes Teilbild aus einem Raster-Bild anzeigt. Konfiguration über dedizierten Canvas-basierten Dialog mit Raster-Overlay und Frame-Klick-Selektion. Rendering via CSS background-size/position Clipping. 0-basierte Indexierung mit maxImageCount für Zufallszahl-Ermittlung.
 - [2026-03-31] FlowEditor God-Class Auflösung
   - Datei: src/editor/FlowEditor.ts (Facade + Delegation)
   - Dateien: src/editor/services/FlowToolbarManager.ts, src/editor/services/FlowPascalManager.ts
@@ -122,3 +131,9 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
 - src/**/*.ts: Ersetzung ALLER verbleibenden console.log/warn/error/info Aufrufe (ca. 315) durch das Logger.get() Pattern.
 \n[USE_CASE: REFACTORING] StageRenderer Modularisierung\n    - Dateien betroffen: src/editor/services/StageRenderer.ts, src/editor/services/renderers/*.ts\n    - Methode: Auslagerung der ca. 1000 Zeilen renderXXX-Methoden aus StageRenderer.ts in modularisierte Service-Renderers unter Nutzung des gemeinsamen IRenderContext.\n
 [2026-03-31] Grouping & Templating: TGroupPanel.ts, StageRenderer.ts (renderObjects, collectAllIds), ObjectPoolActions.ts, GameRuntime.ts (spawnObject, destroyObject), PropertyActions.ts (set_child_property)
+
+[2026-04-02] UseCase: Drag & Drop und Live-Inspector Sync Fix
+- Grund: Dragging auf der Scene hat die Elemente fehlerhaft repositioniert und den Inspector desynchronisiert. Die alte Implementierung hatte `refreshAllViews()` im Store-Dispatch komplett deaktiviert, was DOM-Flickering verhinderte, den Inspector jedoch abstummte.
+- Betroffene Dateien:
+  - `src/editor/Editor.ts`: initMediator() updated.
+  - `src/utils/Serialization.ts`: Getter-only props (wie maxImageCount) zu reservedKeys hinzugefügt um Proxy TypeErrors zu vermeiden.

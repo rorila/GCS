@@ -22,7 +22,7 @@ export class TShape extends TPanel {
     public text: string = '';
     public contentImage: string = '';
 
-    constructor(name: string, x: number, y: number, width: number = 100, height: number = 100) {
+    constructor(name: string, x: number, y: number, width: number = 4, height: number = 4) {
         super(name, x, y, width, height);
 
         // Default appearance

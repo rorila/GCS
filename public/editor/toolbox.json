@@ -56,6 +56,11 @@
                     "label": "Image"
                 },
                 {
+                    "type": "ImageList",
+                    "icon": "🎞️",
+                    "label": "Image List"
+                },
+                {
                     "type": "Audio",
                     "icon": "🔊",
                     "label": "Audio"

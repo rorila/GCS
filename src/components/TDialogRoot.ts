@@ -32,7 +32,7 @@ export class TDialogRoot extends TWindow {
     private _isDragging: boolean = false;
     private _dragOffset: { x: number; y: number } = { x: 0, y: 0 };
 
-    constructor(name: string, x: number = 100, y: number = 100, width: number = 400, height: number = 300) {
+    constructor(name: string, x: number = 5, y: number = 5, width: number = 20, height: number = 15) {
         super(name, x, y, width, height);
 
         // Dialog-appropriate styling

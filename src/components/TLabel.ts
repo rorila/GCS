@@ -5,7 +5,7 @@ export class TLabel extends TTextControl {
 
     constructor(name: string, x: number, y: number, text?: string) {
         // Init with text or name as default
-        super(name, x, y, 100, 20);
+        super(name, x, y, 8, 2);
         this.text = text !== undefined ? text : name;
 
         this.style.backgroundColor = 'transparent';
