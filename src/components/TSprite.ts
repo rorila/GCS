@@ -22,6 +22,10 @@ export class TSprite extends TWindow {
     private _backgroundImage: string = '';
     private _objectFit: ImageFit = IMAGE_DEFAULTS.objectFit;
 
+    // TImageList support
+    public imageListId: string = '';
+    public imageIndex: number = 0;
+
     // Error offset for smooth correction
     private errorX: number = 0;
     private errorY: number = 0;
@@ -78,6 +82,8 @@ export class TSprite extends TWindow {
             { name: 'spriteColor', label: 'Sprite Color', type: 'color', group: 'Appearance' },
             { name: 'backgroundImage', label: 'Sprite Image', type: 'image_picker', group: 'Appearance' },
             { name: 'objectFit', label: 'Image Fit', type: 'select', group: 'Appearance', options: ['cover', 'contain', 'fill', 'none'] },
+            { name: 'imageListId', label: 'Sprite Sheet', type: 'select', source: 'imageLists', group: 'Appearance', hint: 'Optional: Verknüpft das Sprite mit einer TImageList' },
+            { name: 'imageIndex', label: 'Frame Index', type: 'number', min: 0, step: 1, group: 'Appearance', hint: '0-basierter Index des Frames aus der TImageList' },
             // Hitbox group
             { name: 'customHitbox', label: 'Custom Hitbox', type: 'boolean', group: 'Hitbox' },
             { name: 'hitboxShape', label: 'Hitbox Shape', type: 'select', group: 'Hitbox', options: ['auto', 'rect', 'circle'], dependsOn: { property: 'customHitbox', value: true } },
@@ -258,5 +264,13 @@ export class TSprite extends TWindow {
             'onBoundaryHit',
             'onStageExit'
         ];
+    }
+
+    public toJSON(): any {
+        return {
+            ...super.toJSON(),
+            imageListId: this.imageListId,
+            imageIndex: this.imageIndex
+        };
     }
 }

@@ -168,6 +168,7 @@
 ### Allgemein
 - **Placeholder-Code**: KEINE `// ... restlicher Code`-Kommentare. Jede Datei muss vollständig sein.
 - **Node/PowerShell String-Injection**: NIEMALS Code-Edits über `node -e "..."` in der PowerShell ausführen, da Backticks und `${...}` unvorhersehbar interpoliert werden. IMMER die nativen `replace_file_content`-Tools verwenden!
+- **PowerShell Syntax**: NIEMALS `&&` zur Verkettung von Befehlen verwenden (führt zu `ParserError`). IMMER das Semikolon `;` zur Verkettung nutzen (z.B. `git add . ; git commit -m "..."`).
 - **JSON-Validierung**: NIEMALS manuell generierte JSON-Dateien ungetestet übergeben. Immer mit `node -e "require('./path.json')"` validieren.
 - **Dummy-Tests**: KEINE Tests, die Logik nur simulieren (Mocks). Reale Engines (`GameRuntime`, `TaskExecutor`) nutzen.
 - **Playwright-Parallelität**: KEINE parallelen Worker bei geteiltem Dev-Server/State. Immer `workers: 1`, `fullyParallel: false`.
@@ -194,6 +195,7 @@
 - **Variable Picker**: Immer `VariablePickerDialog.show()` verwenden, nicht `prompt()`.
 - **Parameter-Typ-Umbau**: Bei jedem Umbau (String→Object) die GESAMTE Rendering-Kette validieren. Fehlender Playwright-Test → User warnen.
 - **IInspectable.applyChange() Umgehung**: Wenn das Objekt `IInspectable` implementiert, MUSS `applyChange()` gerufen werden. Nicht direkt via `PropertyHelper` im `data`-Objekt manipulieren.
+- **Select-Dropdowns ohne Leer-Option**: Wenn ein `type: 'select'`-Feld mit `source:` eine dynamische Liste lädt und der Initialwert leer (`''`) ist, MUSS die Optionsliste eine Leer-Option `{ value: '', label: '— Keine —' }` enthalten. Ohne sie kann der User nicht von "leer" auf einen Wert wechseln, weil kein `onchange`-Event feuert (Browser-Default identisch mit erstem Eintrag).
 
 ### Serialization & Hydration
 - **Serialization reservedKeys**: Read-Only Properties MÜSSEN in `Serialization.ts` → `reservedKeys` stehen. Sonst: `TypeError: Cannot set property which has only a getter`.
@@ -234,4 +236,4 @@
 - [🤖 AI Agent Integration](docs/AI_Agent_Integration_Plan.md)
 - [⚡ Flow Safety (Self-Healing)](docs/coding-standards.md#ai-agent-api--flow-safety)
 
-Letzte Aktualisierung: v3.29.4 (CleanCode Audit & Konsolidierung, 2026-03-31)
+Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04-02)

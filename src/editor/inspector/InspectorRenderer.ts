@@ -1078,6 +1078,13 @@ export class InspectorRenderer {
         if (prop.source === 'dataActions') {
             return projectRegistry.getActions('all').filter((a: any) => a.type === 'data_action' || a.type === 'http').map((a: any) => ({ value: a.name, label: a.name }));
         }
+        if (prop.source === 'imageLists') {
+            const imageLists = projectRegistry.getObjects().filter((o: any) => o.className === 'TImageList');
+            return [
+                { value: '', label: '— Keine —' },
+                ...imageLists.map((o: any) => ({ value: o.name, label: o.name }))
+            ];
+        }
         if (prop.source === 'variables') {
             return projectRegistry.getVariables().map(v => ({ value: v.name, label: v.name }));
         }

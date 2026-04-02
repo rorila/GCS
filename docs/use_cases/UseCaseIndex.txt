@@ -5,15 +5,19 @@
   - Datei: src/export/GameExporter.ts (L339-343, deepClean ignoriert interne Eigenschaften)
   - Datei: src/editor/services/renderers/TextObjectRenderer.ts (L95-103, el.style.transform += ' scale(0.98)')
   - Details: 1. Transparente Bilder zeigten schwarzen Hintergrund wegen fest kodiertem Hintergrund -> auf 'transparent' umgestellt. 2. Unerwünschter Schatteneffekt bei Images behoben (globaler style entfernt). 3. Standalone-Export gerendert nicht (Komponenten unsichtbar): `deepClean` im Exporter hat irrtümlich alle '_' Präfix-Eigenschaften entfernt, einschließlich essentieller Vue-Reactivity Flags (`__v_isRef`) und internem State. 4. Button-Click-Animation zerstörte die globale Komponentenkoordinate (HW-Acceleration), da `scale` vor `translate3d` evaluierte -> Fix: Scale-Wert direkt an die bestehende Translation anhängen statt auf Root-Ebene zu definieren.
-- [2026-04-02] TImageList Sprite-Sheet-Komponente (Neue Komponente + Dialog)
-  - Datei: src/components/TImageList.ts [NEU] (Klasse TImageList, Methoden: getInspectorProperties L98, getEvents L119, toJSON L126, Getter: maxImageCount L50, frameWidthPercent L57, frameHeightPercent L64, currentColumn L71, currentRow L78, backgroundPositionX L85, backgroundPositionY L93)
-  - Datei: src/editor/inspector/ImageListEditorDialog.ts [NEU] (Klasse ImageListEditorDialog, Methoden: show L42, open L90, close L120, buildHeader L126, buildBody L148, buildLeftPanel L157, buildRightPanel L212, buildGridConfig L224, buildFramePreview L283, buildFooter L308, loadImage L340, updateAll L370, renderSheetPreview L400, renderFramePreview L460, handleSheetClick L488)
-  - Datei: src/utils/Serialization.ts (hydrateObjects case 'TImageList': L308-310)
-  - Datei: src/services/ComponentRegistry.ts (register L99, typeMapping L178)
-  - Datei: public/editor/toolbox.json (Media-Kategorie: L58-62)
-  - Datei: src/editor/services/StageRenderer.ts (renderComponentContent case TImageList: L565, renderImageList: L620-698)
-  - Datei: src/editor/inspector/InspectorActionHandler.ts (handleOpenImageListEditor: L333-353, switch case L70-72)
-  - Details: Sprite-Sheet-Komponente, die ein einzelnes Teilbild aus einem Raster-Bild anzeigt. Konfiguration über dedizierten Canvas-basierten Dialog mit Raster-Overlay und Frame-Klick-Selektion. Rendering via CSS background-size/position Clipping. 0-basierte Indexierung mit maxImageCount für Zufallszahl-Ermittlung.
+- [2026-04-02] TImageList + TSprite Integration (Sprite-Sheet Support)
+  - Datei: src/components/TSprite.ts (Properties: imageListId, imageIndex, Getter: toJSON L261)
+  - Datei: src/editor/services/renderers/SpriteRenderer.ts (render: Unterstützung für TImageList Obj, DIV Switch, ProjectRegistry Fallback)
+  - Datei: src/components/TImageList.ts [NEU] (Klasse TImageList, Bildraster-Optionen)
+  - Datei: src/editor/inspector/ImageListEditorDialog.ts [NEU] (Canvas UI)
+  - Datei: src/utils/Serialization.ts (hydrateObjects case 'TImageList', TSprite test ergänzt)
+  - Datei: src/services/ComponentRegistry.ts (register, typeMapping)
+  - Datei: public/editor/toolbox.json (Media-Kategorie Image List)
+  - Datei: src/editor/services/StageRenderer.ts (renderComponentContent case TImageList)
+  - Datei: src/editor/inspector/InspectorActionHandler.ts (handleOpenImageListEditor)
+  - Datei: src/editor/inspector/InspectorRenderer.ts (getOptionsFromSource source 'imageLists')
+  - Details: Sprite-Sheet Funktionalität. TSprite wurde erweitert, um optional eine `imageListId` und `imageIndex` zu referenzieren, womit Sprites spezifische Frames einer TImageList als Rendering-Quelle nutzen können. Der SpriteRenderer wendet CSS Hintergrund-Positionierung auf ein umschließendes DIV-Tag an, falls eine Liste vorliegt, oder fällt auf das performante IMG-Tag für direkte Bilder zurück. Serialization und automatische UI-Tests (`npm run test`) implementiert.
+  - **Fix [17:43]:** Sprite-Sheet-Rendering im Editor schlug fehl, weil das `imageLists`-Dropdown keine Leer-Option „— Keine —" hatte. Dadurch konnte der Inspector-Wert nicht inicial gewechselt werden. Fix: Leer-Option in `getOptionsFromSource('imageLists')` hinzugefügt (InspectorRenderer.ts L1089-1094). Debug-Logs aus SpriteRenderer.ts und Editor.ts entfernt.
 - [2026-03-31] FlowEditor God-Class Auflösung
   - Datei: src/editor/FlowEditor.ts (Facade + Delegation)
   - Dateien: src/editor/services/FlowToolbarManager.ts, src/editor/services/FlowPascalManager.ts

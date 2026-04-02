@@ -231,6 +231,28 @@ export async function runSerializationTests(): Promise<TestResult[]> {
         addResult('Hydrate: Style-Merge', false, `Exception: ${e.message}`);
     }
 
+    // --- Test 9: TSprite mit ImageList ---
+    try {
+        const spriteData = [{
+            className: 'TSprite',
+            id: 'sprite_1',
+            name: 'PlayerSprite',
+            x: 0, y: 0, width: 32, height: 32,
+            imageListId: 'imglist_hero',
+            imageIndex: 2
+        }];
+        const objects = hydrateObjects(spriteData);
+        const spr = objects[0];
+        const ok = spr != null
+            && (spr as any).className === 'TSprite'
+            && (spr as any).imageListId === 'imglist_hero'
+            && (spr as any).imageIndex === 2;
+        addResult('Hydrate: TSprite ImageList', ok,
+            `imageListId=${(spr as any)?.imageListId}, imageIndex=${(spr as any)?.imageIndex}`);
+    } catch (e: any) {
+        addResult('Hydrate: TSprite ImageList', false, `Exception: ${e.message}`);
+    }
+
     return results;
 }
 

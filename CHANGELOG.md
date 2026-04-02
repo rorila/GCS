@@ -1,5 +1,17 @@
 ## [3.30.0] - 2026-04-02
 ### Added
+- **TSprite + TImageList Integration** (`src/components/TSprite.ts`, `SpriteRenderer.ts`):
+  - Sprites können nun optional ein Teilbild aus einem Sprite-Sheet (`TImageList`) anstelle eines direkten Bildes (`backgroundImage`) anzeigen.
+  - Neue Properties: `imageListId` (Verweis auf eine TImageList) und `imageIndex` (0-basierter Index des Teilbildes).
+  - Der `SpriteRenderer` erkennt die Verknüpfung und wendet (falls die Liste existiert) die passende `background-position` auf ein inneres DIV-Layer an. Bei Nicht-Auffinden auf der Stage wird die `ProjectRegistry` konsultiert (Fallback für ungesyncte globale ImageLists).
+  - Rückwärtskompatibilität bleibt bestehen: Ohne ImageList rendert TSprite weiterhin als performantes `<img />`-Tag mit Hardware-Beschleunigung.
+
+### Fixed
+- **Sprite-Sheet-Rendering im Editor** (`SpriteRenderer.ts`, `InspectorRenderer.ts`):
+  - Bug behoben: Das Ändern von `imageListId` und `imageIndex` im Inspector löste keine visuelle Aktualisierung der Stage aus.
+  - Ursache: Die `imageLists`-Dropdown-Source generierte kein Leer-Option; ohne diese konnte kein initialer Wechsel von „leer" zu einer konkreten TImageList erfolgen.
+  - Fix: Leere „— Keine —"-Option als Standardwert im `imageLists`-Dropdown hinzugefügt.
+  - Rückwärtskompatibilität bleibt bestehen: Ohne ImageList rendert TSprite weiterhin als performantes `<img />`-Tag mit Hardware-Beschleunigung.
 - **TImageList — Sprite-Sheet-Komponente** (`src/components/TImageList.ts` [NEU]):
   - Erbt von `TImage`. Zeigt ein einzelnes Teilbild aus einem Sprite-Sheet (Rasterbild) an.
   - Properties: `imageCountHorizontal`, `imageCountVertical`, `currentImageNumber` (0-basiert).
@@ -14,9 +26,10 @@
   - Ähnliche Architektur wie `MediaPickerDialog` (statische `show()`-Methode, Promise-basiert).
 - **Integration**:
   - `ComponentRegistry.ts`: Register + TypeMapping (`ImageList` → `TImageList`).
-  - `Serialization.ts`: Hydration-Case für TImageList.
+  - `Serialization.ts`: Hydration-Case für TImageList und TSprite-Properties.
   - `toolbox.json`: Eintrag in Kategorie Media (Icon: 🎞️, Label: Image List).
   - `StageRenderer.ts`: Rendering via CSS `background-size`/`background-position` Sprite-Clipping. Im Editor-Modus mit Frame-Nummer-Badge.
+  - `InspectorRenderer.ts`: Die DataSource `imageLists` ermöglicht die Auswahl dynamischer ImageList-Instanzen im Inspector.
   - `InspectorActionHandler.ts`: Action `openImageListEditor` öffnet den Dialog und wendet Ergebnisse über ProjectStore an.
 
 ### Fixed

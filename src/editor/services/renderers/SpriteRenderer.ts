@@ -1,43 +1,95 @@
 import { IRenderContext } from './IRenderContext';
+import { ProjectRegistry } from '../../../services/ProjectRegistry';
 
 export class SpriteRenderer {
     public static render(ctx: IRenderContext, el: HTMLElement, obj: any): void {
-        const hasImage = !!obj.backgroundImage;
+        const hasImageList = !!obj.imageListId;
+        const hasDirectImage = !!obj.backgroundImage;
         
-        el.style.backgroundColor = hasImage ? 'transparent' : (obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b');
+        let imageListObj: any = null;
+        if (hasImageList) {
+            imageListObj = ctx.host.lastRenderedObjects.find(o => o.name === obj.imageListId || o.id === obj.imageListId);
+            
+            // Fallback: If TImageList is a global object not currently rendered on the stage
+            if (!imageListObj) {
+                const registryObjs = ProjectRegistry.getInstance().getObjects();
+                imageListObj = registryObjs.find((o: any) => o.name === obj.imageListId || o.id === obj.imageListId);
+            }
+        }
+
+        const effectiveHasImage = hasDirectImage || (hasImageList && imageListObj && (imageListObj.backgroundImage || imageListObj.src));
         
-        if (hasImage) {
+        el.style.backgroundColor = effectiveHasImage ? 'transparent' : (obj.style?.backgroundColor || obj.spriteColor || '#ff6b6b');
+        
+        if (effectiveHasImage) {
             el.style.borderColor = 'transparent';
 
-            let imgEl = el.querySelector('.sprite-image-layer') as HTMLImageElement;
-            let bgImg = obj.backgroundImage;
+            let imgEl = el.querySelector('.sprite-image-layer') as HTMLElement;
+            let isDivLayer = imgEl && imgEl.tagName.toLowerCase() === 'div';
+
+            let bgImg = '';
+            if (imageListObj) {
+                bgImg = imageListObj.backgroundImage || imageListObj.src || '';
+            } else {
+                bgImg = obj.backgroundImage;
+            }
+
             const src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:'))
                 ? bgImg
                 : `/images/${bgImg}`;
 
-            if (!imgEl) {
-                imgEl = document.createElement('img');
+            if (!imgEl || (imageListObj && !isDivLayer) || (!imageListObj && isDivLayer)) {
+                if (imgEl) imgEl.remove();
+                
+                if (imageListObj) {
+                    imgEl = document.createElement('div');
+                } else {
+                    imgEl = document.createElement('img');
+                    (imgEl as HTMLImageElement).onerror = () => { imgEl.style.display = 'none'; };
+                    imgEl.style.willChange = 'transform';
+                    imgEl.style.backfaceVisibility = 'hidden';
+                }
+                
                 imgEl.className = 'sprite-image-layer';
                 imgEl.style.position = 'absolute';
                 imgEl.style.top = '0';
                 imgEl.style.left = '0';
                 imgEl.style.width = '100%';
                 imgEl.style.height = '100%';
-                imgEl.style.objectFit = obj.objectFit || 'contain';
                 imgEl.style.pointerEvents = 'none';
                 imgEl.style.userSelect = 'none';
                 imgEl.draggable = false;
-                imgEl.style.willChange = 'transform';
-                imgEl.style.backfaceVisibility = 'hidden';
-                imgEl.onerror = () => { imgEl.style.display = 'none'; };
+                
                 el.appendChild(imgEl);
             }
 
-            if (imgEl.getAttribute('src') !== src) {
-                imgEl.src = src;
+            if (imageListObj) {
+                const hCount = imageListObj.imageCountHorizontal || 1;
+                const vCount = imageListObj.imageCountVertical || 1;
+                const rawIndex = obj.imageIndex !== undefined && obj.imageIndex >= 0 ? obj.imageIndex : (imageListObj.currentImageNumber || 0);
+                const currentFrame = Math.max(0, Math.min(rawIndex, (hCount * vCount) - 1));
+
+                const col = currentFrame % hCount;
+                const row = Math.floor(currentFrame / hCount);
+
+                const bgSizeX = hCount * 100;
+                const bgSizeY = vCount * 100;
+                const bgPosX = hCount <= 1 ? 0 : (col / (hCount - 1)) * 100;
+                const bgPosY = vCount <= 1 ? 0 : (row / (vCount - 1)) * 100;
+
+                imgEl.style.backgroundImage = `url("${src}")`;
+                imgEl.style.backgroundSize = `${bgSizeX}% ${bgSizeY}%`;
+                imgEl.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
+                imgEl.style.backgroundRepeat = 'no-repeat';
                 imgEl.style.display = '';
+            } else {
+                const imgNode = imgEl as HTMLImageElement;
+                if (imgNode.getAttribute('src') !== src) {
+                    imgNode.src = src;
+                    imgNode.style.display = '';
+                }
+                imgNode.style.objectFit = obj.objectFit || 'contain';
             }
-            imgEl.style.objectFit = obj.objectFit || 'contain';
             imgEl.style.borderRadius = obj.shape === 'circle' ? '50%' : '0';
         } else {
             const oldImg = el.querySelector('.sprite-image-layer');
@@ -80,7 +132,7 @@ export class SpriteRenderer {
 
         const textValue = obj.caption || (ctx.host.runMode ? '' : obj.name);
         if (el.innerText !== textValue) {
-            if (!hasImage) {
+            if (!effectiveHasImage) {
                 el.innerText = textValue;
             }
         }
