@@ -363,6 +363,13 @@ export class InspectorRenderer {
         }
 
         meta.parameters.forEach((param: any) => {
+            if (param.visibleWhen) {
+                const condValues = param.visibleWhen.values;
+                const currentCondValue = PropertyHelper.getPropertyValue(selectedObject, param.visibleWhen.field) ?? '';
+                if (Array.isArray(condValues) && !condValues.includes(currentCondValue)) {
+                    return;
+                }
+            }
             const row = document.createElement('div');
             row.style.display = 'flex';
             row.style.flexDirection = 'column';

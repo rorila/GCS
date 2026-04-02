@@ -653,7 +653,8 @@ export class FlowAction extends FlowElement {
                     const field: any = {
                         name: param.name, label: param.label,
                         type: this.mapParameterTypeToInspector(param.type),
-                        hint: param.hint
+                        hint: param.hint,
+                        visibleWhen: param.visibleWhen, defaultValue: param.defaultValue
                     };
                     if (param.options) field.options = param.options.map((o: string) => ({ value: o, label: o }));
                     else if (param.source) field.source = param.source;
@@ -732,7 +733,7 @@ export class FlowAction extends FlowElement {
         this.refreshVisuals();
 
         // 4. Bei Typ-Wechsel: Re-Render des gesamten Inspectors auslösen
-        if (propertyName === 'type' || propertyName === 'actionType') {
+        if (propertyName === 'type' || propertyName === 'actionType' || propertyName === 'effect') {
             return true; // Inspector muss mit neuen Sektionen neu gerendert werden
         }
 

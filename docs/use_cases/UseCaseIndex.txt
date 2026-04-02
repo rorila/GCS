@@ -1,3 +1,7 @@
+- [2026-04-02] Sprite-Animations-Effekte (v3.31.0)
+  - Datei: src/runtime/AnimationManager.ts (L364-505, grow/shrink/explode/pop/fadeIn/fadeOut/spin/wobble/spriteAnimate)
+  - Datei: src/runtime/actions/handlers/AnimationActions.ts (L1-152, animate + sprite_animate Actions)
+  - Details: 9 neue Effekt-Makros im AnimationManager für Sprite-Animationen. Highlight: `explode`-Effekt zerlegt Sprites in N konfigurierbare Fragmente (temporäre DOM-Divs mit CSS-Transition), die in zufällige Richtungen fliegen. `pop` = grow 1.3x → explode. `spriteAnimate` durchläuft imageIndex von Frame A→B. Alle Parameter (fragments, spread, targetScale, degrees, intensity) im Inspector konfigurierbar via ActionParams.
 - [2026-04-02] Rendering-Fixes & Export-Analyse (Transparenz, Glow/Shadow, Export)
   - Datei: src/components/TImage.ts (L29-30, backgroundColor='transparent') 
   - Datei: src/components/TImageList.ts (L37-40, backgroundColor='transparent')
@@ -148,3 +152,8 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
 - Betroffene Dateien:
   - `src/editor/Editor.ts`: initMediator() updated.
   - `src/utils/Serialization.ts`: Getter-only props (wie maxImageCount) zu reservedKeys hinzugefügt um Proxy TypeErrors zu vermeiden.
+
+[2026-04-02] Dynamic Inspector Bugfix:
+- src/editor/flow/FlowAction.ts: applyChange (Zeile 736) - force re-render on effect change
+- src/editor/flow/FlowAction.ts: getInspectorSections (Zeile 655) - map defaultValue to UI
+

@@ -36,6 +36,7 @@ export interface TPropertyDef {
     buttonType?: string;  // Button variant: 'primary', 'secondary' etc.
     variable?: string;    // Bound variable name for proxy getters/setters
     dependsOn?: { property: string; value: any }; // Conditional field visibility
+    visibleWhen?: { field: string; values: any[] }; // Dynamic visibility logic
 }
 
 // ─────────────────────────────────────────────

@@ -103,6 +103,10 @@
                 {
                     "value": "animate",
                     "label": "🎬 Animieren"
+                },
+                {
+                    "value": "sprite_animate",
+                    "label": "🎞️ Sprite Frame-Animation"
                 }
             ],
             "selectedValue": "${dialogData.type}",

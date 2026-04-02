@@ -361,5 +361,213 @@ export class AnimationManager {
         if (target.style.opacity === undefined) target.style.opacity = 1;
         this.addTween(target, 'style.opacity', toOpacity, duration, 'linear');
     }
+    // --- NEUE SPRITE-ANIMATIONS-EFFEKTE (v3.31.0) ---
+
+    /**
+     * Langsam größer werden (width + height skalieren, Bild wächst mit).
+     * Ändert die echten width/height-Werte → beeinflusst auch die Hitbox.
+     */
+    public grow(target: any, targetScale: number = 2.0, duration: number = 500): void {
+        if (!target) return;
+        const startW = target.width || 1;
+        const startH = target.height || 1;
+        this.addTween(target, 'width', startW * targetScale, duration, 'easeOut');
+        this.addTween(target, 'height', startH * targetScale, duration, 'easeOut');
+    }
+
+    /**
+     * Langsam kleiner werden (Gegenteil von grow).
+     * Bei targetScale ≈ 0 wird das Objekt am Ende unsichtbar.
+     */
+    public shrink(target: any, targetScale: number = 0.3, duration: number = 500): void {
+        if (!target) return;
+        const startW = target.width || 1;
+        const startH = target.height || 1;
+        const targetW = startW * targetScale;
+        const targetH = startH * targetScale;
+        this.addTween(target, 'width', targetW, duration, 'easeIn');
+        this.addTween(target, 'height', targetH, duration, 'easeIn', () => {
+            if (targetScale <= 0.05) {
+                target.visible = false;
+            }
+        });
+    }
+
+    /**
+     * Platzen/Zerbersten: Sprite wird in N Fragmente zerlegt, die in
+     * zufällige Richtungen wegfliegen (mit Rotation, Skalierung→0, Fade-out).
+     * Danach wird das Sprite unsichtbar (visible=false, recyclebar im Pool).
+     * Unterstützt: Direktbilder, Sprite-Sheet-Frames und einfarbige Sprites.
+     */
+    public explode(target: any, fragments: number = 9, spread: number = 120, duration: number = 600): void {
+        if (!target) return;
+
+        // DOM-Element des Sprites finden
+        const spriteEl = document.querySelector(`[data-object-id="${target.id}"]`) as HTMLElement;
+        if (!spriteEl) {
+            logger.warn(`[AnimationManager.explode] DOM-Element für "${target.name}" nicht gefunden.`);
+            target.visible = false;
+            return;
+        }
+
+        const rect = spriteEl.getBoundingClientRect();
+        const gridSize = Math.max(2, Math.round(Math.sqrt(fragments)));
+        const fragW = rect.width / gridSize;
+        const fragH = rect.height / gridSize;
+
+        // Bild-Quelle ermitteln
+        const imgLayer = spriteEl.querySelector('.sprite-image-layer') as HTMLElement;
+        let bgImage = '';
+        let bgColor = '';
+
+        if (imgLayer && imgLayer.tagName === 'DIV') {
+            bgImage = imgLayer.style.backgroundImage;
+        } else if (imgLayer && imgLayer.tagName === 'IMG') {
+            bgImage = `url("${(imgLayer as HTMLImageElement).src}")`;
+        } else {
+            bgColor = target.spriteColor || target.style?.backgroundColor || '#ff6b6b';
+        }
+
+        // Container: Stage-Ebene
+        const stageEl = spriteEl.closest('.stage-container') || spriteEl.parentElement;
+        if (!stageEl) return;
+
+        // Sprite sofort unsichtbar
+        target.visible = false;
+        spriteEl.style.display = 'none';
+
+        const fragmentEls: HTMLElement[] = [];
+
+        for (let row = 0; row < gridSize; row++) {
+            for (let col = 0; col < gridSize; col++) {
+                const frag = document.createElement('div');
+                frag.className = 'explode-fragment';
+                frag.style.position = 'fixed';
+                frag.style.left = `${rect.left + col * fragW}px`;
+                frag.style.top = `${rect.top + row * fragH}px`;
+                frag.style.width = `${fragW}px`;
+                frag.style.height = `${fragH}px`;
+                frag.style.overflow = 'hidden';
+                frag.style.pointerEvents = 'none';
+                frag.style.zIndex = '10000';
+                frag.style.transition = `transform ${duration}ms ease-out, opacity ${duration}ms ease-in`;
+                frag.style.willChange = 'transform, opacity';
+
+                if (bgImage) {
+                    frag.style.backgroundImage = bgImage;
+                    frag.style.backgroundSize = `${rect.width}px ${rect.height}px`;
+                    frag.style.backgroundPosition = `${-col * fragW}px ${-row * fragH}px`;
+                    frag.style.backgroundRepeat = 'no-repeat';
+                } else {
+                    frag.style.backgroundColor = bgColor;
+                }
+
+                if (target.shape === 'circle') {
+                    frag.style.borderRadius = '30%';
+                }
+
+                document.body.appendChild(frag);
+                fragmentEls.push(frag);
+
+                // Animation starten (nach einem Frame für CSS Transition Trigger)
+                const angle = Math.random() * Math.PI * 2;
+                const dist = spread * (0.5 + Math.random() * 0.5);
+                const rotDeg = (Math.random() - 0.5) * 720;
+                requestAnimationFrame(() => {
+                    frag.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px) rotate(${rotDeg}deg) scale(0.1)`;
+                    frag.style.opacity = '0';
+                });
+            }
+        }
+
+        // Aufräumen nach Ablauf
+        setTimeout(() => {
+            fragmentEls.forEach(f => f.remove());
+        }, duration + 50);
+    }
+
+    /**
+     * Kombination: Kurz aufblähen (grow 1.3x) → dann explode.
+     * Simuliert ein Platzen wie bei einem Luftballon.
+     */
+    public pop(target: any, fragments: number = 9, duration: number = 800): void {
+        if (!target) return;
+        const growDuration = Math.round(duration * 0.3);
+        const explodeDuration = Math.round(duration * 0.7);
+
+        this.grow(target, 1.3, growDuration);
+        setTimeout(() => {
+            this.explode(target, fragments, 120, explodeDuration);
+        }, growDuration);
+    }
+
+    /**
+     * Sanftes Einblenden: Setzt visible=true und animiert Opacity 0 → 1.
+     */
+    public fadeIn(target: any, duration: number = 500): void {
+        if (!target) return;
+        if (!target.style) target.style = {};
+        target.style.opacity = 0;
+        target.visible = true;
+        this.addTween(target, 'style.opacity', 1, duration, 'easeOut');
+    }
+
+    /**
+     * Sanftes Ausblenden: Animiert Opacity 1 → 0, dann visible=false.
+     */
+    public fadeOut(target: any, duration: number = 500): void {
+        if (!target) return;
+        if (!target.style) target.style = {};
+        if (target.style.opacity === undefined) target.style.opacity = 1;
+        this.addTween(target, 'style.opacity', 0, duration, 'easeIn', () => {
+            target.visible = false;
+        });
+    }
+
+    /**
+     * Rotation um die eigene Achse.
+     */
+    public spin(target: any, degrees: number = 360, duration: number = 500): void {
+        if (!target || !target.style) return;
+        this.addTween(target, '_virtual', 1, duration, 'easeInOut', () => {
+            target.style.transform = '';
+        }, (val) => {
+            target.style.transform = `rotate(${val * degrees}deg)`;
+        });
+    }
+
+    /**
+     * Wackel-Effekt: Leichtes Hin-und-Her-Rotieren via Sinus-Funktion.
+     */
+    public wobble(target: any, intensity: number = 15, duration: number = 500): void {
+        if (!target || !target.style) return;
+        this.addTween(target, '_virtual', 1, duration, 'linear', () => {
+            target.style.transform = '';
+        }, (val) => {
+            const angle = Math.sin(val * Math.PI * 6) * intensity * (1 - val);
+            target.style.transform = `rotate(${angle}deg)`;
+        });
+    }
+
+    /**
+     * Frame-Animation: imageIndex wird von fromFrame → toFrame durchiteriert.
+     * Einmalige Ausführung, kein Loop.
+     */
+    public spriteAnimate(target: any, fromFrame: number = 0, toFrame: number = 7, duration: number = 1000): void {
+        if (!target) return;
+        const frameCount = Math.abs(toFrame - fromFrame) + 1;
+        target.imageIndex = fromFrame;
+
+        this.addTween(target, '_virtual', 1, duration, 'linear', () => {
+            target.imageIndex = toFrame;
+        }, (val) => {
+            const frame = Math.min(
+                fromFrame + Math.floor(val * frameCount),
+                toFrame
+            );
+            target.imageIndex = frame;
+        });
+    }
 }
+
 

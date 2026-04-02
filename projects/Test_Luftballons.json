@@ -17,14 +17,6 @@
     }
   },
   "flow": {
-    "stage": {
-      "cols": 100,
-      "rows": 100,
-      "cellSize": 20,
-      "snapToGrid": true,
-      "visible": true,
-      "backgroundColor": "#1e1e1e"
-    },
     "elements": [],
     "connections": []
   },
@@ -196,8 +188,56 @@
           "hitboxHeight": 0
         }
       ],
-      "actions": [],
-      "tasks": [],
+      "actions": [
+        {
+          "id": "node-1775149330211",
+          "details": "",
+          "name": "action",
+          "showDetails": false,
+          "type": "animate",
+          "target": "Sprite_4",
+          "effect": "explode"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "ANewTask",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ANewTask": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 300,
+              "y": 40
+            }
+          },
+          "standaloneNodes": [
+            {
+              "id": "node-1775149330211",
+              "type": "action",
+              "x": 300,
+              "y": 40,
+              "width": 280,
+              "height": 80,
+              "properties": {
+                "name": "action",
+                "details": "target: Sprite_4, effect: explode",
+                "description": ""
+              },
+              "data": {
+                "name": "action",
+                "type": "animate",
+                "isLinked": true
+              }
+            }
+          ]
+        }
+      ],
       "variables": [],
       "grid": {
         "cols": 64,
@@ -206,7 +246,8 @@
         "snapToGrid": true,
         "visible": true,
         "backgroundColor": "#ffffff"
-      }
+      },
+      "flowCharts": {}
     }
   ],
   "activeStageId": "main"

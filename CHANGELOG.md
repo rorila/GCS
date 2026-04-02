@@ -1,3 +1,23 @@
+## [3.31.1] - 2026-04-02
+### Fixed
+- **Dynamic Inspector Bugfix** (`FlowAction.ts`):
+  - Behebung eines kritischen UI-Status-Fehlers, bei dem sich der Inspector nach einem Wechsel der `effect`-Eigenschaft für `visibleWhen` nicht neu gezeichnet hat.
+  - Hinzufügen von `defaultValue` zum Konfigurationsobjekt der Flow-Actions, wodurch leere Number-Inputs im Inspector (z.B. bei der "Dauer") behoben wurden.
+
+## [3.31.0] - 2026-04-02
+- **Sprite-Animations-Effekte** (`AnimationManager.ts`, `AnimationActions.ts`):
+  - 9 neue Animations-Effekte für das `animate`-Action:
+    - `grow` — Sprite wächst (width + height Tween, beeinflusst Hitbox)
+    - `shrink` — Sprite schrumpft (Gegenteil von grow, bei ≈0 → `visible=false`)
+    - `explode` 💥 — Fragment-basiertes Platzen: Sprite wird in N Stücke (konfigurierbar) zerlegt, die in zufällige Richtungen wegfliegen mit Rotation, Skalierung→0 und Fade-out. Unterstützt Direktbilder, Sprite-Sheet-Frames und einfarbige Sprites.
+    - `pop` — Kombination: Kurz aufblähen (grow 1.3x) → dann explode. Simuliert Platzen wie bei Luftballon.
+    - `fadeIn` — Sanftes Einblenden (visible=true + Opacity 0→1)
+    - `fadeOut` — Sanftes Ausblenden (Opacity 1→0 → visible=false)
+    - `spin` — Rotation um eigene Achse (konfigurierbare Gradzahl)
+    - `wobble` — Wackel-Effekt (Sinus-basierte Hin-und-Her-Rotation mit Dämpfung)
+  - Neue dedizierte Action `sprite_animate`: Frame-Animation für TImageList (imageIndex von Frame A → Frame B, einmalig)
+  - **Dynamic Inspector (visibleWhen)** (`InspectorRenderer.ts`, `ActionRegistry.ts`): Parameter in Actions unterstützen jetzt bedingte Sichtbarkeit. ActionParams wie `targetScale` oder `fragments` werden nur noch angezeigt, wenn der entsprechende Effekt (z.B. grow oder explode) ausgewählt ist. 
+
 ## [3.30.0] - 2026-04-02
 ### Added
 - **TSprite + TImageList Integration** (`src/components/TSprite.ts`, `SpriteRenderer.ts`):

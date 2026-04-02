@@ -1829,10 +1829,13 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "isGlobal": true,
-          "description": "System internal flag to track unsaved changes"
+          "description": "System internal flag to track unsaved changes",
+          "uiScope": "stage",
+          "uiEmoji": "🎭",
+          "usageCount": 0
         }
       ],
       "objects": [
@@ -1995,7 +1998,24 @@
           "params": []
         }
       ],
-      "actions": [],
+      "actions": [
+        {
+          "id": "node-1775150127557",
+          "details": "",
+          "name": "Action2",
+          "showDetails": false,
+          "type": "animate",
+          "effect": "explode"
+        },
+        {
+          "id": "node-1775150173126",
+          "details": "",
+          "name": "Action3",
+          "showDetails": false,
+          "type": "animate",
+          "effect": "explode"
+        }
+      ],
       "flowCharts": {
         "global": {
           "elements": [],
@@ -2900,6 +2920,58 @@
           "children": [
             {
               "className": "TPanel",
+              "id": "obj_1775150164136_va9w2wzi3",
+              "name": "Zeile",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 0,
+              "y": 0,
+              "width": 14,
+              "height": 3,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "backgroundColor": "#1a1a3e",
+                "borderColor": "#2a2a5e",
+                "borderWidth": 1,
+                "borderRadius": 8
+              },
+              "caption": "",
+              "showGrid": false,
+              "gridColor": "#000000",
+              "gridStyle": "lines"
+            },
+            {
+              "className": "TPanel",
+              "id": "obj_1775150103415_oktrodyw6",
+              "name": "Zeile",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 0,
+              "y": 0,
+              "width": 14,
+              "height": 3,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "backgroundColor": "#1a1a3e",
+                "borderColor": "#2a2a5e",
+                "borderWidth": 1,
+                "borderRadius": 8
+              },
+              "caption": "",
+              "showGrid": false,
+              "gridColor": "#000000",
+              "gridStyle": "lines"
+            },
+            {
+              "className": "TPanel",
               "id": "obj_1775143694963_tzy6fdg1f",
               "name": "Zeile",
               "scope": "stage",
@@ -3196,6 +3268,32 @@
       "flowCharts": {}
     }
   ],
-  "activeStageId": "stage_login",
-  "flowCharts": {}
+  "activeStageId": "stage_blueprint",
+  "flowCharts": {
+    "global": {
+      "elements": [
+        {
+          "id": "node-1775150173126",
+          "type": "action",
+          "x": 400,
+          "y": 300,
+          "width": 140,
+          "height": 60,
+          "properties": {
+            "name": "Action3",
+            "details": "",
+            "description": ""
+          },
+          "data": {
+            "name": "Action3",
+            "showDetails": true,
+            "isLinked": true,
+            "type": "animate",
+            "effect": "explode"
+          }
+        }
+      ],
+      "connections": []
+    }
+  }
 }

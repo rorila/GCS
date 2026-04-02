@@ -18,6 +18,7 @@ export interface ActionParameter {
     hint?: string;
     placeholder?: string;
     defaultValue?: any;
+    visibleWhen?: { field: string; values: any[] };
 }
 
 export interface ActionMetadata {

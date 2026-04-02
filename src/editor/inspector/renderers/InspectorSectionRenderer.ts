@@ -54,6 +54,12 @@ export class InspectorSectionRenderer {
             while (i < props.length) {
                 const propDef = props[i];
 
+                if (propDef.visibleWhen) {
+                    const condValues = propDef.visibleWhen.values;
+                    const currentCondValue = PropertyHelper.getPropertyValue(obj, propDef.visibleWhen.field) ?? '';
+                    if (Array.isArray(condValues) && !condValues.includes(currentCondValue)) { i++; continue; }
+                }
+
                 if (propDef.inline && i + 1 < props.length && props[i + 1].inline) {
                     const inlineRow = document.createElement('div');
                     inlineRow.style.cssText = 'display:flex;gap:8px;margin-bottom:4px;';
