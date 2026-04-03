@@ -1,4 +1,4 @@
-import { GridConfig } from '../../model/types';
+ï»¿import { GridConfig } from '../../model/types';
 import { Logger } from '../../utils/Logger';
 import { EmojiPickerRenderer } from './renderers/EmojiPickerRenderer';
 import { TableRenderer } from './renderers/TableRenderer';
@@ -542,7 +542,7 @@ export class StageRenderer {
             // im Run-Modus transparent.
             if (className === 'TGroupPanel' && !this.host.runMode) {
                 el.style.background = (bgColor && bgColor !== 'transparent') ? bgColor : 'rgba(255, 255, 255, 0.05)';
-                // Überschreibe explizit mögliche '0px solid transparent' Borders vom Standard-Styling
+                // ï¿½berschreibe explizit mï¿½gliche '0px solid transparent' Borders vom Standard-Styling
                 if (!obj.style?.borderWidth || obj.style.borderWidth === 0 || obj.style.borderWidth === '0') {
                     el.style.border = '2px dashed rgba(0, 255, 128, 0.6)';
                 }
@@ -769,3 +769,5 @@ private updateSelectionState(el: HTMLElement, id: string) {
         }
     }
 }
+
+

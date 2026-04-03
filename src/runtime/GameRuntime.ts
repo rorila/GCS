@@ -865,9 +865,9 @@ export class GameRuntime implements IVariableHost {
                     proto = Object.getPrototypeOf(proto);
                 }
 
-                // 3. Absolute Koordinaten setzen
-                copy.x = absoluteX;
-                copy.y = absoluteY;
+                // 3. Absolute Koordinaten weglassen, da der StageRenderer das Layout rekursiv verwaltet
+                copy.x = rx;
+                copy.y = ry;
                 copy.width = resolveCoord(obj.width);
                 copy.height = resolveCoord(obj.height);
                 copy.zIndex = absoluteZ;
@@ -886,7 +886,8 @@ export class GameRuntime implements IVariableHost {
                 }
             });
         };
-        process(this.objects);
+        const topLevelObjects = this.objects.filter(o => !o.parentId);
+        process(topLevelObjects);
         return results;
     }
 
