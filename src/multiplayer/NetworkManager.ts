@@ -140,6 +140,20 @@ export class NetworkManager {
     }
 
     /**
+     * Send trigger_task for triggerMode: broadcast
+     */
+    sendTriggerTask(taskName: string, params?: any): void {
+        this.send({ type: 'trigger_task', taskName, params } as any);
+    }
+
+    /**
+     * Send sync_task for triggerMode: local-sync
+     */
+    sendSyncTask(taskName: string, params?: any): void {
+        this.send({ type: 'sync_task', taskName, params } as any);
+    }
+
+    /**
      * Add event listener for server messages
      */
     on(handler: NetworkEventHandler): void {

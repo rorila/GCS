@@ -11,6 +11,7 @@ import { mediatorService } from '../services/MediatorService';
 import { Stage } from './Stage';
 import { MediatorEvents } from '../services/MediatorService';
 import { JSONTreeViewer } from './JSONTreeViewer';
+import { GameExporter } from '../export/GameExporter';
 
 const logger = Logger.get('EditorViewManager');
 
@@ -35,7 +36,7 @@ export interface IViewHost {
     setProject(project: GameProject): void;
 }
 
-export type ViewType = 'stage' | 'json' | 'run' | 'flow' | 'code' | 'management';
+export type ViewType = 'stage' | 'json' | 'run' | 'flow' | 'code' | 'management' | 'iframe';
 
 export class EditorViewManager {
     private static logger = Logger.get('ViewManager', 'Editor_Diagnostics');
@@ -136,6 +137,7 @@ export class EditorViewManager {
         const flowPanel = document.getElementById('flow-viewer');
         const codePanel = document.getElementById('code-viewer');
         const managementPanel = document.getElementById('management-viewer');
+        const iframePanel = document.getElementById('iframe-viewer');
         const tabs = document.querySelectorAll('.tab-btn');
 
         // Update Tabs
@@ -151,6 +153,7 @@ export class EditorViewManager {
         if (flowPanel) flowPanel.style.display = 'none';
         if (codePanel) codePanel.style.display = 'none';
         if (managementPanel) managementPanel.style.display = 'none';
+        if (iframePanel) iframePanel.style.display = 'none';
 
         // Hide standard toolboxes
         // Hide flow toolbox if it exists
@@ -246,6 +249,17 @@ export class EditorViewManager {
                 managementPanel.style.display = 'flex';
                 this.renderManagementView(managementPanel);
             }
+        } else if (view === 'iframe') {
+            h.setRunMode(false);
+            if (stageWrapper) stageWrapper.style.display = 'none';
+            if (iframePanel) {
+                iframePanel.style.display = 'flex';
+                this.renderIFrameView(iframePanel);
+            }
+            if (toolboxFooter) {
+                toolboxFooter.style.display = 'block';
+                toolboxFooter.style.minHeight = '60px';
+            }
         }
 
         h.render();
@@ -253,6 +267,42 @@ export class EditorViewManager {
 
     public render() {
         this.host.render();
+    }
+
+    private renderIFrameView(panel: HTMLElement) {
+        panel.innerHTML = '';
+        
+        const iframe = document.createElement('iframe');
+        iframe.src = '/iframe-runner.html';
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.tabIndex = 0;
+
+        const exporter = new GameExporter();
+        const cleanProjectData = exporter.getCleanProject(this.host.project);
+
+        // Synchrone Datenübergabe
+        (iframe as any)._injectedProject = cleanProjectData;
+
+        const messageHandler = (e: MessageEvent) => {
+            if (e.data && e.data.type === 'IFRAME_READY') {
+                iframe.contentWindow?.postMessage({ type: 'START_RUN', project: cleanProjectData }, '*');
+                window.removeEventListener('message', messageHandler);
+            }
+        };
+        window.addEventListener('message', messageHandler);
+
+        panel.appendChild(iframe);
+        
+        // Blur whatever is currently active (e.g. the Tab Button)
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
+        
+        // Synchronous focus so spacebar goes directly to the game!
+        iframe.focus();
+        if (iframe.contentWindow) iframe.contentWindow.focus();
     }
 
     public renderJSONTree(data: any, container: HTMLElement) {

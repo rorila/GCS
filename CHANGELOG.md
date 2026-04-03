@@ -1,4 +1,8 @@
-﻿## [3.32.1] - 2026-04-03
+## [3.33.0] - 2026-04-03
+### Added
+- **IFrame Run-Tab**: Ein neues Standalone-Preview Feature! Statt die GameRuntime invasiv ins Editor-DOM zu quetschen, erstellt der neue Tab `Run (IFrame)` ein abgekapseltes `<iframe src="/iframe-runner.html">` und speist es via `postMessage` mit exakt demselben sauberen JSON-Objekt, das auch `GameExporter.getCleanProject()` exportiert. Bietet 100% Export-Parität und löst Runtime/Editor Memory Leaks auf Knopfdruck ("Müllabfuhr-Prinzip").
+
+## [3.32.1] - 2026-04-03
 ### Fixed
 - **GroupPanel Layout Export:** Fehler im Standalone Export behoben, durch den Kind-Elemente von GroupPanels (die auch eine hierarchische Position besitzen) verschoben exportiert wurden oder unsichtbar verschachtelt waren. GameRuntime nutzt nun streng die relativen Koordinaten (copy.x = rx), was den Double-Offsetting-Bug des StageRenderer endgültig beseitigt und gleichzeitig die Parent-ID für den Z-Index beibehält.
 

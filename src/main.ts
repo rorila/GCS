@@ -28,6 +28,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           <div id="view-tabs" class="tabs-header">
             <button class="tab-btn active" data-view="stage">Stage</button>
             <button class="tab-btn" data-view="run">Run</button>
+            <button class="tab-btn" data-view="iframe">Run (IFrame)</button>
             <button class="tab-btn" data-view="json">JSON</button>
             <button class="tab-btn" data-view="flow">Flow</button>
             <button class="tab-btn" data-view="code">Pascal</button>
@@ -38,6 +39,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
               <div id="stage"></div>
             </div>
             <div id="run-stage" style="display: none;"></div>
+            <div id="iframe-viewer" style="display: none; width: 100%; height: 100%; overflow: hidden; position: relative;"></div>
             <div id="json-viewer" class="json-panel" style="display: none;"></div>
             <div id="flow-viewer" class="flow-panel" style="display: none;"></div>
             <div id="code-viewer" class="code-panel" style="display: none;"></div>

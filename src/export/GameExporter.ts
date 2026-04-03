@@ -277,7 +277,7 @@ primary_region = "fra"
      * Removes all editor-only properties (flow editor, node positions, etc.)
      * to keep the game file small and clean for the platform.
      */
-    private getCleanProject(project: GameProject): any {
+    public getCleanProject(project: GameProject): any {
         // 1. Whitelist for top-level keys
         const whitelist = ['meta', 'stages', 'activeStageId', 'variables', 'tasks', 'actions', 'stage', 'objects', 'flowCharts', 'splashAutoHide', 'splashDuration'];
 
@@ -347,7 +347,7 @@ primary_region = "fra"
     /**
      * Generate a complete standalone HTML file with embedded runtime
      */
-    private generateStandaloneHTML(project: any, runtimeJS: string): string {
+    public generateStandaloneHTML(project: any, runtimeJS: string): string {
         const projectJSON = JSON.stringify(project, null, 2);
         const mainStage = project.stages?.find((s: any) => s.type === 'main') || project.stages?.[0] || project.stage;
         const gridConfig = mainStage?.grid || { cols: 20, rows: 15, cellSize: 32, backgroundColor: '#ffffff' };
