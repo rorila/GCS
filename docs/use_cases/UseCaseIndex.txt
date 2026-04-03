@@ -175,3 +175,10 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
 - src/config.ts: parsePrefixLogLevels env?Record<string,string|undefined> (Line 33)
 - src/player-standalone.ts: 13 any?typed Stellen (Lines 6,24,55,64,65,85-86,171,270,286,356,474,557,622)
 
+
+ 
+ # #   G r o u p P a n e l   C h i l d r e n   S t a n d a l o n e - E x p o r t   L a y o u t   K o r r e k t u r 
+ -   s r c / r u n t i m e / G a m e R u n t i m e . t s :   g e t O b j e c t s   a n g e p a s s t   ( Z e i l e   8 6 5 )   u m   T o p - L e v e l   E i n s p r u n g   z u   f o r c i e r e n   u n d   r e l a t i v e   K o o r d i n a t e n   d u r c h z u r e i c h e n . 
+ -   s r c / e d i t o r / s e r v i c e s / S t a g e R e n d e r e r . t s :   L o g s   k u r z z e i t i g   e r w e i t e r t   u n d   e n t f e r n t . 
+ -   E x p o r t   I n t e g r i t y   C h e c k s u m s   ( t e s t s / e x p o r t _ c h e c k s u m s . j s o n )   s y n c h r o n i s i e r t .  
+ 

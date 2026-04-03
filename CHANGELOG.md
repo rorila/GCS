@@ -1,3 +1,8 @@
+﻿## [3.32.1] - 2026-04-03
+### Fixed
+- **GroupPanel Layout Export:** Fehler im Standalone Export behoben, durch den Kind-Elemente von GroupPanels (die auch eine hierarchische Position besitzen) verschoben exportiert wurden oder unsichtbar verschachtelt waren. GameRuntime nutzt nun streng die relativen Koordinaten (copy.x = rx), was den Double-Offsetting-Bug des StageRenderer endgültig beseitigt und gleichzeitig die Parent-ID für den Z-Index beibehält.
+
+
 ## [3.32.0] - 2026-04-03
 ### Improved (CleanCode)
 - **TypeScript `any`-Audit — Quick-Wins** (6 Dateien, ~30 `any` eliminiert):
@@ -985,3 +990,4 @@
 ### Changed
 - CleanCode: 24 verbleibende \console.*\-Aufrufe in erfolgskritischen Modulen durch \Logger\ ersetzt (StageRenderer, GameRuntime, GameLoopManager, ReactiveRuntime, ExpressionParser, StandardActions).
 - Performance: \console.table\ in \StageRenderer\ durch verschachtelten Logger-Call ausgetauscht.
+
