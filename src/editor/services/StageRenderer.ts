@@ -544,7 +544,7 @@ export class StageRenderer {
                 el.style.background = (bgColor && bgColor !== 'transparent') ? bgColor : 'rgba(255, 255, 255, 0.05)';
                 // Überschreibe explizit mögliche '0px solid transparent' Borders vom Standard-Styling
                 if (!obj.style?.borderWidth || obj.style.borderWidth === 0 || obj.style.borderWidth === '0') {
-                    el.style.border = '1px dashed rgba(150, 150, 170, 0.6)';
+                    el.style.border = '2px dashed rgba(0, 255, 128, 0.6)';
                 }
             } else {
                 el.style.background = bgColor;
