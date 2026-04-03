@@ -55,7 +55,9 @@ export class InspectorHeaderRenderer {
             opt.value = o.id;
             opt.textContent = o.name || o.id || 'Unbenannt';
             
-            if (activeStage && !activeStage.objects?.find(ao => ao.id === o.id) && !activeStage.variables?.find(av => av.id === o.id)) {
+            if (o.parentId) {
+                opt.textContent += ' (Child)';
+            } else if (activeStage && !activeStage.objects?.find(ao => ao.id === o.id) && !activeStage.variables?.find(av => av.id === o.id)) {
                 opt.textContent += ' (Global)';
             }
             if (o.id === obj.id) {

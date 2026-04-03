@@ -157,3 +157,8 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
 - src/editor/flow/FlowAction.ts: applyChange (Zeile 736) - force re-render on effect change
 - src/editor/flow/FlowAction.ts: getInspectorSections (Zeile 655) - map defaultValue to UI
 
+
+[2026-04-03] GroupPanel Nested Selection & Inspector Tags:
+- src/editor/services/StageRenderer.ts: getDepth() fallback in sortedObjects (Line 185) fixes component click blocking
+- src/editor/inspector/renderers/InspectorHeaderRenderer.ts: renderHeader (Line 60) tags component parent correctly as (Child)
+

@@ -237,3 +237,11 @@
 - [âš¡ Flow Safety (Self-Healing)](docs/coding-standards.md#ai-agent-api--flow-safety)
 
 Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04-02)
+
+### Inspector visibleWhen Fallstricke
+- **DO NOT**: Verlassen Sie sich bei Dropdowns nicht darauf, dass der Inspector automatisch verbundene \isibleWhen\-Sektionen neu zeichnet.
+- **DO**: Sorgen Sie in \FlowAction.ts\ -> \pplyChange\ zwingend dafür, dass bei allen Attributen (wie \	ype\, \ctionType\, \effect\), die andere visuelle Ausgaben steuern, \	rue\ zurückgegeben wird, damit ein voller Re-Render getriggert wird!
+
+### Z-Index und StageRendering
+- **DO**: Stelle in der \StageRenderer.ts\ bei der Sortierung der Elemente immer sicher, dass bei gleichem \zIndex\ die Hierarchie bedacht wird (\getDepth()\). Kinder müssen im DOM nach den Eltern eingefügt werden (höherer Index im Array), sonst fangen die Layer der Eltern (z.B. bei TGroupPanel) Pointer-Events wie Klicks ab und die Kinder werden in der GUI unmarkierbar/unabgreifbar.
+

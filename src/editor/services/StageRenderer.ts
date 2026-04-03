@@ -183,7 +183,18 @@ export class StageRenderer {
         });
 
         // Sort objects by zIndex for proper layer ordering
-        const sortedObjects = [...objects].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+                const getDepth = (objId) => {
+            if (!objId) return 0;
+            const o = objects.find(ox => (ox.id || ox.name) === objId);
+            if (!o || !o.parentId) return 0;
+            return 1 + getDepth(o.parentId);
+        };
+        const sortedObjects = [...objects].sort((a, b) => {
+            const zA = a.zIndex || 0;
+            const zB = b.zIndex || 0;
+            if (zA !== zB) return zA - zB;
+            return getDepth(a.id || a.name) - getDepth(b.id || b.name);
+        });
 
         // Update or Create elements
         sortedObjects.forEach((obj) => {

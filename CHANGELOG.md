@@ -1,5 +1,10 @@
-## [3.31.1] - 2026-04-02
+## [3.31.2] - 2026-04-03
 ### Fixed
+- **GroupPanel Kind-Selektion** (`StageRenderer.ts`, `InspectorHeaderRenderer.ts`):
+  - Klick-Interaktionen für verschachtelte Elemente in `TGroupPanel`s behoben. Die Render-Reihenfolge nutzt nun die Eltern-Kind-Hierarchietiefe als Fallback für den `zIndex`, wodurch Kinder verlässlich über ihrem Panel gezeichnet und somit wieder anklickbar (markierbar) werden.
+  - Im Inspector-Dropdown werden untergeordnete Elemente von GroupPanels nicht mehr fälschlicherweise als `(Global)` gekennzeichnet, sondern erhalten den korrekten Tag `(Child)`.
+
+## [3.31.1] - 2026-04-02
 - **Dynamic Inspector Bugfix** (`FlowAction.ts`):
   - Behebung eines kritischen UI-Status-Fehlers, bei dem sich der Inspector nach einem Wechsel der `effect`-Eigenschaft für `visibleWhen` nicht neu gezeichnet hat.
   - Hinzufügen von `defaultValue` zum Konfigurationsobjekt der Flow-Actions, wodurch leere Number-Inputs im Inspector (z.B. bei der "Dauer") behoben wurden.
