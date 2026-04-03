@@ -30,7 +30,7 @@ function parseLogLevel(val: string | undefined): LogLevel {
     }
 }
 
-function parsePrefixLogLevels(env: any): Record<string, LogLevel> {
+function parsePrefixLogLevels(env: Record<string, string | undefined>): Record<string, LogLevel> {
     const levels: Record<string, LogLevel> = {};
     const prefix = 'VITE_LOG_LEVEL_';
 

@@ -1,5 +1,5 @@
 import { IInspectable, InspectorSection, TPropertyDef } from '../model/InspectorTypes';
-import { ComponentData } from '../model/types';
+import { ComponentData, GridConfig } from '../model/types';
 
 // Re-Export für Abwärtskompatibilität: Andere Dateien, die TPropertyDef aus TComponent importieren
 export type { TPropertyDef } from '../model/InspectorTypes';
@@ -18,10 +18,10 @@ export const DESIGN_VALUES = Symbol('DESIGN_VALUES');
 export interface IRuntimeComponent {
     /** Wird aufgerufen, um der Komponente Zugriff auf Runtime-Callbacks zu geben */
     initRuntime?(callbacks: {
-        handleEvent: (objectId: string, eventName: string, data?: any) => void;
+        handleEvent: (objectId: string, eventName: string, data?: unknown) => void;
         render: () => void;
-        gridConfig: any;
-        objects: any[];
+        gridConfig: GridConfig;
+        objects: ComponentData[];
     }): void;
 
     onRuntimeStart?(): void;

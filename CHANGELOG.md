@@ -1,5 +1,14 @@
+## [3.32.0] - 2026-04-03
+### Improved (CleanCode)
+- **TypeScript `any`-Audit — Quick-Wins** (6 Dateien, ~30 `any` eliminiert):
+  - `types.ts`: Neue Interfaces `FlowElementData` / `FlowConnectionData` für typisierte FlowCharts. `ProjectVariable.style` nutzt nun `ComponentStyle`. `LegacyGameTask` und `GameObject` mit `@deprecated` und `unknown` statt `any`.
+  - `InspectorTypes.ts`: `TPropertyDef.style` → `Record<string, string>`, `actionData` → `Record<string, unknown>`.
+  - `TComponent.ts`: `IRuntimeComponent.initRuntime` mit `GridConfig` und `ComponentData[]` statt `any`.
+  - `ActionRegistry.ts`: `getVisibleActionTypes(project: GameProject | null)` mit typisierten Callback-Lambdas.
+  - `config.ts`: `parsePrefixLogLevels(env: Record<string, string | undefined>)`.
+  - `player-standalone.ts`: 13 `any`-Vorkommen durch `GameProject`, `ComponentData`, `StageDefinition`, `ServerMessage` und `HTMLElement | null` ersetzt.
+
 ## [3.31.2] - 2026-04-03
-### Fixed
 - **GroupPanel Editor-Sichtbarkeit** (`StageRenderer.ts`):
   - Wenn ein GroupPanel im Editor nicht markiert war und keine eigene Hintergrundfarbe definiert hatte, versank es in der Unsichtbarkeit, da das Standard-`TGroupPanel`-Styling (`0px solid transparent`) den Fallback-Border überschrieben hat. Das Panel hat nun im Editor-Modus stets einen leicht durchsichtigen Hintergrund und einen "dashed" (gestrichelten) Rand, der erst im Run/Standalone-Modus verschwindet.
 - **GroupPanel Kind-Selektion** (`StageRenderer.ts`, `InspectorHeaderRenderer.ts`):

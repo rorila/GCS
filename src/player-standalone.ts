@@ -3,7 +3,7 @@ import { network, ServerMessage } from './multiplayer';
 import { ExpressionParser } from './runtime/ExpressionParser';
 import { gunzipSync } from 'fflate';
 import { StageRenderer, StageHost } from './editor/services/StageRenderer';
-import { GridConfig } from './model/types';
+import { GridConfig, GameProject, StageDefinition, ComponentData } from './model/types';
 import { GameLoopManager } from './runtime/GameLoopManager';
 import { AnimationManager } from './runtime/AnimationManager';
 import { Logger } from './utils/Logger';
@@ -21,7 +21,7 @@ const globalScope = typeof window !== 'undefined' ? window : global;
 /**
  * Decompress gzip-compressed project data (Base64 encoded)
  */
-function decompressProject(data: string): any {
+function decompressProject(data: string): GameProject | null {
     try {
         // Decode Base64 to binary
         const binary = atob(data);
@@ -52,7 +52,7 @@ class UniversalPlayer implements StageHost {
     private runtime: GameRuntime | null = null;
     public element: HTMLElement; // From StageHost
     private techClasses = ['TGameLoop', 'TInputController', 'TGameState', 'TTimer', 'TRemoteGameManager', 'TGameServer', 'THandshake', 'THeartbeat', 'TStageController'];
-    private currentProject: any = null;
+    private currentProject: GameProject | null = null;
     private isStarted: boolean = false;
     private animationTickerId: number | null = null;
     private renderer: StageRenderer;
@@ -61,8 +61,8 @@ class UniversalPlayer implements StageHost {
     public runMode: boolean = true;
     public isBlueprint: boolean = false;
     public selectedIds: Set<string> = new Set();
-    public lastRenderedObjects: any[] = [];
-    public onEvent: ((id: string, eventName: string, data?: any) => void) | null = null;
+    public lastRenderedObjects: ComponentData[] = [];
+    public onEvent: ((id: string, eventName: string, data?: unknown) => void) | null = null;
 
     public get grid(): GridConfig {
         const activeStage = this.runtime ? (this.runtime as any).stage : (this.currentProject?.stage || this.currentProject?.stages?.[0]);
@@ -82,8 +82,8 @@ class UniversalPlayer implements StageHost {
     // --------------------------------
 
     // Drag & Drop State
-    private dragTarget: any = null;
-    private dragPhantom: any = null;
+    private dragTarget: ComponentData | null = null;
+    private dragPhantom: ComponentData | null = null;
     private isDragging: boolean = false;
     private dragOffset: { x: number, y: number } = { x: 0, y: 0 };
 
@@ -168,7 +168,7 @@ class UniversalPlayer implements StageHost {
         }
     }
 
-    private handleNetworkMessage(msg: any) {
+    private handleNetworkMessage(msg: ServerMessage) {
         switch (msg.type) {
             case 'project_data':
                 logger.info('[UniversalPlayer] Received project JSON from server');
@@ -267,7 +267,7 @@ class UniversalPlayer implements StageHost {
         }
     }
 
-    public startProject(project: any) {
+    public startProject(project: GameProject) {
         if (this.isStarted && this.currentProject === project) return;
         this.isStarted = true;
 
@@ -283,7 +283,7 @@ class UniversalPlayer implements StageHost {
         // 2. Initialize new Runtime
         this.runtime = new GameRuntime(project, undefined, {
             onRender: () => this.render(),
-            onSpriteRender: (sprites: any[]) => this.renderSpritesOnly(sprites),
+            onSpriteRender: (sprites: ComponentData[]) => this.renderSpritesOnly(sprites),
             makeReactive: true,
             multiplayerManager: network,
             onNavigate: (target: string) => this.handleNavigation(target),
@@ -353,7 +353,7 @@ class UniversalPlayer implements StageHost {
         }
 
         // Prüfe ob Stage existiert
-        const stageExists = this.currentProject.stages?.some((s: any) => s.id === stageId);
+        const stageExists = this.currentProject.stages?.some((s: StageDefinition) => s.id === stageId);
         if (!stageExists) {
             logger.warn(`[UniversalPlayer] Stage '${stageId}' not found in project.stages.`);
             return;
@@ -471,7 +471,7 @@ class UniversalPlayer implements StageHost {
      * Wird 60×/sec vom GameLoopManager aufgerufen (via onSpriteRender).
      * Delegiert direkt an den StageRenderer, damit GPU-Compositing (translate3d) genutzt wird.
      */
-    private renderSpritesOnly(sprites: any[]): void {
+    private renderSpritesOnly(sprites: ComponentData[]): void {
         this.renderer.updateSpritePositions(sprites);
     }
 
@@ -550,15 +550,15 @@ class UniversalPlayer implements StageHost {
     private handleMouseUp(e: MouseEvent) {
         if (!this.isDragging || !this.runtime) return;
 
-        const originalTarget = this.dragPhantom ? this.dragTarget._original : this.dragTarget;
+        const originalTarget = this.dragPhantom ? (this.dragTarget as any)?._original : this.dragTarget;
 
         // Find drop target (must be droppable and not the dragged object itself)
         const elementsAtPoint = document.elementsFromPoint(e.clientX, e.clientY);
-        let dropTargetObj: any = null;
+        let dropTargetObj: ComponentData | null = null;
 
         for (const el of elementsAtPoint) {
             const gameObjEl = (el as HTMLElement).closest('.game-object');
-            if (gameObjEl && gameObjEl.id !== this.dragTarget.id) {
+            if (gameObjEl && this.dragTarget && gameObjEl.id !== this.dragTarget.id) {
                 const found = this.runtime.getObjects().find(o => o.id === gameObjEl.id);
                 if (found && found.droppable) {
                     dropTargetObj = found;
@@ -619,7 +619,7 @@ if (typeof document !== 'undefined') {
 }
 
 // For embedded projects (Standalone Export)
-(window as any).startStandalone = (project: any) => {
+(window as any).startStandalone = (project: GameProject | null) => {
     logger.info('[UniversalPlayer] Standalone trigger received');
     const player = (window as any).player;
 

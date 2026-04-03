@@ -245,3 +245,11 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 ### Z-Index und StageRendering
 - **DO**: Stelle in der \StageRenderer.ts\ bei der Sortierung der Elemente immer sicher, dass bei gleichem \zIndex\ die Hierarchie bedacht wird (\getDepth()\). Kinder müssen im DOM nach den Eltern eingefügt werden (höherer Index im Array), sonst fangen die Layer der Eltern (z.B. bei TGroupPanel) Pointer-Events wie Klicks ab und die Kinder werden in der GUI unmarkierbar/unabgreifbar.
 
+
+### TypeScript any-Audit Regeln
+- **DO**: Verwende \unknown\ statt \ny\ bei unbekanntem Input (API-Responses, JSON.parse). \unknown\ erzwingt Type Guards.
+- **DO**: Verwende \Record<string, unknown>\ statt \Record<string, any>\ für generische Key-Value-Maps.
+- **DO NOT**: \ny\ als Default-Typ verwenden. Frage: 'Kenne ich die Shape des Werts?' — Wenn ja, tippe es.
+- **DO NOT**: \s any\ ohne Kommentar. Wenn du casten musst, dokumentiere warum.
+- **ERLAUBT**: Index-Signaturen (\[key: string]: any\) bei offenen Schemas (z.B. ComponentData) — MÜSSEN aber kommentiert sein.
+- **Referenz**: Vollständiges Audit-Dokument unter \ToDoList/TypeScript_Any_Audit.md\`n

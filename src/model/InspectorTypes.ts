@@ -28,9 +28,9 @@ export interface TPropertyDef {
     source?: string;    // for select type - dynamic source name (e.g. 'availableModels')
     hint?: string;      // Tooltip or hint text
     placeholder?: string; // Input placeholder
-    style?: any;       // For button type: custom CSS styles
+    style?: Record<string, string>;       // For button type: custom CSS styles
     action?: string;   // For button type: internal action name
-    actionData?: any;  // For button type: payload for action
+    actionData?: Record<string, unknown>;  // For button type: payload for action
     inline?: boolean;  // Display horizontally if possible
     controlName?: string; // Custom control name attribute for E2E selectors
     buttonType?: string;  // Button variant: 'primary', 'secondary' etc.

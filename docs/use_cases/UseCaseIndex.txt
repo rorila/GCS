@@ -166,3 +166,12 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
 [2026-04-03] GroupPanel Unfocused Visibility:
 - src/editor/services/StageRenderer.ts: renderComponent (Line 534) enforces dashed border and visible background for unfocused TGroupPanels in Edit-Mode
 
+
+[2026-04-03] TypeScript Any-Audit Quick-Wins:
+- src/model/types.ts: FlowElementData, FlowConnectionData Interfaces (Line 267-285), FlowChart typisiert, ProjectVariable.style?ComponentStyle (Line 292), GameProject.flow typisiert (Line 431), LegacyGameTask @deprecated (Line 363), GameObject.properties?Record<string,unknown> (Line 82)
+- src/model/InspectorTypes.ts: TPropertyDef.style?Record<string,string> (Line 31), TPropertyDef.actionData?Record<string,unknown> (Line 33)
+- src/components/TComponent.ts: IRuntimeComponent.initRuntime gridConfig?GridConfig, objects?ComponentData[] (Line 20-25)
+- src/runtime/ActionRegistry.ts: getVisibleActionTypes(project:GameProject|null) (Line 71), Import types (Line 1)
+- src/config.ts: parsePrefixLogLevels env?Record<string,string|undefined> (Line 33)
+- src/player-standalone.ts: 13 any?typed Stellen (Lines 6,24,55,64,65,85-86,171,270,286,356,474,557,622)
+

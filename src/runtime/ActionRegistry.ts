@@ -1,3 +1,5 @@
+import { GameProject, ComponentData, StageDefinition } from '../model/types';
+
 export interface ActionContext {
     vars: Record<string, any>;
     contextVars: any;
@@ -66,9 +68,9 @@ export class ActionRegistry {
         return Array.from(this.metadata.values());
     }
 
-    public getVisibleActionTypes(project: any): { value: string, label: string }[] {
-        const hasServer = project ? !!(project.objects?.some((o: any) => o.className === 'TGameServer') || project.stages?.some((s: any) => s.objects?.some((o: any) => o.className === 'TGameServer'))) : false;
-        const hasMultiplayer = project ? !!(project.objects?.some((o: any) => o.className === 'TRemoteGameManager') || project.stages?.some((s: any) => s.objects?.some((o: any) => o.className === 'TRemoteGameManager'))) : false;
+    public getVisibleActionTypes(project: GameProject | null): { value: string, label: string }[] {
+        const hasServer = project ? !!(project.objects?.some((o: ComponentData) => o.className === 'TGameServer') || project.stages?.some((s: StageDefinition) => s.objects?.some((o: ComponentData) => o.className === 'TGameServer'))) : false;
+        const hasMultiplayer = project ? !!(project.objects?.some((o: ComponentData) => o.className === 'TRemoteGameManager') || project.stages?.some((s: StageDefinition) => s.objects?.some((o: ComponentData) => o.className === 'TRemoteGameManager'))) : false;
 
         return this.getAllMetadata().filter(m => {
             if (m.hidden) return false;

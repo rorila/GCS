@@ -70,7 +70,7 @@ export interface ProjectMetadata {
     _sourcePath?: string;   // Interner Speicherpfad (z.B. "projects/MeinSpiel.json")
 }
 
-// Deprecated: Old interface, moving to class-based TWindow
+/** @deprecated Altes Interface — wird durch ComponentData / TWindow ersetzt */
 export interface GameObject {
     id: string;
     name: string;
@@ -79,7 +79,7 @@ export interface GameObject {
     y: number;
     width: number;
     height: number;
-    properties: Record<string, any>;
+    properties: Record<string, unknown>;
 }
 
 // ─────────────────────────────────────────────
@@ -264,10 +264,30 @@ export interface GameTask {
 // ─────────────────────────────────────────────
 // FlowChart: Visual Flow Representation
 // ─────────────────────────────────────────────
+
+/** Serialisierte Daten eines FlowElements (Task, Action, Variable, etc.) */
+export interface FlowElementData {
+    id: string;
+    type: string;
+    name: string;
+    x: number;
+    y: number;
+    [key: string]: unknown;   // Zusätzliche Felder je nach Typ
+}
+
+/** Serialisierte Daten einer Verbindung zwischen FlowElements */
+export interface FlowConnectionData {
+    id: string;
+    sourceId: string;
+    targetId: string;
+    label?: string;
+    [key: string]: unknown;
+}
+
 export interface FlowChart {
-    elements: any[];      // Serialized FlowElements
-    connections: any[];   // Serialized FlowConnections
-    stage?: GridConfig;   // Optional stage settings (only for 'global')
+    elements: FlowElementData[];       // Typisierte FlowElements
+    connections: FlowConnectionData[]; // Typisierte FlowConnections
+    stage?: GridConfig;                // Optional stage settings (only for 'global')
 }
 
 // Dictionary of flow charts: 'global' for main flow, task names for task flows
@@ -289,7 +309,7 @@ export interface ProjectVariable {
     y?: number;                // Stage Y position
     width?: number;            // Component width
     height?: number;           // Component height
-    style?: Record<string, any>;// Visual style
+    style?: ComponentStyle;     // Visual style
     defaultValue: any;         // Default value matching the type
     initialValue?: any;        // Default value for reset/setup
     value?: any;               // Current runtime value (optional)
@@ -360,9 +380,10 @@ export interface ProjectVariable {
 // ─────────────────────────────────────────────
 // Legacy Task (for migration)
 // ─────────────────────────────────────────────
+/** @deprecated Legacy-Format — wird bei Migration automatisch zu GameTask konvertiert */
 export interface LegacyGameTask {
     Taskname: string;
-    Actions: Record<string, any>; // "Target.Property" -> Value
+    Actions: Record<string, unknown>; // "Target.Property" -> Value
 }
 
 // ─────────────────────────────────────────────
@@ -426,10 +447,11 @@ export interface GameProject {
         grid: GridConfig;
     };
     flowCharts?: FlowCharts;      // Visual flow diagrams: 'global' + task names
-    flow?: {                       // DEPRECATED: will be migrated to flowCharts.global
+    /** @deprecated Wird zu flowCharts.global migriert */
+    flow?: {
         stage: GridConfig;
-        elements: any[];
-        connections: any[];
+        elements: FlowElementData[];
+        connections: FlowConnectionData[];
     };
     description?: string;  // Game description
     input?: InputConfig;
