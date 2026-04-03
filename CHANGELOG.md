@@ -1,5 +1,7 @@
 ## [3.31.2] - 2026-04-03
 ### Fixed
+- **GroupPanel Editor-Sichtbarkeit** (`StageRenderer.ts`):
+  - Wenn ein GroupPanel im Editor nicht markiert war und keine eigene Hintergrundfarbe definiert hatte, versank es in der Unsichtbarkeit, da das Standard-`TGroupPanel`-Styling (`0px solid transparent`) den Fallback-Border überschrieben hat. Das Panel hat nun im Editor-Modus stets einen leicht durchsichtigen Hintergrund und einen "dashed" (gestrichelten) Rand, der erst im Run/Standalone-Modus verschwindet.
 - **GroupPanel Kind-Selektion** (`StageRenderer.ts`, `InspectorHeaderRenderer.ts`):
   - Klick-Interaktionen für verschachtelte Elemente in `TGroupPanel`s behoben. Die Render-Reihenfolge nutzt nun die Eltern-Kind-Hierarchietiefe als Fallback für den `zIndex`, wodurch Kinder verlässlich über ihrem Panel gezeichnet und somit wieder anklickbar (markierbar) werden.
   - Im Inspector-Dropdown werden untergeordnete Elemente von GroupPanels nicht mehr fälschlicherweise als `(Global)` gekennzeichnet, sondern erhalten den korrekten Tag `(Child)`.

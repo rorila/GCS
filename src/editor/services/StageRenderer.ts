@@ -541,8 +541,11 @@ export class StageRenderer {
             // TGroupPanel: Im Editor-Modus hellgrau hinterlegen damit es sichtbar bleibt,
             // im Run-Modus transparent.
             if (className === 'TGroupPanel' && !this.host.runMode) {
-                el.style.background = bgColor !== 'transparent' ? bgColor : 'rgba(200, 200, 210, 0.15)';
-                el.style.border = el.style.border || '1px dashed rgba(150, 150, 170, 0.4)';
+                el.style.background = (bgColor && bgColor !== 'transparent') ? bgColor : 'rgba(255, 255, 255, 0.05)';
+                // Überschreibe explizit mögliche '0px solid transparent' Borders vom Standard-Styling
+                if (!obj.style?.borderWidth || obj.style.borderWidth === 0 || obj.style.borderWidth === '0') {
+                    el.style.border = '1px dashed rgba(150, 150, 170, 0.6)';
+                }
             } else {
                 el.style.background = bgColor;
             }

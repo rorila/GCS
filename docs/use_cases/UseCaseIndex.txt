@@ -162,3 +162,7 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
 - src/editor/services/StageRenderer.ts: getDepth() fallback in sortedObjects (Line 185) fixes component click blocking
 - src/editor/inspector/renderers/InspectorHeaderRenderer.ts: renderHeader (Line 60) tags component parent correctly as (Child)
 
+
+[2026-04-03] GroupPanel Unfocused Visibility:
+- src/editor/services/StageRenderer.ts: renderComponent (Line 534) enforces dashed border and visible background for unfocused TGroupPanels in Edit-Mode
+
