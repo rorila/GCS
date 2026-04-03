@@ -1,4 +1,5 @@
 import { GameProject, StageDefinition } from '../model/types';
+import { projectStore } from '../services/ProjectStore';
 import { Logger } from '../utils/Logger';
 import { InspectorHost } from './inspector/InspectorHost';
 import { FlowEditor } from './FlowEditor';
@@ -280,7 +281,24 @@ export class EditorViewManager {
         iframe.tabIndex = 0;
 
         const exporter = new GameExporter();
-        const cleanProjectData = exporter.getCleanProject(this.host.project);
+        
+        // ── WICHTIGER FIX: Verwende projectStore statt this.host.project,
+        // da this.host.project oft eine veraltete Referenz ist (Unidirectional Data Flow!)
+        const latestProject = projectStore.getProject() || this.host.project;
+        
+        // LOGGE URSPRUNG!
+        const origStage = latestProject.stages?.find((s: any) => s.id === latestProject.activeStageId) || latestProject.stages?.[0];
+        console.log(`[EditorViewManager] ORIGINAL project store. Objects: ${origStage?.objects?.length}`, origStage?.objects);
+
+        const cleanProjectData = exporter.getCleanProject(latestProject);
+
+        // DEBUG: Prüfen ob das Gamepad HIER überhaupt vorhanden ist!
+        const mainStage = cleanProjectData.stages?.find((s: any) => s.id === cleanProjectData.activeStageId) || cleanProjectData.stages?.[0];
+        const hasGamepad = mainStage?.objects?.some((o: any) => o.className === 'TVirtualGamepad');
+        console.log(`[EditorViewManager] Sende CLEAN Projekt an IFrame. Objekte: ${mainStage?.objects?.length}, Beinhaltet Gamepad? ${hasGamepad}`);
+        if (!hasGamepad) {
+            console.warn(`[EditorViewManager] ALARM! Das Gamepad fehlt schon BEVOR es an den IFrame gesendet wird! CLEAN Objects:`, mainStage?.objects);
+        }
 
         // Synchrone Datenübergabe
         (iframe as any)._injectedProject = cleanProjectData;

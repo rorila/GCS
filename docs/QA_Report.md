@@ -1,13 +1,13 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 3.4.2026, 13:22:43
-**Status**: ❌ FEHLER GEFUNDEN
+**Generiert am**: 3.4.2026, 19:21:21
+**Status**: ✅ ALLE TESTS BESTANDEN
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 151)
-    "Bestanden ✅" : 149
-    "Fehlgeschlagen ❌" : 2
+pie title Test-Status (Gesamt: 153)
+    "Bestanden ✅" : 153
+    "Fehlgeschlagen ❌" : 0
 ```
 
 ## 🧪 Test-Details
@@ -39,7 +39,7 @@ pie title Test-Status (Gesamt: 151)
 | Action Read<br><small>Action-Eigenschaften korrekt gelesen.</small> | ActionCRUD | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Action Update (Rename)<br><small>Refactoring erfolgreich: Task & FlowChart aktualisiert.</small> | ActionCRUD | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Action Delete<br><small>Aktion (Normal & Data) restlos entfernt.</small> | ActionCRUD | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| should resolve numeric bindings in x and y coordinates<br><small>Expected x=60, got 50</small> | Happy Path | ✅ **Gut-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| should resolve numeric bindings in x and y coordinates | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | should resolve numeric bindings in width and height | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | should handle nested math in coordinates | Happy Path | ✅ **Gut-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | addTaskCall — Gutfall<br><small>Task-Referenz korrekt eingefügt.</small> | AgentController | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -72,6 +72,8 @@ pie title Test-Status (Gesamt: 151)
 | TaskCall: QuizStarten → NeueAufgabe<br><small>Task-Aufruf vorhanden</small> | MatheQuiz | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | FlowLayouts: Alle 5 Tasks haben Layouts<br><small>5/5 Tasks mit FlowLayout</small> | MatheQuiz | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Validierung: 0 Fehler<br><small>0 Warnungen, 0 Fehler</small> | MatheQuiz | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TVirtualGamepad detects keys from TInputController | VirtualGamepad | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| TVirtualGamepad property check | VirtualGamepad | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Hydrate: TButton<br><small>className=TButton, name=TestButton, caption=Klick mich</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Hydrate: TIntegerVariable<br><small>className=TIntegerVariable, value=42, isVariable=true</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Hydrate: isVariable bleibt true<br><small>isVariable=true</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -133,7 +135,7 @@ pie title Test-Status (Gesamt: 151)
 | resultVariable in INTO-Sektion<br><small>Sektion: INTO / Ergebnis</small> | FlowDataAction | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | GROUP_COLORS Mapping<br><small>Einträge: 29, FROM: true, WHERE: true</small> | FlowDataAction | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Erweiterte Operatoren (CONTAINS, IN)<br><small>CONTAINS: true, IN: true</small> | FlowDataAction | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Export-Integrität: GameExporter.ts<br><small>Hash geändert! Erwartet: FC450374D5C70D0E..., Aktuell: A8AF053791291435... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Export-Integrität: GameExporter.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Export-Integrität: ProjectPersistenceService.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Export-Integrität: player-standalone.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Export-Integrität: GameRuntime.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -146,7 +148,7 @@ pie title Test-Status (Gesamt: 151)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1775215323755_u2 (erwartet: stage_import_1775215323755_u2), BackToLobby.stageId=stage_import_1775215323754_xl (erwartet: stage_import_1775215323754_xl)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1775236841630_cs (erwartet: stage_import_1775236841630_cs), BackToLobby.stageId=stage_import_1775236841630_0k (erwartet: stage_import_1775236841630_0k)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -166,4 +168,5 @@ pie title Test-Status (Gesamt: 151)
 | E2E: sollte die Komponenten-Palette in der Toolbox anzeigen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 
 ---
-*Hinweis: Dieser Bericht wurde automatisch vom GCS Regression Test Runner erstellt.*
+*Hinweis: Dieser Bericht wurde automatisch vom GCS Regression Test Runner erstellt.*[ 2 0 2 6 - 0 4 - 0 3 ]   F i x e d   G a m e p a d   R u n t i m e   H y d r a t i o n .   T e s t s   p a s s e d .  
+ 

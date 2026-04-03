@@ -189,7 +189,7 @@ export abstract class TComponent implements IInspectable {
      */
     public getInspectorEvents(): { name: string; label: string; mappedTask?: string }[] {
         if (!this.events) return [];
-        const standardEvents = ['onClick', 'onDoubleClick', 'onMouseEnter', 'onMouseLeave', 'onDragStart', 'onDragEnd', 'onDrop'];
+        const standardEvents = ['onClick', 'onDoubleClick', 'onMouseEnter', 'onMouseLeave', 'onDragStart', 'onDragEnd', 'onDrop', 'onTouchStart', 'onTouchMove', 'onTouchEnd'];
         return standardEvents.map(eventName => ({
             name: eventName,
             label: eventName.replace(/^on/, ''),

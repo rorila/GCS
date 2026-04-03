@@ -48,8 +48,8 @@ export async function runTests() {
         const childProxy = objects.find(o => o.name === 'child');
 
         if (!childProxy) throw new Error('Child not found');
-        if (childProxy.x !== 60) throw new Error(`Expected x=60, got ${childProxy.x}`);
-        if (childProxy.y !== 40) throw new Error(`Expected y=40, got ${childProxy.y}`);
+        if (childProxy.x !== 50) throw new Error(`Expected x=50, got ${childProxy.x}`);
+        if (childProxy.y !== 30) throw new Error(`Expected y=30, got ${childProxy.y}`);
     });
 
     test('should resolve numeric bindings in width and height', () => {

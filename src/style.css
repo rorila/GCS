@@ -148,6 +148,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  touch-action: none; /* Verhindert Browser-Scroll/Zoom auf Touch-Geräten */
 }
 
 #json-viewer {

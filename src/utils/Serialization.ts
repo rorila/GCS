@@ -71,6 +71,7 @@ import { TTable } from '../components/TTable';
 import { TDataList } from '../components/TDataList';
 import { TAudio } from '../components/TAudio';
 import { TImageList } from '../components/TImageList';
+import { TVirtualGamepad } from '../components/TVirtualGamepad';
 
 export function hydrateObjects(objectsData: any[]): TWindow[] {
     const objects: TWindow[] = [];
@@ -308,6 +309,9 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                 break;
             case 'TImageList':
                 newObj = new TImageList(objData.name, objData.x, objData.y, objData.width, objData.height);
+                break;
+            case 'TVirtualGamepad':
+                newObj = new TVirtualGamepad(objData.name, objData.x, objData.y);
                 break;
             default:
                 logger.warn("Unknown class during load:", objData.className);

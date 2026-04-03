@@ -221,6 +221,11 @@
                     "label": "Input Controller"
                 },
                 {
+                    "type": "VirtualGamepad",
+                    "icon": "🎮",
+                    "label": "Virtual Gamepad"
+                },
+                {
                     "type": "Repeater",
                     "icon": "🔁",
                     "label": "Intervall-Timer"

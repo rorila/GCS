@@ -64,7 +64,18 @@ export class InspectorPropertiesRenderer {
         const staticObjects = await context.templateLoader.loadTemplate(inspectorFile, obj);
 
         const isDefaultInspector = inspectorFile === './inspector.json';
-        const dynamicObjects = isDefaultInspector ? context.renderer.generateUIFromProperties(obj) : [];
+        
+        let dynamicObjects: any[] = [];
+        if (isDefaultInspector) {
+            // FIX: Für nackte JSON-Objekte generieren wir die Properties via Registry nach!
+            if (typeof obj.getInspectorProperties !== 'function') {
+                const props = componentRegistry.getInspectorProperties(obj);
+                if (props && props.length > 0) {
+                    obj.getInspectorProperties = () => props;
+                }
+            }
+            dynamicObjects = context.renderer.generateUIFromProperties(obj);
+        }
 
         const uiObjects = [...staticObjects, ...dynamicObjects];
 

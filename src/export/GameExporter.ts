@@ -394,6 +394,7 @@ primary_region = "fra"
             overflow: hidden;
             transform-origin: center center;
             flex-shrink: 0;
+            touch-action: none; /* Verhindert Browser-Scroll/Zoom auf Touch-Geräten */
         }
         .game-object {
             position: absolute;
@@ -485,6 +486,7 @@ primary_region = "fra"
             overflow: hidden;
             transform-origin: center center;
             flex-shrink: 0;
+            touch-action: none; /* Verhindert Browser-Scroll/Zoom auf Touch-Geräten */
         }
         .game-object {
             position: absolute;

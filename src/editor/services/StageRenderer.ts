@@ -1,4 +1,4 @@
-﻿import { GridConfig } from '../../model/types';
+import { GridConfig } from '../../model/types';
 import { Logger } from '../../utils/Logger';
 import { EmojiPickerRenderer } from './renderers/EmojiPickerRenderer';
 import { TableRenderer } from './renderers/TableRenderer';
@@ -9,6 +9,7 @@ import { SpriteRenderer } from './renderers/SpriteRenderer';
 import { ShapeRenderer } from './renderers/ShapeRenderer';
 import { InputRenderer } from './renderers/InputRenderer';
 import { SystemComponentRenderer } from './renderers/SystemComponentRenderer';
+import { VirtualGamepadRenderer } from './renderers/VirtualGamepadRenderer';
 import { TextObjectRenderer } from './renderers/TextObjectRenderer';
     import { ComplexComponentRenderer } from './renderers/ComplexComponentRenderer';
 const logger = Logger.get('StageRenderer', 'Component_Manipulation');
@@ -422,6 +423,62 @@ export class StageRenderer {
                 if (isNew) el.onclick = null;
             }
 
+
+            // ─── Touch/Pointer Events (Tablet & Mobile Support) ───
+            // Nutzt die Pointer Events API (vereint Maus, Touch, Stift).
+            // Event-Namen: onTouchStart, onTouchMove, onTouchEnd (intuitiv für Designer).
+            // onTouchMove bekommt RAF-Throttle (max 1 Event pro Frame = 60fps).
+            if (this.host.runMode) {
+                const hasTouchStart = obj.events?.onTouchStart || obj.Tasks?.onTouchStart;
+                const hasTouchMove  = obj.events?.onTouchMove  || obj.Tasks?.onTouchMove;
+                const hasTouchEnd   = obj.events?.onTouchEnd   || obj.Tasks?.onTouchEnd;
+
+                const getPointerData = (e: PointerEvent) => {
+                    const rect = this.host.element.getBoundingClientRect();
+                    const cellSize = this.host.grid.cellSize;
+                    return {
+                        x: Math.round((e.clientX - rect.left) / cellSize * 10) / 10,
+                        y: Math.round((e.clientY - rect.top) / cellSize * 10) / 10,
+                        pointerId: e.pointerId,
+                        pointerType: e.pointerType  // mouse | touch | pen
+                    };
+                };
+
+                if (hasTouchStart) {
+                    el.onpointerdown = (e: PointerEvent) => {
+                        e.stopPropagation();
+                        el.setPointerCapture(e.pointerId);
+                        el.style.touchAction = 'none';
+                        if (this.host.onEvent) {
+                            this.host.onEvent(obj.id, 'onTouchStart', getPointerData(e));
+                        }
+                    };
+                }
+
+                if (hasTouchMove) {
+                    let moveThrottled = false;
+                    el.onpointermove = (e: PointerEvent) => {
+                        if (moveThrottled) return;
+                        moveThrottled = true;
+                        requestAnimationFrame(() => {
+                            moveThrottled = false;
+                            if (this.host.onEvent) {
+                                this.host.onEvent(obj.id, 'onTouchMove', getPointerData(e));
+                            }
+                        });
+                    };
+                }
+
+                if (hasTouchEnd) {
+                    el.onpointerup = (e: PointerEvent) => {
+                        e.stopPropagation();
+                        if (this.host.onEvent) {
+                            this.host.onEvent(obj.id, 'onTouchEnd', getPointerData(e));
+                        }
+                    };
+                }
+            }
+
             // Component specific rendering
             this.renderComponentContent(el, obj, className, isNew);
 
@@ -567,6 +624,7 @@ export class StageRenderer {
         else if (className === 'TEmojiPicker') EmojiPickerRenderer.renderEmojiPicker(el, obj, this.host.grid.cellSize, this.host.onEvent?.bind(this.host));
         else if (className === 'TTable' || className === 'TObjectList') TableRenderer.renderTable(el, obj, this.host.onEvent?.bind(this.host), this.host.grid.cellSize);
         else if (className === 'TDataList') ComplexComponentRenderer.renderDataList(ctx, el, obj);
+        else if (className === 'TVirtualGamepad') VirtualGamepadRenderer.render(ctx, el, obj, className);
         else if (className === 'TStringVariable' || className === 'TObjectVariable' || className === 'TIntegerVariable' || className === 'TBooleanVariable' || className === 'TListVariable' || obj.isVariable || obj.isService) SystemComponentRenderer.render(ctx, el, obj, className);
         else if (className === 'TLabel' || className === 'TNumberLabel') TextObjectRenderer.renderLabel(ctx, el, obj);
         else if (className === 'TPanel') TextObjectRenderer.renderPanel(ctx, el, obj);

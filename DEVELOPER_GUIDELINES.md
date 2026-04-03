@@ -262,3 +262,7 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 ## Testing Standalone Execution
 - Always use the **Run (IFrame)** tab in the Editor to test gameplay exactly how it behaves in full Standalone mode. The IFrame isolates memory and fully replicates Export logic by consuming GameExporter.getCleanProject(). The legacy DOM-based 'Run' tab may drift from standalone behavior.
 
+
+### Touch & Input Simulation
+- **DO**: Nutze für Multiplatform-UI immer \PointerEvent\ (\pointerdown\, \pointerup\) anstatt \MouseEvent\ (\mousedown\, \mouseup\), da diese nativ für Touch, Stift und Maus funktionieren.
+- **DO**: Stelle sicher, dass synthetische Browser-Events (z.B. Keyboard-Simulationen für das TInputController-Objekt) via \document.dispatchEvent(new KeyboardEvent(...))\ abgefeuert werden, damit die GameRuntime und eventuelle React/Native Event-Listener im Container sie sauber fangen.

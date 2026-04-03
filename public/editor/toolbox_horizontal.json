@@ -185,6 +185,11 @@
                     "label": "InputController"
                 },
                 {
+                    "type": "VirtualGamepad",
+                    "icon": "🎮",
+                    "label": "VirtualGamepad"
+                },
+                {
                     "type": "IntervalTimer",
                     "icon": "⏱️",
                     "label": "Intervall-Timer"

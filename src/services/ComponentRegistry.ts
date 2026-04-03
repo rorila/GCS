@@ -1,4 +1,5 @@
 import { TWindow } from '../components/TWindow';
+import { TVirtualGamepad } from '../components/TVirtualGamepad';
 import { TAudio } from '../components/TAudio';
 import { TImage } from '../components/TImage';
 import { TImageList } from '../components/TImageList';
@@ -95,6 +96,7 @@ export class ComponentRegistry {
     private registerDefaultComponents() {
         // UI & Visuelle Objekte
         this.register('TWindow', TWindow);
+        this.register('TVirtualGamepad', TVirtualGamepad);
         this.register('TAudio', TAudio);
         this.register('TImage', TImage);
         this.register('TImageList', TImageList);
@@ -191,6 +193,7 @@ export class ComponentRegistry {
         this.typeMapping.set('Shape', 'TShape');
         this.typeMapping.set('GameLoop', 'TGameLoop');
         this.typeMapping.set('InputController', 'TInputController');
+        this.typeMapping.set('VirtualGamepad', 'TVirtualGamepad');
         this.typeMapping.set('Timer', 'TTimer');
         this.typeMapping.set('Repeater', 'TIntervalTimer');  // Legacy
         this.typeMapping.set('IntervalTimer', 'TIntervalTimer');
@@ -304,7 +307,7 @@ export class ComponentRegistry {
             ComponentRegistry.logger.info(`Events für ${data.className} erfolgreich ermittelt:`, events);
             return events;
         }
-        return ['onClick', 'onDragStart', 'onDragEnd', 'onDrop']; // Fallback
+        return ['onClick', 'onDragStart', 'onDragEnd', 'onDrop', 'onTouchStart', 'onTouchMove', 'onTouchEnd']; // Fallback
     }
 
     /**

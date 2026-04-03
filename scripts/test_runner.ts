@@ -27,6 +27,7 @@ import { runExportIntegrityTests } from '../tests/export_integrity.test.js';
 import { runPascalGeneratorTests } from '../tests/logic/PascalCodeGenerator.test.js';
 import { runStageImportTests } from '../tests/stage_import.test.js';
 import { runTests as runMatheQuizTests } from '../tests/mathe_quiz.test.js';
+import { runTests as runVirtualGamepadTests } from '../tests/virtual_gamepad.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -131,6 +132,10 @@ async function main() {
         // 18. Mathe-Quiz Demo Tests
         console.log('🏃 Starte Mathe-Quiz Tests...');
         allResults.push(...await runMatheQuizTests());
+
+        // 19. Virtual Gamepad Tests
+        console.log('🏃 Starte Virtual Gamepad Tests...');
+        allResults.push(...await runVirtualGamepadTests());
 
         // 6. Serialization Tests
         console.log('🏃 Starte Serialization Tests...');

@@ -1,5 +1,17 @@
-## [3.33.0] - 2026-04-03
+## [3.34.0] - 2026-04-03
 ### Added
+- **Touch & Pointer Support**: Das GCS unterstützt nun offiziell Touch-Geräte (Smartphones & Tablets)!
+  - **Pointer-Events:** Die `GameRuntime` und der `StageRenderer` fangen nun Pointer-Events (`onpointerdown`, `onpointermove`, `onpointerup`) ab, um eine einheitliche Eingabeverarbeitung für Maus, Touch und Stift zu gewährleisten. Drag & Drop im Standalone-Export nutzt ebenfalls Pointer-Events mit `setPointerCapture`.
+  - **Event-Namen für Non-Coders:** Im Editor und Inspector heißen die Events intuitiv `onTouchStart`, `onTouchMove` und `onTouchEnd`. So bleibt die Bedienung einfach.
+  - **Performance:** Touch-Bewegungen (`onTouchMove`) sind via `requestAnimationFrame` optimiert, um 60fps bei gleichmäßiger Netzersparnis zu erhalten.
+  - **CSS:** Touch-Action Scrolling/Zooming im Spielfeld über `touch-action: none` auf dem Container unterbunden.
+  - **Verfügbarkeit:** Die neuen Events sind als Standard-Events an allen GCS-Komponenten (`TComponent`) registriert und können im Inspector für Flow-Tasks gebunden werden.
+- **TVirtualGamepad**: Ein intelligenter, adaptiver Gamepad-Simulator (`VirtualGamepadRenderer`) für Touch-Geräte.
+  - Nutzt Layout-Eigenschaften: D-Pad, Xbox-Rautenform und dynamische Action-Bars berechnen sich automatisch.
+  - Skaliert mit Grid und registriert automatisiert die Tasten des bestehenden `TInputController`.
+  - Zeigt sich nur auf Touch-Geräten (Auto-Hide auf PC).
+
+## [3.33.0] - 2026-04-03
 - **IFrame Run-Tab**: Ein neues Standalone-Preview Feature! Statt die GameRuntime invasiv ins Editor-DOM zu quetschen, erstellt der neue Tab `Run (IFrame)` ein abgekapseltes `<iframe src="/iframe-runner.html">` und speist es via `postMessage` mit exakt demselben sauberen JSON-Objekt, das auch `GameExporter.getCleanProject()` exportiert. Bietet 100% Export-Parität und löst Runtime/Editor Memory Leaks auf Knopfdruck ("Müllabfuhr-Prinzip").
 
 ## [3.32.1] - 2026-04-03
@@ -995,3 +1007,5 @@
 - CleanCode: 24 verbleibende \console.*\-Aufrufe in erfolgskritischen Modulen durch \Logger\ ersetzt (StageRenderer, GameRuntime, GameLoopManager, ReactiveRuntime, ExpressionParser, StandardActions).
 - Performance: \console.table\ in \StageRenderer\ durch verschachtelten Logger-Call ausgetauscht.
 
+[ f i x ]   S e r i a l i z a t i o n :   A d d e d   T V i r t u a l G a m e p a d   c l a s s   t o   h y d r a t e O b j e c t s   t o   p r e v e n t   d a t a   l o s s   i n   i f r a m e   r u n n e r   e x p o r t  
+ 

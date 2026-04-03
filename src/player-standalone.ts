@@ -118,10 +118,10 @@ class UniversalPlayer implements StageHost {
             }
         };
 
-        // 3c. Setup Drag & Drop listeners
-        window.addEventListener('mousedown', (e) => this.handleMouseDown(e));
-        window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-        window.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+        // 3c. Setup Drag & Drop listeners (Pointer Events: vereint Maus + Touch + Stift)
+        window.addEventListener('pointerdown', (e) => this.handleMouseDown(e));
+        window.addEventListener('pointermove', (e) => this.handleMouseMove(e));
+        window.addEventListener('pointerup', (e) => this.handleMouseUp(e));
 
         // 4. Determine initial project
         const params = new URLSearchParams(window.location.search);
@@ -463,6 +463,10 @@ class UniversalPlayer implements StageHost {
     private render() {
         if (!this.runtime) return;
         const objects = this.runtime.getObjects().filter(obj => !this.techClasses.includes(obj.className));
+        console.log(`[UniversalPlayer] Render ${objects.length} objects. Includes TVirtualGamepad?`, objects.some(o => o.className === 'TVirtualGamepad'));
+        if (objects.some(o => o.className === 'TVirtualGamepad')) {
+            console.log(`[UniversalPlayer] Found TVirtualGamepad:`, objects.find(o => o.className === 'TVirtualGamepad'));
+        }
         this.renderer.renderObjects(objects);
     }
 
@@ -505,15 +509,20 @@ class UniversalPlayer implements StageHost {
     // Drag & Drop Handling
     // ─────────────────────────────────────────────
 
-    private handleMouseDown(e: MouseEvent) {
+    private handleMouseDown(e: MouseEvent | PointerEvent) {
         if (!this.runtime) return;
 
-        // Find game object under mouse
+        // Find game object under pointer/mouse
         const el = (e.target as HTMLElement).closest('.game-object');
         if (!el) return;
 
         const obj = this.runtime.getObjects().find(o => o.id === el.id);
         if (!obj || !obj.draggable) return;
+
+        // Pointer Capture: Drag funktioniert auch wenn Finger das Element verlässt
+        if ('setPointerCapture' in (e.target as Element) && 'pointerId' in e) {
+            (e.target as Element).setPointerCapture((e as PointerEvent).pointerId);
+        }
 
         logger.info(`[Player] Start dragging: ${obj.name} (mode: ${obj.dragMode})`);
 
@@ -536,7 +545,7 @@ class UniversalPlayer implements StageHost {
         this.runtime.handleEvent(obj.id, 'onDragStart', { x: gridCoords.x, y: gridCoords.y });
     }
 
-    private handleMouseMove(e: MouseEvent) {
+    private handleMouseMove(e: MouseEvent | PointerEvent) {
         if (!this.isDragging || !this.dragTarget || !this.runtime) return;
 
         const coords = this.screenToGrid(e.clientX, e.clientY);
@@ -547,7 +556,7 @@ class UniversalPlayer implements StageHost {
         this.render();
     }
 
-    private handleMouseUp(e: MouseEvent) {
+    private handleMouseUp(e: MouseEvent | PointerEvent) {
         if (!this.isDragging || !this.runtime) return;
 
         const originalTarget = this.dragPhantom ? (this.dragTarget as any)?._original : this.dragTarget;
