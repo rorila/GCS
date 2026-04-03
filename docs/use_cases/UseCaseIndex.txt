@@ -205,4 +205,5 @@ UC-3.29.0: Object Pool Pattern für dynamische Sprites
 - src/editor/services/StageRenderer.ts: VirtualGamepadRenderer integriert.
 - public/editor/toolbox.json, toolbox_horizontal.json: VirtualGamepad-Tool hinterlegt.
 T V i r t u a l G a m e p a d   H y d r a t i o n | F i x i n g   V i r t u a l   G a m e p a d   r e n d e r i n g   i n   i f r a m e   b y   a d d i n g   c l a s s   m a p p i n g   m i s s i n g   i n   s r c / u t i l s / S e r i a l i z a t i o n . t s | s r c / u t i l s / S e r i a l i z a t i o n . t s  
+ V i r t u a l G a m e p a d   D u a l - s t i c k   L a y o u t | R e f a c t o r e d   S p l i t   L a y o u t   t o   a u t o m a t i c a l l y   h o s t   a   s e c o n d   D - p a d   i f   W A S D   a n d   A r r o w s   a r e   m a p p e d   s i m u l t a n e o u s l y | s r c / e d i t o r / s e r v i c e s / r e n d e r e r s / V i r t u a l G a m e p a d R e n d e r e r . t s  
  

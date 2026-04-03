@@ -122,31 +122,30 @@ export class VirtualGamepadRenderer {
         return btn;
     }
 
-    private static buildSplitLayout(left: HTMLElement, right: HTMLElement, keys: string[]) {
+    private static buildSplitLayout(dirZone: HTMLElement, actionZone: HTMLElement, keys: string[]) {
         const directionalKeys = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD']);
         
         const usedDirKeys = keys.filter(k => directionalKeys.has(k));
         const usedActionKeys = keys.filter(k => !directionalKeys.has(k));
 
-        // Links: D-Pad
-        if (usedDirKeys.length > 0) {
-            left.style.position = 'relative';
-            left.style.width = '150px';
-            left.style.height = '150px';
-            left.style.margin = '20px';
+        const hasArrows = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].some(k => usedDirKeys.includes(k));
+        const hasWASD = ['KeyW', 'KeyA', 'KeyS', 'KeyD'].some(k => usedDirKeys.includes(k));
+
+        const buildDPad = (container: HTMLElement, useArrows: boolean) => {
+            container.style.position = 'relative';
+            container.style.width = '150px';
+            container.style.height = '150px';
+            container.style.margin = '20px';
 
             const addDirBtn = (label: string, code: string, top: string, leftPos: string) => {
-                if (usedDirKeys.includes(code)) { // Bevorzuge WASD wenn belegt, ansonsten Pfeile
+                if (usedDirKeys.includes(code)) {
                     const btn = this.createButton(label, code);
                     btn.style.position = 'absolute';
                     btn.style.top = top;
                     btn.style.left = leftPos;
-                    left.appendChild(btn);
+                    container.appendChild(btn);
                 }
             };
-
-            // Heuristiken: Sind Pfeile oder WASD belegt?
-            const useArrows = usedDirKeys.includes('ArrowUp') || usedDirKeys.includes('ArrowDown') || usedDirKeys.includes('ArrowLeft') || usedDirKeys.includes('ArrowRight');
 
             if (useArrows) {
                 addDirBtn('⬆️', 'ArrowUp', '0px', '50px');
@@ -159,14 +158,37 @@ export class VirtualGamepadRenderer {
                 addDirBtn('A', 'KeyA', '50px', '0px');
                 addDirBtn('D', 'KeyD', '50px', '100px');
             }
+        };
+
+        if (hasArrows && hasWASD) {
+            // Multiplayer/Dual-Stick Setup: Pfeile in die Dir-Zone (für Rechtshänder -> rechts), WASD in Action-Zone (links)
+            buildDPad(dirZone, true);
+            buildDPad(actionZone, false);
+            
+            // Wenn trotzdem Action-Buttons existieren, tun wir sie einfach in die Action-Zone dazu
+            if (usedActionKeys.length > 0) {
+                const extraDiv = document.createElement('div');
+                extraDiv.style.display = 'flex';
+                extraDiv.style.gap = '10px';
+                extraDiv.style.marginTop = '10px';
+                usedActionKeys.forEach(k => extraDiv.appendChild(this.createButton(this.getLabelForKey(k), k)));
+                actionZone.appendChild(extraDiv);
+            }
+            return;
         }
 
-        // Rechts: Action Buttons
+        // Standard Single-Player Ansatz:
+        // D-Pad
+        if (usedDirKeys.length > 0) {
+            buildDPad(dirZone, hasArrows); // Falls nur eins von beiden da ist
+        }
+
+        // Action Buttons
         if (usedActionKeys.length > 0) {
-            right.style.position = 'relative';
-            right.style.margin = '20px';
-            right.style.width = '150px';
-            right.style.height = '150px';
+            actionZone.style.position = 'relative';
+            actionZone.style.margin = '20px';
+            actionZone.style.width = '150px';
+            actionZone.style.height = '150px';
 
             if (usedActionKeys.length <= 2) {
                 // Diagonales Nintendo-Style
@@ -176,7 +198,7 @@ export class VirtualGamepadRenderer {
                     btn.style.position = 'absolute';
                     if (index === 0) { btn.style.bottom = '0px'; btn.style.left = '0px'; }
                     if (index === 1) { btn.style.top = '20px'; btn.style.right = '20px'; }
-                    right.appendChild(btn);
+                    actionZone.appendChild(btn);
                 });
             } else if (usedActionKeys.length <= 4) {
                 // Diamant / Xbox-Style
@@ -191,15 +213,15 @@ export class VirtualGamepadRenderer {
                     const btn = this.createButton(label, key);
                     btn.style.position = 'absolute';
                     Object.assign(btn.style, positions[index % 4]);
-                    right.appendChild(btn);
+                    actionZone.appendChild(btn);
                 });
             } else {
                 // Grid wenn viele
-                right.style.display = 'grid';
-                right.style.gridTemplateColumns = '1fr 1fr';
-                right.style.gap = '10px';
+                actionZone.style.display = 'grid';
+                actionZone.style.gridTemplateColumns = '1fr 1fr';
+                actionZone.style.gap = '10px';
                 usedActionKeys.forEach(key => {
-                    right.appendChild(this.createButton(this.getLabelForKey(key), key));
+                    actionZone.appendChild(this.createButton(this.getLabelForKey(key), key));
                 });
             }
         }

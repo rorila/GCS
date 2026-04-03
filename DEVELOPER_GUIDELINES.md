@@ -266,3 +266,10 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 ### Touch & Input Simulation
 - **DO**: Nutze für Multiplatform-UI immer \PointerEvent\ (\pointerdown\, \pointerup\) anstatt \MouseEvent\ (\mousedown\, \mouseup\), da diese nativ für Touch, Stift und Maus funktionieren.
 - **DO**: Stelle sicher, dass synthetische Browser-Events (z.B. Keyboard-Simulationen für das TInputController-Objekt) via \document.dispatchEvent(new KeyboardEvent(...))\ abgefeuert werden, damit die GameRuntime und eventuelle React/Native Event-Listener im Container sie sauber fangen.
+
+ 
+ # #   G a m e p a d   &   S e r i a l i z a t i o n   L e s s o n s   L e a r n e d   ( v 3 . x ) 
+ -   * * D O   N O T * *   c r e a t e   a   n e w   c o m p o n e n t   c l a s s   ( e . g .   \ T V i r t u a l G a m e p a d \ )   w i t h o u t   i m m e d i a t e l y   a d d i n g   i t   t o   t h e   \ h y d r a t e O b j e c t s \   s w i t c h - s t a t e m e n t   i n   \ s r c / u t i l s / S e r i a l i z a t i o n . t s \ .   F a i l i n g   t o   d o   s o   c a u s e s   t h e   c o m p o n e n t   t o   b e   s i l e n t l y   d r o p p e d   d u r i n g   p r o j e c t   l o a d   o r   I F r a m e   e x p o r t ! 
+ -   * * D O   N O T * *   d i s p a t c h   s y n t h e t i c   \ K e y b o a r d E v e n t \ s   w i t h o u t   \ {   b u b b l e s :   t r u e   } \   i f   y o u   e x p e c t   g l o b a l   w i n d o w   l i s t e n e r s   ( l i k e   t h e   \ G a m e R u n t i m e \   l o o p )   t o   c a p t u r e   t h e m .   T o u c h   O v e r l a y s   m u s t   s t r i c t l y   u s e   b u b b l i n g   e v e n t s . 
+  
+ 

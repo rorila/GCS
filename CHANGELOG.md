@@ -1008,4 +1008,5 @@
 - Performance: \console.table\ in \StageRenderer\ durch verschachtelten Logger-Call ausgetauscht.
 
 [ f i x ]   S e r i a l i z a t i o n :   A d d e d   T V i r t u a l G a m e p a d   c l a s s   t o   h y d r a t e O b j e c t s   t o   p r e v e n t   d a t a   l o s s   i n   i f r a m e   r u n n e r   e x p o r t  
+ [ f e a t u r e ]   V i r t u a l G a m e p a d :   I m p l e m e n t e d   d u a l - s t i c k   m u l t i p l a y e r   s u p p o r t   ( a u t o - d e t e c t i n g   b o t h   W A S D   a n d   A r r o w s )  
  

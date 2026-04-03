@@ -121,7 +121,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1775236846261_p5hx4mqkv",
+          "id": "obj_1775238790682_b4xnhbh1e",
           "name": "Button_3",
           "scope": "stage",
           "draggable": false,
@@ -147,61 +147,20 @@
           },
           "text": "Button_3",
           "icon": ""
-        },
-        {
-          "className": "TButton",
-          "id": "obj_1775236869260_z3fp6cig1",
-          "name": "Button_4",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1
-          },
-          "text": "Button_4",
-          "icon": ""
         }
       ],
       "actions": [
         {
-          "id": "node-1775236831161",
+          "id": "node-1775238775650",
           "details": "",
           "name": "ShowTheHighscoreStage_Unique",
           "showDetails": false,
           "type": "navigate_stage"
         },
         {
-          "id": "node-1775236834126",
+          "id": "node-1775238778649",
           "details": "",
           "name": "Action1",
-          "showDetails": false
-        },
-        {
-          "id": "node-1775236854226",
-          "details": "",
-          "name": "Action2",
-          "showDetails": false
-        },
-        {
-          "id": "node-1775236857227",
-          "details": "",
-          "name": "Action3",
           "showDetails": false
         }
       ],
@@ -229,7 +188,7 @@
           },
           "standaloneNodes": [
             {
-              "id": "node-1775236857227",
+              "id": "node-1775238778649",
               "type": "action",
               "x": 300,
               "y": 300,
@@ -261,26 +220,8 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1775236839177",
+      "id": "stage-1775238783664",
       "name": "Stage 1",
-      "type": "standard",
-      "objects": [],
-      "actions": [],
-      "tasks": [],
-      "variables": [],
-      "grid": {
-        "cols": 64,
-        "rows": 40,
-        "cellSize": 20,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#ffffff"
-      },
-      "flowCharts": {}
-    },
-    {
-      "id": "stage-1775236862248",
-      "name": "Stage 2",
       "type": "standard",
       "objects": [],
       "actions": [],
