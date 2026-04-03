@@ -1,0 +1,17 @@
+{
+    "meta": { "name": "Test" },
+    "stages": [{
+        "id": "main",
+        "objects": [{
+            "id": "panel1",
+            "className": "TGroupPanel",
+            "x": 5, "y": 5, "width": 10, "height": 10,
+            "children": [{
+                "id": "child1",
+                "className": "TLabel",
+                "x": 2, "y": 2, "width": 5, "height": 1,
+                "text": "Hello"
+            }]
+        }]
+    }]
+}
