@@ -1,5 +1,15 @@
 ## [3.34.0] - 2026-04-03
 ### Added
+- **Virtual Gamepad Layout Anpassung**: 
+  - Die `TVirtualGamepad` Komponente unterstützt nun die Eigenschaft `splitVerticalAlignment` (Vertikale Ausrichtung).
+  - Ist das Layout auf "split" gestellt, können die Buttons wahlweise am unteren Bildschirmrand ("bottom") oder vertikal zentriert ("middle") platziert werden (nutzbar über den Inspector).
+
+- **Ruckelfreies Label Update & Optimierung (Targeted Rendering)**: 
+  - Wiederherstellung des "Targeted Rendering", um zu verhindern, dass häufige Variablen-Updates (z.B. Score, Timer) die gesamte Stage neu rendern lassen und Jitter auf mobilen Endgeräten verursachen.
+  - `GameRuntime.ts`: Global-Listener umgeht Full-Render für Eigenschaften und ruft `onComponentUpdate` auf. Für Variablen-Updates (z.B. Score) wurde ein **"Soft-Render"** eingeführt, der statt eines DOM-Rebuilds alle UI-Komponenten in-place aktualisiert.
+  - `StageRenderer.ts`: `updateSingleObject()` weiter verbessert und integriert, um einzelne Elemente DOM-schonend zu aktualisieren. Migration von `transform: translate3d` zu nativem CSS `translate`.
+  - `style.css`: GPU-Compositing via `contain: layout style paint` für game-objects.
+
 - **Touch & Pointer Support**: Das GCS unterstützt nun offiziell Touch-Geräte (Smartphones & Tablets)!
   - **Pointer-Events:** Die `GameRuntime` und der `StageRenderer` fangen nun Pointer-Events (`onpointerdown`, `onpointermove`, `onpointerup`) ab, um eine einheitliche Eingabeverarbeitung für Maus, Touch und Stift zu gewährleisten. Drag & Drop im Standalone-Export nutzt ebenfalls Pointer-Events mit `setPointerCapture`.
   - **Event-Namen für Non-Coders:** Im Editor und Inspector heißen die Events intuitiv `onTouchStart`, `onTouchMove` und `onTouchEnd`. So bleibt die Bedienung einfach.

@@ -283,6 +283,11 @@ class UniversalPlayer implements StageHost {
         // 2. Initialize new Runtime
         this.runtime = new GameRuntime(project, undefined, {
             onRender: () => this.render(),
+            onComponentUpdate: (obj: any) => {
+                if (this.renderer && typeof this.renderer.updateSingleObject === 'function') {
+                    this.renderer.updateSingleObject(obj);
+                }
+            },
             onSpriteRender: (sprites: ComponentData[]) => this.renderSpritesOnly(sprites),
             makeReactive: true,
             multiplayerManager: network,

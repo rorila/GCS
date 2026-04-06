@@ -20,6 +20,7 @@ export interface RuntimeOptions {
     initialGlobalVars?: Record<string, any>;
     makeReactive?: boolean;
     onRender?: () => void;
+    onComponentUpdate?: (obj: any, prop?: string) => void;
     onSpriteRender?: (sprites: any[]) => void;
     startStageId?: string;
     onStageSwitch?: (stageId: string) => void;
@@ -135,10 +136,43 @@ export class GameRuntime implements IVariableHost {
                     this.reactiveRuntime.getWatcher().addGlobalListener(
                         (obj: any, prop: string) => {
                             if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') return;
-                            // RAF-Debounce: Egal wie viele Properties sich ändern,
-                            // nur EIN render() pro Animation-Frame.
+
+                            if (prop && prop.startsWith('_')) return;
+
+                            // Prüfen, ob es sich um eine Variable, ein Array oder ein Objekt ohne eindeutige ID handelt
+                            const isVariableLike = obj?.isVariable || obj?.className?.includes('Variable') || !obj?.id || Array.isArray(obj);
+
+                            if (isVariableLike && options.onComponentUpdate) {
+                                // 🚀 SOFT-RENDER (Debounced):
+                                // Wenn sich Score oder andere globale Daten ändern, baut der GameBuilder
+                                // normalerweise das gesamte DOM neu auf, was Ruckler erzeugt!
+                                // Stattdessen weisen wir nun alle UI-Komponenten an, sich "In-Place" zu aktualisieren.
+                                if (!(this as any)._softRenderScheduled) {
+                                    (this as any)._softRenderScheduled = true;
+                                    requestAnimationFrame(() => {
+                                        (this as any)._softRenderScheduled = false;
+                                        const objs = this.objects || [];
+                                        for (let i = 0; i < objs.length; i++) {
+                                            const o = objs[i];
+                                            if (o && o.id && !o.isVariable && !o.isService) {
+                                                options.onComponentUpdate!(o, prop);
+                                            }
+                                        }
+                                    });
+                                }
+                                return; // Voll-Render zwingend umgehen!
+                            }
+
+                            // Targeted Rendering: Update nur eine einzelne Objektstruktur im DOM (für echte UI-Komponenten)
+                            if (obj && obj.id && options.onComponentUpdate) {
+                                options.onComponentUpdate(obj, prop);
+                                return;
+                            }
+
+                            // Fallback (sollte nun bei Variablen nicht mehr greifen)
                             if (!renderScheduled) {
                                 renderScheduled = true;
+                                console.warn(`💥 [Voll-Render Ausgelöst durch:] Objekt: ${obj?.name || obj?.id || 'Global Var/Array'}, Klasse: ${obj?.className || '-'}, Eigenschaft: ${prop}`);
                                 requestAnimationFrame(() => {
                                     renderScheduled = false;
                                     options.onRender!();

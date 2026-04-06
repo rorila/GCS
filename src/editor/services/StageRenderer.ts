@@ -184,7 +184,7 @@ export class StageRenderer {
         });
 
         // Sort objects by zIndex for proper layer ordering
-                const getDepth = (objId) => {
+                const getDepth = (objId: string): number => {
             if (!objId) return 0;
             const o = objects.find(ox => (ox.id || ox.name) === objId);
             if (!o || !o.parentId) return 0;
@@ -266,12 +266,17 @@ export class StageRenderer {
                 el.style.left = '0px';
                 el.style.top = '0px';
                 
-                // Initiale Position als Transform (inkl. custom-Styling)
-                let finalTransform = `translate3d(${finalX}px, ${finalY}px, 0)`;
-                if (obj.style && obj.style.transform) {
-                    finalTransform += ` ${obj.style.transform}`;
+                // Initiale Position als Translate (getrennt von Transform, neuester Web-Standard)
+                if (className === 'TVirtualGamepad') {
+                    (el.style as any).translate = 'none';
+                } else {
+                    (el.style as any).translate = `${finalX}px ${finalY}px`;
                 }
-                el.style.transform = finalTransform;
+                if (obj.style && obj.style.transform) {
+                    el.style.transform = obj.style.transform;
+                } else {
+                    el.style.transform = '';
+                }
 
                 // Log all objects in Run-Mode to trace layout issues (Metrics)
                 const isMetric = obj.name?.includes('Metric') || obj.id?.includes('metric');
@@ -638,7 +643,49 @@ export class StageRenderer {
         else if (className === 'TDropdown') InputRenderer.renderDropdown(ctx, el, obj, isNew);
         else if (className !== 'TShape' && ('text' in obj || 'value' in obj)) TextObjectRenderer.renderLabel(ctx, el, obj);
     }
-private updateSelectionState(el: HTMLElement, id: string) {
+
+    /**
+     * Targeted Rendering: Aktualisiert nur Eigenschaften eines spezifischen Nodes 
+     * (wie Texte, Sichtbarkeit, Farben), ohne den DOM-Tree Layout-Thrashing zuzumuten!
+     */
+    public updateSingleObject(obj: any): void {
+        if (!this.host || !this.host.element || !obj || !obj.id) return;
+        
+        const el = this.host.element.querySelector(`[data-id="${obj.id}"]`) as HTMLElement;
+        if (!el) return;
+
+        const className = obj.className || 'TObject';
+
+        // 1. Sichtbarkeit syncen
+        let isVisible = this.checkVisible(obj.visible) && this.checkVisible(obj.style?.visible);
+        if (this.host.runMode && obj.isHiddenInRun) isVisible = false;
+        
+        if (!this.host.runMode && (!isVisible || obj.isHiddenInRun || obj.isService || obj.isBlueprintOnly)) {
+            el.style.display = 'flex';
+            el.classList.add('invisible-object-in-editor');
+        } else {
+            el.style.display = isVisible ? 'flex' : 'none';
+            el.classList.remove('invisible-object-in-editor');
+        }
+
+        // 2. Basiseigenschaften
+        this.applyBackground(el, obj, className, obj.id);
+
+        if (obj.style) {
+            if (obj.style.color !== undefined) el.style.color = obj.style.color;
+            if (obj.style.opacity !== undefined) el.style.opacity = String(obj.style.opacity);
+            if (obj.style.fontFamily !== undefined) el.style.fontFamily = obj.style.fontFamily;
+            if (obj.style.fontSize !== undefined) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
+            if (obj.style.transform !== undefined) el.style.transform = obj.style.transform;
+        } else if (obj.opacity !== undefined) {
+            el.style.opacity = String(obj.opacity);
+        }
+
+        // 3. Inhalt (z.B. TLabel Text, Bilder)
+        this.renderComponentContent(el, obj, className, false);
+    }
+
+    private updateSelectionState(el: HTMLElement, id: string) {
         if (this.host.selectedIds.has(id)) {
             el.classList.add('selected');
             el.style.overflow = 'visible';
@@ -800,12 +847,18 @@ private updateSelectionState(el: HTMLElement, id: string) {
                 // GPU Compositing: Subpixel-genaue Positionierung für butterweiche Bewegungen.
                 // Kein Math.round() mehr nötig, da Sprite-Bilder jetzt als natives <img>-Tag
                 // (eigene GPU-Textur) gerendert werden statt als CSS background-image.
-                let finalTransform = `translate3d(${transX}px, ${transY}px, 0)`;
+                // GPU Compositing: Native CSS translate Property
+                if (obj.className === 'TVirtualGamepad') {
+                    (el.style as any).translate = 'none';
+                } else {
+                    (el.style as any).translate = `${transX}px ${transY}px`;
+                }
                 
                 if (obj.style && obj.style.transform !== undefined) {
-                    finalTransform += ` ${obj.style.transform}`;
+                    el.style.transform = obj.style.transform;
+                } else {
+                    el.style.transform = '';
                 }
-                el.style.transform = finalTransform;
 
                 if (obj.style && obj.style.opacity !== undefined) {
                     el.style.opacity = String(obj.style.opacity);

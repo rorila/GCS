@@ -658,3 +658,8 @@ h2 {
 .is-linked {
   border-style: dashed !important;
 }
+
+/* GPU Rendering Optimization for Run Mode */
+#run-stage .game-object {
+  contain: layout style paint;
+}

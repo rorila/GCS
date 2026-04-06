@@ -127,6 +127,12 @@ export class EditorRunManager {
                 makeReactive: true,
                 multiplayerManager: mpManager,
                 onRender: () => this.editor.render(),
+                onComponentUpdate: (obj: any) => {
+                    // Falls die Editor-Stage ein Renderer-Interface hat
+                    if ((this.editor as any).renderer && typeof (this.editor as any).renderer.updateSingleObject === 'function') {
+                        (this.editor as any).renderer.updateSingleObject(obj);
+                    }
+                },
                 onSpriteRender: (sprites: any[]) => this.renderSpritesOnly(sprites),
                 startStageId: startStageId,
                 onStageSwitch: (stageId: string) => this.handleStageSwitch(stageId)

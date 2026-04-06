@@ -273,3 +273,7 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
  -   * * D O   N O T * *   d i s p a t c h   s y n t h e t i c   \ K e y b o a r d E v e n t \ s   w i t h o u t   \ {   b u b b l e s :   t r u e   } \   i f   y o u   e x p e c t   g l o b a l   w i n d o w   l i s t e n e r s   ( l i k e   t h e   \ G a m e R u n t i m e \   l o o p )   t o   c a p t u r e   t h e m .   T o u c h   O v e r l a y s   m u s t   s t r i c t l y   u s e   b u b b l i n g   e v e n t s . 
   
  
+### iOS Safari Double-Tap Zoom Praevention
+- **DO NOT**: Setzen Sie Flaechen, die keine Interaktionselemente sind (wie grosse Layout-Zonen, leftZone, rightZone), **niemals** auf pointer-events: auto;. Wenn verfehlt wird, gehen diese Touch-Events sonst passiv an den Browser weiter und loesen den nativen iOS Safari Double-Tap-Zoom aus.
+- **DO**: Legen Sie pointer-events: none auf die nicht-klickbaren Wrapper-Container. Nur die eigentlichen Touch-Flaechen (Buttons) erhalten pointer-events: auto; sowie unbedingt 	ouch-action: none;.
+- **DO**: Fuer kritische, schnelle Taps (wie Gamepad-Buttons) faengt Event-Delegation am Haupt-Container mit einem nicht-passiven 	ouchstart-Listener das Event ab und ruft dort ein dediziertes e.preventDefault() auf, sobald das Event auf einer legitimen Schaltflaeche ausgeloest wurde.

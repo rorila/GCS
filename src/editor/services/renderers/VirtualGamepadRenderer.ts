@@ -62,7 +62,11 @@ export class VirtualGamepadRenderer {
         el.style.display = 'flex';
         el.style.flexDirection = 'row';
         el.style.justifyContent = 'space-between';
-        el.style.alignItems = 'flex-end';
+        
+        const layoutStyle = obj.layoutStyle || 'split';
+        const vAlign = obj.splitVerticalAlignment || 'bottom';
+        el.style.alignItems = (layoutStyle === 'split' && vAlign === 'middle') ? 'center' : 'flex-end';
+        
         el.style.pointerEvents = 'none'; // Wir machen den Container selbst nicht anklickbar, sondern nur die Buttons
         
         // ÜBERSCHREIBE StageRenderer Defaults, damit das Gamepad über den gesamten Screen liegen darf und niemals geclippt wird!
@@ -77,7 +81,6 @@ export class VirtualGamepadRenderer {
         
         el.innerHTML = ''; // Clear previous
 
-        const layoutStyle = obj.layoutStyle || 'split';
         const opacity = obj.style?.opacity ?? 0.8;
         const scale = obj.scale || 1.0;
 
@@ -85,8 +88,8 @@ export class VirtualGamepadRenderer {
         const leftZone = document.createElement('div');
         const rightZone = document.createElement('div');
 
-        leftZone.style.cssText = `display: flex; flex-direction: column; align-items: center; pointer-events: auto; transform: scale(${scale}); transform-origin: bottom left; opacity: ${opacity};`;
-        rightZone.style.cssText = `display: flex; flex-direction: column; align-items: center; pointer-events: auto; transform: scale(${scale}); transform-origin: bottom right; opacity: ${opacity};`;
+        leftZone.style.cssText = `display: flex; flex-direction: column; align-items: center; pointer-events: none; transform: scale(${scale}); transform-origin: bottom left; opacity: ${opacity};`;
+        rightZone.style.cssText = `display: flex; flex-direction: column; align-items: center; pointer-events: none; transform: scale(${scale}); transform-origin: bottom right; opacity: ${opacity};`;
 
         if (layoutStyle === 'split') {
             // Umgedrehtes Layout für Rechtshänder: D-Pad rechts (rightZone), Action links (leftZone)
@@ -96,7 +99,7 @@ export class VirtualGamepadRenderer {
         } else {
             // Action-Bar Layout
             const barZone = document.createElement('div');
-            barZone.style.cssText = `display: flex; flex-direction: row; justify-content: center; width: 100%; pointer-events: auto; transform: scale(${scale}); opacity: ${opacity}; gap: 10px; padding-bottom: 10px;`;
+            barZone.style.cssText = `display: flex; flex-direction: row; justify-content: center; width: 100%; pointer-events: none; transform: scale(${scale}); opacity: ${opacity}; gap: 10px; padding-bottom: 10px;`;
             this.buildActionBarLayout(barZone, simulatedKeys);
             el.appendChild(barZone);
         }
@@ -117,6 +120,7 @@ export class VirtualGamepadRenderer {
             display: flex; justify-content: center; align-items: center;
             color: white; font-weight: bold; font-family: sans-serif;
             user-select: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            pointer-events: auto; touch-action: none;
         `;
         btn.innerText = label;
         return btn;
@@ -248,6 +252,14 @@ export class VirtualGamepadRenderer {
         };
 
         const activeTouches = new Map<number, string>(); // pointerId -> keyCode
+
+        // iOS Safari Zoom-Verhinderung (Double-Tap) & Native Touch Priority
+        el.addEventListener('touchstart', (e) => {
+            const btn = (e.target as HTMLElement).closest('.virtual-gamepad-btn') as HTMLElement;
+            if (btn) {
+                e.preventDefault(); // Stop zoom and generic mouse-events!
+            }
+        }, { passive: false });
 
         // PointerDown = Button press
         el.addEventListener('pointerdown', (e) => {

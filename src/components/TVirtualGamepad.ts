@@ -13,6 +13,7 @@ export class TVirtualGamepad extends TWindow implements IRuntimeComponent {
     private static logger = Logger.get('TVirtualGamepad', 'Input_Simulator');
 
     public layoutStyle: GamepadLayoutStyle = 'split';
+    public splitVerticalAlignment: 'bottom' | 'middle' = 'bottom';
     public autoHideOnDesktop: boolean = true;
     public scale: number = 1.0;
 
@@ -37,9 +38,18 @@ export class TVirtualGamepad extends TWindow implements IRuntimeComponent {
         return [
             ...super.getInspectorProperties(),
             { name: 'layoutStyle', label: 'Layout Stil', type: 'select', group: 'Einstellungen', options: ['split', 'action_bar'] },
+            { name: 'splitVerticalAlignment', label: 'Vertikale Ausrichtung', type: 'select', group: 'Einstellungen', options: ['bottom', 'middle'], visibleWhen: { field: 'layoutStyle', values: ['split'] } },
             { name: 'autoHideOnDesktop', label: 'Auf PC ausblenden', type: 'boolean', group: 'Einstellungen' },
             { name: 'scale', label: 'Skalierung', type: 'number', group: 'Einstellungen', min: 0.5, max: 2, step: 0.1, inline: true }
         ];
+    }
+
+    public applyChange(propertyName: string, newValue: any, _oldValue: any): boolean {
+        (this as any)[propertyName] = newValue;
+        if (propertyName === 'layoutStyle') {
+            return true; // Zwingt den Inspector zum Re-Render wegen visibleWhen
+        }
+        return false;
     }
 
     public initRuntime(callbacks: { objects: any[] }): void {
