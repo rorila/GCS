@@ -1,7 +1,5 @@
 import { IRenderContext } from './IRenderContext';
 
-console.log("🚀🚀🚀 VIRTUAL GAMEPAD RENDERER MODULE LOADED - VERSION 8 🚀🚀🚀");
-
 export class VirtualGamepadRenderer {
     public static render(ctx: IRenderContext, el: HTMLElement, obj: any, _className: string): void {
         const isRunMode = ctx.host.runMode;
@@ -20,13 +18,14 @@ export class VirtualGamepadRenderer {
             return;
         }
 
-        console.log(`[VirtualGamepadRenderer] render() gestartet. sichtbarkeit(obj.visible)=${obj.visible}, hiddenInRun=${obj.isHiddenInRun}`);
-
         // --- RUNTIME MODE ---
-        // Auto-Hide auf Desktop wird im TVirtualGamepad via visible=false gesetzt.
         if (obj.visible === false || obj.isHiddenInRun === true) {
-            console.log(`[VirtualGamepadRenderer] Abgebrochen: sichtbarkeit=${obj.visible}, hiddenInRun=${obj.isHiddenInRun}`);
             el.style.display = 'none';
+            return;
+        }
+
+        // 🚀 Verhindere ständigen Re-Render (Crash/Performance)
+        if ((el as any)._virtualGamepadBuilt) {
             return;
         }
 
@@ -48,15 +47,13 @@ export class VirtualGamepadRenderer {
             simulatedKeys = Array.from(keys);
         }
 
-        console.log(`[VirtualGamepadRenderer] evaluiere Keys. result: `, simulatedKeys);
-        
-        if (simulatedKeys.length === 0) {
+        if (!simulatedKeys || simulatedKeys.length === 0) {
             console.warn(`[VirtualGamepadRenderer] Abgebrochen: Keine simulatedKeys vorhanden und kein TInputController gefunden!`);
             el.style.display = 'none'; // Keine Tasten gebunden -> Nichts anzeigen
             return;
         }
 
-        console.log(`[VirtualGamepadRenderer] Erstelle Layout für ${simulatedKeys.length} Tasten...`);
+        (el as any)._virtualGamepadBuilt = true;
 
         // Layout vorbereiten
         el.style.display = 'flex';

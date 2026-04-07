@@ -1,3 +1,13 @@
+## [3.35.3] - 2026-04-07
+### Fixed
+- **Run-Tab UI Aktualisierungsfehler (Bindings)**: Behebung eines kritischen Fehlers, bei dem reaktive UI-Bindings (wie `Score: ${score.value}`) im Standalone-IFrame zwar korrekt aktualisiert wurden, im internen Editor-Run-Tab jedoch nicht sichtbar waren. 
+  - *Ursache:* Durch frühere Refactorings wurde die Stage-Renderer-Referenz im `EditorRunManager` ungültig (`this.editor.renderer` anstatt `this.editor.stage.renderer`). Dadurch verpufften die `updateSingleObject`-Signale der Game Engine stumm im Nichts, ohne den DOM zu erreichen.
+  - *Lösung:* Der Pfad wurde repariert und `StageRenderer` korrekt veröffentlicht. Variablen-Änderungen fließen nun wieder augenblicklich als UI-Updates in den DOM.
+- **Log Cleaning**: Umfangreiche Bereinigung von redundanten Debugging-Meldungen (`RUNTIME G...` console.errors und blockierende `alert`-Aufrufe) aus `GameRuntime.ts` und `EditorRunManager.ts`, die für die Spurensuche des Silent Crashs benötigt wurden.
+
+## [3.35.2] - 2026-04-07
+- **Vite Dev-Server Proxy**: Die fehlende Proxy-Konfiguration für `/api` und `/platform` wurde in der `vite.config.ts` wiederhergestellt. Dadurch ist der Game-Server via `localhost:8080` wieder für den Editor (unter `localhost:5173`) erreichbar. Dies behebt den Fehler "Kritischer Fehler beim Speichern (Server nicht erreichbar)".
+
 ## [3.35.0] - 2026-04-07
 ### Added
 - **Electron Desktop App Infrastruktur**: 

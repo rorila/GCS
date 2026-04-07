@@ -70,15 +70,41 @@
     
     <script>
         // Lese Projekt synchron vom Iframe-Element, falls vom Editor gesetzt
+        console.log('[IFrame Runner] DIAG: window.location =', window.location.href);
+        console.log('[IFrame Runner] DIAG: window.location.protocol =', window.location.protocol);
+        console.log('[IFrame Runner] DIAG: window.location.origin =', window.location.origin);
+        console.log('[IFrame Runner] DIAG: window.frameElement =', !!window.frameElement);
+        console.log('[IFrame Runner] DIAG: document.baseURI =', document.baseURI);
+        
         if (window.frameElement && window.frameElement._injectedProject) {
             window.PROJECT = window.frameElement._injectedProject;
-            console.log('[IFrame Runner] Projekt synchron geladen.');
+            console.log('[IFrame Runner] Projekt synchron geladen. Stages:', window.PROJECT.stages?.length);
+            
+            // DIAGNOSE: Alle Objekte mit Bildpfaden dumpen
+            window.PROJECT.stages?.forEach(function(stage) {
+                var imageObjs = (stage.objects || []).filter(function(o) { return o.backgroundImage || o.src; });
+                if (imageObjs.length > 0) {
+                    console.log('[IFrame Runner] DIAG: Stage "' + stage.name + '" hat ' + imageObjs.length + ' Objekte mit Bildern:');
+                    imageObjs.forEach(function(o) {
+                        console.log('  → ' + o.name + ' (' + o.className + '): "' + (o.backgroundImage || o.src || '').substring(0, 120) + '"');
+                    });
+                }
+            });
+            
             const overlay = document.getElementById('iframe-loading-overlay');
             if (overlay) overlay.style.display = 'none';
+        } else {
+            console.warn('[IFrame Runner] DIAG: window.frameElement oder _injectedProject fehlt! frameElement=', window.frameElement);
         }
     </script>
     <!-- Lade den Standalone Controller -->
-    <script src="/runtime-standalone.js"></script>
+    <script>
+        console.log('[IFrame Runner] DIAG: Lade runtime-standalone.js ...');
+    </script>
+    <script src="/runtime-standalone.js" onerror="console.error('[IFrame Runner] FEHLER: runtime-standalone.js konnte NICHT geladen werden! src=/runtime-standalone.js. Check: Das Skript muss über den Vite-Dev-Server erreichbar sein.');"></script>
+    <script>
+        console.log('[IFrame Runner] DIAG: runtime-standalone.js geladen?', typeof window.startStandalone === 'function' ? 'JA' : 'NEIN (startStandalone fehlt)');
+    </script>
 
     <script>
         console.log("[IFrame Runner] Bereit. Warte auf START_RUN.");

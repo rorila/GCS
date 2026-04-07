@@ -31,7 +31,7 @@ export function getImageStyles(props: Partial<ImageCapableProps>): Record<string
     if (!src) return {};
 
     // URL normalisieren
-    const imageUrl = src.startsWith('http') || src.startsWith('/') || src.startsWith('data:')
+    const imageUrl = src.startsWith('http') || src.startsWith('/') || src.startsWith('.') || src.startsWith('data:')
         ? src
         : `/images/${src}`;
 

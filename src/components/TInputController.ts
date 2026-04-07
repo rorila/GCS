@@ -52,10 +52,10 @@ export class TInputController extends TWindow implements IRuntimeComponent {
     }
 
     public initRuntime(callbacks: { handleEvent: any, objects: any[] }): void {
-        this.init(callbacks.objects, callbacks.handleEvent);
-        // Store globally for multiplayer and external reference
-        (window as any).__inputControllerCallback = callbacks.handleEvent;
-        (window as any).__inputControllerObjects = callbacks.objects;
+        // DO NOT PASS `callbacks.handleEvent`!
+        // This is a closure over `GameRuntime` which has cyclic proxies.
+        // It brings DevTools Inspector to a screeching halt.
+        this.init(callbacks.objects, undefined);
     }
 
     public onRuntimeStart(): void {
@@ -118,13 +118,11 @@ export class TInputController extends TWindow implements IRuntimeComponent {
                 (window as any).__multiplayerInputCallback(e.code, 'down');
             }
 
-            // TRIGGER TASK SIGNAL
-            if (this.eventCallback) {
-                TInputController.logger.info(`[InputController] ➡️ CALLBACK: id=${this.id}, event=onKeyDown_${e.code}`);
-                this.eventCallback(this.id, `onKeyDown_${e.code}`, { keyCode: e.code });
-            } else {
-                TInputController.logger.warn(`[InputController] ❌ KEIN CALLBACK! Event onKeyDown_${e.code} geht verloren!`);
-            }
+            // TRIGGER TASK SIGNAL VIA DOM TO AVOID PROXY CLOSURE ABORT IN DEVTOOLS
+            TInputController.logger.info(`[InputController] ➡️ CALLBACK: id=${this.id}, event=onKeyDown_${e.code}`);
+            window.dispatchEvent(new CustomEvent('GameRuntime_Event', {
+                detail: { id: this.id, event: `onKeyDown_${e.code}`, data: { keyCode: e.code } }
+            }));
         }
     }
 
@@ -141,10 +139,10 @@ export class TInputController extends TWindow implements IRuntimeComponent {
             (window as any).__multiplayerInputCallback(e.code, 'up');
         }
 
-        // TRIGGER TASK SIGNAL
-        if (this.eventCallback) {
-            this.eventCallback(this.id, `onKeyUp_${e.code}`, { keyCode: e.code });
-        }
+        // TRIGGER TASK SIGNAL VIA DOM
+        window.dispatchEvent(new CustomEvent('GameRuntime_Event', {
+            detail: { id: this.id, event: `onKeyUp_${e.code}`, data: { keyCode: e.code } }
+        }));
     }
 
     /**

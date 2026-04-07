@@ -184,11 +184,15 @@ export class StageRenderer {
         });
 
         // Sort objects by zIndex for proper layer ordering
-                const getDepth = (objId: string): number => {
-            if (!objId) return 0;
+        const getDepth = (objId: string, visited = new Set<string>()): number => {
+            if (!objId || visited.has(objId)) {
+                if (visited.has(objId)) logger.error(`[StageRenderer] Cycle detected in getDepth for id: ${objId}`);
+                return 0;
+            }
+            visited.add(objId);
             const o = objects.find(ox => (ox.id || ox.name) === objId);
             if (!o || !o.parentId) return 0;
-            return 1 + getDepth(o.parentId);
+            return 1 + getDepth(o.parentId, visited);
         };
         const sortedObjects = [...objects].sort((a, b) => {
             const zA = a.zIndex || 0;
@@ -241,7 +245,8 @@ export class StageRenderer {
                 let absX = obj.x || 0;
                 let absY = obj.y || 0;
                 let curr = obj.parentId;
-                while (curr) {
+                let depth = 0;
+                while (curr && depth < 100) {
                     const p = objects.find(o => (o.id || o.name) === curr);
                     if (p) {
                         absX += p.x || 0;
@@ -250,6 +255,10 @@ export class StageRenderer {
                     } else {
                         break;
                     }
+                    depth++;
+                }
+                if (depth >= 100) {
+                    logger.error(`[StageRenderer] Cycle detected calculating absolute position for id: ${objId}`);
                 }
 
                 finalX = absX * gridConfig.cellSize;
@@ -578,7 +587,12 @@ export class StageRenderer {
         }
 
         if (bgImg) {
-            let src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:'))
+            // ── DIAGNOSE: Bildpfad im applyBackground ──
+            if (this.host.runMode && !(el as any)._bgPathLogged) {
+                logger.info(`%c[BG-PATH-DIAG] "${objId}" (${className}): raw bgImg="${String(bgImg).substring(0, 100)}" location.protocol="${window.location.protocol}" location.origin="${window.location.origin}"`, 'color: #ff6b6b; font-weight: bold');
+                (el as any)._bgPathLogged = true;
+            }
+            let src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
                 ? bgImg
                 : `/images/${bgImg}`;
 
@@ -589,7 +603,7 @@ export class StageRenderer {
             }
 
             if ((el as any).lastLoggedSrc !== src) {
-                logger.debug(`Component "${objId}" (${className}) setting image: "${src}"`);
+                logger.info(`%c[BG-PATH-DIAG] "${objId}" (${className}) FINAL path: "${src.substring(0, 150)}" runMode=${this.host.runMode}`, 'color: #ffa500; font-weight: bold');
                 (el as any).lastLoggedSrc = src;
             }
 
@@ -768,7 +782,7 @@ export class StageRenderer {
 
         // URL normalisieren
         let imgSrc = src;
-        if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/') && !imgSrc.startsWith('data:')) {
+        if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/') && !imgSrc.startsWith('.') && !imgSrc.startsWith('data:')) {
             imgSrc = `/images/${imgSrc}`;
         }
         if (!imgSrc.startsWith('data:')) {

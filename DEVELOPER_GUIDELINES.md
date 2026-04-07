@@ -281,3 +281,7 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 ## DO NOT: Absolute Pfade in Electron
 - **DON'T:** Verwende keine absoluten Pfade (beginnend mit '/'), wenn du referenzierte Assets (z.B. Bilder, iframes) einbindest.
 - **DO:** Nutze im Dual-Mode immer relative Pfade (z.B. './images/Ufos/ufo.png' statt '/images/Ufos/ufo.png'). In Electron ('file://') löst ein '/' nämlich auf den Laufwerks-Root ('C:/') auf, statt auf das public-Root des Dev-Servers.
+
+## 10. Vite Dev Server Proxy
+- **DO**: Stelle sicher, dass die Proxy-Konfiguration in ite.config.ts für den Game-Server (z.B. /api auf http://localhost:8080) korrekt gesetzt ist, falls lokales Speichern via Dev-Server nicht erreichbar ist.
+- **DON'T**: Entferne nicht blindlings proxy Server-Konfigurationen aus Vite, wenn nicht-native Backends (wie der game-server) im Einsatz sind.

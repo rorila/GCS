@@ -256,7 +256,7 @@
             "onBoundaryHit": "Pruefe Rand"
           },
           "visible": true,
-          "x": 29,
+          "x": 23,
           "y": 4,
           "width": 4,
           "height": 2,
@@ -274,7 +274,7 @@
           "collisionGroup": "default",
           "shape": "rect",
           "spriteColor": "#ff0044",
-          "backgroundImage": "./images/Ufos/ufo_transparet.png",
+          "backgroundImage": "/images/Ufos/ufo_transparet.png",
           "objectFit": "contain",
           "imageListId": "",
           "imageIndex": 0,
@@ -284,33 +284,6 @@
           "hitboxOffsetY": 0,
           "hitboxWidth": 0,
           "hitboxHeight": 0
-        },
-        {
-          "className": "TVirtualGamepad",
-          "id": "obj_1775236630646_x438ki8jn",
-          "name": "VirtualGamepad_11",
-          "scope": "stage",
-          "isService": true,
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 42,
-          "y": 33,
-          "width": 6,
-          "height": 4,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "transparent",
-            "borderColor": "#00ffcc",
-            "borderWidth": 1,
-            "opacity": 0.8
-          },
-          "layoutStyle": "action_bar",
-          "splitVerticalAlignment": "bottom",
-          "autoHideOnDesktop": false,
-          "scale": 1
         }
       ],
       "actions": [
@@ -390,10 +363,19 @@
           "target": "aud_Treffer"
         },
         {
-          "name": "action",
-          "type": "spawn_object",
+          "name": "Play_Treffer",
+          "type": "play_audio",
           "showDetails": false,
-          "details": "(spawn_object)"
+          "details": "(spawn_object)",
+          "target": "aud_Treffer"
+        },
+        {
+          "id": "node-1775577311487",
+          "details": "",
+          "name": "Play_Schuss",
+          "showDetails": false,
+          "type": "play_audio",
+          "target": "aud_schuss"
         }
       ],
       "tasks": [
@@ -403,6 +385,10 @@
           "actionSequence": [
             {
               "name": "Action_DestroyBullet",
+              "type": "action"
+            },
+            {
+              "name": "Play_Treffer",
               "type": "action"
             },
             {
@@ -421,9 +407,13 @@
               "x": 40,
               "y": 140
             },
-            "Action_ScoreUp": {
+            "Play_Treffer": {
               "x": 40,
               "y": 240
+            },
+            "Action_ScoreUp": {
+              "x": 40,
+              "y": 340
             }
           }
         },
@@ -480,6 +470,10 @@
             {
               "name": "Action_SpawnBullet",
               "type": "action"
+            },
+            {
+              "name": "Play_Schuss",
+              "type": "action"
             }
           ],
           "triggerMode": "local-sync",
@@ -492,6 +486,10 @@
             "Action_SpawnBullet": {
               "x": 40,
               "y": 140
+            },
+            "Play_Schuss": {
+              "x": 40,
+              "y": 240
             }
           }
         },
@@ -563,7 +561,7 @@
           "dragMode": "move",
           "visible": true,
           "x": 0,
-          "y": 2,
+          "y": 3,
           "width": 4,
           "height": 2,
           "zIndex": 0,
@@ -592,7 +590,7 @@
           "dragMode": "move",
           "visible": true,
           "x": 0,
-          "y": 4,
+          "y": 6,
           "width": 4,
           "height": 2,
           "zIndex": 0,

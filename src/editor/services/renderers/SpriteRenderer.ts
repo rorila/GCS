@@ -1,5 +1,8 @@
 import { IRenderContext } from './IRenderContext';
 import { ProjectRegistry } from '../../../services/ProjectRegistry';
+import { Logger } from '../../../utils/Logger';
+
+const spriteLogger = Logger.get('SpriteRenderer', 'Asset_Diagnostics');
 
 export class SpriteRenderer {
     public static render(ctx: IRenderContext, el: HTMLElement, obj: any): void {
@@ -34,9 +37,15 @@ export class SpriteRenderer {
                 bgImg = obj.backgroundImage;
             }
 
-            const src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('data:'))
+            const src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
                 ? bgImg
                 : `/images/${bgImg}`;
+
+            // ── DIAGNOSE: Bildpfad-Auflösung ──
+            if (!(el as any)._spritePathLogged) {
+                spriteLogger.info(`[PATH-DIAG] Sprite "${obj.name}" (${obj.id}): raw="${bgImg.substring(0, 80)}" → resolved="${src.substring(0, 120)}" runMode=${ctx.host.runMode}`);
+                (el as any)._spritePathLogged = true;
+            }
 
             if (!imgEl || (imageListObj && !isDivLayer) || (!imageListObj && isDivLayer)) {
                 if (imgEl) imgEl.remove();

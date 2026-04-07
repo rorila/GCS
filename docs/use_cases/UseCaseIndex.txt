@@ -235,3 +235,6 @@ UC-3.29.0: Object Pool Pattern fÃ¼r dynamische Sprites
 - Dateien:
   - src/components/TVirtualGamepad.ts (Property splitVerticalAlignment, Zeile 16, 40)
   - src/editor/services/renderers/VirtualGamepadRenderer.ts (Auswertung via alignItems, Zeile 68)
+
+[UseCase: Dev Server Proxy reparieren]
+- vite.config.ts: Methoden export default defineConfig (Zeile 67-74) -> Hinzufügen von proxy für /api und /platform auf localhost:8080

@@ -25,15 +25,18 @@ export class RuntimeStageManager {
      * Rekursives Flattening: Kinder von TGroupPanel als eigenstaendige
      * Objekte in die flache Liste aufnehmen (mit parentId-Tracking).
      */
-    private flattenWithChildren(objects: any[]): any[] {
+    private flattenWithChildren(objects: any[], visited = new Set<any>()): any[] {
         const result: any[] = [];
         for (const obj of objects) {
+            if (!obj || visited.has(obj)) continue;
+            visited.add(obj);
+
             result.push(obj);
             if (obj.children && Array.isArray(obj.children) && obj.children.length > 0) {
                 for (const child of obj.children) {
-                    child.parentId = obj.id || obj.name;
+                    if (child) child.parentId = obj.id || obj.name;
                 }
-                result.push(...this.flattenWithChildren(obj.children));
+                result.push(...this.flattenWithChildren(obj.children, visited));
             }
         }
         return result;
