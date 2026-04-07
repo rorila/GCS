@@ -8,7 +8,7 @@ export class Stage implements StageHost, StageInteractionHost {
     private static logger = Logger.get('Stage', 'Editor_Diagnostics');
     public element: HTMLElement;
     private container: HTMLElement;
-    private renderer: StageRenderer;
+    public renderer: StageRenderer;
     private interactionManager: StageInteractionManager;
 
 

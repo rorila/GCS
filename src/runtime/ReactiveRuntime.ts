@@ -189,49 +189,53 @@ export class ReactiveRuntime {
         });
     }
 
+    private _contextCache: any = null;
+    private _globalProxyCache: any = null;
+    private _stageProxyCache: any = null;
+
     /**
      * Gets the evaluation context (all objects + variables)
      */
     public getContext(): Record<string, any> {
+        if (this._contextCache) return this._contextCache;
+
         const self = this;
 
         // Root context Proxy
         const context = new Proxy({}, {
             get: (_target, prop: string) => {
                 // SPECIAL: Namespaces
-                if (prop === 'global' || prop === 'stage') {
-                    return new Proxy({}, {
-                        get: (_target, subProp: string) => {
-                            // Priority 1: Object (Component)
-                            const obj = self.objectsByName.get(subProp);
-                            const matchesScope = obj && (prop === 'global' ? obj.scope === 'global' : obj.scope === 'stage');
-
-                            if (subProp === 'currentRooms') {
-                                logger.debug(`Resolving ${prop}.${subProp}:`, {
-                                    foundObj: !!obj,
-                                    objScope: obj?.scope,
-                                    matchesScope,
-                                    variableValue: self.variables.get(subProp)
-                                });
-                            }
-
-                            if (matchesScope) {
-                                return obj;
-                            }
-                            // Priority 2: Variable Value
-                            return self.variables.get(subProp);
-                        },
-                        has: (_target, subProp: string) => {
-                            return self.objectsByName.has(subProp) || self.variables.has(subProp);
-                        },
-                        ownKeys: () => {
-                            const keys = new Set([...self.objectsByName.keys(), ...self.variables.keys()]);
-                            return Array.from(keys);
-                        },
-                        getOwnPropertyDescriptor: (_target, _subProp: string) => {
-                            return { enumerable: true, configurable: true };
-                        }
-                    });
+                // SPECIAL: Namespaces
+                if (prop === 'global') {
+                    if (!self._globalProxyCache) {
+                        self._globalProxyCache = new Proxy({}, {
+                            get: (_t, subProp: string) => {
+                                const obj = self.objectsByName.get(subProp);
+                                if (obj && obj.scope === 'global') return obj;
+                                return self.variables.get(subProp);
+                            },
+                            has: (_t, subProp: string) => self.objectsByName.has(subProp) || self.variables.has(subProp),
+                            ownKeys: () => Array.from(new Set([...self.objectsByName.keys(), ...self.variables.keys()])),
+                            getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true })
+                        });
+                    }
+                    return self._globalProxyCache;
+                }
+                
+                if (prop === 'stage') {
+                    if (!self._stageProxyCache) {
+                        self._stageProxyCache = new Proxy({}, {
+                            get: (_t, subProp: string) => {
+                                const obj = self.objectsByName.get(subProp);
+                                if (obj && obj.scope === 'stage') return obj;
+                                return self.variables.get(subProp);
+                            },
+                            has: (_t, subProp: string) => self.objectsByName.has(subProp) || self.variables.has(subProp),
+                            ownKeys: () => Array.from(new Set([...self.objectsByName.keys(), ...self.variables.keys()])),
+                            getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true })
+                        });
+                    }
+                    return self._stageProxyCache;
                 }
 
                 // Normal access (Root)

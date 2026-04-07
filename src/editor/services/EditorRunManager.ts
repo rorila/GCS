@@ -38,6 +38,10 @@ export class EditorRunManager {
     }
 
     public setRunMode(running: boolean) {
+        if (running) {
+            // ...
+        }
+
         if (this.editor.stage.runMode === running) {
             return;
         }
@@ -51,7 +55,10 @@ export class EditorRunManager {
 
         if (running) {
             this.editor.selectObject(null);
-            logger.info("Starting Game Mode...");
+            logger.info(`%c══════════════════════════════════════════════════`, 'color: #00ff00');
+            logger.info(`%c[RUN-DIAG] Starting Game Mode...`, 'color: #00ff00; font-weight: bold');
+            logger.info(`%c[RUN-DIAG] location.protocol=${window.location.protocol} origin=${window.location.origin} href=${window.location.href}`, 'color: #00ff00');
+            logger.info(`%c══════════════════════════════════════════════════`, 'color: #00ff00');
 
             const mpManager = (this.editor as any)._isMultiplayer ? network : undefined;
             const activeStage = this.editor.getActiveStage();
@@ -91,6 +98,8 @@ export class EditorRunManager {
                 (this.editor as any).flowEditor.syncAllTasksFromFlow(this.editor.project);
             }
 
+            // No step 3 logs
+
             this.runtime = new GameRuntime(this.editor.project, undefined, {
                 onNavigate: (target: string, _params?: any) => {
                     // target format: "stage:stageId" or just "stageId"
@@ -128,9 +137,9 @@ export class EditorRunManager {
                 multiplayerManager: mpManager,
                 onRender: () => this.editor.render(),
                 onComponentUpdate: (obj: any) => {
-                    // Falls die Editor-Stage ein Renderer-Interface hat
-                    if ((this.editor as any).renderer && typeof (this.editor as any).renderer.updateSingleObject === 'function') {
-                        (this.editor as any).renderer.updateSingleObject(obj);
+                    const activeStage = this.runStage || this.editor.stage;
+                    if (activeStage && activeStage.renderer && typeof activeStage.renderer.updateSingleObject === 'function') {
+                        activeStage.renderer.updateSingleObject(obj);
                     }
                 },
                 onSpriteRender: (sprites: any[]) => this.renderSpritesOnly(sprites),
@@ -141,26 +150,21 @@ export class EditorRunManager {
             if (this.runtime) {
                 this.runtimeObjects = this.runtime.getObjects();
                 this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as TGameLoop) || null;
-                logger.info(`[RunManager] runtimeObjects: ${this.runtimeObjects.length}, activeGameLoop: ${this.activeGameLoop ? this.activeGameLoop.name : 'NULL'}`);
-                logger.info(`[RunManager] Object classNames:`, this.runtimeObjects.map((o: any) => `${o.name}(${o.className})`).join(', '));
             }
 
             // Event handler already set above
 
-            if (!this.activeGameLoop) {
-                logger.info(`[RunManager] No TGameLoop found in stage, GameRuntime will still run the Singleton Loop`);
-            } else {
-                logger.info(`[RunManager] TGameLoop component found, reading bounds.`);
-            }
-
-            // Der GameLoopManager (Singleton) wird EXKLUSIV von GameRuntime.initMainGame() 
-            // konfiguriert und gestartet! Dieser Legacy-Fallback hier hat Physics-Jitter
-            // verursacht (Doppel-Ticker oder Fallback-Endlosschleifen).
             this.stopAnimationTicker();
-
             this.initRuntimeComponents();
 
-            if (this.runtime) this.runtime.start();
+            if (this.runtime) {
+                try {
+                    this.runtime.start();
+                } catch(e) {
+                    logger.error(`[RUN-FATAL] Crash during runtime start:`, e);
+                    alert("Fatal error during Run-Mode start! Check Console for details.");
+                }
+            }
             this.editor.render();
         } else {
             this.stopRuntime();

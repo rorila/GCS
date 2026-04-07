@@ -54,8 +54,27 @@ export function makeReactive<T extends object>(
                 !(value instanceof HTMLElement) &&
                 !(value instanceof Set) && !(value instanceof Map) &&
                 !(value instanceof Date) && !(value instanceof RegExp)) {
-                const nestedPath = path ? `${path}.${property}` : property;
-                return makeReactive(value, watcher, nestedPath, actualRoot);
+                
+                // CHROMIUM DEVTOOLS HEURISTIC:
+                // Do not recursively weave Proxies over structural properties that point BACKWARDS
+                // or parallel in the tree, because Chromium DevTools parses scoping trees and
+                // these cyclic properties cause infinite '__cachedProxy' path expansion crash.
+                if (property === 'parent' || property === 'stage' || property === 'children' || property === 'objects') {
+                    return value;
+                }
+
+                // PERFORMANCE/CRASH FIX:
+                // Memoize the proxy on the raw object. Without this, every 'get' creates a new Proxy.
+                // DevTools inspecting global variables drops into an infinite proxy creation loop and crashes.
+                if (!(value as any).__cachedProxy) {
+                    const nestedPath = path ? `${path}.${property}` : property;
+                    Object.defineProperty(value, '__cachedProxy', {
+                        value: makeReactive(value, watcher, nestedPath, actualRoot),
+                        enumerable: false, // WICHTIG: Nicht aufzählbar für JSON.stringify oder Object.keys
+                        configurable: true
+                    });
+                }
+                return (value as any).__cachedProxy;
             }
 
             return value;

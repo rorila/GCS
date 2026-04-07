@@ -78,6 +78,7 @@ export class GameRuntime implements IVariableHost {
             this.isSplashActive = activeStage.type === 'splash';
 
             const merged = this.stageManager.getMergedStageData(activeStage.id);
+            
             this.objects = merged.objects;
 
             // Apply merged stage properties (grid, background)
@@ -93,8 +94,6 @@ export class GameRuntime implements IVariableHost {
             this.syncVariableComponents();
 
             // ─── OBJECT POOL: TSpriteTemplate → Pool-Instanzen erzeugen ───
-            // Pool-Instanzen werden VOR dem Proxy-Wrapping in this.objects eingefügt,
-            // damit sie beim nächsten renderObjects() echte DOM-Elemente bekommen.
             const templates = this.objects.filter(obj =>
                 obj.className === 'TSpriteTemplate' || obj.constructor?.name === 'TSpriteTemplate'
             ) as TSpriteTemplate[];
@@ -102,10 +101,10 @@ export class GameRuntime implements IVariableHost {
             templates.forEach(template => {
                 this.spritePool.init(template, this.objects);
             });
-            // ─── ENDE OBJECT POOL ───────────────────────────────────────────
 
             if (options.makeReactive) {
                 this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
+                
                 this.reactiveRuntime.setVariable('isSplashActive', this.isSplashActive);
                 const mp = options.multiplayerManager || (window as any).multiplayerManager;
                 this.reactiveRuntime.setVariable('isMultiplayer', !!mp);
@@ -117,17 +116,7 @@ export class GameRuntime implements IVariableHost {
                     this.reactiveRuntime.setVariable('isHost', true);
                 }
 
-                // Register global render listener — FILTERED!
-                // Sprite position properties (x, y, velocityX, velocityY, errorX, errorY)
-                // are updated 60x/sec by the GameLoopManager which already calls renderCallback.
-                // Without this filter, EACH sprite.x and sprite.y change triggers an ADDITIONAL
-                // full StageRenderer.renderObjects() = 3+ full renders per frame instead of 1.
                 if (options.onRender) {
-                    // ── PERFORMANCE-KRITISCH: Diese TSprite-Properties werden vom
-                    // 60Hz Fast-Path (updateSpritePositions) gehandhabt und dürfen
-                    // KEINEN vollen renderObjects() triggern. Ohne 'visible' im Filter
-                    // verursacht jeder SpritePool.acquire() einen Komplett-Re-Render
-                    // aller Objekte → Bildschirm-Blink mit Ghost-Images bei (0,0).
                     const SPRITE_PROPS = new Set([
                         'x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY', 'visible',
                         '_prevVelocityX', '_prevVelocityY', '_prevX', '_prevY'
@@ -143,10 +132,6 @@ export class GameRuntime implements IVariableHost {
                             const isVariableLike = obj?.isVariable || obj?.className?.includes('Variable') || !obj?.id || Array.isArray(obj);
 
                             if (isVariableLike && options.onComponentUpdate) {
-                                // 🚀 SOFT-RENDER (Debounced):
-                                // Wenn sich Score oder andere globale Daten ändern, baut der GameBuilder
-                                // normalerweise das gesamte DOM neu auf, was Ruckler erzeugt!
-                                // Stattdessen weisen wir nun alle UI-Komponenten an, sich "In-Place" zu aktualisieren.
                                 if (!(this as any)._softRenderScheduled) {
                                     (this as any)._softRenderScheduled = true;
                                     requestAnimationFrame(() => {
@@ -337,8 +322,17 @@ export class GameRuntime implements IVariableHost {
         }
 
         // 2. InputController finden, Force-Reset, init und aktivieren
-        const handleEventCb = (id: string, ev: string, data?: any) => this.handleEvent(id, ev, data);
         const activeICs: any[] = [];
+
+        // NEU: DOM Event Listener für Entkopplung des DevTools-Bugs
+        const domHandler = (e: Event) => {
+            const ce = e as CustomEvent;
+            if (ce.detail && ce.detail.id && ce.detail.event) {
+                this.handleEvent(ce.detail.id, ce.detail.event, ce.detail.data);
+            }
+        };
+        window.addEventListener('GameRuntime_Event', domHandler);
+        (this as any)._domRuntimeEventsHandler = domHandler;
 
         this.objects.forEach(obj => {
             if ((obj as any).className === 'TInputController' || obj.constructor?.name === 'TInputController') {
@@ -349,9 +343,9 @@ export class GameRuntime implements IVariableHost {
                 rawObj.eventCallback = null;
                 if (rawObj.keysPressed) rawObj.keysPressed.clear();
 
-                // Init: Callback setzen
+                // Init OHNE Callback (wegen Chromium DevTools Closure Bug)
                 if (typeof rawObj.init === 'function') {
-                    rawObj.init(this.objects, handleEventCb);
+                    rawObj.init(this.objects, undefined);
                 }
 
                 // Aktivieren (setzt nur isActive=true, KEINE window.addEventListener!)
@@ -376,7 +370,8 @@ export class GameRuntime implements IVariableHost {
         }
 
         // 4. Callback auch global speichern (für initRuntime/Multiplayer-Kompatibilität)
-        (window as any).__inputControllerCallback = handleEventCb;
+        // CRASH ISOLATION: DO NOT ATTACH TO WINDOW
+        // (window as any).__inputControllerCallback = handleEventCb;
     }
 
     private initMainGame() {
