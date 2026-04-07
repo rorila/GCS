@@ -1,0 +1,116 @@
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const path = require('path');
+const fs = require('fs');
+
+const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+
+function createWindow() {
+    const win = new BrowserWindow({
+        width: 1280,
+        height: 720,
+        title: "Game Builder Offline Editor",
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.cjs'),
+            nodeIntegration: false,
+            contextIsolation: true
+        }
+    });
+
+    win.maximize();
+    win.removeMenu(); // Remove default Electron menu for a cleaner UI
+
+    if (isDev) {
+        win.loadURL('http://localhost:5173');
+        win.webContents.openDevTools();
+    } else {
+        win.loadFile(path.join(__dirname, '../dist/index.html'));
+    }
+}
+
+app.whenReady().then(() => {
+    createWindow();
+
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+        }
+    });
+});
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
+});
+
+// ==============================================================================
+// IPC Endpoints for the NativeFileAdapter (window.electronFS)
+// ==============================================================================
+
+ipcMain.handle('fs:readFile', async (event, absolutePath) => {
+    try {
+        if (!fs.existsSync(absolutePath)) {
+            throw new Error(`File not found: ${absolutePath}`);
+        }
+        return await fs.promises.readFile(absolutePath, 'utf-8');
+    } catch (e) {
+        console.error("fs:readFile Error:", e);
+        throw e;
+    }
+});
+
+ipcMain.handle('fs:writeFile', async (event, absolutePath, content) => {
+    try {
+        const dir = path.dirname(absolutePath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        await fs.promises.writeFile(absolutePath, content, 'utf-8');
+        return true;
+    } catch (e) {
+        console.error("fs:writeFile Error:", e);
+        throw e;
+    }
+});
+
+ipcMain.handle('fs:listFiles', async (event, dirPath, extension) => {
+    try {
+        const absolutePath = path.resolve(app.getPath('userData'), dirPath);
+        if (!fs.existsSync(absolutePath)) return [];
+        const files = await fs.promises.readdir(absolutePath);
+        if (extension) {
+            return files.filter(f => f.endsWith(extension));
+        }
+        return files;
+    } catch (e) {
+        console.error("fs:listFiles Error:", e);
+        throw e;
+    }
+});
+
+// ==============================================================================
+// Native Dialogs & App Context
+// ==============================================================================
+
+ipcMain.handle('fs:getAppPath', () => {
+    return app.getAppPath();
+});
+
+ipcMain.handle('fs:showOpenDialog', async (event, options) => {
+    const win = BrowserWindow.getFocusedWindow();
+    const result = await dialog.showOpenDialog(win, options);
+    if (!result.canceled && result.filePaths.length > 0) {
+        return result.filePaths[0]; // Gebe den absoluten Pfad der ausgewählten Datei zurück
+    }
+    return null;
+});
+
+ipcMain.handle('fs:showSaveDialog', async (event, options) => {
+    const win = BrowserWindow.getFocusedWindow();
+    const result = await dialog.showSaveDialog(win, options);
+    if (!result.canceled && result.filePath) {
+        return result.filePath; // Gebe den gewählten Speicherpfad zurück
+    }
+    return null;
+});
+

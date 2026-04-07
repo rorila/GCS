@@ -69,13 +69,7 @@ export default defineConfig({
     plugins: [mediaManifestPlugin()],
     server: {
         port: 5173,
-        open: true, // Auto-open browser
-        proxy: {
-            '/games': 'http://localhost:8080',
-            '/rooms': 'http://localhost:8080',
-            '/platform': 'http://localhost:8080',
-            '/api': 'http://localhost:8080'
-        }
+        open: true // Auto-open browser
     },
     build: {
         outDir: 'dist',

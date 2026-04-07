@@ -158,7 +158,7 @@ export class FlowTask extends FlowElement {
                     name: 'deleteBtn', label: 'Löschen', type: 'button',
                     action: 'delete', style: { backgroundColor: '#d11a2a' }
                 }
-            ]
+            ] as any[]
         });
 
         return sections;

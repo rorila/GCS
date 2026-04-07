@@ -277,3 +277,7 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 - **DO NOT**: Setzen Sie Flaechen, die keine Interaktionselemente sind (wie grosse Layout-Zonen, leftZone, rightZone), **niemals** auf pointer-events: auto;. Wenn verfehlt wird, gehen diese Touch-Events sonst passiv an den Browser weiter und loesen den nativen iOS Safari Double-Tap-Zoom aus.
 - **DO**: Legen Sie pointer-events: none auf die nicht-klickbaren Wrapper-Container. Nur die eigentlichen Touch-Flaechen (Buttons) erhalten pointer-events: auto; sowie unbedingt 	ouch-action: none;.
 - **DO**: Fuer kritische, schnelle Taps (wie Gamepad-Buttons) faengt Event-Delegation am Haupt-Container mit einem nicht-passiven 	ouchstart-Listener das Event ab und ruft dort ein dediziertes e.preventDefault() auf, sobald das Event auf einer legitimen Schaltflaeche ausgeloest wurde.
+
+## DO NOT: Absolute Pfade in Electron
+- **DON'T:** Verwende keine absoluten Pfade (beginnend mit '/'), wenn du referenzierte Assets (z.B. Bilder, iframes) einbindest.
+- **DO:** Nutze im Dual-Mode immer relative Pfade (z.B. './images/Ufos/ufo.png' statt '/images/Ufos/ufo.png'). In Electron ('file://') löst ein '/' nämlich auf den Laufwerks-Root ('C:/') auf, statt auf das public-Root des Dev-Servers.

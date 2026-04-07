@@ -1,3 +1,17 @@
+- [2026-04-07] Electron Desktop App Infrastruktur (Offline fähiger Editor)
+  - Datei: electron/main.cjs [MOD] (Native system dialogs `showOpenDialog`, `showSaveDialog` hinzugefügt und absolute Pfade eingebaut)
+  - Datei: electron/preload.cjs [MOD] (Bridge erweitert um system native OS dialogs)
+  - Datei: src/adapters/NativeFileAdapter.ts [MOD] (Integration der IPC calls via window.electronFS.showOpenDialog)
+  - Datei: src/editor/services/EditorDataManager.ts [MOD] (Dual-Mode: Native File System Access API für window.electronFS neben Standard-Fetch Fallback)
+  - Datei: src/export/GameExporter.ts [MOD] (Dual-Mode: Laden lokaler Runtime-Skripte und Speichern via showSaveDialog)
+  - Datei: src/services/LibraryService.ts [MOD] (Dual-Mode: Offline-Erkennung beim Template-Cache)
+  - Datei: package.json (Hinzufügen von dev:electron/build:electron Skripten, devDependencies)
+  - Datei: vite.config.ts (Entfernen von Proxy Settings)
+  - Details: Setup für die Umwandlung der webbasierten Applikation in eine reine, netzwerkunabhängige Electron-Desktop-Anwendung. Der Game-Server (Backend) fällt für den Editor weg; stattdessen greift der Client direkt auf das FileSystem (`fs/promises`) zu, gebündelt über eine extrem sichere `contextBridge`.
+- [2026-04-07] Fixes für Electron Rendering (Absolute Pfade und iframe)
+  - Datei: projects/Spawning_Shooter_Demo.json [MOD] (Absolute URL `/images/...` auf relative URL `./images/...` geändert)
+  - Datei: src/editor/EditorViewManager.ts [MOD] (Iframe src pfad relativiert für lokales filesystem)
+  - Details: Wenn Web-Applikationen über Electron geladen werden (`file://`), lösen absolute Pfade, die mit einem führenden Slash `/` beginnen (`/images/Ufos/...` und `/iframe-runner.html`), auf das Root-Verzeichnis des Rechners auf (z. B. `C:\images\Ufos\...`) und nicht relativ zum Web-Root. Um eine Dual-Mode Kompatibilität für Web und Electron bereitzustellen, müssen immer explizit relative Ressourcen-Pfade genutzt werden.
 - [2026-04-02] Sprite-Animations-Effekte (v3.31.0)
   - Datei: src/runtime/AnimationManager.ts (L364-505, grow/shrink/explode/pop/fadeIn/fadeOut/spin/wobble/spriteAnimate)
   - Datei: src/runtime/actions/handlers/AnimationActions.ts (L1-152, animate + sprite_animate Actions)

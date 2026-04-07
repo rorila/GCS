@@ -120,7 +120,7 @@ export class TAPIServer extends TPanel implements IRuntimeComponent {
                 style: { backgroundColor: '#4caf50', color: '#fff', marginTop: 12, fontWeight: 'bold' }
             },
             { name: 'testResponse', label: 'Response', type: 'string', group: 'API TESTER', readonly: true }
-        ];
+        ] as TPropertyDef[];
     }
 
     public toJSON(): any {

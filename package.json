@@ -3,6 +3,7 @@
   "private": true,
   "version": "3.9.1",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "predev": "npm run bundle:runtime",
@@ -18,23 +19,46 @@
     "test:logic": "npx tsx scripts/test_login_logic.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "validate": "node scripts/validate_project.cjs"
+    "validate": "node scripts/validate_project.cjs",
+    "dev:electron": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "build:electron": "npm run build && electron-builder"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.1",
+    "concurrently": "^8.2.2",
+    "electron": "^28.2.0",
+    "electron-builder": "^24.9.1",
     "html-to-docx": "^1.8.0",
     "marked": "^17.0.5",
     "md-to-docx": "^1.6.1",
     "playwright": "^1.58.2",
     "typescript": "^5.2.2",
-    "vite": "^5.0.0"
+    "vite": "^5.0.0",
+    "wait-on": "^7.2.0"
   },
   "dependencies": {
     "@types/express": "^5.0.6",
     "express": "^5.2.1",
     "fflate": "^0.8.2",
     "mermaid": "^11.12.2"
+  },
+  "build": {
+    "appId": "com.gamebuilder.app",
+    "productName": "Game Builder",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        "portable"
+      ]
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ]
   }
 }

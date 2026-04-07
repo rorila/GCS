@@ -219,7 +219,28 @@ export class EditorDataManager {
         // damit der gespeicherte JSON-Snapshot den korrekten "gespeichert"-Zustand enthält
         this.host.isProjectDirty = false;
 
-        // Native File System Access API (Desktop/Electron Modus)
+        // 1. Electron Desktop-Modus (Nativer File Access)
+        if ((window as any).electronFS && this.currentSavePath && overwriteConfirmed === undefined) {
+             try {
+                 await (window as any).electronFS.writeFile(this.currentSavePath, JSON.stringify(this.host.project, null, 2));
+                 setTimeout(() => { this.host.isProjectDirty = false; }, 0);
+                 const msg = `Electron: Gespeichert in ${this.currentSavePath}`;
+                 EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
+                 
+                 if (!this.host.project.meta) (this.host.project as any).meta = {};
+                 (this.host.project.meta as any)._sourcePath = this.currentSavePath;
+                 this.updateProjectPathDisplay();
+                 
+                 if (overwriteConfirmed === undefined) alert(msg);
+                 return { success: true, message: msg };
+             } catch(err) {
+                 EditorDataManager.logger.warn('[UseCase: Projekt speichern] Fehler beim nativen Speichern. Fallback übersprungen.', err);
+                 this.host.isProjectDirty = true;
+                 return { success: false, message: 'Fehler beim Schreiben der lokalen Datei.' };
+             }
+        }
+        
+        // 2. Browser Native File System Access API
         if (this.currentFileHandle && overwriteConfirmed === undefined) {
             try {
                 const writable = await (this.currentFileHandle as any).createWritable();
@@ -283,6 +304,24 @@ export class EditorDataManager {
     public async saveProjectAs(): Promise<{ success: boolean; message: string }> {
         const meta = (this.host.project as any).meta || {};
         const currentName = meta.name || 'MeinSpiel';
+
+        // 0. Electron Native Dialogs
+        if ((window as any).electronFS) {
+            const electronHandle = await (window as any).electronFS.showSaveDialog({
+                defaultPath: `${currentName}.json`,
+                filters: [{ name: 'JSON Project', extensions: ['json'] }]
+            });
+            if (!electronHandle) return { success: false, message: 'Speichern abgebrochen' };
+
+            const fileBaseName = electronHandle.replace(/^.*[\\\/]/, '').replace('.json', '');
+            if (!this.host.project.meta) (this.host.project as any).meta = {};
+            (this.host.project.meta as any).name = fileBaseName;
+            (this.host.project.meta as any)._sourcePath = electronHandle;
+            this.currentSavePath = electronHandle;
+
+            this.host.isProjectDirty = true; // erzwingt Check-Bypass in saveProjectToFile
+            return this.saveProjectToFile();
+        }
 
         // 1. Native File System Access API
         if ('showSaveFilePicker' in window) {
@@ -542,21 +581,30 @@ export class EditorDataManager {
             }
 
             // 3. SSoT & DATEI-PERSISTENZ: 
-            // ARC-CHANGE: Wir senden die Daten nun doch per Fetch an den Server,
-            // damit die project.json auf Disk immer aktuell bleibt (Anforderung Benutzer).
-            fetch('/api/dev/save-project', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.host.project)
-            }).then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        EditorDataManager.logger.debug(`[PERSISTENT] project.json auf Disk wurde automatisch aktualisiert.`);
-                    }
-                })
-                .catch(err => {
-                    EditorDataManager.logger.warn(`Fehler beim automatischen Disk-Save:`, err);
-                });
+            // In Electron nutzen wir den nativen File-Access, im Web den Fetch-Server.
+            if ((window as any).electronFS && this.currentSavePath) {
+                (window as any).electronFS.writeFile(this.currentSavePath, JSON.stringify(this.host.project, null, 2))
+                    .then(() => {
+                        EditorDataManager.logger.debug(`[PERSISTENT] project.json auf lokaler Disk wurde automatisch nativ aktualisiert.`);
+                    })
+                    .catch((err: any) => {
+                        EditorDataManager.logger.warn(`Fehler beim automatischen nativem Disk-Save:`, err);
+                    });
+            } else if (!(window as any).electronFS) {
+                fetch('/api/dev/save-project', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.host.project)
+                }).then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            EditorDataManager.logger.debug(`[PERSISTENT] project.json auf Disk wurde automatisch aktualisiert.`);
+                        }
+                    })
+                    .catch(err => {
+                        EditorDataManager.logger.warn(`Fehler beim automatischen Disk-Save:`, err);
+                    });
+            }
 
             EditorDataManager.logger.debug(`[TRACE] updateProjectJSON: LocalStorage und Disk synchronisiert.`);
         }

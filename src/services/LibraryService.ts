@@ -45,6 +45,19 @@ export class LibraryService {
      */
     async saveTemplate(template: any): Promise<boolean> {
         try {
+            if ((window as any).electronFS) {
+                // In der Offline-Version aktualisieren wir nur den lokalen Cache zur Laufzeit,
+                // persistentes Speichern der Templates in die Distribution ist für Endnutzer deaktiviert.
+                const existingIdx = this.libraryTemplates.findIndex(t => t.name === template.name);
+                if (existingIdx !== -1) {
+                    this.libraryTemplates[existingIdx] = template;
+                } else {
+                    this.libraryTemplates.push(template);
+                }
+                this.logger.info(`Offline: Template "${template.name}" temporär gespeichert.`);
+                return true;
+            }
+
             const response = await fetch('/api/library/templates', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -52,7 +65,6 @@ export class LibraryService {
             });
 
             if (response.ok) {
-                // Update local cache
                 const existingIdx = this.libraryTemplates.findIndex(t => t.name === template.name);
                 if (existingIdx !== -1) {
                     this.libraryTemplates[existingIdx] = template;

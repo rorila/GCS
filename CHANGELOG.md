@@ -1,4 +1,22 @@
-## [3.34.0] - 2026-04-03
+## [3.35.0] - 2026-04-07
+### Added
+- **Electron Desktop App Infrastruktur**: 
+  - Einrichtung eines neuen `electron/` Ordners mit `main.cjs` (Hauptprozess) und `preload.cjs` (ContextBridge).
+  - Umstieg auf direkten Dateizugriff des Betriebssystems (nativ) über `window.electronFS` statt lokaler Express Server.
+  - Einführung des Single Codebase "Dual-Modes": Web-Dienste (`fetch('/api...')`) bleiben bestehen, aber im Offline-Kontext (`window.electronFS`) werden OS-native Äquivalente bevorzugt. Die Web-Version bleibt also intakt!
+  - `GameExporter`: Modifiziert, damit er im Offline-Modus das `runtime-standalone.js` direkt ins ZIP/HTML bundeln kann, statt es via Fetch zu laden.
+  - Integration von nativen OS-Dialogen (`showOpenDialog`, `showSaveDialog`) ins Dateisystem, damit Benutzer Projekte überall abspeichern können.
+  - Migration von `EditorDataManager` (`saveProjectAs` / `saveProjectToFile`), sodass dieser via IPC native asynchrone File-Wrights durchführt.
+  - Implementierung sicherer IPC-Handler (`fs:readFile`, `fs:writeFile`, `fs:listFiles`, `fs:showOpenDialog`, `fs:showSaveDialog`) via `ipcMain` und `contextBridge` unter strikter Nutzung von `contextIsolation: true` und `nodeIntegration: false`.
+  - `package.json` um `dev:electron` und `build:electron` Skripte erweitert und `electron`/`electron-builder` hinzugefügt.
+  - `vite.config.ts`: Proxy-Server Config auskommentiert, da Dev-Server wegfällt.
+
+## [3.35.1] - 2026-04-07
+### Fixed
+- **IFrame Run-Tab**: Die Zuweisung des `iframe.src` im `EditorViewManager` wurde angepasst. Anstatt einen harten abslouten Pfad (`/iframe-runner.html`) zu setzen, der im Electron-Modus auf das Root-Laufwerk verweist, wird nun abhängig vom Protokoll `file:` oder `http/https` flexibel auf `iframe-runner.html` oder `/iframe-runner.html` zurückgegriffen.
+- **Demo-Projektdaten (Spawning Shooter Demo)**: Sprite-Bilder im `Spawning_Shooter_Demo` nutzten absolute URLs (`/images/Ufos/ufo_transparet.png`), was in lokalen `file://`/Electron-Umgebungen fehlschlug. Alle Pfade in der Projekt-Datei verwenden jetzt einen relativen Start (`./images/...`).
+
+## [3.35.0] - 2026-04-07
 ### Added
 - **Virtual Gamepad Layout Anpassung**: 
   - Die `TVirtualGamepad` Komponente unterstützt nun die Eigenschaft `splitVerticalAlignment` (Vertikale Ausrichtung).

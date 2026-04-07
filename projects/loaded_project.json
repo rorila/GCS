@@ -4,7 +4,7 @@
     "version": "1.0",
     "author": "Antigravity",
     "description": "",
-    "_sourcePath": "projects/Spawning_Shooter_Demo.json"
+    "_sourcePath": "projects/loaded_project.json"
   },
   "stages": [
     {
@@ -308,6 +308,7 @@
             "opacity": 0.8
           },
           "layoutStyle": "action_bar",
+          "splitVerticalAlignment": "bottom",
           "autoHideOnDesktop": false,
           "scale": 1
         }

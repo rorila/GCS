@@ -26,6 +26,9 @@ export class NativeFileAdapter implements IStorageAdapter {
 
     /** Aktiver FileHandle (Browser-Modus, für "Speichern" ohne erneuten Dialog) */
     private currentHandle: FileSystemFileHandle | null = null;
+    
+    /** Aktiver absoluter Pfad (Electron-Modus, für "Speichern" ohne erneuten Dialog) */
+    private currentPath: string | null = null;
 
     isAvailable(): boolean {
         // Browser: FileSystem Access API verfügbar?
@@ -41,8 +44,18 @@ export class NativeFileAdapter implements IStorageAdapter {
 
         // Electron-Modus
         if ((window as any).electronFS) {
-            await (window as any).electronFS.writeFile(defaultName, json);
-            NativeFileAdapter.logger.info(`Electron: Gespeichert als ${defaultName}`);
+            let targetPath = this.currentPath;
+            if (!targetPath) {
+                targetPath = await (window as any).electronFS.showSaveDialog({
+                    defaultPath: defaultName,
+                    filters: [{ name: 'JSON Project File', extensions: ['json'] }]
+                });
+            }
+            if (!targetPath) return;
+            
+            await (window as any).electronFS.writeFile(targetPath, json);
+            this.currentPath = targetPath;
+            NativeFileAdapter.logger.info(`Electron: Gespeichert als ${targetPath}`);
             return;
         }
 
@@ -77,8 +90,18 @@ export class NativeFileAdapter implements IStorageAdapter {
 
     async load(_filename?: string): Promise<GameProject | null> {
         // Electron-Modus
-        if ((window as any).electronFS && _filename) {
-            const content = await (window as any).electronFS.readFile(_filename);
+        if ((window as any).electronFS) {
+            let targetPath = _filename;
+            if (!targetPath) {
+                targetPath = await (window as any).electronFS.showOpenDialog({
+                    properties: ['openFile'],
+                    filters: [{ name: 'JSON Project File', extensions: ['json'] }]
+                });
+            }
+            if (!targetPath) return null;
+            
+            const content = await (window as any).electronFS.readFile(targetPath);
+            this.currentPath = targetPath;
             return JSON.parse(content);
         }
 
@@ -108,6 +131,11 @@ export class NativeFileAdapter implements IStorageAdapter {
     /** Setzt den aktiven FileHandle (z.B. nach dem Laden eines Projekts) */
     public setHandle(handle: FileSystemFileHandle): void {
         this.currentHandle = handle;
+    }
+    
+    /** Setzt den aktiven Dateipfad explizit (Electron-Modus) */
+    public setPath(path: string): void {
+        this.currentPath = path;
     }
 
     private generateFilename(project: GameProject): string {
