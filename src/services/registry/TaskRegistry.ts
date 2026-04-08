@@ -1,9 +1,9 @@
 import { coreStore } from './CoreStore';
 import { ScopedTask } from './RegistryTypes';
 import { libraryService } from '../LibraryService';
-import { projectReferenceTracker } from './ReferenceTracker.ts';
+import { projectReferenceTracker } from './ReferenceTracker';
 import { GameTask } from '../../model/types';
-import { projectActionRegistry } from './ActionRegistry.ts';
+import { projectActionRegistry } from './ActionRegistry';
 
 class TaskRegistry {
     public getTasks(stageId: string | 'all' | 'active' = 'active', resolveUsage: boolean = true, includeUnusedLibrary: boolean = false): ScopedTask[] {

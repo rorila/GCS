@@ -1,3 +1,7 @@
+- [2026-04-08] Typisierungs-Härtung (Mediator & StageManager)
+  - Datei: src/runtime/RuntimeStageManager.ts [MOD] (any durch Project/Stage/Action-Interfaces ersetzt)
+  - Datei: src/services/MediatorService.ts [MOD] (Methodensignaturen gestärkt)
+
 - [2026-04-08] Refactoring God Objects
   - Datei: src/runtime/GameRuntime.ts [MOD] (Extrahiert Input & Multiplayer Logik)
   - Datei: src/runtime/core/GameRuntimeInput.ts [NEW]

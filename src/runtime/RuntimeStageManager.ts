@@ -1,12 +1,13 @@
 import { hydrateObjects } from '../utils/Serialization';
 import { TWindow } from '../components/TWindow';
+import { ComponentData, FlowCharts, GameAction, GameProject, GameTask, GridConfig, StageDefinition } from '../model/types';
 
 export interface MergedStageData {
-    objects: any[];
-    tasks: any[];
-    actions: any[];
-    flowCharts: any;
-    grid?: any;
+    objects: (ComponentData | any)[];
+    tasks: GameTask[];
+    actions: GameAction[];
+    flowCharts: FlowCharts;
+    grid?: GridConfig;
     backgroundColor?: string;
     backgroundImage?: string;
 }
@@ -14,10 +15,10 @@ export interface MergedStageData {
 export class RuntimeStageManager {
     // Manager instance
     // Cache für globale Objekte, damit deren State bei Stage-Wechseln erhalten bleibt
-    private cachedGlobalObjects: any[] | null = null;
-    private project: any;
+    private cachedGlobalObjects: (ComponentData | any)[] | null = null;
+    private project: GameProject;
 
-    constructor(project: any) {
+    constructor(project: GameProject) {
         this.project = project;
     }
 
@@ -43,18 +44,18 @@ export class RuntimeStageManager {
     }
 
     public getMergedStageData(stageId: string): MergedStageData {
-        const stage = this.project.stages?.find((s: any) => s.id === stageId);
-        const stageChain = stage ? [stage] : [];
+        const stage = this.project.stages?.find((s: StageDefinition) => s.id === stageId);
+        const stageChain: StageDefinition[] = stage ? [stage] : [];
 
         let mergedObjects: any[] = [];
-        let mergedTasks: any[] = [...(this.project.tasks || [])];
-        let mergedActions: any[] = [...(this.project.actions || [])];
-        let mergedFlowCharts: any = { ...(this.project.flowCharts || {}) };
+        let mergedTasks: GameTask[] = [...(this.project.tasks || [])];
+        let mergedActions: GameAction[] = [...(this.project.actions || [])];
+        let mergedFlowCharts: FlowCharts = { ...(this.project.flowCharts || {}) };
 
         const objectIdSet = new Set<string>();
         const isAlreadyHydrated = (arr: any[]) => arr.length > 0 && typeof arr[0] === 'object' && arr[0] instanceof TWindow;
 
-        const processStage = (stage: any, useCache: boolean = false) => {
+        const processStage = (stage: StageDefinition, useCache: boolean = false) => {
             // Objects and Variables (Blueprint/Main caching)
             if (useCache) {
                 if (!this.cachedGlobalObjects) {
@@ -100,15 +101,15 @@ export class RuntimeStageManager {
 
             // Tasks
             if (stage.tasks) {
-                stage.tasks.forEach((t: any) => {
-                    mergedTasks = mergedTasks.filter((existing: any) => existing.name !== t.name);
+                stage.tasks.forEach((t: GameTask) => {
+                    mergedTasks = mergedTasks.filter((existing: GameTask) => existing.name !== t.name);
                     mergedTasks.push(t);
                 });
             }
             // Actions
             if (stage.actions) {
-                stage.actions.forEach((a: any) => {
-                    mergedActions = mergedActions.filter((existing: any) => existing.name !== a.name);
+                stage.actions.forEach((a: GameAction) => {
+                    mergedActions = mergedActions.filter((existing: GameAction) => existing.name !== a.name);
                     mergedActions.push(a);
                 });
             }
@@ -118,10 +119,10 @@ export class RuntimeStageManager {
             }
         };
 
-        const targetIsBlueprint = this.project.stages?.find((s: any) => s.id === stageId)?.type === 'blueprint';
-        const blueprintStages = this.project.stages?.filter((s: any) => s.type === 'blueprint') || [];
+        const targetIsBlueprint = this.project.stages?.find((s: StageDefinition) => s.id === stageId)?.type === 'blueprint';
+        const blueprintStages = this.project.stages?.filter((s: StageDefinition) => s.type === 'blueprint') || [];
 
-        blueprintStages.forEach((bs: any) => {
+        blueprintStages.forEach((bs: StageDefinition) => {
             const preCount = mergedObjects.length;
 
             // Blueprint IMMER cachen, damit Instanzen unangetastet bleiben
@@ -140,7 +141,7 @@ export class RuntimeStageManager {
         });
 
         // Echte Sub-Stages (Lokale Objekte, NICHT gecacht)
-        stageChain.forEach(s => {
+        stageChain.forEach((s: StageDefinition) => {
             if (s.type !== 'blueprint') processStage(s, false);
         });
 
@@ -155,7 +156,7 @@ export class RuntimeStageManager {
         // Fallback-Logik für alte 'main'-Stages
         const activeStage = stageChain[stageChain.length - 1];
         if (activeStage && activeStage.type !== 'splash' && activeStage.type !== 'main') {
-            const mainStage = this.project.stages?.find((s: any) => s.type === 'main');
+            const mainStage = this.project.stages?.find((s: StageDefinition) => s.type === 'main');
             if (mainStage) {
                 // Auch die Main-Stage wird gecacht, damit ihre globalen Objekte intakt bleiben
                 processStage(mainStage, true);
@@ -169,7 +170,7 @@ export class RuntimeStageManager {
             flowCharts: mergedFlowCharts,
             grid: activeStage?.grid || blueprintStages[0]?.grid,
             backgroundColor: activeStage?.grid?.backgroundColor || blueprintStages[0]?.grid?.backgroundColor,
-            backgroundImage: activeStage?.backgroundImage || blueprintStages[0]?.backgroundImage
+            backgroundImage: (activeStage as any)?.backgroundImage || (blueprintStages[0] as any)?.backgroundImage
         };
     }
 }

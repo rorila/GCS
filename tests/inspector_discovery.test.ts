@@ -54,14 +54,14 @@ async function runInspectorDiscoveryTests(): Promise<TestResult[]> {
         addResult("DataService.getModelsSync", modelsOk, `Found: ${models.join(', ')}`);
 
         // 3. Test InspectorContextBuilder (Plural for object_list)
-        // Needs ProjectRegistry setup
-        const { ProjectRegistry } = await import('../src/services/ProjectRegistry');
+        // Needs CoreStore setup
+        const { coreStore } = await import('../src/services/registry/CoreStore');
         const project = {
             objects: [{ className: 'TDataStore', name: 'LocalStore', storagePath: 'db.json' }],
             variables: [],
             stages: []
         } as any;
-        ProjectRegistry.getInstance().setProject(project);
+        coreStore.setProject(project);
 
         const selObjPlural = { type: 'object_list' };
         const contextPlural = InspectorContextBuilder.build(selObjPlural);

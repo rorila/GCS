@@ -5,7 +5,7 @@ import { projectTaskRegistry } from './registry/TaskRegistry';
 import { projectVariableRegistry } from './registry/VariableRegistry';
 import { TObjectList } from '../components/TObjectList';
 import { coreStore } from './registry/CoreStore';
-import { GameAction, GameTask, ProjectVariable } from '../model/types';
+import { GameAction, GameTask, ProjectVariable, ComponentData } from '../model/types';
 
 import { RefactoringManager } from '../editor/RefactoringManager';
 import { Logger } from '../utils/Logger';
@@ -223,7 +223,7 @@ export class MediatorService {
     /**
      * Hilfsmethode: Liefert alle visuellen Objekte (Lokale + Globale) für eine Stage.
      */
-    public getVisualObjects(_stageId: string): any[] {
+    public getVisualObjects(_stageId: string): (ComponentData & { uiScope: string })[] {
         const objs = projectObjectRegistry.getObjects();
         const project = coreStore.project;
 
@@ -239,7 +239,7 @@ export class MediatorService {
     /**
      * Hilfsmethode: Liefert alle Tasks für eine Stage.
      */
-    public getTasks(stageId: string): GameTask[] {
+    public getTasks(stageId: string): (GameTask & { usageCount: number, uiScope: string })[] {
         const tasks = projectTaskRegistry.getTasks(stageId);
         return tasks.map(task => ({
             ...task,
@@ -252,7 +252,7 @@ export class MediatorService {
         });
     }
 
-    public getActions(stageId: string): GameAction[] {
+    public getActions(stageId: string): (GameAction & { usageCount: number, uiScope: string, changesDisplay: string })[] {
         const actions = projectActionRegistry.getActions(stageId);
         return actions.map(action => {
             const anyAction = action as any;
@@ -262,11 +262,11 @@ export class MediatorService {
                 uiScope: anyAction.uiScope || 'stage',
                 changesDisplay: anyAction.changes ? JSON.stringify(anyAction.changes).replace(/[{}"]/g, '').replace(/:/g, '=') :
                     (anyAction.method ? `${anyAction.method}(...)` : '')
-            } as any as GameAction;
+            } as GameAction & { usageCount: number, uiScope: string, changesDisplay: string };
         });
     }
 
-    public getVariables(stageId: string): ProjectVariable[] {
+    public getVariables(stageId: string): (ProjectVariable & { usageCount: number, uiScope: string })[] {
         if (!stageId) return [];
         const vars = projectVariableRegistry.getVariables() as ProjectVariable[];
         return vars.map(v => ({
@@ -276,11 +276,11 @@ export class MediatorService {
         }));
     }
 
-    public getFlowCharts(stageId: string): any[] {
+    public getFlowCharts(stageId: string): { name: string, uiScope: string, nodeCount: number }[] {
         const project = coreStore.project;
         if (!project) return [];
 
-        const charts: any[] = [];
+        const charts: { name: string, uiScope: string, nodeCount: number }[] = [];
         // Globale Charts
         if (project.flowCharts) {
             Object.keys(project.flowCharts).forEach(name => {
@@ -309,7 +309,7 @@ export class MediatorService {
         return charts;
     }
 
-    public getStages(): any[] {
+    public getStages(): { id: string, name: string, type: string, objectCount: number }[] {
         const project = coreStore.project;
         if (!project || !project.stages) return [];
 
