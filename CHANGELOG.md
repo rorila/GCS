@@ -12,6 +12,8 @@
   - *Lösung:* `safeDeepCopy` in `DeepCopy.ts` unterstützt nun natives Auslesen und Klonen von `Set` und `Map`.
 
 ### Refactored
+- **Code-Duplizierung in ComponentRegistry**: Die verschachtelte IIFE-Factory der `TSplashStage` (welche fälschlicherweise manuell `duration` und `autoHide` setzte) wurde zu einem sauberen Lambda-Einzeiler refactored. Diese spezifischen Parameterzuweisungen waren redundant, da der Magic Loop der Laufzeitumgebung sie sowieso dynamisch bedient.
+
 - **Code-Duplizierung in Serialization.ts (Property-Zuweisung)**: Ca. 150 Zeilen redundante, statische und manuell gecastete `(newObj as any).XYZ` Property-Wiederherstellungen wurden komplett gelöscht. Diese Funktionalität wurde de facto durch den bereits existierenden, generischen "Magic Loop" erledigt, wodurch dieser massive Block komplett redundant und fehleranfällig war. Zukünftige Komponentenerweiterungen profitieren nun verlustfrei von der automatischen Generizität.
 - **Open/Closed Principle in Serialization.ts**: Der 566-zeilige unersättliche Switch-Case in `hydrateObjects` wurde durch eine dynamische `ComponentRegistry` (`src/utils/ComponentRegistry.ts`) abgelöst. Um manuelle Boilerplate zu vermeiden, inkludiert nun jedes `src/components/*.ts`-Modul sein eigenes `ComponentRegistry.register()` Statement am unteren Dateiende. Eine dynamisch generierte Import-Map (`src/components/index.ts`) stellt sicher, dass alle Module während des Application-Starts geparst und registriert werden, was nun nahtloses Skalieren der UI-Komponenten ohne Editieren der Kern-Logik ermöglicht.
 

@@ -5,6 +5,21 @@ import { Logger } from './Logger';
 
 const logger = Logger.get('Serialization', 'Project_Save_Load');
 
+function isPropertyWritable(obj: any, prop: string): boolean {
+    let currentObj = obj;
+    while (currentObj) {
+        const descriptor = Object.getOwnPropertyDescriptor(currentObj, prop);
+        if (descriptor) {
+            if ('writable' in descriptor) {
+                return descriptor.writable === true;
+            }
+            return typeof descriptor.set === 'function';
+        }
+        currentObj = Object.getPrototypeOf(currentObj);
+    }
+    return true;
+}
+
 export function hydrateObjects(objectsData: any[]): TWindow[] {
     const objects: TWindow[] = [];
 
@@ -37,23 +52,18 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             // --- GENERIC PROPERTIY RESTORATION (The "Magic" Loop) ---
             // Instead of listing every single property for every single component type,
             // we iterate over all keys in the JSON object and assign them to the new instance
-            // if they are not reserved internal keys.
+            // if they are not reserved internal keys AND if the property is actually writable.
 
             const reservedKeys = [
                 'className', 'id', 'children', 'Tasks', 'style', // Handled explicitly
                 'shapeType', // Often constructor arg, but safe to re-assign if public
                 '_type', // Private backing field - must go through 'type' setter instead
-                // TStageController: alle computed getter (nur getter, kein setter)
-                'currentStageId', 'currentStageName', 'currentStageType',
-                'currentStageIndex', 'stageCount', 'mainStageId',
-                'isOnMainStage', 'isOnSplashStage',
-                // TImageList: getter-only Properties
-                'maxImageCount'
             ];
 
             // 1. Generic assignment for all primitive properties
             Object.keys(objData).forEach(key => {
                 if (reservedKeys.includes(key)) return;
+                if (key.startsWith('_')) return; // Skip all private prefixed states in hydration
 
                 const val = (objData as any)[key];
                 if (val === undefined) return;
@@ -67,12 +77,16 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
                         if (!target[part]) target[part] = {};
                         target = target[part];
                     }
-                    target[parts[parts.length - 1]] = val;
+                    if (isPropertyWritable(target, parts[parts.length - 1])) {
+                        target[parts[parts.length - 1]] = val;
+                    }
                 } else {
-                    // Direct assignment
-                    (newObj as any)[key] = val;
-                    if ((newObj as any).isVariable && key === 'type') {
-                        logger.debug(`SETTING type via generic loop for "${newObj.name}":`, val);
+                    // Check if property is writable (skip getter-only properties automatically)
+                    if (isPropertyWritable(newObj, key)) {
+                        (newObj as any)[key] = val;
+                        if ((newObj as any).isVariable && key === 'type') {
+                            logger.debug(`SETTING type via generic loop for "${newObj.name}":`, val);
+                        }
                     }
                 }
             });
