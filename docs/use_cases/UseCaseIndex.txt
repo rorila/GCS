@@ -1,3 +1,13 @@
+- [2026-04-08] Refactoring God Objects
+  - Datei: src/runtime/GameRuntime.ts [MOD] (Extrahiert Input & Multiplayer Logik)
+  - Datei: src/runtime/core/GameRuntimeInput.ts [NEW]
+  - Datei: src/runtime/core/GameRuntimeMultiplayer.ts [NEW]
+  - Datei: src/editor/services/FlowSyncManager.ts [MOD] (Dekomposition in Parser, Builder & RegistrySync)
+  - Datei: src/editor/services/flow/FlowDataParser.ts [NEW]
+  - Datei: src/editor/services/flow/FlowSequenceBuilder.ts [NEW]
+  - Datei: src/editor/services/flow/FlowRegistrySync.ts [NEW]
+  - Datei: src/editor/services/flow/FlowSyncTypes.ts [NEW]
+
 - [2026-04-07] Electron Desktop App Infrastruktur (Offline fÃ¤higer Editor)
   - Datei: electron/main.cjs [MOD] (Native system dialogs `showOpenDialog`, `showSaveDialog` hinzugefÃ¼gt und absolute Pfade eingebaut)
   - Datei: electron/preload.cjs [MOD] (Bridge erweitert um system native OS dialogs)
@@ -237,7 +247,7 @@ UC-3.29.0: Object Pool Pattern fÃ¼r dynamische Sprites
   - src/editor/services/renderers/VirtualGamepadRenderer.ts (Auswertung via alignItems, Zeile 68)
 
 [UseCase: Dev Server Proxy reparieren]
-- vite.config.ts: Methoden export default defineConfig (Zeile 67-74) -> Hinzufügen von proxy für /api und /platform auf localhost:8080
+- vite.config.ts: Methoden export default defineConfig (Zeile 67-74) -> Hinzufï¿½gen von proxy fï¿½r /api und /platform auf localhost:8080
 
 Task: ProjectRegistry Hard Break
 Files: src/services/registry/*.ts

@@ -7,6 +7,8 @@ import { RuntimeVariableManager, IVariableHost } from './RuntimeVariableManager'
 import { RuntimeStageManager } from './RuntimeStageManager';
 import { DebugLogService } from '../services/DebugLogService';
 import { hydrateObjects } from '../utils/Serialization';
+import { GameRuntimeInput } from './core/GameRuntimeInput';
+import { GameRuntimeMultiplayer } from './core/GameRuntimeMultiplayer';
 import { TStageController } from '../components/TStageController';
 import { TSpriteTemplate } from '../components/TSpriteTemplate';
 import { SpritePool } from './SpritePool';
@@ -41,8 +43,9 @@ export class GameRuntime implements IVariableHost {
     public stage: any = null;
     private stageController: TStageController | null = null;
     private varTimers: Map<string, any> = new Map();
-    private _globalKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
-    private _globalKeyupHandler: ((e: KeyboardEvent) => void) | null = null;
+    
+    private inputHandler: GameRuntimeInput;
+    public multiplayerHandler: GameRuntimeMultiplayer;
 
     public get contextVars() { return this.variableManager.contextVars; }
     public get projectVariables() { return this.variableManager.projectVariables; }
@@ -57,6 +60,21 @@ export class GameRuntime implements IVariableHost {
         this.variableManager = new RuntimeVariableManager(this, options.initialGlobalVars);
         this.variableManager.initializeVariables(project);
         this.stageManager = new RuntimeStageManager(project);
+
+        this.inputHandler = new GameRuntimeInput(
+            () => this.objects,
+            (id, ev, data) => this.handleEvent(id, ev, data)
+        );
+
+        this.multiplayerHandler = new GameRuntimeMultiplayer(
+            options,
+            () => this.objects,
+            (id, ev, data) => this.handleEvent(id, ev, data),
+            () => this.actionExecutor,
+            () => this.taskExecutor,
+            () => this.contextVars,
+            () => { if (this.options.onRender) this.options.onRender(); }
+        );
 
         const hasStages = project.stages && project.stages.length > 0;
         let activeStage = null;
@@ -179,10 +197,6 @@ export class GameRuntime implements IVariableHost {
             this.taskExecutor = new TaskExecutor(project, project.actions || [], this.actionExecutor, project.flowCharts, options.multiplayerManager, project.tasks);
         }
 
-        if (options.multiplayerManager) {
-            options.multiplayerManager.onRemoteTask = (msg: any) => this.executeRemoteTask(msg.taskName, msg.params);
-        }
-
         this.init();
         this.initStageController();
         if (activeStage && options.onStageSwitch) options.onStageSwitch(activeStage.id);
@@ -238,15 +252,7 @@ export class GameRuntime implements IVariableHost {
         logger.info(`[GameRuntime] STOP() called, objectCount=${this.objects.length}`);
         if (this.splashTimerId) { clearTimeout(this.splashTimerId); this.splashTimerId = null; }
 
-        // 0. Globale Keyboard-Listener SOFORT entfernen (Single-Global-Handler Pattern)
-        if (this._globalKeydownHandler) {
-            window.removeEventListener('keydown', this._globalKeydownHandler);
-            this._globalKeydownHandler = null;
-        }
-        if (this._globalKeyupHandler) {
-            window.removeEventListener('keyup', this._globalKeyupHandler);
-            this._globalKeyupHandler = null;
-        }
+        this.inputHandler.dispose();
 
         // 1. Sicheres Stoppen ALLER Komponenten
         this.objects.forEach(obj => {
@@ -283,7 +289,7 @@ export class GameRuntime implements IVariableHost {
 
         // InputController MUSS vor dem Splash-Check initialisiert werden,
         // damit Keyboard-Events bereits während/nach dem Splash funktionieren.
-        this.initInputControllers();
+        this.inputHandler.init();
 
         if (this.isSplashActive) {
             if (this.project.splashAutoHide) {
@@ -293,85 +299,6 @@ export class GameRuntime implements IVariableHost {
             return;
         }
         this.initMainGame();
-    }
-
-    /**
-     * Initialisiert alle InputController mit handleEvent-Callback und startet sie.
-     * Wird VOR dem Splash-Check aufgerufen, damit Keyboard-Input sofort funktioniert.
-     */
-    /**
-     * Single-Global-Handler Pattern für InputController.
-     * 
-     * Problem: hydrateObjects() gibt TWindow-Instanzen unverändert zurück.
-     * Dadurch können stale `window.addEventListener` Handler aus früheren Runs
-     * überleben, die nicht via removeEventListener entfernbar sind (andere 
-     * Funktionsreferenz). 
-     * 
-     * Lösung: GameRuntime verwaltet EIN Listener-Paar auf window und delegiert
-     * an alle aktiven TInputController. Keine Komponente hängt eigene Listener.
-     */
-    private initInputControllers(): void {
-        // 1. Alte globale Handler entfernen (falls vorhanden, z.B. bei Stage-Change)
-        if (this._globalKeydownHandler) {
-            window.removeEventListener('keydown', this._globalKeydownHandler);
-            this._globalKeydownHandler = null;
-        }
-        if (this._globalKeyupHandler) {
-            window.removeEventListener('keyup', this._globalKeyupHandler);
-            this._globalKeyupHandler = null;
-        }
-
-        // 2. InputController finden, Force-Reset, init und aktivieren
-        const activeICs: any[] = [];
-
-        // NEU: DOM Event Listener für Entkopplung des DevTools-Bugs
-        const domHandler = (e: Event) => {
-            const ce = e as CustomEvent;
-            if (ce.detail && ce.detail.id && ce.detail.event) {
-                this.handleEvent(ce.detail.id, ce.detail.event, ce.detail.data);
-            }
-        };
-        window.addEventListener('GameRuntime_Event', domHandler);
-        (this as any)._domRuntimeEventsHandler = domHandler;
-
-        this.objects.forEach(obj => {
-            if ((obj as any).className === 'TInputController' || obj.constructor?.name === 'TInputController') {
-                const rawObj = (obj as any).__raw__ || (obj as any).__v_raw || obj;
-
-                // Force-Reset: Zustand aus vorheigen Runs bereinigen
-                rawObj.isActive = false;
-                rawObj.eventCallback = null;
-                if (rawObj.keysPressed) rawObj.keysPressed.clear();
-
-                // Init OHNE Callback (wegen Chromium DevTools Closure Bug)
-                if (typeof rawObj.init === 'function') {
-                    rawObj.init(this.objects, undefined);
-                }
-
-                // Aktivieren (setzt nur isActive=true, KEINE window.addEventListener!)
-                rawObj.isActive = true;
-                activeICs.push(rawObj);
-
-                logger.info(`[GameRuntime] InputController "${rawObj.name}" initialized (id=${rawObj._instanceId})`);
-            }
-        });
-
-        // 3. EIN globales Listener-Paar installieren, das an alle aktiven ICs delegiert
-        if (activeICs.length > 0) {
-            this._globalKeydownHandler = (e: KeyboardEvent) => {
-                activeICs.forEach(ic => ic.handleKeyDownEvent?.(e));
-            };
-            this._globalKeyupHandler = (e: KeyboardEvent) => {
-                activeICs.forEach(ic => ic.handleKeyUpEvent?.(e));
-            };
-            window.addEventListener('keydown', this._globalKeydownHandler);
-            window.addEventListener('keyup', this._globalKeyupHandler);
-            logger.info(`[GameRuntime] Global keyboard handler installed for ${activeICs.length} InputController(s)`);
-        }
-
-        // 4. Callback auch global speichern (für initRuntime/Multiplayer-Kompatibilität)
-        // CRASH ISOLATION: DO NOT ATTACH TO WINDOW
-        // (window as any).__inputControllerCallback = handleEventCb;
     }
 
     private initMainGame() {
@@ -404,7 +331,7 @@ export class GameRuntime implements IVariableHost {
         );
         glm.start();
 
-        this.initMultiplayer();
+        this.multiplayerHandler.init();
 
         // Start-Animation NACH glm.start(): Tweens werden erst erstellt wenn die
         // Game Loop bereits läuft und AnimationManager.update() pro Frame aufgerufen wird.
@@ -593,33 +520,6 @@ export class GameRuntime implements IVariableHost {
         }
     }
 
-    private initMultiplayer() {
-        const mp = this.options.multiplayerManager || (window as any).multiplayerManager;
-        if (!mp?.on) return;
-
-        mp.on((msg: any) => {
-            this.objects.filter(o => o.className === 'THandshake').forEach(hs => {
-                if (msg.type === 'room_joined') {
-                    hs._setRoomInfo(msg.roomCode, msg.playerNumber, msg.playerNumber === 1);
-                    hs._setStatus('waiting');
-                    hs._fireEvent('onRoomJoined', msg);
-                } else if (msg.type === 'game_start') {
-                    hs._setStatus('playing');
-                    hs._fireEvent('onGameStart', msg);
-                } else if (msg.type === 'room_created') {
-                    hs._setRoomInfo(msg.roomCode, 1, true);
-                    hs._setStatus('waiting');
-                    hs._fireEvent('onRoomCreated', msg);
-                }
-            });
-
-            this.objects.filter(o => o.className === 'THeartbeat').forEach(hb => {
-                if (msg.type === 'pong') hb._handlePong(msg.serverTime);
-                else if (msg.type === 'player_timeout') hb._setConnectionLost();
-            });
-        });
-    }
-
     private triggerStartAnimation(stageConfig: any) {
         const animationType = stageConfig.startAnimation || 'fade-in';
         const duration = stageConfig.startAnimationDuration || 1000;
@@ -794,28 +694,19 @@ export class GameRuntime implements IVariableHost {
     }
 
     public updateRemoteState(objectIdOrName: string, state: any) {
-        const obj = this.objects.find(o => o.id === objectIdOrName || o.name === objectIdOrName);
-        if (obj) {
-            Object.assign(obj, state);
-            if (this.options.onRender) this.options.onRender();
-        }
+        this.multiplayerHandler.updateRemoteState(objectIdOrName, state);
     }
 
     public triggerRemoteEvent(objectId: string, eventName: string, params: any) {
-        const obj = this.objects.find(o => o.id === objectId);
-        if (obj) this.handleEvent(objectId, eventName, params);
+        this.multiplayerHandler.triggerRemoteEvent(objectId, eventName, params);
     }
 
     public executeRemoteAction(action: any) {
-        this.actionExecutor.execute(action, {
-            vars: this.contextVars,
-            contextVars: this.contextVars
-        });
+        this.multiplayerHandler.executeRemoteAction(action);
     }
 
     public executeRemoteTask(taskName: string, params: any = {}, mode?: string) {
-        if (!this.taskExecutor) return;
-        this.taskExecutor.execute(taskName, params, this.contextVars, mode === 'sequential');
+        this.multiplayerHandler.executeRemoteTask(taskName, params, mode);
     }
 
     public getContext(): Record<string, any> {

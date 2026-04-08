@@ -73,8 +73,8 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "isGlobal": true,
           "description": "System internal flag to track unsaved changes"
         }
