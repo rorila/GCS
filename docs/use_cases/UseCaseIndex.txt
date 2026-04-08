@@ -1,4 +1,7 @@
 - [2026-04-08] Typisierungs-Härtung (Mediator & StageManager)
+  - Datei: src/editor/services/flow/FlowSequenceBuilder.ts [MOD] (Einbau horizontales Layout Feature, Zeile 28-380)
+
+- [2026-04-08] Typisierungs-Härtung (Mediator & StageManager)
   - Datei: src/runtime/RuntimeStageManager.ts [MOD] (any durch Project/Stage/Action-Interfaces ersetzt)
   - Datei: src/services/MediatorService.ts [MOD] (Methodensignaturen gestärkt)
 

@@ -25,7 +25,7 @@ export class FlowSequenceBuilder {
 
         FlowSequenceBuilder.logger.debug(`syncTaskFromFlow: elements=${elements.length}, connections=${connections.length}`);
 
-        const buildSequence = (nodeId: string, targetSeq: any[], stopSet: Set<string> = new Set()) => {
+        const buildSequence = (nodeId: string, targetSeq: any[], stopSet: Set<string> = new Set(), incomingAnchorType?: string) => {
             if (visited.has(nodeId) || stopSet.has(nodeId)) return;
             visited.add(nodeId);
 
@@ -62,16 +62,17 @@ export class FlowSequenceBuilder {
                     } else if (node.data?.type === 'data_action') {
                         realType = 'data_action';
                     }
-                    const actionItem = { ...node.data, type: realType, name: actionName };
+                    const actionItem: any = { ...node.data, type: realType, name: actionName };
+                    if (incomingAnchorType === 'right') actionItem.layout = 'horizontal';
                     delete (actionItem as any).isLinked;
                     delete (actionItem as any).parentProxyId;
                     delete (actionItem as any).isEmbeddedInternal;
                     delete (actionItem as any).originalId;
                     targetSeq.push(actionItem);
                 }
-                const nextConns = connections.filter(c => c.startTargetId === nodeId && (c.data?.startAnchorType === 'output' || c.data?.startAnchorType === 'bottom'));
+                const nextConns = connections.filter(c => c.startTargetId === nodeId && (c.data?.startAnchorType === 'output' || c.data?.startAnchorType === 'bottom' || c.data?.startAnchorType === 'right'));
                 if (nextConns.length > 0) {
-                    nextConns.forEach(nc => buildSequence(nc.endTargetId, targetSeq, stopSet));
+                    nextConns.forEach(nc => buildSequence(nc.endTargetId, targetSeq, stopSet, nc.data?.startAnchorType));
                 }
             } else if (nodeType === 'condition' || nodeType === 'data_action' || nodeType === 'dataaction') {
                 const isData = nodeType.includes('data');
@@ -139,9 +140,11 @@ export class FlowSequenceBuilder {
                     buildSequence(firstMerge, targetSeq, stopSet);
                 }
             } else if (nodeType === 'task' && node.id !== startNode.id) {
-                targetSeq.push({ type: 'task', name: node.properties?.name || node.properties?.text });
-                const nextConn = connections.find(c => c.startTargetId === nodeId);
-                if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet);
+                const actionItem: any = { type: 'task', name: node.properties?.name || node.properties?.text };
+                if (incomingAnchorType === 'right') actionItem.layout = 'horizontal';
+                targetSeq.push(actionItem);
+                const nextConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === 'output' || c.data?.startAnchorType === 'bottom' || c.data?.startAnchorType === 'right'));
+                if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet, nextConn.data?.startAnchorType);
             } else if (['while', 'for', 'repeat', 'foreach'].includes(nodeType)) {
                 const loop: any = { type: nodeType, body: [] };
                 if (nodeType === 'while') loop.condition = node.properties?.text || '';
@@ -163,7 +166,7 @@ export class FlowSequenceBuilder {
 
         if (initialOutgoing.length > 0) {
             initialOutgoing.forEach(c => {
-                buildSequence(c.endTargetId, sequence);
+                buildSequence(c.endTargetId, sequence, new Set(), c.data?.startAnchorType);
             });
         }
 
@@ -284,6 +287,7 @@ export class FlowSequenceBuilder {
             firstEndAnchor: string = 'top'
         ): { lastId: string, endY: number } => {
             let currentY = startY;
+            let currentX = centerX;
             let lastId = startNodeId;
             let lastAnchor = startAnchor;
             let nextEndAnchor = firstEndAnchor;
@@ -294,7 +298,7 @@ export class FlowSequenceBuilder {
                 if (item.type === 'condition') {
                     elements.push({
                         id, type: 'condition',
-                        x: centerX, y: currentY,
+                        x: currentX, y: currentY,
                         width: NODE_WIDTH, height: NODE_HEIGHT,
                         properties: {
                             text: typeof item.condition === 'string'
@@ -311,7 +315,7 @@ export class FlowSequenceBuilder {
                     });
                     nextEndAnchor = 'top';
 
-                    const thenX = centerX + BRANCH_OFFSET;
+                    const thenX = currentX + BRANCH_OFFSET;
                     const thenY = currentY;
                     const falseY = currentY + Y_SPACING;
 
@@ -336,14 +340,14 @@ export class FlowSequenceBuilder {
                     }
 
                     if (elseSeq.length > 0) {
-                        const elseRes = process(elseSeq, id, 'false', centerX, falseY, 'top');
+                        const elseRes = process(elseSeq, id, 'false', currentX, falseY, 'top');
                         currentY = elseRes.endY;
                         lastId = elseRes.lastId;
                     } else if (item.elseAction) {
                         const elseId = getNewId('action');
                         elements.push({
                             id: elseId, type: 'Action',
-                            x: centerX, y: falseY,
+                            x: currentX, y: falseY,
                             width: NODE_WIDTH, height: NODE_HEIGHT,
                             properties: { name: item.elseAction, text: item.elseAction },
                             data: { name: item.elseAction, isLinked: true }
@@ -363,7 +367,7 @@ export class FlowSequenceBuilder {
                 } else if (['while', 'for', 'repeat', 'foreach'].includes(item.type)) {
                     elements.push({
                         id, type: item.type.charAt(0).toUpperCase() + item.type.slice(1) as any,
-                        x: centerX, y: currentY,
+                        x: currentX, y: currentY,
                         width: NODE_WIDTH, height: NODE_HEIGHT,
                         properties: { text: item.condition || item.count || item.name || '' }
                     });
@@ -371,7 +375,7 @@ export class FlowSequenceBuilder {
                         startTargetId: lastId, endTargetId: id,
                         data: { startAnchorType: lastAnchor, endAnchorType: 'top' }
                     });
-                    const bodyRes = process(item.body || [], id, 'output', centerX, currentY + Y_SPACING);
+                    const bodyRes = process(item.body || [], id, 'output', currentX, currentY + Y_SPACING);
                     lastId = id; lastAnchor = 'bottom';
                     currentY = bodyRes.endY + Y_SPACING;
 
@@ -381,9 +385,17 @@ export class FlowSequenceBuilder {
                     const itemName = item.name || item.taskName || item.action || item.type || 'Aktion';
                     const nodeType = isTask ? 'Task' : (isDataAction ? 'DataAction' : 'Action');
 
+                    const isHorizontal = item.layout === 'horizontal';
+                    if (isHorizontal) {
+                        currentY -= Y_SPACING;
+                        currentX += BRANCH_OFFSET;
+                        lastAnchor = 'right';
+                        nextEndAnchor = 'left';
+                    }
+
                     elements.push({
                         id, type: nodeType,
-                        x: centerX, y: currentY,
+                        x: currentX, y: currentY,
                         width: NODE_WIDTH, height: NODE_HEIGHT,
                         properties: { name: itemName, text: itemName },
                         data: { ...item }
@@ -392,7 +404,9 @@ export class FlowSequenceBuilder {
                         startTargetId: lastId, endTargetId: id,
                         data: { startAnchorType: lastAnchor, endAnchorType: nextEndAnchor }
                     });
-                    lastId = id; lastAnchor = 'bottom';
+                    
+                    lastId = id; 
+                    lastAnchor = 'bottom';
                     nextEndAnchor = 'top';
                     currentY += Y_SPACING;
                 }
