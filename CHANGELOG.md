@@ -1,5 +1,6 @@
 ## [3.35.4] - 2026-04-08
 ### Fixed
+- **Dead Code in Serialization.ts**: Behebung eines Fehlers, bei dem das interne `isInternalContainer` Flag nicht mehr auf interne Komponenten (`TDataList`, `TTable`, `TObjectList`, `TEmojiPicker`) angewandt wurde. Durch das vorherige Registry-Refactoring wurde das Setzen der Eigenschaft unabsichtlich in einen toten Code-Pfad *vor* die eigentliche Objekterstellung (`ComponentRegistry.create`) verschoben. 
 - **Double Action Logs Bug**: Behebung eines rein kosmetischen UI-Bugs, bei dem reguläre Actions (ohne Body) wie `Action_DestroyBullet` doppelt in der Runtime-Debugger-Ansicht protokolliert wurden.
   - *Ursache:* Sowohl der `TaskExecutor` als auch der `ActionExecutor` schrieben beim Aufruf einen Log-Eintrag in den `DebugLogService`.
   - *Lösung:* Das redundante Logging im `TaskExecutor` wurde entfernt. Der `TaskExecutor` loggt nun nur noch dann einen separaten Eintrag, wenn eine Action ein komplexes Kompositum (mit Body-Array) ist und schiebt diesen korrekterweise in den Context-Stack, während einfache Ausführungen exklusiv dem `ActionExecutor` überlassen werden.

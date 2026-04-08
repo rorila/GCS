@@ -11,12 +11,6 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
     objectsData.forEach((objData: any) => {
         if (!objData) return;
 
-        // IDEMPOTENCY CHECK: If it's already an instance of a component class, don't re-hydrate
-        if (objData.className && typeof objData.clone === 'function' && objData.constructor.name !== 'Object') {
-            objects.push(objData);
-            return;
-        }
-
         // Factory based on ComponentRegistry (Auto-discovered)
         let newObj: TWindow | null = ComponentRegistry.create(objData);
 
