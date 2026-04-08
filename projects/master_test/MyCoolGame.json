@@ -121,7 +121,7 @@
       "objects": [
         {
           "className": "TButton",
-          "id": "obj_1775656630269_srztk4iji",
+          "id": "obj_1775657884636_ki47wtal8",
           "name": "Button_3",
           "scope": "stage",
           "draggable": false,
@@ -151,14 +151,14 @@
       ],
       "actions": [
         {
-          "id": "node-1775656615254",
+          "id": "node-1775657869354",
           "details": "",
           "name": "ShowTheHighscoreStage_Unique",
           "showDetails": false,
           "type": "navigate_stage"
         },
         {
-          "id": "node-1775656618253",
+          "id": "node-1775657872370",
           "details": "",
           "name": "Action1",
           "showDetails": false
@@ -188,7 +188,7 @@
           },
           "standaloneNodes": [
             {
-              "id": "node-1775656618253",
+              "id": "node-1775657872370",
               "type": "action",
               "x": 300,
               "y": 300,
@@ -220,7 +220,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1775656623269",
+      "id": "stage-1775657877503",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],
