@@ -1,5 +1,12 @@
-## [3.35.3] - 2026-04-07
+## [3.35.4] - 2026-04-08
 ### Fixed
+- **Double Hydration Bug (Stage-Anzeige im Run-Mode)**: Behebung eines kritischen Fehlers, bei dem die Stage-Anzeige (Grid/Background) im Run-Mode korrupt werden konnte, da die Editor-Objekte doppelt hydratisiert und ihre Referenzen in der Runtime weiterverwendet wurden.
+  - *Lösung:* In `EditorRunManager.ts` wird nun `safeDeepCopy(this.editor.project)` verwendet, um das Projekt strikt in ein rein datenbasiertes (JSON-Plain-Object) DTO zu entkoppeln *bevor* The Runtime startet.
+- **Run-Mode Crash bei TInputController (Set/Map Clone Bug)**: Nach der Einführung von `safeDeepCopy` kam es beim Starten des Run-Modes durch den `TInputController` zu einem Crash (`keysPressed.clear is not a function`).
+  - *Ursache:* `safeDeepCopy` klonte `Set`- und `Map`-Strukturen fehlerhaft zu reinen Objekten (`{}`). Beim anschließenden `hydrateObjects` wurde das `commands: new Set()` des `TInputController` mit dem defekten leeren Objekt überschrieben.
+  - *Lösung:* `safeDeepCopy` in `DeepCopy.ts` unterstützt nun natives Auslesen und Klonen von `Set` und `Map`.
+
+## [3.35.3] - 2026-04-07
 - **Run-Tab UI Aktualisierungsfehler (Bindings)**: Behebung eines kritischen Fehlers, bei dem reaktive UI-Bindings (wie `Score: ${score.value}`) im Standalone-IFrame zwar korrekt aktualisiert wurden, im internen Editor-Run-Tab jedoch nicht sichtbar waren. 
   - *Ursache:* Durch frühere Refactorings wurde die Stage-Renderer-Referenz im `EditorRunManager` ungültig (`this.editor.renderer` anstatt `this.editor.stage.renderer`). Dadurch verpufften die `updateSingleObject`-Signale der Game Engine stumm im Nichts, ohne den DOM zu erreichen.
   - *Lösung:* Der Pfad wurde repariert und `StageRenderer` korrekt veröffentlicht. Variablen-Änderungen fließen nun wieder augenblicklich als UI-Updates in den DOM.

@@ -781,10 +781,6 @@ export class Editor implements IViewHost {
                 if (btn) {
                     const view = btn.getAttribute('data-view') as ViewType;
                     if (view) {
-                        console.error(`\n\n================================================`);
-                        console.error(`STEP 1: USER CLICKED TAB: ${view}`);
-                        console.error(`================================================\n\n`);
-                        alert(`Du hast auf den Tab "${view}" geklickt! Klicke auf OK, um fortzufahren.`);
                         Editor.logger.info(`Switching view to: ${view}`);
                         this.switchView(view);
                     }
@@ -796,8 +792,6 @@ export class Editor implements IViewHost {
                 (btn as HTMLElement).onclick = (e: MouseEvent) => {
                     const view = (e.currentTarget as HTMLElement).getAttribute('data-view') as ViewType;
                     if (view) {
-                        console.error(`STEP 1 (Fallback): USER CLICKED TAB: ${view}`);
-                        alert(`Du hast auf den Tab "${view}" geklickt!`);
                         this.switchView(view);
                     }
                 };

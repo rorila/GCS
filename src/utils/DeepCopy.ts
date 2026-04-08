@@ -43,6 +43,26 @@ export function safeDeepCopy<T>(obj: T, seen = new WeakMap()): T {
         return result as any;
     }
 
+    // Handle Sets
+    if (target instanceof Set) {
+        const result = new Set();
+        seen.set(obj, result);
+        target.forEach(val => {
+            result.add(safeDeepCopy(val, seen));
+        });
+        return result as any;
+    }
+
+    // Handle Maps
+    if (target instanceof Map) {
+        const result = new Map();
+        seen.set(obj, result);
+        target.forEach((val, key) => {
+            result.set(key, safeDeepCopy(val, seen));
+        });
+        return result as any;
+    }
+
     // Handle Plain Objects
     const result: any = {};
     seen.set(obj, result);

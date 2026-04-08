@@ -285,3 +285,4 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 ## 10. Vite Dev Server Proxy
 - **DO**: Stelle sicher, dass die Proxy-Konfiguration in ite.config.ts für den Game-Server (z.B. /api auf http://localhost:8080) korrekt gesetzt ist, falls lokales Speichern via Dev-Server nicht erreichbar ist.
 - **DON'T**: Entferne nicht blindlings proxy Server-Konfigurationen aus Vite, wenn nicht-native Backends (wie der game-server) im Einsatz sind.
+- **DON'T**: Reiche keine Design-Zeit-JSON-Objekte direkt an die Game-Engine weiter. Die Runtime modifiziert Stages und hydratisiert Objekte doppelt, was Setter (wie 'align') ueberspringt und das originale Design-Data kontaminiert. Nutze immer 'safeDeepCopy' im EditorRunManager.

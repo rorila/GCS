@@ -11,6 +11,7 @@ import { TWindow } from '../../components/TWindow';
 import { mediatorService } from '../../services/MediatorService';
 import { DebugLogService } from '../../services/DebugLogService';
 import { Logger } from '../../utils/Logger';
+import { safeDeepCopy } from '../../utils/DeepCopy';
 
 const logger = Logger.get('Editor', 'RunManager');
 
@@ -32,7 +33,8 @@ export class EditorRunManager {
                 // Nur aktualisieren, wenn Änderung NICHT von der Runtime selbst kam (z.B. Variable gesetzt)
                 // Um Endlos-Schleifen zu vermeiden.
                 // Änderungen im Editor (FlowEditor, Inspector) sollen in die Runtime fließen.
-                this.runtime.updateRuntimeData(this.editor.project);
+                // WICHTIG: DeepCopy um double-hydration beim Live-Sync zu verhindern!
+                this.runtime.updateRuntimeData(safeDeepCopy(this.editor.project));
             }
         });
     }
@@ -100,7 +102,8 @@ export class EditorRunManager {
 
             // No step 3 logs
 
-            this.runtime = new GameRuntime(this.editor.project, undefined, {
+            const projectClone = safeDeepCopy(this.editor.project);
+            this.runtime = new GameRuntime(projectClone, undefined, {
                 onNavigate: (target: string, _params?: any) => {
                     // target format: "stage:stageId" or just "stageId"
                     let stageId = target;
