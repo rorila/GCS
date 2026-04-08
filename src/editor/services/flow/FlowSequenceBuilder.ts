@@ -63,7 +63,7 @@ export class FlowSequenceBuilder {
                         realType = 'data_action';
                     }
                     const actionItem: any = { ...node.data, type: realType, name: actionName };
-                    if (incomingAnchorType === 'right') actionItem.layout = 'horizontal';
+                    if (incomingAnchorType === 'output') actionItem.layout = 'horizontal';
                     delete (actionItem as any).isLinked;
                     delete (actionItem as any).parentProxyId;
                     delete (actionItem as any).isEmbeddedInternal;
@@ -141,7 +141,7 @@ export class FlowSequenceBuilder {
                 }
             } else if (nodeType === 'task' && node.id !== startNode.id) {
                 const actionItem: any = { type: 'task', name: node.properties?.name || node.properties?.text };
-                if (incomingAnchorType === 'right') actionItem.layout = 'horizontal';
+                if (incomingAnchorType === 'output') actionItem.layout = 'horizontal';
                 targetSeq.push(actionItem);
                 const nextConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === 'output' || c.data?.startAnchorType === 'bottom' || c.data?.startAnchorType === 'right'));
                 if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet, nextConn.data?.startAnchorType);
@@ -389,8 +389,8 @@ export class FlowSequenceBuilder {
                     if (isHorizontal) {
                         currentY -= Y_SPACING;
                         currentX += BRANCH_OFFSET;
-                        lastAnchor = 'right';
-                        nextEndAnchor = 'left';
+                        lastAnchor = 'output';
+                        nextEndAnchor = 'input';
                     }
 
                     elements.push({
