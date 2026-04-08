@@ -1,0 +1,1531 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\playwright.config.ts",
+    "rootDir": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:5173",
+      "reuseExistingServer": true,
+      "timeout": 60000
+    }
+  },
+  "suites": [
+    {
+      "title": "01_ProjectCreation.spec.ts",
+      "file": "01_ProjectCreation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UseCase: Ein neues Projekt (Spiel) erzeugen",
+          "file": "01_ProjectCreation.spec.ts",
+          "line": 15,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4606,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Alte MyCoolGame.json gelöscht.\n"
+                        },
+                        {
+                          "text": "Test: Starte Editor...\n"
+                        },
+                        {
+                          "text": "BROWSER: [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER: [vite] connected.\n"
+                        },
+                        {
+                          "text": "Test: 1. Menü: Datei → Neues Projekt...\n"
+                        },
+                        {
+                          "text": "Test: 2. Initial-Validierung...\n"
+                        },
+                        {
+                          "text": "Test: 3. Stage-Settings im Inspector öffnen...\n"
+                        },
+                        {
+                          "text": "Test: 4. Inspector: Spielname auf MyCoolGame...\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 5.5] Enter dispatch: project exists=true, isDispatching=false\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 6] REDUCE SET_PROPERTY on undefined: name = MyCoolGame\n"
+                        },
+                        {
+                          "text": "BROWSER: [E2E-DEBUG] editor.project.meta.name = \"MyCoolGame\"\n"
+                        },
+                        {
+                          "text": "Test: meta.name = \"MyCoolGame\" ✅\n"
+                        },
+                        {
+                          "text": "Test: Dirty-Check nach Spielname-Änderung ✅\n"
+                        },
+                        {
+                          "text": "Test: 5. Inspector: Autor auf GCS-Team...\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 5.5] Enter dispatch: project exists=true, isDispatching=false\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 6] REDUCE SET_PROPERTY on undefined: author = GCS-Team\n"
+                        },
+                        {
+                          "text": "Test: meta.author = \"GCS-Team\" ✅\n"
+                        },
+                        {
+                          "text": "Test: 6. Inspector: Beschreibung...\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 5.5] Enter dispatch: project exists=true, isDispatching=false\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 6] REDUCE SET_PROPERTY on undefined: description = Das ist mein cooles Spiel\n"
+                        },
+                        {
+                          "text": "Test: meta.description = \"Das ist mein cooles Spiel\" ✅\n"
+                        },
+                        {
+                          "text": "Test: 7. Inspector: Stage Name auf MainStage...\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 5.5] Enter dispatch: project exists=true, isDispatching=false\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 6] REDUCE SET_PROPERTY on main: name = MainStage\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 5.5] Enter dispatch: project exists=true, isDispatching=false\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 6] REDUCE SET_PROPERTY on main: name = MainStage\n"
+                        },
+                        {
+                          "text": "Test: stage.name = \"MainStage\" ✅\n"
+                        },
+                        {
+                          "text": "Test: 8. Inspector: Grid-Einstellungen...\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 5.5] Enter dispatch: project exists=true, isDispatching=false\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 6] REDUCE SET_PROPERTY on main: grid.cols = 60\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 5.5] Enter dispatch: project exists=true, isDispatching=false\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 6] REDUCE SET_PROPERTY on main: grid.cols = 60\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 5.5] Enter dispatch: project exists=true, isDispatching=false\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 6] REDUCE SET_PROPERTY on main: grid.rows = 38\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 5.5] Enter dispatch: project exists=true, isDispatching=false\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 6] REDUCE SET_PROPERTY on main: grid.rows = 38\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 5.5] Enter dispatch: project exists=true, isDispatching=false\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 6] REDUCE SET_PROPERTY on main: grid.cellSize = 22\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 5.5] Enter dispatch: project exists=true, isDispatching=false\n"
+                        },
+                        {
+                          "text": "BROWSER: [DND-FLOW 6] REDUCE SET_PROPERTY on main: grid.cellSize = 22\n"
+                        },
+                        {
+                          "text": "Test: 8d. Hintergrundfarbe...\n"
+                        },
+                        {
+                          "text": "Test: 9. Grid-Validierung...\n"
+                        },
+                        {
+                          "text": "Test: Grid = 60x38 @ 22px, bg=#16da36 ✅\n"
+                        },
+                        {
+                          "text": "Test: Dirty-Check nach Grid-Änderung ✅\n"
+                        },
+                        {
+                          "text": "Test: 10. Speichern als MyCoolGame.json...\n"
+                        },
+                        {
+                          "text": "[saveMyCoolGame] Gespeichert: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: MyCoolGame.json erfolgreich gespeichert. Nachfolgende Tests können aufbauen. ✅\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:14.199Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "32ddb6db87d06247fa97-f698bb84fc3102cd03d6",
+              "file": "01_ProjectCreation.spec.ts",
+              "line": 16,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "02_TaskRenaming.spec.ts",
+      "file": "02_TaskRenaming.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UseCase: Ein Task umbenennen",
+          "file": "02_TaskRenaming.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2742,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: 1. Vorbereitung (MyCoolGame.json laden)...\n"
+                        },
+                        {
+                          "text": "[loadMyCoolGame] Projekt geladen: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: 2. Flow-Tab klicken...\n"
+                        },
+                        {
+                          "text": "Test: 3. \"+\" Button klicken für neuen Task...\n"
+                        },
+                        {
+                          "text": "Test: 4. Task-Node im Canvas prüfen...\n"
+                        },
+                        {
+                          "text": "Test: 5. Task-Node anklicken...\n"
+                        },
+                        {
+                          "text": "Test: 6. Inspector: Name ändern...\n"
+                        },
+                        {
+                          "text": "Test: 7. Validierung: Task-Node ist sichtbar und hat neuen Namen...\n"
+                        },
+                        {
+                          "text": "Test: 8. Validierung: JSON-Daten prüfen...\n"
+                        },
+                        {
+                          "text": "Test: 9. Check Manager Liste auf UI-Ebene...\n"
+                        },
+                        {
+                          "text": "Test: 10. Speichern...\n"
+                        },
+                        {
+                          "text": "[saveMyCoolGame] Gespeichert: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: Flow erfolgreich abgeschlossen. MyCoolGame.json aktualisiert.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:18.913Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3e2b15602890ad3f4106-0a758705910bd4da64e5",
+              "file": "02_TaskRenaming.spec.ts",
+              "line": 7,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "03_ActionRenaming.spec.ts",
+      "file": "03_ActionRenaming.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UseCase: Eine Action umbenennen",
+          "file": "03_ActionRenaming.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Kompletter Flow: Action erzeugen und via Inspector umbenennen",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6279,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "BROWSER CONSOLE: [vite] connecting...\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: [vite] connected.\n"
+                        },
+                        {
+                          "text": "Test: 1. Vorbereitung (MyCoolGame.json laden)...\n"
+                        },
+                        {
+                          "text": "[loadMyCoolGame] Projekt geladen: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: 2. Flow-Tab klicken...\n"
+                        },
+                        {
+                          "text": "Test: 3. Flow-Dropdown: SwitchToTheHighscoreStage auswählen...\n"
+                        },
+                        {
+                          "text": "Test: 4. Action per Kontextmenü erzeugen...\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:23.492 [FlowNodeFactory]  [FlowEditor] createNode: type=Action, x=299.296875, y=300, initialName=undefined\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:23.493 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:23.495 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:23.495 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:23.496 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:23.496 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:23.497 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:23.497 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:23.817 [FlowAction]  [FLOW-TRACE] Action \"Action1\" is now LINKED.\n"
+                        },
+                        {
+                          "text": "Test: 5. Action-Node im Canvas prüfen...\n"
+                        },
+                        {
+                          "text": "Test: 6. Action-Node anklicken...\n"
+                        },
+                        {
+                          "text": "Test: 7. Inspector: Name ändern auf ShowTheHighscoreStage_Unique...\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:24.374 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"ShowTheHighscoreStage_Unique\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "Test: 8. Validierung: Action-Node sichtbar mit neuem Namen...\n"
+                        },
+                        {
+                          "text": "Test: 9. Validierung: Task-Name unverändert...\n"
+                        },
+                        {
+                          "text": "Test: 10. Validierung: JSON-Daten prüfen...\n"
+                        },
+                        {
+                          "text": "Test: 11. Check Manager Liste auf UI-Ebene...\n"
+                        },
+                        {
+                          "text": "Test: 13. Test Uniqueness Validation (Duplikat-Name)...\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:26.508 [FlowNodeFactory]  [FlowEditor] createNode: type=Action, x=299.296875, y=300, initialName=undefined\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:26.509 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:26.510 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:26.510 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:26.510 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:26.510 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:26.510 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:26.511 [FlowAction]  [FLOW-TRACE] Action Definition NOT FOUND for \"Action1\". Falling back to local data copy.\n"
+                        },
+                        {
+                          "text": "BROWSER CONSOLE: 17:09:26.822 [FlowAction]  [FLOW-TRACE] Action \"Action1\" is now LINKED.\n"
+                        },
+                        {
+                          "text": "Test: 14. Speichern nach Action-Umbenennung...\n"
+                        },
+                        {
+                          "text": "[saveMyCoolGame] Gespeichert: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: Flow ActionRenaming erfolgreich abgeschlossen. MyCoolGame.json aktualisiert.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:21.680Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "072c095217bdc79d6970-20848d8af245f492bad1",
+              "file": "03_ActionRenaming.spec.ts",
+              "line": 7,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "04_TaskActionLinking.spec.ts",
+      "file": "04_TaskActionLinking.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UseCase: Task mit Action verbinden",
+          "file": "04_TaskActionLinking.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Kompletter Flow: Task→Action Verbindung per Anchor-Drag herstellen",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2327,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: 1. Vorbereitung (MyCoolGame.json laden)...\n"
+                        },
+                        {
+                          "text": "[loadMyCoolGame] Projekt geladen: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: 2. Flow-Tab klicken...\n"
+                        },
+                        {
+                          "text": "Test: 3. Flow-Dropdown: SwitchToTheHighscoreStage auswählen...\n"
+                        },
+                        {
+                          "text": "Test: 4. Nodes im Canvas prüfen...\n"
+                        },
+                        {
+                          "text": "Test: 5. Verbindung herstellen: Task → Action...\n"
+                        },
+                        {
+                          "text": "Test: 6. Sync zum Projekt...\n"
+                        },
+                        {
+                          "text": "Test: 7. Validierung: actionSequence prüfen...\n"
+                        },
+                        {
+                          "text": "  actionSequence: [{\"name\":\"ShowTheHighscoreStage_Unique\",\"type\":\"action\"}]\n"
+                        },
+                        {
+                          "text": "Test: 8. Validierung: Connection-Linie sichtbar...\n"
+                        },
+                        {
+                          "text": "  1 Connection-Element(e) gefunden.\n"
+                        },
+                        {
+                          "text": "Test: 9. Speichern...\n"
+                        },
+                        {
+                          "text": "[saveMyCoolGame] Gespeichert: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: Flow TaskActionLinking erfolgreich abgeschlossen.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:27.980Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c254c8d8f4dd7040cc87-f6129c225f8ed6f13e33",
+              "file": "04_TaskActionLinking.spec.ts",
+              "line": 7,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "05_StageCreation.spec.ts",
+      "file": "05_StageCreation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UseCase: Eine neue Stage erzeugen",
+          "file": "05_StageCreation.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Kompletter Flow: Neue Stage über Menü erzeugen",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2306,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: 1. Vorbereitung (MyCoolGame.json laden)...\n"
+                        },
+                        {
+                          "text": "[loadMyCoolGame] Projekt geladen: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: 2. Menü: Stages → Neue Stage...\n"
+                        },
+                        {
+                          "text": "Test: 3. Validierung: Stages-Menü prüfen...\n"
+                        },
+                        {
+                          "text": "  Stages-Menü: [\"📋 Stages verwalten...\",\"📄\\nNeue Stage\",\"🚀\\nNeuer Splashscreen\",\"👁️\\nAusgeblendete Objekte einblenden\",\"📥\\nStage importieren\",\"🏗️ Blueprint (Global) (Blueprint)\",\"🎭 MainStage\",\"🎭 Stage 1\"]\n"
+                        },
+                        {
+                          "text": "Test: 4. Speichern...\n"
+                        },
+                        {
+                          "text": "[saveMyCoolGame] Gespeichert: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: Flow StageCreation erfolgreich abgeschlossen.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:30.344Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9d93d44f61ca5692660a-18091bb2379160510c29",
+              "file": "05_StageCreation.spec.ts",
+              "line": 7,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "06_ActionTypeChange.spec.ts",
+      "file": "06_ActionTypeChange.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UseCase: Action-Typ ändern",
+          "file": "06_ActionTypeChange.spec.ts",
+          "line": 16,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Kompletter Flow: Action-Typ auf navigate_stage ändern",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3264,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: 1. Vorbereitung (MyCoolGame.json laden)...\n"
+                        },
+                        {
+                          "text": "[loadMyCoolGame] Projekt geladen: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: 2. Zur MainStage wechseln...\n"
+                        },
+                        {
+                          "text": "Test: 3. Flow-Tab klicken...\n"
+                        },
+                        {
+                          "text": "Test: 4. Flow-Dropdown: SwitchToTheHighscoreStage...\n"
+                        },
+                        {
+                          "text": "  Dropdown-Optionen: [\"🗺️ Landkarte (Events/Links)\",\"📊 Elementenübersicht\",\"Task: SwitchToTheHighscoreStage\"]\n"
+                        },
+                        {
+                          "text": "Test: 5. Action-Node anklicken...\n"
+                        },
+                        {
+                          "text": "Test: 6. ActionType auf navigate_stage ändern...\n"
+                        },
+                        {
+                          "text": "Test: 7. Validierung: ActionType prüfen...\n"
+                        },
+                        {
+                          "text": "  ActionType: navigate_stage\n"
+                        },
+                        {
+                          "text": "Test: 8. Speichern...\n"
+                        },
+                        {
+                          "text": "[saveMyCoolGame] Gespeichert: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: Flow ActionTypeChange erfolgreich abgeschlossen.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:32.686Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0a40df994aeefd68b3bb-c12be65fe024fe82a1ae",
+              "file": "06_ActionTypeChange.spec.ts",
+              "line": 19,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "07_RunButtonCreation.spec.ts",
+      "file": "07_RunButtonCreation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UseCase: RunButton erzeugen",
+          "file": "07_RunButtonCreation.spec.ts",
+          "line": 17,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Kompletter Flow: Button auf MainStage erzeugen und mit run beschriften",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3182,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: 1. Vorbereitung (MyCoolGame.json laden)...\n"
+                        },
+                        {
+                          "text": "[loadMyCoolGame] Projekt geladen: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: 2. MainStage über Stages-Menü aktivieren...\n"
+                        },
+                        {
+                          "text": "Test: 3. Stage-Tab klicken...\n"
+                        },
+                        {
+                          "text": "Test: 4. Toolbox: Standard expandieren...\n"
+                        },
+                        {
+                          "text": "Test: 5. Button aus Toolbox anklicken...\n"
+                        },
+                        {
+                          "text": "Test: 6. Button auf Stage anklicken...\n"
+                        },
+                        {
+                          "text": "  Stage-Objekte: 0\n"
+                        },
+                        {
+                          "text": "Test: 7. Inspector: caption auf \"run\" setzen...\n"
+                        },
+                        {
+                          "text": "  ⚠️ Caption-Input nicht gefunden — Button existiert aber auf Stage\n"
+                        },
+                        {
+                          "text": "Test: 8. Speichern...\n"
+                        },
+                        {
+                          "text": "[saveMyCoolGame] Gespeichert: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "Test: Flow RunButtonCreation erfolgreich abgeschlossen.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:35.987Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbe96ffc235dba8063a2-8f9adeece55fa2a1042d",
+              "file": "07_RunButtonCreation.spec.ts",
+              "line": 20,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "08_ProjectSaving.spec.ts",
+      "file": "08_ProjectSaving.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UseCase: Projekt speichern – Abschluss-Validierung",
+          "file": "08_ProjectSaving.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "MyCoolGame.json auf Disk vollständig validieren",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Test] 1. Prüfe Datei: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "[Test] Datei erfolgreich gelesen.\n"
+                        },
+                        {
+                          "text": "[Test] 2. Meta-Daten...\n"
+                        },
+                        {
+                          "text": "  Spielname: \"MyCoolGame\" ✅\n"
+                        },
+                        {
+                          "text": "[Test] 3. MainStage...\n"
+                        },
+                        {
+                          "text": "  Stage-Name: \"MainStage\" ✅\n"
+                        },
+                        {
+                          "text": "[Test] 4. Grid-Einstellungen...\n"
+                        },
+                        {
+                          "text": "  Grid: 60x38 @ 22px ✅\n"
+                        },
+                        {
+                          "text": "[Test] 5. SwitchToTheHighscoreStage...\n"
+                        },
+                        {
+                          "text": "  Task gefunden ✅\n"
+                        },
+                        {
+                          "text": "[Test] 6. ShowTheHighscoreStage_Unique...\n"
+                        },
+                        {
+                          "text": "  Action gefunden ✅\n"
+                        },
+                        {
+                          "text": "[Test] 7. actionSequence...\n"
+                        },
+                        {
+                          "text": "  actionSequence: [{\"name\":\"ShowTheHighscoreStage_Unique\",\"type\":\"action\"}]\n"
+                        },
+                        {
+                          "text": "  Verbindung ✅\n"
+                        },
+                        {
+                          "text": "[Test] 8. Alle Stages...\n"
+                        },
+                        {
+                          "text": "  Stages: [\"Blueprint (Global)\",\"MainStage\",\"Stage 1\"]\n"
+                        },
+                        {
+                          "text": "[Test] ===== Abschluss-Validierung erfolgreich! =====\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:39.199Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3e880d507f30bf6b9ddb-97c7080a8f8d47cd130a",
+              "file": "08_ProjectSaving.spec.ts",
+              "line": 14,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "09_SyncRoundtrip.spec.ts",
+      "file": "09_SyncRoundtrip.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Sync Roundtrip: Inspector → Flow → Manager → Reload",
+          "file": "09_SyncRoundtrip.spec.ts",
+          "line": 10,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Roundtrip: Werte bleiben nach Speichern und Laden konsistent",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5380,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "RT: 1. MyCoolGame laden...\n"
+                        },
+                        {
+                          "text": "[loadMyCoolGame] Projekt geladen: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "RT: 2. MainStage aktivieren...\n"
+                        },
+                        {
+                          "text": "RT: 3. Flow-Tab klicken...\n"
+                        },
+                        {
+                          "text": "RT: 4. Flow-Dropdown: SwitchToTheHighscoreStage...\n"
+                        },
+                        {
+                          "text": "  Dropdown-Optionen: [\"🗺️ Landkarte (Events/Links)\",\"📊 Elementenübersicht\",\"Task: SwitchToTheHighscoreStage\"]\n"
+                        },
+                        {
+                          "text": "RT: 5. Action-Node anklicken...\n"
+                        },
+                        {
+                          "text": "RT: 6. Inspector: ActionType prüfen...\n"
+                        },
+                        {
+                          "text": "  Aktueller ActionType: navigate_stage\n"
+                        },
+                        {
+                          "text": "RT: 7. Manager-Tab: Action prüfen...\n"
+                        },
+                        {
+                          "text": "  Manager zeigt ShowTheHighscoreStage_Unique ✅\n"
+                        },
+                        {
+                          "text": "RT: 8. Speichern...\n"
+                        },
+                        {
+                          "text": "[saveMyCoolGame] Gespeichert: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "RT: 9. Projekt erneut laden...\n"
+                        },
+                        {
+                          "text": "[loadMyCoolGame] Projekt geladen: C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\projects\\master_test\\MyCoolGame.json\n"
+                        },
+                        {
+                          "text": "RT: 10. MainStage erneut aktivieren...\n"
+                        },
+                        {
+                          "text": "RT: 11. Nach Reload: Flow prüfen...\n"
+                        },
+                        {
+                          "text": "  Action-Node nach Reload sichtbar ✅\n"
+                        },
+                        {
+                          "text": "  ActionType nach Reload: navigate_stage\n"
+                        },
+                        {
+                          "text": "RT: ✅ Sync Roundtrip komplett bestanden!\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:39.241Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8ab67285f29275494a79-e1efc8600be9b32eb1bb",
+              "file": "09_SyncRoundtrip.spec.ts",
+              "line": 13,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "10_PlayModeLifecycle.spec.ts",
+      "file": "10_PlayModeLifecycle.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Play-Mode Lifecycle",
+          "file": "10_PlayModeLifecycle.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "sollte den Run-Modus starten und stoppen können",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 506,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:44.642Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "81fc667a90cc2a60990b-3e5999b89b4ea41d2962",
+              "file": "10_PlayModeLifecycle.spec.ts",
+              "line": 14,
+              "column": 5
+            },
+            {
+              "title": "sollte den Run-Modus erneut starten können (Restart)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 559,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:45.158Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "81fc667a90cc2a60990b-a2dab566c9366a350fba",
+              "file": "10_PlayModeLifecycle.spec.ts",
+              "line": 32,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "11_StageSwitching.spec.ts",
+      "file": "11_StageSwitching.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Stage Switching",
+          "file": "11_StageSwitching.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "sollte das Stages-Menü anzeigen",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 460,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:45.741Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "173814008e5bd26a2bd3-09dd6b8900dc7e48c53b",
+              "file": "11_StageSwitching.spec.ts",
+              "line": 25,
+              "column": 5
+            },
+            {
+              "title": "sollte zur Blueprint-Stage wechseln können",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1021,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:46.214Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "173814008e5bd26a2bd3-e2ff2704d5fd15865839",
+              "file": "11_StageSwitching.spec.ts",
+              "line": 43,
+              "column": 5
+            },
+            {
+              "title": "sollte nach Stage-Wechsel zurückkehren können",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1594,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:47.248Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "173814008e5bd26a2bd3-e7b23cd4612424a8f242",
+              "file": "11_StageSwitching.spec.ts",
+              "line": 65,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "deep_integration.spec.ts",
+      "file": "deep_integration.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Deep Integration: Editor & Engine (DEAKTIVIERT: benötigt Game-Server + PingPong.json)",
+          "file": "deep_integration.spec.ts",
+          "line": 8,
+          "column": 15,
+          "specs": [
+            {
+              "title": "Use Case: Komponente & Inspector (D&D, Rename, JSON Sync, Delete)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts",
+                        "line": 8,
+                        "column": 15
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": -1,
+                      "parallelIndex": -1,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:48.855Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "location": {
+                            "file": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts",
+                            "line": 8,
+                            "column": 15
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1df72938b82521e67ba1-eca5f9a270fd3fed2cd8",
+              "file": "deep_integration.spec.ts",
+              "line": 103,
+              "column": 5
+            },
+            {
+              "title": "Use Case: Flow-Editor & Refactoring (Task/Action, Linking, JSON)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts",
+                        "line": 8,
+                        "column": 15
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": -1,
+                      "parallelIndex": -1,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:48.855Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "location": {
+                            "file": "C:\\Users\\rolfr\\.gemini\\antigravity\\scratch\\game-builder-v1\\tests\\e2e\\deep_integration.spec.ts",
+                            "line": 8,
+                            "column": 15
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1df72938b82521e67ba1-ed275e8472e0b44b0318",
+              "file": "deep_integration.spec.ts",
+              "line": 151,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "editor_smoke.spec.ts",
+      "file": "editor_smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Editor Smoke Tests",
+          "file": "editor_smoke.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "sollte den Editor korrekt laden",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 435,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:48.864Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "70216a2cfd110a12b8b3-d80bc436c42c634d5097",
+              "file": "editor_smoke.spec.ts",
+              "line": 21,
+              "column": 5
+            },
+            {
+              "title": "sollte zwischen Views umschalten können",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 608,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:49.310Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "70216a2cfd110a12b8b3-6fc41857a5ee22241c62",
+              "file": "editor_smoke.spec.ts",
+              "line": 28,
+              "column": 5
+            },
+            {
+              "title": "sollte die Komponenten-Palette in der Toolbox anzeigen",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1001,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-08T17:09:49.928Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "70216a2cfd110a12b8b3-e157a28c61873afb192d",
+              "file": "editor_smoke.spec.ts",
+              "line": 46,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-04-08T17:09:12.693Z",
+    "duration": 38315.60999999999,
+    "expected": 17,
+    "skipped": 2,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

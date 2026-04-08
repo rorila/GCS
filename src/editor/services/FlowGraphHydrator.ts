@@ -89,9 +89,16 @@ export class FlowGraphHydrator {
         if (!sourceData) return;
 
         if (sourceData.elements) {
+            FlowGraphHydrator.logger.info(`[TRACE] loadFromProject: Found ${sourceData.elements.length} elements in source data. Hydrating nodes...`);
             sourceData.elements.forEach((data: any) => {
+                FlowGraphHydrator.logger.info(`[TRACE] Hydrating node: ID=${data.id}, type=${data.type}, x=${data.x}, y=${data.y}`);
                 const node = this.host.syncManager.restoreNode(data);
-                if (node) this.host.nodes.push(node);
+                if (node) {
+                    this.host.nodes.push(node);
+                    FlowGraphHydrator.logger.info(`[TRACE] Hydrated successfully: ${node.Name}`);
+                } else {
+                    FlowGraphHydrator.logger.error(`[ERROR] Failed to hydrate node: ID=${data.id}`);
+                }
             });
         }
 
@@ -175,6 +182,7 @@ export class FlowGraphHydrator {
     public formatOrthogonalLayout(): void {
         const nodes = this.host.nodes;
         const connections = this.host.connections || [];
+        FlowGraphHydrator.logger.info(`[TRACE] formatOrthogonalLayout started. Nodes=${nodes.length}, Connections=${connections.length}`);
         if (nodes.length < 2) return;
 
         const cellSize = this.host.flowStage?.cellSize || 20;
@@ -199,14 +207,16 @@ export class FlowGraphHydrator {
             const verticalConn = connections.find((c: any) =>
                 c.startTarget === current && (
                     c.data?.startAnchorType === 'bottom' ||
-                    c.data?.startAnchorType === 'output' ||
                     c.data?.startAnchorType === 'false'
                 ) && c.endTarget && (
                     c.data?.endAnchorType === 'top' ||
                     c.data?.endAnchorType === 'input'
                 )
             );
-            if (!verticalConn || !verticalConn.endTarget) break;
+            if (!verticalConn || !verticalConn.endTarget) {
+                 FlowGraphHydrator.logger.info(`[TRACE] End of vertical chain at ${current.Name}. No valid bottom/false connection found.`);
+                 break;
+            }
 
             const nextNode = verticalConn.endTarget;
             if (visited.has(nextNode.id)) break;
@@ -216,11 +226,12 @@ export class FlowGraphHydrator {
             current = nextNode;
         }
 
-        // --- Schritt 1b: Horizontale Branch-Nodes (true/right/success) ---
+        // --- Schritt 1b: Horizontale Branch-Nodes (true/right/success/output) ---
         connections.forEach((c: any) => {
             if (c.data?.startAnchorType === 'true' ||
                 c.data?.startAnchorType === 'right' ||
-                c.data?.startAnchorType === 'success') {
+                c.data?.startAnchorType === 'success' ||
+                c.data?.startAnchorType === 'output') {
                 if (c.startTarget && c.endTarget) {
                     const endNodeId = c.endTarget.id;
                     if (!visited.has(endNodeId)) {
@@ -251,7 +262,7 @@ export class FlowGraphHydrator {
 
         // --- Schritt 4: Horizontale Nodes positionieren ---
         horizontalNodes.forEach(({ node, sourceNode }) => {
-            node.x = MAIN_X + normalizedWidth + X_GAP;
+            node.x = sourceNode.x + sourceNode.width + X_GAP;
             node.y = sourceNode.y;
             node.width = Math.ceil(node.width / cellSize) * cellSize;
             node.updatePosition();

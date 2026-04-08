@@ -63,7 +63,10 @@ export class FlowSequenceBuilder {
                         realType = 'data_action';
                     }
                     const actionItem: any = { ...node.data, type: realType, name: actionName };
-                    if (incomingAnchorType === 'output') actionItem.layout = 'horizontal';
+                    if (incomingAnchorType === 'output') {
+                        actionItem.layout = 'horizontal';
+                        FlowSequenceBuilder.logger.debug(`[Layout] Action ${actionName} received incoming anchor 'output'. Assigned layout='horizontal'`);
+                    }
                     delete (actionItem as any).isLinked;
                     delete (actionItem as any).parentProxyId;
                     delete (actionItem as any).isEmbeddedInternal;
@@ -141,7 +144,10 @@ export class FlowSequenceBuilder {
                 }
             } else if (nodeType === 'task' && node.id !== startNode.id) {
                 const actionItem: any = { type: 'task', name: node.properties?.name || node.properties?.text };
-                if (incomingAnchorType === 'output') actionItem.layout = 'horizontal';
+                if (incomingAnchorType === 'output') {
+                    actionItem.layout = 'horizontal';
+                    FlowSequenceBuilder.logger.debug(`[Layout] Task ${actionItem.name} received incoming anchor 'output'. Assigned layout='horizontal'`);
+                }
                 targetSeq.push(actionItem);
                 const nextConn = connections.find(c => c.startTargetId === nodeId && (c.data?.startAnchorType === 'output' || c.data?.startAnchorType === 'bottom' || c.data?.startAnchorType === 'right'));
                 if (nextConn) buildSequence(nextConn.endTargetId, targetSeq, stopSet, nextConn.data?.startAnchorType);
@@ -391,6 +397,7 @@ export class FlowSequenceBuilder {
                         currentX += BRANCH_OFFSET;
                         lastAnchor = 'output';
                         nextEndAnchor = 'input';
+                        FlowSequenceBuilder.logger.debug(`[Layout] Node ${itemName} is horizontal. Adjusting connection: ${lastId} (output) -> ${id} (input) at X=${currentX}`);
                     }
 
                     elements.push({
