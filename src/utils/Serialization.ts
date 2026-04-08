@@ -26,6 +26,12 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
     objectsData.forEach((objData: any) => {
         if (!objData) return;
 
+        // IDEMPOTENCY: Already a live instance? Pass through safely.
+        if (objData instanceof TWindow) {
+            objects.push(objData);
+            return;
+        }
+
         // Factory based on ComponentRegistry (Auto-discovered)
         let newObj: TWindow | null = ComponentRegistry.create(objData);
 

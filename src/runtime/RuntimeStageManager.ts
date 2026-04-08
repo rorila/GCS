@@ -1,5 +1,5 @@
-// 
 import { hydrateObjects } from '../utils/Serialization';
+import { TWindow } from '../components/TWindow';
 
 export interface MergedStageData {
     objects: any[];
@@ -52,13 +52,19 @@ export class RuntimeStageManager {
         let mergedFlowCharts: any = { ...(this.project.flowCharts || {}) };
 
         const objectIdSet = new Set<string>();
+        const isAlreadyHydrated = (arr: any[]) => arr.length > 0 && typeof arr[0] === 'object' && arr[0] instanceof TWindow;
+
         const processStage = (stage: any, useCache: boolean = false) => {
             // Objects and Variables (Blueprint/Main caching)
             if (useCache) {
                 if (!this.cachedGlobalObjects) {
                     this.cachedGlobalObjects = [];
-                    const sObjects = this.flattenWithChildren(hydrateObjects(stage.objects || []));
-                    const sVars = hydrateObjects(stage.variables || []);
+                    const rawObjects = stage.objects || [];
+                    const sObjects = this.flattenWithChildren(isAlreadyHydrated(rawObjects) ? rawObjects : hydrateObjects(rawObjects));
+                    
+                    const rawVars = stage.variables || [];
+                    const sVars = isAlreadyHydrated(rawVars) ? rawVars : hydrateObjects(rawVars);
+                    
                     sVars.forEach((v: any) => v.isVariable = true);
                     this.cachedGlobalObjects.push(...sObjects, ...sVars);
                 }
@@ -71,7 +77,9 @@ export class RuntimeStageManager {
                 });
             } else {
                 // Lokale Stage -> normales Hydriern
-                const stageObjects = this.flattenWithChildren(hydrateObjects(stage.objects || []));
+                const rawObjects = stage.objects || [];
+                const stageObjects = this.flattenWithChildren(isAlreadyHydrated(rawObjects) ? rawObjects : hydrateObjects(rawObjects));
+                
                 stageObjects.forEach(obj => {
                     mergedObjects = mergedObjects.filter(o => o.id !== obj.id);
                     mergedObjects.push(obj);
@@ -79,7 +87,8 @@ export class RuntimeStageManager {
                 });
 
                 if (stage.variables) {
-                    const hydratedVars = hydrateObjects(stage.variables);
+                    const rawVars = stage.variables;
+                    const hydratedVars = isAlreadyHydrated(rawVars) ? rawVars : hydrateObjects(rawVars);
                     hydratedVars.forEach((vObj: any) => {
                         vObj.isVariable = true;
                         mergedObjects = mergedObjects.filter(o => o.id !== vObj.id);

@@ -12,6 +12,7 @@
   - *Lösung:* `safeDeepCopy` in `DeepCopy.ts` unterstützt nun natives Auslesen und Klonen von `Set` und `Map`.
 
 ### Refactored
+- **Dynamische Getter-Prüfung per Reflection**: Die stark fehleranfällige und manuelle `reservedKeys`-Ausschlussliste in `Serialization.ts` (welche alle Getter-only Properties diverser Komponenten händisch ausschließen musste) wurde komplett eliminiert. Die Serialisierung iteriert stattdessen live via `Object.getOwnPropertyDescriptor` über die Prototypen-Kette der Zielklasse, und prüft exakt zur Laufzeit, ob einer Eigenschaft ein `set`-Accessor zur Verfügung steht oder ob diese dynamisch schreibbar (`writable: true`) ist. Dies löst eine massive Frustrationsquelle bei der Komponentenerweiterung vollständig auf.
 - **Code-Duplizierung in ComponentRegistry**: Die verschachtelte IIFE-Factory der `TSplashStage` (welche fälschlicherweise manuell `duration` und `autoHide` setzte) wurde zu einem sauberen Lambda-Einzeiler refactored. Diese spezifischen Parameterzuweisungen waren redundant, da der Magic Loop der Laufzeitumgebung sie sowieso dynamisch bedient.
 
 - **Code-Duplizierung in Serialization.ts (Property-Zuweisung)**: Ca. 150 Zeilen redundante, statische und manuell gecastete `(newObj as any).XYZ` Property-Wiederherstellungen wurden komplett gelöscht. Diese Funktionalität wurde de facto durch den bereits existierenden, generischen "Magic Loop" erledigt, wodurch dieser massive Block komplett redundant und fehleranfällig war. Zukünftige Komponentenerweiterungen profitieren nun verlustfrei von der automatischen Generizität.
