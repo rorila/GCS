@@ -1,3 +1,4 @@
+import { projectActionRegistry } from '../services/registry/ActionRegistry';
 import { TPanel } from './TPanel';
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { Logger } from '../utils/Logger';
@@ -250,8 +251,8 @@ export class TDataList extends TPanel implements IRuntimeComponent {
 
         // Falls ProjectRegistry verfügbar ist, nutze diese
         try {
-            const { projectRegistry } = require('../services/ProjectRegistry');
-            const allActions = projectRegistry.getActions('all');
+
+            const allActions = projectActionRegistry.getActions('all');
             if (Array.isArray(allActions)) {
                 for (const a of allActions) {
                     if (!actions.find(existing => existing.name === a.name)) {

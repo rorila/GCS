@@ -1,6 +1,6 @@
+import { coreStore } from '../src/services/registry/CoreStore';
 import { AgentController } from '../src/services/AgentController';
 import { GameProject } from '../src/model/types';
-import { projectRegistry } from '../src/services/ProjectRegistry';
 
 export interface TestResult {
     name: string;
@@ -50,7 +50,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createRocketProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         const batchOps = [
             // ── 0. Infrastruktur (Blueprint-Stage) ──
@@ -220,7 +220,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createRocketProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         // Nur die Struktur-Erstellung (ohne Events)
         agent.addVariable('TestTimer', 'number', 0);

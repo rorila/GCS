@@ -1,5 +1,6 @@
+import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
 import { GameProject } from '../../model/types';
-import { projectRegistry } from '../../services/ProjectRegistry';
+
 import { serviceRegistry } from '../../services/ServiceRegistry';
 import { Logger } from '../../utils/Logger';
 
@@ -26,7 +27,7 @@ export class EditorSimulatorManager {
                 if (requestId && requestId.startsWith('sim-')) {
                     logger.info(`Sim-Response empfangen für ${requestId}:`, data);
                     // Suche nach der TAPIServer Komponente im Projekt
-                    const allObjects = projectRegistry.getObjects();
+                    const allObjects = projectObjectRegistry.getObjects();
                     const server = allObjects.find(o => (o as any).className === 'TAPIServer');
                     if (server) {
                         (server as any).testResponse = `Status: ${status}\n\n${JSON.stringify(data, null, 2)}`;
@@ -129,7 +130,7 @@ export class EditorSimulatorManager {
                         resolve(response);
                     });
 
-                    const allObjects = projectRegistry.getObjects();
+                    const allObjects = projectObjectRegistry.getObjects();
                     const server = allObjects.find((o: any) => o.className === 'TAPIServer');
 
                     if (server && this.host.runManager && this.host.runManager.runtime) {

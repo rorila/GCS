@@ -1,9 +1,11 @@
+import { projectActionRegistry } from '../../../services/registry/ActionRegistry';
+import { projectTaskRegistry } from '../../../services/registry/TaskRegistry';
 import { Logger } from '../../../utils/Logger';
 import { IInspectorHandler, PropertyChangeEvent } from '../types';
 import { GameProject } from '../../../model/types';
 import { ReactiveRuntime } from '../../../runtime/ReactiveRuntime';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
-import { projectRegistry } from '../../../services/ProjectRegistry';
+
 
 import { SyncValidator } from '../../services/SyncValidator';
 
@@ -140,7 +142,7 @@ export class FlowNodeHandler implements IInspectorHandler {
         FlowNodeHandler.logger.info(`[FLOW-LOOKUP] Searching Original Action: "${name}"`);
 
         // SSoT-Lookup via ProjectRegistry: Findet die ECHTE Instanz im Projekt-Modell
-        const originalAction = projectRegistry.findOriginalAction(name);
+        const originalAction = projectActionRegistry.findOriginalAction(name);
 
         if (originalAction) {
             FlowNodeHandler.logger.info(`[FLOW-LOOKUP] SSoT MATCH FOUND: ${originalAction.name}`);
@@ -160,7 +162,7 @@ export class FlowNodeHandler implements IInspectorHandler {
         FlowNodeHandler.logger.info(`[FLOW-LOOKUP] Searching Original Task: "${name}"`);
 
         // SSoT-Lookup via ProjectRegistry: Findet die ECHTE Instanz im Projekt-Modell
-        const originalTask = projectRegistry.findOriginalTask(name);
+        const originalTask = projectTaskRegistry.findOriginalTask(name);
 
         if (originalTask) {
             FlowNodeHandler.logger.info(`[FLOW-LOOKUP] SSoT MATCH FOUND (Task): ${originalTask.name}`);

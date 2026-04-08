@@ -1,4 +1,6 @@
-import { projectRegistry } from '../../../services/ProjectRegistry';
+import { projectObjectRegistry } from '../../../services/registry/ObjectRegistry';
+import { projectVariableRegistry } from '../../../services/registry/VariableRegistry';
+
 import { hydrateObjects } from '../../../utils/Serialization';
 import { MethodRegistry } from '../../MethodRegistry';
 import { Logger } from '../../../utils/Logger';
@@ -20,7 +22,7 @@ export class DialogDomainHelper {
         }
 
         if (!variable) {
-            const regVars = projectRegistry.getVariables({
+            const regVars = projectVariableRegistry.getVariables({
                 taskName: ctx.dialogData.taskName,
                 actionId: ctx.dialogData.actionId || ctx.dialogData.name
             });
@@ -68,7 +70,7 @@ export class DialogDomainHelper {
             return Array.from(new Set(props));
         }
 
-        const objects = projectRegistry.getObjects();
+        const objects = projectObjectRegistry.getObjects();
         const objData = objects.find(o => o.name === objectName);
         if (!objData) return ["x", "y", "width", "height", "caption", "text", "style.visible"];
 
@@ -106,7 +108,7 @@ export class DialogDomainHelper {
             return Array.from(new Set(methods));
         }
 
-        const objects = projectRegistry.getObjects();
+        const objects = projectObjectRegistry.getObjects();
         const objData = objects.find(o => o.name === objectName);
         if (!objData) return [];
 

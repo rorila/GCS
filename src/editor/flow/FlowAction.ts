@@ -1,10 +1,12 @@
+import { actionRegistry } from '../../runtime/ActionRegistry';
+import { projectActionRegistry } from '../../services/registry/ActionRegistry';
 
 import { FlowElement } from './FlowElement';
 import { GameAction, GameProject } from '../../model/types';
 import { ExpressionParser } from '../../runtime/ExpressionParser';
-import { projectRegistry } from '../../services/ProjectRegistry';
+
 import { InspectorSection } from '../inspector/types';
-import { actionRegistry } from '../../runtime/ActionRegistry';
+
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { Logger } from '../../utils/Logger';
 
@@ -201,7 +203,7 @@ export class FlowAction extends FlowElement {
 
         // 1. Resolve from project/stage via ProjectRegistry (Single Source of Truth)
         // We match by name even if 'isLinked' is not yet set (e.g. for newly renamed nodes)
-        const action = projectRegistry.findOriginalAction(this.Name);
+        const action = projectActionRegistry.findOriginalAction(this.Name);
 
         if (action) {
             // FIX: Ensure the node data reflects the linked state so toJSON saves only the reference

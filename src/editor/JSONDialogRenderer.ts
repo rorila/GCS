@@ -1,9 +1,12 @@
+import { projectObjectRegistry } from '../services/registry/ObjectRegistry';
+import { projectVariableRegistry } from '../services/registry/VariableRegistry';
 import { actionRegistry } from '../runtime/ActionRegistry';
+
 import { Logger } from '../utils/Logger';
 import { ReactiveRuntime } from '../runtime/ReactiveRuntime';
 import { GameProject } from '../model/types';
 import { serviceRegistry } from '../services/ServiceRegistry';
-import { projectRegistry } from '../services/ProjectRegistry';
+
 import { IDialogContext } from './dialogs/IDialogContext';
 import { DialogDOMBuilder } from './dialogs/renderers/DialogDOMBuilder';
 
@@ -53,14 +56,14 @@ export class JSONDialogRenderer implements IDialogContext {
         this.dialogData._formValues = {};
 
         if (this.dialogData.type === undefined) this.dialogData.type = 'property';
-        if (this.dialogData.target === undefined) this.dialogData.target = projectRegistry.getObjects()[0]?.name || '';
+        if (this.dialogData.target === undefined) this.dialogData.target = projectObjectRegistry.getObjects()[0]?.name || '';
         if (this.dialogData.changes === undefined) this.dialogData.changes = {};
 
         this.runtime.registerVariable('dialogData', this.dialogData);
         this.runtime.registerVariable('serviceRegistry', serviceRegistry);
 
-        const stageObjects = projectRegistry.getObjects();
-        const stageVars = projectRegistry.getVariables({
+        const stageObjects = projectObjectRegistry.getObjects();
+        const stageVars = projectVariableRegistry.getVariables({
             taskName: this.dialogData.taskName,
             actionId: this.dialogData.actionId || this.dialogData.name
         });
@@ -203,13 +206,13 @@ export class JSONDialogRenderer implements IDialogContext {
 
         if (type === 'variable') {
             this.dialogData.variableName = this.dialogData.variableName || '';
-            this.dialogData.source = this.dialogData.source || (projectRegistry.getObjects()[0]?.name || '');
+            this.dialogData.source = this.dialogData.source || (projectObjectRegistry.getObjects()[0]?.name || '');
             this.dialogData.sourceProperty = this.dialogData.sourceProperty || 'text';
         } else if (type === 'set_variable') {
             this.dialogData.variableName = this.dialogData.variableName || '';
             this.dialogData.value = this.dialogData.value !== undefined ? this.dialogData.value : '';
         } else if (type === 'call_method') {
-            this.dialogData.target = this.dialogData.target || (projectRegistry.getObjects()[0]?.name || '');
+            this.dialogData.target = this.dialogData.target || (projectObjectRegistry.getObjects()[0]?.name || '');
             this.dialogData.method = this.dialogData.method || '';
             this.dialogData.params = this.dialogData.params || [];
         } else if (type === 'calculate') {
@@ -219,7 +222,7 @@ export class JSONDialogRenderer implements IDialogContext {
                 this.dialogData.formula = this.stringifyCalcSteps(this.dialogData.calcSteps);
             }
         } else if (type === 'property' || type === 'increment' || type === 'negate') {
-            this.dialogData.target = this.dialogData.target || (projectRegistry.getObjects()[0]?.name || '');
+            this.dialogData.target = this.dialogData.target || (projectObjectRegistry.getObjects()[0]?.name || '');
             this.dialogData.changes = this.dialogData.changes || {};
         }
     }

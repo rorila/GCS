@@ -238,3 +238,8 @@ UC-3.29.0: Object Pool Pattern fÃ¼r dynamische Sprites
 
 [UseCase: Dev Server Proxy reparieren]
 - vite.config.ts: Methoden export default defineConfig (Zeile 67-74) -> Hinzufügen von proxy für /api und /platform auf localhost:8080
+
+Task: ProjectRegistry Hard Break
+Files: src/services/registry/*.ts
+Description: Decoupled ProjectRegistry into modular singletons.
+

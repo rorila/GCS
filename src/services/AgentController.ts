@@ -1,5 +1,8 @@
+import { coreStore } from './registry/CoreStore';
+import { projectActionRegistry } from './registry/ActionRegistry';
+import { projectTaskRegistry } from './registry/TaskRegistry';
 import { GameProject, BaseAction, GameTask, ActionType, SequenceItem, ConditionOperator } from '../model/types';
-import { projectRegistry } from './ProjectRegistry';
+
 import { mediatorService } from './MediatorService';
 import { serviceRegistry } from './ServiceRegistry';
 import { Logger } from '../utils/Logger';
@@ -388,7 +391,7 @@ export class AgentController {
         if (!task) throw new Error(`Task '${taskName}' not found.`);
 
         // 2. Build Branches with stage context from Task
-        const taskOwner = projectRegistry.getTaskContainer(taskName);
+        const taskOwner = projectTaskRegistry.getTaskContainer(taskName);
         const stageId = taskOwner.type === 'stage' ? taskOwner.stageId : undefined;
 
         const thenBranch = new BranchBuilder(this, stageId);
@@ -746,7 +749,7 @@ export class AgentController {
     /** Benennt einen Task um (inkl. Referenzen in Events, Sequences, FlowCharts). */
     public renameTask(oldName: string, newName: string): boolean {
         this.validateProjectLoaded();
-        const result = projectRegistry.renameTask(oldName, newName);
+        const result = projectTaskRegistry.renameTask(oldName, newName);
         if (result) {
             AgentController.logger.info(`Task '${oldName}' renamed to '${newName}'.`);
             this.notifyChange();
@@ -757,7 +760,7 @@ export class AgentController {
     /** Benennt eine Action um (inkl. Referenzen in Sequences). */
     public renameAction(oldName: string, newName: string): boolean {
         this.validateProjectLoaded();
-        const result = projectRegistry.renameAction(oldName, newName);
+        const result = projectActionRegistry.renameAction(oldName, newName);
         if (result) {
             AgentController.logger.info(`Action '${oldName}' renamed to '${newName}'.`);
             this.notifyChange();
@@ -908,7 +911,7 @@ export class AgentController {
         clone.name = newName;
 
         // In die richtige Stage einfügen
-        const targetStageId = stageId || projectRegistry.getTaskContainer(taskName).stageId || 'stage_blueprint';
+        const targetStageId = stageId || projectTaskRegistry.getTaskContainer(taskName).stageId || 'stage_blueprint';
         const stage = this.project!.stages?.find(s => s.id === targetStageId);
         if (stage) {
             if (!stage.tasks) stage.tasks = [];
@@ -1180,7 +1183,7 @@ export class AgentController {
 
     private validateProjectLoaded() {
         if (!this.project) {
-            this.project = projectRegistry.getProject();
+            this.project = coreStore.getProject();
             if (!this.project) throw new Error("AgentController: No project loaded.");
         }
     }

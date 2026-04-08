@@ -4,11 +4,13 @@ import { GameProject } from '../src/model/types';
 import { FlowEditor } from '../src/editor/FlowEditor';
 import { RefactoringManager } from '../src/editor/RefactoringManager';
 import { mediatorService, MediatorEvents } from '../src/services/MediatorService';
-import { projectRegistry } from '../src/services/ProjectRegistry';
+import { coreStore } from '../src/services/registry/CoreStore';
+import { projectTaskRegistry } from '../src/services/registry/TaskRegistry';
 import { InspectorEventHandler } from '../src/editor/inspector/InspectorEventHandler';
 import { InspectorHost } from '../src/editor/inspector/InspectorHost';
 
 // Mock DOM
+// @ts-ignore
 import { JSDOM } from 'jsdom';
 const dom = new JSDOM('<!DOCTYPE html><div id="flow-editor"><select id="flow-selector"></select></div>');
 global.document = dom.window.document;
@@ -31,7 +33,11 @@ const project: GameProject = {
     stages: [
         {
             id: 'stage1',
+            type: 'standard',
             name: 'Stage 1',
+            objects: [],
+            actions: [],
+            variables: [],
             tasks: [
                 { name: 'StageTask1', actionSequence: [] }
             ],
@@ -47,9 +53,9 @@ const project: GameProject = {
     actions: [],
     objects: [],
     input: {} as any
-};
+} as any;
 
-projectRegistry.setProject(project);
+coreStore.setProject(project as any);
 
 // Setup Editor
 const flowEditor = new FlowEditor('flow-editor', project);

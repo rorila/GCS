@@ -1,5 +1,8 @@
-import { ProjectRegistry } from '../../services/ProjectRegistry';
 import { actionRegistry } from '../../runtime/ActionRegistry';
+import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
+import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
+import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
+import { coreStore } from '../../services/registry/CoreStore';
 import { dataService } from '../../services/DataService';
 import { UseCaseManager, USE_CASES } from '../../utils/UseCaseManager';
 
@@ -15,14 +18,14 @@ export class InspectorContextBuilder {
      * Erzeugt das vollständige Kontext-Objekt für ein bestimmtes Ziel-Objekt.
      */
     public static build(selectedObject: any): any {
-        const registry = ProjectRegistry.getInstance();
-        const activeStageId = registry.getActiveStageId();
+
+        const activeStageId = coreStore.getActiveStageId();
 
         // 1. Variablen abrufen (Global + Active Stage)
-        const allVars = registry.getVariables();
+        const allVars = projectVariableRegistry.getVariables();
 
         // 2. DataStores finden
-        const allObjects = registry.getObjects();
+        const allObjects = projectObjectRegistry.getObjects();
         const dataStores = allObjects.filter(obj =>
             obj.className === 'TDataStore' || (obj as any).constructor?.name === 'TDataStore'
         );
@@ -31,10 +34,10 @@ export class InspectorContextBuilder {
         const context: Record<string, any> = {
             selectedObject,
             activeStageId,
-            activeStage: registry.getActiveStage(),
+            activeStage: coreStore.getActiveStage(),
 
             // Magic Functions
-            getAllActionTypes: () => actionRegistry.getVisibleActionTypes(ProjectRegistry.getInstance().getActiveStage() ? { stages: [ProjectRegistry.getInstance().getActiveStage()], objects: registry.getObjects() } as any : { objects: registry.getObjects() } as any),
+            getAllActionTypes: () => actionRegistry.getVisibleActionTypes(coreStore.getActiveStage() ? { stages: [coreStore.getActiveStage()], objects: projectObjectRegistry.getObjects() } as any : { objects: projectObjectRegistry.getObjects() } as any),
 
             // Liste der DataStore Namen (priorisiert) für Dropdowns
             availableDataStores: dataStores.map(ds => ds.name || ds.id),
@@ -80,7 +83,7 @@ export class InspectorContextBuilder {
             }, (() => {
                 const initialAcc: any[] = [];
                 // Füge Task Parameter als Basis-Tokens hinzu
-                const activeStage = ProjectRegistry.getInstance().getActiveStage();
+                const activeStage = coreStore.getActiveStage();
                 if (activeStage && activeStage.tasks) {
                     activeStage.tasks.forEach((t: any) => {
                         if (t.params && Array.isArray(t.params)) {
@@ -104,7 +107,7 @@ export class InspectorContextBuilder {
                 }));
                 
                 // Füge Task Parameter aus der aktuellen Stage hinzu
-                const activeStage = registry.getActiveStage();
+                const activeStage = coreStore.getActiveStage();
                 if (activeStage && activeStage.tasks) {
                     activeStage.tasks.forEach((t: any) => {
                         if (t.params && Array.isArray(t.params)) {
@@ -197,7 +200,7 @@ export class InspectorContextBuilder {
             ],
 
             // Liste der verfügbaren Tasks (ALLE Stages, damit globale Objekte Cross-Stage-Tasks sehen)
-            availableTasks: registry.getTasks('all').map(t => ({
+            availableTasks: projectTaskRegistry.getTasks('all').map(t => ({
                 value: t.name,
                 label: `${t.uiEmoji || (t.uiScope === 'global' ? '🌎' : '🎭')} ${t.name}`
             })),

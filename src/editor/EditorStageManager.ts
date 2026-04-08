@@ -2,7 +2,8 @@ import { GameProject, StageDefinition, GameAction, GameTask, ProjectVariable, St
 import { Stage } from './Stage';
 import { TObjectList } from '../components/TObjectList';
 import { mediatorService } from '../services/MediatorService';
-import { ProjectRegistry } from '../services/ProjectRegistry';
+import { projectObjectRegistry } from '../services/registry/ObjectRegistry';
+import { coreStore } from '../services/registry/CoreStore';
 import { componentRegistry } from '../services/ComponentRegistry';
 import { Logger } from '../utils/Logger';
 
@@ -27,7 +28,7 @@ export class EditorStageManager {
     }
 
     public currentObjects(): ComponentData[] {
-        return ProjectRegistry.getInstance().getObjects();
+        return projectObjectRegistry.getObjects();
     }
 
     public setCurrentObjects(objs: ComponentData[]) {
@@ -215,7 +216,7 @@ export class EditorStageManager {
         });
 
         p.activeStageId = p.stages[0].id;
-        ProjectRegistry.getInstance().setActiveStageId(p.activeStageId);
+        coreStore.setActiveStageId(p.activeStageId);
         logger.info('[EditorStageManager] Migrated legacy project to stages');
     }
 
@@ -233,7 +234,7 @@ export class EditorStageManager {
         this.project.stages = this.project.stages || [];
         this.project.stages.push(newStage);
         this.project.activeStageId = id;
-        ProjectRegistry.getInstance().setActiveStageId(id);
+        coreStore.setActiveStageId(id);
         this.onRefresh();
         return newStage;
     }
@@ -249,7 +250,7 @@ export class EditorStageManager {
 
     public switchStage(id: string): void {
         this.project.activeStageId = id;
-        ProjectRegistry.getInstance().setActiveStageId(id);
+        coreStore.setActiveStageId(id);
         this.onRefresh();
     }
 

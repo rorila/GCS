@@ -1,3 +1,4 @@
+import { projectReferenceTracker } from '../../services/registry/ReferenceTracker';
 import { FlowElement } from '../flow/FlowElement';
 import { FlowConnection } from '../flow/FlowConnection';
 import { FlowAction } from '../flow/FlowAction';
@@ -15,7 +16,7 @@ import { FlowLoop } from '../flow/FlowLoop';
 
 import { GameProject } from '../../model/types';
 import { RefactoringManager } from '../RefactoringManager';
-import { projectRegistry } from '../../services/ProjectRegistry';
+
 import { mediatorService } from '../../services/MediatorService';
 import { Logger } from '../../utils/Logger';
 
@@ -221,7 +222,7 @@ export class FlowGraphManager {
         // Check if the definition should also be removed
         if (nodeName && nodeName !== 'Action' && nodeName !== 'Task' && nodeName !== 'Variable') {
             setTimeout(() => {
-                const refs = projectRegistry.findReferences(nodeName);
+                const refs = projectReferenceTracker.findReferences(nodeName);
                 if (refs.length === 0) {
                     const isGenericName = /^Action\d*$/.test(nodeName) || /^Aktion\d*$/.test(nodeName) ||
                         /^DataAction\d*$/.test(nodeName) || /^HttpAction\d*$/.test(nodeName) ||

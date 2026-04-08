@@ -1,5 +1,9 @@
+import { projectObjectRegistry } from '../services/registry/ObjectRegistry';
+import { projectActionRegistry } from '../services/registry/ActionRegistry';
+import { projectTaskRegistry } from '../services/registry/TaskRegistry';
 import { actionRegistry } from '../runtime/ActionRegistry';
-import { projectRegistry } from '../services/ProjectRegistry';
+
+
 import { serviceRegistry } from '../services/ServiceRegistry';
 import { Logger } from '../utils/Logger';
 
@@ -57,12 +61,12 @@ export class ActionParamRenderer {
                     sel.style.cssText = 'width: 100%; padding: 6px; background: #333; color: white; border: 1px solid #555; border-radius: 3px;';
 
                     let items: any[] = [];
-                    if (param.source === 'objects') items = projectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }));
+                    if (param.source === 'objects') items = projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }));
                     else if (param.source === 'variables') items = (ctx.enrichedProject.variables || []).map((v: any) => ({ value: v.name, label: v.name }));
                     else if (param.source === 'stages') items = (ctx.project.stages || []).map((s: any) => ({ value: s.id, label: s.name || s.id }));
                     else if (param.source === 'services') items = serviceRegistry.listServices().map(s => ({ value: s, label: s }));
-                    else if (param.source === 'tasks') items = projectRegistry.getTasks().map(t => ({ value: t.name, label: t.name }));
-                    else if (param.source === 'actions') items = projectRegistry.getActions().map(a => ({ value: a.name, label: a.name }));
+                    else if (param.source === 'tasks') items = projectTaskRegistry.getTasks().map(t => ({ value: t.name, label: t.name }));
+                    else if (param.source === 'actions') items = projectActionRegistry.getActions().map(a => ({ value: a.name, label: a.name }));
                     else if (param.source === 'easing-functions') items = ['linear', 'easeIn', 'easeOut', 'easeInOut'].map(e => ({ value: e, label: e }));
 
                     const empty = document.createElement('option');

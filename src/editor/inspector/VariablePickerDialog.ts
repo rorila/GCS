@@ -1,4 +1,5 @@
-import { projectRegistry } from '../../services/ProjectRegistry';
+import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
+
 import { dataService } from '../../services/DataService';
 
 /**
@@ -49,7 +50,7 @@ export class VariablePickerDialog {
             dialog.appendChild(content);
 
             // Variablen sammeln
-            const variables = projectRegistry.getVariables();
+            const variables = projectVariableRegistry.getVariables();
             const globalVars = variables.filter(v => (v as any).uiScope === 'global' || (v as any).scope === 'global');
             const stageVars = variables.filter(v => (v as any).uiScope !== 'global' && (v as any).scope !== 'global');
 

@@ -1,3 +1,5 @@
+import { coreStore } from '../services/registry/CoreStore';
+import { projectTaskRegistry } from '../services/registry/TaskRegistry';
 import { GameProject, StageDefinition } from '../model/types';
 
 import { FlowElement } from './flow/FlowElement';
@@ -12,7 +14,7 @@ import { TFlowStage } from '../components/TFlowStage';
 import { ContextMenu } from './ui/ContextMenu';
 import { mediatorService, MediatorEvents } from '../services/MediatorService';
 import { Logger } from '../utils/Logger';
-import { projectRegistry } from '../services/ProjectRegistry';
+
 import { FlowSyncManager } from './services/FlowSyncManager';
 import { FlowNamingService } from './services/FlowNamingService';
 import { FlowMapManager, FlowMapHost } from './services/FlowMapManager';
@@ -561,13 +563,13 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
 
         // --- NEW: Sync activeStageId based on Task location ---
         if (context !== 'global' && context !== 'event-map' && context !== 'element-overview') {
-            const container = projectRegistry.getTaskContainer(context);
+            const container = projectTaskRegistry.getTaskContainer(context);
             if (container.type === 'stage' && container.stageId) {
                 FlowEditor.logger.info(`Auto-switching projectRegistry.activeStageId to ${container.stageId} for task ${context}`);
-                projectRegistry.setActiveStageId(container.stageId);
+                coreStore.setActiveStageId(container.stageId);
             } else if (container.type === 'global') {
                 FlowEditor.logger.info(`Auto-switching projectRegistry.activeStageId to null (global) for task ${context}`);
-                projectRegistry.setActiveStageId(null);
+                coreStore.setActiveStageId(null);
             }
         }
 

@@ -1,6 +1,12 @@
-import { projectRegistry } from '../../services/ProjectRegistry';
-import { serviceRegistry } from '../../services/ServiceRegistry';
+import { coreStore } from '../../services/registry/CoreStore';
+import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
 import { actionRegistry } from '../../runtime/ActionRegistry';
+import { projectActionRegistry } from '../../services/registry/ActionRegistry';
+import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
+import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
+
+import { serviceRegistry } from '../../services/ServiceRegistry';
+
 import { MethodRegistry } from '../MethodRegistry';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { Logger } from '../../utils/Logger';
@@ -343,7 +349,7 @@ export class InspectorRenderer {
         // Robuste Erkennung: Prüfe ob Action in der aktuellen Stage definiert ist
         const actionName = selectedObject.Name || selectedObject.name || selectedObject.data?.name;
         if (actionName) {
-            const project = projectRegistry.getProject();
+            const project = coreStore.getProject();
             if (project) {
                 const activeStage = project.stages?.find((s: any) => s.id === project.activeStageId);
                 const inActiveStage = activeStage && (activeStage.actions || []).some(
@@ -474,7 +480,7 @@ export class InspectorRenderer {
 
                             // Falls changes leer/fehlt → von der echten Action-Definition laden
                             if (!resolvedChanges || (typeof resolvedChanges === 'object' && Object.keys(resolvedChanges).length === 0)) {
-                                const actionDef = projectRegistry.findOriginalAction(actionName);
+                                const actionDef = projectActionRegistry.findOriginalAction(actionName);
                                 if (actionDef) {
                                     resolvedChanges = (actionDef as any).changes || {};
                                     if (!resolvedTarget) resolvedTarget = (actionDef as any).target || '';
@@ -485,7 +491,7 @@ export class InspectorRenderer {
                             const targetName = resolvedTarget;
 
                             // Hole Properties des Ziel-Objekts
-                            const targetObjDef = projectRegistry.getObjects().find((o: any) => o.name === targetName);
+                            const targetObjDef = projectObjectRegistry.getObjects().find((o: any) => o.name === targetName);
                             let availableProps: string[] = [];
                             if (targetObjDef && typeof targetObjDef.getInspectorProperties === 'function') {
                                 availableProps = targetObjDef.getInspectorProperties()
@@ -1077,35 +1083,35 @@ export class InspectorRenderer {
         if (!prop.source) return [];
 
         if (prop.source === 'tasks') {
-            return projectRegistry.getTasks('all').map(t => ({ value: t.name, label: t.name }));
+            return projectTaskRegistry.getTasks('all').map(t => ({ value: t.name, label: t.name }));
         }
         if (prop.source === 'actions') {
-            return projectRegistry.getActions('all').map(a => ({ value: a.name, label: a.name }));
+            return projectActionRegistry.getActions('all').map(a => ({ value: a.name, label: a.name }));
         }
         if (prop.source === 'dataActions') {
-            return projectRegistry.getActions('all').filter((a: any) => a.type === 'data_action' || a.type === 'http').map((a: any) => ({ value: a.name, label: a.name }));
+            return projectActionRegistry.getActions('all').filter((a: any) => a.type === 'data_action' || a.type === 'http').map((a: any) => ({ value: a.name, label: a.name }));
         }
         if (prop.source === 'imageLists') {
-            const imageLists = projectRegistry.getObjects().filter((o: any) => o.className === 'TImageList');
+            const imageLists = projectObjectRegistry.getObjects().filter((o: any) => o.className === 'TImageList');
             return [
                 { value: '', label: '— Keine —' },
                 ...imageLists.map((o: any) => ({ value: o.name, label: o.name }))
             ];
         }
         if (prop.source === 'variables') {
-            return projectRegistry.getVariables().map(v => ({ value: v.name, label: v.name }));
+            return projectVariableRegistry.getVariables().map(v => ({ value: v.name, label: v.name }));
         }
         if (prop.source === 'objects') {
-            return projectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }));
+            return projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }));
         }
         if (prop.source === 'services') {
             return serviceRegistry.listServices().map(s => ({ value: s, label: s }));
         }
         if (prop.source === 'stages') {
-            return projectRegistry.getStages().map((s: any) => ({ value: s.id, label: s.name || s.id }));
+            return coreStore.getStages().map((s: any) => ({ value: s.id, label: s.name || s.id }));
         }
         if (prop.source === 'dataStores') {
-            return projectRegistry.getObjects()
+            return projectObjectRegistry.getObjects()
                 .filter(o => o.className === 'TDataStore')
                 .map(o => ({ value: o.name, label: o.name }));
         }
@@ -1113,7 +1119,7 @@ export class InspectorRenderer {
             // Felder des gewählten DataStores dynamisch auflösen
             try {
                 const { dataService } = require('../../services/DataService');
-                const allObjects = projectRegistry.getObjects();
+                const allObjects = projectObjectRegistry.getObjects();
                 // Den DataStore-Namen vom aktuell selektierten Objekt lesen
                 const dsName = prop._context?.dataStore;
                 if (dsName) {

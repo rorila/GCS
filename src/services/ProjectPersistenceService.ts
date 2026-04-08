@@ -1,6 +1,7 @@
+import { coreStore } from './registry/CoreStore';
 import { GameProject } from '../model/types';
 import { GameExporter } from '../export/GameExporter';
-import { projectRegistry } from './ProjectRegistry';
+
 import { Logger } from '../utils/Logger';
 import { IStorageAdapter } from '../ports/IStorageAdapter';
 import { ServerStorageAdapter } from '../adapters/ServerStorageAdapter';
@@ -109,7 +110,7 @@ export class ProjectPersistenceService {
      * Fallback: Blob-Download im Browser.
      */
     public async saveProject(project?: GameProject) {
-        const targetProject = project || projectRegistry.getProject();
+        const targetProject = project || coreStore.getProject();
         if (!targetProject) {
             ProjectPersistenceService.logger.error('No project found to save');
             return;
@@ -148,7 +149,7 @@ export class ProjectPersistenceService {
      * Delegiert an LocalStorageAdapter.
      */
     public autoSaveToLocalStorage(project?: GameProject) {
-        const targetProject = project || projectRegistry.getProject();
+        const targetProject = project || coreStore.getProject();
         if (!targetProject) return;
 
         if (this.autoSaveAdapter) {
@@ -224,7 +225,7 @@ export class ProjectPersistenceService {
      * Delegiert an ServerStorageAdapter.
      */
     public async saveToServer(project?: GameProject): Promise<boolean> {
-        const targetProject = project || projectRegistry.getProject();
+        const targetProject = project || coreStore.getProject();
         if (!targetProject || !this.serverAdapter) return false;
 
         try {
@@ -241,28 +242,28 @@ export class ProjectPersistenceService {
     // =========================================================================
 
     public async exportHTML(project?: GameProject) {
-        const targetProject = project || projectRegistry.getProject();
+        const targetProject = project || coreStore.getProject();
         if (!targetProject) return;
         const exporter = new GameExporter();
         await exporter.exportHTML(targetProject);
     }
 
     public async exportJSON(project?: GameProject) {
-        const targetProject = project || projectRegistry.getProject();
+        const targetProject = project || coreStore.getProject();
         if (!targetProject) return;
         const exporter = new GameExporter();
         await exporter.exportJSON(targetProject);
     }
 
     public async exportHTMLCompressed(project?: GameProject) {
-        const targetProject = project || projectRegistry.getProject();
+        const targetProject = project || coreStore.getProject();
         if (!targetProject) return;
         const exporter = new GameExporter();
         await exporter.exportHTMLCompressed(targetProject);
     }
 
     public async exportJSONCompressed(project?: GameProject) {
-        const targetProject = project || projectRegistry.getProject();
+        const targetProject = project || coreStore.getProject();
         if (!targetProject) return;
         const exporter = new GameExporter();
         await exporter.exportJSONCompressed(targetProject);

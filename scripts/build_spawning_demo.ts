@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { AgentController } from '../src/services/AgentController';
 import { GameProject } from '../src/model/types';
-import { projectRegistry } from '../src/services/ProjectRegistry';
+import { coreStore } from '../src/services/registry/CoreStore';
 
 // 1. Setup Base Project
 const project: GameProject = {
@@ -38,7 +38,7 @@ const project: GameProject = {
     variables: []
 } as any;
 
-projectRegistry.setProject(project as any);
+coreStore.setProject(project as any);
 const agent = AgentController.getInstance();
 agent.setProject(project as any);
 

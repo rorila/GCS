@@ -1,7 +1,8 @@
+import { projectObjectRegistry } from '../../../services/registry/ObjectRegistry';
 import { Logger } from '../../../utils/Logger';
 import { IDialogContext } from '../IDialogContext';
 import { DialogExpressionEvaluator } from '../utils/DialogExpressionEvaluator';
-import { projectRegistry } from '../../../services/ProjectRegistry';
+
 import { imageService } from '../../../services/ImageService';
 
 const logger = Logger.get('JSONDialogRenderer', 'DialogActionHandler');
@@ -331,7 +332,7 @@ export class DialogActionHandler {
                 const cleanName = varName.trim().replace(/\s+/g, '');
                 ctx.dialogData.target = `\${${cleanName}}`;
             } else {
-                ctx.dialogData.target = projectRegistry.getObjects()[0]?.name || '';
+                ctx.dialogData.target = projectObjectRegistry.getObjects()[0]?.name || '';
             }
             ctx.render();
         } else if (selectedValue?.startsWith('📦 ${')) {

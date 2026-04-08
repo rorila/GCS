@@ -1,3 +1,8 @@
+import { projectReferenceTracker } from '../../services/registry/ReferenceTracker';
+import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
+import { projectActionRegistry } from '../../services/registry/ActionRegistry';
+import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
+import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
 import { GameProject } from '../../model/types';
 import { FlowElement } from '../flow/FlowElement';
 import { FlowConnection } from '../flow/FlowConnection';
@@ -5,7 +10,7 @@ import { FlowTask } from '../flow/FlowTask';
 import { FlowAction } from '../flow/FlowAction';
 import { FlowDataAction } from '../flow/FlowDataAction';
 import { ContextMenu, ContextMenuItem } from '../ui/ContextMenu';
-import { projectRegistry } from '../../services/ProjectRegistry';
+
 import { libraryService } from '../../services/LibraryService';
 import { FlowNamingService } from './FlowNamingService';
 import { ExpertDialog } from '../../components/ExpertDialog';
@@ -114,7 +119,7 @@ export class FlowContextMenuProvider {
 
         // Resolver for DataStores (nur TDataStore-Objekte)
         expertRuleEngine.registerDynamicResolver('@dataStores', () => {
-            return projectRegistry.getObjects()
+            return projectObjectRegistry.getObjects()
                 .filter(o => o.className === 'TDataStore')
                 .map(o => ({ value: o.name, label: o.name, description: 'DataStore' }));
         });
@@ -125,7 +130,7 @@ export class FlowContextMenuProvider {
             if (dsName) {
                 try {
                     const { dataService } = require('../../services/DataService');
-                    const allObjects = projectRegistry.getObjects();
+                    const allObjects = projectObjectRegistry.getObjects();
                     const dsObj = allObjects.find(o => o.name === dsName || o.id === dsName);
                     const collection = (dsObj as any)?.defaultCollection || '';
                     if (collection) {
@@ -143,7 +148,7 @@ export class FlowContextMenuProvider {
 
         // Resolver for Variables
         expertRuleEngine.registerDynamicResolver('@variables', () => {
-            return projectRegistry.getVariables()
+            return projectVariableRegistry.getVariables()
                 .map(v => ({ value: v.name, label: v.name, description: (v as any).type || '' }));
         });
     }
@@ -192,7 +197,7 @@ export class FlowContextMenuProvider {
         if (expertActionItem) items.push(expertActionItem);
 
         const elementName = node.Name || node.id;
-        const liveRefs = projectRegistry.findReferences(elementName);
+        const liveRefs = projectReferenceTracker.findReferences(elementName);
         const refCount = liveRefs.length;
 
         items.push({
@@ -219,7 +224,7 @@ export class FlowContextMenuProvider {
 
         // 2. Assign Actions (Reuse)
         if (node.getType() === 'task') {
-            const allTasks = projectRegistry.getTasks('all');
+            const allTasks = projectTaskRegistry.getTasks('all');
             const linkItems: ContextMenuItem[] = allTasks.map(t => ({
                 label: t.name,
                 action: () => this.assignTaskToNode(node, t)
@@ -256,7 +261,7 @@ export class FlowContextMenuProvider {
                 });
             }
         } else if (node.getType() === 'action') {
-            const allActions = projectRegistry.getActions('all');
+            const allActions = projectActionRegistry.getActions('all');
             const linkItems: ContextMenuItem[] = allActions.map(a => ({
                 label: a.name,
                 action: () => this.linkActionToNode(node, a)
@@ -454,7 +459,7 @@ export class FlowContextMenuProvider {
         ];
 
         // Vorhandene Actions einfügen (Link)
-        const allActions = projectRegistry.getActions('all');
+        const allActions = projectActionRegistry.getActions('all');
         const insertActionItems: ContextMenuItem[] = allActions.map(a => ({
             label: a.name,
             action: () => {
@@ -472,7 +477,7 @@ export class FlowContextMenuProvider {
         }
 
         // Vorhandene Globale Tasks einfügen
-        const allTasks = projectRegistry.getTasks('all');
+        const allTasks = projectTaskRegistry.getTasks('all');
         const globalTasks = allTasks.filter(t => t.uiScope === 'global' || (t as any).scope === 'global');
         
         const insertTaskItems: ContextMenuItem[] = globalTasks.map(t => ({
@@ -661,7 +666,7 @@ export class FlowContextMenuProvider {
         if (!proj) return;
 
         // Prepare dynamic options from registry
-        const objects = projectRegistry.getObjectsWithMetadata().map(obj => ({
+        const objects = projectObjectRegistry.getObjectsWithMetadata().map(obj => ({
             label: obj.name,
             value: obj.name,
             description: obj.className,

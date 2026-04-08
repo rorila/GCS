@@ -1,6 +1,6 @@
+import { coreStore } from '../src/services/registry/CoreStore';
 import { AgentController } from '../src/services/AgentController';
 import { GameProject } from '../src/model/types';
-import { projectRegistry } from '../src/services/ProjectRegistry';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -57,7 +57,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createTask('stage_main', 'MainTask');
         agent.createTask('stage_main', 'SubTask');
@@ -75,7 +75,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createTask('stage_main', 'MainTask2');
         agent.addTaskCall('MainTask2', 'NonExistentTask');
@@ -90,7 +90,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createTask('stage_main', 'BroadcastTask');
         agent.setTaskTriggerMode('BroadcastTask', 'broadcast');
@@ -107,7 +107,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createTask('stage_main', 'BadModeTask');
         agent.setTaskTriggerMode('BadModeTask', 'invalid-mode' as any);
@@ -122,7 +122,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createTask('stage_main', 'ParamTask');
         agent.addTaskParam('ParamTask', 'hitSide', 'string', '');
@@ -142,7 +142,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createTask('stage_main', 'UpdateParamTask');
         agent.addTaskParam('UpdateParamTask', 'hitSide', 'string', '');
@@ -162,7 +162,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createTask('stage_main', 'MoveTask');
         agent.addAction('MoveTask', 'property', 'ActionA', { target: 'Obj1', properties: { x: 1 } });
@@ -184,7 +184,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createTask('stage_main', 'MoveFailTask');
         agent.addAction('MoveFailTask', 'property', 'OnlyAction', { target: 'Obj1', properties: { x: 1 } });
@@ -203,7 +203,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         // 1. Variablen
         agent.addVariable('scoreLeft', 'number', 0);
@@ -267,7 +267,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         const batchResults = agent.executeBatch([
             { method: 'addVariable', params: ['batchScore', 'number', 0] },
@@ -290,7 +290,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         // Erste Op ist gültig, zweite soll fehlschlagen
         const batchResults = agent.executeBatch([
@@ -314,7 +314,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         // Komplettes Tennis-Spiel als Batch
         const batchOps = [
@@ -381,7 +381,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createSprite('stage_main', 'Ball', 30, 20, 2, 2, {
             velocityX: 3, velocityY: 3,
@@ -409,7 +409,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createLabel('stage_main', 'ScoreLabel', 20, 2, '${Score}', {
             fontSize: 48, fontWeight: 'bold', color: '#f7c948', width: 10, height: 3
@@ -433,7 +433,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createSprite('stage_main', 'Paddle', 5, 15, 2, 8);
         agent.setSpriteCollision('stage_main', 'Paddle', true, 'paddle');
@@ -450,7 +450,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         agent.createSprite('stage_main', 'VelocityBall', 30, 20, 1, 1);
         agent.setSpriteVelocity('stage_main', 'VelocityBall', 5, -3);
@@ -492,7 +492,7 @@ export async function runTests(): Promise<TestResult[]> {
         const project = createTestProject();
         const agent = AgentController.getInstance();
         agent.setProject(project);
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
 
         // Infrastruktur
         agent.addObject('stage_blueprint', { className: 'TGameLoop', name: 'GameLoop', x: 2, y: 2, width: 3, height: 1, isService: true, isHiddenInRun: true, targetFPS: 60 });

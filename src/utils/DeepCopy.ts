@@ -63,6 +63,12 @@ export function safeDeepCopy<T>(obj: T, seen = new WeakMap()): T {
         return result as any;
     }
 
+    // Use clean DTO representations for component models if available
+    // This preserves getter-only properties (like 'backgroundImage') that Object.keys() would miss.
+    if (target && typeof (target as any).toDTO === 'function') {
+        return safeDeepCopy((target as any).toDTO(), seen);
+    }
+
     // Handle Plain Objects
     const result: any = {};
     seen.set(obj, result);

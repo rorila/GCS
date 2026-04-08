@@ -286,3 +286,10 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 - **DO**: Stelle sicher, dass die Proxy-Konfiguration in ite.config.ts für den Game-Server (z.B. /api auf http://localhost:8080) korrekt gesetzt ist, falls lokales Speichern via Dev-Server nicht erreichbar ist.
 - **DON'T**: Entferne nicht blindlings proxy Server-Konfigurationen aus Vite, wenn nicht-native Backends (wie der game-server) im Einsatz sind.
 - **DON'T**: Reiche keine Design-Zeit-JSON-Objekte direkt an die Game-Engine weiter. Die Runtime modifiziert Stages und hydratisiert Objekte doppelt, was Setter (wie 'align') ueberspringt und das originale Design-Data kontaminiert. Nutze immer 'safeDeepCopy' im EditorRunManager.
+
+### Architectural Registries
+- **DO NOT** use a monolithic ProjectRegistry. It has been decentralized.
+- **DO** use the domain-specific registries under `src/services/registry/` (e.g., `projectObjectRegistry`, `coreStore`) to guarantee single-source-of-truth and avoid circular dependencies.
+
+
+- **safeDeepCopy() mit Getter-Properties**: Object.keys() und or...in ignorieren Getter/Setter-Properties, die auf dem Prototyp einer Klasse definiert sind (TSprite.backgroundImage). Wenn man Instanzen (TWindow) via generischem JSON.stringify oder manual iterierenden safeDeepCopy klont, gehen diese Properties verloren. **Lösung**: safeDeepCopy prüfen lassen, ob ein Objekt eine .toDTO()-Methode besitzt, und diese nutzen, da sie alle via getInspectorProperties() deklarierten Getter inkludiert.

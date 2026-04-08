@@ -1,7 +1,9 @@
+import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
+import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
 import { FlowElement } from './FlowElement';
 import { InspectorSection } from '../inspector/types';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
-import { projectRegistry } from '../../services/ProjectRegistry';
+
 import { componentRegistry } from '../../services/ComponentRegistry';
 import { Logger } from '../../utils/Logger';
 
@@ -114,13 +116,13 @@ export class FlowCondition extends FlowElement {
 
         // --- LINKS OPARAND ---
         if (this.LeftOperandType === 'variable') {
-            const legacyVars = projectRegistry.getVariables(undefined, true, 'all').map(v => v.name);
-            const compVars = projectRegistry.getObjects('all').filter(c => (c.className || c.type || '').endsWith('Variable')).map(c => c.name);
+            const legacyVars = projectVariableRegistry.getVariables(undefined, true, 'all').map(v => v.name);
+            const compVars = projectObjectRegistry.getObjects('all').filter(c => (c.className || c.type || '').endsWith('Variable')).map(c => c.name);
             const allVars = Array.from(new Set([...legacyVars, ...compVars]));
             const options = allVars.map(n => `\${${n}}`);
             props.push({ group: 'Condition', name: 'LeftOperandValue', type: 'select', label: 'Links Variable', options: options.length ? options : ['(Keine Variable gefunden)'] });
         } else if (this.LeftOperandType === 'property') {
-            const comps = projectRegistry.getObjects('all')
+            const comps = projectObjectRegistry.getObjects('all')
                 .filter(c => c.name)
                 .map(c => ({
                     value: c.uiScope === 'global' ? `global.${c.name}` : c.name,
@@ -131,7 +133,7 @@ export class FlowCondition extends FlowElement {
             let availableProps: string[] = ['(Auswählen)'];
             const baseVarStr = this.LeftOperandBaseVar || '';
             const cleanTarget = baseVarStr.replace(/^global\./, '');
-            const targetObj = projectRegistry.getObjects('all').find(c => c.name === cleanTarget);
+            const targetObj = projectObjectRegistry.getObjects('all').find(c => c.name === cleanTarget);
             if (targetObj) {
                 const inspProps = componentRegistry.getInspectorProperties(targetObj) || [];
                 availableProps = inspProps.map((p: any) => p.name).filter((n: string) => n);
@@ -146,13 +148,13 @@ export class FlowCondition extends FlowElement {
 
         // --- RECHTS OPERAND ---
         if (this.RightOperandType === 'variable') {
-            const legacyVars = projectRegistry.getVariables(undefined, true, 'all').map(v => v.name);
-            const compVars = projectRegistry.getObjects('all').filter(c => (c.className || c.type || '').endsWith('Variable')).map(c => c.name);
+            const legacyVars = projectVariableRegistry.getVariables(undefined, true, 'all').map(v => v.name);
+            const compVars = projectObjectRegistry.getObjects('all').filter(c => (c.className || c.type || '').endsWith('Variable')).map(c => c.name);
             const allVars = Array.from(new Set([...legacyVars, ...compVars]));
             const options = allVars.map(n => `\${${n}}`);
             props.push({ group: 'Condition', name: 'RightOperandValue', type: 'select', label: 'Rechts Variable', options: options.length ? options : ['(Keine Variable gefunden)'] });
         } else if (this.RightOperandType === 'property') {
-            const comps = projectRegistry.getObjects('all')
+            const comps = projectObjectRegistry.getObjects('all')
                 .filter(c => c.name)
                 .map(c => ({
                     value: c.uiScope === 'global' ? `global.${c.name}` : c.name,
@@ -163,7 +165,7 @@ export class FlowCondition extends FlowElement {
             let availableProps: string[] = ['(Auswählen)'];
             const baseVarStr = this.RightOperandBaseVar || '';
             const cleanTarget = baseVarStr.replace(/^global\./, '');
-            const targetObj = projectRegistry.getObjects('all').find(c => c.name === cleanTarget);
+            const targetObj = projectObjectRegistry.getObjects('all').find(c => c.name === cleanTarget);
             if (targetObj) {
                 const inspProps = componentRegistry.getInspectorProperties(targetObj) || [];
                 availableProps = inspProps.map((p: any) => p.name).filter((n: string) => n);

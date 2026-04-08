@@ -1,6 +1,12 @@
+import { projectReferenceTracker } from './registry/ReferenceTracker';
+import { projectObjectRegistry } from './registry/ObjectRegistry';
+import { projectActionRegistry } from './registry/ActionRegistry';
+import { projectTaskRegistry } from './registry/TaskRegistry';
+import { projectVariableRegistry } from './registry/VariableRegistry';
 import { TObjectList } from '../components/TObjectList';
+import { coreStore } from './registry/CoreStore';
 import { GameAction, GameTask, ProjectVariable } from '../model/types';
-import { projectRegistry } from './ProjectRegistry';
+
 import { RefactoringManager } from '../editor/RefactoringManager';
 import { Logger } from '../utils/Logger';
 
@@ -218,8 +224,8 @@ export class MediatorService {
      * Hilfsmethode: Liefert alle visuellen Objekte (Lokale + Globale) für eine Stage.
      */
     public getVisualObjects(_stageId: string): any[] {
-        const objs = projectRegistry.getObjects();
-        const project = (projectRegistry as any).project;
+        const objs = projectObjectRegistry.getObjects();
+        const project = coreStore.project;
 
         return objs.map(obj => {
             const isGlobal = project?.objects?.some((o: any) => o.id === obj.id);
@@ -234,10 +240,10 @@ export class MediatorService {
      * Hilfsmethode: Liefert alle Tasks für eine Stage.
      */
     public getTasks(stageId: string): GameTask[] {
-        const tasks = projectRegistry.getTasks(stageId);
+        const tasks = projectTaskRegistry.getTasks(stageId);
         return tasks.map(task => ({
             ...task,
-            usageCount: projectRegistry.getTaskUsage(task.name).length,
+            usageCount: projectReferenceTracker.getTaskUsage(task.name).length,
             uiScope: (task as any).uiScope || 'stage'
         })).filter(task => {
             // Library-Tasks nur anzeigen, wenn sie im Projekt verwendet werden (usageCount > 0)
@@ -247,12 +253,12 @@ export class MediatorService {
     }
 
     public getActions(stageId: string): GameAction[] {
-        const actions = projectRegistry.getActions(stageId);
+        const actions = projectActionRegistry.getActions(stageId);
         return actions.map(action => {
             const anyAction = action as any;
             return {
                 ...action,
-                usageCount: projectRegistry.getActionUsage(action.name).length,
+                usageCount: projectReferenceTracker.getActionUsage(action.name).length,
                 uiScope: anyAction.uiScope || 'stage',
                 changesDisplay: anyAction.changes ? JSON.stringify(anyAction.changes).replace(/[{}"]/g, '').replace(/:/g, '=') :
                     (anyAction.method ? `${anyAction.method}(...)` : '')
@@ -262,23 +268,23 @@ export class MediatorService {
 
     public getVariables(stageId: string): ProjectVariable[] {
         if (!stageId) return [];
-        const vars = projectRegistry.getVariables() as ProjectVariable[];
+        const vars = projectVariableRegistry.getVariables() as ProjectVariable[];
         return vars.map(v => ({
             ...v,
-            usageCount: projectRegistry.getVariableUsage(v.name).length,
+            usageCount: projectReferenceTracker.getVariableUsage(v.name).length,
             uiScope: (v as any).uiScope || 'stage'
         }));
     }
 
     public getFlowCharts(stageId: string): any[] {
-        const project = (projectRegistry as any).project;
+        const project = coreStore.project;
         if (!project) return [];
 
         const charts: any[] = [];
         // Globale Charts
         if (project.flowCharts) {
             Object.keys(project.flowCharts).forEach(name => {
-                const data = project.flowCharts[name];
+                const data = project.flowCharts![name];
                 charts.push({
                     name,
                     uiScope: 'global',
@@ -291,7 +297,7 @@ export class MediatorService {
             const stage = project.stages.find((s: any) => s.id === stageId);
             if (stage && stage.flowCharts) {
                 Object.keys(stage.flowCharts).forEach(name => {
-                    const data = stage.flowCharts[name];
+                    const data = stage.flowCharts![name];
                     charts.push({
                         name,
                         uiScope: 'stage',
@@ -304,7 +310,7 @@ export class MediatorService {
     }
 
     public getStages(): any[] {
-        const project = (projectRegistry as any).project;
+        const project = coreStore.project;
         if (!project || !project.stages) return [];
 
         return project.stages.map((s: any) => ({
@@ -319,7 +325,7 @@ export class MediatorService {
      * ZENTRALES REFACTORING: Benennt einen Task um und aktualisiert alle Referenzen inkl. FlowCharts.
      */
     public renameTask(stageId: string, oldName: string, newName: string): boolean {
-        const project = (projectRegistry as any).project;
+        const project = coreStore.project;
         if (!project) return false;
 
         this.refactoringLogger.info(`Refactoring on Stage "${stageId}": Rename Task "${oldName}" -> "${newName}"`);

@@ -1,10 +1,11 @@
+import { projectActionRegistry } from '../../services/registry/ActionRegistry';
 import { Editor } from '../Editor';
 import { TWindow } from '../../components/TWindow';
 import { componentRegistry } from '../../services/ComponentRegistry';
 import { changeRecorder } from '../../services/ChangeRecorder';
 import { RefactoringManager } from '../RefactoringManager';
 import { mediatorService } from '../../services/MediatorService';
-import { projectRegistry } from '../../services/ProjectRegistry';
+
 import { Logger } from '../../utils/Logger';
 
 export class EditorCommandManager {
@@ -276,7 +277,7 @@ export class EditorCommandManager {
         } else if (isAction) {
             // Action validity check (Global scope check)
             // Fix: Ausschluss der eigenen Action-ID, damit 2-Way-Binding nicht "Existiert bereits" wirft
-            const allActions = projectRegistry.getActions('all', false);
+            const allActions = projectActionRegistry.getActions('all', false);
             const conflictingAction = allActions.find(a => a.name === newName && (a as any).id !== obj.id && (a as any).actionName !== obj.id);
             
             if (conflictingAction) {

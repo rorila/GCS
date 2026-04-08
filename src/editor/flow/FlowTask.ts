@@ -1,8 +1,9 @@
+import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
 
 import { GameProject } from '../../model/types';
 import { FlowElement } from './FlowElement';
 import { libraryService } from '../../services/LibraryService';
-import { projectRegistry } from '../../services/ProjectRegistry';
+
 import { InspectorSection } from '../inspector/types';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { Logger } from '../../utils/Logger';
@@ -60,7 +61,7 @@ export class FlowTask extends FlowElement {
 
         // 1. Resolve from project/stage via ProjectRegistry (Single Source of Truth)
         // This covers both global and stage-specific tasks in the current project.
-        let result: any = projectRegistry.findOriginalTask(taskName);
+        let result: any = projectTaskRegistry.findOriginalTask(taskName);
 
         // 2. If no project task OR project task has no params, try library
         if (!result || !result.params || result.params.length === 0) {

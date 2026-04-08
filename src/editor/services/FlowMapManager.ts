@@ -1,3 +1,5 @@
+import { projectReferenceTracker } from '../../services/registry/ReferenceTracker';
+import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
 import { GameProject } from '../../model/types';
 import { FlowElement } from '../flow/FlowElement';
 import { FlowAction } from '../flow/FlowAction';
@@ -7,7 +9,7 @@ import { FlowVariable } from '../flow/FlowVariable';
 
 import { FlowConnection } from '../flow/FlowConnection';
 import { libraryService } from '../../services/LibraryService';
-import { projectRegistry } from '../../services/ProjectRegistry';
+
 import { Logger } from '../../utils/Logger';
 
 const logger = Logger.get('FlowMapManager');
@@ -229,7 +231,7 @@ export class FlowMapManager {
 
         const activeStage = this.host.getActiveStage();
         const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint' || activeStage?.id === 'blueprint';
-        const usage = projectRegistry.getLogicalUsage();
+        const usage = projectReferenceTracker.getLogicalUsage();
 
         // 1. Prepare Widths and Maps
         let maxActionWidth = 150;
@@ -312,7 +314,7 @@ export class FlowMapManager {
             .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
             .forEach((action, idx) => {
                 const isUsed = usage.actions.has(action.name);
-                const refs = projectRegistry.findReferences(action.name);
+                const refs = projectReferenceTracker.findReferences(action.name);
 
                 const node = new FlowAction('over-action-' + idx, snappedActionX, currentActionY, this.host.canvas, gridSize);
                 node.Name = action.name || "Unbenannte Aktion";
@@ -335,7 +337,7 @@ export class FlowMapManager {
             .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
             .forEach((task, idx) => {
                 const isUsed = usage.tasks.has(task.name);
-                const refs = projectRegistry.findReferences(task.name);
+                const refs = projectReferenceTracker.findReferences(task.name);
                 const isLocal = (activeStage?.tasks || []).some((lt: any) => lt.name === task.name);
 
                 // Filter logic: Only show if local, or if global on blueprint stage
@@ -385,7 +387,7 @@ export class FlowMapManager {
             .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
             .forEach((v, idx) => {
                 const isUsed = usage.variables.has(v.name);
-                const refs = projectRegistry.findReferences(v.name);
+                const refs = projectReferenceTracker.findReferences(v.name);
 
                 const node = new FlowComponent('over-var-' + idx, varX, currentVarY, this.host.canvas, gridSize);
                 node.Name = v.name || "Unbenannte Variable";
@@ -410,7 +412,7 @@ export class FlowMapManager {
         taskNode.Text = taskName;
         taskNode.autoSize();
 
-        const tasks = projectRegistry.getTasks('all');
+        const tasks = projectTaskRegistry.getTasks('all');
         const taskDef = tasks.find((t: any) => t.name === taskName);
         
         if (taskDef && taskDef.description) {
@@ -484,7 +486,7 @@ export class FlowMapManager {
 
         if (!highlight) return;
 
-        const usage = projectRegistry.getLogicalUsage();
+        const usage = projectReferenceTracker.getLogicalUsage();
         const unusedDetails: any[] = [];
         let unusedActionCount = 0;
         let unusedTaskCount = 0;

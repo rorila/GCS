@@ -1,7 +1,8 @@
+import { coreStore } from '../../services/registry/CoreStore';
 import { GameProject } from '../../model/types';
 import { ViewType } from '../EditorViewManager';
 import { projectPersistenceService } from '../../services/ProjectPersistenceService';
-import { projectRegistry } from '../../services/ProjectRegistry';
+
 import { mediatorService } from '../../services/MediatorService';
 import { dataService } from '../../services/DataService';
 import { RefactoringManager } from '../RefactoringManager';
@@ -471,7 +472,7 @@ export class EditorDataManager {
             EditorDataManager.logger.warn('setProject() unavailable, using direct assignment:', err);
             // Essential fallback: set project reference directly
             (this.host as any).project = data;
-            projectRegistry.setProject(data);
+            coreStore.setProject(data);
             // Update managers that are accessible
             if (this.host.stageManager) this.host.stageManager.setProject(data);
             if (this.host.dialogManager) this.host.dialogManager.setProject(data);
@@ -719,7 +720,7 @@ export class EditorDataManager {
             this.host.commandManager.selectObject(newInstance.id);
         }, 50);
 
-        projectRegistry.setProject(this.host.project);
+        coreStore.setProject(this.host.project);
     }
 
     public async loadFromServer() {

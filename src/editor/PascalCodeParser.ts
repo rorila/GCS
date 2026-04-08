@@ -1,5 +1,6 @@
+import { projectTaskRegistry } from '../services/registry/TaskRegistry';
 import { GameProject, SequenceItem, ProjectVariable, VariableScope, GameTask } from '../model/types';
-import { projectRegistry } from '../services/ProjectRegistry';
+
 import { Logger } from '../utils/Logger';
 
 const logger = Logger.get('PascalCodeParser', 'Pascal_Parsing');
@@ -79,7 +80,7 @@ export class PascalCodeParser {
 
                 if (potentialOldTask) {
                     logger.debug(`Detected rename: ${potentialOldTask.name} -> ${taskName}`);
-                    projectRegistry.renameTask(potentialOldTask.name, taskName);
+                    projectTaskRegistry.renameTask(potentialOldTask.name, taskName);
                     task = potentialOldTask;
                 } else {
                     task = { name: taskName, actionSequence: [] };

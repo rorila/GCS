@@ -1,6 +1,5 @@
 
 import { agentController } from '../src/services/AgentController';
-import { projectRegistry } from '../src/services/ProjectRegistry';
 import { GameProject } from '../src/model/types';
 
 // Mock Project

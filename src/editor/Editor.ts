@@ -1,3 +1,4 @@
+import { coreStore } from '../services/registry/CoreStore';
 import { Stage } from './Stage';
 import { GameProject, StageType, StageDefinition, GameAction, GameTask, ProjectVariable, ComponentData } from '../model/types';
 import { RefactoringManager } from './RefactoringManager';
@@ -15,7 +16,7 @@ import { FlowToolbox } from './FlowToolbox';
 import { MenuBar } from './MenuBar';
 import { EditorStageManager } from './EditorStageManager';
 // projectPersistenceService wird via EditorDataManager genutzt (saveProject, exportHTML etc.)
-import { projectRegistry } from '../services/ProjectRegistry';
+
 
 import { libraryService } from '../services/LibraryService';
 import { EditorViewManager, IViewHost, ViewType } from './EditorViewManager';
@@ -88,7 +89,7 @@ export class Editor implements IViewHost {
         this.project = this.createDefaultProject();
 
         // 1. Core Services & Registry
-        projectRegistry.setProject(this.project);
+        coreStore.setProject(this.project);
         this.stage = new Stage('stage', this.project.stage.grid);
         this.dialogManager = new DialogManager();
         this.dialogManager.setProject(this.project);
@@ -440,7 +441,7 @@ export class Editor implements IViewHost {
         this.project = project;
 
         // 1. Registry & Services
-        projectRegistry.setProject(project);
+        coreStore.setProject(project);
         projectStore.setProject(project);
 
         // 2. Specialized Managers

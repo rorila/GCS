@@ -1,8 +1,10 @@
+import { projectActionRegistry } from '../../services/registry/ActionRegistry';
+import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
 import { ReactiveRuntime } from '../../runtime/ReactiveRuntime';
 import { GameProject } from '../../model/types';
 import { InspectorHost } from './InspectorHost';
 import { RefactoringManager } from '../RefactoringManager';
-import { projectRegistry } from '../../services/ProjectRegistry';
+
 import { PropertyHelper } from '../../runtime/PropertyHelper';
 import { UseCaseManager } from '../../utils/UseCaseManager';
 import { mediatorService, MediatorEvents } from '../../services/MediatorService';
@@ -237,7 +239,7 @@ export class InspectorActionHandler {
                     if (currentParent.className === 'TDataList' || currentParent.type === 'DataList') {
                         const dsName = currentParent.dataSource;
                         if (dsName) {
-                            const action = projectRegistry.getActions('all', false).find(a => (a as any).resultVariable === dsName || a.name === dsName);
+                            const action = projectActionRegistry.getActions('all', false).find(a => (a as any).resultVariable === dsName || a.name === dsName);
                             if (action && (action as any).selectFields) {
                                 const fieldsStr = (action as any).selectFields;
                                 repeaterFields = fieldsStr === '*' ? ['*'] : fieldsStr.split(',').map((f: string) => f.trim()).filter((f: string) => f);
@@ -262,7 +264,7 @@ export class InspectorActionHandler {
 
         // Wert setzen (row.* oder normale Variable)
         const isRepeater = varNameInput.startsWith('row.');
-        const variables = projectRegistry.getVariables({
+        const variables = projectVariableRegistry.getVariables({
             taskName: (obj as any).taskName,
             actionId: (obj as any).id || (obj as any).name
         });

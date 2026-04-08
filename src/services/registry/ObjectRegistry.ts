@@ -1,0 +1,143 @@
+import { coreStore } from './CoreStore';
+import { ComponentData } from '../../model/types';
+import { ScopedObject } from './RegistryTypes';
+import { projectReferenceTracker } from './ReferenceTracker';
+
+class ObjectRegistry {
+
+    public getObjects(scopeFilter?: 'stage-only' | 'all'): ComponentData[] {
+        const project = coreStore.project;
+        if (!project) return [];
+
+        const globalServiceClasses = [
+            'TStageController', 'TGameLoop', 'TGameState', 'TGameServer',
+            'TInputController', 'THandshake', 'THeartbeat', 'TToast', 'TStatusBar',
+            'TAPIServer', 'TDataStore'
+        ];
+
+        const isService = (obj: any) => (obj as any).isService === true || globalServiceClasses.includes(obj.className);
+
+        const allObjects: ComponentData[] = [];
+        const objectIds = new Set<string>();
+
+        const activeStage = coreStore.activeStageId ? project.stages?.find((s: any) => s.id === coreStore.activeStageId) : null;
+        const isBlueprint = activeStage?.type === 'blueprint' || activeStage?.id === 'stage_blueprint' || activeStage?.id === 'blueprint';
+
+        if (project.stages && project.stages.length > 0) {
+            if (activeStage) {
+                const stageItems = [
+                    ...(activeStage.objects || []),
+                    ...(activeStage.variables || []) as unknown as ComponentData[]
+                ];
+                stageItems.forEach((obj: any) => {
+                    if (!objectIds.has(obj.id)) {
+                        allObjects.push(obj);
+                        objectIds.add(obj.id);
+                    }
+                });
+            }
+
+            project.stages.forEach((stage: any) => {
+                if (stage.id === coreStore.activeStageId) return;
+
+                const isStageBlueprint = stage.type === 'blueprint' || stage.id === 'stage_blueprint' || stage.id === 'blueprint';
+                const stageGlobals = [
+                    ...(stage.objects || []).filter((obj: any) => (obj as any).scope === 'global' || isService(obj) || isStageBlueprint),
+                    ...(stage.variables || []).filter((v: any) => (v as any).scope === 'global' || isStageBlueprint) as unknown as ComponentData[]
+                ];
+
+                stageGlobals.forEach((obj: any) => {
+                    if (!objectIds.has(obj.id)) {
+                        const inheritedObj = { ...obj, isInherited: true };
+                        allObjects.push(inheritedObj);
+                        objectIds.add(obj.id);
+                    }
+                });
+            });
+
+            if (scopeFilter === 'stage-only') {
+                const activeStage = project.stages.find((s: any) => s.id === coreStore.activeStageId);
+                return [
+                    ...(activeStage?.objects || []),
+                    ...(activeStage?.variables || []) as unknown as ComponentData[]
+                ].filter(o => o.name);
+            }
+        }
+
+        if (isBlueprint) {
+            const rootGlobals = [
+                ...(project.objects || []).filter(obj => (obj as any).scope === 'global'),
+                ...(project.variables || []).filter(v => (v as any).scope === 'global') as unknown as ComponentData[]
+            ];
+            rootGlobals.forEach(gObj => {
+                if (!objectIds.has(gObj.id)) {
+                    allObjects.push(gObj);
+                    objectIds.add(gObj.id);
+                }
+            });
+        }
+
+        if (allObjects.length === 0 && (!project.stages || project.stages.length === 0)) {
+            const legacyItems = [
+                ...(project.objects || []),
+                ...(project.variables || []) as unknown as ComponentData[]
+            ];
+            return legacyItems.filter(o => o.name);
+        }
+
+        return allObjects.filter(o => o.name);
+    }
+
+    public getFlowObjects(): any[] {
+        return coreStore.project?.flow?.elements || [];
+    }
+
+    public getObjectsWithMetadata(resolveUsage: boolean = true): ScopedObject[] {
+        const objects = this.getObjects();
+        return objects.map((obj: any) => {
+            const usage = resolveUsage ? projectReferenceTracker.getObjectUsage(obj.name) : [];
+            const isGlobal = coreStore.project?.objects.some(o => o.name === obj.name);
+            const scopedObj = { ...obj } as ScopedObject;
+            scopedObj.uiScope = isGlobal ? ('global' as const) : ('stage' as const);
+            scopedObj.usageCount = usage.length;
+            return scopedObj;
+        });
+    }
+
+    public validateObjectName(name: string): { valid: boolean; error?: string } {
+        if (!/^[A-Z][a-zA-Z0-9_]*$/.test(name)) {
+            return { valid: false, error: 'Objekt-Namen müssen mit einem Großbuchstaben beginnen.' };
+        }
+
+        const objects = this.getObjects();
+        if (objects.some(o => o.name === name)) {
+            return { valid: false, error: 'Objekt-Name existiert bereits auf der Stage.' };
+        }
+
+        const project = coreStore.project;
+        if (!project) return { valid: true };
+
+        const checkFlows = (charts: any) => {
+            if (!charts) return false;
+            return Object.values(charts).some((chart: any) =>
+                chart.elements && chart.elements.some((e: any) => e.name === name)
+            );
+        };
+
+        if (checkFlows(project.flowCharts)) {
+            return { valid: false, error: 'Objekt-Name wird bereits im Flow verwendet.' };
+        }
+
+        if (project.stages) {
+            for (const stage of project.stages) {
+                if (checkFlows(stage.flowCharts)) {
+                    return { valid: false, error: `Objekt-Name wird bereits im Flow der Stage '${stage.name}' verwendet.` };
+                }
+            }
+        }
+
+        return { valid: true };
+    }
+}
+
+export const projectObjectRegistry = new ObjectRegistry();

@@ -1,5 +1,5 @@
 import { IRenderContext } from './IRenderContext';
-import { ProjectRegistry } from '../../../services/ProjectRegistry';
+import { projectObjectRegistry } from '../../../services/registry/ObjectRegistry';
 import { Logger } from '../../../utils/Logger';
 
 const spriteLogger = Logger.get('SpriteRenderer', 'Asset_Diagnostics');
@@ -15,7 +15,7 @@ export class SpriteRenderer {
             
             // Fallback: If TImageList is a global object not currently rendered on the stage
             if (!imageListObj) {
-                const registryObjs = ProjectRegistry.getInstance().getObjects();
+                const registryObjs = projectObjectRegistry.getObjects();
                 imageListObj = registryObjs.find((o: any) => o.name === obj.imageListId || o.id === obj.imageListId);
             }
         }
