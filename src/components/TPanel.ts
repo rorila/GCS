@@ -53,3 +53,7 @@ export class TPanel extends TWindow {
         ];
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TPanel', (objData: any) => new TPanel(objData.name, objData.x, objData.y, objData.width, objData.height));

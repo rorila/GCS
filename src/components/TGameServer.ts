@@ -234,3 +234,7 @@ export class TGameServer extends TWindow implements IRuntimeComponent {
         this.eventCallback = null;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TGameServer', (objData: any) => new TGameServer(objData.name, objData.x, objData.y));

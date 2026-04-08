@@ -311,34 +311,44 @@ export class TaskExecutor {
                 if (action && action.type && action.type !== 'action') {
                     // If action has a body (is an action-definition), we execute its body ourselves
                     if (action.body && Array.isArray(action.body)) {
-                        // Resolve params from node.data (e.g., { emoji: "$eventData" })
-                        const itemParams = node.data?.params || {};
-                        const resolvedParams: Record<string, any> = {};
-                        for (const [key, value] of Object.entries(itemParams)) {
-                            if (typeof value === 'string') {
-                                if (value === '$eventData') {
-                                    resolvedParams[key] = vars.eventData ?? contextObj;
-                                } else if (value.startsWith('${') && value.endsWith('}')) {
-                                    const varName = value.slice(2, -1);
-                                    resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
-                                } else if (value.startsWith('$')) {
-                                    const varName = value.slice(1);
-                                    resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
+                        // Log composite action
+                        const logId = DebugLogService.getInstance().log('Action', action.name || name, {
+                            parentId,
+                            data: action
+                        });
+                        DebugLogService.getInstance().pushContext(logId);
+                        try {
+                            // Resolve params...
+                            const itemParams = node.data?.params || {};
+                            const resolvedParams: Record<string, any> = {};
+                            for (const [key, value] of Object.entries(itemParams)) {
+                                if (typeof value === 'string') {
+                                    if (value === '$eventData') {
+                                        resolvedParams[key] = vars.eventData ?? contextObj;
+                                    } else if (value.startsWith('${') && value.endsWith('}')) {
+                                        const varName = value.slice(2, -1);
+                                        resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
+                                    } else if (value.startsWith('$')) {
+                                        const varName = value.slice(1);
+                                        resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
+                                    } else {
+                                        resolvedParams[key] = value;
+                                    }
                                 } else {
                                     resolvedParams[key] = value;
                                 }
-                            } else {
-                                resolvedParams[key] = value;
                             }
-                        }
-                        logger.debug(`FlowChart: Executing action body for "${action.name}" with params:`, resolvedParams);
+                            logger.debug(`FlowChart: Executing action body for "${action.name}" with params:`, resolvedParams);
 
-                        // Make $params available in the vars context for body execution
-                        const bodyVars = { ...vars, $params: resolvedParams };
+                            // Make $params available in the vars context for body execution
+                            const bodyVars = { ...vars, $params: resolvedParams };
 
-                        // Execute each body item
-                        for (const bodyItem of action.body) {
-                            await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, parentId);
+                            // Execute each body item
+                            for (const bodyItem of action.body) {
+                                await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, logId);
+                            }
+                        } finally {
+                            DebugLogService.getInstance().popContext();
                         }
                     } else {
                         // Regular action (no body), execute directly
@@ -489,45 +499,44 @@ export class TaskExecutor {
                 const action = this.resolveAction(item);
 
                 if (action) {
-                    // Log the action name to DebugLogService
-                    DebugLogService.getInstance().log('Action', action.name || item.name, {
-                        parentId,
-                        data: action
-                    });
                     // If action has a body (is an action-definition), we execute its body ourselves
                     if (action.body && Array.isArray(action.body)) {
-                        // Resolve params: replace $eventData, ${var} references with actual values
-                        const resolvedParams: Record<string, any> = {};
-                        if (item.params) {
-                            for (const [key, value] of Object.entries(item.params)) {
-                                if (typeof value === 'string') {
-                                    if (value === '$eventData') {
-                                        // eventData is passed in vars from the event trigger
-                                        resolvedParams[key] = vars.eventData ?? contextObj;
-                                    } else if (value.startsWith('${') && value.endsWith('}')) {
-                                        // Variable reference like ${currentPIN} or ${user.name}
-                                        const varName = value.slice(2, -1);
-                                        resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
-                                    } else if (value.startsWith('$')) {
-                                        // Simple $variable reference (e.g. $eventData.body.pin)
-                                        resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(value, vars, globalVars);
+                        const logId = DebugLogService.getInstance().log('Action', action.name || item.name, {
+                            parentId,
+                            data: action
+                        });
+                        DebugLogService.getInstance().pushContext(logId);
+                        try {
+                            // Resolve params
+                            const resolvedParams: Record<string, any> = {};
+                            if (item.params) {
+                                for (const [key, value] of Object.entries(item.params)) {
+                                    if (typeof value === 'string') {
+                                        if (value === '$eventData') {
+                                            resolvedParams[key] = vars.eventData ?? contextObj;
+                                        } else if (value.startsWith('${') && value.endsWith('}')) {
+                                            const varName = value.slice(2, -1);
+                                            resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(varName, vars, globalVars);
+                                        } else if (value.startsWith('$')) {
+                                            resolvedParams[key] = TaskConditionEvaluator.resolveVarPath(value, vars, globalVars);
+                                        } else {
+                                            resolvedParams[key] = value;
+                                        }
                                     } else {
                                         resolvedParams[key] = value;
                                     }
-                                } else {
-                                    resolvedParams[key] = value;
                                 }
                             }
-                        }
-                        logger.debug(`Executing action body for "${action.name}" with params:`, resolvedParams);
+                            logger.debug(`Executing action body for "${action.name}" with params:`, resolvedParams);
 
-                        // Make $params available in the vars context for body execution
-                        const bodyVars = { ...vars, $params: resolvedParams };
+                            const bodyVars = { ...vars, $params: resolvedParams };
 
-                        // Execute each body item (these are direct action steps like { type: "calculate", ... })
-                        for (const bodyItem of action.body) {
-
-                            await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, parentId);
+                            // Execute each body item
+                            for (const bodyItem of action.body) {
+                                await this.actionExecutor.execute(bodyItem, bodyVars, globalVars, contextObj, logId);
+                            }
+                        } finally {
+                            DebugLogService.getInstance().popContext();
                         }
                     } else {
                         // Regular action (no body), execute directly

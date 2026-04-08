@@ -33,3 +33,7 @@ export class TTextControl extends TWindow {
         ];
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TTextControl', (objData: any) => new TTextControl(objData.name, objData.x, objData.y, objData.width, objData.height));

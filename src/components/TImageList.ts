@@ -152,3 +152,7 @@ export class TImageList extends TImage {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TImageList', (objData: any) => new TImageList(objData.name, objData.x, objData.y, objData.width, objData.height));

@@ -47,3 +47,7 @@ export class TList extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TList', (objData: any) => new TList(objData.name, objData.x, objData.y));

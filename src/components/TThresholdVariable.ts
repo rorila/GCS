@@ -63,3 +63,7 @@ export class TThresholdVariable extends TWindow {
     }
 }
 
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TThresholdVariable', (objData: any) => new TThresholdVariable(objData.name, objData.x, objData.y));

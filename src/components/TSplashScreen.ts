@@ -71,3 +71,7 @@ export class TSplashScreen extends TPanel {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TSplashScreen', (objData: any) => new TSplashScreen(objData.name, objData.x, objData.y, objData.width, objData.height));

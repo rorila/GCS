@@ -50,3 +50,7 @@ export class TCheckbox extends TTextControl {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TCheckbox', (objData: any) => new TCheckbox(objData.name, objData.x, objData.y, objData.width, objData.height));

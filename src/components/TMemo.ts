@@ -46,3 +46,7 @@ export class TMemo extends TTextControl {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TMemo', (objData: any) => new TMemo(objData.name, objData.x, objData.y, objData.width, objData.height));

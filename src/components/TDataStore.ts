@@ -92,3 +92,7 @@ export class TDataStore extends TPanel implements IRuntimeComponent {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TDataStore', (objData: any) => new TDataStore(objData.name, objData.x, objData.y));

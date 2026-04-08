@@ -60,3 +60,7 @@ export class TRandomVariable extends TWindow {
         // In a real implementation, this would fire 'onGenerated' in the runtime.
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TRandomVariable', (objData: any) => new TRandomVariable(objData.name, objData.x, objData.y));

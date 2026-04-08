@@ -94,3 +94,12 @@ export class TSplashStage extends TStage {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TSplashStage', (objData: any) => (function(objData) {
+        const splashStage = new TSplashStage(objData.name, objData.x, objData.y, objData.cols, objData.rows, objData.cellSize);
+        if (objData.duration !== undefined) splashStage.duration = objData.duration;
+        if (objData.autoHide !== undefined) splashStage.autoHide = objData.autoHide;
+        return splashStage as unknown as TWindow;
+    })(objData));

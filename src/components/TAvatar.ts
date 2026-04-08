@@ -58,3 +58,7 @@ export class TAvatar extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TAvatar', (objData: any) => new TAvatar(objData.name, objData.x, objData.y));

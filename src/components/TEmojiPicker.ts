@@ -52,3 +52,7 @@ export class TEmojiPicker extends TPanel {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TEmojiPicker', (objData: any) => new TEmojiPicker(objData.name, objData.x, objData.y));

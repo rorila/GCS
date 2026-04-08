@@ -41,3 +41,7 @@ export class TObjectList extends TTable {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TObjectList', (objData: any) => new TObjectList(objData.name, objData.x, objData.y));

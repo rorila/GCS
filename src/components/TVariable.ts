@@ -105,3 +105,7 @@ export class TVariable extends TWindow {
         return json;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TVariable', (objData: any) => new TVariable(objData.name, objData.x, objData.y));

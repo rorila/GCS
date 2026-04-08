@@ -77,3 +77,7 @@ export class TProgressBar extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TProgressBar', (objData: any) => new TProgressBar(objData.name, objData.x, objData.y, objData.width, objData.height));

@@ -59,3 +59,7 @@ export class TNavBar extends TPanel {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TNavBar', (objData: any) => new TNavBar(objData.name, objData.x, objData.y));

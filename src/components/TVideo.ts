@@ -118,3 +118,7 @@ export class TVideo extends TPanel {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TVideo', (objData: any) => new TVideo(objData.name, objData.x, objData.y, objData.width, objData.height));

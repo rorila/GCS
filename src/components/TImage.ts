@@ -98,3 +98,7 @@ export class TImage extends TPanel {
     // Serialization
     // ─────────────────────────────────────────────
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TImage', (objData: any) => new TImage(objData.name, objData.x, objData.y, objData.width, objData.height));

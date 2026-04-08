@@ -96,3 +96,7 @@ export class TEdit extends TTextControl {
         ];
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TEdit', (objData: any) => new TEdit(objData.name, objData.x, objData.y, objData.width, objData.height), ["TTextInput"]);

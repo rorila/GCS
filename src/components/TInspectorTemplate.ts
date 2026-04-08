@@ -170,3 +170,7 @@ export class TInspectorTemplate extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TInspectorTemplate', (objData: any) => new TInspectorTemplate(objData.name, objData.x, objData.y, objData.width, objData.height));

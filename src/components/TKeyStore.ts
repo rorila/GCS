@@ -241,3 +241,7 @@ export class TKeyStore extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TKeyStore', (objData: any) => new TKeyStore(objData.name, objData.x, objData.y));

@@ -86,3 +86,7 @@ export class TGameHeader extends TTextControl {
     }
 }
 
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TGameHeader', (objData: any) => new TGameHeader(objData.name, objData.x, objData.y, objData.width, objData.height));

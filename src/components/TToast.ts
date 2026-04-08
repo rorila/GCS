@@ -426,3 +426,7 @@ export class TToast extends TWindow {
         return this._container!;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TToast', (objData: any) => new TToast(objData.name));

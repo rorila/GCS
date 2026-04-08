@@ -211,3 +211,7 @@ export class THeartbeat extends TWindow {
         this._fireEvent('onConnectionLost');
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('THeartbeat', (objData: any) => new THeartbeat(objData.name, objData.x, objData.y));

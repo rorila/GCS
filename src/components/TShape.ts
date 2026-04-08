@@ -68,3 +68,7 @@ export class TShape extends TPanel {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TShape', (objData: any) => new TShape(objData.name, objData.x, objData.y, objData.width, objData.height));

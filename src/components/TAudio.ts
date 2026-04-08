@@ -89,3 +89,7 @@ export class TAudio extends TWindow implements IRuntimeComponent, IInspectable {
         AudioManager.getInstance().stop(this.id);
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TAudio', (objData: any) => new TAudio(objData.name, objData.x, objData.y));

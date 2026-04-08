@@ -1,10 +1,16 @@
 ## [3.35.4] - 2026-04-08
 ### Fixed
+- **Double Action Logs Bug**: Behebung eines rein kosmetischen UI-Bugs, bei dem reguläre Actions (ohne Body) wie `Action_DestroyBullet` doppelt in der Runtime-Debugger-Ansicht protokolliert wurden.
+  - *Ursache:* Sowohl der `TaskExecutor` als auch der `ActionExecutor` schrieben beim Aufruf einen Log-Eintrag in den `DebugLogService`.
+  - *Lösung:* Das redundante Logging im `TaskExecutor` wurde entfernt. Der `TaskExecutor` loggt nun nur noch dann einen separaten Eintrag, wenn eine Action ein komplexes Kompositum (mit Body-Array) ist und schiebt diesen korrekterweise in den Context-Stack, während einfache Ausführungen exklusiv dem `ActionExecutor` überlassen werden.
 - **Double Hydration Bug (Stage-Anzeige im Run-Mode)**: Behebung eines kritischen Fehlers, bei dem die Stage-Anzeige (Grid/Background) im Run-Mode korrupt werden konnte, da die Editor-Objekte doppelt hydratisiert und ihre Referenzen in der Runtime weiterverwendet wurden.
   - *Lösung:* In `EditorRunManager.ts` wird nun `safeDeepCopy(this.editor.project)` verwendet, um das Projekt strikt in ein rein datenbasiertes (JSON-Plain-Object) DTO zu entkoppeln *bevor* The Runtime startet.
 - **Run-Mode Crash bei TInputController (Set/Map Clone Bug)**: Nach der Einführung von `safeDeepCopy` kam es beim Starten des Run-Modes durch den `TInputController` zu einem Crash (`keysPressed.clear is not a function`).
   - *Ursache:* `safeDeepCopy` klonte `Set`- und `Map`-Strukturen fehlerhaft zu reinen Objekten (`{}`). Beim anschließenden `hydrateObjects` wurde das `commands: new Set()` des `TInputController` mit dem defekten leeren Objekt überschrieben.
   - *Lösung:* `safeDeepCopy` in `DeepCopy.ts` unterstützt nun natives Auslesen und Klonen von `Set` und `Map`.
+
+### Refactored
+- **Open/Closed Principle in Serialization.ts**: Der 566-zeilige unersättliche Switch-Case in `hydrateObjects` wurde durch eine dynamische `ComponentRegistry` (`src/utils/ComponentRegistry.ts`) abgelöst. Um manuelle Boilerplate zu vermeiden, inkludiert nun jedes `src/components/*.ts`-Modul sein eigenes `ComponentRegistry.register()` Statement am unteren Dateiende. Eine dynamisch generierte Import-Map (`src/components/index.ts`) stellt sicher, dass alle Module während des Application-Starts geparst und registriert werden, was nun nahtloses Skalieren der UI-Komponenten ohne Editieren der Kern-Logik ermöglicht.
 
 ## [3.35.3] - 2026-04-07
 - **Run-Tab UI Aktualisierungsfehler (Bindings)**: Behebung eines kritischen Fehlers, bei dem reaktive UI-Bindings (wie `Score: ${score.value}`) im Standalone-IFrame zwar korrekt aktualisiert wurden, im internen Editor-Run-Tab jedoch nicht sichtbar waren. 

@@ -32,3 +32,7 @@ export class TGroupPanel extends TPanel {
         ];
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TGroupPanel', (objData: any) => new TGroupPanel(objData.name, objData.x, objData.y, objData.width, objData.height));

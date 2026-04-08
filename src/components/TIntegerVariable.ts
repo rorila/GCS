@@ -11,3 +11,7 @@ export class TIntegerVariable extends TVariable {
         this.caption = `🔢 ${name}`;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TIntegerVariable', (objData: any) => new TIntegerVariable(objData.name, objData.x, objData.y));

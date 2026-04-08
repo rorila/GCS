@@ -68,3 +68,7 @@ export class TBadge extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TBadge', (objData: any) => new TBadge(objData.name, objData.x, objData.y));

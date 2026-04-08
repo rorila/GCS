@@ -404,3 +404,7 @@ export class TInfoWindow extends TWindow {
         return this._element;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TInfoWindow', (objData: any) => new TInfoWindow(objData.name, objData.x, objData.y));

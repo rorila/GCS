@@ -203,3 +203,7 @@ export class TInputController extends TWindow implements IRuntimeComponent {
         ];
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TInputController', (objData: any) => new TInputController(objData.name, objData.x, objData.y));

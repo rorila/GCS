@@ -11,3 +11,7 @@ export class TRealVariable extends TVariable {
         this.caption = `📏 ${name}`;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TRealVariable', (objData: any) => new TRealVariable(objData.name, objData.x, objData.y));

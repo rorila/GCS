@@ -71,3 +71,7 @@ export class TNumberInput extends TTextControl {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TNumberInput', (objData: any) => new TNumberInput(objData.name, objData.x, objData.y, objData.width, objData.height));

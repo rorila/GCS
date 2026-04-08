@@ -150,3 +150,7 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         this.currentInterval = 0;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TTimer', (objData: any) => new TTimer(objData.name, objData.x, objData.y));

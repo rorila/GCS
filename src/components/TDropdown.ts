@@ -72,3 +72,7 @@ export class TDropdown extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TDropdown', (objData: any) => new TDropdown(objData.name, objData.x, objData.y, objData.width, objData.height));

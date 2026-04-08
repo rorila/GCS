@@ -58,3 +58,7 @@ export class TGameState extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TGameState', (objData: any) => new TGameState(objData.name, objData.x, objData.y));

@@ -38,3 +38,7 @@ export class TListVariable extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TListVariable', (objData: any) => new TListVariable(objData.name, objData.x, objData.y));

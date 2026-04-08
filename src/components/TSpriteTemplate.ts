@@ -59,3 +59,7 @@ export class TSpriteTemplate extends TSprite {
         ];
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TSpriteTemplate', (objData: any) => new TSpriteTemplate(objData.name, objData.x, objData.y, objData.width, objData.height));

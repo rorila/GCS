@@ -98,3 +98,7 @@ export class TGameLoop extends TWindow {
     }
 
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TGameLoop', (objData: any) => new TGameLoop(objData.name, objData.x, objData.y));

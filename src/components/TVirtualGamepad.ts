@@ -103,3 +103,7 @@ export class TVirtualGamepad extends TWindow implements IRuntimeComponent {
         }
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TVirtualGamepad', (objData: any) => new TVirtualGamepad(objData.name, objData.x, objData.y));

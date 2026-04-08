@@ -39,3 +39,7 @@ export class TTriggerVariable extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TTriggerVariable', (objData: any) => new TTriggerVariable(objData.name, objData.x, objData.y));

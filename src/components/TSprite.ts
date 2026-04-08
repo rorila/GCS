@@ -274,3 +274,7 @@ export class TSprite extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TSprite', (objData: any) => new TSprite(objData.name, objData.x, objData.y, objData.width, objData.height));

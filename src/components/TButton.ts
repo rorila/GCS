@@ -27,3 +27,7 @@ export class TButton extends TTextControl {
         ];
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TButton', (objData: any) => new TButton(objData.name, objData.x, objData.y, objData.width, objData.height, objData.caption));

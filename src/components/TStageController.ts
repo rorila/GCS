@@ -281,3 +281,7 @@ export class TStageController extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TStageController', (objData: any) => new TStageController(objData.name, objData.x, objData.y));

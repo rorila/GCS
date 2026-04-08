@@ -109,3 +109,7 @@ export class TNumberLabel extends TTextControl {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TNumberLabel', (objData: any) => new TNumberLabel(objData.name, objData.x, objData.y, objData.startValue));

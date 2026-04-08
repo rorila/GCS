@@ -52,3 +52,7 @@ export class TTabBar extends TPanel {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TTabBar', (objData: any) => new TTabBar(objData.name, objData.x, objData.y));

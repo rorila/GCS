@@ -298,3 +298,7 @@ export class TStatusBar extends TWindow {
         return this._element;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TStatusBar', (objData: any) => new TStatusBar(objData.name, objData.x, objData.y, objData.width, objData.height));

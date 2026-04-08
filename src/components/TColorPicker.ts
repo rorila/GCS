@@ -49,3 +49,7 @@ export class TColorPicker extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TColorPicker', (objData: any) => new TColorPicker(objData.name, objData.x, objData.y, objData.width, objData.height));

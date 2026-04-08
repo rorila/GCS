@@ -137,3 +137,7 @@ export class TSystemInfo extends TComponent {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TSystemInfo', (objData: any) => new TSystemInfo(objData.name) as unknown as TWindow);

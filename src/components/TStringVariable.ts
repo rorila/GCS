@@ -11,3 +11,7 @@ export class TStringVariable extends TVariable {
         this.caption = `📝 ${name}`;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TStringVariable', (objData: any) => new TStringVariable(objData.name, objData.x, objData.y));

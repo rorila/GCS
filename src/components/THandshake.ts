@@ -143,3 +143,7 @@ export class THandshake extends TWindow {
         this.peerVersion = version;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('THandshake', (objData: any) => new THandshake(objData.name, objData.x, objData.y));

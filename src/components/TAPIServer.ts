@@ -136,3 +136,7 @@ export class TAPIServer extends TPanel implements IRuntimeComponent {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TAPIServer', (objData: any) => new TAPIServer(objData.name, objData.x, objData.y));

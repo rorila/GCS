@@ -378,3 +378,7 @@ export class TDialogRoot extends TWindow {
         }
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TDialogRoot', (objData: any) => new TDialogRoot(objData.name, objData.x, objData.y, objData.width, objData.height));

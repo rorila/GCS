@@ -44,3 +44,7 @@ export class TRangeVariable extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TRangeVariable', (objData: any) => new TRangeVariable(objData.name, objData.x, objData.y));

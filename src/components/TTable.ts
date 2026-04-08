@@ -74,3 +74,7 @@ export class TTable extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TTable', (objData: any) => new TTable(objData.name, objData.x, objData.y, objData.width, objData.height));

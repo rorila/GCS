@@ -11,3 +11,7 @@ export class TBooleanVariable extends TVariable {
         this.caption = `⚖️ ${name}`;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TBooleanVariable', (objData: any) => new TBooleanVariable(objData.name, objData.x, objData.y));

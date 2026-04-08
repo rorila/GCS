@@ -266,3 +266,7 @@ export class TDataList extends TPanel implements IRuntimeComponent {
         return actions;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TDataList', (objData: any) => new TDataList(objData.name, objData.x, objData.y, objData.width, objData.height));

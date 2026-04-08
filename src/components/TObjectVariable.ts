@@ -11,3 +11,7 @@ export class TObjectVariable extends TVariable {
         this.caption = `📦 ${name}`;
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TObjectVariable', (objData: any) => new TObjectVariable(objData.name, objData.x, objData.y));

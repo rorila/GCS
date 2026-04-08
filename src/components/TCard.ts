@@ -47,3 +47,7 @@ export class TCard extends TPanel {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TCard', (objData: any) => new TCard(objData.name, objData.x, objData.y));

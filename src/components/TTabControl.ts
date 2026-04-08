@@ -92,3 +92,7 @@ export class TTabControl extends TWindow {
         };
     }
 }
+
+// --- Auto-Registration ---
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TTabControl', (objData: any) => new TTabControl(objData.name, objData.x, objData.y, objData.width, objData.height));
