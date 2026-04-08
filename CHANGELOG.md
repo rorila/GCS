@@ -1,5 +1,6 @@
 ## [3.35.4] - 2026-04-08
 ### Fixed
+- **Idempotency Check Cleanup**: Der "Workaround" `Idempotency Check` in `hydrateObjects` (Serialization.ts) wurde physisch gelöscht, da das eigentliche Architekturproblem ("Doppelte Hydrierung durch Übergabe bereits hydrierter Live-Objekte aus dem Editor an die Runtime") durch die gestrige Einführung des `safeDeepCopy()DTO`-Schutzschilds im `EditorRunManager` fundamental gelöst wurde. Die Runtime hydriert Instanzen damit immer exakt 1x aus einem reinen JSON-Schatten.
 - **Dead Code in Serialization.ts**: Behebung eines Fehlers, bei dem das interne `isInternalContainer` Flag nicht mehr auf interne Komponenten (`TDataList`, `TTable`, `TObjectList`, `TEmojiPicker`) angewandt wurde. Durch das vorherige Registry-Refactoring wurde das Setzen der Eigenschaft unabsichtlich in einen toten Code-Pfad *vor* die eigentliche Objekterstellung (`ComponentRegistry.create`) verschoben. 
 - **Double Action Logs Bug**: Behebung eines rein kosmetischen UI-Bugs, bei dem reguläre Actions (ohne Body) wie `Action_DestroyBullet` doppelt in der Runtime-Debugger-Ansicht protokolliert wurden.
   - *Ursache:* Sowohl der `TaskExecutor` als auch der `ActionExecutor` schrieben beim Aufruf einen Log-Eintrag in den `DebugLogService`.
