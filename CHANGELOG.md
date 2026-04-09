@@ -1,3 +1,13 @@
+
+## [2026-04-08] - JSON Asset Pfad Fix
+### Fixed
+- Alte json-Projektdaten mit absoluten Pfaden (/images/ und /audio/) werfen in der ausfÃ¼hrbaren Electron-App jetzt keine Fehler mehr und verursachen kein Flattern in der Render-Schleife, da alle Strings in den Renderern abgefangen und als relative Pfade (./) ausgegeben werden.
+
+
+## [2026-04-08] - Electron Pfad Fix
+### Fixed
+- iframe-runner.html laedt runtime-standalone.js ueber relativen Pfad
+
 ## [3.35.5] - 2026-04-08
 ### Refactored
 - **Architectural "Hard Break" (ProjectRegistry Decentralization)**: The monolithic `ProjectRegistry.ts` (`>1000 LOC`) was entirely decommissioned and deleted. It has been completely decoupled into domain-specific, independent modules located under `src/services/registry/`:
@@ -1088,4 +1098,4 @@
 ## 08.04.2026
 
 ### Bug Fixes / Architecture
-- **DeepCopy (Run Mode):** Problem behoben, dass safeDeepCopy() beim Starten des Run-Modus Getter/Setter-Eigenschaften (z. B. ackgroundImage des Ufos) ignoriert hat, wodurch Sprites falsch (rote Blöcke) gerendert wurden. safeDeepCopy nutzt nun .toDTO(), falls vorhanden, um sicherzustellen, dass die geklonten Objekte alle Inspektions-Eigenschaften beinhalten.
+- **DeepCopy (Run Mode):** Problem behoben, dass safeDeepCopy() beim Starten des Run-Modus Getter/Setter-Eigenschaften (z. B. ackgroundImage des Ufos) ignoriert hat, wodurch Sprites falsch (rote Blï¿½cke) gerendert wurden. safeDeepCopy nutzt nun .toDTO(), falls vorhanden, um sicherzustellen, dass die geklonten Objekte alle Inspektions-Eigenschaften beinhalten.

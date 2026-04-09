@@ -1,3 +1,25 @@
+[2026-04-09] Bugfix: Electron App schließt sich nicht bei ungespeicherten Änderungen
+- electron/main.cjs -> Event-Listener für `will-prevent-unload` im `webContents` hinzugefügt und einen synchronen Native-Dialog (`dialog.showMessageBoxSync`) implementiert. Wenn der Benutzer bestätigt, wird das Verlassen via `event.preventDefault()` erzwungen. Verhindert, dass das durch `window.onbeforeunload` abgefangene Schließen in Electron ins Leere läuft und die App unbenutzbar wird.
+
+[2026-04-09] Bugfix: MediaPickerDialog leere Ordner im Packaged-Electron
+- src/editor/inspector/MediaPickerDialog.ts -> Absolute Pfadangaben `/media-manifest.json`, `/images` und `/audio` durch relative Pfade `./` ersetzt. Dadurch greift der `fetch()` HTTP-Call beim Start im `file://` Kontext von Electron auf den korrekten relativen Verzeichnispfad (`dist/media-manifest.json`) zurück, anstatt ins Systemroot (z.B. `C:\media-manifest.json`) umgeleitet zu werden. Beide Listen füllen sich jetzt korrekt.
+
+[2026-04-09] Build: Standalone Runtime Loading Fix
+- vite.config.ts -> rollupOptions.input für 'runtime' entfernt. Verhindert, dass das funktionierende IIFE-bundle durch ein in Electron (file://) blockiertes ES-Modul überschrieben wird.
+
+[2026-04-09] Build: Smart App Control Electron Fix
+- package.json -> target geändert von portable zu dir. Verhindert Smart App Control Isolation.
+
+Electron JSON Asset Pfad Fix:
+- src/runtime/AudioManager.ts, src/editor/services/renderers/SpriteRenderer.ts, etc. : Absolute asset paths via JSON payloads /images/ and /audio/ correctly normalized to relative paths for Electron build stability.
+
+
+Electron Pfad Fix (IFrame):
+- public/iframe-runner.html : Line 104 - Changed src absolute path to ./ relative path.
+
+
+FlowEditor Task-ContextMenu Update:
+- src/editor/services/FlowContextMenuProvider.ts : Line 479 - Filter for global tasks removed, label changed to Vorhandenen Task einfuegen um alle Tasks anzubieten.
 - [2026-04-08] Typisierungs-Härtung (Mediator & StageManager)
   - Datei: src/editor/services/flow/FlowSequenceBuilder.ts [MOD] (Einbau horizontales Layout Feature, Zeile 28-380)
 

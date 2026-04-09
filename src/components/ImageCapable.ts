@@ -31,9 +31,11 @@ export function getImageStyles(props: Partial<ImageCapableProps>): Record<string
     if (!src) return {};
 
     // URL normalisieren
-    const imageUrl = src.startsWith('http') || src.startsWith('/') || src.startsWith('.') || src.startsWith('data:')
+    let imageUrl = src.startsWith('http') || src.startsWith('/') || src.startsWith('.') || src.startsWith('data:')
         ? src
-        : `/images/${src}`;
+        : `./images/${src}`;
+    
+    if (imageUrl.startsWith('/images/')) imageUrl = '.' + imageUrl;
 
     return {
         backgroundImage: `url('${imageUrl}')`,

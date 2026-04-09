@@ -296,7 +296,9 @@ export class ComplexComponentRenderer {
             const img = document.createElement('img');
             const src = childData.src || childData.backgroundImage || '';
             if (src) {
-                img.src = src.startsWith('http') || src.startsWith('/') || src.startsWith('.') || src.startsWith('data:') ? src : `/images/${src}`;
+                let imgSrc = src.startsWith('http') || src.startsWith('/') || src.startsWith('.') || src.startsWith('data:') ? src : `./images/${src}`;
+                if (imgSrc.startsWith('/images/')) imgSrc = '.' + imgSrc;
+                img.src = imgSrc;
             }
             img.style.width = '40px';
             img.style.height = '40px';

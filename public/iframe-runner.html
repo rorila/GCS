@@ -101,7 +101,7 @@
     <script>
         console.log('[IFrame Runner] DIAG: Lade runtime-standalone.js ...');
     </script>
-    <script src="/runtime-standalone.js" onerror="console.error('[IFrame Runner] FEHLER: runtime-standalone.js konnte NICHT geladen werden! src=/runtime-standalone.js. Check: Das Skript muss über den Vite-Dev-Server erreichbar sein.');"></script>
+    <script src="./runtime-standalone.js" onerror="console.error('[IFrame Runner] FEHLER: runtime-standalone.js konnte NICHT geladen werden! src=./runtime-standalone.js. Check: Das Skript muss über den Vite-Dev-Server erreichbar sein.');"></script>
     <script>
         console.log('[IFrame Runner] DIAG: runtime-standalone.js geladen?', typeof window.startStandalone === 'function' ? 'JA' : 'NEIN (startStandalone fehlt)');
     </script>

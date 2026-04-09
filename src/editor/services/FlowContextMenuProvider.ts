@@ -478,7 +478,7 @@ export class FlowContextMenuProvider {
 
         // Vorhandene Globale Tasks einfügen
         const allTasks = projectTaskRegistry.getTasks('all');
-        const globalTasks = allTasks.filter(t => t.uiScope === 'global' || (t as any).scope === 'global');
+        const globalTasks = allTasks;
         
         const insertTaskItems: ContextMenuItem[] = globalTasks.map(t => ({
             label: t.name,
@@ -491,7 +491,7 @@ export class FlowContextMenuProvider {
         if (insertTaskItems.length > 0) {
             if (insertActionItems.length === 0) items.push({ separator: true, label: '' });
             items.push({
-                label: '🔗 Globalen Task einfügen',
+                label: '🔗 Vorhandenen Task einfügen',
                 submenu: insertTaskItems
             });
         }

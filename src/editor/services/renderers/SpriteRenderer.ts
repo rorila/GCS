@@ -37,9 +37,13 @@ export class SpriteRenderer {
                 bgImg = obj.backgroundImage;
             }
 
-            const src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
+            let src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
                 ? bgImg
-                : `/images/${bgImg}`;
+                : `./images/${bgImg}`;
+
+            if (src.startsWith('/images/') || src.startsWith('/audio/')) {
+                src = '.' + src;
+            }
 
             // ── DIAGNOSE: Bildpfad-Auflösung ──
             if (!(el as any)._spritePathLogged) {

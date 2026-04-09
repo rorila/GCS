@@ -18,10 +18,14 @@ export class AudioManager {
     }
 
     public async loadAudio(src: string): Promise<any> {
-        // With HTML5 Audio, preloading is handled natively by the browser.
-        // We just create an audio element to warm up the cache.
+        if (!src) return null;
+        let resolvedSrc = src;
+        if (resolvedSrc.startsWith('/audio/') || resolvedSrc.startsWith('/images/')) {
+            resolvedSrc = '.' + resolvedSrc;
+        }
+        
         try {
-            const audio = new Audio(src);
+            const audio = new Audio(resolvedSrc);
             audio.preload = 'auto';
             return audio;
         } catch (error) {
@@ -31,8 +35,14 @@ export class AudioManager {
     }
 
     public async play(audioId: string, src: string, volume: number = 1.0, loop: boolean = false): Promise<void> {
+        if (!src) return;
+        let resolvedSrc = src;
+        if (resolvedSrc.startsWith('/audio/') || resolvedSrc.startsWith('/images/')) {
+            resolvedSrc = '.' + resolvedSrc;
+        }
+
         try {
-            const audio = new Audio(src);
+            const audio = new Audio(resolvedSrc);
             audio.volume = Math.max(0, Math.min(1, volume));
             audio.loop = loop;
             

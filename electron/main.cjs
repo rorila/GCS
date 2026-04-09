@@ -25,6 +25,21 @@ function createWindow() {
     } else {
         win.loadFile(path.join(__dirname, '../dist/index.html'));
     }
+
+    win.webContents.on('will-prevent-unload', (event) => {
+        const choice = dialog.showMessageBoxSync(win, {
+            type: 'question',
+            buttons: ['Verlassen', 'Bleiben'],
+            title: 'Ungespeicherte Änderungen',
+            message: 'Sie haben ungespeicherte Änderungen. Möchten Sie die Applikation wirklich beenden?',
+            defaultId: 1,
+            cancelId: 1
+        });
+        const leave = (choice === 0);
+        if (leave) {
+            event.preventDefault(); // This tells electron to "prevent the prevention" i.e., allow unload
+        }
+    });
 }
 
 app.whenReady().then(() => {

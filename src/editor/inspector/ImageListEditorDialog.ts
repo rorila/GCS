@@ -455,8 +455,9 @@ export class ImageListEditorDialog {
         // URL normalisieren
         let src = this.currentSrc;
         if (!src.startsWith('http') && !src.startsWith('/') && !src.startsWith('data:')) {
-            src = `/images/${src}`;
+            src = `./images/${src}`;
         }
+        if (src.startsWith('/images/')) src = '.' + src;
         img.src = src;
     }
 

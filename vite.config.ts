@@ -82,13 +82,7 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 main: 'index.html',
-                player: 'player.html',
-                runtime: 'src/player-standalone.ts'
-            },
-            output: {
-                entryFileNames: (chunkInfo) => {
-                    return chunkInfo.name === 'runtime' ? 'runtime-standalone.js' : 'assets/[name]-[hash].js';
-                }
+                player: 'player.html'
             }
         }
     }

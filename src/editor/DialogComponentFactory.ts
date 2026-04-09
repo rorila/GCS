@@ -210,9 +210,11 @@ export class DialogComponentFactory {
                     const img = document.createElement('img');
                     const src = ctx.evaluateExpression(obj.src || '');
                     if (src) {
-                        img.src = src.startsWith('http') || src.startsWith('/') || src.startsWith('.') || src.startsWith('data:')
+                        let imgSrc = src.startsWith('http') || src.startsWith('/') || src.startsWith('.') || src.startsWith('data:')
                             ? src
-                            : `/images/${src}`;
+                            : `./images/${src}`;
+                        if (imgSrc.startsWith('/images/')) imgSrc = '.' + imgSrc;
+                        img.src = imgSrc;
                     }
                     img.style.width = '100%';
                     img.style.height = '100%';

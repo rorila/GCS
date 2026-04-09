@@ -594,7 +594,11 @@ export class StageRenderer {
             }
             let src = (bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:'))
                 ? bgImg
-                : `/images/${bgImg}`;
+                : `./images/${bgImg}`;
+                
+            if (src.startsWith('/images/') || src.startsWith('/audio/')) {
+                src = '.' + src;
+            }
 
             if (!src.startsWith('data:')) {
                 const parts = src.split('/');
@@ -783,7 +787,10 @@ export class StageRenderer {
         // URL normalisieren
         let imgSrc = src;
         if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/') && !imgSrc.startsWith('.') && !imgSrc.startsWith('data:')) {
-            imgSrc = `/images/${imgSrc}`;
+            imgSrc = `./images/${imgSrc}`;
+        }
+        if (imgSrc.startsWith('/images/') || imgSrc.startsWith('/audio/')) {
+            imgSrc = '.' + imgSrc;
         }
         if (!imgSrc.startsWith('data:')) {
             const parts = imgSrc.split('/');

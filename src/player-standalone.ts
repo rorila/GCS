@@ -417,9 +417,10 @@ class UniversalPlayer implements StageHost {
         const bgImg = activeStage.backgroundImage;
 
         if (bgImg) {
-            const url = bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:')
+            let url = bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:')
                 ? bgImg
                 : `./images/${bgImg}`;
+            if (url.startsWith('/images/')) url = '.' + url;
             this.element.style.background = `url("${url}") center center / ${activeStage.objectFit || 'cover'} no-repeat, ${bg}`;
         } else {
             this.element.style.background = bg;

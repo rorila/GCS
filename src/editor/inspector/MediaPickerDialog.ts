@@ -33,7 +33,8 @@ let manifestCache: MediaManifest | null = null;
 async function loadManifest(): Promise<MediaManifest> {
     if (manifestCache) return manifestCache;
     try {
-        const resp = await fetch('/media-manifest.json');
+        // Lade relativ, damit es im Electron file:// Protokoll (bzw. dist-Ordner) funktioniert
+        const resp = await fetch('./media-manifest.json');
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         manifestCache = await resp.json();
         return manifestCache!;
@@ -44,9 +45,9 @@ async function loadManifest(): Promise<MediaManifest> {
 }
 
 const MODE_CONFIG: Record<MediaMode, { title: string; icon: string; basePath: string; manifestKey: keyof MediaManifest }> = {
-    image: { title: 'Bild auswählen', icon: '🖼️', basePath: '/images', manifestKey: 'images' },
-    audio: { title: 'Audio auswählen', icon: '🔊', basePath: '/audio', manifestKey: 'audio' },
-    video: { title: 'Video auswählen', icon: '🎬', basePath: '/videos', manifestKey: 'videos' },
+    image: { title: 'Bild auswählen', icon: '🖼️', basePath: './images', manifestKey: 'images' },
+    audio: { title: 'Audio auswählen', icon: '🔊', basePath: './audio', manifestKey: 'audio' },
+    video: { title: 'Video auswählen', icon: '🎬', basePath: './videos', manifestKey: 'videos' },
 };
 
 export class MediaPickerDialog {
