@@ -1,3 +1,6 @@
+[2026-04-09] Security Bugfix: Path Traversal in IPC Handler
+- electron/main.cjs -> Ein Sandboxing-Filter (`isPathAllowed`) wurde für `fs:readFile` und `fs:writeFile` implementiert. Der Renderer-Prozess (und damit potenzielle XSS/böswillige Projekt-Skripte) kann nicht mehr auf beliebige Pfade im lokalen Dateisystem zugreifen. Der Lese/Schreibzugriff ist nun auf applikationsspezifische Pfade (`getAppPath`, `userData`, CWD) und explizit vom Nutzer durch die nativen Dialoge (OpenFilePicker/SaveFilePicker) erlaubte Whitelist-Pfade beschränkt.
+
 [2026-04-09] Bugfix: Electron App schließt sich nicht bei ungespeicherten Änderungen
 - electron/main.cjs -> Event-Listener für `will-prevent-unload` im `webContents` hinzugefügt und einen synchronen Native-Dialog (`dialog.showMessageBoxSync`) implementiert. Wenn der Benutzer bestätigt, wird das Verlassen via `event.preventDefault()` erzwungen. Verhindert, dass das durch `window.onbeforeunload` abgefangene Schließen in Electron ins Leere läuft und die App unbenutzbar wird.
 

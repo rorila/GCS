@@ -62,8 +62,34 @@ app.on('window-all-closed', () => {
 // IPC Endpoints for the NativeFileAdapter (window.electronFS)
 // ==============================================================================
 
+const allowedPaths = new Set();
+
+function isPathAllowed(targetPath) {
+    if (!targetPath) return false;
+    const norm = path.resolve(targetPath);
+    if (allowedPaths.has(norm)) return true;
+
+    const safeBaseDirs = [
+        app.getAppPath(),
+        app.getPath('userData'),
+        app.getPath('temp'),
+        process.cwd()
+    ];
+
+    for (const base of safeBaseDirs) {
+        const baseNorm = path.resolve(base);
+        if (norm === baseNorm || norm.startsWith(baseNorm + path.sep)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 ipcMain.handle('fs:readFile', async (event, absolutePath) => {
     try {
+        if (!isPathAllowed(absolutePath)) {
+            throw new Error(`Security Exception: Access to path denied: ${absolutePath}`);
+        }
         if (!fs.existsSync(absolutePath)) {
             throw new Error(`File not found: ${absolutePath}`);
         }
@@ -76,6 +102,9 @@ ipcMain.handle('fs:readFile', async (event, absolutePath) => {
 
 ipcMain.handle('fs:writeFile', async (event, absolutePath, content) => {
     try {
+        if (!isPathAllowed(absolutePath)) {
+            throw new Error(`Security Exception: Access to path denied: ${absolutePath}`);
+        }
         const dir = path.dirname(absolutePath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
@@ -115,7 +144,9 @@ ipcMain.handle('fs:showOpenDialog', async (event, options) => {
     const win = BrowserWindow.getFocusedWindow();
     const result = await dialog.showOpenDialog(win, options);
     if (!result.canceled && result.filePaths.length > 0) {
-        return result.filePaths[0]; // Gebe den absoluten Pfad der ausgewählten Datei zurück
+        const chosen = result.filePaths[0];
+        allowedPaths.add(path.resolve(chosen));
+        return chosen; // Gebe den absoluten Pfad der ausgewählten Datei zurück
     }
     return null;
 });
@@ -124,7 +155,9 @@ ipcMain.handle('fs:showSaveDialog', async (event, options) => {
     const win = BrowserWindow.getFocusedWindow();
     const result = await dialog.showSaveDialog(win, options);
     if (!result.canceled && result.filePath) {
-        return result.filePath; // Gebe den gewählten Speicherpfad zurück
+        const chosen = result.filePath;
+        allowedPaths.add(path.resolve(chosen));
+        return chosen; // Gebe den gewählten Speicherpfad zurück
     }
     return null;
 });
