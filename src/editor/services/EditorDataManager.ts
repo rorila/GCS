@@ -218,43 +218,27 @@ export class EditorDataManager {
 
         // KRITISCH: isProjectDirty (→ isProjectChangeAvailable) VOR dem JSON.stringify auf false setzen,
         // damit der gespeicherte JSON-Snapshot den korrekten "gespeichert"-Zustand enthält
-        this.host.isProjectDirty = false;
-
-        // 1. Electron Desktop-Modus (Nativer File Access)
-        if ((window as any).electronFS && this.currentSavePath && overwriteConfirmed === undefined) {
-             try {
-                 await (window as any).electronFS.writeFile(this.currentSavePath, JSON.stringify(this.host.project, null, 2));
-                 setTimeout(() => { this.host.isProjectDirty = false; }, 0);
-                 const msg = `Electron: Gespeichert in ${this.currentSavePath}`;
-                 EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
-                 
-                 if (!this.host.project.meta) (this.host.project as any).meta = {};
-                 (this.host.project.meta as any)._sourcePath = this.currentSavePath;
-                 this.updateProjectPathDisplay();
-                 
-                 if (overwriteConfirmed === undefined) alert(msg);
-                 return { success: true, message: msg };
-             } catch(err) {
-                 EditorDataManager.logger.warn('[UseCase: Projekt speichern] Fehler beim nativen Speichern. Fallback übersprungen.', err);
-                 this.host.isProjectDirty = true;
-                 return { success: false, message: 'Fehler beim Schreiben der lokalen Datei.' };
-             }
-        }
         
-        // 2. Browser Native File System Access API
-        if (this.currentFileHandle && overwriteConfirmed === undefined) {
+        // Nativer Speicherzugriff (Electron & Web FileSystem Access API per Adapter)
+        const nativeAdapter = projectPersistenceService.getNativeAdapter();
+        if (nativeAdapter && overwriteConfirmed === undefined && (this.currentSavePath || this.currentFileHandle)) {
             try {
-                const writable = await (this.currentFileHandle as any).createWritable();
-                await writable.write(JSON.stringify(this.host.project, null, 2));
-                await writable.close();
+                // Adapter mit den aktuellen Handles/Pfaden synchronisieren
+                if (this.currentSavePath) nativeAdapter.setPath(this.currentSavePath);
+                if (this.currentFileHandle) nativeAdapter.setHandle(this.currentFileHandle);
+
+                await nativeAdapter.save(this.host.project);
                 
                 setTimeout(() => { this.host.isProjectDirty = false; }, 0);
-                const msg = `Nativ gespeichert: ${this.currentFileHandle.name}`;
+                
+                const savedPath = nativeAdapter.getPath() || nativeAdapter.getHandle()?.name || this.currentSavePath || 'Lokal';
+                const msg = `Nativ gespeichert: ${savedPath}`;
                 EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
-                // Aktualisiere source_path für Fallback-Backup im Server
+                
                 if (!this.host.project.meta) (this.host.project as any).meta = {};
-                (this.host.project.meta as any)._sourcePath = `projects/${this.currentFileHandle.name}`;
+                (this.host.project.meta as any)._sourcePath = savedPath;
                 this.updateProjectPathDisplay();
+                
                 if (overwriteConfirmed === undefined) alert(msg);
                 return { success: true, message: msg };
             } catch (err) {
@@ -306,39 +290,29 @@ export class EditorDataManager {
         const meta = (this.host.project as any).meta || {};
         const currentName = meta.name || 'MeinSpiel';
 
-        // 0. Electron Native Dialogs
-        if ((window as any).electronFS) {
-            const electronHandle = await (window as any).electronFS.showSaveDialog({
-                defaultPath: `${currentName}.json`,
-                filters: [{ name: 'JSON Project', extensions: ['json'] }]
-            });
-            if (!electronHandle) return { success: false, message: 'Speichern abgebrochen' };
-
-            const fileBaseName = electronHandle.replace(/^.*[\\\/]/, '').replace('.json', '');
-            if (!this.host.project.meta) (this.host.project as any).meta = {};
-            (this.host.project.meta as any).name = fileBaseName;
-            (this.host.project.meta as any)._sourcePath = electronHandle;
-            this.currentSavePath = electronHandle;
-
-            this.host.isProjectDirty = true; // erzwingt Check-Bypass in saveProjectToFile
-            return this.saveProjectToFile();
-        }
-
-        // 1. Native File System Access API
-        if ('showSaveFilePicker' in window) {
+        // Nativer File Access per Adapter
+        const nativeAdapter = projectPersistenceService.getNativeAdapter();
+        if (nativeAdapter) {
+            // Lösche Handles um einen Dialog zu erzwingen
+            nativeAdapter.setPath(null);
+            nativeAdapter.setHandle(null);
+            
             try {
-                const handle = await (window as any).showSaveFilePicker({
-                    suggestedName: `${currentName}.json`,
-                    types: [{ description: 'JSON Project File', accept: { 'application/json': ['.json'] } }]
-                });
+                await nativeAdapter.save(this.host.project, `${currentName}.json`);
+                const newPath = nativeAdapter.getPath();
+                const newHandle = nativeAdapter.getHandle();
                 
-                this.currentFileHandle = handle;
+                if (!newPath && !newHandle) {
+                    return { success: false, message: 'Speichern abgebrochen' };
+                }
                 
-                const fileBaseName = handle.name.replace('.json', '');
+                this.currentSavePath = newPath || `projects/${newHandle?.name}`;
+                this.currentFileHandle = newHandle;
+                
+                const fileBaseName = (newPath?.replace(/^.*[\\\/]/, '') || newHandle?.name || '').replace('.json', '');
                 if (!this.host.project.meta) (this.host.project as any).meta = {};
                 (this.host.project.meta as any).name = fileBaseName;
-                (this.host.project.meta as any)._sourcePath = `projects/${handle.name}`;
-                this.currentSavePath = `projects/${handle.name}`;
+                (this.host.project.meta as any)._sourcePath = this.currentSavePath;
                 
                 this.host.isProjectDirty = true; // erzwingt Check-Bypass in saveProjectToFile
                 return this.saveProjectToFile();

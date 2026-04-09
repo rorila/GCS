@@ -1,13 +1,13 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 9.4.2026, 09:23:14
-**Status**: ✅ ALLE TESTS BESTANDEN
+**Generiert am**: 9.4.2026, 10:03:20
+**Status**: ❌ FEHLER GEFUNDEN
 
 ## 📊 Visuelle Übersicht
 ```mermaid
 pie title Test-Status (Gesamt: 153)
-    "Bestanden ✅" : 153
-    "Fehlgeschlagen ❌" : 0
+    "Bestanden ✅" : 152
+    "Fehlgeschlagen ❌" : 1
 ```
 
 ## 🧪 Test-Details
@@ -136,7 +136,7 @@ pie title Test-Status (Gesamt: 153)
 | GROUP_COLORS Mapping<br><small>Einträge: 29, FROM: true, WHERE: true</small> | FlowDataAction | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Erweiterte Operatoren (CONTAINS, IN)<br><small>CONTAINS: true, IN: true</small> | FlowDataAction | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Export-Integrität: GameExporter.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Export-Integrität: ProjectPersistenceService.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Export-Integrität: ProjectPersistenceService.ts<br><small>Hash geändert! Erwartet: A5F76A9418389823..., Aktuell: 5CD57E7E5EDF71D4... → npx tsx tests/export_integrity.test.ts --update</small> | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | Export-Integrität: player-standalone.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Export-Integrität: GameRuntime.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Export-Integrität: GameLoopManager.ts | Export-Integrität | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -148,7 +148,7 @@ pie title Test-Status (Gesamt: 153)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1775719353188_aq (erwartet: stage_import_1775719353188_aq), BackToLobby.stageId=stage_import_1775719353188_fv (erwartet: stage_import_1775719353188_fv)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1775721757813_t4 (erwartet: stage_import_1775721757813_t4), BackToLobby.stageId=stage_import_1775721757813_bj (erwartet: stage_import_1775721757813_bj)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |

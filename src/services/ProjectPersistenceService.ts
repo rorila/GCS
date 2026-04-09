@@ -104,6 +104,11 @@ export class ProjectPersistenceService {
         return ProjectPersistenceService.instance;
     }
 
+    /** Returns the native file adapter if available */
+    public getNativeAdapter(): NativeFileAdapter | null {
+        return this.nativeAdapter;
+    }
+
     /**
      * Saves the project to a JSON file.
      * Delegiert an NativeFileAdapter (FileSystem Access / Electron).

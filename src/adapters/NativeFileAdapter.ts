@@ -129,13 +129,21 @@ export class NativeFileAdapter implements IStorageAdapter {
     }
 
     /** Setzt den aktiven FileHandle (z.B. nach dem Laden eines Projekts) */
-    public setHandle(handle: FileSystemFileHandle): void {
+    public setHandle(handle: FileSystemFileHandle | null): void {
         this.currentHandle = handle;
     }
     
+    public getHandle(): FileSystemFileHandle | null {
+        return this.currentHandle;
+    }
+    
     /** Setzt den aktiven Dateipfad explizit (Electron-Modus) */
-    public setPath(path: string): void {
+    public setPath(path: string | null): void {
         this.currentPath = path;
+    }
+
+    public getPath(): string | null {
+        return this.currentPath;
     }
 
     private generateFilename(project: GameProject): string {
