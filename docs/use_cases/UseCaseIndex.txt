@@ -317,3 +317,37 @@ UC-2026-04-10-TRichText-Component: Komponente TRichText hinzugefuegt mit wysiwyg
   - src/editor/services/StageRenderer.ts
   - src/components/TRichText.ts
 
+
+[2026-04-10] UC-2026-04-10-ColorPicker-Bind
+- Beschreibung: Hinzufügen des 'V' (Bind) Buttons neben Color-Pickern (z.B. Hintergrund, Rahmenfarbe) im Inspector.
+- Dateien:
+  - src/editor/inspector/renderers/InspectorSectionRenderer.ts
+
+
+
+[2026-04-10] UC-2026-04-10-TRichText-Rendering-Overhaul
+- Beschreibung: Vollstaendige Ueberarbeitung der renderRichText-Methode in TextObjectRenderer.ts.
+  Behebt: fehlende fontSize-Skalierung (scaleFontSize), falscher Color-Fallback #eee im Editor,
+  fehlende Padding-Anwendung, robustere fontWeight/fontStyle-Behandlung analog zu renderLabel/renderPanel.
+  Debug-Logs entfernt. Runtime-Bundle aktualisiert.
+- Dateien:
+  - src/editor/services/renderers/TextObjectRenderer.ts (Methode: renderRichText, Zeilen ~49-100)
+
+[2026-04-10] UC-2026-04-10-TRichText-toDTO-Fix
+- Beschreibung: Root-Cause fuer fehlende Farben im Run-Mode gefunden und behoben:
+  htmlContent fehlte in getInspectorProperties(), wodurch toDTO() den Wert nicht
+  serialisierte. Beim safeDeepCopy fuer die Runtime ging der WYSIWYG-Inhalt verloren.
+  Zusaetzlich: deprecated font-color Tags werden jetzt zu span-inline-styles konvertiert.
+- Dateien:
+  - src/components/TRichText.ts (Methode: getInspectorProperties, Zeilen ~27-44)
+  - src/editor/services/renderers/TextObjectRenderer.ts (Methode: renderRichText, Zeilen ~49-67)
+[2026-04-10] UC-2026-04-10-InspectorValidation
+- Beschreibung: Inspector Input-Validierung mit Inline-Feedback, Auto-Clamping und 
+  CSS-Shake-Animation implementiert. Number-Inputs nutzen jetzt nativen type='number' 
+  mit min/max/step HTML-Attributen. Live-Validierung bei Eingabe, Auto-Clamp beim 
+  Verlassen des Feldes. Binding-Syntax-Validierung fuer {'...'}-Ausdruecke.
+- Dateien:
+  - src/model/InspectorTypes.ts (Interface: TPropertyDef, Zeilen ~14-42 - 'hidden' Typ + validate Callback)
+  - src/editor/inspector/renderers/InspectorSectionRenderer.ts (Methode: renderProperty, Zeilen ~88-840 - Validierungs-UI)
+  - src/style.css (Zeilen ~665-700 - shake Animation + Validierungs-CSS-Klassen)
+  - src/components/TWindow.ts (Methode: getInspectorProperties, Zeilen ~180-200 - Geometrie min/max)

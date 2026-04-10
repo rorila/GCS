@@ -86,6 +86,9 @@ export class InspectorSectionRenderer {
     }
 
     private static renderProperty(propDef: any, obj: any, context: IInspectorContext): HTMLElement | null {
+        // Hidden-Properties sind nur für die Serialisierung (toDTO), nicht für die UI
+        if (propDef.type === 'hidden') return null;
+
         const container = document.createElement('div');
         const isInline = !!propDef.inline;
         container.style.cssText = `display:flex;align-items:center;gap:${isInline ? '4' : '8'}px;margin-bottom:4px;`;
@@ -252,6 +255,22 @@ export class InspectorSectionRenderer {
             };
 
             colorContainer.style.flex = '1';
+            colorContainer.style.marginBottom = '0'; // Überschreibe default margin von renderColorInput
+            
+            const pickVarBtn = document.createElement('button');
+            pickVarBtn.textContent = 'V';
+            pickVarBtn.title = 'Variable verknüpfen (Bind)';
+            pickVarBtn.style.cssText = 'padding: 4px; background: #e67e22; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 11px; width: 24px; font-weight: bold; flex-shrink: 0;';
+            pickVarBtn.onclick = () => {
+                if (context.actionHandler) {
+                    (context.actionHandler as any).handleAction(
+                        { action: 'pickVariable', property: propDef.name },
+                        obj
+                    );
+                }
+            };
+            
+            colorContainer.appendChild(pickVarBtn);
             container.appendChild(colorContainer);
         } else if (propDef.type === 'keyvalue') {
             container.style.display = 'block'; 
@@ -602,15 +621,99 @@ export class InspectorSectionRenderer {
             let input: HTMLInputElement | HTMLTextAreaElement;
             if (propDef.type === 'textarea') {
                 input = context.renderer.renderTextArea(String(currentValue));
+            } else if (propDef.type === 'number') {
+                // VALIDIERUNG: Number-Inputs bekommen nativen type='number' + Constraints
+                input = document.createElement('input');
+                input.type = 'number';
+                input.value = String(currentValue);
+                input.className = 'inspector-input';
+                input.style.cssText = 'width:100%;background:#222;color:#fff;border:1px solid #444;border-radius:3px;padding:4px 6px;font-size:12px;outline:none;box-sizing:border-box;';
+                if (propDef.min !== undefined) (input as HTMLInputElement).min = String(propDef.min);
+                if (propDef.max !== undefined) (input as HTMLInputElement).max = String(propDef.max);
+                if (propDef.step !== undefined) (input as HTMLInputElement).step = String(propDef.step);
             } else {
                 input = context.renderer.renderEdit(String(currentValue));
             }
             input.style.flex = '1';
             if (propDef.readonly) input.readOnly = true;
             if (propDef.name) input.name = propDef.name + 'Input';
-            
+
+            // Generiere Tooltip mit Wertebereich-Info
+            if (propDef.type === 'number' && (propDef.min !== undefined || propDef.max !== undefined)) {
+                const parts: string[] = [];
+                if (propDef.min !== undefined) parts.push(`Min: ${propDef.min}`);
+                if (propDef.max !== undefined) parts.push(`Max: ${propDef.max}`);
+                if (propDef.step !== undefined) parts.push(`Schritt: ${propDef.step}`);
+                const rangeInfo = parts.join(' | ');
+                input.title = propDef.hint ? `${propDef.hint} (${rangeInfo})` : rangeInfo;
+            } else if (propDef.hint) {
+                input.title = propDef.hint;
+            }
+
+            // Hint-Element für Validierungsmeldungen
+            const hintEl = document.createElement('div');
+            hintEl.className = 'inspector-hint';
+            hintEl.style.display = 'none';
+
             const submitChange = () => {
-                const newVal = propDef.type === 'number' ? Number(input.value) : input.value;
+                const rawVal = input.value.trim();
+                const isBinding = rawVal.includes('${');
+
+                // Binding-Validierung: Syntax prüfen
+                if (isBinding) {
+                    const openBraces = (rawVal.match(/\$\{/g) || []).length;
+                    const closeBraces = (rawVal.match(/\}/g) || []).length;
+                    if (openBraces !== closeBraces) {
+                        hintEl.textContent = 'Ungültige Binding-Syntax: ${ und } müssen paarweise sein';
+                        hintEl.style.display = 'block';
+                        input.classList.add('inspector-input-error');
+                        return; // BLOCKIERE ungültiges Binding
+                    }
+                }
+
+                let newVal: any = propDef.type === 'number' && !isBinding ? Number(rawVal) : rawVal;
+
+                // Auto-Clamp bei Number-Werten
+                if (propDef.type === 'number' && !isBinding && !isNaN(newVal)) {
+                    let clamped = false;
+                    if (propDef.min !== undefined && newVal < propDef.min) {
+                        newVal = propDef.min;
+                        clamped = true;
+                    }
+                    if (propDef.max !== undefined && newVal > propDef.max) {
+                        newVal = propDef.max;
+                        clamped = true;
+                    }
+                    if (clamped) {
+                        input.value = String(newVal);
+                        // Shake-Animation für visuelles Feedback
+                        input.classList.remove('inspector-input-error');
+                        void (input as HTMLElement).offsetWidth; // Force reflow for re-triggering animation
+                        input.classList.add('inspector-input-error');
+                        setTimeout(() => {
+                            input.classList.remove('inspector-input-error');
+                            input.classList.add('inspector-input-valid');
+                            setTimeout(() => input.classList.remove('inspector-input-valid'), 600);
+                        }, 300);
+                    }
+                }
+
+                // Custom Validator
+                if (propDef.validate) {
+                    const error = propDef.validate(newVal);
+                    if (error) {
+                        hintEl.textContent = error;
+                        hintEl.style.display = 'block';
+                        input.classList.add('inspector-input-error');
+                        return; // BLOCKIERE ungültigen Wert
+                    }
+                }
+
+                // Validierung bestanden → Hint ausblenden
+                hintEl.textContent = '';
+                hintEl.style.display = 'none';
+                input.classList.remove('inspector-input-error', 'inspector-input-warning');
+
                 if (context.eventHandler) {
                     const event = context.eventHandler.handleControlChange(
                         input.name, newVal, obj,
@@ -628,6 +731,41 @@ export class InspectorSectionRenderer {
                 }
             };
             
+            // Live-Validierung bei Eingabe (nur visuelles Feedback, kein Block)
+            if (propDef.type === 'number') {
+                input.addEventListener('input', () => {
+                    const rawVal = input.value.trim();
+                    const isBinding = rawVal.includes('${');
+                    if (isBinding || rawVal === '' || rawVal === '-') {
+                        // Binding oder leeres Feld: keine Live-Validierung
+                        input.classList.remove('inspector-input-warning', 'inspector-input-error');
+                        hintEl.style.display = 'none';
+                        return;
+                    }
+                    const num = Number(rawVal);
+                    if (isNaN(num)) {
+                        hintEl.textContent = 'Bitte eine Zahl eingeben';
+                        hintEl.style.display = 'block';
+                        input.classList.add('inspector-input-error');
+                        input.classList.remove('inspector-input-warning');
+                    } else if (propDef.min !== undefined && num < propDef.min) {
+                        hintEl.textContent = `Wird auf Minimum (${propDef.min}) korrigiert`;
+                        hintEl.style.display = 'block';
+                        input.classList.add('inspector-input-warning');
+                        input.classList.remove('inspector-input-error');
+                    } else if (propDef.max !== undefined && num > propDef.max) {
+                        hintEl.textContent = `Wird auf Maximum (${propDef.max}) korrigiert`;
+                        hintEl.style.display = 'block';
+                        input.classList.add('inspector-input-warning');
+                        input.classList.remove('inspector-input-error');
+                    } else {
+                        hintEl.textContent = '';
+                        hintEl.style.display = 'none';
+                        input.classList.remove('inspector-input-warning', 'inspector-input-error');
+                    }
+                });
+            }
+
             input.onchange = submitChange;
             
             if (propDef.type === 'textarea') {
@@ -665,9 +803,13 @@ export class InspectorSectionRenderer {
                 btnContainer.appendChild(btn);
                 
                 wrapper.appendChild(input);
+                wrapper.appendChild(hintEl);
                 wrapper.appendChild(btnContainer);
                 container.appendChild(wrapper);
             } else {
+                const outerWrapper = document.createElement('div');
+                outerWrapper.style.cssText = 'display:flex;flex-direction:column;flex:1;';
+
                 const wrapper = document.createElement('div');
                 wrapper.style.display = 'flex';
                 wrapper.style.gap = '4px';
@@ -689,7 +831,9 @@ export class InspectorSectionRenderer {
 
                 wrapper.appendChild(input);
                 wrapper.appendChild(pickVarBtn);
-                container.appendChild(wrapper);
+                outerWrapper.appendChild(wrapper);
+                outerWrapper.appendChild(hintEl);
+                container.appendChild(outerWrapper);
             }
         }
 

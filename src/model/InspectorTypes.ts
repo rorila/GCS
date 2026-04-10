@@ -14,7 +14,7 @@
 export interface TPropertyDef {
     name: string;      // Property key or path (e.g. 'x', 'style.backgroundColor')
     label: string;     // Display label
-    type: 'string' | 'number' | 'boolean' | 'color' | 'select' | 'checkbox' | 'image_picker' | 'audio_picker' | 'video_picker' | 'json' | 'button' | 'text' | 'textarea' | 'TVariableSelect' | 'TObjectSelect';
+    type: 'string' | 'number' | 'boolean' | 'color' | 'select' | 'checkbox' | 'image_picker' | 'audio_picker' | 'video_picker' | 'json' | 'button' | 'text' | 'textarea' | 'TVariableSelect' | 'TObjectSelect' | 'hidden';
     group?: string;    // 'Geometry', 'Style', 'Identity' etc.
     readonly?: boolean;
     serializable?: boolean; // Ob die Property gespeichert werden soll (default: true)
@@ -37,6 +37,8 @@ export interface TPropertyDef {
     variable?: string;    // Bound variable name for proxy getters/setters
     dependsOn?: { property: string; value: any }; // Conditional field visibility
     visibleWhen?: { field: string; values: any[] }; // Dynamic visibility logic
+    /** Custom Validator: gibt Fehlertext zurück oder null bei gültigem Wert */
+    validate?: (value: any) => string | null;
 }
 
 // ─────────────────────────────────────────────

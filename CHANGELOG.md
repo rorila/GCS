@@ -1,3 +1,26 @@
+## [2026-04-10] - Inspector Input-Validierung
+### Added
+- Inline-Validierung fuer Inspector-Felder: Number-Inputs mit type='number', min/max/step
+- Live-Feedback bei Eingabe: roter Rand bei NaN, oranger Rand bei out-of-range
+- Auto-Clamp bei onblur/onchange: Werte werden auf min/max begrenzt mit Shake-Animation
+- Binding-Syntax-Validierung: { und } muessen paarweise sein
+- TPropertyDef: 'hidden' Typ fuer Serialisierungs-only Properties, 'validate' Callback
+- CSS-Klassen: inspector-input-error, inspector-input-warning, inspector-input-valid, inspector-hint
+- TWindow: Geometrie-Limits (x/y min:-100/max:200, width/height min:1/max:200, zIndex max:9999, borderWidth max:20, borderRadius max:100)
+## [2026-04-10] - TRichText Serialization Fix (Root-Cause)
+### Fixed
+- htmlContent fehlte in getInspectorProperties() und wurde von toDTO() nicht serialisiert
+- Beim safeDeepCopy fuer Run-Mode/IFrame ging der WYSIWYG-Inhalt mit Formatierungen verloren
+- Deprecated font-color Tags werden jetzt zu span-inline-styles konvertiert (CSS-Spezifitaet)
+- Debug-Logs aus vorheriger Analyse-Session entfernt
+## [2026-04-10] - TRichText Rendering Overhaul
+### Fixed
+- renderRichText: fehlende fontSize-Skalierung via scaleFontSize ergaenzt
+- renderRichText: falscher Color-Fallback im Editor entfernt
+- renderRichText: Padding-Anwendung ergaenzt
+- renderRichText: fontWeight/fontStyle robuster
+- Debug-Logs entfernt und Runtime-Bundle aktualisiert
+
 ## [2026-04-10] - Kopier-Funktion Fix
 ### Fixed
 - Das EinfÃ¼gen von kopierten Objekten im Editor schlug fehl, weil die `crypto.randomUUID()` API je nach Electron/Vite Sicherheitskontext nicht konsistent verfÃ¼gbar ist. Diese Aufrufe wurden im `EditorInteractionManager.ts` und im `EditorStageManager.ts` durch robuste `Math.random` Fallbacks ersetzt.
@@ -1128,4 +1151,7 @@
 - **TStringMap RunMode Fix**: TypeError beim Starten des Run-Modus behoben (GameRuntime versuchte readonly value zu Ã¼berschreiben).
 
 [UC-2026-04-10-TRichText-Fixes] TRichText in ComponentRegistry registriert, damit sie im Run-Mode nicht verschwindet. Standard-Werte für 'color' und 'fontSize' injiziert, um Editor/Run-Größenunterschiede zu fixen.
+
+
+[UC-2026-04-10-ColorPicker-Bind] Option eingeführt, durch Variablen-Binding ('V' Button) die Werte des Color-Pickers (Hintergrund, Rahmenfarbe etc.) überschreiben zu können, um z.B. Game-Themes dynamisch zu realisieren.
 

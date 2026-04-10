@@ -33,7 +33,12 @@ export class TRichText extends TPanel {
 
         // Einfügen des "Text bearbeiten"-Knopfes ziemlich weit oben
         props.splice(1, 0,
-            { name: '', type: 'button', category: 'Inhalt', label: '🖋️ Text bearbeiten', action: 'openRichTextEditor' }
+            { name: '', type: 'button', category: 'Inhalt', label: '🖋️ Text bearbeiten', action: 'openRichTextEditor' },
+            // KRITISCH: htmlContent muss als Property registriert sein, damit toDTO()
+            // den Wert serialisiert. Ohne diesen Eintrag geht der HTML-Inhalt beim
+            // Deep-Copy (Run-Mode, IFrame-Export) verloren und die Runtime bekommt
+            // nur den Konstruktor-Default ohne Formatierungen/Farben.
+            { name: 'htmlContent', type: 'hidden', category: 'Inhalt', label: 'HTML Inhalt' }
         );
 
         return props;

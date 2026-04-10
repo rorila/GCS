@@ -47,24 +47,75 @@ export class TextObjectRenderer {
     }
 
     public static renderRichText(ctx: IRenderContext, el: HTMLElement, obj: any): void {
-        console.log(`[DEBUG-RichText] renderRichText called for: '${obj.name}' | runMode: ${ctx.host.runMode} | htmlContent:`, obj.htmlContent, `| textValue:`, obj.htmlContent || (ctx.host.runMode ? '' : `<i>${obj.name} (leeres RichText)</i>`));
-        const textValue = obj.htmlContent || (ctx.host.runMode ? '' : `<i>${obj.name} (leeres RichText)</i>`);
-        
-        // Wir verwenden innerHTML damit die <b>, <i>, <span> etc. greifen.
-        // Falls PropertyHelper via Component Object genutzt wurde, sind Bindings schon aufgelöst
+        let textValue = obj.htmlContent || (ctx.host.runMode ? '' : `<i>${obj.name} (leeres RichText)</i>`);
+
+        // KRITISCH: Der WYSIWYG-Editor (document.execCommand('foreColor')) erzeugt
+        // deprecated <font color="..."> Tags. Deren Farb-Zuweisung ist ein "Presentational Hint"
+        // mit CSS-Spezifität 0 und wird im Run-Mode von CSS-Regeln überschrieben.
+        // Lösung: Konvertierung zu <span style="color:..."> (Inline-Spezifität 1,0,0,0).
+        if (textValue.includes('<font ')) {
+            textValue = textValue.replace(
+                /<font\s+color="([^"]+)">/gi,
+                '<span style="color:$1">'
+            ).replace(/<\/font>/gi, '</span>');
+        }
+
+        // innerHTML verwenden, damit <b>, <i>, <span style="color:"> etc. greifen
         if (el.innerHTML !== textValue) {
             el.innerHTML = textValue;
         }
 
-        const color = obj.style?.color || (!ctx.host.runMode ? '#eee' : '');
-        if (color) el.style.color = color;
-        
-        // Overflow scroll wenn Text zu lang
+        // --- Farbe ---
+        // Konstruktor-Default ist '#000000'. Kein falscher Fallback wie '#eee' im Editor.
+        // Die Container-Farbe dient als Vererbungsbasis; Inline-Farben im HTML
+        // (z.B. <font color="#ff0000">) haben höhere Spezifität und überschreiben sie.
+        const color = obj.style?.color;
+        if (color) {
+            el.style.color = color;
+        } else {
+            el.style.color = ''; // Browser-Default erben lassen
+        }
+
+        // --- Schriftgröße (KRITISCH: war vorher nicht gesetzt → inkonsistente Darstellung) ---
+        const fs = obj.style?.fontSize;
+        if (fs) {
+            el.style.fontSize = ctx.scaleFontSize(fs);
+        }
+
+        // --- Typografie ---
+        const fw = obj.style?.fontWeight;
+        el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : (fw || 'normal');
+        const fstyle = obj.style?.fontStyle;
+        el.style.fontStyle = (fstyle === true || fstyle === 'italic') ? 'italic' : 'normal';
+        if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+
+        // --- Ausrichtung ---
+        const align = obj.style?.textAlign || 'left';
+
+        // Flexbox: vertikale Anordnung, damit <h1>, <p> etc. korrekt fließen
+        el.style.display = 'flex';
+        el.style.flexDirection = 'column';
+        el.style.justifyContent = 'center'; // vertikal zentriert (wie andere Game-Objekte)
+        // WICHTIG: alignItems MUSS 'stretch' sein, damit <h1>, <p> etc. die volle
+        // Container-Breite einnehmen. Nur so wirken die Inline-Styles
+        // (z.B. <h1 style="text-align: left">) aus dem WYSIWYG-Editor korrekt.
+        // Bei 'center'/'flex-start'/'flex-end' schrumpfen die Kinder auf Inhaltsbreite
+        // und text-align wird wirkungslos.
+        el.style.alignItems = 'stretch';
+        // textAlign auf dem Container dient als Fallback/Default für Elemente
+        // ohne eigenen Inline-Style aus dem WYSIWYG-Editor
+        el.style.textAlign = align;
+
+        // --- Padding ---
+        if (obj.style?.padding) {
+            el.style.padding = typeof obj.style.padding === 'number'
+                ? `${obj.style.padding}px`
+                : obj.style.padding;
+        }
+
+        // --- Overflow ---
         el.style.overflowY = 'auto';
         el.style.overflowX = 'hidden';
-        
-        // Flexbox resetten damit HTML p und div normal flowen
-        el.style.display = 'block';
     }
 
     public static renderGameHeader(_ctx: IRenderContext, el: HTMLElement, obj: any): void {
