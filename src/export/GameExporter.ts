@@ -27,9 +27,14 @@ export class GameExporter {
             if ((window as any).electronFS) {
                 // Im Electron Offline-Modus direkt von der Festplatte aus dist/ lesen
                 const appPath = await (window as any).electronFS.getAppPath();
-                const folder = appPath.endsWith('app.asar') ? appPath : appPath + '/dist';
                 
-                runtimeCode = await (window as any).electronFS.readFile(`${folder}/runtime-standalone.js`);
+                try {
+                    // In production (app.asar), Vite copies public -> dist
+                    runtimeCode = await (window as any).electronFS.readFile(`${appPath}/dist/runtime-standalone.js`);
+                } catch {
+                    // In development, it's still in public/
+                    runtimeCode = await (window as any).electronFS.readFile(`${appPath}/public/runtime-standalone.js`);
+                }
             } else {
                 // Web-Server Modus (Vite)
                 const resp = await fetch('runtime-standalone.js');
@@ -96,8 +101,11 @@ export class GameExporter {
         try {
             if ((window as any).electronFS) {
                 const appPath = await (window as any).electronFS.getAppPath();
-                const folder = appPath.endsWith('app.asar') ? appPath : appPath + '/dist';
-                runtimeCode = await (window as any).electronFS.readFile(`${folder}/runtime-standalone.js`);
+                try {
+                    runtimeCode = await (window as any).electronFS.readFile(`${appPath}/dist/runtime-standalone.js`);
+                } catch {
+                    runtimeCode = await (window as any).electronFS.readFile(`${appPath}/public/runtime-standalone.js`);
+                }
             } else {
                 const resp = await fetch('runtime-standalone.js');
                 if (resp.ok) {
@@ -442,7 +450,7 @@ primary_region = "fra"
         if (typeof window.startStandalone === 'function') {
             window.startStandalone(window.PROJECT);
         } else {
-            logger.error('Standalone Runtime not found! Check if runtime-standalone.js was bundled correctly.');
+            console.error('Standalone Runtime not found! Check if runtime-standalone.js was bundled correctly.');
             document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:20%">Error: Runtime not found.</h2>';
         }
     });
@@ -535,7 +543,7 @@ primary_region = "fra"
             // Runtime will detect PROJECT_DATA and decompress automatically
             window.startStandalone(null);
         } else {
-            logger.error('Standalone Runtime not found!');
+            console.error('Standalone Runtime not found!');
             document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:20%">Error: Runtime not found.</h2>';
         }
     });
