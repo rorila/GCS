@@ -24,7 +24,28 @@ export class VirtualGamepadRenderer {
             return;
         }
 
-        // 🚀 Verhindere ständigen Re-Render (Crash/Performance)
+        // 🚀 ALWAYS enforce full-screen layout for the gamepad wrapper
+        el.style.display = 'flex';
+        el.style.flexDirection = 'row';
+        el.style.justifyContent = 'space-between';
+        
+        const layoutStyle = obj.layoutStyle || 'split';
+        const vAlign = obj.splitVerticalAlignment || 'bottom';
+        el.style.alignItems = (layoutStyle === 'split' && vAlign === 'middle') ? 'center' : 'flex-end';
+        
+        el.style.pointerEvents = 'none';
+        
+        // ÜBERSCHREIBE StageRenderer Defaults, damit das Gamepad über den gesamten Screen liegen darf!
+        el.style.overflow = 'visible';
+        el.style.position = 'absolute';
+        el.style.left = '0px';
+        el.style.bottom = '0px';
+        el.style.top = 'auto'; // Verhindert zwingende Top-Platzierung
+        el.style.width = '100%';
+        el.style.height = '100%'; 
+        el.style.transform = 'none'; // Verhindere Grid-Skalierung, falls es transform nutzt
+
+        // 🚀 Verhindere ständigen Re-Render der Buttons (Crash/Performance)
         if ((el as any)._virtualGamepadBuilt) {
             return;
         }
@@ -54,27 +75,6 @@ export class VirtualGamepadRenderer {
         }
 
         (el as any)._virtualGamepadBuilt = true;
-
-        // Layout vorbereiten
-        el.style.display = 'flex';
-        el.style.flexDirection = 'row';
-        el.style.justifyContent = 'space-between';
-        
-        const layoutStyle = obj.layoutStyle || 'split';
-        const vAlign = obj.splitVerticalAlignment || 'bottom';
-        el.style.alignItems = (layoutStyle === 'split' && vAlign === 'middle') ? 'center' : 'flex-end';
-        
-        el.style.pointerEvents = 'none'; // Wir machen den Container selbst nicht anklickbar, sondern nur die Buttons
-        
-        // ÜBERSCHREIBE StageRenderer Defaults, damit das Gamepad über den gesamten Screen liegen darf und niemals geclippt wird!
-        el.style.overflow = 'visible';
-        el.style.position = 'absolute';
-        el.style.left = '0px';
-        el.style.bottom = '0px';
-        el.style.top = 'auto'; // Verhindert zwingende Top-Platzierung
-        el.style.width = '100%';
-        el.style.height = '100%'; 
-        el.style.transform = 'none'; // Verhindere Grid-Skalierung, falls es transform nutzt
         
         el.innerHTML = ''; // Clear previous
 
