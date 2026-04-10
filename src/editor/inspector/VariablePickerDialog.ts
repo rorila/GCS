@@ -137,7 +137,7 @@ export class VariablePickerDialog {
         const className = (v.className || '') as string;
 
         if (type === 'object' || type === 'object_list' || type === 'json' || type === 'any' ||
-            className === 'TObjectVariable' || className === 'TVariable') {
+            className === 'TObjectVariable' || className === 'TVariable' || className === 'TStringMap') {
             const model = ((v.objectModel || '') as string).toLowerCase();
             if (model) {
                 fields = dataService.getModelFieldsSync('db.json', model);
@@ -150,7 +150,11 @@ export class VariablePickerDialog {
                 if (v.value && typeof v.value === 'object' && !Array.isArray(v.value)) {
                     fields = Object.keys(v.value);
                 }
-                if (fields.length === 0) {
+                // TStringMap hat seine Felder in 'entries'
+                if (v.entries && typeof v.entries === 'object' && !Array.isArray(v.entries)) {
+                    fields = Object.keys(v.entries);
+                }
+                if (fields.length === 0 && className !== 'TStringMap') {
                     fields = ['id', 'name', 'text', 'value'];
                 }
             }
@@ -200,7 +204,7 @@ export class VariablePickerDialog {
             // Icon nach Typ
             const icon = document.createElement('span');
             icon.style.cssText = 'margin-right:8px; font-size:14px;';
-            icon.innerText = (v as any).uiEmoji || ((v.type === 'object' || v.type === 'object_list') ? '📦' : '📄');
+            icon.innerText = (v as any).uiEmoji || ((v.type === 'object' || v.type === 'object_list' || v.className === 'TStringMap') ? '📦' : '📄');
             row.appendChild(icon);
 
             // Name
@@ -212,7 +216,7 @@ export class VariablePickerDialog {
             // Typ-Badge
             const badge = document.createElement('span');
             badge.style.cssText = 'font-size:10px; color:#888; background:#222; padding:2px 6px; border-radius:3px; margin-left:8px;';
-            badge.innerText = v.type || 'string';
+            badge.innerText = v.className === 'TStringMap' ? 'StringMap' : (v.type || 'string');
             row.appendChild(badge);
 
             // Model-Badge

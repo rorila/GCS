@@ -330,10 +330,10 @@ export class StageRenderer {
             }
 
             if (!this.host.runMode && (!isVisible || obj.isHiddenInRun || isService || isBlueprintOnly)) {
-                el.style.display = 'flex';
+                el.style.display = obj.className === 'TRichText' ? 'block' : 'flex';
                 el.classList.add('invisible-object-in-editor');
             } else {
-                el.style.display = isVisible ? 'flex' : 'none';
+                el.style.display = isVisible ? (obj.className === 'TRichText' ? 'block' : 'flex') : 'none';
                 el.classList.remove('invisible-object-in-editor');
             }
 
@@ -651,6 +651,7 @@ export class StageRenderer {
         else if (className === 'TStringVariable' || className === 'TObjectVariable' || className === 'TIntegerVariable' || className === 'TBooleanVariable' || className === 'TListVariable' || obj.isVariable || obj.isService) SystemComponentRenderer.render(ctx, el, obj, className);
         else if (className === 'TLabel' || className === 'TNumberLabel') TextObjectRenderer.renderLabel(ctx, el, obj);
         else if (className === 'TPanel') TextObjectRenderer.renderPanel(ctx, el, obj);
+        else if (className === 'TRichText') TextObjectRenderer.renderRichText(ctx, el, obj);
         else if (className === 'TGameHeader') TextObjectRenderer.renderGameHeader(ctx, el, obj);
         else if (className === 'TSprite') SpriteRenderer.render(ctx, el, obj);
         else if (className === 'TShape') ShapeRenderer.render(ctx, el, obj, isNew);
@@ -860,7 +861,7 @@ export class StageRenderer {
                 if (obj.isHiddenInRun) isVisible = false;
 
                 if (isVisible) {
-                    el.style.display = 'flex';
+                    el.style.display = obj.className === 'TRichText' ? 'block' : 'flex';
                 } else {
                     el.style.display = 'none';
                 }

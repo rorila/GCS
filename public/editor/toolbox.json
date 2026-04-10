@@ -30,6 +30,11 @@
                     "label": "Label"
                 },
                 {
+                    "type": "RichText",
+                    "icon": "🖋️",
+                    "label": "RichText"
+                },
+                {
                     "type": "NumberLabel",
                     "icon": "🔢",
                     "label": "Number Label"
@@ -163,6 +168,11 @@
                     "type": "Variable",
                     "icon": "📦",
                     "label": "Variable"
+                },
+                {
+                    "type": "StringMap",
+                    "icon": "🗂️",
+                    "label": "String Map"
                 },
                 {
                     "type": "Timer",

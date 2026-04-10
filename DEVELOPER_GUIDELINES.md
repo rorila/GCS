@@ -293,3 +293,9 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 
 
 - **safeDeepCopy() mit Getter-Properties**: Object.keys() und or...in ignorieren Getter/Setter-Properties, die auf dem Prototyp einer Klasse definiert sind (TSprite.backgroundImage). Wenn man Instanzen (TWindow) via generischem JSON.stringify oder manual iterierenden safeDeepCopy klont, gehen diese Properties verloren. **Lösung**: safeDeepCopy prüfen lassen, ob ein Objekt eine .toDTO()-Methode besitzt, und diese nutzen, da sie alle via getInspectorProperties() deklarierten Getter inkludiert.
+- **DO NOT**: Verwenden Sie niemals crypto.randomUUID() implizit in der Editor-/Web-Umgebung. Da das GameBuilder-Projekt sowohl im Browser als auch im nativen Electron-Dual-Mode ohne strikten HTTPS Secure Context läuft, wird die Web-Crypto-API teils blockiert. Nutzen Sie immer den Fallback: `typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'obj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)`.
+
+### TRichText & HTML Component Hydrierung
+- **DO**: Wenn ihr Komponenten erstellt, die HTML injizieren (wie TRichText), legt zwingend .style.color und .style.fontSize im Constructor als Fallback fest. Andernfalls zerbricht das Skalierungssystem der GameRuntime / des Editor-StageRenderers und die Typografien unterscheiden sich zwischen IFrame und Editor eklatant.
+- **DO**: Vergiss niemals, _jede_ neue Komponente per `ComponentRegistry.register(ClassName, ...)` am Dateiende zu registrieren, sonst löscht das Hydrations-System (Serialization.ts) die Component beim Wechsel in den Run-Mode spurlos aus dem RAM!
+

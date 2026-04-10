@@ -290,3 +290,30 @@ Task: ProjectRegistry Hard Break
 Files: src/services/registry/*.ts
 Description: Decoupled ProjectRegistry into modular singletons.
 
+
+
+## UC-2026-04-10-KopierFunktionFix
+- **Beschreibung:** Kopier-Funktion für den Editor repariert. crypto.randomUUID() wurde durch nativen UUID-Fallback ersetzt, da Electron/Lokaler Vite Dev Server teils ohne Secure Context (HTTPS) aufgerufen wird und die crypto API undefined war.
+- **Dateien:** 
+  - src/editor/services/EditorInteractionManager.ts (Zeilen: ~195, Methode: onPasteCallback)
+  - src/editor/EditorStageManager.ts (Zeilen: ~388, Methode: duplicateStage)
+
+## UC-2026-04-10-Toolbox-StringMap
+- **Beschreibung:** Die Komponente TStringMap wurde in die Toolbar aufgenommen.
+- **Dateien:** 
+  - "public/editor/toolbox.json"
+  - "public/editor/toolbox_horizontal.json"
+
+## UC-2026-04-10-StringMap-ComponentRegistry
+- **Beschreibung:** StringMap wurde in die ComponentRegistry.ts eingefügt, damit Instanzen beim Drag & Drop aus der Toolbar von der Game-Engine erzeugt werden können.
+- **Dateien:** 
+  - "src/services/ComponentRegistry.ts"
+
+UC-2026-04-10-TRichText-Component: Komponente TRichText hinzugefuegt mit wysiwyg inspector dialog.
+
+[2026-04-10] UC-2026-04-10-TRichText-Fixes
+- Beschreibung: Rendering Fixes für TRichText (Textfarbe im Editor und Font-size-scaling im Run-Modus) und ComponentRegistry Fix.
+- Dateien:
+  - src/editor/services/StageRenderer.ts
+  - src/components/TRichText.ts
+

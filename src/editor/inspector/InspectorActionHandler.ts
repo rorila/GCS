@@ -74,6 +74,12 @@ export class InspectorActionHandler {
             case 'openImageListEditor':
                 await this.handleOpenImageListEditor(selectedObject);
                 break;
+            case 'openStringMapEditor':
+                await this.handleOpenStringMapEditor(selectedObject);
+                break;
+            case 'openRichTextEditor':
+                await this.handleOpenRichTextEditor(selectedObject);
+                break;
             default:
                 InspectorActionHandler.logger.warn(`Unknown action: ${action}`);
         }
@@ -334,6 +340,21 @@ export class InspectorActionHandler {
         }
     }
 
+    private async handleOpenStringMapEditor(obj: any): Promise<void> {
+        InspectorActionHandler.logger.info('Opening StringMap Editor for:', obj.name);
+
+        const { StringMapEditorDialog } = await import('./StringMapEditorDialog');
+        const result = await StringMapEditorDialog.show(
+            obj.entries || {},
+            obj.name || 'StringMap'
+        );
+
+        if (result !== null) {
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'entries', value: result });
+            this.host.update(obj);
+        }
+    }
+
     private async handleOpenImageListEditor(obj: any): Promise<void> {
         InspectorActionHandler.logger.info('Opening ImageList Editor for:', obj.name);
 
@@ -352,6 +373,22 @@ export class InspectorActionHandler {
                 projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'src', value: result.src });
                 projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'backgroundImage', value: result.src });
             }
+            this.host.update(obj);
+        }
+    }
+
+    private async handleOpenRichTextEditor(obj: any): Promise<void> {
+        InspectorActionHandler.logger.info('Opening RichText Editor for:', obj.name);
+        // Dynamisch importieren
+        const { RichTextEditorDialog } = await import('./RichTextEditorDialog');
+        
+        // Entweder htmlContent oder leeres Grundgerüst
+        const currentHtml = obj.htmlContent || '';
+        
+        const result = await RichTextEditorDialog.show(currentHtml);
+        
+        if (result !== null) {
+            projectStore.dispatch({ type: 'SET_PROPERTY', target: obj, path: 'htmlContent', value: result });
             this.host.update(obj);
         }
     }

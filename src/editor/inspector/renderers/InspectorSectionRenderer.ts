@@ -637,17 +637,59 @@ export class InspectorSectionRenderer {
                 wrapper.style.gap = '4px';
                 wrapper.style.width = '100%';
                 
+                const btnContainer = document.createElement('div');
+                btnContainer.style.display = 'flex';
+                btnContainer.style.justifyContent = 'space-between';
+                btnContainer.style.alignItems = 'center';
+                
+                const pickVarBtn = document.createElement('button');
+                pickVarBtn.textContent = 'V';
+                pickVarBtn.title = 'Variable verknüpfen (Bind)';
+                pickVarBtn.style.cssText = 'padding: 4px; background: #e67e22; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 11px; width: 24px; font-weight: bold; flex-shrink: 0;';
+                pickVarBtn.onclick = () => {
+                    if (context.actionHandler) {
+                        (context.actionHandler as any).handleAction(
+                            { action: 'pickVariable', property: propDef.name },
+                            obj
+                        );
+                    }
+                };
+
                 const btn = document.createElement('button');
                 btn.textContent = 'Übernehmen';
                 btn.title = 'Text speichern und anzeigen';
-                btn.style.cssText = 'padding: 4px 8px; background: #2e7d32; color: #fff; border: 1px solid #1b5e20; border-radius: 3px; cursor: pointer; font-size: 11px; align-self: flex-end;';
+                btn.style.cssText = 'padding: 4px 8px; background: #2e7d32; color: #fff; border: 1px solid #1b5e20; border-radius: 3px; cursor: pointer; font-size: 11px;';
                 btn.onclick = submitChange;
                 
+                btnContainer.appendChild(pickVarBtn);
+                btnContainer.appendChild(btn);
+                
                 wrapper.appendChild(input);
-                wrapper.appendChild(btn);
+                wrapper.appendChild(btnContainer);
                 container.appendChild(wrapper);
             } else {
-                container.appendChild(input);
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.gap = '4px';
+                wrapper.style.flex = '1';
+                wrapper.style.alignItems = 'center';
+                
+                const pickVarBtn = document.createElement('button');
+                pickVarBtn.textContent = 'V';
+                pickVarBtn.title = 'Variable verknüpfen (Bind)';
+                pickVarBtn.style.cssText = 'padding: 4px; background: #e67e22; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 11px; width: 24px; font-weight: bold; flex-shrink: 0;';
+                pickVarBtn.onclick = () => {
+                    if (context.actionHandler) {
+                        (context.actionHandler as any).handleAction(
+                            { action: 'pickVariable', property: propDef.name },
+                            obj
+                        );
+                    }
+                };
+
+                wrapper.appendChild(input);
+                wrapper.appendChild(pickVarBtn);
+                container.appendChild(wrapper);
             }
         }
 

@@ -15,6 +15,7 @@ import { TMemo } from '../components/TMemo';
 import { TNumberInput } from '../components/TNumberInput';
 import { TNumberLabel } from '../components/TNumberLabel';
 import { TPanel } from '../components/TPanel';
+import { TRichText } from '../components/TRichText';
 import { TGroupPanel } from '../components/TGroupPanel';
 import { TIntervalTimer } from '../components/TIntervalTimer';
 import { TShape } from '../components/TShape';
@@ -28,6 +29,7 @@ import { TThresholdVariable } from '../components/TThresholdVariable';
 import { TRangeVariable } from '../components/TRangeVariable';
 import { TRandomVariable } from '../components/TRandomVariable';
 import { TListVariable } from '../components/TListVariable';
+import { TStringMap } from '../components/TStringMap';
 import { TStringVariable } from '../components/TStringVariable';
 import { TIntegerVariable } from '../components/TIntegerVariable';
 import { TBooleanVariable } from '../components/TBooleanVariable';
@@ -112,6 +114,7 @@ export class ComponentRegistry {
         this.register('TNumberInput', TNumberInput);
         this.register('TNumberLabel', TNumberLabel);
         this.register('TPanel', TPanel);
+        this.register('TRichText', TRichText);
         this.register('TGroupPanel', TGroupPanel);
         this.register('TIntervalTimer', TIntervalTimer);
         this.register('TShape', TShape);
@@ -155,6 +158,7 @@ export class ComponentRegistry {
 
         // Variablen & Spezial-Variablen
         this.register('TVariable', TVariable);
+        this.register('TStringMap', TStringMap);
         this.register('TTriggerVariable', TTriggerVariable);
         this.register('TTimer', TTimer);
         this.register('TThresholdVariable', TThresholdVariable);
@@ -176,6 +180,7 @@ export class ComponentRegistry {
     private setupTypeMappings() {
         this.typeMapping.set('Button', 'TButton');
         this.typeMapping.set('Panel', 'TPanel');
+        this.typeMapping.set('RichText', 'TRichText');
         this.typeMapping.set('GroupPanel', 'TGroupPanel');
         this.typeMapping.set('Audio', 'TAudio');
         this.typeMapping.set('Image', 'TImage');
@@ -216,6 +221,7 @@ export class ComponentRegistry {
         this.typeMapping.set('Heartbeat', 'THeartbeat');
         this.typeMapping.set('StageController', 'TStageController');
         this.typeMapping.set('Variable', 'TVariable');
+        this.typeMapping.set('StringMap', 'TStringMap');
         this.typeMapping.set('ObjectList', 'TObjectList');
         this.typeMapping.set('Threshold', 'TThresholdVariable');
         this.typeMapping.set('Trigger', 'TTriggerVariable');

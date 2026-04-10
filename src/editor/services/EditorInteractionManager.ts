@@ -192,7 +192,7 @@ export class EditorInteractionManager {
         stage.onPasteCallback = (jsonObj: any, x: number, y: number): string | null => {
             logger.info('[EditorInteractionManager] onPasteCallback called', jsonObj?.className, x, y);
             const copyData = JSON.parse(JSON.stringify(jsonObj));
-            copyData.id = crypto.randomUUID();
+            copyData.id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'obj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             copyData.x = x;
             copyData.y = y;
             

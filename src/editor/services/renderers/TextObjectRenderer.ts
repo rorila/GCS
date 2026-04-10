@@ -46,6 +46,27 @@ export class TextObjectRenderer {
         el.style.alignItems = 'center';
     }
 
+    public static renderRichText(ctx: IRenderContext, el: HTMLElement, obj: any): void {
+        console.log(`[DEBUG-RichText] renderRichText called for: '${obj.name}' | runMode: ${ctx.host.runMode} | htmlContent:`, obj.htmlContent, `| textValue:`, obj.htmlContent || (ctx.host.runMode ? '' : `<i>${obj.name} (leeres RichText)</i>`));
+        const textValue = obj.htmlContent || (ctx.host.runMode ? '' : `<i>${obj.name} (leeres RichText)</i>`);
+        
+        // Wir verwenden innerHTML damit die <b>, <i>, <span> etc. greifen.
+        // Falls PropertyHelper via Component Object genutzt wurde, sind Bindings schon aufgelöst
+        if (el.innerHTML !== textValue) {
+            el.innerHTML = textValue;
+        }
+
+        const color = obj.style?.color || (!ctx.host.runMode ? '#eee' : '');
+        if (color) el.style.color = color;
+        
+        // Overflow scroll wenn Text zu lang
+        el.style.overflowY = 'auto';
+        el.style.overflowX = 'hidden';
+        
+        // Flexbox resetten damit HTML p und div normal flowen
+        el.style.display = 'block';
+    }
+
     public static renderGameHeader(_ctx: IRenderContext, el: HTMLElement, obj: any): void {
         if (el.innerText !== (obj.title || obj.caption || obj.name)) el.innerText = obj.title || obj.caption || obj.name;
         el.style.fontSize = obj.style?.fontSize ? (typeof obj.style.fontSize === 'number' ? `${obj.style.fontSize}px` : obj.style.fontSize) : '18px';

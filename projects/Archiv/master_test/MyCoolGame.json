@@ -1,10 +1,10 @@
 {
   "meta": {
-    "name": "Neues Spiel",
+    "name": "MyCoolGame",
     "version": "1.0.0",
-    "author": "",
-    "description": "",
-    "_sourcePath": "projects/project.json"
+    "author": "GCS-Team",
+    "description": "Das ist mein cooles Spiel",
+    "_sourcePath": "projects/Neues_Spiel.json"
   },
   "stage": {
     "grid": {
@@ -50,33 +50,66 @@
       "type": "blueprint",
       "objects": [
         {
+          "className": "TStageController",
           "id": "stage_controller",
           "name": "StageController",
-          "className": "TStageController",
           "scope": "global",
           "isService": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
           "x": 2,
           "y": 2,
           "width": 8,
-          "height": 4
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "#9c27b0",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "currentStageId": "",
+          "currentStageName": "",
+          "currentStageType": "standard",
+          "stageCount": 0,
+          "isOnMainStage": false,
+          "isOnSplashStage": false
         }
       ],
       "actions": [],
       "tasks": [],
       "variables": [
         {
+          "className": "TVariable",
           "id": "var_project_change",
           "name": "isProjectChangeAvailable",
-          "type": "boolean",
-          "defaultValue": false,
-          "value": false,
           "scope": "global",
-          "className": "TVariable",
           "isVariable": true,
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
           "x": 12,
           "y": 2,
           "width": 10,
-          "height": 4
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "backgroundColor": "#d1c4e9",
+            "borderColor": "#9575cd",
+            "borderWidth": 1
+          },
+          "type": "boolean",
+          "defaultValue": false,
+          "value": false,
+          "objectModel": ""
         }
       ],
       "grid": {
@@ -91,38 +124,21 @@
     },
     {
       "id": "main",
-      "name": "Haupt-Level",
+      "name": "MainStage",
       "type": "main",
       "objects": [],
       "actions": [],
       "tasks": [],
       "variables": [],
       "grid": {
-        "cols": 64,
-        "rows": 40,
-        "cellSize": 20,
+        "cols": 60,
+        "rows": 38,
+        "cellSize": 22,
         "snapToGrid": true,
         "visible": true,
-        "backgroundColor": "#ffffff"
-      }
-    },
-    {
-      "id": "stage-1775832025796",
-      "name": "Stage 1",
-      "type": "standard",
-      "objects": [],
-      "actions": [],
-      "tasks": [],
-      "variables": [],
-      "grid": {
-        "cols": 64,
-        "rows": 40,
-        "cellSize": 20,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#16da36"
       }
     }
   ],
-  "activeStageId": "stage-1775832025796"
+  "activeStageId": "main"
 }

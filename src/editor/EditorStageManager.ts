@@ -385,7 +385,8 @@ export class EditorStageManager {
         if (!sourceStage || !this.project.stages) return;
 
         const clonedStage: StageDefinition = JSON.parse(JSON.stringify(sourceStage));
-        const newStageId = `stage_${crypto.randomUUID()}`;
+        const randomStr = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const newStageId = `stage_${randomStr}`;
         clonedStage.id = newStageId;
         
         // Finde einen freien Namen (Kopie, Kopie 2, etc.)
