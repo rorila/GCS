@@ -20,7 +20,9 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "validate": "node scripts/validate_project.cjs",
+    "clean:electron": "node scripts/clean_electron_cache.cjs",
     "dev:electron": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "dev:electron:clean": "npm run clean:vite && npm run clean:electron && npm run dev:electron",
     "build:electron": "npm run build && electron-builder"
   },
   "devDependencies": {
