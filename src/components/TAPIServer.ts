@@ -1,4 +1,4 @@
-import { TPanel } from './TPanel';
+﻿import { TPanel } from './TPanel';
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -123,9 +123,9 @@ export class TAPIServer extends TPanel implements IRuntimeComponent {
         ] as TPropertyDef[];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             port: this.port,
             baseUrl: this.baseUrl,
             cors: this.cors,

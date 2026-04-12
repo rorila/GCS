@@ -1,4 +1,4 @@
-import { TTextControl } from './TTextControl';
+﻿import { TTextControl } from './TTextControl';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -37,9 +37,9 @@ export class TMemo extends TTextControl {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             text: this.text,
             placeholder: this.placeholder,
             readOnly: this.readOnly

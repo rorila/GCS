@@ -48,20 +48,32 @@ export class EditorRenderManager {
             // Set Blueprint Mode and Grid on stage from active stage definition
             const activeStage = this.host.getActiveStage();
             stage.isBlueprint = activeStage?.type === 'blueprint';
+            
+            let previewVarContext: Record<string, any> | null = null;
+            if (!this.host.runtime) {
+                previewVarContext = this.getVariableContext();
+            }
+
             if (activeStage?.grid) {
                 // WICHTIG: backgroundImage VOR grid setzen, da der grid-Setter updategrid() auslöst
                 stage.backgroundImage = (activeStage as any).backgroundImage || '';
                 stage.backgroundImageMode = (activeStage as any).backgroundImageMode || 'cover';
-                stage.grid = activeStage.grid;
+                
+                let resolvedGrid = activeStage.grid;
+                if (previewVarContext) {
+                    const temp = { grid: { ...activeStage.grid } };
+                    const previewTemp = this.resolveObjectPreview(temp, previewVarContext);
+                    resolvedGrid = previewTemp.grid as any;
+                }
+                stage.grid = resolvedGrid;
             }
 
             // CRITICAL: Always get fresh objects from runtime if available
             let objectsToRender = this.host.runtime ? this.host.runtime.getObjects() : (this.host.runtimeObjects || this.host.getResolvedInheritanceObjects());
 
             // Resolve preview (bindings, etc) for non-run mode
-            if (!this.host.runtime) {
-                const varContext = this.getVariableContext();
-                objectsToRender = objectsToRender.map((obj: any) => this.resolveObjectPreview(obj, varContext));
+            if (previewVarContext) {
+                objectsToRender = objectsToRender.map((obj: any) => this.resolveObjectPreview(obj, previewVarContext!));
             }
 
             stage.renderObjects(objectsToRender);
@@ -129,7 +141,22 @@ export class EditorRenderManager {
             });
         }
 
-        // 2. Objects in current stage
+        // 2. Blueprint Objects & Variables (Globals)
+        const blueprintStage = this.host.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint');
+        if (blueprintStage) {
+            if (blueprintStage.objects) {
+                blueprintStage.objects.forEach((obj: any) => {
+                    context[obj.name] = obj;
+                });
+            }
+            if (blueprintStage.variables) {
+                blueprintStage.variables.forEach((v: any) => {
+                    context[v.name] = v.value;
+                });
+            }
+        }
+
+        // 3. Objects in current stage
         const activeStage = this.host.getActiveStage();
         if (activeStage && activeStage.objects) {
             activeStage.objects.forEach((obj: any) => {
@@ -137,7 +164,7 @@ export class EditorRenderManager {
             });
         }
 
-        // 3. Stage Variables
+        // 4. Stage Variables
         if (activeStage && activeStage.variables) {
             activeStage.variables.forEach((v: any) => {
                 context[v.name] = v.value;

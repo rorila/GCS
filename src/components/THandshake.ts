@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -72,9 +72,9 @@ export class THandshake extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             protocolVersion: this.protocolVersion,
             peerVersion: this.peerVersion,
             isHost: this.isHost,

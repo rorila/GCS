@@ -1,4 +1,4 @@
-import { TTextControl } from './TTextControl';
+﻿import { TTextControl } from './TTextControl';
 import { TPropertyDef } from './TComponent';
 
 export type TTitleAlign = 'LEFT' | 'CENTER' | 'RIGHT';
@@ -77,9 +77,9 @@ export class TGameHeader extends TTextControl {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             title: this._title,
             // titleAlign etc are stored in style now
         };

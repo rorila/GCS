@@ -1,3 +1,5 @@
+import { SecurityUtils } from '../../utils/SecurityUtils';
+
 export interface ContextMenuItem {
     label: string;
     action?: () => void;
@@ -98,7 +100,9 @@ export class ContextMenu {
                 justify-content: space-between;
                 align-items: center;
             `;
-            el.innerHTML = `<span style="${item.color ? `color: ${item.color}` : ''}">${item.label}</span>`;
+            const safeLabel = SecurityUtils.escapeHtml(item.label);
+            const safeColor = SecurityUtils.isValidCssColor(item.color || '') ? item.color : '';
+            el.innerHTML = `<span style="${safeColor ? `color: ${safeColor}` : ''}">${safeLabel}</span>`;
 
             if (item.submenu) {
                 el.innerHTML += `<span style="font-size: 10px;">►</span>`;

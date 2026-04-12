@@ -670,6 +670,16 @@ export class StageRenderer {
     public updateSingleObject(obj: any): void {
         if (!this.host || !this.host.element || !obj || !obj.id) return;
         
+        // SONDERFALL: Wenn das Objekt die Stage selbst ist (z.B. Hintergrund/Grid wird reaktiv geändert)
+        if (obj.className === 'TStage' || obj.type === 'main' || obj.type === 'splash' || obj.type === 'blueprint' || obj.grid) {
+            if (typeof (this.host as any).updategrid === 'function') {
+                // Wir synchronisieren das Grid zurück zum Host und triggern den Update
+                (this.host as any).gridConfig = obj.grid; // Host's interner Zustand aktualisieren
+                (this.host as any).updategrid();          // Background auf das native Element anwenden
+            }
+            return;
+        }
+
         const el = this.host.element.querySelector(`[data-id="${obj.id}"]`) as HTMLElement;
         if (!el) return;
 

@@ -315,13 +315,11 @@ primary_region = "fra"
         // 2. Recursive deep clean
         this.deepClean(clean);
 
-        // 3. Specialized cleaning for Stages (variables move to objects if needed, but usually redundant)
+        // 3. Specialized cleaning for Stages
         if (clean.stages) {
             clean.stages.forEach((s: any) => {
-                if (s.objects) {
-                    // Filter variables out of objects list (they are already in s.variables)
-                    s.objects = s.objects.filter((o: any) => !o.isVariable);
-                }
+                // Keep variable components in s.objects. 
+                // They're hidden in run mode via isHiddenInRun anyway, but ReactiveRuntime Needs them!
             });
         }
 
@@ -444,11 +442,21 @@ primary_region = "fra"
     // ═══════════════════════════════════════════════════════════════
     // Start Game
     // ═══════════════════════════════════════════════════════════════
-    window.PROJECT = ${projectJSON};
-    
+    </script>
+    <script type="application/json" id="gcs-project-data">
+${projectJSON}
+    </script>
+    <script>
     document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.startStandalone === 'function') {
-            window.startStandalone(window.PROJECT);
+            try {
+                const projectDataStr = document.getElementById('gcs-project-data').textContent;
+                window.PROJECT = JSON.parse(projectDataStr);
+                window.startStandalone(window.PROJECT);
+            } catch (e) {
+                console.error('Failed to parse project data:', e);
+                document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:20%">Error: Project initialization failed.</h2>';
+            }
         } else {
             console.error('Standalone Runtime not found! Check if runtime-standalone.js was bundled correctly.');
             document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:20%">Error: Runtime not found.</h2>';

@@ -1,4 +1,4 @@
-import { TPanel } from './TPanel';
+﻿import { TPanel } from './TPanel';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -42,9 +42,9 @@ export class TEmojiPicker extends TPanel {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             emojis: this.emojis,
             columns: this.columns,
             itemSize: this.itemSize,

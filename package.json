@@ -44,6 +44,7 @@
     "@types/express": "^5.0.6",
     "express": "^5.2.1",
     "fflate": "^0.8.2",
+    "jsep": "^1.4.0",
     "mermaid": "^11.12.2"
   },
   "build": {

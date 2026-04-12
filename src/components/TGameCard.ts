@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -37,9 +37,9 @@ export class TGameCard extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             gameName: this.gameName,
             gameFile: this.gameFile,
             waitingCount: this.waitingCount,

@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -37,9 +37,9 @@ export class TList extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             items: this.items,
             displayField: this.displayField,
             selectedIndex: this.selectedIndex,

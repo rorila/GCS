@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -48,10 +48,10 @@ export class TAvatar extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         this.updateStyle();
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             src: this.src,
             status: this.status,
             shape: this.shape

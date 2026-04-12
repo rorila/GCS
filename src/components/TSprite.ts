@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { ImageFit, IMAGE_DEFAULTS } from './ImageCapable';
 
@@ -266,9 +266,9 @@ export class TSprite extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             imageListId: this.imageListId,
             imageIndex: this.imageIndex
         };

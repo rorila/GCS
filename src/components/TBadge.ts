@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
 export type TBadgeType = 'info' | 'success' | 'warning' | 'error' | 'primary' | 'secondary';
@@ -59,10 +59,10 @@ export class TBadge extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         this.updateStyle(); // Sicherstellen, dass Style aktuell ist
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             badgeType: this.badgeType,
             pill: this.pill
         };

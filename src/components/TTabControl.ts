@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -83,9 +83,9 @@ export class TTabControl extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             tabs: this.tabs,
             activeTabIndex: this.activeTabIndex,
             activeTabName: this.activeTabName

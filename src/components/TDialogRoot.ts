@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -197,8 +197,8 @@ export class TDialogRoot extends TWindow {
     /**
      * Serialize to JSON
      */
-    public toJSON(): any {
-        const base = super.toJSON();
+    public toDTO(): any {
+        const base = super.toDTO();
         return {
             ...base,
             title: this._title,

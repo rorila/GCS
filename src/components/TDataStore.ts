@@ -1,4 +1,4 @@
-import { TPanel } from './TPanel';
+﻿import { TPanel } from './TPanel';
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -84,9 +84,9 @@ export class TDataStore extends TPanel implements IRuntimeComponent {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             storagePath: this.storagePath,
             defaultCollection: this.defaultCollection
         };

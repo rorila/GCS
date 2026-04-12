@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { StageDefinition } from '../model/types';
 import { Logger } from '../utils/Logger';
@@ -274,9 +274,9 @@ export class TStageController extends TWindow {
     // Serialization
     // ─────────────────────────────────────────────
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON()
+            ...super.toDTO()
             // Stages werden nicht hier gespeichert, sondern im project.stages Array
         };
     }

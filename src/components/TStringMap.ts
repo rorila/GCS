@@ -112,9 +112,9 @@ export class TStringMap extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             entries: { ...this.entries }
         };
     }

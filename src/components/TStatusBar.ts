@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -229,9 +229,9 @@ export class TStatusBar extends TWindow {
     /**
      * Serialize to JSON
      */
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             sections: this.sections,
             textColor: this.textColor,
             fontSize: this.fontSize,

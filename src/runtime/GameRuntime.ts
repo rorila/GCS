@@ -452,6 +452,12 @@ export class GameRuntime implements IVariableHost {
             }
 
             this.objects = this.reactiveRuntime.getObjects();
+
+            // FIXED ORDER: Initialize stage variables BEFORE reactive bindings 
+            // so contextVars is populated with stage variables for interpolation binding.
+            this.variableManager.stageVariables = {};
+            this.variableManager.initializeStageVariables(this.stage);
+
             this.initializeReactiveBindings();
 
             logger.debug(`Global Vars AFTER initializeReactiveBindings:`, this.reactiveRuntime.getContext());
@@ -462,8 +468,6 @@ export class GameRuntime implements IVariableHost {
             this.actionExecutor.setObjects(this.objects);
         }
 
-        this.variableManager.stageVariables = {};
-        this.variableManager.initializeStageVariables(this.stage);
         this.syncVariableComponents();
 
         this.actionExecutor.setObjects(this.objects);
@@ -908,6 +912,20 @@ export class GameRuntime implements IVariableHost {
         };
 
         process(this.objects);
+        
+        // Stage-Objekt selbst binden, da der Hintergrund z.B. in this.stage.grid gespeichert ist
+        if (this.stage) {
+            this.bindObjectProperties(this.stage);
+        }
+
+        // SYNC POINT: Give ReactiveRuntime access to ALL global variables
+        // so it can evaluate expressions like ${MainTheme.ButtonBackground} 
+        // that are defined project-wide but not explicitly placed on a Stage as objects.
+        if (this.variableManager && this.variableManager.contextVars) {
+            Object.entries(this.variableManager.contextVars).forEach(([key, val]) => {
+                this.reactiveRuntime.registerVariable(key, val);
+            });
+        }
 
         // BRIDGE: If a component is a variable, its property changes (value, items)
         // must be directed to the VariableManager to fire events (onTriggerEnter, etc.)
@@ -962,8 +980,8 @@ export class GameRuntime implements IVariableHost {
                 if (typeof val === 'string' && val.includes('${')) {
                     logger.debug(`Creating reactive binding: ${obj.name}.${propPath} ← ${val}`);
                     this.reactiveRuntime.bindComponent(obj, propPath, val);
-                } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'events' || key === 'Tasks')) {
-                    // Recursive binding for nested objects like style or events
+                } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'events' || key === 'Tasks' || key === 'grid')) {
+                    // Recursive binding for nested objects like style, grid or events
                     bindProps(val, propPath);
                 }
             });

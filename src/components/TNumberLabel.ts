@@ -1,4 +1,4 @@
-import { TTextControl } from './TTextControl';
+﻿import { TTextControl } from './TTextControl';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -99,9 +99,9 @@ export class TNumberLabel extends TTextControl {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             value: this.value,
             startValue: this.startValue,
             maxValue: this.maxValue,

@@ -1,4 +1,4 @@
-import { TPanel } from './TPanel';
+﻿import { TPanel } from './TPanel';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -37,9 +37,9 @@ export class TCard extends TPanel {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             title: this.title,
             subtitle: this.subtitle,
             showHeader: this.showHeader,

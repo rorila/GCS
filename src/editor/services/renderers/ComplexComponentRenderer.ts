@@ -125,7 +125,7 @@ export class ComplexComponentRenderer {
 
                 const childClassName = child.className || child.constructor?.name;
                 if (childClassName === 'TButton') {
-                    childEl.innerText = child.caption || child.name;
+                    childEl.innerText = child.text || child.caption || child.name;
                     childEl.style.fontWeight = 'bold';
                     childEl.style.cursor = 'pointer';
                 } else if (childClassName === 'TLabel' || child.text) {

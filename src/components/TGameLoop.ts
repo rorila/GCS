@@ -1,4 +1,4 @@
-import { TPropertyDef } from './TComponent';
+﻿import { TPropertyDef } from './TComponent';
 import { TWindow } from './TWindow';
 import { GridConfig } from '../model/types';
 
@@ -65,8 +65,8 @@ export class TGameLoop extends TWindow {
         ];
     }
 
-    public toJSON(): any {
-        return super.toJSON();
+    public toDTO(): any {
+        return super.toDTO();
     }
 
     /**

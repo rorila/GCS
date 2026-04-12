@@ -1,4 +1,4 @@
-import { TComponent, TPropertyDef } from './TComponent';
+﻿import { TComponent, TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
 const logger = Logger.get('TAuthService');
@@ -69,9 +69,9 @@ export class TAuthService extends TComponent {
         }
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             secret: this.secret,
             tokenExpiration: this.tokenExpiration
         };

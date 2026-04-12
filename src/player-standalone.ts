@@ -80,6 +80,10 @@ class UniversalPlayer implements StageHost {
         return activeStage.grid;
     }
     // --------------------------------
+    public updategrid() {
+        this.setupScaling();
+    }
+    // --------------------------------
 
     // Drag & Drop State
     private dragTarget: ComponentData | null = null;

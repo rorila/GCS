@@ -1,4 +1,4 @@
-import { TPanel } from './TPanel';
+﻿import { TPanel } from './TPanel';
 import { TPropertyDef } from './TComponent';
 
 export interface TNavItem {
@@ -50,9 +50,9 @@ export class TNavBar extends TPanel {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             navItems: this.navItems,
             activeId: this.activeId,
             collapsed: this.collapsed

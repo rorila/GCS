@@ -35,7 +35,13 @@ export class RuntimeVariableManager {
                             this.globalDefinitions.set(v.name, v);
                             if (v.id) this.globalDefinitions.set(v.id, v);
 
-                            const initialValue = v.defaultValue !== undefined ? v.defaultValue : v.value;
+                            let initialValue = v.defaultValue !== undefined ? v.defaultValue : v.value;
+                            if (initialValue === undefined) {
+                                if (v.entries !== undefined) initialValue = v.entries;
+                                else if (v.items !== undefined) initialValue = v.items;
+                                else if (v.data !== undefined) initialValue = v.data;
+                            }
+
                             if (this.projectVariables[v.name] === undefined) {
                                 this.projectVariables[v.name] = initialValue !== undefined ? initialValue : 0;
                             }
@@ -78,13 +84,37 @@ export class RuntimeVariableManager {
             // PRIORITIZATION: 
             // At game start, we prefer 'defaultValue' (the design-time start state).
             // 'value' is used as a fallback (legacy or stateful resume).
-            const initialValue = v.defaultValue !== undefined ? v.defaultValue : v.value;
+            let initialValue = v.defaultValue !== undefined ? v.defaultValue : v.value;
+            if (initialValue === undefined) {
+                if (v.entries !== undefined) initialValue = v.entries;
+                else if (v.items !== undefined) initialValue = v.items;
+                else if (v.data !== undefined) initialValue = v.data;
+            }
+
+            // CRITICAL FALLBACK: The Editor Store may strip component-specific properties
+            // like 'entries', 'items', 'data' from the raw variable JSON objects. 
+            // In that case, retrieve the value from the HYDRATED object (created by 
+            // RuntimeStageManager.getMergedStageData → hydrateObjects) which correctly 
+            // restored these properties via ComponentRegistry factories.
+            if (initialValue === undefined && v.id && (this.host as any).objects) {
+                const hydratedObj = (this.host as any).objects.find((o: any) => o.id === v.id);
+                if (hydratedObj) {
+                    if (hydratedObj.entries !== undefined && Object.keys(hydratedObj.entries).length > 0) {
+                        initialValue = hydratedObj.entries;
+                    } else if (hydratedObj.value !== undefined) {
+                        initialValue = hydratedObj.value;
+                    } else if (Array.isArray(hydratedObj.items) && hydratedObj.items.length > 0) {
+                        initialValue = hydratedObj.items;
+                    } else if (Array.isArray(hydratedObj.data) && hydratedObj.data.length > 0) {
+                        initialValue = hydratedObj.data;
+                    }
+                }
+            }
 
             if (isGlobal) {
                 if (this.projectVariables[v.name] === undefined) {
                     this.projectVariables[v.name] = initialValue !== undefined ? initialValue : 0;
                 } else if (!isFallback) {
-                    // If we are NOT in fallback mode, we overwrite (should not happen with current order, but for safety)
                     this.projectVariables[v.name] = initialValue !== undefined ? initialValue : 0;
                 }
             } else {

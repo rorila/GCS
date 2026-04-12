@@ -1,4 +1,4 @@
-import { TPanel } from './TPanel';
+﻿import { TPanel } from './TPanel';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -61,9 +61,9 @@ export class TSplashScreen extends TPanel {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             duration: this._duration,
             autoHide: this._autoHide,
             videoSource: this._videoSource,

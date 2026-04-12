@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -80,9 +80,9 @@ export class THeartbeat extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             pingInterval: this.pingInterval,
             timeoutThreshold: this.timeoutThreshold,
             latencyWarningThreshold: this.latencyWarningThreshold,

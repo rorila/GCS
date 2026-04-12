@@ -1,4 +1,4 @@
-import { TImage } from './TImage';
+﻿import { TImage } from './TImage';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -143,9 +143,9 @@ export class TImageList extends TImage {
     // Serialization
     // ─────────────────────────────────────────────
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             imageCountHorizontal: this.imageCountHorizontal,
             imageCountVertical: this.imageCountVertical,
             currentImageNumber: this.currentImageNumber

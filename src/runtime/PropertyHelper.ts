@@ -22,7 +22,10 @@ export class PropertyHelper {
 
             // Resolve target for this step (Transparency vs Metadata)
             let target = current;
-            if (current.isVariable === true || (current.className && current.className.includes('Variable'))) {
+            const isVarLike = current.isVariable === true || 
+                             (current.className && (current.className.includes('Variable') || current.className === 'TStringMap'));
+                             
+            if (isVarLike) {
                 target = this.resolveValue(current);
             }
 
@@ -72,13 +75,21 @@ export class PropertyHelper {
      * Resolves a value from an object, unpacking variable components if necessary.
      */
     static resolveValue(val: any): any {
-        if (val && typeof val === 'object' && (val.isVariable === true || val.className?.includes('Variable'))) {
-            // Priority 1: Collection Data (for TObjectList, TTable, TList)
-            if (Array.isArray(val.data)) return val.data;
-            if (Array.isArray(val.items)) return val.items;
+        if (val && typeof val === 'object') {
+            const isVarLike = val.isVariable === true || 
+                             (val.className && (val.className.includes('Variable') || val.className === 'TStringMap'));
+                             
+            if (isVarLike) {
+                // Priority 1: Collection Data (for TObjectList, TTable, TList)
+                if (Array.isArray(val.data)) return val.data;
+                if (Array.isArray(val.items)) return val.items;
 
-            // Priority 2: Simple Value
-            if (val.value !== undefined) return val.value;
+                // Priority 2: Map Data (for TStringMap)
+                if (val.entries !== undefined) return val.entries;
+
+                // Priority 3: Simple Value
+                if (val.value !== undefined) return val.value;
+            }
         }
         return val;
     }

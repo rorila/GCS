@@ -1,4 +1,4 @@
-import { TComponent, TPropertyDef } from './TComponent';
+﻿import { TComponent, TPropertyDef } from './TComponent';
 
 /**
  * TSystemInfo - System and Hardware Information Component
@@ -114,9 +114,9 @@ export class TSystemInfo extends TComponent {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             browserName: this.browserName,
             browserVersion: this.browserVersion,
             userAgent: this.userAgent,

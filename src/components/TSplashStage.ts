@@ -1,4 +1,4 @@
-import { TStage } from './TStage';
+﻿import { TStage } from './TStage';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -86,9 +86,9 @@ export class TSplashStage extends TStage {
     // Serialization
     // ─────────────────────────────────────────────
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             duration: this._duration,
             autoHide: this._autoHide
         };

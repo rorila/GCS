@@ -1,4 +1,5 @@
 import { IRenderContext } from './IRenderContext';
+import { SecurityUtils } from '../../../utils/SecurityUtils';
 
 export class InputRenderer {
     
@@ -212,7 +213,7 @@ export class InputRenderer {
 
             let expectedHtml = '';
             optionsList.forEach((opt, idx) => {
-                expectedHtml += `<option value="${idx}">${opt}</option>`;
+                expectedHtml += `<option value="${idx}">${SecurityUtils.escapeHtml(opt)}</option>`;
             });
 
             if (currentOptionsHtml !== expectedHtml) {

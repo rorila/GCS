@@ -35,6 +35,7 @@ export interface FlowInteractionHost {
 
 import { DnDHelper, DnDPayload } from '../utils/DnDHelper';
 import { Logger } from '../../utils/Logger';
+import { SecurityUtils } from '../../utils/SecurityUtils';
 
 const logger = Logger.get('FlowInteractionManager');
 
@@ -529,7 +530,7 @@ export class FlowInteractionManager {
             `;
             document.body.appendChild(this.tooltipEl);
         }
-        this.tooltipEl.innerHTML = `<strong style="color: #fff; display: block; margin-bottom: 4px;">${node.Name}</strong>${node.Description}`;
+        this.tooltipEl.innerHTML = `<strong style="color: #fff; display: block; margin-bottom: 4px;">${SecurityUtils.escapeHtml(node.Name)}</strong>${SecurityUtils.escapeHtml(node.Description)}`;
         this.tooltipEl.style.display = 'block';
         this.tooltipEl.style.left = (e.pageX + 15) + 'px';
         this.tooltipEl.style.top = (e.pageY + 15) + 'px';

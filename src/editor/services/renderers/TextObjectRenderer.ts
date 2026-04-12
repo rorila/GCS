@@ -1,4 +1,5 @@
 import { IRenderContext } from './IRenderContext';
+import { SecurityUtils } from '../../../utils/SecurityUtils';
 
 export class TextObjectRenderer {
     
@@ -48,6 +49,9 @@ export class TextObjectRenderer {
 
     public static renderRichText(ctx: IRenderContext, el: HTMLElement, obj: any): void {
         let textValue = obj.htmlContent || (ctx.host.runMode ? '' : `<i>${obj.name} (leeres RichText)</i>`);
+
+        // KRITISCH: XSS-Bereinigung vor dem Rendern im DOM!
+        textValue = SecurityUtils.sanitizeHTML(textValue);
 
         // KRITISCH: Der WYSIWYG-Editor (document.execCommand('foreColor')) erzeugt
         // deprecated <font color="..."> Tags. Deren Farb-Zuweisung ist ein "Presentational Hint"
@@ -197,7 +201,7 @@ export class TextObjectRenderer {
 
     public static renderButton(ctx: IRenderContext, el: HTMLElement, obj: any, _isNew: boolean): void {
         if (el.querySelector('.table-title-bar')) el.innerHTML = '';
-        if (el.innerText !== (obj.caption || obj.name)) el.innerText = obj.caption || obj.name;
+        if (el.innerText !== (obj.text || obj.caption || obj.name)) el.innerText = obj.text || obj.caption || obj.name;
         const fw = obj.style?.fontWeight;
         el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
         const fstyle = obj.style?.fontStyle;

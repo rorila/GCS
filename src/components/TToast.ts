@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -398,9 +398,9 @@ export class TToast extends TWindow {
     /**
      * Serialize to JSON
      */
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             animation: this.animation,
             position: this.position,
             duration: this.duration,

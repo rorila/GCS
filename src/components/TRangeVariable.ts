@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
 export class TRangeVariable extends TWindow {
@@ -35,9 +35,9 @@ export class TRangeVariable extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             value: this.value,
             min: this.min,
             max: this.max

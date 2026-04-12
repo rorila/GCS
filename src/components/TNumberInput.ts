@@ -1,4 +1,4 @@
-import { TTextControl } from './TTextControl';
+﻿import { TTextControl } from './TTextControl';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -61,9 +61,9 @@ export class TNumberInput extends TTextControl {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             value: this.value,
             min: this.min,
             max: this.max,

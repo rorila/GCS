@@ -1,4 +1,4 @@
-import { TPanel } from './TPanel';
+﻿import { TPanel } from './TPanel';
 import { TPropertyDef } from './TComponent';
 
 export type ShapeType = 'circle' | 'rect' | 'square' | 'ellipse' | 'triangle' | 'arrow' | 'line';
@@ -55,9 +55,9 @@ export class TShape extends TPanel {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             shapeType: this.shapeType,
             fillColor: this.fillColor,
             strokeColor: this.strokeColor,

@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -228,9 +228,9 @@ export class TInfoWindow extends TWindow {
     /**
      * Serialize to JSON
      */
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             title: this.title,
             message: this.message,
             icon: this.icon,

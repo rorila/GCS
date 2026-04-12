@@ -1,4 +1,4 @@
-import { TPanel } from './TPanel';
+﻿import { TPanel } from './TPanel';
 import { TPropertyDef } from './TComponent';
 import { ImageFit } from './ImageCapable';
 import { Logger } from '../utils/Logger';
@@ -105,9 +105,9 @@ export class TVideo extends TPanel {
     // Serialization
     // ─────────────────────────────────────────────
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             videoSource: this._videoSource,
             objectFit: this._objectFit,
             imageOpacity: this._imageOpacity,

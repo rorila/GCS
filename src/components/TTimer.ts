@@ -1,4 +1,4 @@
-import { TPropertyDef, IRuntimeComponent } from './TComponent';
+﻿import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { TWindow } from './TWindow';
 import { Logger } from '../utils/Logger';
 
@@ -45,8 +45,8 @@ export class TTimer extends TWindow implements IRuntimeComponent {
         ];
     }
 
-    public toJSON(): any {
-        return super.toJSON();
+    public toDTO(): any {
+        return super.toDTO();
     }
 
     public initRuntime(callbacks: { handleEvent: any }): void {

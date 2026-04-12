@@ -88,8 +88,8 @@ export class TVariable extends TWindow {
      * instead of the private '_type' field. Without this, JSON.stringify
      * does not call prototype getters, causing type loss on reload.
      */
-    public toJSON(): any {
-        const json = super.toJSON();
+    public toDTO(): any {
+        const json = super.toDTO();
 
         // Ensure the 'type' getter value is serialized correctly
         json.type = this.type;

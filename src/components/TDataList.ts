@@ -1,4 +1,4 @@
-import { projectActionRegistry } from '../services/registry/ActionRegistry';
+﻿import { projectActionRegistry } from '../services/registry/ActionRegistry';
 import { TPanel } from './TPanel';
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
 import { Logger } from '../utils/Logger';
@@ -100,9 +100,9 @@ export class TDataList extends TPanel implements IRuntimeComponent {
     /**
      * Serialisiert die Komponente — _runtimeRows wird NICHT gespeichert
      */
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             dataAction: this.dataAction,
             rowHeight: this.rowHeight,
             rowGap: this.rowGap

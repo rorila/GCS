@@ -1,4 +1,4 @@
-import { TPropertyDef } from './TComponent';
+﻿import { TPropertyDef } from './TComponent';
 import { TWindow } from './TWindow';
 
 export type GameState = 'menu' | 'playing' | 'paused' | 'gameover' | 'won';
@@ -48,9 +48,9 @@ export class TGameState extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             score: this.score,
             level: this.level,
             lives: this.lives,

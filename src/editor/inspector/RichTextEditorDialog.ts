@@ -3,6 +3,7 @@
  * Verwendet document.execCommand für Formatierungen und DOMParser als simplen XSS-Schutz.
  */
 import { coreStore } from '../../services/registry/CoreStore';
+import { SecurityUtils } from '../../utils/SecurityUtils';
 export class RichTextEditorDialog {
 
     public static show(initialHtml: string): Promise<string | null> {
@@ -139,7 +140,7 @@ export class RichTextEditorDialog {
             saveBtn.style.cssText = 'padding:6px 16px; background:#6c63ff; color:#fff; border:none; border-radius:4px; font-weight:bold; cursor:pointer;';
             saveBtn.onclick = () => {
                 const rawHtml = editorArea.innerHTML;
-                const safeHtml = RichTextEditorDialog.sanitizeHTML(rawHtml);
+                const safeHtml = SecurityUtils.sanitizeHTML(rawHtml);
                 overlay.remove();
                 resolve(safeHtml);
             };
@@ -168,50 +169,6 @@ export class RichTextEditorDialog {
         });
     }
 
-    /**
-     * Einfache Bereinigung von potenziell gefährlichen Tags und Attributen,
-     * um Cross-Site Scripting (XSS) zu verhindern.
-     */
-    private static sanitizeHTML(html: string): string {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        const removeDangerousNodes = (node: Node) => {
-            const el = node as HTMLElement;
-            
-            if (el.tagName) {
-                const tag = el.tagName.toLowerCase();
-                // Gefährliche Tags komplett entfernen (a-Tags sind implizit erlaubt)
-                if (['script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link'].includes(tag)) {
-                    el.remove();
-                    return;
-                }
-
-                // Gefährliche Attribute (wie onload, onerror) entfernen
-                if (el.attributes) {
-                    for (let i = el.attributes.length - 1; i >= 0; i--) {
-                        const attr = el.attributes[i];
-                        if (attr.name.toLowerCase().startsWith('on')) {
-                            el.removeAttribute(attr.name);
-                        }
-                        if (attr.name.toLowerCase() === 'href' || attr.name.toLowerCase() === 'src') {
-                            if (attr.value.toLowerCase().trim().startsWith('javascript:')) {
-                                el.removeAttribute(attr.name);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Schleife Rückwärts, weil remove() die Länge children verändert
-            for (let i = node.childNodes.length - 1; i >= 0; i--) {
-                removeDangerousNodes(node.childNodes[i]);
-            }
-        };
-
-        removeDangerousNodes(doc.body);
-        return doc.body.innerHTML;
-    }
 
     private static showLinkDialog(parentOverlay: HTMLElement): Promise<string | null> {
         return new Promise(resolve => {

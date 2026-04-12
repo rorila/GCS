@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
 export interface TColumnDef {
@@ -60,9 +60,9 @@ export class TTable extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             data: this.data,
             columns: this.columns,
             selectedIndex: this.selectedIndex,

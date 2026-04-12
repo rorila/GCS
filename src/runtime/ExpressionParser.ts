@@ -1,5 +1,7 @@
 import { PropertyHelper } from './PropertyHelper';
 import { Logger } from '../utils/Logger';
+import { SecurityUtils } from '../utils/SecurityUtils';
+import jsep from 'jsep';
 
 const logger = Logger.get('ExpressionParser', 'Runtime_Execution');
 
@@ -171,52 +173,14 @@ export class ExpressionParser {
             return this.getNestedProperty(trimmed, context);
         }
 
-        // Handle arithmetic and comparisons
-        // SECURITY NOTE: Using Function constructor is safer than eval
-        // but still requires trusted input. For production, use a proper parser.
+        // Handle arithmetic and comparisons via JSEP AST Evaluator
         try {
-            // Create a function with context variables as parameters
-            const validIdentifierRegex = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+            const ast = jsep(trimmed);
+            const result = this.evaluateAST(ast, context);
 
-            // NEW: Use dependencies from the expression instead of Object.keys(context)
-            // This is critical when context is a Proxy that doesn't reveal all keys (e.g. contextVars)
-            const deps = this.extractDependencies(expression);
-
-            // Filter only for top-level identifiers
-            const contextKeys = deps.filter(key => {
-                if (!validIdentifierRegex.test(key)) return false;
-                
-                // Only provide the argument IF it actually exists in the context map!
-                // This ensures that unknown variables (uninitialized or typos) 
-                // throw a clear ReferenceError during 'new Function(...)' evaluation, 
-                // instead of silently binding 'undefined' to the parameter which leads to Math NaN errors.
-                return (key in context) || context[key] !== undefined;
-            });
-
-            // Resolve all values to their primitive/actual values before evaluation
-            const contextValues = contextKeys.map((key: string) => {
-                const val = context[key];
-                try {
-                    const resolved = PropertyHelper.resolveValue(val);
-                    // CRITICAL: Treat undefined/null as their respective values to allow boolean 'false' to work
-                    return resolved;
-                } catch (e) {
-                    return undefined;
-                }
-            });
-
-            // Create function that evaluates the expression
-            const func = new Function(...contextKeys, `return ${expression}`);
-
-            const result = func(...contextValues);
-
-            // Console Tracing for debugging (only if result is suspect or in debug mode)
-            if (result === undefined || (result !== result && typeof result === 'number')) { // NaN check
-                logger.debug(`Suspicious result for "${expression}":`, {
-                    result,
-                    contextKeys,
-                    contextValues: contextValues.map((v: any) => typeof v === 'object' ? (v?.name || v?.className || 'Object') : v)
-                });
+            // Console Tracing for debugging
+            if (result === undefined || (result !== result && typeof result === 'number')) {
+                logger.debug(`Suspicious result for "${expression}":`, { result });
             }
 
             return result;
@@ -224,21 +188,159 @@ export class ExpressionParser {
             const msg = error?.message || '';
             const name = error?.name || '';
 
-            // VERY IMPORTANT: Log ReferenceErrors clearly as they indicate missing variables
             if (name === 'ReferenceError' || error instanceof ReferenceError) {
                 logger.warn(`ReferenceError in "${expression}": ${msg}`);
-                const deps = this.extractDependencies(expression);
-                logger.debug(`Available context keys:`, deps.filter((k: string) => k in context));
-                return undefined;
-            }
-
-            if ((name === 'TypeError' || error instanceof TypeError) &&
-                (msg.includes('undefined') || msg.includes('null'))) {
                 return undefined;
             }
 
             logger.warn(`Evaluation error for "${expression}":`, error);
             return undefined;
+        }
+    }
+
+    /**
+     * Evaluates a JSEP AST Node securely
+     */
+    private static evaluateAST(node: any, context: Record<string, any>): any {
+        if (!node) return undefined;
+
+        switch (node.type) {
+            case 'Literal':
+                return node.value;
+            
+            case 'Identifier':
+                // Allowed safe globals
+                if (node.name === 'Math') return Math;
+                if (node.name === 'Number') return Number;
+                if (node.name === 'String') return String;
+                if (node.name === 'Boolean') return Boolean;
+                if (node.name === 'parseInt') return parseInt;
+                if (node.name === 'parseFloat') return parseFloat;
+                if (node.name === 'isNaN') return isNaN;
+                
+                const val = context[node.name];
+                return PropertyHelper.resolveValue(val);
+
+            case 'MemberExpression':
+                const obj = this.evaluateAST(node.object, context);
+                const propName = node.computed ? this.evaluateAST(node.property, context) : node.property.name;
+                
+                if (propName === '__proto__' || propName === 'constructor' || propName === 'prototype') {
+                    throw new Error(`Security Violation: Access to ${propName} is forbidden.`);
+                }
+                
+                if (obj === undefined || obj === null) return undefined;
+                
+                const result = obj[propName];
+                return PropertyHelper.resolveValue(result);
+
+            case 'CallExpression':
+                const callee = node.callee;
+                let calleeObj: any = null;
+                let calleeFunc: Function;
+                let funcNameStr = '';
+
+                if (callee.type === 'Identifier') {
+                    funcNameStr = callee.name;
+                    calleeFunc = this.evaluateAST(callee, context);
+                } else if (callee.type === 'MemberExpression') {
+                    calleeObj = this.evaluateAST(callee.object, context);
+                    const pName = callee.computed ? this.evaluateAST(callee.property, context) : callee.property.name;
+                    
+                    if (pName === '__proto__' || pName === 'constructor' || pName === 'prototype') {
+                        throw new Error(`Security Violation: Access to ${pName} is forbidden.`);
+                    }
+                    if (calleeObj === undefined || calleeObj === null) return undefined;
+                    
+                    calleeFunc = calleeObj[pName];
+                    
+                    if (callee.object.type === 'Identifier') {
+                        funcNameStr = `${callee.object.name}.${pName}`;
+                    } else {
+                        funcNameStr = `*.${pName}`;
+                    }
+                } else {
+                    throw new Error(`Unsupported callee type.`);
+                }
+
+                if (typeof calleeFunc !== 'function') {
+                    return undefined;
+                }
+
+                // Strict Allowlist for functions
+                const allowedFunctions = new Set([
+                    'Math.floor', 'Math.ceil', 'Math.round', 'Math.random', 'Math.min', 'Math.max', 
+                    'Math.abs', 'Math.sqrt', 'Math.pow', 'parseInt', 'parseFloat', 'isNaN', 'isFinite',
+                    'Number', 'String', 'Boolean'
+                ]);
+
+                // Safe Prototype methods for internal primitive objects (String/Array)
+                const allowedMethods = new Set([
+                    'toUpperCase', 'toLowerCase', 'trim', 'replace', 'substring', 'substr', 'split',
+                    'includes', 'indexOf', 'lastIndexOf', 'charAt', 'concat', 'join', 'slice',
+                    'push', 'pop', 'shift', 'unshift', 'splice', 'reverse'
+                ]);
+
+                let isAllowed = false;
+                if (allowedFunctions.has(funcNameStr)) isAllowed = true;
+                else if (callee.type === 'MemberExpression') {
+                    const pName = callee.computed ? this.evaluateAST(callee.property, context) : callee.property.name;
+                    if (allowedMethods.has(pName)) isAllowed = true;
+                }
+
+                if (!isAllowed) {
+                    throw new Error(`Function call '${funcNameStr || 'unknown'}' blocked by security allowlist.`);
+                }
+
+                const args = node.arguments.map((arg: any) => this.evaluateAST(arg, context));
+                return calleeFunc.apply(calleeObj, args);
+
+            case 'BinaryExpression':
+                const left = this.evaluateAST(node.left, context);
+                const right = this.evaluateAST(node.right, context);
+                switch (node.operator) {
+                    case '+': return left + right;
+                    case '-': return left - right;
+                    case '*': return left * right;
+                    case '/': return left / right;
+                    case '%': return left % right;
+                    case '==': return left == right;
+                    case '!=': return left != right;
+                    case '===': return left === right;
+                    case '!==': return left !== right;
+                    case '<': return left < right;
+                    case '>': return left > right;
+                    case '<=': return left <= right;
+                    case '>=': return left >= right;
+                    default: return undefined;
+                }
+
+            case 'LogicalExpression':
+                const lLogical = this.evaluateAST(node.left, context);
+                if (node.operator === '&&') return lLogical && this.evaluateAST(node.right, context);
+                if (node.operator === '||') return lLogical || this.evaluateAST(node.right, context);
+                return undefined;
+
+            case 'UnaryExpression':
+                const arg = this.evaluateAST(node.argument, context);
+                switch (node.operator) {
+                    case '!': return !arg;
+                    case '-': return -arg;
+                    case '+': return +arg;
+                    case '~': return ~arg;
+                    case 'typeof': return typeof arg;
+                    default: return undefined;
+                }
+
+            case 'ArrayExpression':
+                return node.elements.map((el: any) => this.evaluateAST(el, context));
+
+            case 'ConditionalExpression':
+                const test = this.evaluateAST(node.test, context);
+                return test ? this.evaluateAST(node.consequent, context) : this.evaluateAST(node.alternate, context);
+
+            default:
+                throw new Error(`Unsupported expression type: ${node.type}`);
         }
     }
 

@@ -1,3 +1,9 @@
+[2026-04-12] UC-2026-04-12-Reactive-Grid-And-Bundling-Fix
+- Beschreibung: Bugfix fuer fehlende StringMap Interpolationen bei TShape und Background/Grid (im Runtime & Editor). GameRuntime.bindObjectProperties analysiert jetzt auch 'grid' Knoten rekursiv. Weiterhin wurde sichergestellt, dass public/runtime-standalone.js per 'npm run bundle:runtime' gebaut werden muss, um HMR/Codeaenderungen im IFrame verfgbar zu machen.
+- Dateien:
+  - src/runtime/GameRuntime.ts (Zeile ~980)
+  - src/runtime/ReactiveRuntime.ts
+
 [2026-04-12] Inspector UI Styling Update
 - src\style.css -> L692-L699: Schriftgrosse auf 9px verkleinert und Farbe (.inspector-hint) auf #ffa726 (moderneres Orange) angepasst.
 
@@ -196,7 +202,8 @@ UC-3.29.0: Object Pool Pattern fÃ¼r dynamische Sprites
  -   * * I n s p e c t o r   H y d r a t i o n   f o r   S y s t e m   C o m p o n e n t s * * : 
      D a t e i e n :   s r c / e d i t o r / i n s p e c t o r / I n s p e c t o r H o s t . t s   ( Z e i l e   2 7 0 ) ,   s r c / e d i t o r / i n s p e c t o r / h a n d l e r s / F l o w N o d e H a n d l e r . t s 
      M e t h o d e n :   r e n d e r P r o p e r t i e s C o n t e n t ,   i s I n s p e c t a b l e 
-  
+ 
+ 
  
 ## UseCase: Rename Validation von Actions und Elementen mit aktiven Property-Bindings
 - Grund: Two-Way-Bound Properties in Inspector-Ansichten mutieren die aktive referenzierte Object-Instanz obj.name, bevor der EditorCommandManager.renameObject Validator anschlÃ¤gt, wodurch das Objekt fÃ¤lschlicherweise als Kollision mit sich selbst detektiert werden konnte.
@@ -244,7 +251,8 @@ UC-3.29.0: Object Pool Pattern fÃ¼r dynamische Sprites
  # #   G r o u p P a n e l   C h i l d r e n   S t a n d a l o n e - E x p o r t   L a y o u t   K o r r e k t u r 
  -   s r c / r u n t i m e / G a m e R u n t i m e . t s :   g e t O b j e c t s   a n g e p a s s t   ( Z e i l e   8 6 5 )   u m   T o p - L e v e l   E i n s p r u n g   z u   f o r c i e r e n   u n d   r e l a t i v e   K o o r d i n a t e n   d u r c h z u r e i c h e n . 
  -   s r c / e d i t o r / s e r v i c e s / S t a g e R e n d e r e r . t s :   L o g s   k u r z z e i t i g   e r w e i t e r t   u n d   e n t f e r n t . 
- -   E x p o r t   I n t e g r i t y   C h e c k s u m s   ( t e s t s / e x p o r t _ c h e c k s u m s . j s o n )   s y n c h r o n i s i e r t .  
+ -   E x p o r t   I n t e g r i t y   C h e c k s u m s   ( t e s t s / e x p o r t _ c h e c k s u m s . j s o n )   s y n c h r o n i s i e r t . 
+ 
  
 [USECASE 65] IFrame-Based Run-Tab (Standalone Preview)
 - Beschreibung: Integration eines isolierten IFrames zur Vorschau des Standalone-Game-Layers im Editor (100% Export Parity).

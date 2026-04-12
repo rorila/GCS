@@ -1,4 +1,4 @@
-import { TComponent, TPropertyDef } from './TComponent';
+﻿import { TComponent, TPropertyDef } from './TComponent';
 
 /**
  * TUserManager - Spezialisierte Komponente für das Benutzer-Management.
@@ -31,9 +31,9 @@ export class TUserManager extends TComponent {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             userCollection: this.userCollection,
             hashPasswords: this.hashPasswords
         };

@@ -1,4 +1,4 @@
-import { TTextControl } from './TTextControl';
+﻿import { TTextControl } from './TTextControl';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -42,9 +42,9 @@ export class TCheckbox extends TTextControl {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             checked: this.checked,
             label: this.label
         };

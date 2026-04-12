@@ -1,4 +1,4 @@
-import { TPanel } from './TPanel';
+﻿import { TPanel } from './TPanel';
 import { TPropertyDef } from './TComponent';
 
 export interface TTabItem {
@@ -44,9 +44,9 @@ export class TTabBar extends TPanel {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             tabs: this.tabs,
             activeTabIndex: this.activeTabIndex
         };

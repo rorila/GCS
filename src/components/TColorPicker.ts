@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -42,9 +42,9 @@ export class TColorPicker extends TWindow {
         return [...super.getEvents(), 'onChange'];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             color: this.color
         };
     }

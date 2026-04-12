@@ -1,4 +1,4 @@
-import { TTable } from './TTable';
+﻿import { TTable } from './TTable';
 import { TPropertyDef } from './TComponent';
 
 export class TObjectList extends TTable {
@@ -32,9 +32,9 @@ export class TObjectList extends TTable {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             items: this.items,
             searchValue: this.searchValue,
             searchProperty: this.searchProperty

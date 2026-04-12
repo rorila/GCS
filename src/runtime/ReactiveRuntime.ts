@@ -113,6 +113,13 @@ export class ReactiveRuntime {
 
                 const context = this.getContext();
                 const newValue = ExpressionParser.interpolate(expression, context);
+                
+                // [GCS-TRACE] Log für StringMap-Auswertung in Bindings
+                if (expression.includes('MainThemes')) {
+                    console.log(`[STYLE-BINDING-TRACE] ID:${targetObj.id} Prop:${targetProp} Expr:${expression} => RawNewValue:`, newValue, ' Kontext für MainThemes:', context['MainThemes']);
+                }
+
+
 
                 // Update target property
                 if (targetProp.includes('.')) {
@@ -154,6 +161,8 @@ export class ReactiveRuntime {
                         this.watcher.watch(sourceObj, 'data', () => binding.update());
                     }
                 }
+            } else {
+                console.warn(`[REACTIVE-RUNTIME] Dependency source missing: "${objName}" for expression "${expression}" (Binding ${targetObj.name || targetObj.id}.${targetProp})`);
             }
         });
 
@@ -241,15 +250,15 @@ export class ReactiveRuntime {
                 // Normal access (Root)
                 // Priority 1: Registered Object (Proxy/Component)
                 const obj = self.objectsByName.get(prop);
-
                 if (obj !== undefined) {
-                    // CRITICAL: For variable components, the runtime value takes priority.
-                    // Without this, ${currentUser.name} returns the component's .name ('currentUser')
-                    // instead of the assigned value's .name ('Rolf').
-                    // See UC: GlobalVariablePersistence, GlobalElementPersistenceFix
                     if (obj.isVariable === true || obj.className?.includes('Variable')) {
                         const varValue = self.variables.get(prop);
-                        if (varValue !== undefined) return varValue;
+                        // Falls 'varValue' existiert UND kein Default 0 für Strukturvariablen ist
+                        if (varValue !== undefined && !(typeof varValue === 'number' && typeof obj.value === 'object')) {
+                            return varValue;
+                        }
+                        // ULTIMATE FALLBACK: Immer den echten Component-Wert nutzen (z.B. .entries von TStringMap)
+                        if (obj.value !== undefined) return obj.value;
                     }
                     return obj;
                 }

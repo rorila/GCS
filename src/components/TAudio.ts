@@ -1,4 +1,4 @@
-import { IRuntimeComponent } from './TComponent';
+﻿import { IRuntimeComponent } from './TComponent';
 import { TPropertyDef, IInspectable } from '../model/InspectorTypes';
 import { TWindow } from './TWindow';
 import { AudioManager } from '../runtime/AudioManager';
@@ -43,8 +43,8 @@ export class TAudio extends TWindow implements IRuntimeComponent, IInspectable {
         ];
     }
 
-    public toJSON(): any {
-        const json = super.toJSON();
+    public toDTO(): any {
+        const json = super.toDTO();
         json.src = this.src;
         json.volume = this.volume;
         json.loop = this.loop;

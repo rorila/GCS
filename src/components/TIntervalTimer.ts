@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef, IRuntimeComponent } from './TComponent';
 
 /**
@@ -61,9 +61,9 @@ export class TIntervalTimer extends TWindow implements IRuntimeComponent {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             duration: this.duration,
             count: this.count,
             enabled: this.enabled

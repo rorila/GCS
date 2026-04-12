@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { ImageFit, IMAGE_DEFAULTS } from './ImageCapable';
 
@@ -173,9 +173,9 @@ export class TStage extends TWindow {
     // Serialization
     // ─────────────────────────────────────────────
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             description: this.description,
             cols: this._config.cols,
             rows: this._config.rows,

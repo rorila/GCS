@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
 /**
@@ -162,9 +162,9 @@ export class TInspectorTemplate extends TWindow {
         this.layoutConfig = config;
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             layoutConfig: this.layoutConfig,
             exampleProperties: this.exampleProperties
         };

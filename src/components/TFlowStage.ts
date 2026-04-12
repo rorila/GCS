@@ -1,4 +1,4 @@
-import { TStage } from './TStage';
+﻿import { TStage } from './TStage';
 
 export class TFlowStage extends TStage {
     constructor(
@@ -24,7 +24,7 @@ export class TFlowStage extends TStage {
         return props;
     }
 
-    public toJSON(): any {
-        return super.toJSON();
+    public toDTO(): any {
+        return super.toDTO();
     }
 }

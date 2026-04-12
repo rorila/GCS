@@ -1,4 +1,4 @@
-import { TWindow } from './TWindow';
+﻿import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 
 export class TTriggerVariable extends TWindow {
@@ -31,9 +31,9 @@ export class TTriggerVariable extends TWindow {
         ];
     }
 
-    public toJSON(): any {
+    public toDTO(): any {
         return {
-            ...super.toJSON(),
+            ...super.toDTO(),
             value: this.value,
             triggerValue: this.triggerValue
         };
