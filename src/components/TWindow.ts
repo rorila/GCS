@@ -1,6 +1,7 @@
 import { TComponent, TPropertyDef } from './TComponent';
 import { AnimationManager } from '../runtime/AnimationManager';
 import { Logger } from '../utils/Logger';
+import { coreStore } from '../services/registry/CoreStore';
 
 const logger = Logger.get('TWindow');
 
@@ -173,14 +174,40 @@ export class TWindow extends TComponent {
         return super.applyChange(propertyName, newValue, oldValue);
     }
 
+    /**
+     * Berechnet dynamische min/max Constraints für Geometrie-Properties
+     * basierend auf der aktuellen Stage-GridConfig.
+     * Regel: Komponente muss vollständig auf der Stage liegen.
+     *   x >= 0, y >= 0, x + width <= cols, y + height <= rows
+     */
+    private getGeometryConstraints(): { xMax: number; yMax: number; wMax: number; hMax: number; cols: number; rows: number } {
+        // Stage-Grid ermitteln: aktive Stage → per-Stage Grid → Projekt-Global Grid → Defaults
+        const project = coreStore.getProject();
+        const activeStage = coreStore.getActiveStage();
+        const grid = activeStage?.grid || project?.stage?.grid || { cols: 64, rows: 40 };
+        const cols = grid.cols;
+        const rows = grid.rows;
+
+        return {
+            xMax: Math.max(0, cols - (this.width || 1)),
+            yMax: Math.max(0, rows - (this.height || 1)),
+            wMax: Math.max(1, cols - (this.x || 0)),
+            hMax: Math.max(1, rows - (this.y || 0)),
+            cols,
+            rows
+        };
+    }
+
     public getInspectorProperties(): TPropertyDef[] {
+        const gc = this.getGeometryConstraints();
+
         return [
             ...this.getBaseProperties(),
             { name: 'visible', label: 'Sichtbar', type: 'boolean', group: 'IDENTITÄT' },
-            { name: 'x', label: 'X', type: 'number', group: 'GEOMETRIE', min: -100, max: 200, step: 1, inline: true },
-            { name: 'y', label: 'Y', type: 'number', group: 'GEOMETRIE', min: -100, max: 200, step: 1, inline: true },
-            { name: 'width', label: 'Breite', type: 'number', group: 'GEOMETRIE', min: 1, max: 200, step: 1, inline: true },
-            { name: 'height', label: 'Höhe', type: 'number', group: 'GEOMETRIE', min: 1, max: 200, step: 1, inline: true },
+            { name: 'x', label: 'X', type: 'number', group: 'GEOMETRIE', min: 0, max: gc.xMax, step: 1, inline: true, hint: `Stage: ${gc.cols}×${gc.rows} Zellen` },
+            { name: 'y', label: 'Y', type: 'number', group: 'GEOMETRIE', min: 0, max: gc.yMax, step: 1, inline: true, hint: `Stage: ${gc.cols}×${gc.rows} Zellen` },
+            { name: 'width', label: 'Breite', type: 'number', group: 'GEOMETRIE', min: 1, max: gc.wMax, step: 1, inline: true },
+            { name: 'height', label: 'Höhe', type: 'number', group: 'GEOMETRIE', min: 1, max: gc.hMax, step: 1, inline: true },
             { name: 'zIndex', label: 'Z-Index', type: 'number', group: 'GEOMETRIE', min: 0, max: 9999, step: 1, inline: true },
             { name: 'align', label: 'Ausrichtung', type: 'select', group: 'GEOMETRIE', options: ['NONE', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CLIENT'], inline: true },
             { name: 'style.color', label: 'Textfarbe', type: 'color', group: 'TYPOGRAFIE' },

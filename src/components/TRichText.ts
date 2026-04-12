@@ -19,7 +19,7 @@ export class TRichText extends TPanel {
         this.style.backgroundColor = 'transparent';
         this.style.borderColor = '#aaa';
         this.style.borderWidth = 1;
-        this.style.padding = '8px';
+        (this.style as any).padding = '8px';
         this.style.color = '#000000'; // Behebt den Umstand, dass unbelegte Farbe im Editor Fallback-weiss produziert (#eee)
         this.style.fontSize = 16; // Basis-Schriftgröße definieren, damit `scaleFontSize` aktiv greift und Text bei Skalierung nicht ausbricht
     }
@@ -33,12 +33,12 @@ export class TRichText extends TPanel {
 
         // Einfügen des "Text bearbeiten"-Knopfes ziemlich weit oben
         props.splice(1, 0,
-            { name: '', type: 'button', category: 'Inhalt', label: '🖋️ Text bearbeiten', action: 'openRichTextEditor' },
+            { name: '', type: 'button', group: 'INHALT', label: '🖋️ Text bearbeiten', action: 'openRichTextEditor' },
             // KRITISCH: htmlContent muss als Property registriert sein, damit toDTO()
             // den Wert serialisiert. Ohne diesen Eintrag geht der HTML-Inhalt beim
             // Deep-Copy (Run-Mode, IFrame-Export) verloren und die Runtime bekommt
             // nur den Konstruktor-Default ohne Formatierungen/Farben.
-            { name: 'htmlContent', type: 'hidden', category: 'Inhalt', label: 'HTML Inhalt' }
+            { name: 'htmlContent', type: 'hidden', group: 'INHALT', label: 'HTML Inhalt' }
         );
 
         return props;

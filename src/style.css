@@ -690,11 +690,24 @@ h2 {
 }
 
 .inspector-hint {
-  font-size: 10px;
-  color: #ff8866;
-  margin-top: 2px;
+  font-size: 9px;
+  color: #ffa726;
+  margin-top: 3px;
   padding-left: 2px;
-  min-height: 14px;
+  min-height: 12px;
   transition: opacity 0.2s;
   line-height: 1.2;
+}
+
+/* ─── Link Styling (TRichText / Game Objects) ─── */
+.game-object a,
+.richtext-editor-area a {
+  color: #5c7cfa;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.game-object a:hover,
+.richtext-editor-area a:hover {
+  filter: brightness(1.2);
 }

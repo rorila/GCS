@@ -65,6 +65,49 @@ export class TextObjectRenderer {
             el.innerHTML = textValue;
         }
 
+        // --- Link-Klicks abfangen ---
+        if (ctx.host.runMode) {
+            // WICHTIG: Ersetze 'stage:' hrefs durch javascript:void(0) um zu verhindern,
+            // dass der Browser (besonders in IFrames) Fehler wirft ('Failed to launch scheme').
+            const anchors = el.querySelectorAll('a');
+            anchors.forEach(a => {
+                const href = a.getAttribute('href');
+                if (href && href.startsWith('stage:')) {
+                    a.setAttribute('data-stage', href);
+                    a.setAttribute('href', 'javascript:void(0)');
+                }
+            });
+
+            el.onclick = (e: MouseEvent) => {
+                const target = e.target as HTMLElement;
+                const anchor = target.closest('a');
+                if (anchor) {
+                    const stageHref = anchor.getAttribute('data-stage') || anchor.getAttribute('href');
+                    if (stageHref && stageHref.startsWith('stage:')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const stageId = stageHref.substring(6);
+                        
+                        // Nutzt das native Runtime-Routing über das onNavigate Callback,
+                        if (ctx.host.onEvent) {
+                            ctx.host.onEvent('system', '__SYSTEM_NAVIGATE__', { target: `stage:${stageId}` });
+                        } else {
+                            console.warn('[TextObjectRenderer] ctx.host.onEvent nicht vorhanden. Stage-Wechsel fehlgeschlagen.');
+                        }
+                    }
+                }
+            };
+        } else {
+            // Im Editor-Modus native Klicks auf Links blockieren (sonst navigiert Electron weg)
+            el.onclick = (e: MouseEvent) => {
+                const target = e.target as HTMLElement;
+                if (target.closest('a')) {
+                    e.preventDefault();
+                }
+            };
+        }
+
         // --- Farbe ---
         // Konstruktor-Default ist '#000000'. Kein falscher Fallback wie '#eee' im Editor.
         // Die Container-Farbe dient als Vererbungsbasis; Inline-Farben im HTML

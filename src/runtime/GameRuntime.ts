@@ -626,6 +626,12 @@ export class GameRuntime implements IVariableHost {
     }
 
     public handleEvent(objectId: string, eventName: string, data: any = {}) {
+        // Intercept System Navigation Events (e.g. from TRichText links)
+        if (eventName === '__SYSTEM_NAVIGATE__' && data?.target && this.options.onNavigate) {
+            this.options.onNavigate(data.target);
+            return;
+        }
+
         // logger.info(`[DIAGNOSTIC] handleEvent entry: objId=${objectId}, event=${eventName}`);
         const obj = this.objects.find(o => o.id === objectId);
         if (!obj) {
