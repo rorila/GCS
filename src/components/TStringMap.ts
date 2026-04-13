@@ -112,6 +112,41 @@ export class TStringMap extends TWindow {
         ];
     }
 
+    /**
+     * Ausführung benutzerdefinierter Component-Actions
+     */
+    public executeAction(actionName: string, params: Record<string, any>, runtime?: any): void {
+        if (actionName === 'LoadFromOtherStringMap') {
+            const sourceName = params?.sourceTheme;
+            if (!sourceName || !runtime) return;
+
+            const sourceObject = runtime.getObjects().find((o: any) => o.name === sourceName && o.className === 'TStringMap');
+            if (sourceObject && sourceObject.entries) {
+                // Object.assign(this.entries, sourceObject.entries);
+                // Um komplett sicherzugehen beim Proxy Watcher (Reactive) weisen wir das Object neu zu + Merge
+                this.entries = { ...this.entries, ...sourceObject.entries };
+
+                // Event triggern, so dass Flows per 'onEntryChanged' weiterreagieren könnten
+                if (runtime.handleEvent) runtime.handleEvent(this.id, 'onEntryChanged', { sourceTheme: sourceName });
+            }
+        }
+    }
+
+    /**
+     * Macht die Action im Inspektor / FlowEditor verfügbar
+     */
+    public getAvailableActions(): { name: string, description: string, params: any[] }[] {
+        return [
+            {
+                name: 'LoadFromOtherStringMap',
+                description: 'Kopiert alle Strings aus einer anderen TStringMap.',
+                params: [
+                    { name: 'sourceTheme', type: 'string', required: true, description: 'Name der Quell-StringMap (z.B. ThemeDark)' }
+                ]
+            }
+        ];
+    }
+
     public toDTO(): any {
         return {
             ...super.toDTO(),

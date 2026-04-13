@@ -206,4 +206,52 @@ export function registerMiscActions() {
             { name: 'target', label: 'Audio-Objekt', type: 'select', source: 'objects', hint: 'Das TAudio Element' }
         ]
     });
+
+    // 23. Theme / TStringMap laden
+    actionRegistry.register('load_theme_map', (action, context) => {
+        const targetName = action.target;
+        const sourceName = action.source;
+
+        if (!targetName || !sourceName) return false;
+
+        const targetObj = context.objects.find(o => o.name === targetName || o.id === targetName);
+        const sourceObj = context.objects.find(o => o.name === sourceName || o.id === sourceName);
+
+        if (targetObj && sourceObj && targetObj.className === 'TStringMap' && sourceObj.className === 'TStringMap') {
+            const sEntries = (sourceObj as any).entries || {};
+            const tEntries = (targetObj as any).entries || {};
+            
+            // Jeden Key aus der Quelle übertragen und Proxy triggern!
+            Object.keys(sEntries).forEach(key => {
+                const newValue = sEntries[key];
+                
+                // 1. Physisch in das Dictionary schreiben (das eigentliche Speicher-Ziel der StringMap)
+                tEntries[key] = newValue;
+                
+                // 2. Den Surrogate Proxy-Trigger auslösen!
+                // Da reaktive Bindings nach dem Syntax "${MainThemes.StageBackground}" lauschen,
+                // warten die Watcher auf ein Set-Event des Root-Properties 'StageBackground'.
+                // Durch das direkte (blinde) Setzen auf das Root-Objekt fängt der TStringMap-Proxy
+                // die Zuweisung in der GameRuntime auf und benachrichtigt genau den Listener, der es braucht!
+                targetObj[key] = newValue;
+            });
+            
+            // Event triggern (z.B. für FlowActions die danach laufen)
+            if (context.handleEvent) {
+                context.handleEvent(targetObj.id, 'onEntryChanged', { sourceTheme: sourceName });
+            }
+            return true;
+        }
+
+        runtimeLogger.warn(`[Action: load_theme_map] Konnte Ziel/Quelle nicht als TStringMap identifizieren (${targetName} <- ${sourceName})`);
+        return false;
+    }, {
+        type: 'load_theme_map',
+        label: 'Theme (TStringMap) laden',
+        description: 'Kopiert alle Strings aus einer Quell-TStringMap in eine Ziel-TStringMap (erlaubt sofortigen Theme-Wechsel).',
+        parameters: [
+            { name: 'target', label: 'Ziel (z.B. MainThemes)', type: 'select', source: 'objects', hint: 'Welches Theme soll überschrieben werden?' },
+            { name: 'source', label: 'Quelle (z.B. DataThemeDark)', type: 'select', source: 'objects', hint: 'Welches Theme soll geladen werden?' }
+        ]
+    });
 }
