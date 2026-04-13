@@ -237,8 +237,9 @@ export function registerMiscActions() {
             });
             
             // Event triggern (z.B. für FlowActions die danach laufen)
-            if (context.handleEvent) {
-                context.handleEvent(targetObj.id, 'onEntryChanged', { sourceTheme: sourceName });
+            const anyContext = context as any;
+            if (anyContext.handleEvent) {
+                anyContext.handleEvent(targetObj.id, 'onEntryChanged', { sourceTheme: sourceName });
             }
             return true;
         }

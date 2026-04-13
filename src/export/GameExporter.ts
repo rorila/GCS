@@ -317,10 +317,7 @@ primary_region = "fra"
 
         // 3. Specialized cleaning for Stages
         if (clean.stages) {
-            clean.stages.forEach((s: any) => {
-                // Keep variable components in s.objects. 
-                // They're hidden in run mode via isHiddenInRun anyway, but ReactiveRuntime Needs them!
-            });
+            // Variables are kept in objects intentionally.
         }
 
         // 4. Add meta info for platform

@@ -1188,3 +1188,5 @@
 - **FEATURE**: Stage Background Context Menu. Ein verstecktes Kontextmen fr Stages hinzugefgt, welches erlaubt ausgeblendete globale Blueprint-Komponenten (excludeBlueprint) wieder einzeln einzublenden.
 
 - **BUGFIX**: Behebung eines \Maximum call stack size exceeded\-Fehlers im \ReferenceTracker\. Ein \Set\ zur Verfolgung bereits besuchter Objekte verhindert nun infinite Rekursionen bei circulren Referenzen innerhalb des Projekts.
+
+- **BUGFIX**: Behebung diverser TypeScript Compiler-Fehler in EditorInteractionManager, GameExporter, MiscActions und ExpressionParser.

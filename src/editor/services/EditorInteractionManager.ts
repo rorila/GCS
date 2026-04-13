@@ -267,7 +267,7 @@ export class EditorInteractionManager {
         const existingMenus = document.querySelectorAll('.stage-context-menu');
         existingMenus.forEach(m => m.remove());
 
-        const activeStage = this.host.getActiveStage();
+        const activeStage = this.host.project.stages?.find(s => s.id === this.host.project.activeStageId);
         if (!activeStage || activeStage.type === 'blueprint') return;
         
         const excludedIds = activeStage.excludedBlueprintIds || [];
@@ -286,7 +286,7 @@ export class EditorInteractionManager {
         const blueprintStage = project.stages?.find(s => s.type === 'blueprint');
         const bpObjects = blueprintStage?.objects || [];
 
-        excludedIds.forEach(id => {
+        excludedIds.forEach((id: string) => {
             const obj = bpObjects.find(o => o.id === id);
             const label = obj ? (obj.name || obj.caption || id) : id;
             const item = document.createElement('div');

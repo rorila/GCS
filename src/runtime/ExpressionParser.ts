@@ -1,6 +1,5 @@
 import { PropertyHelper } from './PropertyHelper';
 import { Logger } from '../utils/Logger';
-import { SecurityUtils } from '../utils/SecurityUtils';
 import jsep from 'jsep';
 
 const logger = Logger.get('ExpressionParser', 'Runtime_Execution');
