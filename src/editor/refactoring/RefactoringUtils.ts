@@ -46,20 +46,49 @@ export class RefactoringUtils {
     /**
      * Helper to recursively replace references in any object
      * Returns true if anything was changed
+     * Schützt gegen zirkuläre Referenzen (z.B. __cachedProxy) via WeakSet
      */
-    public static replaceInObjectRecursive(obj: any, oldName: string, newName: string): boolean {
+    public static replaceInObjectRecursive(obj: any, oldName: string, newName: string, _visited?: WeakSet<object>): boolean {
         if (!obj || typeof obj !== 'object') return false;
+
+        // Proxy-Objekte und spezielle interne Felder überspringen
+        try {
+            if (typeof obj === 'object' && obj !== null) {
+                const tag = Object.prototype.toString.call(obj);
+                // Proxy-Objekte können nicht sicher traversiert werden
+                if (tag === '[object Proxy]') return false;
+            }
+        } catch (_e) {
+            return false;
+        }
+
+        const visited = _visited ?? new WeakSet<object>();
+        if (visited.has(obj)) return false;
+        visited.add(obj);
+
         let changed = false;
 
         if (Array.isArray(obj)) {
             obj.forEach(item => {
-                if (this.replaceInObjectRecursive(item, oldName, newName)) changed = true;
+                if (this.replaceInObjectRecursive(item, oldName, newName, visited)) changed = true;
             });
             return changed;
         }
 
         for (const key in obj) {
-            const val = obj[key];
+            // Interne Cache- und Proxy-Felder grundsätzlich überspringen
+            if (key === '__cachedProxy' || key === '__proxy' || key === '__ref' || key.startsWith('__')) continue;
+
+            let val: any;
+            try {
+                val = obj[key];
+            } catch (_e) {
+                // Manche Proxy-Properties können nicht gelesen werden
+                continue;
+            }
+
+            if (val === null || val === undefined) continue;
+
             if (typeof val === 'string') {
                 if (val === oldName) {
                     obj[key] = newName;
@@ -69,7 +98,7 @@ export class RefactoringUtils {
                     changed = true;
                 }
             } else if (typeof val === 'object') {
-                if (this.replaceInObjectRecursive(val, oldName, newName)) changed = true;
+                if (this.replaceInObjectRecursive(val, oldName, newName, visited)) changed = true;
             }
         }
         return changed;
