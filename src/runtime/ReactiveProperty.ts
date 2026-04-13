@@ -63,10 +63,20 @@ export function makeReactive<T extends object>(
                     return value;
                 }
 
-                // INTERN: Alle __-Präfix-Properties RAW zurückgeben (kein weiteres Proxy-Wrapping!).
-                // Dazu gehört '__cachedProxy' selbst - sonst: Proxy liest __cachedProxy,
-                // der Proxy des __cachedProxy liest wieder __cachedProxy => Stack Overflow.
-                if (typeof property === 'string' && property.startsWith('__')) {
+                // PROXY-LOOP-SCHUTZ:
+                // Wenn value bereits ein reaktiver Proxy ist (erkennbar via __isProxy__),
+                // darf er NICHT nochmal gewrappt werden. Der Zugriff auf value.__cachedProxy
+                // würde sonst dessen get-Handler triggern → endlose Proxy-Kette.
+                // Hinweis: value.__isProxy__ wird bewusst direkt gelesen (target[property] liefert
+                // ein BEREITS-proxies Objekt das in den Rohdaten gespeichert ist).
+                if ((value as any).__isProxy__ === true) {
+                    return value;
+                }
+
+                // __cachedProxy selbst darf nie erneut gewrappt werden.
+                // Ohne diesen Check: value.__cachedProxy liest via Proxy → der Proxy
+                // liest wieder __cachedProxy von sich selbst → Stack Overflow.
+                if (property === '__cachedProxy') {
                     return value;
                 }
 
