@@ -9,6 +9,7 @@ import { serviceRegistry } from '../../services/ServiceRegistry';
 
 import { MethodRegistry } from '../MethodRegistry';
 import { PropertyHelper } from '../../runtime/PropertyHelper';
+import { DialogDomainHelper } from '../dialogs/utils/DialogDomainHelper';
 import { Logger } from '../../utils/Logger';
 
 const logger = Logger.get('InspectorRenderer');
@@ -422,7 +423,7 @@ export class InspectorRenderer {
 
                     let sigInput: HTMLElement;
                     if (sigParam.type === 'select' || sigParam.type === 'stage' || sigParam.type === 'variable') {
-                        const opts = this.getOptionsFromSource(sigParam, selectedObject);
+                        const opts = this.getOptionsFromSource(sigParam);
                         const sel = this.renderSelect(opts, currentParamValue, '--- wählen ---');
                         sel.name = sigParam.name; // Technical name for E2E
                         sel.onchange = () => {
@@ -734,7 +735,7 @@ export class InspectorRenderer {
                     case 'stage':
                     case 'select':
                     case 'method': {
-                        const options = this.getOptionsFromSource(param, selectedObject);
+                        const options = this.getOptionsFromSource(param);
                         const sel = this.renderSelect(options, currentValue, '--- wählen ---');
                         sel.name = param.name; // Technical name for E2E
                         sel.onchange = () => onUpdate(param.name, sel.value);
@@ -1108,12 +1109,13 @@ export class InspectorRenderer {
             return serviceRegistry.listServices().map(s => ({ value: s, label: s }));
         }
         if (prop.source === 'objects_and_services') {
-            const { DialogDomainHelper } = require('../dialogs/utils/DialogDomainHelper');
-            const validObjects = projectObjectRegistry.getObjects().filter((o: any) => {
+            const allObjects = projectObjectRegistry.getObjects();
+            const minimalCtx = { dialogData: {}, project: { objects: allObjects }, enrichedProject: { variables: [] } } as any;
+            const validObjects = allObjects.filter((o: any) => {
                 try {
-                    const methods = DialogDomainHelper.getMethodsForObject({ project: { objects: projectObjectRegistry.getObjects() } }, o.name);
+                    const methods = DialogDomainHelper.getMethodsForObject(minimalCtx, o.name);
                     return methods && methods.length > 0;
-                } catch (e) { return false; }
+                } catch (_e) { return false; }
             });
             return [
                 ...validObjects.map((o: any) => ({ value: o.name, label: o.name })),
@@ -1124,11 +1126,12 @@ export class InspectorRenderer {
             const targetName = prop._context?.target || actionObj?.target;
             if (targetName) {
                 try {
-                    const { DialogDomainHelper } = require('../dialogs/utils/DialogDomainHelper');
-                    const methods = DialogDomainHelper.getMethodsForObject({ project: { objects: projectObjectRegistry.getObjects() } }, targetName);
+                    const allObjects = projectObjectRegistry.getObjects();
+                    const minimalCtx = { dialogData: {}, project: { objects: allObjects }, enrichedProject: { variables: [] } } as any;
+                    const methods = DialogDomainHelper.getMethodsForObject(minimalCtx, targetName);
                     return methods.map((m: string) => ({ value: m, label: m }));
                 } catch (e) {
-                    console.warn('Could not load methods for', targetName, e);
+                    logger.warn('Could not load methods for', targetName, e);
                 }
             }
             return [];
@@ -1183,6 +1186,4 @@ export class InspectorRenderer {
         }
     }
 }
-
-
 
