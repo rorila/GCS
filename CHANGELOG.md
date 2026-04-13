@@ -1186,3 +1186,5 @@
 - **FEATURE**: Freischaltung der Funktion 'Stage duplizieren'. User knnen nun ber Stage > Aktuelle Stage duplizieren komfortabel in-project Kopien einer ganzen Stage anlegen.
 
 - **FEATURE**: Stage Background Context Menu. Ein verstecktes Kontextmen fr Stages hinzugefgt, welches erlaubt ausgeblendete globale Blueprint-Komponenten (excludeBlueprint) wieder einzeln einzublenden.
+
+- **BUGFIX**: Behebung eines \Maximum call stack size exceeded\-Fehlers im \ReferenceTracker\. Ein \Set\ zur Verfolgung bereits besuchter Objekte verhindert nun infinite Rekursionen bei circulren Referenzen innerhalb des Projekts.

@@ -324,6 +324,8 @@ class ReferenceTracker {
             });
         });
 
+        const visited = new Set<any>();
+
         const scanValue = (val: any, path: string = '', parentObj: any = null) => {
             if (val === null || val === undefined) return;
 
@@ -356,6 +358,11 @@ class ReferenceTracker {
                     }
                 }
                 return;
+            }
+
+            if (typeof val === 'object') {
+                if (visited.has(val)) return;
+                visited.add(val);
             }
 
             if (Array.isArray(val)) {
