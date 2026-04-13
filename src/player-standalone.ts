@@ -437,7 +437,8 @@ class UniversalPlayer implements StageHost {
         console.warn('1. bgExpression:', bgExpression);
         console.warn('2. ctx.MainThemes:', context && context['MainThemes'] ? 'FOUND' : 'MISSING');
         console.warn('3. Interpolate Result (bg):', bg);
-        console.warn('4. Current element bg-color:', this.element.style.backgroundColor);
+        
+        logger.info(`[BACKGROUND-TRACE] Stage bg calculated: ${bg} from ${bgExpression}`);
 
         const bgImg = activeStage.backgroundImage;
 

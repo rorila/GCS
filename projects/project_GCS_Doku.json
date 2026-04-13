@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "author": "Rolf",
     "description": "",
-    "_sourcePath": "projects/GCS_Doku.json"
+    "_sourcePath": "projects/loaded_project.json"
   },
   "stage": {
     "grid": {
@@ -286,7 +286,7 @@
           "entries": {
             "ButtonBackground": "#374d20",
             "PanelBackground": "#21360b",
-            "StageBackground": "#1e1e2e#0e2000"
+            "StageBackground": "#0e2000"
           }
         },
         {
@@ -313,9 +313,9 @@
             "borderWidth": 2
           },
           "entries": {
-            "StageBackground": "#1e1e2e",
+            "ButtonBackground": "#1a3a2a",
             "PanelBackground": "#2a2a3e",
-            "ButtonBackground": "#1a3a2a"
+            "StageBackground": "#1e1e2e"
           }
         },
         {
