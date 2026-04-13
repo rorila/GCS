@@ -1173,3 +1173,6 @@
 
 [UC-2026-04-10-ColorPicker-Bind] Option eingeführt, durch Variablen-Binding ('V' Button) die Werte des Color-Pickers (Hintergrund, Rahmenfarbe etc.) überschreiben zu können, um z.B. Game-Themes dynamisch zu realisieren.
 
+
+### 2026-04-13
+- **FIX**: ReactiveRuntime proxy tracking extended to TStage to guarantee grid property (backgroundColor) DOM-Updates are fired via onRender.
