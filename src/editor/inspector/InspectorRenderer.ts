@@ -1107,6 +1107,25 @@ export class InspectorRenderer {
         if (prop.source === 'services') {
             return serviceRegistry.listServices().map(s => ({ value: s, label: s }));
         }
+        if (prop.source === 'objects_and_services') {
+            return [
+                ...projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name })),
+                ...serviceRegistry.listServices().map(s => ({ value: s, label: s + ' (Service)' }))
+            ];
+        }
+        if (prop.source === 'methods_of_target') {
+            const targetName = prop._context?.target;
+            if (targetName) {
+                try {
+                    const { DialogDomainHelper } = require('../dialogs/utils/DialogDomainHelper');
+                    const methods = DialogDomainHelper.getMethodsForObject({ project: { objects: projectObjectRegistry.getObjects() } }, targetName);
+                    return methods.map((m: string) => ({ value: m, label: m }));
+                } catch (e) {
+                    console.warn('Could not load methods for', targetName, e);
+                }
+            }
+            return [];
+        }
         if (prop.source === 'stages') {
             return coreStore.getStages().map((s: any) => ({ value: s.id, label: s.name || s.id }));
         }
@@ -1157,3 +1176,4 @@ export class InspectorRenderer {
         }
     }
 }
+

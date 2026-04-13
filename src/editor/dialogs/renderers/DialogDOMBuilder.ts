@@ -125,6 +125,7 @@ export class DialogDOMBuilder {
             project: ctx.project,
             enrichedProject: ctx.enrichedProject,
             evaluateExpression: (expr) => DialogExpressionEvaluator.evaluateExpression(ctx, expr),
+            getMethods: (target) => ctx.getMethodsForObject(target),
             getMethodSignature: (target, method) => ctx.getMethodSignature(target, method),
             render: () => ctx.render(),
             onUpdate: (name, value) => ctx.updateModelValue(name, value)

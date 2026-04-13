@@ -166,8 +166,8 @@ export function registerMiscActions() {
         label: 'Methode aufrufen',
         description: 'Ruft eine Methode auf einem Objekt oder registrierten Service auf.',
         parameters: [
-            { name: 'target', label: 'Ziel (Objekt oder Service)', type: 'string' },
-            { name: 'method', label: 'Methode', type: 'string' },
+            { name: 'target', label: 'Ziel (Objekt oder Service)', type: 'select', source: 'objects_and_services' },
+            { name: 'method', label: 'Methode', type: 'select', source: 'methods_of_target' },
             { name: 'params', label: 'Parameter (Array)', type: 'json', hint: '["param1", "param2"]' },
             { name: 'resultVariable', label: 'Ergebnis speichern in', type: 'variable', source: 'variables' }
         ]

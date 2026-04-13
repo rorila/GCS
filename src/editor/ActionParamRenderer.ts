@@ -14,6 +14,7 @@ export interface ActionParamContext {
     project: any;
     enrichedProject: any;
     evaluateExpression: (expr: any) => any;
+    getMethods?: (target: string) => string[];
     getMethodSignature: (target: string, method: string) => any[];
     render: () => void;
     onUpdate?: (name: string, value: any) => void;
@@ -64,6 +65,18 @@ export class ActionParamRenderer {
                     if (param.source === 'objects') items = projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name }));
                     else if (param.source === 'variables') items = (ctx.enrichedProject.variables || []).map((v: any) => ({ value: v.name, label: v.name }));
                     else if (param.source === 'stages') items = (ctx.project.stages || []).map((s: any) => ({ value: s.id, label: s.name || s.id }));
+                    else if (param.source === 'objects_and_services') {
+                        items = [
+                            ...projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name })),
+                            ...serviceRegistry.listServices().map(s => ({ value: s, label: s + ' (Service)' }))
+                        ];
+                    }
+                    else if (param.source === 'methods_of_target') {
+                        const targetName = ctx.dialogData.target;
+                        if (targetName && ctx.getMethods) {
+                            items = ctx.getMethods(targetName).map((m: string) => ({ value: m, label: m }));
+                        }
+                    }
                     else if (param.source === 'services') items = serviceRegistry.listServices().map(s => ({ value: s, label: s }));
                     else if (param.source === 'tasks') items = projectTaskRegistry.getTasks().map(t => ({ value: t.name, label: t.name }));
                     else if (param.source === 'actions') items = projectActionRegistry.getActions().map(a => ({ value: a.name, label: a.name }));

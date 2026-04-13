@@ -1192,3 +1192,5 @@
 - **BUGFIX**: Behebung diverser TypeScript Compiler-Fehler in EditorInteractionManager, GameExporter, MiscActions und ExpressionParser.
 
 - **BUGFIX**: Das Blueprint-Contextmen ignoriert nun gelschte/verwaiste Objekt-IDs (Datenleichen) aus der Blueprint-Stage und bereinigt die \excludedBlueprintIds\-Liste der aktiven Stage automatisch beim Rendern des Mens. Globale Blueprint-Variablen werden nun im Men korrekt namentlich aufgelistet.
+
+- **FEATURE**: Die Action \call_method\ (Methode aufrufen) nutzt nun Dropdown-Auswahlfelder für Ziel-Komponente und Methoden. Die auflistbaren Methoden werden live dynamisch anhand der ermittelten Typ- und Objektinformationen der Ziel-Komponente geladen.
