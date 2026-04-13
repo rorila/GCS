@@ -99,8 +99,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         }
       ],
@@ -118,47 +118,16 @@
       "id": "main",
       "name": "MainStage",
       "type": "main",
-      "objects": [
-        {
-          "className": "TButton",
-          "id": "obj_1776077442717_nfab6kepk",
-          "name": "Button_3",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 10,
-          "y": 10,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1
-          },
-          "text": "Button_3",
-          "icon": ""
-        }
-      ],
+      "objects": [],
       "actions": [
         {
-          "id": "node-1776077427235",
+          "id": "node-1776077769571",
           "details": "",
           "name": "ShowTheHighscoreStage_Unique",
-          "showDetails": false,
-          "type": "navigate_stage"
+          "showDetails": false
         },
         {
-          "id": "node-1776077430250",
+          "id": "node-1776077772553",
           "details": "",
           "name": "Action1",
           "showDetails": false
@@ -188,7 +157,7 @@
           },
           "standaloneNodes": [
             {
-              "id": "node-1776077430250",
+              "id": "node-1776077772553",
               "type": "action",
               "x": 300,
               "y": 300,
@@ -201,8 +170,9 @@
               },
               "data": {
                 "name": "ShowTheHighscoreStage_Unique",
-                "type": "navigate_stage",
-                "isLinked": true
+                "type": "property",
+                "isLinked": true,
+                "showDetails": false
               }
             }
           ]
@@ -220,7 +190,7 @@
       "flowCharts": {}
     },
     {
-      "id": "stage-1776077435433",
+      "id": "stage-1776077777735",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],

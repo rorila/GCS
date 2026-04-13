@@ -432,14 +432,20 @@ class UniversalPlayer implements StageHost {
         const bg = ExpressionParser.interpolate(bgExpression, context);
         const bgImg = activeStage.backgroundImage;
 
-        if (bgImg) {
+        if (bgImg && bgImg !== 'none') {
             let url = bgImg.startsWith('http') || bgImg.startsWith('/') || bgImg.startsWith('.') || bgImg.startsWith('data:')
                 ? bgImg
                 : `./images/${bgImg}`;
             if (url.startsWith('/images/')) url = '.' + url;
-            this.element.style.background = `url("${url}") center center / ${activeStage.objectFit || 'cover'} no-repeat, ${bg}`;
+            this.element.style.backgroundImage = `url("${url}")`;
+            this.element.style.backgroundPosition = 'center center';
+            this.element.style.backgroundSize = activeStage.objectFit || 'cover';
+            this.element.style.backgroundRepeat = 'no-repeat';
+            this.element.style.backgroundColor = bg;
         } else {
-            this.element.style.background = bg;
+            this.element.style.backgroundImage = 'none';
+            this.element.style.backgroundColor = bg;
+            logger.info(`[UniversalPlayer] Stage bg updated to: ${bg} (Interpolated from: ${bgExpression})`);
         }
     }
 
