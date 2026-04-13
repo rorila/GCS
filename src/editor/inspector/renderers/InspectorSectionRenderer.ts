@@ -150,7 +150,23 @@ export class InspectorSectionRenderer {
                     options = context.renderer.getOptionsFromSource(propDef, obj);
                 }
             }
-            const select = context.renderer.renderSelect(Array.isArray(options) ? options : [], currentValue, propDef.placeholder);
+            // Placeholder-Text: bei Ziel-Auswahl immer erzwingen
+            const placeholderText = propDef.placeholder ||
+                (propDef.source === 'objects_and_services' ? '--- Ziel wählen ---' :
+                 propDef.source === 'methods_of_target'   ? '--- Methode wählen ---' : undefined);
+
+            // Wenn obj.target fehlt aber Optionen vorhanden: ersten Wert als Default setzen
+            let effectiveValue = currentValue;
+            if (!effectiveValue && (propDef.source === 'objects_and_services') && options.length > 0) {
+                effectiveValue = options[0].value || options[0];
+                PropertyHelper.setPropertyValue(obj, propDef.name, effectiveValue);
+            }
+
+            const select = context.renderer.renderSelect(
+                Array.isArray(options) ? options : [],
+                effectiveValue,
+                placeholderText
+            );
             const selectName = propDef.controlName || propDef.name || '';
             if (selectName) select.name = selectName;
             select.onchange = async () => {
