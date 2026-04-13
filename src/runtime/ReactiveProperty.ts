@@ -63,6 +63,13 @@ export function makeReactive<T extends object>(
                     return value;
                 }
 
+                // INTERN: Alle __-Präfix-Properties RAW zurückgeben (kein weiteres Proxy-Wrapping!).
+                // Dazu gehört '__cachedProxy' selbst - sonst: Proxy liest __cachedProxy,
+                // der Proxy des __cachedProxy liest wieder __cachedProxy => Stack Overflow.
+                if (typeof property === 'string' && property.startsWith('__')) {
+                    return value;
+                }
+
                 // PERFORMANCE/CRASH FIX:
                 // Memoize the proxy on the raw object. Without this, every 'get' creates a new Proxy.
                 // DevTools inspecting global variables drops into an infinite proxy creation loop and crashes.
