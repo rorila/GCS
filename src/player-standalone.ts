@@ -663,9 +663,18 @@ class UniversalPlayer implements StageHost {
 
 // Start
 if (typeof document !== 'undefined') {
-    document.addEventListener('DOMContentLoaded', () => {
-        (window as any).player = new UniversalPlayer();
-    });
+    const initPlayer = () => {
+        if (!(window as any).player) {
+            (window as any).player = new UniversalPlayer();
+        }
+    };
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPlayer);
+    } else {
+        // Fallback für dynamisch geladenes Skript mit Cache-Busting
+        initPlayer();
+    }
 }
 
 // For embedded projects (Standalone Export)
