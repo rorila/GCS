@@ -423,13 +423,22 @@ class UniversalPlayer implements StageHost {
         if (!this.currentProject) return;
 
         const activeStage = this.runtime ? (this.runtime as any).stage : (this.currentProject.stage || this.currentProject.stages?.[0]);
-        if (!activeStage || !activeStage.grid) return;
+        if (!activeStage || !activeStage.grid) {
+            console.warn('[UniversalPlayer] updateBackground ABORTED: No activeStage grid found!');
+            return;
+        }
 
         const grid = activeStage.grid;
-        // Dynamische Evaluierung (Themes & Variablen) des Hintergrunds!
         const context = this.runtime ? this.runtime.getContext() : {};
         const bgExpression = grid.backgroundColor || '#2e2e2e';
         const bg = ExpressionParser.interpolate(bgExpression, context);
+        
+        console.warn('===== BACKGROUND DEBUG =====');
+        console.warn('1. bgExpression:', bgExpression);
+        console.warn('2. ctx.MainThemes:', context && context['MainThemes'] ? 'FOUND' : 'MISSING');
+        console.warn('3. Interpolate Result (bg):', bg);
+        console.warn('4. Current element bg-color:', this.element.style.backgroundColor);
+
         const bgImg = activeStage.backgroundImage;
 
         if (bgImg && bgImg !== 'none') {
@@ -445,8 +454,10 @@ class UniversalPlayer implements StageHost {
         } else {
             this.element.style.backgroundImage = 'none';
             this.element.style.backgroundColor = bg;
-            logger.info(`[UniversalPlayer] Stage bg updated to: ${bg} (Interpolated from: ${bgExpression})`);
         }
+        
+        console.warn('5. Target element bg-color after set:', this.element.style.backgroundColor);
+        console.warn('============================');
     }
 
     private startAnimationTicker() {

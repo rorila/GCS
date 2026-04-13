@@ -97,13 +97,18 @@
             console.warn('[IFrame Runner] DIAG: window.frameElement oder _injectedProject fehlt! frameElement=', window.frameElement);
         }
     </script>
-    <!-- Lade den Standalone Controller -->
+    <!-- Lade den Standalone Controller dynamisch mit Cache-Busting -->
     <script>
-        console.log('[IFrame Runner] DIAG: Lade runtime-standalone.js ...');
-    </script>
-    <script src="./runtime-standalone.js" onerror="console.error('[IFrame Runner] FEHLER: runtime-standalone.js konnte NICHT geladen werden! src=./runtime-standalone.js. Check: Das Skript muss über den Vite-Dev-Server erreichbar sein.');"></script>
-    <script>
-        console.log('[IFrame Runner] DIAG: runtime-standalone.js geladen?', typeof window.startStandalone === 'function' ? 'JA' : 'NEIN (startStandalone fehlt)');
+        console.log('[IFrame Runner] DIAG: Lade runtime-standalone.js dynamisch...');
+        var script = document.createElement('script');
+        script.src = './runtime-standalone.js?v=' + Date.now(); // Cache Busting einfügen!
+        script.onerror = function() {
+            console.error('[IFrame Runner] FEHLER: runtime-standalone.js konnte NICHT geladen werden!');
+        };
+        script.onload = function() {
+            console.log('[IFrame Runner] DIAG: runtime-standalone.js geladen. startStandalone=' + (typeof window.startStandalone));
+        };
+        document.body.appendChild(script);
     </script>
 
     <script>
@@ -136,14 +141,20 @@
                     }
                 }
 
-                // Globale Variable setzen fÃ¼r Standalone-Script
+                // Globale Variable setzen für Standalone-Script
                 window.PROJECT = project;
                 
                 if (typeof window.startStandalone === 'function') {
                     window.startStandalone(project);
                 } else {
-                    console.error("[IFrame Runner] Standalone Runtime 'startStandalone' nicht gefunden!");
-                    document.body.innerHTML += '<h2 style="color:red;position:absolute;top:20px;left:20px;z-index:10000;">Error: Runtime-Standalone fehlt!</h2>';
+                    console.warn("[IFrame Runner] Standalone noch nicht geladen. Warte auf onload...");
+                    // Try again polling
+                    var checkInterval = setInterval(function() {
+                        if (typeof window.startStandalone === 'function') {
+                            clearInterval(checkInterval);
+                            window.startStandalone(project);
+                        }
+                    }, 50);
                 }
             }
         });
