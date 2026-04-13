@@ -122,6 +122,9 @@ export class GameRuntime implements IVariableHost {
 
             if (options.makeReactive) {
                 this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
+                if (this.stage) {
+                    this.stage = this.reactiveRuntime.registerObject(this.stage.name || 'main', this.stage, true);
+                }
                 
                 this.reactiveRuntime.setVariable('isSplashActive', this.isSplashActive);
                 const mp = options.multiplayerManager || (window as any).multiplayerManager;
@@ -428,6 +431,9 @@ export class GameRuntime implements IVariableHost {
             // The context resolution in ReactiveRuntime.getContext() handles
             // the priority (variable VALUE over component proxy) correctly.
             this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
+            if (this.stage) {
+                this.stage = this.reactiveRuntime.registerObject(this.stage.name || 'main', this.stage, true);
+            }
             this.reactiveRuntime.setVariable('isSplashActive', false);
 
             // Re-register global render listener after clear — FILTERED!
