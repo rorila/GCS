@@ -3,6 +3,7 @@ import { projectVariableRegistry } from '../../../services/registry/VariableRegi
 
 import { hydrateObjects } from '../../../utils/Serialization';
 import { MethodRegistry } from '../../MethodRegistry';
+import { serviceRegistry } from '../../../services/ServiceRegistry';
 import { Logger } from '../../../utils/Logger';
 import { IDialogContext } from '../IDialogContext';
 
@@ -110,7 +111,13 @@ export class DialogDomainHelper {
 
         const objects = projectObjectRegistry.getObjects();
         const objData = objects.find(o => o.name === objectName);
-        if (!objData) return [];
+        if (!objData) {
+            const serviceMethods = serviceRegistry.listMethods(objectName);
+            if (serviceMethods && serviceMethods.length > 0) {
+                return serviceMethods.map(m => m.name);
+            }
+            return [];
+        }
 
         const className = objData.className || 'TComponent';
 

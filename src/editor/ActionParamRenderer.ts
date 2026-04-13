@@ -66,9 +66,16 @@ export class ActionParamRenderer {
                     else if (param.source === 'variables') items = (ctx.enrichedProject.variables || []).map((v: any) => ({ value: v.name, label: v.name }));
                     else if (param.source === 'stages') items = (ctx.project.stages || []).map((s: any) => ({ value: s.id, label: s.name || s.id }));
                     else if (param.source === 'objects_and_services') {
+                        const validObjects = projectObjectRegistry.getObjects().filter((o: any) => {
+                            try {
+                                if (!ctx.getMethods) return true;
+                                const methods = ctx.getMethods(o.name);
+                                return methods && methods.length > 0;
+                            } catch (e) { return false; }
+                        });
                         items = [
-                            ...projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name })),
-                            ...serviceRegistry.listServices().map(s => ({ value: s, label: s + ' (Service)' }))
+                            ...validObjects.map((o: any) => ({ value: o.name, label: o.name })),
+                            ...serviceRegistry.listServices().map((s: string) => ({ value: s, label: s + ' (Service)' }))
                         ];
                     }
                     else if (param.source === 'methods_of_target') {
@@ -235,3 +242,4 @@ export class ActionParamRenderer {
         return paramContainer;
     }
 }
+

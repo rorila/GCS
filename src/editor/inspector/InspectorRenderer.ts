@@ -422,7 +422,7 @@ export class InspectorRenderer {
 
                     let sigInput: HTMLElement;
                     if (sigParam.type === 'select' || sigParam.type === 'stage' || sigParam.type === 'variable') {
-                        const opts = this.getOptionsFromSource(sigParam);
+                        const opts = this.getOptionsFromSource(sigParam, selectedObject);
                         const sel = this.renderSelect(opts, currentParamValue, '--- wählen ---');
                         sel.name = sigParam.name; // Technical name for E2E
                         sel.onchange = () => {
@@ -734,7 +734,7 @@ export class InspectorRenderer {
                     case 'stage':
                     case 'select':
                     case 'method': {
-                        const options = this.getOptionsFromSource(param);
+                        const options = this.getOptionsFromSource(param, selectedObject);
                         const sel = this.renderSelect(options, currentValue, '--- wählen ---');
                         sel.name = param.name; // Technical name for E2E
                         sel.onchange = () => onUpdate(param.name, sel.value);
@@ -1078,7 +1078,7 @@ export class InspectorRenderer {
         }
     }
 
-    public getOptionsFromSource(prop: any): any[] {
+    public getOptionsFromSource(prop: any, actionObj?: any): any[] {
         if (Array.isArray(prop.options)) return prop.options;
         if (!prop.source) return [];
 
@@ -1108,13 +1108,20 @@ export class InspectorRenderer {
             return serviceRegistry.listServices().map(s => ({ value: s, label: s }));
         }
         if (prop.source === 'objects_and_services') {
+            const { DialogDomainHelper } = require('../dialogs/utils/DialogDomainHelper');
+            const validObjects = projectObjectRegistry.getObjects().filter((o: any) => {
+                try {
+                    const methods = DialogDomainHelper.getMethodsForObject({ project: { objects: projectObjectRegistry.getObjects() } }, o.name);
+                    return methods && methods.length > 0;
+                } catch (e) { return false; }
+            });
             return [
-                ...projectObjectRegistry.getObjects().map(o => ({ value: o.name, label: o.name })),
-                ...serviceRegistry.listServices().map(s => ({ value: s, label: s + ' (Service)' }))
+                ...validObjects.map((o: any) => ({ value: o.name, label: o.name })),
+                ...serviceRegistry.listServices().map((s: string) => ({ value: s, label: s + ' (Service)' }))
             ];
         }
         if (prop.source === 'methods_of_target') {
-            const targetName = prop._context?.target;
+            const targetName = prop._context?.target || actionObj?.target;
             if (targetName) {
                 try {
                     const { DialogDomainHelper } = require('../dialogs/utils/DialogDomainHelper');
@@ -1176,4 +1183,6 @@ export class InspectorRenderer {
         }
     }
 }
+
+
 
