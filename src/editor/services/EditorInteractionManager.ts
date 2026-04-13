@@ -285,10 +285,19 @@ export class EditorInteractionManager {
         const project = this.host.project;
         const blueprintStage = project.stages?.find(s => s.type === 'blueprint');
         const bpObjects = blueprintStage?.objects || [];
+        const bpVars = blueprintStage?.variables || [];
+
+        let needsCleanup = false;
 
         excludedIds.forEach((id: string) => {
-            const obj = bpObjects.find(o => o.id === id);
-            const label = obj ? (obj.name || obj.caption || id) : id;
+            const obj = bpObjects.find(o => o.id === id) || bpVars.find((v: any) => v.id === id);
+            
+            if (!obj) {
+                needsCleanup = true;
+                return; // Überspringen, da gelöschte Leiche
+            }
+            
+            const label = obj.name || (obj as any).caption || id;
             const item = document.createElement('div');
             item.innerHTML = `👁️ ${label} einblenden`;
             item.style.cssText = `padding:8px 12px; cursor:pointer; color:#89b4fa; font-size:13px; transition:background 0.15s; border-bottom:1px solid #444;`;
@@ -304,6 +313,19 @@ export class EditorInteractionManager {
         });
 
         document.body.appendChild(menuEl);
+
+        if (needsCleanup) {
+            if (activeStage.excludedBlueprintIds) {
+                activeStage.excludedBlueprintIds = activeStage.excludedBlueprintIds.filter((id: string) => 
+                    bpObjects.some(o => o.id === id) || bpVars.some((v: any) => v.id === id)
+                );
+            }
+            this.host.autoSaveToLocalStorage();
+            if (!activeStage.excludedBlueprintIds || activeStage.excludedBlueprintIds.length === 0) {
+                menuEl.remove();
+                return;
+            }
+        }
 
         // Außerhalb klicken schließt das Menü
         const closeMenu = () => {
