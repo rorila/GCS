@@ -147,7 +147,7 @@ export class InspectorSectionRenderer {
             let options = propDef.options || [];
             if (!Array.isArray(options) || options.length === 0) {
                 if (propDef.source) {
-                    options = context.renderer.getOptionsFromSource(propDef);
+                    options = context.renderer.getOptionsFromSource(propDef, obj);
                 }
             }
             const select = context.renderer.renderSelect(Array.isArray(options) ? options : [], currentValue, propDef.placeholder);
@@ -174,6 +174,11 @@ export class InspectorSectionRenderer {
                     if (needsReRender) {
                         context.update(obj);
                     }
+                }
+                // Bei Ziel-Wechsel: Inspector neu rendern damit Methoden-Liste sich aktualisiert
+                if (propDef.name === 'target' || propDef.name === 'service') {
+                    PropertyHelper.setPropertyValue(obj, propDef.name, select.value);
+                    context.update(obj);
                 }
             };
             select.style.flex = '1';

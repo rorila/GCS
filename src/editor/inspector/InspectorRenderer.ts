@@ -735,10 +735,17 @@ export class InspectorRenderer {
                     case 'stage':
                     case 'select':
                     case 'method': {
-                        const options = this.getOptionsFromSource(param);
+                        const options = this.getOptionsFromSource(param, selectedObject);
                         const sel = this.renderSelect(options, currentValue, '--- wählen ---');
                         sel.name = param.name; // Technical name for E2E
-                        sel.onchange = () => onUpdate(param.name, sel.value);
+                        sel.onchange = () => {
+                            onUpdate(param.name, sel.value);
+                            // Bei Ziel-Wechsel muss die Methoden-Liste aktualisiert werden
+                            if (param.name === 'target' || param.name === 'service') {
+                                selectedObject[param.name] = sel.value;
+                                onUpdate('__rerender', true);
+                            }
+                        };
                         input = sel;
                         break;
                     }
