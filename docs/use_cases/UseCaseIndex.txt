@@ -380,3 +380,7 @@ UC-2026-04-10-TRichText-Component: Komponente TRichText hinzugefuegt mit wysiwyg
   - src/components/TStringMap.ts (116-140)
   - src/runtime/actions/handlers/MiscActions.ts (209-242)
 - Beschreibung: Flow-Action \load_theme_map\ implementiert. Kopierfunktion füllt die Map interativ und feuert TStringMap-Proxy Setters, wodurch das automatische Reactive Rendering von Properties wie \StageBackground\ ausgelöst wird.
+
+- Stage kopieren (In-Project): public/editor/menu_bar.json (Z. 93), src/editor/EditorStageManager.ts (Methode: duplicateStage, Z. 383)
+
+- Blueprint Objekte einblenden: src/editor/services/StageInteractionManager.ts (Methode: handleContextMenu, Z. 747), src/editor/services/EditorInteractionManager.ts (Methode: showStageBackgroundMenu, Z. 265)

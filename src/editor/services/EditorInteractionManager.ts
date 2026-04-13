@@ -255,8 +255,61 @@ export class EditorInteractionManager {
                 } else if (eventName === 'excludeBlueprint') {
                     (this.host as any).stageManager.toggleBlueprintExclusion(id);
                     this.host.render();
+                } else if (eventName === 'showStageContextMenu') {
+                    this.showStageBackgroundMenu(data.clientX, data.clientY);
                 }
             }
         };
+    }
+
+    private showStageBackgroundMenu(clientX: number, clientY: number) {
+        // Schließe andere Context-Menüs
+        const existingMenus = document.querySelectorAll('.stage-context-menu');
+        existingMenus.forEach(m => m.remove());
+
+        const activeStage = this.host.getActiveStage();
+        if (!activeStage || activeStage.type === 'blueprint') return;
+        
+        const excludedIds = activeStage.excludedBlueprintIds || [];
+        if (excludedIds.length === 0) return; // Nichts auszublenden/einzublenden
+
+        const menuEl = document.createElement('div');
+        menuEl.className = 'stage-context-menu';
+        menuEl.style.cssText = `position:fixed; left:${clientX}px; top:${clientY}px; background:#2d2d2d; border:1px solid #555; border-radius:4px; box-shadow:0 4px 12px rgba(0,0,0,0.4); z-index:10000; min-width:160px; overflow:hidden;`;
+
+        const title = document.createElement('div');
+        title.innerHTML = 'Ausgeblendete Blueprint-Objekte:';
+        title.style.cssText = `padding:8px 12px; color:#aaa; font-size:12px; background:#222; border-bottom:1px solid #444; font-weight:bold;`;
+        menuEl.appendChild(title);
+
+        const project = this.host.project;
+        const blueprintStage = project.stages?.find(s => s.type === 'blueprint');
+        const bpObjects = blueprintStage?.objects || [];
+
+        excludedIds.forEach(id => {
+            const obj = bpObjects.find(o => o.id === id);
+            const label = obj ? (obj.name || obj.caption || id) : id;
+            const item = document.createElement('div');
+            item.innerHTML = `👁️ ${label} einblenden`;
+            item.style.cssText = `padding:8px 12px; cursor:pointer; color:#89b4fa; font-size:13px; transition:background 0.15s; border-bottom:1px solid #444;`;
+            item.onmouseover = () => { item.style.background = '#3c3c3c'; };
+            item.onmouseout = () => { item.style.background = 'transparent'; };
+            item.onclick = (e) => {
+                e.stopPropagation();
+                (this.host as any).stageManager.toggleBlueprintExclusion(id);
+                this.host.render();
+                menuEl.remove();
+            };
+            menuEl.appendChild(item);
+        });
+
+        document.body.appendChild(menuEl);
+
+        // Außerhalb klicken schließt das Menü
+        const closeMenu = () => {
+            menuEl.remove();
+            window.removeEventListener('click', closeMenu);
+        };
+        setTimeout(() => window.addEventListener('click', closeMenu), 0);
     }
 }

@@ -1182,3 +1182,7 @@
 - **TESTS**: Added security validation coverage (Path Traversal / Sandbox Breaking) to the Regression Test Suite.
 
 - **TESTS**: Added Playwright E2E HTML-Injection Test Suite to verify strict protection against malicious JSON payloads and UI manipulation.
+
+- **FEATURE**: Freischaltung der Funktion 'Stage duplizieren'. User knnen nun ber Stage > Aktuelle Stage duplizieren komfortabel in-project Kopien einer ganzen Stage anlegen.
+
+- **FEATURE**: Stage Background Context Menu. Ein verstecktes Kontextmen fr Stages hinzugefgt, welches erlaubt ausgeblendete globale Blueprint-Komponenten (excludeBlueprint) wieder einzeln einzublenden.

@@ -748,6 +748,9 @@ export class StageInteractionManager {
             if (id) this.showContextMenu(e.clientX, e.clientY, id);
         } else {
             this.hideContextMenu();
+            if (this.host.onEvent) {
+                this.host.onEvent('stage', 'showStageContextMenu', { clientX: e.clientX, clientY: e.clientY });
+            }
         }
     }
 
