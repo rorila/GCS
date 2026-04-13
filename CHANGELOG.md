@@ -1178,3 +1178,5 @@
 - **FIX**: ReactiveRuntime proxy tracking extended to TStage to guarantee grid property (backgroundColor) DOM-Updates are fired via onRender.
 
 - **FIX**: Resolved DOMContentLoaded race-condition in execution frame for dynamically loaded Engine Script.
+
+- **TESTS**: Added security validation coverage (Path Traversal / Sandbox Breaking) to the Regression Test Suite.

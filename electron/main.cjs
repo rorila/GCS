@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { ElectronSecurity } = require('./security.cjs');
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
@@ -42,7 +43,18 @@ function createWindow() {
     });
 }
 
+// === Initialisiere Security Engine ===
+let security = null;
+
 app.whenReady().then(() => {
+    // Sichere Base-Dirs für die Offline-App bereitstellen
+    security = new ElectronSecurity([
+        app.getAppPath(),
+        app.getPath('userData'),
+        app.getPath('temp'),
+        process.cwd()
+    ]);
+
     createWindow();
 
     app.on('activate', () => {
@@ -62,32 +74,9 @@ app.on('window-all-closed', () => {
 // IPC Endpoints for the NativeFileAdapter (window.electronFS)
 // ==============================================================================
 
-const allowedPaths = new Set();
-
-function isPathAllowed(targetPath) {
-    if (!targetPath) return false;
-    const norm = path.resolve(targetPath);
-    if (allowedPaths.has(norm)) return true;
-
-    const safeBaseDirs = [
-        app.getAppPath(),
-        app.getPath('userData'),
-        app.getPath('temp'),
-        process.cwd()
-    ];
-
-    for (const base of safeBaseDirs) {
-        const baseNorm = path.resolve(base);
-        if (norm === baseNorm || norm.startsWith(baseNorm + path.sep)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 ipcMain.handle('fs:readFile', async (event, absolutePath) => {
     try {
-        if (!isPathAllowed(absolutePath)) {
+        if (!security || !security.isPathAllowed(absolutePath)) {
             throw new Error(`Security Exception: Access to path denied: ${absolutePath}`);
         }
         if (!fs.existsSync(absolutePath)) {
@@ -102,7 +91,7 @@ ipcMain.handle('fs:readFile', async (event, absolutePath) => {
 
 ipcMain.handle('fs:writeFile', async (event, absolutePath, content) => {
     try {
-        if (!isPathAllowed(absolutePath)) {
+        if (!security || !security.isPathAllowed(absolutePath)) {
             throw new Error(`Security Exception: Access to path denied: ${absolutePath}`);
         }
         const dir = path.dirname(absolutePath);
@@ -145,7 +134,7 @@ ipcMain.handle('fs:showOpenDialog', async (event, options) => {
     const result = await dialog.showOpenDialog(win, options);
     if (!result.canceled && result.filePaths.length > 0) {
         const chosen = result.filePaths[0];
-        allowedPaths.add(path.resolve(chosen));
+        if (security) security.addAllowedPath(chosen);
         return chosen; // Gebe den absoluten Pfad der ausgewählten Datei zurück
     }
     return null;
@@ -156,7 +145,7 @@ ipcMain.handle('fs:showSaveDialog', async (event, options) => {
     const result = await dialog.showSaveDialog(win, options);
     if (!result.canceled && result.filePath) {
         const chosen = result.filePath;
-        allowedPaths.add(path.resolve(chosen));
+        if (security) security.addAllowedPath(chosen);
         return chosen; // Gebe den gewählten Speicherpfad zurück
     }
     return null;

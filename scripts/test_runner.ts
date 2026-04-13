@@ -28,6 +28,7 @@ import { runPascalGeneratorTests } from '../tests/logic/PascalCodeGenerator.test
 import { runStageImportTests } from '../tests/stage_import.test.js';
 import { runTests as runMatheQuizTests } from '../tests/mathe_quiz.test.js';
 import { runTests as runVirtualGamepadTests } from '../tests/virtual_gamepad.test.js';
+import { runElectronSecurityTests } from '../tests/electron_security.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -198,6 +199,9 @@ async function main() {
         // 19. Stage-Import Tests
         console.log('🏃 Starte Stage-Import Tests...');
         allResults.push(...await runStageImportTests());
+
+        // 20. Electron Security Tests
+        allResults.push(...await runElectronSecurityTests());
 
         // 🌐 Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');
