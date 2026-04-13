@@ -1176,3 +1176,5 @@
 
 ### 2026-04-13
 - **FIX**: ReactiveRuntime proxy tracking extended to TStage to guarantee grid property (backgroundColor) DOM-Updates are fired via onRender.
+
+- **FIX**: Resolved DOMContentLoaded race-condition in execution frame for dynamically loaded Engine Script.
