@@ -416,8 +416,20 @@ class UniversalPlayer implements StageHost {
         this.element.style.top = '50%';
         this.element.style.position = 'absolute';
 
-        // Set background color from grid
-        const bg = grid.backgroundColor || '#ffffff';
+        this.updateBackground();
+    }
+
+    private updateBackground() {
+        if (!this.currentProject) return;
+
+        const activeStage = this.runtime ? (this.runtime as any).stage : (this.currentProject.stage || this.currentProject.stages?.[0]);
+        if (!activeStage || !activeStage.grid) return;
+
+        const grid = activeStage.grid;
+        // Dynamische Evaluierung (Themes & Variablen) des Hintergrunds!
+        const context = this.runtime ? this.runtime.getContext() : {};
+        const bgExpression = grid.backgroundColor || '#2e2e2e';
+        const bg = ExpressionParser.interpolate(bgExpression, context);
         const bgImg = activeStage.backgroundImage;
 
         if (bgImg) {
@@ -478,6 +490,7 @@ class UniversalPlayer implements StageHost {
             console.log(`[UniversalPlayer] Found TVirtualGamepad:`, objects.find(o => o.className === 'TVirtualGamepad'));
         }
         this.renderer.renderObjects(objects);
+        this.updateBackground();
     }
 
     /**

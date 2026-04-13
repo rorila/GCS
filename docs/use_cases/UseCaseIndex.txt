@@ -373,3 +373,10 @@ UC-2026-04-10-TRichText-Component: Komponente TRichText hinzugefuegt mit wysiwyg
   - src/editor/services/renderers/TextObjectRenderer.ts (Zeilen ~120-140): Event-Delegation fuer Klicks auf Links a-Tags im Run-Modus. Nutzt ctx.host.onEvent('system', '__SYSTEM_NAVIGATE__') um Navigation an Runtime zu senden.
   - src/runtime/GameRuntime.ts (Zeile ~630): Faengt '__SYSTEM_NAVIGATE__' in handleEvent ab und delegiert es an den onNavigate Callback, um nahtlos zw. UniversalPlayer und EditorRunManager umzuschalten.
 
+
+
+### Theme Management (TStringMap)
+- Dateien: 
+  - src/components/TStringMap.ts (116-140)
+  - src/runtime/actions/handlers/MiscActions.ts (209-242)
+- Beschreibung: Flow-Action \load_theme_map\ implementiert. Kopierfunktion füllt die Map interativ und feuert TStringMap-Proxy Setters, wodurch das automatische Reactive Rendering von Properties wie \StageBackground\ ausgelöst wird.
