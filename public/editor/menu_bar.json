@@ -107,6 +107,12 @@
                     "icon": "🚀"
                 },
                 {
+                    "id": "duplicate-stage",
+                    "label": "Aktuelle Stage duplizieren",
+                    "action": "stage-duplicate",
+                    "icon": "📄"
+                },
+                {
                     "id": "delete-stage",
                     "label": "Stage löschen",
                     "action": "delete-stage",
