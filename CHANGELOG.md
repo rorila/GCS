@@ -1180,3 +1180,5 @@
 - **FIX**: Resolved DOMContentLoaded race-condition in execution frame for dynamically loaded Engine Script.
 
 - **TESTS**: Added security validation coverage (Path Traversal / Sandbox Breaking) to the Regression Test Suite.
+
+- **TESTS**: Added Playwright E2E HTML-Injection Test Suite to verify strict protection against malicious JSON payloads and UI manipulation.
