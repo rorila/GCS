@@ -1,37 +1,37 @@
 ## [2026-04-14] - Prevent Initial Render Saves
 ### Fixed
-- **EditorDataManager**: Ein Fehler wurde behoben, durch den unmittelbar nach dem Laden eines Projekts (\~1 Sekunde\) der Autosave-Zähler bereits auf 1 sprang, ohne dass der Nutzer interagiert hatte. Dies passierte, da das initiale DOM-Rendering der Editor-Bühne künstliche \onPropertyChange\-Events triggert. Eine 2000-Millisekunden-Sperre im \updateProjectJSON()\ sorgt nun dafür, dass Post-Load-Events nicht mehr den Festplatten-Stream auslösen und der Zähler stabil auf 0 verbleibt.
+- **EditorDataManager**: Ein Fehler wurde behoben, durch den unmittelbar nach dem Laden eines Projekts (\~1 Sekunde\) der Autosave-Zï¿½hler bereits auf 1 sprang, ohne dass der Nutzer interagiert hatte. Dies passierte, da das initiale DOM-Rendering der Editor-Bï¿½hne kï¿½nstliche \onPropertyChange\-Events triggert. Eine 2000-Millisekunden-Sperre im \updateProjectJSON()\ sorgt nun dafï¿½r, dass Post-Load-Events nicht mehr den Festplatten-Stream auslï¿½sen und der Zï¿½hler stabil auf 0 verbleibt.
 
 ## [2026-04-14] - Reset Autosave Counter on Project Load
 ### Fixed
-- **EditorDataManager / MenuBar**: Der AutoSave-Zähler wurde beim Laden eines neuen oder bestehenden Projekts nicht zurückgesetzt und hat den Wert des alten Projekts einfach weiter hochgezählt. Die \loadProject()\-Routine resettet nun beim Ladevorgang den internen \_autoSaveCount\ auf 0 und übergibt dies trigger-los an die \MenuBar\ (ohne den grünen Flash-Effekt), sodass beim Wechsel eines Projekts eine saubere Null-Basis existiert.
+- **EditorDataManager / MenuBar**: Der AutoSave-Zï¿½hler wurde beim Laden eines neuen oder bestehenden Projekts nicht zurï¿½ckgesetzt und hat den Wert des alten Projekts einfach weiter hochgezï¿½hlt. Die \loadProject()\-Routine resettet nun beim Ladevorgang den internen \_autoSaveCount\ auf 0 und ï¿½bergibt dies trigger-los an die \MenuBar\ (ohne den grï¿½nen Flash-Effekt), sodass beim Wechsel eines Projekts eine saubere Null-Basis existiert.
 
 ## [2026-04-14] - Autosave Concurrency Fix
 ### Fixed
-- **Autosave / Native File System API**: Es wurde behoben, dass das Speichern nach einer UI-Eingabe gar nicht mehr funktionierte und der AutoSave-Zähler unverhältnismäßig schnell hochgezählt hat (teilweise 4-mal). Ursache war, dass durch das DOM/Event-System (z.B. Hover, Click, Edit) in Sekundenbruchteilen simultan auf den nativen Dateistream zugegriffen wurde. Die Browser-Sicherheitsarchitektur blockierte dies daraufhin als Überschneidung ("Stream already locked") und stürzte in den Fallback ab. Der Speichervorgang auf die Disk (\performDiskSave\) ist jetzt durch einen 1000ms Debounce-Timer gekapselt, welcher simultane Aufrufe zuverlässig bündelt.
+- **Autosave / Native File System API**: Es wurde behoben, dass das Speichern nach einer UI-Eingabe gar nicht mehr funktionierte und der AutoSave-Zï¿½hler unverhï¿½ltnismï¿½ï¿½ig schnell hochgezï¿½hlt hat (teilweise 4-mal). Ursache war, dass durch das DOM/Event-System (z.B. Hover, Click, Edit) in Sekundenbruchteilen simultan auf den nativen Dateistream zugegriffen wurde. Die Browser-Sicherheitsarchitektur blockierte dies daraufhin als ï¿½berschneidung ("Stream already locked") und stï¿½rzte in den Fallback ab. Der Speichervorgang auf die Disk (\performDiskSave\) ist jetzt durch einen 1000ms Debounce-Timer gekapselt, welcher simultane Aufrufe zuverlï¿½ssig bï¿½ndelt.
 
 ## [2026-04-14] - Fix Autosave Indicator UI Rendering Bug
 ### Fixed
-- **MenuBar**: Es wurde bemerkt, dass der neu eingeführte AutoSave-Zähler in der Statusleiste nach dem initialen Laden des Projekts verschwand. Ursache war, dass der \utosaveWrapper\ im initialen Constructor injiziert wurde, jedoch bei der Ausführung der dynamischen Menü-\ender()\ Methode nicht erneut in den DOM-Baum gehangen wurde und somit vom Garbage-Collector entfernt wurde. Dies wurde korrigiert. Der Zähler bleibt nun permanent erhalten und leuchtet bei Speichervorgängen.
+- **MenuBar**: Es wurde bemerkt, dass der neu eingefï¿½hrte AutoSave-Zï¿½hler in der Statusleiste nach dem initialen Laden des Projekts verschwand. Ursache war, dass der \utosaveWrapper\ im initialen Constructor injiziert wurde, jedoch bei der Ausfï¿½hrung der dynamischen Menï¿½-\ender()\ Methode nicht erneut in den DOM-Baum gehangen wurde und somit vom Garbage-Collector entfernt wurde. Dies wurde korrigiert. Der Zï¿½hler bleibt nun permanent erhalten und leuchtet bei Speichervorgï¿½ngen.
 
 ## [2026-04-14] - Fix Hardcoded Project Filename Display
 ### Fixed
-- **MenuBar / ProjectPersistenceService**: Ein Fehler wurde behoben, bei dem nach dem Laden eines Projekts über die Web FileSystem Access API oder Electron der Projektpfad in der Menüleiste starr als \loaded_project.json\ angezeigt wurde. \NativeFileAdapter\ liest nun den tatsächlichen Dateinamen (\handle.name\) oder den absoluten Pfad (\currentPath\) aus und leitet diesen korrekt an die \EditorDataManager\ Anzeige weiter.
+- **MenuBar / ProjectPersistenceService**: Ein Fehler wurde behoben, bei dem nach dem Laden eines Projekts ï¿½ber die Web FileSystem Access API oder Electron der Projektpfad in der Menï¿½leiste starr als \loaded_project.json\ angezeigt wurde. \NativeFileAdapter\ liest nun den tatsï¿½chlichen Dateinamen (\handle.name\) oder den absoluten Pfad (\currentPath\) aus und leitet diesen korrekt an die \EditorDataManager\ Anzeige weiter.
 
 ## [2026-04-14] - Autosave UI-Indicator & Safari/Chrome Native Fix
 ### Fixed
-- **Autosave / NativeFileAdapter**: Ein Fehler im Autosave-Fallback wurde behoben. Wenn der Editor im Web-Modus lief und \currentHandle\ aufgrund von fehlenden Rechtefreigaben nicht sofort beschreibbar war (oder fehlschlug), hat die \utoSave()\ Methode leise \alse\ zurückgegeben. Die Fallback-Kette delegierte dies jedoch historisch bedingt in ein Nichts. Nun weicht das System in diesem Fall korrekt wieder auf den Dev-Server ab (\	ryFetchFallback\), sodass keine Änderungen in lokalen Sitzungen mehr verloren gehen.
+- **Autosave / NativeFileAdapter**: Ein Fehler im Autosave-Fallback wurde behoben. Wenn der Editor im Web-Modus lief und \currentHandle\ aufgrund von fehlenden Rechtefreigaben nicht sofort beschreibbar war (oder fehlschlug), hat die \utoSave()\ Methode leise \alse\ zurï¿½ckgegeben. Die Fallback-Kette delegierte dies jedoch historisch bedingt in ein Nichts. Nun weicht das System in diesem Fall korrekt wieder auf den Dev-Server ab (\	ryFetchFallback\), sodass keine ï¿½nderungen in lokalen Sitzungen mehr verloren gehen.
 ### Added
-- **MenuBar**: Es gibt nun einen prominenten "Autosave"-Zähler rechts in der Statusleiste. Dieser blitzt kurz grün auf, sobald ein Speichervorgang im Hintergrund (Disk oder Dev-Server) erfolgreich durchgeführt und garantiert gesichert wurde.
+- **MenuBar**: Es gibt nun einen prominenten "Autosave"-Zï¿½hler rechts in der Statusleiste. Dieser blitzt kurz grï¿½n auf, sobald ein Speichervorgang im Hintergrund (Disk oder Dev-Server) erfolgreich durchgefï¿½hrt und garantiert gesichert wurde.
 
 ## [2026-04-13] - Autosave Native Adapter Fix
 ### Fixed
-- **Autosave / NativeFileAdapter**: Der Autosave-Mechanismus im Editor (der alle paar Sekunden Änderungen speichert) nutzte im reinen Web-Browser (Native FileSystem Access) fälschlicherweise immer den Backend-Dev-Server-Pfad als Fallback, statt die geöffnete lokale Desktop-Datei nahtlos zu updaten. Der \NativeFileAdapter\ wurde um ein geräuschloses \utoSave()\ erweitert, sodass \updateProjectJSON\ nun korrekterweise direkt auf die Festplatte des Users synct, sofern Schreibrechte für das geöffnete File-Handle bestehen.
+- **Autosave / NativeFileAdapter**: Der Autosave-Mechanismus im Editor (der alle paar Sekunden ï¿½nderungen speichert) nutzte im reinen Web-Browser (Native FileSystem Access) fï¿½lschlicherweise immer den Backend-Dev-Server-Pfad als Fallback, statt die geï¿½ffnete lokale Desktop-Datei nahtlos zu updaten. Der \NativeFileAdapter\ wurde um ein gerï¿½uschloses \utoSave()\ erweitert, sodass \updateProjectJSON\ nun korrekterweise direkt auf die Festplatte des Users synct, sofern Schreibrechte fï¿½r das geï¿½ffnete File-Handle bestehen.
 
 ## [2026-04-13] - ReactiveRuntime Maximum Call Stack Fixes
 ### Fixed
-- **ReactiveProperty**: Behobenen \RangeError: Maximum call stack size exceeded\ (Endlosschleife) im Standalone-Player beim Übergang zur nächsten Stage mit assoziierten Proxy-Komponenten.
-- **Proxy-Loop-Schutz**: Die \__isProxy__\-Prüfung im get-Trap von \makeReactive\ wurde VOR die crashende \instanceof HTMLElement\ Prüfung verschoben, um doppeltes Wrappen und endlose JS-Engine-Prototypenketten-Traversierungen sicher zu vermeiden.
+- **ReactiveProperty**: Behobenen \RangeError: Maximum call stack size exceeded\ (Endlosschleife) im Standalone-Player beim ï¿½bergang zur nï¿½chsten Stage mit assoziierten Proxy-Komponenten.
+- **Proxy-Loop-Schutz**: Die \__isProxy__\-Prï¿½fung im get-Trap von \makeReactive\ wurde VOR die crashende \instanceof HTMLElement\ Prï¿½fung verschoben, um doppeltes Wrappen und endlose JS-Engine-Prototypenketten-Traversierungen sicher zu vermeiden.
 
 ## [2026-04-12] - TRichText Inline Links Support
 ### Added
@@ -1228,7 +1228,7 @@
 
 - **BUGFIX**: Das Blueprint-Contextmen ignoriert nun gelschte/verwaiste Objekt-IDs (Datenleichen) aus der Blueprint-Stage und bereinigt die \excludedBlueprintIds\-Liste der aktiven Stage automatisch beim Rendern des Mens. Globale Blueprint-Variablen werden nun im Men korrekt namentlich aufgelistet.
 
-- **FEATURE**: Die Action \call_method\ (Methode aufrufen) nutzt nun Dropdown-Auswahlfelder für Ziel-Komponente und Methoden. Die auflistbaren Methoden werden live dynamisch anhand der ermittelten Typ- und Objektinformationen der Ziel-Komponente geladen.
+- **FEATURE**: Die Action \call_method\ (Methode aufrufen) nutzt nun Dropdown-Auswahlfelder fï¿½r Ziel-Komponente und Methoden. Die auflistbaren Methoden werden live dynamisch anhand der ermittelten Typ- und Objektinformationen der Ziel-Komponente geladen.
 
 
 

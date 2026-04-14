@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "author": "Rolf",
     "description": "",
-    "_sourcePath": "projects/GCS_Doku.json"
+    "_sourcePath": "projects/C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/projects/project_GCS_Doku.json"
   },
   "stage": {
     "grid": {
@@ -575,6 +575,9 @@
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
+              "events": {
+                "onClick": "ShowDescriptionStage"
+              },
               "visible": true,
               "x": 2,
               "y": 2,
@@ -609,6 +612,9 @@
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
+              "events": {
+                "onClick": "ShowReactivSystemStage"
+              },
               "visible": true,
               "x": 2,
               "y": 6,
@@ -634,6 +640,80 @@
               },
               "text": "${Directory.GoToReactiveSystemStory}",
               "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "d2e459f5-a6b1-4946-abf7-da1dc228ae00",
+              "name": "Btn_ReactivSystem_2",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "GoToBlaBla"
+              },
+              "visible": true,
+              "x": 2,
+              "y": 10,
+              "width": 14,
+              "height": 3,
+              "zIndex": 1,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "${MainThemes.ButtonBackground}",
+                "borderColor": "#000000",
+                "borderWidth": 1,
+                "borderRadius": 25,
+                "glowColor": "#4b4444",
+                "glowBlur": 1,
+                "glowSpread": 1,
+                "boxShadow": 1
+              },
+              "text": "${Directory.GoToBlaBla}",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "e3e2bb2d-55d8-435a-93b6-71105246180f",
+              "name": "Btn_ReactivSystem_3",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "GoToMathildr"
+              },
+              "visible": true,
+              "x": 2,
+              "y": 14,
+              "width": 14,
+              "height": 3,
+              "zIndex": 1,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "${MainThemes.ButtonBackground}",
+                "borderColor": "#000000",
+                "borderWidth": 1,
+                "borderRadius": 25,
+                "glowColor": "#4b4444",
+                "glowBlur": 1,
+                "glowSpread": 1,
+                "boxShadow": 1
+              },
+              "text": "${Directory.GoToMathildr}",
+              "icon": ""
             }
           ]
         },
@@ -645,9 +725,12 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onClick": "ShowGreenTheme"
+          },
           "visible": true,
-          "x": 40,
-          "y": 6,
+          "x": 21,
+          "y": 9,
           "width": 14,
           "height": 3,
           "zIndex": 1,
@@ -698,10 +781,194 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines"
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1776168534915_tyludt8tj",
+          "name": "Button_15",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 23,
+          "y": 14,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "Button_15",
+          "icon": ""
+        },
+        {
+          "className": "TButton",
+          "id": "obj_1776168735923_0eu33spwi",
+          "name": "Button_16",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 23,
+          "y": 18,
+          "width": 6,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "fontSize": 14,
+            "fontFamily": "Arial",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "#007bff",
+            "borderColor": "#000000",
+            "borderWidth": 1
+          },
+          "text": "Button_16",
+          "icon": ""
         }
       ],
-      "actions": [],
-      "tasks": [],
+      "actions": [
+        {
+          "id": "node-1776166697861",
+          "details": "",
+          "name": "SwitchToDescriptionStage",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage-1776084072545"
+        },
+        {
+          "id": "node-1776166847939",
+          "details": "",
+          "name": "SwitchToReactiveSystemPage",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage-1776084040446"
+        },
+        {
+          "id": "node-1776167552741",
+          "details": "",
+          "name": "SwitchToBlaBla",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage_7444093d-00f9-46a6-a25f-0a1473cb97f2"
+        },
+        {
+          "id": "node-1776167633800",
+          "details": "",
+          "name": "action",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage-1775809344944"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "ShowDescriptionStage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SwitchToDescriptionStage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowDescriptionStage": {
+              "x": 40,
+              "y": 40
+            },
+            "SwitchToDescriptionStage": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowReactivSystemStage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SwitchToReactiveSystemPage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowReactivSystemStage": {
+              "x": 40,
+              "y": 40
+            },
+            "SwitchToReactiveSystemPage": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "GoToBlaBla",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SwitchToBlaBla",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "GoToBlaBla": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "GoToMathildr",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "action",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "GoToMathildr": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        }
+      ],
       "variables": [
         {
           "className": "TStringMap",
@@ -727,8 +994,10 @@
             "borderWidth": 2
           },
           "entries": {
+            "GoToGCS_Description": "Was kann die Applikation?",
             "GoToReactiveSystemStory": "Was ist ein reaktives System?",
-            "GoToGCS_Description": "Was kann die Applikation?"
+            "GoToBlaBla": "gehe zu BlaBla",
+            "GoToMathildr": "gehe zu Matildr"
           }
         }
       ],
@@ -753,7 +1022,8 @@
         "onTouchStart",
         "onTouchMove",
         "onTouchEnd"
-      ]
+      ],
+      "flowCharts": {}
     },
     {
       "id": "stage-1776084072545",
@@ -1115,7 +1385,7 @@
             "borderColor": "transparent",
             "borderWidth": 0
           },
-          "text": "Templates:"
+          "text": "Templates: jetzt erst recht"
         }
       ],
       "actions": [],
@@ -1135,5 +1405,5 @@
       ]
     }
   ],
-  "activeStageId": "stage-1776087447415"
+  "activeStageId": "main"
 }

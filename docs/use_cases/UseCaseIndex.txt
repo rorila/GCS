@@ -467,3 +467,8 @@ Flow: The Call Method Action parameters 'target' and 'method' use type 'select' 
 Dateien: src\editor\services\EditorInteractionManager.ts (Zeile 255)
 Nutzen: Ausblenden von Blueprint-Komponenten lst nun sofort Autosave via Redux-Dispatch aus, damit der Exclusion-Zustand sicher im JSON erhalten bleibt.
 
+
+
+[Editor] Projekt speichern (Native Path Fix)
+Dateien: src/editor/services/EditorDataManager.ts (Zeilen 84-407)
+Nutzen: Behebt das Problem, dass in Electron (durch NativeFileAdapter) absolute Pfade faelschlicherweise mit projects/ praefixiert wurden, was beim Speichern und Laden zu Error ENOENT (ungueltiger Verzeichnispfad projects/C:/) gefuehrt hat.

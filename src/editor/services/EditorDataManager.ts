@@ -81,10 +81,12 @@ export class EditorDataManager {
             if (result) {
                 this.currentFileHandle = result.fileHandle || null;
 
-                // Beim Laden über File-Dialog: IMMER den Dateinamen als Pfad verwenden.
-                // Der _sourcePath in der Datei kann veraltet sein (Datei wurde kopiert/verschoben).
-                // Fester Speicherort: projects/<Dateiname>
-                let sourcePath = `projects/${result.filename}`;
+                // Beim Laden über File-Dialog: Den Pfad beibehalten, außer es ist nur ein Dateiname.
+                // In Electron erhalten wir hier einen absoluten Pfad, im Web nur einen Dateinamen.
+                let sourcePath = result.filename;
+                if (!sourcePath.includes('/') && !sourcePath.includes('\\')) {
+                    sourcePath = `projects/${result.filename}`;
+                }
                 EditorDataManager.logger.info(`[triggerLoad] Datei geladen: ${result.filename}, Pfad: ${sourcePath}`);
                 this.loadProject(result.data, sourcePath);
             }
@@ -181,6 +183,10 @@ export class EditorDataManager {
         // Pfad: Ordner aus currentSavePath übernehmen, Dateiname IMMER aus aktuellem meta.name
         let targetFilePath: string;
         if (this.currentSavePath) {
+            // Bullet-proof Sanitization: Falls dirty state noch projects/C:/... enthält
+            if (this.currentSavePath.startsWith('projects/') && this.currentSavePath.match(/projects\/[a-zA-Z]:\//)) {
+                this.currentSavePath = this.currentSavePath.substring(9);
+            }
             // Ordner-Anteil beibehalten, Dateiname aus meta.name
             const folder = this.currentSavePath.substring(0, this.currentSavePath.lastIndexOf('/'));
             targetFilePath = `${folder}/${safeGameName}.json`;
@@ -308,7 +314,8 @@ export class EditorDataManager {
                     return { success: false, message: 'Speichern abgebrochen' };
                 }
                 
-                this.currentSavePath = newPath || `projects/${newHandle?.name}`;
+                let combinedPath = newPath || `projects/${newHandle?.name}`;
+                this.currentSavePath = combinedPath.replace(/\\/g, '/');
                 this.currentFileHandle = newHandle;
                 
                 const fileBaseName = (newPath?.replace(/^.*[\\\/]/, '') || newHandle?.name || '').replace('.json', '');
@@ -388,10 +395,15 @@ export class EditorDataManager {
         // 2. _sourcePath aus Projekt-Metadaten (wurde beim letzten Speichern geschrieben)
         // 3. Fallback aus meta.name (letzte Option)
         if (sourcePath) {
-            this.currentSavePath = sourcePath;
-            EditorDataManager.logger.info(`[LoadProject] Quellpfad gesetzt (explizit): ${sourcePath}`);
+            this.currentSavePath = sourcePath.replace(/\\/g, '/');
+            EditorDataManager.logger.info(`[LoadProject] Quellpfad gesetzt (explizit): ${this.currentSavePath}`);
         } else if (data.meta?._sourcePath) {
-            this.currentSavePath = data.meta._sourcePath;
+            let sp = data.meta._sourcePath.replace(/\\/g, '/');
+            // Fehler-Korrektur: Falls in einer älteren Version "projects/C:/..." gespeichert wurde
+            if (sp.startsWith('projects/') && sp.match(/projects\/[a-zA-Z]:\//)) {
+                sp = sp.substring(9);
+            }
+            this.currentSavePath = sp;
             EditorDataManager.logger.info(`[LoadProject] Quellpfad aus _sourcePath: ${this.currentSavePath}`);
         } else if (data.meta?.name) {
             // Letzter Fallback: Pfad aus Projektnamen konstruieren
