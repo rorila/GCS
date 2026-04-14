@@ -20,6 +20,7 @@ export interface EditorInteractionHost {
     findObjectById(id: string): any;
     render(): void;
     autoSaveToLocalStorage(): void;
+    projectStore?: any;
 }
 
 export class EditorInteractionManager {
