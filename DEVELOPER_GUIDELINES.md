@@ -320,3 +320,9 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 ### Autosave & UI Interaktionen
 - **DO:** Wenn in der UI (z.B. Context Menu) direkte nderungen am in-memory Stage-Objekt durchgefhrt werden (ohne den ProjectStore-Reducer zu durchlaufen), muss zwingend ein leerer UPDATE_PROJECT Dispatch abgesetzt werden: 	his.host.projectStore.dispatch({ type: 'UPDATE_PROJECT' });. Andernfalls blockiert der Debouncer/Grace-Period das Speichern dieser Zustnde dauerhaft (siehe Blueprint Exclusion Fix).
 
+
+### Runtime & Standalone Player Updates
+- **DO:** Wenn du core/runtime/Dateien wie \RuntimeStageManager.ts\, \ReactiveRuntime.ts\ oder Komponenten modifizierst, reicht der normale Vite-HMR (Hot Module Replacement) für den Editor vollkommen aus.
+- **CRITICAL:** Der IFrame-Player (\Run (IFrame)\ Tab) lädt jedoch IMMER die kompilierte statische \public/runtime-standalone.js\. Wenn du Funktionalität in der Kern-Runtime anpasst, MUSS anschließend IMMER \
+pm run bundle:runtime\ ausgeführt werden, damit deine Code-Fixes auch im IFrame wirksam werden!
+
