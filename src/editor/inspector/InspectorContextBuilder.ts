@@ -1,7 +1,6 @@
 import { actionRegistry } from '../../runtime/ActionRegistry';
 import { projectObjectRegistry } from '../../services/registry/ObjectRegistry';
 import { projectVariableRegistry } from '../../services/registry/VariableRegistry';
-import { projectTaskRegistry } from '../../services/registry/TaskRegistry';
 import { coreStore } from '../../services/registry/CoreStore';
 import { dataService } from '../../services/DataService';
 import { UseCaseManager, USE_CASES } from '../../utils/UseCaseManager';
