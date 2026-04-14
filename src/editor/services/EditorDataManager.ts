@@ -624,13 +624,21 @@ export class EditorDataManager {
                 this.host.viewManager.workingProjectData = safeDeepCopy(this.host.project);
             }
 
-            // Ignoriere automatische "Post-Load"-Events (DOM-Rendering) in den ersten 2 Sekunden
+            // --- CRITICAL AI-GUARD ---
+            // DO NOT REMOVE GRACE PERIOD!
+            // Ignoriere automatische "Post-Load"-Events (DOM-Rendering) in den ersten 2 Sekunden,
+            // da sonst direkt nach dem Laden eine leere Datei geschrieben und der Autosave-Zähler angehoben wird!
             const timeSinceLoad = Date.now() - this._loadedAt;
             if (timeSinceLoad < 2000) {
                 return;
             }
 
-            // 3. SSoT & DATEI-PERSISTENZ (Debounced um Multiple File Handle Write Errors zu vermeiden)
+            // --- CRITICAL AI-GUARD ---
+            // DO NOT REMOVE DEBOUNCE TIMER!
+            // 3. SSoT & DATEI-PERSISTENZ 
+            // Dieser Debounce MUSS exakt so auf 1000ms gesetzt bleiben. Das Modul erhält sonst bei DND-Drag oder WYSIWYG
+            // bis zu 5 synchrone save-Calls. Die 'Native FileSystem API' blockt parallele Writes hart ab 
+            // ("The associated file is already being written"), was das Speichern komplett zerstört.
             if (this._diskSaveTimer !== null) {
                 clearTimeout(this._diskSaveTimer);
             }

@@ -169,9 +169,15 @@ export class MenuBar {
 
         // Stage-Control-Wrapper wieder anhängen
         this.container.appendChild(this.stageControlWrapper);
+
+        // --- CRITICAL AI-GUARD ---
+        // DO NOT REMOVE THIS CONDITIONAL APPEND!
+        // Because innerHTML = '' was called above, this.autosaveWrapper gets detached from the DOM.
+        // It must be re-attached here. Otherwise, the autosave counter vanishes permanently.
         if (this.autosaveWrapper) {
             this.container.appendChild(this.autosaveWrapper);
         }
+        
         this.container.appendChild(this.infoLabel);
     }
 

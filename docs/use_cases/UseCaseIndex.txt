@@ -462,3 +462,8 @@ Flow: The Call Method Action parameters 'target' and 'method' use type 'select' 
 
 
 
+
+[Editor] Stage Blueprint Exclusion Fix
+Dateien: src\editor\services\EditorInteractionManager.ts (Zeile 255)
+Nutzen: Ausblenden von Blueprint-Komponenten lst nun sofort Autosave via Redux-Dispatch aus, damit der Exclusion-Zustand sicher im JSON erhalten bleibt.
+
