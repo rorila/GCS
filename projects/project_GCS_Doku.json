@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "author": "Rolf",
     "description": "",
-    "_sourcePath": "projects/project_GCS_Doku.json"
+    "_sourcePath": "projects/GCS_Doku.json"
   },
   "stage": {
     "grid": {
@@ -455,8 +455,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         },
         {
@@ -575,6 +575,9 @@
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
+              "events": {
+                "onClick": "ShowDescriptionStage"
+              },
               "visible": true,
               "x": 2,
               "y": 2,
@@ -609,6 +612,9 @@
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
+              "events": {
+                "onClick": "ShowReactivSystemStage"
+              },
               "visible": true,
               "x": 2,
               "y": 6,
@@ -645,9 +651,12 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onClick": "ShowGreenTheme"
+          },
           "visible": true,
-          "x": 40,
-          "y": 6,
+          "x": 21,
+          "y": 9,
           "width": 14,
           "height": 3,
           "zIndex": 1,
@@ -700,8 +709,72 @@
           "gridStyle": "lines"
         }
       ],
-      "actions": [],
-      "tasks": [],
+      "actions": [
+        {
+          "id": "node-1776166697861",
+          "details": "",
+          "name": "SwitchToDescriptionStage",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage-1776084072545"
+        },
+        {
+          "id": "node-1776166847939",
+          "details": "",
+          "name": "SwitchToReactiveSystemPage",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage-1776084040446"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "ShowDescriptionStage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SwitchToDescriptionStage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowDescriptionStage": {
+              "x": 40,
+              "y": 40
+            },
+            "SwitchToDescriptionStage": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowReactivSystemStage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SwitchToReactiveSystemPage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowReactivSystemStage": {
+              "x": 40,
+              "y": 40
+            },
+            "SwitchToReactiveSystemPage": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        }
+      ],
       "variables": [
         {
           "className": "TStringMap",
@@ -753,7 +826,8 @@
         "onTouchStart",
         "onTouchMove",
         "onTouchEnd"
-      ]
+      ],
+      "flowCharts": {}
     },
     {
       "id": "stage-1776084072545",
@@ -1135,5 +1209,5 @@
       ]
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "blueprint"
 }

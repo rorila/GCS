@@ -93,7 +93,10 @@ export class InspectorHost implements IInspectorContext {
         this.render(currentObject);
     }
 
+    public contextBuilder: any;
+
     private async render(obj: any): Promise<void> {
+        this.contextBuilder = InspectorContextBuilder.build(obj);
         this.container!.innerHTML = '';
 
         const header = InspectorHeaderRenderer.renderHeader(obj, this);
@@ -156,12 +159,14 @@ export class InspectorHost implements IInspectorContext {
     public resolveValue(expr: any, obj: any, def?: any): any {
         if (typeof expr !== 'string' || !expr.includes('${')) return expr;
 
-        const context = InspectorContextBuilder.build(obj);
+        const context = this.contextBuilder || InspectorContextBuilder.build(obj);
 
         if (def && (def.__template_item !== undefined)) {
-            context.item = def.__template_item;
-            context.value = def.__template_item.value !== undefined ? def.__template_item.value : def.__template_item;
-            context.index = def.__template_index;
+            const localContext = { ...context };
+            localContext.item = def.__template_item;
+            localContext.value = def.__template_item.value !== undefined ? def.__template_item.value : def.__template_item;
+            localContext.index = def.__template_index;
+            return ExpressionParser.interpolate(expr, localContext);
         }
 
         const result = ExpressionParser.interpolate(expr, context);
@@ -186,12 +191,14 @@ export class InspectorHost implements IInspectorContext {
     public resolveRawValue(expr: any, obj: any, def?: any): any {
         if (typeof expr !== 'string' || !expr.includes('${')) return expr;
 
-        const context = InspectorContextBuilder.build(obj);
+        const context = this.contextBuilder || InspectorContextBuilder.build(obj);
 
         if (def && (def.__template_item !== undefined)) {
-            context.item = def.__template_item;
-            context.value = def.__template_item.value !== undefined ? def.__template_item.value : def.__template_item;
-            context.index = def.__template_index;
+            const localContext = { ...context };
+            localContext.item = def.__template_item;
+            localContext.value = def.__template_item.value !== undefined ? def.__template_item.value : def.__template_item;
+            localContext.index = def.__template_index;
+            return ExpressionParser.evaluateRaw(expr, localContext);
         }
 
         return ExpressionParser.evaluateRaw(expr, context);

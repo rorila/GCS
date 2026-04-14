@@ -76,7 +76,10 @@
           "x": 12,
           "y": 2,
           "width": 10,
-          "height": 4
+          "height": 4,
+          "uiScope": "global",
+          "uiEmoji": "🌎",
+          "usageCount": 0
         }
       ],
       "grid": {
@@ -107,7 +110,7 @@
       }
     },
     {
-      "id": "stage-1776158616859",
+      "id": "stage-1776167169751",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],
@@ -124,5 +127,5 @@
       }
     }
   ],
-  "activeStageId": "stage-1776158616859"
+  "activeStageId": "stage-1776167169751"
 }

@@ -146,7 +146,7 @@
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onClick": "ShowNextPage"
+            "onClick": "ShowPrevStage"
           },
           "visible": true,
           "x": 53,
@@ -455,8 +455,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         },
         {
@@ -575,6 +575,9 @@
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
+              "events": {
+                "onClick": "ShowPrevStage"
+              },
               "visible": true,
               "x": 2,
               "y": 2,
@@ -609,6 +612,9 @@
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
+              "events": {
+                "onClick": "ShowNextPage"
+              },
               "visible": true,
               "x": 2,
               "y": 6,
@@ -645,9 +651,12 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onClick": "ShowGreenTheme"
+          },
           "visible": true,
-          "x": 40,
-          "y": 6,
+          "x": 21,
+          "y": 9,
           "width": 14,
           "height": 3,
           "zIndex": 1,

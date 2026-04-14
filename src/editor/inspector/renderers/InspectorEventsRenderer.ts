@@ -3,6 +3,7 @@ import { InspectorRegistry } from '../InspectorRegistry';
 import { componentRegistry } from '../../../services/ComponentRegistry';
 import { InspectorLegacyRenderer } from './InspectorLegacyRenderer';
 import { Logger } from '../../../utils/Logger';
+import { projectTaskRegistry } from '../../../services/registry/TaskRegistry';
 
 const logger = Logger.get('InspectorEventsRenderer');
 
@@ -21,9 +22,12 @@ export class InspectorEventsRenderer {
         }
 
         if (!obj._supportedEvents || obj._supportedEvents.length === 0) {
+            // Versuch 1: Direkt vom Objekt (falls Prototyp/Methode vorhanden)
             if (typeof obj.getEvents === 'function') {
                 obj._supportedEvents = obj.getEvents();
-            } else {
+            }
+            // Versuch 2: Falls getEvents() leer/undefined lieferte, über ComponentRegistry nachladen.
+            if (!obj._supportedEvents || obj._supportedEvents.length === 0) {
                 try {
                     obj._supportedEvents = componentRegistry.getEvents(obj);
                 } catch (e) {
@@ -40,6 +44,22 @@ export class InspectorEventsRenderer {
                 return;
             }
 
+            // GARANTIE-FIX: Tasks SYNCHRON direkt in den contextBuilder injizieren,
+            // BEVOR das UI gerendert wird.
+            if ((context as any).contextBuilder) {
+                const cb = (context as any).contextBuilder;
+                if (!cb.availableTasks || cb.availableTasks.length === 0) {
+                    const tasks = projectTaskRegistry.getTasks('all');
+                    if (tasks && tasks.length > 0) {
+                        cb.availableTasks = tasks.map(t => ({
+                            value: t.name,
+                            label: `${t.uiEmoji || (t.uiScope === 'global' ? '🌎' : '🎭')} ${t.name}`
+                        }));
+                    }
+                }
+            }
+
+            // Einmaliges Rendern
             uiObjects.forEach(def => {
                 const el = InspectorLegacyRenderer.renderUIDefinition(def, obj, context);
                 if (el) parent.appendChild(el);

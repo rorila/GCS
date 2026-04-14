@@ -14,21 +14,18 @@ import { UseCaseManager, USE_CASES } from '../../utils/UseCaseManager';
  */
 export class InspectorContextBuilder {
 
-    /**
-     * Erzeugt das vollständige Kontext-Objekt für ein bestimmtes Ziel-Objekt.
-     */
     public static build(selectedObject: any): any {
+        try {
+            const activeStageId = coreStore.getActiveStageId();
 
-        const activeStageId = coreStore.getActiveStageId();
+            // 1. Variablen abrufen (Global + Active Stage)
+            const allVars = projectVariableRegistry.getVariables();
 
-        // 1. Variablen abrufen (Global + Active Stage)
-        const allVars = projectVariableRegistry.getVariables();
-
-        // 2. DataStores finden
-        const allObjects = projectObjectRegistry.getObjects();
-        const dataStores = allObjects.filter(obj =>
-            obj.className === 'TDataStore' || (obj as any).constructor?.name === 'TDataStore'
-        );
+            // 2. DataStores finden
+            const allObjects = projectObjectRegistry.getObjects();
+            const dataStores = allObjects.filter(obj =>
+                obj.className === 'TDataStore' || (obj as any).constructor?.name === 'TDataStore'
+            );
 
         // 3. Variablen in den Kontext einfügen (für Auflösung von ${varName} im Inspector)
         const context: Record<string, any> = {
@@ -199,17 +196,42 @@ export class InspectorContextBuilder {
                 'text', 'value', 'caption', 'width', 'height', 'top', 'left', 'visible', 'checked', 'progress', 'enabled', 'src'
             ],
 
-            // Liste der verfügbaren Tasks (ALLE Stages, damit globale Objekte Cross-Stage-Tasks sehen)
-            availableTasks: projectTaskRegistry.getTasks('all').map(t => ({
-                value: t.name,
-                label: `${t.uiEmoji || (t.uiScope === 'global' ? '🌎' : '🎭')} ${t.name}`
-            })),
+            // Liste der verfügbaren Tasks direkt aus dem CoreStore extrahieren (umgeht isolierte Cache-Module)
+            availableTasks: (() => {
+                const project = coreStore.project;
+                if (!project) return [];
+                
+                const allTasks: any[] = [];
+                if (project.tasks) {
+                    project.tasks.forEach(t => allTasks.push({ ...t, uiScope: 'global' }));
+                }
+                if (project.stages) {
+                    project.stages.forEach(stage => {
+                        if (stage.type === 'blueprint' && stage.tasks) {
+                            stage.tasks.forEach(t => {
+                                if (!allTasks.find(existing => existing.name === t.name)) {
+                                    allTasks.push({ ...t, uiScope: 'global' });
+                                }
+                            });
+                        } else if (stage.tasks) {
+                            stage.tasks.forEach(t => allTasks.push({ ...t, uiScope: 'stage' }));
+                        }
+                    });
+                }
+                
+                return allTasks.map(t => ({
+                    value: t.name,
+                    label: `${t.uiEmoji || (t.uiScope === 'global' ? '🌎' : '🎭')} ${t.name}`
+                }));
+            })(),
 
             // UseCase Diagnostic System
             UseCaseManager: UseCaseManager,
             Config: {
                 USE_CASES: USE_CASES
-            }
+            },
+            
+            _debugProjectIsNull: coreStore.project === null || coreStore.project === undefined
         };
 
         // Variablen-Werte hinzufügen (für Live-Preview im Inspector)
@@ -223,5 +245,13 @@ export class InspectorContextBuilder {
         });
 
         return context;
+        } catch (error: any) {
+            console.error('[CRITICAL] InspectorContextBuilder.build threw an error:', error);
+            return { 
+                availableTasks: [{ value: '', label: `ERROR: ${error?.message || error}` }], 
+                availableDataStores: [], 
+                availableObjectProperties: [] 
+            };
+        }
     }
 }

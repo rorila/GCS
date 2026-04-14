@@ -72,7 +72,16 @@ export class InspectorLegacyRenderer {
             }
             case 'TSelect':
             case 'TDropdown': {
-                const value = context.resolveValue(def.selectedValue, obj, def);
+                let value = context.resolveValue(def.selectedValue, obj, def);
+
+                // FALLBACK: Für Event-Dropdowns den Wert direkt aus obj.events lesen,
+                // falls der ExpressionParser die verschachtelte Expression nicht auflösen konnte.
+                if ((value === undefined || value === null || value === '') && def.name && def.name.startsWith('event_')) {
+                    const eventName = def.name.replace('event_', '');
+                    if (obj.events && obj.events[eventName]) {
+                        value = obj.events[eventName];
+                    }
+                }
 
                 let options = def.options;
 

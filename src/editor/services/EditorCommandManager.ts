@@ -366,15 +366,38 @@ export class EditorCommandManager {
             ? this.editor.objectStore.getAll()
             : (this.editor as any).getResolvedInheritanceObjects();
 
+        const searchDeep = (children: any[]): any | null => {
+            if (!children || !Array.isArray(children)) return null;
+            for (const child of children) {
+                if (!child) continue;
+                if (child.id === id || child.name === id) {
+                    const result = child.__rawSource || child;
+                    // FIX: Für GroupPanel-Kinder: Events vom Preview-Objekt auf __rawSource übertragen,
+                    // falls __rawSource leere Events hat aber das Preview-Objekt welche besitzt.
+                    if (child.__rawSource && child.events && Object.keys(child.events).length > 0) {
+                        if (!child.__rawSource.events || Object.keys(child.__rawSource.events).length === 0) {
+                            child.__rawSource.events = { ...child.events };
+                        }
+                    }
+                    return result;
+                }
+                if (child.children && Array.isArray(child.children)) {
+                    const found = searchDeep(child.children);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+
         for (const obj of searchList) {
+            if (!obj) continue;
             // WICHTIG: Objekte im ObjectStore sind Preview-Kopien (mit aufgelösten Bindings).
             // Für den Inspector muss das ORIGINAL-Objekt (__rawSource) zurückgegeben werden,
             // damit Binding-Werte (z.B. "${currentUser.name}") erhalten bleiben.
             if (obj.id === id || obj.name === id) return obj.__rawSource || obj;
             if (obj.children && Array.isArray(obj.children)) {
-                for (const child of obj.children) {
-                    if (child.id === id || child.name === id) return child.__rawSource || child;
-                }
+                const foundChild = searchDeep(obj.children);
+                if (foundChild) return foundChild;
             }
         }
 
@@ -428,11 +451,24 @@ export class EditorCommandManager {
         const searchList = this.editor.objectStore?.count > 0
             ? this.editor.objectStore.getAll()
             : this.editor.currentObjects;
-        for (const obj of searchList) {
-            if (obj.children && Array.isArray(obj.children)) {
-                for (const child of obj.children) {
-                    if (child.id === childId) return obj;
+        const searchDeepForParent = (parent: any, children: any[]): any | null => {
+            if (!children || !Array.isArray(children)) return null;
+            for (const child of children) {
+                if (!child) continue;
+                if (child.id === childId) return parent;
+                if (child.children && Array.isArray(child.children)) {
+                    const found = searchDeepForParent(child, child.children);
+                    if (found) return found;
                 }
+            }
+            return null;
+        };
+
+        for (const obj of searchList) {
+            if (!obj) continue;
+            if (obj.children && Array.isArray(obj.children)) {
+                const parent = searchDeepForParent(obj, obj.children);
+                if (parent) return parent;
             }
         }
         return null;
