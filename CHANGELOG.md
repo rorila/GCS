@@ -1237,3 +1237,9 @@
 
 
 
+
+- **Fix:** (Editor) Blueprint-Exclusion Mechanismus lste keinen Autosave aus, wodurch ausgeblendete Objekte nach Neuladen der Stage wieder auftauchten (behoben in StageInteractionManager).
+
+
+- **Fix:** (Runtime) Blueprint-Exclusions wurden im Standalone-Player durch die MainStage-Fallback-Logik ueberschrieben. Der Filter in getMergedStageData greift nun ganz am Ende der Verarbeitungkette.
+

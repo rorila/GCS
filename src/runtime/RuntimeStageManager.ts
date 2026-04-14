@@ -145,14 +145,6 @@ export class RuntimeStageManager {
             if (s.type !== 'blueprint') processStage(s, false);
         });
 
-        // excludedBlueprintIds: Auf der Ziel-Stage ausgeblendete Blueprint-Objekte entfernen
-        if (stage?.excludedBlueprintIds?.length) {
-            const excludedSet = new Set(stage.excludedBlueprintIds);
-            mergedObjects = mergedObjects.filter(obj =>
-                !(obj.isFromBlueprint && excludedSet.has(obj.id))
-            );
-        }
-
         // Fallback-Logik für alte 'main'-Stages
         const activeStage = stageChain[stageChain.length - 1];
         if (activeStage && activeStage.type !== 'splash' && activeStage.type !== 'main') {
@@ -161,6 +153,15 @@ export class RuntimeStageManager {
                 // Auch die Main-Stage wird gecacht, damit ihre globalen Objekte intakt bleiben
                 processStage(mainStage, true);
             }
+        }
+
+        // excludedBlueprintIds: Auf der Ziel-Stage ausgeblendete Blueprint-Objekte GANZ AM ENDE entfernen
+        // (sonst würde processStage(mainStage, true) die globalen Objekte aus dem Cache wieder reinschieben!)
+        if (stage?.excludedBlueprintIds?.length) {
+            const excludedSet = new Set(stage.excludedBlueprintIds);
+            mergedObjects = mergedObjects.filter(obj =>
+                !(obj.isFromBlueprint && excludedSet.has(obj.id))
+            );
         }
 
         return {

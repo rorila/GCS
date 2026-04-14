@@ -72,7 +72,7 @@ export class EditorRenderManager {
             let objectsToRender = this.host.runtime ? this.host.runtime.getObjects() : (this.host.runtimeObjects || this.host.getResolvedInheritanceObjects());
 
             // Resolve preview (bindings, etc) for non-run mode
-            if (previewVarContext) {
+            if (!this.host.runtime) {
                 objectsToRender = objectsToRender.map((obj: any) => this.resolveObjectPreview(obj, previewVarContext!));
             }
 

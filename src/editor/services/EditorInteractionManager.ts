@@ -255,6 +255,10 @@ export class EditorInteractionManager {
                 } else if (eventName === 'excludeBlueprint') {
                     (this.host as any).stageManager.toggleBlueprintExclusion(id);
                     this.host.render();
+                    // AI-GUARD: Änderung sofort in Redux pushen, damit Autosave triggert!
+                    if (this.host.projectStore) {
+                        this.host.projectStore.dispatch({ type: 'UPDATE_PROJECT' });
+                    }
                 } else if (eventName === 'showStageContextMenu') {
                     this.showStageBackgroundMenu(data.clientX, data.clientY);
                 }

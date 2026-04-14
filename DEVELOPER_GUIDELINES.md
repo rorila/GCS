@@ -310,3 +310,13 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 - **DO**: Verwende das alidate Callback in TPropertyDef fuer komponentenspezifische Validierungslogik die ueber min/max hinausgeht.
 
 *   **DO NOT DO INSTANCEOF BEFORE PROXY SAFEGUARDS:** Wenn das proxy \makeReactive\ Pattern benutzt wird, stelle IMMER sicher, dass ein \__isProxy__ === true\ Loop-Schutz an ALLER ERSTER STELLE greift, noch BEVOR \instanceof HTMLElement\ etc. ausgelöst werden. \instanceof\ erzeugt einen Getter-Scope auf \[Symbol.hasInstance]\, welcher bei falsch ineinandergesteckten Proxies sofort eine "Maximum call stack size exceeded"-Rekursionsbombe zünden kann.
+
+
+### Autosave, Debouncing & FileSystem Access API Safeguards
+- **DO NOT**: Entferne niemals den Debouncer (setTimeout) aus der performDiskSave bzw. updateProjectJSON Aufrufkette im EditorDataManager. Das DOM-Event-System (Drag, Text-Interpolation etc.) triggert massive Mengen an synchronen Saves. Die Chrome FileSystem Access API (createWritable) wirft sofort eine Collision-Exception ("The associated file is already being written"), was das Speichern komplett zerstört und den Dev-Server abstürzen lässt. Belasse den Disk-Save-Debouncer immer zwingend bei 1000ms.
+- **DO NOT**: Entferne niemals die 2-Sekunden-Grace-Period (	imeSinceLoad < 2000) am Anfang der Autosaves. Komponenten feuern im ersten Rendern Post-Load-Events, die ohne diese Guard künstliche Speichervorgänge mit leeren Updates auslösen.
+- **DO NOT**: Im MenuBar.render() wird container.innerHTML = '' ausgeführt. Sämtliche lose per JavaScript assoziierten DOM-Nodes (wie der utosaveWrapper) werden gnadenlos abgetrennt und vom GC gelöscht. Solche dynamischen UI Widgets MÜSSEN am Ende der ender() Methode zwingend wieder mit ppendChild() re-attached werden!
+
+### Autosave & UI Interaktionen
+- **DO:** Wenn in der UI (z.B. Context Menu) direkte nderungen am in-memory Stage-Objekt durchgefhrt werden (ohne den ProjectStore-Reducer zu durchlaufen), muss zwingend ein leerer UPDATE_PROJECT Dispatch abgesetzt werden: 	his.host.projectStore.dispatch({ type: 'UPDATE_PROJECT' });. Andernfalls blockiert der Debouncer/Grace-Period das Speichern dieser Zustnde dauerhaft (siehe Blueprint Exclusion Fix).
+
