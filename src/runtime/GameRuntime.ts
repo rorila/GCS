@@ -10,6 +10,7 @@ import { hydrateObjects } from '../utils/Serialization';
 import { GameRuntimeInput } from './core/GameRuntimeInput';
 import { GameRuntimeMultiplayer } from './core/GameRuntimeMultiplayer';
 import { TStageController } from '../components/TStageController';
+import { DESIGN_VALUES } from '../components/TComponent';
 import { TSpriteTemplate } from '../components/TSpriteTemplate';
 import { SpritePool } from './SpritePool';
 import { AudioManager } from './AudioManager';
@@ -429,8 +430,20 @@ export class GameRuntime implements IVariableHost {
             // Register ALL objects including global variables.
             // Global variables persist via clear(false) + cachedGlobalObjects.
             // The context resolution in ReactiveRuntime.getContext() handles
-            // the priority (variable VALUE over component proxy) correctly.
-            this.objects.forEach(obj => this.reactiveRuntime.registerObject(obj.name, obj, true));
+            // First PASS: Register variables and systemic data objects FIRST
+            this.objects.forEach(obj => {
+                if ((obj as any).isVariable || obj.className === 'TStringMap' || obj.className?.includes('Variable') || obj.className === 'TTheme') {
+                    this.reactiveRuntime.registerObject(obj.name, obj, true);
+                }
+            });
+
+            // Second PASS: Register UI components now that globals are safe
+            this.objects.forEach(obj => {
+                const isData = (obj as any).isVariable || obj.className === 'TStringMap' || obj.className?.includes('Variable') || obj.className === 'TTheme';
+                if (!isData) {
+                    this.reactiveRuntime.registerObject(obj.name, obj, true);
+                }
+            });
             if (this.stage) {
                 this.stage = this.reactiveRuntime.registerObject(this.stage.name || 'main', this.stage, true);
             }
@@ -959,7 +972,7 @@ export class GameRuntime implements IVariableHost {
             // INITIAL SYNC: Map initial component values back to VariableManager
             // This ensures contextVars correctly reflect stage-specific variable values from the start.
             // FIX: DO NOT overwrite global variables that have been preserved across stages!
-            const isGlobalVar = obj.name && (obj.name in this.variableManager.projectVariables);
+            const isGlobalVar = obj.scope === 'global' || (obj.name && (obj.name in this.variableManager.projectVariables));
 
             if (!isGlobalVar) {
                 if (obj.value !== undefined) {
@@ -983,7 +996,12 @@ export class GameRuntime implements IVariableHost {
                 const val = target[key];
                 const propPath = pathPrefix ? `${pathPrefix}.${key}` : key;
 
-                if (typeof val === 'string' && val.includes('${')) {
+                // PRESERVE DESIGN VALUES: Fallback to the original expression if it was overwritten during runtime
+                const designVal = obj[DESIGN_VALUES]?.[propPath];
+                if (designVal && typeof designVal === 'string' && designVal.includes('${')) {
+                    logger.debug(`Restoring and binding reactive expression: ${obj.name}.${propPath} ← ${designVal}`);
+                    this.reactiveRuntime.bindComponent(obj, propPath, designVal);
+                } else if (typeof val === 'string' && val.includes('${')) {
                     logger.debug(`Creating reactive binding: ${obj.name}.${propPath} ← ${val}`);
                     this.reactiveRuntime.bindComponent(obj, propPath, val);
                 } else if (val && typeof val === 'object' && !Array.isArray(val) && (key === 'style' || key === 'events' || key === 'Tasks' || key === 'grid')) {
@@ -992,6 +1010,10 @@ export class GameRuntime implements IVariableHost {
                 }
             });
         };
+        
+        if (obj.className === 'TButton') {
+            console.log(`[DEBUG-BIND] ${obj.name} txt="${obj.text}" cap="${obj.caption}" Keys:`, Object.keys(obj).filter(k => k==='text' || k==='caption'));
+        }
 
         bindProps(obj);
     }
@@ -1001,11 +1023,26 @@ export class GameRuntime implements IVariableHost {
         this.objects.forEach(obj => {
             if ((obj as any).isVariable && obj.name) {
                 const runtimeValue = this.variableManager.contextVars[obj.name];
+                if (obj.name === 'StringMap_BluePrintStage') {
+                    console.log(`[SYNC-TRACE] StringMap_BluePrintStage sync! runtimeValue:`, runtimeValue);
+                    if (runtimeValue && typeof runtimeValue === 'object') {
+                        console.log(`[SYNC-TRACE] runtimeValue keys:`, Object.keys(runtimeValue));
+                    }
+                }
                 if (runtimeValue !== undefined) {
                     if (obj.items !== undefined && Array.isArray(runtimeValue)) {
                         obj.items = runtimeValue;
                     } else {
+                        // SCHUTZVORRICHTUNG: Verhindere Zerstörung des Dictionaries durch einen leeren Proxy!
+                        if (obj.className === 'TStringMap' && typeof runtimeValue === 'object' && Object.keys(runtimeValue).length === 0) {
+                            if ((obj as any).value && Object.keys((obj as any).value).length > 0) {
+                                return; // Erhalte den internen gesunden State der Komponente
+                            }
+                        }
                         (obj as any).value = runtimeValue;
+                        if (obj.name === 'StringMap_BluePrintStage') {
+                            console.log(`[SYNC-TRACE] After assignment to obj.value. obj.entries keys =`, Object.keys((obj as any).entries || {}));
+                        }
                     }
                 }
             }

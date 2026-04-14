@@ -1,3 +1,62 @@
+[2026-04-14] Bugfix: Editor Autosave Post-Load Event Suppression
+- Betroffene Dateien: src/editor/services/EditorDataManager.ts
+- Ablauf:
+  - Bei Neu-Laden eines Projekts feuern die Komponenten innerhalb der ersten 2 Sekunden initiale DOM-Rendering-PropertyChanges.
+  - Das veranlasste updateProjectJSON(), sofort einen performDiskSave() auszuführen (wodurch der Counter auf 1 sprang und eine leere Speicheroperation angestoßen wurde).
+  - Ein 2s Zeitfenster-Check (	imeSinceLoad < 2000) wurde hinzugefügt, sodass der Debouncer erst nach Abschluss der Lade-Phase Events akzeptiert.
+
+[2026-04-14] Bugfix: Editor Autosave Counter Reset on Project Load
+- Betroffene Dateien: src/editor/services/EditorDataManager.ts, src/editor/MenuBar.ts
+- Ablauf:
+  - Beim Neu-Laden eines Projekts via loadProject() wurde verpasst, den internen Autosave-Counter _autoSaveCount wieder auf 0 zu setzen.
+  - Das wurde ergänzt. Die MenuBar aktualisiert sich nun lautlos (ohne Flash-Blinken), wenn der Wert identisch auf 0 gesetzt wird.
+
+[2026-04-14] Bugfix: Editor Autosave Concurrency Debounce Fix
+- Betroffene Dateien: src/editor/services/EditorDataManager.ts
+- Ablauf:
+  - Bei einer Komponentenänderung (z.B. Setzen in den Editor über DND) wurden teils 4 DOM-Events parallel ausgelöst.
+  - Das resultierte in 4 parallelen \
+ativeAdapter.autoSave()\ Promisen, was beim Chrome FileSystem Access API den Fehler "The associated file is already being written" provozierte.
+  - Dadurch brach das Speichern auf Disk komplett ab und verfiel fehlerweise und gehäuft auf den Fallback (und der Zähler stieg um 4 Punkte an).
+  - Um dies zu reparieren, wurde die Methode \performDiskSave()\ separiert und im \updateProjectJSON()\ Aufruf mit einem 1000ms \setTimeout\ (Debounce) gekapselt.
+
+[2026-04-14] Bugfix: Editor MenuBar Autosave UI Rendering Fix
+- Betroffene Dateien: src/editor/MenuBar.ts
+- Ablauf:
+  - Autosave UI Zähler Wrapper verschwand nach dem Rendern.
+  - Die Ursache lag in MenuBar.render(), die das container.innerHTML = '' ausführte.
+  - Der Wrapper wurde beim Neuaufbauen der StageLabels wieder an den Parent-Tree gehängt.
+
+[2026-04-14] Bugfix: Editor MenuBar "loaded_project.json" Display Bug
+- Betroffene Dateien: src/services/ProjectPersistenceService.ts, tests/export_checksums.json
+- Ablauf:
+  - Projekt Persistence gab stumpf { data: project, filename: "loaded_project.json" } zurück
+  - Der String wurde vom EditorDataManager übernommen und im MenuBar als Aktueller Projektpfad: gerendert.
+  - Das Modul liest nun im Browser Handle.name und in Electron den kompletten Verzeichnispfad aus.
+  - Nach der Änderung der Datei in Phase 2 wurde Export-Test (Export-Integrität) automatisch ausgelöst und schlug an; wurde per --update validiert.
+
+[2026-04-14] Bugfix: Editor Autosave Visual Indicator & Fallback Fix
+- Betroffene Dateien: src/editor/services/EditorDataManager.ts, src/editor/MenuBar.ts
+- Ablauf:
+  - Es wurde bemerkt, dass im "Browser"-Modus das Speichern scheiterte, wenn keine FileSystem-Permissions auf der Desktop-Ebene vorlagen, weil der Dev-Server Fallback im IF-Chain geschluckt wurde.
+  - EditorDataManager.ts wurde komplett restrukturiert (	ryFetchFallback), sodass der Dev-Server bei Fehlschlagen des nativen "Silent-Autosave" immer als Rettungsnetz einspringt.
+  - Die MenuBar.ts wurde um einen Zähler setAutosaveCount() und einen "aufleuchtenden" grünen Text ?? Autosave: 0 erweitert, um visuelles Feedback über den Hintergrund-Trigger aus dem Event-System zu geben.
+
+[2026-04-13] Bugfix: Editor Autosave Native Adapter Fix
+- Betroffene Dateien: src/editor/services/EditorDataManager.ts, src/adapters/NativeFileAdapter.ts
+- Ablauf:
+  - Wenn der User ein lokales Projekt aus dem Browser via FileSystem Access API offnet (ohne ElectronFS), erzeugt der Browser ein FileSystemFileHandle.
+  - Das automatische "autoSaveToLocalStorage" via "updateProjectJSON" fiel fälschlicherweise auf den Dev-Server zurück, anstatt das Handle zu verwenden.
+  - Dadurch speicherte er Kopien in "public/projects/" ab, die echte Datei auf dem Desktop wurde nicht mehr aktualisiert.
+  - Es wurde die Methode "autoSave()" in NativeFileAdapter implementiert, um im Hintergrund geräuschlos auf Handles zugreifen zu können, ohne Dialoge zu forcieren.
+
+[2026-04-13] Bugfix: ReactiveRuntime Maximum Call Stack (Proxy-Loop) Behebung
+- Betroffene Dateien: src/runtime/ReactiveProperty.ts
+- Ablauf:
+  - makeReactive (Zeile 53)
+    - Proxy-Loop-Schutz (__isProxy__) wurde VOR die instanceof-Auswertung (HTMLElement, Date, etc.) gesetzt!
+    - So wird eine Rekursion bei "instanceof" sicher verhindert, falls target bereits ein Proxy ist.
+
 [2026-04-12] UC-2026-04-12-Reactive-Grid-And-Bundling-Fix
 - Beschreibung: Bugfix fuer fehlende StringMap Interpolationen bei TShape und Background/Grid (im Runtime & Editor). GameRuntime.bindObjectProperties analysiert jetzt auch 'grid' Knoten rekursiv. Weiterhin wurde sichergestellt, dass public/runtime-standalone.js per 'npm run bundle:runtime' gebaut werden muss, um HMR/Codeaenderungen im IFrame verfgbar zu machen.
 - Dateien:
@@ -384,3 +443,22 @@ UC-2026-04-10-TRichText-Component: Komponente TRichText hinzugefuegt mit wysiwyg
 - Stage kopieren (In-Project): public/editor/menu_bar.json (Z. 93), src/editor/EditorStageManager.ts (Methode: duplicateStage, Z. 383)
 
 - Blueprint Objekte einblenden: src/editor/services/StageInteractionManager.ts (Methode: handleContextMenu, Z. 747), src/editor/services/EditorInteractionManager.ts (Methode: showStageBackgroundMenu, Z. 265)
+
+
+## Call Method (Methode Aufrufen)
+Files: 
+- src\editor\ActionParamRenderer.ts (Methode: render, renderMethodParams)
+- src\editor\inspector\InspectorRenderer.ts (Methode: getOptionsFromSource)
+- src\editor\dialogs\utils\DialogDomainHelper.ts (Methode: getMethodsForObject)
+- src\runtime\actions\handlers\MiscActions.ts (Action: call_method)
+Flow: The Call Method Action parameters 'target' and 'method' use type 'select' and dynamic sources ('objects_and_services', 'methods_of_target'). The dropdowns automatically filter objects that have no methods, and the method list queries DialogDomainHelper which falls back to serviceRegistry if the target is a Global Service.
+
+- TStringMap Global Bindings auf Blueprint und Stage-Wechsel: src\runtime\GameRuntime.ts (syncVariableComponents) Zeile 962
+
+
+
+
+
+
+
+

@@ -44,6 +44,9 @@ export class RuntimeVariableManager {
 
                             if (this.projectVariables[v.name] === undefined) {
                                 this.projectVariables[v.name] = initialValue !== undefined ? initialValue : 0;
+                                if (v.name === 'StringMap_BluePrintStage') {
+                                    console.log(`[VAR-MANAGER-TRACE] Initializing StringMap_BluePrintStage with:`, this.projectVariables[v.name]);
+                                }
                             }
                         }
                     });

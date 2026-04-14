@@ -115,8 +115,22 @@ export class ReactiveRuntime {
                 const newValue = ExpressionParser.interpolate(expression, context);
                 
                 // [GCS-TRACE] Log für StringMap-Auswertung in Bindings
-                if (expression.includes('MainThemes')) {
-                    console.log(`[STYLE-BINDING-TRACE] ID:${targetObj.id} Prop:${targetProp} Expr:${expression} => RawNewValue:`, newValue, ' Kontext für MainThemes:', context['MainThemes']);
+                if (expression.includes('StringMap_BluePrintStage') || expression.includes('MainThemes')) {
+                    const ctxMap = context['StringMap_BluePrintStage'] || context['MainThemes'];
+                    console.log(`[STYLE-BINDING-TRACE] ID:${targetObj.id} Prop:${targetProp} Expr:${expression} => RawNewValue:`, newValue, ' Kontext für Map:', ctxMap);
+                    if (expression.includes('StringMap_BluePrintStage') && ctxMap) {
+                        try {
+                            const keys = Object.keys(ctxMap);
+                            console.log(`  -> GCS-DEEP-TRACE: Type: ${typeof ctxMap}, IsProxy: ${ctxMap.__isProxy__}, Keys:`, keys);
+                            console.log(`  -> GCS-DEEP-TRACE: BackToDirectory direct:`, ctxMap['BackToDirectory']);
+                            if (ctxMap.__target__) {
+                                console.log(`  -> GCS-DEEP-TRACE: Target Keys:`, Object.keys(ctxMap.__target__));
+                                console.log(`  -> GCS-DEEP-TRACE: Target BackToDirectory:`, ctxMap.__target__['BackToDirectory']);
+                            }
+                        } catch (e) {
+                             console.log("  -> GCS-DEEP-TRACE Error:", e);
+                        }
+                    }
                 }
 
 
@@ -253,11 +267,16 @@ export class ReactiveRuntime {
                 if (obj !== undefined) {
                     if (obj.isVariable === true || obj.className?.includes('Variable')) {
                         const varValue = self.variables.get(prop);
+                        // IMMER den echten Component-Wert für TStringMap nutzen (dies umgeht den Empty-Proxy-Bug völlig!)
+                        if (obj.className === 'TStringMap' && obj.value !== undefined) {
+                            return obj.value;
+                        }
+
                         // Falls 'varValue' existiert UND kein Default 0 für Strukturvariablen ist
                         if (varValue !== undefined && !(typeof varValue === 'number' && typeof obj.value === 'object')) {
                             return varValue;
                         }
-                        // ULTIMATE FALLBACK: Immer den echten Component-Wert nutzen (z.B. .entries von TStringMap)
+                        // ULTIMATE FALLBACK:
                         if (obj.value !== undefined) return obj.value;
                     }
                     return obj;

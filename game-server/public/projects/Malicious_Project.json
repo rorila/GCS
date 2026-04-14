@@ -1,0 +1,70 @@
+{
+  "meta": {
+    "name": "Malicious Project",
+    "_sourcePath": "projects/Malicious_Project.json"
+  },
+  "tasks": [],
+  "variables": [],
+  "actions": [],
+  "objects": [],
+  "flowCharts": {},
+  "stages": [
+    {
+      "id": "stage_main",
+      "type": "main",
+      "name": "Main Stage",
+      "grid": {
+        "width": 800,
+        "height": 600,
+        "cols": 25,
+        "rows": 20,
+        "cellSize": 32
+      },
+      "flowCharts": {},
+      "tasks": [],
+      "variables": [],
+      "actions": [],
+      "objects": [
+        {
+          "className": "TRichText",
+          "id": "trich_malicious_1",
+          "name": "InfectedText",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "htmlContent": "<h1>Innocent Text</h1>\n                                        <script>window.XSS_HACK_JSON = 'exploited';</script>\n                                        <img src=\"invalid.jpg\" onerror=\"window.XSS_HACK_JSON_IMG = 'exploited'\" />",
+          "visible": true,
+          "x": 2,
+          "y": 2,
+          "width": 10,
+          "height": 10,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "fontSize": 16,
+            "backgroundColor": "transparent",
+            "borderColor": "#aaa",
+            "borderWidth": 1
+          },
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
+    "elements": [],
+    "connections": []
+  }
+}

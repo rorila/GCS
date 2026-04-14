@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "author": "Rolf",
     "description": "",
-    "_sourcePath": "projects/GCS_Doku.json"
+    "_sourcePath": "projects/project_GCS_Doku.json"
   },
   "stage": {
     "grid": {
@@ -455,8 +455,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         },
         {
@@ -1115,7 +1115,7 @@
             "borderColor": "transparent",
             "borderWidth": 0
           },
-          "text": "Templates:"
+          "text": "Templates: jetzt erst reich"
         }
       ],
       "actions": [],

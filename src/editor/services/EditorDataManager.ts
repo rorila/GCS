@@ -48,6 +48,8 @@ export class EditorDataManager {
     public currentFileHandle: any | null = null;
     /** Zeitpunkt des letzten Projekt-Ladens — autoSave ignoriert die ersten 2s danach. */
     private _loadedAt: number = 0;
+    private _autoSaveCount: number = 0;
+    private _diskSaveTimer: any = null;
 
     constructor(host: EditorDataHost) {
         this.host = host;
@@ -373,6 +375,13 @@ export class EditorDataManager {
 
         // Lade-Zeitpunkt merken: autoSaveToLocalStorage ignoriert die ersten 2s danach
         this._loadedAt = Date.now();
+        
+        // Zähler zurücksetzen bei komplett neuem Projekt-Laden
+        this._autoSaveCount = 0;
+        const menuBar = (this.host as any).menuBar;
+        if (menuBar && typeof menuBar.setAutosaveCount === 'function') {
+            menuBar.setAutosaveCount(this._autoSaveCount);
+        }
 
         // Quellpfad setzen — Priorität:
         // 1. Expliziter sourcePath-Parameter (höchste Priorität)
@@ -545,6 +554,66 @@ export class EditorDataManager {
         EditorDataManager.logger.debug(`autoSaveToLocalStorage triggered (Global Vars: ${globalVarCount}, Stage Vars: ${totalStageVarCount})`);
     }
 
+    private notifyAutosaveSuccess(): void {
+        this._autoSaveCount++;
+        const menuBar = (this.host as any).menuBar;
+        if (menuBar && typeof menuBar.setAutosaveCount === 'function') {
+            menuBar.setAutosaveCount(this._autoSaveCount);
+        }
+    }
+
+    private performDiskSave() {
+        if (!this.host.project) return;
+        
+        const nativeAdapter = projectPersistenceService.getNativeAdapter();
+        
+        const tryFetchFallback = () => {
+            if (!(window as any).electronFS) {
+                fetch('/api/dev/save-project', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.host.project)
+                }).then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            EditorDataManager.logger.debug(`[PERSISTENT] Dev-Server Fallback erfolgreich.`);
+                            this.notifyAutosaveSuccess();
+                        }
+                    })
+                    .catch(err => {
+                        EditorDataManager.logger.debug(`Dev-Server Fallback nicht erreichbar.`, err);
+                    });
+            }
+        };
+
+        if (nativeAdapter && (this.currentSavePath || this.currentFileHandle)) {
+            if (this.currentSavePath) nativeAdapter.setPath(this.currentSavePath);
+            if (this.currentFileHandle) nativeAdapter.setHandle(this.currentFileHandle);
+            
+            nativeAdapter.autoSave(this.host.project).then(success => {
+                if (success) {
+                    this.notifyAutosaveSuccess();
+                } else {
+                    tryFetchFallback(); // Native AutoSave fehlgeschlagen oder Handle fehlt (Browser Mode), versuche Dev-Server Backup
+                }
+            }).catch(err => {
+                EditorDataManager.logger.warn(`Fehler beim automatischen NativeAdapter Background-Save:`, err);
+                tryFetchFallback();
+            });
+        } else if ((window as any).electronFS && this.currentSavePath) {
+            (window as any).electronFS.writeFile(this.currentSavePath, JSON.stringify(this.host.project, null, 2))
+                .then(() => {
+                    EditorDataManager.logger.debug(`[PERSISTENT] AutoSave Electron erfolgreich.`);
+                    this.notifyAutosaveSuccess();
+                })
+                .catch((err: any) => {
+                    EditorDataManager.logger.warn(`Fehler beim automatischen nativem Disk-Save:`, err);
+                });
+        } else {
+            tryFetchFallback();
+        }
+    }
+
     public updateProjectJSON() {
         if (this.host.project) {
             // 1. In LocalStorage sichern (Crash-Schutz)
@@ -555,33 +624,23 @@ export class EditorDataManager {
                 this.host.viewManager.workingProjectData = safeDeepCopy(this.host.project);
             }
 
-            // 3. SSoT & DATEI-PERSISTENZ: 
-            // In Electron nutzen wir den nativen File-Access, im Web den Fetch-Server.
-            if ((window as any).electronFS && this.currentSavePath) {
-                (window as any).electronFS.writeFile(this.currentSavePath, JSON.stringify(this.host.project, null, 2))
-                    .then(() => {
-                        EditorDataManager.logger.debug(`[PERSISTENT] project.json auf lokaler Disk wurde automatisch nativ aktualisiert.`);
-                    })
-                    .catch((err: any) => {
-                        EditorDataManager.logger.warn(`Fehler beim automatischen nativem Disk-Save:`, err);
-                    });
-            } else if (!(window as any).electronFS) {
-                fetch('/api/dev/save-project', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(this.host.project)
-                }).then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            EditorDataManager.logger.debug(`[PERSISTENT] project.json auf Disk wurde automatisch aktualisiert.`);
-                        }
-                    })
-                    .catch(err => {
-                        EditorDataManager.logger.warn(`Fehler beim automatischen Disk-Save:`, err);
-                    });
+            // Ignoriere automatische "Post-Load"-Events (DOM-Rendering) in den ersten 2 Sekunden
+            const timeSinceLoad = Date.now() - this._loadedAt;
+            if (timeSinceLoad < 2000) {
+                return;
             }
 
-            EditorDataManager.logger.debug(`[TRACE] updateProjectJSON: LocalStorage und Disk synchronisiert.`);
+            // 3. SSoT & DATEI-PERSISTENZ (Debounced um Multiple File Handle Write Errors zu vermeiden)
+            if (this._diskSaveTimer !== null) {
+                clearTimeout(this._diskSaveTimer);
+            }
+            
+            this._diskSaveTimer = setTimeout(() => {
+                this._diskSaveTimer = null;
+                this.performDiskSave();
+            }, 1000);
+
+            EditorDataManager.logger.debug(`[TRACE] updateProjectJSON: LocalStorage synchronisiert. Async Save debounce angestoßen.`);
         }
     }
 

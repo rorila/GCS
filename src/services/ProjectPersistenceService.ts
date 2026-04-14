@@ -174,7 +174,18 @@ export class ProjectPersistenceService {
             try {
                 const project = await this.nativeAdapter.load();
                 if (project) {
-                    return { data: project, filename: 'loaded_project.json' };
+                    let actualFileName = 'loaded_project.json';
+                    
+                    const handle = this.nativeAdapter.getHandle();
+                    const pathString = this.nativeAdapter.getPath();
+                    
+                    if (handle && handle.name) {
+                        actualFileName = handle.name;
+                    } else if (pathString) {
+                        actualFileName = pathString.replace(/\\/g, '/');
+                    }
+                    
+                    return { data: project, filename: actualFileName };
                 }
             } catch (err: any) {
                 if (err.name === 'AbortError') return null;

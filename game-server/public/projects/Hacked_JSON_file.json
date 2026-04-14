@@ -1,0 +1,70 @@
+{
+  "meta": {
+    "name": "Hacked JSON file",
+    "_sourcePath": "projects/Hacked_JSON_file.json"
+  },
+  "tasks": [],
+  "variables": [],
+  "actions": [],
+  "objects": [],
+  "flowCharts": {},
+  "stages": [
+    {
+      "id": "stage_main",
+      "type": "main",
+      "name": "Main Stage",
+      "grid": {
+        "width": 800,
+        "height": 600,
+        "cols": 25,
+        "rows": 20,
+        "cellSize": 32
+      },
+      "flowCharts": {},
+      "tasks": [],
+      "variables": [],
+      "actions": [],
+      "objects": [
+        {
+          "className": "TRichText",
+          "id": "trich_hacked_ext",
+          "name": "HackedFileText",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "htmlContent": "<p>Gefälschte Datei</p><script>window.XSS_FILE = true;</script>",
+          "visible": true,
+          "x": 0,
+          "y": 0,
+          "width": 10,
+          "height": 10,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#000000",
+            "fontSize": 16,
+            "backgroundColor": "transparent",
+            "borderColor": "#aaa",
+            "borderWidth": 1
+          },
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "stage": {
+      "cols": 100,
+      "rows": 100,
+      "cellSize": 20,
+      "snapToGrid": true,
+      "visible": true,
+      "backgroundColor": "#1e1e1e"
+    },
+    "elements": [],
+    "connections": []
+  }
+}

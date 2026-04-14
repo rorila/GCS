@@ -49,27 +49,21 @@ export function makeReactive<T extends object>(
             const value = target[property];
 
             // If value is an object, make it reactive too (for nested properties)
-            // But skip DOM elements and built-ins
-            if (value && typeof value === 'object' &&
-                !(value instanceof HTMLElement) &&
-                !(value instanceof Set) && !(value instanceof Map) &&
-                !(value instanceof Date) && !(value instanceof RegExp)) {
+            if (value && typeof value === 'object') {
+                // PROXY-LOOP-SCHUTZ: Zuerst prüfen, ob es schon ein Proxy ist, BEVOR langsame oder crashende instanceof / DOM-Checks folgen!
+                if ((value as any).__isProxy__ === true) {
+                    return value;
+                }
+
+                if (!(value instanceof HTMLElement) &&
+                    !(value instanceof Set) && !(value instanceof Map) &&
+                    !(value instanceof Date) && !(value instanceof RegExp)) {
                 
                 // CHROMIUM DEVTOOLS HEURISTIC:
                 // Do not recursively weave Proxies over structural properties that point BACKWARDS
                 // or parallel in the tree, because Chromium DevTools parses scoping trees and
                 // these cyclic properties cause infinite '__cachedProxy' path expansion crash.
                 if (property === 'parent' || property === 'stage' || property === 'children' || property === 'objects') {
-                    return value;
-                }
-
-                // PROXY-LOOP-SCHUTZ:
-                // Wenn value bereits ein reaktiver Proxy ist (erkennbar via __isProxy__),
-                // darf er NICHT nochmal gewrappt werden. Der Zugriff auf value.__cachedProxy
-                // würde sonst dessen get-Handler triggern → endlose Proxy-Kette.
-                // Hinweis: value.__isProxy__ wird bewusst direkt gelesen (target[property] liefert
-                // ein BEREITS-proxies Objekt das in den Rohdaten gespeichert ist).
-                if ((value as any).__isProxy__ === true) {
                     return value;
                 }
 
@@ -93,6 +87,7 @@ export function makeReactive<T extends object>(
                 }
                 return (value as any).__cachedProxy;
             }
+            } // END if value && typeof value === 'object'
 
             return value;
         },

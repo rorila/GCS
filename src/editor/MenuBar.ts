@@ -33,6 +33,8 @@ export class MenuBar {
     private stageControlWrapper: HTMLElement;
     private infoLabel: HTMLElement;
     private stageLabel: HTMLElement;
+    private autosaveWrapper: HTMLElement | null = null;
+    private autosaveIndicator: HTMLElement | null = null;
 
     // Callbacks for actions
     public onAction?: (action: string) => void;
@@ -73,10 +75,28 @@ export class MenuBar {
 
         this.container.appendChild(this.stageControlWrapper);
 
+        // Autosave-Indikator
+        this.autosaveWrapper = document.createElement('div');
+        this.autosaveWrapper.style.cssText = `
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-right: 12px;
+            color: #aaa;
+            font-size: 13px;
+            transition: color 0.3s ease;
+        `;
+        
+        this.autosaveIndicator = document.createElement('span');
+        this.autosaveIndicator.textContent = '💾 Autosave: 0';
+        this.autosaveIndicator.title = 'Anzahl der automatischen Hintergrund-Speicherungen in dieser Sitzung';
+        this.autosaveWrapper.appendChild(this.autosaveIndicator);
+        this.container.appendChild(this.autosaveWrapper);
+
         // Info-Label rechts in der Menüleiste (z.B. Projektpfad)
         this.infoLabel = document.createElement('span');
         this.infoLabel.style.cssText = `
-            margin-left: auto;
             color: #aaa;
             font-size: 12px;
             white-space: nowrap;
@@ -149,6 +169,9 @@ export class MenuBar {
 
         // Stage-Control-Wrapper wieder anhängen
         this.container.appendChild(this.stageControlWrapper);
+        if (this.autosaveWrapper) {
+            this.container.appendChild(this.autosaveWrapper);
+        }
         this.container.appendChild(this.infoLabel);
     }
 
@@ -310,6 +333,23 @@ export class MenuBar {
         if (menu) {
             menu.items = newItems;
             this.render();
+        }
+    }
+
+    public setAutosaveCount(count: number): void {
+        if (this.autosaveIndicator && this.autosaveWrapper) {
+            this.autosaveIndicator.textContent = '💾 Autosave: ' + count;
+            
+            if (count > 0) {
+                // Flash effect (Grün aufleuchten lassen)
+                this.autosaveWrapper.style.color = '#4caf50';
+                setTimeout(() => {
+                    if (this.autosaveWrapper) this.autosaveWrapper.style.color = '#aaa';
+                }, 600);
+            } else {
+                // Reset auf neutrale Farbe ohne Flash
+                this.autosaveWrapper.style.color = '#aaa';
+            }
         }
     }
 

@@ -146,6 +146,43 @@ export class NativeFileAdapter implements IStorageAdapter {
         return this.currentPath;
     }
 
+    /**
+     * Führt ein "Silent" Save aus, d.h. wenn keine Berechtigung besteht, 
+     * öffnet es keinen Dialog, sondern schlägt fehl (wichtig für Background Autosave).
+     */
+    async autoSave(project: GameProject): Promise<boolean> {
+        const json = JSON.stringify(project, null, 2);
+
+        // Electron-Modus
+        if ((window as any).electronFS && this.currentPath) {
+            try {
+                await (window as any).electronFS.writeFile(this.currentPath, json);
+                NativeFileAdapter.logger.info(`[AutoSave] Electron: Gespeichert in ${this.currentPath}`);
+                return true;
+            } catch (err) {
+                NativeFileAdapter.logger.warn(`[AutoSave] Electron failed:`, err);
+                return false;
+            }
+        }
+
+        // Browser Native FileSystem Modus
+        if (this.currentHandle) {
+            try {
+                const writable = await this.currentHandle.createWritable();
+                await writable.write(json);
+                await writable.close();
+                NativeFileAdapter.logger.info(`[AutoSave] Browser Nativ: Gespeichert (${this.currentHandle.name})`);
+                return true;
+            } catch (err) {
+                // FEHLSCHLAG, aber KEIN Dialog, um Störungen zu vermeiden
+                NativeFileAdapter.logger.warn('[AutoSave] Browser Nativ fehlgeschlagen (Handle verloren/Rechte fehlen).', err);
+                return false;
+            }
+        }
+
+        return false;
+    }
+
     private generateFilename(project: GameProject): string {
         const name = project.stages?.find((s: any) => s.type === 'main')?.gameName
             || project.meta?.name || 'New Game';
