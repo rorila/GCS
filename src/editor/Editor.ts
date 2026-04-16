@@ -1,5 +1,7 @@
 import { coreStore } from '../services/registry/CoreStore';
 import { Stage } from './Stage';
+import { NotificationToast } from './ui/NotificationToast';
+import { ConfirmDialog } from './ui/ConfirmDialog';
 import { GameProject, StageType, StageDefinition, GameAction, GameTask, ProjectVariable, ComponentData } from '../model/types';
 import { RefactoringManager } from './RefactoringManager';
 import { TDebugLog } from '../components/TDebugLog';
@@ -474,9 +476,9 @@ export class Editor implements IViewHost {
         this.updateStageLabel();
     }
 
-    public newProject() {
+    public async newProject() {
         if (this.isProjectDirty) {
-            if (!confirm('Sie haben ungespeicherte Änderungen. Möchten Sie wirklich ein neues Projekt starten?')) {
+            if (!await ConfirmDialog.show('Sie haben ungespeicherte Änderungen. Möchten Sie wirklich ein neues Projekt starten?')) {
                 return;
             }
         }
@@ -521,14 +523,14 @@ export class Editor implements IViewHost {
                 try {
                     const sourceProject: GameProject = JSON.parse(re.target?.result as string);
                     if (!sourceProject.stages || sourceProject.stages.length === 0) {
-                        alert('Das gewählte Projekt enthält keine Stages.');
+                        NotificationToast.show('Das gewählte Projekt enthält keine Stages.', 'warning');
                         return;
                     }
 
                     // Nur importierbare Stages (kein Blueprint)
                     const importableStages = sourceProject.stages.filter(s => s.type !== 'blueprint');
                     if (importableStages.length === 0) {
-                        alert('Das Projekt enthält nur eine Blueprint-Stage, die nicht importiert werden kann.');
+                        NotificationToast.show('Das Projekt enthält nur eine Blueprint-Stage, die nicht importiert werden kann.', 'warning');
                         return;
                     }
 
@@ -538,8 +540,10 @@ export class Editor implements IViewHost {
                         if (imported) {
                             this.updateStagesMenu();
                             this.updateStageLabel();
+                            this.autoSaveToLocalStorage();
+                            projectStore.setProject(this.project); // SSoT
                             mediatorService.notifyDataChanged(this.project, 'stage-import');
-                            alert(`Stage "${imported.stage.name}" erfolgreich importiert!`);
+                            NotificationToast.show(`Stage "${imported.stage.name}" erfolgreich importiert!`, 'success');
                         }
                         return;
                     }
@@ -547,7 +551,7 @@ export class Editor implements IViewHost {
                     // Mehrere Stages: Auswahl-Dialog
                     this.showStageSelectionDialog(sourceProject, importableStages);
                 } catch (err) {
-                    alert('Fehler beim Lesen der Projektdatei: ' + (err as Error).message);
+                    NotificationToast.show('Fehler beim Lesen der Projektdatei: ' + (err as Error).message, 'error');
                 }
             };
             reader.readAsText(file);
@@ -571,10 +575,32 @@ export class Editor implements IViewHost {
         header.textContent = `📥 Stage importieren — ${sourceProject.meta?.name || 'Externes Projekt'}`;
         dialog.appendChild(header);
 
-        const info = document.createElement('div');
-        info.style.cssText = 'padding:8px 20px;font-size:12px;color:#888;';
-        info.textContent = `${stages.length} importierbare Stage(s) gefunden. Wähle eine oder mehrere:`;
-        dialog.appendChild(info);
+        const infoContainer = document.createElement('div');
+        infoContainer.style.cssText = 'padding:8px 20px;font-size:12px;color:#888;display:flex;justify-content:space-between;align-items:center;';
+
+        const infoText = document.createElement('span');
+        infoText.textContent = `${stages.length} importierbare Stage(s) gefunden. Wähle eine oder mehrere:`;
+        infoContainer.appendChild(infoText);
+
+        const selectAllLabel = document.createElement('label');
+        selectAllLabel.style.cssText = 'display:flex;align-items:center;gap:6px;cursor:pointer;color:#ccc;';
+        const selectAllCb = document.createElement('input');
+        selectAllCb.type = 'checkbox';
+        selectAllCb.checked = false; // By default none are selected
+        selectAllCb.style.cssText = 'width:14px;height:14px;accent-color:#4fc3f7;cursor:pointer;';
+        const selectAllText = document.createElement('span');
+        selectAllText.textContent = 'Alle auswählen';
+        selectAllLabel.appendChild(selectAllCb);
+        selectAllLabel.appendChild(selectAllText);
+
+        selectAllCb.onchange = (e) => {
+            const checked = (e.target as HTMLInputElement).checked;
+            checkboxes.forEach(c => c.cb.checked = checked);
+            selectAllText.textContent = checked ? 'Keine auswählen' : 'Alle auswählen';
+        };
+        infoContainer.appendChild(selectAllLabel);
+
+        dialog.appendChild(infoContainer);
 
         const list = document.createElement('div');
         list.style.cssText = 'padding:8px 20px;max-height:300px;overflow-y:auto;';
@@ -592,7 +618,7 @@ export class Editor implements IViewHost {
 
             const cb = document.createElement('input');
             cb.type = 'checkbox';
-            cb.checked = true;
+            cb.checked = false; // Default: unchecked
             cb.style.cssText = 'width:16px;height:16px;accent-color:#4fc3f7;cursor:pointer;';
             row.appendChild(cb);
 
@@ -641,7 +667,7 @@ export class Editor implements IViewHost {
 
         btnImport.onclick = () => {
             const selected = checkboxes.filter(c => c.cb.checked);
-            if (selected.length === 0) { alert('Keine Stage ausgewählt.'); return; }
+            if (selected.length === 0) { NotificationToast.show('Keine Stage ausgewählt.', 'warning'); return; }
 
             const importedNames: string[] = [];
             const importedStages: StageDefinition[] = [];
@@ -665,8 +691,10 @@ export class Editor implements IViewHost {
             window.removeEventListener('keydown', onKey);
             this.updateStagesMenu();
             this.updateStageLabel();
+            this.autoSaveToLocalStorage();
+            projectStore.setProject(this.project); // SSoT immer synchronisieren -> fixed Run-Mode Electron issue
             mediatorService.notifyDataChanged(this.project, 'stage-import');
-            alert(`${importedNames.length} Stage(s) importiert:\n${importedNames.join('\n')}`);
+            NotificationToast.show(`${importedNames.length} Stage(s) importiert: ${importedNames.join(', ')}`, 'success');
         };
     }
     public exportHTML() { this.dataManager.exportHTML(); }

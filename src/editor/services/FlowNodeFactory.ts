@@ -15,6 +15,7 @@ import { FlowRandomVariable } from '../flow/FlowRandomVariable';
 import { FlowLoop } from '../flow/FlowLoop';
 import { FlowNamingService } from './FlowNamingService';
 import { Logger } from '../../utils/Logger';
+import { PromptDialog } from '../ui/PromptDialog';
 
 const logger = Logger.get('FlowNodeFactory');
 
@@ -39,7 +40,7 @@ export interface FlowNodeHost {
 export class FlowNodeFactory {
     constructor(private host: FlowNodeHost) { }
 
-    public createNode(type: string, x: number, y: number, initialName?: string): FlowElement | null {
+    public async createNode(type: string, x: number, y: number, initialName?: string): Promise<FlowElement | null> {
         logger.info(`[FlowEditor] createNode: type=${type}, x=${x}, y=${y}, initialName=${initialName}`);
         let node: FlowElement;
         const id = 'node-' + Date.now();
@@ -99,7 +100,7 @@ export class FlowNodeFactory {
             case 'task': {
                 let taskName = initialName;
                 if (!taskName) {
-                    taskName = prompt("Name für den neuen Task:", FlowNamingService.generateUniqueTaskName(this.host.project, this.host.nodes, "ANewTask")) || undefined;
+                    taskName = await PromptDialog.show("Name für den neuen Task:", FlowNamingService.generateUniqueTaskName(this.host.project, this.host.nodes, "ANewTask")) || undefined;
                 }
                 if (!taskName) return null;
 

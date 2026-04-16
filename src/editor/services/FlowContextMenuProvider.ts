@@ -17,6 +17,9 @@ import { ExpertDialog } from '../../components/ExpertDialog';
 import { RefactoringManager } from '../RefactoringManager';
 import { expertRuleEngine } from './ExpertRuleEngine';
 import { MethodRegistry } from '../MethodRegistry';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { PromptDialog } from '../ui/PromptDialog';
+import { NotificationToast } from '../ui/NotificationToast';
 
 import { Logger } from '../../utils/Logger';
 
@@ -37,7 +40,7 @@ export interface FlowContextMenuHost {
     onProjectChange?: () => void;
     getTargetFlowCharts: (context: string) => any;
     syncManager: any; // For global action updates
-    createNode: (type: string, x: number, y: number, initialName?: string) => FlowElement | null;
+    createNode: (type: string, x: number, y: number, initialName?: string) => Promise<FlowElement | null> | FlowElement | null;
     renameObjectWithRefactoring?: (id: string, newName: string, oldName?: string) => void;
 }
 
@@ -310,14 +313,14 @@ export class FlowContextMenuProvider {
         const typeLabel = node.getType() === 'task' ? 'Task' : 'Aktion';
         items.push({
             label: `Eingebettete ${typeLabel} löschen`,
-            action: () => {
+            action: async () => {
                 const groupId = node.data?.embeddedGroupId;
                 const nodesToDelete = groupId
                     ? this.host.nodes.filter(n => n.data?.embeddedGroupId === groupId)
                     : [node];
 
                 const count = nodesToDelete.length;
-                if (confirm(`Möchtest du die eingebettete ${typeLabel} (${count} Elemente) wirklich löschen?`)) {
+                if (await ConfirmDialog.show(`Möchtest du die eingebettete ${typeLabel} (${count} Elemente) wirklich löschen?`)) {
                     nodesToDelete.forEach(n => this.host.removeNode(n.id));
 
                     const anyGhost = nodesToDelete[0];
@@ -376,7 +379,7 @@ export class FlowContextMenuProvider {
             items.push({
                 label: `📋 ${refs.length} Referenz${refs.length > 1 ? 'en' : ''}`,
                 action: () => {
-                    alert(`"${elementName}" wird verwendet in:\n\n${refs.join('\n')}`);
+                    NotificationToast.show(`"${elementName}" wird verwendet in:\n\n${refs.join('\n')}`);
                 }
             });
         }
@@ -387,8 +390,8 @@ export class FlowContextMenuProvider {
         if (canDelete) {
             items.push({
                 label: `🗑️ "${elementName}" endgültig löschen`,
-                action: () => {
-                    if (!confirm(`Element "${elementName}" (${this.getTypeLabel(elementType)}) endgültig aus dem Projekt löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden.`)) {
+                action: async () => {
+                    if (!await ConfirmDialog.show(`Element "${elementName}" (${this.getTypeLabel(elementType)}) endgültig aus dem Projekt löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden.`)) {
                         return;
                     }
 
@@ -413,7 +416,7 @@ export class FlowContextMenuProvider {
             items.push({
                 label: `🔒 "${elementName}" wird noch verwendet`,
                 action: () => {
-                    alert(`"${elementName}" kann nicht gelöscht werden.\n\nVerwendet in:\n${refs.join('\n')}`);
+                    NotificationToast.show(`"${elementName}" kann nicht gelöscht werden.\n\nVerwendet in:\n${refs.join('\n')}`);
                 },
                 color: '#888888'
             });
@@ -462,8 +465,8 @@ export class FlowContextMenuProvider {
         const allActions = projectActionRegistry.getActions('all');
         const insertActionItems: ContextMenuItem[] = allActions.map(a => ({
             label: a.name,
-            action: () => {
-                const node = this.host.createNode('Action', x, y, a.name);
+            action: async () => {
+                const node = await this.host.createNode('Action', x, y, a.name);
                 if (node) this.linkActionToNode(node, a);
             }
         }));
@@ -482,8 +485,8 @@ export class FlowContextMenuProvider {
         
         const insertTaskItems: ContextMenuItem[] = globalTasks.map(t => ({
             label: t.name,
-            action: () => {
-                const node = this.host.createNode('Task', x, y, t.name);
+            action: async () => {
+                const node = await this.host.createNode('Task', x, y, t.name);
                 if (node) this.assignTaskToNode(node, t);
             }
         }));
@@ -540,7 +543,7 @@ export class FlowContextMenuProvider {
         this.host.syncToProject();
     }
 
-    private copyLibraryTaskAsTemplate(node: FlowElement, libraryTask: any): void {
+    private async copyLibraryTaskAsTemplate(node: FlowElement, libraryTask: any): Promise<void> {
         if (!this.host.project) return;
 
         let baseName = libraryTask.name;
@@ -552,13 +555,13 @@ export class FlowContextMenuProvider {
             counter++;
         }
 
-        const userInput = prompt(`Name für die Vorlage (basierend auf "${libraryTask.name}"):`, newName);
+        const userInput = await PromptDialog.show(`Name für die Vorlage (basierend auf "${libraryTask.name}"):`, newName);
         if (!userInput) return;
         newName = userInput;
 
         let existingTask = this.host.project.tasks.find(t => t.name === newName);
         if (existingTask && (existingTask.actionSequence?.length > 0 || existingTask.flowChart)) {
-            if (!confirm(`Task "${newName}" existiert bereits und ist nicht leer. Überschreiben?`)) return;
+            if (!await ConfirmDialog.show(`Task "${newName}" existiert bereits und ist nicht leer. Überschreiben?`)) return;
         }
 
         const taskCopy = JSON.parse(JSON.stringify(libraryTask));
@@ -632,7 +635,7 @@ export class FlowContextMenuProvider {
         this.host.updateFlowSelector();
         if (this.host.onProjectChange) this.host.onProjectChange();
 
-        if (confirm(`Task "${newName}" wurde erstellt. Zum Task-Flow wechseln?`)) {
+        if (await ConfirmDialog.show(`Task "${newName}" wurde erstellt. Zum Task-Flow wechseln?`)) {
             this.host.switchActionFlow(newName);
         }
     }

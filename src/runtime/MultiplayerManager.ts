@@ -296,12 +296,12 @@ export class MultiplayerManager {
 
             case 'player_left':
                 MultiplayerManager.logger.info('Player left');
-                alert('Gegner hat das Spiel verlassen!');
+                console.warn('Multiplayer: Gegner hat das Spiel verlassen!');
                 window.location.href = '/';
                 break;
 
             case 'error':
-                alert('Fehler: ' + msg.message);
+                console.error('Multiplayer Fehler: ' + msg.message);
                 break;
 
             case 'pong':

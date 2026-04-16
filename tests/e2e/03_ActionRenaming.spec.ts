@@ -106,13 +106,7 @@ test.describe('UseCase: Eine Action umbenennen', () => {
 
         // 13. Test Uniqueness Validation (Duplikat-Name Prüfung)
         console.log('Test: 13. Test Uniqueness Validation (Duplikat-Name)...');
-        // Register Dialog Handler
-        let alertMessage = '';
-        page.on('dialog', dialog => {
-            alertMessage = dialog.message();
-            dialog.accept();
-        });
-
+        // Register Dialog Handler (alt: page.on('dialog'), neu: Toast DOM Element)
         // Wir erzeugen eine weitere Action und versuchen sie gleich zu benennen
         await page.locator('.tab-btn[data-view="flow"]').click();
         await page.waitForTimeout(500);
@@ -132,8 +126,9 @@ test.describe('UseCase: Eine Action umbenennen', () => {
         await nameInput.press('Tab');
         await page.waitForTimeout(500);
 
-        // Alert MUSS gefeuert haben und validen Text enthalten
-        expect(alertMessage).toContain('blockiert');
+        // Toast MUSS gefeuert haben und validen Text enthalten
+        const toast = page.locator('.notification-toast', { hasText: 'blockiert' }).first();
+        await expect(toast).toBeVisible({ timeout: 4000 });
 
         // 14. Speichern
         console.log('Test: 14. Speichern nach Action-Umbenennung...');

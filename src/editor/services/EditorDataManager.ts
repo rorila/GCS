@@ -10,6 +10,9 @@ import { hydrateObjects } from '../../utils/Serialization';
 import { safeDeepCopy } from '../../utils/DeepCopy';
 import { Logger } from '../../utils/Logger';
 import { SaveAsDialog } from '../SaveAsDialog';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { PromptDialog } from '../ui/PromptDialog';
+import { NotificationToast } from '../ui/NotificationToast';
 
 export interface EditorDataHost {
     project: GameProject;
@@ -72,7 +75,7 @@ export class EditorDataManager {
 
     public async triggerLoad() {
         if (this.host.isProjectDirty) {
-            if (!confirm("Sie haben ungespeicherte Änderungen am aktuellen Projekt. Möchten Sie wirklich ein anderes Projekt laden? (Nicht gespeicherte Änderungen gehen verloren)")) {
+            if (!await ConfirmDialog.show('Sie haben ungespeicherte Änderungen am aktuellen Projekt. Möchten Sie wirklich ein anderes Projekt laden? (Nicht gespeicherte Änderungen gehen verloren)')) {
                 return;
             }
         }
@@ -91,7 +94,7 @@ export class EditorDataManager {
                 this.loadProject(result.data, sourcePath);
             }
         } catch (err) {
-            alert("Error loading project: " + err);
+            NotificationToast.show('Error loading project: ' + err, 'error');
         }
     }
 
@@ -110,7 +113,7 @@ export class EditorDataManager {
             const defaultName = project.meta?.name || 'MeinProjekt';
             
             // Im E2E-Modus: kein Dialog, automatisch Projektname setzen
-            const projectName = isE2E ? defaultName : prompt('Projektname für das Speichern:', defaultName);
+            const projectName = isE2E ? defaultName : await PromptDialog.show('Projektname für das Speichern:', defaultName);
             if (!projectName) {
                 EditorDataManager.logger.info('[SaveProject] Speichern abgebrochen (kein Name eingegeben)');
                 return;
@@ -136,13 +139,13 @@ export class EditorDataManager {
             const data = await res.json();
             if (data.success) {
                 this.host.isProjectDirty = false;
-                alert('Projekt erfolgreich gespeichert und auf Disk persistiert!');
+                NotificationToast.show('Projekt erfolgreich gespeichert und auf Disk persistiert!', 'success');
             } else {
-                alert('Fehler beim Speichern auf Disk: ' + (data.error || 'Unbekannter Fehler'));
+                NotificationToast.show('Fehler beim Speichern auf Disk: ' + (data.error || 'Unbekannter Fehler'), 'error');
             }
         } catch (err) {
             EditorDataManager.logger.error('Kritischer Fehler beim Server-Save:', err);
-            alert('Kritischer Fehler beim Speichern auf Disk. Bitte prüfen Sie die Server-Verbindung.');
+            NotificationToast.show('Kritischer Fehler beim Speichern auf Disk. Bitte prüfen Sie die Server-Verbindung.', 'error');
         }
     }
 
@@ -162,7 +165,7 @@ export class EditorDataManager {
         if (!this.host.isProjectDirty) {
             const msg = 'Daten haben sich nicht geändert';
             EditorDataManager.logger.info(`[UseCase: Projekt speichern] Abbruch: ${msg}`);
-            if (overwriteConfirmed === undefined) alert(msg);
+            if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'warning');
             return { success: false, message: msg };
         }
 
@@ -173,7 +176,7 @@ export class EditorDataManager {
         if (!gameName || gameName === 'Haupt-Level') {
             const msg = 'Bitte ändern Sie den Spielnamen in der Main-Stage';
             EditorDataManager.logger.info(`[UseCase: Projekt speichern] Abbruch: ${msg}`);
-            if (overwriteConfirmed === undefined) alert(msg);
+            if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'warning');
             return { success: false, message: msg };
         }
 
@@ -184,14 +187,20 @@ export class EditorDataManager {
         let targetFilePath: string;
         if (this.currentSavePath) {
             // Bullet-proof Sanitization: Falls dirty state noch projects/C:/... enthält
-            if (this.currentSavePath.startsWith('projects/') && this.currentSavePath.match(/projects\/[a-zA-Z]:\//)) {
-                this.currentSavePath = this.currentSavePath.substring(9);
-            }
+            // und konvertiere alle Backslashes zu Forward-Slashes für sichere Pfadoperationen
+            let sanitizedPath = this.currentSavePath.replace(/\\/g, '/').replace(/^(?:projects\/)+([a-zA-Z]:\/)/, '$1');
+            
             // Ordner-Anteil beibehalten, Dateiname aus meta.name
-            const folder = this.currentSavePath.substring(0, this.currentSavePath.lastIndexOf('/'));
+            const folder = sanitizedPath.substring(0, sanitizedPath.lastIndexOf('/'));
             targetFilePath = `${folder}/${safeGameName}.json`;
             // currentSavePath aktualisieren damit er konsistent bleibt
             this.currentSavePath = targetFilePath;
+            
+            // SECURITY ALLOW NATIVE PATH: Falls sich der Dateiname geändert hat (weil meta.name geändert wurde),
+            // müssen wir den neuen berechneten Pfad in Electron explizit erlauben.
+            if ((window as any).electronFS && typeof (window as any).electronFS.allowPath === 'function') {
+                (window as any).electronFS.allowPath(this.currentSavePath).catch((e: any) => EditorDataManager.logger.warn('Failed to allow path:', e));
+            }
         } else {
             targetFilePath = `projects/master_test/${safeGameName}.json`;
             this.currentSavePath = targetFilePath;
@@ -247,12 +256,19 @@ export class EditorDataManager {
                 (this.host.project.meta as any)._sourcePath = savedPath;
                 this.updateProjectPathDisplay();
                 
-                if (overwriteConfirmed === undefined) alert(msg);
+                if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'success');
                 return { success: true, message: msg };
-            } catch (err) {
-                EditorDataManager.logger.warn('[UseCase: Projekt speichern] Fehler beim nativen Speichern. Fallback auf Server.', err);
+            } catch (err: any) {
+                const nativeErr = err?.message || String(err);
+                EditorDataManager.logger.warn(`[UseCase: Projekt speichern] Fehler beim nativen Speichern. Fallback auf Server. Pfad: ${this.currentSavePath}, Fehler: ${nativeErr}`);
                 this.host.isProjectDirty = true;
-                // Weiter im Code mit Fallback auf Fetch Server API...
+                
+                // Fallback auf Fetch Server API schlägt in Electron meist auch fehl, daher direkt abbrechen und Meldung zeigen
+                if ((window as any).electronFS) {
+                    const msg = `Sicherheits- oder Schreibfehler in Electron!\nPfad: ${this.currentSavePath}\n\nSystem-Meldung: ${nativeErr}`;
+                    if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'error');
+                    return { success: false, message: msg };
+                }
             }
         }
 
@@ -271,22 +287,22 @@ export class EditorDataManager {
                 const msg = `Projekt erfolgreich gespeichert: ${targetFilePath}`;
                 EditorDataManager.logger.info(`[UseCase: Projekt speichern] ${msg}`);
                 this.updateProjectPathDisplay();
-                if (overwriteConfirmed === undefined) alert(msg);
+                if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'success');
                 return { success: true, message: msg };
             } else {
                 // Falls Speichern fehl schlägt: Zustand zurücksetzen
                 this.host.isProjectDirty = true;
-                const msg = 'Fehler beim Speichern: ' + (saveData.error || 'Unbekannter Fehler');
+                const msg = `Fehler beim Speichern (Pfad: ${targetFilePath}): ` + (saveData.error || 'Unbekannter Fehler');
                 EditorDataManager.logger.error(`[UseCase: Projekt speichern] ${msg}`);
-                if (overwriteConfirmed === undefined) alert(msg);
+                if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'error');
                 return { success: false, message: msg };
             }
-        } catch (err) {
+        } catch (err: any) {
             // Falls Speichern fehl schlägt: Zustand zurücksetzen
             this.host.isProjectDirty = true;
-            const msg = 'Kritischer Fehler beim Speichern (Server nicht erreichbar)';
-            EditorDataManager.logger.error(`[UseCase: Projekt speichern] ${msg}:`, err);
-            if (overwriteConfirmed === undefined) alert(msg);
+            const msg = `Kritischer Fehler beim Speichern.\n\nPfad: ${targetFilePath}\nInterner Pfad: ${this.currentSavePath}\nFehler: ${err?.message || String(err)}`;
+            EditorDataManager.logger.error(`[UseCase: Projekt speichern] Fehler:`, err);
+            if (overwriteConfirmed === undefined) NotificationToast.show(msg, 'error');
             return { success: false, message: msg };
         }
     }
@@ -395,14 +411,15 @@ export class EditorDataManager {
         // 2. _sourcePath aus Projekt-Metadaten (wurde beim letzten Speichern geschrieben)
         // 3. Fallback aus meta.name (letzte Option)
         if (sourcePath) {
-            this.currentSavePath = sourcePath.replace(/\\/g, '/');
+            let sp = sourcePath.replace(/\\/g, '/');
+            sp = sp.replace(/^(?:projects\/)+([a-zA-Z]:\/)/, '$1');
+            this.currentSavePath = sp;
             EditorDataManager.logger.info(`[LoadProject] Quellpfad gesetzt (explizit): ${this.currentSavePath}`);
         } else if (data.meta?._sourcePath) {
             let sp = data.meta._sourcePath.replace(/\\/g, '/');
             // Fehler-Korrektur: Falls in einer älteren Version "projects/C:/..." gespeichert wurde
-            if (sp.startsWith('projects/') && sp.match(/projects\/[a-zA-Z]:\//)) {
-                sp = sp.substring(9);
-            }
+            sp = sp.replace(/^(?:projects\/)+([a-zA-Z]:\/)/, '$1');
+            
             this.currentSavePath = sp;
             EditorDataManager.logger.info(`[LoadProject] Quellpfad aus _sourcePath: ${this.currentSavePath}`);
         } else if (data.meta?.name) {
@@ -412,11 +429,16 @@ export class EditorDataManager {
             EditorDataManager.logger.info(`[LoadProject] Quellpfad aus meta.name abgeleitet: ${this.currentSavePath}`);
         }
 
-        // _sourcePath in Metadaten zurückschreiben, damit er im LocalStorage erhalten bleibt
         if (this.currentSavePath) {
             if (!data.meta) data.meta = {};
             data.meta._sourcePath = this.currentSavePath;
             EditorDataManager.logger.info(`[LoadProject] _sourcePath in Metadaten gesetzt: ${this.currentSavePath}`);
+            
+            // SECURITY ALLOW NATIVE PATH: Der LocalStorage-Pfad muss im Main-Prozess kurz erlaubt werden, 
+            // da er sonst bei autoSave() abgelehnt wird (Szenario: Neustart der Electron-App).
+            if ((window as any).electronFS && typeof (window as any).electronFS.allowPath === 'function') {
+                (window as any).electronFS.allowPath(this.currentSavePath).catch((e: any) => EditorDataManager.logger.warn('Failed to allow path:', e));
+            }
         }
 
         // Reset dirty flag after successful load
@@ -778,7 +800,7 @@ export class EditorDataManager {
 
     public async loadFromServer() {
         if (this.host.isProjectDirty) {
-            if (!confirm('Sie haben ungespeicherte Änderungen. Möchten Sie wirklich das Projekt vom Server neu laden?')) {
+            if (!await ConfirmDialog.show('Sie haben ungespeicherte Änderungen. Möchten Sie wirklich das Projekt vom Server neu laden?')) {
                 return;
             }
         }
@@ -794,12 +816,12 @@ export class EditorDataManager {
             window.location.reload();
         } catch (err: any) {
             EditorDataManager.logger.error('Force Reload failed:', err);
-            alert('Fehler beim Laden vom Server: ' + err.message);
+            NotificationToast.show('Fehler beim Laden vom Server: ' + err.message);
         }
     }
 
-    public applyJSONChanges(): void {
-        const confirmed = confirm('Möchten Sie die Änderungen am Projekt wirklich übernehmen? Dies kann nicht rückgängig gemacht werden und wird sofort wirksam.');
+    public async applyJSONChanges(): Promise<void> {
+        const confirmed = await ConfirmDialog.show('Möchten Sie die Änderungen am Projekt wirklich übernehmen? Dies kann nicht rückgängig gemacht werden und wird sofort wirksam.');
         if (confirmed && this.host.workingProjectData) {
             // Apply sync to project before loading back
             this.host.syncFlowChartsWithActions();

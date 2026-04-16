@@ -5,6 +5,9 @@ import { changeRecorder } from '../../services/ChangeRecorder';
 import { playbackEngine } from '../../services/PlaybackEngine';
 import { dataService } from '../../services/DataService';
 import { Logger } from '../../utils/Logger';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { PromptDialog } from '../ui/PromptDialog';
+import { NotificationToast } from '../ui/NotificationToast';
 
 export interface EditorMenuHost {
     project: GameProject;
@@ -88,7 +91,7 @@ export class EditorMenuManager {
             case 'export-html-gzip': this.host.exportHTMLCompressed(); break;
             case 'export-json': this.host.exportJSON(); break;
             case 'export-json-gzip': this.host.exportJSONCompressed(); break;
-            case 'export-exe': alert('Exe-Export ist für eine zukünftige Version geplant.'); break;
+            case 'export-exe': NotificationToast.show('Exe-Export ist für eine zukünftige Version geplant.', 'info'); break;
             case 'multiplayer':
                 const lobby = document.getElementById('multiplayer-lobby');
                 if (lobby) lobby.style.display = 'flex';
@@ -134,17 +137,18 @@ export class EditorMenuManager {
                 break;
             case 'force-reload': this.host.loadFromServer(); break;
             case 'seed-data':
-                if (confirm('Achtung: Dies überschreibt lokale Test-Daten (gcs_db_data.json) mit den Server-Daten. Fortfahren?')) {
+                ConfirmDialog.show('Achtung: Dies überschreibt lokale Test-Daten (gcs_db_data.json) mit den Server-Daten. Fortfahren?').then(confirmed => {
+                    if (!confirmed) return;
                     Promise.all([
                         dataService.seedFromUrl('users.json', '/api/dev/data/users.json'),
                         dataService.seedFromUrl('db.json', '/api/dev/data/db.json')
                     ]).then(() => {
-                        alert('Daten erfolgreich geladen. Die Seite wird neu geladen.');
-                        window.location.reload();
+                        NotificationToast.show('Daten erfolgreich geladen. Die Seite wird neu geladen.', 'success');
+                        setTimeout(() => window.location.reload(), 1500);
                     }).catch(err => {
-                        alert('Fehler beim Seeden: ' + err.message);
+                        NotificationToast.show('Fehler beim Seeden: ' + err.message, 'error');
                     });
-                }
+                });
                 break;
             default:
                 const normalizedAction = action.replace(/\s+/g, '');
@@ -160,13 +164,14 @@ export class EditorMenuManager {
     public handleRecordingAction(action: string): void {
         switch (action) {
             case 'record-start':
-                const name = prompt('Name für das Recording:', `Tutorial_${new Date().toLocaleTimeString()}`);
-                if (name) changeRecorder.startRecording(name);
+                PromptDialog.show('Name für das Recording:', `Tutorial_${new Date().toLocaleTimeString()}`).then(name => {
+                    if (name) changeRecorder.startRecording(name);
+                });
                 break;
             case 'record-stop':
                 const recording = changeRecorder.stopRecording();
                 if (recording) {
-                    alert(`Recording "${recording.name}" gestoppt. ${recording.actions.length} Aktionen aufgezeichnet.`);
+                    NotificationToast.show(`Recording "${recording.name}" gestoppt. ${recording.actions.length} Aktionen aufgezeichnet.`);
                     playbackEngine.load(recording);
                     this.host.playbackControls?.show();
                 }
@@ -186,7 +191,7 @@ export class EditorMenuManager {
                     a.click();
                     URL.revokeObjectURL(url);
                 } else {
-                    alert('Kein Recording zum Exportieren vorhanden.');
+                    NotificationToast.show('Kein Recording zum Exportieren vorhanden.');
                 }
                 break;
             case 'recording-import':
@@ -202,9 +207,9 @@ export class EditorMenuManager {
                                 const rec = JSON.parse(re.target?.result as string);
                                 playbackEngine.load(rec);
                                 this.host.playbackControls?.show();
-                                alert(`Recording "${rec.name}" erfolgreich importiert.`);
+                                NotificationToast.show(`Recording "${rec.name}" erfolgreich importiert.`);
                             } catch (err) {
-                                alert('Fehler beim Importieren des Recordings.');
+                                NotificationToast.show('Fehler beim Importieren des Recordings.');
                             }
                         };
                         reader.readAsText(file);
@@ -247,7 +252,7 @@ export class EditorMenuManager {
     private showExcludedBlueprintDialog(): void {
         const activeStage = this.host.getActiveStage();
         if (!activeStage || !activeStage.excludedBlueprintIds || activeStage.excludedBlueprintIds.length === 0) {
-            alert('Keine ausgeblendeten Objekte auf dieser Stage.');
+            NotificationToast.show('Keine ausgeblendeten Objekte auf dieser Stage.');
             return;
         }
 
@@ -484,11 +489,11 @@ export class EditorMenuManager {
                 }));
 
                 // Delete
-                controlsCol.appendChild(createBtn('🗑️', 'Löschen', () => {
-                    if (confirm(`Möchtest du Stage "${stage.name}" wirklich löschen?`)) {
+                controlsCol.appendChild(createBtn('🗑️', 'Löschen', async () => {
+                    if (await ConfirmDialog.show(`Möchtest du Stage "${stage.name}" wirklich löschen?`)) {
                         const sm = (this.host as any).stageManager;
                         if (project.stages!.length <= 1) {
-                            alert('Das Projekt muss mindestens eine Stage enthalten.');
+                            NotificationToast.show('Das Projekt muss mindestens eine Stage enthalten.');
                             return;
                         }
                         // Wenn es die aktive Stage ist: vor dem Löschen wechseln

@@ -10,6 +10,8 @@ import { UseCaseManager } from '../../utils/UseCaseManager';
 import { mediatorService, MediatorEvents } from '../../services/MediatorService';
 import { Logger } from '../../utils/Logger';
 import { VariablePickerDialog } from './VariablePickerDialog';
+import { NotificationToast } from '../ui/NotificationToast';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { MediaPickerDialog } from './MediaPickerDialog';
 import { ImageListEditorDialog } from './ImageListEditorDialog';
 import { projectStore } from '../../services/ProjectStore';
@@ -42,7 +44,7 @@ export class InspectorActionHandler {
                 this.handleSave();
                 break;
             case 'delete':
-                this.handleDelete(selectedObject);
+                await this.handleDelete(selectedObject);
                 break;
             case 'browseImage':
                 await this.handleBrowseImage(buttonDef, selectedObject);
@@ -119,7 +121,7 @@ export class InspectorActionHandler {
         // Usually handled via auto-save, but can be forced here
     }
 
-    private handleDelete(obj: any): void {
+    private async handleDelete(obj: any): Promise<void> {
         const name = obj.name || obj.id;
 
         // If host has a deletion handler (usually Editor.ts), let IT handle the confirmation
@@ -129,7 +131,7 @@ export class InspectorActionHandler {
         }
 
         // Standard prompt if no special handler exists
-        if (!confirm(`Möchtest du das Objekt "${name}" wirklich löschen?`)) return;
+        if (!await ConfirmDialog.show(`Möchtest du das Objekt "${name}" wirklich löschen?`)) return;
         InspectorActionHandler.logger.info('Deleting object:', name);
 
         // Fallback: Identify object type for correct refactoring/deletion
@@ -280,7 +282,7 @@ export class InspectorActionHandler {
             const baseVarName = varNameInput.split('.')[0];
             const baseVar = variables.find(v => v.name === baseVarName);
             if (!baseVar) {
-                alert(`Basis-Variable "${baseVarName}" wurde nicht gefunden.`);
+                NotificationToast.show(`Basis-Variable "${baseVarName}" wurde nicht gefunden.`);
                 return;
             }
         }

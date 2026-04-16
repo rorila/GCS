@@ -7,6 +7,7 @@ import { RefactoringManager } from '../RefactoringManager';
 import { mediatorService } from '../../services/MediatorService';
 
 import { Logger } from '../../utils/Logger';
+import { NotificationToast } from '../ui/NotificationToast';
 
 export class EditorCommandManager {
     private static logger = Logger.get('EditorCommandManager', 'Component_Manipulation');
@@ -252,7 +253,7 @@ export class EditorCommandManager {
         if (isTask) {
             // Regex-Format Validierung (nur PascalCase-Check)
             if (!/^[A-Z][a-zA-Z0-9]*$/.test(newName)) {
-                alert(`Umbenennung blockiert:\nTasks müssen mit einem Großbuchstaben beginnen (PascalCase).`);
+                NotificationToast.show('Umbenennung blockiert:\nTasks müssen mit einem Großbuchstaben beginnen (PascalCase).', 'warning');
                 return;
             }
 
@@ -271,7 +272,7 @@ export class EditorCommandManager {
             this.editor.project.stages?.forEach(stage => countList(stage.tasks || []));
 
             if (nameCount > 1) {
-                alert(`Umbenennung blockiert:\nEin Task mit dem Namen '${newName}' existiert bereits im Projekt.`);
+                NotificationToast.show(`Umbenennung blockiert:\nEin Task mit dem Namen '${newName}' existiert bereits im Projekt.`, 'warning');
                 return;
             }
         } else if (isAction) {
@@ -281,7 +282,7 @@ export class EditorCommandManager {
             const conflictingAction = allActions.find(a => a.name === newName && (a as any).id !== obj.id && (a as any).actionName !== obj.id);
             
             if (conflictingAction) {
-                alert(`Umbenennung blockiert:\nEine Aktion mit dem Namen "${newName}" existiert bereits im Projekt.`);
+                NotificationToast.show(`Umbenennung blockiert:\nEine Aktion mit dem Namen "${newName}" existiert bereits im Projekt.`, 'warning');
                 return;
             }
         }

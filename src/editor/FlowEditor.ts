@@ -344,7 +344,11 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Delete' || e.key === 'Backspace') {
                 // Don't delete if we are in an input field
-                if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+                let active = document.activeElement as HTMLElement | null;
+                if (active?.shadowRoot?.activeElement) {
+                    active = active.shadowRoot.activeElement as HTMLElement;
+                }
+                if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable)) return;
 
                 if (this.selectedConnection) {
                     this.deleteConnection(this.selectedConnection);
@@ -766,7 +770,7 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
         this.selectionManager.deselectAll(emitEvent);
     }
 
-    public createNode(type: string, x: number, y: number, initialName?: string): FlowElement | null {
+    public async createNode(type: string, x: number, y: number, initialName?: string): Promise<FlowElement | null> {
         return this.nodeFactory.createNode(type, x, y, initialName);
     }
 

@@ -4,6 +4,8 @@ import { IDialogContext } from '../IDialogContext';
 import { DialogExpressionEvaluator } from '../utils/DialogExpressionEvaluator';
 
 import { imageService } from '../../../services/ImageService';
+import { NotificationToast } from '../../ui/NotificationToast';
+import { PromptDialog } from '../../ui/PromptDialog';
 
 const logger = Logger.get('JSONDialogRenderer', 'DialogActionHandler');
 
@@ -134,7 +136,7 @@ export class DialogActionHandler {
                 break;
 
             case 'selectTarget':
-                this.handleSelectTarget(ctx);
+                await this.handleSelectTarget(ctx);
                 break;
 
             case 'refreshImages':
@@ -156,7 +158,7 @@ export class DialogActionHandler {
                 if (ctx.dialogData.selectedPath) {
                     ctx.close('select');
                 } else {
-                    alert('Bitte wähle zuerst ein Bild aus.');
+                    NotificationToast.show('Bitte wähle zuerst ein Bild aus.');
                 }
                 break;
 
@@ -209,12 +211,12 @@ export class DialogActionHandler {
         const value = ctx.getInputValue('NewVariableValueInput');
 
         if (!name) {
-            alert('Variable name is required');
+            NotificationToast.show('Variable name is required');
             return;
         }
 
         if (ctx.project.variables.some(v => v.name === name)) {
-            alert(`Variable "${name}" already exists!`);
+            NotificationToast.show(`Variable "${name}" already exists!`);
             return;
         }
 
@@ -323,11 +325,11 @@ export class DialogActionHandler {
         }
     }
 
-    private static handleSelectTarget(ctx: IDialogContext) {
+    private static async handleSelectTarget(ctx: IDialogContext) {
         const selectedValue = ctx.getInputValue('TargetObjectSelect');
 
         if (selectedValue === '📦 Neue Funktionsvariable...') {
-            const varName = prompt('Name der Funktionsvariable (z.B. targetObj):');
+            const varName = await PromptDialog.show('Name der Funktionsvariable (z.B. targetObj):');
             if (varName && varName.trim()) {
                 const cleanName = varName.trim().replace(/\s+/g, '');
                 ctx.dialogData.target = `\${${cleanName}}`;
@@ -344,3 +346,5 @@ export class DialogActionHandler {
         ctx.render();
     }
 }
+
+

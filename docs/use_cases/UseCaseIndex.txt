@@ -1,54 +1,66 @@
+
+[UC-2026-04-14-Dialog-Refactor]
+Dateien:
+- src/editor/services/EditorMenuManager.ts (handleRecordingAction:164, handleRecordingExport:191, showStageManagerDialog:489)
+- src/editor/services/EditorDataManager.ts (loadFromServer:800, applyJSONChanges:819)
+- src/editor/inspector/InspectorActionHandler.ts (handleDelete:132, handlePickVariable:283)
+- src/editor/dialogs/handlers/DialogActionHandler.ts (alle Prompt/Confirm-Wechsel)
+- src/editor/SaveAsDialog.ts (show:79)
+- src/export/GameExporter.ts (showExportInfo)
+Ã„nderungen:
+Alle Vorkommen von synchronen window.alert(), window.confirm() und window.prompt() wurden systematisch durch asynchrone Promise-basierte HTML-Pendants (NotificationToast, ConfirmDialog, PromptDialog) ersetzt. Entsprechende Handler-Aufrufe wie handleAction, handleDelete, createNode wurden von synchron auf asynchron umgebaut, um Renderer-Blockaden in Electron zu verhindern.
+
 [2026-04-14] Bugfix: Editor Autosave Post-Load Event Suppression
 - Betroffene Dateien: src/editor/services/EditorDataManager.ts
 - Ablauf:
   - Bei Neu-Laden eines Projekts feuern die Komponenten innerhalb der ersten 2 Sekunden initiale DOM-Rendering-PropertyChanges.
-  - Das veranlasste updateProjectJSON(), sofort einen performDiskSave() auszuführen (wodurch der Counter auf 1 sprang und eine leere Speicheroperation angestoßen wurde).
-  - Ein 2s Zeitfenster-Check (	imeSinceLoad < 2000) wurde hinzugefügt, sodass der Debouncer erst nach Abschluss der Lade-Phase Events akzeptiert.
+  - Das veranlasste updateProjectJSON(), sofort einen performDiskSave() auszufï¿½hren (wodurch der Counter auf 1 sprang und eine leere Speicheroperation angestoï¿½en wurde).
+  - Ein 2s Zeitfenster-Check (	imeSinceLoad < 2000) wurde hinzugefï¿½gt, sodass der Debouncer erst nach Abschluss der Lade-Phase Events akzeptiert.
 
 [2026-04-14] Bugfix: Editor Autosave Counter Reset on Project Load
 - Betroffene Dateien: src/editor/services/EditorDataManager.ts, src/editor/MenuBar.ts
 - Ablauf:
   - Beim Neu-Laden eines Projekts via loadProject() wurde verpasst, den internen Autosave-Counter _autoSaveCount wieder auf 0 zu setzen.
-  - Das wurde ergänzt. Die MenuBar aktualisiert sich nun lautlos (ohne Flash-Blinken), wenn der Wert identisch auf 0 gesetzt wird.
+  - Das wurde ergï¿½nzt. Die MenuBar aktualisiert sich nun lautlos (ohne Flash-Blinken), wenn der Wert identisch auf 0 gesetzt wird.
 
 [2026-04-14] Bugfix: Editor Autosave Concurrency Debounce Fix
 - Betroffene Dateien: src/editor/services/EditorDataManager.ts
 - Ablauf:
-  - Bei einer Komponentenänderung (z.B. Setzen in den Editor über DND) wurden teils 4 DOM-Events parallel ausgelöst.
+  - Bei einer Komponentenï¿½nderung (z.B. Setzen in den Editor ï¿½ber DND) wurden teils 4 DOM-Events parallel ausgelï¿½st.
   - Das resultierte in 4 parallelen \
 ativeAdapter.autoSave()\ Promisen, was beim Chrome FileSystem Access API den Fehler "The associated file is already being written" provozierte.
-  - Dadurch brach das Speichern auf Disk komplett ab und verfiel fehlerweise und gehäuft auf den Fallback (und der Zähler stieg um 4 Punkte an).
+  - Dadurch brach das Speichern auf Disk komplett ab und verfiel fehlerweise und gehï¿½uft auf den Fallback (und der Zï¿½hler stieg um 4 Punkte an).
   - Um dies zu reparieren, wurde die Methode \performDiskSave()\ separiert und im \updateProjectJSON()\ Aufruf mit einem 1000ms \setTimeout\ (Debounce) gekapselt.
 
 [2026-04-14] Bugfix: Editor MenuBar Autosave UI Rendering Fix
 - Betroffene Dateien: src/editor/MenuBar.ts
 - Ablauf:
-  - Autosave UI Zähler Wrapper verschwand nach dem Rendern.
-  - Die Ursache lag in MenuBar.render(), die das container.innerHTML = '' ausführte.
-  - Der Wrapper wurde beim Neuaufbauen der StageLabels wieder an den Parent-Tree gehängt.
+  - Autosave UI Zï¿½hler Wrapper verschwand nach dem Rendern.
+  - Die Ursache lag in MenuBar.render(), die das container.innerHTML = '' ausfï¿½hrte.
+  - Der Wrapper wurde beim Neuaufbauen der StageLabels wieder an den Parent-Tree gehï¿½ngt.
 
 [2026-04-14] Bugfix: Editor MenuBar "loaded_project.json" Display Bug
 - Betroffene Dateien: src/services/ProjectPersistenceService.ts, tests/export_checksums.json
 - Ablauf:
-  - Projekt Persistence gab stumpf { data: project, filename: "loaded_project.json" } zurück
-  - Der String wurde vom EditorDataManager übernommen und im MenuBar als Aktueller Projektpfad: gerendert.
+  - Projekt Persistence gab stumpf { data: project, filename: "loaded_project.json" } zurï¿½ck
+  - Der String wurde vom EditorDataManager ï¿½bernommen und im MenuBar als Aktueller Projektpfad: gerendert.
   - Das Modul liest nun im Browser Handle.name und in Electron den kompletten Verzeichnispfad aus.
-  - Nach der Änderung der Datei in Phase 2 wurde Export-Test (Export-Integrität) automatisch ausgelöst und schlug an; wurde per --update validiert.
+  - Nach der ï¿½nderung der Datei in Phase 2 wurde Export-Test (Export-Integritï¿½t) automatisch ausgelï¿½st und schlug an; wurde per --update validiert.
 
 [2026-04-14] Bugfix: Editor Autosave Visual Indicator & Fallback Fix
 - Betroffene Dateien: src/editor/services/EditorDataManager.ts, src/editor/MenuBar.ts
 - Ablauf:
   - Es wurde bemerkt, dass im "Browser"-Modus das Speichern scheiterte, wenn keine FileSystem-Permissions auf der Desktop-Ebene vorlagen, weil der Dev-Server Fallback im IF-Chain geschluckt wurde.
   - EditorDataManager.ts wurde komplett restrukturiert (	ryFetchFallback), sodass der Dev-Server bei Fehlschlagen des nativen "Silent-Autosave" immer als Rettungsnetz einspringt.
-  - Die MenuBar.ts wurde um einen Zähler setAutosaveCount() und einen "aufleuchtenden" grünen Text ?? Autosave: 0 erweitert, um visuelles Feedback über den Hintergrund-Trigger aus dem Event-System zu geben.
+  - Die MenuBar.ts wurde um einen Zï¿½hler setAutosaveCount() und einen "aufleuchtenden" grï¿½nen Text ?? Autosave: 0 erweitert, um visuelles Feedback ï¿½ber den Hintergrund-Trigger aus dem Event-System zu geben.
 
 [2026-04-13] Bugfix: Editor Autosave Native Adapter Fix
 - Betroffene Dateien: src/editor/services/EditorDataManager.ts, src/adapters/NativeFileAdapter.ts
 - Ablauf:
   - Wenn der User ein lokales Projekt aus dem Browser via FileSystem Access API offnet (ohne ElectronFS), erzeugt der Browser ein FileSystemFileHandle.
-  - Das automatische "autoSaveToLocalStorage" via "updateProjectJSON" fiel fälschlicherweise auf den Dev-Server zurück, anstatt das Handle zu verwenden.
+  - Das automatische "autoSaveToLocalStorage" via "updateProjectJSON" fiel fï¿½lschlicherweise auf den Dev-Server zurï¿½ck, anstatt das Handle zu verwenden.
   - Dadurch speicherte er Kopien in "public/projects/" ab, die echte Datei auf dem Desktop wurde nicht mehr aktualisiert.
-  - Es wurde die Methode "autoSave()" in NativeFileAdapter implementiert, um im Hintergrund geräuschlos auf Handles zugreifen zu können, ohne Dialoge zu forcieren.
+  - Es wurde die Methode "autoSave()" in NativeFileAdapter implementiert, um im Hintergrund gerï¿½uschlos auf Handles zugreifen zu kï¿½nnen, ohne Dialoge zu forcieren.
 
 [2026-04-13] Bugfix: ReactiveRuntime Maximum Call Stack (Proxy-Loop) Behebung
 - Betroffene Dateien: src/runtime/ReactiveProperty.ts
@@ -438,7 +450,7 @@ UC-2026-04-10-TRichText-Component: Komponente TRichText hinzugefuegt mit wysiwyg
 - Dateien: 
   - src/components/TStringMap.ts (116-140)
   - src/runtime/actions/handlers/MiscActions.ts (209-242)
-- Beschreibung: Flow-Action \load_theme_map\ implementiert. Kopierfunktion füllt die Map interativ und feuert TStringMap-Proxy Setters, wodurch das automatische Reactive Rendering von Properties wie \StageBackground\ ausgelöst wird.
+- Beschreibung: Flow-Action \load_theme_map\ implementiert. Kopierfunktion fï¿½llt die Map interativ und feuert TStringMap-Proxy Setters, wodurch das automatische Reactive Rendering von Properties wie \StageBackground\ ausgelï¿½st wird.
 
 - Stage kopieren (In-Project): public/editor/menu_bar.json (Z. 93), src/editor/EditorStageManager.ts (Methode: duplicateStage, Z. 383)
 
@@ -472,3 +484,32 @@ Nutzen: Ausblenden von Blueprint-Komponenten lst nun sofort Autosave via Redux-D
 [Editor] Projekt speichern (Native Path Fix)
 Dateien: src/editor/services/EditorDataManager.ts (Zeilen 84-407)
 Nutzen: Behebt das Problem, dass in Electron (durch NativeFileAdapter) absolute Pfade faelschlicherweise mit projects/ praefixiert wurden, was beim Speichern und Laden zu Error ENOENT (ungueltiger Verzeichnispfad projects/C:/) gefuehrt hat.
+
+[Datum: 2026-04-14]
+Task: Electron Input & Saving Fix
+Dateien: electron/main.cjs, src/editor/services/EditorDataManager.ts
+Methoden: createWindow, saveProjectToFile
+
+[Datum: 2026-04-14]
+Task: Inspector Flow Editor Input Fix
+Dateien: src/editor/FlowEditor.ts, src/editor/services/EditorKeyboardManager.ts, src/editor/services/StageInteractionManager.ts
+Methoden: handleKeyDown, Keyboard Shortcuts
+
+
+[Datum: 2026-04-16]
+Task: Stage Import Select All Toggle
+Dateien: src/editor/Editor.ts
+Methoden: showStageSelectionDialog
+
+
+[Datum: 2026-04-16]
+Task: Stage Import Runtime Cache Fix
+Dateien: src/editor/Editor.ts
+Methoden: importStageFromFile
+
+
+[Datum: 2026-04-16]
+Task: Dialog Z-Index Fix
+Dateien: src/editor/ui/ConfirmDialog.ts, src/editor/ui/PromptDialog.ts, src/editor/ui/NotificationToast.ts
+Methoden: show
+

@@ -6,6 +6,9 @@ import { projectObjectRegistry } from '../services/registry/ObjectRegistry';
 import { coreStore } from '../services/registry/CoreStore';
 import { componentRegistry } from '../services/ComponentRegistry';
 import { Logger } from '../utils/Logger';
+import { ConfirmDialog } from './ui/ConfirmDialog';
+import { PromptDialog } from './ui/PromptDialog';
+import { NotificationToast } from './ui/NotificationToast';
 
 const logger = Logger.get('EditorStageManager');
 
@@ -335,29 +338,29 @@ export class EditorStageManager {
         }
     }
 
-    public deleteCurrentStage(): void {
+    public async deleteCurrentStage(): Promise<void> {
         const activeStage = this.getActiveStage();
         if (!activeStage) return;
 
         if (activeStage.type === 'main' || activeStage.type === 'blueprint') {
-            alert('Die Main- und Blueprint-Stage können nicht gelöscht werden.');
+            NotificationToast.show('Die Main- und Blueprint-Stage können nicht gelöscht werden.', 'warning');
             return;
         }
 
-        if (confirm(`Möchten Sie die Stage "${activeStage.name}" wirklich löschen?`)) {
+        if (await ConfirmDialog.show(`Möchten Sie die Stage "${activeStage.name}" wirklich löschen?`)) {
             this.removeStage(activeStage.id);
         }
     }
 
-    public createStageFromTemplate(): void {
+    public async createStageFromTemplate(): Promise<void> {
         const templates = this.project.stages?.filter(s => s.type === 'blueprint' || s.type === 'template') || [];
         if (templates.length === 0) {
-            alert('Keine Templates vorhanden.');
+            NotificationToast.show('Keine Templates vorhanden.', 'warning');
             return;
         }
 
         const templateNames = templates.map((t, i) => `${i + 1}: ${t.name}`).join('\n');
-        const input = prompt(`Aus welchem Template soll eine Stage erstellt werden?\n${templateNames}`);
+        const input = await PromptDialog.show(`Aus welchem Template soll eine Stage erstellt werden?\n${templateNames}`);
         if (!input) return;
 
         const idx = parseInt(input) - 1;
@@ -376,7 +379,7 @@ export class EditorStageManager {
         if (!activeStage) return;
 
         activeStage.type = 'blueprint';
-        alert(`Stage "${activeStage.name}" ist nun ein Template / Blueprint.`);
+        NotificationToast.show(`Stage "${activeStage.name}" ist nun ein Template / Blueprint.`, 'success');
         this.onRefresh();
     }
 

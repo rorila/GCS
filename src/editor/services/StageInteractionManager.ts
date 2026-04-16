@@ -685,7 +685,10 @@ export class StageInteractionManager {
     private handleKeyDown(e: KeyboardEvent) {
         if (this.host.runMode) return;
         // Guard: Ctrl-Shortcuts nicht abfangen wenn Input/Textarea/Select fokussiert ist
-        const activeEl = document.activeElement as HTMLElement | null;
+        let activeEl = document.activeElement as HTMLElement | null;
+        if (activeEl?.shadowRoot?.activeElement) {
+            activeEl = activeEl.shadowRoot.activeElement as HTMLElement;
+        }
         const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT' || activeEl.isContentEditable);
 
         if (e.ctrlKey && e.key === 'a' && !isInputFocused) {
@@ -709,8 +712,11 @@ export class StageInteractionManager {
 
         // Nudge with Arrow Keys
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) && this.host.selectedIds.size > 0) {
-            const activeEl = document.activeElement as HTMLElement | null;
-            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
+            let active = document.activeElement as HTMLElement | null;
+            if (active?.shadowRoot?.activeElement) {
+                active = active.shadowRoot.activeElement as HTMLElement;
+            }
+            if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable)) {
                 return;
             }
 

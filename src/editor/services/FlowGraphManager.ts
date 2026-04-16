@@ -19,6 +19,8 @@ import { RefactoringManager } from '../RefactoringManager';
 
 import { mediatorService } from '../../services/MediatorService';
 import { Logger } from '../../utils/Logger';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { PromptDialog } from '../ui/PromptDialog';
 
 const logger = Logger.get('FlowGraphManager');
 
@@ -60,7 +62,7 @@ export class FlowGraphManager {
         this.host = host;
     }
 
-    public createNode(type: string, x: number, y: number, initialName?: string): FlowElement | null {
+    public async createNode(type: string, x: number, y: number, initialName?: string): Promise<FlowElement | null> {
         FlowGraphManager.logger.info(`createNode: type=${type}, x=${x}, y=${y}, initialName=${initialName}`);
         let node: FlowElement;
         const id = 'node-' + Date.now();
@@ -102,7 +104,7 @@ export class FlowGraphManager {
             case 'task': {
                 let taskName = initialName;
                 if (!taskName) {
-                    taskName = prompt("Name für den neuen Task:", this.host.generateUniqueTaskName("ANewTask")) || undefined;
+                    taskName = await PromptDialog.show("Name für den neuen Task:", this.host.generateUniqueTaskName("ANewTask")) || undefined;
                 }
                 if (!taskName) return null;
 
@@ -189,16 +191,16 @@ export class FlowGraphManager {
         return node;
     }
 
-    public deleteNode(node: FlowElement) {
+    public async deleteNode(node: FlowElement) {
         const nodeName = node.Name || node.name;
         const isInternal = node.data?.isEmbeddedInternal;
 
         if (isInternal) {
-            if (!confirm('Dieser Knoten ist intern eingebettet. Möchtest du ihn wirklich aus dieser Ansicht entfernen?')) {
+            if (!await ConfirmDialog.show('Dieser Knoten ist intern eingebettet. Möchtest du ihn wirklich aus dieser Ansicht entfernen?')) {
                 return;
             }
         } else {
-            if (!confirm(`Möchtest du den Knoten "${nodeName}" wirklich löschen?`)) {
+            if (!await ConfirmDialog.show(`Möchtest du den Knoten "${nodeName}" wirklich löschen?`)) {
                 return;
             }
         }
@@ -221,7 +223,7 @@ export class FlowGraphManager {
 
         // Check if the definition should also be removed
         if (nodeName && nodeName !== 'Action' && nodeName !== 'Task' && nodeName !== 'Variable') {
-            setTimeout(() => {
+            setTimeout(async () => {
                 const refs = projectReferenceTracker.findReferences(nodeName);
                 if (refs.length === 0) {
                     const isGenericName = /^Action\d*$/.test(nodeName) || /^Aktion\d*$/.test(nodeName) ||
@@ -234,7 +236,7 @@ export class FlowGraphManager {
                         else if (nodeType === 'VariableDecl') this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
                         else this.deleteElementFromProject('action', nodeName, undefined, true);
                     } else {
-                        if (confirm(`Das Element "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll die Definition auch Global aus dem Projekt gelöscht werden?`)) {
+                        if (await ConfirmDialog.show(`Das Element "${nodeName}" wird nun nirgendwo mehr verwendet.\nSoll die Definition auch Global aus dem Projekt gelöscht werden?`)) {
                             if (nodeType === 'task') this.deleteElementFromProject('task', nodeName, undefined, true);
                             else if (nodeType === 'VariableDecl') this.deleteElementFromProject('Variable' as any, nodeName, undefined, true);
                             else this.deleteElementFromProject('action', nodeName, undefined, true);

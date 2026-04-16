@@ -1,6 +1,7 @@
 import { GameProject } from '../model/types';
 import { gzipSync, zipSync } from 'fflate';
 import { Logger } from '../utils/Logger';
+import { NotificationToast } from '../editor/ui/NotificationToast';
 
 const logger = Logger.get('GameExporter', 'Export_System');
 
@@ -204,7 +205,7 @@ export class GameExporter {
         a.click();
         document.body.removeChild(a);
 
-        alert(`Server-Bundle exportiert: ${projectName}_server_bundle.zip\n\nEnthält Dockerfile und fly.toml für das Deployment.`);
+        NotificationToast.show(`Server-Bundle exportiert: ${projectName}_server_bundle.zip\n\nEnthält Dockerfile und fly.toml für das Deployment.`);
     }
 
     private generateServerJS(): string {
@@ -685,7 +686,7 @@ ${projectJSON}
                 if (!targetPath) return; // User canceled
                 
                 await (window as any).electronFS.writeFile(targetPath, content);
-                alert(`Export erfolgreich!\n\nDatei: ${targetPath}`);
+                NotificationToast.show(`Export erfolgreich!\n\nDatei: ${targetPath}`);
                 return;
             } catch (err) {
                 logger.warn('Electron FS failed, falling back:', err);
@@ -705,7 +706,7 @@ ${projectJSON}
                 const writable = await handle.createWritable();
                 await writable.write(content);
                 await writable.close();
-                alert(`Game exported successfully!\n\nFile: ${handle.name}\n\nOpen it in any browser to play.`);
+                NotificationToast.show(`Game exported successfully!\n\nFile: ${handle.name}\n\nOpen it in any browser to play.`);
                 return;
             } catch (err: any) {
                 if (err.name === 'AbortError') return;
@@ -723,6 +724,6 @@ ${projectJSON}
         document.body.appendChild(a);
         a.click();
         setTimeout(() => document.body.removeChild(a), 2000);
-        alert(`Game exported to Downloads folder.\n\nFile: ${filename}`);
+        NotificationToast.show(`Game exported to Downloads folder.\n\nFile: ${filename}`);
     }
 }

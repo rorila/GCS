@@ -12,6 +12,7 @@ import { mediatorService } from '../../services/MediatorService';
 import { DebugLogService } from '../../services/DebugLogService';
 import { Logger } from '../../utils/Logger';
 import { safeDeepCopy } from '../../utils/DeepCopy';
+import { NotificationToast } from '../ui/NotificationToast';
 
 const logger = Logger.get('Editor', 'RunManager');
 
@@ -165,7 +166,7 @@ export class EditorRunManager {
                     this.runtime.start();
                 } catch(e) {
                     logger.error(`[RUN-FATAL] Crash during runtime start:`, e);
-                    alert("Fatal error during Run-Mode start! Check Console for details.");
+                    NotificationToast.show("Fatal error during Run-Mode start! Check Console for details.");
                 }
             }
             this.editor.render();

@@ -17,6 +17,14 @@ export class EditorKeyboardManager {
 
     public initKeyboardShortcuts() {
         window.addEventListener('keydown', (e) => {
+            let active = document.activeElement as HTMLElement | null;
+            if (active?.shadowRoot?.activeElement) {
+                active = active.shadowRoot.activeElement as HTMLElement;
+            }
+            const isInputFocused = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable);
+
+            if (isInputFocused) return;
+
             // Undo: Ctrl+Z
             if (e.ctrlKey && e.key === 'z') {
                 e.preventDefault();

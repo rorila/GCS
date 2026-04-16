@@ -16,7 +16,7 @@ export interface FlowInteractionHost {
     onObjectSelect?: (obj: FlowElement | null) => void;
     onNodesChanged?: (nodes: FlowElement[]) => void;
 
-    createNode(type: string, x: number, y: number, initialName?: string): FlowElement | null;
+    createNode(type: string, x: number, y: number, initialName?: string): Promise<FlowElement | null>;
     deleteNode(node: FlowElement): void;
     deleteConnection(conn: FlowConnection): void;
     syncToProject(): void;

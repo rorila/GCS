@@ -3,6 +3,8 @@ import { RefactoringManager } from '../RefactoringManager';
 import { mediatorService } from '../../services/MediatorService';
 import { FlowNamingService } from './FlowNamingService';
 import { Logger } from '../../utils/Logger';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { NotificationToast } from '../ui/NotificationToast';
 
 export interface FlowTaskHost {
     project: GameProject | null;
@@ -14,7 +16,7 @@ export interface FlowTaskHost {
     getTaskDefinitionByName(name: string): any | null;
     updateFlowSelector(): void;
     switchActionFlow(context: string, addToHistory?: boolean, skipSync?: boolean): void;
-    createNode(type: string, x: number, y: number, initialName?: string): any;
+    createNode(type: string, x: number, y: number, initialName?: string): Promise<any>;
     syncManager: any;
     nodes: any[];
 }
@@ -84,13 +86,13 @@ export class FlowTaskManager {
         return activeStage.flowCharts;
     }
 
-    public deleteCurrentTaskFlow() {
+    public async deleteCurrentTaskFlow() {
         if (!this.host.project || this.host.currentFlowContext === 'global') {
-            alert('Cannot delete the Main Flow (Global).');
+            NotificationToast.show('Cannot delete the Main Flow (Global).', 'warning');
             return;
         }
 
-        if (!confirm(`Are you sure you want to delete Task "${this.host.currentFlowContext}" and its flow?`)) {
+        if (!await ConfirmDialog.show(`Are you sure you want to delete Task "${this.host.currentFlowContext}" and its flow?`)) {
             return;
         }
 

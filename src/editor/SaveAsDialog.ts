@@ -3,6 +3,8 @@
  * Zeigt vorhandene Projektordner und erlaubt Ordner-/Dateiname-Auswahl.
  */
 import { Logger } from '../utils/Logger';
+import { NotificationToast } from './ui/NotificationToast';
+import { PromptDialog } from './ui/PromptDialog';
 
 const logger = Logger.get('SaveAsDialog');
 
@@ -75,8 +77,8 @@ export class SaveAsDialog {
             const newFolderBtn = document.createElement('button');
             newFolderBtn.innerText = '+ Neu';
             newFolderBtn.style.cssText = 'padding:8px 12px; background:#6c63ff; color:#fff; border:none; border-radius:6px; font-size:12px; cursor:pointer; white-space:nowrap;';
-            newFolderBtn.onclick = () => {
-                const name = prompt('Neuen Ordnernamen eingeben:');
+            newFolderBtn.onclick = async () => {
+                const name = await PromptDialog.show('Neuen Ordnernamen eingeben:');
                 if (name && name.trim()) {
                     const safeName = name.trim().replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').replace(/\s+/g, '_');
                     if (safeName) {
@@ -178,11 +180,11 @@ export class SaveAsDialog {
             saveBtn.onclick = () => {
                 const filename = filenameInput.value.trim();
                 if (!filename) {
-                    alert('Bitte einen Dateinamen eingeben.');
+                    NotificationToast.show('Bitte einen Dateinamen eingeben.');
                     return;
                 }
                 if (!selectedFolder) {
-                    alert('Bitte einen Ordner wählen.');
+                    NotificationToast.show('Bitte einen Ordner wählen.');
                     return;
                 }
                 overlay.remove();

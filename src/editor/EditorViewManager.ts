@@ -13,6 +13,8 @@ import { Stage } from './Stage';
 import { MediatorEvents } from '../services/MediatorService';
 import { JSONTreeViewer } from './JSONTreeViewer';
 import { GameExporter } from '../export/GameExporter';
+import { NotificationToast } from './ui/NotificationToast';
+import { ConfirmDialog } from './ui/ConfirmDialog';
 
 const logger = Logger.get('EditorViewManager');
 
@@ -742,7 +744,7 @@ export class EditorViewManager {
                     copyBtn.style.borderColor = '#444';
                 }, 2000);
             } catch (e) {
-                alert('Fehler beim Kopieren: ' + e);
+                NotificationToast.show('Fehler beim Kopieren: ' + e);
             }
         };
         btnRow.appendChild(copyBtn);
@@ -805,10 +807,10 @@ export class EditorViewManager {
         };
 
         // --- Laden-Button Handler ---
-        loadBtn.onclick = () => {
+        loadBtn.onclick = async () => {
             if (!parsedProject) return;
             const name = parsedProject.name || 'Unbenannt';
-            if (!confirm(`Achtung: Das aktuelle Projekt wird durch "${name}" ersetzt.\n\nFortfahren?`)) return;
+            if (!await ConfirmDialog.show(`Achtung: Das aktuelle Projekt wird durch "${name}" ersetzt.\n\nFortfahren?`)) return;
 
             try {
                 (this.host as any).loadProject(parsedProject);

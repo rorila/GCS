@@ -4,6 +4,7 @@ import { GROUP_COLORS } from '../../../components/TComponent';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
 import { mediatorService } from '../../../services/MediatorService';
 import { componentRegistry } from '../../../services/ComponentRegistry';
+import { NotificationToast } from '../../ui/NotificationToast';
 
 
 export class InspectorSectionRenderer {
@@ -618,7 +619,7 @@ export class InspectorSectionRenderer {
                             }
                         }
                         if (!imageBlob) {
-                            alert('Kein Bild in der Zwischenablage gefunden.');
+                            NotificationToast.show('Kein Bild in der Zwischenablage gefunden.');
                             return;
                         }
                         const reader = new FileReader();
@@ -631,7 +632,7 @@ export class InspectorSectionRenderer {
                         };
                         reader.readAsDataURL(imageBlob);
                     } catch (e: any) {
-                        alert('Fehler beim Lesen der Zwischenablage: ' + e.message);
+                        NotificationToast.show('Fehler beim Lesen der Zwischenablage: ' + e.message);
                     }
                 };
                 wrapper.appendChild(pasteBtn);

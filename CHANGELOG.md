@@ -1,6 +1,19 @@
+
+## 14.04.2026
+
+### Refactoring Electron Blocking Dialogs
+- **FIX**: (Electron) Behebung des Renderer-Hangs durch vollständigen Ersatz blockierender Dialoge (lert/confirm/prompt) durch non-blocking Promise-basierte HTML-Dialoge (NotificationToast, ConfirmDialog, PromptDialog) in allen Editor-Modulen (EditorMenuManager, EditorDataManager, InspectorActionHandler, DialogActionHandler, SaveAsDialog, GameExporter).
+- **FEATURE**: Alle Service-basierten Handler-Aufrufe, die jetzt asynchron ablaufen, wurden auf asynchrone Promise-Auflösung umgestellt.
+
+## [2026-04-14] - Inspector Input Action Fix
+### Fixed
+- **FlowEditor / StageInteractionManager / EditorKeyboardManager**: Ein Fehler wurde behoben, bei dem die globale TastenÃ¼berwachung (z. B. Entf, Backspace oder Nudging via Pfeiltasten) Inputs in Inspektor-Feldern oder ContentEditable-Bereichen blockierte oder ungewollt Flow-Knoten lÃ¶schte. Die PrÃ¼fung (`isInputFocused`) berÃ¼cksichtigt nun zunÃ¤chst korrekt Shadow-DOM-Elemente (falls verwendet) sowie `isContentEditable`-Tags darÃ¼ber hinaus konsequent Ã¼berall. So lÃ¤sst sich Text wieder fehlerfrei im Flow-Inspector bearbeiten, ohne dass Projekt-Elemente verschwinden oder Tastatureingaben vom System verschluckt werden.
+
 ## [2026-04-14] - Prevent Initial Render Saves
 ### Fixed
 - **EditorDataManager**: Ein Fehler wurde behoben, durch den unmittelbar nach dem Laden eines Projekts (\~1 Sekunde\) der Autosave-Z�hler bereits auf 1 sprang, ohne dass der Nutzer interagiert hatte. Dies passierte, da das initiale DOM-Rendering der Editor-B�hne k�nstliche \onPropertyChange\-Events triggert. Eine 2000-Millisekunden-Sperre im \updateProjectJSON()\ sorgt nun daf�r, dass Post-Load-Events nicht mehr den Festplatten-Stream ausl�sen und der Z�hler stabil auf 0 verbleibt.
+- **Fixed:** Electron text input block (by using win.setMenuBarVisibility(false) instead of removeMenu()).
+- **Fixed:** Saving path issue (sanitizes backslashes to resolve folders correctly on Windows).
 
 ## [2026-04-14] - Reset Autosave Counter on Project Load
 ### Fixed
@@ -12,7 +25,8 @@
 
 ## [2026-04-14] - Fix Autosave Indicator UI Rendering Bug
 ### Fixed
-- **MenuBar**: Es wurde bemerkt, dass der neu eingef�hrte AutoSave-Z�hler in der Statusleiste nach dem initialen Laden des Projekts verschwand. Ursache war, dass der \utosaveWrapper\ im initialen Constructor injiziert wurde, jedoch bei der Ausf�hrung der dynamischen Men�-\ender()\ Methode nicht erneut in den DOM-Baum gehangen wurde und somit vom Garbage-Collector entfernt wurde. Dies wurde korrigiert. Der Z�hler bleibt nun permanent erhalten und leuchtet bei Speichervorg�ngen.
+- **MenuBar**: Es wurde bemerkt, dass der neu eingef�hrte AutoSave-Z�hler in der Statusleiste nach dem initialen Laden des Projekts verschwand. Ursache war, dass der \utosaveWrapper\ im initialen Constructor injiziert wurde, jedoch bei der Ausf�hrung der dynamischen Men�-\
+ender()\ Methode nicht erneut in den DOM-Baum gehangen wurde und somit vom Garbage-Collector entfernt wurde. Dies wurde korrigiert. Der Z�hler bleibt nun permanent erhalten und leuchtet bei Speichervorg�ngen.
 
 ## [2026-04-14] - Fix Hardcoded Project Filename Display
 ### Fixed
@@ -1176,31 +1190,31 @@
 - CleanCode: 24 verbleibende \console.*\-Aufrufe in erfolgskritischen Modulen durch \Logger\ ersetzt (StageRenderer, GameRuntime, GameLoopManager, ReactiveRuntime, ExpressionParser, StandardActions).
 - Performance: \console.table\ in \StageRenderer\ durch verschachtelten Logger-Call ausgetauscht.
 
-[ f i x ]   S e r i a l i z a t i o n :   A d d e d   T V i r t u a l G a m e p a d   c l a s s   t o   h y d r a t e O b j e c t s   t o   p r e v e n t   d a t a   l o s s   i n   i f r a m e   r u n n e r   e x p o r t  
- [ f e a t u r e ]   V i r t u a l G a m e p a d :   I m p l e m e n t e d   d u a l - s t i c k   m u l t i p l a y e r   s u p p o r t   ( a u t o - d e t e c t i n g   b o t h   W A S D   a n d   A r r o w s )  
- 
+[fix] Serialization: Added TVirtualGamepad class to hydrateObjects to prevent data loss in iframe runner export
+[feature] VirtualGamepad: Implemented dual-stick multiplayer support (auto-detecting both WASD and Arrows)
+
 
 ## 08.04.2026
 
 ### Bug Fixes / Architecture
 - **DeepCopy (Run Mode):** Problem behoben, dass safeDeepCopy() beim Starten des Run-Modus Getter/Setter-Eigenschaften (z. B. ackgroundImage des Ufos) ignoriert hat, wodurch Sprites falsch (rote Blï¿½cke) gerendert wurden. safeDeepCopy nutzt nun .toDTO(), falls vorhanden, um sicherzustellen, dass die geklonten Objekte alle Inspektions-Eigenschaften beinhalten.
--  
- * * T S t r i n g M a p  
- i n  
- V a r i a b l e P i c k e r D i a l o g * * :  
- D i e  
- K e y s  
- e i n e r  
- T S t r i n g M a p  
- w e r d e n  
- n u n  
- i m  
- V a r i a b l e P i c k e r D i a l o g  
- k o r r e k t  
- z u r  
- A u s w a h l  
- a n g e b o t e n .  
- 
+-
+**TStringMap
+in
+VariablePickerDialog**:
+Die
+Keys
+einer
+TStringMap
+werden
+nun
+im
+VariablePickerDialog
+korrekt
+zur
+Auswahl
+angeboten.
+
 - **TStringMap RunMode Fix**: TypeError beim Starten des Run-Modus behoben (GameRuntime versuchte readonly value zu Ã¼berschreiben).
 
 [UC-2026-04-10-TRichText-Fixes] TRichText in ComponentRegistry registriert, damit sie im Run-Mode nicht verschwindet. Standard-Werte für 'color' und 'fontSize' injiziert, um Editor/Run-Größenunterschiede zu fixen.
@@ -1222,11 +1236,10 @@
 
 - **FEATURE**: Stage Background Context Menu. Ein verstecktes Kontextmen fr Stages hinzugefgt, welches erlaubt ausgeblendete globale Blueprint-Komponenten (excludeBlueprint) wieder einzeln einzublenden.
 
-- **BUGFIX**: Behebung eines \Maximum call stack size exceeded\-Fehlers im \ReferenceTracker\. Ein \Set\ zur Verfolgung bereits besuchter Objekte verhindert nun infinite Rekursionen bei circulren Referenzen innerhalb des Projekts.
+- **BUGFIX**: Behebung eines Maximum call stack size exceeded-Fehlers im ReferenceTracker. Ein Set zur Verfolgung bereits besuchter Objekte verhindert nun infinite Rekursionen bei circulren Referenzen innerhalb des Projekts.
 
 - **BUGFIX**: Behebung diverser TypeScript Compiler-Fehler in EditorInteractionManager, GameExporter, MiscActions und ExpressionParser.
 
-- **BUGFIX**: Das Blueprint-Contextmen ignoriert nun gelschte/verwaiste Objekt-IDs (Datenleichen) aus der Blueprint-Stage und bereinigt die \excludedBlueprintIds\-Liste der aktiven Stage automatisch beim Rendern des Mens. Globale Blueprint-Variablen werden nun im Men korrekt namentlich aufgelistet.
 
 - **FEATURE**: Die Action \call_method\ (Methode aufrufen) nutzt nun Dropdown-Auswahlfelder f�r Ziel-Komponente und Methoden. Die auflistbaren Methoden werden live dynamisch anhand der ermittelten Typ- und Objektinformationen der Ziel-Komponente geladen.
 
@@ -1243,3 +1256,5 @@
 
 - **Fix:** (Runtime) Blueprint-Exclusions wurden im Standalone-Player durch die MainStage-Fallback-Logik ueberschrieben. Der Filter in getMergedStageData greift nun ganz am Ende der Verarbeitungkette.
 
+- **FIX**: (Electron) Behebung des Renderer-Hangs durch vollstndigen Ersatz blockierender Dialoge (alert/confirm/prompt) durch non-blocking Promise-basierte HTML-Dialoge in allen Editor-Modulen.
+\n## 16.04.2026\n### Stage Import Refactoring & Electron Runtime Fix\n- **UI/UX**: Checkboxen im Stage-Import Dialog sind nun standardm��ig deaktiviert, um den Import einzelner Stages zu beschleunigen. Zuz�glich wurde ein 'Alle / Keine'-Toggle hinzugef�gt.\n- **Z-Index Layering**: Alle Promise-basierten Dialoge (ConfirmDialog, PromptDialog, NotificationToast) wurden mit extrem hohen z-index Werten (99999+) versehen, um zu verhindern, dass sie hinter anderen UI-Elementen (wie dem Verwaltungs-Dialog) verschwinden.\n- **Electron Cache Invalidation**: Nach dem Importieren von Stages wird nun explizit \projectStore.setProject(this.project)\ getriggert, sodass die IFrame-Runtime den aktualisierten GameState �ber den MediatorService (\injectedProject\) synchronisiert bekommt. Dies behebt den Fehler, dass neue Stages im Run-Modus nicht auffindbar waren.\n- **E2E Tests Fixed**: Fehlerhafter DOM-Locator im E2E Test \3_ActionRenaming.spec.ts\ auf die neuen \NotificationToast\-Klassen migriert, da \window.alert\ nicht mehr verwendet wird.\n
