@@ -14,8 +14,8 @@ export interface EditorInteractionHost {
 
     addObject(type: string, x: number, y: number): void;
     removeObject(id: string): void;
-    removeObjectWithConfirm(id: string): void;
-    removeMultipleObjectsWithConfirm(ids: string[]): void;
+    removeObjectWithConfirm(id: string): void | Promise<void>;
+    removeMultipleObjectsWithConfirm(ids: string[]): void | Promise<void>;
     selectObject(id: string | null): void;
     findObjectById(id: string): any;
     render(): void;

@@ -1,4 +1,15 @@
 
+## 16.04.2026
+
+### Fix: Letzte native confirm()-Aufrufe in Editor.ts ersetzt
+- **FIX**: (Electron) Die 4 verbliebenen nativen `confirm()`-Aufrufe in `Editor.ts` (`removeObjectWithConfirm`, `removeMultipleObjectsWithConfirm`) wurden auf `await ConfirmDialog.show()` umgestellt. Diese blocking Dialoge waren der letzte bekannte Trigger für den Electron-Fokus-Bug, der nach dem Löschen von Objekten die Eingabefelder im Inspector unbedienbar machte.
+- **REFACTOR**: Beide Methoden sind jetzt `async` (Rückgabetyp `Promise<void>`). Das Interface `EditorInteractionHost` wurde entsprechend auf `void | Promise<void>` aktualisiert.
+
+### Fix: Dialog-Fokus-Lifecycle (Root Cause)
+- **FIX**: (Electron/Browser) `ConfirmDialog` und `PromptDialog` haben beim Schließen den Fokus nicht auf das vorher aktive Element zurückgegeben. Nach `overlay.remove()` landete `document.activeElement` auf `<body>` — in Electron führte das dazu, dass Inspector-Inputs danach keinen Fokus mehr annehmen konnten. Beide Dialoge speichern jetzt `document.activeElement` beim Öffnen und rufen `.focus()` beim Schließen auf dem gespeicherten Element auf.
+- **FIX**: `StageInteractionManager.handleKeyDown()` — Die Delete-Taste hat bei fokussierten Input-Feldern trotzdem Objekte gelöscht, weil die `isInputFocused`-Guard fehlte.
+- **DATEIEN**: `src/editor/ui/ConfirmDialog.ts`, `src/editor/ui/PromptDialog.ts`, `src/editor/services/StageInteractionManager.ts` (Z.705).
+
 ## 14.04.2026
 
 ### Refactoring Electron Blocking Dialogs

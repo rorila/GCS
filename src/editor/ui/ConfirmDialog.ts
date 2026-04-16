@@ -23,6 +23,8 @@ export class ConfirmDialog {
         cancelLabel: string = 'Abbrechen'
     ): Promise<boolean> {
         return new Promise((resolve) => {
+            // Fokus-Zustand VOR dem Dialog merken
+            const previouslyFocused = document.activeElement as HTMLElement | null;
             const overlay = ConfirmDialog.createOverlay();
 
             const dialog = document.createElement('div');
@@ -58,6 +60,10 @@ export class ConfirmDialog {
             const close = (result: boolean) => {
                 overlay.remove();
                 document.removeEventListener('keydown', keyHandler);
+                // Fokus sauber auf das vorherige Element zurückgeben
+                if (previouslyFocused && typeof previouslyFocused.focus === 'function' && document.body.contains(previouslyFocused)) {
+                    previouslyFocused.focus();
+                }
                 resolve(result);
             };
 

@@ -35,6 +35,11 @@
       "max.png",
       "wiebke.png"
     ],
+    "GameToolbox": [
+      "Icon GameToolbox 512.ico",
+      "Icon GameToolbox.png",
+      "Logo GameToolbox.png"
+    ],
     "Luftballons": [
       "LuftBallonUebersicht_1.png"
     ],

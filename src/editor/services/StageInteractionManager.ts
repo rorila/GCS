@@ -702,7 +702,7 @@ export class StageInteractionManager {
         if (e.ctrlKey && e.key === 'c' && !isInputFocused && this.host.selectedIds.size > 0) { e.preventDefault(); this.copySelection(); }
         if (e.ctrlKey && e.key === 'v' && !isInputFocused) { e.preventDefault(); this.pasteSelection(); }
         if (e.key === 'Escape' && this.isPlacing) this.cancelPlacing();
-        if (e.key === 'Delete' && this.host.selectedIds.size > 0) {
+        if (e.key === 'Delete' && this.host.selectedIds.size > 0 && !isInputFocused) {
             e.preventDefault();
             const ids = Array.from(this.host.selectedIds);
             if (this.host.onEvent) this.host.onEvent('', 'deleteMultiple', ids);

@@ -528,3 +528,13 @@ Methoden: show
 
 ### Context Menu Overflows
 - Files modified: \src/editor/ui/ContextMenu.ts\`n- Fix: Applied max-height: 60vh and overflow-y: auto to all globally rendered context-menus and sub-menus to allow scrolling over large Action/Task lists.
+
+### Electron confirm()-Migration (Fokus-Bug Fix)
+- **Dateien:** src/editor/Editor.ts (removeObjectWithConfirm Z.299, removeMultipleObjectsWithConfirm Z.354), src/editor/services/EditorInteractionManager.ts (EditorInteractionHost Interface Z.17-18)
+- **Methoden:** Editor.removeObjectWithConfirm(), Editor.removeMultipleObjectsWithConfirm()
+- **Beschreibung:** Letzte 4 verbliebene native confirm()-Aufrufe durch await ConfirmDialog.show() ersetzt. Beide Methoden auf async umgestellt. Interface-Signaturen auf void | Promise<void> aktualisiert. Behebt den Electron-Fokus-Bug, der nach dem Loeschen von Objekten die Inspector-Eingabefelder unbedienbar machte.
+
+### Dialog Fokus-Lifecycle Fix (Electron Input-Bug Root Cause)
+- **Dateien:** src/editor/ui/ConfirmDialog.ts (close() Z.60-68), src/editor/ui/PromptDialog.ts (close() Z.72-80), src/editor/services/StageInteractionManager.ts (handleKeyDown() Z.705)
+- **Methoden:** ConfirmDialog.show() close-Callback, PromptDialog.show() close-Callback, StageInteractionManager.handleKeyDown()
+- **Beschreibung:** Root Cause des Electron-Fokus-Bugs: Nach overlay.remove() landete document.activeElement auf body statt auf dem vorher fokussierten Element. Beide Dialoge speichern jetzt previouslyFocused und rufen focus() bei close() auf. Zusaetzlich: Delete-Taste in StageInteractionManager hat isInputFocused-Guard erhalten, die fehlte.

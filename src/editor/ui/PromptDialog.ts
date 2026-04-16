@@ -22,6 +22,8 @@ export class PromptDialog {
         title: string = 'Eingabe'
     ): Promise<string | null> {
         return new Promise((resolve) => {
+            // Fokus-Zustand VOR dem Dialog merken
+            const previouslyFocused = document.activeElement as HTMLElement | null;
             const overlay = PromptDialog.createOverlay();
 
             const dialog = document.createElement('div');
@@ -70,6 +72,10 @@ export class PromptDialog {
             const close = (result: string | null) => {
                 overlay.remove();
                 document.removeEventListener('keydown', keyHandler);
+                // Fokus sauber auf das vorherige Element zurückgeben
+                if (previouslyFocused && typeof previouslyFocused.focus === 'function' && document.body.contains(previouslyFocused)) {
+                    previouslyFocused.focus();
+                }
                 resolve(result);
             };
 

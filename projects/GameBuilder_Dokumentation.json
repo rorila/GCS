@@ -270,8 +270,8 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "isGlobal": true,
           "description": "System internal flag to track unsaved changes"
         }
@@ -26030,5 +26030,5 @@
       "flowCharts": {}
     }
   ],
-  "activeStageId": "komp_table"
+  "activeStageId": "main"
 }

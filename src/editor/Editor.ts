@@ -296,7 +296,7 @@ export class Editor implements IViewHost {
     public removeObjectSilent(id: string) { this.commandManager.removeObjectSilent(id); }
     public selectObject(id: string | null, focus?: boolean) { this.commandManager.selectObject(id, focus); }
 
-    public removeObjectWithConfirm(id: string) {
+    public async removeObjectWithConfirm(id: string) {
         const obj = this.findObjectById(id);
         if (!obj) {
             this.removeObject(id);
@@ -320,7 +320,7 @@ export class Editor implements IViewHost {
         if (report && report.totalCount > 0) {
             const locations = report.locations.map(l => `- ${l.name} (${l.details})`).join('\n');
             const msg = `"${obj.name}" wird an ${report.totalCount} Stellen verwendet:\n\n${locations}${inheritedWarning}\n\nMöchtest du das Element und alle Referenzen wirklich löschen?`;
-            if (confirm(msg)) {
+            if (await ConfirmDialog.show(msg, 'Löschen bestätigen', 'Löschen', 'Abbrechen')) {
                 // If the object is a FlowElement, use silent deletion to prevent double prompt
                 const flowManager = (this.flowEditor as any)?.graphManager;
                 const nodes = flowManager?.host?.nodes;
@@ -335,7 +335,7 @@ export class Editor implements IViewHost {
                 this.removeObject(id);
             }
         } else {
-            if (confirm(`Möchtest du "${obj.name}" wirklich löschen?${inheritedWarning}`)) {
+            if (await ConfirmDialog.show(`Möchtest du "${obj.name}" wirklich löschen?${inheritedWarning}`, 'Löschen bestätigen', 'Löschen', 'Abbrechen')) {
                 const flowManager = (this.flowEditor as any)?.graphManager;
                 const nodes = flowManager?.host?.nodes;
 
@@ -351,7 +351,7 @@ export class Editor implements IViewHost {
         }
     }
 
-    public removeMultipleObjectsWithConfirm(ids: string[]) {
+    public async removeMultipleObjectsWithConfirm(ids: string[]) {
         if (!ids || ids.length === 0) return;
         if (ids.length === 1) {
             this.removeObjectWithConfirm(ids[0]);
@@ -385,11 +385,11 @@ export class Editor implements IViewHost {
         if (totalReferences > 0) {
             const locations = allLocations.slice(0, 10).join('\n') + (allLocations.length > 10 ? '\n... und weitere' : '');
             const msg = `${objects.length} Elemente werden gelöscht. Es wurden ${totalReferences} Referenzen gefunden:\n\n${locations}\n\nMöchtest du alle Elemente und deren Referenzen wirklich löschen?`;
-            if (confirm(msg)) {
+            if (await ConfirmDialog.show(msg, 'Mehrfach-Löschen bestätigen', 'Alle löschen', 'Abbrechen')) {
                 this.removeMultipleObjects(ids);
             }
         } else {
-            if (confirm(`Möchtest du die ${objects.length} markierten Elemente wirklich löschen?`)) {
+            if (await ConfirmDialog.show(`Möchtest du die ${objects.length} markierten Elemente wirklich löschen?`, 'Mehrfach-Löschen bestätigen', 'Alle löschen', 'Abbrechen')) {
                 this.removeMultipleObjects(ids);
             }
         }
