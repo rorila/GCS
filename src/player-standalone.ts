@@ -164,6 +164,9 @@ class UniversalPlayer implements StageHost {
             // Use embedded project (Standalone HTML Export - plain JSON)
             logger.info('[UniversalPlayer] Loading embedded project');
             this.startProject((window as any).PROJECT);
+        } else if ((window as any).WAIT_FOR_PROJECT) {
+            // IFrame Runner explicitly waiting for postMessage
+            logger.info('[UniversalPlayer] Waiting for PROJECT via postMessage, skipping fallback fetch...');
         } else {
             // Default: Show Platform UI
             logger.info('[UniversalPlayer] No game selected, loading platform UI...');

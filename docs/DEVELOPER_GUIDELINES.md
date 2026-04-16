@@ -23,3 +23,6 @@ NIEMALS win.removeMenu() am BrowserWindow auf Windows aufrufen. Das bricht die n
 ### DO NOT: String.lastIndexOf mit Backslashes
 NIEMALS .substring(0, filepath.lastIndexOf('/')) verwenden, ohne vorher ilepath.replace(/\\/g, '/') auszufÃ¼hren, da Dateipfade auf Windows Backslashes enthalten kÃ¶nnen und so der korrekte Ordnersuch-Index -1 wird!
 \n### Testing & Playwright\n- **DO NOT** use \page.on('dialog')\ or expect native alerts (\window.alert\) in E2E tests, as the application uses custom HTML-based \NotificationToast\ and \ConfirmDialog\. Focus DOM element locators like \.notification-toast\ instead.
+
+### Electron IFrame IPC Race Condition
+- **Achtung bei IFrame Run-Mode**: iframe-runner.html erwartet Projekt-Daten über postMessage. Der integrierte UniversalPlayer lädt als Fallback standardmäßig das project.json via Fetch-API, falls window.PROJECT undefiniert ist. In gesicherten Umgebungen wie Electron (contextIsolation, no frameElement access) führt der Fallback dazu, dass VOR dem Eintreffen der postMessage eine veraltete JSON-Version geladen und gerendert wird. Um dies zu verhindern, wurde das Flag window.WAIT_FOR_PROJECT = true im Runner-HTML integriert.

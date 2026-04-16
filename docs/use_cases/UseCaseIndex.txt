@@ -513,3 +513,12 @@ Task: Dialog Z-Index Fix
 Dateien: src/editor/ui/ConfirmDialog.ts, src/editor/ui/PromptDialog.ts, src/editor/ui/NotificationToast.ts
 Methoden: show
 
+
+
+## Bugfix: Electron IFrame - Import Stage Persistence
+- **Dateien:** public/iframe-runner.html, src/player-standalone.ts 
+- **Methoden:** UniversalPlayer.init, <script> inline 
+- **Beschreibung:** Synchronisations-Fix (Race-Condition) durch Setzen eines WAIT_FOR_PROJECT Flags. Verhindert, dass der ältere Local-Cache über Fallback-Fetch geladen wird, bevor die neue Projektstruktur über postMessage den IFrame erreicht.
+
+### Stage Import Serialization
+- Files modified: \src/editor/EditorStageManager.ts\, \src/services/ComponentRegistry.ts\`n- Fix: Switched loop to hydrateObjects() and forced ComponentRegistry.createInstance to use registered className instead of ESBuild minified constructor.name.

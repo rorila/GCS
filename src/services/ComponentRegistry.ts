@@ -284,6 +284,10 @@ export class ComponentRegistry {
             ComponentRegistry.logger.info(`Hydriere "${name}" (Typ: ${className})`);
             const instance = new Constructor(name, x, y);
 
+            // IMPORTANT: explicitly set className using the resolved registry mapping
+            // to prevent minification issues (like $t) from sticking to the instance.
+            (instance as any).className = className;
+
             // Daten übernehmen
             if (typeof data === 'object') {
                 Object.keys(data).forEach(key => {

@@ -146,7 +146,7 @@
           "droppable": false,
           "dragMode": "move",
           "events": {
-            "onClick": "ShowPrevStage"
+            "onClick": "ShowNextPage"
           },
           "visible": true,
           "x": 53,
@@ -455,8 +455,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         },
         {
@@ -576,7 +576,7 @@
               "droppable": false,
               "dragMode": "move",
               "events": {
-                "onClick": "ShowPrevStage"
+                "onClick": "ShowDescriptionStage"
               },
               "visible": true,
               "x": 2,
@@ -613,7 +613,7 @@
               "droppable": false,
               "dragMode": "move",
               "events": {
-                "onClick": "ShowNextPage"
+                "onClick": "ShowReactivSystemStage"
               },
               "visible": true,
               "x": 2,
@@ -639,6 +639,80 @@
                 "boxShadow": 1
               },
               "text": "${Directory.GoToReactiveSystemStory}",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "d2e459f5-a6b1-4946-abf7-da1dc228ae00",
+              "name": "Btn_ReactivSystem_2",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "GoToBlaBla"
+              },
+              "visible": true,
+              "x": 2,
+              "y": 10,
+              "width": 14,
+              "height": 3,
+              "zIndex": 1,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "${MainThemes.ButtonBackground}",
+                "borderColor": "#000000",
+                "borderWidth": 1,
+                "borderRadius": 25,
+                "glowColor": "#4b4444",
+                "glowBlur": 1,
+                "glowSpread": 1,
+                "boxShadow": 1
+              },
+              "text": "${Directory.GoToBlaBla}",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "e3e2bb2d-55d8-435a-93b6-71105246180f",
+              "name": "Btn_ReactivSystem_3",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "GoToMathildr"
+              },
+              "visible": true,
+              "x": 2,
+              "y": 14,
+              "width": 14,
+              "height": 3,
+              "zIndex": 1,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "${MainThemes.ButtonBackground}",
+                "borderColor": "#000000",
+                "borderWidth": 1,
+                "borderRadius": 25,
+                "glowColor": "#4b4444",
+                "glowBlur": 1,
+                "glowSpread": 1,
+                "boxShadow": 1
+              },
+              "text": "${Directory.GoToMathildr}",
               "icon": ""
             }
           ]
@@ -709,8 +783,157 @@
           "gridStyle": "lines"
         }
       ],
-      "actions": [],
-      "tasks": [],
+      "actions": [
+        {
+          "id": "node-1776166697861",
+          "details": "",
+          "name": "SwitchToDescriptionStage",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage-1776084072545"
+        },
+        {
+          "id": "node-1776166847939",
+          "details": "",
+          "name": "SwitchToReactiveSystemPage",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage-1776084040446"
+        },
+        {
+          "id": "node-1776167552741",
+          "details": "",
+          "name": "SwitchToBlaBla",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage_7444093d-00f9-46a6-a25f-0a1473cb97f2"
+        },
+        {
+          "id": "node-1776167633800",
+          "details": "",
+          "name": "MathildrAction",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage-1775809344944"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "ShowDescriptionStage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SwitchToDescriptionStage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowDescriptionStage": {
+              "x": 40,
+              "y": 40
+            },
+            "SwitchToDescriptionStage": {
+              "x": 300,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowReactivSystemStage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SwitchToReactiveSystemPage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowReactivSystemStage": {
+              "x": 40,
+              "y": 40
+            },
+            "SwitchToReactiveSystemPage": {
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "GoToBlaBla",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "SwitchToBlaBla",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "GoToBlaBla": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "GoToMathildr",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "MathildrAction",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "GoToMathildr": {
+              "x": 40,
+              "y": 40
+            },
+            "MathildrAction": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "BlalBlub",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "MathildrAction",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BlalBlub": {
+              "x": 40,
+              "y": 40
+            },
+            "MathildrAction": {
+              "x": 220,
+              "y": 40
+            }
+          }
+        }
+      ],
       "variables": [
         {
           "className": "TStringMap",
@@ -723,8 +946,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 60,
-          "y": 1,
+          "x": 58,
+          "y": 9,
           "width": 4,
           "height": 2,
           "zIndex": 0,
@@ -736,8 +959,10 @@
             "borderWidth": 2
           },
           "entries": {
-            "GoToReactiveSystemStory": "Was ist ein reaktives System?",
-            "GoToGCS_Description": "Was kann die Applikation?"
+            "GoToBlaBla": "gehe zu BlaBla",
+            "GoToGCS_Description": "Was kann die Applikation?",
+            "GoToMathildr": "gehe zu Matildr app",
+            "GoToReactiveSystemStory": "Was ist ein reaktives System?"
           }
         }
       ],
@@ -762,7 +987,8 @@
         "onTouchStart",
         "onTouchMove",
         "onTouchEnd"
-      ]
+      ],
+      "flowCharts": {}
     },
     {
       "id": "stage-1776084072545",
@@ -918,7 +1144,8 @@
         "visible": true,
         "backgroundColor": "${MainThemes.StageBackground}"
       },
-      "excludedBlueprintIds": []
+      "excludedBlueprintIds": [],
+      "flowCharts": {}
     },
     {
       "id": "stage-1775809344944",
@@ -941,7 +1168,7 @@
     },
     {
       "id": "stage-1776001929371",
-      "name": "Layoutinperations",
+      "name": "Layoutvorlangen",
       "type": "standard",
       "objects": [
         {
@@ -954,7 +1181,7 @@
           "dragMode": "move",
           "visible": true,
           "x": 1,
-          "y": 0,
+          "y": 8,
           "width": 21,
           "height": 23,
           "zIndex": 0,
@@ -981,7 +1208,7 @@
           "dragMode": "move",
           "visible": true,
           "x": 23,
-          "y": 1,
+          "y": 8,
           "width": 20,
           "height": 21,
           "zIndex": 0,
@@ -1036,113 +1263,7 @@
         "backgroundColor": "#ffffff",
         "gridColor": "#b4cf95"
       }
-    },
-    {
-      "id": "stage-1776087447415",
-      "name": "Komponenten Templates",
-      "type": "standard",
-      "objects": [
-        {
-          "className": "TButton",
-          "id": "obj_1776087526378_s1lk5lj5y",
-          "name": "Btn_GoToDirectory",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 2,
-          "y": 15,
-          "width": 12,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "backgroundColor": "${MainThemes.ButtonBackground}",
-            "borderColor": "#000000",
-            "borderWidth": 1,
-            "borderRadius": 25
-          },
-          "text": "${StringMap_BluePrintStage.BackToDirectory}",
-          "icon": ""
-        },
-        {
-          "className": "TPanel",
-          "id": "obj_1776087555699_0p3bng1dz",
-          "name": "Panel_7",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 9,
-          "y": 20,
-          "width": 5,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "${MainThemes.PanelBackground}",
-            "borderColor": "#999999",
-            "borderWidth": 1,
-            "borderRadius": 25
-          },
-          "caption": "",
-          "showGrid": false,
-          "gridColor": "#000000",
-          "gridStyle": "lines"
-        },
-        {
-          "className": "TLabel",
-          "id": "obj_1776102705727_svml7plhy",
-          "name": "Label_13",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 2,
-          "y": 7,
-          "width": 8,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#000000",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "normal",
-            "fontStyle": "normal",
-            "textAlign": "left",
-            "backgroundColor": "transparent",
-            "borderColor": "transparent",
-            "borderWidth": 0
-          },
-          "text": "Templates: jetzt erst recht"
-        }
-      ],
-      "actions": [],
-      "tasks": [],
-      "variables": [],
-      "grid": {
-        "cols": 64,
-        "rows": 40,
-        "cellSize": 20,
-        "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#ffffff"
-      },
-      "description": "Enthält Kopiervorlagen",
-      "excludedBlueprintIds": [
-        "cb51847b-ccc5-4876-968e-57cd367d40c8"
-      ]
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "blueprint"
 }

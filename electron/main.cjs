@@ -18,7 +18,8 @@ function createWindow() {
     });
 
     win.maximize();
-    win.removeMenu(); // Remove default Electron menu for a cleaner UI
+    win.setMenuBarVisibility(false); // Hide menu but keep accelerators intact
+    win.setAutoHideMenuBar(true);
 
     if (isDev) {
         win.loadURL('http://localhost:5173');
@@ -138,6 +139,14 @@ ipcMain.handle('fs:showOpenDialog', async (event, options) => {
         return chosen; // Gebe den absoluten Pfad der ausgewählten Datei zurück
     }
     return null;
+});
+
+ipcMain.handle('fs:allowPath', async (event, pathToAllow) => {
+    if (security && pathToAllow) {
+        security.addAllowedPath(pathToAllow);
+        return true;
+    }
+    return false;
 });
 
 ipcMain.handle('fs:showSaveDialog', async (event, options) => {

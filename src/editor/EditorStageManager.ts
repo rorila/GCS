@@ -4,11 +4,12 @@ import { TObjectList } from '../components/TObjectList';
 import { mediatorService } from '../services/MediatorService';
 import { projectObjectRegistry } from '../services/registry/ObjectRegistry';
 import { coreStore } from '../services/registry/CoreStore';
-import { componentRegistry } from '../services/ComponentRegistry';
+
 import { Logger } from '../utils/Logger';
 import { ConfirmDialog } from './ui/ConfirmDialog';
 import { PromptDialog } from './ui/PromptDialog';
 import { NotificationToast } from './ui/NotificationToast';
+import { hydrateObjects } from '../utils/Serialization';
 
 const logger = Logger.get('EditorStageManager');
 
@@ -411,16 +412,10 @@ export class EditorStageManager {
         // Objekte in korrekte Instanzen konvertieren (Re-Hydration),
         // damit Inspector-Properties (.getProperties) nicht fehlschlagen
         if (clonedStage.objects) {
-            clonedStage.objects = clonedStage.objects.map(obj => {
-                const instance = componentRegistry.createInstance(obj);
-                return (instance as any) || obj;
-            });
+            clonedStage.objects = hydrateObjects(clonedStage.objects);
         }
         if (clonedStage.variables) {
-            clonedStage.variables = clonedStage.variables.map(variable => {
-                const instance = componentRegistry.createInstance(variable);
-                return (instance as any) || variable;
-            });
+            clonedStage.variables = hydrateObjects(clonedStage.variables) as any[];
         }
 
         // Tasks und Actions identifizieren sich rein über den Namen,
@@ -489,16 +484,10 @@ export class EditorStageManager {
 
         // Re-Hydration der JSON-Objekte zu echten Klassen-Instanzen
         if (clonedStage.objects) {
-            clonedStage.objects = clonedStage.objects.map(obj => {
-                const instance = componentRegistry.createInstance(obj);
-                return (instance as any) || obj;
-            });
+            clonedStage.objects = hydrateObjects(clonedStage.objects);
         }
         if (clonedStage.variables) {
-            clonedStage.variables = clonedStage.variables.map(variable => {
-                const instance = componentRegistry.createInstance(variable);
-                return (instance as any) || variable;
-            });
+            clonedStage.variables = hydrateObjects(clonedStage.variables) as any[];
         }
 
         // 3. Blueprint-Abhängigkeiten auflösen

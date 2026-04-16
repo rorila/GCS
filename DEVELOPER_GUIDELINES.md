@@ -326,3 +326,10 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 - **CRITICAL:** Der IFrame-Player (\Run (IFrame)\ Tab) lädt jedoch IMMER die kompilierte statische \public/runtime-standalone.js\. Wenn du Funktionalität in der Kern-Runtime anpasst, MUSS anschließend IMMER \
 pm run bundle:runtime\ ausgeführt werden, damit deine Code-Fixes auch im IFrame wirksam werden!
 
+
+### Keydown Events and Active Elements
+- **DO**: Use a robust check for document.activeElement before intercepting global keyboard events (like Delete or Backspace or Undo shortcuts). ALWAYS account for isContentEditable and variables that may be inside a shadowRoot.
+- **DON'T**: Blindly intercept shortcuts without checking if the user is typing in an input field (e.g. INPUT, TEXTAREA, SELECT, isContentEditable), otherwise users cannot rename or input settings in the Inspector.
+
+
+- **DO NOT**: Verwenden Sie in Editor-Services NIEMALS native lert(), confirm() oder prompt(). In Electron frieren diese Aufrufe teilweise den Renderer-Thread und den Keyboard-Focus (Cursor-Blinken/Tasteneingaben werden ignoriert) unwiederbringlich ein. Nutzen Sie stattdessen immer die asynchronen HTML-Entsprechungen NotificationToast, ConfirmDialog und PromptDialog.

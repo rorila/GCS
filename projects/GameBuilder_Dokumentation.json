@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "author": "GCS-Team",
     "description": "Interaktive Dokumentation für Schüler der 5. Klasse",
-    "_sourcePath": "projects/GameBuilder_Dokumentation.json"
+    "_sourcePath": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/projects/GameBuilder_Dokumentation.json"
   },
   "stage": {
     "grid": {
@@ -1386,7 +1386,16 @@
         "visible": false,
         "backgroundColor": "#0d1117"
       },
-      "flowCharts": {}
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
     },
     {
       "id": "kap_02_erstes_projekt",
@@ -14763,7 +14772,16 @@
         "visible": false,
         "backgroundColor": "#0d1117"
       },
-      "flowCharts": {}
+      "flowCharts": {},
+      "_supportedEvents": [
+        "onClick",
+        "onDragStart",
+        "onDragEnd",
+        "onDrop",
+        "onTouchStart",
+        "onTouchMove",
+        "onTouchEnd"
+      ]
     },
     {
       "id": "komp_timer",
@@ -25998,5 +26016,5 @@
       "flowCharts": {}
     }
   ],
-  "activeStageId": "kap_01_uebersicht"
+  "activeStageId": "komp_table"
 }

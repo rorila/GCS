@@ -94,7 +94,9 @@
             const overlay = document.getElementById('iframe-loading-overlay');
             if (overlay) overlay.style.display = 'none';
         } else {
-            console.warn('[IFrame Runner] DIAG: window.frameElement oder _injectedProject fehlt! frameElement=', window.frameElement);
+            console.warn('[IFrame Runner] DIAG: window.frameElement oder _injectedProject fehlt! Warte auf postMessage.');
+            // Prevent standalone player from doing a fallback fetch which would overwrite the postMessage data!
+            window.WAIT_FOR_PROJECT = true; 
         }
     </script>
     <!-- Lade den Standalone Controller dynamisch mit Cache-Busting -->

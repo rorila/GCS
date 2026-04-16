@@ -7,5 +7,6 @@ contextBridge.exposeInMainWorld('electronFS', {
     listFiles: (dirPath, extension) => ipcRenderer.invoke('fs:listFiles', dirPath, extension),
     showOpenDialog: (options) => ipcRenderer.invoke('fs:showOpenDialog', options),
     showSaveDialog: (options) => ipcRenderer.invoke('fs:showSaveDialog', options),
+    allowPath: (filePath) => ipcRenderer.invoke('fs:allowPath', filePath),
     getAppPath: () => ipcRenderer.invoke('fs:getAppPath')
 });

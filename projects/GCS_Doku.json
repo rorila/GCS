@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "author": "Rolf",
     "description": "",
-    "_sourcePath": "projects/C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/projects/project_GCS_Doku.json"
+    "_sourcePath": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/projects/project_GCS_Doku.json"
   },
   "stage": {
     "grid": {
@@ -86,7 +86,7 @@
           "x": 2,
           "y": 2,
           "width": 12,
-          "height": 2,
+          "height": 3,
           "zIndex": 1,
           "align": "NONE",
           "style": {
@@ -781,64 +781,6 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines"
-        },
-        {
-          "className": "TButton",
-          "id": "obj_1776168534915_tyludt8tj",
-          "name": "Button_15",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 23,
-          "y": 14,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1
-          },
-          "text": "Button_15",
-          "icon": ""
-        },
-        {
-          "className": "TButton",
-          "id": "obj_1776168735923_0eu33spwi",
-          "name": "Button_16",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 23,
-          "y": 18,
-          "width": 6,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "backgroundColor": "#007bff",
-            "borderColor": "#000000",
-            "borderWidth": 1
-          },
-          "text": "Button_16",
-          "icon": ""
         }
       ],
       "actions": [
@@ -869,7 +811,7 @@
         {
           "id": "node-1776167633800",
           "details": "",
-          "name": "action",
+          "name": "MathildrAction",
           "showDetails": false,
           "type": "navigate_stage",
           "stageId": "stage-1775809344944"
@@ -950,7 +892,7 @@
           "description": "",
           "actionSequence": [
             {
-              "name": "action",
+              "name": "MathildrAction",
               "type": "action",
               "layout": "horizontal"
             }
@@ -962,8 +904,31 @@
               "x": 40,
               "y": 40
             },
-            "action": {
+            "MathildrAction": {
               "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "BlalBlub",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "MathildrAction",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "BlalBlub": {
+              "x": 40,
+              "y": 40
+            },
+            "MathildrAction": {
+              "x": 220,
               "y": 40
             }
           }
@@ -981,8 +946,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 60,
-          "y": 1,
+          "x": 58,
+          "y": 9,
           "width": 4,
           "height": 2,
           "zIndex": 0,
@@ -994,10 +959,10 @@
             "borderWidth": 2
           },
           "entries": {
-            "GoToGCS_Description": "Was kann die Applikation?",
-            "GoToReactiveSystemStory": "Was ist ein reaktives System?",
             "GoToBlaBla": "gehe zu BlaBla",
-            "GoToMathildr": "gehe zu Matildr"
+            "GoToGCS_Description": "Was kann die Applikation?",
+            "GoToMathildr": "gehe zu Matildr app",
+            "GoToReactiveSystemStory": "Was ist ein reaktives System?"
           }
         }
       ],
@@ -1179,7 +1144,8 @@
         "visible": true,
         "backgroundColor": "${MainThemes.StageBackground}"
       },
-      "excludedBlueprintIds": []
+      "excludedBlueprintIds": [],
+      "flowCharts": {}
     },
     {
       "id": "stage-1775809344944",
@@ -1202,7 +1168,7 @@
     },
     {
       "id": "stage-1776001929371",
-      "name": "Layoutinperations",
+      "name": "Layoutvorlangen",
       "type": "standard",
       "objects": [
         {
@@ -1215,7 +1181,7 @@
           "dragMode": "move",
           "visible": true,
           "x": 1,
-          "y": 0,
+          "y": 8,
           "width": 21,
           "height": 23,
           "zIndex": 0,
@@ -1242,7 +1208,7 @@
           "dragMode": "move",
           "visible": true,
           "x": 23,
-          "y": 1,
+          "y": 8,
           "width": 20,
           "height": 21,
           "zIndex": 0,
@@ -1299,60 +1265,86 @@
       }
     },
     {
-      "id": "stage-1776087447415",
-      "name": "Komponenten Templates",
+      "id": "stage_import_1776332740117_mb",
+      "name": "Projekt-Aufbau",
       "type": "standard",
       "objects": [
         {
-          "className": "TButton",
-          "id": "obj_1776087526378_s1lk5lj5y",
-          "name": "Btn_GoToDirectory",
-          "scope": "stage",
+          "className": "TLabel",
+          "id": "obj_import_1776332740117_g08a",
+          "name": "K3Title",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 21,
+          "y": 2,
+          "width": 24,
+          "height": 3,
+          "zIndex": 1,
+          "align": "NONE",
+          "style": {
+            "color": "#4ec9b0",
+            "fontSize": 28,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "🏗️ So ist ein Projekt aufgebaut"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1776332740117_w9ok",
+          "name": "K3Intro",
+          "scope": "global",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
           "x": 2,
-          "y": 15,
-          "width": 12,
-          "height": 2,
+          "y": 7,
+          "width": 56,
+          "height": 1,
           "zIndex": 0,
           "align": "NONE",
           "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "bold",
+            "color": "#d4d4d4",
+            "fontSize": 15,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "normal",
             "fontStyle": "normal",
-            "textAlign": "center",
-            "backgroundColor": "${MainThemes.ButtonBackground}",
-            "borderColor": "#000000",
-            "borderWidth": 1,
-            "borderRadius": 25
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
           },
-          "text": "${StringMap_BluePrintStage.BackToDirectory}",
-          "icon": ""
+          "text": "Ein Projekt hat eine klare Ordnung:"
         },
         {
           "className": "TPanel",
-          "id": "obj_1776087555699_0p3bng1dz",
-          "name": "Panel_7",
-          "scope": "stage",
+          "id": "obj_import_1776332740117_vohj",
+          "name": "K3L1",
+          "scope": "global",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 9,
-          "y": 20,
-          "width": 5,
-          "height": 2,
+          "x": 4,
+          "y": 10,
+          "width": 58,
+          "height": 3,
           "zIndex": 0,
           "align": "NONE",
           "style": {
-            "backgroundColor": "${MainThemes.PanelBackground}",
-            "borderColor": "#999999",
+            "backgroundColor": "rgba(233,30,99,0.15)",
+            "borderColor": "#e91e63",
             "borderWidth": 1,
-            "borderRadius": 25
+            "borderRadius": "12px"
           },
           "caption": "",
           "showGrid": false,
@@ -1361,23 +1353,23 @@
         },
         {
           "className": "TLabel",
-          "id": "obj_1776102705727_svml7plhy",
-          "name": "Label_13",
-          "scope": "stage",
+          "id": "obj_import_1776332740117_jxgq",
+          "name": "K3T1",
+          "scope": "global",
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 2,
-          "y": 7,
-          "width": 8,
+          "x": 5,
+          "y": 10,
+          "width": 56,
           "height": 2,
           "zIndex": 0,
           "align": "NONE",
           "style": {
-            "color": "#000000",
-            "fontSize": 14,
-            "fontFamily": "Arial",
+            "color": "#d4d4d4",
+            "fontSize": 15,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
             "fontWeight": "normal",
             "fontStyle": "normal",
             "textAlign": "left",
@@ -1385,7 +1377,225 @@
             "borderColor": "transparent",
             "borderWidth": 0
           },
-          "text": "Templates: jetzt erst recht"
+          "text": "📦 PROJEKT (ganz oben) – Der große Karton mit allem drin."
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_import_1776332740117_vmb7",
+          "name": "K3L2",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 8,
+          "y": 14,
+          "width": 54,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": "12px"
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1776332740117_060w",
+          "name": "K3T2",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 9,
+          "y": 14,
+          "width": 52,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#d4d4d4",
+            "fontSize": 15,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "🖥️ STAGE (ein Bildschirm) – Startmenü, Spielfeld, Game-Over."
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_import_1776332740117_gkq0",
+          "name": "K3L3",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 12,
+          "y": 18,
+          "width": 50,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(76,175,80,0.15)",
+            "borderColor": "#4caf50",
+            "borderWidth": 1,
+            "borderRadius": "12px"
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1776332740117_a5bj",
+          "name": "K3T3",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 13,
+          "y": 18,
+          "width": 48,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#d4d4d4",
+            "fontSize": 15,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "📋 TASK (eine Aufgabe) – \"Wenn Start geklickt → starte Spiel\""
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_import_1776332740117_eopr",
+          "name": "K3L4",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 16,
+          "y": 22,
+          "width": 46,
+          "height": 3,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(255,152,0,0.15)",
+            "borderColor": "#ff9800",
+            "borderWidth": 1,
+            "borderRadius": "12px"
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1776332740117_ryrx",
+          "name": "K3T4",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 16,
+          "y": 22,
+          "width": 44,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#d4d4d4",
+            "fontSize": 15,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "⚡ ACTION (ein Schritt) – \"Setze Punkte auf 0\""
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1776332740117_10n5",
+          "name": "K3BP",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 27,
+          "width": 56,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#dcdcaa",
+            "fontSize": 20,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "🔷 Die Blueprint-Stage"
+        },
+        {
+          "className": "TLabel",
+          "id": "obj_import_1776332740117_xgi5",
+          "name": "K3BPT",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 4,
+          "y": 29,
+          "width": 56,
+          "height": 5,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#d4d4d4",
+            "fontSize": 15,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Alles in der Blueprint-Stage gilt ÜBERALL!\n• Globale Variablen (Punkte, Leben)\n• Globale Tasks und Actions\n• Wie ein Grundriss für dein Spiel"
         }
       ],
       "actions": [],
@@ -1396,14 +1606,11 @@
         "rows": 40,
         "cellSize": 20,
         "snapToGrid": true,
-        "visible": true,
-        "backgroundColor": "#ffffff"
+        "visible": false,
+        "backgroundColor": "#0d1117"
       },
-      "description": "Enthält Kopiervorlagen",
-      "excludedBlueprintIds": [
-        "cb51847b-ccc5-4876-968e-57cd367d40c8"
-      ]
+      "flowCharts": {}
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "stage_import_1776332740117_mb"
 }
