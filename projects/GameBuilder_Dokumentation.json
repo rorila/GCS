@@ -270,8 +270,8 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "isGlobal": true,
           "description": "System internal flag to track unsaved changes"
         }
@@ -14762,7 +14762,21 @@
         }
       ],
       "actions": [],
-      "tasks": [],
+      "tasks": [
+        {
+          "name": "ANewTask",
+          "description": "",
+          "actionSequence": [],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ANewTask": {
+              "x": 400,
+              "y": 200
+            }
+          }
+        }
+      ],
       "variables": [],
       "grid": {
         "cols": 64,

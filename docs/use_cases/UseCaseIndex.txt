@@ -522,3 +522,9 @@ Methoden: show
 
 ### Stage Import Serialization
 - Files modified: \src/editor/EditorStageManager.ts\, \src/services/ComponentRegistry.ts\`n- Fix: Switched loop to hydrateObjects() and forced ComponentRegistry.createInstance to use registered className instead of ESBuild minified constructor.name.
+
+### Menu Dropdown Overflows
+- Files modified: \src/editor/MenuBar.ts\`n- Fix: Added max-height: 80vh and overflow-y: auto to the dynamic dropdown menu creation routine to support scrolling on very large stage lists.
+
+### Context Menu Overflows
+- Files modified: \src/editor/ui/ContextMenu.ts\`n- Fix: Applied max-height: 60vh and overflow-y: auto to all globally rendered context-menus and sub-menus to allow scrolling over large Action/Task lists.

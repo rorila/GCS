@@ -25,6 +25,8 @@ export class ContextMenu {
             z-index: 10000;
             display: none;
             min-width: 150px;
+            max-height: 60vh;
+            overflow-y: auto;
             font-family: 'Segoe UI', sans-serif;
             font-size: 13px;
             color: #cccccc;
@@ -153,14 +155,14 @@ export class ContextMenu {
     private openSubmenu(container: HTMLElement, parentItem: HTMLElement, items: ContextMenuItem[]) {
         const submenu = document.createElement('div');
         submenu.style.cssText = `
-            position: absolute;
+            position: fixed;
             background: #252526;
             border: 1px solid #454545;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             padding: 4px 0;
             z-index: 10001;
             min-width: 150px;
-            max-height: 400px;
+            max-height: 60vh;
             overflow-y: auto;
         `;
         // Simple z-index increment based on parent
@@ -168,13 +170,34 @@ export class ContextMenu {
         submenu.style.zIndex = (parentZ + 1).toString();
 
         this.renderItems(submenu, items);
+        
+        // Append to body to avoid overflow clipping from parent container
+        document.body.appendChild(submenu);
 
+        // Calculate position relative to parentItem
         const rect = parentItem.getBoundingClientRect();
-        submenu.style.left = `${rect.width}px`;
-        submenu.style.top = `0px`;
+        const winW = window.innerWidth;
+        const winH = window.innerHeight;
 
-        parentItem.style.position = 'relative';
-        parentItem.appendChild(submenu);
+        // Must measure actual bounds after DOM insertion
+        const subRect = submenu.getBoundingClientRect();
+
+        let left = rect.right;
+        let top = rect.top;
+
+        // Horizontal boundary check (flip left if no space)
+        if (left + subRect.width > winW) {
+            left = rect.left - subRect.width;
+        }
+
+        // Vertical boundary check (shift up if no space)
+        if (top + subRect.height > winH) {
+            top = winH - subRect.height;
+            if (top < 0) top = 0; // fallback in case it's taller than screen
+        }
+
+        submenu.style.left = `${left}px`;
+        submenu.style.top = `${top}px`;
 
         // Register
         this.activeChildMap.set(container, { submenu, parentItem });

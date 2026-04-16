@@ -252,6 +252,8 @@ export class MenuBar {
             border-radius: 4px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             min-width: 180px;
+            max-height: 80vh;
+            overflow-y: auto;
             z-index: 10000;
             padding: 4px 0;
         `;
