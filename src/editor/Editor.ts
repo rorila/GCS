@@ -716,7 +716,7 @@ export class Editor implements IViewHost {
 
             if (update.propertyName.toLowerCase() === 'name' && update.oldValue && update.oldValue !== update.newValue) {
                 Editor.logger.info(`Name geändert: ${update.oldValue} -> ${update.newValue}. Starte Refactoring...`);
-                this.renameObjectWithRefactoring(update.object.id, update.newValue, update.oldValue);
+                this.renameObjectWithRefactoring(update.object.id || update.oldValue, update.newValue, update.oldValue);
             }
             this.autoSaveToLocalStorage(); // ARC-FIX: Persist property changes to disk!
 

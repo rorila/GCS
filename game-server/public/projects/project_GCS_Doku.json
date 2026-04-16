@@ -194,7 +194,102 @@
           "caption": "",
           "showGrid": false,
           "gridColor": "#000000",
-          "gridStyle": "lines"
+          "gridStyle": "lines",
+          "children": [
+            {
+              "className": "TButton",
+              "id": "obj_1776361932032_dabo7itl5",
+              "name": "Button_24",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "ShowPreferences"
+              },
+              "visible": true,
+              "x": 14,
+              "y": 1,
+              "width": 6,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "#007bff",
+                "borderColor": "#000000",
+                "borderWidth": 1
+              },
+              "text": "Dialog zeigen",
+              "icon": ""
+            }
+          ]
+        },
+        {
+          "className": "TDialogRoot",
+          "id": "obj_1776361638188_pi19hun40",
+          "name": "DialogRoot_23",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 32,
+          "y": 21,
+          "width": 20,
+          "height": 15,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(26, 26, 46, 0.98)",
+            "borderColor": "#4fc3f7",
+            "borderWidth": 2
+          },
+          "title": "Einstellungen",
+          "modal": true,
+          "closable": true,
+          "draggableAtRuntime": true,
+          "centerOnShow": true,
+          "slideDirection": "left",
+          "onShowTask": "",
+          "onCloseTask": "",
+          "onCancelTask": "",
+          "children": [
+            {
+              "className": "TButton",
+              "id": "obj_1776361645707_gh4jrrqcg",
+              "name": "Button_24",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 3,
+              "y": 5,
+              "width": 6,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "#007bff",
+                "borderColor": "#000000",
+                "borderWidth": 1
+              },
+              "text": "Button_24",
+              "icon": ""
+            }
+          ]
         }
       ],
       "actions": [
@@ -244,6 +339,14 @@
           "type": "call_method",
           "target": "StageController",
           "method": "nextStage"
+        },
+        {
+          "id": "node-1776362833350",
+          "details": "",
+          "name": "switchDialog",
+          "showDetails": false,
+          "type": "toggle_dialog",
+          "target": "DialogRoot_23"
         }
       ],
       "tasks": [
@@ -370,15 +473,25 @@
           "uiScope": "global"
         },
         {
-          "name": "ANewTask",
+          "name": "ShowPreferences",
           "description": "",
-          "actionSequence": [],
+          "actionSequence": [
+            {
+              "name": "switchDialog",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
           "triggerMode": "local-sync",
           "params": [],
           "flowLayout": {
-            "ANewTask": {
-              "x": 400,
-              "y": 200
+            "ShowPreferences": {
+              "x": 40,
+              "y": 40
+            },
+            "switchDialog": {
+              "x": 260,
+              "y": 40
             }
           }
         }

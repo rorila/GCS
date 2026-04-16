@@ -37,7 +37,12 @@ esolveObjectPreview gibt ein geklontes Objekt zurÃ¼ck, anstatt das Argument zu
 - **Feature (TRichText)**: TRichText unterstÃƒÂ¼tzt nun Inline-Links (`<a>`), die visuell abgesetzt werden. Im Editor-Modus sind sie nicht navigierbar. Im Run-Modus routet das Anklicken von `stage:ID`-Links das native Runtime-Event `__SYSTEM_NAVIGATE__` an den `GameRuntime.handleEvent()` Handler. Dadurch verhalten sich Inline-Links identisch zur regulÃƒÂ¤ren Stage-Navigation via `NavigationActions`, wobei der Wechsel nahtlos vom `UniversalPlayer` (Standalone) oder `EditorRunManager` (Editor) ausgefÃƒÂ¼hrt wird.
 - **Bugfix (RichTextEditorDialog)**: Die Selektions-Auswahl (Range) ging beim Ãƒâ€“ffnen des Link-Modals verloren. Dies wurde behoben, indem wir die Selektion vor dem Ãƒâ€“ffnen speichern, den Fokus auf das Eingabefeld lenken, und beim SchlieÃƒÅ¸en des Modals die gesicherte Range vor dem AusfÃƒÂ¼hren des `document.execCommand('createLink')` reaktivieren.
 
-### 2026-04-08
+### 2026-04-16
+- **Bugfix (Inspector)**: Behebung eines Fehlers, bei dem sich Tasks im Flow-Editor bzw. Inspector nicht mehr umbenennen ließen. Da Tasks im Datenmodell keine UUID besitzen, schlug die ID-basierte Suche in `EditorCommandManager.renameObject` mit `undefined` fehl. Dies wurde korrigiert, indem auf den bisherigen Namen (oldValue) als Fallback-Identifikator zurückgegriffen wird (`update.object.id || update.oldValue`).
+- **Bugfix (Runtime Layer)**: TDialogRoot Slides/Animationen wurden zur Laufzeit nicht mehr ausgeführt, wenn die Eigenschaft *visible* per Action geändert wurde. Ursache: Die ReactiveRuntime delegierte das Update an das performante `StageRenderer.updateSingleObject()`, welches nur Hintergrund/Farben updatet. Für Dialog-Animationen und deren Kinder wurde nun ein Full-Render Fallback (in `GameRuntime.ts`) konfiguriert.
+
+
+
 - **Refactoring (GameRuntime)**: Aufteilung des 1140-Zeilen "God-Objects" `GameRuntime.ts` in modularere Services. Input-Logik in `GameRuntimeInput.ts` und Multiplayer-Logik in `GameRuntimeMultiplayer.ts` extrahiert.
 - **Refactoring (FlowSyncManager)**: Aufteilung des 1200-Zeilen Managers in `FlowDataParser.ts`, `FlowSequenceBuilder.ts` und `FlowRegistrySync.ts` inklusive Wrapper zur Wahrung der AbwÃƒÂ¤rtskompatibilitÃƒÂ¤t.
 - **Feature (Flow-Editor)**: EinfÃƒÂ¼hrung visueller Auto-Formatierung fÃƒÂ¼r horizontale Layouts. Verbindungen (z.B. von rechtem auf linken Anker) werden nicht mehr vertikal gezwungen, sondern als geometrisch horizontale Achse wiederhergestellt und exportiert/gespeichert.

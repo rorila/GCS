@@ -29,3 +29,6 @@ NIEMALS .substring(0, filepath.lastIndexOf('/')) verwenden, ohne vorher ilepath
 
 ### Electron IFrame IPC Race Condition
 - **Achtung bei IFrame Run-Mode**: iframe-runner.html erwartet Projekt-Daten �ber postMessage. Der integrierte UniversalPlayer l�dt als Fallback standardm��ig das project.json via Fetch-API, falls window.PROJECT undefiniert ist. In gesicherten Umgebungen wie Electron (contextIsolation, no frameElement access) f�hrt der Fallback dazu, dass VOR dem Eintreffen der postMessage eine veraltete JSON-Version geladen und gerendert wird. Um dies zu verhindern, wurde das Flag window.WAIT_FOR_PROJECT = true im Runner-HTML integriert.
+
+### Inspector & Object Identification
+- **DO NOT** assume every node or object has an id property. Specifically, Tasks and Actions might only have a 'name' or 'Name' property in the serialized data. Always use update.object.id || update.oldValue (oder identifiziere ueber .name) als Fallback, wenn Eigenschaftsaenderungen an Manger delegiert werden, wie z.B. EditorCommandManager.renameObject.

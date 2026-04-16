@@ -144,7 +144,8 @@ export class StageInteractionManager {
             
             const candidatePanels = this.host.lastRenderedObjects.filter(o => {
                 const clsName = o.className || o.constructor?.name || '';
-                if (clsName !== 'TGroupPanel') return false;
+                const isContainer = ['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel'].includes(clsName);
+                if (!isContainer) return false;
                 const pAbs = getAbsForDrop(o.id || o.name);
                 const pW = parseFloat(o.width) || 0;
                 const pH = parseFloat(o.height) || 0;
@@ -455,9 +456,11 @@ export class StageInteractionManager {
             this.dragElements.forEach((el, id) => {
                 el.style.transform = `translate(${dx}px, ${dy}px)`;
                 
-                // Kinder von TGroupPanel live mitbewegen
+                // Kinder der Container live mitbewegen
                 const obj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === id);
-                if (obj && (obj.className === 'TGroupPanel' || obj.constructor?.name === 'TGroupPanel')) {
+                if (obj) {
+                    const clsName = obj.className || obj.constructor?.name || '';
+                    if (['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel'].includes(clsName)) {
                     const findChildIds = (parentId: string): string[] => {
                         const ids: string[] = [];
                         for (const o of this.host.lastRenderedObjects) {
@@ -473,9 +476,10 @@ export class StageInteractionManager {
                         if (childEl) childEl.style.transform = `translate(${dx}px, ${dy}px)`;
                     }
                 }
-            })
+            }
+        });
 
-            if (this.dragStartTime > 0) {
+        if (this.dragStartTime > 0) {
                 this.currentDragPath.push({ x: e.clientX, y: e.clientY, t: Date.now() - this.dragStartTime });
             }
         }
@@ -589,7 +593,8 @@ export class StageInteractionManager {
                                 
                                 const droppingPanels = this.host.lastRenderedObjects.filter(o => {
                                     const clsName = o.className || o.constructor?.name || '';
-                                    if (clsName !== 'TGroupPanel') return false;
+                                    const isContainer = ['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel'].includes(clsName);
+                                    if (!isContainer) return false;
                                     if ((o.id || o.name) === id) return false; 
                                     
                                     // Zirkelbezüge verhindern

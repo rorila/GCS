@@ -275,10 +275,39 @@ export class StageRenderer {
                 el.style.left = '0px';
                 el.style.top = '0px';
                 
+                // Determine if this object is a dialog or child of a dialog
+                let parentDialog: any = null;
+                if (className === 'TDialogRoot') parentDialog = obj;
+                else if (obj.parentId) {
+                    let currId = obj.parentId;
+                    let sanity = 0;
+                    while (currId && sanity++ < 20) {
+                        const p = objects.find(o => (o.id || o.name) === currId);
+                        if (p && (p.className === 'TDialogRoot' || p.constructor?.name === 'TDialogRoot')) {
+                            parentDialog = p;
+                            break;
+                        }
+                        currId = p?.parentId;
+                    }
+                }
+
                 // Initiale Position als Translate (getrennt von Transform, neuester Web-Standard)
                 if (className === 'TVirtualGamepad') {
                     (el.style as any).translate = 'none';
+                } else if (parentDialog) {
+                    // Dialog-spezifische Transition einschalten
+                    el.style.transition = 'translate 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease';
+                    
+                    if (parentDialog.visible) {
+                        (el.style as any).translate = `${finalX}px ${finalY}px`;
+                        el.style.pointerEvents = 'auto';
+                    } else {
+                        const outOfBoundsOffset = parentDialog.slideDirection === 'left' ? -1500 : 1500;
+                        (el.style as any).translate = `${finalX + outOfBoundsOffset}px ${finalY}px`;
+                        el.style.pointerEvents = 'none';
+                    }
                 } else {
+                    el.style.transition = '';
                     (el.style as any).translate = `${finalX}px ${finalY}px`;
                 }
                 if (obj.style && obj.style.transform) {
@@ -333,7 +362,27 @@ export class StageRenderer {
                 el.style.display = obj.className === 'TRichText' ? 'block' : 'flex';
                 el.classList.add('invisible-object-in-editor');
             } else {
-                el.style.display = isVisible ? (obj.className === 'TRichText' ? 'block' : 'flex') : 'none';
+                let finalDisplay = isVisible ? (obj.className === 'TRichText' ? 'block' : 'flex') : 'none';
+                
+                // Wenn es in einem Dialog ist, darf es NICHT display: none haben, sonst läuft die Animation nicht!
+                if (this.host.runMode) {
+                    let isDialogChild = false;
+                    let currId = obj.parentId || (obj.className === 'TDialogRoot' ? obj.id : null);
+                    let sanity = 0;
+                    while (currId && sanity++ < 20) {
+                        const p = objects.find(o => (o.id || o.name) === currId);
+                        if (p && (p.className === 'TDialogRoot' || p.constructor?.name === 'TDialogRoot')) {
+                            isDialogChild = true;
+                            break;
+                        }
+                        currId = p?.parentId;
+                    }
+                    if (isDialogChild) {
+                        finalDisplay = obj.className === 'TRichText' ? 'block' : 'flex';
+                    }
+                }
+
+                el.style.display = finalDisplay;
                 el.classList.remove('invisible-object-in-editor');
             }
 

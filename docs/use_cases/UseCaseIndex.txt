@@ -546,3 +546,19 @@ Methoden: show
   - src/components/TDialogRoot.ts
   - src/runtime/actions/handlers/DialogActions.ts
   - src/runtime/actions/StandardActions.ts
+[2026-04-16] UC-2026-04-16-TaskRenaming
+- Beschreibung: Behebung des Bugs, dass Tasks im Inspector/Flow-Editor nicht umbenannt werden konnten, da update.object.id undefined ist. Nun wird als Fallback die alte Name-Eigenschaft in EditorCommandManager verwendet.
+- Dateien:
+  - src/editor/Editor.ts (Methode: onObjectUpdate, Zeilen ~719)
+  - src/editor/services/EditorCommandManager.ts (Methode: renameObject, Zeilen ~241)
+
+[2026-04-16] UC-2026-04-16-TaskRenaming
+- Beschreibung: Behebung des Bugs, dass Tasks im Inspector/Flow-Editor nicht umbenannt werden konnten, da update.object.id undefined ist. Nun wird als Fallback die alte Name-Eigenschaft in EditorCommandManager verwendet.
+- Dateien:
+  - src/editor/Editor.ts (Methode: onObjectUpdate, Zeilen ~719)
+  - src/editor/services/EditorCommandManager.ts (Methode: renameObject, Zeilen ~241)
+
+[2026-04-16] UC-2026-04-16-DialogVisibilityFix
+- Beschreibung: Behebung des Fehlers, dass TDialogRoot bei Sichtbarkeitswechsel im Run-Mode nicht animiert (Slide-In) wurde. Ursache war, dass der StageRenderer per updateSingleObject() nur display=flex setzte, aber zwingend ein Re-Render noetig ist um das CSS-Translate für Frame/Children korrekt anzusteuern.
+- Dateien:
+  - src/runtime/GameRuntime.ts (Zeilen ~173-178 - Full-Render erzwingen wenn obj ein TDialogRoot ist)
