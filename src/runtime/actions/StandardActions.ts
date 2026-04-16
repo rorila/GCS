@@ -6,6 +6,7 @@ import { registerNavigationActions } from './handlers/NavigationActions';
 import { registerHttpActions } from './handlers/HttpActions';
 import { registerObjectPoolActions } from './handlers/ObjectPoolActions';
 import { registerMiscActions } from './handlers/MiscActions';
+import { registerDialogActions } from './handlers/DialogActions';
 
 /**
  * REGISTRIERUNG ALLER STANDARD-AKTIONEN
@@ -22,4 +23,5 @@ export function registerStandardActions() {
     registerHttpActions();
     registerObjectPoolActions();
     registerMiscActions();
+    registerDialogActions();
 }

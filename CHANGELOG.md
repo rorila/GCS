@@ -1,6 +1,13 @@
 
 ## 16.04.2026
 
+### Feature: TDialogRoot Slide-Animation & Toggle Action
+- **FEATURE**: TDialogRoot hat nun ein Property slideDirection (left/right) und verwendet im Runtime-Modus CSS-Transitions für eine geschmeidige Slide-In-Animation.
+- **FEATURE**: Neue Runtime Action 	oggle_dialog (Modus: toggle, show, hide) entwickelt. Diese erlaubt es per Flow-Editor (z.B. durch Klick auf ein Toast-Icon), Dialoge animiert einfahren und ausblenden zu lassen.
+- **DATEIEN**: src/components/TDialogRoot.ts, src/runtime/actions/handlers/DialogActions.ts
+
+
+
 ### Fix: Letzte native confirm()-Aufrufe in Editor.ts ersetzt
 - **FIX**: (Electron) Die 4 verbliebenen nativen `confirm()`-Aufrufe in `Editor.ts` (`removeObjectWithConfirm`, `removeMultipleObjectsWithConfirm`) wurden auf `await ConfirmDialog.show()` umgestellt. Diese blocking Dialoge waren der letzte bekannte Trigger für den Electron-Fokus-Bug, der nach dem Löschen von Objekten die Eingabefelder im Inspector unbedienbar machte.
 - **REFACTOR**: Beide Methoden sind jetzt `async` (Rückgabetyp `Promise<void>`). Das Interface `EditorInteractionHost` wurde entsprechend auf `void | Promise<void>` aktualisiert.

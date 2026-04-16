@@ -1,4 +1,4 @@
-﻿import { TWindow } from './TWindow';
+import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -20,6 +20,7 @@ export class TDialogRoot extends TWindow {
     public closable: boolean = true;       // Show close button?
     public draggableAtRuntime: boolean = true;  // Draggable at runtime?
     public centerOnShow: boolean = true;   // Center when shown?
+    public slideDirection: 'left' | 'right' = 'right';  // Slide-In-Richtung
 
     // Events (Task names to execute)
     public onShowTask: string = '';        // Task to run when dialog shows
@@ -39,7 +40,10 @@ export class TDialogRoot extends TWindow {
         this.style.backgroundColor = 'rgba(26, 26, 46, 0.98)';
         this.style.borderColor = '#4fc3f7';
         this.style.borderWidth = 2;
-        this.style.visible = true;  // Visible by default in editor
+        this.style.visible = true;  // Im Editor sichtbar zum Editieren
+
+        // Runtime: Dialog ist initial NICHT sichtbar (wird per toggle_dialog Action eingeblendet)
+        this.visible = false;
 
         this._title = name;
     }
@@ -182,6 +186,7 @@ export class TDialogRoot extends TWindow {
             { name: 'closable', label: 'Closable', type: 'boolean', group: 'Dialog' },
             { name: 'draggableAtRuntime', label: 'Draggable', type: 'boolean', group: 'Dialog' },
             { name: 'centerOnShow', label: 'Center on Show', type: 'boolean', group: 'Dialog' },
+            { name: 'slideDirection', label: 'Slide-Richtung', type: 'select', options: ['left', 'right'], group: 'Dialog' },
 
             // Style
             { name: 'style.borderColor', label: 'Border Color', type: 'color', group: 'Style' },
@@ -209,6 +214,7 @@ export class TDialogRoot extends TWindow {
             onShowTask: this.onShowTask,
             onCloseTask: this.onCloseTask,
             onCancelTask: this.onCancelTask,
+            slideDirection: this.slideDirection,
             style: {
                 ...base.style,
                 borderColor: this.style.borderColor,
@@ -244,6 +250,14 @@ export class TDialogRoot extends TWindow {
             container.appendChild(this._overlayElement);
         }
 
+        // Determine initial position based on slideDirection
+        let initialTransform = '';
+        if (this.slideDirection === 'left') {
+            initialTransform = 'translateX(-100vw)';
+        } else {
+            initialTransform = 'translateX(100vw)';
+        }
+
         // Create dialog container
         this._dialogElement = document.createElement('div');
         this._dialogElement.className = 'dialog-root';
@@ -256,10 +270,14 @@ export class TDialogRoot extends TWindow {
             background: ${this.style.backgroundColor};
             border: ${this.style.borderWidth}px solid ${this.style.borderColor};
             border-radius: 12px;
-            display: ${this.visible ? 'flex' : 'none'};
+            display: flex; /* Always flex to allow transition, visibility controlled by transform/opacity */
             flex-direction: column;
             z-index: 1001;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transform: ${this.visible ? 'translateX(0)' : initialTransform};
+            opacity: ${this.visible ? '1' : '0'};
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+            pointer-events: ${this.visible ? 'auto' : 'none'};
         `;
 
         // Create header with title and close button
@@ -374,7 +392,15 @@ export class TDialogRoot extends TWindow {
             this._overlayElement.style.display = this.visible ? 'flex' : 'none';
         }
         if (this._dialogElement) {
-            this._dialogElement.style.display = this.visible ? 'flex' : 'none';
+            if (this.visible) {
+                this._dialogElement.style.transform = 'translateX(0)';
+                this._dialogElement.style.opacity = '1';
+                this._dialogElement.style.pointerEvents = 'auto';
+            } else {
+                this._dialogElement.style.transform = this.slideDirection === 'left' ? 'translateX(-100vw)' : 'translateX(100vw)';
+                this._dialogElement.style.opacity = '0';
+                this._dialogElement.style.pointerEvents = 'none';
+            }
         }
     }
 }

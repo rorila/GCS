@@ -538,3 +538,11 @@ Methoden: show
 - **Dateien:** src/editor/ui/ConfirmDialog.ts (close() Z.60-68), src/editor/ui/PromptDialog.ts (close() Z.72-80), src/editor/services/StageInteractionManager.ts (handleKeyDown() Z.705)
 - **Methoden:** ConfirmDialog.show() close-Callback, PromptDialog.show() close-Callback, StageInteractionManager.handleKeyDown()
 - **Beschreibung:** Root Cause des Electron-Fokus-Bugs: Nach overlay.remove() landete document.activeElement auf body statt auf dem vorher fokussierten Element. Beide Dialoge speichern jetzt previouslyFocused und rufen focus() bei close() auf. Zusaetzlich: Delete-Taste in StageInteractionManager hat isInputFocused-Guard erhalten, die fehlte.
+
+
+[2026-04-16] UC-2026-04-16-TDialogRootToggle
+- Beschreibung: TDialogRoot wurde um eine Slide-Animation und ein slideDirection-Property erweitert. Die Runtime verfuet nun ueber eine Action toggle_dialog (mit Modi toggle/show/hide), um Dialoge ueber z.B. einen Toast-Button einzufahren. Im Editor sind Dialoge zum Bearbeiten grundsaetzlich sichtbar, starten zur Laufzeit aber minimiert/versteckt.
+- Dateien: 
+  - src/components/TDialogRoot.ts
+  - src/runtime/actions/handlers/DialogActions.ts
+  - src/runtime/actions/StandardActions.ts
