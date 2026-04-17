@@ -59,10 +59,10 @@ export class StageInteractionManager {
     // Context Menu
     private contextMenuEl: HTMLElement | null = null;
 
-    // Copy/Paste
     private clipboardObjects: { obj: any, offsetX: number, offsetY: number }[] = [];
     private isPlacing: boolean = false;
     private placingGhostEl: HTMLElement | null = null;
+    private lastHoverLogTime: number = 0;
 
 
     constructor(host: StageInteractionHost) {
@@ -72,7 +72,10 @@ export class StageInteractionManager {
     private snap(val: number, forceRound: boolean = false): number {
         const cellSize = this.host.grid.cellSize || 20;
         if (this.host.grid.snapToGrid || forceRound) {
-            return Math.round(val / cellSize);
+            // FIX: Verwendung von Math.floor statt Math.round,
+            // damit die Komponente immer in das Raster-Kästchen arretiert, 
+            // in dem sich ihre obere linke Ecke befindet!
+            return forceRound ? Math.round(val / cellSize) : Math.floor(val / cellSize);
         }
         return val / cellSize;
     }
@@ -146,6 +149,8 @@ export class StageInteractionManager {
                 const clsName = o.className || o.constructor?.name || '';
                 const isContainer = ['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel'].includes(clsName);
                 if (!isContainer) return false;
+                // FIX: Geerbte Blueprint-Panels können keine neuen Kinder aufnehmen (Read-Only)
+                if (o.isInherited) return false;
                 const pAbs = getAbsForDrop(o.id || o.name);
                 const pW = parseFloat(o.width) || 0;
                 const pH = parseFloat(o.height) || 0;
@@ -156,8 +161,22 @@ export class StageInteractionManager {
             if (candidatePanels.length > 0) {
                 dropPanelId = candidatePanels[0].id || candidatePanels[0].name;
                 const panelAbs = getAbsForDrop(dropPanelId);
-                gridX = Math.max(0, gridX) - panelAbs.x;
-                gridY = Math.max(0, gridY) - panelAbs.y;
+                
+                // FIX: Rasterung IMMER auf das globale Stage-Grid anwenden! (User Feedback)
+                // Da das visuelle Grid auf der Stage liegt, müssen sich auch Kind-Elemente
+                // in Panels (z.B. Blueprint-Panels) zwingend an den Stage-Linien ausrichten.
+                const rawAbsX = coords.x / (this.host.grid.cellSize || 20) - offX;
+                const rawAbsY = coords.y / (this.host.grid.cellSize || 20) - offY;
+
+                let snappedAbsX = this.host.grid.snapToGrid ? Math.floor(rawAbsX) : rawAbsX;
+                let snappedAbsY = this.host.grid.snapToGrid ? Math.floor(rawAbsY) : rawAbsY;
+
+                // Relative Koordinate für JSON berechnen
+                let relX = snappedAbsX - panelAbs.x;
+                let relY = snappedAbsY - panelAbs.y;
+
+                gridX = Math.max(0, relX);
+                gridY = Math.max(0, relY);
                 console.log('[TGroupPanel Drop] Toolbox-Drop auf Panel ' + dropPanelId + ' erkannt. Relative Pos: (' + gridX + ', ' + gridY + ')');
             }
             
@@ -480,10 +499,21 @@ export class StageInteractionManager {
         });
 
         if (this.dragStartTime > 0) {
-                this.currentDragPath.push({ x: e.clientX, y: e.clientY, t: Date.now() - this.dragStartTime });
+            this.currentDragPath.push({ x: e.clientX, y: e.clientY, t: Date.now() - this.dragStartTime });
+            
+            // DIAGNOSTICS: Zeige live an, was unter der Maus ist (alle 500ms drosseln für Log-Übersicht)
+            if (!this.lastHoverLogTime || Date.now() - this.lastHoverLogTime > 500) {
+                this.lastHoverLogTime = Date.now();
+                const hoverEls = document.elementsFromPoint(e.clientX, e.clientY);
+                const hoveredPanel = hoverEls.find(he => he.classList.contains('inherited-object') || he.classList.contains('game-object'));
+                if (hoveredPanel) {
+                    const id = hoveredPanel.getAttribute('data-id');
+                    console.log(`[DND-LIVE-DRAG] RawMaus:(${e.clientX}, ${e.clientY}) | dx=${dx}, dy=${dy} | Hover-Element: ${id || 'unknown'} (isInherited: ${hoveredPanel.classList.contains('inherited-object')})`);
+                }
             }
         }
     }
+}
 
     private handleMouseUp(e: MouseEvent) {
         if (this.host.runMode) {
@@ -596,6 +626,8 @@ export class StageInteractionManager {
                                     const isContainer = ['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel'].includes(clsName);
                                     if (!isContainer) return false;
                                     if ((o.id || o.name) === id) return false; 
+                                    // FIX: Verhindere Zuweisung in schreibgeschützte Blueprint-Panels!
+                                    if (o.isInherited) return false;
                                     
                                     // Zirkelbezüge verhindern
                                     let isChildOfDragged = false;
@@ -658,8 +690,20 @@ export class StageInteractionManager {
                                 // Wir müssen gX und gY IMMER in relative Koordinaten des Ziel-Parents umwandeln.
                                 // Entweder in die des neuen Panels (Reparenting) oder wieder in die des alten Panels (oder der Stage, wenn null).
                                 const targetParentAbs = getAbs(dropParentId);
-                                gX = absObjX - targetParentAbs.x;
-                                gY = absObjY - targetParentAbs.y;
+                                
+                                // FIX: Snapping explizit auf das globale Stage-Grid anwenden!
+                                const rawAbsX = (iP.left + dx) / (this.host.grid.cellSize || 20);
+                                const rawAbsY = (iP.top + dy) / (this.host.grid.cellSize || 20);
+                                
+                                let snappedAbsX = this.host.grid.snapToGrid ? Math.floor(rawAbsX) : rawAbsX;
+                                let snappedAbsY = this.host.grid.snapToGrid ? Math.floor(rawAbsY) : rawAbsY;
+
+                                // Relative Koordinate für JSON errechnen
+                                let relX = snappedAbsX - targetParentAbs.x;
+                                let relY = snappedAbsY - targetParentAbs.y;
+
+                                gX = relX;
+                                gY = relY;
 
                                 if (gX !== iG.x || gY !== iG.y || dropParentId !== currentParentId) {
                                     console.log(`[DND-FLOW 1] Drag Ended for ID=${id}. Computed Grid Pos: (${gX}, ${gY}). Initiating onObjectMove.`);

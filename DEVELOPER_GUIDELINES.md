@@ -309,22 +309,22 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 - **DO NOT**: Akzeptiere keine ungeprueften User-Eingaben im Inspector. Die Validierungs-Pipeline (Live oninput + Auto-Clamp onchange) verhindert ungueltige Werte.
 - **DO**: Verwende das alidate Callback in TPropertyDef fuer komponentenspezifische Validierungslogik die ueber min/max hinausgeht.
 
-*   **DO NOT DO INSTANCEOF BEFORE PROXY SAFEGUARDS:** Wenn das proxy \makeReactive\ Pattern benutzt wird, stelle IMMER sicher, dass ein \__isProxy__ === true\ Loop-Schutz an ALLER ERSTER STELLE greift, noch BEVOR \instanceof HTMLElement\ etc. ausgelöst werden. \instanceof\ erzeugt einen Getter-Scope auf \[Symbol.hasInstance]\, welcher bei falsch ineinandergesteckten Proxies sofort eine "Maximum call stack size exceeded"-Rekursionsbombe zünden kann.
+*   **DO NOT DO INSTANCEOF BEFORE PROXY SAFEGUARDS:** Wenn das proxy \makeReactive\ Pattern benutzt wird, stelle IMMER sicher, dass ein \__isProxy__ === true\ Loop-Schutz an ALLER ERSTER STELLE greift, noch BEVOR \instanceof HTMLElement\ etc. ausgelï¿½st werden. \instanceof\ erzeugt einen Getter-Scope auf \[Symbol.hasInstance]\, welcher bei falsch ineinandergesteckten Proxies sofort eine "Maximum call stack size exceeded"-Rekursionsbombe zï¿½nden kann.
 
 
 ### Autosave, Debouncing & FileSystem Access API Safeguards
-- **DO NOT**: Entferne niemals den Debouncer (setTimeout) aus der performDiskSave bzw. updateProjectJSON Aufrufkette im EditorDataManager. Das DOM-Event-System (Drag, Text-Interpolation etc.) triggert massive Mengen an synchronen Saves. Die Chrome FileSystem Access API (createWritable) wirft sofort eine Collision-Exception ("The associated file is already being written"), was das Speichern komplett zerstört und den Dev-Server abstürzen lässt. Belasse den Disk-Save-Debouncer immer zwingend bei 1000ms.
-- **DO NOT**: Entferne niemals die 2-Sekunden-Grace-Period (	imeSinceLoad < 2000) am Anfang der Autosaves. Komponenten feuern im ersten Rendern Post-Load-Events, die ohne diese Guard künstliche Speichervorgänge mit leeren Updates auslösen.
-- **DO NOT**: Im MenuBar.render() wird container.innerHTML = '' ausgeführt. Sämtliche lose per JavaScript assoziierten DOM-Nodes (wie der utosaveWrapper) werden gnadenlos abgetrennt und vom GC gelöscht. Solche dynamischen UI Widgets MÜSSEN am Ende der ender() Methode zwingend wieder mit ppendChild() re-attached werden!
+- **DO NOT**: Entferne niemals den Debouncer (setTimeout) aus der performDiskSave bzw. updateProjectJSON Aufrufkette im EditorDataManager. Das DOM-Event-System (Drag, Text-Interpolation etc.) triggert massive Mengen an synchronen Saves. Die Chrome FileSystem Access API (createWritable) wirft sofort eine Collision-Exception ("The associated file is already being written"), was das Speichern komplett zerstï¿½rt und den Dev-Server abstï¿½rzen lï¿½sst. Belasse den Disk-Save-Debouncer immer zwingend bei 1000ms.
+- **DO NOT**: Entferne niemals die 2-Sekunden-Grace-Period (	imeSinceLoad < 2000) am Anfang der Autosaves. Komponenten feuern im ersten Rendern Post-Load-Events, die ohne diese Guard kï¿½nstliche Speichervorgï¿½nge mit leeren Updates auslï¿½sen.
+- **DO NOT**: Im MenuBar.render() wird container.innerHTML = '' ausgefï¿½hrt. Sï¿½mtliche lose per JavaScript assoziierten DOM-Nodes (wie der utosaveWrapper) werden gnadenlos abgetrennt und vom GC gelï¿½scht. Solche dynamischen UI Widgets Mï¿½SSEN am Ende der ender() Methode zwingend wieder mit ppendChild() re-attached werden!
 
 ### Autosave & UI Interaktionen
 - **DO:** Wenn in der UI (z.B. Context Menu) direkte nderungen am in-memory Stage-Objekt durchgefhrt werden (ohne den ProjectStore-Reducer zu durchlaufen), muss zwingend ein leerer UPDATE_PROJECT Dispatch abgesetzt werden: 	his.host.projectStore.dispatch({ type: 'UPDATE_PROJECT' });. Andernfalls blockiert der Debouncer/Grace-Period das Speichern dieser Zustnde dauerhaft (siehe Blueprint Exclusion Fix).
 
 
 ### Runtime & Standalone Player Updates
-- **DO:** Wenn du core/runtime/Dateien wie \RuntimeStageManager.ts\, \ReactiveRuntime.ts\ oder Komponenten modifizierst, reicht der normale Vite-HMR (Hot Module Replacement) für den Editor vollkommen aus.
-- **CRITICAL:** Der IFrame-Player (\Run (IFrame)\ Tab) lädt jedoch IMMER die kompilierte statische \public/runtime-standalone.js\. Wenn du Funktionalität in der Kern-Runtime anpasst, MUSS anschließend IMMER \
-pm run bundle:runtime\ ausgeführt werden, damit deine Code-Fixes auch im IFrame wirksam werden!
+- **DO:** Wenn du core/runtime/Dateien wie \RuntimeStageManager.ts\, \ReactiveRuntime.ts\ oder Komponenten modifizierst, reicht der normale Vite-HMR (Hot Module Replacement) fï¿½r den Editor vollkommen aus.
+- **CRITICAL:** Der IFrame-Player (\Run (IFrame)\ Tab) lï¿½dt jedoch IMMER die kompilierte statische \public/runtime-standalone.js\. Wenn du Funktionalitï¿½t in der Kern-Runtime anpasst, MUSS anschlieï¿½end IMMER \
+pm run bundle:runtime\ ausgefï¿½hrt werden, damit deine Code-Fixes auch im IFrame wirksam werden!
 
 
 ### Keydown Events and Active Elements
@@ -333,3 +333,15 @@ pm run bundle:runtime\ ausgeführt werden, damit deine Code-Fixes auch im IFrame 
 
 
 - **DO NOT**: Verwenden Sie in Editor-Services NIEMALS native lert(), confirm() oder prompt(). In Electron frieren diese Aufrufe teilweise den Renderer-Thread und den Keyboard-Focus (Cursor-Blinken/Tasteneingaben werden ignoriert) unwiederbringlich ein. Nutzen Sie stattdessen immer die asynchronen HTML-Entsprechungen NotificationToast, ConfirmDialog und PromptDialog.
+
+### Drag & Drop Snipping for Nested Blueprint Panels
+- **DO**: When dropping or panning items inside nested containers (especially Blueprint child objects which may have non-integer offsets due to .align configs), **always calculate the snapping on the relative coordinate**, not the absolute stage coordinate. Example: Math.round((absMouseX - parentAbs.x) / cellSize) instead of Math.round(absMouseX / cellSize) - parentAbs.x. Doing the latter will cause a sub-pixel shift against the visual grid boundary.
+
+### Grid Snapping Convention
+- **DO**: Use Math.floor(value / cellSize) for snapping raw pixel coordinates to grid coordinates. Components should snap strictly to the grid cell containing their top-left coordinate, rather than jumping to the nearest grid cell at the 50% mark using Math.round. Standardize all snap methods along this convention unless specifically centering.
+
+### Global Stage Alignment for Nested Elements
+- **DO**: When dropping or moving elements inside a nested container (e.g. nested Panels), calculate the snapped absolute coordinate based on the Global Stage Grid first (Math.floor(absolutePixel / cellSize)), and THEN subtract the parent absolute grid offset to get the relative local coordinate for storage. This guarantees the nested item always aligns perfectly with the visual stage lines, even if the container is fractionally aligned.
+
+### Read-Only Hit Testing (Blueprint Boundaries)
+- **DO**: Filter out isInherited elements during hit-testing for Drag and Drop (handleDrop and handleMouseUp). The Engines internal state manager (reduceReparentObject) structurally prohibits moving cross-stage objects into inherited children arrays because Blueprint components serve as read-only global templates on the Active Stage. Allowing drops over inherited boundaries creates silent desyncs between Visual Grid State and ProjectStore JSON State.
