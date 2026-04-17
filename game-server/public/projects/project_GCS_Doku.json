@@ -783,8 +783,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 36,
-          "y": 5,
+          "x": 28,
+          "y": 2,
           "width": 17,
           "height": 3,
           "zIndex": 1,
@@ -1005,7 +1005,7 @@
         "onTouchEnd"
       ],
       "flowCharts": {},
-      "startAnimation": "UpMiddle"
+      "startAnimation": "ChaosIn"
     },
     {
       "id": "stage-1776084072545",
@@ -1065,7 +1065,8 @@
         "onTouchStart",
         "onTouchMove",
         "onTouchEnd"
-      ]
+      ],
+      "startAnimation": "ChaosIn"
     },
     {
       "id": "stage-1776084040446",
@@ -1114,7 +1115,8 @@
       },
       "excludedBlueprintIds": [
         "obj_1776087243769_fgbg3bi12"
-      ]
+      ],
+      "startAnimation": "BottomLeft"
     },
     {
       "id": "stage_7444093d-00f9-46a6-a25f-0a1473cb97f2",
@@ -1162,7 +1164,8 @@
         "backgroundColor": "${MainThemes.StageBackground}"
       },
       "excludedBlueprintIds": [],
-      "flowCharts": {}
+      "flowCharts": {},
+      "startAnimation": "ChaosOut"
     },
     {
       "id": "stage-1775809344944",
@@ -1626,8 +1629,9 @@
         "visible": false,
         "backgroundColor": "#0d1117"
       },
-      "flowCharts": {}
+      "flowCharts": {},
+      "startAnimation": "BottomRight"
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "stage_import_1776332740117_mb"
 }
