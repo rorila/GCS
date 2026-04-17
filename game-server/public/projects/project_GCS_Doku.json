@@ -347,6 +347,12 @@
           "showDetails": false,
           "type": "toggle_dialog",
           "target": "DialogRoot_23"
+        },
+        {
+          "id": "node-1776405998721",
+          "details": "",
+          "name": "action",
+          "showDetails": false
         }
       ],
       "tasks": [
@@ -492,6 +498,29 @@
             "switchDialog": {
               "x": 260,
               "y": 40
+            }
+          }
+        },
+        {
+          "name": "ANewTaskXX",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "action",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ANewTaskXX": {
+              "x": 40,
+              "y": 40
+            },
+            "action": {
+              "x": 320,
+              "y": 120
             }
           }
         }

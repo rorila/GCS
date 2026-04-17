@@ -567,3 +567,8 @@ Methoden: show
 - Beschreibung: Behebung des Fehlers, dass beim Umbenennen eines Tasks im FlowEditor die Ansicht ungewollt auf die Elementuebersicht (element-overview) zurücksprang. Ursache war ein Safety-Check im ToolbarManager, der auslöste, da das Project-Model im Moment der Umbenennung des FlowContexts noch nicht aktualisiert war.
 - Dateien:
   - src/editor/FlowEditor.ts (Zeilen ~646: this.updateFlowSelector() entfernt in renameContext)
+
+[2026-04-17] UC-2026-04-17-EventMapChildrenFix
+- Beschreibung: Behebung des Fehlers, dass in der Landkarte (Event-Map) keine Kind-Komponenten (TGroupPanel / TDialogRoot) angezeigt wurden. Ursache war, dass getCurrentObjects() nur Root-Elemente der Stage zuruecklieferte. Die Methode wurde um eine rekursive Suche (children) erweitert.
+- Dateien:
+  - src/editor/FlowEditor.ts (Zeile ~236: Funktion getCurrentObjects() um Rekursion erweitert)

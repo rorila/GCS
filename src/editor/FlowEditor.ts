@@ -236,8 +236,20 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
     public getCurrentObjects(): any[] {
         if (!this.project) return [];
         const activeStage = this.getActiveStage();
-        if (activeStage) return activeStage.objects || [];
-        return this.project.objects || [];
+        const rootObjects = activeStage ? (activeStage.objects || []) : (this.project.objects || []);
+        
+        const allObjects: any[] = [];
+        const gatherObjects = (objects: any[]) => {
+            if (!objects) return;
+            for (const obj of objects) {
+                allObjects.push(obj);
+                if (obj.children && Array.isArray(obj.children)) {
+                    gatherObjects(obj.children);
+                }
+            }
+        };
+        gatherObjects(rootObjects);
+        return allObjects;
     }
 
     public getAllVariables(): any[] {
