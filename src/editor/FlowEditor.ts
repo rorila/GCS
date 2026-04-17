@@ -646,10 +646,12 @@ export class FlowEditor implements FlowMapHost, FlowGraphHost, FlowInteractionHo
 
         // 5. Update StateManager if it's the current context
         if (this.currentFlowContext === oldName) {
-            this.currentFlowContext = newName;
             this.stateManager.renameContext(oldName, newName);
-            // Refresh dropdown to show new name instead of falling back to global
-            this.updateFlowSelector();
+            // WICHTIG: Kein this.updateFlowSelector() an dieser Stelle aufrufen!
+            // Da das Project-Model im EditorCommandManager noch nicht aktualisiert wurde,
+            // würde die Re-Evaluierung des Dropdowns sofort auf 'element-overview' zurückfallen (Safety Check).
+            // Der Dropdown-Refresh passiert ohnehin korrekt via this.editor.renderManager.refreshAllViews,
+            // NACHDEM das Modell umbenannt wurde.
         }
     }
 

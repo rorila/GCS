@@ -40,7 +40,7 @@ esolveObjectPreview gibt ein geklontes Objekt zurÃ¼ck, anstatt das Argument zu
 ### 2026-04-16
 - **Bugfix (Inspector)**: Behebung eines Fehlers, bei dem sich Tasks im Flow-Editor bzw. Inspector nicht mehr umbenennen ließen. Da Tasks im Datenmodell keine UUID besitzen, schlug die ID-basierte Suche in `EditorCommandManager.renameObject` mit `undefined` fehl. Dies wurde korrigiert, indem auf den bisherigen Namen (oldValue) als Fallback-Identifikator zurückgegriffen wird (`update.object.id || update.oldValue`).
 - **Bugfix (Runtime Layer)**: TDialogRoot Slides/Animationen wurden zur Laufzeit nicht mehr ausgeführt, wenn die Eigenschaft *visible* per Action geändert wurde. Ursache: Die ReactiveRuntime delegierte das Update an das performante `StageRenderer.updateSingleObject()`, welches nur Hintergrund/Farben updatet. Für Dialog-Animationen und deren Kinder wurde nun ein Full-Render Fallback (in `GameRuntime.ts`) konfiguriert.
-
+- **Bugfix (FlowEditor)**: Behebung eines Fehlers, bei dem die Umbenennung eines Tasks dazu führte, dass fälschlicherweise in die Elementenübersicht gesprungen wurde, da das Dropdown-Menü durch den `Safety Check` vorzeitig aktualisiert wurde, noch bevor das Projekt-Modell die Namensänderung reflektiert hatte.
 
 
 - **Refactoring (GameRuntime)**: Aufteilung des 1140-Zeilen "God-Objects" `GameRuntime.ts` in modularere Services. Input-Logik in `GameRuntimeInput.ts` und Multiplayer-Logik in `GameRuntimeMultiplayer.ts` extrahiert.

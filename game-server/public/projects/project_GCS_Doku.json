@@ -254,7 +254,7 @@
           "modal": true,
           "closable": true,
           "draggableAtRuntime": true,
-          "centerOnShow": true,
+          "centerOnShow": false,
           "slideDirection": "left",
           "onShowTask": "",
           "onCloseTask": "",
