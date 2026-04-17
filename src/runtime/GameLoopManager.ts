@@ -293,9 +293,17 @@ export class GameLoopManager {
             }
 
             // Render: Fast-Path für Sprite-Positionen und animierte Objekte (kein volles DOM-Rebuild)
-            if (this.spriteRenderCallback) {
+            // AUSNAHME: Wenn ein animiertes Objekt Kinder hat (z.B. Container/Panel mit Buttons),
+            // MUSS ein Full-Render stattfinden, da updateSpritePositions nur obj.x * cellSize
+            // berechnet, ohne die Parent-Chain für Kinder rekursiv aufzulösen.
+            // Alle DOM-Elemente sind flache Geschwister im Stage-Container (kein DOM-Nesting),
+            // daher bewegen sich Kinder NICHT automatisch mit dem Parent.
+            const animatedObjects = AnimationManager.getInstance().getAnimatedObjects();
+            const hasContainerAnimation = animatedObjects.some((o: any) => o.children && o.children.length > 0);
+
+            if (this.spriteRenderCallback && !hasContainerAnimation) {
                 const activeObjects = new Set(this.sprites);
-                AnimationManager.getInstance().getAnimatedObjects().forEach(o => activeObjects.add(o));
+                animatedObjects.forEach(o => activeObjects.add(o));
                 this.spriteRenderCallback(Array.from(activeObjects));
             } else if (this.renderCallback) {
                 this.renderCallback();

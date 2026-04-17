@@ -1,3 +1,15 @@
+### 2026-04-17 (Bugfix: Container-Kinder bei Stage-Animation unsichtbar)
+- **Bugfix (Runtime Rendering — Erstaufruf)**: Behebung eines kritischen Layout-Fehlers, bei dem Kind-Komponenten in Containern (TGroupPanel, TPanel) beim ersten Laden einer Stage nicht sichtbar waren, aber beim zweiten Aufruf korrekt gerendert wurden.
+  - *Ursache*: Drei zusammenhängende Probleme:
+    1. **Global-Listener Shortcut**: Im `GameRuntime`-Konstruktor fing der `onComponentUpdate`-Shortcut `x`/`y`-Änderungen von Containern ab und rief `updateSingleObject()` auf, das **keine Positionsänderungen** verarbeitet. Der `return` verhinderte den Full-Render. Beim 2. Aufruf (`handleStageChange`) fehlte dieser Shortcut, daher funktionierte es dort.
+    2. **GLM Fast-Path**: Der `GameLoopManager` nutzte den `spriteRenderCallback`-Fast-Path (`updateSpritePositions`), der `obj.x * cellSize` direkt berechnet, ohne die Parent-Chain für Kinder rekursiv aufzulösen. Da alle DOM-Elemente flache Geschwister sind (kein DOM-Nesting), bewegen sich Kinder NICHT automatisch mit dem Parent.
+    3. **IFrame-Bundle veraltet**: Das pre-built IIFE-Bundle `public/runtime-standalone.js` für den IFrame-Runner wurde nicht automatisch vom Vite Dev-Server aktualisiert und musste manuell neugebaut werden.
+  - *Lösung*:
+    - `GameRuntime.ts`: `needsFullRender = true` wenn `x`/`y` eines Objekts mit `children` sich ändert → Full-Render statt `updateSingleObject`
+    - `GameLoopManager.ts`: `hasContainerAnimation`-Check → Full-Render statt Fast-Path wenn animierte Objekte Kinder haben
+    - Runtime-Bundle neugebaut (`npx vite build --config vite.runtime.config.ts`)
+  - *Dateien*: `src/runtime/GameRuntime.ts`, `src/runtime/GameLoopManager.ts`, `public/runtime-standalone.js`
+
 ### 2026-04-17 (Bugfix: Animations-Drift bei Stage-Transitionen)
 - **Bugfix (Koordinaten-Drift nach Stage-Animation)**: Behebung eines kritischen Layout-Fehlers, bei dem Komponenten innerhalb von Container-Elementen (TGroupPanel, TPanel, TDialogRoot) nach positionsbasierten Stage-Animationen (slide-up, Fly-Patterns) an falschen absoluten Positionen landeten. 
   - *Ursache*: `triggerStartAnimation()` iterierte über die flache Objekt-Liste (`flattenWithChildren`) und animierte Kind-Elemente mit eigenen absoluten Startpositionen. Da deren x/y-Koordinaten aber **relativ** zum Parent sind und der `StageRenderer` die absoluten Positionen rekursiv über die `parentId`-Kette berechnet, entstand ein doppelter Offset: Das Kind flog eigenständig von Off-Screen ein, während der StageRenderer zusätzlich den animierten Parent-Offset addierte.

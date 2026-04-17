@@ -173,9 +173,17 @@ export class GameRuntime implements IVariableHost {
                             const isDialog = obj?.className === 'TDialogRoot' || obj?.className === 'TDialog' || obj?.constructor?.name === 'TDialogRoot';
 
                             // Targeted Rendering: Update nur eine einzelne Objektstruktur im DOM (für echte UI-Komponenten)
-                            // AUSNAHME: Dialoge erfordern einen Full-Render, da ihre Sichtbarkeit (Slide-In/Out)
+                            // AUSNAHME 1: Dialoge erfordern einen Full-Render, da ihre Sichtbarkeit (Slide-In/Out)
                             // sich auf alle untergeordneten Kinder auswirkt (Layout/Translate Rekursion).
-                            if (obj && obj.id && options.onComponentUpdate && !isDialog) {
+                            // AUSNAHME 2: Positions-Properties (x/y) erfordern einen Full-Render wenn das Objekt
+                            // Kinder hat, da Kinder-Positionen rekursiv vom Parent abhängen.
+                            // Ohne Full-Render bleiben Kinder an der initialen Off-Screen-Position
+                            // der Stage-Animation stehen (updateSingleObject aktualisiert keine Positionen).
+                            const isPositionProp = prop === 'x' || prop === 'y';
+                            const hasChildren = obj.children && obj.children.length > 0;
+                            const needsFullRender = isDialog || (isPositionProp && hasChildren);
+
+                            if (obj && obj.id && options.onComponentUpdate && !needsFullRender) {
                                 options.onComponentUpdate(obj, prop);
                                 return;
                             }
@@ -560,21 +568,37 @@ export class GameRuntime implements IVariableHost {
         const stageHeight = grid.rows || 40;
         const outsideMargin = 10; // Grid-Zellen knapp außerhalb der Bühne
 
-        // KOORDINATEN-DRIFT-FIX: Kinder von Container-Komponenten (TGroupPanel, TPanel, TDialogRoot)
-        // haben relative x/y-Koordinaten. Der StageRenderer addiert die Parent-Position rekursiv
-        // zur absoluten Darstellung. Würden wir Kinder UND das Parent gleichzeitig positionsbasiert
-        // animieren, entsteht ein doppelter Offset (Kind fliegt eigenständig + StageRenderer addiert
-        // Parent-Offset oben drauf). Kinder bewegen sich automatisch mit dem Parent mit, da der
-        // StageRenderer die absolute Position rekursiv über die parentId-Kette berechnet.
-        // Opacity-Animationen (fade-in) sind hiervon nicht betroffen, da die DOM-Elemente flach
-        // im Stage-Container liegen (kein CSS-Cascading der Opacity).
+        // KOORDINATEN-DRIFT-FIX + ANIMATIONS-FILTER:
+        // 1. Kinder von Container-Komponenten (TGroupPanel, TPanel, TDialogRoot) haben relative
+        //    x/y-Koordinaten. Der StageRenderer addiert die Parent-Position rekursiv. Würden wir
+        //    Kinder UND Parent gleichzeitig positionsbasiert animieren, entsteht ein doppelter Offset.
+        // 2. Das registrierte Stage-Objekt (kein className, x/y=undefined) darf nicht animiert werden.
+        // 3. Unsichtbare Service-/Daten-Objekte (TStringMap, TVariable, isHiddenInRun) werden
+        //    übersprungen, da sie keine visuelle DOM-Darstellung haben.
+        // 4. Opacity-Animationen (fade-in) sind hiervon ausgenommen, da DOM-Elemente flach
+        //    im Stage-Container liegen (kein CSS-Cascading der Opacity).
+
+        // ═══ ANIMATIONS-FILTER: Objekte bestimmen, die NICHT animiert werden sollen ═══
+        // - Kinder (parentId) – sie reiten auf dem Parent mit (DRIFT-FIX)
+        // - Stage-Proxy (kein className) – das registrierte Stage-Objekt hat keine Geometrie
+        // - Versteckte Service-Objekte (isHiddenInRun) – TStringMap, TVariable etc.
+        // - Datenkomponenten (isVariable/isService) – diese haben keine visuelle Darstellung
+        const shouldAnimate = (obj: any): boolean => {
+            if (obj.visible === false) return false;
+            if (obj.parentId) return false; // DRIFT-FIX: Kinder überspringen
+            if (!obj.className) return false; // Stage-Proxy hat kein className
+            if (obj.isHiddenInRun) return false; // Unsichtbare Services/Variablen
+            if (obj.isVariable || obj.isService) return false; // Datenkomponenten
+            if (obj.x === undefined || obj.y === undefined) return false; // Ohne Geometrie
+            return true;
+        };
 
         // Legacy-Animationen (fade-in, slide-up)
         if (animationType === 'fade-in') {
-            // Opacity: Alle Objekte animieren (auch Kinder), da die DOM-Elemente
+            // Opacity: Alle sichtbaren Objekte animieren (auch Kinder), da die DOM-Elemente
             // nicht verschachtelt sind und CSS-Opacity nicht kaskadiert.
             this.objects.forEach(obj => {
-                if (obj.visible !== false) {
+                if (obj.visible !== false && obj.className) {
                     const originalOpacity = obj.opacity !== undefined ? obj.opacity : 1;
                     obj.opacity = 0;
                     am.animate(obj, { opacity: originalOpacity }, duration, easing);
@@ -585,8 +609,7 @@ export class GameRuntime implements IVariableHost {
 
         if (animationType === 'slide-up') {
             this.objects.forEach(obj => {
-                // DRIFT-FIX: Kinder mit parentId überspringen – sie reiten auf dem Parent mit.
-                if (obj.visible !== false && !obj.parentId) {
+                if (shouldAnimate(obj)) {
                     const originalY = obj.y;
                     obj.y += 100;
                     am.addTween(obj, 'y', originalY, duration, easing);
@@ -599,11 +622,7 @@ export class GameRuntime implements IVariableHost {
         const simplePatterns = ['UpLeft', 'UpMiddle', 'UpRight', 'Left', 'Right', 'BottomLeft', 'BottomMiddle', 'BottomRight'];
 
         this.objects.forEach((obj, index) => {
-            if (obj.visible === false) return;
-            // DRIFT-FIX: Kinder von Containern (TGroupPanel, TPanel, TDialogRoot) überspringen.
-            // Ihre x/y-Werte sind relativ zum Parent. Der StageRenderer berechnet die absolute
-            // Position rekursiv. Kinder bewegen sich automatisch mit dem animierten Parent mit.
-            if (obj.parentId) return;
+            if (!shouldAnimate(obj)) return;
 
             const targetX = obj.x;
             const targetY = obj.y;
@@ -857,6 +876,21 @@ export class GameRuntime implements IVariableHost {
         };
         const topLevelObjects = this.objects.filter(o => !o.parentId);
         process(topLevelObjects);
+
+        // ═══ DIAGNOSE: getObjects() Ergebnisse ═══
+        const withChildren = results.filter(r => r.parentId);
+        const containers = topLevelObjects.filter(o => o.children?.length > 0);
+        console.warn(`[GETOBJ-DIAG] this.objects: ${this.objects.length} | topLevel: ${topLevelObjects.length} | results: ${results.length} | davon children: ${withChildren.length}`);
+        containers.forEach(c => {
+            const childrenInResult = results.filter(r => r.parentId === (c.id || c.name));
+            console.warn(`  [CONTAINER] ${c.name || c.id} children.length=${c.children?.length} | in results: ${childrenInResult.length}`);
+            if (c.children?.length > 0 && childrenInResult.length === 0) {
+                console.warn(`  [MISSING-CHILDREN!] ${c.name} hat ${c.children.length} Kinder aber 0 im Ergebnis!`);
+                c.children.forEach((ch: any) => console.warn(`    raw child: ${ch.name || ch.id} parentId=${ch.parentId} x=${ch.x} y=${ch.y}`));
+            }
+        });
+        // ═══ ENDE DIAGNOSE ═══
+
         return results;
     }
 

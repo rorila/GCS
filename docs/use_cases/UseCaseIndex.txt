@@ -582,3 +582,10 @@ Files:
 - Dateien:
   - src/runtime/GameRuntime.ts (Methode: triggerStartAnimation, Zeilen ~589-605 - parentId-Guard fuer Positions-Tweens)
   - tests/export_checksums.json (Checksumme aktualisiert)
+
+[2026-04-17] UC-2026-04-17-ContainerChildRenderFix
+- Beschreibung: Behebung eines kritischen Rendering-Fehlers, bei dem Kind-Komponenten in Containern beim ersten Stage-Laden unsichtbar waren. Der onComponentUpdate-Shortcut im GameRuntime-Konstruktor fing x/y-Aenderungen ab und verhinderte durch return den Full-Render. Der GLM-Fast-Path (updateSpritePositions) berechnet nur obj.x * cellSize ohne Parent-Chain, was fuer Kinder falsch ist, da alle DOM-Elemente flache Geschwister sind.
+- Dateien:
+  - src/runtime/GameRuntime.ts (Konstruktor-GlobalListener, Zeilen ~175-189 - needsFullRender-Check fuer Container mit children)
+  - src/runtime/GameLoopManager.ts (Methode: loop, Zeilen ~295-312 - hasContainerAnimation-Guard fuer Full-Render statt Fast-Path)
+  - public/runtime-standalone.js (neugebaut mit vite.runtime.config.ts)
