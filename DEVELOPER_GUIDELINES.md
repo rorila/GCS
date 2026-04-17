@@ -345,3 +345,8 @@ pm run bundle:runtime\ ausgef�hrt werden, damit deine Code-Fixes auch im IFram
 
 ### Read-Only Hit Testing (Blueprint Boundaries)
 - **DO**: Filter out isInherited elements during hit-testing for Drag and Drop (handleDrop and handleMouseUp). The Engines internal state manager (reduceReparentObject) structurally prohibits moving cross-stage objects into inherited children arrays because Blueprint components serve as read-only global templates on the Active Stage. Allowing drops over inherited boundaries creates silent desyncs between Visual Grid State and ProjectStore JSON State.
+
+### Animations-Drift bei verschachtelten Containern (TGroupPanel, TPanel, TDialogRoot)
+- **DO NOT**: Animiere NIEMALS Kinder von Container-Komponenten (Objekte mit `parentId`) unabhaengig mit positionsbasierten Stage-Animationen (slide-up, Fly-Patterns). Ihre x/y-Koordinaten sind RELATIV zum Parent. Der StageRenderer berechnet die absolute Position rekursiv ueber die parentId-Kette. Wenn sowohl Parent als auch Kind gleichzeitig von Off-Screen einfliegen, entsteht ein doppelter Offset (Kind fliegt eigenstaendig + StageRenderer addiert den animierten Parent-Offset).
+- **DO**: Pruefe in `triggerStartAnimation()` immer auf `obj.parentId` und ueberspringe solche Objekte bei Positions-Tweens. Kinder bewegen sich automatisch mit ihrem animierten Parent-Container mit.
+- **AUSNAHME**: Opacity-Animationen (fade-in) muessen auch Kinder einschliessen, da die DOM-Elemente flach im Stage-Container liegen und CSS-Opacity nicht kaskadiert.

@@ -380,6 +380,9 @@ export class EditorCommandManager {
                             child.__rawSource.events = { ...child.events };
                         }
                     }
+                    // Vererbungs-Flags vom Preview-Objekt durchreichen
+                    if (child.isInherited) result.isInherited = true;
+                    if (child.isFromBlueprint) result.isFromBlueprint = true;
                     return result;
                 }
                 if (child.children && Array.isArray(child.children)) {
@@ -395,10 +398,21 @@ export class EditorCommandManager {
             // WICHTIG: Objekte im ObjectStore sind Preview-Kopien (mit aufgelösten Bindings).
             // Für den Inspector muss das ORIGINAL-Objekt (__rawSource) zurückgegeben werden,
             // damit Binding-Werte (z.B. "${currentUser.name}") erhalten bleiben.
-            if (obj.id === id || obj.name === id) return obj.__rawSource || obj;
+            if (obj.id === id || obj.name === id) {
+                const result = obj.__rawSource || obj;
+                // Vererbungs-Flags vom Preview-Objekt durchreichen
+                if (obj.isInherited) result.isInherited = true;
+                if (obj.isFromBlueprint) result.isFromBlueprint = true;
+                return result;
+            }
             if (obj.children && Array.isArray(obj.children)) {
                 const foundChild = searchDeep(obj.children);
-                if (foundChild) return foundChild;
+                if (foundChild) {
+                    // Vererbungs-Flags vom Eltern-Objekt auf Kinder durchreichen
+                    if (obj.isInherited) foundChild.isInherited = true;
+                    if (obj.isFromBlueprint) foundChild.isFromBlueprint = true;
+                    return foundChild;
+                }
             }
         }
 

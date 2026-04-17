@@ -1,11 +1,11 @@
 {
     "_description": "SHA-256-Checksummen der Export-relevanten Dateien. Bei bewussten Änderungen: node tests/export_integrity.test.ts --update",
-    "_lastUpdated": "2026-04-16",
+    "_lastUpdated": "2026-04-17",
     "files": {
         "src/export/GameExporter.ts": "5A6208FA5BC42B94C609CC3A1D52310EA64C7A9F0681A3B09CCF344AFD39D4C0",
         "src/services/ProjectPersistenceService.ts": "0099480665486D128F8A156102FFE88B066BC571D217C5C265142D5E0372B373",
         "src/player-standalone.ts": "8B1DFF57A2E1A4BB802A53EA46589D07A60A4FD0620A367B3294C75FB115453D",
-        "src/runtime/GameRuntime.ts": "811C8BC5A79FC2AF5F55583A47C6D4313C1B5D2BF3C181663FC07C870F27F0C7",
+        "src/runtime/GameRuntime.ts": "B08F2C47BC4D74D0F7E6C95E715EDB88EB82F53CCE7B846A3A69AD5A065DD14F",
         "src/runtime/GameLoopManager.ts": "2AFA1E26EC173FDC9A7B01B75165996CF98A6D824B97A01BE7E5366FAE5C8930"
     }
 }

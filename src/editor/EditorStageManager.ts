@@ -295,8 +295,12 @@ export class EditorStageManager {
             if (blueprintStage) {
                 const stageIds = new Set(stageObjects.map(o => o.id));
                 const excludedIds = new Set(activeStage.excludedBlueprintIds || []);
-                const blueprintObjs = [...(blueprintStage.objects || [])];
-                for (const bpObj of blueprintObjs) {
+
+                // KRITISCH: Blueprint-Objekte ebenfalls flachklopfen,
+                // damit Panel-Children korrekt in die Render-Liste kommen.
+                const flatBlueprintObjs = flattenWithChildren([...(blueprintStage.objects || [])]);
+
+                for (const bpObj of flatBlueprintObjs) {
                     // Nur visuelle Komponenten vererben, keine Variablen/Services/Controller
                     if (bpObj.isVariable || bpObj.isService || bpObj.isTransient) continue;
                     if (bpObj.className?.includes('Variable') || bpObj.className === 'TStageController') continue;

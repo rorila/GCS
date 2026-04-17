@@ -168,6 +168,14 @@ export class NativeFileAdapter implements IStorageAdapter {
         // Browser Native FileSystem Modus
         if (this.currentHandle) {
             try {
+                // Permission-Check: Nur speichern wenn Berechtigung AKTIV ist.
+                // Ohne diesen Check triggert createWritable() einen blockierenden
+                // Browser-Dialog, der die Electron-Variante zerstört.
+                const perm = await (this.currentHandle as any).queryPermission({ mode: 'readwrite' });
+                if (perm !== 'granted') {
+                    NativeFileAdapter.logger.info('[AutoSave] Browser: Schreibberechtigung nicht aktiv, überspringe.');
+                    return false;
+                }
                 const writable = await this.currentHandle.createWritable();
                 await writable.write(json);
                 await writable.close();

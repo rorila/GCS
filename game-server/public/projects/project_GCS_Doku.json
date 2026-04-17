@@ -73,39 +73,6 @@
         },
         {
           "className": "TButton",
-          "id": "dffba39f-6c6f-47e6-9ab9-421c0d362b6c",
-          "name": "Btn_GoToDirectory",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onClick": "ShowDirectory"
-          },
-          "visible": true,
-          "x": 2,
-          "y": 2,
-          "width": 12,
-          "height": 3,
-          "zIndex": 1,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "backgroundColor": "${MainThemes.ButtonBackground}",
-            "borderColor": "#000000",
-            "borderWidth": 1,
-            "borderRadius": 25
-          },
-          "text": "${StringMap_BluePrintStage.BackToDirectory}",
-          "icon": ""
-        },
-        {
-          "className": "TButton",
           "id": "2f9b01d8-8f71-43bf-a70c-55d16aa218dd",
           "name": "Btn_GoToPrevStage",
           "scope": "stage",
@@ -181,7 +148,7 @@
           "visible": true,
           "x": 1,
           "y": 1,
-          "width": 62,
+          "width": 59,
           "height": 5,
           "zIndex": 0,
           "align": "NONE",
@@ -192,27 +159,27 @@
             "borderRadius": 25
           },
           "caption": "",
-          "showGrid": false,
-          "gridColor": "#000000",
+          "showGrid": true,
+          "gridColor": "#ddd5d5",
           "gridStyle": "lines",
           "children": [
             {
               "className": "TButton",
-              "id": "obj_1776361932032_dabo7itl5",
-              "name": "Button_24",
-              "scope": "global",
+              "id": "dffba39f-6c6f-47e6-9ab9-421c0d362b6c",
+              "name": "Btn_GoToDirectory",
+              "scope": "stage",
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
               "events": {
-                "onClick": "ShowPreferences"
+                "onClick": "ShowDirectory"
               },
               "visible": true,
-              "x": 14,
+              "x": 1,
               "y": 1,
-              "width": 6,
-              "height": 2,
-              "zIndex": 0,
+              "width": 12,
+              "height": 3,
+              "zIndex": 1,
               "align": "NONE",
               "style": {
                 "color": "#ffffff",
@@ -221,56 +188,25 @@
                 "fontWeight": "bold",
                 "fontStyle": "normal",
                 "textAlign": "center",
-                "backgroundColor": "#007bff",
+                "backgroundColor": "${MainThemes.ButtonBackground}",
                 "borderColor": "#000000",
-                "borderWidth": 1
+                "borderWidth": 1,
+                "borderRadius": 25
               },
-              "text": "Dialog zeigen",
+              "text": "${StringMap_BluePrintStage.BackToDirectory}",
               "icon": ""
-            }
-          ]
-        },
-        {
-          "className": "TDialogRoot",
-          "id": "obj_1776361638188_pi19hun40",
-          "name": "DialogRoot_23",
-          "scope": "global",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": false,
-          "x": 32,
-          "y": 21,
-          "width": 20,
-          "height": 15,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "rgba(26, 26, 46, 0.98)",
-            "borderColor": "#4fc3f7",
-            "borderWidth": 2
-          },
-          "title": "Einstellungen",
-          "modal": true,
-          "closable": true,
-          "draggableAtRuntime": true,
-          "centerOnShow": false,
-          "slideDirection": "left",
-          "onShowTask": "",
-          "onCloseTask": "",
-          "onCancelTask": "",
-          "children": [
+            },
             {
               "className": "TButton",
-              "id": "obj_1776361645707_gh4jrrqcg",
-              "name": "Button_24",
+              "id": "obj_1776420879314_d666p0xc5",
+              "name": "Button_23",
               "scope": "global",
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
               "visible": true,
-              "x": 3,
-              "y": 5,
+              "x": 15,
+              "y": 2,
               "width": 6,
               "height": 2,
               "zIndex": 0,
@@ -286,8 +222,34 @@
                 "borderColor": "#000000",
                 "borderWidth": 1
               },
-              "text": "Button_24",
+              "text": "Button_23",
               "icon": ""
+            },
+            {
+              "className": "TImage",
+              "id": "obj_1776354588681_wyzxicz4d",
+              "name": "Image_23",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 49,
+              "y": 0,
+              "width": 14,
+              "height": 6,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "#999999",
+                "borderWidth": 0
+              },
+              "src": "./images/GameToolbox/Logo GameToolbox.png",
+              "objectFit": "contain",
+              "alt": "",
+              "imageOpacity": 1,
+              "fallbackColor": "#2a2a2a"
             }
           ]
         }
@@ -339,20 +301,6 @@
           "type": "call_method",
           "target": "StageController",
           "method": "nextStage"
-        },
-        {
-          "id": "node-1776362833350",
-          "details": "",
-          "name": "switchDialog",
-          "showDetails": false,
-          "type": "toggle_dialog",
-          "target": "DialogRoot_23"
-        },
-        {
-          "id": "node-1776405998721",
-          "details": "",
-          "name": "action",
-          "showDetails": false
         }
       ],
       "tasks": [
@@ -477,52 +425,6 @@
           },
           "Description": "Die nächste Stage wird angezeigt",
           "uiScope": "global"
-        },
-        {
-          "name": "ShowPreferences",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "switchDialog",
-              "type": "action",
-              "layout": "horizontal"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "ShowPreferences": {
-              "x": 40,
-              "y": 40
-            },
-            "switchDialog": {
-              "x": 260,
-              "y": 40
-            }
-          }
-        },
-        {
-          "name": "ANewTaskXX",
-          "description": "",
-          "actionSequence": [
-            {
-              "name": "action",
-              "type": "action",
-              "layout": "horizontal"
-            }
-          ],
-          "triggerMode": "local-sync",
-          "params": [],
-          "flowLayout": {
-            "ANewTaskXX": {
-              "x": 40,
-              "y": 40
-            },
-            "action": {
-              "x": 320,
-              "y": 120
-            }
-          }
         }
       ],
       "variables": [
@@ -655,8 +557,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 56,
-          "y": 5,
+          "x": 55,
+          "y": 9,
           "width": 7,
           "height": 3,
           "zIndex": 0,
@@ -873,43 +775,6 @@
           ]
         },
         {
-          "className": "TButton",
-          "id": "7b19378d-9ba0-4272-bd2c-f45d411467cd",
-          "name": "Btn_ReactivSystem_1",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onClick": "ShowGreenTheme"
-          },
-          "visible": true,
-          "x": 21,
-          "y": 9,
-          "width": 14,
-          "height": 3,
-          "zIndex": 1,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "backgroundColor": "${MainThemes.ButtonBackground}",
-            "borderColor": "#000000",
-            "borderWidth": 1,
-            "borderRadius": 25,
-            "glowColor": "#4b4444",
-            "glowBlur": 1,
-            "glowSpread": 1,
-            "boxShadow": 1
-          },
-          "text": "${Directory.GoToReactiveSystemStory}",
-          "icon": ""
-        },
-        {
           "className": "TPanel",
           "id": "obj_1776093977051_dqitiacam",
           "name": "Panel_14",
@@ -918,11 +783,11 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 23,
-          "y": 2,
+          "x": 36,
+          "y": 5,
           "width": 17,
           "height": 3,
-          "zIndex": 0,
+          "zIndex": 1,
           "align": "NONE",
           "style": {
             "color": "${MainThemes.HeadlineTextColor}",
@@ -1126,14 +991,10 @@
         "rows": 40,
         "cellSize": 20,
         "snapToGrid": true,
-        "visible": false,
+        "visible": true,
         "backgroundColor": "${MainThemes.StageBackground}"
       },
-      "excludedBlueprintIds": [
-        "obj_1776003832031_4393yf5fi",
-        "8f7e7c86-ac08-460b-9894-4401218029a1",
-        "dffba39f-6c6f-47e6-9ab9-421c0d362b6c"
-      ],
+      "excludedBlueprintIds": [],
       "_supportedEvents": [
         "onClick",
         "onDragStart",
@@ -1143,7 +1004,8 @@
         "onTouchMove",
         "onTouchEnd"
       ],
-      "flowCharts": {}
+      "flowCharts": {},
+      "startAnimation": "UpMiddle"
     },
     {
       "id": "stage-1776084072545",
@@ -1421,7 +1283,7 @@
     },
     {
       "id": "stage_import_1776332740117_mb",
-      "name": "Kap 3: Projekt-Aufbau (Import)",
+      "name": "Projekt-Aufbau",
       "type": "standard",
       "objects": [
         {
@@ -1767,5 +1629,5 @@
       "flowCharts": {}
     }
   ],
-  "activeStageId": "blueprint"
+  "activeStageId": "main"
 }

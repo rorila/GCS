@@ -1,3 +1,9 @@
+### 2026-04-17 (Bugfix: Animations-Drift bei Stage-Transitionen)
+- **Bugfix (Koordinaten-Drift nach Stage-Animation)**: Behebung eines kritischen Layout-Fehlers, bei dem Komponenten innerhalb von Container-Elementen (TGroupPanel, TPanel, TDialogRoot) nach positionsbasierten Stage-Animationen (slide-up, Fly-Patterns) an falschen absoluten Positionen landeten. 
+  - *Ursache*: `triggerStartAnimation()` iterierte über die flache Objekt-Liste (`flattenWithChildren`) und animierte Kind-Elemente mit eigenen absoluten Startpositionen. Da deren x/y-Koordinaten aber **relativ** zum Parent sind und der `StageRenderer` die absoluten Positionen rekursiv über die `parentId`-Kette berechnet, entstand ein doppelter Offset: Das Kind flog eigenständig von Off-Screen ein, während der StageRenderer zusätzlich den animierten Parent-Offset addierte.
+  - *Lösung*: Objekte mit `parentId` werden bei positionsbasierten Animationen übersprungen. Sie bewegen sich automatisch mit ihrem animierten Parent-Container mit. Opacity-Animationen (fade-in) bleiben für alle Objekte aktiv, da die DOM-Elemente flach im Stage-Container liegen und CSS-Opacity nicht kaskadiert.
+  - *Datei*: `src/runtime/GameRuntime.ts` (Methode `triggerStartAnimation`)
+
 ### 2026-04-16 (Stage Data Persistence Hotfix)
 - **Bugfix (Leere Objekte nach Stage Import)**: Ein kritischer Datenverlust-Bug wurde behoben, bei dem Bühnen-Objekte nach einem Stage-Import im Projekt als leeres Array (`"objects": []`) gespeichert wurden.
   - *Ursache*: In Produktions-Builds minimiert der Bundler `constructor.name` zu kurzen Strings wie `"$t"`. Bei manueller Instanziierung via `ComponentRegistry.createInstance()` erbte die Instanz diesen Namen, woraufhin die spätere Speicherungs-Serialisierung (`toDTO()`) ihn in die Projekt-JSON schrieb. Beim nächsten Ladevorgang konnte `hydrateObjects` die Klasse `"$t"` nicht finden und löschte folglich alle derartigen Objekte. 

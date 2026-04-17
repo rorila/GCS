@@ -518,7 +518,7 @@ Methoden: show
 ## Bugfix: Electron IFrame - Import Stage Persistence
 - **Dateien:** public/iframe-runner.html, src/player-standalone.ts 
 - **Methoden:** UniversalPlayer.init, <script> inline 
-- **Beschreibung:** Synchronisations-Fix (Race-Condition) durch Setzen eines WAIT_FOR_PROJECT Flags. Verhindert, dass der ältere Local-Cache über Fallback-Fetch geladen wird, bevor die neue Projektstruktur über postMessage den IFrame erreicht.
+- **Beschreibung:** Synchronisations-Fix (Race-Condition) durch Setzen eines WAIT_FOR_PROJECT Flags. Verhindert, dass der ï¿½ltere Local-Cache ï¿½ber Fallback-Fetch geladen wird, bevor die neue Projektstruktur ï¿½ber postMessage den IFrame erreicht.
 
 ### Stage Import Serialization
 - Files modified: \src/editor/EditorStageManager.ts\, \src/services/ComponentRegistry.ts\`n- Fix: Switched loop to hydrateObjects() and forced ComponentRegistry.createInstance to use registered className instead of ESBuild minified constructor.name.
@@ -572,3 +572,13 @@ Methoden: show
 - Beschreibung: Behebung des Fehlers, dass in der Landkarte (Event-Map) keine Kind-Komponenten (TGroupPanel / TDialogRoot) angezeigt wurden. Ursache war, dass getCurrentObjects() nur Root-Elemente der Stage zuruecklieferte. Die Methode wurde um eine rekursive Suche (children) erweitert.
 - Dateien:
   - src/editor/FlowEditor.ts (Zeile ~236: Funktion getCurrentObjects() um Rekursion erweitert)
+
+[UseCase: Mouse Drag Precision for Blueprint Nested Panels]
+Files:
+ - src/editor/services/StageInteractionManager.ts (approx line 150, 670) - Fixed Grid Snapping math to snap parent relative coords instead of absolute mouse coords
+
+[2026-04-17] UC-2026-04-17-AnimationDriftFix
+- Beschreibung: Behebung des Koordinaten-Drifts bei positionsbasierten Stage-Animationen (slide-up, Fly-Patterns). Kinder von Container-Komponenten (TGroupPanel, TPanel, TDialogRoot) wurden eigenstaendig animiert, obwohl ihre x/y-Koordinaten relativ zum Parent sind. Der StageRenderer addierte den animierten Parent-Offset doppelt.
+- Dateien:
+  - src/runtime/GameRuntime.ts (Methode: triggerStartAnimation, Zeilen ~589-605 - parentId-Guard fuer Positions-Tweens)
+  - tests/export_checksums.json (Checksumme aktualisiert)

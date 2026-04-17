@@ -560,8 +560,19 @@ export class GameRuntime implements IVariableHost {
         const stageHeight = grid.rows || 40;
         const outsideMargin = 10; // Grid-Zellen knapp außerhalb der Bühne
 
+        // KOORDINATEN-DRIFT-FIX: Kinder von Container-Komponenten (TGroupPanel, TPanel, TDialogRoot)
+        // haben relative x/y-Koordinaten. Der StageRenderer addiert die Parent-Position rekursiv
+        // zur absoluten Darstellung. Würden wir Kinder UND das Parent gleichzeitig positionsbasiert
+        // animieren, entsteht ein doppelter Offset (Kind fliegt eigenständig + StageRenderer addiert
+        // Parent-Offset oben drauf). Kinder bewegen sich automatisch mit dem Parent mit, da der
+        // StageRenderer die absolute Position rekursiv über die parentId-Kette berechnet.
+        // Opacity-Animationen (fade-in) sind hiervon nicht betroffen, da die DOM-Elemente flach
+        // im Stage-Container liegen (kein CSS-Cascading der Opacity).
+
         // Legacy-Animationen (fade-in, slide-up)
         if (animationType === 'fade-in') {
+            // Opacity: Alle Objekte animieren (auch Kinder), da die DOM-Elemente
+            // nicht verschachtelt sind und CSS-Opacity nicht kaskadiert.
             this.objects.forEach(obj => {
                 if (obj.visible !== false) {
                     const originalOpacity = obj.opacity !== undefined ? obj.opacity : 1;
@@ -574,7 +585,8 @@ export class GameRuntime implements IVariableHost {
 
         if (animationType === 'slide-up') {
             this.objects.forEach(obj => {
-                if (obj.visible !== false) {
+                // DRIFT-FIX: Kinder mit parentId überspringen – sie reiten auf dem Parent mit.
+                if (obj.visible !== false && !obj.parentId) {
                     const originalY = obj.y;
                     obj.y += 100;
                     am.addTween(obj, 'y', originalY, duration, easing);
@@ -588,6 +600,10 @@ export class GameRuntime implements IVariableHost {
 
         this.objects.forEach((obj, index) => {
             if (obj.visible === false) return;
+            // DRIFT-FIX: Kinder von Containern (TGroupPanel, TPanel, TDialogRoot) überspringen.
+            // Ihre x/y-Werte sind relativ zum Parent. Der StageRenderer berechnet die absolute
+            // Position rekursiv. Kinder bewegen sich automatisch mit dem animierten Parent mit.
+            if (obj.parentId) return;
 
             const targetX = obj.x;
             const targetY = obj.y;

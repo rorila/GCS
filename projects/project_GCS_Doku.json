@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "author": "Rolf",
     "description": "",
-    "_sourcePath": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/projects/project_GCS_Doku.json"
+    "_sourcePath": "projects/project_GCS_Doku.json"
   },
   "stage": {
     "grid": {
@@ -70,39 +70,6 @@
           "stageCount": 0,
           "isOnMainStage": false,
           "isOnSplashStage": false
-        },
-        {
-          "className": "TButton",
-          "id": "dffba39f-6c6f-47e6-9ab9-421c0d362b6c",
-          "name": "Btn_GoToDirectory",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "events": {
-            "onClick": "ShowDirectory"
-          },
-          "visible": true,
-          "x": 2,
-          "y": 2,
-          "width": 12,
-          "height": 3,
-          "zIndex": 1,
-          "align": "NONE",
-          "style": {
-            "color": "#ffffff",
-            "fontSize": 14,
-            "fontFamily": "Arial",
-            "fontWeight": "bold",
-            "fontStyle": "normal",
-            "textAlign": "center",
-            "backgroundColor": "${MainThemes.ButtonBackground}",
-            "borderColor": "#000000",
-            "borderWidth": 1,
-            "borderRadius": 25
-          },
-          "text": "${StringMap_BluePrintStage.BackToDirectory}",
-          "icon": ""
         },
         {
           "className": "TButton",
@@ -192,35 +159,99 @@
             "borderRadius": 25
           },
           "caption": "",
-          "showGrid": false,
-          "gridColor": "#000000",
-          "gridStyle": "lines"
-        },
-        {
-          "className": "TImage",
-          "id": "obj_1776354588681_wyzxicz4d",
-          "name": "Image_23",
-          "scope": "global",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 50,
-          "y": 1,
-          "width": 14,
-          "height": 6,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "transparent",
-            "borderColor": "#999999",
-            "borderWidth": 0
-          },
-          "src": "./images/GameToolbox/Logo GameToolbox.png",
-          "objectFit": "contain",
-          "alt": "",
-          "imageOpacity": 1,
-          "fallbackColor": "#2a2a2a"
+          "showGrid": true,
+          "gridColor": "#ddd5d5",
+          "gridStyle": "lines",
+          "children": [
+            {
+              "className": "TButton",
+              "id": "dffba39f-6c6f-47e6-9ab9-421c0d362b6c",
+              "name": "Btn_GoToDirectory",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "ShowDirectory"
+              },
+              "visible": true,
+              "x": 1,
+              "y": 1,
+              "width": 12,
+              "height": 3,
+              "zIndex": 1,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "${MainThemes.ButtonBackground}",
+                "borderColor": "#000000",
+                "borderWidth": 1,
+                "borderRadius": 25
+              },
+              "text": "${StringMap_BluePrintStage.BackToDirectory}",
+              "icon": ""
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1776420879314_d666p0xc5",
+              "name": "Button_23",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 15,
+              "y": 2,
+              "width": 6,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "#007bff",
+                "borderColor": "#000000",
+                "borderWidth": 1
+              },
+              "text": "Button_23",
+              "icon": ""
+            },
+            {
+              "className": "TImage",
+              "id": "obj_1776354588681_wyzxicz4d",
+              "name": "Image_23",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 49,
+              "y": 0,
+              "width": 14,
+              "height": 6,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "backgroundColor": "transparent",
+                "borderColor": "#999999",
+                "borderWidth": 0
+              },
+              "src": "./images/GameToolbox/Logo GameToolbox.png",
+              "objectFit": "contain",
+              "alt": "",
+              "imageOpacity": 1,
+              "fallbackColor": "#2a2a2a"
+            }
+          ]
         }
       ],
       "actions": [
@@ -481,8 +512,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         },
         {
@@ -526,8 +557,8 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 56,
-          "y": 5,
+          "x": 55,
+          "y": 9,
           "width": 7,
           "height": 3,
           "zIndex": 0,
@@ -755,7 +786,7 @@
             "onClick": "ShowGreenTheme"
           },
           "visible": true,
-          "x": 21,
+          "x": 22,
           "y": 9,
           "width": 14,
           "height": 3,
@@ -789,7 +820,7 @@
           "droppable": false,
           "dragMode": "move",
           "visible": true,
-          "x": 23,
+          "x": 24,
           "y": 2,
           "width": 17,
           "height": 3,
@@ -1000,11 +1031,7 @@
         "visible": false,
         "backgroundColor": "${MainThemes.StageBackground}"
       },
-      "excludedBlueprintIds": [
-        "obj_1776003832031_4393yf5fi",
-        "8f7e7c86-ac08-460b-9894-4401218029a1",
-        "dffba39f-6c6f-47e6-9ab9-421c0d362b6c"
-      ],
+      "excludedBlueprintIds": [],
       "_supportedEvents": [
         "onClick",
         "onDragStart",
@@ -1638,5 +1665,5 @@
       "flowCharts": {}
     }
   ],
-  "activeStageId": "stage_import_1776332740117_mb"
+  "activeStageId": "main"
 }
