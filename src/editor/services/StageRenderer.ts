@@ -926,25 +926,7 @@ export class StageRenderer {
         const cellSize = this.host.grid.cellSize;
         const allObjects = this.host.lastRenderedObjects || [];
         
-        // Helfer, um absolute Position eines Objekts zu berechnen (Parent-Chain)
-        const getAbsXYZ = (obj: any): {x: number, y: number} => {
-            let absX = obj.x || 0;
-            let absY = obj.y || 0;
-            let curr = obj.parentId;
-            let depth = 0;
-            while (curr && depth < 100) {
-                const p = allObjects.find(o => (o.id || o.name) === curr);
-                if (p) {
-                    absX += p.x || 0;
-                    absY += p.y || 0;
-                    curr = p.parentId;
-                } else {
-                    break;
-                }
-                depth++;
-            }
-            return {x: absX, y: absY};
-        };
+        const objectsToUpdate = new Set<any>(objects);
 
         // Rekursive Helfer-Funktion, um alle Kinder zu sammeln
         const getChildren = (parentId: string): any[] => {
@@ -956,13 +938,35 @@ export class StageRenderer {
             return result;
         };
 
-        const objectsToUpdate = new Set<any>(objects);
         // Auch alle Kinder in den Update-Zyklus einbeziehen, damit sie sich 
         // synchron mit ihren animierten Containern mitbewegen.
         for (const obj of objects) {
             const kids = getChildren(obj.id || obj.name);
             kids.forEach(k => objectsToUpdate.add(k));
         }
+
+        const mergedObjectsArray = Array.from(objectsToUpdate);
+
+        // Helfer, um absolute Position eines Objekts zu berechnen (Parent-Chain)
+        // Muss die LATEST properties referenzieren
+        const getAbsXYZ = (obj: any): {x: number, y: number} => {
+            let absX = obj.x || 0;
+            let absY = obj.y || 0;
+            let curr = obj.parentId;
+            let depth = 0;
+            while (curr && depth < 100) {
+                const p = mergedObjectsArray.find(o => (o.id || o.name) === curr) || allObjects.find(o => (o.id || o.name) === curr);
+                if (p) {
+                    absX += p.x || 0;
+                    absY += p.y || 0;
+                    curr = p.parentId;
+                } else {
+                    break;
+                }
+                depth++;
+            }
+            return {x: absX, y: absY};
+        };
 
         for (const obj of objectsToUpdate) {
             const el = this.host.element.querySelector(
