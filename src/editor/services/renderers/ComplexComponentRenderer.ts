@@ -17,7 +17,7 @@ export class ComplexComponentRenderer {
             const header = document.createElement('div');
             header.className = 'inspector-preview-header';
             header.style.cssText = 'font-weight:bold;color:#fff;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #444';
-            header.innerText = '📋 Inspector Designer';
+            header.innerText = 'ðŸ“‹ Inspector Designer';
             el.appendChild(header);
 
             const preview = document.createElement('div');
@@ -56,7 +56,7 @@ export class ComplexComponentRenderer {
                             label.innerText = prop.label;
                             const input = document.createElement('span');
                             input.style.cssText = 'flex:1;background:#333;padding:2px 4px;border-radius:2px;color:#fff';
-                            input.innerText = prop.type === 'boolean' ? '☐' : prop.type === 'color' ? '🎨' : prop.type === 'select' ? '▼' : '...';
+                            input.innerText = prop.type === 'boolean' ? 'â˜' : prop.type === 'color' ? 'ðŸŽ¨' : prop.type === 'select' ? 'â–¼' : '...';
                             row.appendChild(label);
                             row.appendChild(input);
                             preview.appendChild(row);
@@ -75,15 +75,14 @@ export class ComplexComponentRenderer {
         el.style.justifyContent = 'flex-start';
         el.style.overflow = 'visible';
 
+        // Titelleiste als DOM-Kind des Dialogs (Design- und RunMode identisch)
         if (!el.querySelector('.dialog-title-bar')) {
             const titleBar = document.createElement('div');
             titleBar.className = 'dialog-title-bar';
             titleBar.style.cssText = `display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid ${obj.style?.borderColor || '#4fc3f7'}; color: #fff; font-weight: bold;`;
-            
             const titleText = document.createElement('span');
             titleText.className = 'dialog-title-text';
             titleBar.appendChild(titleText);
-            
             el.appendChild(titleBar);
         }
         const titleBar = el.querySelector('.dialog-title-bar') as HTMLElement;
@@ -93,20 +92,54 @@ export class ComplexComponentRenderer {
         }
 
         if (ctx.host.runMode) {
+            const cellSize = ctx.host.grid?.cellSize || 20;
+
+            // KRITISCH: Die obj-Referenz wird bei JEDEM Render aktualisiert.
+            // Event-Handler (Close, Drag) lesen sie von hier statt aus der Closure,
+            // weil ein Voll-Render eine NEUE obj-Instanz uebergibt, aber die Handler
+            // nur beim ERSTEN Render erstellt werden (stale closure).
+            (titleBar as any)._dialogObj = obj;
+
             // 1. Closable
             if (obj.closable) {
                 let closeBtn = titleBar.querySelector('.dialog-close-btn') as HTMLElement;
                 if (!closeBtn) {
                     closeBtn = document.createElement('span');
                     closeBtn.className = 'dialog-close-btn';
-                    closeBtn.textContent = '✕';
-                    closeBtn.style.cssText = 'cursor:pointer; padding:0 8px; margin-right:-8px; font-weight:bold; transition:color 0.2s; pointer-events: auto !important; z-index: 99999;';
+                    closeBtn.textContent = '\u2715';
+                    closeBtn.style.cssText = 'cursor:pointer; padding:0 8px; margin-right:-8px; font-weight:bold; transition:color 0.2s;';
                     closeBtn.onmouseenter = () => closeBtn.style.color = '#ff4444';
                     closeBtn.onmouseleave = () => closeBtn.style.color = '#fff';
-                    closeBtn.onpointerdown = (e) => e.stopPropagation(); // Verhindern von Dragging
+                    closeBtn.onpointerdown = (e) => {
+                        e.stopPropagation();
+                    };
                     closeBtn.onclick = (e) => {
                         e.stopPropagation();
-                        obj.visible = false; 
+                        const currentObj = (titleBar as any)._dialogObj;
+                        currentObj.visible = false;
+                        
+                        // Sofortiges visuelles Feedback: (Schiebt den Dialog entsprechend StageRenderer Logik aus dem Bild)
+                        const outOfBoundsOffset = currentObj.slideDirection === 'left' ? -1500 : 1500;
+                        (el.style as any).translate = `${((currentObj.x || 0) * cellSize) + outOfBoundsOffset}px ${(currentObj.y || 0) * cellSize}px`;
+                        el.style.pointerEvents = 'none';
+                        (el as any)._wasCentered = false; // Zentrierungs-Zustand resetten
+
+                        // Modal-Overlay ebenfalls verstecken
+                        const overlay = document.getElementById(`dialog-overlay-${currentObj.id}`);
+                        if (overlay) overlay.style.display = 'none';
+                        
+                        // KINDER ebenfalls aus dem Bild schieben (Flache DOM Hierarchie)
+                        if (currentObj.children && Array.isArray(currentObj.children)) {
+                            currentObj.children.forEach((child: any) => {
+                                const childEl = ctx.host.element.querySelector(`[data-id="${child.id || child.name}"]`) as HTMLElement;
+                                if (childEl) {
+                                    childEl.style.pointerEvents = 'none';
+                                    const absX = (currentObj.x || 0) + (child.x || 0);
+                                    const absY = (currentObj.y || 0) + (child.y || 0);
+                                    (childEl.style as any).translate = `${(absX * cellSize) + outOfBoundsOffset}px ${absY * cellSize}px`;
+                                }
+                            });
+                        }
                     };
                     titleBar.appendChild(closeBtn);
                 }
@@ -123,25 +156,48 @@ export class ComplexComponentRenderer {
                     let isDragging = false;
                     let startX = 0, startY = 0;
                     let startObjX = 0, startObjY = 0;
+                    let startChildPositions = new Map<string, {x: number, y: number}>();
 
                     titleBar.onpointerdown = (e) => {
                         if ((e.target as HTMLElement).classList.contains('dialog-close-btn')) return;
                         e.stopPropagation();
+                        const currentObj = (titleBar as any)._dialogObj;
                         isDragging = true;
                         startX = e.clientX;
                         startY = e.clientY;
-                        startObjX = obj.x || 0;
-                        startObjY = obj.y || 0;
+                        startObjX = currentObj.x || 0;
+                        startObjY = currentObj.y || 0;
+                        
+                        console.log('[DIALOG-DEBUG] Drag START: x:', startObjX, 'y:', startObjY);
                         titleBar.setPointerCapture(e.pointerId);
                     };
                     titleBar.onpointermove = (e) => {
                         if (!isDragging) return;
                         e.stopPropagation();
+                        const currentObj = (titleBar as any)._dialogObj;
                         const dx = e.clientX - startX;
                         const dy = e.clientY - startY;
-                        const cellSize = ctx.host.grid?.cellSize || 30;
-                        obj.x = startObjX + (dx / cellSize);
-                        obj.y = startObjY + (dy / cellSize);
+                        
+                        const deltaCellX = dx / cellSize;
+                        const deltaCellY = dy / cellSize;
+                        
+                        currentObj.x = startObjX + deltaCellX;
+                        currentObj.y = startObjY + deltaCellY;
+
+                        // Sofortiges visuelles Dragging anwenden
+                        (el.style as any).translate = `${currentObj.x * cellSize}px ${currentObj.y * cellSize}px`;
+                        
+                        // Kinder mitziehen (Relative Koordinaten c.x/y bleiben unverändert!)
+                        if (currentObj.children && Array.isArray(currentObj.children)) {
+                            currentObj.children.forEach((c: any) => {
+                                const childEl = ctx.host.element.querySelector(`[data-id="${c.id || c.name}"]`) as HTMLElement;
+                                if (childEl) {
+                                    const absX = currentObj.x + (c.x || 0);
+                                    const absY = currentObj.y + (c.y || 0);
+                                    (childEl.style as any).translate = `${absX * cellSize}px ${absY * cellSize}px`;
+                                }
+                            });
+                        }
                     };
                     titleBar.onpointerup = (e) => {
                         if (!isDragging) return;
@@ -163,24 +219,30 @@ export class ComplexComponentRenderer {
                     (el as any)._wasCentered = true;
                     const stageW = ctx.host.element.clientWidth;
                     const stageH = ctx.host.element.clientHeight;
-                    const cellSize = ctx.host.grid?.cellSize || 30;
                     const stageWCells = stageW / cellSize;
                     const stageHCells = stageH / cellSize;
                     const objWCells = obj.width || 20;
                     const objHCells = obj.height || 15;
-                    
                     const newX = Math.max(0, Math.floor((stageWCells - objWCells) / 2));
                     const newY = Math.max(0, Math.floor((stageHCells - objHCells) / 2));
-                    
                     obj.x = newX;
                     obj.y = newY;
-                    
-                    // FIX: Da wir uns im RunMode befinden, arbeitet der StageRenderer ausschliesslich mit 'translate'.
-                    // WICHTIG: Die Stage ist ein Flex-Container. Ein leeres '' bei left/top fuehrt zu auto-Positionierung,
-                    // was den Anker fuer translate zerstoert und die Pointer-Events (Bounding Rects) unbrauchbar macht!
                     (el.style as any).translate = `${newX * cellSize}px ${newY * cellSize}px`;
                     el.style.left = '0px';
                     el.style.top = '0px';
+
+                    // Kinder ebenfalls nachträglich zentrieren, da StageRenderer ihre absoluten
+                    // Positionen evt. schon mit den alten (nicht-zentrierten) parent-x/y gerechnet hat
+                    if (obj.children && Array.isArray(obj.children)) {
+                        obj.children.forEach((c: any) => {
+                            const childEl = ctx.host.element.querySelector(`[data-id="${c.id || c.name}"]`) as HTMLElement;
+                            if (childEl) {
+                                const absX = newX + (c.x || 0);
+                                const absY = newY + (c.y || 0);
+                                (childEl.style as any).translate = `${absX * cellSize}px ${absY * cellSize}px`;
+                            }
+                        });
+                    }
                 } else if (!obj.visible) {
                     (el as any)._wasCentered = false;
                 }
@@ -188,6 +250,7 @@ export class ComplexComponentRenderer {
 
             // 4. Modal
             if (obj.modal) {
+                const zIndexBase = obj.zIndex ? Number(obj.zIndex) : 20000;
                 let overlay = document.getElementById(`dialog-overlay-${obj.id}`);
                 if (obj.visible) {
                     if (!overlay) {
@@ -197,30 +260,8 @@ export class ComplexComponentRenderer {
                         overlay.style.cssText = `position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); pointer-events: auto;`;
                         ctx.host.element.appendChild(overlay);
                     }
-                    
-                    // FIX: Expliziten Z-Index fuer Stage-Element "el" erzwingen, da StageRenderer 
-                    // bei ungepflegtem obj.zIndex keinen Set/Fallback fuer gewoehnliche Dialoge hat 
-                    // und el somit z.B. zIndex \auto\ hat (0), was vom Overlay ueberlagert wird.
-                    const zIndexBase = obj.zIndex ? Number(obj.zIndex) : 20000;
                     overlay.style.zIndex = String(zIndexBase - 1);
-                    el.style.zIndex = String(zIndexBase);
-                    
-                    // NEU: Absolute Geschwister (Children des Dialogs) aus der Versenkung heben
-                    // Da StageRenderer Children als flache Geschwister rendert und sie standardmaessig 
-                    // auto/0 Z-Index haben, wuerde das Overlay (19999) sie abdecken, man koennte
-                    // im Dialog keine Knoepfe mehr druecken! Wir ziehen sie hierueber explizit vor.
-                    if (obj.children && Array.isArray(obj.children)) {
-                        obj.children.forEach((child: any) => {
-                            const childEl = ctx.host.element.querySelector(`[data-id="${child.id}"]`) as HTMLElement;
-                            if (childEl) {
-                                childEl.style.zIndex = String(zIndexBase + 1);
-                            }
-                        });
-                    }
-
                     overlay.style.display = 'block';
-                    
-                    // Verhindern, dass Klicks auf das Overlay nach hinten durchgehen
                     overlay.onpointerdown = (e) => e.stopPropagation();
                     overlay.onclick = (e) => e.stopPropagation();
                 } else if (overlay) {
@@ -231,6 +272,9 @@ export class ComplexComponentRenderer {
                 if (overlay) overlay.style.display = 'none';
             }
         }
+
+
+
 
 
         if (!ctx.host.runMode && obj.children && Array.isArray(obj.children)) {
@@ -375,8 +419,8 @@ export class ComplexComponentRenderer {
                 el.appendChild(infoBar);
             }
 
-            const actionInfo = obj.dataAction ? `📊 ${obj.dataAction}` : '⚠️ Keine DataAction';
-            infoBar.innerText = `🔄 Repeater | ${actionInfo} | ${childCount} Kinder im Template`;
+            const actionInfo = obj.dataAction ? `ðŸ“Š ${obj.dataAction}` : 'âš ï¸ Keine DataAction';
+            infoBar.innerText = `ðŸ”„ Repeater | ${actionInfo} | ${childCount} Kinder im Template`;
 
             if (templatePanel) {
                 let previewCard = el.querySelector('.datalist-preview') as HTMLElement;
@@ -400,7 +444,7 @@ export class ComplexComponentRenderer {
                     return `[${className}] ${text}`;
                 }).join(' | ');
 
-                previewCard.innerText = childNames || 'Leeres Template — ziehe Komponenten hinein';
+                previewCard.innerText = childNames || 'Leeres Template â€” ziehe Komponenten hinein';
                 previewCard.style.color = childNames ? '#aaa' : '#666';
                 previewCard.style.fontSize = '11px';
             }

@@ -595,3 +595,9 @@ Files:
 - Dateien:
   - src/editor/services/renderers/ComplexComponentRenderer.ts (Erweiterte Render-Logik für TDialogRoot)
   - public/runtime-standalone.js (neugebaut mit vite.runtime.config.ts)
+
+[2026-04-18] UC-2026-04-18-DialogRootChildTranslateFix
+- Beschreibung: Behebung des Fehlers, dass Kind-Komponenten eines TDialogRoot beim Schließen oder Draggen (Verschieben per Maus) an ihrem alten Platz verblieben oder aufgrund falsch addierter Relativ-Koordinaten unkontrolliert durchs Bild sprangen. Ursache war die flache DOM-Struktur des StageRenderers. TDialogRoot iteriert nun explizit über obj.children und berechnet in Echtzeit den korrekten absoluten Screen-Offset ((Dialog.x + Kind.x) * cellSize), ohne dabei die sauberen relativen Koordinaten (c.x/c.y) des Kindes zu mutieren.
+- Dateien:
+  - src/editor/services/renderers/ComplexComponentRenderer.ts (Mouse-, Click- und centerOnShow EventHandler)
+  - public/runtime-standalone.js (neugebaut mit vite.runtime.config.ts)

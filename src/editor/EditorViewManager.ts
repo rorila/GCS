@@ -276,7 +276,8 @@ export class EditorViewManager {
         panel.innerHTML = '';
         
         const iframe = document.createElement('iframe');
-        iframe.src = window.location.protocol === 'file:' ? 'iframe-runner.html' : '/iframe-runner.html';
+        const ts = Date.now();
+        iframe.src = window.location.protocol === 'file:' ? `iframe-runner.html?t=${ts}` : `/iframe-runner.html?t=${ts}`;
         iframe.style.width = '100%';
         iframe.style.height = '100%';
         iframe.style.border = 'none';

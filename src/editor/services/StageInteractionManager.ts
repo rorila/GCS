@@ -241,11 +241,17 @@ export class StageInteractionManager {
         const objEl = target.closest('.game-object') as HTMLElement;
 
         if (this.host.runMode) {
+            console.log('[DIALOG-DEBUG] StageInteractionManager.handleMouseDown RunMode! target:', target.tagName + '.' + target.className, 'objEl:', objEl?.getAttribute('data-id'));
             if (objEl) {
                 const id = objEl.getAttribute('data-id');
                 if (id) {
                     const obj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === id);
                     if (obj && (obj.draggable || obj.draggableAtRuntime)) {
+                        // TDialogRoot hat seinen eigenen Drag-Handler (Titelleiste im ComplexComponentRenderer).
+                        // Der Editor-interne Drag darf hier NICHT starten, da er den Dialog-eigenen Drag
+                        // überlagert und auch den Close-Button blockiert.
+                        if (obj.className === 'TDialogRoot') return;
+
                         this.dragStart = { x: e.clientX, y: e.clientY };
                         this.isDragging = true;
                         this.dragObjId = id;

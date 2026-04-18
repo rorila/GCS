@@ -267,16 +267,10 @@ export class StageRenderer {
                 finalH = (obj.height || 0) * gridConfig.cellSize;
             }
 
-            // 🎮 PERFORMANTE SPIELE-SCHLEIFE (GPU COMPOSITING)
+            // Determine if this object is a dialog or child of a dialog
+            // (Berechnung AUSSERHALB von runMode, damit z-index Logik weiter unten darauf zugreifen kann)
+            let parentDialog: any = null;
             if (this.host.runMode) {
-                // Hardware Acceleration: Anker auf Null setzen, damit die GPU Texturen schiebt statt der CPU Layouts rechnet
-                el.style.willChange = 'transform, opacity';
-                el.style.backfaceVisibility = 'hidden';
-                el.style.left = '0px';
-                el.style.top = '0px';
-                
-                // Determine if this object is a dialog or child of a dialog
-                let parentDialog: any = null;
                 if (className === 'TDialogRoot') parentDialog = obj;
                 else if (obj.parentId) {
                     let currId = obj.parentId;
@@ -290,6 +284,15 @@ export class StageRenderer {
                         currId = p?.parentId;
                     }
                 }
+            }
+
+            // 🎮 PERFORMANTE SPIELE-SCHLEIFE (GPU COMPOSITING)
+            if (this.host.runMode) {
+                // Hardware Acceleration: Anker auf Null setzen, damit die GPU Texturen schiebt statt der CPU Layouts rechnet
+                el.style.willChange = 'transform, opacity';
+                el.style.backfaceVisibility = 'hidden';
+                el.style.left = '0px';
+                el.style.top = '0px';
 
                 // Initiale Position als Translate (getrennt von Transform, neuester Web-Standard)
                 if (className === 'TVirtualGamepad') {
@@ -364,10 +367,12 @@ export class StageRenderer {
             } else {
                 let finalDisplay = isVisible ? (obj.className === 'TRichText' ? 'block' : 'flex') : 'none';
                 
-                // Wenn es in einem Dialog ist, darf es NICHT display: none haben, sonst läuft die Animation nicht!
-                if (this.host.runMode) {
+                // Wenn es ein KIND eines Dialogs ist (NICHT der Dialog selbst!),
+                // darf es NICHT display: none haben, sonst läuft die Slide-Animation nicht.
+                // Der Dialog-Root SELBST muss aber bei visible=false verschwinden können!
+                if (this.host.runMode && obj.parentId) {
                     let isDialogChild = false;
-                    let currId = obj.parentId || (obj.className === 'TDialogRoot' ? obj.id : null);
+                    let currId = obj.parentId;
                     let sanity = 0;
                     while (currId && sanity++ < 20) {
                         const p = objects.find(o => (o.id || o.name) === currId);
@@ -451,7 +456,22 @@ export class StageRenderer {
                     el.style.boxShadow = '';
                 }
 
-                if (obj.zIndex !== undefined) {
+                if (this.host.runMode && parentDialog) {
+                    // Dialog-Kinder und der Dialog selbst MUESSEN ueber dem Modal-Overlay (19999) liegen.
+                    // Diese Zuweisung darf NICHT im ComplexComponentRenderer stehen, da der StageRenderer
+                    // als letzter in der Rendering-Pipeline den z-index ueberschreibt.
+                    //
+                    // STACKING-STRATEGIE:
+                    //   Children:      dialogZBase + 1  (klickbar)
+                    //   Dialog-Root:   dialogZBase      (Background/Rahmen + Titelleiste als DOM-Kind)
+                    //   Overlay:       dialogZBase - 1  (block background)
+                    const dialogZBase = parentDialog.zIndex ? Number(parentDialog.zIndex) : 20000;
+                    if (className === 'TDialogRoot') {
+                        el.style.zIndex = String(dialogZBase);
+                    } else {
+                        el.style.zIndex = String(dialogZBase + 1);
+                    }
+                } else if (obj.zIndex !== undefined) {
                     el.style.zIndex = String(obj.zIndex);
                 } else if (obj.name && (obj.name.startsWith('Overlay') || obj.name.startsWith('Btn') || obj.name.startsWith('Input')) || obj.className === 'TStatusBar') {
                     el.style.zIndex = '2000';

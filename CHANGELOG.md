@@ -1,4 +1,11 @@
 
+## 18.04.2026
+
+### Fix: TDialogRoot Drag & Drop Child/Relative Position Fix
+- **FIX**: (RunMode) Behebung eines Fehlers, bei dem Kind-Komponenten eines `TDialogRoot` beim Schließen oder Draggen (Verschieben per Maus) an ihrem alten Platz verblieben oder aufgrund falsch addierter Relativ-Koordinaten unkontrolliert durchs Bild sprangen. 
+- **REFACTOR**: Die Event-Handler für Close, Click und Drag in `ComplexComponentRenderer` manipulieren nun das DOM direkt für sofortiges Feedback (`el.style.translate`), wodurch Full-Renders vermieden werden. Sie synchronisieren dabei die absoluten Screen-Koordinaten (`Parent.x + Child.x`) interaktiv für alle Kinder, ohne die reinen Daten-Strukturen zu zerschießen.
+- **DATEIEN**: `src/editor/services/renderers/ComplexComponentRenderer.ts`
+
 ## 16.04.2026
 
 ### Feature: TDialogRoot Slide-Animation & Toggle Action

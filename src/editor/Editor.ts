@@ -311,7 +311,7 @@ export class Editor implements IViewHost {
             report = RefactoringManager.getActionUsageReport(this.project, obj.name);
         } else if (obj.className === 'TTask' || obj.type === 'task') {
             report = RefactoringManager.getTaskUsageReport(this.project, obj.name);
-        } else if (obj.scope === 'global' || obj.isVariable) {
+        } else if (obj.isVariable) {
             report = RefactoringManager.getVariableUsageReport(this.project, obj.name || id);
         } else {
             report = RefactoringManager.getObjectUsageReport(this.project, obj.name);
@@ -368,7 +368,7 @@ export class Editor implements IViewHost {
                 report = RefactoringManager.getActionUsageReport(this.project, obj.name);
             } else if (obj.className === 'TTask' || obj.type === 'task') {
                 report = RefactoringManager.getTaskUsageReport(this.project, obj.name);
-            } else if (obj.scope === 'global' || obj.isVariable) {
+            } else if (obj.isVariable) {
                 report = RefactoringManager.getVariableUsageReport(this.project, obj.name || obj.id);
             } else {
                 report = RefactoringManager.getObjectUsageReport(this.project, obj.name);

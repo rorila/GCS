@@ -38,6 +38,7 @@
 - **Undo / Redo:** Der einzige zust?ndige Manager ist der **`SnapshotManager`**. Der alte `ChangeRecorder`/`EditorUndoManager` ist obsolet. Bei jeder Wiederherstellung tauscht der Editor das Projekt tiefgreifend aus (`this.loadProject(JSON)`).
 - **Two-Way-Binding Kollisionen:** Vermeide direkte Schreibzugriffe auf `obj.name` ?ber UI-Events, *bevor* eine zentrale Validierung wie `EditorCommandManager.renameObject` angesto?en wird! Der `EditorCommandManager` muss die Mutation sicher atomar durchf?hren.
 - **Vermeidung redundanter Render-Zyklen:** `.onChange()` Listener filtern `{x, y, isEditorSelected, width, height, isMoving, isHiddenInRun}` heraus, wenn diese ohnehin zu 60FPS durch lokale Animationen geregelt werden.
+- **DO NOT:** Die Abfrage `obj.scope === 'global'` verwenden, um Objekte exklusiv als Variablen zu klassifizieren! Reguläre Stage-Komponenten (Buttons, Images), die sich auf der Blueprint-Stage befinden, erben ebenfalls den Scope `global`. Nutze stattdessen immer das spezifische Flag `obj.isVariable` für strikte Typprüfungen bei Refactoring-Analysen.
 
 ### Speichermanagement (aktualisiert v3.22.0)
 - **Adapter-basiert**: `ProjectPersistenceService` delegiert an `IStorageAdapter`-Implementierungen. Kein direkter `fetch()`- oder `localStorage`-Zugriff in Business-Logik.
