@@ -589,3 +589,9 @@ Files:
   - src/runtime/GameRuntime.ts (Konstruktor-GlobalListener, Zeilen ~175-189 - needsFullRender-Check fuer Container mit children)
   - src/runtime/GameLoopManager.ts (Methode: loop, Zeilen ~295-312 - hasContainerAnimation-Guard fuer Full-Render statt Fast-Path)
   - public/runtime-standalone.js (neugebaut mit vite.runtime.config.ts)
+
+[2026-04-18] UC-2026-04-18-DialogRootRuntimeFeatures
+- Beschreibung: Implementierung fehlender Laufzeitlogik für TDialogRoot. Die Eigenschaften "modal", "closable", "draggableAtRuntime" und "centerOnShow" funktionierten im Laufzeitmodus bislang nicht. Durch Modifikation des ComplexComponentRenderer.renderDialogRoot wurden diese Features nativ angebunden: Ein transparentes Hintergrund-Overlay (Modal-Blocking), ein Schliessen-Button, Pointer-Events als Drag-Handle und Grid-Cell-basiertes Zentrieren.
+- Dateien:
+  - src/editor/services/renderers/ComplexComponentRenderer.ts (Erweiterte Render-Logik für TDialogRoot)
+  - public/runtime-standalone.js (neugebaut mit vite.runtime.config.ts)

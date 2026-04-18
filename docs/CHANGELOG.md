@@ -1,3 +1,10 @@
+### 2026-04-18 (Feature: TDialogRoot Runtime Logic)
+- **Feature (Dialog-Eigenschaften)**: Die in der TDialogRoot-Komponente deklarierten Eigenschaften `modal`, `closable`, `draggableAtRuntime` und `centerOnShow` wurden im `ComplexComponentRenderer` für den Run-Modus implementiert.
+  - *Modal*: Es wird ein Overlay-Div via `document.createElement` unterhalb des Dialogs dynamisch erzeugt, welches mittels `pointer-events: auto` jegliche Klicks auf Hintergrundelemente abfängt.
+  - *Closable*: In der Titelleiste wird bei Sichtbarkeit automatisch ein `✕`-Button eingefügt, der den Dialog bei Klick schließt (`obj.visible = false`).
+  - *Draggable*: Manuelles Setzen des Positionierungs-Anchors (`obj.x` und `obj.y`) im Grid-System via Pointer-Events (`onpointerdown/move/up`), sodass der Dialog mitsamt reaktiver Update-Schleife der Runtime bewegt wird.
+  - *Center on Show*: Wechselt der Dialog-Status auf `visible = true`, errechnet das Grid-System dynamisch die stage-weite Mitte aus Viewport, CellSize und Dialogdimensionen und positioniert den Dialog initial zentriert.
+
 ### 2026-04-17 (Bugfix: Container-Kinder bei Stage-Animation unsichtbar)
 - **Bugfix (Runtime Rendering — Erstaufruf)**: Behebung eines kritischen Layout-Fehlers, bei dem Kind-Komponenten in Containern (TGroupPanel, TPanel) beim ersten Laden einer Stage nicht sichtbar waren, aber beim zweiten Aufruf korrekt gerendert wurden.
   - *Ursache*: Drei zusammenhängende Probleme:

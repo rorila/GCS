@@ -79,13 +79,128 @@ export class ComplexComponentRenderer {
             const titleBar = document.createElement('div');
             titleBar.className = 'dialog-title-bar';
             titleBar.style.cssText = `display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid ${obj.style?.borderColor || '#4fc3f7'}; color: #fff; font-weight: bold;`;
-            titleBar.textContent = obj.caption || obj.title || obj.name;
+            
+            const titleText = document.createElement('span');
+            titleText.className = 'dialog-title-text';
+            titleBar.appendChild(titleText);
+            
             el.appendChild(titleBar);
         }
         const titleBar = el.querySelector('.dialog-title-bar') as HTMLElement;
-        if (titleBar && titleBar.textContent !== (obj.caption || obj.title || obj.name)) {
-            titleBar.textContent = obj.caption || obj.title || obj.name;
+        const titleText = titleBar.querySelector('.dialog-title-text') as HTMLElement;
+        if (titleText && titleText.textContent !== (obj.caption || obj.title || obj.name)) {
+            titleText.textContent = obj.caption || obj.title || obj.name;
         }
+
+        if (ctx.host.runMode) {
+            // 1. Closable
+            if (obj.closable) {
+                let closeBtn = titleBar.querySelector('.dialog-close-btn') as HTMLElement;
+                if (!closeBtn) {
+                    closeBtn = document.createElement('span');
+                    closeBtn.className = 'dialog-close-btn';
+                    closeBtn.textContent = '✕';
+                    closeBtn.style.cssText = 'cursor:pointer; padding:0 8px; margin-right:-8px; font-weight:normal; transition:color 0.2s;';
+                    closeBtn.onmouseenter = () => closeBtn.style.color = '#ff4444';
+                    closeBtn.onmouseleave = () => closeBtn.style.color = '#fff';
+                    closeBtn.onpointerdown = (e) => e.stopPropagation(); // Verhindern von Dragging
+                    closeBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        obj.visible = false; 
+                    };
+                    titleBar.appendChild(closeBtn);
+                }
+            } else {
+                const closeBtn = titleBar.querySelector('.dialog-close-btn');
+                if (closeBtn) closeBtn.remove();
+            }
+
+            // 2. Draggable
+            if (obj.draggableAtRuntime) {
+                titleBar.style.cursor = 'move';
+                if (!(titleBar as any)._dragInit) {
+                    (titleBar as any)._dragInit = true;
+                    let isDragging = false;
+                    let startX = 0, startY = 0;
+                    let startObjX = 0, startObjY = 0;
+
+                    titleBar.onpointerdown = (e) => {
+                        if ((e.target as HTMLElement).classList.contains('dialog-close-btn')) return;
+                        e.stopPropagation();
+                        isDragging = true;
+                        startX = e.clientX;
+                        startY = e.clientY;
+                        startObjX = obj.x || 0;
+                        startObjY = obj.y || 0;
+                        titleBar.setPointerCapture(e.pointerId);
+                    };
+                    titleBar.onpointermove = (e) => {
+                        if (!isDragging) return;
+                        e.stopPropagation();
+                        const dx = e.clientX - startX;
+                        const dy = e.clientY - startY;
+                        const cellSize = ctx.host.grid?.cellSize || 30;
+                        obj.x = startObjX + (dx / cellSize);
+                        obj.y = startObjY + (dy / cellSize);
+                    };
+                    titleBar.onpointerup = (e) => {
+                        if (!isDragging) return;
+                        isDragging = false;
+                        titleBar.releasePointerCapture(e.pointerId);
+                    };
+                }
+            } else {
+                titleBar.style.cursor = 'default';
+                titleBar.onpointerdown = null;
+                titleBar.onpointermove = null;
+                titleBar.onpointerup = null;
+                (titleBar as any)._dragInit = false;
+            }
+
+            // 3. Center on Show
+            if (obj.centerOnShow) {
+                if (obj.visible && !(el as any)._wasCentered) {
+                    (el as any)._wasCentered = true;
+                    const stageW = ctx.host.element.clientWidth;
+                    const stageH = ctx.host.element.clientHeight;
+                    const cellSize = ctx.host.grid?.cellSize || 30;
+                    const objW = (obj.width || 20) * cellSize;
+                    const objH = (obj.height || 15) * cellSize;
+                    
+                    obj.x = Math.max(0, Math.floor((stageW - objW) / 2)) / cellSize;
+                    obj.y = Math.max(0, Math.floor((stageH - objH) / 2)) / cellSize;
+                } else if (!obj.visible) {
+                    (el as any)._wasCentered = false;
+                }
+            }
+
+            // 4. Modal
+            if (obj.modal) {
+                let overlay = document.getElementById(`dialog-overlay-${obj.id}`);
+                if (obj.visible) {
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.id = `dialog-overlay-${obj.id}`;
+                        overlay.className = 'dialog-overlay';
+                        overlay.style.cssText = `position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); pointer-events: auto;`;
+                        ctx.host.element.appendChild(overlay);
+                    }
+                    const overlayZ = obj.zIndex ? String(Number(obj.zIndex) - 1) : '1999';
+                    overlay.style.zIndex = overlayZ;
+                    overlay.style.display = 'block';
+                    
+                    // Verhindern, dass Klicks auf das Overlay nach hinten durchgehen
+                    overlay.onpointerdown = (e) => e.stopPropagation();
+                    overlay.onclick = (e) => e.stopPropagation();
+                } else if (overlay) {
+                    overlay.style.display = 'none';
+                }
+            } else {
+                const overlay = document.getElementById(`dialog-overlay-${obj.id}`);
+                if (overlay) overlay.style.display = 'none';
+            }
+        }
+
 
         if (!ctx.host.runMode && obj.children && Array.isArray(obj.children)) {
             const cellSize = ctx.host.grid.cellSize;
