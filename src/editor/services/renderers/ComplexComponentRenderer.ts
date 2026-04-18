@@ -100,7 +100,7 @@ export class ComplexComponentRenderer {
                     closeBtn = document.createElement('span');
                     closeBtn.className = 'dialog-close-btn';
                     closeBtn.textContent = '✕';
-                    closeBtn.style.cssText = 'cursor:pointer; padding:0 8px; margin-right:-8px; font-weight:normal; transition:color 0.2s;';
+                    closeBtn.style.cssText = 'cursor:pointer; padding:0 8px; margin-right:-8px; font-weight:bold; transition:color 0.2s; pointer-events: auto !important; z-index: 99999;';
                     closeBtn.onmouseenter = () => closeBtn.style.color = '#ff4444';
                     closeBtn.onmouseleave = () => closeBtn.style.color = '#fff';
                     closeBtn.onpointerdown = (e) => e.stopPropagation(); // Verhindern von Dragging
@@ -176,11 +176,11 @@ export class ComplexComponentRenderer {
                     obj.y = newY;
                     
                     // FIX: Da wir uns im RunMode befinden, arbeitet der StageRenderer ausschliesslich mit 'translate'.
-                    // Wenn wir 'left' vergeben (wie beim letzten Fix), addiert sich translate+left und schiebt das Parent doppelt so weit ins absolute Nirvana (unten rechts).
-                    // Wir überschreiben also die just im Millisekundenbruchteil zuvor gesetzte translate-Eigenschaft des StageRenderers
+                    // WICHTIG: Die Stage ist ein Flex-Container. Ein leeres '' bei left/top fuehrt zu auto-Positionierung,
+                    // was den Anker fuer translate zerstoert und die Pointer-Events (Bounding Rects) unbrauchbar macht!
                     (el.style as any).translate = `${newX * cellSize}px ${newY * cellSize}px`;
-                    el.style.left = '';
-                    el.style.top = '';
+                    el.style.left = '0px';
+                    el.style.top = '0px';
                 } else if (!obj.visible) {
                     (el as any)._wasCentered = false;
                 }
