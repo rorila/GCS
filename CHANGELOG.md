@@ -1,6 +1,18 @@
 
 ## 18.04.2026
 
+### Fix: Runtime Render Loop (Full-Render Explosion) behoben
+- **VERHALTEN**: Bei Animationen von Container-Objekten (z. B. "slide-up" an einem `TPanel`) löste jede Pixeländerung (60 pro Sekunde) einen kompletten `Full-Render` (Zerstörung und Neuaufbau aller DOM-Nodes) aus. Folgende Animationen liefen "ausser Rand und Band" oder froren den Browser ein.
+- **URSACHE**: Ein vorheriger Patch, der das Problem verschachtelter Child-Bewegungen beheben sollte, forcierte das reaktive Fallback `needsFullRender = true`, sobald sich die `x`- oder `y`-Eigenschaft von Objekten mit `.children` änderte. Da die `AnimationManager`-Schleife `x`/`y` ständig abänderte, überschrieb dies den effizienten 60fps-Hardware-Pfad komplett.
+- **FIX**: Der reaktive `hasChildren`-Check in `GameRuntime.ts` sowie der asynchrone Redraw-Bypass in `GameLoopManager.ts` wurden endgültig entfernt. Der `StageRenderer.updateSpritePositions` (`Fast-Path`) berechnet stattdessen nun die Koordinaten (`absX`, `absY`) komplett rekursiv hoch bis zum Parent und iteriert tief in Container-Strukturen (`getChildren`), um auch unbewegte, aber gefangene Children nahtlos Hardware-zu-verschieben, OHNE einen Single-Render-Cycle der DOM-Engine auszulösen.
+- **DATEIEN**: `src/runtime/GameRuntime.ts`, `src/runtime/GameLoopManager.ts`, `src/editor/services/StageRenderer.ts`
+
+
+### Fix: Umbenennung von Flow-Tasks zerstört keine Child-Events mehr
+- **VERHALTEN**: Wenn man im Flow-Editor oder Inspector einen Task umbenannte, blieb an verschachtelten Buttons (oder Variablen-Komponenten) der alte Taskname hängen, was die Verbindung als "nicht in Stage" im Dropdown ausgab.
+- **FIX**: Der Task-Scanner arbeitet nun vollständig rekursiv (`updateEventsRecursively`). Er durchforstet restlos alle ComponentData-Einträge inklusive deren `children`-Arrays in unbegrenzter Tiefe sowie den Pool der `stage.variables`.
+- **DATEIEN**: `src/editor/refactoring/TaskRefactoringService.ts`
+
 ### Fix: TDialogRoot Drag & Drop Child/Relative Position Fix
 - **FIX**: (RunMode) Behebung eines Fehlers, bei dem Kind-Komponenten eines `TDialogRoot` beim Schließen oder Draggen (Verschieben per Maus) an ihrem alten Platz verblieben oder aufgrund falsch addierter Relativ-Koordinaten unkontrolliert durchs Bild sprangen. 
 - **REFACTOR**: Die Event-Handler für Close, Click und Drag in `ComplexComponentRenderer` manipulieren nun das DOM direkt für sofortiges Feedback (`el.style.translate`), wodurch Full-Renders vermieden werden. Sie synchronisieren dabei die absoluten Screen-Koordinaten (`Parent.x + Child.x`) interaktiv für alle Kinder, ohne die reinen Daten-Strukturen zu zerschießen.

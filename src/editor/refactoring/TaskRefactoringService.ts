@@ -44,22 +44,27 @@ export class TaskRefactoringService {
             });
         });
 
-        // 3. Update object event bindings
-        project.objects.forEach(obj => {
-            const evts = (obj as any).events || (obj as any).Tasks;
-            if (evts) {
-                for (const event in evts) {
-                    if (evts[event] === oldName) {
-                        evts[event] = newName;
+        // Helper function for recursive event updates
+        const updateEventsRecursively = (objs: any[]) => {
+            if (!objs) return;
+            objs.forEach(obj => {
+                const evts = (obj as any).events || (obj as any).Tasks;
+                if (evts) {
+                    for (const event in evts) {
+                        if (evts[event] === oldName) {
+                            evts[event] = newName;
+                        }
                     }
                 }
-            }
-        });
+                if (obj.children && Array.isArray(obj.children)) {
+                    updateEventsRecursively(obj.children);
+                }
+            });
+        };
 
-        // 4. Update variable scopes
-        project.variables.forEach(v => {
-            if (v.scope === oldName) v.scope = newName;
-        });
+        // 3. Update object event bindings
+        updateEventsRecursively(project.objects);
+        updateEventsRecursively(project.variables);
 
         // 5. Update flowChart key if task was renamed
         if (project.flowCharts && project.flowCharts[oldName]) {
@@ -122,18 +127,9 @@ export class TaskRefactoringService {
         // 7. Update bindings in all stages
         if (project.stages) {
             project.stages.forEach(stage => {
-                if (stage.objects) {
-                    stage.objects.forEach(obj => {
-                        const evts = (obj as any).events || (obj as any).Tasks;
-                        if (evts) {
-                            for (const event in evts) {
-                                if (evts[event] === oldName) {
-                                    evts[event] = newName;
-                                }
-                            }
-                        }
-                    });
-                }
+                updateEventsRecursively(stage.objects || []);
+                updateEventsRecursively(stage.variables || []);
+
                 // Stage events
                 if ((stage as any).events) {
                     const stageEvents = (stage as any).events;
@@ -156,20 +152,28 @@ export class TaskRefactoringService {
         const scanObjects = (objs: any[], contextName: string) => {
             if (!objs) return;
             objs.forEach(obj => {
-                if (obj.Tasks) {
-                    Object.keys(obj.Tasks).forEach(evt => {
-                        if (obj.Tasks[evt] === taskName) {
+                const evts = (obj as any).events || (obj as any).Tasks;
+                if (evts) {
+                    Object.keys(evts).forEach(evt => {
+                        if (evts[evt] === taskName) {
                             report.totalCount++;
                             report.locations.push({ type: 'object', name: obj.name, details: `Event '${evt}' in ${contextName}` });
                         }
                     });
                 }
+                if (obj.children && Array.isArray(obj.children)) {
+                    scanObjects(obj.children, contextName + ' -> ' + obj.name);
+                }
             });
         };
 
-        scanObjects(project.objects || [], 'Global');
+        scanObjects(project.objects || [], 'Global Objects');
+        scanObjects(project.variables || [], 'Global Variables');
         if (project.stages) {
-            project.stages.forEach(s => scanObjects(s.objects || [], `Stage ${s.name}`));
+            project.stages.forEach(s => {
+                scanObjects(s.objects || [], `Stage "${s.name}" Objects`);
+                scanObjects(s.variables || [], `Stage "${s.name}" Variables`);
+            });
         }
 
         const searchPattern = new RegExp(`\\$?\{?${taskName}\}?`, 'g');

@@ -179,9 +179,7 @@ export class GameRuntime implements IVariableHost {
                             // Kinder hat, da Kinder-Positionen rekursiv vom Parent abhängen.
                             // Ohne Full-Render bleiben Kinder an der initialen Off-Screen-Position
                             // der Stage-Animation stehen (updateSingleObject aktualisiert keine Positionen).
-                            const isPositionProp = prop === 'x' || prop === 'y';
-                            const hasChildren = obj.children && obj.children.length > 0;
-                            const needsFullRender = isDialog || (isPositionProp && hasChildren);
+                            const needsFullRender = isDialog;
 
                             if (obj && obj.id && options.onComponentUpdate && !needsFullRender) {
                                 options.onComponentUpdate(obj, prop);
@@ -458,26 +456,9 @@ export class GameRuntime implements IVariableHost {
             }
             this.reactiveRuntime.setVariable('isSplashActive', false);
 
-            // Re-register global render listener after clear — FILTERED!
-            // Same filtering as in constructor to prevent redundant renders for sprite positions.
-            if (this.options.onRender) {
-                const SPRITE_PROPS = new Set(['x', 'y', 'velocityX', 'velocityY', 'errorX', 'errorY']);
-                let renderScheduled = false;
-                this.reactiveRuntime.getWatcher().addGlobalListener(
-                    (obj: any, prop: string) => {
-                        if (SPRITE_PROPS.has(prop) && obj?.className === 'TSprite') return;
-                        // RAF-Debounce: Egal wie viele Properties sich ändern,
-                        // nur EIN render() pro Animation-Frame.
-                        if (!renderScheduled) {
-                            renderScheduled = true;
-                            requestAnimationFrame(() => {
-                                renderScheduled = false;
-                                this.options.onRender!();
-                            });
-                        }
-                    }
-                );
-            }
+            // Keine zusätzlichen redundanten GlobalListeners einhängen.
+            // Der existierende Listener (aus dem Konstruktor) wird dank clear(false) 
+            // fortgesetzt und nutzt die intelligente Fast-Path / isDialog Weiche.
 
             this.objects = this.reactiveRuntime.getObjects();
 

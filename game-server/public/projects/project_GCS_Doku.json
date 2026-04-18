@@ -497,7 +497,7 @@
               "y": 40
             },
             "SwitchToDirectory": {
-              "x": 240,
+              "x": 260,
               "y": 40
             }
           },
@@ -571,7 +571,7 @@
               "y": 40
             },
             "ToggleTheReferenceDlg": {
-              "x": 280,
+              "x": 320,
               "y": 40
             }
           }
@@ -662,8 +662,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         },
         {
@@ -1216,7 +1216,8 @@
         "onTouchMove",
         "onTouchEnd"
       ],
-      "startAnimation": "ChaosIn"
+      "startAnimation": "ChaosIn",
+      "flowCharts": {}
     },
     {
       "id": "stage-1776084040446",
@@ -1785,5 +1786,5 @@
       "startAnimation": "BottomRight"
     }
   ],
-  "activeStageId": "blueprint"
+  "activeStageId": "main"
 }

@@ -353,6 +353,13 @@ pm run bundle:runtime\ ausgef�hrt werden, damit deine Code-Fixes auch im IFram
 - **AUSNAHME**: Opacity-Animationen (fade-in) muessen auch Kinder einschliessen, da die DOM-Elemente flach im Stage-Container liegen und CSS-Opacity nicht kaskadiert.
 
 ### IFrame-Runner: Container-Kinder im Fast-Path Rendering
-- **DO NOT**: Rendere niemals Container-Objekte, die manipulierbare Eigenschaften von Kindern ueberschreiben, ueber den 60FPS-Fast-Path des GameLoopManagers (`updateSpritePositions`). Der Fast-Path beschreibt DOM-Elemente mittels eindimensionaler Iteration `transX = obj.x * cellSize`. Da DOM-Knoten als flache Liste vorliegen (no deep nesting), werden Kind-Relativ-Koordinaten im Fast-Path NICHT absolut mit verrechnet. Kinder bleiben haengen.
-- **DO**: Sorge dafuer, dass Positionsaenderungen (`x`, `y`) auf Objekten mit `.children.length > 0` immer ein rekursives `renderObjects()` (Full-Render) anstossen. Z.B. durch `hasContainerAnimation` Checks im GameLoopManager oder gezieltes `needsFullRender = true` in der GameRuntime.
-- **WICHTIG**: Beim Bearbeiten von IFrame/Player-spezifischem Code immer `npx vite build --config vite.runtime.config.ts` aufrufen. Der Run(IFrame)-Modus nutzt keinen Live-Dev-Server, sondern serviert public/runtime-standalone.js.
+- **DO NOT**: Erzwinge NIEMALS Full-Render-Zyklen (`needsFullRender = true` in `GameRuntime` oder Bypasses in `GameLoopManager`) nur weil animierte Objekte Kinder besitzen. Full-Renders verursachen Layout-Thrashing (Browser-Freezes) und zerstören flüssige Animationen bei 60fps.
+- **DO**: Sorge dafür, dass Positionsänderungen (`x`, `y`) JEDES Objekts ausschließlich über den asynchronen 60fps Fast-Path (`StageRenderer.updateSpritePositions`) laufen. Die Berechnungslogik innerhalb von `updateSpritePositions` iteriert rekursiv über alle Eltern (`parentId`), um absolute Screen-Koordinaten zu addieren und verschiebt abhängige DOM-Kinder hardwarebeschleunigt in Echtzeit mit.
+- **WICHTIG**: Beim Bearbeiten von IFrame/Player-spezifischem Code immer `npm run bundle:runtime` aufrufen. Der Run(IFrame)-Modus nutzt keinen Live-Dev-Server, sondern serviert `public/runtime-standalone.js`.
+
+### Animation & CSS Properties
+**DO NOT** animate or define CSS properties (opacity, 	ransform) as flat object properties (e.g. obj.opacity) if the StageRenderer prioritizes obj.style.opacity. Animations must be targeted cleanly to avoid overwriting or property shadowing. 
+**DO NOT** duplicate animation triggers in initialization routines (e.g. initMainGame). Stage initializations must fire through handleStageChange to avoid redundant Tween overlaps.
+
+ -   * * D O   N O T * *   r e m o v e   \ 	 r i g g e r S t a r t A n i m a t i o n ( t h i s . s t a g e ) \   f r o m   \ G a m e R u n t i m e . i n i t M a i n G a m e ( ) \ .   W h i l e   \ h a n d l e S t a g e C h a n g e ( ) \   a l s o   t r i g g e r s   a n i m a t i o n s ,   i t   i s   O N L Y   c a l l e d   f o r   s u b s e q u e n t   s t a g e   s w i t c h e s .   T h e   i n i t i a l   p r o j e c t   s t a r t u p   r e l i e s   e n t i r e l y   o n   \ i n i t M a i n G a m e ( ) \   t o   t r i g g e r   t h e   v e r y   f i r s t   a n i m a t i o n .  
+ 

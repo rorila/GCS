@@ -924,20 +924,59 @@ export class StageRenderer {
     // ─────────────────────────────────────────────────────────────────
     public updateSpritePositions(objects: any[]): void {
         const cellSize = this.host.grid.cellSize;
+        const allObjects = this.host.lastRenderedObjects || [];
+        
+        // Helfer, um absolute Position eines Objekts zu berechnen (Parent-Chain)
+        const getAbsXYZ = (obj: any): {x: number, y: number} => {
+            let absX = obj.x || 0;
+            let absY = obj.y || 0;
+            let curr = obj.parentId;
+            let depth = 0;
+            while (curr && depth < 100) {
+                const p = allObjects.find(o => (o.id || o.name) === curr);
+                if (p) {
+                    absX += p.x || 0;
+                    absY += p.y || 0;
+                    curr = p.parentId;
+                } else {
+                    break;
+                }
+                depth++;
+            }
+            return {x: absX, y: absY};
+        };
+
+        // Rekursive Helfer-Funktion, um alle Kinder zu sammeln
+        const getChildren = (parentId: string): any[] => {
+            let kids = allObjects.filter(o => o.parentId === parentId);
+            let result = [...kids];
+            for (const k of kids) {
+                result = result.concat(getChildren(k.id || k.name));
+            }
+            return result;
+        };
+
+        const objectsToUpdate = new Set<any>(objects);
+        // Auch alle Kinder in den Update-Zyklus einbeziehen, damit sie sich 
+        // synchron mit ihren animierten Containern mitbewegen.
         for (const obj of objects) {
+            const kids = getChildren(obj.id || obj.name);
+            kids.forEach(k => objectsToUpdate.add(k));
+        }
+
+        for (const obj of objectsToUpdate) {
             const el = this.host.element.querySelector(
                 `[data-id="${obj.id}"]`
             ) as HTMLElement;
             if (!el) continue;
             
-            // Hardware-Textur-Verschiebung im Subpixel-Raum
-            const transX = (obj.x || 0) * cellSize;
-            const transY = (obj.y || 0) * cellSize;
+            // Rekursive Parent-Positionierung berücksichtigen!
+            const absPos = getAbsXYZ(obj);
+            const transX = absPos.x * cellSize;
+            const transY = absPos.y * cellSize;
 
             if (this.host.runMode) {
                 // ── Sichtbarkeits-Sync (Pool-Sprites) ──
-                // Pool-Sprites wechseln visible im Fast-Path (acquire/release).
-                // Berücksichtigt `isHiddenInRun` für Templates, damit sie durch Updates nicht sichtbar werden!
                 let isVisible = obj.visible !== false;
                 if (obj.isHiddenInRun) isVisible = false;
 
@@ -947,9 +986,6 @@ export class StageRenderer {
                     el.style.display = 'none';
                 }
 
-                // GPU Compositing: Subpixel-genaue Positionierung für butterweiche Bewegungen.
-                // Kein Math.round() mehr nötig, da Sprite-Bilder jetzt als natives <img>-Tag
-                // (eigene GPU-Textur) gerendert werden statt als CSS background-image.
                 // GPU Compositing: Native CSS translate Property
                 if (obj.className === 'TVirtualGamepad') {
                     (el.style as any).translate = 'none';

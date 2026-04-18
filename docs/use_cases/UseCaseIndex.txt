@@ -1,3 +1,28 @@
+## Stage Transition Animations
+**Dateien:** src/runtime/GameRuntime.ts
+**Methoden:** 	riggerStartAnimation, handleStageChange
+**Beschreibung:** Behebung des Bugs, bei dem Stage-Animation (z.B. fade-in, Left) vom Editor zum Run-Mode nicht abgespielt oder off-screen gerendert wurden. Der Bug entstand durch redundanten Aufruf in initMainGame und Fallback-Priorisierung in StageRenderer bezüglich obj.opacity.
+
+[UC-2026-04-18-Nested-Container-Animation-Performance-Fix]
+Dateien:
+- src/runtime/GameRuntime.ts
+- src/runtime/GameLoopManager.ts
+- src/editor/services/StageRenderer.ts
+Änderungen:
+- Entfernung der aggressiven "Full-Render" Fallbacks (`needsFullRender` bei `hasChildren` und asynchroner Bypass in `GameLoopManager`).
+- Rekursive absolute Positionsberechnung im `StageRenderer` (`updateSpritePositions`) via `parentId`-Traversal implementiert, was den extrem performanten Fast-Path für alle DOM-Animationen (z. B. "slide-up") auch für komplexe, tief verschachtelte Container (`TPanel`, `TGroupPanel`) nutzbar macht und Browser-Freezes durch Layout-Thrashing dauerhaft eliminiert.
+
+
+**Beschreibung:** Behebung des Bugs, bei dem Stage-Animation (z.B. fade-in, Left) vom Editor zum Run-Mode nicht abgespielt oder off-screen gerendert wurden. Der Bug entstand durch redundanten Aufruf in initMainGame und Fallback-Priorisierung in StageRenderer bezüglich obj.opacity.
+
+
+[UC-2026-04-18-Nested-Event-Rename]
+Dateien:
+- src/editor/refactoring/TaskRefactoringService.ts (renameTask: 47-64, 122-136, scanObjects/updateEventsRecursively)
+Änderungen:
+- Vollständige rekursive Unterstützung für das Umbenennen von Event-Bindings. 
+- Zuvor wurden Arrays von Child-Komponenten (bspw. Buttons in einem Panel) sowie die Liste der Variablen (stage.variables) vom Scanner ignoriert, was zu abgerissenen Event-Verbindungen beim Umbenennen von Flow-Tasks führte.
+- Die Methode updateEventsRecursively durchdringt nun alle Ebenen und sichert die JSON-Integrität.
 
 [UC-2026-04-14-Dialog-Refactor]
 Dateien:
@@ -601,3 +626,5 @@ Files:
 - Dateien:
   - src/editor/services/renderers/ComplexComponentRenderer.ts (Mouse-, Click- und centerOnShow EventHandler)
   - public/runtime-standalone.js (neugebaut mit vite.runtime.config.ts)
+U s e C a s e :   P r o j e c t - W i d e   R e n a m e   o f   N e s t e d   C o m p o n e n t   E v e n t   B i n d i n g s  
+ 
