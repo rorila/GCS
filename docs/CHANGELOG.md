@@ -1,11 +1,9 @@
 ### 2026-04-18 (Feature: TDialogRoot Runtime Logic)
 - **Feature (Dialog-Eigenschaften)**: Die in der TDialogRoot-Komponente deklarierten Eigenschaften `modal`, `closable`, `draggableAtRuntime` und `centerOnShow` wurden im `ComplexComponentRenderer` für den Run-Modus implementiert.
-  - *Modal*: Es wird ein Overlay-Div via `document.createElement` unterhalb des Dialogs dynamisch erzeugt, welches mittels `pointer-events: auto` jegliche Klicks auf Hintergrundelemente abfängt.
+  - *Modal*: Es wird ein Overlay-Div via `document.createElement` unterhalb des Dialogs erzeugt. Ein Fehler, bei dem Z-Indizes von Dialog und Overlay durcheinander gerieten und das Overlay den Dialog blockierte, wurde behoben. Der Dialog erhält jetzt immer einen garantierten, höheren Z-Index (Default 20000) als sein Overlay (19999).
   - *Closable*: In der Titelleiste wird bei Sichtbarkeit automatisch ein `✕`-Button eingefügt, der den Dialog bei Klick schließt (`obj.visible = false`).
   - *Draggable*: Manuelles Setzen des Positionierungs-Anchors (`obj.x` und `obj.y`) im Grid-System via Pointer-Events (`onpointerdown/move/up`), sodass der Dialog mitsamt reaktiver Update-Schleife der Runtime bewegt wird.
-  - *Center on Show*: Wechselt der Dialog-Status auf `visible = true`, errechnet das Grid-System dynamisch die stage-weite Mitte aus Viewport, CellSize und Dialogdimensionen und positioniert den Dialog initial zentriert.
-
-### 2026-04-17 (Bugfix: Container-Kinder bei Stage-Animation unsichtbar)
+  - *Center on Show*: Wechselt der Dialog-Status auf `visible = true`, errechnet das Grid-System dynamisch die Bühne-Mitte. Ein kritischer Bug wurde behoben, bei dem nur die Kind-Elemente zentriert wurden, da der `StageRenderer` das Haupt-Div bereits vorher positioniert hatte. Nun werden die inline `el.style.left` / `el.style.top` Eigenschaften synchron mit den Proxy-Objekt-Koordinaten aktualisiert.
 - **Bugfix (Runtime Rendering — Erstaufruf)**: Behebung eines kritischen Layout-Fehlers, bei dem Kind-Komponenten in Containern (TGroupPanel, TPanel) beim ersten Laden einer Stage nicht sichtbar waren, aber beim zweiten Aufruf korrekt gerendert wurden.
   - *Ursache*: Drei zusammenhängende Probleme:
     1. **Global-Listener Shortcut**: Im `GameRuntime`-Konstruktor fing der `onComponentUpdate`-Shortcut `x`/`y`-Änderungen von Containern ab und rief `updateSingleObject()` auf, das **keine Positionsänderungen** verarbeitet. Der `return` verhinderte den Full-Render. Beim 2. Aufruf (`handleStageChange`) fehlte dieser Shortcut, daher funktionierte es dort.

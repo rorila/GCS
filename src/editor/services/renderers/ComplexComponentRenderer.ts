@@ -167,8 +167,17 @@ export class ComplexComponentRenderer {
                     const objW = (obj.width || 20) * cellSize;
                     const objH = (obj.height || 15) * cellSize;
                     
-                    obj.x = Math.max(0, Math.floor((stageW - objW) / 2)) / cellSize;
-                    obj.y = Math.max(0, Math.floor((stageH - objH) / 2)) / cellSize;
+                    const newX = Math.max(0, Math.floor((stageW - objW) / 2)) / cellSize;
+                    const newY = Math.max(0, Math.floor((stageH - objH) / 2)) / cellSize;
+                    
+                    obj.x = newX;
+                    obj.y = newY;
+                    
+                    // FIX: StageRenderer hat el.style.left/top bereits vor Aufruf dieser Methode gesetzt.
+                    // Damit das Dialog-Element sofort zentriert wird (und nicht nur seine Kinder), muessen 
+                    // wir die style properties des Parents sofort manuell ueberschreiben.
+                    el.style.left = `${newX * cellSize}px`;
+                    el.style.top = `${newY * cellSize}px`;
                 } else if (!obj.visible) {
                     (el as any)._wasCentered = false;
                 }
@@ -185,8 +194,14 @@ export class ComplexComponentRenderer {
                         overlay.style.cssText = `position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); pointer-events: auto;`;
                         ctx.host.element.appendChild(overlay);
                     }
-                    const overlayZ = obj.zIndex ? String(Number(obj.zIndex) - 1) : '1999';
-                    overlay.style.zIndex = overlayZ;
+                    
+                    // FIX: Expliziten Z-Index fuer Stage-Element "el" erzwingen, da StageRenderer 
+                    // bei ungepflegtem obj.zIndex keinen Set/Fallback fuer gewoehnliche Dialoge hat 
+                    // und el somit z.B. zIndex \auto\ hat (0), was vom Overlay ueberlagert wird.
+                    const zIndexBase = obj.zIndex ? Number(obj.zIndex) : 20000;
+                    overlay.style.zIndex = String(zIndexBase - 1);
+                    el.style.zIndex = String(zIndexBase);
+                    
                     overlay.style.display = 'block';
                     
                     // Verhindern, dass Klicks auf das Overlay nach hinten durchgehen
