@@ -164,20 +164,23 @@ export class ComplexComponentRenderer {
                     const stageW = ctx.host.element.clientWidth;
                     const stageH = ctx.host.element.clientHeight;
                     const cellSize = ctx.host.grid?.cellSize || 30;
-                    const objW = (obj.width || 20) * cellSize;
-                    const objH = (obj.height || 15) * cellSize;
+                    const stageWCells = stageW / cellSize;
+                    const stageHCells = stageH / cellSize;
+                    const objWCells = obj.width || 20;
+                    const objHCells = obj.height || 15;
                     
-                    const newX = Math.max(0, Math.floor((stageW - objW) / 2)) / cellSize;
-                    const newY = Math.max(0, Math.floor((stageH - objH) / 2)) / cellSize;
+                    const newX = Math.max(0, Math.floor((stageWCells - objWCells) / 2));
+                    const newY = Math.max(0, Math.floor((stageHCells - objHCells) / 2));
                     
                     obj.x = newX;
                     obj.y = newY;
                     
-                    // FIX: StageRenderer hat el.style.left/top bereits vor Aufruf dieser Methode gesetzt.
-                    // Damit das Dialog-Element sofort zentriert wird (und nicht nur seine Kinder), muessen 
-                    // wir die style properties des Parents sofort manuell ueberschreiben.
-                    el.style.left = `${newX * cellSize}px`;
-                    el.style.top = `${newY * cellSize}px`;
+                    // FIX: Da wir uns im RunMode befinden, arbeitet der StageRenderer ausschliesslich mit 'translate'.
+                    // Wenn wir 'left' vergeben (wie beim letzten Fix), addiert sich translate+left und schiebt das Parent doppelt so weit ins absolute Nirvana (unten rechts).
+                    // Wir überschreiben also die just im Millisekundenbruchteil zuvor gesetzte translate-Eigenschaft des StageRenderers
+                    (el.style as any).translate = `${newX * cellSize}px ${newY * cellSize}px`;
+                    el.style.left = '';
+                    el.style.top = '';
                 } else if (!obj.visible) {
                     (el as any)._wasCentered = false;
                 }
@@ -202,6 +205,19 @@ export class ComplexComponentRenderer {
                     overlay.style.zIndex = String(zIndexBase - 1);
                     el.style.zIndex = String(zIndexBase);
                     
+                    // NEU: Absolute Geschwister (Children des Dialogs) aus der Versenkung heben
+                    // Da StageRenderer Children als flache Geschwister rendert und sie standardmaessig 
+                    // auto/0 Z-Index haben, wuerde das Overlay (19999) sie abdecken, man koennte
+                    // im Dialog keine Knoepfe mehr druecken! Wir ziehen sie hierueber explizit vor.
+                    if (obj.children && Array.isArray(obj.children)) {
+                        obj.children.forEach((child: any) => {
+                            const childEl = ctx.host.element.querySelector(`[data-id="${child.id}"]`) as HTMLElement;
+                            if (childEl) {
+                                childEl.style.zIndex = String(zIndexBase + 1);
+                            }
+                        });
+                    }
+
                     overlay.style.display = 'block';
                     
                     // Verhindern, dass Klicks auf das Overlay nach hinten durchgehen
