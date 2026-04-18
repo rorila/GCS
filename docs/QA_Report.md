@@ -1,13 +1,13 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 18.4.2026, 16:31:16
-**Status**: ✅ ALLE TESTS BESTANDEN
+**Generiert am**: 18.4.2026, 16:51:59
+**Status**: ❌ FEHLER GEFUNDEN
 
 ## 📊 Visuelle Übersicht
 ```mermaid
 pie title Test-Status (Gesamt: 184)
-    "Bestanden ✅" : 184
-    "Fehlgeschlagen ❌" : 0
+    "Bestanden ✅" : 180
+    "Fehlgeschlagen ❌" : 4
 ```
 
 ## 🧪 Test-Details
@@ -148,7 +148,7 @@ pie title Test-Status (Gesamt: 184)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1776522577786_21 (erwartet: stage_import_1776522577786_21), BackToLobby.stageId=stage_import_1776522577786_yv (erwartet: stage_import_1776522577786_yv)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1776523821545_64 (erwartet: stage_import_1776523821545_64), BackToLobby.stageId=stage_import_1776523821545_6p (erwartet: stage_import_1776523821545_6p)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
@@ -166,10 +166,10 @@ pie title Test-Status (Gesamt: 184)
 | B4: cancel() setzt visible=false<br><small>cancel() macht Dialog unsichtbar.</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | B5: toggle() Zyklus<br><small>toggle() wechselt korrekt: false→true→false→true</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | B6: toDTO() serialisiert Dialog-Properties<br><small>Alle Properties (modal, closable, draggable, centerOnShow, slideDirection, title, Events) korrekt serialisiert.</small> | StageTransition-Regression | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Defaults und Vererbung (TDialogRoot)<br><small>Alle Defaults korrekt (modal=false, centerOnShow=false).</small> | TSidePanel | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Synchronisation von side und slideDirection<br><small>Eigenschaft panelSide steuert slideDirection mit.</small> | TSidePanel | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| Serialisierung toDTO<br><small>Alle Side-Panel Eigenschaften korrekt serialisiert.</small> | TSidePanel | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| DOM Runtime Element<br><small>Methodengarantie: createRuntimeElement ist überladen.</small> | TSidePanel | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Defaults und Vererbung (TDialogRoot)<br><small>ReferenceError: document is not defined</small> | TSidePanel | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Synchronisation von side und slideDirection<br><small>ReferenceError: document is not defined</small> | TSidePanel | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Serialisierung toDTO<br><small>ReferenceError: document is not defined</small> | TSidePanel | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| DOM Runtime Element<br><small>ReferenceError: document is not defined</small> | TSidePanel | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
 | E2E: Kompletter Flow: Erzeugung, Metadata, Dirty-Check, Stages & Grid<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Task erzeugen, umbenennen und Action hinzufügen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | E2E: Kompletter Flow: Action erzeugen und via Inspector umbenennen<br><small>Browser: chromium</small> | E2E Browser | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |

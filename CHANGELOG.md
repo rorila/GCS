@@ -1,6 +1,14 @@
 
 ## 18.04.2026
 
+### Fix: SidePanel Runtime "visibility" und Inspector Errors behoben
+- **VERHALTEN**: Die TSidePanel-Komponente fuhr im Laufzeitmodus nicht in die Stage, wenn man Eigenschafts-Aktionen (z. B. "visible = true") verwendete. Zudem gab es im Editor Inspector unschöne rote Log-Meldungen: `Klasse "toggle_dialog" ist nicht registriert`.
+- **URSACHE (SidePanel)**: Die Variable `visible` wurde beim Auslösen nur als generische Eigenschaft behandelt, anstatt dass eine Re-Auswertung der DOM-Node Animation stattfand. 
+- **FIX (SidePanel)**: Die Basis-Dialog-Klasse wurde von einem überladenen Getter/Setter Konzept befreit. Stattdessen nutzt `TWindow` nun eine strukturierte `onVisibilityChanged()` Hook, welche von `TDialogRoot` implementiert wurde. Wenn "visible" nun durch eine Flow-Action umgeschaltet wird, triggert es zuverlässig die CSS-Transforms `translateX` der Subkomponenten.
+- **URSACHE (Registry Error)**: Der Inspector wendet beim Rendern des Events-Tabs automatisch heuristische Prüfungen (`componentRegistry.createInstance`) auf rohe JSON-Nodes an. Da ein DataAction-Objekt `type: "toggle_dialog"` haben kann, versuchte ComponentRegistry fälschlicherweise, daraus eine UI-Komponente abzuleiten.
+- **FIX (Registry Error)**: `ComponentRegistry` fängt nun bekannte Action-Typen elegant ab und unterdrückt den Log-Error stumm, wodurch eine saubere Console Console sichergestellt wird.
+- **DATEIEN**: `src/components/TDialogRoot.ts`, `src/components/TWindow.ts`, `src/services/ComponentRegistry.ts`
+
 ### Neu: TSidePanel Komponente hinzugefügt
 - **TSidePanel**: Neue UI-Komponente, die von `TDialogRoot` erbt, speziell für andockbare Side-Panels (links/rechts).
 - **Features**: Volle Bühnenhöhe, konfigurierbare Breite (`panelWidth`), Runtime Resize-Handle (`resizable`), unabhängiges `overlayDimming`.

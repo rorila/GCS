@@ -1,4 +1,4 @@
-﻿import { TWindow } from './TWindow';
+import { TWindow } from './TWindow';
 import { TPropertyDef } from './TComponent';
 import { Logger } from '../utils/Logger';
 
@@ -112,8 +112,9 @@ export class TInfoWindow extends TWindow {
     public handleCancel(): void {
         this.hide();
 
-        if (this.onCancelTask) {
-            this.triggerTask(this.onCancelTask);
+        const task = this.events?.['onCancel'] || this.onCancelTask;
+        if (task) {
+            this.triggerTask(task);
         }
     }
 
@@ -123,8 +124,9 @@ export class TInfoWindow extends TWindow {
     public handleConfirm(): void {
         this.hide();
 
-        if (this.onConfirmTask) {
-            this.triggerTask(this.onConfirmTask);
+        const task = this.events?.['onConfirm'] || this.onConfirmTask;
+        if (task) {
+            this.triggerTask(task);
         }
     }
 
@@ -137,8 +139,9 @@ export class TInfoWindow extends TWindow {
         this._autoCloseTimeout = window.setTimeout(() => {
             this.hide();
 
-            if (this.onAutoCloseTask) {
-                this.triggerTask(this.onAutoCloseTask);
+            const task = this.events?.['onAutoClose'] || this.onAutoCloseTask;
+            if (task) {
+                this.triggerTask(task);
             }
         }, this.autoCloseDelay);
     }
@@ -216,13 +219,21 @@ export class TInfoWindow extends TWindow {
             // Style
             { name: 'borderRadius', label: 'Border Radius', type: 'number', group: 'Style' },
             { name: 'padding', label: 'Padding', type: 'number', group: 'Style' },
-            { name: 'style.borderColor', label: 'Border Color', type: 'color', group: 'Style' },
-
-            // Events
-            { name: 'onCancelTask', label: 'On Cancel Task', type: 'string', group: 'Events' },
-            { name: 'onConfirmTask', label: 'On Confirm Task', type: 'string', group: 'Events' },
-            { name: 'onAutoCloseTask', label: 'On Auto Close Task', type: 'string', group: 'Events' }
+            { name: 'style.borderColor', label: 'Border Color', type: 'color', group: 'Style' }
         ];
+    }
+
+    /**
+     * Events-Tab: Exportiert die Event-Bindings für den Inspector.
+     */
+    public getInspectorEvents(): { name: string; label: string; mappedTask?: string }[] {
+        const events = super.getInspectorEvents();
+        events.push(
+            { name: 'onCancel', label: 'Cancel', mappedTask: this.events?.['onCancel'] || this.onCancelTask },
+            { name: 'onConfirm', label: 'Confirm', mappedTask: this.events?.['onConfirm'] || this.onConfirmTask },
+            { name: 'onAutoClose', label: 'Auto Close', mappedTask: this.events?.['onAutoClose'] || this.onAutoCloseTask }
+        );
+        return events;
     }
 
     /**

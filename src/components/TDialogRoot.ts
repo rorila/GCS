@@ -40,12 +40,20 @@ export class TDialogRoot extends TWindow {
         this.style.backgroundColor = 'rgba(26, 26, 46, 0.98)';
         this.style.borderColor = '#4fc3f7';
         this.style.borderWidth = 2;
-        this.style.visible = true;  // Im Editor sichtbar zum Editieren
+        // Im Editor sichtbar zum Editieren
+        this.style.visible = true;  
 
         // Runtime: Dialog ist initial NICHT sichtbar (wird per toggle_dialog Action eingeblendet)
         this.visible = false;
 
         this._title = name;
+    }
+
+    /**
+     * Reagiert auf Sichtbarkeitsänderungen.
+     */
+    protected override onVisibilityChanged(v: boolean): void {
+        this.updateRuntimeVisibility();
     }
 
     // Title/Caption property
@@ -76,8 +84,9 @@ export class TDialogRoot extends TWindow {
         logger.info(`[TDialogRoot] Showing dialog: ${this.name}`);
 
         // Trigger onShow task if defined
-        if (this.onShowTask) {
-            this.triggerTask(this.onShowTask);
+        const task = this.events?.['onShow'] || this.onShowTask;
+        if (task) {
+            this.triggerTask(task);
         }
 
         this.updateRuntimeVisibility();
@@ -101,8 +110,9 @@ export class TDialogRoot extends TWindow {
         this.hide();
 
         // Trigger onClose task if defined
-        if (this.onCloseTask) {
-            this.triggerTask(this.onCloseTask);
+        const task = this.events?.['onClose'] || this.onCloseTask;
+        if (task) {
+            this.triggerTask(task);
         }
     }
 
@@ -113,8 +123,9 @@ export class TDialogRoot extends TWindow {
         this.hide();
 
         // Trigger onCancel task if defined
-        if (this.onCancelTask) {
-            this.triggerTask(this.onCancelTask);
+        const task = this.events?.['onCancel'] || this.onCancelTask;
+        if (task) {
+            this.triggerTask(task);
         }
     }
 
@@ -190,13 +201,21 @@ export class TDialogRoot extends TWindow {
 
             // Style
             { name: 'style.borderColor', label: 'Border Color', type: 'color', group: 'Style' },
-            { name: 'style.borderWidth', label: 'Border Width', type: 'number', group: 'Style' },
-
-            // Events
-            { name: 'onShowTask', label: 'On Show Task', type: 'string', group: 'Events' },
-            { name: 'onCloseTask', label: 'On Close Task', type: 'string', group: 'Events' },
-            { name: 'onCancelTask', label: 'On Cancel Task', type: 'string', group: 'Events' }
+            { name: 'style.borderWidth', label: 'Border Width', type: 'number', group: 'Style' }
         ];
+    }
+
+    /**
+     * Events-Tab: Exportiert die Event-Bindings für den Inspector.
+     */
+    public getInspectorEvents(): { name: string; label: string; mappedTask?: string }[] {
+        const events = super.getInspectorEvents();
+        events.push(
+            { name: 'onShow', label: 'Show', mappedTask: this.events?.['onShow'] || this.onShowTask },
+            { name: 'onClose', label: 'Close', mappedTask: this.events?.['onClose'] || this.onCloseTask },
+            { name: 'onCancel', label: 'Cancel', mappedTask: this.events?.['onCancel'] || this.onCancelTask }
+        );
+        return events;
     }
 
     /**

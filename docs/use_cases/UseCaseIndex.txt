@@ -1,3 +1,14 @@
+[UC-2026-04-18-SidePanel-Runtime-Visibility-ComponentRegistry-Error]
+Dateien:
+- src/components/TDialogRoot.ts
+  - Methode: onVisibilityChanged(v) - Löst updateRuntimeVisibility() aus (Zeile 55)
+  - Getter/Setter für visible entfernt, da sie den Typescript Class-Field Default überschreiben
+- src/components/TWindow.ts
+  - Getter/Setter für visible in private _winVisible umgewandelt (Zeile 71-87)
+  - Methode: onVisibilityChanged(v) als Hook eingeführt
+- src/services/ComponentRegistry.ts
+  - Methode: createInstance() - Unterdrückt Log-Errors für registrierte Flow Actions (`toggle_dialog`) und Identifier mit '_' (Zeile 279-282)
+
 [UC-2026-04-18-StageTransition-Dialog-RegressionTests]
 Dateien:
 - tests/stage_transition_regression.test.ts (NEU, ~400 Zeilen)

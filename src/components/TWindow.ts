@@ -68,7 +68,26 @@ export class TWindow extends TComponent {
         }
     }
 
-    public visible: boolean = true;
+    private _winVisible: boolean = true;
+    
+    get visible(): boolean {
+        return this._winVisible;
+    }
+    
+    set visible(v: boolean) {
+        if (this._winVisible !== v) {
+            this._winVisible = v;
+            this.onVisibilityChanged(v);
+        }
+    }
+    
+    /**
+     * Hook that subclasses can override to react to visibility changes
+     */
+    protected onVisibilityChanged(v: boolean): void {
+        // standard implementation might do nothing, subclasses override
+    }
+
     public text: string = "";
 
     // Animation flag - wenn true, wird Physik pausiert
@@ -83,7 +102,7 @@ export class TWindow extends TComponent {
         this.height = height;
         this.zIndex = 0;
         this._align = 'NONE';
-        this.visible = true;
+        this._winVisible = true;
         this.text = "";
         this.style = {
             backgroundColor: 'transparent',
