@@ -299,7 +299,7 @@ export class TSidePanel extends TDialogRoot {
      * Überschreibt TDialogRoot.updateRuntimeVisibility()
      */
     public updateRuntimeVisibility(): void {
-        const panel = this._panelElement || document.getElementById(`sidepanel-${this.id}`);
+        const panel = this._panelElement || (typeof document !== 'undefined' ? document.getElementById(`sidepanel-${this.id}`) : null);
         console.log(`[VISIBILITY-DEBUG] TSidePanel updateRuntimeVisibility() for "${this.name}". this.visible=${this.visible}, panelFound=${!!panel}`);
         if (panel) {
             const isLeft = this.side === 'left';

@@ -427,7 +427,7 @@ class UniversalPlayer implements StageHost {
 
         const activeStage = this.runtime ? (this.runtime as any).stage : (this.currentProject.stage || this.currentProject.stages?.[0]);
         if (!activeStage || !activeStage.grid) {
-            console.warn('[UniversalPlayer] updateBackground ABORTED: No activeStage grid found!');
+            logger.warn('[UniversalPlayer] updateBackground ABORTED: No activeStage grid found!');
             return;
         }
 
@@ -436,10 +436,10 @@ class UniversalPlayer implements StageHost {
         const bgExpression = grid.backgroundColor || '#2e2e2e';
         const bg = ExpressionParser.interpolate(bgExpression, context);
         
-        console.warn('===== BACKGROUND DEBUG =====');
-        console.warn('1. bgExpression:', bgExpression);
-        console.warn('2. ctx.MainThemes:', context && context['MainThemes'] ? 'FOUND' : 'MISSING');
-        console.warn('3. Interpolate Result (bg):', bg);
+        logger.info('===== BACKGROUND DEBUG =====');
+        logger.info(`1. bgExpression: ${bgExpression}`);
+        logger.info(`2. ctx.MainThemes: ${context && context['MainThemes'] ? 'FOUND' : 'MISSING'}`);
+        logger.info(`3. Interpolate Result (bg): ${bg}`);
         
         logger.info(`[BACKGROUND-TRACE] Stage bg calculated: ${bg} from ${bgExpression}`);
 
@@ -460,8 +460,8 @@ class UniversalPlayer implements StageHost {
             this.element.style.backgroundColor = bg;
         }
         
-        console.warn('5. Target element bg-color after set:', this.element.style.backgroundColor);
-        console.warn('============================');
+        logger.info(`5. Target element bg-color after set: ${this.element.style.backgroundColor}`);
+        logger.info('============================');
     }
 
     private startAnimationTicker() {
@@ -506,9 +506,9 @@ class UniversalPlayer implements StageHost {
     private render() {
         if (!this.runtime) return;
         const objects = this.runtime.getObjects().filter(obj => !this.techClasses.includes(obj.className));
-        console.log(`[UniversalPlayer] Render ${objects.length} objects. Includes TVirtualGamepad?`, objects.some(o => o.className === 'TVirtualGamepad'));
+        logger.info(`[UniversalPlayer] Render ${objects.length} objects. Includes TVirtualGamepad? ${objects.some(o => o.className === 'TVirtualGamepad')}`);
         if (objects.some(o => o.className === 'TVirtualGamepad')) {
-            console.log(`[UniversalPlayer] Found TVirtualGamepad:`, objects.find(o => o.className === 'TVirtualGamepad'));
+            logger.info('[UniversalPlayer] Found TVirtualGamepad:', objects.find(o => o.className === 'TVirtualGamepad'));
         }
         this.renderer.renderObjects(objects);
         this.updateBackground();

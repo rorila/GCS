@@ -430,13 +430,98 @@
           "side": "left",
           "resizable": true,
           "overlayDimming": false,
+          "children": [
+            {
+              "className": "TPanel",
+              "id": "obj_1776526389370_nzzt3exyc",
+              "name": "Panel_24",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 1,
+              "y": 6,
+              "width": 12,
+              "height": 23,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "backgroundColor": "#f0f0f0",
+                "borderColor": "#999999",
+                "borderWidth": 1
+              },
+              "caption": "",
+              "showGrid": false,
+              "gridColor": "#000000",
+              "gridStyle": "lines",
+              "children": [
+                {
+                  "className": "TButton",
+                  "id": "obj_1776526408626_jzpfnplg3",
+                  "name": "Button_24",
+                  "scope": "global",
+                  "draggable": false,
+                  "droppable": false,
+                  "dragMode": "move",
+                  "visible": true,
+                  "x": 2,
+                  "y": 2,
+                  "width": 6,
+                  "height": 2,
+                  "zIndex": 0,
+                  "align": "NONE",
+                  "style": {
+                    "color": "#ffffff",
+                    "fontSize": 14,
+                    "fontFamily": "Arial",
+                    "fontWeight": "bold",
+                    "fontStyle": "normal",
+                    "textAlign": "center",
+                    "backgroundColor": "#007bff",
+                    "borderColor": "#000000",
+                    "borderWidth": 1
+                  },
+                  "text": "Button_24",
+                  "icon": ""
+                },
+                {
+                  "className": "TLabel",
+                  "id": "obj_1776526413536_7tq9xoyey",
+                  "name": "Label_24",
+                  "scope": "global",
+                  "draggable": false,
+                  "droppable": false,
+                  "dragMode": "move",
+                  "visible": true,
+                  "x": 1,
+                  "y": 5,
+                  "width": 8,
+                  "height": 2,
+                  "zIndex": 0,
+                  "align": "NONE",
+                  "style": {
+                    "color": "#000000",
+                    "fontSize": 14,
+                    "fontFamily": "Arial",
+                    "fontWeight": "normal",
+                    "fontStyle": "normal",
+                    "textAlign": "left",
+                    "backgroundColor": "transparent",
+                    "borderColor": "transparent",
+                    "borderWidth": 0
+                  },
+                  "text": "Label_24"
+                }
+              ]
+            }
+          ],
           "draggableAtRuntime": false,
           "centerOnShow": false,
           "onShowTask": "",
           "onCloseTask": "",
           "onCancelTask": "",
-          "slideDirection": "right",
-          "children": []
+          "slideDirection": "right"
         }
       ],
       "actions": [
@@ -759,8 +844,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         },
         {
@@ -1883,5 +1968,5 @@
       "startAnimation": "BottomRight"
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "blueprint"
 }

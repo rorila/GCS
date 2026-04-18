@@ -1,3 +1,9 @@
+## [2026-04-18] Architektur-Audit Fixes (F-01 bis F-06)
+- **Sicherheit:** Path-Traversal in s:listFiles (IPC) durch security.isPathAllowed(resolvedDir) Check behoben (F-01).
+- **Export:** Absolutes Fetching-Verhalten für Media-Assets und Standalone-Runtime im GameExporter.ts auf relative Pfadsynatx umgestellt, sodass offline exportierte HTML-Dateien mit ile:// funktionieren (F-02, F-03).
+- **Clean Code:** Veraltetes console.warn/console.log in player-standalone.ts durch Universal-Logger ersetzt (F-05).
+- **Build Pipeline:** ite.runtime.config.ts gelöscht und Build-Zuständigkeit exklusiv auf lokales esbuild Script in package.json beschränkt (F-06).
+
 
 ## 18.04.2026
 

@@ -165,7 +165,8 @@ export class GameExporter {
         // 1. Fetch runtime
         let runtimeCode = '';
         try {
-            const resp = await fetch('/runtime-standalone.js');
+            const runtimeUrl = new URL('runtime-standalone.js', window.location.href).href;
+            const resp = await fetch(runtimeUrl);
             if (resp.ok) {
                 runtimeCode = await resp.text();
             }
@@ -596,21 +597,21 @@ ${projectJSON}
         for (const [path, _] of mediaRefs) {
             try {
                 // Try absolute path first, then relative to images/ or audio/ (Fallback)
-                let fullPath = path;
-                if (!path.startsWith('/')) {
-                    // We assume it's in the root or assets folder context, try root first
-                    fullPath = `/${path}`; 
+                let relativePath = path;
+                if (path.startsWith('/')) {
+                    relativePath = path.substring(1); 
                 }
+                const url = new URL(relativePath, window.location.href).href;
 
-                logger.info(`[GameExporter] Fetching media: ${fullPath}`);
-                const resp = await fetch(fullPath);
+                logger.info(`[GameExporter] Fetching media: ${url}`);
+                const resp = await fetch(url);
                 if (resp.ok) {
                     const blob = await resp.blob();
                     const dataUrl = await this.blobToDataUrl(blob);
                     mediaRefs.set(path, dataUrl);
                     logger.info(`[GameExporter] Successfully embedded: ${path}`);
                 } else {
-                    logger.warn(`[GameExporter] Failed to fetch media: ${fullPath} (Status: ${resp.status})`);
+                    logger.warn(`[GameExporter] Failed to fetch media: ${url} (Status: ${resp.status})`);
                 }
             } catch (e) {
                 logger.warn(`[GameExporter] Network error embedding media: ${path}`, e);

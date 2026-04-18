@@ -147,7 +147,7 @@ export class StageInteractionManager {
             
             const candidatePanels = this.host.lastRenderedObjects.filter(o => {
                 const clsName = o.className || o.constructor?.name || '';
-                const isContainer = ['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel'].includes(clsName);
+                const isContainer = ['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel', 'TSidePanel'].includes(clsName);
                 if (!isContainer) return false;
                 // FIX: Geerbte Blueprint-Panels können keine neuen Kinder aufnehmen (Read-Only)
                 if (o.isInherited) return false;
@@ -485,7 +485,7 @@ export class StageInteractionManager {
                 const obj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === id);
                 if (obj) {
                     const clsName = obj.className || obj.constructor?.name || '';
-                    if (['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel'].includes(clsName)) {
+                    if (['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel', 'TSidePanel'].includes(clsName)) {
                     const findChildIds = (parentId: string): string[] => {
                         const ids: string[] = [];
                         for (const o of this.host.lastRenderedObjects) {
@@ -629,7 +629,7 @@ export class StageInteractionManager {
                                 
                                 const droppingPanels = this.host.lastRenderedObjects.filter(o => {
                                     const clsName = o.className || o.constructor?.name || '';
-                                    const isContainer = ['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel'].includes(clsName);
+                                    const isContainer = ['TGroupPanel', 'TDialogRoot', 'TSplashScreen', 'TPanel', 'TSidePanel'].includes(clsName);
                                     if (!isContainer) return false;
                                     if ((o.id || o.name) === id) return false; 
                                     // FIX: Verhindere Zuweisung in schreibgeschützte Blueprint-Panels!

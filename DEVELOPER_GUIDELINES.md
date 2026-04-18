@@ -280,9 +280,11 @@ Letzte Aktualisierung: v3.30.0 (TImageList+TSprite Integration & Bugfix, 2026-04
 - **DO**: Legen Sie pointer-events: none auf die nicht-klickbaren Wrapper-Container. Nur die eigentlichen Touch-Flaechen (Buttons) erhalten pointer-events: auto; sowie unbedingt 	ouch-action: none;.
 - **DO**: Fuer kritische, schnelle Taps (wie Gamepad-Buttons) faengt Event-Delegation am Haupt-Container mit einem nicht-passiven 	ouchstart-Listener das Event ab und ruft dort ein dediziertes e.preventDefault() auf, sobald das Event auf einer legitimen Schaltflaeche ausgeloest wurde.
 
-## DO NOT: Absolute Pfade in Electron
+## DO NOT: Absolute Pfade in Electron / Export
 - **DON'T:** Verwende keine absoluten Pfade (beginnend mit '/'), wenn du referenzierte Assets (z.B. Bilder, iframes) einbindest.
-- **DO:** Nutze im Dual-Mode immer relative Pfade (z.B. './images/Ufos/ufo.png' statt '/images/Ufos/ufo.png'). In Electron ('file://') l?st ein '/' n?mlich auf den Laufwerks-Root ('C:/') auf, statt auf das public-Root des Dev-Servers.
+- **DON'T:** Beim Exportieren von Dateien d?rfen Fetch-Aufrufe (wie `fetch('/runtime-standalone.js')`) NIEMALS absolut sein, da die exportierten `.html`-Dateien im Endkunden-Rechner unter `file:///C:/...` l?ufen und der absolute Pfad Root-Traversals erzwingt.
+- **DO:** Nutze im Dual-Mode immer relative Pfade (z.B. `./images/Ufos/ufo.png` statt `/images/Ufos/ufo.png`).
+- **DO:** F?r dynamische Pfad-Aufl?sung beim Export immer `new URL(relativePath, window.location.href).href` nutzen.
 
 ## 10. Vite Dev Server Proxy
 - **DO**: Stelle sicher, dass die Proxy-Konfiguration in ite.config.ts f?r den Game-Server (z.B. /api auf http://localhost:8080) korrekt gesetzt ist, falls lokales Speichern via Dev-Server nicht erreichbar ist.

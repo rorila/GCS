@@ -110,6 +110,9 @@ ipcMain.handle('fs:writeFile', async (event, absolutePath, content) => {
 ipcMain.handle('fs:listFiles', async (event, dirPath, extension) => {
     try {
         const absolutePath = path.resolve(app.getPath('userData'), dirPath);
+        if (security && !security.isPathAllowed(absolutePath)) {
+            throw new Error(`Security Exception: Access to path denied: ${absolutePath}`);
+        }
         if (!fs.existsSync(absolutePath)) return [];
         const files = await fs.promises.readdir(absolutePath);
         if (extension) {
