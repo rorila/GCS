@@ -225,7 +225,7 @@
                 "borderColor": "#000000",
                 "borderWidth": 1
               },
-              "text": "Button_23",
+              "text": "DialogRoot",
               "icon": ""
             },
             {
@@ -253,6 +253,38 @@
               "alt": "",
               "imageOpacity": 1,
               "fallbackColor": "#2a2a2a"
+            },
+            {
+              "className": "TButton",
+              "id": "obj_1776522968178_wc2n9v77i",
+              "name": "Button_24",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "events": {
+                "onClick": "ShowSidePanel"
+              },
+              "visible": true,
+              "x": 41,
+              "y": 2,
+              "width": 6,
+              "height": 2,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#ffffff",
+                "fontSize": 14,
+                "fontFamily": "Arial",
+                "fontWeight": "bold",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "#007bff",
+                "borderColor": "#000000",
+                "borderWidth": 1
+              },
+              "text": "Side-Panel",
+              "icon": ""
             }
           ]
         },
@@ -282,9 +314,6 @@
           "draggableAtRuntime": true,
           "centerOnShow": true,
           "slideDirection": "left",
-          "onShowTask": "",
-          "onCloseTask": "",
-          "onCancelTask": "",
           "children": [
             {
               "className": "TButton",
@@ -370,7 +399,44 @@
               "gridColor": "#000000",
               "gridStyle": "lines"
             }
-          ]
+          ],
+          "onShowTask": "",
+          "onCloseTask": "",
+          "onCancelTask": ""
+        },
+        {
+          "className": "TSidePanel",
+          "id": "obj_1776522175156_9ktpw6vhc",
+          "name": "SidePanel_23",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 15,
+          "height": 40,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(20, 20, 35, 0.97)",
+            "borderColor": "#4fc3f7",
+            "borderWidth": 1
+          },
+          "title": "SidePanel_23",
+          "modal": false,
+          "closable": true,
+          "side": "left",
+          "resizable": true,
+          "overlayDimming": false,
+          "draggableAtRuntime": false,
+          "centerOnShow": false,
+          "onShowTask": "",
+          "onCloseTask": "",
+          "onCancelTask": "",
+          "slideDirection": "right",
+          "children": []
         }
       ],
       "actions": [
@@ -428,6 +494,14 @@
           "showDetails": false,
           "type": "toggle_dialog",
           "target": "GameProferences"
+        },
+        {
+          "id": "node-1776523072422",
+          "details": "",
+          "name": "ToggleSidePanel",
+          "showDetails": false,
+          "type": "toggle_dialog",
+          "target": "SidePanel_23"
         }
       ],
       "tasks": [
@@ -497,7 +571,7 @@
               "y": 40
             },
             "SwitchToDirectory": {
-              "x": 240,
+              "x": 260,
               "y": 40
             }
           },
@@ -571,7 +645,30 @@
               "y": 40
             },
             "ToggleTheReferenceDlg": {
-              "x": 280,
+              "x": 320,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowSidePanel",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "ToggleSidePanel",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowSidePanel": {
+              "x": 40,
+              "y": 40
+            },
+            "ToggleSidePanel": {
+              "x": 240,
               "y": 40
             }
           }
@@ -1216,7 +1313,8 @@
         "onTouchMove",
         "onTouchEnd"
       ],
-      "startAnimation": "ChaosIn"
+      "startAnimation": "ChaosIn",
+      "flowCharts": {}
     },
     {
       "id": "stage-1776084040446",

@@ -271,13 +271,13 @@ export class StageRenderer {
             // (Berechnung AUSSERHALB von runMode, damit z-index Logik weiter unten darauf zugreifen kann)
             let parentDialog: any = null;
             if (this.host.runMode) {
-                if (className === 'TDialogRoot') parentDialog = obj;
+                if (className === 'TDialogRoot' || className === 'TSidePanel') parentDialog = obj;
                 else if (obj.parentId) {
                     let currId = obj.parentId;
                     let sanity = 0;
                     while (currId && sanity++ < 20) {
                         const p = objects.find(o => (o.id || o.name) === currId);
-                        if (p && (p.className === 'TDialogRoot' || p.constructor?.name === 'TDialogRoot')) {
+                        if (p && (p.className === 'TDialogRoot' || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot')) {
                             parentDialog = p;
                             break;
                         }
@@ -305,7 +305,10 @@ export class StageRenderer {
                         (el.style as any).translate = `${finalX}px ${finalY}px`;
                         el.style.pointerEvents = 'auto';
                     } else {
-                        const outOfBoundsOffset = parentDialog.slideDirection === 'left' ? -1500 : 1500;
+                        const isLeft = parentDialog.className === 'TSidePanel' 
+                            ? parentDialog.side === 'left' 
+                            : parentDialog.slideDirection === 'left';
+                        const outOfBoundsOffset = isLeft ? -1500 : 1500;
                         (el.style as any).translate = `${finalX + outOfBoundsOffset}px ${finalY}px`;
                         el.style.pointerEvents = 'none';
                     }
@@ -367,22 +370,26 @@ export class StageRenderer {
             } else {
                 let finalDisplay = isVisible ? (obj.className === 'TRichText' ? 'block' : 'flex') : 'none';
                 
-                // Wenn es ein KIND eines Dialogs ist (NICHT der Dialog selbst!),
-                // darf es NICHT display: none haben, sonst läuft die Slide-Animation nicht.
-                // Der Dialog-Root SELBST muss aber bei visible=false verschwinden können!
-                if (this.host.runMode && obj.parentId) {
-                    let isDialogChild = false;
-                    let currId = obj.parentId;
-                    let sanity = 0;
-                    while (currId && sanity++ < 20) {
-                        const p = objects.find(o => (o.id || o.name) === currId);
-                        if (p && (p.className === 'TDialogRoot' || p.constructor?.name === 'TDialogRoot')) {
-                            isDialogChild = true;
-                            break;
+                // WICHTIG: Im RunMode dürfen Dialoge, SidePanels und deren Kinder NIEMALS display: none haben!
+                // Ansonsten funktioniert die CSS-Translate Animation (Slide in/out) nicht, da
+                // der Browser den Wechsel von none -> flex im selben Frame nicht animiert.
+                if (this.host.runMode) {
+                    let keepVisible = false;
+                    if (obj.className === 'TDialogRoot' || obj.className === 'TSidePanel') {
+                        keepVisible = true;
+                    } else if (obj.parentId) {
+                        let currId = obj.parentId;
+                        let sanity = 0;
+                        while (currId && sanity++ < 20) {
+                            const p = objects.find(o => (o.id || o.name) === currId);
+                            if (p && (p.className === 'TDialogRoot' || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot')) {
+                                keepVisible = true;
+                                break;
+                            }
+                            currId = p?.parentId;
                         }
-                        currId = p?.parentId;
                     }
-                    if (isDialogChild) {
+                    if (keepVisible) {
                         finalDisplay = obj.className === 'TRichText' ? 'block' : 'flex';
                     }
                 }
@@ -466,7 +473,7 @@ export class StageRenderer {
                     //   Dialog-Root:   dialogZBase      (Background/Rahmen + Titelleiste als DOM-Kind)
                     //   Overlay:       dialogZBase - 1  (block background)
                     const dialogZBase = parentDialog.zIndex ? Number(parentDialog.zIndex) : 20000;
-                    if (className === 'TDialogRoot') {
+                    if (className === 'TDialogRoot' || className === 'TSidePanel') {
                         el.style.zIndex = String(dialogZBase);
                     } else {
                         el.style.zIndex = String(dialogZBase + 1);
@@ -727,7 +734,6 @@ export class StageRenderer {
         else if (className === 'TInspectorTemplate') ComplexComponentRenderer.renderInspectorTemplate(ctx, el, obj);
         else if (className === 'TDialogRoot') ComplexComponentRenderer.renderDialogRoot(ctx, el, obj);
         else if (className === 'TSidePanel') ComplexComponentRenderer.renderSidePanel(ctx, el, obj);
-        else if (className === 'TInfoWindow') HTMLElementRenderer.renderInfoWindow(ctx, el, obj, isNew);
         else if (className === 'TColorPicker') InputRenderer.renderColorPicker(ctx, el, obj, isNew);
         else if (className === 'TImageList') this.renderImageList(el, obj);
         else if (className === 'TDropdown') InputRenderer.renderDropdown(ctx, el, obj, isNew);
@@ -764,7 +770,11 @@ export class StageRenderer {
             el.style.display = 'flex';
             el.classList.add('invisible-object-in-editor');
         } else {
-            el.style.display = isVisible ? 'flex' : 'none';
+            let finalDisplay = isVisible ? 'flex' : 'none';
+            if (this.host.runMode && (className === 'TDialogRoot' || className === 'TSidePanel')) {
+                finalDisplay = 'flex'; // Niemals none, sonst bricht die Slide-Animation!
+            }
+            el.style.display = finalDisplay;
             el.classList.remove('invisible-object-in-editor');
         }
 
@@ -1010,7 +1020,25 @@ export class StageRenderer {
                 let isVisible = obj.visible !== false;
                 if (obj.isHiddenInRun) isVisible = false;
 
-                if (isVisible) {
+                // Feststellen, ob es zum Dialog-Zweig gehört
+                let parentDialog: any = null;
+                if (obj.className === 'TDialogRoot' || obj.className === 'TSidePanel') {
+                    parentDialog = obj;
+                } else if (obj.parentId) {
+                    let currId = obj.parentId;
+                    let sanity = 0;
+                    while (currId && sanity++ < 20) {
+                        const p = allObjects.find((o: any) => (o.id || o.name) === currId) || mergedObjectsArray.find((o: any) => (o.id || o.name) === currId);
+                        if (p && (p.className === 'TDialogRoot' || p.className === 'TSidePanel' || p.constructor?.name === 'TDialogRoot')) {
+                            parentDialog = p;
+                            break;
+                        }
+                        currId = p?.parentId;
+                    }
+                }
+
+                // Display
+                if (isVisible || parentDialog) {
                     el.style.display = obj.className === 'TRichText' ? 'block' : 'flex';
                 } else {
                     el.style.display = 'none';
@@ -1019,6 +1047,16 @@ export class StageRenderer {
                 // GPU Compositing: Native CSS translate Property
                 if (obj.className === 'TVirtualGamepad') {
                     (el.style as any).translate = 'none';
+                } else if (parentDialog) {
+                    if (parentDialog.visible !== false) {
+                        (el.style as any).translate = `${transX}px ${transY}px`;
+                    } else {
+                        const isLeft = parentDialog.className === 'TSidePanel' 
+                            ? parentDialog.side === 'left' 
+                            : parentDialog.slideDirection === 'left';
+                        const outOfBoundsOffset = isLeft ? -1500 : 1500;
+                        (el.style as any).translate = `${transX + outOfBoundsOffset}px ${transY}px`;
+                    }
                 } else {
                     (el.style as any).translate = `${transX}px ${transY}px`;
                 }

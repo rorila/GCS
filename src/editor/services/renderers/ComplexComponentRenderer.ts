@@ -102,9 +102,8 @@ export class ComplexComponentRenderer {
 
         // Falls wir im RunMode sind, verhält es sich wie im TSidePanel runMode
         if (ctx.host.runMode) {
-            // Im RunMode wird die Position über das Runtime-Element geregelt,
-            // der Editor-Renderer sollte hier eigentlich nicht greifen, aber zur Sicherheit:
-            el.style.display = 'none'; // Wird vom Runtime-Sidepanel überlagert
+            // Im RunMode wird die Position und Sichtbarkeit (Slide-Animation)
+            // komplett vom StageRenderer übernommen! Kein Display:none mehr!
         }
     }
 

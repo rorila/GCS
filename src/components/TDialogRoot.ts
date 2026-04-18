@@ -53,6 +53,7 @@ export class TDialogRoot extends TWindow {
      * Reagiert auf Sichtbarkeitsänderungen.
      */
     protected override onVisibilityChanged(v: boolean): void {
+        console.log(`[VISIBILITY-DEBUG] TDialogRoot onVisibilityChanged(${v}) for "${this.name}". Calling updateRuntimeVisibility()`);
         this.updateRuntimeVisibility();
     }
 

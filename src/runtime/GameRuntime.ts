@@ -170,7 +170,7 @@ export class GameRuntime implements IVariableHost {
                                 return; // Voll-Render zwingend umgehen!
                             }
 
-                            const isDialog = obj?.className === 'TDialogRoot' || obj?.className === 'TDialog' || obj?.constructor?.name === 'TDialogRoot';
+                            const isDialog = obj?.className === 'TDialogRoot' || obj?.className === 'TDialog' || obj?.className === 'TSidePanel' || obj?.constructor?.name === 'TDialogRoot';
 
                             // Targeted Rendering: Update nur eine einzelne Objektstruktur im DOM (für echte UI-Komponenten)
                             // AUSNAHME 1: Dialoge erfordern einen Full-Render, da ihre Sichtbarkeit (Slide-In/Out)
