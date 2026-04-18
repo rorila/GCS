@@ -371,6 +371,40 @@
               "gridStyle": "lines"
             }
           ]
+        },
+        {
+          "className": "TSidePanel",
+          "id": "obj_1776522175156_9ktpw6vhc",
+          "name": "SidePanel_23",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 15,
+          "height": 40,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(20, 20, 35, 0.97)",
+            "borderColor": "#4fc3f7",
+            "borderWidth": 1
+          },
+          "title": "SidePanel_23",
+          "modal": false,
+          "closable": true,
+          "onShowTask": "",
+          "onCloseTask": "",
+          "onCancelTask": "",
+          "side": "left",
+          "resizable": true,
+          "overlayDimming": false,
+          "draggableAtRuntime": false,
+          "centerOnShow": false,
+          "slideDirection": "right",
+          "children": []
         }
       ],
       "actions": [
@@ -662,8 +696,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         },
         {
@@ -1786,5 +1820,5 @@
       "startAnimation": "BottomRight"
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "blueprint"
 }

@@ -202,8 +202,7 @@
               "data": {
                 "name": "ShowTheHighscoreStage_Unique",
                 "type": "navigate_stage",
-                "isLinked": true,
-                "showDetails": false
+                "isLinked": true
               }
             }
           ]

@@ -29,6 +29,8 @@ import { runStageImportTests } from '../tests/stage_import.test.js';
 import { runTests as runMatheQuizTests } from '../tests/mathe_quiz.test.js';
 import { runTests as runVirtualGamepadTests } from '../tests/virtual_gamepad.test.js';
 import { runElectronSecurityTests } from '../tests/electron_security.test.js';
+import { runStageTransitionRegressionTests } from '../tests/stage_transition_regression.test.js';
+import { runTests as runSidePanelTests } from '../tests/side_panel.test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -202,6 +204,14 @@ async function main() {
 
         // 20. Electron Security Tests
         allResults.push(...await runElectronSecurityTests());
+
+        // 21. Stage-Transition Regressions-Tests & TDialogRoot Feature-Tests
+        console.log('🏃 Starte Stage-Transition Regressions-Tests...');
+        allResults.push(...await runStageTransitionRegressionTests());
+
+        // 22. SidePanel Component Unit Tests
+        console.log('🏃 Starte SidePanel Tests...');
+        allResults.push(...await runSidePanelTests());
 
         // 🌐 Browser E2E Tests (Playwright)
         console.log('\n🌐 Starte Browser E2E Tests (Playwright)...');

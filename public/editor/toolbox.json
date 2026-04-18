@@ -303,6 +303,11 @@
                     "label": "Dialog Root"
                 },
                 {
+                    "type": "SidePanel",
+                    "icon": "📌",
+                    "label": "Side Panel"
+                },
+                {
                     "type": "InfoWindow",
                     "icon": "ℹ️",
                     "label": "Info Window"

@@ -1,6 +1,46 @@
 
 ## 18.04.2026
 
+### Neu: TSidePanel Komponente hinzugefügt
+- **TSidePanel**: Neue UI-Komponente, die von `TDialogRoot` erbt, speziell für andockbare Side-Panels (links/rechts).
+- **Features**: Volle Bühnenhöhe, konfigurierbare Breite (`panelWidth`), Runtime Resize-Handle (`resizable`), unabhängiges `overlayDimming`.
+- **Editor-Integration**: SidePanel in der `toolbox.json` unter "Dialogs" hinzugefügt.
+- **Runtime-Renderer**: Spezifischer Editor- und Runtime-Renderpfad in `ComplexComponentRenderer` und `StageRenderer`.
+- **Tests**: Neue Unit-Tests (`side_panel.test.ts`) zur Wahrung der Konsistenz integriert.
+
+
+### Neu: Umfassende Regressions-Test-Suite für Stage-Transition & TDialogRoot (20 Tests)
+- **HINTERGRUND**: Nach ~10 Anläufen zur Stabilisierung der Stage-Transition-Animationen wurde eine dreistufige Absicherung implementiert.
+- **UNIT-TESTS** (`tests/stage_transition_regression.test.ts`, 12 Tests):
+  - **Gruppe A (6 Tests)**: Quellcode-Analyse der kritischen Fixes — A1: glm.init() in handleStageChange, A2: slide-up nutzt cellSize-Division, A3: kein doppelter triggerStartAnimation, A4: Map-Deduplizierung in updateSpritePositions, A5: parentId-Filter in shouldAnimate, A6: triggerStartAnimation lebt in initMainGame.
+  - **Gruppe B (6 Tests)**: TDialogRoot Instanz-Tests — B1: Default-Werte (modal, closable, draggable, centerOnShow), B2: show()/hide() Toggle, B3: close(), B4: cancel(), B5: toggle() Zyklus, B6: toDTO() Serialisierung.
+- **E2E STAGE-ANIMATIONS** (`tests/e2e/14_StageRuntimeAnimation.spec.ts`, 4 Tests): Prüft im echten Browser, dass Objekte nach Run-Start und Stage-Wechsel innerhalb der Bühne liegen.
+- **E2E DIALOG-RUNTIME** (`tests/e2e/15_DialogRuntime.spec.ts`, 4 Tests): Prüft Dialog-Einblendung, Modal-Overlay, Close-Button und Toggle-Stabilität im Browser.
+- **MyCoolGame.json erweitert**: TDialogRoot (TestDialog) mit Kindern, Stage 1 mit Objekten/Panel, startAnimation-Konfiguration, navigate_stage Actions für Hin- und Rücknavigation.
+- **DATEIEN**: `tests/stage_transition_regression.test.ts`, `tests/e2e/14_StageRuntimeAnimation.spec.ts`, `tests/e2e/15_DialogRuntime.spec.ts`, `scripts/test_runner.ts`, `projects/master_test/MyCoolGame.json`
+
+### Fix: Runtime Animationen und Physik nach "navigate_stage" (Stage Switch) wiederhergestellt
+- **VERHALTEN**: Die Bühnen-Animation (`startAnimation` z.B. fade-in, UpLeft) funktionierte beim ersten Start einwandfrei, jedoch froren bei jedem anschließenden In-Game Stage-Wechsel (z.B. durch `navigate_stage`-Actions) via Editor alle Animationen, Kollisionen und Gamepad/Input-Controller sofort ein.
+- **URSACHE**: Die `handleStageChange`-Methode im `GameRuntime` lud die neuen Bühnen-Objekte erfolgreich in den RAM (inklusive ReactiveBindings), vergaß jedoch, den Singleton `GameLoopManager` mit diesen Objekten (`glm.init()`) vertraut zu machen. In der Folge iterierte der Physik- und Render-Loop (bis hin zur StageRenderer-Delegierung) weiterhin ausschließlich über eine verwaiste Caching-Array-Kopie der Start-Szene (`this.sprites`). Da die DOM-Nodes neu generiert wurden, verliefen die Tweens (inkl. der Bühnen Start-Animation) der neuen Szene ungerendert im Sande.
+- **FIX**: `glm.init(this.objects, ...)` vor dem `this.start()`-Aufruf im `GameRuntime.handleStageChange()` implementiert.
+- **DATEIEN**: `src/runtime/GameRuntime.ts`
+
+### Fix: "slide-up" Animation schoss mit Über-Lichtgeschwindigkeit aus 2000 Pixeln Tiefe
+- **VERHALTEN**: Die Bühnen-Animation "slide-up" bewegte objekte scheinbar gar nicht, oder diese tauchten erst nach halber Sekunde als unfassbar schneller Blitz aus dem Nichts auf. ("ich vermute, dass du wieder mit pixeln arbeitest. anstelle mit Zellen. es funktioniert nicht").
+- **URSACHE**: In `GameRuntime.triggerStartAnimation` wurde der y-Offset für `slide-up` hartcodiert um `100` verschoben. In einer Grid-basierten Engine bedeutet ein `obj.y += 100` allerdings **100 Grid-Zellen** (also 2000 Pixel). Die Komponenten wurden für die "feine" Einschweb-Animation folglich unabsichtlich 2000 Pixel in den Keller versetzt.
+- **FIX**: Offset in `slide-up` wird jetzt sauber durch `100 / cellSize` in die korrekte Zellen-Architektur (z.B. `5` Zellen) umgerechnet.
+
+### Fix: Doppelte Stage-Animation bei In-Game Stage-Wechsel (Objekte außerhalb der Bühne)
+- **VERHALTEN**: Beim In-Game Stage-Wechsel (z.B. per `navigate_stage`) landeten alle Objekte weit außerhalb der sichtbaren Bühne. Panels und Buttons ragten sichtbar über die roten Stage-Grenzen hinaus. Die Animation „spielte" zwar, aber die Startpositionen lagen bereits so extrem weit draußen, dass die Objekte auch nach dem Einfliegen noch weit außerhalb blieben.
+- **URSACHE**: `handleStageChange()` rief `this.start()` auf, was intern `initMainGame()` aufruft — und `initMainGame()` feuert bereits `triggerStartAnimation()`. Direkt danach rief `handleStageChange()` ein **zweites Mal** `triggerStartAnimation()` auf (Zeile 533-535). Damit wurde der Off-Screen-Startoffset doppelt addiert: z.B. statt `-10` Grid-Zellen außerhalb der Bühne wirkten gleich `-20` Grid-Zellen (400px statt 200px). Die DEVELOPER_GUIDELINES warnen explizit: *"DO NOT duplicate animation triggers in initialization routines"*.
+- **FIX**: Der redundante `triggerStartAnimation()`-Aufruf in `handleStageChange()` wurde entfernt. Die Animation wird jetzt ausschließlich über den Pfad `this.start()` → `initMainGame()` → `triggerStartAnimation()` ausgelöst.
+- **DATEIEN**: `src/runtime/GameRuntime.ts`
+
+### Fix: Rubber-Banding von Animations-Koordinaten bei verschachtelten Containern
+- **VERHALTEN**: Bei zwei aufeinanderfolgenden Animationen mit verschachtelten Komponenten (z.B. ein Panel und darin befindliche Buttons) flogen Objekte auf dem Canvas plötzlich hin und her oder wurden in die falsche Position ("ausser Rand und Band") gerendert. 
+- **FIX**: Der `StageRenderer.updateSpritePositions` Fast-Path hatte ein Duplizierungs-Problem bei reaktiven Tweening-Updates im Hierarchie-Baum (`allObjects` vs `objectsToUpdate`). Alte, veraltete Kopien von Kind-Elementen aus der `lastRenderedObjects`-Liste überschrieben im Render-Loop den aktuellen Frame. Der Bug wurde behoben, indem das Loop-Array nun über eine dedizierte `Map` (Schlüssel: ID) dedupliziert wird, bei der original verlinkte Instanzen aus dem Tween-Modus zwingend Priorität über statische Cache-Objekte erhalten.
+- **DATEIEN**: `src/editor/services/StageRenderer.ts`
+
 ### Fix: Runtime Render Loop (Full-Render Explosion) behoben
 - **VERHALTEN**: Bei Animationen von Container-Objekten (z. B. "slide-up" an einem `TPanel`) löste jede Pixeländerung (60 pro Sekunde) einen kompletten `Full-Render` (Zerstörung und Neuaufbau aller DOM-Nodes) aus. Folgende Animationen liefen "ausser Rand und Band" oder froren den Browser ein.
 - **URSACHE**: Ein vorheriger Patch, der das Problem verschachtelter Child-Bewegungen beheben sollte, forcierte das reaktive Fallback `needsFullRender = true`, sobald sich die `x`- oder `y`-Eigenschaft von Objekten mit `.children` änderte. Da die `AnimationManager`-Schleife `x`/`y` ständig abänderte, überschrieb dies den effizienten 60fps-Hardware-Pfad komplett.

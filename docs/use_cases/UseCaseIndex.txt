@@ -1,3 +1,20 @@
+[UC-2026-04-18-StageTransition-Dialog-RegressionTests]
+Dateien:
+- tests/stage_transition_regression.test.ts (NEU, ~400 Zeilen)
+  - Methode: runStageTransitionRegressionTests() - 12 Unit-Tests
+  - extractMethodBody() - Quellcode-Parser für Methoden-Deklarationen (Zeile 44-72)
+  - Gruppe A (A1-A6): Quellcode-Analyse GameRuntime.ts / StageRenderer.ts
+  - Gruppe B (B1-B6): TDialogRoot Instanz-Tests (Defaults, show/hide/close/cancel/toggle, toDTO)
+- tests/e2e/14_StageRuntimeAnimation.spec.ts (NEU) - 4 Playwright E2E-Tests
+  - E1: Objekte innerhalb der Bühne nach Run-Start
+  - E2: Stabile Positionen nach Animations-Ende
+  - E3: Stage-Wechsel friert nicht ein
+  - E4: Keine Objekte außerhalb nach Stage-Wechsel
+- tests/e2e/15_DialogRuntime.spec.ts (NEU) - 4 Playwright E2E-Tests
+  - D1: Dialog einblendbar, D2: Modal-Overlay, D3: Closable, D4: Toggle-Stabilität
+- scripts/test_runner.ts (Zeile 32, 208-210) - Import + Integration
+- projects/master_test/MyCoolGame.json - TDialogRoot + Stage 1 Objekte + Animationen
+
 ## Stage Transition Animations
 **Dateien:** src/runtime/GameRuntime.ts
 **Methoden:** 	riggerStartAnimation, handleStageChange
@@ -11,9 +28,11 @@ Dateien:
 Änderungen:
 - Entfernung der aggressiven "Full-Render" Fallbacks (`needsFullRender` bei `hasChildren` und asynchroner Bypass in `GameLoopManager`).
 - Rekursive absolute Positionsberechnung im `StageRenderer` (`updateSpritePositions`) via `parentId`-Traversal implementiert, was den extrem performanten Fast-Path für alle DOM-Animationen (z. B. "slide-up") auch für komplexe, tief verschachtelte Container (`TPanel`, `TGroupPanel`) nutzbar macht und Browser-Freezes durch Layout-Thrashing dauerhaft eliminiert.
+- Korrektur von Rubber-Banding und Koordinaten-Drift in Multi-Nested Setups: Der `StageRenderer` dedupliziert nun effektiv zu rendernde Animationsframes (`objectsToUpdate`) in einer priorisierten Property-Map, bei welcher aktiv tweenende Original-Instanzen stets Vorrang vor veralteten Flat-Hierarchy-Kopien (z.B. Child Nodes) haben.
+- **GameLoopManager Init-Bug behoben**: Ein kritischer Fehler wurde gepatcht, bei dem der `GameLoopManager` nach einem In-Game Stage-Wechsel (`navigate_stage`) nie mit den neuen Bühnen-Objekten initialisiert wurde (`glm.init()` in `handleStageChange`). Dadurch verblieben Sprites, Kollisionsabfragen und Input-Controller in der verwaisten Instanz der Vorgänger-Stage hängen, was sämtliche Animationen, Tweens (wie das Stage Fade-in) und physikalischen Berechnungen auf der Zielbühne vollständig einfror.
+- **slide-up Pixel-statt-Zellen-Bug behoben**: Der y-Offset für `slide-up` wurde hartcodiert um `100` (Pixel-Annahme) verschoben, was aber `100 Grid-Zellen` (2000px) bedeutete. Fix: `100 / cellSize` konvertiert korrekt in Zellen. (Methode: `triggerStartAnimation`, Zeile ~607-618)
+- **Doppelter triggerStartAnimation-Aufruf bei Stage-Wechsel behoben**: `handleStageChange()` rief `this.start()` → `initMainGame()` → `triggerStartAnimation()` auf, und danach **nochmals** direkt `triggerStartAnimation()`. Der doppelte Off-Screen-Offset schoss Objekte weit über die Bühnengrenzen hinaus. Fix: Redundanter Aufruf aus `handleStageChange()` entfernt. (Methode: `handleStageChange`, Zeile ~533)
 
-
-**Beschreibung:** Behebung des Bugs, bei dem Stage-Animation (z.B. fade-in, Left) vom Editor zum Run-Mode nicht abgespielt oder off-screen gerendert wurden. Der Bug entstand durch redundanten Aufruf in initMainGame und Fallback-Priorisierung in StageRenderer bezüglich obj.opacity.
 
 
 [UC-2026-04-18-Nested-Event-Rename]

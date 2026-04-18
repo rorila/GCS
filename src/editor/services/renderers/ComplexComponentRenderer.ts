@@ -68,6 +68,46 @@ export class ComplexComponentRenderer {
         }
     }
 
+    public static renderSidePanel(ctx: IRenderContext, el: HTMLElement, obj: any): void {
+        el.style.borderRadius = '0px';
+        el.style.flexDirection = 'column';
+        el.style.alignItems = 'stretch';
+        el.style.justifyContent = 'flex-start';
+        el.style.overflow = 'visible';
+
+        // Editor CSS: Immer sichtbarer Container mit Titel
+        if (!el.querySelector('.sidepanel-title-bar')) {
+            const titleBar = document.createElement('div');
+            titleBar.className = 'sidepanel-title-bar';
+            titleBar.style.cssText = `display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid ${obj.style?.borderColor || '#4fc3f7'}; color: #fff; font-weight: bold; background: rgba(0,0,0,0.2)`;
+            const titleText = document.createElement('span');
+            titleText.className = 'sidepanel-title-text';
+            titleBar.appendChild(titleText);
+            
+            // Ein Icon oder Hinweis, dass es ein SidePanel ist
+            const iconEl = document.createElement('span');
+            iconEl.textContent = obj.side === 'left' ? '⬅️' : '➡️';
+            iconEl.style.fontSize = '12px';
+            iconEl.style.opacity = '0.7';
+            titleBar.appendChild(iconEl);
+
+            el.appendChild(titleBar);
+        }
+        
+        const titleBar = el.querySelector('.sidepanel-title-bar') as HTMLElement;
+        const titleText = titleBar.querySelector('.sidepanel-title-text') as HTMLElement;
+        if (titleText && titleText.textContent !== (obj.caption || obj.title || obj.name)) {
+            titleText.textContent = obj.caption || obj.title || obj.name;
+        }
+
+        // Falls wir im RunMode sind, verhält es sich wie im TSidePanel runMode
+        if (ctx.host.runMode) {
+            // Im RunMode wird die Position über das Runtime-Element geregelt,
+            // der Editor-Renderer sollte hier eigentlich nicht greifen, aber zur Sicherheit:
+            el.style.display = 'none'; // Wird vom Runtime-Sidepanel überlagert
+        }
+    }
+
     public static renderDialogRoot(ctx: IRenderContext, el: HTMLElement, obj: any): void {
         el.style.borderRadius = '12px';
         el.style.flexDirection = 'column';

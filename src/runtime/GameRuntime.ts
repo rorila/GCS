@@ -488,6 +488,16 @@ export class GameRuntime implements IVariableHost {
             this.stageController.setCurrentStageId(this.stage.id);
         }
 
+        const glm = GameLoopManager.getInstance();
+        const gridConfig = (this.stage && this.stage.grid) || this.project.stage?.grid || this.project.grid;
+        glm.init(
+            this.objects,
+            gridConfig,
+            this.options.onRender || (() => { }),
+            (id: string, ev: string, data?: any) => this.handleEvent(id, ev, data),
+            this.options.onSpriteRender
+        );
+
         this.start();
 
         // 2. AFTER Stage Change: Trigger onEnter and onRuntimeStart on the NEW stage
@@ -520,10 +530,11 @@ export class GameRuntime implements IVariableHost {
                 }
             }
         }
-        const animType = this.stage?.startAnimation || 'fade-in';
-        if (animType !== 'none') {
-            this.triggerStartAnimation(this.stage);
-        }
+        // KEIN weiterer triggerStartAnimation()-Aufruf hier!
+        // this.start() → initMainGame() löst die Animation bereits aus.
+        // Ein doppelter Aufruf verdoppelt den Off-Screen-Offset und
+        // die Objekte landen weit außerhalb der Bühne (siehe DEVELOPER_GUIDELINES:
+        // "DO NOT duplicate animation triggers in initialization routines").
 
         if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
     }
@@ -595,10 +606,12 @@ export class GameRuntime implements IVariableHost {
         }
 
         if (animationType === 'slide-up') {
+            const cellSize = grid.cellSize || 20;
+            const shiftCells = 100 / cellSize; // "100 Pixel" in Grid-Zellen konvertieren!
             this.objects.forEach(obj => {
                 if (shouldAnimate(obj)) {
                     const originalY = obj.y;
-                    obj.y += 100;
+                    obj.y += shiftCells;
                     am.addTween(obj, 'y', originalY, duration, easing);
                 }
             });

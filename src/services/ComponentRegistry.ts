@@ -70,6 +70,7 @@ import { TList } from '../components/TList';
 import { TDataList } from '../components/TDataList';
 import { TAuthService } from '../components/TAuthService';
 import { TUserManager } from '../components/TUserManager';
+import { TSidePanel } from '../components/TSidePanel';
 /**
  * ComponentRegistry - Der zentrale "Broker" für alle GCS-Komponenten.
  */
@@ -155,6 +156,7 @@ export class ComponentRegistry {
         this.register('TDataList', TDataList);
         this.register('TAuthService', TAuthService);
         this.register('TUserManager', TUserManager);
+        this.register('TSidePanel', TSidePanel);
 
         // Variablen & Spezial-Variablen
         this.register('TVariable', TVariable);
@@ -239,6 +241,7 @@ export class ComponentRegistry {
         this.typeMapping.set('Database', 'TDataStore');
         this.typeMapping.set('DataStore', 'TDataStore');
         this.typeMapping.set('DataList', 'TDataList');
+        this.typeMapping.set('SidePanel', 'TSidePanel');
     }
 
     /**

@@ -726,6 +726,8 @@ export class StageRenderer {
         else if (className === 'TShape') ShapeRenderer.render(ctx, el, obj, isNew);
         else if (className === 'TInspectorTemplate') ComplexComponentRenderer.renderInspectorTemplate(ctx, el, obj);
         else if (className === 'TDialogRoot') ComplexComponentRenderer.renderDialogRoot(ctx, el, obj);
+        else if (className === 'TSidePanel') ComplexComponentRenderer.renderSidePanel(ctx, el, obj);
+        else if (className === 'TInfoWindow') HTMLElementRenderer.renderInfoWindow(ctx, el, obj, isNew);
         else if (className === 'TColorPicker') InputRenderer.renderColorPicker(ctx, el, obj, isNew);
         else if (className === 'TImageList') this.renderImageList(el, obj);
         else if (className === 'TDropdown') InputRenderer.renderDropdown(ctx, el, obj, isNew);
@@ -926,26 +928,42 @@ export class StageRenderer {
         const cellSize = this.host.grid.cellSize;
         const allObjects = this.host.lastRenderedObjects || [];
         
-        const objectsToUpdate = new Set<any>(objects);
+        const objectsToUpdateMap = new Map<string, any>();
+        
+        // 1. Zuerst die primär animierten Original-Objekte (aus dem GameRuntime) aufnehmen
+        for (const obj of objects) {
+            if (obj && (obj.id || obj.name)) {
+                objectsToUpdateMap.set(obj.id || obj.name, obj);
+            }
+        }
 
-        // Rekursive Helfer-Funktion, um alle Kinder zu sammeln
+        // 2. Rekursive Helfer-Funktion, um alle Kinder zu sammeln
         const getChildren = (parentId: string): any[] => {
             let kids = allObjects.filter(o => o.parentId === parentId);
             let result = [...kids];
             for (const k of kids) {
-                result = result.concat(getChildren(k.id || k.name));
+                if (k.id || k.name) {
+                    result = result.concat(getChildren(k.id || k.name));
+                }
             }
             return result;
         };
 
-        // Auch alle Kinder in den Update-Zyklus einbeziehen, damit sie sich 
+        // 3. Auch alle Kinder in den Update-Zyklus einbeziehen, damit sie sich 
         // synchron mit ihren animierten Containern mitbewegen.
         for (const obj of objects) {
+            if (!obj.id && !obj.name) continue;
             const kids = getChildren(obj.id || obj.name);
-            kids.forEach(k => objectsToUpdate.add(k));
+            for (const k of kids) {
+                const kId = k.id || k.name;
+                // Originale (aktiv animierte) haben Vorrang! Überschreibe keine bestehenden Einträge.
+                if (kId && !objectsToUpdateMap.has(kId)) {
+                    objectsToUpdateMap.set(kId, k);
+                }
+            }
         }
 
-        const mergedObjectsArray = Array.from(objectsToUpdate);
+        const mergedObjectsArray = Array.from(objectsToUpdateMap.values());
 
         // Helfer, um absolute Position eines Objekts zu berechnen (Parent-Chain)
         // Muss die LATEST properties referenzieren
@@ -968,7 +986,7 @@ export class StageRenderer {
             return {x: absX, y: absY};
         };
 
-        for (const obj of objectsToUpdate) {
+        for (const obj of mergedObjectsArray) {
             const el = this.host.element.querySelector(
                 `[data-id="${obj.id}"]`
             ) as HTMLElement;
@@ -978,6 +996,14 @@ export class StageRenderer {
             const absPos = getAbsXYZ(obj);
             const transX = absPos.x * cellSize;
             const transY = absPos.y * cellSize;
+
+            // DIAGNOSTICS: log specific values
+            if (!(window as any)._animLogCounts) (window as any)._animLogCounts = {};
+            const logId = obj.id || obj.name;
+            if (((window as any)._animLogCounts[logId] || 0) < 60) {
+                console.log(`[ANIM-DIAG] Object ${obj.name}(${obj.id}) -> raw_x:${obj.x}, raw_y:${obj.y} | parentId:${obj.parentId} | absPos:(${absPos.x}, ${absPos.y}) | transX:${transX}, transY:${transY} | cellSize:${cellSize}`);
+                (window as any)._animLogCounts[logId] = ((window as any)._animLogCounts[logId] || 0) + 1;
+            }
 
             if (this.host.runMode) {
                 // ── Sichtbarkeits-Sync (Pool-Sprites) ──
