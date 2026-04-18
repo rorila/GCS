@@ -318,7 +318,6 @@ export class GameRuntime implements IVariableHost {
     }
 
     private initMainGame() {
-        let stageConfig = this.stage || this.project.stage || this.project.grid;
 
         const gridConfig = (this.stage && this.stage.grid) || this.project.stage?.grid || this.project.grid;
         const runtimeCallbacks = {
@@ -347,14 +346,12 @@ export class GameRuntime implements IVariableHost {
         );
         glm.start();
 
-        this.multiplayerHandler.init();
-
-        // Start-Animation NACH glm.start(): Tweens werden erst erstellt wenn die
-        // Game Loop bereits läuft und AnimationManager.update() pro Frame aufgerufen wird.
-        logger.info(`initMainGame: startAnimation="${stageConfig?.startAnimation}", id="${stageConfig?.id}", objects: ${this.objects.length}`);
-        if (stageConfig?.startAnimation && stageConfig.startAnimation !== 'none') {
-            this.triggerStartAnimation(stageConfig);
+        const animType = this.stage?.startAnimation || 'fade-in';
+        if (animType !== 'none') {
+            this.triggerStartAnimation(this.stage);
         }
+
+        this.multiplayerHandler.init();
 
         // Splash screens in main game
         this.objects.filter(o => o.className === 'TSplashScreen').forEach(splash => {
@@ -542,6 +539,10 @@ export class GameRuntime implements IVariableHost {
                 }
             }
         }
+        const animType = this.stage?.startAnimation || 'fade-in';
+        if (animType !== 'none') {
+            this.triggerStartAnimation(this.stage);
+        }
 
         if (this.options.onStageSwitch) this.options.onStageSwitch(newStageId);
     }
@@ -593,15 +594,20 @@ export class GameRuntime implements IVariableHost {
             return true;
         };
 
-        // Legacy-Animationen (fade-in, slide-up)
         if (animationType === 'fade-in') {
             // Opacity: Alle sichtbaren Objekte animieren (auch Kinder), da die DOM-Elemente
             // nicht verschachtelt sind und CSS-Opacity nicht kaskadiert.
             this.objects.forEach(obj => {
                 if (obj.visible !== false && obj.className) {
-                    const originalOpacity = obj.opacity !== undefined ? obj.opacity : 1;
-                    obj.opacity = 0;
-                    am.animate(obj, { opacity: originalOpacity }, duration, easing);
+                    if (obj.style) {
+                        const originalOpacity = obj.style.opacity !== undefined ? obj.style.opacity : 1;
+                        obj.style.opacity = 0;
+                        am.addTween(obj, 'style.opacity', Number(originalOpacity) || 1, duration, easing);
+                    } else {
+                        const originalOpacity = obj.opacity !== undefined ? obj.opacity : 1;
+                        obj.opacity = 0;
+                        am.addTween(obj, 'opacity', Number(originalOpacity) || 1, duration, easing);
+                    }
                 }
             });
             return;

@@ -291,6 +291,7 @@ export class EditorRunManager {
      */
     private renderSpritesOnly(sprites: any[]): void {
         if (!this.runStage || sprites.length === 0) return;
+        
         this.runStage.updateSpritePositions(sprites);
     }
 

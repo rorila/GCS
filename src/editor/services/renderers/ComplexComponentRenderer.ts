@@ -156,7 +156,6 @@ export class ComplexComponentRenderer {
                     let isDragging = false;
                     let startX = 0, startY = 0;
                     let startObjX = 0, startObjY = 0;
-                    let startChildPositions = new Map<string, {x: number, y: number}>();
 
                     titleBar.onpointerdown = (e) => {
                         if ((e.target as HTMLElement).classList.contains('dialog-close-btn')) return;

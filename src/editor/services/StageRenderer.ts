@@ -771,7 +771,9 @@ export class StageRenderer {
 
         if (obj.style) {
             if (obj.style.color !== undefined) el.style.color = obj.style.color;
-            if (obj.style.opacity !== undefined) el.style.opacity = String(obj.style.opacity);
+            if (obj.style.opacity !== undefined) {
+                el.style.opacity = String(obj.style.opacity);
+            }
             if (obj.style.fontFamily !== undefined) el.style.fontFamily = obj.style.fontFamily;
             if (obj.style.fontSize !== undefined) el.style.fontSize = this.scaleFontSize(obj.style.fontSize);
             if (obj.style.transform !== undefined) el.style.transform = obj.style.transform;
@@ -966,6 +968,7 @@ export class StageRenderer {
                 } else if (obj.opacity !== undefined) {
                     el.style.opacity = String(obj.opacity);
                 }
+
             } else {
                 // Fallback Layout für Inspektion
                 if (obj.x !== undefined) el.style.left = `${transX}px`;

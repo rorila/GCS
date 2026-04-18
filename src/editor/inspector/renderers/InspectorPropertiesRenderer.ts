@@ -5,7 +5,6 @@ import { InspectorLegacyRenderer } from './InspectorLegacyRenderer';
 import { InspectorRegistry } from '../InspectorRegistry';
 import { componentRegistry } from '../../../services/ComponentRegistry';
 import { PropertyHelper } from '../../../runtime/PropertyHelper';
-import { coreStore } from '../../../services/registry/CoreStore';
 
 export class InspectorPropertiesRenderer {
     public static async renderPropertiesContent(obj: any, parent: HTMLElement, context: IInspectorContext): Promise<void> {
