@@ -3,6 +3,88 @@
   "description": "Erweiterte Variablen-Typen (zusätzlich zu den bestehenden TIntegerVariable, TBooleanVariable, TStringVariable, TRandomVariable)",
   "components": {
 
+    "TIntegerVariable": {
+      "description": "Ganzzahl-Variable (z.B. Score, Countdown)",
+      "stage": "main",
+      "category": "variable",
+      "isVariable": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "type":         { "type": "string",  "default": "integer", "readonly": true },
+        "defaultValue": { "type": "number",  "default": 0, "description": "Startwert bei Spielstart" },
+        "value":        { "type": "number",  "default": 0, "description": "Aktueller Wert" }
+      },
+      "methods": [],
+      "events": ["onValueChanged"],
+      "example": {
+        "className": "TIntegerVariable", "name": "Countdown", "x": 2, "y": 4, "width": 6, "height": 2,
+        "isVariable": true, "isHiddenInRun": true, "type": "integer", "defaultValue": 10, "value": 10,
+        "style": { "backgroundColor": "#d1c4e9", "borderColor": "#9575cd", "borderWidth": 1, "color": "#000000" }
+      }
+    },
+
+    "TBooleanVariable": {
+      "description": "Wahrheitswert-Variable (true/false)",
+      "stage": "main",
+      "category": "variable",
+      "isVariable": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "type":         { "type": "string",  "default": "boolean", "readonly": true },
+        "defaultValue": { "type": "boolean", "default": false },
+        "value":        { "type": "boolean", "default": false }
+      },
+      "methods": [],
+      "events": ["onValueChanged"],
+      "example": {
+        "className": "TBooleanVariable", "name": "SpielAktiv", "x": 2, "y": 6, "width": 6, "height": 2,
+        "isVariable": true, "isHiddenInRun": true, "type": "boolean", "defaultValue": false, "value": false
+      }
+    },
+
+    "TStringVariable": {
+      "description": "Text-Variable",
+      "stage": "main",
+      "category": "variable",
+      "isVariable": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "type":         { "type": "string", "default": "string", "readonly": true },
+        "defaultValue": { "type": "string", "default": "" },
+        "value":        { "type": "string", "default": "" }
+      },
+      "methods": [],
+      "events": ["onValueChanged"],
+      "example": {
+        "className": "TStringVariable", "name": "Spielername", "x": 2, "y": 8, "width": 6, "height": 2,
+        "isVariable": true, "isHiddenInRun": true, "type": "string", "defaultValue": "", "value": ""
+      }
+    },
+
+    "TRandomVariable": {
+      "description": "Zufallszahl-Generator. Generiert Werte zwischen min und max",
+      "stage": "main",
+      "category": "variable",
+      "isVariable": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "min":       { "type": "number",  "default": 1, "description": "Minimalwert" },
+        "max":       { "type": "number",  "default": 100, "description": "Maximalwert" },
+        "isInteger": { "type": "boolean", "default": true, "description": "Nur Ganzzahlen" },
+        "value":     { "type": "number",  "default": 0, "readonly": true, "description": "Zuletzt generierter Wert" }
+      },
+      "methods": [
+        { "name": "generate", "description": "Neuen Zufallswert erzeugen (via call_method). Wert steht danach in .value" }
+      ],
+      "events": ["onGenerated"],
+      "example": {
+        "className": "TRandomVariable", "name": "Zahl1", "x": 2, "y": 10, "width": 3, "height": 1,
+        "isVariable": true, "isHiddenInRun": true, "min": 1, "max": 20, "isInteger": true,
+        "style": { "backgroundColor": "#607d8b", "borderColor": "#455a64", "borderWidth": 2 }
+      },
+      "warnings": ["⚠️ Methode heißt 'generate' (via call_method Action). Wert danach in ${VariablenName} verfügbar"]
+    },
+
     "TRealVariable": {
       "description": "Gleitkomma-Variable (z.B. Geschwindigkeit, Prozentsätze)",
       "stage": "main",

@@ -1,5 +1,6 @@
 import { coreStore } from '../src/services/registry/CoreStore';
 import { AgentController } from '../src/services/AgentController';
+import { loadComponentSchemasSync } from '../src/services/SchemaLoader';
 import { GameProject } from '../src/model/types';
 import fs from 'fs';
 import path from 'path';
@@ -465,10 +466,19 @@ export async function runTests(): Promise<TestResult[]> {
     // --- getComponentSchema ---
     try {
         const agent = AgentController.getInstance();
-        // Schema laden (ESM-kompatibel)
-        const schemaPath = path.resolve(__dirname, '../docs/ComponentSchema.json');
-        const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
-        AgentController.setComponentSchema(schema);
+        // Schema manuell laden, da loadComponentSchemasSync (Node.js/require hack) in nativem ESM crasht
+        const basePath = path.resolve(__dirname, '../docs');
+        const baseSchema = JSON.parse(fs.readFileSync(path.join(basePath, 'schemas/schema_base.json'), 'utf-8'));
+        const SCHEMA_MODULES = [
+            'schema_containers.json', 'schema_dialogs.json', 'schema_inputs.json',
+            'schema_display.json', 'schema_timers.json', 'schema_media.json',
+            'schema_variables.json', 'schema_game.json', 'schema_services.json'
+        ];
+        for (const m of SCHEMA_MODULES) {
+            const data = JSON.parse(fs.readFileSync(path.join(basePath, 'schemas', m), 'utf-8'));
+            if (data.components) Object.assign(baseSchema.components, data.components);
+        }
+        AgentController.setComponentSchema(baseSchema);
 
         const spriteSchema = agent.getComponentSchema('TSprite');
         const timerSchema = agent.getComponentSchema('TTimer');

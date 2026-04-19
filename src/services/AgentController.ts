@@ -966,6 +966,55 @@ export class AgentController {
     }
 
     /**
+     * Erstellt ein TGroupPanel-Objekt (Container für Logik-Gruppierung).
+     * @param opts - Optionale Properties: style, children (wird als leer initialisiert)
+     */
+    public createGroupPanel(stageId: string, name: string, x: number, y: number, width: number, height: number, opts: Record<string, any> = {}): void {
+        const panelData: any = {
+            className: 'TGroupPanel',
+            name,
+            x, y, width, height,
+            children: opts.children ?? [],
+            style: {
+                backgroundColor: opts.backgroundColor ?? opts.style?.backgroundColor ?? 'rgba(255,255,255,0.05)',
+                borderColor: opts.borderColor ?? opts.style?.borderColor ?? '#444',
+                borderWidth: opts.borderWidth ?? opts.style?.borderWidth ?? 1,
+                borderRadius: opts.borderRadius ?? opts.style?.borderRadius ?? 4,
+                ...(opts.style || {})
+            }
+        };
+        this.addObject(stageId, panelData);
+        AgentController.logger.info(`GroupPanel '${name}' created in '${stageId}' at (${x},${y})`);
+    }
+
+    /**
+     * Erstellt ein TDialogRoot-Objekt (Popup/Dialog).
+     * @param opts - Optionale Properties: title, modal, closable, draggable
+     */
+    public createDialog(stageId: string, name: string, x: number, y: number, width: number, height: number, opts: Record<string, any> = {}): void {
+        const dialogData: any = {
+            className: 'TDialogRoot',
+            name,
+            x, y, width, height,
+            title: opts.title ?? name,
+            modal: opts.modal ?? true,
+            closable: opts.closable ?? true,
+            draggable: opts.draggable ?? true,
+            visible: opts.visible ?? false,
+            children: opts.children ?? [],
+            style: {
+                backgroundColor: opts.backgroundColor ?? opts.style?.backgroundColor ?? '#2b2b2b',
+                borderColor: opts.borderColor ?? opts.style?.borderColor ?? '#555',
+                borderWidth: opts.borderWidth ?? opts.style?.borderWidth ?? 2,
+                borderRadius: opts.borderRadius ?? opts.style?.borderRadius ?? 8,
+                ...(opts.style || {})
+            }
+        };
+        this.addObject(stageId, dialogData);
+        AgentController.logger.info(`Dialog '${name}' created in '${stageId}' at (${x},${y})`);
+    }
+
+    /**
      * Erstellt ein TLabel-Objekt mit optionalem Variable-Binding.
      * @param text - Anzeige-Text. Für Variable-Binding: ${VariablenName}
      * @param opts - Optionale Style-Properties: fontSize, fontWeight, color, textAlign, backgroundColor

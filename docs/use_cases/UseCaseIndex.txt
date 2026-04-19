@@ -692,3 +692,12 @@ U s e C a s e :   P r o j e c t - W i d e   R e n a m e   o f   N e s t e d   C 
 - electron/main.cjs: fs:listFiles handler (Z. 113) (Path Traversal Fix)
 - player-standalone.ts: updateBackground(), render() (Z. 430-515) (Universal Logger Migration)
 - package.json (vite.runtime.config.ts entfernt zugunsten esbuild)
+
+[2026-04-19] UC-2026-04-19-ComponentSchema-Modularization
+- Beschreibung: Architektur-Audit & Refactoring: Aufloesung der monolithischen ComponentSchema.json in 7 modulare Schema-Dateien (Display, Timers, Game, Services, Inputs, Containers, Dialogs, Media) sowie Einfuehrung einer schema_base.json. SchemaLoader (src/services/SchemaLoader.ts) wurde angepasst, um alle Schema-Bestandteile dynamisch zur Laufzeit und Testzeit (via Node FileSystem / sync) asynchron zusammenzufuegen. AgentController wurde um die Shortcuts createGroupPanel und createDialog in Z. 940 erweitert. ProjectPersistenceService delegiert per Service Dependency Injection im executeExport(adapter) Muster nun Exporte an saubere IExportAdapter (LocalExportAdapter.ts).
+- Dateien:
+  - src/services/SchemaLoader.ts (Z. 80-114)
+  - src/services/AgentController.ts (Z. 969-1002)
+  - src/services/ProjectPersistenceService.ts (Z. 256-289)
+  - src/adapters/LocalExportAdapter.ts (komplett)
+  - docs/schemas/*.json (alle neu / portiert)

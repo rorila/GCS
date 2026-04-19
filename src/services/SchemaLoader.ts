@@ -5,14 +5,16 @@ import { Logger } from '../utils/Logger';
  * SchemaLoader — Lädt und merged alle Schema-Module aus docs/schemas/*.json
  * 
  * Modulare Struktur:
- *   docs/ComponentSchema.json       → Basis (baseProperties, actionTypes, semantik) + bestehende Kern-Komponenten
+ *   docs/schemas/schema_base.json       → Basis (baseProperties, actionTypes, semantik)
  *   docs/schemas/schema_containers.json → TPanel, TGroupPanel
  *   docs/schemas/schema_dialogs.json    → TDialogRoot, TSidePanel
- *   docs/schemas/schema_inputs.json     → TNumberInput, TCheckbox, TDropdown, TColorPicker, TMemo
- *   docs/schemas/schema_display.json    → TShape, TProgressBar, TRichText, TImage, TNumberLabel
- *   docs/schemas/schema_timers.json     → TIntervalTimer
+ *   docs/schemas/schema_inputs.json     → TNumberInput, TCheckbox, TDropdown, TColorPicker, TMemo, TEdit
+ *   docs/schemas/schema_display.json    → TShape, TProgressBar, TRichText, TImage, TNumberLabel, TButton, TLabel
+ *   docs/schemas/schema_timers.json     → TIntervalTimer, TTimer
  *   docs/schemas/schema_media.json      → TAudio, TVideo, TImageList
- *   docs/schemas/schema_variables.json  → TRealVariable, TObjectVariable, TListVariable, etc.
+ *   docs/schemas/schema_variables.json  → TRealVariable, TObjectVariable, TListVariable, TIntegerVariable, TBooleanVariable, TStringVariable, TRandomVariable, TTriggerVariable, TThresholdVariable, TRangeVariable, TStringMap
+ *   docs/schemas/schema_game.json       → TSprite, TSpriteTemplate
+ *   docs/schemas/schema_services.json   → TGameLoop, TGameState, TInputController
  */
 
 const logger = Logger.get('SchemaLoader', 'Editor_Diagnostics');
@@ -25,7 +27,9 @@ const SCHEMA_MODULES = [
     'schemas/schema_display.json',
     'schemas/schema_timers.json',
     'schemas/schema_media.json',
-    'schemas/schema_variables.json'
+    'schemas/schema_variables.json',
+    'schemas/schema_game.json',
+    'schemas/schema_services.json'
 ];
 
 /**
@@ -34,10 +38,10 @@ const SCHEMA_MODULES = [
  */
 export async function loadComponentSchemas(basePath: string = './docs/'): Promise<void> {
     try {
-        // 1. Basis-Schema laden (enthält baseProperties, actionTypes, semantik + Kern-Komponenten)
-        const baseResponse = await fetch(`${basePath}ComponentSchema.json`);
+        // 1. Basis-Schema laden (enthält baseProperties, actionTypes, semantik)
+        const baseResponse = await fetch(`${basePath}schemas/schema_base.json`);
         if (!baseResponse.ok) {
-            logger.warn(`Basis-Schema nicht gefunden: ${basePath}ComponentSchema.json`);
+            logger.warn(`Basis-Schema nicht gefunden: ${basePath}schemas/schema_base.json`);
             return;
         }
         const baseSchema = await baseResponse.json();
@@ -85,7 +89,7 @@ export function loadComponentSchemasSync(basePath: string = './docs/'): any {
         const fs = require('fs');
         const path = require('path');
 
-        const baseSchemaPath = path.resolve(basePath, 'ComponentSchema.json');
+        const baseSchemaPath = path.resolve(basePath, 'schemas/schema_base.json');
         if (!fs.existsSync(baseSchemaPath)) {
             logger.warn(`Basis-Schema nicht gefunden: ${baseSchemaPath}`);
             return null;
@@ -107,7 +111,8 @@ export function loadComponentSchemasSync(basePath: string = './docs/'): any {
 
         AgentController.setComponentSchema(baseSchema);
         return baseSchema;
-    } catch (_) {
+    } catch (e: any) {
+        console.error("SchemaLoaderSync Error:", e);
         return null;
     }
 }

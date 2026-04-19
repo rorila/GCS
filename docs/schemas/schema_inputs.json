@@ -9,8 +9,8 @@
       "category": "ui",
       "properties": {
         "value": { "type": "number",  "default": 0, "description": "Aktueller Wert" },
-        "min":   { "type": "number",  "default": -Infinity, "description": "Minimalwert" },
-        "max":   { "type": "number",  "default": Infinity, "description": "Maximalwert" },
+        "min":   { "type": "number",  "default": -999999, "description": "Minimalwert" },
+        "max":   { "type": "number",  "default": 999999, "description": "Maximalwert" },
         "step":  { "type": "number",  "default": 1, "description": "Schrittweite" }
       },
       "methods": [
@@ -22,6 +22,22 @@
         "className": "TNumberInput", "name": "InputSpalten", "x": 3, "y": 2, "width": 3, "height": 1.3,
         "value": 64,
         "style": { "backgroundColor": "#1e1e1e", "color": "#fff", "borderColor": "#333333", "borderRadius": 4, "textAlign": "center" }
+      }
+    },
+
+    "TEdit": {
+      "description": "Einzeiliges Eingabefeld für Text",
+      "stage": "main",
+      "category": "ui",
+      "properties": {
+        "text":        { "type": "string",  "default": "", "description": "Eingabetext" },
+        "placeholder": { "type": "string",  "default": "", "description": "Platzhalter-Text" }
+      },
+      "methods": [],
+      "events": ["onClick", "onFocus", "onBlur"],
+      "example": {
+        "className": "TEdit", "name": "NameInput", "x": 10, "y": 5, "width": 10, "height": 2,
+        "text": "", "placeholder": "Name eingeben..."
       }
     },
 

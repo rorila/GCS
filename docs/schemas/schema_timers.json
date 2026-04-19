@@ -32,6 +32,37 @@
         "⚠️ count=0 bedeutet unendliche Wiederholung",
         "⚠️ Auch als 'TRepeater' (Legacy) ansprechbar"
       ]
+    },
+
+    "TTimer": {
+      "description": "Wiederholender Timer mit konfigurierbarem Intervall und Max-Intervall",
+      "stage": "main",
+      "category": "service",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "interval":        { "type": "number",  "default": 1000, "unit": "ms", "description": "Timer-Intervall in Millisekunden" },
+        "enabled":         { "type": "boolean", "default": true, "description": "Timer sofort aktiv bei Spielstart" },
+        "maxInterval":     { "type": "number",  "default": 0, "description": "Max Intervalle (0=unendlich). Feuert onMaxIntervalReached wenn erreicht" },
+        "currentInterval": { "type": "number",  "default": 0, "description": "Aktuelle Anzahl gefeuterter Intervalle (readonly)" }
+      },
+      "methods": [
+        { "name": "timerStart", "description": "Timer starten (via call_method Action)" },
+        { "name": "timerStop",  "description": "Timer stoppen" },
+        { "name": "reset",      "description": "Intervall-Zähler auf 0 zurücksetzen" }
+      ],
+      "events": ["onTimer", "onMaxIntervalReached"],
+      "example": {
+        "className": "TTimer", "name": "CountdownTimer", "x": 10, "y": 2, "width": 6, "height": 3,
+        "isVariable": true, "isService": true, "isHiddenInRun": true,
+        "interval": 1000, "enabled": false, "maxInterval": 10, "currentInterval": 0,
+        "events": { "onTimer": "OnTimerTick", "onMaxIntervalReached": "OnCountdownFinish" }
+      },
+      "warnings": [
+        "⚠️ Methode heißt 'timerStart', NICHT 'start'!",
+        "⚠️ Timer mit enabled=false muss über call_method 'timerStart' gestartet werden",
+        "⚠️ maxInterval=0 bedeutet: Timer läuft endlos"
+      ]
     }
   }
 }

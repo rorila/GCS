@@ -254,10 +254,65 @@ export class ProjectPersistenceService {
     }
 
     // =========================================================================
-    // Export-Methoden (Slice 3.4: IExportAdapter-Migration steht noch aus)
+    // Export-Methoden (Umgestellt auf IExportAdapter)
     // =========================================================================
 
+    public async executeExport(adapter: import('../ports/IStorageAdapter').IExportAdapter, project?: GameProject) {
+        const targetProject = project || coreStore.getProject();
+        if (!targetProject) return;
+
+        try {
+            const blob = await adapter.export(targetProject);
+            const projName = targetProject.stages?.find((s: any) => s.type === 'main')?.gameName ||
+                targetProject.meta.name || 'New Game';
+            const filename = `project_${projName.replace(/\s+/g, '_')}${adapter.fileExtension}`;
+
+            // Nutze die Download-Routinen des NativeFileAdapter oder Fallback
+            if (this.nativeAdapter && (window as any).electronFS) {
+                const ext = adapter.fileExtension.substring(1);
+                const targetPath = await (window as any).electronFS.showSaveDialog({
+                    defaultPath: filename,
+                    filters: [{ name: adapter.formatName, extensions: [ext] }]
+                });
+                if (!targetPath) return; // Canceled
+                
+                // Konvertiere Blob zu ArrayBuffer -> Buffer für writeFile
+                const arrayBuffer = await blob.arrayBuffer();
+                await (window as any).electronFS.writeFile(targetPath, new Uint8Array(arrayBuffer));
+                
+                // NotificationToast ist hier eigentlich nicht im Scope, wir verlassen uns auf den Caller
+                // oder geben es zurück.
+            } else if ('showSaveFilePicker' in window) {
+                const ext = adapter.fileExtension;
+                const handle = await (window as any).showSaveFilePicker({
+                    suggestedName: filename,
+                    types: [{
+                        description: adapter.formatName,
+                        accept: { [blob.type]: [ext] }
+                    }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+            } else {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => document.body.removeChild(a), 2000);
+            }
+        } catch (e: any) {
+            if (e.name !== 'AbortError') {
+                ProjectPersistenceService.logger.error(`Export (${adapter.formatName}) failed:`, e);
+            }
+        }
+    }
+
     public async exportHTML(project?: GameProject) {
+        ProjectPersistenceService.logger.warn("exportHTML is deprecated. Use executeExport() with an IExportAdapter instead.");
         const targetProject = project || coreStore.getProject();
         if (!targetProject) return;
         const exporter = new GameExporter();
@@ -265,6 +320,7 @@ export class ProjectPersistenceService {
     }
 
     public async exportJSON(project?: GameProject) {
+        ProjectPersistenceService.logger.warn("exportJSON is deprecated. Use executeExport() with an IExportAdapter instead.");
         const targetProject = project || coreStore.getProject();
         if (!targetProject) return;
         const exporter = new GameExporter();
@@ -272,6 +328,7 @@ export class ProjectPersistenceService {
     }
 
     public async exportHTMLCompressed(project?: GameProject) {
+        ProjectPersistenceService.logger.warn("exportHTMLCompressed is deprecated.");
         const targetProject = project || coreStore.getProject();
         if (!targetProject) return;
         const exporter = new GameExporter();
@@ -279,6 +336,7 @@ export class ProjectPersistenceService {
     }
 
     public async exportJSONCompressed(project?: GameProject) {
+        ProjectPersistenceService.logger.warn("exportJSONCompressed is deprecated.");
         const targetProject = project || coreStore.getProject();
         if (!targetProject) return;
         const exporter = new GameExporter();
