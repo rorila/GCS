@@ -42,6 +42,7 @@ export class FlowCommentNode extends FlowElement {
         
         root.style.cssText = `
             position: absolute;
+            box-sizing: border-box; /* VERHINDERT UNENDLICHE WACHSTUMS-LOOPS! */
             width: ${this.width}px;
             height: ${this.height}px;
             border: 1px solid #fbc02d;
@@ -73,7 +74,7 @@ export class FlowCommentNode extends FlowElement {
             const rect = root.getBoundingClientRect();
             // Wenn der Klick in den unteren rechten 20x20 Pixeln ist (CSS resize handle)
             if (e.clientX > rect.right - 20 && e.clientY > rect.bottom - 20) {
-                e.stopPropagation(); // Verhindere Node-Drag, erlaube CSS Resize
+                e.stopImmediatePropagation(); // Verhindere ALLE nachfolgenden Listener (auch FlowInteractionManager)
             }
         });
 
