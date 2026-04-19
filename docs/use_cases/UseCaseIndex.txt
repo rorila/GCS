@@ -705,3 +705,10 @@ U s e C a s e :   P r o j e c t - W i d e   R e n a m e   o f   N e s t e d   C 
  D a t e i e n :   s r c \ e d i t o r \ f l o w \ F l o w C o m m e n t N o d e . t s ,   s r c \ e d i t o r \ F l o w T o o l b o x . t s ,   s r c \ e d i t o r \ s e r v i c e s \ F l o w N o d e F a c t o r y . t s ,   s r c \ e d i t o r \ s e r v i c e s \ f l o w \ F l o w D a t a P a r s e r . t s ,   s r c \ e d i t o r \ s e r v i c e s \ F l o w G r a p h H y d r a t o r . t s  
  T y p :   E d i t o r   F e a t u r e   ( K e i n e   R u n t i m e - A u s w i r k u n g e n )  
  
+[UC-2026-04-19-StickyNotesInspectorFix]
+Dateien:
+- src/editor/services/FlowInteractionManager.ts (Zeile 229)
+  - Methode: mousedown event handler -> Erlaubt Input/Textarea-Elementen das Event zu bubbeln, stoppt aber die Canvas-Drag-Logik, damit der Inspector sich auf den Node fokussiert.
+- src/editor/flow/FlowCommentNode.ts (Zeile 106, 143, 185)
+  - propertiesName (Case-Fix): Angleichung von name/width/height an Name/Width/Height.
+Beschreibung: Sticky Notes lassen sich nun nahtlos Ober den Inspector synchron halten und behalten gleichzeitig nativen Eingabefokus beim Klicken.

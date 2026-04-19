@@ -138,3 +138,6 @@ esolveObjectPreview gibt ein geklontes Objekt zurÃ¼ck, anstatt das Argument zu
 - **Bugfix (Stage-Import Persistence in Electron Run-Mode)**: Ein Race Condition-Fehler wurde behoben, bei dem der IFrame Run-Mode in Electron auf project.json aus dem Cache/Dateisystem zurückfiel, bevor die neue Projektstruktur über postMessage (START_RUN) bereit stand. Dadurch wurden erst kürzlich importierte Stages, die noch nicht auf der Festplatte via NativeFileAdapter gespeichert waren, durch den veralteten Fallback-Fetch überschrieben. Eine window.WAIT_FOR_PROJECT Flag stellt nun sicher, dass der Standalone-Player priorisiert das Laufzeit-Projekt lädt.
 # # #   F i x e d   T S i d e P a n e l   A n i m a t i o n   i n   R u n M o d e  
  
+### Fixed
+- **Sticky Notes Inspector Sync**: Fixed Case-Sensitivity Issue for Inspector Properties (Name/Width/Height) to synchronize with PropertyHelper.
+- **Sticky Notes Selection Focus**: Adjusted FlowInteractionManager to abort dragging if an input element is targetted, allowing native focus while retaining Global Selection.
