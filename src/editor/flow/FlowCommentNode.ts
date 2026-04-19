@@ -182,9 +182,10 @@ export class FlowCommentNode extends FlowElement {
 
     public getInspectorProperties(): any[] {
         return [
-            { name: 'name', type: 'string', label: 'Inhalt', readOnly: false, value: this.Name },
-            { name: 'width', type: 'number', label: 'Breite', readOnly: false, value: this.width },
-            { name: 'height', type: 'number', label: 'Höhe', readOnly: false, value: this.height }
+            { name: 'Name', type: 'string', label: 'Titel', readOnly: false, value: this.Name },
+            { name: 'Details', type: 'string', label: 'Inhalt', readOnly: false, value: this.Details },
+            { name: 'Width', type: 'number', label: 'Breite', readOnly: false, value: this.width },
+            { name: 'Height', type: 'number', label: 'Höhe', readOnly: false, value: this.height }
         ];
     }
 
