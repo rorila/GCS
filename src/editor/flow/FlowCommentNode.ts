@@ -34,6 +34,12 @@ export class FlowCommentNode extends FlowElement {
 
     protected createRoot(): HTMLElement {
         const root = document.createElement('div');
+        
+        // Versteckter Content-Container, um Basis-FlowElement Methoden (Name/Details Dataset-Zugriffe) sicher abzufangen
+        this.content = document.createElement('div');
+        this.content.style.display = 'none';
+        root.appendChild(this.content);
+
         root.className = 'flow-node comment-node';
         root.id = `node-${this.id}`;
         // Standardgröße
