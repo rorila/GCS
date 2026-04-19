@@ -86,7 +86,7 @@ export class TWindow extends TComponent {
     /**
      * Hook that subclasses can override to react to visibility changes
      */
-    protected onVisibilityChanged(v: boolean): void {
+    protected onVisibilityChanged(_v: boolean): void {
         // standard implementation might do nothing, subclasses override
     }
 

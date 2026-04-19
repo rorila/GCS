@@ -1,6 +1,6 @@
 import { IExportAdapter } from '../ports/IStorageAdapter';
 import { GameProject } from '../model/types';
-import { GameExporter, RUNTIME_VERSION } from '../export/GameExporter';
+import { GameExporter } from '../export/GameExporter';
 
 export class HtmlExportAdapter implements IExportAdapter {
     public readonly formatName = 'Standalone HTML Game';

@@ -1,8 +1,6 @@
 import { TDialogRoot } from './TDialogRoot';
 import { TPropertyDef } from './TComponent';
-import { Logger } from '../utils/Logger';
 
-const logger = Logger.get('TSidePanel');
 
 /**
  * TSidePanel — Generisches Side-Panel (erbt von TDialogRoot)
@@ -48,7 +46,7 @@ export class TSidePanel extends TDialogRoot {
         this.style.borderColor = '#4fc3f7';
         this.style.borderWidth = 1;
 
-        this._title = name;
+        this.title = name;
     }
 
     // Getter/Setter für side — synchronisiert slideDirection
