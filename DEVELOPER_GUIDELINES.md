@@ -18,6 +18,7 @@
 - **Global Hosting**: Alle globalen Variablen, Komponenten, Tasks und Actions geh?ren in die `stage_blueprint`.
 - **GCS_FEATURE_MAP**: Bevor Code gel?scht oder massiv umgebaut wird, MUSS `docs/GCS_FEATURE_MAP.md` gepr?ft werden. Jedes neue Feature dort dokumentieren.
 - **Synchronit?t**: ?nderungen in Inspector/Flow-Editor m?ssen konsistent in JSON und Pascal reflektiert werden.
+- **ComponentSchema (Agent-Wissensbasis)**: Neue Komponenten MÜSSEN im passenden Schema-Modul unter `docs/schemas/` dokumentiert werden (Properties, Methods, Events, Beispiel). Der `SchemaLoader` (`src/services/SchemaLoader.ts`) merged alle Module beim Start und übergibt sie an `AgentController.setComponentSchema()`. NICHT das monolithische `docs/ComponentSchema.json` direkt editieren — es enthält nur die Basis-Definitionen.
 
 ## 2. Tooling
 
@@ -358,6 +359,11 @@ pm run bundle:runtime\ ausgef�hrt werden, damit deine Code-Fixes auch im IFram
 - **DO NOT**: Erzwinge NIEMALS Full-Render-Zyklen (`needsFullRender = true` in `GameRuntime` oder Bypasses in `GameLoopManager`) nur weil animierte Objekte Kinder besitzen. Full-Renders verursachen Layout-Thrashing (Browser-Freezes) und zerstören flüssige Animationen bei 60fps.
 - **DO**: Sorge dafür, dass Positionsänderungen (`x`, `y`) JEDES Objekts ausschließlich über den asynchronen 60fps Fast-Path (`StageRenderer.updateSpritePositions`) laufen. Die Berechnungslogik innerhalb von `updateSpritePositions` iteriert rekursiv über alle Eltern (`parentId`), um absolute Screen-Koordinaten zu addieren und verschiebt abhängige DOM-Kinder hardwarebeschleunigt in Echtzeit mit.
 - **WICHTIG**: Beim Bearbeiten von IFrame/Player-spezifischem Code immer `npm run bundle:runtime` aufrufen. Der Run(IFrame)-Modus nutzt keinen Live-Dev-Server, sondern serviert `public/runtime-standalone.js`.
+
+### Flache parentId-Kinder vs. children-Array
+- **DO NOT**: Verlasse dich in `GameRuntime.getObjects()` NICHT ausschliesslich auf die `obj.children`-Rekursion, um alle Kinder eines Containers zu erreichen. Projekte koennen Kinder als flache Objekte mit `parentId` auf derselben Ebene wie den Container definieren (statt als verschachteltes `children`-Array). Diese „verwaisten" Kinder muessen nach der children-Rekursion separat eingesammelt werden.
+- **DO**: Pruefe nach `process(topLevelObjects)` in `getObjects()` immer, ob Objekte mit `parentId` existieren, die nicht ueber die Rekursion erreicht wurden, und fuege sie mit korrekter Getter-Kopie und zIndex-Berechnung in die Ergebnisliste ein.
+- **HINTERGRUND**: Im Edit-Modus (`getResolvedInheritanceObjects()`) werden alle Objekte flach zurueckgegeben — inklusive der parentId-Kinder. Im Run-Modus (`getObjects()`) filtert `topLevelObjects = this.objects.filter(o => !o.parentId)` diese jedoch heraus. Wenn der Container kein `children`-Array hat, verschwinden die Kinder komplett.
 
 ### Animation & CSS Properties
 **DO NOT** animate or define CSS properties (opacity, 	ransform) as flat object properties (e.g. obj.opacity) if the StageRenderer prioritizes obj.style.opacity. Animations must be targeted cleanly to avoid overwriting or property shadowing. 

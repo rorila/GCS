@@ -1,0 +1,72 @@
+{
+  "$module": "dialogs",
+  "description": "Dialog-Container (Modal, Side-Panel)",
+  "components": {
+
+    "TDialogRoot": {
+      "description": "Container für Dialoge. Modal/Non-Modal, Slide-In Animation, Show/Hide/Toggle per Action.",
+      "stage": "main",
+      "category": "ui",
+      "isContainer": true,
+      "properties": {
+        "title":              { "type": "string",  "default": "Dialog", "description": "Titel im Dialog-Header" },
+        "modal":              { "type": "boolean", "default": true, "description": "Hintergrund blockieren (Overlay)" },
+        "closable":           { "type": "boolean", "default": true, "description": "Schließen-Button anzeigen" },
+        "draggableAtRuntime": { "type": "boolean", "default": true, "description": "Im Run-Modus verschiebbar" },
+        "centerOnShow":       { "type": "boolean", "default": true, "description": "Beim Öffnen zentrieren" },
+        "slideDirection":     { "type": "select",  "default": "right", "options": ["left", "right"], "description": "Slide-Richtung der Animation" }
+      },
+      "methods": [
+        { "name": "show",   "description": "Dialog einblenden (via call_method Action)" },
+        { "name": "hide",   "description": "Dialog ausblenden" },
+        { "name": "close",  "description": "Dialog schließen (feuert onClose Event)" },
+        { "name": "cancel", "description": "Dialog abbrechen (feuert onCancel Event)" },
+        { "name": "toggle", "description": "Sichtbarkeit umschalten" }
+      ],
+      "events": ["onShow", "onClose", "onCancel"],
+      "example": {
+        "className": "TDialogRoot", "name": "SettingsDialog", "x": 10, "y": 5, "width": 20, "height": 15,
+        "visible": false, "modal": true, "closable": true, "title": "Einstellungen",
+        "style": { "backgroundColor": "rgba(26, 26, 46, 0.98)", "borderColor": "#4fc3f7", "borderWidth": 2 },
+        "children": []
+      },
+      "warnings": [
+        "⚠️ visible=false ist der Default! Dialog muss per toggle_dialog oder call_method 'show' geöffnet werden.",
+        "⚠️ Im Editor ist der Dialog sichtbar zum Editieren, im Run-Modus initial verborgen.",
+        "⚠️ Children haben relative Koordinaten zum Dialog, nicht zur Stage!"
+      ]
+    },
+
+    "TSidePanel": {
+      "description": "Side-Panel, das von links oder rechts einschiebt. Erbt von TDialogRoot. Volle Bühnenhöhe, optional resizable.",
+      "stage": "main",
+      "category": "ui",
+      "isContainer": true,
+      "properties": {
+        "title":           { "type": "string",  "default": "", "description": "Titel im Panel-Header" },
+        "side":            { "type": "select",  "default": "right", "options": ["left", "right"], "description": "Andock-Seite" },
+        "resizable":       { "type": "boolean", "default": true, "description": "Resize-Handle im Run-Modus" },
+        "overlayDimming":  { "type": "boolean", "default": false, "description": "Hintergrund dimmen (unabhängig von modal)" },
+        "modal":           { "type": "boolean", "default": false, "description": "Hintergrund blockieren" },
+        "closable":        { "type": "boolean", "default": true, "description": "Schließen-Button anzeigen" }
+      },
+      "methods": [
+        { "name": "show",   "description": "Panel einblenden" },
+        { "name": "hide",   "description": "Panel ausblenden" },
+        { "name": "close",  "description": "Panel schließen (feuert onClose)" },
+        { "name": "toggle", "description": "Sichtbarkeit umschalten" }
+      ],
+      "events": ["onShow", "onClose", "onCancel"],
+      "example": {
+        "className": "TSidePanel", "name": "DebugPanel", "x": 0, "y": 0, "width": 15, "height": 40,
+        "visible": false, "side": "right", "resizable": true, "closable": true,
+        "style": { "backgroundColor": "rgba(20, 20, 35, 0.97)", "borderColor": "#4fc3f7", "borderWidth": 1 },
+        "children": []
+      },
+      "warnings": [
+        "⚠️ modal ist bei TSidePanel default false (anders als bei TDialogRoot!)",
+        "⚠️ centerOnShow und draggableAtRuntime sind automatisch deaktiviert."
+      ]
+    }
+  }
+}

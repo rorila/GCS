@@ -1,0 +1,139 @@
+{
+  "$module": "variables",
+  "description": "Erweiterte Variablen-Typen (zusätzlich zu den bestehenden TIntegerVariable, TBooleanVariable, TStringVariable, TRandomVariable)",
+  "components": {
+
+    "TRealVariable": {
+      "description": "Gleitkomma-Variable (z.B. Geschwindigkeit, Prozentsätze)",
+      "stage": "main",
+      "category": "variable",
+      "isVariable": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "type":         { "type": "string",  "default": "real", "readonly": true },
+        "defaultValue": { "type": "number",  "default": 0.0 },
+        "value":        { "type": "number",  "default": 0.0 }
+      },
+      "methods": [],
+      "events": ["onValueChanged"],
+      "example": {
+        "className": "TRealVariable", "name": "Geschwindigkeit", "x": 2, "y": 4, "width": 6, "height": 2,
+        "isVariable": true, "isHiddenInRun": true, "defaultValue": 3.5, "value": 3.5
+      }
+    },
+
+    "TObjectVariable": {
+      "description": "Objekt-Variable (JSON-Struktur, z.B. Spieler-Daten)",
+      "stage": "main",
+      "category": "variable",
+      "isVariable": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "type":         { "type": "string",  "default": "object", "readonly": true },
+        "defaultValue": { "type": "object",  "default": {} },
+        "value":        { "type": "object",  "default": {} }
+      },
+      "methods": [],
+      "events": ["onValueChanged"],
+      "example": {
+        "className": "TObjectVariable", "name": "PlayerData", "x": 2, "y": 6, "width": 6, "height": 2,
+        "isVariable": true, "isHiddenInRun": true, "defaultValue": { "name": "", "level": 1 }
+      }
+    },
+
+    "TListVariable": {
+      "description": "Listen-Variable (Array von Werten)",
+      "stage": "main",
+      "category": "variable",
+      "isVariable": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "type":         { "type": "string", "default": "list", "readonly": true },
+        "defaultValue": { "type": "array",  "default": [] },
+        "value":        { "type": "array",  "default": [] }
+      },
+      "methods": [],
+      "events": ["onValueChanged"],
+      "example": {
+        "className": "TListVariable", "name": "Highscores", "x": 2, "y": 8, "width": 6, "height": 2,
+        "isVariable": true, "isHiddenInRun": true, "defaultValue": []
+      }
+    },
+
+    "TTriggerVariable": {
+      "description": "Trigger-Variable. Feuert ein Event wenn der Wert gesetzt wird (Fire-and-Forget).",
+      "stage": "main",
+      "category": "variable",
+      "isVariable": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "type": { "type": "string", "default": "trigger", "readonly": true }
+      },
+      "methods": [
+        { "name": "fire", "description": "Trigger auslösen" }
+      ],
+      "events": ["onTrigger"],
+      "example": {
+        "className": "TTriggerVariable", "name": "GameOverTrigger", "x": 2, "y": 10, "width": 6, "height": 2,
+        "isVariable": true, "isHiddenInRun": true
+      }
+    },
+
+    "TThresholdVariable": {
+      "description": "Schwellwert-Variable. Feuert Events wenn Ober- oder Untergrenze überschritten wird.",
+      "stage": "main",
+      "category": "variable",
+      "isVariable": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "type":       { "type": "string", "default": "threshold", "readonly": true },
+        "value":      { "type": "number", "default": 0 },
+        "lowerBound": { "type": "number", "default": 0, "description": "Untergrenze" },
+        "upperBound": { "type": "number", "default": 100, "description": "Obergrenze" }
+      },
+      "methods": [],
+      "events": ["onLowerBound", "onUpperBound", "onValueChanged"],
+      "example": {
+        "className": "TThresholdVariable", "name": "HP", "x": 2, "y": 12, "width": 6, "height": 2,
+        "isVariable": true, "isHiddenInRun": true, "value": 100, "lowerBound": 0, "upperBound": 100
+      }
+    },
+
+    "TRangeVariable": {
+      "description": "Bereichs-Variable mit Min/Max-Clamping.",
+      "stage": "main",
+      "category": "variable",
+      "isVariable": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "type":  { "type": "string", "default": "range", "readonly": true },
+        "value": { "type": "number", "default": 50 },
+        "min":   { "type": "number", "default": 0 },
+        "max":   { "type": "number", "default": 100 }
+      },
+      "methods": [],
+      "events": ["onValueChanged"],
+      "example": {
+        "className": "TRangeVariable", "name": "Volume", "x": 2, "y": 14, "width": 6, "height": 2,
+        "isVariable": true, "isHiddenInRun": true, "value": 50, "min": 0, "max": 100
+      }
+    },
+
+    "TStringMap": {
+      "description": "Key-Value Dictionary (String → String). Für Konfigurationen, Übersetzungen.",
+      "stage": "main",
+      "category": "variable",
+      "isVariable": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "entries": { "type": "object", "default": {}, "description": "Key-Value Paare" }
+      },
+      "methods": [],
+      "events": ["onValueChanged"],
+      "example": {
+        "className": "TStringMap", "name": "Translations", "x": 2, "y": 16, "width": 6, "height": 2,
+        "isVariable": true, "isHiddenInRun": true, "entries": { "greeting": "Hallo", "farewell": "Tschüss" }
+      }
+    }
+  }
+}

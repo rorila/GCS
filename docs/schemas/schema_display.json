@@ -1,0 +1,106 @@
+{
+  "$module": "display",
+  "description": "Anzeige-Komponenten (Shape, ProgressBar, RichText, Image, NumberLabel)",
+  "components": {
+
+    "TShape": {
+      "description": "Geometrische Form (Kreis, Rechteck, Dreieck, Pfeil, Linie). Kann Text/Emoji und Bild-Inhalt enthalten.",
+      "stage": "main",
+      "category": "ui",
+      "properties": {
+        "shapeType":    { "type": "select",  "default": "circle", "options": ["circle", "rect", "square", "ellipse", "triangle", "arrow", "line"], "description": "Form-Typ" },
+        "fillColor":    { "type": "color",   "default": "transparent", "description": "Füllfarbe" },
+        "strokeColor":  { "type": "color",   "default": "#29b6f6", "description": "Rahmenfarbe" },
+        "strokeWidth":  { "type": "number",  "default": 2, "description": "Rahmenstärke" },
+        "opacity":      { "type": "number",  "default": 1.0, "min": 0, "max": 1, "step": 0.1, "description": "Deckkraft" },
+        "text":         { "type": "string",  "default": "", "description": "Text/Emoji-Inhalt" },
+        "contentImage": { "type": "string",  "default": "", "description": "Bild-URL im Shape" }
+      },
+      "methods": [],
+      "events": ["onClick"],
+      "example": {
+        "className": "TShape", "name": "IconRaster", "x": 1, "y": 1, "width": 1, "height": 1,
+        "shapeType": "rectangle",
+        "style": { "backgroundColor": "#8a7fff", "borderColor": "transparent", "borderWidth": 0, "borderRadius": 2 }
+      }
+    },
+
+    "TProgressBar": {
+      "description": "Fortschrittsbalken / Lebensbalken. Zeigt Füllstand proportional zu value/maxValue.",
+      "stage": "main",
+      "category": "ui",
+      "properties": {
+        "value":              { "type": "number",  "default": 75, "description": "Aktueller Wert" },
+        "maxValue":           { "type": "number",  "default": 100, "description": "Maximalwert" },
+        "barColor":           { "type": "color",   "default": "#4caf50", "description": "Balkenfarbe" },
+        "barBackgroundColor": { "type": "color",   "default": "#333333", "description": "Hintergrund des leeren Bereichs" },
+        "showText":           { "type": "boolean", "default": true, "description": "Text auf Balken anzeigen" },
+        "textTemplate":       { "type": "string",  "default": "${value} / ${maxValue}", "description": "Text-Vorlage" },
+        "animateChanges":     { "type": "boolean", "default": true, "description": "Wertänderungen animieren" }
+      },
+      "methods": [],
+      "events": ["onComplete", "onEmpty"],
+      "example": {
+        "className": "TProgressBar", "name": "HPBar", "x": 2, "y": 2, "width": 10, "height": 2,
+        "value": 75, "maxValue": 100, "barColor": "#4caf50", "showText": true
+      },
+      "warnings": ["⚠️ onComplete feuert wenn value >= maxValue, onEmpty wenn value <= 0"]
+    },
+
+    "TRichText": {
+      "description": "WYSIWYG-formatierbarer HTML-Inhalt. Unterstützt Variablen-Binding und XSS-Schutz.",
+      "stage": "main",
+      "category": "ui",
+      "properties": {
+        "htmlContent": { "type": "string", "default": "<h1>Rich Text</h1><p>Inhalt bearbeiten.</p>", "description": "HTML-Inhalt (sanitized)" }
+      },
+      "methods": [],
+      "events": ["onClick"],
+      "example": {
+        "className": "TRichText", "name": "InfoText", "x": 1, "y": 1, "width": 8, "height": 4,
+        "htmlContent": "<h2>Willkommen</h2><p>Dies ist <b>formatierter</b> Text.</p>",
+        "style": { "backgroundColor": "transparent", "borderColor": "#aaa", "borderWidth": 1 }
+      },
+      "warnings": ["⚠️ Bearbeitung über 'Text bearbeiten'-Button im Inspector (nicht direkt im Feld)"]
+    },
+
+    "TImage": {
+      "description": "Eigenständige Bild-Komponente. Zeigt ein Bild mit konfigurierbarer Skalierung.",
+      "stage": "main",
+      "category": "media",
+      "properties": {
+        "src":           { "type": "string",  "default": "", "description": "Bild-URL (auch als 'backgroundImage' nutzbar)" },
+        "objectFit":     { "type": "select",  "default": "contain", "options": ["cover", "contain", "fill", "none"], "description": "Bild-Skalierung" },
+        "imageOpacity":  { "type": "number",  "default": 1.0, "min": 0, "max": 1, "step": 0.1, "description": "Bild-Deckkraft" },
+        "alt":           { "type": "string",  "default": "", "description": "Alt-Text (Barrierefreiheit)" },
+        "fallbackColor": { "type": "color",   "default": "#2a2a2a", "description": "Fallback-Farbe wenn kein Bild geladen" }
+      },
+      "methods": [],
+      "events": ["onClick"],
+      "example": {
+        "className": "TImage", "name": "Logo", "x": 1, "y": 1, "width": 8, "height": 6,
+        "src": "./images/logo.png", "objectFit": "contain",
+        "style": { "backgroundColor": "transparent", "borderWidth": 0 }
+      }
+    },
+
+    "TNumberLabel": {
+      "description": "Zahlen-Anzeige mit Formatierung (Prefix, Suffix, Dezimalstellen).",
+      "stage": "main",
+      "category": "ui",
+      "properties": {
+        "value":    { "type": "number", "default": 0, "description": "Angezeigter Wert" },
+        "prefix":   { "type": "string", "default": "", "description": "Prefix (z.B. '$')" },
+        "suffix":   { "type": "string", "default": "", "description": "Suffix (z.B. 'km/h')" },
+        "decimals": { "type": "number", "default": 0, "description": "Anzahl Dezimalstellen" }
+      },
+      "methods": [],
+      "events": ["onClick"],
+      "example": {
+        "className": "TNumberLabel", "name": "ScoreDisplay", "x": 2, "y": 2, "width": 6, "height": 2,
+        "value": 1500, "prefix": "Score: ", "suffix": " pts",
+        "style": { "color": "#ffffff", "fontSize": 20, "fontWeight": "bold" }
+      }
+    }
+  }
+}

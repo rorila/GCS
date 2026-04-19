@@ -36,6 +36,7 @@ import { snapshotManager } from './services/SnapshotManager';
 import { EditorInteractionManager } from './services/EditorInteractionManager';
 import { ObjectStore } from './services/ObjectStore';
 import { Logger } from '../utils/Logger';
+import { loadComponentSchemas } from '../services/SchemaLoader';
 
 
 
@@ -233,6 +234,11 @@ export class Editor implements IViewHost {
         serviceRegistry.register('Library', libraryService, 'Global Library');
         libraryService.loadLibrary();
         serviceRegistry.register('Data', dataService, 'Data Persistence');
+
+        // ComponentSchema laden (alle Module aus docs/schemas/)
+        loadComponentSchemas('./docs/').catch(err => {
+            Editor.logger.warn('ComponentSchema konnte nicht geladen werden:', err);
+        });
     }
 
     private async tryRestoreLastSession() {

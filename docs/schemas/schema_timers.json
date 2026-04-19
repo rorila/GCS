@@ -1,0 +1,37 @@
+{
+  "$module": "timers",
+  "description": "Timer-Komponenten",
+  "components": {
+
+    "TIntervalTimer": {
+      "description": "Intervall-basierter Timer. Feuert onIntervall bei jedem Durchlauf, onTimeout wenn count erreicht.",
+      "stage": "main",
+      "category": "service",
+      "isService": true,
+      "isHiddenInRun": true,
+      "properties": {
+        "duration": { "type": "number",  "default": 1000, "unit": "ms", "description": "Dauer pro Intervall in Millisekunden" },
+        "count":    { "type": "number",  "default": 0, "description": "Anzahl der Intervalle (0 = unendlich)" },
+        "enabled":  { "type": "boolean", "default": true, "description": "Automatisch starten bei Spielstart" }
+      },
+      "methods": [
+        { "name": "start", "description": "Timer starten (via call_method)" },
+        { "name": "stop",  "description": "Timer stoppen" },
+        { "name": "reset", "description": "Counter zurücksetzen (ohne zu stoppen)" }
+      ],
+      "events": ["onIntervall", "onTimeout"],
+      "example": {
+        "className": "TIntervalTimer", "name": "SpawnTimer", "x": 2, "y": 2, "width": 4, "height": 2,
+        "isService": true, "isHiddenInRun": true,
+        "duration": 2000, "count": 0, "enabled": true,
+        "style": { "backgroundColor": "#ff9800", "borderColor": "#e65100", "borderWidth": 2, "color": "#ffffff" },
+        "events": { "onIntervall": "SpawnEnemy" }
+      },
+      "warnings": [
+        "⚠️ Methode heißt 'start', NICHT 'timerStart' (anders als bei TTimer!)",
+        "⚠️ count=0 bedeutet unendliche Wiederholung",
+        "⚠️ Auch als 'TRepeater' (Legacy) ansprechbar"
+      ]
+    }
+  }
+}

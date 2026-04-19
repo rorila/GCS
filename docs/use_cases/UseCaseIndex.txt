@@ -1,3 +1,32 @@
+[UC-2026-04-18-TutorProjectViaAgentController]
+Dateien:
+- demos/builders/tutor-project.builder.ts (NEU) — Builder-Datei für Tutor-Projekt, nutzt ausschließlich ProjectBuilder-API
+  - Methode: build(agent: ProjectBuilder) — Erzeugt Blueprint-Stage (8 Variablen) + Lesson_Raster (TGroupPanel mit 31 Kindern, PreviewStage mit Bindings)
+- projects/Tutor_Project.json (MOD) — Nun per Builder generiert, nicht mehr manuell erstellt
+- scratch/generate_tutor.cjs (OBSOLET) — Durch Builder ersetzt
+Beschreibung: Das Tutor-Projekt wird nun vollständig über die AgentController/ProjectBuilder-API erzeugt. Validiert gegen das Original: 8 Variablen, 3 Objekte, 31 Kinder im InspectorContainer, Bindings auf PreviewStage — alles 100% übereinstimmend.
+
+[UC-2026-04-18-ModularComponentSchema]
+Dateien:
+- docs/schemas/schema_containers.json (NEU) — TPanel, TGroupPanel
+- docs/schemas/schema_dialogs.json (NEU) — TDialogRoot, TSidePanel
+- docs/schemas/schema_inputs.json (NEU) — TNumberInput, TCheckbox, TDropdown, TColorPicker, TMemo
+- docs/schemas/schema_display.json (NEU) — TShape, TProgressBar, TRichText, TImage, TNumberLabel
+- docs/schemas/schema_timers.json (NEU) — TIntervalTimer
+- docs/schemas/schema_media.json (NEU) — TAudio, TVideo, TImageList
+- docs/schemas/schema_variables.json (NEU) — TRealVariable, TObjectVariable, TListVariable, TTriggerVariable, TThresholdVariable, TRangeVariable, TStringMap
+- src/services/SchemaLoader.ts (NEU) — Merge-Logik: lädt Basis-Schema + alle Module per fetch (Browser) oder fs (Node.js Tests)
+- src/editor/Editor.ts (MOD, Zeile ~235) — loadComponentSchemas('./docs/') beim Start
+Beschreibung: Modulare Aufteilung des ComponentSchema.json in 7 Modul-Dateien statt einer God-Datei. SchemaLoader merged alle Module zur Laufzeit in ein einheitliches Schema-Objekt für den AgentController.
+
+[UC-2026-04-18-FlatParentIdChildrenFix]
+
+Dateien:
+- src/runtime/GameRuntime.ts
+  - Methode: getObjects() (Zeilen ~877-932)
+  - Fix: Nach der children-Rekursion werden "verwaiste" Objekte (mit parentId, aber nicht über children erreicht) nachträglich gesammelt und mit korrekter Getter-Kopie und zIndex-Berechnung in die Ergebnisliste aufgenommen. Betrifft alle flachen JSON-Definitionen (z.B. Tutor_Project.json) wo Kinder als eigenständige Objekte mit parentId statt als verschachteltes children-Array gespeichert sind.
+- tests/export_checksums.json (Checksumme für GameRuntime.ts aktualisiert)
+
 [UC-2026-04-18-SidePanel-Runtime-Visibility-ComponentRegistry-Error]
 Dateien:
 - src/components/TDialogRoot.ts

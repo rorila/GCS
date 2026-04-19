@@ -1,0 +1,103 @@
+{
+  "$module": "inputs",
+  "description": "Eingabe-Komponenten (Textfeld, Zahl, Checkbox, Dropdown, Farbwahl, Memo)",
+  "components": {
+
+    "TNumberInput": {
+      "description": "Zahlenfeld mit Min/Max/Step-Constraints. Für Koordinaten, Größen, Geschwindigkeiten.",
+      "stage": "main",
+      "category": "ui",
+      "properties": {
+        "value": { "type": "number",  "default": 0, "description": "Aktueller Wert" },
+        "min":   { "type": "number",  "default": -Infinity, "description": "Minimalwert" },
+        "max":   { "type": "number",  "default": Infinity, "description": "Maximalwert" },
+        "step":  { "type": "number",  "default": 1, "description": "Schrittweite" }
+      },
+      "methods": [
+        { "name": "increment", "description": "Wert um step erhöhen (via call_method)" },
+        { "name": "decrement", "description": "Wert um step verringern" }
+      ],
+      "events": ["onClick", "onFocus", "onBlur"],
+      "example": {
+        "className": "TNumberInput", "name": "InputSpalten", "x": 3, "y": 2, "width": 3, "height": 1.3,
+        "value": 64,
+        "style": { "backgroundColor": "#1e1e1e", "color": "#fff", "borderColor": "#333333", "borderRadius": 4, "textAlign": "center" }
+      }
+    },
+
+    "TCheckbox": {
+      "description": "Checkbox/Toggle für Boolean-Werte. Für Einstellungen, Feature-Toggles, Sichtbarkeitssteuerung.",
+      "stage": "main",
+      "category": "ui",
+      "properties": {
+        "checked": { "type": "boolean", "default": false, "description": "Aktueller Zustand" },
+        "label":   { "type": "string",  "default": "", "description": "Beschriftung neben der Checkbox" }
+      },
+      "methods": [
+        { "name": "toggle", "description": "Zustand umschalten (via call_method)" }
+      ],
+      "events": ["onClick", "onChange"],
+      "example": {
+        "className": "TCheckbox", "name": "ChkLines", "x": 4, "y": 6, "width": 1, "height": 1,
+        "checked": true
+      }
+    },
+
+    "TDropdown": {
+      "description": "Dropdown/Select mit Auswahlliste. Für Eigenschafts-Editoren, Einstellungen, Menüs.",
+      "stage": "main",
+      "category": "ui",
+      "properties": {
+        "options":       { "type": "array",  "default": ["Option 1", "Option 2"], "description": "Auswahl-Optionen (String-Array)" },
+        "selectedIndex": { "type": "number", "default": 0, "description": "Gewählter Index (0-basiert)" },
+        "selectedValue": { "type": "string", "default": "", "description": "Gewählter Wert (readonly)", "readonly": true }
+      },
+      "methods": [
+        { "name": "selectValue", "description": "Wert per String setzen (via call_method)" },
+        { "name": "selectIndex", "description": "Wert per Index setzen" }
+      ],
+      "events": ["onClick", "onChange"],
+      "example": {
+        "className": "TDropdown", "name": "CmbMode", "x": 4, "y": 14, "width": 10, "height": 1.3,
+        "options": ["cover", "contain", "fill", "repeat"], "selectedValue": "cover",
+        "style": { "backgroundColor": "#1e1e1e", "color": "#fff", "borderColor": "#333333", "borderRadius": 4 }
+      }
+    },
+
+    "TColorPicker": {
+      "description": "Farbauswahl-Komponente. Für Styling, Theming, Sprite-Farben.",
+      "stage": "main",
+      "category": "ui",
+      "properties": {
+        "color": { "type": "color", "default": "#000000", "description": "Gewählte Farbe" }
+      },
+      "methods": [
+        { "name": "setColor", "description": "Farbe setzen (aktualisiert auch Hintergrund)" }
+      ],
+      "events": ["onClick", "onChange"],
+      "example": {
+        "className": "TColorPicker", "name": "ShpLineColor", "x": 3, "y": 8, "width": 1.2, "height": 1.3,
+        "color": "#dddddd",
+        "style": { "borderColor": "#333", "borderWidth": 1 }
+      }
+    },
+
+    "TMemo": {
+      "description": "Mehrzeiliges Textfeld. Für Logs, Beschreibungen, JSON-Daten.",
+      "stage": "main",
+      "category": "ui",
+      "properties": {
+        "text":        { "type": "string",  "default": "", "description": "Mehrzeiliger Text-Inhalt" },
+        "placeholder": { "type": "string",  "default": "", "description": "Platzhalter-Text" },
+        "readOnly":    { "type": "boolean", "default": false, "description": "Nur-Lesen Modus" }
+      },
+      "methods": [],
+      "events": ["onClick", "onFocus", "onBlur"],
+      "example": {
+        "className": "TMemo", "name": "LogOutput", "x": 1, "y": 1, "width": 20, "height": 10,
+        "text": "", "readOnly": true,
+        "style": { "backgroundColor": "#1e1e1e", "borderColor": "#444444", "borderWidth": 1, "color": "#9cdcfe", "fontFamily": "monospace" }
+      }
+    }
+  }
+}

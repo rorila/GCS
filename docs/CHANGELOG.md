@@ -1,3 +1,10 @@
+### 2026-04-18 (Bugfix: Flache parentId-Kinder im Run-Modus unsichtbar)
+- **Bugfix (GameRuntime.getObjects)**: Objekte, die per `parentId`-Referenz auf einen Container verweisen (z.B. TGroupPanel-Kinder aus flachen JSON-Definitionen), aber NICHT im `children`-Array des Containers stehen, wurden im Run-Modus komplett verschluckt und nicht gerendert.
+  - *Ursache*: `getObjects()` filterte alle Objekte mit `parentId` aus der `topLevelObjects`-Liste. Anschließend rekursierte es nur über `obj.children`-Arrays. Da flache JSON-Definitionen (wie im Tutor-Projekt) die Kinder nicht als verschachteltes `children`-Array, sondern als eigenständige Objekte mit `parentId` auf der gleichen Ebene speichern, wurden diese Objekte nie in die `results`-Liste aufgenommen.
+  - *Auswirkung*: Im Edit-Modus war alles korrekt (dort verwendet `getResolvedInheritanceObjects()` alle Objekte flach). Im Run-Modus verschwanden alle flachen parentId-Kinder.
+  - *Lösung*: Nach der children-Rekursion werden alle „verwaisten" Objekte (mit `parentId`, aber nicht über `children` erreicht) nachträglich gesammelt und mit korrekter Getter-Kopie und zIndex-Berechnung in die Ergebnisliste aufgenommen. Der StageRenderer löst dann wie gewohnt die parentId-Kette für die absolute Positionierung auf.
+  - *Datei*: `src/runtime/GameRuntime.ts` (Methode `getObjects`)
+
 ### 2026-04-18 (Bugfix: Stage Transition Animations in Run-Mode)
 - **Bugfix (Start-Animations Timing)**: Ein gravierender Fehler wurde behoben, bei dem die Start-Animationen der Bühne (Fade-In, Slide, Positional) nach dem Wechsel vom Editor in den Run-Modus ("Run" Button) anfangs überhaupt nicht abgespielt wurden.
   - *Ursache 1 (Fehlender Aufruf)*: Die Methode `triggerStartAnimation` wurde zuvor aus der initialisierenden `initMainGame()`-Methode entfernt. Dadurch wurden die Startanimationen für das erste Frame des Projekts nie angestoßen, es sei denn, man wechselte nachträglich die Bühne zur Laufzeit (via `handleStageChange`).

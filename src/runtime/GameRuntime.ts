@@ -877,19 +877,56 @@ export class GameRuntime implements IVariableHost {
         const topLevelObjects = this.objects.filter(o => !o.parentId);
         process(topLevelObjects);
 
-        // ═══ DIAGNOSE: getObjects() Ergebnisse ═══
-        const withChildren = results.filter(r => r.parentId);
-        const containers = topLevelObjects.filter(o => o.children?.length > 0);
-        console.warn(`[GETOBJ-DIAG] this.objects: ${this.objects.length} | topLevel: ${topLevelObjects.length} | results: ${results.length} | davon children: ${withChildren.length}`);
-        containers.forEach(c => {
-            const childrenInResult = results.filter(r => r.parentId === (c.id || c.name));
-            console.warn(`  [CONTAINER] ${c.name || c.id} children.length=${c.children?.length} | in results: ${childrenInResult.length}`);
-            if (c.children?.length > 0 && childrenInResult.length === 0) {
-                console.warn(`  [MISSING-CHILDREN!] ${c.name} hat ${c.children.length} Kinder aber 0 im Ergebnis!`);
-                c.children.forEach((ch: any) => console.warn(`    raw child: ${ch.name || ch.id} parentId=${ch.parentId} x=${ch.x} y=${ch.y}`));
+        // ═══ FIX: Flache parentId-Kinder einsammeln ═══
+        // Objekte, die per parentId auf einen Container verweisen, aber NICHT im
+        // children-Array des Containers stehen (z.B. TGroupPanel-Kinder aus flachen
+        // JSON-Definitionen), werden von der Rekursion oben nicht erreicht.
+        // Diese "verwaisten Kinder" müssen nachträglich mit korrekter
+        // Parent-Offset-Berechnung in die Ergebnisliste aufgenommen werden.
+        const processedIds = new Set(results.map(r => r.id || r.name));
+        const orphanedChildren = this.objects.filter(o => o.parentId && !processedIds.has(o.id || o.name));
+        
+        if (orphanedChildren.length > 0) {
+            logger.info(`[getObjects] ${orphanedChildren.length} flache parentId-Kinder gefunden, die nicht über children-Rekursion erreicht wurden.`);
+            for (const orphan of orphanedChildren) {
+                // Parent-Offset aus den bereits verarbeiteten Ergebnissen holen
+                const parentResult = results.find(r => (r.id || r.name) === orphan.parentId);
+                // Falls Parent schon absolut aufgelöst wurde, nutzen wir dessen x/y aus results
+                // Die results enthalten relative x/y, also müssen wir die Parent-Kette
+                // manuell auflösen (analog zum StageRenderer)
+                const resolveCoord = (val: any) => {
+                    if (val === undefined || val === null) return 0;
+                    if (typeof val === 'string' && val.includes('${')) {
+                        try {
+                            const evaluated = this.reactiveRuntime.evaluate(val);
+                            const n = Number(evaluated);
+                            return isNaN(n) ? 0 : n;
+                        } catch (e) { return 0; }
+                    }
+                    return typeof val === 'number' ? val : (Number(val) || 0);
+                };
+
+                const copy: any = { ...orphan };
+                let proto = Object.getPrototypeOf(orphan);
+                while (proto && proto !== Object.prototype) {
+                    const descriptors = Object.getOwnPropertyDescriptors(proto);
+                    for (const key in descriptors) {
+                        if (descriptors[key].get && !(key in copy)) {
+                            try { copy[key] = orphan[key]; } catch (e) { /* ignore */ }
+                        }
+                    }
+                    proto = Object.getPrototypeOf(proto);
+                }
+
+                copy.x = resolveCoord(orphan.x);
+                copy.y = resolveCoord(orphan.y);
+                copy.width = resolveCoord(orphan.width);
+                copy.height = resolveCoord(orphan.height);
+                copy.zIndex = resolveCoord(orphan.zIndex) + (parentResult ? (parentResult.zIndex || 0) + 1 : 0);
+
+                results.push(copy);
             }
-        });
-        // ═══ ENDE DIAGNOSE ═══
+        }
 
         return results;
     }

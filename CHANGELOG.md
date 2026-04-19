@@ -1,4 +1,26 @@
+## [2026-04-18] Tutor-Projekt via AgentController API erstellt
+- **Builder:** Das Tutor-Projekt (`Tutor_Project.json`) wird nun ausschließlich über die ProjectBuilder/AgentController-API erzeugt (kein direktes JSON-Schreiben). Die alte `generate_tutor.cjs` ist damit obsolet.
+- **Builder-Datei:** `demos/builders/tutor-project.builder.ts` — 8 globale Variablen, 1 TGroupPanel (InspectorContainer) mit 31 Kind-Komponenten, 1 PreviewStage mit Bindings.
+- **Aufruf:** `npx tsx scripts/agent-run.ts demos/builders/tutor-project.builder.ts projects/Tutor_Project.json`
+- **Validierung:** 180/184 Tests bestanden (4 vorbekannte TSidePanel DOM-Fehler). Struktur-Vergleich: 100% übereinstimmend mit Original.
+- **DATEIEN:** `demos/builders/tutor-project.builder.ts`, `projects/Tutor_Project.json`
+
+## [2026-04-18] Modulare ComponentSchema-Architektur
+- **Architektur:** Das monolithische `ComponentSchema.json` (14 Komponenten) wurde in 7 modulare Schema-Dateien unter `docs/schemas/` aufgeteilt, die zusammen 31 Komponenten dokumentieren.
+- **Neue Module:**
+  - `schema_containers.json` — TPanel, TGroupPanel
+  - `schema_dialogs.json` — TDialogRoot, TSidePanel
+  - `schema_inputs.json` — TNumberInput, TCheckbox, TDropdown, TColorPicker, TMemo
+  - `schema_display.json` — TShape, TProgressBar, TRichText, TImage, TNumberLabel
+  - `schema_timers.json` — TIntervalTimer
+  - `schema_media.json` — TAudio, TVideo, TImageList
+  - `schema_variables.json` — TRealVariable, TObjectVariable, TListVariable, TTriggerVariable, TThresholdVariable, TRangeVariable, TStringMap
+- **Neu: `SchemaLoader.ts`:** Lädt Basis-Schema + alle Module und merged sie in ein einheitliches Objekt für den AgentController. Browser nutzt `fetch()`, Node.js nutzt `fs.readFileSync()`.
+- **Editor-Integration:** `loadComponentSchemas()` wird beim Anwendungsstart in `Editor.registerGlobalServices()` aufgerufen.
+- **DATEIEN:** `docs/schemas/*.json`, `src/services/SchemaLoader.ts`, `src/editor/Editor.ts`
+
 ## [2026-04-18] Architektur-Audit Fixes (F-01 bis F-06)
+
 - **Sicherheit:** Path-Traversal in s:listFiles (IPC) durch security.isPathAllowed(resolvedDir) Check behoben (F-01).
 - **Export:** Absolutes Fetching-Verhalten für Media-Assets und Standalone-Runtime im GameExporter.ts auf relative Pfadsynatx umgestellt, sodass offline exportierte HTML-Dateien mit ile:// funktionieren (F-02, F-03).
 - **Clean Code:** Veraltetes console.warn/console.log in player-standalone.ts durch Universal-Logger ersetzt (F-05).
