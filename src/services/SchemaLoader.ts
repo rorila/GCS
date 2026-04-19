@@ -112,7 +112,7 @@ export function loadComponentSchemasSync(basePath: string = './docs/'): any {
         AgentController.setComponentSchema(baseSchema);
         return baseSchema;
     } catch (e: any) {
-        console.error("SchemaLoaderSync Error:", e);
+        logger.error("SchemaLoaderSync Error:", e);
         return null;
     }
 }

@@ -1,6 +1,7 @@
 import { serviceRegistry } from '../../../services/ServiceRegistry';
 import { Logger } from '../../../utils/Logger';
 import { IDialogContext } from '../IDialogContext';
+import { ExpressionParser } from '../../../runtime/ExpressionParser';
 
 const logger = Logger.get('JSONDialogRenderer', 'DialogExpressionEvaluator');
 
@@ -11,26 +12,23 @@ export class DialogExpressionEvaluator {
             return expr === undefined ? fallback : expr;
         }
 
-        const code = expr.startsWith('${') && expr.endsWith('}')
-            ? expr.substring(2, expr.length - 1)
-            : `\`${expr.replace(/`/g, '\\`').replace(/\$\{/g, '${')}\``;
-
         try {
-            const fn = new Function('dialogData', 'project', 'taskName', 'actionName', 'name', 'serviceRegistry', 'getProperties', 'getMethods', 'getMethodSignature', 'getStageOptions', `return ${code}`);
-            const result = fn(
-                ctx.dialogData,
-                ctx.enrichedProject,
-                ctx.dialogData.taskName,
-                ctx.dialogData.actionName || ctx.dialogData.name,
-                ctx.dialogData.name,
-                serviceRegistry,
-                (name: string) => ctx.getPropertiesForObject(name),
-                (name: string) => ctx.getMethodsForObject(name),
-                (target: string, method: string) => ctx.getMethodSignature(target, method),
-                () => (ctx.enrichedProject.stages || []).map(s => ({ value: s.id, label: s.name || s.id }))
-            );
+            const contextVars = {
+                dialogData: ctx.dialogData,
+                project: ctx.enrichedProject,
+                taskName: ctx.dialogData.taskName,
+                actionName: ctx.dialogData.actionName || ctx.dialogData.name,
+                name: ctx.dialogData.name,
+                serviceRegistry: serviceRegistry,
+                getProperties: (name: string) => ctx.getPropertiesForObject(name),
+                getMethods: (name: string) => ctx.getMethodsForObject(name),
+                getMethodSignature: (target: string, method: string) => ctx.getMethodSignature(target, method),
+                getStageOptions: () => (ctx.enrichedProject.stages || []).map(s => ({ value: s.id, label: s.name || s.id }))
+            };
+            const allowedCalls = ['getProperties', 'getMethods', 'getMethodSignature', 'getStageOptions', 'serviceRegistry.get', 'serviceRegistry.listServices', 'serviceRegistry.has'];
 
-            return result;
+            const result = ExpressionParser.interpolate(expr, contextVars, allowedCalls);
+            return result === undefined ? fallback : result;
         } catch (e) {
             logger.warn(`Expression evaluation failed: "${expr}"`, e);
             return fallback !== undefined ? fallback : expr;
@@ -51,50 +49,25 @@ export class DialogExpressionEvaluator {
             if (typeof target === 'string') {
                 if (!target.includes('${')) return target;
 
-                // Check for full match evaluation
-                const fullMatch = target.match(/^\$\{([^}]+)\}$/);
-                if (fullMatch) {
-                    try {
-                        const code = fullMatch[1];
-                        const fn = new Function('item', 'index', 'dialogData', 'project', 'serviceRegistry', 'getProperties', 'getMethods', 'getMethodSignature', 'getStageOptions', `return ${code}`);
-                        return fn(
-                            item,
-                            index,
-                            ctx.dialogData,
-                            ctx.enrichedProject,
-                            serviceRegistry,
-                            (name: string) => ctx.getPropertiesForObject(name),
-                            (name: string) => ctx.getMethodsForObject(name),
-                            (target: string, method: string) => ctx.getMethodSignature(target, method),
-                            () => (ctx.enrichedProject.stages || []).map(s => ({ value: s.id, label: s.name || s.id }))
-                        );
-                    } catch (e) {
-                        logger.warn(`Failed to evaluate full template "${target}":`, e);
-                    }
+                try {
+                    const contextVars = {
+                        item,
+                        index,
+                        dialogData: ctx.dialogData,
+                        project: ctx.enrichedProject,
+                        serviceRegistry: serviceRegistry,
+                        getProperties: (name: string) => ctx.getPropertiesForObject(name),
+                        getMethods: (name: string) => ctx.getMethodsForObject(name),
+                        getMethodSignature: (target: string, method: string) => ctx.getMethodSignature(target, method),
+                        getStageOptions: () => (ctx.enrichedProject.stages || []).map(s => ({ value: s.id, label: s.name || s.id }))
+                    };
+                    const allowedCalls = ['getProperties', 'getMethods', 'getMethodSignature', 'getStageOptions', 'serviceRegistry.get', 'serviceRegistry.listServices', 'serviceRegistry.has'];
+
+                    return ExpressionParser.interpolate(target, contextVars, allowedCalls);
+                } catch (e) {
+                    logger.warn(`Failed to evaluate template "${target}":`, e);
+                    return target;
                 }
-
-                // Standard string interpolation
-                return target.replace(/\${([^}]+)}/g, (match, code) => {
-                    try {
-                        const fn = new Function('item', 'index', 'dialogData', 'project', 'serviceRegistry', 'getProperties', 'getMethods', 'getMethodSignature', 'getStageOptions', `return \`${code}\``);
-                        const result = fn(
-                            item,
-                            index,
-                            ctx.dialogData,
-                            ctx.enrichedProject,
-                            serviceRegistry,
-                            (name: string) => ctx.getPropertiesForObject(name),
-                            (name: string) => ctx.getMethodsForObject(name),
-                            (target: string, method: string) => ctx.getMethodSignature(target, method),
-                            () => (ctx.enrichedProject.stages || []).map(s => ({ value: s.id, label: s.name || s.id }))
-                        );
-                        return result !== undefined ? String(result) : '';
-                    } catch (e) {
-                        logger.warn(`Failed to evaluate template part "${match}":`, e);
-                        return match;
-                    }
-                });
-
             } else if (typeof target === 'object' && target !== null) {
                 const newObj = Array.isArray(target) ? [] : {};
                 Object.keys(target).forEach(key => {

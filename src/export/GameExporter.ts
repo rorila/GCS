@@ -2,6 +2,7 @@ import { GameProject } from '../model/types';
 import { gzipSync, zipSync } from 'fflate';
 import { Logger } from '../utils/Logger';
 import { NotificationToast } from '../editor/ui/NotificationToast';
+import { SecurityUtils } from '../utils/SecurityUtils';
 
 const logger = Logger.get('GameExporter', 'Export_System');
 
@@ -368,7 +369,11 @@ primary_region = "fra"
      * Generate a complete standalone HTML file with embedded runtime
      */
     public generateStandaloneHTML(project: any, runtimeJS: string): string {
-        const projectJSON = JSON.stringify(project, null, 2);
+        // S-01: </script>-Sequenzen escapen um HTML-Injection zu verhindern
+        // (gilt auch bei type="application/json", da der HTML-Parser trotzdem </script> erkennt)
+        const projectJSON = JSON.stringify(project, null, 2)
+            .replace(/<\/script>/gi, '<\/script>')
+            .replace(/<!--/g, '<\!--');
         const mainStage = project.stages?.find((s: any) => s.type === 'main') || project.stages?.[0] || project.stage;
         const gridConfig = mainStage?.grid || { cols: 20, rows: 15, cellSize: 32, backgroundColor: '#ffffff' };
         const stageWidth = gridConfig.cols * gridConfig.cellSize;
@@ -379,7 +384,7 @@ primary_region = "fra"
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${this.escapeHtml(project.meta.name || 'New Game')}</title>
+    <title>${SecurityUtils.escapeHtml(project.meta.name || 'New Game')}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -481,7 +486,7 @@ ${projectJSON}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${this.escapeHtml(project.meta.name || 'New Game')}</title>
+    <title>${SecurityUtils.escapeHtml(project.meta.name || 'New Game')}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -655,19 +660,7 @@ ${projectJSON}
         });
     }
 
-    /**
-     * Escape HTML special characters
-     */
-    private escapeHtml(text: string): string {
-        const map: Record<string, string> = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, m => map[m]);
-    }
+    // D-02: escapeHtml wurde auf SecurityUtils.escapeHtml() konsolidiert (kein Duplikat mehr)
 
     /**
      * Trigger file download.

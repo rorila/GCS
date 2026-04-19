@@ -312,9 +312,11 @@ export class TSidePanel extends TDialogRoot {
         }
 
         // Overlay
-        const overlay = document.getElementById(`sidepanel-overlay-${this.id}`);
-        if (overlay) {
-            overlay.style.display = this.visible ? 'block' : 'none';
+        if (typeof document !== 'undefined') {
+            const overlay = document.getElementById(`sidepanel-overlay-${this.id}`);
+            if (overlay) {
+                overlay.style.display = this.visible ? 'block' : 'none';
+            }
         }
     }
 }

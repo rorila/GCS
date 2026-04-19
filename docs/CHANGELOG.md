@@ -1,3 +1,15 @@
+### 2026-04-19 (Security Hardening Phase 1 & 2 & Technical Debt Cleanup)
+- **Security (XSS)**: Kritische XSS-Gefahr beim Standalone HTML-Export (standalone-export) behoben. `generateStandaloneHTML` in `GameExporter.ts` nutzt nun ein konsequentes Escaping für `</script>`-Tags, das Breakouts aus `type="application/json"` verhindert.
+- **Security (Electron Sandbox & Policy)**: Electron-Main (`main.cjs`) massiv gehärtet:
+  1. `session.defaultSession` erzwingt nun strenges Content-Security-Policy (CSP) Headersetting.
+  2. `will-navigate` Handle eingeführt um willkürliche External-Navigations im IFrame/Main-Window zu blockieren.
+  3. Window.open (Exfiltration) wird explizit durch `setWindowOpenHandler` gecancelt.
+  4. Die IPC-Bridge für `fs:allowPath` validiert nun den Zielpfad aktiv gegen eine Whitelist-Basis (`appPath`, `userData`, `cwd`), um Directory-Traversal Attacken (`../../../windows/system32`) restlos zu verhindern.
+- **Security (RCE Lücke)**: Den hochkritischen Arbitrary-Code-Execution (S-02) Vektor in `DialogExpressionEvaluator.ts` geschlossen. Statt `new Function()` wird nun exklusiv der AST-basierte JSEP-Parser (`ExpressionParser`) genutzt. Dem `ExpressionParser` wurde via `allowedCalls` die Möglichkeit verliehen, sichere, editor-spezifische Methode (wie `ServiceRegistry.get`) punktgenau zu erlauben.
+- **Refactoring (Logger Migration)**: Alle restlichen `console.warn`/`console.error`/`console.log` Debugging-Ausgaben im Quellcode (`GameRuntime`, `ReactiveRuntime`, `ProjectStore`, `StageInteractionManager`, `MultiplayerManager`, `SchemaLoader`) auf den zentralisierten Logger-Service umgestellt.
+- **Refactoring (Dead Code)**: Alte Stubs (`src/stubs/node-stub.ts`), der veraltete Engine-Ordner `src/engine/` und völlig ungenutzte Generierungsmethoden im `PascalGenerator` wurden entfernt.
+- **Bugfix (TSidePanel Tests)**: Fehlerhafte NodeJS Referenz auf das DOM-Objekt `document` im Property-Watcher (`updateRuntimeVisibility`) von `TSidePanel` mit einem Typ-Check abgefangen (Tests sind wieder komplett grün).
+
 ### 2026-04-19 (Bugfix Root-Cause: Dialog-Schließen – runtime-Referenz zu früh gesetzt)
 - **Bugfix (EditorRunManager.ts)**: `runStage.runtime = this.runtime` wurde auf Zeile 92 gesetzt — zu einem Zeitpunkt wo `this.runtime` noch `null` war (GameRuntime wird erst auf Zeile 108 erstellt). Dadurch war `ctx.host.runtime` im `ComplexComponentRenderer` immer `undefined`, was dazu führte, dass der X-Button `visible=false` auf einer Spread-Kopie statt auf dem echten reaktiven Master-Objekt setzte.
   - *Symptom*: `getRawObject gefunden: false, runtime vorhanden: false` — der close-btn mutierte die falsche Referenz.

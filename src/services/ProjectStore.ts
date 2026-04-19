@@ -139,7 +139,7 @@ export class ProjectStore {
      * @returns true wenn die Mutation erfolgreich war
      */
     public dispatch(mutation: ProjectMutation): boolean {
-        console.log(`[DND-FLOW 5.5] Enter dispatch: project exists=${!!this.project}, isDispatching=${this.isDispatching}`);
+        ProjectStore.logger.debug(`[DND-FLOW 5.5] Enter dispatch: project exists=${!!this.project}, isDispatching=${this.isDispatching}`);
         if (!this.project) {
             ProjectStore.logger.warn('dispatch(): Kein Projekt geladen.');
             return false;
@@ -237,7 +237,7 @@ export class ProjectStore {
     // ─────────────────────────────────────────────
 
     private reduceSetProperty(m: { target: any; path: string; value: any }): boolean {
-        console.log(`[DND-FLOW 6] REDUCE SET_PROPERTY on ${m.target?.id}: ${m.path} = ${m.value}`);
+        ProjectStore.logger.debug(`[DND-FLOW 6] REDUCE SET_PROPERTY on ${m.target?.id}: ${m.path} = ${m.value}`);
         if (!m.target) return false;
         PropertyHelper.setPropertyValue(m.target, m.path, m.value);
         return true;
@@ -395,10 +395,10 @@ export class ProjectStore {
     }
 
     private reduceReparentObject(m: { objectId: string; targetParentId: string | null; stageId: string }): boolean {
-        console.log('[ProjectStore] reduceReparentObject START:', m);
-        if (!this.project) { console.log('[ProjectStore] Kein Projekt'); return false; }
+        ProjectStore.logger.debug('[ProjectStore] reduceReparentObject START:', m);
+        if (!this.project) { ProjectStore.logger.debug('[ProjectStore] Kein Projekt'); return false; }
         const stage = this.project.stages?.find(s => s.id === m.stageId);
-        if (!stage || !stage.objects) { console.log('[ProjectStore] Keine Stage/Objects gefunden'); return false; }
+        if (!stage || !stage.objects) { ProjectStore.logger.debug('[ProjectStore] Keine Stage/Objects gefunden'); return false; }
 
         let foundObj: any = null;
         let sourceArray: any = null;
@@ -474,10 +474,10 @@ export class ProjectStore {
         // In Ziel-Array einfügen
         if (targetArray) {
             targetArray.push(foundObj);
-            console.log('[ProjectStore] Objekt erfolgreich zu targetArray hinzugefügt. Array Size:', targetArray.length);
+            ProjectStore.logger.debug('[ProjectStore] Objekt erfolgreich zu targetArray hinzugefügt. Array Size:', targetArray.length);
         }
 
-        console.log('[ProjectStore] reduceReparentObject DONE');
+        ProjectStore.logger.debug('[ProjectStore] reduceReparentObject DONE');
         return true;
     }
 

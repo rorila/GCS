@@ -1,3 +1,24 @@
+[UC-2026-04-19-Security-Hardening-P4]
+Dateien:
+- src/editor/dialogs/utils/DialogExpressionEvaluator.ts
+  - Methoden `evaluateExpression` & `replaceTemplateVars`: S-02 (RCE Risiko) behoben durch Ersatz von `new Function()` mit AST-basierter Evaluation über `ExpressionParser.interpolate`.
+- src/runtime/ExpressionParser.ts
+  - Methode `evaluateAST` und `interpolate` mit optionalem `allowedCalls` Parameter versehen, um Editoren sicher konfigurierbare Whitelists (für ServiceRegistry) zu erlauben, ohne den globalen AST-Schutz zu kompromittieren.
+
+[UC-2026-04-19-Security-Hardening-P1-P2]
+Dateien:
+- src/export/GameExporter.ts
+  - Methode: generateStandaloneHTML() (Z. 370-374) -> S-01 XSS-Fix (Escaping von </script> in JSON-Embeds). 
+  - (Z. 382, 484) -> D-02 Konsolidierung auf SecurityUtils.escapeHtml()
+- src/editor/PascalHighlighter.ts
+  - Methode: escape() (Z. 77-79) -> Q-04 Konsistent SecurityUtils.escapeHtml() eingebunden
+- electron/main.cjs
+  - scope: createWindow() (Z. 8-45) -> E-02 Sandbox explizit deaktiviert aber Window-/Navigation-Guard (will-navigate) eingeführt, CSP Header via session.defaultSession.
+  - scope: ipcMain.handle('fs:allowPath') (Z. 147-154) -> E-01 Whitelist-Bypass mit safeBaseDirs (appPath, userData, cwd) Guard verhindert.
+- src/components/TSidePanel.ts
+  - Methode: updateRuntimeVisibility() (Z. 314-319) -> Document Check eingebaut zur Test-Fixierung
+- Diverse Runtime/Store Dateien: Q-02 Console Log Cleanup -> Logger API umstellung.
+
 [UC-2026-04-19-DialogClose-RuntimeReferenzFix]
 Dateien:
 - src/editor/services/EditorRunManager.ts

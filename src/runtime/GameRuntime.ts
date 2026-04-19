@@ -1125,9 +1125,9 @@ export class GameRuntime implements IVariableHost {
             if ((obj as any).isVariable && obj.name) {
                 const runtimeValue = this.variableManager.contextVars[obj.name];
                 if (obj.name === 'StringMap_BluePrintStage') {
-                    console.log(`[SYNC-TRACE] StringMap_BluePrintStage sync! runtimeValue:`, runtimeValue);
+                    logger.debug(`[SYNC-TRACE] StringMap_BluePrintStage sync! runtimeValue:`, runtimeValue);
                     if (runtimeValue && typeof runtimeValue === 'object') {
-                        console.log(`[SYNC-TRACE] runtimeValue keys:`, Object.keys(runtimeValue));
+                        logger.debug(`[SYNC-TRACE] runtimeValue keys:`, Object.keys(runtimeValue));
                     }
                 }
                 if (runtimeValue !== undefined) {
@@ -1142,7 +1142,7 @@ export class GameRuntime implements IVariableHost {
                         }
                         (obj as any).value = runtimeValue;
                         if (obj.name === 'StringMap_BluePrintStage') {
-                            console.log(`[SYNC-TRACE] After assignment to obj.value. obj.entries keys =`, Object.keys((obj as any).entries || {}));
+                            logger.debug(`[SYNC-TRACE] After assignment to obj.value. obj.entries keys =`, Object.keys((obj as any).entries || {}));
                         }
                     }
                 }

@@ -150,16 +150,13 @@ export class ComplexComponentRenderer {
                     closeBtn.onmouseenter = () => closeBtn.style.color = '#ff4444';
                     closeBtn.onmouseleave = () => closeBtn.style.color = '#fff';
                     closeBtn.onpointerdown = (e) => {
-                        console.log('[X-DEBUG] onpointerdown fired on close-btn, stopPropagation wird gesetzt');
                         e.stopPropagation();
                     };
                     closeBtn.onmousedown = (e) => {
-                        console.log('[X-DEBUG] onmousedown fired on close-btn, stopPropagation wird gesetzt');
                         e.stopPropagation();
-                        e.preventDefault(); // verhindert auch den nachfolgenden click? → testen!
+                        e.preventDefault();
                     };
                     closeBtn.onclick = (e) => {
-                        console.log('[X-DEBUG] onclick fired on close-btn! e.target:', (e.target as HTMLElement)?.className);
                         e.stopPropagation();
                         // 1. Hole referenz auf Dialog Objekt (TDialogRoot oder TSidePanel)
                         const currentObj = (titleBar as any)._dialogObj;
@@ -190,11 +187,7 @@ export class ComplexComponentRenderer {
                         }
 
                         // 2. Setze visible=false auf dem echten reaktiven Objekt → löst PropertyWatcher aus
-                        const runtimeFound = !!(ctx.host?.runtime?.getRawObject);
-                        const rawObj = runtimeFound ? ctx.host.runtime.getRawObject(currentObj.id) : null;
-                        console.log(`[X-DEBUG] getRawObject gefunden: ${!!rawObj}, runtime vorhanden: ${runtimeFound}, id=${currentObj.id}`);
                         masterObj.visible = false;
-                        console.log(`[X-DEBUG] masterObj.visible nach Zuweisung: ${masterObj.visible}, masterObj===currentObj: ${masterObj === currentObj}`);
 
                         // Sofortiges visuelles Feedback: (Schiebt den Dialog entsprechend StageRenderer Logik aus dem Bild)
                         const outOfBoundsOffset = currentObj.slideDirection === 'left' ? -1500 : 1500;

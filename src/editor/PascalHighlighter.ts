@@ -1,3 +1,5 @@
+import { SecurityUtils } from '../utils/SecurityUtils';
+
 export class PascalHighlighter {
     private static readonly KEYWORDS = [
         'PROGRAM', 'USES', 'VAR', 'PROCEDURE', 'BEGIN', 'END', 'IF', 'THEN', 'ELSE',
@@ -74,10 +76,9 @@ export class PascalHighlighter {
         return result;
     }
 
+    // Q-04: Delegate to SecurityUtils.escapeHtml() for consistent & complete HTML escaping
+    // (includes ' and " which the old implementation missed)
     private static escape(text: string): string {
-        return text
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
+        return SecurityUtils.escapeHtml(text);
     }
 }

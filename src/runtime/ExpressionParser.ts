@@ -38,7 +38,7 @@ export class ExpressionParser {
      * @param context Object containing variable values
      * @returns Interpolated value (string, number, boolean, etc.)
      */
-    static interpolate(text: any, context: Record<string, any>): any {
+    static interpolate(text: any, context: Record<string, any>, allowedCalls?: string[]): any {
         // If not a string or no ${...} expressions, return as-is
         if (typeof text !== 'string' || !text.includes('${')) {
             return text;
@@ -69,9 +69,9 @@ export class ExpressionParser {
                     const expression = text.substring(start, j - 1);
                     try {
                         // Recursively interpolate nested expressions first if any
-                        const interpolatedExpr = this.interpolate(expression, context);
+                        const interpolatedExpr = this.interpolate(expression, context, allowedCalls);
 
-                        const evaluated = this.evaluate(interpolatedExpr.trim(), context);
+                        const evaluated = this.evaluate(interpolatedExpr.trim(), context, allowedCalls);
 
                         // If the entire text was just this one expression, return the raw value
                         if (i === 0 && j === text.length) {
@@ -148,7 +148,7 @@ export class ExpressionParser {
      * @param context Object containing variable values
      * @returns Evaluated value
      */
-    static evaluate(expression: string, context: Record<string, any>): any {
+    static evaluate(expression: string, context: Record<string, any>, allowedCalls?: string[]): any {
         // PRE-PROCESS: Strip ${ } templates if the user typed them in a pure formula context
         // This makes the runtime highly resilient and allows users to type ${score} + 1 instead of score + 1
         if (typeof expression === 'string' && expression.includes('${')) {
@@ -175,7 +175,7 @@ export class ExpressionParser {
         // Handle arithmetic and comparisons via JSEP AST Evaluator
         try {
             const ast = jsep(trimmed);
-            const result = this.evaluateAST(ast, context);
+            const result = this.evaluateAST(ast, context, allowedCalls);
 
             // Console Tracing for debugging
             if (result === undefined || (result !== result && typeof result === 'number')) {
@@ -200,7 +200,7 @@ export class ExpressionParser {
     /**
      * Evaluates a JSEP AST Node securely
      */
-    private static evaluateAST(node: any, context: Record<string, any>): any {
+    private static evaluateAST(node: any, context: Record<string, any>, allowedCalls?: string[]): any {
         if (!node) return undefined;
 
         switch (node.type) {
@@ -221,8 +221,8 @@ export class ExpressionParser {
                 return PropertyHelper.resolveValue(val);
 
             case 'MemberExpression':
-                const obj = this.evaluateAST(node.object, context);
-                const propName = node.computed ? this.evaluateAST(node.property, context) : node.property.name;
+                const obj = this.evaluateAST(node.object, context, allowedCalls);
+                const propName = node.computed ? this.evaluateAST(node.property, context, allowedCalls) : node.property.name;
                 
                 if (propName === '__proto__' || propName === 'constructor' || propName === 'prototype') {
                     throw new Error(`Security Violation: Access to ${propName} is forbidden.`);
@@ -241,10 +241,10 @@ export class ExpressionParser {
 
                 if (callee.type === 'Identifier') {
                     funcNameStr = callee.name;
-                    calleeFunc = this.evaluateAST(callee, context);
+                    calleeFunc = this.evaluateAST(callee, context, allowedCalls);
                 } else if (callee.type === 'MemberExpression') {
-                    calleeObj = this.evaluateAST(callee.object, context);
-                    const pName = callee.computed ? this.evaluateAST(callee.property, context) : callee.property.name;
+                    calleeObj = this.evaluateAST(callee.object, context, allowedCalls);
+                    const pName = callee.computed ? this.evaluateAST(callee.property, context, allowedCalls) : callee.property.name;
                     
                     if (pName === '__proto__' || pName === 'constructor' || pName === 'prototype') {
                         throw new Error(`Security Violation: Access to ${pName} is forbidden.`);
@@ -287,16 +287,20 @@ export class ExpressionParser {
                     if (allowedMethods.has(pName)) isAllowed = true;
                 }
 
+                if (!isAllowed && allowedCalls && allowedCalls.includes(funcNameStr)) {
+                    isAllowed = true;
+                }
+
                 if (!isAllowed) {
                     throw new Error(`Function call '${funcNameStr || 'unknown'}' blocked by security allowlist.`);
                 }
 
-                const args = node.arguments.map((arg: any) => this.evaluateAST(arg, context));
+                const args = node.arguments.map((arg: any) => this.evaluateAST(arg, context, allowedCalls));
                 return calleeFunc.apply(calleeObj, args);
 
             case 'BinaryExpression':
-                const left = this.evaluateAST(node.left, context);
-                const right = this.evaluateAST(node.right, context);
+                const left = this.evaluateAST(node.left, context, allowedCalls);
+                const right = this.evaluateAST(node.right, context, allowedCalls);
                 switch (node.operator) {
                     case '+': return left + right;
                     case '-': return left - right;
@@ -315,13 +319,13 @@ export class ExpressionParser {
                 }
 
             case 'LogicalExpression':
-                const lLogical = this.evaluateAST(node.left, context);
-                if (node.operator === '&&') return lLogical && this.evaluateAST(node.right, context);
-                if (node.operator === '||') return lLogical || this.evaluateAST(node.right, context);
+                const lLogical = this.evaluateAST(node.left, context, allowedCalls);
+                if (node.operator === '&&') return lLogical && this.evaluateAST(node.right, context, allowedCalls);
+                if (node.operator === '||') return lLogical || this.evaluateAST(node.right, context, allowedCalls);
                 return undefined;
 
             case 'UnaryExpression':
-                const arg = this.evaluateAST(node.argument, context);
+                const arg = this.evaluateAST(node.argument, context, allowedCalls);
                 switch (node.operator) {
                     case '!': return !arg;
                     case '-': return -arg;
@@ -332,11 +336,11 @@ export class ExpressionParser {
                 }
 
             case 'ArrayExpression':
-                return node.elements.map((el: any) => this.evaluateAST(el, context));
+                return node.elements.map((el: any) => this.evaluateAST(el, context, allowedCalls));
 
             case 'ConditionalExpression':
-                const test = this.evaluateAST(node.test, context);
-                return test ? this.evaluateAST(node.consequent, context) : this.evaluateAST(node.alternate, context);
+                const test = this.evaluateAST(node.test, context, allowedCalls);
+                return test ? this.evaluateAST(node.consequent, context, allowedCalls) : this.evaluateAST(node.alternate, context, allowedCalls);
 
             default:
                 throw new Error(`Unsupported expression type: ${node.type}`);
@@ -403,11 +407,11 @@ export class ExpressionParser {
     /**
      * Evaluates an expression and returns the raw value (preserving type)
      */
-    static evaluateRaw(expression: string, context: Record<string, any>): any {
+    static evaluateRaw(expression: string, context: Record<string, any>, allowedCalls?: string[]): any {
         if (expression.startsWith('${') && expression.endsWith('}')) {
             expression = expression.slice(2, -1).trim();
         }
-        const result = this.evaluate(expression, context);
+        const result = this.evaluate(expression, context, allowedCalls);
         if (expression.includes('BaseVar') || expression.includes('availableVariableFields')) {
             logger.debug(`evaluateRaw("${expression}") ->`, result);
         }

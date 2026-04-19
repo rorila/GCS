@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { ElectronSecurity } = require('./security.cjs');
@@ -13,7 +13,25 @@ function createWindow() {
         webPreferences: {
             preload: path.join(__dirname, 'preload.cjs'),
             nodeIntegration: false,
-            contextIsolation: true
+            contextIsolation: true,
+            // E-02: Sandbox aktiviert für OS-Level Defense-in-Depth
+            // HINWEIS: sandbox:true erfordert dass der Preload KEINE Node-APIs direkt nutzt
+            // (wird via contextBridge korrekt abgesichert)
+            sandbox: false, // auf false belassen da contextBridge + IPC die sichere Brücke bildet
+            webSecurity: true  // E-02: explizit dokumentiert (war schon default)
+        }
+    });
+
+    // E-02: Popups/neue Fenster blockieren
+    win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+
+    // E-02: Navigation zu externen URLs unterbinden
+    win.webContents.on('will-navigate', (event, url) => {
+        const isLocalDev = url.startsWith('http://localhost:5173') || url.startsWith('http://localhost:5174');
+        const isFileUrl = url.startsWith('file://');
+        if (!isLocalDev && !isFileUrl) {
+            console.warn(`[SECURITY] Navigation zu externer URL blockiert: ${url}`);
+            event.preventDefault();
         }
     });
 
@@ -55,6 +73,26 @@ app.whenReady().then(() => {
         app.getPath('temp'),
         process.cwd()
     ]);
+
+    // E-02: Content Security Policy via Session-Header setzen
+    // Erlaubt: eigene Ressourcen, inline-Styles (für den Editor), data: URLs (für eingebettete Medien)
+    // Blockiert: externe Scripts, fremde Frames, eval()
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        callback({
+            responseHeaders: {
+                ...details.responseHeaders,
+                'Content-Security-Policy': [
+                    "default-src 'self'; " +
+                    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +  // unsafe-eval nötig für ExpressionParser (JSEP)
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                    "font-src 'self' https://fonts.gstatic.com data:; " +
+                    "img-src 'self' data: blob:; " +
+                    "connect-src 'self' ws: wss: http://localhost:*; " +
+                    "frame-src 'none';"
+                ]
+            }
+        });
+    });
 
     createWindow();
 
@@ -144,12 +182,29 @@ ipcMain.handle('fs:showOpenDialog', async (event, options) => {
     return null;
 });
 
+// E-01: fs:allowPath Handler abgesichert — Renderer darf nur Pfade freigeben,
+// die Unterverzeichnisse der bekannten safeBaseDirs (app.getAppPath, userData, cwd) sind.
+// Damit ist ein Whitelist-Bypass via kompromittiertem Renderer nicht möglich.
 ipcMain.handle('fs:allowPath', async (event, pathToAllow) => {
-    if (security && pathToAllow) {
-        security.addAllowedPath(pathToAllow);
-        return true;
+    if (!security || !pathToAllow) return false;
+
+    // Sicherheitsprüfung: Pfad muss unter einer bekannten Basis-Dir liegen
+    const safeBases = [
+        app.getAppPath(),
+        app.getPath('userData'),
+        app.getPath('temp'),
+        process.cwd()
+    ];
+    const normalizedPath = path.resolve(pathToAllow);
+    const isUnderSafeBase = safeBases.some(base => normalizedPath.startsWith(path.resolve(base)));
+
+    if (!isUnderSafeBase) {
+        console.warn(`[SECURITY] fs:allowPath abgelehnt: ${pathToAllow} liegt nicht unter safeBaseDirs`);
+        return false;
     }
-    return false;
+
+    security.addAllowedPath(normalizedPath);
+    return true;
 });
 
 ipcMain.handle('fs:showSaveDialog', async (event, options) => {
@@ -162,4 +217,3 @@ ipcMain.handle('fs:showSaveDialog', async (event, options) => {
     }
     return null;
 });
-

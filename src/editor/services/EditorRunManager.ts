@@ -162,7 +162,6 @@ export class EditorRunManager {
                 // um getRawObject() korrekt aufzurufen.
                 if (this.runStage) {
                     this.runStage.runtime = this.runtime;
-                    console.log('[RUN-DIAG] runStage.runtime wurde gesetzt:', !!this.runStage.runtime);
                 }
             }
 

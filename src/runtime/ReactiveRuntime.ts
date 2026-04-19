@@ -117,18 +117,18 @@ export class ReactiveRuntime {
                 // [GCS-TRACE] Log für StringMap-Auswertung in Bindings
                 if (expression.includes('StringMap_BluePrintStage') || expression.includes('MainThemes')) {
                     const ctxMap = context['StringMap_BluePrintStage'] || context['MainThemes'];
-                    console.log(`[STYLE-BINDING-TRACE] ID:${targetObj.id} Prop:${targetProp} Expr:${expression} => RawNewValue:`, newValue, ' Kontext für Map:', ctxMap);
+                    logger.debug(`[STYLE-BINDING-TRACE] ID:${targetObj.id} Prop:${targetProp} Expr:${expression} => RawNewValue:`, newValue, ' Kontext für Map:', ctxMap);
                     if (expression.includes('StringMap_BluePrintStage') && ctxMap) {
                         try {
                             const keys = Object.keys(ctxMap);
-                            console.log(`  -> GCS-DEEP-TRACE: Type: ${typeof ctxMap}, IsProxy: ${ctxMap.__isProxy__}, Keys:`, keys);
-                            console.log(`  -> GCS-DEEP-TRACE: BackToDirectory direct:`, ctxMap['BackToDirectory']);
+                            logger.debug(`  -> GCS-DEEP-TRACE: Type: ${typeof ctxMap}, IsProxy: ${ctxMap.__isProxy__}, Keys:`, keys);
+                            logger.debug(`  -> GCS-DEEP-TRACE: BackToDirectory direct:`, ctxMap['BackToDirectory']);
                             if (ctxMap.__target__) {
-                                console.log(`  -> GCS-DEEP-TRACE: Target Keys:`, Object.keys(ctxMap.__target__));
-                                console.log(`  -> GCS-DEEP-TRACE: Target BackToDirectory:`, ctxMap.__target__['BackToDirectory']);
+                                logger.debug(`  -> GCS-DEEP-TRACE: Target Keys:`, Object.keys(ctxMap.__target__));
+                                logger.debug(`  -> GCS-DEEP-TRACE: Target BackToDirectory:`, ctxMap.__target__['BackToDirectory']);
                             }
                         } catch (e) {
-                             console.log("  -> GCS-DEEP-TRACE Error:", e);
+                             logger.debug("  -> GCS-DEEP-TRACE Error:", e);
                         }
                     }
                 }
@@ -176,7 +176,7 @@ export class ReactiveRuntime {
                     }
                 }
             } else {
-                console.warn(`[REACTIVE-RUNTIME] Dependency source missing: "${objName}" for expression "${expression}" (Binding ${targetObj.name || targetObj.id}.${targetProp})`);
+                logger.warn(`[REACTIVE-RUNTIME] Dependency source missing: "${objName}" for expression "${expression}" (Binding ${targetObj.name || targetObj.id}.${targetProp})`);
             }
         });
 
