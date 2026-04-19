@@ -103,8 +103,7 @@ export class FlowCommentNode extends FlowElement {
             this.Name = ti.value; // Name speichert den Titel
         };
         
-        // Klicks von der Stage fernhalten
-        ti.addEventListener('mousedown', (e) => e.stopPropagation());
+        // Event bubbeln lassen für Selektion, aber Tastaturevents vor globalen Editor-Shortcuts (z.B. Entf) schützen
         ti.onkeydown = (e) => e.stopPropagation();
         
         header.appendChild(ti);
@@ -141,8 +140,7 @@ export class FlowCommentNode extends FlowElement {
             this.Details = ta.value; // Details speichert den eigentlichen Textinhalt
         };
 
-        // Klicks und Tasteneingaben von der Stage fernhalten
-        ta.addEventListener('mousedown', (e) => e.stopPropagation());
+        // Event bubbeln lassen für Selektion, aber Tastatur vor Inspector-Fokus-Verlust schützen
         ta.onkeydown = (e) => e.stopPropagation();
 
         root.appendChild(ta);

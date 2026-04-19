@@ -225,6 +225,12 @@ export class FlowInteractionManager {
                 this.host.selectionManager.selectNode(node);
             }
 
+            // Allow inputs inside nodes (like Sticky Nodes) to be focused/text-selected without dragging the node
+            const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+            if (targetTag === 'input' || targetTag === 'textarea') {
+                return;
+            }
+
             // --- Drag-Logik ---
             const startX = e.clientX;
             const startY = e.clientY;
