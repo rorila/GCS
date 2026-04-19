@@ -2,12 +2,14 @@ import { FlowElement } from './FlowElement';
 
 export class FlowCommentNode extends FlowElement {
     private textarea!: HTMLTextAreaElement;
+    private titleInput!: HTMLInputElement;
 
     constructor(id: string, x: number, y: number, container: HTMLElement, gridSize: number) {
         super(id, x, y, container, gridSize);
 
         // ES2022+ class field initializer workaround
         this.textarea = this.element.querySelector('textarea') as HTMLTextAreaElement;
+        this.titleInput = this.element.querySelector('input.comment-title') as HTMLInputElement;
 
         // Eigene Farbe und Styling für Notizen
         this.element.style.backgroundColor = '#fff9c4'; // Sanftes Gelb
@@ -60,19 +62,52 @@ export class FlowCommentNode extends FlowElement {
             z-index: 10;
         `;
 
-        // --- Header mit Drag-Handle ---
+        // --- Header mit Drag-Handle und Titel ---
         const header = document.createElement('div');
         header.className = 'flow-node-header comment-drag-handle';
         header.style.cssText = `
             padding: 4px;
             background: rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            cursor: move;
+        `;
+        
+        const dragIcon = document.createElement('span');
+        dragIcon.innerText = "⋮⋮";
+        dragIcon.style.cssText = `
             font-size: 10px;
             color: #888;
-            cursor: move;
-            text-align: center;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
+            margin-right: 6px;
+            pointer-events: none;
         `;
-        header.innerText = "⋮⋮"; 
+        header.appendChild(dragIcon);
+
+        const ti = document.createElement('input');
+        ti.className = 'comment-title';
+        ti.type = 'text';
+        ti.placeholder = 'Überschrift...';
+        ti.style.cssText = `
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+            font-family: inherit;
+        `;
+        
+        ti.oninput = () => {
+            this.Name = ti.value; // Name speichert den Titel
+        };
+        
+        // Klicks von der Stage fernhalten
+        ti.addEventListener('mousedown', (e) => e.stopPropagation());
+        ti.onkeydown = (e) => e.stopPropagation();
+        
+        header.appendChild(ti);
         root.appendChild(header);
 
         // Resize-Handle Mousedown vom Canvas-Drag entkoppeln
@@ -103,7 +138,7 @@ export class FlowCommentNode extends FlowElement {
         `;
 
         ta.oninput = () => {
-            this.Name = ta.value; // Name speichert den Inhalt
+            this.Details = ta.value; // Details speichert den eigentlichen Textinhalt
         };
 
         // Klicks und Tasteneingaben von der Stage fernhalten
@@ -116,11 +151,32 @@ export class FlowCommentNode extends FlowElement {
         return root;
     }
 
+    // Custom properties to store data gracefully without dataset dependencies
+    public get Name(): string { return this.data?.name || ''; }
+    public set Name(v: string) {
+        if (!this.data) this.data = {};
+        this.data.name = v;
+        if (this.titleInput && this.titleInput.value !== v) {
+            this.titleInput.value = v;
+        }
+    }
+
+    public get Details(): string { return this.data?.details || ''; }
+    public set Details(v: string) {
+        if (!this.data) this.data = {};
+        this.data.details = v;
+        if (this.textarea && this.textarea.value !== v) {
+            this.textarea.value = v;
+        }
+    }
+
     // Custom sync implementation for properties because we don't have updateVisuals
     public syncToVisuals(): void {
-        // Name sichern falls schon geladen
-        if (this.textarea && this.textarea.value !== this.Name) {
-            this.textarea.value = this.Name || '';
+        if (this.textarea && this.textarea.value !== this.Details) {
+            this.textarea.value = this.Details || '';
+        }
+        if (this.titleInput && this.titleInput.value !== this.Name) {
+            this.titleInput.value = this.Name || '';
         }
     }
 
