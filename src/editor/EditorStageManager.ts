@@ -575,6 +575,9 @@ export class EditorStageManager {
                 idMap.set(oldId, newId);
                 obj.id = newId;
             }
+            if (obj.children && Array.isArray(obj.children)) {
+                this.remapObjectIds(obj.children as ComponentData[], idMap);
+            }
         }
     }
 
