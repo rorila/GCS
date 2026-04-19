@@ -27,6 +27,7 @@
     },
     "include": [
         "src",
+        "demos",
         "test_serialization_verify.ts",
         "test_loader_logic.ts"
     ]
