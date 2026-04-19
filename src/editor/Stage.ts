@@ -13,6 +13,7 @@ export class Stage implements StageHost, StageInteractionHost {
 
 
     public lastRenderedObjects: any[] = [];
+    public runtime?: any;
 
     public set runMode(running: boolean) {
         if (this.runMode !== running) {

@@ -150,13 +150,52 @@ export class ComplexComponentRenderer {
                     closeBtn.onmouseenter = () => closeBtn.style.color = '#ff4444';
                     closeBtn.onmouseleave = () => closeBtn.style.color = '#fff';
                     closeBtn.onpointerdown = (e) => {
+                        console.log('[X-DEBUG] onpointerdown fired on close-btn, stopPropagation wird gesetzt');
                         e.stopPropagation();
                     };
-                    closeBtn.onclick = (e) => {
+                    closeBtn.onmousedown = (e) => {
+                        console.log('[X-DEBUG] onmousedown fired on close-btn, stopPropagation wird gesetzt');
                         e.stopPropagation();
+                        e.preventDefault(); // verhindert auch den nachfolgenden click? → testen!
+                    };
+                    closeBtn.onclick = (e) => {
+                        console.log('[X-DEBUG] onclick fired on close-btn! e.target:', (e.target as HTMLElement)?.className);
+                        e.stopPropagation();
+                        // 1. Hole referenz auf Dialog Objekt (TDialogRoot oder TSidePanel)
                         const currentObj = (titleBar as any)._dialogObj;
-                        currentObj.visible = false;
                         
+                        // Finde das MASTER-Objekt im Runtime-Context.
+                        // KRITISCH: getObjects() gibt Spread-KOPIEN zurück!
+                        // Eine Mutation auf einer Kopie hat KEINE Wirkung auf den
+                        // reaktiven PropertyWatcher. Wir brauchen das echte Proxy-Objekt
+                        // aus this.objects via getRawObject(id).
+                        let masterObj = currentObj;
+                        
+                        if (ctx.host) {
+                            // Priorität 1: GameRuntime.getRawObject() – direkter Zugriff auf this.objects
+                            if (ctx.host.runtime && typeof ctx.host.runtime.getRawObject === 'function') {
+                                const raw = ctx.host.runtime.getRawObject(currentObj.id);
+                                if (raw) masterObj = raw;
+                            }
+                            // Priorität 2: Allgemeines getObject(id) Interface
+                            else if (typeof (ctx.host as any).getObject === 'function') {
+                                const raw = (ctx.host as any).getObject(currentObj.id);
+                                if (raw) masterObj = raw;
+                            }
+                            // Priorität 3: Flaches objects-Array
+                            else if (Array.isArray((ctx.host as any).objects)) {
+                                const raw = (ctx.host as any).objects.find((o: any) => o.id === currentObj.id);
+                                if (raw) masterObj = raw;
+                            }
+                        }
+
+                        // 2. Setze visible=false auf dem echten reaktiven Objekt → löst PropertyWatcher aus
+                        const runtimeFound = !!(ctx.host?.runtime?.getRawObject);
+                        const rawObj = runtimeFound ? ctx.host.runtime.getRawObject(currentObj.id) : null;
+                        console.log(`[X-DEBUG] getRawObject gefunden: ${!!rawObj}, runtime vorhanden: ${runtimeFound}, id=${currentObj.id}`);
+                        masterObj.visible = false;
+                        console.log(`[X-DEBUG] masterObj.visible nach Zuweisung: ${masterObj.visible}, masterObj===currentObj: ${masterObj === currentObj}`);
+
                         // Sofortiges visuelles Feedback: (Schiebt den Dialog entsprechend StageRenderer Logik aus dem Bild)
                         const outOfBoundsOffset = currentObj.slideDirection === 'left' ? -1500 : 1500;
                         (el.style as any).translate = `${((currentObj.x || 0) * cellSize) + outOfBoundsOffset}px ${(currentObj.y || 0) * cellSize}px`;

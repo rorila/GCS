@@ -799,6 +799,16 @@ export class GameRuntime implements IVariableHost {
         return context;
     }
 
+    /**
+     * Gibt das echte reaktive Master-Objekt aus this.objects zurück (keine Kopie!).
+     * Verwende diese Methode immer dann, wenn du Properties wie visible, x, y etc.
+     * direkt mutieren willst (z.B. beim Dialog-Schließen per X-Button).
+     * NIEMALS getObjects() für Mutationen verwenden – das liefert Spread-Kopien!
+     */
+    public getRawObject(id: string): any | undefined {
+        return this.objects.find(o => o.id === id);
+    }
+
     public getObjects(): any[] {
         const results: any[] = [];
         const process = (objs: any[], parentX = 0, parentY = 0, parentZ = 0) => {

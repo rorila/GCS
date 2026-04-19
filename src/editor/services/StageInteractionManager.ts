@@ -241,8 +241,14 @@ export class StageInteractionManager {
         const objEl = target.closest('.game-object') as HTMLElement;
 
         if (this.host.runMode) {
-            console.log('[DIALOG-DEBUG] StageInteractionManager.handleMouseDown RunMode! target:', target.tagName + '.' + target.className, 'objEl:', objEl?.getAttribute('data-id'));
+            const isClosBtn = target.classList.contains('dialog-close-btn');
+            console.log('[DIALOG-DEBUG] StageInteractionManager.handleMouseDown RunMode! target:', target.tagName + '.' + target.className, 'objEl:', objEl?.getAttribute('data-id'), '| isCloseBtn:', isClosBtn);
+            if (isClosBtn) {
+                console.log('[DIALOG-DEBUG] ⚠️ Close-Btn erkannt im StageInteractionManager – lasse Event durch (kein preventDefault)');
+                return; // Sofort zurück, damit onclick des close-btn feuern kann
+            }
             if (objEl) {
+
                 const id = objEl.getAttribute('data-id');
                 if (id) {
                     const obj = this.host.lastRenderedObjects.find(o => (o.id || o.name) === id);

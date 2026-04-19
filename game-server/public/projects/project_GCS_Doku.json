@@ -262,6 +262,9 @@
               "draggable": false,
               "droppable": false,
               "dragMode": "move",
+              "events": {
+                "onClick": "ShowSidePanel"
+              },
               "visible": true,
               "x": 41,
               "y": 2,
@@ -642,7 +645,7 @@
               "y": 40
             },
             "ToggleTheReferenceDlg": {
-              "x": 320,
+              "x": 280,
               "y": 40
             }
           }
@@ -756,8 +759,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         },
         {
@@ -1880,5 +1883,5 @@
       "startAnimation": "BottomRight"
     }
   ],
-  "activeStageId": "blueprint"
+  "activeStageId": "main"
 }

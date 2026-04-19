@@ -89,6 +89,8 @@ export class EditorRunManager {
                 }
                 this.runStage = new Stage('run-stage', activeStage?.grid || this.editor.project.stage.grid);
                 this.runStage.runMode = true;
+                // HINWEIS: runStage.runtime wird NACH der GameRuntime-Erstellung gesetzt (unten)!
+                // An dieser Stelle wäre this.runtime noch null.
 
                 // Register event callbacks for the new run stage!
                 if ((this.editor as any).interactionManager) {
@@ -154,6 +156,14 @@ export class EditorRunManager {
             if (this.runtime) {
                 this.runtimeObjects = this.runtime.getObjects();
                 this.activeGameLoop = (this.runtimeObjects.find((o: any) => o.className === 'TGameLoop') as TGameLoop) || null;
+                // KRITISCH: runtime-Referenz auf runStage NACH der GameRuntime-
+                // Erstellung setzen, nicht davor! Früher war this.runtime hier noch null.
+                // ctx.host.runtime in ComplexComponentRenderer braucht diese Referenz
+                // um getRawObject() korrekt aufzurufen.
+                if (this.runStage) {
+                    this.runStage.runtime = this.runtime;
+                    console.log('[RUN-DIAG] runStage.runtime wurde gesetzt:', !!this.runStage.runtime);
+                }
             }
 
             // Event handler already set above

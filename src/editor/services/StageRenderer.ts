@@ -25,6 +25,8 @@ export interface StageHost {
     selectedIds: Set<string>;
     onEvent: ((id: string, eventName: string, data?: any) => void) | null;
     lastRenderedObjects: any[];
+    /** Optionale Referenz auf die aktive GameRuntime (nur im RunMode gesetzt) */
+    runtime?: { getRawObject(id: string): any | undefined } | any;
 }
 
 // Referenz-CellSize für fontSize-Skalierung

@@ -1,3 +1,22 @@
+[UC-2026-04-19-DialogClose-RuntimeReferenzFix]
+Dateien:
+- src/editor/services/EditorRunManager.ts
+  - Methode: setRunMode() — runStage.runtime Zuweisung von Zeile 92 nach Zeile ~163 verschoben (nach new GameRuntime())
+  - Früher: this.runtime war noch null beim Setzen → ctx.host.runtime immer undefined in Renderern
+- src/editor/services/StageRenderer.ts
+  - Interface StageHost: runtime?: {...} optional hinzugefügt (Zeile ~28)
+- src/editor/services/renderers/ComplexComponentRenderer.ts
+  - Close-Button Handler: getRawObject() wird über ctx.host.runtime aufgerufen (Zeile ~169-195)
+  - Fallback Pfade 2+3 via (ctx.host as any) typsicher gemacht
+- src/player-standalone.ts
+  - UniversalPlayer.runtime: private → public (Zeile 52, für StageHost Interface Kompatibilität)
+- src/editor/services/StageInteractionManager.ts
+  - handleMouseDown: dialog-close-btn Erkennung + frühzeitiges return (Zeile ~245-252)
+- tests/export_checksums.json (player-standalone.ts Checksumme aktualisiert)
+Symptom: Dialog-X-Button setzte visible=false auf Spread-Kopie (getRawObject gefunden: false, runtime vorhanden: false). Master blieb visible=true. Nächster Toggle-Klick öffnete den Dialog nicht (toggle von true→false statt false→true).
+Root-Cause: EditorRunManager Zeile 92 wies this.runtime zu, das zu diesem Zeitpunkt noch null war (GameRuntime wird erst auf Zeile 108 instanziiert).
+Lösung: Zuweisung runStage.runtime = this.runtime auf nach der GameRuntime-Erstellung verlegt.
+
 [UC-2026-04-18-TutorProjectViaAgentController]
 Dateien:
 - demos/builders/tutor-project.builder.ts (NEU) — Builder-Datei für Tutor-Projekt, nutzt ausschließlich ProjectBuilder-API

@@ -49,7 +49,7 @@ function decompressProject(data: string): GameProject | null {
  * - Dynamic Lobby (if no game/room selected)
  */
 class UniversalPlayer implements StageHost {
-    private runtime: GameRuntime | null = null;
+    public runtime: GameRuntime | null = null;
     public element: HTMLElement; // From StageHost
     private techClasses = ['TGameLoop', 'TInputController', 'TGameState', 'TTimer', 'TRemoteGameManager', 'TGameServer', 'THandshake', 'THeartbeat', 'TStageController'];
     private currentProject: GameProject | null = null;

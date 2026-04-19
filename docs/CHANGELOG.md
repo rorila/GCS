@@ -1,4 +1,19 @@
+### 2026-04-19 (Bugfix Root-Cause: Dialog-Schließen – runtime-Referenz zu früh gesetzt)
+- **Bugfix (EditorRunManager.ts)**: `runStage.runtime = this.runtime` wurde auf Zeile 92 gesetzt — zu einem Zeitpunkt wo `this.runtime` noch `null` war (GameRuntime wird erst auf Zeile 108 erstellt). Dadurch war `ctx.host.runtime` im `ComplexComponentRenderer` immer `undefined`, was dazu führte, dass der X-Button `visible=false` auf einer Spread-Kopie statt auf dem echten reaktiven Master-Objekt setzte.
+  - *Symptom*: `getRawObject gefunden: false, runtime vorhanden: false` — der close-btn mutierte die falsche Referenz.
+  - *Lösung*: `runStage.runtime = this.runtime` nach der `new GameRuntime(...)` Erstellung gesetzt (Zeile ~163). Außerdem `private runtime` in `UniversalPlayer` auf `public` geändert damit `StageHost`-Interface kompatibel bleibt.
+  - *Betroffene Dateien*: `src/editor/services/EditorRunManager.ts`, `src/player-standalone.ts`, `src/editor/services/StageRenderer.ts`
+
+### 2026-04-19 (Bugfix: Dialog/SidePanel X-Schließen synchronisiert Backend nicht)
+
+- **Bugfix (ComplexComponentRenderer + GameRuntime)**: Das Schließen eines modalen Dialogs oder SidePanels per X-Button setzte `visible=false` auf einer Spread-**Kopie** des Objekts (aus `getObjects()`), nicht auf dem echten reaktiven Proxy-Objekt in `GameRuntime.this.objects`. Dadurch blieb `visible=true` im Backend erhalten, was beim nächsten Toggle-Klick einen fehlerhaften State-Flip verursachte (Dialog erschien nicht beim 1. Klick).
+  - *Ursache*: `getObjects()` gibt `{ ...obj }` Shallow-Copies zurück (für absolute Koordinatenauflösung). Mutationen auf diesen Kopien werden vom `PropertyWatcher`/`ReactiveProperty` **nicht** registriert.
+  - *Lösung*: Neue Methode `GameRuntime.getRawObject(id)` gibt das echte reaktive Proxy-Objekt direkt aus `this.objects` zurück. `ComplexComponentRenderer` nutzt jetzt diese Methode im X-Button Handler anstelle von `getObjects().find()`.
+  - *Betroffene Dateien*: `src/runtime/GameRuntime.ts`, `src/editor/services/renderers/ComplexComponentRenderer.ts`
+- **Chore (Stage.ts + EditorRunManager.ts)**: `Stage` erhält eine optionale `runtime?: any` Property. `EditorRunManager` injiziert beim Erstellen der Run-Stage die aktive `GameRuntime`-Referenz.
+
 ### 2026-04-18 (Bugfix: Flache parentId-Kinder im Run-Modus unsichtbar)
+
 - **Bugfix (GameRuntime.getObjects)**: Objekte, die per `parentId`-Referenz auf einen Container verweisen (z.B. TGroupPanel-Kinder aus flachen JSON-Definitionen), aber NICHT im `children`-Array des Containers stehen, wurden im Run-Modus komplett verschluckt und nicht gerendert.
   - *Ursache*: `getObjects()` filterte alle Objekte mit `parentId` aus der `topLevelObjects`-Liste. Anschließend rekursierte es nur über `obj.children`-Arrays. Da flache JSON-Definitionen (wie im Tutor-Projekt) die Kinder nicht als verschachteltes `children`-Array, sondern als eigenständige Objekte mit `parentId` auf der gleichen Ebene speichern, wurden diese Objekte nie in die `results`-Liste aufgenommen.
   - *Auswirkung*: Im Edit-Modus war alles korrekt (dort verwendet `getResolvedInheritanceObjects()` alle Objekte flach). Im Run-Modus verschwanden alle flachen parentId-Kinder.
@@ -28,6 +43,9 @@
     - `GameRuntime.ts`: `needsFullRender = true` wenn `x`/`y` eines Objekts mit `children` sich ändert → Full-Render statt `updateSingleObject`
     - `GameLoopManager.ts`: `hasContainerAnimation`-Check → Full-Render statt Fast-Path wenn animierte Objekte Kinder haben
     - Runtime-Bundle neugebaut (`npx vite build --config vite.runtime.config.ts`)
+  - *Fixed*:
+    - **Dialog State Desync (Run Mode & StageRenderer):** Behoben, dass das Schließen eines `TDialogRoot` oder `TSidePanel` über das 'X' den Master-Zustand des Objekts in der `GameRuntime` nicht aktualisierte, wodurch ein anschließender Klick auf eine Toggle-Aktion erst beim zweimaligen Betätigen funktionierte. Der Workaround, der auf eine Proxy-Umgehung basierte, wurde entfernt.
+    - **SidePanel Resurrection Bug:** Behoben, dass beim Schließen eines Dialogs per 'X' und dem anschließenden Anzeigen eines SidePanels der zuvor versteckte Dialog wieder sichtbar wurde, was an divergenten Master-/Clone-Statuten im `StageRenderer` lag.
   - *Dateien*: `src/runtime/GameRuntime.ts`, `src/runtime/GameLoopManager.ts`, `public/runtime-standalone.js`
 
 ### 2026-04-17 (Bugfix: Animations-Drift bei Stage-Transitionen)
