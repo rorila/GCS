@@ -180,7 +180,7 @@ export class FlowGraphHydrator {
      * Wird NACH allen autoSize()-Aufrufen ausgeführt.
      */
     public formatOrthogonalLayout(): void {
-        const nodes = this.host.nodes;
+        const nodes = this.host.nodes.filter(n => n.getType().toLowerCase() !== 'comment');
         const connections = this.host.connections || [];
         FlowGraphHydrator.logger.info(`[TRACE] formatOrthogonalLayout started. Nodes=${nodes.length}, Connections=${connections.length}`);
         if (nodes.length < 2) return;

@@ -1,5 +1,6 @@
 import { FlowElement } from '../flow/FlowElement';
 import { FlowAction } from '../flow/FlowAction';
+import { FlowCommentNode } from '../flow/FlowCommentNode';
 import { FlowTask } from '../flow/FlowTask';
 
 import { FlowCondition } from '../flow/FlowCondition';
@@ -162,6 +163,12 @@ export class FlowNodeFactory {
                 node.Name = type;
                 (node as FlowLoop).updateVisuals?.();
                 break;
+            case 'comment': {
+                const comment = new FlowCommentNode(id, x, y, this.host.canvas, cellSize);
+                if (initialName) comment.Name = initialName;
+                node = comment;
+                break;
+            }
 
             case 'connection': {
                 logger.info(`[FlowEditor] Erstelle freifliegende Connection bei ${x}, ${y}`);

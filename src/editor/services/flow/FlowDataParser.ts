@@ -12,6 +12,7 @@ import { FlowRangeVariable } from '../../flow/FlowRangeVariable';
 import { FlowListVariable } from '../../flow/FlowListVariable';
 import { FlowRandomVariable } from '../../flow/FlowRandomVariable';
 import { FlowDataAction } from '../../flow/FlowDataAction';
+import { FlowCommentNode } from '../../flow/FlowCommentNode';
 
 export class FlowDataParser {
     constructor(private host: FlowSyncHost) {}
@@ -30,6 +31,7 @@ export class FlowDataParser {
             case 'task': node = new FlowTask(data.id, data.x, data.y, canvas, cellSize); break;
             case 'variabledecl': node = this.restoreVariableNode(data); break;
             case 'while': case 'for': case 'repeat': node = new FlowLoop(data.id, data.x, data.y, canvas, cellSize, type); break;
+            case 'comment': node = new FlowCommentNode(data.id, data.x, data.y, canvas, cellSize); break;
         }
 
         if (node) {
