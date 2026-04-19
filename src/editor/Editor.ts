@@ -93,7 +93,7 @@ export class Editor implements IViewHost {
 
         // 1. Core Services & Registry
         coreStore.setProject(this.project);
-        this.stage = new Stage('stage', this.project.stage.grid);
+        this.stage = new Stage('stage', this.project.stage?.grid || this.project.stages?.[1]?.grid || this.project.stages?.[0]?.grid || { cols: 64, rows: 40, cellSize: 20 });
         this.dialogManager = new DialogManager();
         this.dialogManager.setProject(this.project);
         dialogService.setDialogManager(this.dialogManager);
@@ -469,7 +469,7 @@ export class Editor implements IViewHost {
                 this.stage.backgroundImageMode = (activeStage as any).backgroundImageMode || 'cover';
                 this.stage.grid = activeStage.grid;
             } else {
-                this.stage.grid = project.stage.grid;
+                this.stage.grid = project.stage?.grid || project.stages?.[1]?.grid || project.stages?.[0]?.grid || { cols: 64, rows: 40, cellSize: 20, visible: true, backgroundColor: '#1e1e2e' };
             }
         }
 

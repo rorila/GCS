@@ -506,7 +506,8 @@ export class EditorDataManager {
         if (this.host.project.stages) {
             this.host.project.stages.forEach(s => {
                 if (!s.grid) {
-                    s.grid = JSON.parse(JSON.stringify(this.host.project.stage.grid));
+                    const fallbackGrid = this.host.project.stage?.grid || this.host.project.stages?.[1]?.grid || this.host.project.stages?.[0]?.grid || { cols: 64, rows: 40, cellSize: 20, visible: true, backgroundColor: '#1e1e2e' };
+                    s.grid = JSON.parse(JSON.stringify(fallbackGrid));
                 }
             });
         }
