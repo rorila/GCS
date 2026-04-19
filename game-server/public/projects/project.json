@@ -110,7 +110,7 @@
       }
     },
     {
-      "id": "stage-1776617903799",
+      "id": "stage-1776619852821",
       "name": "Stage 1",
       "type": "standard",
       "objects": [],
@@ -127,5 +127,5 @@
       }
     }
   ],
-  "activeStageId": "stage-1776617903799"
+  "activeStageId": "stage-1776619852821"
 }

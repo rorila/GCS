@@ -8,6 +8,7 @@ import { runUnificationTests } from './test_unification_regression.js';
 import { runTableUnwrapTests } from '../tests/table_unwrapping.test.js';
 import { runSelectCountTests } from '../tests/select_count.test.js';
 // Neue Sicherheitsnetz-Tests (v3.7.0)
+import { runGuardTests } from '../tests/guards.test.js';
 import { runSerializationTests } from '../tests/serialization.test.js';
 import { runRefactoringTests } from '../tests/refactoring_manager.test.js';
 import { runTaskExecutorTests } from '../tests/task_executor.test.js';
@@ -143,6 +144,10 @@ async function main() {
         // 6. Serialization Tests
         console.log('🏃 Starte Serialization Tests...');
         allResults.push(...await runSerializationTests());
+
+        // 6.5. System Guards (Code Quality & Security)
+        console.log('🛡️  Starte Code Quality & Security Guards...');
+        allResults.push(...await runGuardTests());
 
         // 7. RefactoringManager Tests
         console.log('🏃 Starte RefactoringManager Tests...');

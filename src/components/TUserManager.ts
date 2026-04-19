@@ -1,4 +1,4 @@
-﻿import { TComponent, TPropertyDef } from './TComponent';
+import { TComponent, TPropertyDef } from './TComponent';
 
 /**
  * TUserManager - Spezialisierte Komponente für das Benutzer-Management.
@@ -39,3 +39,6 @@ export class TUserManager extends TComponent {
         };
     }
 }
+
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TUserManager', (objData: any) => new TUserManager(objData.name));

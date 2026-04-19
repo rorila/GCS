@@ -253,6 +253,23 @@ export async function runSerializationTests(): Promise<TestResult[]> {
         addResult('Hydrate: TSprite ImageList', false, `Exception: ${e.message}`);
     }
 
+    // --- Test 10: Prototype Pollution Regression ---
+    try {
+        // Verwende JSON.parse, da Object-Literals mit __proto__ den Prototypen des Objekts sofort manipulieren und nicht als String-Key durchlaufen.
+        const malicious = JSON.parse('[{"className":"TButton","id":"polluted_1","name":"x","__proto__":{"polluted":true}}]');
+        hydrateObjects(malicious);
+        const ok = ({} as any).polluted === undefined && (Object.prototype as any).polluted === undefined;
+        // Clean up immediately if it polluted
+        if (!ok) {
+            delete (Object.prototype as any).polluted;
+        }
+
+        addResult('Hydrate: Prototype Pollution Regression', ok,
+            ok ? 'Object.prototype blieb unveraendert' : 'ACHTUNG: Prototype Pollution moeglich!');
+    } catch (e: any) {
+        addResult('Hydrate: Prototype Pollution Regression', false, `Exception: ${e.message}`);
+    }
+
     return results;
 }
 

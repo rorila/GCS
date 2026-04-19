@@ -159,6 +159,14 @@ export class Editor implements IViewHost {
                 e.returnValue = ''; // Standard-Browser-Warnung auslösen
             }
         };
+
+        // 9. Hydration Error Guard (B-2 Silent Regression Prevention)
+        if (typeof document !== 'undefined') {
+            document.addEventListener('gcs-hydration-error', ((e: CustomEvent) => {
+                Editor.logger.error('Caught Hydration Error:', e.detail);
+                NotificationToast.show(`Ladefehler: ${e.detail.className} konnte nicht erzeugt werden!`, 'error');
+            }) as EventListener);
+        }
     }
 
     private createDefaultProject(): GameProject {

@@ -171,3 +171,10 @@ esolveObjectPreview gibt ein geklontes Objekt zurÃƒÂ¼ck, anstatt das Argument zu
 ### Fixed
 - **Sticky Notes Inspector Sync**: Fixed Case-Sensitivity Issue for Inspector Properties (Name/Width/Height) to synchronize with PropertyHelper.
 - **Sticky Notes Selection Focus**: Adjusted FlowInteractionManager to abort dragging if an input element is targetted, allowing native focus while retaining Global Selection.
+\n- **Security Guards:** Native NodeJS Implementierung für 'T-06', 'T-11', 'T-13', 'T-14' und 'T-15'. Bugfix im Prototype Pollution Regression Test in serialization.test.ts (Payload muss über JSON.parse generiert werden).
+
+- **Component Registry:** Registry-Missing Bugs im Bereich TAuthService, TDebugLog und TUserManager aus Component_Registration_Findings.md behoben. Whitelist in T-11 erweitert.
+
+- **Error Logging (B-2):** Stille Registry-Regressionen (Savegame-Fehler, Hydration) lösen nun eine explizite Error-Warnung in Serialization.ts und eine rote Error-Notification im Editor aus.
+
+- **Code Quality (B-1):** Guard T-11b eingeführt: Stellt strukturell sicher, dass jede Komponente mit toDTO() zwingend auch eine Registry-Factory besitzt.

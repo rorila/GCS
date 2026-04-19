@@ -1,13 +1,13 @@
 # 🛡️ QA Test Report
 
-**Generiert am**: 19.4.2026, 18:59:07
-**Status**: ✅ ALLE TESTS BESTANDEN
+**Generiert am**: 19.4.2026, 19:31:36
+**Status**: ❌ FEHLER GEFUNDEN
 
 ## 📊 Visuelle Übersicht
 ```mermaid
-pie title Test-Status (Gesamt: 184)
-    "Bestanden ✅" : 184
-    "Fehlgeschlagen ❌" : 0
+pie title Test-Status (Gesamt: 190)
+    "Bestanden ✅" : 189
+    "Fehlgeschlagen ❌" : 1
 ```
 
 ## 🧪 Test-Details
@@ -83,6 +83,12 @@ pie title Test-Status (Gesamt: 184)
 | Hydrate: Events/Tasks-Fallback<br><small>events.onClick=DoLogin</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Hydrate: Style-Merge<br><small>bgColor=#333, borderRadius=8px</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Hydrate: TSprite ImageList<br><small>imageListId=imglist_hero, imageIndex=2</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Hydrate: Prototype Pollution Regression<br><small>Object.prototype blieb unveraendert</small> | Serialization | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Guard: Component Registrierung (Barrel + Registry)<br><small>Fehlt in ComponentRegistry.register(): TAuthService, TDebugLog, TFlowStage, TStage, TUserManager</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | Abgelehnt | ❌ |
+| Guard: Keine unerlaubten console.* Aufrufe<br><small>Erlaubt (Baseline 32), Aktuell: 31</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Guard: Dateigroesse < 1000 Zeilen<br><small>Baseline 5 eingehalten, Aktuell: 5</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Guard: bundle:runtime Freshness<br><small>Bundle aktuell</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| Guard: Kein new Function() RCE-Risiko<br><small>Sauber</small> | System-Guard | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Task: AttemptLogin → DoLogin<br><small>Task=true, Event=true, ObjEvent=true, FlowChart=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Action: ValidatePin → CheckPinCode<br><small>Action=true, Sequence=true, Flow=false</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Rename Variable: currentUser → activeUser<br><small>Var=true, Formula=true, ResultVar=true</small> | Refactoring | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
@@ -148,7 +154,7 @@ pie title Test-Status (Gesamt: 184)
 | Blueprint → Standard (Type-Konvertierung)<br><small>Type=standard</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Stage ohne Abhängigkeiten<br><small>1 Objekt, keine Tasks/Actions, Blueprint bleibt leer</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Events bleiben erhalten (Rakete.onClick)<br><small>onClick=StartCountdown</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
-| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1776617866671_ba (erwartet: stage_import_1776617866671_ba), BackToLobby.stageId=stage_import_1776617866671_hi (erwartet: stage_import_1776617866671_hi)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
+| navigate_stage Auto-Remap<br><small>GoToSpiel.stageId=stage_import_1776619815155_1q (erwartet: stage_import_1776619815155_1q), BackToLobby.stageId=stage_import_1776619815154_nf (erwartet: stage_import_1776619815154_nf)</small> | Stage-Import | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Safe Path Access (Inside UserData) | Security | 🛡️ **Schlecht-Test** | OK/Erwartet | OK/Erhalten | ✅ |
 | Path Traversal Breakout 1 (../ trick) | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |
 | Arbitrary Absolute File Path Access | Security | 🛡️ **Schlecht-Test** | Abgelehnt | Abgelehnt | ✅ |

@@ -132,6 +132,18 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
             }
 
             objects.push(newObj);
+        } else {
+            // [B-2 Error Logging] Harte Warnung bei fehlgeschlagener Hydrierung
+            const errorMsg = `FATAL: Konnte Klasse '${objData.className}' (ID: ${objData.id}) nicht deserialisieren! Die Komponente wurde stumm ignoriert und geht beim nächsten Speichern verloren.`;
+            logger.error(errorMsg);
+            
+            // Dispatch UI-Event, damit der Editor einen Toast/Alert anzeigen kann
+            if (typeof document !== 'undefined') {
+                const event = new CustomEvent('gcs-hydration-error', { 
+                    detail: { message: errorMsg, className: objData.className, id: objData.id } 
+                });
+                document.dispatchEvent(event);
+            }
         }
     });
 

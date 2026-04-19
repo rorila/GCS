@@ -77,3 +77,6 @@ export class TAuthService extends TComponent {
         };
     }
 }
+
+import { ComponentRegistry } from '../utils/ComponentRegistry';
+ComponentRegistry.register('TAuthService', (objData: any) => new TAuthService(objData.name));
