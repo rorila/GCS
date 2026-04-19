@@ -1,5 +1,4 @@
 import { FlowElement } from './FlowElement';
-import { DnDHelper } from '../utils/DnDHelper';
 
 export class FlowCommentNode extends FlowElement {
     private textarea!: HTMLTextAreaElement;
@@ -67,14 +66,16 @@ export class FlowCommentNode extends FlowElement {
             border-bottom: 1px solid rgba(0,0,0,0.1);
         `;
         header.innerText = "⋮⋮"; 
-        
-        // Verhindern dass Drag-Events ins Textarea fallen
-        DnDHelper.setupDraggable(header, {
-            type: 'flow-node',
-            toolType: 'flow-node',
-            nodeId: this.id
-        } as any);
         root.appendChild(header);
+
+        // Resize-Handle Mousedown vom Canvas-Drag entkoppeln
+        root.addEventListener('mousedown', (e) => {
+            const rect = root.getBoundingClientRect();
+            // Wenn der Klick in den unteren rechten 20x20 Pixeln ist (CSS resize handle)
+            if (e.clientX > rect.right - 20 && e.clientY > rect.bottom - 20) {
+                e.stopPropagation(); // Verhindere Node-Drag, erlaube CSS Resize
+            }
+        });
 
         // --- Textarea erstellen ---
         const ta = document.createElement('textarea');
@@ -98,7 +99,8 @@ export class FlowCommentNode extends FlowElement {
             this.Name = ta.value; // Name speichert den Inhalt
         };
 
-        // Verhindern, dass Tasten-Eingaben den Canvas bewegen oder löschen triggern
+        // Klicks und Tasteneingaben von der Stage fernhalten
+        ta.addEventListener('mousedown', (e) => e.stopPropagation());
         ta.onkeydown = (e) => e.stopPropagation();
 
         root.appendChild(ta);
