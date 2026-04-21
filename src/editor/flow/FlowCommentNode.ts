@@ -11,9 +11,8 @@ export class FlowCommentNode extends FlowElement {
         this.textarea = this.element.querySelector('textarea') as HTMLTextAreaElement;
         this.titleInput = this.element.querySelector('input.comment-title') as HTMLInputElement;
 
-        // Eigene Farbe und Styling für Notizen
-        this.element.style.backgroundColor = '#fff9c4'; // Sanftes Gelb
-        this.element.style.borderColor = '#fbc02d';
+        // Basis Styling für Notizen
+        this.applyColor();
         this.element.style.color = '#333';
         this.element.style.boxShadow = '2px 4px 10px rgba(0,0,0,0.2)';
         this.element.style.minWidth = '150px';
@@ -53,9 +52,7 @@ export class FlowCommentNode extends FlowElement {
             box-sizing: border-box; /* VERHINDERT UNENDLICHE WACHSTUMS-LOOPS! */
             width: ${this.width}px;
             height: ${this.height}px;
-            border: 1px solid #fbc02d;
             border-radius: 4px;
-            background: #fff9c4;
             display: flex;
             flex-direction: column;
             cursor: default;
@@ -176,12 +173,44 @@ export class FlowCommentNode extends FlowElement {
         if (this.titleInput && this.titleInput.value !== this.Name) {
             this.titleInput.value = this.Name || '';
         }
+        this.applyColor();
+    }
+
+    public get noteColor(): string { return this.data?.noteColor || 'yellow'; }
+    public set noteColor(v: string) {
+        if (!this.data) this.data = {};
+        this.data.noteColor = v;
+        this.applyColor();
+    }
+
+    private applyColor() {
+        if (!this.element) return;
+        switch(this.noteColor) {
+            default:
+            case 'yellow': 
+                this.element.style.backgroundColor = '#fff9c4'; 
+                this.element.style.borderColor = '#fbc02d';
+                break;
+            case 'green':  
+                this.element.style.backgroundColor = '#c8e6c9'; 
+                this.element.style.borderColor = '#81c784';
+                break;
+            case 'blue':   
+                this.element.style.backgroundColor = '#bbdefb'; 
+                this.element.style.borderColor = '#64b5f6';
+                break;
+            case 'red':    
+                this.element.style.backgroundColor = '#ffcdd2'; 
+                this.element.style.borderColor = '#e57373';
+                break;
+        }
     }
 
     public getInspectorProperties(): any[] {
         return [
             { name: 'Name', type: 'string', label: 'Titel', readOnly: false, value: this.Name },
             { name: 'Details', type: 'string', label: 'Inhalt', readOnly: false, value: this.Details },
+            { name: 'noteColor', type: 'select', label: 'Kategorie', readOnly: false, value: this.noteColor, options: ['yellow', 'green', 'blue', 'red'] },
             { name: 'Width', type: 'number', label: 'Breite', readOnly: false, value: this.width },
             { name: 'Height', type: 'number', label: 'Höhe', readOnly: false, value: this.height }
         ];

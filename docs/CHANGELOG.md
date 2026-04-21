@@ -178,3 +178,9 @@ esolveObjectPreview gibt ein geklontes Objekt zurÃƒÂ¼ck, anstatt das Argument zu
 - **Error Logging (B-2):** Stille Registry-Regressionen (Savegame-Fehler, Hydration) lösen nun eine explizite Error-Warnung in Serialization.ts und eine rote Error-Notification im Editor aus.
 
 - **Code Quality (B-1):** Guard T-11b eingeführt: Stellt strukturell sicher, dass jede Komponente mit toDTO() zwingend auch eine Registry-Factory besitzt.
+\n### Feature: Sticky-Notes\n- Vollwertige Sticky-Note UnterstÃ¼tzung fÃ¼r Visual-Editor (TStickyNote) und Flow-Editor (FlowCommentNode).\n- 4-Color Semantic Coding (Gelb=Info, GrÃ¼n=Success/Tipp, Blau=Structure, Rot=Warning).\n- TStickyNote ist komplett aus Run(iframe) ausgeschlossen.
+
+### 20.04.2026 - TStickyNote Titel & Layout
+- **TStickyNote** wurde um ein \	itle\ Property ergänzt.
+- **TextObjectRenderer** zeichnet Sticky Notes nun identisch zu FlowCommentNodes (Headline + Body getrennt, 100% Deckkraft, Schatten).
+- **Toolbox**-Kategorie \Standard\ ist nun by Default \expanded: true\.

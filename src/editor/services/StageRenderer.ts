@@ -438,7 +438,7 @@ export class StageRenderer {
 
                 if (obj.style.color) {
                     el.style.color = obj.style.color;
-                    if (obj.className === 'TLabel' || obj.className === 'TButton') {
+                    if (obj.className === 'TLabel' || obj.className === 'TButton' || obj.className === 'TStickyNote') {
                         // Color applied
                     }
                 }
@@ -728,6 +728,7 @@ export class StageRenderer {
         else if (className === 'TVirtualGamepad') VirtualGamepadRenderer.render(ctx, el, obj, className);
         else if (className === 'TStringVariable' || className === 'TObjectVariable' || className === 'TIntegerVariable' || className === 'TBooleanVariable' || className === 'TListVariable' || obj.isVariable || obj.isService) SystemComponentRenderer.render(ctx, el, obj, className);
         else if (className === 'TLabel' || className === 'TNumberLabel') TextObjectRenderer.renderLabel(ctx, el, obj);
+        else if (className === 'TStickyNote') TextObjectRenderer.renderStickyNote(ctx, el, obj, isNew);
         else if (className === 'TPanel') TextObjectRenderer.renderPanel(ctx, el, obj);
         else if (className === 'TRichText') TextObjectRenderer.renderRichText(ctx, el, obj);
         else if (className === 'TGameHeader') TextObjectRenderer.renderGameHeader(ctx, el, obj);

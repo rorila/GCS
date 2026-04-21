@@ -1242,6 +1242,40 @@
             "borderWidth": 2
           },
           "caption": ""
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_1776696943972_o71gn2q78",
+          "name": "StickyNote_13",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Notiz",
+          "noteColor": "green",
+          "visible": true,
+          "x": 47.1345,
+          "y": 2.85,
+          "width": 14.8,
+          "height": 13.9,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "fontFamily": "'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', 'Comic Neue', sans-serif",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "#a5d6a7",
+            "borderColor": "rgba(0,0,0,0.1)",
+            "borderWidth": 1,
+            "borderRadius": 0,
+            "opacity": 1,
+            "boxShadow": "2px 3px 6px rgba(0,0,0,0.3)"
+          },
+          "text": "Neue Notiz..."
         }
       ],
       "tasks": [
@@ -1277,23 +1311,23 @@
               "y": 40
             },
             "Das ist eine neue Notiz": {
-              "x": 880,
-              "y": 100
+              "x": 1060,
+              "y": 40
             }
           },
           "standaloneNodes": [
             {
               "id": "node-1776588455373",
               "type": "comment",
-              "x": 880,
-              "y": 100,
-              "width": 340,
-              "height": 200,
+              "x": 1060,
+              "y": 40,
+              "width": 425,
+              "height": 194,
               "properties": {
                 "name": "Das ist eine neue Notiz",
                 "details": "",
                 "description": "",
-                "text": ""
+                "text": "Das ist eine neue Notiz"
               },
               "data": {
                 "name": "Das ist eine neue Notiz"
@@ -1326,7 +1360,26 @@
   "actions": [],
   "objects": [],
   "flow": {
-    "elements": [],
+    "elements": [
+      {
+        "id": "node-1776696669300",
+        "type": "comment",
+        "x": 400,
+        "y": 300,
+        "width": 200,
+        "height": 120,
+        "properties": {
+          "name": "",
+          "details": "",
+          "description": "",
+          "text": ""
+        },
+        "data": {
+          "noteColor": "red",
+          "showDetails": true
+        }
+      }
+    ],
     "connections": []
   },
   "activeStageId": "stage_raster"

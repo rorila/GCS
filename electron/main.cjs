@@ -88,7 +88,7 @@ app.whenReady().then(() => {
                     "font-src 'self' https://fonts.gstatic.com data:; " +
                     "img-src 'self' data: blob:; " +
                     "connect-src 'self' ws: wss: http://localhost:*; " +
-                    "frame-src 'none';"
+                    "frame-src 'self' http://localhost:*;"
                 ]
             }
         });

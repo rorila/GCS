@@ -26,6 +26,12 @@ export function hydrateObjects(objectsData: any[]): TWindow[] {
     objectsData.forEach((objData: any) => {
         if (!objData) return;
 
+        // Fallback für alte Projekte: Variablen, die keinen className haben
+        if (!objData.className && objData.isVariable) {
+            objData.className = 'TVariable';
+            logger.info(`Fallback: Zugeordneter className 'TVariable' für ${objData.name || objData.id}`);
+        }
+
         // IDEMPOTENCY: Already a live instance? Pass through safely.
         if (objData instanceof TWindow) {
             objects.push(objData);

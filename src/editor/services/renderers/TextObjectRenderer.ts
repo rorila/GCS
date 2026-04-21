@@ -231,4 +231,70 @@ export class TextObjectRenderer {
             };
         }
     }
+
+    public static renderStickyNote(ctx: IRenderContext, el: HTMLElement, obj: any, isNew: boolean): void {
+        const isRunMode = ctx.host.runMode;
+
+        if (isNew) {
+            el.innerHTML = `
+                <div class="sticky-header" style="display:flex; background:rgba(0,0,0,0.06); border-bottom:1px solid rgba(0,0,0,0.1); cursor:move;">
+                    <div style="padding: 4px; color:#888; pointer-events:none; font-size:10px; display:flex; align-items:center;">⋮⋮</div>
+                    <input type="text" class="sticky-title" placeholder="Titel..." style="flex:1; font-weight:bold; font-size:1.1em; background:transparent; border:none; outline:none; padding: 4px 6px; color:inherit; font-family:inherit;">
+                </div>
+                <textarea class="sticky-body" placeholder="Notiz eingeben..." style="flex:1; background:transparent; border:none; outline:none; font-size:0.95em; padding: 10px; color:inherit; font-family:inherit; resize:none;"></textarea>
+                <div class="sticky-resize-handle" style="position:absolute; right:2px; bottom:2px; width:12px; height:12px; background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.15) 50%) bottom right / 8px 8px no-repeat; pointer-events:none;"></div>
+            `;
+            el.style.display = 'flex';
+            el.style.flexDirection = 'column';
+            el.style.padding = '0';
+            el.style.overflow = 'hidden';
+            el.style.alignItems = 'stretch';
+            el.style.justifyContent = 'flex-start';
+
+            const ti = el.querySelector('.sticky-title') as HTMLInputElement;
+            const ta = el.querySelector('.sticky-body') as HTMLTextAreaElement;
+            const header = el.querySelector('.sticky-header') as HTMLElement;
+
+            if (!isRunMode) {
+                // Verhindere Stage-Drag beim Klicken in Inputs, aber erlaube Selektion!
+                ti.onmousedown = (e) => e.stopPropagation();
+                ta.onmousedown = (e) => e.stopPropagation();
+                
+                // Schütze Editor-Shortcuts (Backspace, Delete) beim Tippen
+                const captureKey = (e: KeyboardEvent) => e.stopPropagation();
+                ti.onkeydown = captureKey;
+                ta.onkeydown = captureKey;
+
+                ti.oninput = () => {
+                    obj.title = ti.value; // Local Update for instant feel
+                    if (ctx.host.onEvent) ctx.host.onEvent(obj.id || obj.name, 'propertyChange', { path: 'title', value: ti.value });
+                };
+                ta.oninput = () => {
+                    obj.text = ta.value; // Local Update for instant feel
+                    if (ctx.host.onEvent) ctx.host.onEvent(obj.id || obj.name, 'propertyChange', { path: 'text', value: ta.value });
+                };
+            } else {
+                ti.readOnly = true;
+                ta.readOnly = true;
+                header.style.cursor = 'default';
+            }
+        }
+        
+        const ti = el.querySelector('.sticky-title') as HTMLInputElement;
+        const ta = el.querySelector('.sticky-body') as HTMLTextAreaElement;
+        
+        const titleValue = obj.title !== undefined ? String(obj.title) : 'Notiz';
+        // Aktiviere Sync von außen, WENN der Nutzer NICHT gerade aktiv tippt
+        if (ti && ti.value !== titleValue && document.activeElement !== ti) {
+            ti.value = titleValue;
+        }
+        
+        const textValue = obj.text !== undefined ? String(obj.text) : '';
+        if (ta && ta.value !== textValue && document.activeElement !== ta) {
+            ta.value = textValue;
+        }
+        
+        if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
+        if (obj.style?.color) el.style.color = obj.style.color;
+    }
 }

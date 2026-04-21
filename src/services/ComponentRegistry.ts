@@ -21,6 +21,7 @@ import { TIntervalTimer } from '../components/TIntervalTimer';
 import { TShape } from '../components/TShape';
 import { TTable } from '../components/TTable';
 import { TTextControl } from '../components/TTextControl';
+import { TStickyNote } from '../components/TStickyNote';
 import { TVideo } from '../components/TVideo';
 import { TVariable } from '../components/TVariable';
 import { TTriggerVariable } from '../components/TTriggerVariable';
@@ -121,6 +122,7 @@ export class ComponentRegistry {
         this.register('TShape', TShape);
         this.register('TTable', TTable);
         this.register('TTextControl', TTextControl);
+        this.register('TStickyNote', TStickyNote);
         this.register('TVideo', TVideo);
         this.register('TProgressBar', TProgressBar);
 
@@ -190,6 +192,7 @@ export class ComponentRegistry {
         this.typeMapping.set('Video', 'TVideo');
         this.typeMapping.set('SplashScreen', 'TSplashScreen');
         this.typeMapping.set('Label', 'TLabel');
+        this.typeMapping.set('StickyNote', 'TStickyNote');
         this.typeMapping.set('NumberLabel', 'TNumberLabel');
         this.typeMapping.set('Edit', 'TEdit');
         this.typeMapping.set('SystemInfo', 'TSystemInfo');

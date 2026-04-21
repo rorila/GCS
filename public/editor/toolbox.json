@@ -7,8 +7,13 @@
     "categories": [
         {
             "name": "Standard",
-            "expanded": false,
+            "expanded": true,
             "items": [
+                {
+                    "type": "StickyNote",
+                    "icon": "📌",
+                    "label": "Sticky Note"
+                },
                 {
                     "type": "Panel",
                     "icon": "⬜",

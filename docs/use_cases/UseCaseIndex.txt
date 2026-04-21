@@ -752,3 +752,11 @@ Dateien:
 - src/editor/flow/FlowCommentNode.ts (Zeile 106, 143, 185)
   - propertiesName (Case-Fix): Angleichung von name/width/height an Name/Width/Height.
 Beschreibung: Sticky Notes lassen sich nun nahtlos Ober den Inspector synchron halten und behalten gleichzeitig nativen Eingabefokus beim Klicken.
+Sticky-Notes: TStickyNote (Stage) und FlowCommentNode (Flow) unterstuezten 4 Farbcodes fuer Entwickler-Notizen - src/components/TStickyNote.ts, src/editor/flow/FlowCommentNode.ts, public/editor/toolbox.json
+
+
+## [UseCase: TStickyNote Visuals & Toolbox]
+- \src/components/TStickyNote.ts\ (Zeile 7-77): Titel Property ('title') hinzugefügt, Schatten-Design angepasst.
+- \src/editor/services/renderers/TextObjectRenderer.ts\ (Zeile 235-261): Neue draw-Methode \enderStickyNote\ mit Headline und Body.
+- \src/editor/services/StageRenderer.ts\ (Zeile 729-731): Routing für \TStickyNote\ Klassennamen eingebaut.
+- \public/editor/toolbox.json\ (Zeile 10): \expanded\ auf true gesetzt, damit Anwender StickyNotes sofort sehen.

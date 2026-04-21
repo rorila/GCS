@@ -259,6 +259,32 @@ export class EditorInteractionManager {
                     this.host.autoSaveToLocalStorage();
                 } else if (eventName === 'showStageContextMenu') {
                     this.showStageBackgroundMenu(data.clientX, data.clientY);
+                } else if (eventName === 'propertyChange') {
+                    const obj = (this.host as any).lastRenderedObjects?.find((o: any) => (o.id || o.name) === id) || this.getOriginalObject(id);
+                    if (obj && data && data.path && data.value !== undefined) {
+                        const rawObj = this.host.findObjectById(id);
+                        const mutations: any[] = [];
+                        
+                        // Direkte Mutation für sofortige Responsiveness falls noch nicht passiert
+                        obj[data.path] = data.value;
+                        mutations.push({ type: 'SET_PROPERTY', target: obj, path: data.path, value: data.value });
+                        
+                        if (rawObj && rawObj !== obj) {
+                            rawObj[data.path] = data.value;
+                            mutations.push({ type: 'SET_PROPERTY', target: rawObj, path: data.path, value: data.value });
+                        }
+                        
+                        // Via ProjectStore absichern, damit zB der Inspector benachrichtigt wird
+                        if (this.host.projectStore) {
+                            this.host.projectStore.dispatch({
+                                type: 'BATCH',
+                                label: `Set ${data.path}`,
+                                mutations
+                            });
+                        }
+                        
+                        this.host.autoSaveToLocalStorage();
+                    }
                 }
             }
         };

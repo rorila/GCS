@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "author": "AgentController",
     "description": "Interaktives Tutorial für den Game Builder",
-    "_sourcePath": "projects/project_Tutor_Tutorial.json"
+    "_sourcePath": "C:/Users/rolfr/.gemini/antigravity/scratch/game-builder-v1/projects/project_Tutor_Tutorial.json"
   },
   "variables": [],
   "stages": [
@@ -247,8 +247,8 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "isGlobal": true,
           "description": "System internal flag to track unsaved changes"
         }
