@@ -761,8 +761,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "objectModel": ""
         },
         {
@@ -1050,6 +1050,40 @@
           "showGrid": false,
           "gridColor": "#000000",
           "gridStyle": "lines"
+        },
+        {
+          "className": "TStickyNote",
+          "id": "obj_1776763489703_5kkw34l2i",
+          "name": "StickyNote_27",
+          "scope": "stage",
+          "isHiddenInRun": true,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "title": "Meine Allerbeste Notiz",
+          "noteColor": "yellow",
+          "visible": true,
+          "x": 40,
+          "y": 8,
+          "width": 11,
+          "height": 4,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#333333",
+            "fontSize": 14,
+            "fontFamily": "'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', 'Comic Neue', sans-serif",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "left",
+            "backgroundColor": "#fff59d",
+            "borderColor": "transparent",
+            "borderWidth": 0,
+            "borderRadius": 0,
+            "opacity": 1,
+            "boxShadow": "2px 4px 10px rgba(0,0,0,0.2)"
+          },
+          "text": "BlaBlaBlub"
         }
       ],
       "actions": [
@@ -1885,5 +1919,5 @@
       "startAnimation": "BottomRight"
     }
   ],
-  "activeStageId": "main"
+  "activeStageId": "stage_7444093d-00f9-46a6-a25f-0a1473cb97f2"
 }
