@@ -624,6 +624,7 @@ export class EditorViewManager {
             { id: 'Variables', label: 'Variablen', emoji: '📊' },
             { id: 'FlowCharts', label: 'Ablaufdiagramme', emoji: '🗺️' },
             { id: 'Stages', label: 'Stages', emoji: '🎬' },
+            { id: 'StickyNotes', label: 'Notizen', emoji: '📝' },
             { id: 'Import', label: 'Import', emoji: '📥' }
         ];
 
@@ -644,44 +645,276 @@ export class EditorViewManager {
         const content = document.createElement('div');
         content.className = 'management-content';
 
-        // ─────────────────────────────────────────────
-        // Import-Tab: Custom-Rendering
-        // ─────────────────────────────────────────────
         if (this.selectedManager === 'Import') {
             this.renderImportView(content);
+        } else if (this.selectedManager === 'StickyNotes') {
+            this.renderStickyNotesView(content);
         } else {
-            const stage = this.host.getActiveStage();
+            // Robuster Fallback: Wenn activeStageId null ist (z.B. nach globalem Flow-Kontext),
+            // verwende Blueprint-Stage oder erste verfügbare Stage.
+            const stage = this.host.getActiveStage()
+                || this.host.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint')
+                || this.host.project.stages?.[0];
             if (stage) {
                 const managerList = mediatorService.getManagersForStage(stage.id);
                 const activeManager = managerList.find(m => m.name === this.selectedManager);
 
                 if (activeManager) {
-                    const tableContainer = document.createElement('div');
-                    tableContainer.style.flex = '1';
-                    tableContainer.style.position = 'relative';
-                    content.appendChild(tableContainer);
+                    const listContainer = document.createElement('div');
+                    listContainer.style.flex = '1';
+                    listContainer.style.position = 'relative';
+                    listContainer.style.overflowY = 'auto'; // Scrolling für die Cards
+                    content.appendChild(listContainer);
 
-                    const tableEl = document.createElement('div');
-                    tableEl.id = `mgr-${activeManager.id}`;
-                    tableEl.style.width = '100%';
-                    tableEl.style.height = '100%';
-                    tableContainer.appendChild(tableEl);
+                    const listWrap = document.createElement('div');
+                    listWrap.style.cssText = 'display:flex;flex-direction:column;gap:8px;padding-right:8px;padding-bottom:16px;';
+                    listContainer.appendChild(listWrap);
 
-                    Stage.renderTable(tableEl, activeManager as any, (_, event, data) => {
-                        if (event === 'onSelect' && data) {
-                            this.handleManagerRowClick(this.selectedManager, data.data);
+                    const color = activeManager.style?.backgroundColor || '#89b4fa';
+                    const dataList = activeManager.data || [];
+
+                    if (dataList.length === 0) {
+                        const empty = document.createElement('div');
+                        empty.textContent = 'Keine Einträge gefunden.';
+                        empty.style.cssText = 'color:#888; font-style:italic; padding: 16px; background: #2a2a3e; border-radius: 6px;';
+                        listWrap.appendChild(empty);
+                    }
+
+                    dataList.forEach((row: any) => {
+                        const item = document.createElement('div');
+                        item.style.cssText = `
+                            background: #2a2a3e; border-left: 4px solid ${color}; 
+                            padding: 10px 14px; border-radius: 4px; cursor: pointer; transition: background 0.2s, transform 0.1s;
+                        `;
+                        item.onmouseenter = () => { item.style.background = '#3a3a4e'; item.style.transform = 'translateY(-1px)'; };
+                        item.onmouseleave = () => { item.style.background = '#2a2a3e'; item.style.transform = 'translateY(0)'; };
+                        
+                        const primaryCol = activeManager.columns?.[0];
+                        const primaryText = primaryCol ? row[primaryCol.property] : (row.name || row.id || 'Unbenannt');
+                        
+                        let html = `<div style="font-weight:bold;font-size:13px;color:#fff;margin-bottom:4px;">${this.escapeHtml(String(primaryText))}</div>`;
+                        
+                        if (activeManager.columns && activeManager.columns.length > 1) {
+                            const details = activeManager.columns.slice(1).map((col: any) => {
+                                let val = row[col.property];
+                                if (val === undefined || val === null) val = '';
+                                return `<span style="color:#aaa;">${col.label}:</span> <span style="color:#ccc;">${this.escapeHtml(String(val))}</span>`;
+                            }).join(' &nbsp;|&nbsp; ');
+
+                            if (details) {
+                                html += `<div style="font-size:11px;">${details}</div>`;
+                            }
                         }
+
+                        item.innerHTML = html;
+                        item.onclick = () => this.handleManagerRowClick(this.selectedManager, row);
+                        listWrap.appendChild(item);
                     });
 
                     const title = document.createElement('h2');
                     title.textContent = managers.find(m => m.id === this.selectedManager)?.label || '';
                     title.style.margin = '0 0 1rem 0';
-                    content.insertBefore(title, tableContainer);
+                    content.insertBefore(title, listContainer);
                 }
             }
         }
 
         panel.appendChild(content);
+    }
+
+    /**
+     * Rendert die Notizen-Ansicht: Stage- und Flow-Notizen, gruppiert nach Farben.
+     */
+    private renderStickyNotesView(parent: HTMLElement): void {
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'display:flex;flex-direction:column;gap:16px;padding:16px;height:100%;box-sizing:border-box;overflow-y:auto;';
+
+        const title = document.createElement('h2');
+        title.textContent = '📝 Projekt Notizen-Übersicht';
+        title.style.cssText = 'margin:0;color:#fff;font-size:16px;';
+        wrapper.appendChild(title);
+
+        const hint = document.createElement('div');
+        hint.textContent = 'Klicken Sie auf eine Notiz, um direkt in den jeweiligen Editor und zur Ansicht zu springen.';
+        hint.style.cssText = 'font-size:12px;color:#888;margin-bottom:8px;';
+        wrapper.appendChild(hint);
+
+        // Data collection
+        const stageNotes: any[] = [];
+        const flowNotes: any[] = [];
+
+        const extractFlowNotes = (elements: any[], stageId: string, stageName: string, contextKey: string) => {
+            if (!elements) return;
+            elements.forEach(el => {
+                if (el.type === 'comment') {
+                    const data = (el as any).data || {};
+                    flowNotes.push({
+                        id: el.id,
+                        title: data.name || 'Ohne Titel',
+                        text: data.details || '',
+                        color: data.noteColor || 'yellow',
+                        stageId: stageId,
+                        stageName: stageName,
+                        contextKey: contextKey
+                    });
+                }
+            });
+        };
+
+        const bpStage = this.host.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint' || s.id === 'blueprint');
+        const bpId = bpStage ? bpStage.id : (this.host.project.stages?.[0]?.id || 'stage_blueprint');
+        const bpName = bpStage ? bpStage.name : 'Globale Ebene';
+
+        // 1. Projekt-weite Flow-Notizen (Blueprint)
+        if (this.host.project.flowCharts?.global?.elements) {
+            extractFlowNotes(this.host.project.flowCharts.global.elements, bpId, bpName, 'global');
+        } else if ((this.host.project as any).flow?.elements) {
+            extractFlowNotes((this.host.project as any).flow.elements, bpId, bpName, 'global');
+        }
+
+        if (this.host.project.tasks) {
+            this.host.project.tasks.forEach((t: any) => {
+                if (t.standaloneNodes) extractFlowNotes(t.standaloneNodes, bpId, bpName, t.name);
+            });
+        }
+
+        this.host.project.stages?.forEach(stage => {
+            // Stage Notizen (Visueller Editor)
+            stage.objects?.forEach(obj => {
+                if (obj.className === 'TStickyNote') {
+                    stageNotes.push({
+                        id: obj.id,
+                        title: obj.title || obj.name || 'Ohne Titel',
+                        text: obj.text || '',
+                        color: obj.noteColor || 'yellow',
+                        stageId: stage.id,
+                        stageName: stage.name
+                    });
+                }
+            });
+
+            // Stage Flow-Notizen (Task Standalone Nodes)
+            if (stage.tasks) {
+                stage.tasks.forEach((t: any) => {
+                    if (t.standaloneNodes) {
+                        extractFlowNotes(t.standaloneNodes, stage.id, stage.name, t.name);
+                    }
+                });
+            }
+
+            // Stage Flow-Notizen (FlowCharts Map)
+            if (stage.flowCharts) {
+                Object.keys(stage.flowCharts).forEach(contextKey => {
+                    const flow = stage.flowCharts![contextKey];
+                    extractFlowNotes(flow.elements || [], stage.id, stage.name, contextKey);
+                });
+            }
+        });
+
+        const colorMap: Record<string, { label: string, hex: string }> = {
+            'yellow': { label: 'Information (Gelb)', hex: '#fff9c4' },
+            'green': { label: 'Erfolg/Positiv (Grün)', hex: '#c8e6c9' },
+            'blue': { label: 'Struktur/Neutral (Blau)', hex: '#bbdefb' },
+            'red': { label: 'Achtung/Todo (Rot)', hex: '#ffcdd2' }
+        };
+
+        const renderGroup = (titleText: string, notes: any[], isFlow: boolean) => {
+            if (notes.length === 0) return;
+            const groupWrap = document.createElement('div');
+            groupWrap.style.cssText = 'margin-bottom: 24px;';
+            
+            const groupTitle = document.createElement('h3');
+            groupTitle.textContent = titleText;
+            groupTitle.style.cssText = 'margin: 0 0 12px 0; color: #89b4fa; font-size: 14px; border-bottom: 1px solid #444; padding-bottom: 4px;';
+            groupWrap.appendChild(groupTitle);
+
+            // Group by color
+            const byColor: Record<string, any[]> = {};
+            notes.forEach(n => {
+                const c = n.color || 'yellow';
+                if (!byColor[c]) byColor[c] = [];
+                byColor[c].push(n);
+            });
+
+            Object.keys(colorMap).forEach(colorKey => {
+                const cNotes = byColor[colorKey];
+                if (!cNotes || cNotes.length === 0) return;
+
+                const colTitle = document.createElement('h4');
+                colTitle.textContent = colorMap[colorKey].label;
+                colTitle.style.cssText = `margin: 12px 0 8px 0; color: ${colorMap[colorKey].hex}; font-size: 13px;`;
+                groupWrap.appendChild(colTitle);
+
+                const list = document.createElement('div');
+                list.style.cssText = 'display:flex;flex-direction:column;gap:8px;padding-left:8px;';
+
+                cNotes.forEach(n => {
+                    const item = document.createElement('div');
+                    item.style.cssText = `
+                        background: #2a2a3e; border-left: 4px solid ${colorMap[colorKey].hex}; 
+                        padding: 10px 14px; border-radius: 4px; cursor: pointer; transition: background 0.2s, transform 0.1s;
+                    `;
+                    item.onmouseenter = () => { item.style.background = '#3a3a4e'; item.style.transform = 'translateY(-1px)'; };
+                    item.onmouseleave = () => { item.style.background = '#2a2a3e'; item.style.transform = 'translateY(0)'; };
+
+                    let subtitle = isFlow 
+                        ? `Stage: ${n.stageName} | Diagramm: ${n.contextKey}`
+                        : `Stage: ${n.stageName}`;
+
+                    item.innerHTML = `
+                        <div style="font-weight:bold;font-size:13px;color:#fff;margin-bottom:4px;">${this.escapeHtml(n.title)}</div>
+                        <div style="font-size:11px;color:#aaa;margin-bottom:6px;">${this.escapeHtml(subtitle)}</div>
+                        <div style="font-size:12px;color:#ccc;white-space:pre-wrap;line-height:1.4;">${this.escapeHtml(n.text)}</div>
+                    `;
+
+                    item.onclick = () => {
+                        // Navigiere zum Objekt
+                        this.host.switchStage(n.stageId);
+                        if (isFlow) {
+                            this.switchView('flow');
+                            setTimeout(() => {
+                                if (this.host.flowEditor) {
+                                    this.host.flowEditor.show();
+                                    this.host.flowEditor.switchActionFlow(n.contextKey, true, false);
+                                    // Kurze Verzögerung bis das Flow gerendert wurde
+                                    setTimeout(() => {
+                                        this.host.flowEditor?.selectNodeById(n.id);
+                                    }, 100);
+                                }
+                            }, 50);
+                        } else {
+                            this.switchView('stage');
+                            setTimeout(() => {
+                                this.host.selectObject(n.id, true);
+                            }, 50);
+                        }
+                    };
+
+                    list.appendChild(item);
+                });
+                groupWrap.appendChild(list);
+            });
+
+            wrapper.appendChild(groupWrap);
+        };
+
+        if (stageNotes.length === 0 && flowNotes.length === 0) {
+            const empty = document.createElement('div');
+            empty.textContent = 'Keine Notizen im Projekt gefunden.';
+            empty.style.cssText = 'color:#888; font-style:italic; padding: 16px; background: #2a2a3e; border-radius: 6px;';
+            wrapper.appendChild(empty);
+        } else {
+            renderGroup('📌 Notizen im Visual Editor', stageNotes, false);
+            renderGroup('🗺️ Notizen in Flow-Diagrammen', flowNotes, true);
+        }
+
+        parent.appendChild(wrapper);
+    }
+
+    private escapeHtml(str: string): string {
+        const div = document.createElement('div');
+        div.innerText = str;
+        return div.innerHTML;
     }
 
     /**
@@ -861,20 +1094,20 @@ export class EditorViewManager {
     private handleManagerRowClick(managerId: string, row: any) {
         const h = this.host;
 
-        if (managerId === 'VisualObjects') {
-            // Objekt auf der Stage selektieren und dorthin wechseln
-            h.selectObject(row.id, true);
-            h.switchView('stage');
-        } else if (managerId === 'Variables') {
-            // Variable selektieren (öffnet den Variablen-Inspektor)
-            h.selectObject(row.id, true);
-            h.switchView('stage');
-        } else if (managerId === 'Tasks' || managerId === 'Actions' || managerId === 'FlowCharts') {
-            // Zum Flow-Editor wechseln und den entsprechenden Task/Aktion/Flow laden
+        if (managerId === 'Tasks' || managerId === 'FlowCharts') {
+            // Zum Flow-Editor wechseln und den entsprechenden Task/Flow laden
             h.switchView('flow');
             if (h.flowEditor && row.name) {
                 h.flowEditor.switchActionFlow(row.name);
             }
+        } else if (managerId === 'VisualObjects') {
+            // Visuelles Objekt auf der Stage selektieren und dorthin wechseln
+            h.selectObject(row.id, true);
+            h.switchView('stage');
+        } else if (managerId === 'Actions' || managerId === 'Variables') {
+            // Actions/Variablen sind keine visuellen Stage-Objekte.
+            // Nur im Inspector anzeigen, KEIN switchView um Seiteneffekte zu vermeiden.
+            h.selectObject(row.id || row.name, true);
         } else if (managerId === 'Stages') {
             // Zu einer anderen Stage wechseln
             if (row.id && (h as any).switchStage) {

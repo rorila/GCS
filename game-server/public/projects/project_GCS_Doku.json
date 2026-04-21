@@ -634,6 +634,8 @@
             {
               "name": "ToggleTheReferenceDlg",
               "type": "action",
+              "scope": "global",
+              "sourceStage": "blueprint",
               "layout": "horizontal"
             }
           ],
@@ -759,8 +761,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         },
         {

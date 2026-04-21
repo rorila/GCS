@@ -382,3 +382,7 @@ pm run bundle:runtime\ ausgefï¿½hrt werden, damit deine Code-Fixes auch im IFram
 - **DO NOT** Objekte aus GameRuntime.getObjects() mutieren. getObjects() gibt Spread-Kopien (`{ ...obj }`) zurueck — Mutationen werden vom PropertyWatcher nicht registriert.
 - **IMMER** GameRuntime.getRawObject(id) verwenden wenn ein Objekt-Property aus der UI geaendert werden soll (z.B. close-Button setzt visible=false).
 - **KRITISCH (EditorRunManager)**: runStage.runtime = this.runtime MUSS nach `new GameRuntime()` gesetzt werden. Vorher ist this.runtime = null und ctx.host.runtime = undefined in allen Renderern.
+
+### Manager-Tab (EditorViewManager)
+- **DO NOT**: `coreStore.activeStageId` als zuverlaessig voraussetzen. `FlowEditor.switchActionFlow()` setzt diesen Wert bei globalem Task-Kontext auf `null`. Code der `getActiveStage()` nutzt MUSS immer einen Fallback implementieren: `this.host.getActiveStage() || blueprintStage || stages[0]`.
+- **DO NOT**: In `handleManagerRowClick` fuer Actions/Variables `switchView('stage')` aufrufen. Diese sind keine visuellen Stage-Objekte. Der View-Wechsel loest einen Sync-Zyklus aus, der bei gleichnamigen Actions zu Datenverlust fuehrt.

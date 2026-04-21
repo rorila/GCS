@@ -247,10 +247,13 @@
           "id": "var_isProjectChangeAvailable",
           "name": "isProjectChangeAvailable",
           "type": "boolean",
-          "defaultValue": true,
-          "value": true,
+          "defaultValue": false,
+          "value": false,
           "isGlobal": true,
-          "description": "System internal flag to track unsaved changes"
+          "description": "System internal flag to track unsaved changes",
+          "uiScope": "stage",
+          "uiEmoji": "🎭",
+          "usageCount": 0
         }
       ],
       "flowCharts": {},
@@ -1284,17 +1287,7 @@
           "description": "",
           "actionSequence": [
             {
-              "name": "action",
-              "type": "action",
-              "layout": "horizontal"
-            },
-            {
-              "name": "action",
-              "type": "action",
-              "layout": "horizontal"
-            },
-            {
-              "name": "action",
+              "name": "actionBla",
               "type": "action",
               "layout": "horizontal"
             }
@@ -1306,7 +1299,15 @@
               "x": 40,
               "y": 40
             },
-            "action": {
+            "actionBla": {
+              "x": 220,
+              "y": 40
+            },
+            "actionBlub": {
+              "x": 400,
+              "y": 40
+            },
+            "actionBlaBlub": {
               "x": 580,
               "y": 40
             },
@@ -1321,13 +1322,13 @@
               "type": "comment",
               "x": 1060,
               "y": 40,
-              "width": 425,
-              "height": 194,
+              "width": 420,
+              "height": 200,
               "properties": {
                 "name": "Das ist eine neue Notiz",
                 "details": "",
                 "description": "",
-                "text": "Das ist eine neue Notiz"
+                "text": ""
               },
               "data": {
                 "name": "Das ist eine neue Notiz"
@@ -1339,7 +1340,7 @@
       "actions": [
         {
           "id": "node-1776586596024",
-          "name": "action",
+          "name": "actionBla",
           "type": "property",
           "showDetails": false
         }
@@ -1360,26 +1361,7 @@
   "actions": [],
   "objects": [],
   "flow": {
-    "elements": [
-      {
-        "id": "node-1776696669300",
-        "type": "comment",
-        "x": 400,
-        "y": 300,
-        "width": 200,
-        "height": 120,
-        "properties": {
-          "name": "",
-          "details": "",
-          "description": "",
-          "text": ""
-        },
-        "data": {
-          "noteColor": "red",
-          "showDetails": true
-        }
-      }
-    ],
+    "elements": [],
     "connections": []
   },
   "activeStageId": "stage_raster"
