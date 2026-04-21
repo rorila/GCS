@@ -177,8 +177,8 @@ export class MediatorService {
                 { property: 'uiScope', label: 'Scope', width: '80px' }
             ]),
             this.createConfiguredManager('Stages', 50, 0, '#4caf50', [
-                { property: 'id', label: 'ID', width: '120px' },
                 { property: 'name', label: 'Name', width: '180px' },
+                { property: 'id', label: 'ID', width: '120px' },
                 { property: 'type', label: 'Typ', width: '100px' },
                 { property: 'objectCount', label: 'Objekte', width: '70px' }
             ])

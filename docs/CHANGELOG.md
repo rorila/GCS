@@ -8,7 +8,7 @@
 ## [Unreleased]
 
 ### ✨ Features & UI
-- **Manager-Tab (Redesign)**: Das Listen-Design im Manager-Tab (Tasks, Actions, Variablen, FlowCharts, Stages) wurde komplett modernisiert. Anstelle von reinen HTML-Tabellen werden die Elemente nun als interaktive Cards im "Notizen"-Design gerendert (mit Farb-Akzenten, Hover-Animationen und übersichtlicherem Spalten-Layout).
+- **Manager-Tab (Redesign)**: Das Listen-Design im Manager-Tab (Tasks, Actions, Variablen, FlowCharts, Stages) wurde komplett modernisiert. Anstelle von reinen HTML-Tabellen werden die Elemente nun als interaktive Cards im "Notizen"-Design gerendert (mit Farb-Akzenten, Hover-Animationen und übersichtlicherem Spalten-Layout). Zusätzlich zeigen alle UI-Cards nun direkt in der ersten Zeile unter dem Namen ihren exakten Standort an (📍 Globale Ebene, Stage, Lokal oder System-Bibliothek).
 
 ### 🐛 Bug Fixes
 - **Manager-Tab (Ablaufdiagramme)**: Behebung eines Fehlers, der dazu führte, dass die Liste der Ablaufdiagramme leer blieb. Nach der internen Migration (FlowCharts zu Tasks `flowLayout`) liefert `MediatorService.getFlowCharts()` nun wieder alle regulären Tasks als Ablaufdiagramme aus.

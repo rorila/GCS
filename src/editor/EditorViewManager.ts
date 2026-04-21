@@ -694,6 +694,17 @@ export class EditorViewManager {
                         
                         let html = `<div style="font-weight:bold;font-size:13px;color:#fff;margin-bottom:4px;">${this.escapeHtml(String(primaryText))}</div>`;
                         
+                        // Standort (Stage/Blueprint Info) extrahieren
+                        let locationText = '';
+                        if (row.uiScope === 'global') locationText = 'Globale Ebene (Blueprint)';
+                        else if (row.uiScope === 'stage') locationText = `Stage: ${stage.name || stage.id}`;
+                        else if (row.uiScope === 'local') locationText = 'Lokal (im Task/Action)';
+                        else if (row.uiScope === 'library') locationText = 'System-Bibliothek';
+                        
+                        if (locationText) {
+                            html += `<div style="font-size:11px;color:#99aab5;margin-bottom:6px;">📍 ${this.escapeHtml(locationText)}</div>`;
+                        }
+                        
                         if (activeManager.columns && activeManager.columns.length > 1) {
                             const details = activeManager.columns.slice(1).map((col: any) => {
                                 let val = row[col.property];
