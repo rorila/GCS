@@ -2,7 +2,7 @@
 
 Stell dir vor: Du spielst nicht nur ein Computerspiel, sondern erschaffst **dein eigenes**. Du bist der Boss, der Regisseur und der Erfinder! Genau dafür ist unser Game Builder da.
 
-Der Game Builder (wir nennen ihn manchmal GCS, was für *Game Creation System* steht) ist wie ein riesiger digitaler Lego-Baukasten. Anstatt komplizierte Programmiercodes zu tippen, klickst, ziehst und verbindest du einfach verschiedene Bausteine, um dein Spiel zum Leben zu erwecken.
+Der Game Builder (wir nennen ihn manchmal GCS, was für *Game Creation System* steht) ist wie ein riesiger digitaler Baukasten. Anstatt komplizierte Programmiercodes zu tippen, klickst, ziehst und verbindest du einfach verschiedene Bausteine, um dein Spiel zum Leben zu erwecken.
 
 Hier erfährst du, wie deine Spiele-Fabrik aufgebaut ist!
 
