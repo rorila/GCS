@@ -29,10 +29,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
-    "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/cli": "^2.10.1",
-    "@tauri-apps/plugin-dialog": "^2.7.0",
-    "@tauri-apps/plugin-fs": "^2.5.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.1",
     "concurrently": "^8.2.2",
@@ -51,7 +48,10 @@
     "express": "^5.2.1",
     "fflate": "^0.8.2",
     "jsep": "^1.4.0",
-    "mermaid": "^11.12.2"
+    "mermaid": "^11.12.2",
+    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-dialog": "^2.7.0",
+    "@tauri-apps/plugin-fs": "^2.5.0"
   },
   "build": {
     "appId": "com.gamebuilder.app",

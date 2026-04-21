@@ -35,7 +35,11 @@
       "max.png",
       "wiebke.png"
     ],
+    "GameToolbox/tauriIcon": [
+      "GameBuilderLogo.png"
+    ],
     "GameToolbox": [
+      "GameBuilder Logo 1024x1024.jpg",
       "Icon GameToolbox 512.ico",
       "Icon GameToolbox.png",
       "Logo GameToolbox.png"
