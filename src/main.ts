@@ -1,5 +1,8 @@
 import './style.css'
 
+// 0. Initialize Tauri FS Adapter early
+import { installTauriFSAdapter } from './utils/TauriFSAdapter';
+installTauriFSAdapter();
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div id="app-layout">
     <!-- Menu Bar -->

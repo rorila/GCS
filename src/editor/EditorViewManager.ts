@@ -9,7 +9,6 @@ import { PascalGenerator } from './PascalGenerator';
 import { PascalHighlighter } from './PascalHighlighter';
 import { safeDeepCopy } from '../utils/DeepCopy';
 import { mediatorService } from '../services/MediatorService';
-import { Stage } from './Stage';
 import { MediatorEvents } from '../services/MediatorService';
 import { JSONTreeViewer } from './JSONTreeViewer';
 import { GameExporter } from '../export/GameExporter';

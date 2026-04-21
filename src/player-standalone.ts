@@ -8,6 +8,10 @@ import { GameLoopManager } from './runtime/GameLoopManager';
 import { AnimationManager } from './runtime/AnimationManager';
 import { Logger } from './utils/Logger';
 
+// 0. Initialize Tauri FS Adapter early
+import { installTauriFSAdapter } from './utils/TauriFSAdapter';
+installTauriFSAdapter();
+
 const logger = Logger.get('UniversalPlayer', 'Runtime_Execution');
 // HeadlessRuntime and HeadlessServer are Node.js-only (use express)
 // They should NOT be imported in the browser bundle

@@ -23,10 +23,16 @@
     "clean:electron": "node scripts/clean_electron_cache.cjs",
     "dev:electron": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "dev:electron:clean": "npm run clean:vite && npm run clean:electron && npm run dev:electron",
-    "build:electron": "npm run build && electron-builder"
+    "build:electron": "npm run build && electron-builder",
+    "tauri:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && tauri dev\"",
+    "tauri:build": "npm run build && tauri build"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/cli": "^2.10.1",
+    "@tauri-apps/plugin-dialog": "^2.7.0",
+    "@tauri-apps/plugin-fs": "^2.5.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.1",
     "concurrently": "^8.2.2",
