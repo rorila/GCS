@@ -40,6 +40,33 @@ class VariableRegistry {
             else visibleVars.push(bv);
         });
 
+        // 1b. Variable-Objekte aus stage.objects[] einsammeln
+        // Variablen können sowohl in stage.variables[] als auch in stage.objects[]
+        // abgelegt sein (z.B. wenn via Drag & Drop oder addObject() erzeugt).
+        const VARIABLE_CLASSNAMES = new Set([
+            'TVariable', 'TIntegerVariable', 'TBooleanVariable', 'TStringVariable',
+            'TRealVariable', 'TObjectVariable', 'TListVariable', 'TRandomVariable',
+            'TTimerVariable', 'TTriggerVariable', 'TThresholdVariable', 'TRangeVariable',
+            'TStringMap'
+        ]);
+        const allStages = project.stages || [];
+        for (const stage of allStages) {
+            if (!stage.objects) continue;
+            const isBlueprint = stage.type === 'blueprint';
+            for (const obj of stage.objects) {
+                const cn = (obj as any).className;
+                if (!cn || !VARIABLE_CLASSNAMES.has(cn)) continue;
+                // Nur hinzufügen wenn noch kein Eintrag mit gleichem Namen existiert
+                const alreadyExists = visibleVars.some(v => v.name === obj.name);
+                if (!alreadyExists) {
+                    const sv = obj as ScopedVariable;
+                    sv.uiScope = isBlueprint ? 'global' : 'stage';
+                    sv.uiEmoji = isBlueprint ? '🌎' : '🎭';
+                    visibleVars.push(sv);
+                }
+            }
+        }
+
         // 2. Stage variables
         if (coreStore.activeStageId && project.stages) {
             const activeStage = project.stages.find(s => s.id === coreStore.activeStageId);

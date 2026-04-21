@@ -306,7 +306,24 @@ export class MediatorService {
                 });
             }
         }
-        return charts;
+
+        // Tasks als Ablaufdiagramme integrieren
+        // Seit der Migration (flowGraph -> flowLayout) ist JEDER Task faktisch ein Ablaufdiagramm.
+        const tasks = projectTaskRegistry.getTasks(stageId);
+        tasks.forEach(task => {
+            const nodeCount = task.flowLayout 
+                ? Object.keys(task.flowLayout).length 
+                : (task.actionSequence?.length || 0) + 1; // +1 für Start-Node
+                
+            charts.push({
+                name: task.name,
+                uiScope: (task as any).uiScope || 'stage',
+                nodeCount: nodeCount
+            });
+        });
+
+        // Deduplication (sicherstellen, dass keine Diagramme doppelt aufgeführt werden)
+        return Array.from(new Map(charts.map(c => [c.name, c])).values());
     }
 
     public getStages(): { id: string, name: string, type: string, objectCount: number }[] {
