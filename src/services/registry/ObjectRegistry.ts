@@ -41,14 +41,25 @@ class ObjectRegistry {
                 if (stage.id === coreStore.activeStageId) return;
 
                 const isStageBlueprint = stage.type === 'blueprint' || stage.id === 'stage_blueprint' || stage.id === 'blueprint';
-                const stageGlobals = [
-                    ...(stage.objects || []).filter((obj: any) => (obj as any).scope === 'global' || isService(obj) || isStageBlueprint),
-                    ...(stage.variables || []).filter((v: any) => (v as any).scope === 'global' || isStageBlueprint) as unknown as ComponentData[]
-                ];
+                
+                let stageItemsToInclude: any[];
 
-                stageGlobals.forEach((obj: any) => {
+                if (scopeFilter === 'all') {
+                    stageItemsToInclude = [
+                        ...(stage.objects || []).map((o: any) => ({ ...o, uiScope: isStageBlueprint ? 'global' : `stage: ${stage.name || stage.id}` })),
+                        ...(stage.variables || []).map((v: any) => ({ ...v, uiScope: isStageBlueprint ? 'global' : `stage: ${stage.name || stage.id}` })) as unknown as ComponentData[]
+                    ];
+                } else {
+                    stageItemsToInclude = [
+                        ...(stage.objects || []).filter((obj: any) => (obj as any).scope === 'global' || isService(obj) || isStageBlueprint),
+                        ...(stage.variables || []).filter((v: any) => (v as any).scope === 'global' || isStageBlueprint) as unknown as ComponentData[]
+                    ];
+                }
+
+                stageItemsToInclude.forEach((obj: any) => {
                     if (!objectIds.has(obj.id)) {
-                        const inheritedObj = { ...obj, isInherited: true };
+                        // isInherited nur setzen, wenn wir nicht den Gesamtüberblick anfordern
+                        const inheritedObj = scopeFilter === 'all' ? obj : { ...obj, isInherited: true };
                         allObjects.push(inheritedObj);
                         objectIds.add(obj.id);
                     }
@@ -56,10 +67,10 @@ class ObjectRegistry {
             });
 
             if (scopeFilter === 'stage-only') {
-                const activeStage = project.stages.find((s: any) => s.id === coreStore.activeStageId);
+                const actStage = project.stages.find((s: any) => s.id === coreStore.activeStageId);
                 return [
-                    ...(activeStage?.objects || []),
-                    ...(activeStage?.variables || []) as unknown as ComponentData[]
+                    ...(actStage?.objects || []),
+                    ...(actStage?.variables || []) as unknown as ComponentData[]
                 ].filter(o => o.name);
             }
         }

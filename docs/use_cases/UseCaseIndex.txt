@@ -1,4 +1,18 @@
-﻿[UC-2026-04-19-Security-Hardening-P4]
+[UC-2026-04-21-Manager-Tab-Scope-Umschalter]
+Dateien:
+- src/editor/EditorViewManager.ts
+  - Methode `renderManagementView`: Einbau eines Dropdown-Umschalters (Aktuelle Stage / Gesamtes Projekt), Zustand `useStageIsolatedView` an `getManagersForStage` weitergereicht.
+- src/services/MediatorService.ts
+  - Methode `getManagersForStage` und `refreshManagerData`: Parameter `isIsolated` hinzugefügt und an die Registries weitergeleitet.
+  - Methode `getFlowCharts`: Rekursions-Logik angepasst, um alle Stages im Projekt zu scannen, wenn isIsolated=false.
+- src/services/registry/ObjectRegistry.ts
+  - Methode `getObjects`: Sammelt Objekte aller Stages inkl. `uiScope = stage: {name}`, wenn filter = 'all'.
+- src/services/registry/VariableRegistry.ts
+  - Methode `getVariables`: Durchsucht alle Stages, kombiniert Variablen-Iteratoren und markiert Herkunft.
+- src/services/registry/RegistryTypes.ts
+  - Type `ScopedVariable`, `ScopedObject`, `ScopedTask`, `ScopedAction`: `uiScope` um `(string & {})` für dynamische Stage-Labels ergänzt.
+
+[UC-2026-04-19-Security-Hardening-P4]
 Dateien:
 - src/editor/dialogs/utils/DialogExpressionEvaluator.ts
   - Methoden `evaluateExpression` & `replaceTemplateVars`: S-02 (RCE Risiko) behoben durch Ersatz von `new Function()` mit AST-basierter Evaluation über `ExpressionParser.interpolate`.

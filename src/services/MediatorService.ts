@@ -128,15 +128,16 @@ export class MediatorService {
     /**
      * Gibt die transienten Manager-Listen für eine Stage zurück (Lazy Initialisierung).
      */
-    public getManagersForStage(stageId: string): TObjectList[] {
-        if (this.transientManagers.has(stageId)) {
-            const existing = this.transientManagers.get(stageId)!;
+    public getManagersForStage(stageId: string, isIsolated: boolean = true): TObjectList[] {
+        const cacheKey = `${stageId}_${isIsolated}`;
+        if (this.transientManagers.has(cacheKey)) {
+            const existing = this.transientManagers.get(cacheKey)!;
             // Daten aktualisieren
-            this.refreshManagerData(stageId, existing);
+            this.refreshManagerData(stageId, existing, isIsolated);
             return existing;
         }
 
-        this.logger.info(`Erzeuge transiente Manager-Listen für Stage: ${stageId}`);
+        this.logger.info(`Erzeuge transiente Manager-Listen für Stage: ${stageId} (isolated: ${isIsolated})`);
 
         const managers: TObjectList[] = [
             this.createConfiguredManager('VisualObjects', 0, 0, '#009688', [
@@ -184,8 +185,8 @@ export class MediatorService {
             ])
         ];
 
-        this.refreshManagerData(stageId, managers);
-        this.transientManagers.set(stageId, managers);
+        this.refreshManagerData(stageId, managers, isIsolated);
+        this.transientManagers.set(cacheKey, managers);
         return managers;
     }
 
@@ -195,13 +196,13 @@ export class MediatorService {
         return mgr;
     }
 
-    public refreshManagerData(stageId: string, managers: TObjectList[]): void {
+    public refreshManagerData(stageId: string, managers: TObjectList[], isIsolated: boolean = true): void {
         managers.forEach(mgr => {
-            if (mgr.name === 'VisualObjects') mgr.data = this.getVisualObjects(stageId);
-            else if (mgr.name === 'Tasks') mgr.data = this.getTasks(stageId);
-            else if (mgr.name === 'Actions') mgr.data = this.getActions(stageId);
-            else if (mgr.name === 'Variables') mgr.data = this.getVariables(stageId);
-            else if (mgr.name === 'FlowCharts') mgr.data = this.getFlowCharts(stageId);
+            if (mgr.name === 'VisualObjects') mgr.data = this.getVisualObjects(stageId, isIsolated);
+            else if (mgr.name === 'Tasks') mgr.data = this.getTasks(stageId, isIsolated);
+            else if (mgr.name === 'Actions') mgr.data = this.getActions(stageId, isIsolated);
+            else if (mgr.name === 'Variables') mgr.data = this.getVariables(stageId, isIsolated);
+            else if (mgr.name === 'FlowCharts') mgr.data = this.getFlowCharts(stageId, isIsolated);
             else if (mgr.name === 'Stages') mgr.data = this.getStages();
         });
     }
@@ -223,8 +224,8 @@ export class MediatorService {
     /**
      * Hilfsmethode: Liefert alle visuellen Objekte (Lokale + Globale) für eine Stage.
      */
-    public getVisualObjects(_stageId: string): (ComponentData & { uiScope: string })[] {
-        const objs = projectObjectRegistry.getObjects();
+    public getVisualObjects(_stageId: string, isIsolated: boolean = true): (ComponentData & { uiScope: string })[] {
+        const objs = projectObjectRegistry.getObjects(isIsolated ? undefined : 'all');
         const project = coreStore.project;
 
         return objs.map(obj => {
@@ -239,8 +240,8 @@ export class MediatorService {
     /**
      * Hilfsmethode: Liefert alle Tasks für eine Stage.
      */
-    public getTasks(stageId: string): (GameTask & { usageCount: number, uiScope: string })[] {
-        const tasks = projectTaskRegistry.getTasks(stageId);
+    public getTasks(stageId: string, isIsolated: boolean = true): (GameTask & { usageCount: number, uiScope: string })[] {
+        const tasks = projectTaskRegistry.getTasks(isIsolated ? stageId : 'all');
         return tasks.map(task => ({
             ...task,
             usageCount: projectReferenceTracker.getTaskUsage(task.name).length,
@@ -252,8 +253,8 @@ export class MediatorService {
         });
     }
 
-    public getActions(stageId: string): (GameAction & { usageCount: number, uiScope: string, changesDisplay: string })[] {
-        const actions = projectActionRegistry.getActions(stageId);
+    public getActions(stageId: string, isIsolated: boolean = true): (GameAction & { usageCount: number, uiScope: string, changesDisplay: string })[] {
+        const actions = projectActionRegistry.getActions(isIsolated ? stageId : 'all');
         return actions.map(action => {
             const anyAction = action as any;
             return {
@@ -266,9 +267,9 @@ export class MediatorService {
         });
     }
 
-    public getVariables(stageId: string): (ProjectVariable & { usageCount: number, uiScope: string })[] {
+    public getVariables(stageId: string, isIsolated: boolean = true): (ProjectVariable & { usageCount: number, uiScope: string })[] {
         if (!stageId) return [];
-        const vars = projectVariableRegistry.getVariables() as ProjectVariable[];
+        const vars = projectVariableRegistry.getVariables(undefined, true, isIsolated ? undefined : 'all') as ProjectVariable[];
         return vars.map(v => ({
             ...v,
             usageCount: projectReferenceTracker.getVariableUsage(v.name).length,
@@ -276,7 +277,7 @@ export class MediatorService {
         }));
     }
 
-    public getFlowCharts(stageId: string): { name: string, uiScope: string, nodeCount: number }[] {
+    public getFlowCharts(stageId: string, isIsolated: boolean = true): { name: string, uiScope: string, nodeCount: number }[] {
         const project = coreStore.project;
         if (!project) return [];
 
@@ -294,22 +295,24 @@ export class MediatorService {
         }
         // Stage Charts
         if (project.stages) {
-            const stage = project.stages.find((s: any) => s.id === stageId);
-            if (stage && stage.flowCharts) {
-                Object.keys(stage.flowCharts).forEach(name => {
-                    const data = stage.flowCharts![name];
-                    charts.push({
-                        name,
-                        uiScope: 'stage',
-                        nodeCount: data.elements?.length || 0
+            const stagesToProcess = isIsolated ? [project.stages.find((s: any) => s.id === stageId)].filter(Boolean) : project.stages;
+            stagesToProcess.forEach((stage: any) => {
+                if (stage && stage.flowCharts) {
+                    Object.keys(stage.flowCharts).forEach(name => {
+                        const data = stage.flowCharts![name];
+                        charts.push({
+                            name,
+                            uiScope: isIsolated ? 'stage' : `stage: ${stage.name || stage.id}`,
+                            nodeCount: data.elements?.length || 0
+                        });
                     });
-                });
-            }
+                }
+            });
         }
 
         // Tasks als Ablaufdiagramme integrieren
         // Seit der Migration (flowGraph -> flowLayout) ist JEDER Task faktisch ein Ablaufdiagramm.
-        const tasks = projectTaskRegistry.getTasks(stageId);
+        const tasks = projectTaskRegistry.getTasks(isIsolated ? stageId : 'all');
         tasks.forEach(task => {
             const nodeCount = task.flowLayout 
                 ? Object.keys(task.flowLayout).length 

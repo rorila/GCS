@@ -68,27 +68,35 @@ class VariableRegistry {
         }
 
         // 2. Stage variables
-        if (coreStore.activeStageId && project.stages) {
-            const activeStage = project.stages.find(s => s.id === coreStore.activeStageId);
-            if (activeStage && activeStage.variables) {
-                const isBlueprint = activeStage.type === 'blueprint';
-                const stageVars = activeStage.variables
-                    .filter(v => !isBlueprint || String(v.scope || '').toLowerCase() !== 'global')
-                    .map(v => {
-                        const sv = v as ScopedVariable;
-                        sv.uiScope = 'stage';
-                        sv.uiEmoji = '🎭';
-                        return sv;
-                    });
+        if (project.stages) {
+            const stagesToProcess = (scopeFilter === 'all') 
+                ? project.stages 
+                : (coreStore.activeStageId ? [project.stages.find(s => s.id === coreStore.activeStageId)].filter(Boolean) : []);
 
-                stageVars.forEach(sv => {
-                    const existingGlobalIndex = visibleVars.findIndex(ev => ev.id === sv.id && ev.uiScope === 'global');
-                    if (existingGlobalIndex === -1) {
-                        visibleVars.push(sv);
-                    } else {
-                        coreStore.logger.warn(`Suppressing stage-local duplicate of global variable: ${sv.name} (${sv.id})`);
-                    }
-                });
+            for (const stage of stagesToProcess as any[]) {
+                if (stage && stage.variables) {
+                    const isBlueprint = stage.type === 'blueprint';
+                    const stageVars = stage.variables
+                        .filter((v: any) => !isBlueprint || String(v.scope || '').toLowerCase() !== 'global')
+                        .map((v: any) => {
+                            const sv = v as ScopedVariable;
+                            // Scope genauer benennen wenn alle Stages, ansonsten einfach 'stage'
+                            sv.uiScope = (scopeFilter === 'all' && !isBlueprint) ? `stage: ${stage.name || stage.id}` : 'stage';
+                            sv.uiEmoji = '🎭';
+                            return sv;
+                        });
+
+                    stageVars.forEach((sv: any) => {
+                        const existingGlobalIndex = visibleVars.findIndex(ev => ev.id === sv.id && ev.uiScope === 'global');
+                        // In der Gesamtansicht ignorieren wir keine stage-lokalen Variablen, selbst wenn gleichnamig,
+                        // außer sie haben exakt die selbe ID und sind global markiert (wie die Blueprint-Vars oben).
+                        if (existingGlobalIndex === -1) {
+                            visibleVars.push(sv);
+                        } else if (scopeFilter !== 'all') {
+                            coreStore.logger.warn(`Suppressing stage-local duplicate of global variable: ${sv.name} (${sv.id})`);
+                        }
+                    });
+                }
             }
         }
 

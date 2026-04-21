@@ -8,8 +8,8 @@
 ## [Unreleased]
 
 ### ✨ Features & UI
-- **Manager-Tab (Redesign)**: Das Listen-Design im Manager-Tab (Tasks, Actions, Variablen, FlowCharts, Stages) wurde komplett modernisiert. Anstelle von reinen HTML-Tabellen werden die Elemente nun als interaktive Cards im "Notizen"-Design gerendert (mit Farb-Akzenten, Hover-Animationen und übersichtlicherem Spalten-Layout). Zusätzlich zeigen alle UI-Cards nun direkt in der ersten Zeile unter dem Namen ihren exakten Standort an (📍 Globale Ebene, Stage, Lokal oder System-Bibliothek).
-
+- **Manager-Tab (Scope-Umschalter)**: Die Manager-Ansichten (Tasks, Aktionen, Variablen, Ablaufdiagramme, Visuelle Objekte) verfÃƒÂ¼gen nun ÃƒÂ¼ber ein neu integriertes Dropdown-MenÃƒÂ¼ im Header. Nutzer kÃƒÂ¶nnen flexibel zwischen der "Aktuelle Stage"-Ansicht und dem gesamten "Projekt"-Scope umschalten. Dies ermÃƒÂ¶glicht einen globalen ÃƒÅ“berblick ÃƒÂ¼ber alle Projektressourcen, inklusive intelligenter Standort-Kennzeichnung (📍 Stage: xyz) fÃƒÂ¼r dezentrale Elemente.
+- **Manager-Tab (Redesign)**: Das Listen-Design im Manager-Tab (Tasks, Actions, Variablen, FlowCharts, Stages) wurde komplett modernisiert. Anstelle von reinen HTML-Tabellen werden die Elemente nun als interaktive Cards im "Notizen"-Design gerendert (mit Farb-Akzenten, Hover-Animationen und ÃƒÂ¼bersichtlicherem Spalten-Layout). ZusÃƒÂ¤tzlich zeigen alle UI-Cards nun direkt in der ersten Zeile unter dem Namen ihren exakten Standort an (📍 Globale Ebene, Stage, Lokal oder System-Bibliothek).
 ### 🐛 Bug Fixes
 - **Manager-Tab (Ablaufdiagramme)**: Behebung eines Fehlers, der dazu führte, dass die Liste der Ablaufdiagramme leer blieb. Nach der internen Migration (FlowCharts zu Tasks `flowLayout`) liefert `MediatorService.getFlowCharts()` nun wieder alle regulären Tasks als Ablaufdiagramme aus.
 - **Manager-Tab (Variablen)**: `VariableRegistry` durchsucht nun neben `stage.variables[]` auch erzeugte visuelle Objekte in `stage.objects[]` nach Variablen (Option A aus Implementation Plan), wodurch Blueprint-platzierte Variablen im Manager wieder korrekt gelistet werden.

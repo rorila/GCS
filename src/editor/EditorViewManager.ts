@@ -655,10 +655,42 @@ export class EditorViewManager {
                 || this.host.project.stages?.find(s => s.type === 'blueprint' || s.id === 'stage_blueprint')
                 || this.host.project.stages?.[0];
             if (stage) {
-                const managerList = mediatorService.getManagersForStage(stage.id);
+                const managerList = mediatorService.getManagersForStage(stage.id, this.useStageIsolatedView);
                 const activeManager = managerList.find(m => m.name === this.selectedManager);
 
                 if (activeManager) {
+                    const headerRow = document.createElement('div');
+                    headerRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;';
+                    
+                    const title = document.createElement('h2');
+                    title.textContent = managers.find(m => m.id === this.selectedManager)?.label || '';
+                    title.style.margin = '0';
+                    headerRow.appendChild(title);
+
+                    const sourceSelect = document.createElement('select');
+                    sourceSelect.style.cssText = `background: #2d2d2d; border: 1px solid #3a3a3a; color: #fff; padding: 4px; border-radius: 4px; outline: none; cursor: pointer;`;
+                    
+                    const optStage = document.createElement('option');
+                    optStage.value = 'stage';
+                    optStage.textContent = `Stage: ${stage.name || stage.id}`;
+                    optStage.selected = this.useStageIsolatedView;
+
+                    const optAll = document.createElement('option');
+                    optAll.value = 'project';
+                    optAll.textContent = 'Gesamtes Projekt';
+                    optAll.selected = !this.useStageIsolatedView;
+
+                    sourceSelect.appendChild(optStage);
+                    sourceSelect.appendChild(optAll);
+
+                    sourceSelect.onchange = () => {
+                        this.useStageIsolatedView = sourceSelect.value === 'stage';
+                        this.renderManagementView(panel);
+                    };
+                    
+                    headerRow.appendChild(sourceSelect);
+                    content.appendChild(headerRow);
+
                     const listContainer = document.createElement('div');
                     listContainer.style.flex = '1';
                     listContainer.style.position = 'relative';
@@ -697,6 +729,7 @@ export class EditorViewManager {
                         let locationText = '';
                         if (row.uiScope === 'global') locationText = 'Globale Ebene (Blueprint)';
                         else if (row.uiScope === 'stage') locationText = `Stage: ${stage.name || stage.id}`;
+                        else if (row.uiScope && row.uiScope.toString().startsWith('stage:')) locationText = `Stage: ${row.uiScope.substring(6).trim()}`;
                         else if (row.uiScope === 'local') locationText = 'Lokal (im Task/Action)';
                         else if (row.uiScope === 'library') locationText = 'System-Bibliothek';
                         
@@ -720,11 +753,6 @@ export class EditorViewManager {
                         item.onclick = () => this.handleManagerRowClick(this.selectedManager, row);
                         listWrap.appendChild(item);
                     });
-
-                    const title = document.createElement('h2');
-                    title.textContent = managers.find(m => m.id === this.selectedManager)?.label || '';
-                    title.style.margin = '0 0 1rem 0';
-                    content.insertBefore(title, listContainer);
                 }
             }
         }
