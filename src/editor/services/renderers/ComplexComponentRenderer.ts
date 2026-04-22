@@ -107,6 +107,129 @@ export class ComplexComponentRenderer {
         }
     }
 
+    public static renderInfoWindow(ctx: IRenderContext, el: HTMLElement, obj: any, isNew: boolean): void {
+        el.style.borderRadius = `${obj.borderRadius || 8}px`;
+        el.style.flexDirection = 'column';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.backgroundColor = obj.style?.backgroundColor || '#2a2a4a';
+        el.style.border = `${obj.style?.borderWidth || 2}px solid ${obj.style?.borderColor || '#4fc3f7'}`;
+        el.style.padding = `${obj.padding || 20}px`;
+        el.style.textAlign = 'center';
+        el.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.4)';
+        el.style.overflow = 'visible';
+        el.style.zIndex = '2001';
+
+        // Rebuild internal content
+        el.innerHTML = '';
+        
+        // Icon
+        const iconEl = document.createElement('div');
+        iconEl.textContent = obj.icon || 'ℹ️';
+        iconEl.style.cssText = `font-size: ${obj.iconSize || 48}px; margin-bottom: 12px;`;
+        el.appendChild(iconEl);
+
+        // Title
+        const titleEl = document.createElement('div');
+        titleEl.textContent = obj.title || obj.name;
+        titleEl.style.cssText = `font-size: 18px; font-weight: bold; color: #ffffff; margin-bottom: 12px;`;
+        el.appendChild(titleEl);
+
+        // Message
+        const messageEl = document.createElement('div');
+        messageEl.textContent = obj.message || '';
+        messageEl.style.cssText = `font-size: 14px; color: #cccccc; margin-bottom: 16px; line-height: 1.5;`;
+        el.appendChild(messageEl);
+
+        // Spinner
+        if (obj.showSpinner) {
+            const spinnerEl = document.createElement('div');
+            spinnerEl.innerHTML = '⏳';
+            spinnerEl.style.cssText = `font-size: 24px; color: ${obj.style?.borderColor || '#4fc3f7'}; margin-bottom: 16px; animation: spin 1s linear infinite;`;
+            el.appendChild(spinnerEl);
+        }
+
+        // Buttons
+        if (ctx.host.runMode && (obj.showCancelButton || obj.showConfirmButton)) {
+            const buttonsEl = document.createElement('div');
+            buttonsEl.style.cssText = `display: flex; gap: 12px; justify-content: center;`;
+
+            if (obj.showCancelButton) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.textContent = obj.cancelButtonText || 'Cancel';
+                cancelBtn.style.cssText = `padding: 8px 20px; background: #6c757d; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;`;
+                cancelBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    obj.visible = false;
+                    el.style.display = 'none';
+                    const overlay = document.getElementById(`dialog-overlay-${obj.id}`);
+                    if (overlay) overlay.style.display = 'none';
+                    if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onCancel');
+                };
+                buttonsEl.appendChild(cancelBtn);
+            }
+
+            if (obj.showConfirmButton) {
+                const confirmBtn = document.createElement('button');
+                confirmBtn.textContent = obj.confirmButtonText || 'OK';
+                confirmBtn.style.cssText = `padding: 8px 20px; background: #4fc3f7; color: #000000; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold;`;
+                confirmBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    obj.visible = false;
+                    el.style.display = 'none';
+                    const overlay = document.getElementById(`dialog-overlay-${obj.id}`);
+                    if (overlay) overlay.style.display = 'none';
+                    if (ctx.host.onEvent) ctx.host.onEvent(obj.id, 'onConfirm');
+                };
+                buttonsEl.appendChild(confirmBtn);
+            }
+            el.appendChild(buttonsEl);
+        }
+
+        if (ctx.host.runMode) {
+            const cellSize = ctx.host.grid?.cellSize || 20;
+
+            // Center on Show
+            if (obj.visible && !(el as any)._wasCentered) {
+                (el as any)._wasCentered = true;
+                const stageW = ctx.host.element.clientWidth;
+                const stageH = ctx.host.element.clientHeight;
+                const stageWCells = stageW / cellSize;
+                const stageHCells = stageH / cellSize;
+                const objWCells = obj.width || 16;
+                const objHCells = obj.height || 9;
+                const newX = Math.max(0, Math.floor((stageWCells - objWCells) / 2));
+                const newY = Math.max(0, Math.floor((stageHCells - objHCells) / 2));
+                obj.x = newX;
+                obj.y = newY;
+                (el.style as any).translate = `${newX * cellSize}px ${newY * cellSize}px`;
+                el.style.left = '0px';
+                el.style.top = '0px';
+            } else if (!obj.visible) {
+                (el as any)._wasCentered = false;
+            }
+
+            // Modal Overlay
+            const zIndexBase = 2000;
+            let overlay = document.getElementById(`dialog-overlay-${obj.id}`);
+            if (obj.visible) {
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = `dialog-overlay-${obj.id}`;
+                    overlay.className = 'dialog-overlay';
+                    overlay.style.cssText = `position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); pointer-events: auto;`;
+                    ctx.host.element.appendChild(overlay);
+                }
+                overlay.style.zIndex = String(zIndexBase - 1);
+                overlay.style.display = 'block';
+                overlay.onpointerdown = (e) => e.stopPropagation();
+                overlay.onclick = (e) => e.stopPropagation();
+            } else if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+    }
+
     public static renderDialogRoot(ctx: IRenderContext, el: HTMLElement, obj: any): void {
         el.style.borderRadius = '12px';
         el.style.flexDirection = 'column';

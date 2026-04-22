@@ -177,9 +177,26 @@ export class EditorInteractionManager {
             if (!original) return;
 
             const copyData = JSON.parse(JSON.stringify(original));
-            copyData.id = 'obj_' + Math.random().toString(36).substr(2, 9);
+            const newCopyId = 'obj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            copyData.id = newCopyId;
             copyData.x = x;
             copyData.y = y;
+            delete copyData.parentId;
+
+            // Children-IDs rekursiv neu vergeben (gleiche Logik wie onPasteCallback)
+            const reassignIds = (children: any[], parentId: string) => {
+                if (!children || !Array.isArray(children)) return;
+                for (const child of children) {
+                    child.id = 'obj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    child.parentId = parentId;
+                    if (child.children && Array.isArray(child.children)) {
+                        reassignIds(child.children, child.id);
+                    }
+                }
+            };
+            if (copyData.children && Array.isArray(copyData.children)) {
+                reassignIds(copyData.children, newCopyId);
+            }
 
             const newObj = componentRegistry.createInstance(copyData);
             if (newObj) {
@@ -193,7 +210,8 @@ export class EditorInteractionManager {
         stage.onPasteCallback = (jsonObj: any, x: number, y: number): string | null => {
             logger.info('[EditorInteractionManager] onPasteCallback called', jsonObj?.className, x, y);
             const copyData = JSON.parse(JSON.stringify(jsonObj));
-            copyData.id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'obj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const newParentId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'obj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            copyData.id = newParentId;
             copyData.x = x;
             copyData.y = y;
             
@@ -203,25 +221,63 @@ export class EditorInteractionManager {
                 targetStage = project.stages.find(s => s.id === project.activeStageId);
             }
             
-            // Name-Collision Detection
-            let finalName = jsonObj.name || 'Object';
-            const isNameTaken = (name: string) => {
-                if (!targetStage) return false;
-                const inObjs = (targetStage.objects || []).some((o: any) => o.name === name);
-                const inVars = (targetStage.variables || []).some((v: any) => v.name === name);
-                return inObjs || inVars;
-            };
+            // Alle existierenden Namen sammeln (für Kollisionserkennung)
+            const allNames = new Set<string>();
+            if (targetStage) {
+                (targetStage.objects || []).forEach((o: any) => { if (o.name) allNames.add(o.name); });
+                (targetStage.variables || []).forEach((v: any) => { if (v.name) allNames.add(v.name); });
+            }
 
-            if (isNameTaken(finalName)) {
-                const baseName = finalName.replace(/_\d+$/, '');
+            // Name-Collision Detection für das Hauptobjekt
+            let finalName = jsonObj.name || 'Object';
+            const getUniqueName = (baseName: string): string => {
+                if (!allNames.has(baseName)) {
+                    allNames.add(baseName);
+                    return baseName;
+                }
+                const cleanBase = baseName.replace(/_\d+$/, '');
                 let counter = 1;
-                while (isNameTaken(`${baseName}_${counter}`)) {
+                while (allNames.has(`${cleanBase}_${counter}`)) {
                     counter++;
                 }
-                finalName = `${baseName}_${counter}`;
+                const unique = `${cleanBase}_${counter}`;
+                allNames.add(unique);
+                return unique;
+            };
+
+            finalName = getUniqueName(finalName);
+            copyData.name = finalName;
+
+            // FIX: Children rekursiv neue IDs und parentIds zuweisen,
+            // damit sie nicht die IDs der Original-Kinder übernehmen.
+            const reassignChildIds = (children: any[], parentId: string) => {
+                if (!children || !Array.isArray(children)) return;
+                for (const child of children) {
+                    const oldId = child.id;
+                    const newChildId = typeof crypto !== 'undefined' && crypto.randomUUID 
+                        ? crypto.randomUUID() 
+                        : 'obj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    child.id = newChildId;
+                    child.parentId = parentId;
+                    // Kindernamen ebenfalls eindeutig machen
+                    if (child.name) {
+                        child.name = getUniqueName(child.name);
+                    }
+                    logger.info(`[EditorInteractionManager] Child ID remapped: ${oldId} -> ${newChildId}`);
+                    // Rekursiv für verschachtelte Kinder
+                    if (child.children && Array.isArray(child.children)) {
+                        reassignChildIds(child.children, newChildId);
+                    }
+                }
+            };
+            
+            if (copyData.children && Array.isArray(copyData.children) && copyData.children.length > 0) {
+                reassignChildIds(copyData.children, newParentId);
+                logger.info(`[EditorInteractionManager] ${copyData.children.length} Children mit neuen IDs versehen.`);
             }
             
-            copyData.name = finalName;
+            // parentId des Hauptobjekts entfernen (wird als Top-Level eingefügt)
+            delete copyData.parentId;
 
             const newObj = componentRegistry.createInstance(copyData);
             if (!newObj) {

@@ -51,9 +51,20 @@ export class TInfoWindow extends TWindow {
         this.style.backgroundColor = '#2a2a4a';
         this.style.borderColor = '#4fc3f7';
         this.style.borderWidth = 2;
-        this.style.visible = false;
 
         this.title = name;
+    }
+
+    /**
+     * Reagiert auf Änderungen der 'visible' Eigenschaft (z.B. durch ReactiveRuntime/Actions)
+     */
+    protected onVisibilityChanged(v: boolean): void {
+        this.updateElement();
+        if (v && this.autoClose) {
+            this.startAutoClose();
+        } else if (!v) {
+            this.cancelAutoClose();
+        }
     }
 
     /**
@@ -111,11 +122,7 @@ export class TInfoWindow extends TWindow {
      */
     public handleCancel(): void {
         this.hide();
-
-        const task = this.events?.['onCancel'] || this.onCancelTask;
-        if (task) {
-            this.triggerTask(task);
-        }
+        this.triggerEvent('onCancel');
     }
 
     /**
@@ -123,11 +130,7 @@ export class TInfoWindow extends TWindow {
      */
     public handleConfirm(): void {
         this.hide();
-
-        const task = this.events?.['onConfirm'] || this.onConfirmTask;
-        if (task) {
-            this.triggerTask(task);
-        }
+        this.triggerEvent('onConfirm');
     }
 
     /**
@@ -138,11 +141,7 @@ export class TInfoWindow extends TWindow {
 
         this._autoCloseTimeout = window.setTimeout(() => {
             this.hide();
-
-            const task = this.events?.['onAutoClose'] || this.onAutoCloseTask;
-            if (task) {
-                this.triggerTask(task);
-            }
+            this.triggerEvent('onAutoClose');
         }, this.autoCloseDelay);
     }
 
@@ -157,11 +156,11 @@ export class TInfoWindow extends TWindow {
     }
 
     /**
-     * Trigger a task by name
+     * Trigger an event through the game runtime
      */
-    private triggerTask(taskName: string): void {
-        const event = new CustomEvent('infowindow-task', {
-            detail: { windowName: this.name, taskName }
+    private triggerEvent(eventName: string): void {
+        const event = new CustomEvent('GameRuntime_Event', {
+            detail: { id: this.id, event: eventName, data: null }
         });
         window.dispatchEvent(event);
     }
@@ -170,22 +169,32 @@ export class TInfoWindow extends TWindow {
      * Update the DOM element
      */
     private updateElement(): void {
+        // Update visibility using DOM queries because ComplexComponentRenderer now builds the UI natively
+        const el = document.querySelector(`[data-id="${this.id}"]`) as HTMLElement;
+        if (el) {
+            el.style.display = this.visible ? 'flex' : 'none';
+            const overlay = document.getElementById(`dialog-overlay-${this.id}`);
+            if (overlay) overlay.style.display = this.visible ? 'block' : 'none';
+        }
+
+        // Legacy support for standalone run modes that still use createRuntimeElement
         if (this._overlayElement) {
             this._overlayElement.style.display = this.visible ? 'flex' : 'none';
         }
-
         if (this._element) {
-            // Update message content
-            const messageEl = this._element.querySelector('.info-message');
-            if (messageEl) {
-                messageEl.textContent = this.message;
+            this._element.style.background = this.style.backgroundColor || '#2a2a4a';
+            this._element.style.border = `${this.style.borderWidth}px solid ${this.style.borderColor}`;
+            this._element.style.borderRadius = `${this.borderRadius}px`;
+            
+            const iconEl = this._element.querySelector('.info-icon') as HTMLElement;
+            if (iconEl) {
+                iconEl.textContent = this.icon;
+                iconEl.style.fontSize = `${this.iconSize}px`;
             }
-
-            // Update spinner visibility
-            const spinnerEl = this._element.querySelector('.info-spinner');
-            if (spinnerEl) {
-                (spinnerEl as HTMLElement).style.display = this.showSpinner ? 'block' : 'none';
-            }
+            const titleEl = this._element.querySelector('.info-title') as HTMLElement;
+            if (titleEl) titleEl.textContent = this.title;
+            const msgEl = this._element.querySelector('.info-message') as HTMLElement;
+            if (msgEl) msgEl.textContent = this.message;
         }
     }
 
@@ -221,6 +230,14 @@ export class TInfoWindow extends TWindow {
             { name: 'padding', label: 'Padding', type: 'number', group: 'Style' },
             { name: 'style.borderColor', label: 'Border Color', type: 'color', group: 'Style' }
         ];
+    }
+
+    /**
+     * Liefert die für dieses Control verfügbaren Events.
+     */
+    public getEvents(): string[] {
+        const events = super.getEvents();
+        return [...events, 'onCancel', 'onConfirm', 'onAutoClose'];
     }
 
     /**
@@ -269,6 +286,7 @@ export class TInfoWindow extends TWindow {
     public createRuntimeElement(container: HTMLElement): HTMLElement {
         // Create overlay
         this._overlayElement = document.createElement('div');
+        this._overlayElement.id = `infowindow-overlay-${this.id}`;
         this._overlayElement.className = 'info-window-overlay';
         this._overlayElement.style.cssText = `
             position: fixed;
