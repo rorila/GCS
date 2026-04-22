@@ -89,6 +89,44 @@ describe('ReactiveRuntime', () => {
         });
     });
 
+    describe('type coercion (String -> Number)', () => {
+        it('should coerce string bindings to numbers if target expects a number', () => {
+            const config = { padding: "15" }; // String from config (like StringMap)
+            const component = { borderWidth: 0 }; // Target has a number
+
+            runtime.registerObject('config', config);
+            runtime.bind(component, 'borderWidth', '${config.padding}');
+
+            // Target should be cast to a number
+            expect(component.borderWidth).toBe(15);
+            expect(typeof component.borderWidth).toBe('number');
+        });
+
+        it('should coerce string bindings to numbers if property name is a known numeric property', () => {
+            const config = { radius: "20" };
+            const component = { borderRadius: undefined }; // Target has no type yet
+
+            runtime.registerObject('config', config);
+            runtime.bind(component, 'borderRadius', '${config.radius}');
+
+            // Target should be cast to a number because 'borderRadius' is in the known list
+            expect(component.borderRadius).toBe(20);
+            expect(typeof component.borderRadius).toBe('number');
+        });
+
+        it('should NOT coerce if target is a string and not a known numeric property', () => {
+            const config = { id: "1234" };
+            const component = { text: "default" };
+
+            runtime.registerObject('config', config);
+            runtime.bind(component, 'text', '${config.id}');
+
+            // Target should remain a string
+            expect(component.text).toBe("1234");
+            expect(typeof component.text).toBe('string');
+        });
+    });
+
     describe('bidirectional binding', () => {
         it('should update data when component changes', () => {
             const player = { name: 'Alice' };

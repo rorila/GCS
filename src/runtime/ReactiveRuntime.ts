@@ -135,11 +135,43 @@ export class ReactiveRuntime {
 
 
 
+                // [GCS-FEATURE] Type Coercion für Bind-Variablen (String -> Number)
+                // Wenn die Variable z.B. aus einer TStringMap kommt, ist sie ein String ("5").
+                // Wenn die Zieleigenschaft aber eine Zahl erwartet, casten wir sie hier automatisch.
+                let finalValue = newValue;
+                if (typeof finalValue === 'string' && finalValue.trim() !== '' && !isNaN(Number(finalValue))) {
+                    let targetType = 'undefined';
+                    let currentVal;
+                    
+                    if (targetProp.includes('.')) {
+                        currentVal = ExpressionParser.getNestedProperty(targetProp, targetObj);
+                    } else {
+                        currentVal = targetObj[targetProp];
+                    }
+                    targetType = typeof currentVal;
+
+                    // Typische numerische Eigenschaften als Fallback, falls der Initialwert undefined ist
+                    const numericProps = [
+                        'x', 'y', 'width', 'height', 'alpha', 'rotation', 'scaleX', 'scaleY',
+                        'borderWidth', 'borderRadius', 'cornerRadius', 'strokeWidth', 'opacity',
+                        'padding', 'margin', 'fontSize', 'lineHeight', 'zIndex'
+                    ];
+                    
+                    const propName = targetProp.includes('.') ? targetProp.split('.').pop()! : targetProp;
+                    // Sonderfall für deutsche Eigenschaften, die der User nutzt
+                    const germanNumericProps = ['Rahmenbreite', 'Abrundung', 'Deckkraft'];
+
+                    if (targetType === 'number' || numericProps.includes(propName) || germanNumericProps.includes(propName)) {
+                        finalValue = Number(finalValue);
+                        logger.debug(`[TYPE-COERCION] Binding "${expression}" für ${targetProp} wurde von String ("${newValue}") zu Number (${finalValue}) konvertiert.`);
+                    }
+                }
+
                 // Update target property
                 if (targetProp.includes('.')) {
-                    ExpressionParser.setNestedProperty(targetProp, newValue, targetObj);
+                    ExpressionParser.setNestedProperty(targetProp, finalValue, targetObj);
                 } else {
-                    targetObj[targetProp] = newValue;
+                    targetObj[targetProp] = finalValue;
                 }
             }
         };

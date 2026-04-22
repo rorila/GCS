@@ -5,6 +5,7 @@ import { PropertyHelper } from '../../../runtime/PropertyHelper';
 import { mediatorService } from '../../../services/MediatorService';
 import { componentRegistry } from '../../../services/ComponentRegistry';
 import { NotificationToast } from '../../ui/NotificationToast';
+import { PropertyPickerDialog } from '../PropertyPickerDialog';
 
 
 export class InspectorSectionRenderer {
@@ -322,9 +323,9 @@ export class InspectorSectionRenderer {
             };
 
             let targetPropertyOptions: { name: string, label: string, type: string, options?: any[] }[] = [];
+            let targetObj: any = null;
             if (obj.target && (obj as any).projectRef) {
                 const project = (obj as any).projectRef;
-                let targetObj: any = null;
                 for (const stage of (project.stages || [])) {
                     const found = (stage.objects || []).find((o: any) => o.name === obj.target || o.id === obj.target);
                     if (found) { targetObj = found; break; }
@@ -538,12 +539,20 @@ export class InspectorSectionRenderer {
             const addBtn = document.createElement('button');
             addBtn.textContent = '+ Eigenschaft hinzufügen';
             addBtn.style.cssText = 'margin-top:6px;width:100%;padding:5px 10px;background:#2e7d32;color:white;border:none;border-radius:4px;cursor:pointer;font-size:11px;';
-            addBtn.onclick = () => {
+            addBtn.onclick = async () => {
                 const usedKeys = Object.keys(changes);
-                const freeOpt = targetPropertyOptions.find(p => !usedKeys.includes(p.name));
-                const defaultKey = freeOpt ? freeOpt.name : '';
-                const newChanges = { ...changes, [defaultKey]: '' };
-                applyChanges(newChanges);
+                if (!targetObj) {
+                    const freeOpt = targetPropertyOptions.find(p => !usedKeys.includes(p.name));
+                    const defaultKey = freeOpt ? freeOpt.name : '';
+                    const newChanges = { ...changes, [defaultKey]: '' };
+                    applyChanges(newChanges);
+                    return;
+                }
+                const selectedKey = await PropertyPickerDialog.show(targetObj, usedKeys);
+                if (selectedKey) {
+                    const newChanges = { ...changes, [selectedKey]: '' };
+                    applyChanges(newChanges);
+                }
             };
             container.appendChild(addBtn);
 

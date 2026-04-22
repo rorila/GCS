@@ -437,6 +437,31 @@
           "onCancelTask": "",
           "slideDirection": "right",
           "children": []
+        },
+        {
+          "className": "TPanel",
+          "id": "obj_1776873786695_wtybciydl",
+          "name": "Panel_24",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 16,
+          "y": 11,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "#f0f0f0",
+            "borderColor": "#999999",
+            "borderWidth": 1
+          },
+          "caption": "",
+          "showGrid": false,
+          "gridColor": "#000000",
+          "gridStyle": "lines"
         }
       ],
       "actions": [
@@ -463,8 +488,12 @@
           "details": "",
           "name": "SwitchToDirectory",
           "showDetails": false,
-          "type": "navigate_stage",
-          "stageId": "main"
+          "type": "action",
+          "stageId": "main",
+          "changes": {
+            "": ""
+          },
+          "target": "Panel_7"
         },
         {
           "id": "node-1776088508594",
@@ -571,7 +600,7 @@
               "y": 40
             },
             "SwitchToDirectory": {
-              "x": 260,
+              "x": 240,
               "y": 40
             }
           },
@@ -761,8 +790,8 @@
             "borderWidth": 1
           },
           "type": "boolean",
-          "defaultValue": false,
-          "value": false,
+          "defaultValue": true,
+          "value": true,
           "objectModel": ""
         },
         {

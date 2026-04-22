@@ -1,3 +1,21 @@
+[UC-2026-04-22-TInfoWindow-Visibility-Fix]
+Dateien:
+- src/components/TInfoWindow.ts
+  - Methode `onVisibilityChanged` hinzugefügt, sodass das TInfoWindow nun korrekt auf reaktive Änderungen der `visible`-Eigenschaft reagiert und sich im DOM ein- oder ausblendet, wenn es z.B. über eine Action getriggert wird.
+
+[UC-2026-04-22-Property-Picker-Dialog]
+Dateien:
+- src/editor/inspector/PropertyPickerDialog.ts (NEU)
+  - Modaler Dialog eingeführt, um alle konfigurierbaren Eigenschaften (gestaffelt nach Sektionen) zur Auswahl anzuzeigen. Ähnlich dem VariablePickerDialog.
+- src/editor/inspector/renderers/InspectorSectionRenderer.ts
+  - Methode `renderProperty` in der Key-Value Darstellung: den "+ Eigenschaft hinzufügen"-Button auf den asynchronen `PropertyPickerDialog.show()` umgeleitet, um die Eigenschaften gruppiert auszuwählen.
+
+[UC-2026-04-22-Type-Coercion-Bindings]
+- src/runtime/ReactiveRuntime.ts
+  - Methode `update()` in `ReactiveBinding`: Automatische Typ-Konvertierung (String -> Number) hinzugefügt. Konvertiert Werte aus StringMaps, wenn die Ziel-Eigenschaft eine Zahl erwartet (z.B. x, y, width, alpha, Rahmenbreite, Abrundung).
+- src/runtime/ReactiveRuntime.test.ts
+  - Neue Testsuite `type coercion (String -> Number)` hinzugefügt.
+
 [UC-2026-04-21-Manager-Tab-Scope-Umschalter]
 Dateien:
 - src/editor/EditorViewManager.ts
