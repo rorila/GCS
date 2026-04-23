@@ -79,7 +79,7 @@ export class InputRenderer {
 
             input.style.color = obj.style?.color || '#000000';
             input.style.backgroundColor = obj.style?.backgroundColor || 'transparent';
-            input.style.fontSize = obj.style?.fontSize ? ctx.scaleFontSize(obj.style.fontSize) : 'inherit';
+            input.style.fontSize = obj.style?.fontSize ? ctx.scaleFontSize(obj.style.fontSize) : ctx.scaleFontSize(14);
             input.style.textAlign = obj.style?.textAlign || 'left';
             const fw = obj.style?.fontWeight;
             input.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
@@ -121,7 +121,7 @@ export class InputRenderer {
                 input.style.color = obj.style?.color || '#000000';
                 input.style.backgroundColor = obj.style?.backgroundColor || 'transparent';
                 input.style.textAlign = obj.style?.textAlign || 'left';
-                input.style.fontSize = obj.style?.fontSize ? ctx.scaleFontSize(obj.style.fontSize) : 'inherit';
+                input.style.fontSize = obj.style?.fontSize ? ctx.scaleFontSize(obj.style.fontSize) : ctx.scaleFontSize(14);
                 const fw = obj.style?.fontWeight;
                 input.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
                 const fs = obj.style?.fontStyle;
@@ -245,7 +245,7 @@ export class InputRenderer {
 
             select.style.color = obj.style?.color || '#000000';
             select.style.backgroundColor = obj.style?.backgroundColor || 'transparent';
-            select.style.fontSize = obj.style?.fontSize ? ctx.scaleFontSize(obj.style.fontSize) : 'inherit';
+            select.style.fontSize = obj.style?.fontSize ? ctx.scaleFontSize(obj.style.fontSize) : ctx.scaleFontSize(14);
             select.style.fontFamily = obj.style?.fontFamily || 'inherit';
             select.style.fontWeight = (obj.style?.fontWeight === true || obj.style?.fontWeight === 'bold') ? 'bold' : 'normal';
         }

@@ -1,3 +1,14 @@
+[UC-2026-04-23-Font-Scaling-Standalone-Player]
+Dateien:
+- src/editor/services/renderers/TextObjectRenderer.ts
+  - Methode `renderLabel` (Zeile ~10): Fallback für fehlende `fontSize` auf `14` hinzugefügt, sodass `scaleFontSize` aktiv greift.
+  - Methode `renderPanel` (Zeile ~38): Fallback auf `14` statt leerem String (`inherit`) im Run-Modus.
+  - Methode `renderButton` (Zeile ~210): Fallback auf `14` hinzugefügt.
+- src/editor/services/renderers/InputRenderer.ts
+  - Methode `renderTextInput` (Zeile ~124): Fallback für fehlende `fontSize` auf `14` (skaliert) statt `inherit`.
+  - Methode `renderDropdown` (Zeile ~248): Fallback für fehlende `fontSize` auf `14` (skaliert) statt `inherit`.
+Beschreibung: Text in Komponenten (TLabel, TPanel, TButton, Inputs), die keine explizite Schriftgröße im JSON hinterlegt haben, nutzten den nativen Browser-Fallback (im Editor/CSS 14px, im IFrame-Runner 16px). Nach der CSS-Skalierung (transform) durch den Renderer führte dies im IFrame zu abweichenden Zeilenumbrüchen oder abgeschnittenen Texten (da 16px nach 2x Skalierung zu groß war). Die Renderer forcieren nun strikt einen Default-Wert von `14`, bevor sie die Skalierung anwenden.
+
 [UC-2026-04-23-Inspector-Property-Binding-Fix]
 Dateien:
 - src/editor/services/renderers/ComplexComponentRenderer.ts

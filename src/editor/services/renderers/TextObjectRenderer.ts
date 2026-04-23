@@ -7,8 +7,8 @@ export class TextObjectRenderer {
         const textValue = (obj.text !== undefined && obj.text !== null) ? String(obj.text) :
             (obj.value !== undefined && obj.value !== null) ? String(obj.value) : '';
         if (el.innerText !== textValue) el.innerText = textValue;
-        const fs = obj.style?.fontSize || obj.fontSize;
-        if (fs) el.style.fontSize = ctx.scaleFontSize(fs);
+        const fs = obj.style?.fontSize || obj.fontSize || 14;
+        el.style.fontSize = ctx.scaleFontSize(fs);
         
         const color = obj.style?.color;
         if (color) {
@@ -35,12 +35,12 @@ export class TextObjectRenderer {
 
         const color = obj.style?.color || (!ctx.host.runMode ? '#777' : '');
         if (color) el.style.color = color;
-        const fontSize = obj.style?.fontSize ? ctx.scaleFontSize(obj.style.fontSize) : (!ctx.host.runMode ? ctx.scaleFontSize(12) : '');
-        if (fontSize) el.style.fontSize = fontSize;
+        const fSize = obj.style?.fontSize || 14;
+        el.style.fontSize = ctx.scaleFontSize(fSize);
         const fw = obj.style?.fontWeight;
         el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : (fw || 'normal');
-        const fs = obj.style?.fontStyle;
-        el.style.fontStyle = (fs === true || fs === 'italic') ? 'italic' : 'normal';
+        const fStyle = obj.style?.fontStyle;
+        el.style.fontStyle = (fStyle === true || fStyle === 'italic') ? 'italic' : 'normal';
         if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
         const align = obj.style?.textAlign || 'center';
         el.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
@@ -123,11 +123,9 @@ export class TextObjectRenderer {
             el.style.color = ''; // Browser-Default erben lassen
         }
 
-        // --- Schriftgröße (KRITISCH: war vorher nicht gesetzt → inkonsistente Darstellung) ---
-        const fs = obj.style?.fontSize;
-        if (fs) {
-            el.style.fontSize = ctx.scaleFontSize(fs);
-        }
+        // --- Schriftgröße (KRITISCH: Fallback auf 14 hinzugefügt, damit scaleFontSize immer greift und Text bei IFrame-Skalierung nicht ausbricht) ---
+        const fs = obj.style?.fontSize || 14;
+        el.style.fontSize = ctx.scaleFontSize(fs);
 
         // --- Typografie ---
         const fw = obj.style?.fontWeight;
@@ -206,7 +204,8 @@ export class TextObjectRenderer {
         el.style.fontWeight = (fw === true || fw === 'bold') ? 'bold' : 'normal';
         const fstyle = obj.style?.fontStyle;
         el.style.fontStyle = (fstyle === true || fstyle === 'italic') ? 'italic' : 'normal';
-        if (obj.style?.fontSize) el.style.fontSize = ctx.scaleFontSize(obj.style.fontSize);
+        const fs = obj.style?.fontSize || 14;
+        el.style.fontSize = ctx.scaleFontSize(fs);
         if (obj.style?.color) el.style.color = obj.style.color;
         if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
         const align = obj.style?.textAlign;
