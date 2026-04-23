@@ -113,7 +113,7 @@ export class ComplexComponentRenderer {
         }
     }
 
-    public static renderInfoWindow(ctx: IRenderContext, el: HTMLElement, obj: any, isNew: boolean): void {
+    public static renderInfoWindow(ctx: IRenderContext, el: HTMLElement, obj: any, _isNew: boolean): void {
         // Style-Properties aus dem Objekt lesen (Inspector-Werte), Fallbacks für Defaults
         const borderRadius = obj.style?.borderRadius ?? obj.borderRadius ?? 12;
         const textColor = obj.style?.color || '#ffffff';

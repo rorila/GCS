@@ -52,7 +52,7 @@ export class TDialogRoot extends TWindow {
     /**
      * Reagiert auf Sichtbarkeitsänderungen.
      */
-    protected override onVisibilityChanged(v: boolean): void {
+    protected override onVisibilityChanged(_v: boolean): void {
         this.updateRuntimeVisibility();
     }
 
