@@ -204,58 +204,6 @@
       "type": "main",
       "objects": [
         {
-          "className": "TPanel",
-          "id": "obj_1776865889844_ydth70hjm",
-          "name": "PanelBlue",
-          "scope": "stage",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 1,
-          "y": 4,
-          "width": 5,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "${BluePanelConfig.Hintergrundfarbe}",
-            "borderColor": "${BluePanelConfig.Rahmenfarbe}",
-            "borderWidth": 1,
-            "borderRadius": 15
-          },
-          "caption": "",
-          "showGrid": false,
-          "gridColor": "#000000",
-          "gridStyle": "lines"
-        },
-        {
-          "className": "TPanel",
-          "id": "5a86ff27-a84f-40ca-b987-87eb0e353ee5",
-          "name": "PanelRed",
-          "scope": "global",
-          "draggable": false,
-          "droppable": false,
-          "dragMode": "move",
-          "visible": true,
-          "x": 1,
-          "y": 10,
-          "width": 5,
-          "height": 2,
-          "zIndex": 0,
-          "align": "NONE",
-          "style": {
-            "backgroundColor": "rgba(233,30,99,0.15)",
-            "borderColor": "#e91e63",
-            "borderWidth": 1,
-            "borderRadius": "12px"
-          },
-          "caption": "",
-          "showGrid": false,
-          "gridColor": "#000000",
-          "gridStyle": "lines"
-        },
-        {
           "className": "TLabel",
           "id": "obj_import_1776868018446_ihej",
           "name": "K3T1",
@@ -310,20 +258,138 @@
             "borderWidth": 0
           },
           "text": "Inhaltsverzeichnis"
+        },
+        {
+          "className": "TGroupPanel",
+          "id": "2054e200-95af-4057-814b-117a555d25b0",
+          "name": "GrPnl_Inhalt",
+          "scope": "stage",
+          "isHiddenInRun": false,
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "events": {
+            "onClick": "ShowHelloWorldStage"
+          },
+          "visible": true,
+          "x": 5,
+          "y": 6,
+          "width": 13,
+          "height": 4.35,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15
+          },
+          "caption": "",
+          "children": [
+            {
+              "className": "TLabel",
+              "id": "32deeead-b926-45a0-9d01-0dd6ae571937",
+              "name": "K3T1_4",
+              "scope": "global",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 0.2999999999999998,
+              "y": 0.75,
+              "width": 5,
+              "height": 1,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#d4d4d4",
+                "fontSize": 15,
+                "fontFamily": "Segoe UI, Arial, sans-serif",
+                "fontWeight": "normal",
+                "fontStyle": "normal",
+                "textAlign": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0
+              },
+              "text": "Hello World"
+            },
+            {
+              "className": "TPanel",
+              "id": "obj_1776959004334_7r0djkldi",
+              "name": "Panel_33",
+              "scope": "stage",
+              "draggable": false,
+              "droppable": false,
+              "dragMode": "move",
+              "visible": true,
+              "x": 0,
+              "y": 2.3000000000000007,
+              "width": 12,
+              "height": 1,
+              "zIndex": 0,
+              "align": "NONE",
+              "style": {
+                "color": "#d4d4d4",
+                "fontSize": 12,
+                "backgroundColor": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 1
+              },
+              "caption": "Komponenen: TInfoWindow und TToast",
+              "showGrid": false,
+              "gridColor": "#000000",
+              "gridStyle": "lines"
+            }
+          ]
         }
       ],
-      "actions": [],
-      "tasks": [],
+      "actions": [
+        {
+          "id": "node-1776957450663",
+          "details": "",
+          "name": "Act_SwitchToHelloWorldStage",
+          "showDetails": false,
+          "type": "navigate_stage",
+          "stageId": "stage_8854790a-7e7d-4ad4-b26f-5eabb4d1d252"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "ShowHelloWorldStage",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_SwitchToHelloWorldStage",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowHelloWorldStage": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_SwitchToHelloWorldStage": {
+              "x": 280,
+              "y": 40
+            }
+          }
+        }
+      ],
       "variables": [],
       "grid": {
         "cols": 64,
         "rows": 40,
         "cellSize": 20,
-        "snapToGrid": true,
+        "snapToGrid": false,
         "visible": false,
         "backgroundColor": "${StageConfig.Hintergrund}"
       },
-      "gameName": "${Allgemein.Projektname}"
+      "gameName": "${Allgemein.Projektname}",
+      "flowCharts": {}
     },
     {
       "id": "stage_8854790a-7e7d-4ad4-b26f-5eabb4d1d252",
@@ -356,7 +422,7 @@
             "borderColor": "transparent",
             "borderWidth": 0
           },
-          "text": "Überschrift"
+          "text": "Informationen an den Spieler"
         },
         {
           "className": "TInfoWindow",
@@ -2091,5 +2157,5 @@
       "flowCharts": {}
     }
   ],
-  "activeStageId": "stage_8854790a-7e7d-4ad4-b26f-5eabb4d1d252"
+  "activeStageId": "main"
 }
