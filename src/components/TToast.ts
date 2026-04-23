@@ -323,12 +323,18 @@ export class TToast extends TWindow {
 
         const element = document.createElement('div');
         element.className = `toast-item toast-${this.animation}`;
+        // Eigene Properties haben Vorrang, style.* dient als Fallback
+        const effectiveFontSize = this.fontSize || (this.style?.fontSize as number) || 14;
+        const effectiveRadius = this.borderRadius || (this.style?.borderRadius as number) || 8;
+        const effectivePadding = this.padding || 12;
+        const effectiveTextColor = this.textColor || this.style?.color || '#ffffff';
+
         element.style.cssText = `
             background: ${colors[type]};
-            color: ${this.textColor};
-            font-size: ${this.fontSize}px;
-            border-radius: ${this.borderRadius}px;
-            padding: ${this.padding}px ${this.padding + 4}px;
+            color: ${effectiveTextColor};
+            font-size: ${effectiveFontSize}px;
+            border-radius: ${effectiveRadius}px;
+            padding: ${effectivePadding}px ${effectivePadding + 4}px;
         `;
 
         // Icon

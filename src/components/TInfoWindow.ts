@@ -225,10 +225,8 @@ export class TInfoWindow extends TWindow {
             { name: 'autoClose', label: 'Auto Close', type: 'boolean', group: 'Behavior' },
             { name: 'autoCloseDelay', label: 'Auto Close Delay (ms)', type: 'number', group: 'Behavior' },
 
-            // Style
-            { name: 'borderRadius', label: 'Border Radius', type: 'number', group: 'Style' },
-            { name: 'padding', label: 'Padding', type: 'number', group: 'Style' },
-            { name: 'style.borderColor', label: 'Border Color', type: 'color', group: 'Style' }
+            // Style — borderRadius und style.borderColor werden bereits von TWindow bereitgestellt
+            { name: 'padding', label: 'Padding', type: 'number', group: 'Style' }
         ];
     }
 
@@ -301,18 +299,25 @@ export class TInfoWindow extends TWindow {
             z-index: 2000;
         `;
 
-        // Create window
+        // Create window — Style-Properties aus dem Komponenten-Objekt lesen
+        const borderRadius = this.style.borderRadius ?? this.borderRadius ?? 12;
+        const textColor = this.style.color || '#ffffff';
+        const fontSize = this.style.fontSize || 18;
+        const fontWeight = this.style.fontWeight || 'bold';
+        const fontFamily = this.style.fontFamily || 'inherit';
+        const fontStyle = this.style.fontStyle || 'normal';
+
         this._element = document.createElement('div');
         this._element.className = 'info-window';
         this._element.style.cssText = `
             background: ${this.style.backgroundColor};
             border: ${this.style.borderWidth}px solid ${this.style.borderColor};
-            border-radius: ${this.borderRadius}px;
+            border-radius: ${borderRadius}px;
             padding: ${this.padding}px;
             min-width: 280px;
             max-width: 400px;
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            box-shadow: ${this.style.boxShadow || '0 8px 32px rgba(0, 0, 0, 0.4)'};
         `;
 
         // Icon
@@ -325,25 +330,31 @@ export class TInfoWindow extends TWindow {
         `;
         this._element.appendChild(iconEl);
 
-        // Title
+        // Title — nutzt style.color, style.fontSize, style.fontWeight, style.fontFamily
         const titleEl = document.createElement('div');
         titleEl.className = 'info-title';
         titleEl.textContent = this.title;
         titleEl.style.cssText = `
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffffff;
+            font-size: ${fontSize}px;
+            font-weight: ${fontWeight};
+            font-family: ${fontFamily};
+            font-style: ${fontStyle};
+            color: ${textColor};
             margin-bottom: 12px;
         `;
         this._element.appendChild(titleEl);
 
-        // Message
+        // Message — leitet Schriftfarbe vom Title ab (leicht gedimmt)
+        const msgColor = textColor === '#ffffff' || textColor === '#fff' ? '#cccccc' : textColor;
+        const msgFontSize = Math.max(10, fontSize - 4);
         const messageEl = document.createElement('div');
         messageEl.className = 'info-message';
         messageEl.textContent = this.message;
         messageEl.style.cssText = `
-            font-size: 14px;
-            color: #cccccc;
+            font-size: ${msgFontSize}px;
+            font-family: ${fontFamily};
+            font-style: ${fontStyle};
+            color: ${msgColor};
             margin-bottom: 16px;
             line-height: 1.5;
         `;

@@ -155,7 +155,12 @@ export class TSidePanel extends TDialogRoot {
             overflow: hidden;
         `;
 
-        // Header (Titelleiste)
+        // Header (Titelleiste) — Style-Properties aus dem Objekt lesen
+        const titleColor = this.style.color || '#ffffff';
+        const titleFontSize = this.style.fontSize || 16;
+        const titleFontWeight = this.style.fontWeight || 'bold';
+        const titleFontFamily = this.style.fontFamily || 'inherit';
+
         const header = document.createElement('div');
         header.className = 'sidepanel-header';
         header.style.cssText = `
@@ -172,9 +177,10 @@ export class TSidePanel extends TDialogRoot {
         titleEl.className = 'sidepanel-title';
         titleEl.textContent = this.title || this.name;
         titleEl.style.cssText = `
-            font-size: 16px;
-            font-weight: bold;
-            color: #ffffff;
+            font-size: ${titleFontSize}px;
+            font-weight: ${titleFontWeight};
+            font-family: ${titleFontFamily};
+            color: ${titleColor};
             letter-spacing: 0.5px;
         `;
         header.appendChild(titleEl);
@@ -298,7 +304,6 @@ export class TSidePanel extends TDialogRoot {
      */
     public updateRuntimeVisibility(): void {
         const panel = this._panelElement || (typeof document !== 'undefined' ? document.getElementById(`sidepanel-${this.id}`) : null);
-        console.log(`[VISIBILITY-DEBUG] TSidePanel updateRuntimeVisibility() for "${this.name}". this.visible=${this.visible}, panelFound=${!!panel}`);
         if (panel) {
             const isLeft = this.side === 'left';
             const panelWidth = panel.offsetWidth || (this.width * 20);

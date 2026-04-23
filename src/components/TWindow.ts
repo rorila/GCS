@@ -75,13 +75,11 @@ export class TWindow extends TComponent {
     }
     
     set visible(v: boolean) {
-        console.log(`[VISIBILITY-DEBUG] TWindow setter called on "${this.name}". Old: ${this._winVisible}, New: ${v}`);
         if (this._winVisible !== v) {
             this._winVisible = v;
             if (this.style) {
                 this.style.visible = v;
             }
-            console.log(`[VISIBILITY-DEBUG] TWindow calling onVisibilityChanged(${v}) for "${this.name}"`);
             this.onVisibilityChanged(v);
         }
     }

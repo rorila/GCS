@@ -1,3 +1,21 @@
+[UC-2026-04-23-Inspector-Property-Binding-Fix]
+Dateien:
+- src/editor/services/renderers/ComplexComponentRenderer.ts
+  - Methode `renderInfoWindow` (Zeile ~110): Liest nun style.borderRadius, style.color, style.fontSize, style.fontWeight, style.fontFamily, style.fontStyle, style.textAlign aus dem Objekt statt hardcoded Werte. boxShadow wird nur als Default gesetzt wenn kein style.boxShadow/glowColor vorhanden.
+  - Methode `renderDialogRoot` (Zeile ~233): Liest borderRadius, Titelfarbe, Schriftgröße, Schriftgewicht, Schriftart aus style.*.
+  - Methode `renderSidePanel` (Zeile ~71): Titelleiste liest color, fontSize, fontWeight, fontFamily aus style.*.
+- src/components/TInfoWindow.ts
+  - Methode `createRuntimeElement` (Zeile ~304): Liest borderRadius, textColor, fontSize, fontWeight, fontFamily, fontStyle, boxShadow aus this.style.*.
+  - Methode `getInspectorProperties` (Zeile ~207): Duplikat-Property `borderRadius` entfernt (wird über style.borderRadius von TWindow bereitgestellt).
+- src/components/TDialogRoot.ts
+  - Methode `createRuntimeElement` (Zeile ~253): Liest borderRadius, titleColor, titleFontSize, titleFontWeight, titleFontFamily, boxShadow aus this.style.*.
+- src/components/TSidePanel.ts
+  - Methode `createRuntimeElement` (Zeile ~103): Titelleiste liest color, fontSize, fontWeight, fontFamily aus this.style.*.
+- src/components/TToast.ts
+  - Methode `createToastElement` (Zeile ~309): Verwendet effectiveFontSize, effectiveRadius, effectivePadding, effectiveTextColor mit style.* Fallback.
+- src/components/TStatusBar.ts
+  - Methode `createRuntimeElement` (Zeile ~251): color, fontSize, fontFamily mit style.* Fallback.
+
 [UC-2026-04-22-TInfoWindow-Visibility-Fix]
 Dateien:
 - src/components/TInfoWindow.ts

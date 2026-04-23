@@ -262,9 +262,9 @@ export class TStatusBar extends TWindow {
             display: flex;
             align-items: center;
             gap: ${this.sectionGap}px;
-            color: ${this.textColor};
-            font-size: ${this.fontSize}px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: ${this.textColor || this.style?.color || '#ffffff'};
+            font-size: ${this.fontSize || (this.style?.fontSize as number) || 12}px;
+            font-family: ${this.style?.fontFamily || "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"};
             padding: ${this.paddingY}px 0;
         `;
 

@@ -366,31 +366,39 @@
           "draggable": false,
           "droppable": false,
           "dragMode": "move",
+          "events": {
+            "onConfirm": "ShowOkToast",
+            "onCancel": "ShowCancelToast"
+          },
           "visible": false,
-          "x": 23,
+          "x": 22,
           "y": 11,
-          "width": 19,
-          "height": 9,
+          "width": 24,
+          "height": 12,
           "zIndex": 0,
           "align": "NONE",
           "style": {
-            "backgroundColor": "#2a2a4a",
-            "borderColor": "#4fc3f7",
-            "borderWidth": 2
+            "color": "#d4d4d4",
+            "fontWeight": "normal",
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1,
+            "borderRadius": 15,
+            "opacity": 0.5
           },
           "title": "Wichtige Info:",
           "message": "Hallo Welt, schön das es dich gibt!",
           "icon": "ℹ️",
           "iconSize": 32,
-          "showCancelButton": false,
+          "showCancelButton": true,
           "cancelButtonText": "Abbrechen",
           "showConfirmButton": true,
           "confirmButtonText": "OK",
           "showSpinner": false,
           "autoClose": false,
           "autoCloseDelay": 3000,
-          "borderRadius": 12,
           "padding": 20,
+          "borderRadius": 12,
           "onCancelTask": "",
           "onConfirmTask": "",
           "onAutoCloseTask": ""
@@ -513,8 +521,7 @@
                 "borderColor": "transparent",
                 "borderWidth": 0
               },
-              "text": "WhiteText",
-              "parentId": "f40bd89a-56aa-4de7-82ea-af73b21738f1"
+              "text": "WhiteText"
             }
           ]
         },
@@ -568,8 +575,7 @@
                 "borderColor": "transparent",
                 "borderWidth": 0
               },
-              "text": "WhiteText",
-              "parentId": "43e4a277-4693-4e2e-bdb6-56d33dd7dfd0"
+              "text": "WhiteText"
             }
           ]
         },
@@ -623,8 +629,7 @@
                 "borderColor": "transparent",
                 "borderWidth": 0
               },
-              "text": "WhiteText",
-              "parentId": "001b444e-55ca-4359-9296-2e2911ed18cf"
+              "text": "WhiteText"
             }
           ]
         },
@@ -678,8 +683,7 @@
                 "borderColor": "transparent",
                 "borderWidth": 0
               },
-              "text": "WhiteText",
-              "parentId": "4a3ac5b0-eba6-4371-ac70-c3d4f15b2856"
+              "text": "WhiteText"
             }
           ]
         }
@@ -698,11 +702,29 @@
         {
           "id": "node-1776886250349",
           "details": "",
-          "name": "Act_ShowTestToas",
+          "name": "Act_ShowTestToast",
           "showDetails": false,
           "type": "show_toast",
           "message": "Auch ich grüße dich !!",
           "toastType": "success"
+        },
+        {
+          "id": "node-1776930743666",
+          "details": "",
+          "name": "Act_ShowOkToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Du hast den Ok-Button geklickt",
+          "toastType": "success"
+        },
+        {
+          "id": "node-1776930896352",
+          "details": "",
+          "name": "act_ShowCancelToast",
+          "showDetails": false,
+          "type": "show_toast",
+          "message": "Du hast cancel geklickt",
+          "toastType": "warning"
         }
       ],
       "tasks": [
@@ -716,7 +738,7 @@
               "layout": "horizontal"
             },
             {
-              "name": "Act_ShowTestToas",
+              "name": "Act_ShowTestToast",
               "type": "action",
               "layout": "horizontal"
             }
@@ -732,13 +754,13 @@
               "x": 260,
               "y": 40
             },
+            "Act_ShowTestToast": {
+              "x": 480,
+              "y": 40
+            },
             "node-1776870555465": {
               "x": 760,
               "y": 360
-            },
-            "Act_ShowTestToas": {
-              "x": 480,
-              "y": 40
             }
           },
           "standaloneNodes": [
@@ -747,7 +769,7 @@
               "type": "comment",
               "x": 760,
               "y": 360,
-              "width": 150,
+              "width": 160,
               "height": 100,
               "properties": {
                 "name": "",
@@ -758,6 +780,52 @@
               "data": {}
             }
           ]
+        },
+        {
+          "name": "ShowOkToast",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "Act_ShowOkToast",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowOkToast": {
+              "x": 40,
+              "y": 40
+            },
+            "Act_ShowOkToast": {
+              "x": 240,
+              "y": 40
+            }
+          }
+        },
+        {
+          "name": "ShowCancelToast",
+          "description": "",
+          "actionSequence": [
+            {
+              "name": "act_ShowCancelToast",
+              "type": "action",
+              "layout": "horizontal"
+            }
+          ],
+          "triggerMode": "local-sync",
+          "params": [],
+          "flowLayout": {
+            "ShowCancelToast": {
+              "x": 40,
+              "y": 40
+            },
+            "act_ShowCancelToast": {
+              "x": 260,
+              "y": 40
+            }
+          }
         }
       ],
       "variables": [],
@@ -1940,6 +2008,72 @@
           },
           "text": "ButtonYellow",
           "icon": ""
+        },
+        {
+          "className": "TInfoWindow",
+          "id": "048315c0-01cf-4d1e-b50f-1504b5181d6a",
+          "name": "InfoWindow_HelloWorld",
+          "scope": "stage",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": false,
+          "x": 40,
+          "y": 4,
+          "width": 10,
+          "height": 8,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#ffffff",
+            "backgroundColor": "rgba(33,150,243,0.15)",
+            "borderColor": "#2196f3",
+            "borderWidth": 1
+          },
+          "title": "Wichtige Info:",
+          "message": "Hallo Welt, schön das es dich gibt!",
+          "icon": "ℹ️",
+          "iconSize": 32,
+          "showCancelButton": false,
+          "cancelButtonText": "Abbrechen",
+          "showConfirmButton": true,
+          "confirmButtonText": "OK",
+          "showSpinner": false,
+          "autoClose": false,
+          "autoCloseDelay": 3000,
+          "padding": 20,
+          "borderRadius": 12,
+          "onCancelTask": "",
+          "onConfirmTask": "",
+          "onAutoCloseTask": ""
+        },
+        {
+          "className": "TLabel",
+          "id": "6e47230c-75d5-4fae-958a-e3075eb6029c",
+          "name": "K3T1_5",
+          "scope": "global",
+          "draggable": false,
+          "droppable": false,
+          "dragMode": "move",
+          "visible": true,
+          "x": 42,
+          "y": 1,
+          "width": 5,
+          "height": 2,
+          "zIndex": 0,
+          "align": "NONE",
+          "style": {
+            "color": "#d4d4d4",
+            "fontSize": 15,
+            "fontFamily": "Segoe UI, Arial, sans-serif",
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "textAlign": "center",
+            "backgroundColor": "transparent",
+            "borderColor": "transparent",
+            "borderWidth": 0
+          },
+          "text": "Buttons"
         }
       ],
       "actions": [],

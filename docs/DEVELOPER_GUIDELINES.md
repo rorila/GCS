@@ -35,3 +35,6 @@ NIEMALS .substring(0, filepath.lastIndexOf('/')) verwenden, ohne vorher ilepath
 
 ## Reactivity Issues: Dialog Visibility vs StageRenderer Clones
 - **WARNUNG:** Das Objekt \_dialogObj\, welches im DOM des Editors gespeichert wird, stammt aus dem \mergedObjectsArray\. In Run-Mode (GameRuntime) ist dies oftmals ein SHALLOW ARRAY COPY (bzw. Proxy), was dazu führt, dass die Referenzen abweichen. Mutationen an \currentObj.visible = false\ verändern nicht automatisch das Master-Objekt aus \GameRuntime.objects\. Nutzt immer den Lookup über \ctx.host.getObjects()\, um State-Veränderungen an UI-Komponenten sicher auszuführen. Ein Umgehen dieser Regel führt zu verwaisten und nicht-reaktiven Zuständen (z.B. der 2-Click-Bug am Toggle Button).
+
+### DO NOT: Hardcoded Styles in spezialisierten Renderern
+NIEMALS Style-Properties (borderRadius, color, fontSize, fontWeight, boxShadow etc.) in `ComplexComponentRenderer`, `TextObjectRenderer` oder in `createRuntimeElement()` mit festen Werten setzen. Der StageRenderer wendet `obj.style.*` bereits generisch an (Zeile 430-466 in StageRenderer.ts). Spezialisierte Renderer muessen `obj.style?.propertyName || fallbackValue` lesen, damit Inspector-Aenderungen wirksam werden. Ausnahme: Strukturelle Styles wie `flexDirection`, `overflow`, `position` duerfen hardcoded bleiben.

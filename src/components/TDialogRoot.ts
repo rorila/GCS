@@ -53,7 +53,6 @@ export class TDialogRoot extends TWindow {
      * Reagiert auf Sichtbarkeitsänderungen.
      */
     protected override onVisibilityChanged(v: boolean): void {
-        console.log(`[VISIBILITY-DEBUG] TDialogRoot onVisibilityChanged(${v}) for "${this.name}". Calling updateRuntimeVisibility()`);
         this.updateRuntimeVisibility();
     }
 
@@ -278,6 +277,13 @@ export class TDialogRoot extends TWindow {
             initialTransform = 'translateX(100vw)';
         }
 
+        // Style-Properties aus dem Komponenten-Objekt lesen
+        const borderRadius = this.style.borderRadius ?? 12;
+        const titleColor = this.style.color || '#ffffff';
+        const titleFontSize = this.style.fontSize || 18;
+        const titleFontWeight = this.style.fontWeight || 'bold';
+        const titleFontFamily = this.style.fontFamily || 'inherit';
+
         // Create dialog container
         this._dialogElement = document.createElement('div');
         this._dialogElement.className = 'dialog-root';
@@ -289,11 +295,11 @@ export class TDialogRoot extends TWindow {
             min-height: ${this.height}px;
             background: ${this.style.backgroundColor};
             border: ${this.style.borderWidth}px solid ${this.style.borderColor};
-            border-radius: 12px;
+            border-radius: ${borderRadius}px;
             display: flex; /* Always flex to allow transition, visibility controlled by transform/opacity */
             flex-direction: column;
             z-index: 1001;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            box-shadow: ${this.style.boxShadow || '0 8px 32px rgba(0, 0, 0, 0.4)'};
             transform: ${this.visible ? 'translateX(0)' : initialTransform};
             opacity: ${this.visible ? '1' : '0'};
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
@@ -314,9 +320,10 @@ export class TDialogRoot extends TWindow {
         const titleEl = document.createElement('span');
         titleEl.textContent = this._title;
         titleEl.style.cssText = `
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffffff;
+            font-size: ${titleFontSize}px;
+            font-weight: ${titleFontWeight};
+            font-family: ${titleFontFamily};
+            color: ${titleColor};
         `;
         header.appendChild(titleEl);
 

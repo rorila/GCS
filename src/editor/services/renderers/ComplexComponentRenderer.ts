@@ -69,6 +69,7 @@ export class ComplexComponentRenderer {
     }
 
     public static renderSidePanel(ctx: IRenderContext, el: HTMLElement, obj: any): void {
+        // Side-Panels: borderRadius 0px ist gewollt (dockt am Rand an)
         el.style.borderRadius = '0px';
         el.style.flexDirection = 'column';
         el.style.alignItems = 'stretch';
@@ -76,10 +77,15 @@ export class ComplexComponentRenderer {
         el.style.overflow = 'visible';
 
         // Editor CSS: Immer sichtbarer Container mit Titel
+        const titleColor = obj.style?.color || '#ffffff';
+        const titleFontSize = obj.style?.fontSize || 14;
+        const titleFontWeight = obj.style?.fontWeight || 'bold';
+        const titleFontFamily = obj.style?.fontFamily || 'inherit';
+
         if (!el.querySelector('.sidepanel-title-bar')) {
             const titleBar = document.createElement('div');
             titleBar.className = 'sidepanel-title-bar';
-            titleBar.style.cssText = `display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid ${obj.style?.borderColor || '#4fc3f7'}; color: #fff; font-weight: bold; background: rgba(0,0,0,0.2)`;
+            titleBar.style.cssText = `display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid ${obj.style?.borderColor || '#4fc3f7'}; color: ${titleColor}; font-weight: ${titleFontWeight}; font-size: ${ctx.scaleFontSize(titleFontSize)}; font-family: ${titleFontFamily}; background: rgba(0,0,0,0.2)`;
             const titleText = document.createElement('span');
             titleText.className = 'sidepanel-title-text';
             titleBar.appendChild(titleText);
@@ -108,15 +114,27 @@ export class ComplexComponentRenderer {
     }
 
     public static renderInfoWindow(ctx: IRenderContext, el: HTMLElement, obj: any, isNew: boolean): void {
-        el.style.borderRadius = `${obj.borderRadius || 8}px`;
+        // Style-Properties aus dem Objekt lesen (Inspector-Werte), Fallbacks für Defaults
+        const borderRadius = obj.style?.borderRadius ?? obj.borderRadius ?? 12;
+        const textColor = obj.style?.color || '#ffffff';
+        const fontSize = obj.style?.fontSize || 18;
+        const fontWeight = obj.style?.fontWeight || 'bold';
+        const fontFamily = obj.style?.fontFamily || 'inherit';
+        const fontStyle = obj.style?.fontStyle || 'normal';
+        const textAlign = obj.style?.textAlign || 'center';
+
+        el.style.borderRadius = `${borderRadius}px`;
         el.style.flexDirection = 'column';
         el.style.alignItems = 'center';
         el.style.justifyContent = 'center';
         el.style.backgroundColor = obj.style?.backgroundColor || '#2a2a4a';
         el.style.border = `${obj.style?.borderWidth || 2}px solid ${obj.style?.borderColor || '#4fc3f7'}`;
         el.style.padding = `${obj.padding || 20}px`;
-        el.style.textAlign = 'center';
-        el.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.4)';
+        el.style.textAlign = textAlign;
+        // boxShadow: Nicht hardcoden — StageRenderer übernimmt style.boxShadow / glowColor
+        if (!obj.style?.boxShadow && !obj.style?.glowColor) {
+            el.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.4)';
+        }
         el.style.overflow = 'visible';
         el.style.zIndex = '2001';
 
@@ -129,16 +147,18 @@ export class ComplexComponentRenderer {
         iconEl.style.cssText = `font-size: ${obj.iconSize || 48}px; margin-bottom: 12px;`;
         el.appendChild(iconEl);
 
-        // Title
+        // Title — nutzt style.color, style.fontSize, style.fontWeight, style.fontFamily
         const titleEl = document.createElement('div');
         titleEl.textContent = obj.title || obj.name;
-        titleEl.style.cssText = `font-size: 18px; font-weight: bold; color: #ffffff; margin-bottom: 12px;`;
+        titleEl.style.cssText = `font-size: ${ctx.scaleFontSize(fontSize)}; font-weight: ${fontWeight}; font-family: ${fontFamily}; font-style: ${fontStyle}; color: ${textColor}; margin-bottom: 12px;`;
         el.appendChild(titleEl);
 
-        // Message
+        // Message — leitet Schriftfarbe vom Title ab (leicht gedimmt)
+        const msgColor = textColor === '#ffffff' || textColor === '#fff' ? '#cccccc' : textColor;
+        const msgFontSize = Math.max(10, (typeof fontSize === 'number' ? fontSize : parseInt(fontSize)) - 4);
         const messageEl = document.createElement('div');
         messageEl.textContent = obj.message || '';
-        messageEl.style.cssText = `font-size: 14px; color: #cccccc; margin-bottom: 16px; line-height: 1.5;`;
+        messageEl.style.cssText = `font-size: ${ctx.scaleFontSize(msgFontSize)}; font-family: ${fontFamily}; font-style: ${fontStyle}; color: ${msgColor}; margin-bottom: 16px; line-height: 1.5;`;
         el.appendChild(messageEl);
 
         // Spinner
@@ -231,7 +251,14 @@ export class ComplexComponentRenderer {
     }
 
     public static renderDialogRoot(ctx: IRenderContext, el: HTMLElement, obj: any): void {
-        el.style.borderRadius = '12px';
+        // Style-Properties aus dem Objekt lesen (Inspector-Werte)
+        const borderRadius = obj.style?.borderRadius ?? 12;
+        const titleColor = obj.style?.color || '#ffffff';
+        const titleFontSize = obj.style?.fontSize || 14;
+        const titleFontWeight = obj.style?.fontWeight || 'bold';
+        const titleFontFamily = obj.style?.fontFamily || 'inherit';
+
+        el.style.borderRadius = `${borderRadius}px`;
         el.style.flexDirection = 'column';
         el.style.alignItems = 'stretch';
         el.style.justifyContent = 'flex-start';
@@ -241,7 +268,7 @@ export class ComplexComponentRenderer {
         if (!el.querySelector('.dialog-title-bar')) {
             const titleBar = document.createElement('div');
             titleBar.className = 'dialog-title-bar';
-            titleBar.style.cssText = `display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid ${obj.style?.borderColor || '#4fc3f7'}; color: #fff; font-weight: bold;`;
+            titleBar.style.cssText = `display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid ${obj.style?.borderColor || '#4fc3f7'}; color: ${titleColor}; font-weight: ${titleFontWeight}; font-size: ${ctx.scaleFontSize(titleFontSize)}; font-family: ${titleFontFamily};`;
             const titleText = document.createElement('span');
             titleText.className = 'dialog-title-text';
             titleBar.appendChild(titleText);

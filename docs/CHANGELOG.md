@@ -1,5 +1,13 @@
 # Changelog (v3.31.0 - Unreleased)
 
+### 2026-04-23 (Bugfix: Inspector-Properties an Renderer anbinden)
+- **Bugfix (Inspector-Properties):** Umfassende Bereinigung wirkungsloser Inspector-Felder in 5 Komponenten. Die Renderer (`ComplexComponentRenderer`, `createRuntimeElement()`) lesen nun die `style.*`-Properties (borderRadius, color, fontSize, fontWeight, fontFamily, fontStyle, textAlign, boxShadow) tatsächlich aus dem Objekt, statt hardcoded Werte zu verwenden. Betroffene Komponenten:
+  - **TInfoWindow**: borderRadius, Textfarbe, Schriftgröße, Schriftgewicht, Schriftart, Textausrichtung, boxShadow werden nun konfigurierbar. Duplikat-Property `borderRadius` zugunsten von `style.borderRadius` entfernt.
+  - **TDialogRoot**: borderRadius, Titelfarbe, Titel-Schriftgröße, Schriftgewicht, Schriftart werden nun aus style.* gelesen (Editor + Runtime).
+  - **TSidePanel**: Titel-Schriftfarbe, -größe, -gewicht, -art werden nun konfigurierbar (Editor + Runtime).
+  - **TToast**: Eigene Properties (fontSize, borderRadius, padding, textColor) synchronisieren nun mit style.* als Fallback.
+  - **TStatusBar**: textColor, fontSize, fontFamily synchronisieren nun mit style.* als Fallback.
+
 ### 2026-04-22 (Bugfixes: TInfoWindow Buttons & TGroupPanel Copy-Paste)
 - **Bugfix (TInfoWindow):** OK- und Cancel-Buttons im RunMode schließen das Fenster nun sofort, indem sie neben `visible = false` auch direkt das DOM-Element und das modale Overlay auf `display: none` setzen. Zuvor blieb das Fenster sichtbar, da die reaktive Pipeline den StageRenderer nicht schnell genug zum Verstecken aufgefordert hat.
 - **Bugfix (TGroupPanel Copy-Paste):** Beim Kopieren (Ctrl+C / Ctrl+V) und beim Ctrl-Drag eines TGroupPanels mit Kindern verschwanden die Children aus dem Original. Ursache war, dass die serialisierten Kinder-Objekte im DTO die gleichen IDs wie die Originale behielten, wodurch im Datenmodell zwei Eltern dieselben Kind-IDs beanspruchten. Fix: `onPasteCallback` und `onObjectCopy` vergeben nun rekursiv neue eindeutige IDs, `parentId`-Referenzen und Namen an alle Children (inkl. verschachtelter Kinder).
