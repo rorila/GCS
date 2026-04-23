@@ -21,8 +21,8 @@ export class TextObjectRenderer {
         const fstyle = obj.style?.fontStyle;
         el.style.fontStyle = (fstyle === true || fstyle === 'italic') ? 'italic' : 'normal';
         if (obj.style?.fontFamily) el.style.fontFamily = obj.style.fontFamily;
-        el.style.userSelect = 'text';
-        el.style.cursor = 'text';
+        el.style.userSelect = 'none';
+        el.style.cursor = 'inherit';
         const align = obj.style?.textAlign || obj.alignment;
         if (align === 'center') el.style.justifyContent = 'center';
         else if (align === 'right') el.style.justifyContent = 'flex-end';

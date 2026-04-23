@@ -1,3 +1,9 @@
+[UC-2026-04-23-Hover-Cursor-Fix]
+Dateien:
+- src/editor/services/renderers/TextObjectRenderer.ts
+  - Methode `renderLabel` (Zeile ~24-25): `cursor: text` auf `cursor: inherit` und `userSelect: text` auf `none` geändert.
+Beschreibung: Beim Hovern über klickbare Container (TGroupPanel) im Run-Modus erschien bisher ein Text-Cursor, da die darin liegenden Labels diesen standardmäßig forcierten. Durch die Umstellung auf `inherit` vererbt der Container nun korrekt seinen Pointer-Cursor an die Kind-Elemente.
+
 [UC-2026-04-23-Font-Scaling-Standalone-Player]
 Dateien:
 - src/editor/services/renderers/TextObjectRenderer.ts
